@@ -11,7 +11,7 @@
                             <div class="ms-4 d-flex align-items-center ms-2">
                                 <label class="text-nowrap form-label fw-semibold me-1"> {{
                                     _i18n("alert.graph.maximum_alerts")
-                                    }} </label>
+                                }} </label>
                                 <input ref="slider_max_alerts" type="range" class="form-range" min="10" max="10000"
                                     v-model="maxAlerts" data-bs-toggle="tooltip" data-bs-placement="top"
                                     :title="maxAlerts" />
@@ -23,6 +23,20 @@
                                     v-model="minScore" data-bs-toggle="tooltip" data-bs-placement="top"
                                     :title="minScore" />
                             </div>
+                            <div class="ms-4 d-flex align-items-center">
+                                <div class="w-100">
+                                    <input type="text" class="form-control form-control-sm me-2"
+                                        :class="{ 'is-invalid': nodeNotFoundMessage }" v-model="searchNodeId"
+                                        placeholder="Center on IP" @keyup.enter="findNode" />
+                                    <div v-if="nodeNotFoundMessage" class="invalid-feedback d-block">
+                                        Host not present
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-primary ms-2" @click="findNode">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
                         </template>
                     </RangePicker>
                 </div>
@@ -32,7 +46,7 @@
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0 fw-bold">{{ _i18n("alert.graph.alerts_topology") }}</h5>
-                        <button class="btn btn-sm btn-outline-secondary" @click="resetGraph">
+                        <button class="btn btn-sm btn-outline-secondary" @click="reset_filters">
                             <i class="fa-solid fa-rotate-right"></i>
                         </button>
                     </div>
@@ -98,7 +112,7 @@
                                             <i class="fas fa-lg fa-chart-area"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_flows")
-                                            }}</span>
+                                                }}</span>
                                         </a>
                                     </div>
                                     <div class="col-12">
@@ -106,7 +120,7 @@
                                             <i class="fa-solid fa-triangle-exclamation"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_alerts")
-                                            }} </span>
+                                                }} </span>
                                         </a>
                                     </div>
                                 </div>
@@ -134,44 +148,44 @@
                                             v-if="selectedNodeData && selectedNodeData.host_info && selectedNodeData.host_info[role]">
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.first_seen")
-                                                }}</span>
+                                                    }}</span>
                                                 <span class="detail-value">{{
                                                     selectedNodeData.host_info[role]?.first_seen
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.last_seen")
-                                                }}</span>
+                                                    }}</span>
                                                 <span class="detail-value">{{
                                                     selectedNodeData.host_info[role]?.last_seen ||
                                                     '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.alerts_count")
-                                                }}</span>
+                                                    }}</span>
                                                 <span class="detail-value">{{
                                                     formatterUtils.getFormatter("number")(selectedNodeData.host_info[role]?.alerts_count)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.total_score")
-                                                }}</span>
+                                                    }}</span>
                                                 <span class="detail-value">{{
                                                     formatterUtils.getFormatter("number")(selectedNodeData.host_info[role]?.total_score)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.total_traffic")
-                                                }}</span>
+                                                    }}</span>
                                                 <span class="detail-value">{{
                                                     formatterUtils.getFormatter("bytes")(selectedNodeData.host_info[role]?.total_traffic_bytes)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
 
                                         <div v-else>
                                             <span class="detail-label">No data for {{ selectedNode.id }} as {{ role
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <div class="alert-summary card bg-light mt-3">
@@ -285,7 +299,7 @@
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.ip") }}</span>
                                                 <span class="detail-value">{{ selectedAlertData?.dst_ip || 'N/A'
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.country") }}</span>
@@ -353,6 +367,8 @@ const selectedAlertData = ref({});
 const selectedNode = ref(false);
 const lastClickedElementIsNode = ref(true); // if true last clicked was a node, if false is an edge between nodes
 const activeFlows = ref({ recordsTotal: 0, url: "#" });
+const searchNodeId = ref('');
+const nodeNotFoundMessage = ref(false); // if focus on a node does not find a node, show error
 
 /* Computed URLs to get host information*/
 const asnPageUrl = computed(() => {
@@ -409,6 +425,7 @@ const applyFilters = async () => {
 
 /******************************************************************************/
 /**************************** GRAPH FUNCTIONS ******************************* */
+
 async function draw_graph(redraw = false, centerIP = null) {
     loading.value = true;
     try {
@@ -446,7 +463,6 @@ async function draw_graph(redraw = false, centerIP = null) {
             }
         }
 
-        //no_data.value = false;
         const width = alerts_graph.value.clientWidth || alerts_graph.value.offsetWidth || alerts_graph.value.getBoundingClientRect().width;
         const height = alerts_graph.value.clientHeight || 500;
 
@@ -454,7 +470,11 @@ async function draw_graph(redraw = false, centerIP = null) {
         const svg = d3.select(alerts_graph.value)
             .append("svg")
             .attr("width", width)
-            .attr("height", height);
+            .attr("height", height)
+            .style("user-select", "none")
+            .style("-webkit-user-select", "none")
+            .style("-moz-user-select", "none")
+            .style("-ms-user-select", "none");
 
         // Create main group for zoom transformations
         const mainGroup = svg.append("g");
@@ -486,16 +506,58 @@ async function draw_graph(redraw = false, centerIP = null) {
             .domain([1, 50, 100])
             .range(["#E0E0E0", "#FFB74D", "#FF9800", "#FF8F00"]);
 
+        // Link color scale for highlighted paths - using more saturated colors
+        const highlightColorScale = d3.scaleThreshold()
+            .domain([1, 50, 100])
+            .range(["#1E88E5", "#1565C0", "#0D47A1", "#0A2472"]);
+
         // compute nodes position
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id).distance(150))
             .force("charge", d3.forceManyBody().strength(-500))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collision", d3.forceCollide().radius(30))
-            .force("x", d3.forceX(width / 2).strength(0.1))
-            .force("y", d3.forceY(height / 2).strength(0.1));
+            .force("x", d3.forceX(width / 2).strength(0.2))
+            .force("y", d3.forceY(height / 2).strength(0.2));
         simulation.stop();
         for (let i = 0; i < 300; ++i) simulation.tick();
+
+        // DFS init adjacency list
+        const adjacencyList = {};
+
+        nodes.forEach(node => {
+            adjacencyList[node.id] = [];
+        });
+
+        links.forEach(link => {
+            const sourceId = link.source.id || link.source;
+            const targetId = link.target.id || link.target;
+            adjacencyList[sourceId].push({ targetId, link });
+        });
+
+        // Find all outgoing paths from a node, when clicked
+        function findOutgoingPathsFromNode(sourceId) {
+            const pathLinks = new Set();
+            const visited = new Set();
+
+            function dfs(currentId) {
+                if (visited.has(currentId)) return;
+                visited.add(currentId);
+
+                // get neighbors of current node
+                const neighbors = adjacencyList[currentId] || [];
+
+                neighbors.forEach(neighbor => {
+                    pathLinks.add(neighbor.link);
+                    // iterate
+                    dfs(neighbor.targetId);
+                });
+            }
+
+            // start dfs from node
+            dfs(sourceId);
+            return pathLinks;
+        }
 
         const link = mainGroup.append("g")
             .selectAll("line")
@@ -505,12 +567,14 @@ async function draw_graph(redraw = false, centerIP = null) {
             .attr("style", d => {
                 return `stroke: ${linkColorScale(d.weight)} !important`
             })
-            .attr("stroke-opacity", 0.8)
-            .attr("stroke-width", d => Math.sqrt(d.weight) / 4)
+            .attr("stroke-opacity", 1)
+            // Make links more visible by increasing base stroke width
+            .attr("stroke-width", 4)//Math.max(2, Math.sqrt(d.weight) / 1.5))
             .attr("stroke-dasharray", null)
             .attr("marker-end", "url(#arrow)")
-
             .on("click", (event, d) => {
+                event.preventDefault();
+
                 // last clicked item is an edge
                 lastClickedElementIsNode.value = false;
 
@@ -581,30 +645,16 @@ async function draw_graph(redraw = false, centerIP = null) {
             .attr("class", "node-group")
             .attr("transform", d => `translate(${d.x}, ${d.y})`)
             .call(drag())
-            .on("click", (event, clicked_node) => {
+            .style("pointer-events", "all")
+            .on("click", async (event, clicked_node) => {
+
+                event.stopPropagation();
+                event.preventDefault();
+
                 lastClickedElementIsNode.value = true;
-                // Clear any existing timeout
-                if (clickTimer) {
-                    clearTimeout(clickTimer);
-                    clickTimer = null;
+                selectedNode.value = clicked_node.id;
 
-                    // If we click the same node twice quickly, it's a double-click
-                    if (lastClickedNode === clicked_node.id) {
-                        lastClickedNode = null;
-                        return;
-                    }
-                }
-
-                if (selectedNode.value === clicked_node.id) {
-                    return;
-                }
-                // save last clicked node ip
-                lastClickedNode = clicked_node.id;
-
-                // Set a timeout to process this as a single click after a delay
-                clickTimer = setTimeout(() => {
-                    clickTimer = null;
-
+                try {
                     // Reset all node styles
                     d3.selectAll(".node-group circle")
                         .attr("stroke", "#212121")
@@ -612,24 +662,50 @@ async function draw_graph(redraw = false, centerIP = null) {
 
                     // Highlight selected node
                     d3.select(event.currentTarget).select("circle")
-                        .attr("stroke", "#FFC107") // Amber highlight
+                        .attr("stroke", "#FFC107")
                         .attr("stroke-width", 2);
 
-                    // Update all edges - dashed outgoing and solid  incoming
+                    // Reset all links to default style
+                    d3.selectAll(".link")
+                        .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
+                        .attr("stroke-width", 8)
+                        .attr("stroke-dasharray", null);
+
+                    // Find all paths with the node as source
+                    const outgoingPathLinks = findOutgoingPathsFromNode(clicked_node.id);
+
+                    // Highlight outgoing paths
+                    d3.selectAll(".link")
+                        .filter(d => outgoingPathLinks.has(d))
+                        .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
+                        .attr("stroke-width", 6)
+                        .attr("stroke-opacity", 1.0);
+
+                    // Dashed lines, outgoing links
                     d3.selectAll(".link")
                         .attr("stroke-dasharray", link =>
                             (link.source.id === clicked_node.id || link.source === clicked_node.id) ? "5,5" : null);
 
-                    selectedNode.value = clicked_node.id;
+                } catch (err) {
+                    console.error("Error in updating visual:", err);
+                }
 
+                // Update URL and get host info
+                try {
                     // add filter to url
                     add_filter('ip', clicked_node.id);
 
-                    get_host_info();
-                }, 200);
+                    await new Promise(resolve => setTimeout(resolve, 0));
+
+                    await get_host_info();
+                } catch (err) {
+                    console.error("Error in URL/host update:", err);
+                }
             })
+
             .on("dblclick", async function (event, clicked_node) {
-                // Clear the single-click timer since this is a double-click
+                event.preventDefault();
+
                 if (clickTimer) {
                     clearTimeout(clickTimer);
                     clickTimer = null;
@@ -638,7 +714,7 @@ async function draw_graph(redraw = false, centerIP = null) {
 
                 selectedNode.value = clicked_node.id;
 
-                // Filter links where the clicked node's ID appears as either source or destination
+                // Filter links where the clicked node ID appears as source or destination
                 const filteredLinks = links.filter(link => {
                     const sourceId = link.source.id || link.source;
                     const targetId = link.target.id || link.target;
@@ -676,11 +752,11 @@ async function draw_graph(redraw = false, centerIP = null) {
             .attr("stroke-width", 1);
 
         nodeGroup.append("text")
-            .attr("x", 0)
-            .attr("y", nodeRadius + 12)
-            .attr("text-anchor", "middle")
+            .attr("x", -nodeRadius - 6)
+            .attr("y", 4)
+            .attr("text-anchor", "end")
             .attr("font-size", "12px")
-            .text(d => d.id);
+            .text(d => d.name || d.id); // render resolved name or ip
 
         // Add Bootstrap tooltips to nodes
         nodeGroup.each(function (d) {
@@ -704,189 +780,6 @@ async function draw_graph(redraw = false, centerIP = null) {
         const paddedXExtent = [xExtent[0] - xPadding, xExtent[1] + xPadding];
         const paddedYExtent = [yExtent[0] - yPadding, yExtent[1] + yPadding];
 
-        // Create minimap inside the draw_graph function
-        const minimapWidth = Math.min(width * 0.14, 180);
-        const minimapHeight = Math.min(height * 0.14, 120);
-        const minimapMargin = 15;
-
-        // Create the minimap container
-        const minimap = svg.append("g")
-            .attr("class", "minimap")
-            .attr("transform", `translate(${width - minimapWidth - minimapMargin}, ${height - minimapHeight - minimapMargin})`);
-
-        const defs = svg.append("defs");
-        defs.append("filter")
-            .attr("id", "drop-shadow")
-            .attr("height", "130%")
-            .append("feDropShadow")
-            .attr("dx", 2)
-            .attr("dy", 2)
-            .attr("stdDeviation", 2)
-            .attr("flood-color", "rgba(0,0,0,0.3)");
-
-        minimap.append("rect")
-            .attr("width", minimapWidth)
-            .attr("height", minimapHeight)
-            .attr("fill", "#f8f9fa")
-            .attr("fill-opacity", 0.9)
-            .attr("stroke", "#dee2e6")
-            .attr("stroke-width", 1)
-            .attr("rx", 6)
-            .attr("ry", 6)
-            .attr("filter", "url(#drop-shadow)");
-
-        // Minimap title
-        minimap.append("text")
-            .attr("x", 8)
-            .attr("y", 14)
-            .attr("font-size", "10px")
-            .attr("fill", "#6c757d")
-            .attr("font-weight", "bold")
-            .text("Network Map");
-
-        const minimapContent = minimap.append("g")
-            .attr("transform", `translate(5, 20)`);
-
-        const contentWidth = minimapWidth - 10;
-        const contentHeight = minimapHeight - 25;
-
-        // Create scales for mapping positions to the minimap
-        const minimapXScale = d3.scaleLinear()
-            .domain(paddedXExtent)
-            .range([0, contentWidth]);
-
-        const minimapYScale = d3.scaleLinear()
-            .domain(paddedYExtent)
-            .range([0, contentHeight]);
-
-        // Add a background for content area
-        minimapContent.append("rect")
-            .attr("width", contentWidth)
-            .attr("height", contentHeight)
-            .attr("fill", "#f1f3f5")
-            .attr("rx", 4)
-            .attr("ry", 4);
-
-        // Add dots for each node
-        minimapContent.selectAll(".minimap-node")
-            .data(nodes)
-            .enter()
-            .append("circle")
-            .attr("class", "minimap-node")
-            .attr("cx", d => minimapXScale(d.x))
-            .attr("cy", d => minimapYScale(d.y))
-            .attr("r", 1.5)
-            .attr("fill", "#4a4a4a")
-            .attr("opacity", 0.8);
-
-        // Add links to minimap
-        minimapContent.selectAll(".minimap-link")
-            .data(links)
-            .enter()
-            .append("line")
-            .attr("class", "minimap-link")
-            .attr("x1", d => minimapXScale(d.source.x))
-            .attr("y1", d => minimapYScale(d.source.y))
-            .attr("x2", d => minimapXScale(d.target.x))
-            .attr("y2", d => minimapYScale(d.target.y))
-            .attr("stroke", "#adb5bd")
-            .attr("stroke-width", 0.5)
-            .attr("opacity", 0.3);
-
-        // Viewport rectangle for better localization
-        const viewport = minimapContent.append("rect")
-            .attr("class", "minimap-viewport")
-            .attr("stroke", "#495057")
-            .attr("stroke-width", 1)
-            .attr("stroke-dasharray", "2,2")
-            .attr("fill", "#212529")
-            .attr("fill-opacity", 0.1)
-            .attr("rx", 2)
-            .attr("ry", 2)
-            .attr("pointer-events", "none");
-
-        // Update viewport when view changes
-        function updateViewport(transform) {
-            // Visible bounds after translation
-            const visibleBounds = {
-                x: -transform.x / transform.k,
-                y: -transform.y / transform.k,
-                width: width / transform.k,
-                height: height / transform.k
-            };
-
-            // Calculate the center point of the visible area
-            const centerX = visibleBounds.x + visibleBounds.width / 2;
-            const centerY = visibleBounds.y + visibleBounds.height / 2;
-
-            // Use the larger dimension to create a square viewport
-            const maxDimension = Math.max(visibleBounds.width, visibleBounds.height);
-
-            // Calculate the square bounds centered on the same point
-            const squareBounds = {
-                x: centerX - maxDimension / 2,
-                y: centerY - maxDimension / 2,
-                width: maxDimension,
-                height: maxDimension
-            };
-
-            // Map to minimap coordinates
-            const minimapViewX = minimapXScale(squareBounds.x);
-            const minimapViewY = minimapYScale(squareBounds.y);
-            const minimapViewWidth = minimapXScale(squareBounds.x + squareBounds.width) - minimapViewX;
-            const minimapViewHeight = minimapYScale(squareBounds.y + squareBounds.height) - minimapViewY;
-
-            // Min viewport size
-            const minViewportDimension = 10;
-            const adjustedViewWidth = Math.max(minimapViewWidth, minViewportDimension);
-            const adjustedViewHeight = Math.max(minimapViewHeight, minViewportDimension);
-
-            // Make the view a square
-            const squareSize = Math.max(adjustedViewWidth, adjustedViewHeight);
-
-            // Center the square on the original center point
-            const squareCenterX = minimapXScale(centerX);
-            const squareCenterY = minimapYScale(centerY);
-
-            // Calculate the top-left corner of the square
-            let squareX = squareCenterX - squareSize / 2;
-            let squareY = squareCenterY - squareSize / 2;
-
-            // Constrain viewport to the minimap boundaries
-            squareX = Math.max(0, Math.min(contentWidth - squareSize, squareX));
-            squareY = Math.max(0, Math.min(contentHeight - squareSize, squareY));
-
-            // Update the viewport with a square shape
-            viewport
-                .attr("x", squareX)
-                .attr("y", squareY)
-                .attr("width", Math.min(contentWidth - squareX, squareSize))
-                .attr("height", Math.min(contentHeight - squareY, squareSize));
-        }
-
-        // Make the minimap clickable to navigate
-        minimapContent.append("rect")
-            .attr("width", contentWidth)
-            .attr("height", contentHeight)
-            .attr("fill", "transparent")
-            .style("cursor", "pointer")
-            .on("click", function (event) {
-
-                const [mx, my] = d3.pointer(event);
-
-                // Convert to main graph coordinates
-                const targetX = minimapXScale.invert(mx);
-                const targetY = minimapYScale.invert(my);
-
-                // Calculate the transform needed to center on this point
-                const scale = d3.zoomTransform(svg.node()).k;
-                const tx = -targetX * scale + width / 2;
-                const ty = -targetY * scale + height / 2;
-
-                svg.transition().duration(500)
-                    .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-            });
-
         // Get graph size
         const graphWidth = paddedXExtent[1] - paddedXExtent[0];
         const graphHeight = paddedYExtent[1] - paddedYExtent[0];
@@ -899,24 +792,20 @@ async function draw_graph(redraw = false, centerIP = null) {
         ) * 0.9); // 90% of the scale
 
         // Create zoom behavior with constraints
-        const zoom = d3.zoom()
-            .scaleExtent([minZoom, maxZoom]) // Set zoom limits
+        const zoomBehavior = d3.zoom()
+            .scaleExtent([minZoom, maxZoom])
             .translateExtent([[paddedXExtent[0], paddedYExtent[0]], [paddedXExtent[1], paddedYExtent[1]]])
             .on("zoom", (event) => {
                 mainGroup.attr("transform", event.transform);
-
-                // Update minimap viewport when zoom/pan changes
-                updateViewport(event.transform);
             });
 
-        svg.call(zoom);
+        svg.call(zoomBehavior);
 
-        // Initial viewport update
-        updateViewport(d3.zoomIdentity);
-
+        // Store this in a global variable or access it later
+        window.graphZoomBehavior = zoomBehavior;
         // If centerIP is provided, center the graph on that node
         if (centerIP) {
-            centerOnNode(centerIP, svg, zoom, width, height);
+            centerOnNode(centerIP, svg, zoomBehavior, width, height);
         } else {
             // Center and scale the view to fit all nodes
             const padding = 50;
@@ -934,8 +823,9 @@ async function draw_graph(redraw = false, centerIP = null) {
             const ty = height / 2 - (yExtent[0] + yExtent[1]) / 2 * scale;
 
             svg.transition().duration(750)
-                .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+                .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
         }
+
         loading.value = false;
 
     } catch (error) {
@@ -947,46 +837,78 @@ async function draw_graph(redraw = false, centerIP = null) {
     }
 }
 
-// Function to center the graph on a specific node
+
 function centerOnNode(nodeId, svg, zoom, width, height) {
-    const targetNode = nodes.find(node => node.id === nodeId);
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return;
 
-    if (targetNode) {
+    const x = node.x;
+    const y = node.y;
 
-        const scale = 1.5; // Zoom level
-        const x = width / 2 - targetNode.x * scale;
-        const y = height / 2 - targetNode.y * scale;
+    // Calculate the translation to center the node
+    const tx = width / 2 - x * zoom.scale();
+    const ty = height / 2 - y * zoom.scale();
 
-        svg.transition()
-            .duration(750)
-            .call(zoom.transform, d3.zoomIdentity
-                .translate(x, y)
-                .scale(scale));
+    svg.transition().duration(750)
+        .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(zoom.scale()));
+}
 
-        // Highlight the centered node
+function findNode() {
+
+    if (!searchNodeId.value) return;
+
+    const foundNode = nodes.find(node => ((node.id === searchNodeId.value) || (node.name === searchNodeId.value)));
+
+    if (foundNode) {
+
+        selectedNode.value = foundNode.id;
+
+        const svg = d3.select(alerts_graph.value).select("svg");
+        const zoom = window.graphZoomBehavior; // reuse the zoom behavior
+        const g = svg.select("g"); // assuming your nodes/links are inside a <g> tag
+
+        const newZoom = 3;
+
+        const svgNode = svg.node();
+        const width = svgNode.clientWidth || svgNode.getBoundingClientRect().width;
+        const height = svgNode.clientHeight || svgNode.getBoundingClientRect().height;
+
+        // First, apply scale
+        svg.transition().duration(300)
+            .call(zoom.scaleTo, newZoom)
+            .transition().duration(300)
+            .call(zoom.translateTo, foundNode.x, foundNode.y);
+
+        // Highlight links and node
+        d3.selectAll(".link")
+            .attr("stroke-dasharray", link =>
+                (link.source.id === foundNode.id || link.source === foundNode.id) ? "5,5" : null);
+
         d3.selectAll(".node-group circle")
             .attr("stroke", "#212121")
             .attr("stroke-width", 1);
 
-        // Find and highlight the specific node
         d3.selectAll(".node-group")
-            .filter(d => d.id === nodeId)
+            .filter(d => d.id === foundNode.id)
             .select("circle")
             .attr("stroke", "#FFC107")
             .attr("stroke-width", 2);
 
-        // Update edges to show connections from this node
-        d3.selectAll(".link")
-            .attr("stroke-dasharray", link =>
-                (link.source.id === nodeId || link.source === nodeId) ? "5,5" : null);
-
-        // Set as selected node
-        const node = nodes.find(n => n.id === nodeId);
-        if (node) {
-            selectedNode.value = node;
-        }
+        nodeNotFoundMessage.value = false;
+    } else {
+        nodeNotFoundMessage.value = true;
     }
 }
+
+function resetZoom() {
+    const svg = d3.select(alerts_graph.value).select("svg");
+    const zoom = window.graphZoomBehavior;
+
+    svg.transition()
+        .duration(500)
+        .call(zoom.transform, d3.zoomIdentity);
+}
+
 
 /******************************************************************************/
 /****************************** API GETTERS ********************************* */
@@ -1077,11 +999,22 @@ const get_links_and_nodes = async function () {
         links.push(link);
 
         // prepare node data
-        if (!nodesDict.has(alert.src_ip))
-            nodesDict.set(alert.src_ip, { id: alert.src_ip, name: alert.src_ip, src_asn: alert.src_asn, src_country: alert.src_country });
+        if (!nodesDict.has(alert.src_ip)) {
 
-        if (!nodesDict.has(alert.dst_ip))
-            nodesDict.set(alert.dst_ip, { id: alert.dst_ip, name: alert.dst_ip, dst_asn: alert.dst_asn, dst_country: alert.dst_country });
+            let node_data = { id: alert.src_ip, name: alert.src_ip, src_asn: alert.src_asn, src_country: alert.src_country }
+            if (alert?.src_name) {
+                node_data["name"] = alert.src_name
+            }
+            nodesDict.set(alert.src_ip, node_data);
+        }
+
+        if (!nodesDict.has(alert.dst_ip)) {
+            let node_data = { id: alert.dst_ip, name: alert.dst_ip, dst_asn: alert.dst_asn, dst_country: alert.dst_country }
+            if (alert?.dst_name) {
+                node_data["name"] = alert.dst_name
+            }
+            nodesDict.set(alert.dst_ip, node_data);
+        }
 
         // Track unique source IPs
         if (!sourceNodes.value.includes(alert.src_ip)) {
@@ -1108,46 +1041,46 @@ function resize() {
     }, 250);
 }
 
-// node dragging function
 function drag() {
+    return d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended);
+
     function dragstarted(event, d) {
-        d.fx = d.x;
-        d.fy = d.y;
+        // Sync d.x and d.y with the actual position from the transform
+        const [x, y] = d3.select(this).attr("transform").match(/translate\(([^,]+),([^)]+)\)/).slice(1).map(Number);
+        d.x = x;
+        d.y = y;
+
+        $(this).tooltip('hide');
+        $(this).tooltip('disable');
+
+        d3.select(this).raise();
     }
 
     function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
+        d.x = event.x;
+        d.y = event.y;
 
-        // Update node position directly
-        d3.select(this).attr("transform", `translate(${event.x}, ${event.y})`);
+        // Move group
+        d3.select(this).attr("transform", `translate(${d.x}, ${d.y})`);
 
-        // Update any connected links
+        // Update links
         d3.selectAll(".link")
             .filter(link => link.source === d || link.source.id === d.id || link.target === d || link.target.id === d.id)
             .attr("x1", link => link.source === d || link.source.id === d.id ? event.x : link.source.x)
             .attr("y1", link => link.source === d || link.source.id === d.id ? event.y : link.source.y)
             .attr("x2", link => link.target === d || link.target.id === d.id ? event.x : link.target.x)
             .attr("y2", link => link.target === d || link.target.id === d.id ? event.y : link.target.y);
-
-        // Update any connected labels
-        d3.selectAll("text")
-            .filter(textNode => textNode.id === d.id)
-            .attr("x", event.x)
-            .attr("y", event.y);
     }
 
     function dragended(event, d) {
-        // Save final position
-        d.x = event.x;
-        d.y = event.y;
+        // re-enable tooltip
+        $(this).tooltip('enable');
     }
-
-    return d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended);
 }
+
 
 onMounted(async () => {
     // Set default url parameters
@@ -1204,6 +1137,13 @@ watch(maxAlerts, (newValue) => {
     add_filter('limit', newValue);
 });
 
+watch(searchNodeId, (newValue) => {
+    // reset zoom if no node is selected
+    if (newValue.length === 0) {
+        resetZoom();
+    }
+});
+
 function init_url_params() {
     ntopng_url_manager.set_key_to_url("ifid", ifid);
     // This is to retrieve all alerts and not filter on engaged or require attention
@@ -1223,6 +1163,7 @@ function init_url_params() {
     ntopng_url_manager.set_key_to_url("score", score_greater_equal);
     ntopng_url_manager.set_key_to_url("limit", maxAlerts.value);
     ntopng_url_manager.set_key_to_url("severity", "");
+    ntopng_url_manager.set_key_to_url("ip", "");
 
 }
 
@@ -1270,17 +1211,6 @@ const create_url = (url) => {
     return url;
 }
 
-function resetGraph() {
-    // Reset data and fetch fresh data from the server
-    links = [];
-    nodes = [];
-
-    // Redraw the graph with fresh data
-    draw_graph(true);
-
-    // Reset any filters or selections
-    selectedNode.value = null;
-}
 /******************************************************************************/
 
 </script>
