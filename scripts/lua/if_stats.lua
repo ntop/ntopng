@@ -1327,7 +1327,9 @@ elseif page == "networks" and is_packet_interface then
             end
             print("</ul>")
         end
-
+        print(
+            '<button id="btn_reset_broadcast" type="button" class="btn btn-danger" onclick="resetBroadcastDomains();">' ..
+            i18n("reset") .. '</button>&nbsp;')
         print("</td></tr>")
     else
         print("<tr><th width=250>" .. i18n("broadcast_domain") .. "</th><td colspan=5>")
@@ -2581,6 +2583,23 @@ var resetInterfaceCounters = function(drops_only) {
     $('#reset_drops_dialog').modal('show');
   else
     $('#reset_stats_dialog').modal('show');
+}
+
+function resetBroadcastDomains() {
+    $.ajax({ type: 'post',
+    url: ']]
+    print(ntop.getHttpPrefix())
+    print [[/lua/reset_broadcast_domains.lua',
+        data: {ifid: ]]
+    print(ifstats.id)
+    print [[, csrf: "]]
+    print(ntop.getRandomCSRFValue())
+    print [["},
+    success: function(rsp) {},
+    complete: function() {
+      window.location.href = window.location.href;
+    }
+    });
 }
 
 ]]

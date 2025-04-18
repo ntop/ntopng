@@ -824,6 +824,19 @@ static int ntop_interface_name2id(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_reset_broadcast_domains(lua_State *vm) {
+  NetworkInterface *curr_iface = getCurrentInterface(vm);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!curr_iface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  lua_pushnil(vm);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_reset_counters(lua_State *vm) {
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   bool only_drops = true;
@@ -5583,6 +5596,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"deleteHostData", ntop_interface_delete_host_data},
     {"resetMacStats", ntop_interface_reset_mac_stats},
     {"deleteMacData", ntop_interface_delete_mac_data},
+    {"resetBroadcastDomains", ntop_interface_reset_broadcast_domains},
 
     /* Functions related to the management of per-interface queues */
     {"getQueuesStats", ntop_get_interface_queues_stats},
