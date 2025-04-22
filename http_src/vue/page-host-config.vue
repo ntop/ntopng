@@ -6,7 +6,7 @@
   <div class="m-3">
     <h5>{{ _i18n('host_config.host_config') }}</h5>
     <hr>
-    <div class="m-4 card card-shadow">
+    <div class="card card-shadow">
       <div class="card-body">
         <table class="table table-striped table-bordered col-sm-12">
           <tbody class="table_length">

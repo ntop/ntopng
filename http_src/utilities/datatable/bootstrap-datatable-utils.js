@@ -73,7 +73,7 @@ export function datatableAddFilterButtonCallback(td_idx, callback_str, label, ti
 }
 
 export function datatableAddLinkButtonCallback(td_idx, link, label, title = '') {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", "", link, true, title);
+   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-primary", "", link, true, title);
 }
 
 export function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {

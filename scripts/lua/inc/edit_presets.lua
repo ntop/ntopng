@@ -286,7 +286,7 @@ local function printDeviceProtocolsPage()
       tableCallback: function(opts) {
         if (! legend_appended) {
           legend_appended = true;
-          $("#]] print(table_id) print[[ .dt-toolbar-container").append("]]
+          $("#]] print(table_id) print[[ #dt-bottom-details").append("]]
 
    -- Legenda
    printDevicePolicyLegenda()
