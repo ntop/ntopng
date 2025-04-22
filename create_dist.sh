@@ -5,6 +5,14 @@
 # 1. Pull ntopng dist under ../ https://github.com/ntop/ntopng-dist.git
 # run ./create_dist.sh to create and push the compiled dist directly
 
+# Check if dist folder exists as sibling folder of ntopng
+if [ ! -d "../ntopng-dist" ]; then
+  echo "** Cloning ntopng-dist repository"
+  git clone https://github.com/ntop/ntopng-dist.git ../ntopng-dist || {
+    echo "Failed to clone repository"
+    exit 1
+  }
+fi
 echo "** Changing to ntopng-dist directory"
 cd ../ntopng-dist/ || exit 1
 echo "Current directory: $(pwd)"
