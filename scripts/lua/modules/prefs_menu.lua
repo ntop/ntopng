@@ -77,10 +77,6 @@ local menu_subpages = {{
                 url = "https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"
             })
         },
-        toggle_sites_collection = {
-            title = i18n("prefs.toggle_sites_collection_title"),
-            description = i18n("prefs.toggle_sites_collection_description")
-        },
         toggle_dns_cache = {
             title = i18n("prefs.toggle_dns_cache_title"),
             description = i18n("prefs.toggle_dns_cache_description")
@@ -359,10 +355,6 @@ local menu_subpages = {{
         toggle_host_mask = {
             title = i18n("prefs.toggle_host_mask_title"),
             description = i18n("prefs.toggle_host_mask_description")
-        },
-        toggle_fingerprint_stats = {
-            title = i18n("prefs.toggle_fingerprint_stats_title"),
-            description = i18n("prefs.toggle_fingerprint_stats_description")
         }, 
         toggle_use_mac_in_flow_key = {
             title = i18n("prefs.toggle_use_mac_in_flow_key_title"),
@@ -529,6 +521,22 @@ local menu_subpages = {{
         toggle_snmp_excluded_from_usage = {
             title = i18n("prefs.toggle_snmp_excluded_from_usage_title"),
             description = i18n("prefs.toggle_snmp_excluded_from_usage_description")
+        }
+    }
+}, {
+    id = "telemetry",
+    label = i18n("prefs.telemetry"),
+    advanced = false,
+    pro_only = false,
+    hidden = false,
+    entries = {
+        toggle_fingerprint_stats = {
+            title = i18n("prefs.toggle_fingerprint_stats_title"),
+            description = i18n("prefs.toggle_fingerprint_stats_description")
+        },
+        toggle_sites_collection = {
+            title = i18n("prefs.toggle_sites_collection_title"),
+            description = i18n("prefs.toggle_sites_collection_description")
         }
     }
 }, {

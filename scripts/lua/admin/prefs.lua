@@ -403,11 +403,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0"
         })
 
-        prefsToggleButton(subpage_active, {
-            field = "toggle_sites_collection",
-            pref = "sites_collection",
-            default = "0"
-        })
 
         prefsToggleButton(subpage_active, {
             field = "toggle_dns_cache",
@@ -507,6 +502,34 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "1",
             pref = "starttls"
         })
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+            i18n("save") .. '</button></th></tr>')
+        print('</table>')
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+        </form> ]]
+    end
+
+-- ================================================================================
+
+    function printTelemetry()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
+            i18n("prefs.telemetry") .. '</th></tr></thead>')
+            prefsToggleButton(subpage_active, {
+                field = "toggle_fingerprint_stats",
+                default = "0",
+                pref = "fingerprint_stats"
+            })
+            prefsToggleButton(subpage_active, {
+                field = "toggle_sites_collection",
+                pref = "sites_collection",
+                default = "0"
+            })
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
@@ -747,11 +770,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pref = "use_mac_in_flow_key"
             })
 
-            prefsToggleButton(subpage_active, {
-                field = "toggle_fingerprint_stats",
-                default = "0",
-                pref = "fingerprint_stats"
-            })
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..
@@ -2475,6 +2493,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "dump_settings") then
         printDumpSettings()
+    end
+
+    if(tab == "telemetry") then
+        printTelemetry()
     end
 
     if (tab == "on_disk_ts") then
