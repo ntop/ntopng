@@ -10,31 +10,34 @@
                         <template v-slot:extra_range_buttons>
                             <div class="ms-4 d-flex align-items-center ms-2">
                                 <label class="text-nowrap form-label fw-semibold me-1"> {{
-                                    _i18n("alert.graph.maximum_alerts")
+                                    _i18n("map_page.asset_in_edges")
                                 }} </label>
-                                <input ref="slider_max_alerts" type="range" class="form-range" min="10" max="10000"
-                                    v-model="maxAlerts" data-bs-toggle="tooltip" data-bs-placement="top"
-                                    :title="maxAlerts" />
+                                <input ref="slider_min_incoming_edges" type="range" class="form-range" min="0"
+                                    max="10000" v-model="minIncomingEdges" data-bs-toggle="tooltip"
+                                    data-bs-placement="top" :title="minIncomingEdges" />
                             </div>
                             <div class="ms-4 d-flex align-items-center ms-2">
                                 <label class="text-nowrap form-label fw-semibold me-1"> {{
-                                    _i18n("alert.graph.minimum_score") }} </label>
-                                <input ref="slider_min_score" type="range" class="form-range" min="0" max="500"
-                                    v-model="minScore" data-bs-toggle="tooltip" data-bs-placement="top"
-                                    :title="minScore" />
+                                    _i18n("map_page.asset_out_edges") }} </label>
+                                <input ref="slider_min_outgoing_edges" type="range" class="form-range" min="0"
+                                    max="10000" v-model="minOutgoingEdges" data-bs-toggle="tooltip"
+                                    data-bs-placement="top" :title="minOutgoingEdges" />
                             </div>
+
                             <div class="ms-4 d-flex align-items-center">
                                 <div class="w-100">
-                                    <input type="text" class="form-control form-control-sm me-2"
-                                        :class="{ 'is-invalid': nodeNotFoundMessage }" v-model="searchNodeId"
-                                        placeholder="Center on IP" @keyup.enter="findNode" />
+                                    <div class="d-flex">
+                                        <input type="text" class="form-control form-control-sm"
+                                            :class="{ 'is-invalid': nodeNotFoundMessage }" v-model="searchNodeId"
+                                            placeholder="Center on IP" @keyup.enter="findNode">
+                                        <button class="btn btn-sm btn-primary" @click="findNode">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
                                     <div v-if="nodeNotFoundMessage" class="invalid-feedback d-block">
                                         Host not present
                                     </div>
                                 </div>
-                                <button class="btn btn-sm btn-primary ms-2" @click="findNode">
-                                    <i class="fas fa-search"></i>
-                                </button>
                             </div>
 
                         </template>
@@ -335,7 +338,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as RangePicker } from "./range-picker.vue";
 import formatterUtils from "../utilities/formatter-utils";
@@ -354,12 +357,12 @@ const hostDataLoading = ref(true);
 const alerts_graph = ref(null);
 const range_picker = ref(null);
 const loading = ref(true);
-const maxAlerts = ref(10000); // max numebr of alerts
 const no_data = ref(false);
-const slider_max_alerts = ref(null);
-const slider_min_score = ref(null);
+const slider_min_incoming_edges = ref(null);
+const slider_min_outgoing_edges = ref(null);
 const last_url = ref();
-const minScore = ref(0); // filter alerts with a minimum score of >= 0
+const minIncomingEdges = ref(0); // minimum number of incoming edges (alerts) of a node
+const minOutgoingEdges = ref(0); // minimum number of outgoing edges (alerts) of a node
 
 // Selected node information (right div next to graph)
 const selectedNodeData = ref({});
@@ -402,11 +405,6 @@ let resizeTimeout;
 
 let clickTimer = null;
 let lastClickedNode = null;
-
-
-// Cache D3 data
-const sourceNodes = ref([]);
-const destNodes = ref([]);
 
 /**********************************************/
 const applyFilters = async () => {
@@ -517,8 +515,8 @@ async function draw_graph(redraw = false, centerIP = null) {
             .force("charge", d3.forceManyBody().strength(-500))
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collision", d3.forceCollide().radius(30))
-            .force("x", d3.forceX(width / 2).strength(0.2))
-            .force("y", d3.forceY(height / 2).strength(0.2));
+            .force("x", d3.forceX(width / 2).strength(0.1))
+            .force("y", d3.forceY(height / 2).strength(0.1));
         simulation.stop();
         for (let i = 0; i < 300; ++i) simulation.tick();
 
@@ -559,19 +557,49 @@ async function draw_graph(redraw = false, centerIP = null) {
             return pathLinks;
         }
 
+        // Replace the line-based links with path-based curved links
         const link = mainGroup.append("g")
-            .selectAll("line")
+            .selectAll("path")
             .data(links)
-            .enter().append("line")
+            .enter().append("path")
             .attr("class", "link")
             .attr("style", d => {
                 return `stroke: ${linkColorScale(d.weight)} !important`
             })
             .attr("stroke-opacity", 1)
-            // Make links more visible by increasing base stroke width
-            .attr("stroke-width", 4)//Math.max(2, Math.sqrt(d.weight) / 1.5))
+            .attr("fill", "none")
+            .attr("stroke-width", 4)
             .attr("stroke-dasharray", null)
             .attr("marker-end", "url(#arrow)")
+            .attr("d", d => {
+                const source = d.source;
+                const target = d.target;
+
+                // Calculate midpoint
+                const midX = (source.x + target.x) / 2;
+                const midY = (source.y + target.y) / 2;
+
+                // Calculate perpendicular offset
+                const dx = target.x - source.x;
+                const dy = target.y - source.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Only apply offset if points aren't too close
+                if (dist > 10) {
+                    // Fixed offset - adjust based on your preference
+                    const offset = 30;
+
+                    // Calculate the offset coordinates
+                    const offsetX = -dy * offset / dist;
+                    const offsetY = dx * offset / dist;
+
+                    // Return a simple curved path
+                    return `M${source.x},${source.y} Q${midX + offsetX},${midY + offsetY} ${target.x},${target.y}`;
+                } else {
+                    // For very close nodes, use a straight line
+                    return `M${source.x},${source.y} L${target.x},${target.y}`;
+                }
+            })
             .on("click", (event, d) => {
                 event.preventDefault();
 
@@ -593,27 +621,72 @@ async function draw_graph(redraw = false, centerIP = null) {
                 selectedAlertData.value.dst_country = d.target.dst_country;
             });
 
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
+        // Create a map to track parallel links between the same nodes
+        const linkLookup = {};
 
+        // Update path positions with curved links
+        link.each(function (d) {
+            const sourceId = d.source.id || d.source;
+            const targetId = d.target.id || d.target;
+            const linkKey = `${sourceId}-${targetId}`;
+            const reverseLinkKey = `${targetId}-${sourceId}`;
+
+            // Track number of parallel links
+            linkLookup[linkKey] = linkLookup[linkKey] || [];
+            d.linkIndex = linkLookup[linkKey].length;
+            linkLookup[linkKey].push(d);
+
+            // Count total parallel links
+            const totalLinks = linkLookup[linkKey].length;
+
+            // Check if there are also reverse links
+            const reverseLinks = linkLookup[reverseLinkKey] || [];
+            const totalBidirectionalLinks = totalLinks + reverseLinks.length;
+
+            // Determine curve strength based on the number of links
+            // between the same source-target pair
+            const curveStrength = Math.min(50, Math.max(20, 15 * totalBidirectionalLinks));
+
+            // Calculate the curvature offset based on this link's index
+            const offset = (d.linkIndex - (totalLinks - 1) / 2) * (curveStrength / totalLinks);
+
+            // Determine curved path
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const dr = Math.sqrt(dx * dx + dy * dy);
+
+            // Calculate midpoint with an offset perpendicular to the straight line
+            const offsetX = -dy * offset / dr;
+            const offsetY = dx * offset / dr;
+
+            // Control point for the curve
+            const cpx = d.source.x + dx / 2 + offsetX;
+            const cpy = d.source.y + dy / 2 + offsetY;
+
+            // Create the path
+            const path = `M${d.source.x},${d.source.y} Q${cpx},${cpy} ${d.target.x},${d.target.y}`;
+            d3.select(this).attr("d", path);
+        });
+
+        // Update the tooltips
         link.each(function (d) {
             let tooltipContent = `<strong>${d.label.alert}</strong><br>`;
 
+            if (d.alert_info) tooltipContent += `Alert Info: ${d.alert_info}<br>`;
+
+            if (d.label.alerts_count) tooltipContent += `Alerts Count: ${d.label.alerts_count}<br>`;
             if (d.label.avg_score) tooltipContent += `Avg Score: ${d.label.avg_score}<br>`;
-            if (d.label.src_asn) tooltipContent += `Source ASN: ${d.label.src_asn}<br>`;
-            if (d.label.dst_asn) tooltipContent += `Destination ASN: ${d.label.dst_asn}<br>`;
+            if ((d.label.src_asn) && (d.source.src_asn !== d.source.id)) tooltipContent += `Src ASN: ${d.label.src_asn}<br>`;
+            if ((d.label.dst_asn) && (d.target.dst_asn !== d.target.id)) tooltipContent += `Dst ASN: ${d.label.dst_asn}<br>`;
 
             if (d.label.src_country) {
-                tooltipContent += `Source Country: ${d.label.src_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.src_country.toLowerCase()}'><br>`;
+                tooltipContent += `Src Country: ${d.label.src_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.src_country.toLowerCase()}'><br>`;
             }
             if (d.label.dst_country) {
-                tooltipContent += `Destination Country: ${d.label.dst_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.dst_country.toLowerCase()}'><br>`;
+                tooltipContent += `Dst Country: ${d.label.dst_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.dst_country.toLowerCase()}'><br>`;
             }
 
-            tooltipContent += `L4 Protocol: ${d.label.protocol}<br>L7 Application: ${d.label.l7}`;
+            tooltipContent += `L4 Proto: ${d.label.protocol}<br>L7 App: ${d.label.l7}`;
 
             // Apply Bootstrap tooltip
             $(this).tooltip({
@@ -645,103 +718,103 @@ async function draw_graph(redraw = false, centerIP = null) {
             .attr("class", "node-group")
             .attr("transform", d => `translate(${d.x}, ${d.y})`)
             .call(drag())
-            .style("pointer-events", "all")
-            .on("click", async (event, clicked_node) => {
+            .style("pointer-events", "all");
 
-                event.stopPropagation();
-                event.preventDefault();
+        d3.selectAll("g").on("click", async (event, clicked_node) => {
 
-                lastClickedElementIsNode.value = true;
-                selectedNode.value = clicked_node.id;
+            event.stopPropagation();
+            event.preventDefault();
 
-                try {
-                    // Reset all node styles
-                    d3.selectAll(".node-group circle")
-                        .attr("stroke", "#212121")
-                        .attr("stroke-width", 1);
+            lastClickedElementIsNode.value = true;
+            selectedNode.value = clicked_node.id;
 
-                    // Highlight selected node
-                    d3.select(event.currentTarget).select("circle")
-                        .attr("stroke", "#FFC107")
-                        .attr("stroke-width", 2);
+            try {
+                // Reset all node styles
+                d3.selectAll(".node-group circle")
+                    .attr("stroke", "#212121")
+                    .attr("stroke-width", 1);
 
-                    // Reset all links to default style
-                    d3.selectAll(".link")
-                        .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
-                        .attr("stroke-width", 8)
-                        .attr("stroke-dasharray", null);
+                // Highlight selected node
+                d3.select(event.currentTarget).select("circle")
+                    .attr("stroke", "#FFC107")
+                    .attr("stroke-width", 2);
 
-                    // Find all paths with the node as source
-                    const outgoingPathLinks = findOutgoingPathsFromNode(clicked_node.id);
+                // Reset all links to default style
+                d3.selectAll(".link")
+                    .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
+                    .attr("stroke-width", 8)
+                    .attr("stroke-dasharray", null);
 
-                    // Highlight outgoing paths
-                    d3.selectAll(".link")
-                        .filter(d => outgoingPathLinks.has(d))
-                        .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
-                        .attr("stroke-width", 6)
-                        .attr("stroke-opacity", 1.0);
+                // Find all paths with the node as source
+                const outgoingPathLinks = findOutgoingPathsFromNode(clicked_node.id);
 
-                    // Dashed lines, outgoing links
-                    d3.selectAll(".link")
-                        .attr("stroke-dasharray", link =>
-                            (link.source.id === clicked_node.id || link.source === clicked_node.id) ? "5,5" : null);
+                // Highlight outgoing paths
+                d3.selectAll(".link")
+                    .filter(d => outgoingPathLinks.has(d))
+                    .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
+                    .attr("stroke-width", 6)
+                    .attr("stroke-opacity", 1.0);
 
-                } catch (err) {
-                    console.error("Error in updating visual:", err);
-                }
+                // Dashed lines for outgoing links
+                d3.selectAll(".link")
+                    .attr("stroke-dasharray", link => {
+                        const sourceId = link.source.id || link.source;
+                        return (sourceId === clicked_node.id) ? "5,5" : null;
+                    });
+            } catch (err) {
+                console.error("Error in updating visual:", err);
+            }
 
-                // Update URL and get host info
-                try {
-                    // add filter to url
-                    add_filter('ip', clicked_node.id);
-
-                    await new Promise(resolve => setTimeout(resolve, 0));
-
-                    await get_host_info();
-                } catch (err) {
-                    console.error("Error in URL/host update:", err);
-                }
-            })
-
-            .on("dblclick", async function (event, clicked_node) {
-                event.preventDefault();
-
-                if (clickTimer) {
-                    clearTimeout(clickTimer);
-                    clickTimer = null;
-                }
-                lastClickedNode = null;
-
-                selectedNode.value = clicked_node.id;
-
-                // Filter links where the clicked node ID appears as source or destination
-                const filteredLinks = links.filter(link => {
-                    const sourceId = link.source.id || link.source;
-                    const targetId = link.target.id || link.target;
-                    return sourceId === clicked_node.id || targetId === clicked_node.id;
-                });
-
-                // Extract the node IDs from filtered links
-                const nodeIds = new Set();
-                filteredLinks.forEach(link => {
-                    nodeIds.add(link.source.id || link.source);
-                    nodeIds.add(link.target.id || link.target);
-                });
-
-                // Filter nodes that are part of the filtered links
-                const filteredNodes = nodes.filter(node => nodeIds.has(node.id));
-
-                // Update global variables
-                nodes = filteredNodes;
-                links = filteredLinks;
-
+            // Update URL and get host info
+            try {
                 // add filter to url
                 add_filter('ip', clicked_node.id);
-                await get_host_info();
 
-                // Redraw graph with the new filtered data
-                await draw_graph(true, clicked_node.id);
+                await new Promise(resolve => setTimeout(resolve, 0));
+
+                await get_host_info();
+            } catch (err) {
+                console.error("Error in URL/host update:", err);
+            }
+        }).on("dblclick", async function (event, clicked_node) {
+            event.preventDefault();
+
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+            }
+            lastClickedNode = null;
+
+            selectedNode.value = clicked_node.id;
+
+            // Filter links where the clicked node ID appears as source or destination
+            const filteredLinks = links.filter(link => {
+                const sourceId = link.source.id || link.source;
+                const targetId = link.target.id || link.target;
+                return sourceId === clicked_node.id || targetId === clicked_node.id;
             });
+
+            // Extract the node IDs from filtered links
+            const nodeIds = new Set();
+            filteredLinks.forEach(link => {
+                nodeIds.add(link.source.id || link.source);
+                nodeIds.add(link.target.id || link.target);
+            });
+
+            // Filter nodes that are part of the filtered links
+            const filteredNodes = nodes.filter(node => nodeIds.has(node.id));
+
+            // Update global variables
+            nodes = filteredNodes;
+            links = filteredLinks;
+
+            // add filter to url
+            add_filter('ip', clicked_node.id);
+            await get_host_info();
+
+            // Redraw graph with the new filtered data
+            await draw_graph(true, clicked_node.id);
+        });
 
         // Add the node circles with color based on alert count
         const nodeRadius = 10;
@@ -758,14 +831,19 @@ async function draw_graph(redraw = false, centerIP = null) {
             .attr("font-size", "12px")
             .text(d => d.name || d.id); // render resolved name or ip
 
-        // Add Bootstrap tooltips to nodes
+        // Bootstrap tooltips to nodes
         nodeGroup.each(function (d) {
+            let total_alerts = d.incoming_count + d.outgoing_count;
             $(this).tooltip({
-                title: `<strong>${d.id}</strong><br>Alert Count: ${d.alert_count}`,
+                title: `<strong>${d.name || d.id}</strong><br>
+                Total Alerts: ${total_alerts}<br>
+                Incoming: ${d.incoming_count}<br>
+                Outgoing: ${d.outgoing_count}`,
                 html: true,
                 container: 'body',
                 placement: 'top'
             });
+
         });
 
         // Get node position and extent for minimap
@@ -983,16 +1061,32 @@ const get_links_and_nodes = async function () {
     const links = [];
     const nodesDict = new Map();
 
-    // Clear existing arrays
-    sourceNodes.value = [];
-    destNodes.value = [];
+    const incomingAlertsCounts = new Map();
+    const outgoingAlertsCounts = new Map();
+
+    // compute incoming and outgoing count for each node
+    for (let alert of data) {
+
+        const src_ip = alert.src_ip;
+        const dst_ip = alert.dst_ip;
+        const alertCount = parseInt(alert.alerts_count);
+
+        // outgoing count for source IP (cli_ip)
+        const currentOutgoing = outgoingAlertsCounts.get(src_ip) || 0;
+        outgoingAlertsCounts.set(src_ip, currentOutgoing + alertCount);
+
+        // incoming count for target IP (srv_ip)
+        const currentIncoming = incomingAlertsCounts.get(dst_ip) || 0;
+        incomingAlertsCounts.set(dst_ip, currentIncoming + alertCount);
+    }
 
     for (let alert of data) {
+
         let link = {
             source: alert.src_ip,
             target: alert.dst_ip,
             weight: parseInt(alert.avg_alert_score),
-            label: { alert: alert.alert, avg_score: alert.avg_alert_score, src_asn: alert.src_asn, dst_asn: alert.dst_asn, src_country: alert.src_country, dst_country: alert.dst_country, protocol: alert.l4_proto, l7: alert.l7_app },
+            label: { alert_count: alert.alert_count, alert: alert.alert, avg_score: alert.avg_alert_score, src_asn: alert.src_asn, dst_asn: alert.dst_asn, src_country: alert.src_country, dst_country: alert.dst_country, protocol: alert.l4_proto, l7: alert.l7_app },
             alert_info: alert.info
         };
 
@@ -1001,7 +1095,15 @@ const get_links_and_nodes = async function () {
         // prepare node data
         if (!nodesDict.has(alert.src_ip)) {
 
-            let node_data = { id: alert.src_ip, name: alert.src_ip, src_asn: alert.src_asn, src_country: alert.src_country }
+            let node_data = {
+                id: alert.src_ip, name: alert.src_ip, src_asn: alert.src_asn, src_country: alert.src_country,
+                incoming_count: incomingAlertsCounts.get(alert.src_ip) || 0,
+                outgoing_count: outgoingAlertsCounts.get(alert.src_ip) || 0,
+                // total alerts count for node
+                alert_count: (incomingAlertsCounts.get(alert.src_ip) || 0) +
+                    (outgoingAlertsCounts.get(alert.src_ip) || 0)
+            }
+
             if (alert?.src_name) {
                 node_data["name"] = alert.src_name
             }
@@ -1009,21 +1111,19 @@ const get_links_and_nodes = async function () {
         }
 
         if (!nodesDict.has(alert.dst_ip)) {
-            let node_data = { id: alert.dst_ip, name: alert.dst_ip, dst_asn: alert.dst_asn, dst_country: alert.dst_country }
+            let node_data = {
+                id: alert.dst_ip, name: alert.dst_ip, dst_asn: alert.dst_asn, dst_country: alert.dst_country,
+                incoming_count: incomingAlertsCounts.get(alert.dst_ip) || 0,
+                outgoing_count: outgoingAlertsCounts.get(alert.dst_ip) || 0,
+                // total alerts count for node
+                alert_count: (incomingAlertsCounts.get(alert.dst_ip) || 0) +
+                    (outgoingAlertsCounts.get(alert.dst_ip) || 0)
+            }
+
             if (alert?.dst_name) {
                 node_data["name"] = alert.dst_name
             }
             nodesDict.set(alert.dst_ip, node_data);
-        }
-
-        // Track unique source IPs
-        if (!sourceNodes.value.includes(alert.src_ip)) {
-            sourceNodes.value.push(alert.src_ip);
-        }
-
-        // Track unique destination IPs
-        if (!destNodes.value.includes(alert.dst_ip)) {
-            destNodes.value.push(alert.dst_ip);
         }
     }
     const nodes = Array.from(nodesDict.values());
@@ -1065,14 +1165,104 @@ function drag() {
 
         // Move group
         d3.select(this).attr("transform", `translate(${d.x}, ${d.y})`);
+        
+        // Create a direct reference to the node being dragged
+        const draggedNode = d;
+        
+        // Use a Map to group links by source-target pair
+        const linkGroups = new Map();
+        
+        // First pass: group links by their source-target combinations
+        d3.selectAll(".link").each(function(linkData, i) {
+            if (!linkData) return;
+            
+            // Extract source and target IDs
+            const sourceId = typeof linkData.source === 'object' ? linkData.source.id : linkData.source;
+            const targetId = typeof linkData.target === 'object' ? linkData.target.id : linkData.target;
+            
+            // Only process links connected to the dragged node
+            if (sourceId === draggedNode.id || targetId === draggedNode.id) {
+                // Create a unique key for each source-target pair
+                const key = sourceId < targetId ? 
+                           `${sourceId}-${targetId}` : 
+                           `${targetId}-${sourceId}`;
+                
+                if (!linkGroups.has(key)) {
+                    linkGroups.set(key, []);
+                }
+                
+                linkGroups.get(key).push({
+                    element: this,
+                    linkData: linkData,
+                    sourceId: sourceId,
+                    targetId: targetId
+                });
+            }
+        });
+        
+        // Second pass: update each group of links with different offsets
+        let totalLinks = 0;
+        
+        linkGroups.forEach((links, key) => {
+            totalLinks += links.length;
+            
+            // For each group of links between the same nodes
+            links.forEach((pathInfo, groupIndex) => {
+                const element = pathInfo.element;
+                const linkData = pathInfo.linkData;
+                
+                // Update source/target positions
+                if (typeof linkData.source === 'object' && linkData.source) {
+                    if (linkData.source.id === draggedNode.id) {
+                        linkData.source.x = draggedNode.x;
+                        linkData.source.y = draggedNode.y;
+                    }
+                }
+                
+                if (typeof linkData.target === 'object' && linkData.target) {
+                    if (linkData.target.id === draggedNode.id) {
+                        linkData.target.x = draggedNode.x;
+                        linkData.target.y = draggedNode.y;
+                    }
+                }
+                
+                // Get source and target positions
+                const sourceX = linkData.source.x !== undefined ? linkData.source.x : 0;
+                const sourceY = linkData.source.y !== undefined ? linkData.source.y : 0;
+                const targetX = linkData.target.x !== undefined ? linkData.target.x : 0;
+                const targetY = linkData.target.y !== undefined ? linkData.target.y : 0;
+                
+                // Calculate path with varying offsets for multiple links between same nodes
+                const midX = (sourceX + targetX) / 2;
+                const midY = (sourceY + targetY) / 2;
+                const dx = targetX - sourceX;
+                const dy = targetY - sourceY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // Base offset
+                const baseOffset = 10;
+                
+                // Vary offset by group index for multiple links between same nodes
+                // Links in the same group get progressively larger offsets
+                const offsetMultiplier = links.length > 1 ? 
+                                         (1 + groupIndex * 0.5) : 1;
+                const offset = baseOffset * offsetMultiplier;
+                
+                // Create path
+                let pathD;
+                if (dist > 10) {
+                    const offsetX = -dy * offset / dist;
+                    const offsetY = dx * offset / dist;
+                    pathD = `M${sourceX},${sourceY} Q${midX + offsetX},${midY + offsetY} ${targetX},${targetY}`;
+                } else {
+                    pathD = `M${sourceX},${sourceY} L${targetX},${targetY}`;
+                }
+                
+                // Update path
+                d3.select(element).attr("d", pathD);
+            });
+        });
 
-        // Update links
-        d3.selectAll(".link")
-            .filter(link => link.source === d || link.source.id === d.id || link.target === d || link.target.id === d.id)
-            .attr("x1", link => link.source === d || link.source.id === d.id ? event.x : link.source.x)
-            .attr("y1", link => link.source === d || link.source.id === d.id ? event.y : link.source.y)
-            .attr("x2", link => link.target === d || link.target.id === d.id ? event.x : link.target.x)
-            .attr("y2", link => link.target === d || link.target.id === d.id ? event.y : link.target.y);
     }
 
     function dragended(event, d) {
@@ -1080,7 +1270,6 @@ function drag() {
         $(this).tooltip('enable');
     }
 }
-
 
 onMounted(async () => {
     // Set default url parameters
@@ -1099,23 +1288,23 @@ onMounted(async () => {
         NtopUtils.reloadBSTooltips();
     });
 
-    const tooltipTriggerMaxAlerts = new bootstrap.Tooltip(slider_max_alerts.value, { trigger: 'manual' });
-    slider_max_alerts.value.addEventListener('input', () => {
-        $(".tooltip-inner").text(maxAlerts.value)
-        slider_max_alerts.value.setAttribute('data-bs-original-title', maxAlerts.value);
-        tooltipTriggerMaxAlerts.show();
+    const tooltipTriggerminIncomingEdges = new bootstrap.Tooltip(slider_min_incoming_edges.value, { trigger: 'manual' });
+    slider_min_incoming_edges.value.addEventListener('input', () => {
+        $(".tooltip-inner").text(minIncomingEdges.value)
+        slider_min_incoming_edges.value.setAttribute('data-bs-original-title', minIncomingEdges.value);
+        tooltipTriggerminIncomingEdges.show();
     });
-    slider_max_alerts.value.addEventListener('mouseup', () => {
+    slider_min_incoming_edges.value.addEventListener('mouseup', () => {
         applyFilters()
     })
 
-    const tooltipTriggerMinScore = new bootstrap.Tooltip(slider_min_score.value, { trigger: 'manual' });
-    slider_min_score.value.addEventListener('input', () => {
-        $(".tooltip-inner").text(minScore.value)
-        slider_min_score.value.setAttribute('data-bs-original-title', minScore.value);
-        tooltipTriggerMinScore.show();
+    const tooltipTriggerminOutgoingEdges = new bootstrap.Tooltip(slider_min_outgoing_edges.value, { trigger: 'manual' });
+    slider_min_outgoing_edges.value.addEventListener('input', () => {
+        $(".tooltip-inner").text(minOutgoingEdges.value)
+        slider_min_outgoing_edges.value.setAttribute('data-bs-original-title', minOutgoingEdges.value);
+        tooltipTriggerminOutgoingEdges.show();
     });
-    slider_min_score.value.addEventListener('mouseup', () => {
+    slider_min_outgoing_edges.value.addEventListener('mouseup', () => {
         applyFilters()
     })
     last_url.value = window.location.href;
@@ -1128,13 +1317,14 @@ onBeforeUnmount(() => {
 
 });
 
-watch(minScore, (newValue) => {
-    let score_greater_equal = newValue + ";gte";
-    add_filter('score', score_greater_equal);
+watch(minOutgoingEdges, (newValue) => {
+    let min_outgoing_edges = newValue;
+    add_filter('min_outgoing', min_outgoing_edges);
 });
 
-watch(maxAlerts, (newValue) => {
-    add_filter('limit', newValue);
+watch(minIncomingEdges, (newValue) => {
+    let min_incoming_edges = newValue;
+    add_filter('min_incoming', min_incoming_edges);
 });
 
 watch(searchNodeId, (newValue) => {
@@ -1159,12 +1349,12 @@ function init_url_params() {
     }
 
     // initial filters
-    let score_greater_equal = minScore.value + ";gte";
+    let score_greater_equal = minOutgoingEdges.value + ";gte";
     ntopng_url_manager.set_key_to_url("score", score_greater_equal);
-    ntopng_url_manager.set_key_to_url("limit", maxAlerts.value);
     ntopng_url_manager.set_key_to_url("severity", "");
     ntopng_url_manager.set_key_to_url("ip", "");
-
+    ntopng_url_manager.set_key_to_url("min_outgoing", 0);
+    ntopng_url_manager.set_key_to_url("min_incoming", 0);
 }
 
 function add_filter(filter, value) {
@@ -1172,9 +1362,17 @@ function add_filter(filter, value) {
 }
 
 function reset_filters() {
-    minScore.value = 0;
-    maxAlerts.value = 10000;
+    minOutgoingEdges.value = 0;
+    minIncomingEdges.value = 0;
+    
+    // get all url parameters
+    const currentParams = Object.keys(ntopng_url_manager.get_url_object());
+    
+    // remove all parameters
+    ntopng_url_manager.delete_params(currentParams);
+
     init_url_params();
+
     applyFilters();
 }
 
