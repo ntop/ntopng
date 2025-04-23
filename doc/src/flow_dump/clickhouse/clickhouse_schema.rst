@@ -2,7 +2,7 @@ ClickHouse DB Schema
 --------------------
 
 Here the full list schema available for ClickHouse; 
-Three columns are shown in the below table:
+Four columns are shown in the below table:
 - Field: field used when doing queries on the DB
 - Readable Name: Which information the column contains in a human readable format
 - Type: Value data type
@@ -157,6 +157,39 @@ Flows table description:
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
 | ALERT_CATEGORY            | Alert Category            | UInt8          | Category of the alert (e.g. Flow alert, Host alert)                                                                      |
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| MINOR_CONNECTION_STATE    | Minor Connection State    | UInt8          | Enumerated TCP minor connection state, providing a detailed sub‑classification within its major state                    |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| MAJOR_CONNECTION_STATE    | Major Connection State    | UInt8          | Indicates the TCP major connection state of the flow (0 = ATTEMPTED, 1 = ESTABLISHED, 2 = CLOSED)                       |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| PRE_NAT_IPV4_SRC_ADDR     | Pre-NAT IPv4 Src. Addr.   | UInt32         | The IPv4 address of the source before NAT translation                                                                    |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| PRE_NAT_SRC_PORT          | Pre-NAT Source Port       | UInt32         | The port used by the source before NAT translation                                                                       |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| PRE_NAT_IPV4_DST_ADDR     | Pre-NAT IPv4 Dst. Addr.   | UInt32         | The IPv4 address of the destination before NAT translation                                                               |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| PRE_NAT_DST_PORT          | Pre-NAT Destination Port  | UInt32         | The port used by the destination before NAT translation                                                                  |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| POST_NAT_IPV4_SRC_ADDR    | Post-NAT IPv4 Src. Addr.  | UInt32         | The IPv4 address of the source after NAT translation                                                                     |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| POST_NAT_SRC_PORT         | Post-NAT Source Port      | UInt32         | The port used by the source after NAT translation                                                                        |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| POST_NAT_IPV4_DST_ADDR    | Post-NAT IPv4 Dst. Addr.  | UInt32         | The IPv4 address of the destination after NAT translation                                                                |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| POST_NAT_DST_PORT         | Post-NAT Destination Port | UInt32         | The port used by the destination after NAT translation                                                                   |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| WLAN_SSID                 | WLAN SSID                 | String         | The WLAN SSID on which the flow was seen                                                                                 |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| WTP_MAC_ADDRESS           | WTP MAC Address           | UInt64         | MAC address of the Wireless Termination Point associated with the flow                                                   |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| DOMAIN_NAME               | Domain Name               | String         | Domain Name resolved for the destination IP address                                                                      |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| REQUIRE_ATTENTION         | Require Attention         | Boolean        | Flag indicating whether the flow requires administrative attention                                                      |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| QOE_SCORE                 | QoE Score                 | UInt8          | Numeric Quality of Experience score for the flow                                                                         |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+| CLIENT_FINGERPRINT        | Client Fingerprint        | String         | Unique identifier derived from client characteristics                                                                    |
++---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
+
 
 The list of the Layer 7 protocols can be found `here <https://github.com/ntop/nDPI/blob/dev/src/include/ndpi_protocol_ids.h>`__
 

@@ -718,52 +718,49 @@ async function draw_graph(redraw = false, centerIP = null) {
             .attr("class", "node-group")
             .attr("transform", d => `translate(${d.x}, ${d.y})`)
             .call(drag())
-            .style("pointer-events", "all");
+            .style("pointer-events", "all")
+            .on("pointerup", async (event, clicked_node) => {
+                event.stopPropagation();
+                event.preventDefault();
 
-        d3.selectAll("g").on("click", async (event, clicked_node) => {
+                lastClickedElementIsNode.value = true;
+                selectedNode.value = clicked_node.id;
 
-            event.stopPropagation();
-            event.preventDefault();
+                try {
+                    // Reset all node styles
+                    d3.selectAll(".node-group circle")
+                        .attr("stroke", "#212121")
+                        .attr("stroke-width", 1);
 
-            lastClickedElementIsNode.value = true;
-            selectedNode.value = clicked_node.id;
+                    // Highlight selected node
+                    d3.select(event.currentTarget).select("circle")
+                        .attr("stroke", "#FFC107")
+                        .attr("stroke-width", 2);
 
-            try {
-                // Reset all node styles
-                d3.selectAll(".node-group circle")
-                    .attr("stroke", "#212121")
-                    .attr("stroke-width", 1);
+                    // Reset all links to default style
+                    d3.selectAll(".link")
+                        .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
+                        .attr("stroke-width", 8)
+                        .attr("stroke-dasharray", null);
 
-                // Highlight selected node
-                d3.select(event.currentTarget).select("circle")
-                    .attr("stroke", "#FFC107")
-                    .attr("stroke-width", 2);
+                    // Find all paths with the node as source
+                    const outgoingPathLinks = findOutgoingPathsFromNode(clicked_node.id);
 
-                // Reset all links to default style
-                d3.selectAll(".link")
-                    .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
-                    .attr("stroke-width", 8)
-                    .attr("stroke-dasharray", null);
+                    // Highlight outgoing paths
+                    d3.selectAll(".link")
+                        .filter(d => outgoingPathLinks.has(d))
+                        .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
+                        .attr("stroke-width", 6)
+                        .attr("stroke-opacity", 1.0);
 
-                // Find all paths with the node as source
-                const outgoingPathLinks = findOutgoingPathsFromNode(clicked_node.id);
+                    // Dashed lines, outgoing links
+                    d3.selectAll(".link")
+                        .attr("stroke-dasharray", link =>
+                            (link.source.id === clicked_node.id || link.source === clicked_node.id) ? "5,5" : null);
 
-                // Highlight outgoing paths
-                d3.selectAll(".link")
-                    .filter(d => outgoingPathLinks.has(d))
-                    .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
-                    .attr("stroke-width", 6)
-                    .attr("stroke-opacity", 1.0);
-
-                // Dashed lines for outgoing links
-                d3.selectAll(".link")
-                    .attr("stroke-dasharray", link => {
-                        const sourceId = link.source.id || link.source;
-                        return (sourceId === clicked_node.id) ? "5,5" : null;
-                    });
-            } catch (err) {
-                console.error("Error in updating visual:", err);
-            }
+                } catch (err) {
+                    console.error("Error in updating visual:", err);
+                }
 
             // Update URL and get host info
             try {
