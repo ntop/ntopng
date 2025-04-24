@@ -124,7 +124,8 @@ const mapScoreToSeverity = function (score) {
 const alertSeverities = function () {
     return {
         getSeverityIcon,
-        mapScoreToSeverity
+        mapScoreToSeverity,
+        getSeverityColor
     };
 }();
 

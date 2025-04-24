@@ -31,6 +31,7 @@ import { default as protocolUtils } from "../utilities/map/protocol-utils.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import { default as QoEUtils } from "../utilities/qoe-utils.js";
 import { default as Spinner } from "./spinner.vue";
+import { default as alertSeverities } from "../utilities/map/alert-severities.js";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils.js";
 import infoUtils from "../utilities/map/info-utils.js";
@@ -206,7 +207,9 @@ const map_table_def_columns = (columns) => {
         "score": (value, row) => {
             if (value > 0) {
                 let danger_icon = ''
-                return `${formatterUtils.getFormatter("full_number")(value)}${danger_icon}`
+                let severity = alertSeverities.mapScoreToSeverity(value)
+                let score_color = alertSeverities.getSeverityColor(severity)
+                return `<span style="text-color:${score_color} !important">${formatterUtils.getFormatter("full_number")(value)}${danger_icon}</span>`
             }
             return ''
         },
