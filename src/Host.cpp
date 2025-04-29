@@ -1957,8 +1957,7 @@ void Host::checkStatsReset() {
 
 void Host::checkBroadcastDomain() {
   if(iface->reloadHostsBroadcastDomain())
-    is_in_broadcast_domain =
-        iface->isLocalBroadcastDomainHost(this, false /* Non-inline call */);
+    is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, false /* Non-inline call */);
 }
 
 /* *************************************** */

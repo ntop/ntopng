@@ -177,19 +177,18 @@ void LocalHost::initialize() {
 
   tcp_fingerprint_host_os = ndpi_os_unknown;
 
-#ifdef NTOPNG_PRO
-  loadAssetInfo();
-#endif
-
   syncMACMetadata(true);
   gettimeofday(&last_periodic_asset_update, NULL);
-
 
   if(bd) {
     if(bd->isLocalBroadcastDomainHost(this, true)
        || iface->getInterfaceNetworks()->match(&ip, ip.isIPv4() ? 32 : 128))
       setMACmeaningful();
   }
+
+#ifdef NTOPNG_PRO
+  loadAssetInfo();
+#endif
 }
 
 /* *************************************** */
@@ -260,30 +259,31 @@ void LocalHost::checkGatewayInfo() {
 
 /* *************************************** */
 
-char *LocalHost::getSerializationKey(char *redis_key, u_int bufsize, bool short_format) {
+char* LocalHost::getSerializationKey(char *redis_key, u_int bufsize, bool short_format) {
   Mac *mac = getMac();
 
-  if (mac && serializeByMac()) {
+  if (mac && (is_in_broadcast_domain || serializeByMac())) {
     char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
 
-    return (getMacBasedSerializationKey(redis_key, bufsize, mac_buf, short_format));
+    return(getMacBasedSerializationKey(redis_key, bufsize, mac_buf, short_format));
   }
 
-  return (getIPBasedSerializationKey(redis_key, bufsize, short_format));
+  return(getIPBasedSerializationKey(redis_key, bufsize, short_format));
 }
 
 /* *************************************** */
 
-char *LocalHost::getRedisKey(char *buf, uint buf_len, bool skip_prefix) {
+char* LocalHost::getRedisKey(char *buf, uint buf_len, bool skip_prefix) {
   Mac *mac = getMac();
 
-  if (mac && serializeByMac()) {
+  if (mac && (is_in_broadcast_domain || serializeByMac())) {
     get_mac_based_tskey(mac, buf, buf_len, skip_prefix);
-    return (buf);
+    
+    return(buf);
   } else
-    return (get_hostkey(buf, buf_len, false));
+    return(get_hostkey(buf, buf_len, false));
 }
 
 /* *************************************** */
@@ -565,7 +565,7 @@ char *LocalHost::getMacBasedSerializationKey(char *redis_key, size_t size,
   snprintf(redis_key, size, short_format ? MAC_SERIALIZED_SHORT_KEY : HOST_BY_MAC_SERIALIZED_KEY, iface->get_id(),
            mac_key);
 
-  return (redis_key);
+  return(redis_key);
 }
 
 /* *************************************** */

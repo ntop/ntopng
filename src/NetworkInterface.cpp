@@ -9346,11 +9346,15 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac,
 
   if ((ipv4 != 0) && (mac != 0) && (mac != 0xFFFFFFFFFFFF)) {
     IpAddress ip;
+    
     ip.set(ipv4);
 
     if (!isInDhcpRange(&ip)) {
       AlertsQueue *q = getAlertsQueue();
-      if (q) q->pushOutsideDhcpRangeAlert(_mac, sender_mac, ntohl(ipv4), ntohl(dhcp_reply->siaddr), vlan_id);
+      
+      if (q) q->pushOutsideDhcpRangeAlert(_mac, sender_mac,
+					  ntohl(ipv4), ntohl(dhcp_reply->siaddr),
+					  vlan_id);
     }
   }
 }
