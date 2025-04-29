@@ -869,6 +869,11 @@ bool Prefs::getDefaultBoolPrefsValue(const char *pref_key,
     return (default_value);
   }
 }
+/* ******************************************* */
+
+bool Prefs::do_active_monitoring(){ 
+  return ntop->isPingInitialized() && active_monitoring; 
+};
 
 /* ******************************************* */
 
@@ -978,7 +983,6 @@ void Prefs::reloadPrefsFromRedis() {
     enable_activities_debug = getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
     snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, true);
   active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
-  if(active_monitoring) ntop->createPing();
   network_discovery = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_NETWORK_DISCOVERY, false);
   starttls = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_STARTTLS, false);
   dump_pcap_to_clickhouse = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DUMP_PCAP_TO_CLICKHOUSE, false);

@@ -111,6 +111,7 @@ Ntop::Ntop(const char *appName) {
 #endif /* NTOPNG_PRO */
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
+  pingInitialized = false;
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
@@ -526,28 +527,6 @@ void Ntop::createExportInterface() {
 #endif
 }
 
-void Ntop::createPing() {
-  #ifndef WIN32
-    if(cping == NULL && default_ping == NULL) {
-      cping = new (std::nothrow) ContinuousPing();
-      if (can_send_icmp) {
-
-        /* Default */
-        default_ping = new (std::nothrow) Ping(NULL /* System interface */);
-
-        /* Pinger per interface */
-        ntop_if_t *devpointer, *cur;
-        if (Utils::ntop_findalldevs(&devpointer) == 0) {
-          for (cur = devpointer; cur; cur = cur->next)
-            if (cur->name)
-              getPing(cur->name);
-          Utils::ntop_freealldevs(devpointer);
-        }
-      }
-    }
-  #endif
-}
-
 /* ******************************************* */
 
 void Ntop::start() {
@@ -616,8 +595,6 @@ void Ntop::start() {
    * Note: this will also run the startup.lua script sequentially.
    * After this call, startup.lua has completed. */
   pa->startPeriodicActivitiesLoop();
-  if(ntop->getPrefs()->do_active_monitoring())
-    createPing();
 
   if (get_HTTPserver()) get_HTTPserver()->start_accepting_requests();
 
@@ -4009,6 +3986,24 @@ Ping *Ntop::getPing(char *ifname) {
 /* ******************************************* */
 
 void Ntop::initPing() {
+  if(ntop->getPrefs()->get_active_monitoring_pref()) {
+    pingInitialized = true;
+    cping = new (std::nothrow) ContinuousPing();
+    if (can_send_icmp) {
+
+      /* Default */
+       default_ping = new (std::nothrow) Ping(NULL /* System interface */);
+
+      /* Pinger per interface */
+      ntop_if_t *devpointer, *cur;
+      if (Utils::ntop_findalldevs(&devpointer) == 0) {
+        for (cur = devpointer; cur; cur = cur->next)
+          if (cur->name)
+            getPing(cur->name);
+        Utils::ntop_freealldevs(devpointer);
+      }
+    }
+  }
   if (!can_send_icmp) return;
 
   for (int i = 0; i < num_defined_interfaces; i++) {

@@ -108,6 +108,9 @@ if auth.has_capability(auth.capabilities.preferences) then
             _POST["aggregated_flows_data_retention_days"] = tostring(raw + 1)
         end
     end
+    if(_POST["toggle_active_monitoring"] == "1" and _POST["toggle_active_monitoring"] ~= ntop.getPref("ntopng.prefs.active_monitoring")) then
+        ntop.setCache("ntopng.active_monitoring.restart_required") 
+    end
 
     if (_POST["toggle_radius_auth"] == "1") and
         ((_POST["radius_server_address"] ~= ntop.getPref("ntopng.prefs.radius.radius_server_address")) or

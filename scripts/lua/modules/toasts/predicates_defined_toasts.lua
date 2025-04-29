@@ -275,6 +275,7 @@ function predicates.restart_required(toast, container)
     end
 
     -- ifname is defined globally
+    local active_monitoring_restart_required = ntop.getCache("ntopng.active_monitoring.restart_required")
     local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
     if delete_active_interface_requested then
         table.insert(container, create_restart_required_toast(toast, i18n("delete_data.restart_product_toast", {
@@ -290,6 +291,9 @@ function predicates.restart_required(toast, container)
         table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.restart_request", {
             product = ntop.getInfo()["product"]
         })))
+    end
+    if active_monitoring_restart_required then
+        table.insert(container, create_restart_required_toast(toast, i18n("delete_data.restart_active_monitoring")))
     end
 
 end

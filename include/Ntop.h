@@ -153,6 +153,7 @@ class Ntop {
 #ifndef WIN32
   ContinuousPing *cping;
   Ping *default_ping;
+  bool pingInitialized;
   std::map<std::string /* ifname */, Ping *> ping;
 #endif
 
@@ -488,6 +489,7 @@ class Ntop {
 
   inline Prefs *getPrefs() { return (prefs); };
   void initPing();
+  inline bool isPingInitialized() { return (pingInitialized);};
 #ifndef WIN32
   void lockNtopInstance();
 #endif

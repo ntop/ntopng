@@ -398,7 +398,10 @@ class Prefs {
   inline bool do_simulate_macs() { return (simulate_macs); };
   inline bool do_insecure_tls() { return (insecure_tls); };
   inline bool do_snmp_polling() { return (snmp_polling); };
-  inline bool do_active_monitoring(){ return (active_monitoring); };
+  bool do_active_monitoring();
+  // Value of the AM preference; does not indicate whether AM should be performed!
+  // Use do_active_monitoring() for that
+  inline bool get_active_monitoring_pref(){ return (active_monitoring); };
   inline bool do_tls_quic_hostnaming() { return (tls_quic_hostnaming); };
   inline bool email_starttls_enabled()          { return (starttls); };
   inline bool dump_pcap_to_clickhouse_enabled() { return (dump_pcap_to_clickhouse); };
