@@ -570,6 +570,7 @@ class Ntop {
                          u_int8_t *network_prefix);
   void addLocalNetworkList(const char *network);
   void createExportInterface();
+  void createPing();
   void resetNetworkInterfaces();
   void initElasticSearch();
 

@@ -118,24 +118,6 @@ Ntop::Ntop(const char *appName) {
   for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
 
-#ifndef WIN32
-  if (can_send_icmp) {
-    cping = new (std::nothrow) ContinuousPing();
-
-    /* Default */
-    default_ping = new (std::nothrow) Ping(NULL /* System interface */);
-
-    /* Pinger per interface */
-    ntop_if_t *devpointer, *cur;
-    if (Utils::ntop_findalldevs(&devpointer) == 0) {
-      for (cur = devpointer; cur; cur = cur->next)
-        if (cur->name)
-          getPing(cur->name);
-      Utils::ntop_freealldevs(devpointer);
-    }
-  }
-#endif
-
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
   resolvedHostsBloom = new (std::nothrow) Bloom(NUM_HOSTS_RESOLVED_BITS);
@@ -544,6 +526,28 @@ void Ntop::createExportInterface() {
 #endif
 }
 
+void Ntop::createPing() {
+  #ifndef WIN32
+    if(cping == NULL && default_ping == NULL) {
+      cping = new (std::nothrow) ContinuousPing();
+      if (can_send_icmp) {
+
+        /* Default */
+        default_ping = new (std::nothrow) Ping(NULL /* System interface */);
+
+        /* Pinger per interface */
+        ntop_if_t *devpointer, *cur;
+        if (Utils::ntop_findalldevs(&devpointer) == 0) {
+          for (cur = devpointer; cur; cur = cur->next)
+            if (cur->name)
+              getPing(cur->name);
+          Utils::ntop_freealldevs(devpointer);
+        }
+      }
+    }
+  #endif
+}
+
 /* ******************************************* */
 
 void Ntop::start() {
@@ -612,6 +616,8 @@ void Ntop::start() {
    * Note: this will also run the startup.lua script sequentially.
    * After this call, startup.lua has completed. */
   pa->startPeriodicActivitiesLoop();
+  if(ntop->getPrefs()->do_active_monitoring())
+    createPing();
 
   if (get_HTTPserver()) get_HTTPserver()->start_accepting_requests();
 
