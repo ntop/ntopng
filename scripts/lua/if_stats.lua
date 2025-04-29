@@ -1847,7 +1847,7 @@ elseif (page == "config") then
         <tr>
            <th width="30%">]]
     print(i18n("prefs.toggle_host_tskey_title"))
-    print [[ <i class="fas fa-question-circle " title="]]
+    print [[ <i class="fas fa-question-circle"  data-bs-toggle="tooltip" title="]]
     print(i18n("prefs.toggle_host_tskey_description"))
     print [["></i></th>
            <td>]]
