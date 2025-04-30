@@ -82,7 +82,7 @@
                         <!-- Node Details Section -->
                         <div v-if="lastClickedElementIsNode" class="node-details">
                             <div class="mb-4">
-                                <h6 class="fw-bold fs-5">
+                                <h6 class="fw-bold fs-5 text-black">
                                     <i class='fas fa-laptop'></i> {{ selectedNodeData?.host_info?.info?.ip || 'N/A'
                                     }}
                                 </h6>
@@ -112,7 +112,7 @@
                                     </div>
                                     <div class="col-12">
                                         <a :href="hist_flows_url" target="_blank" class="fw-bold">
-                                            <i class="fas fa-lg fa-chart-area"> </i>
+                                            <i class="fas fa-lg fa-chart-area me-1"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_flows")
                                                 }}</span>
@@ -120,7 +120,7 @@
                                     </div>
                                     <div class="col-12">
                                         <a :href="hist_alerts_url" target="_blank" class="text-danger fw-bold">
-                                            <i class="fa-solid fa-triangle-exclamation"> </i>
+                                            <i class="fa-solid fa-triangle-exclamation me-1"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_alerts")
                                                 }} </span>
@@ -187,11 +187,12 @@
                                         </div>
 
                                         <div v-else>
-                                            <span class="detail-label">No data for {{ selectedNode.id }} as {{ role
+                                            <span class="detail-label">No alerts for {{ selectedNode }} as {{ role
                                                 }}</span>
                                         </div>
 
-                                        <div class="alert-summary card bg-light mt-3">
+                                        <div v-if="selectedNodeData && selectedNodeData.host_info && selectedNodeData.host_info[role]"
+                                            class="alert-summary card bg-light mt-3">
                                             <div class="card-body p-3">
                                                 <h6 class="card-subtitle mb-2 text-muted">{{
                                                     _i18n("alert.graph.alert_summary") }}</h6>
@@ -493,6 +494,7 @@ async function draw_graph(redraw = false, centerIP = null) {
         // add filter to url
         add_filter('ip', selectedNode.value);
         await get_host_info();
+        activeFlows.value = await get_active_flows();
 
         // Node color scale based on alert count
         const nodeColorScale = d3.scaleSequential()
@@ -762,56 +764,58 @@ async function draw_graph(redraw = false, centerIP = null) {
                     console.error("Error in updating visual:", err);
                 }
 
-            // Update URL and get host info
-            try {
+                // Update URL and get host info
+                try {
+                    // add filter to url
+                    add_filter('ip', clicked_node.id);
+
+                    await new Promise(resolve => setTimeout(resolve, 0));
+
+                    await get_host_info();
+                    activeFlows.value = await get_active_flows();
+                } catch (err) {
+                    console.error("Error in URL/host update:", err);
+                }
+            }).on("dblclick", async function (event, clicked_node) {
+                event.preventDefault();
+
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                }
+                lastClickedNode = null;
+
+                selectedNode.value = clicked_node.id;
+
+                // Filter links where the clicked node ID appears as source or destination
+                const filteredLinks = links.filter(link => {
+                    const sourceId = link.source.id || link.source;
+                    const targetId = link.target.id || link.target;
+                    return sourceId === clicked_node.id || targetId === clicked_node.id;
+                });
+
+                // Extract the node IDs from filtered links
+                const nodeIds = new Set();
+                filteredLinks.forEach(link => {
+                    nodeIds.add(link.source.id || link.source);
+                    nodeIds.add(link.target.id || link.target);
+                });
+
+                // Filter nodes that are part of the filtered links
+                const filteredNodes = nodes.filter(node => nodeIds.has(node.id));
+
+                // Update global variables
+                nodes = filteredNodes;
+                links = filteredLinks;
+
                 // add filter to url
                 add_filter('ip', clicked_node.id);
-
-                await new Promise(resolve => setTimeout(resolve, 0));
-
                 await get_host_info();
-            } catch (err) {
-                console.error("Error in URL/host update:", err);
-            }
-        }).on("dblclick", async function (event, clicked_node) {
-            event.preventDefault();
-
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-            }
-            lastClickedNode = null;
-
-            selectedNode.value = clicked_node.id;
-
-            // Filter links where the clicked node ID appears as source or destination
-            const filteredLinks = links.filter(link => {
-                const sourceId = link.source.id || link.source;
-                const targetId = link.target.id || link.target;
-                return sourceId === clicked_node.id || targetId === clicked_node.id;
+                activeFlows.value = await get_active_flows();
+                
+                // Redraw graph with the new filtered data
+                await draw_graph(true, clicked_node.id);
             });
-
-            // Extract the node IDs from filtered links
-            const nodeIds = new Set();
-            filteredLinks.forEach(link => {
-                nodeIds.add(link.source.id || link.source);
-                nodeIds.add(link.target.id || link.target);
-            });
-
-            // Filter nodes that are part of the filtered links
-            const filteredNodes = nodes.filter(node => nodeIds.has(node.id));
-
-            // Update global variables
-            nodes = filteredNodes;
-            links = filteredLinks;
-
-            // add filter to url
-            add_filter('ip', clicked_node.id);
-            await get_host_info();
-
-            // Redraw graph with the new filtered data
-            await draw_graph(true, clicked_node.id);
-        });
 
         // Add the node circles with color based on alert count
         const nodeRadius = 10;
@@ -1162,32 +1166,32 @@ function drag() {
 
         // Move group
         d3.select(this).attr("transform", `translate(${d.x}, ${d.y})`);
-        
+
         // Create a direct reference to the node being dragged
         const draggedNode = d;
-        
+
         // Use a Map to group links by source-target pair
         const linkGroups = new Map();
-        
+
         // First pass: group links by their source-target combinations
-        d3.selectAll(".link").each(function(linkData, i) {
+        d3.selectAll(".link").each(function (linkData, i) {
             if (!linkData) return;
-            
+
             // Extract source and target IDs
             const sourceId = typeof linkData.source === 'object' ? linkData.source.id : linkData.source;
             const targetId = typeof linkData.target === 'object' ? linkData.target.id : linkData.target;
-            
+
             // Only process links connected to the dragged node
             if (sourceId === draggedNode.id || targetId === draggedNode.id) {
                 // Create a unique key for each source-target pair
-                const key = sourceId < targetId ? 
-                           `${sourceId}-${targetId}` : 
-                           `${targetId}-${sourceId}`;
-                
+                const key = sourceId < targetId ?
+                    `${sourceId}-${targetId}` :
+                    `${targetId}-${sourceId}`;
+
                 if (!linkGroups.has(key)) {
                     linkGroups.set(key, []);
                 }
-                
+
                 linkGroups.get(key).push({
                     element: this,
                     linkData: linkData,
@@ -1196,18 +1200,18 @@ function drag() {
                 });
             }
         });
-        
+
         // Second pass: update each group of links with different offsets
         let totalLinks = 0;
-        
+
         linkGroups.forEach((links, key) => {
             totalLinks += links.length;
-            
+
             // For each group of links between the same nodes
             links.forEach((pathInfo, groupIndex) => {
                 const element = pathInfo.element;
                 const linkData = pathInfo.linkData;
-                
+
                 // Update source/target positions
                 if (typeof linkData.source === 'object' && linkData.source) {
                     if (linkData.source.id === draggedNode.id) {
@@ -1215,36 +1219,36 @@ function drag() {
                         linkData.source.y = draggedNode.y;
                     }
                 }
-                
+
                 if (typeof linkData.target === 'object' && linkData.target) {
                     if (linkData.target.id === draggedNode.id) {
                         linkData.target.x = draggedNode.x;
                         linkData.target.y = draggedNode.y;
                     }
                 }
-                
+
                 // Get source and target positions
                 const sourceX = linkData.source.x !== undefined ? linkData.source.x : 0;
                 const sourceY = linkData.source.y !== undefined ? linkData.source.y : 0;
                 const targetX = linkData.target.x !== undefined ? linkData.target.x : 0;
                 const targetY = linkData.target.y !== undefined ? linkData.target.y : 0;
-                
+
                 // Calculate path with varying offsets for multiple links between same nodes
                 const midX = (sourceX + targetX) / 2;
                 const midY = (sourceY + targetY) / 2;
                 const dx = targetX - sourceX;
                 const dy = targetY - sourceY;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                
+
                 // Base offset
                 const baseOffset = 10;
-                
+
                 // Vary offset by group index for multiple links between same nodes
                 // Links in the same group get progressively larger offsets
-                const offsetMultiplier = links.length > 1 ? 
-                                         (1 + groupIndex * 0.5) : 1;
+                const offsetMultiplier = links.length > 1 ?
+                    (1 + groupIndex * 0.5) : 1;
                 const offset = baseOffset * offsetMultiplier;
-                
+
                 // Create path
                 let pathD;
                 if (dist > 10) {
@@ -1254,7 +1258,7 @@ function drag() {
                 } else {
                     pathD = `M${sourceX},${sourceY} L${targetX},${targetY}`;
                 }
-                
+
                 // Update path
                 d3.select(element).attr("d", pathD);
             });
@@ -1361,10 +1365,10 @@ function add_filter(filter, value) {
 function reset_filters() {
     minOutgoingEdges.value = 0;
     minIncomingEdges.value = 0;
-    
+
     // get all url parameters
     const currentParams = Object.keys(ntopng_url_manager.get_url_object());
-    
+
     // remove all parameters
     ntopng_url_manager.delete_params(currentParams);
 
