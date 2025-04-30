@@ -511,6 +511,7 @@ async function change_column_sort(col, col_index) {
         set_active_rows(); // client side sorting
     }
     await set_columns_visibility();
+    set_dropdown_listener();
 }
 
 
