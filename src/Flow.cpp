@@ -524,6 +524,7 @@ Flow::~Flow() {
 #endif
 
   if(cli_u) {
+    cli_u->updateView(cli_ip_addr);
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
 
@@ -535,6 +536,7 @@ Flow::~Flow() {
     delete cli_ip_addr;
 
   if(srv_u) {
+    srv_u->updateView(srv_ip_addr);
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
 
@@ -9240,7 +9242,7 @@ void Flow::accountBidirectionalTCPProtocolServices() {
       switch (i == 0 ? ndpi_get_lower_proto(ndpiDetectedProtocol) : ndpi_get_upper_proto(ndpiDetectedProtocol)) {
       case NDPI_PROTOCOL_MAIL_SMTPS:
       case NDPI_PROTOCOL_MAIL_SMTP:
-	if(isBidirectional() && isThreeWayHandshakeOK()
+	if(isThreeWayHandshakeOK()
 	   // && (getConfidence() 2== NDPI_CONFIDENCE_DPI) /* Won't work with flow collection */
 	   ) {
 	  if(srv_h) {
@@ -9249,8 +9251,9 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	      ntop->trackAssetChange("SMTP", "setSmtpServer-1", NULL, NULL, srv_h, this, NULL);
 	    }
 	  } else if(srv_ip_addr) {
+	    /* View Interface */
 	    srv_ip_addr->setSmtpServer();
-	    ntop->trackAssetChange("SMTP", "setSmtpServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("SMTP", "setSmtpServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 
 	  return; /* Nothing else to do */
@@ -9259,7 +9262,7 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 
       case NDPI_PROTOCOL_MAIL_IMAPS:
       case NDPI_PROTOCOL_MAIL_IMAP:
-	if(isBidirectional() && isThreeWayHandshakeOK()
+	if(isThreeWayHandshakeOK()
 	   // && (getConfidence() == NDPI_CONFIDENCE_DPI) /* Won't work with flow collection */
 	   ) {
 	  if(srv_h) {
@@ -9268,8 +9271,9 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	      ntop->trackAssetChange("IMAP", "setImapServer-1", NULL, NULL, srv_h, this, NULL);
 	    }
 	  } else if(srv_ip_addr) {
+	    /* View Interface */
 	    srv_ip_addr->setImapServer();
-	    ntop->trackAssetChange("IMAP", "setImapServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("IMAP", "setImapServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 
 	  return; /* Nothing else to do */
@@ -9278,7 +9282,7 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 
       case NDPI_PROTOCOL_MAIL_POPS:
       case NDPI_PROTOCOL_MAIL_POP:
-	if(isBidirectional() && isThreeWayHandshakeOK()
+	if(isThreeWayHandshakeOK()
 	   // && (getConfidence() == NDPI_CONFIDENCE_DPI) /* Won't work with flow collection */
 	   ) {
 	  if(srv_h) {
@@ -9287,8 +9291,9 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	      ntop->trackAssetChange("POP", "setPopServer-1", NULL, NULL, srv_h, this, NULL);
 	    }
 	  } else if(srv_ip_addr) {
+	    /* View Interface */
 	    srv_ip_addr->setPopServer();
-	    ntop->trackAssetChange("POP", "setPopServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("POP", "setPopServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 
 	  return; /* Nothing else to do */
@@ -9309,7 +9314,7 @@ void Flow::accountBidirectionalTCPProtocolServices() {
       case NDPI_PROTOCOL_HTTP:
       case NDPI_PROTOCOL_HTTP_CONNECT:
       case NDPI_PROTOCOL_HTTP_PROXY:
-	if(isBidirectional() && isThreeWayHandshakeOK()
+	if(isThreeWayHandshakeOK()
 	   // && (getConfidence() == NDPI_CONFIDENCE_DPI) /* Won't work with flow collection */
 	   ) {
 	  if(srv_h) {
@@ -9318,8 +9323,9 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	      ntop->trackAssetChange("HTTP", "setHttpServer-1", NULL, NULL, srv_h, this, NULL);
 	    }
 	  } else if(srv_ip_addr) {
+	    /* View Interface */
 	    srv_ip_addr->setHttpServer();
-	    ntop->trackAssetChange("HTTP", "setHttpServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("HTTP", "setHttpServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 
 	  return; /* Nothing else to do */
@@ -9327,7 +9333,7 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	break;
 
       case NDPI_PROTOCOL_SSH:
-	if(isBidirectional() && isThreeWayHandshakeOK()
+	if(isThreeWayHandshakeOK()
 	   // && (getConfidence() == NDPI_CONFIDENCE_DPI) /* Won't work with flow collection */
 	   ) {
 	  if(srv_h) {
@@ -9336,8 +9342,9 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	      ntop->trackAssetChange("SSH", "setSshServer-1", NULL, NULL, srv_h, this, NULL);
 	    }
 	  } else if(srv_ip_addr) {
+	    /* View Interface */
 	    srv_ip_addr->setSshServer();
-	    ntop->trackAssetChange("SSH", "setSshServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("SSH", "setSshServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 
 	  return; /* Nothing else to do */
@@ -9345,7 +9352,7 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	break;
 
       case NDPI_PROTOCOL_RDP:
-	if(isBidirectional() && isThreeWayHandshakeOK()
+	if(isThreeWayHandshakeOK()
 	   // && (getConfidence() == NDPI_CONFIDENCE_DPI) /* Won't work with flow collection */
 	   ) {
 	  if(srv_h) {
@@ -9354,8 +9361,9 @@ void Flow::accountBidirectionalTCPProtocolServices() {
 	      ntop->trackAssetChange("RDP", "setRdpServer-1", NULL, NULL, srv_h, this, NULL);
 	    }
 	  } else if(srv_ip_addr) {
+	    /* View Interface */
 	    srv_ip_addr->setRdpServer();
-	    ntop->trackAssetChange("RDP", "setRdpServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("RDP", "setRdpServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 
 	  return; /* Nothing else to do */
@@ -9389,7 +9397,7 @@ void Flow::accountBidirectionalUDPProtocolServices() {
 	} else if(srv_ip_addr) {
 	  if(!srv_ip_addr->isNtpServer()) {
 	    srv_ip_addr->setNtpServer();
-	    ntop->trackAssetChange("NTP", "setNtpServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("NTP", "setNtpServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 	}
       }
@@ -9432,7 +9440,7 @@ void Flow::accountBidirectionalUDPProtocolServices() {
 	    }
 	  } else if(srv_ip_addr) {
 	    srv_ip_addr->setHttpServer();
-	    ntop->trackAssetChange("HTTP", "setHttpServer-2", NULL, srv_ip_addr, NULL, this, NULL);
+	    ntop->trackAssetChange("HTTP", "setHttpServer (view)", NULL, srv_ip_addr, NULL, this, NULL);
 	  }
 	}
       }

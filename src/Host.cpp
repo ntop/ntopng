@@ -1327,7 +1327,7 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
-
+  
   if(stats) stats->updateStats(tv);
 
   GenericHashEntry::periodic_stats_update(tv);
@@ -1951,6 +1951,26 @@ void Host::checkStatsReset() {
     last_stats_reset = ntop->getLastStatsReset();
     stats_reset_requested = 0;
   }
+}
+
+/* *************************************** */
+
+/*
+  This method is called by Flow::~Flow()
+  to set on the original host, the services that
+  have been observed on the shadow IP address
+*/
+void Host::updateView(IpAddress *ipa) {
+  if(ipa->isDhcpServer())   setDhcpServer();
+  if(ipa->isDnsServer())    setDnsServer();
+  if(ipa->isSmtpServer())   setSmtpServer();
+  if(ipa->isImapServer())   setImapServer();
+  if(ipa->isPopServer())    setPopServer();
+  if(ipa->isNtpServer())    setNtpServer();
+  if(ipa->isHttpServer())   setHttpServer();
+  if(ipa->isSshServer())    setSshServer();
+  if(ipa->isRdpServer())    setRdpServer();
+  if(ipa->isRdpServer())    setRdpServer();
 }
 
 /* *************************************** */

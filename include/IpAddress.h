@@ -28,10 +28,10 @@ struct ipAddress {
   u_int8_t ipVersion : 3 /* Either 4 or 6 */, loopbackIP : 1, privateIP : 1,
       multicastIP : 1, broadcastIP : 1, blacklistedIP : 1, localIP : 1;
 
-  u_int16_t dnsServer : 1, dhcpServer : 1, smtpServer : 1, ntpServer : 1,
-    imapServer : 1, popServer : 1, gateway: 1,
-    httpServer : 1, sshServer : 1, rdpServer : 1,
-    unused : 6;
+  u_int8_t dnsServer : 1, dhcpServer : 1, smtpServer : 1, ntpServer : 1,
+    imapServer : 1, popServer : 1, gateway: 1,   httpServer : 1;
+  u_int8_t sshServer : 1, rdpServer : 1, unused : 6;
+  
   union {
     struct ndpi_in6_addr ipv6;
     u_int32_t ipv4; /* Host byte code */
@@ -143,7 +143,8 @@ class IpAddress {
   inline void setRdpServer() { addr.rdpServer = true; }
   inline bool isGateway() const { return (addr.gateway); }
   inline void setGateway(bool is_gateway) { addr.gateway = is_gateway; }
-
+  /* NOTE: update Host::updateView() when adding new services */
+  
   char* print(char* str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char* str, u_int str_len, bool isLocalIP);
   bool isLocalHost() const;
