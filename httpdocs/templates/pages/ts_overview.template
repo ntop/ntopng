@@ -1,0 +1,57 @@
+<div class="row">
+	<div class="col-md-12 col-lg-12 mt-3">
+		{{ page_utils.print_page_title(i18n("about.ts_defines")) }}
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+		<table id="ts-overview" class="table table-striped table-bordered w-100">
+            <thead>
+                <tr>
+                    <th width="15%"> {{ i18n("scripts_overview.ts_info_schema") }} </th>
+                    <th width="20%"> {{ i18n("scripts_overview.ts_info_timeseries") }} </th>
+                    <th width="10%"> {{ i18n("scripts_overview.ts_info_measure_unit") }} </th>
+                    <th width="45%"> {{ i18n("scripts_overview.ts_info_descr") }} </th>
+                </tr>
+            </thead>
+            <tbody>
+
+            {% local timeseries_list = ts_info.retrieve_community_timeseries() %}
+			{% for _, info in pairs(timeseries_list) do %}
+
+			<tr>
+				<td> {{ string.format("%s", info.schema) }} </td>
+                <td> {{ string.format("%s", info.timeseries) }} </td>
+                <td> {{ string.format("%s", info.measure_unit) }} </td>
+				<td> {{ string.format("%s", info.description) }} </td>
+			</tr>
+			{% end %}
+            </tbody>
+        </table>
+	</div>
+</div>
+<script type="text/javascript">
+    i18n_ext.warning ="{{ i18n('warning', {}) }}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n_ext.search = "{{ i18n('search') }}";
+    i18n_ext.edit = "{{ i18n('edit') }}";
+    i18n_ext.remove = "{{ i18n('remove') }}";
+    i18n_ext.all = "{{ i18n('all') }}";
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    
+        let dtConfig = DataTableUtils.getStdDatatableConfig();
+        dtConfig = DataTableUtils.extendConfig(dtConfig, {
+            columnsDefs: [{
+                targets: [0,5], render: function (data, type) {
+                    if (type === "display") return NtopUtils.fint(data);
+                    return data;
+                }
+            }]
+        })
+
+        const $sitesDatatable = $(`#ts-overview`).DataTable(dtConfig);
+
+    });
+</script>

@@ -695,6 +695,11 @@ page_utils.menu_entries = {
         section = "dev",
         help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html"
     },
+    ts_definitions = {
+        key = "ts_definitions",
+        i18n_title = "about.ts_defines",
+        section = "dev",
+    },
     api = {
         key = "api",
         i18n_title = "lua_c_api",

@@ -811,6 +811,10 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
                     url = '/lua/defs_overview.lua'
                 },
                 {
+                    entry = page_utils.menu_entries.ts_definitions,
+                    url = '/lua/ts_overview.lua'
+                },
+                {
                     entry = page_utils.menu_entries.directories,
                     url = '/lua/directories.lua'
                 }, {
