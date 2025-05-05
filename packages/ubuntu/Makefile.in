@@ -30,7 +30,7 @@ ntopng-prep:
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
 	fi
-	find ${NTOPNG_BUILD}/usr/share/ntopng/scripts -name "*.lua" -type f -exec ${LUAC} {} ';';
+	#find ${NTOPNG_BUILD}/usr/share/ntopng/scripts -name "*.lua" -type f -exec ${LUAC} {} ';';
 	if hash systemctl 2>/dev/null; then \
 		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
 	fi

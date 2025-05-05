@@ -81,7 +81,7 @@ fi
 
 # For some reason the command below makes the packaging fail on RH8
 %if 0%{?centos_ver} > 8
-find $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua -name "*.lua" -type f -exec $HOME/ntopng/tools/luac.sh {} ';'
+#find $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua -name "*.lua" -type f -exec $HOME/ntopng/tools/luac.sh {} ';'
 %endif
  
 if hash systemctl 2>/dev/null; then
