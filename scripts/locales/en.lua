@@ -5300,7 +5300,7 @@ local lang = {
         },
       },
       ["8"] = {
-        ["info"] = "Echo",
+        ["info"] = "Echo Request",
         ["code"] = {
         },
       },

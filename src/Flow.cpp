@@ -770,8 +770,18 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 	break;
       }
     }
+  } else if(isICMP()) {
+    if(payload_len > 0) {
+      u_int8_t icmp_type = payload[0];
+      
+      if(icmp_type == 0 /* ICMP Echo Reply */) {
+	/* server -> client */
+	request_swap(); /* This flow will be swapped */
+	swap();
+      }
+    }
   }
-
+  
   if(ndpiFlow && (ndpiFlow->tcp.os_hint != ndpi_os_unknown)) {
     Host *h = cli_h ? cli_h : getViewSharedClient() /* View interface */;
 
