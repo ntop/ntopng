@@ -458,7 +458,7 @@ bool SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
           } else if(!strcasecmp(auth_protocol, "sha")) {
 	    snmpSession->session.securityAuthProto = usmHMACSHA1AuthProtocol;
 	    snmpSession->session.securityAuthProtoLen = sizeof(usmHMACSHA1AuthProtocol) / sizeof(oid);
-#ifdef usmHMAC192SHA256AuthProtocol
+#ifdef NETSNMP_USMAUTH_HMAC192SHA256
           } else if(!strcasecmp(auth_protocol, "sha256")) {
             snmpSession->session.securityAuthProto = usmHMAC192SHA256AuthProtocol;
             snmpSession->session.securityAuthProtoLen = sizeof(usmHMAC192SHA256AuthProtocol) / sizeof(oid);
