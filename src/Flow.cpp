@@ -6683,7 +6683,8 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	      char *model = NULL;
 	      u_int txt_buf_len = ndpi_min(txt_len, sizeof(txt_buf)-1);
 
-	      txt_buf_len = ndpi_min(txt_buf_len, (u_int)(data_len-off-base_off));
+	      if((base_off+off+txt_buf_len) < payload_len)
+		break;
 
 	      strncpy(txt_buf, &txt[off], txt_buf_len);
 	      txt_buf[txt_buf_len] = '\0';
