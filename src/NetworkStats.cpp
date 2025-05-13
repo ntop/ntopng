@@ -80,7 +80,7 @@ NetworkStats::~NetworkStats() {
 
 /* *************************************** */
 
-void NetworkStats::lua(lua_State *vm, bool diff) {
+void NetworkStats::lua(lua_State *vm, bool diff, bool fullStats) {
   int hits;
 
   lua_push_str_table_entry(vm, "network_key",
@@ -115,23 +115,25 @@ void NetworkStats::lua(lua_State *vm, bool diff) {
   lua_settable(vm, -3);
 
 #ifdef NTOPNG_PRO
-  lua_newtable(vm);
-
-  for (u_int32_t i = 0; i < ntop->getNumLocalNetworks(); i++) {
-    /* Safety check in case a local network is NULL */
-    if(!ntop->getLocalNetworkName(i))
-      continue;
-
+  if (fullStats) {
     lua_newtable(vm);
-    lua_push_uint64_table_entry(vm, "bytes_sent", network_matrix[i].bytes_sent);
-    lua_push_uint64_table_entry(vm, "bytes_rcvd", network_matrix[i].bytes_rcvd);
-    lua_pushstring(vm, ntop->getLocalNetworkName(i));
+
+    for (u_int32_t i = 0; i < ntop->getNumLocalNetworks(); i++) {
+      /* Safety check in case a local network is NULL */
+      if(!ntop->getLocalNetworkName(i))
+        continue;
+
+      lua_newtable(vm);
+      lua_push_uint64_table_entry(vm, "bytes_sent", network_matrix[i].bytes_sent);
+      lua_push_uint64_table_entry(vm, "bytes_rcvd", network_matrix[i].bytes_rcvd);
+      lua_pushstring(vm, ntop->getLocalNetworkName(i));
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+    lua_pushstring(vm, "intranet_traffic");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-  lua_pushstring(vm, "intranet_traffic");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 #endif
 
   tcp_packet_stats_ingress.lua(vm, "tcpPacketStats.ingress");

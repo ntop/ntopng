@@ -2938,13 +2938,17 @@ static int ntop_get_interface_flows_stats(lua_State *vm) {
 static int ntop_get_interface_networks_stats(lua_State *vm) {
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   bool diff = false;
+  bool fullStats = false;
 
   if (lua_type(vm, 1) == LUA_TBOOLEAN)
     diff = lua_toboolean(vm, 1) ? true : false;
 
+  if (lua_type(vm, 2) == LUA_TBOOLEAN)
+    fullStats = lua_toboolean(vm, 2) ? true : false;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if (curr_iface)
-    curr_iface->getNetworksStats(vm, get_allowed_nets(vm), diff);
+    curr_iface->getNetworksStats(vm, get_allowed_nets(vm), diff, fullStats);
   else
     lua_pushnil(vm);
 

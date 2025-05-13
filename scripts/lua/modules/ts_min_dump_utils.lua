@@ -85,7 +85,7 @@ end
 -- ########################################################
 
 function ts_dump.subnet_update_rrds(when, ifstats, verbose)
-    local subnet_stats = interface.getNetworksStats()
+    local subnet_stats = interface.getNetworksStats(false, true)
 
     for subnet, sstats in pairs(subnet_stats or {}) do
         if ntop.isPro() and not isEmptyString(ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation") or "") then

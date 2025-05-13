@@ -832,9 +832,9 @@ public:
   int getMacsIpAddresses(lua_State *vm, int idx);
   void getFlowsStats(lua_State *vm);
   void getNetworkStats(lua_State *vm, u_int32_t network_id,
-                       AddressTree *allowed_hosts, bool diff = false) const;
+                       AddressTree *allowed_hosts, bool diff = false, bool fullStats = false) const;
   void getNetworksStats(lua_State *vm, AddressTree *allowed_hosts,
-                        bool diff = false) const;
+                        bool diff = false, bool fullStats = false) const;
   int getFlows(lua_State *vm, u_int32_t *begin_slot, bool walk_all,
                AddressTree *allowed_hosts, Host *host, Host *talking_with_host,
                Host *client, Host *server, char *flow_info, Paginator *p);
