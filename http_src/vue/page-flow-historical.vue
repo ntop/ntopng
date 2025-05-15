@@ -89,7 +89,7 @@
                                         <a v-for="opt in t.options" style="cursor:pointer; display: block;"
                                             @click="add_top_table_filter(opt, $event)"
                                             class="ntopng-truncate tag-filter " :title="opt.value">{{ opt.label + " (" +
-                                            opt.count + "%)" }}</a>
+                                                opt.count + "%)" }}</a>
                                     </template>
                                 </Dropdown> <!-- Dropdown columns -->
                             </template> <!-- custom_header -->
@@ -350,6 +350,9 @@ async function set_query_presets() {
     ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
     ntopng_sync.ready(get_query_presets_sync_key());
 }
+function get_query_presets_sync_key() {
+    return `${page_id}_query_presets`;
+}
 
 const f_map_chart_options = async (chart_options) => {
     await ntopng_sync.on_ready(get_query_presets_sync_key());
@@ -405,7 +408,7 @@ async function load_top_table_array(action, top) {
         if (t.value) {
             t.value.forEach((e, index) => {
                 if (e.count < 1) {
-                    t.value[index].count = '<1' 
+                    t.value[index].count = '<1'
                 }
             })
         }
@@ -748,40 +751,58 @@ function click_button_flow_alerts(event) {
 
 function click_button_flows(event) {
     const row_data = event.row;
-    const epoch_begin = row_data.filter.epoch_begin;
-    const epoch_end = row_data.filter.epoch_end;
-    const cli_ip = row_data.flow.cli_ip.value;
-    const srv_ip = row_data.flow.srv_ip.value;
-    const srv_port = row_data.flow.srv_port;
-    const probe_ip = row_data.probe_ip.value;
-    const instance_name = row_data.NTOPNG_INSTANCE_NAME;
+    const query_preset = ntopng_url_manager.get_url_entry("query_preset");
+    const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+    const epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+    const aggregated = ntopng_url_manager.get_url_entry("aggregated");
+    const cli_ip = row_data?.cli_ip?.value || row_data?.flow?.cli_ip?.value;
+    const srv_ip = row_data?.srv_ip?.value || row_data?.flow?.srv_ip?.value;
+    const srv_port = row_data?.srv_port?.value;
+    const probe_ip = row_data?.probe_ip?.value;
+    const instance_name = row_data?.NTOPNG_INSTANCE_NAME;
+    const vlan_id = row_data?.vlan_id?.value;
+    const output_snmp = row_data?.output_snmp?.value;
+    const input_snmp = row_data?.input_snmp?.value;
 
-    const vlan_id = row_data.vlan_id.value;
-    let as_vlan = vlan_id != 0;
+    let url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${epoch_begin}&epoch_end=${epoch_end}`;
 
-    const output_snmp = row_data.output_snmp.value;
-    let as_output_snmp = output_snmp != 0;
-    const input_snmp = row_data.input_snmp.value;
-    let as_input_snmp = input_snmp != 0;
+    if (instance_name) {
+        url = url + `&instance_name=${instance_name}`;
+    }
 
-    let url = `${http_prefix}/lua/pro/db_search.lua?aggregated=false&epoch_begin=${epoch_begin}&epoch_end=${epoch_end}&cli_ip=${cli_ip};eq&srv_ip=${srv_ip};eq&srv_port=${srv_port};eq&probe_ip=${probe_ip};eq&instance_name=${instance_name}`;
-    if (as_vlan) {
+    if (aggregated && !dataUtils.isEmptyString(query_preset)) {
+        url = url + `&aggregated=${aggregated}`;
+    }
+
+    if (vlan_id && vlan_id != 0) {
         url = url + `&vlan_id=${vlan_id};eq`;
     }
 
-    if (as_input_snmp) {
+    if (cli_ip) {
+        url = url + `&cli_ip=${cli_ip};eq`;
+    }
+
+    if (srv_ip) {
+        url = url + `&srv_ip=${srv_ip};eq`;
+    }
+
+    if (srv_port) {
+        url = url + `&srv_port=${srv_port};eq`;
+    }
+
+    if (probe_ip) {
+        url = url + `&probe_ip=${probe_ip};eq`;
+    }
+
+    if (input_snmp && input_snmp != 0) {
         url = url + `&input_snmp=${input_snmp};eq`;
     }
 
-    if (as_output_snmp) {
+    if (output_snmp && output_snmp != 0) {
         url = url + `&output_snmp=${output_snmp};eq`;
     }
 
     ntopng_url_manager.go_to_url(url);
-}
-
-function get_query_presets_sync_key() {
-    return `${page_id}_query_presets`;
 }
 
 function get_status_view() {

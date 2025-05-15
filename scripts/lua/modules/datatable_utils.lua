@@ -241,6 +241,19 @@ end
 
 -- #####################################
 
+local function build_datatable_column_def_bps(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      style = "text-align:right;",
+      class = { "no-wrap" },
+      render_type = "bps",
+   }
+end
+
+-- #####################################
+
 local function build_datatable_column_def_tcp_flags(name, i18n_label)
    return {
       data_field = name,
@@ -449,6 +462,7 @@ datatable_utils.datatable_column_def_builder_by_type = {
    ['dscp'] = build_datatable_column_def_dscp,
    ['packets'] = build_datatable_column_def_packets,
    ['bytes'] = build_datatable_column_def_bytes,
+   ['bps'] = build_datatable_column_def_bps,
    ['float'] = build_datatable_column_def_float,
    ['msec'] = build_datatable_column_def_msec,
    ['network'] = build_datatable_column_def_network,

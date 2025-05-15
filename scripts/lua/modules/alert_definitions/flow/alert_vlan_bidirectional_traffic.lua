@@ -38,7 +38,7 @@ end
 -- #######################################################
 
 function alert_vlan_bidirectional_traffic.format(ifid, alert, alert_type_params)
-   local vlan_id = alert["vlan_id"]
+   local vlan_id = getFullVlanName(alert["vlan_id"], false, true)
    local tx = format_utils.bytesToSize(alert["cli2srv_bytes"])
    local rx = format_utils.bytesToSize(alert["srv2cli_bytes"])
 

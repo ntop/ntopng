@@ -49,25 +49,25 @@
 				"value_type" : "number"
 			},
 			{
-				"name" : "cli2srv_packets",
+				"name" : "sent_packets",
 				"func" : "SUM",
 				"param" : "SRC2DST_PACKETS",
 				"value_type" : "number"
 			},
 			{
-				"name" : "srv2cli_packets",
+				"name" : "rcvd_packets",
 				"func" : "SUM",
 				"param" : "DST2SRC_PACKETS",
 				"value_type" : "number"
 			},
 			{
-				"name" : "cli2srv_bytes",
+				"name" : "sent_bytes",
 				"func" : "SUM",
 				"param" : "SRC2DST_BYTES",
 				"value_type" : "bytes"
 			},
 			{
-				"name" : "srv2cli_bytes",
+				"name" : "rcvd_bytes",
 				"func" : "SUM",
 				"param" : "DST2SRC_BYTES",
 				"value_type" : "bytes"

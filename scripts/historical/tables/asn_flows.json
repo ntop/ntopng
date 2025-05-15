@@ -5,7 +5,7 @@
 	"show_in_page" : "overview",
 	"visualization_type" : "table",
 	"hourly": true,
-	"sql" : "SELECT SRC_ASN,DST_ASN,SUM(BYTES_SENT) as bytes_sent, SUM(BYTES_RCVD) as bytes_rcvd, SUM(total_traffic) as total_bytes, AVG(THROUGHPUT) as throughput FROM (SELECT SRC_ASN,DST_ASN,SUM(SRC2DST_BYTES) as BYTES_SENT,SUM(DST2SRC_BYTES) as BYTES_RCVD,SUM(TOTAL_BYTES) as total_traffic, ABS(MAX(LAST_SEEN) - MIN(FIRST_SEEN) + 1) as DELTA_TIME, (SUM(TOTAL_BYTES) / (DELTA_TIME)) * 8 as THROUGHPUT $FROM$ $WHERE$ $GROUPBY$) $GROUPBY$ $ORDERBY$",
+	"sql" : "SELECT SRC_ASN,DST_ASN,SUM(BYTES_SENT) as bytes_sent, SUM(BYTES_RCVD) as bytes_rcvd, SUM(total_traffic) as total_bytes, AVG(THROUGHPUT) as avg_thpt FROM (SELECT SRC_ASN,DST_ASN,SUM(SRC2DST_BYTES) as BYTES_SENT,SUM(DST2SRC_BYTES) as BYTES_RCVD,SUM(TOTAL_BYTES) as total_traffic, ABS(MAX(LAST_SEEN) - MIN(FIRST_SEEN) + 1) as DELTA_TIME, (SUM(TOTAL_BYTES) / (DELTA_TIME)) * 8 as THROUGHPUT $FROM$ $WHERE$ $GROUPBY$) $GROUPBY$ $ORDERBY$",
 	"select" : {
 		"items" : [
 			{
@@ -34,9 +34,9 @@
 				"value_type" : "bytes"
 			},
 			{
-				"name" : "THROUGHPUT",
+				"name" : "avg_thpt",
 				"func" : "",
-				"value_type" : "bytes"
+				"value_type" : "bps"
 			}
 		]
 	},

@@ -157,15 +157,15 @@
 
             <!-- Rendered Components -->
             <template v-for="c in components">
-                <Box :color="(c.active && c.color) || c.inactive_color" :width="c.width"
-                    :height="c.height" :id="c.id" class="drag-item">
+                <Box :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height" :id="c.id"
+                    class="drag-item">
                     <template v-slot:box_title>
                         <div v-if="c.i18n_name" class="mb-2 modal-header">
                             <h4 class="modal-title">
                                 {{ c.custom_name ? c.custom_name : _i18n(c.i18n_name) }}
                                 <span style="color: gray">
                                     {{ c.time_offset ? _i18n('dashboard.' + (is_live ? 'time_ago' : 'time_offset_list')
-            + '.' + c.time_offset) : '' }}
+                                        + '.' + c.time_offset) : '' }}
                                 </span>
                             </h4>
                             <div v-if="edit_mode" class="modal-close">
@@ -525,7 +525,11 @@ async function load_filters(filters_available, res, show_second_load) {
             extra_params = `${key}=${value}&${extra_params}`
         }
         retrieve_filters = retrieve_filters.slice(0, -1);
-        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}?hide_exporters_name=true&filters_to_display=${retrieve_filters}&${extra_params}`);
+        /* Being a mix of flows, historical/hourly, keep in mind
+         * that not all the filters are available in the hourly, so retrieve only the
+         * ones available in both
+         */
+        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}?hide_exporters_name=true&filters_to_display=${retrieve_filters}&aggregated=true&${extra_params}`);
     }
     filters_available.forEach((element) => {
         const id = element?.name || "";
@@ -551,7 +555,7 @@ async function load_filters(filters_available, res, show_second_load) {
             } else {
                 selected_filters.value[id] = filter_options[0];
             }
-            
+
             all_available_filters.value[id] = filter_options;
             filtered_filters.value[id] = filter_options
             added_filters_list.push(id);
@@ -884,7 +888,7 @@ function set_report_title() {
  */
 function check_diff_params(previous_params, current_params) {
     /* Empty params, return true, they are different */
-    if (!previous_params || !current_params) 
+    if (!previous_params || !current_params)
         return true;
     /* Check the length, if it's different return true, a new/removed filter/param */
     if (Object.keys(previous_params).length != Object.keys(current_params).length)

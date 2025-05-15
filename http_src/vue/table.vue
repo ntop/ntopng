@@ -271,11 +271,11 @@ function get_col_id(col) {
 function set_dropdown_listener() {
     document.querySelectorAll('.dropdown').forEach(dropdown => {
         dropdown.addEventListener('show.bs.dropdown', function () {
-            this.closest('td').classList.add('dropdown-active');
+            this.closest('td')?.classList.add('dropdown-active');
         });
 
         dropdown.addEventListener('hide.bs.dropdown', function () {
-            this.closest('td').classList.remove('dropdown-active');
+            this.closest('td')?.classList.remove('dropdown-active');
         });
     });
 }
