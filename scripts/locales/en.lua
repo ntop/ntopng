@@ -1277,6 +1277,7 @@ local lang = {
     ["nbox"] = "Log from <a href=\"%{url}\">%{host}</a> (%{facility}) %{line}",
     ["nbox_service"] = "%{service} on %{host} (%{ip}) %{reason}",
     ["nbox_service_instance"] = "%{service} %{instance} on %{host} (%{ip}) %{reason}",
+    ["ndpi_http_suspicious_user_agent"] = "Empty or missing User-Agent ",
     ["network_entity"] = "network %{entity_value}",
     ["network_issues"] = "Detected network issues ",
     ["network_issues_out_of_orders"] = "out of orders: ",

@@ -423,7 +423,7 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     if isEmptyString(msg) then
-        if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
+        if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 and alert_json.flow_risk_info then
             -- Flow risks most of the times already have a default description, use this in case of emtpy descr
             msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
         else
@@ -444,8 +444,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     -- Add the link to the documentation
-    if alert_risk and alert_risk > 0 and not exclude_remediation_link then
-        if isEmptyString(msg) and not isEmptyString(alert.info) then
+    if not isEmptyString(msg) and alert_risk and alert_risk > 0 and not exclude_remediation_link then
+        if not isEmptyString(alert.info) then
             msg = alert.info
         end
         msg = string.format("%s %s",

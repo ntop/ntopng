@@ -47,7 +47,7 @@ end
 -- #######################################################
 
 function alert_ndpi_http_suspicious_user_agent.format(ifid, alert, alert_type_params)
-   return
+   return i18n("alert_messages.ndpi_http_suspicious_user_agent")
 end
 
 -- #######################################################
