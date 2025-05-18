@@ -77,6 +77,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
     enable_external_auth_captive_portal = false,
+    full_stats_enabled = true,
     override_dst_with_post_nat_dst = false,
     override_src_with_post_nat_src = false,
     message_broker_enabled = false;
@@ -1008,6 +1009,7 @@ void Prefs::reloadPrefsFromRedis() {
   mac_based_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true);
   enable_informative_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false);
   enable_external_auth_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_EXTERNAL_AUTH, false);
+  full_stats_enabled = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_FULL_STATS, true);
   enable_vlan_trunk_bridge = getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false);
   default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID);
 

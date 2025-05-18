@@ -61,7 +61,7 @@ Flow::Flow(NetworkInterface *_iface,
   udp = NULL;
 #endif
 
-  if(getInterface()->isPacketInterface()) {
+  if(ntop->getPrefs()->fullStatsEnabled() && getInterface()->isPacketInterface()) {
     if(protocol == IPPROTO_TCP) {
       tcp = (FlowTCP*)calloc(1, sizeof(FlowTCP));
 
@@ -272,16 +272,22 @@ Flow::Flow(NetworkInterface *_iface,
     memset(&ip_stats_d2s, 0, sizeof(ip_stats_d2s));
   memset(&customFlowAlert, 0, sizeof(customFlowAlert));
 
-  if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
+  if(ntop->getPrefs()->fullStatsEnabled()
+     && iface->isPacketInterface()
+     && !iface->isSampledTraffic()) {
     /* Is this necessary? */
     cli2srvPktTime = new (std::nothrow) InterarrivalStats();
     srv2cliPktTime = new (std::nothrow) InterarrivalStats();
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
     initial_bytes_entropy.c2s = ndpi_alloc_data_analysis(256);
     initial_bytes_entropy.s2c = ndpi_alloc_data_analysis(256);
+#endif
   } else {
     cli2srvPktTime = srv2cliPktTime = NULL;
+#ifdef ENABLE_ENTROPHY_CALCULATION
     initial_bytes_entropy.c2s = initial_bytes_entropy.s2c = NULL;
+#endif
   }
 
   c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
@@ -624,11 +630,13 @@ Flow::~Flow() {
   if(cli2srvPktTime) delete cli2srvPktTime;
   if(srv2cliPktTime) delete srv2cliPktTime;
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
   if(initial_bytes_entropy.c2s)
     ndpi_free_data_analysis(initial_bytes_entropy.c2s, 1);
   if(initial_bytes_entropy.s2c)
     ndpi_free_data_analysis(initial_bytes_entropy.s2c, 1);
-
+#endif
+  
   if(flow_payload) free(flow_payload);
 
   if(isHTTP() || isHTTP_PROXY()) {
@@ -1910,10 +1918,9 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
   if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
     char buf[256];
-    ntop->getTrace()->traceEvent(
-				 TRACE_NORMAL,
-				 "Skipping tiny flow dump "
-				 "[flow key: %u]"
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Skipping tiny flow dump [flow key: %u]"
 				 "[packets current/max: %i/%i] "
 				 "[bytes current/max: %i/%i]"
 				 ": %s",
@@ -3301,8 +3308,9 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
 
     lua_confidence(vm);
     lua_get_risk_info(vm);
+#ifdef ENABLE_ENTROPHY_CALCULATION
     lua_entropy(vm);
-
+#endif
     if(riskInfo)
       lua_push_str_table_entry(vm, "riskInfo", riskInfo);
 
@@ -5246,6 +5254,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t *payload,
   if((l4_proto == IPPROTO_TCP) && (tcp_flags & (TH_SYN | TH_FIN | TH_RST)))
     update_iat = false;
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
   if((protocol == IPPROTO_ICMP) &&
       (get_packets() < 10) /* Compute only on the first few flow packets */
       && ((protos.icmp.cli2srv.icmp_type == 0) ||
@@ -5291,9 +5300,9 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t *payload,
 
     ndpi_free_data_analysis(&e, 0);
   }
-
-  updatePacketStats(
-		    cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when,
+#endif
+  
+  updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when,
 		    update_iat);
 
   stats.incStats(cli2srv_direction, 1, pkt_len, payload_len);
@@ -5316,6 +5325,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t *payload,
   }
 
   if(payload_len > 0) {
+#ifdef ENABLE_ENTROPHY_CALCULATION
     if(cli2srv_direction) {
       if(get_bytes_cli2srv() < MAX_ENTROPY_BYTES)
         updateEntropy(initial_bytes_entropy.c2s, payload, payload_len);
@@ -5323,7 +5333,8 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t *payload,
       if(get_bytes_srv2cli() < MAX_ENTROPY_BYTES)
         updateEntropy(initial_bytes_entropy.s2c, payload, payload_len);
     }
-
+#endif
+    
     if(applLatencyMsec == 0) {
       if(cli2srv_direction) {
         memcpy(&c2sFirstGoodputTime, when, sizeof(struct timeval));
@@ -5614,7 +5625,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
     }
 
     /* *** */
-
+    
     if(src2dst_direction)
       src2dst_tcp_flags |= flags;
     else
@@ -5624,54 +5635,60 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
     if(!twh_over) {
       if(flags_3wh == TH_SYN) {
-        if(tcp->synTime.tv_sec == 0) memcpy(&tcp->synTime, when, sizeof(struct timeval));
-
+        if(tcp != NULL) {
+	  if(tcp->synTime.tv_sec == 0) memcpy(&tcp->synTime, when, sizeof(struct timeval));
+	}
+	
 	if((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
 	  /* SYN|ACK arrived before SYN */
 	  request_swap();
 	}
       } else if(flags_3wh == (TH_SYN | TH_ACK)) {
-        if((tcp->synAckTime.tv_sec == 0) && (tcp->synTime.tv_sec > 0)) {
-	  struct timeval t;
-
-          memcpy(&tcp->synAckTime, when, sizeof(struct timeval));
-          timeval_diff(&tcp->synTime, (struct timeval *)when, &t, 0);
-	  tcp->serverRTT3WH = Utils::timeval2ms(&t);
-
-          /* Coherence check */
-          if(tcp->serverRTT3WH > 5000 /* 5 sec */ )
-            tcp->serverRTT3WH = 0;
-          else if(srv_host)
-            srv_host->updateNetworkRTT(tcp->serverRTT3WH);
-        }
+        if(tcp != NULL) {
+	  if((tcp->synAckTime.tv_sec == 0) && (tcp->synTime.tv_sec > 0)) {
+	    struct timeval t;
+	    
+	    memcpy(&tcp->synAckTime, when, sizeof(struct timeval));
+	    timeval_diff(&tcp->synTime, (struct timeval *)when, &t, 0);
+	    tcp->serverRTT3WH = Utils::timeval2ms(&t);
+	    
+	    /* Coherence check */
+	    if(tcp->serverRTT3WH > 5000 /* 5 sec */ )
+	      tcp->serverRTT3WH = 0;
+	    else if(srv_host)
+	      srv_host->updateNetworkRTT(tcp->serverRTT3WH);
+	  }
+	}
       } else if((flags_3wh == TH_ACK) ||
                  (flags_3wh == (TH_ACK | TH_PUSH)) /* TCP Fast Open may contain data and PSH
 						      in the final TWH ACK */) {
-        if((tcp->ackTime.tv_sec == 0) && (tcp->synAckTime.tv_sec > 0)) {
-	  struct timeval t;
+        if(tcp != NULL) {
+	  if((tcp->ackTime.tv_sec == 0) && (tcp->synAckTime.tv_sec > 0)) {
+	    struct timeval t;
 
-          memcpy(&tcp->ackTime, when, sizeof(struct timeval));
-          timeval_diff(&tcp->synAckTime, (struct timeval *)when, &t, 0);
+	    memcpy(&tcp->ackTime, when, sizeof(struct timeval));
+	    timeval_diff(&tcp->synAckTime, (struct timeval *)when, &t, 0);
 
-	  tcp->clientRTT3WH = Utils::timeval2ms(&t);
+	    tcp->clientRTT3WH = Utils::timeval2ms(&t);
 #ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Client RTT: %.1f ms", tcp->clientRTT3WH);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Client RTT: %.1f ms", tcp->clientRTT3WH);
 #endif
 
-          /* Coherence check */
-          if(tcp->clientRTT3WH > 5000 /* 5 sec */)
-            tcp->clientRTT3WH = 0;
-          else if(cli_host)
-            cli_host->updateNetworkRTT(tcp->clientRTT3WH);
+	    /* Coherence check */
+	    if(tcp->clientRTT3WH > 5000 /* 5 sec */)
+	      tcp->clientRTT3WH = 0;
+	    else if(cli_host)
+	      cli_host->updateNetworkRTT(tcp->clientRTT3WH);
 
 #ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Server RTT: %.1f ms", tcp->serverRTT3WH);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Server RTT: %.1f ms", tcp->serverRTT3WH);
 #endif
 
-          setRTT();
-          iface->getTcpFlowStats()->incEstablished();
-        }
-
+	    setRTT();
+	    iface->getTcpFlowStats()->incEstablished();
+	  }
+	}
+	
         goto not_yet;
       } else {
       not_yet:
@@ -5908,6 +5925,8 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
   return;
 #endif
 
+  if(tcp == NULL) return;
+  
   next_seq_num = getNextTcpSeq(flags, seq_num, payload_Len);
 
   if(debug)
@@ -8666,15 +8685,18 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
 
 /* *************************************** */
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
 void Flow::updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload,
                          u_int payload_len) {
   if(e != NULL) {
     for (u_int i = 0; i < payload_len; i++) ndpi_data_add_value(e, payload[i]);
   }
 }
+#endif
 
 /* *************************************** */
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
 void Flow::lua_entropy(lua_State *vm) {
   if(initial_bytes_entropy.c2s && initial_bytes_entropy.s2c) {
     lua_newtable(vm);
@@ -8701,6 +8723,7 @@ void Flow::lua_entropy(lua_State *vm) {
     lua_settable(vm, -3);
   }
 }
+#endif
 
 /* *************************************** */
 
@@ -8829,7 +8852,9 @@ void Flow::swap() {
   u_int8_t m[6];
   u_int8_t f1 = alert_info.is_cli_attacker;
   u_int8_t f2 = alert_info.is_cli_victim;
+#ifdef ENABLE_ENTROPHY_CALCULATION
   struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
+#endif
   TCPSeqNum ts;
   InterarrivalStats *is = cli2srvPktTime;
   time_t now = time(NULL);
@@ -8866,9 +8891,11 @@ void Flow::swap() {
 
   Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
   initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
   initial_bytes_entropy.s2c = s;
-
+#endif
+  
   memcpy(m, view_cli_mac, 6);
   memcpy(view_cli_mac, view_srv_mac, 6);
   memcpy(view_srv_mac, m, 6);

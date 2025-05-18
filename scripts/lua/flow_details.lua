@@ -633,10 +633,6 @@ else
          print(" [" .. i18n("ndpi_confidence") .. ": " .. format_confidence_badge(flow.confidence) .. "]")
       end
 
-      if (flow.tcp_fingerprint) then
-         print(' <span class="badge bg-secondary">TCP Fingerprint: ' .. flow.tcp_fingerprint .. '</span>')
-      end
-
       -- See FlowSource in ntop_typedefs.h
       if (flow.flow_source == 0) then
          -- packet to flow
@@ -800,9 +796,16 @@ else
       i18n("details.ago") .. "]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" ..
       secondsToTime(os.time() - flow["seen.last"]) .. " " .. i18n("details.ago") .. "]" .. "</div></td></tr>\n")
-
+   
    print("<tr><th width=33%>" .. i18n("details.duration") .. "</th><td nowrap colspan=2<div id=duration>" ..
       secondsToTime(flow["seen.last"] - flow["seen.first"]) .. "</div></td>\n")
+
+   if (flow.tcp_fingerprint) then
+      print("<tr><th width=33%>" .. i18n("details.tcp_fingerprint") .. "</th><td nowrap colspan=2<div id=duration>" .. flow.tcp_fingerprint .. "</div></td>\n")
+   end
+
+   local client_to_server_label = i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server")
+   local server_to_client_label = i18n("server") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("client")
 
    if flow["bytes"] > 0 then
       print("<tr><th width=10% rowspan=3>" .. i18n("details.total_traffic") .. "</th><td>" .. i18n("total") ..
@@ -826,10 +829,10 @@ else
          print("<td>&nbsp;</td></tr>\n")
       end
 
-      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") ..
+      print("<tr><td nowrap>" .. client_to_server_label ..
 	    ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / " ..
 	    bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" ..
-	    i18n("server") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("client") ..
+            server_to_client_label ..
 	    ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / " ..
 	    bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
       
@@ -1009,7 +1012,7 @@ else
       print("<tr><th>" .. i18n("download") .. "&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td><A HREF=\"" ..
          url .. "\" download=\"iec104-" .. flow_key .. ".json\">JSON</A></td></tr>")
    end
-   
+
    -- qoe_utils is defined only if ntop is Enterprise L
    if (qoe_utils and (flow.qoe ~= nil)
       and (flow.qoe.score ~= nil)
@@ -1069,8 +1072,8 @@ else
          if (flow["flow.idle"] == true) then
             print(" rowspan=2")
          end
-         print(">" .. i18n("flow_details.packet_inter_arrival_time") .. "</th><td nowrap>" .. i18n("client") ..
-            " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": ")
+         print(">" .. i18n("flow_details.packet_inter_arrival_time") .. "</th><td nowrap>" .. 
+            client_to_server_label .. ": ")
          print(msToTime(flow["interarrival.cli2srv"]["min"]) .. " / " ..
             msToTime(flow["interarrival.cli2srv"]["avg"]) .. " / " ..
             msToTime(flow["interarrival.cli2srv"]["max"]))
@@ -1078,8 +1081,7 @@ else
          if (flow["srv2cli.packets"] < 2) then
             print("<td>&nbsp;")
          else
-            print("<td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " ..
-               i18n("server") .. ": ")
+            print("<td nowrap>" .. server_to_client_label .. ": ")
             print(msToTime(flow["interarrival.srv2cli"]["min"]) .. " / " ..
                msToTime(flow["interarrival.srv2cli"]["avg"]) .. " / " ..
                msToTime(flow["interarrival.srv2cli"]["max"]))
@@ -1094,9 +1096,7 @@ else
       if ((flow["cli2srv.fragments"] + flow["srv2cli.fragments"]) > 0) then
          rowspan = 2
          print("<tr><th width=10% rowspan=" .. rowspan .. ">" .. i18n("flow_details.ip_packet_analysis") .. "</th>")
-         print("<th>&nbsp;</th><th>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " ..
-            i18n("server") .. " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " ..
-            i18n("server") .. "</th></tr>\n")
+         print("<th>&nbsp;</th><th>" .. client_to_server_label .. " / " .. server_to_client_label .. "</th></tr>\n")
          print("<tr><th>" .. i18n("details.fragments") .. "</th><td align=right><span id=c2sFrag>" ..
             formatPackets(flow["cli2srv.fragments"]) .. "</span> / <span id=s2cFrag>" ..
             formatPackets(flow["srv2cli.fragments"]) .. "</span></td></tr>\n")
@@ -1120,11 +1120,8 @@ else
          if rowspan > 0 then
             rowspan = rowspan + 1
          
-            print("<tr><th width=10% rowspan=" .. rowspan .. ">" .. i18n("flow_details.tcp_packet_analysis") ..
-                  "</th>")
-            print("<th></th><th>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " ..
-                  i18n("server") .. " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " ..
-                  i18n("server") .. "</th></tr>\n")
+            print("<tr><th width=10% rowspan=" .. rowspan .. ">" .. i18n("flow_details.tcp_packet_analysis") .. "</th>")
+            print("<th></th><th>" .. client_to_server_label .. " / " .. server_to_client_label .. "</th></tr>\n")
 
             if (((flow["cli2srv.retransmissions"] or 0) + (flow["srv2cli.retransmissions"] or 0)) > 0) then
                print("<tr><th>" .. i18n("details.retransmissions") .. "</th><td align=right><span id=c2sretr>" ..
@@ -1239,11 +1236,9 @@ else
       print("<tr><th width=10%>" ..
          '<a class="ntopng-external-link" style="max-width:300px"  data-bs-toggle="tooltip" href="https://en.wikipedia.org/wiki/TCP_tuning">' ..
          i18n("flow_details.max_estimated_tcp_throughput") ..
-         " <i class=\"fas fa-external-link-alt\"></i></a><td nowrap> " .. i18n("client") ..
-         " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": ")
+         " <i class=\"fas fa-external-link-alt\"></i></a><td nowrap> " .. client_to_server_label .. ": ")
       print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
-      print("</td><td> " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") ..
-         ": ")
+      print("</td><td> " .. server_to_client_label .. ": ")
       print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
       print("</td></tr>\n")
    end
@@ -1267,16 +1262,14 @@ else
    end
 
    if ((flags ~= nil) and (flags > 0)) then
-      print("<tr><th width=10% rowspan=2>" .. i18n("tcp_flags") .. "</th><td nowrap>" .. i18n("client") ..
-         " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": ")
+      print("<tr><th width=10% rowspan=2>" .. i18n("tcp_flags") .. "</th><td nowrap>" .. client_to_server_label .. ": ")
       if (json_flags ~= nil) then
          printTCPFlags(json_flags["CLIENT_TCP_FLAGS"])
       else
          printTCPFlags(flow["cli2srv.tcp_flags"])
       end
       print(
-         "</td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") ..
-         ": ")
+         "</td><td nowrap>" .. server_to_client_label .. ": ")
       if (json_flags ~= nil) then
          printTCPFlags(json_flags["SERVER_TCP_FLAGS"])
       else
@@ -1617,9 +1610,9 @@ else
    if (flow.entropy and flow.entropy.client and flow.entropy.server) then
       print("<tr><th width=10%><A class='ntopng-external-link' href=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\">" ..
          i18n("flow_details.entropy") .. " <i class=\"fas fa-external-link-alt\"></i></A></th>")
-      print("<td>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": " ..
+      print("<td>" .. client_to_server_label .. ": " ..
          string.format("%.3f", flow.entropy.client) .. "</td>")
-      print("<td>" .. i18n("server") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("client") .. ": " ..
+      print("<td>" .. server_to_client_label .. ": " ..
          string.format("%.3f", flow.entropy.server) .. "</td>")
       print("</tr>\n")
 

@@ -53,8 +53,7 @@ void VLANBidirectionalTraffic::checkBidirectionalTraffic(Flow *f) {
 
       if (f->get_bytes_cli2srv() > 0 && f->get_bytes_srv2cli() > 0) {
         /* the flow is bidirectional */
-        FlowAlertType alert_type =
-            VLANBidirectionalTrafficAlert::getClassType();
+        FlowAlertType alert_type = VLANBidirectionalTrafficAlert::getClassType();
         u_int8_t c_score, s_score;
         risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
@@ -90,8 +89,7 @@ bool VLANBidirectionalTraffic::loadConfiguration(json_object *config) {
     vlans->clear_all_bits();
 
     if (json_object_object_get_ex(config, "items", &whitelist_json)) {
-      for (u_int i = 0; i < (u_int)json_object_array_length(whitelist_json);
-           i++) {
+      for (u_int i = 0; i < (u_int)json_object_array_length(whitelist_json); i++) {
         u_int16_t vlan_id = (u_int16_t)-1;
 
         whitelisted_domain_json = json_object_array_get_idx(whitelist_json, i);
@@ -123,7 +121,5 @@ bool VLANBidirectionalTraffic::isServerNotLocal(Flow *f) {
   if (srv_ip == NULL)
     return (false);
   else
-    return ((srv_ip->isLocalHost() || srv_ip->isBroadMulticastAddress())
-                ? false
-                : true);
+    return ((srv_ip->isLocalHost() || srv_ip->isBroadMulticastAddress()) ? false : true);
 }

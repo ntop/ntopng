@@ -749,6 +749,7 @@
 #define CONST_PREFS_DEFAULT_L7_POLICY NTOPNG_PREFS_PREFIX ".default_l7_policy"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED \
   NTOPNG_PREFS_PREFIX ".global_dns_forging"
+#define CONST_PREFS_ENABLE_FULL_STATS NTOPNG_PREFS_PREFIX ".enable_full_stats"
 #define HOST_POOL_IDS_KEY NTOPNG_PREFS_PREFIX ".host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY NTOPNG_PREFS_PREFIX ".host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY NTOPNG_PREFS_PREFIX ".%u.l7_policies.%s"

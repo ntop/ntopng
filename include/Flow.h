@@ -139,11 +139,13 @@ private:
 
   char *json_protocol_info, *alerts_json, *alerts_json_shadow, *riskInfo, *end_reason;
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
   /* Calculate the entropy on the first MAX_ENTROPY_BYTES bytes */
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
   } initial_bytes_entropy;
-
+#endif
+  
   u_int32_t hash_entry_id; /* Uniquely identify this flow inside the flows_hash hash table */
   u_int32_t periodicity; /* When is_periodic_flow is set, specifies how periodic (seconds) is this flow */
   u_int16_t detection_completed : 1,
@@ -1439,19 +1441,20 @@ public:
   inline u_int8_t getCli2SrvECN() { return (cli2srv_tos & 0x3); }
   inline u_int8_t getSrv2CliECN() { return (srv2cli_tos & 0x3); }
 
+#ifdef ENABLE_ENTROPHY_CALCULATION
   inline float getEntropy(bool src2dst_direction) {
     struct ndpi_analyze_struct *e = src2dst_direction
-      ? initial_bytes_entropy.c2s
-      : initial_bytes_entropy.s2c;
+      ? initial_bytes_entropy.c2s : initial_bytes_entropy.s2c;
 
     return (e ? ndpi_data_entropy(e) : 0);
   }
-
+#endif
+  
   inline float getICMPPacketsEntropy() {
     return (protos.icmp.client_to_server.max_entropy -
             protos.icmp.client_to_server.min_entropy);
   }
-
+  
   inline bool timeToPeriodicDump(u_int sec) {
     return ((sec - get_first_seen() >= CONST_DB_DUMP_FREQUENCY) &&
             (sec - get_partial_last_seen() >= CONST_DB_DUMP_FREQUENCY));

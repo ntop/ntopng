@@ -98,7 +98,7 @@ end
 
 function scripts_triggers.arePrefsChanged()
    local prefs_changed_key = "ntopng.cache.prefs_changed"
-   
+
    if(ntop.getCache(prefs_changed_key) == "1") then
       return(true)
    else

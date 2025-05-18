@@ -2676,6 +2676,7 @@ local lang = {
     ["show_hosts"] = "Show Hosts",
     ["source"] = "Source",
     ["source_id"] = "Source Id",
+    ["tcp_fingerprint"] = "TCP Fingerprint",
     ["tcp_packets_sent_analysis"] = "TCP Packets Sent Analysis",
     ["total_traffic"] = "Total Traffic",
     ["traffic_sent_received"] = "Traffic Sent / Received",

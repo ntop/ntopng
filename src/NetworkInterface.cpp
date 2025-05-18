@@ -994,11 +994,11 @@ NetworkInterface::~NetworkInterface() {
 
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
-  if (isPacketInterface() && n > 0) {
+  
+  if(isPacketInterface() && n > 0) {
     for (u_int i = 0; i < INTERFACE_PROFILING_NUM_SECTIONS; i++) {
       if (INTERFACE_PROFILING_SECTION_LABEL(i) != NULL)
-        ntop->getTrace()->traceEvent(
-				     TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks", i,
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks", i,
 				     INTERFACE_PROFILING_SECTION_LABEL(i),
 				     INTERFACE_PROFILING_SECTION_AVG(i, n));
     }
@@ -8452,6 +8452,7 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
 				    ntop->getPrefs()->get_max_num_hosts());
 	  /* The number of ASes cannot be greater than the number of hosts */
 	  ases_hash = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
+
 	  if (!isPacketInterface())
 	    obs_hash = new ObservationPointHash(this, ndpi_min(num_hashes, 4096), 32768);
 
@@ -8487,8 +8488,7 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
 	  db = new ClickHouseFlowDB(this);
 	} catch (const std::invalid_argument &e) {
 	  db = NULL;
-	  ntop->getTrace()->traceEvent(
-				       TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
 	  exit(-1);
 	}
 #endif

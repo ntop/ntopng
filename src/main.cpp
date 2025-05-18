@@ -540,6 +540,8 @@ extern "C" {
 /* ******************************** */
 /* ******************************** */
 
+// #define CUSTOM_ALLOCATOR
+
 #ifdef CUSTOM_ALLOCATOR
 
 static std::map <void*, std::size_t> _allocator;
