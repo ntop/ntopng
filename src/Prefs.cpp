@@ -2828,6 +2828,8 @@ void Prefs::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "flow_table_time", flow_table_time);
   lua_push_bool_table_entry(vm, "flow_table_probe_order",
                             flow_table_probe_order);
+  lua_push_bool_table_entry(vm, "enable_full_stats",
+                            full_stats_enabled);                
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled",
                             enable_active_local_hosts_cache);
 

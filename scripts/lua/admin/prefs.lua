@@ -776,6 +776,12 @@ if auth.has_capability(auth.capabilities.preferences) then
             '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
+            field = "toggle_enable_full_stats",
+            default = "1",
+            pref = "enable_full_stats"
+        })
+
+        prefsToggleButton(subpage_active, {
             field = "toggle_flow_begin",
             default = "0",
             pref = "first_seen_set"

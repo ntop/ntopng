@@ -2207,6 +2207,7 @@ local known_parameters = {
 
     -- PREFERENCES - see prefs.lua for details
     -- Toggle Buttons
+    ["toggle_enable_full_stats"] = validateBool,
     ["toggle_flow_begin"] = validateBool,
     ["flow_table_time"] = validateBool,
     ["flow_table_probe_order"] = validateBool,

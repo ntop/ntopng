@@ -382,6 +382,10 @@ local menu_subpages = {{
             title = i18n("prefs.flow_table_begin_epoch_title"),
             description = i18n("prefs.flow_table_begin_epoch_description")
         },
+        toggle_enable_full_stats = {
+            title = i18n("prefs.toggle_enable_full_stats"),
+            description = i18n("prefs.toggle_enable_full_stats_description")
+        },
         flow_table_time = {
             title = i18n("prefs.flow_table_time_title"),
             description = i18n("prefs.flow_table_time_description")
