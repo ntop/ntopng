@@ -8582,14 +8582,13 @@ NetworkStats *NetworkInterface::getNetworkStats(u_int32_t networkId) const {
 void NetworkInterface::checkPointCounters(bool drops_only) {
   if (!drops_only) {
     checkpointPktCount = getNumPackets(), checkpointBytesCount = getNumBytes();
+    checkpointTrafficSent = getStats() ? getStats()->getNumEgressBytes() : 0;
+    checkpointTrafficRcvd = getStats() ? getStats()->getNumIngressBytes() : 0;
+    checkpointPacketsSent = getStats() ? getStats()->getNumEgressPackets() : 0;
+    checkpointPacketsRcvd = getStats() ? getStats()->getNumIngressPackets() : 0;
   }
   checkpointDroppedAlertsCount = getNumDroppedAlerts();
   checkpointPktDropCount = getNumPacketDrops();
-
-  checkpointTrafficSent = getStats() ? getStats()->getNumEgressBytes() : 0;
-  checkpointTrafficRcvd = getStats() ? getStats()->getNumIngressBytes() : 0;
-  checkpointPacketsSent = getStats() ? getStats()->getNumEgressPackets() : 0;
-  checkpointPacketsRcvd = getStats() ? getStats()->getNumIngressPackets() : 0;
 
   if (db) db->checkPointCounters(drops_only);
 }
