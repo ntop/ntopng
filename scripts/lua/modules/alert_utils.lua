@@ -444,8 +444,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     -- Add the link to the documentation
-    if not isEmptyString(msg) and alert_risk and alert_risk > 0 and not exclude_remediation_link then
-        if not isEmptyString(alert.info) then
+    if alert_risk and alert_risk > 0 and not exclude_remediation_link then
+        if isEmptyString(msg) and not isEmptyString(alert.info) then
             msg = alert.info
         end
         msg = string.format("%s %s",
