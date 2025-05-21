@@ -247,7 +247,7 @@ const map_table_def_columns = (columns) => {
             };
             c.button_def_array.forEach((b) => {
                 if (!visible_dict[b.id]) {
-                    b.class.push("link-disabled");
+                    b.class.push("disabled");
                 }
             });
         }

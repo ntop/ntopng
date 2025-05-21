@@ -27,7 +27,6 @@
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "chart",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_chart"
@@ -37,7 +36,6 @@
 					"icon": "fas fa-edit",
 					"title_i18n": "edit",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_edit"
@@ -47,7 +45,6 @@
 					"icon": "fas fa-sync-alt",
 					"title_i18n": "refresh",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_refresh"

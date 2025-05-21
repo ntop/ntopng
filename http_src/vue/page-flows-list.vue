@@ -328,7 +328,7 @@ const map_table_def_columns = (columns) => {
                         current_class.push("d-none");
                     } else if (row.last_seen - row.first_seen < 310 /* 5 minutes and 10 seconds */ &&
                         visible_dict[b.id] != null && visible_dict[b.id] == true) {
-                        current_class.push("link-disabled");
+                        current_class.push("disabled");
                     }
                     return current_class;
                 }

@@ -211,11 +211,11 @@ const map_table_def_columns = (columns) => {
           const visibility = ntopng_url_manager.get_url_entry("host_visibility");
           if (visibility == "visible") {
             if (b.id != "hide_host") {
-              current_class.push("link-disabled");
+              current_class.push("disabled");
             }
           } else {
             if (b.id != "show_host") {
-              current_class.push("link-disabled");
+              current_class.push("disabled");
             }
           }
           return current_class;

@@ -26,7 +26,6 @@
 					"icon": "fas fa-edit",
 					"title_i18n": "edit",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_edit_rule"
@@ -36,7 +35,6 @@
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_delete_rule"

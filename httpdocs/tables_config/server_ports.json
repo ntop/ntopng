@@ -22,8 +22,7 @@
 					"icon": "fas fa-stream",
 					"title_i18n": "flows_page.live_flows",
 					"class": [
-						"btn-info",
-						"link-button"
+						"btn-info"
 					],
 					"event_id": "click_button_flows"
 				}

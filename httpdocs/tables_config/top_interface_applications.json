@@ -26,7 +26,6 @@
 					"icon": "fas fa-stream",
 					"title_i18n": "db_explorer.historical_data",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_historical_flows"
@@ -36,7 +35,6 @@
 					"icon": "fas fa-stream",
 					"title_i18n": "flows_page.live_flows",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_live_flows"
@@ -46,7 +44,6 @@
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "prefs.timeseries",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_timeseries"

@@ -25,18 +25,12 @@
 					"id": "hide_host",
 					"icon": "fa-solid fa-eye-slash",
 					"title_i18n": "hide_host",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_hide_host"
 				},
 				{
 					"id": "show_host",
 					"icon": "fa-solid fa-eye",
 					"title_i18n": "show_host",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_show_host"
 				}
 			]

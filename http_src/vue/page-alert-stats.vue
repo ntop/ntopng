@@ -85,7 +85,7 @@
                                         <a v-for="opt in t.options" style="cursor:pointer; display: block;"
                                             @click="add_top_table_filter(opt, $event)"
                                             class="ntopng-truncate tag-filter " :title="opt.value">{{ opt.label + " (" +
-                                            opt.count + "%)" }}</a>
+                                                opt.count + "%)" }}</a>
                                     </template>
                                 </Dropdown> <!-- Dropdown columns -->
                             </template> <!-- custom_header -->
@@ -333,7 +333,7 @@ async function load_top_table_array(action, top) {
         if (t.value) {
             t.value.forEach((e, index) => {
                 if (e.count < 1) {
-                    t.value[index].count = '<1' 
+                    t.value[index].count = '<1'
                 }
             })
         }
@@ -432,7 +432,6 @@ const map_table_def_columns = async (columns) => {
                     {
                         "id": "expand",
                         "icon": "fas fa fa-search-plus",
-                        "class": ["link-button"],
                         "title_i18n": "db_search.expand_button",
                         "event_id": "click_button_expand"
                     },
@@ -450,23 +449,27 @@ const map_table_def_columns = async (columns) => {
             };
             c.button_def_array.forEach((b) => {
                 if (!visible_dict[b.id]) {
-                    b.class.push("link-disabled");
-                    return;
+                    b.f_map_class = (current_class, row) => {
+                        current_class = current_class.filter((class_item) => class_item != "disabled");
+                        current_class.push("disabled");
+                        return current_class;
+                    }
+                    return
                 }
                 if (b.id == "snmp_info") {
                     b.f_map_class = (current_class, row) => {
-                        current_class = current_class.filter((class_item) => class_item != "link-disabled");
+                        current_class = current_class.filter((class_item) => class_item != "disabled");
                         if (row.disable_info) {
-                            current_class.push("link-disabled");
+                            current_class.push("disabled");
                         }
                         return current_class;
                     }
                 } else if (b.id == "acknowledge" || b.id == "remove") {
                     /* Engaged alerts have no acknowledge nor remove */
                     b.f_map_class = (current_class, row) => {
-                        current_class = current_class.filter((class_item) => class_item != "link-disabled");
+                        current_class = current_class.filter((class_item) => class_item != "disabled");
                         if (row.is_engaged) {
-                            current_class.push("link-disabled");
+                            current_class.push("disabled");
                         }
                         return current_class;
                     }

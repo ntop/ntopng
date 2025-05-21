@@ -27,7 +27,6 @@
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "prefs.timeseries",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_timeseries"

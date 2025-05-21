@@ -158,7 +158,7 @@ const map_table_def_columns = (columns) => {
                     if (!visible_dict[b.id]) {
                         current_class.push("d-none");
                     } else if (!row.metadata.timeseries && (b.id) == "timeseries") {
-                        current_class.push("link-disabled");
+                        current_class.push("disabled");
                     }
                     return current_class;
                 }

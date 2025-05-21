@@ -25,27 +25,18 @@
 					"id": "timeseries_chart",
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "prefs.timeseries",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_timeseries"
 				},
 				{
 					"id": "device_configuration",
 					"icon": "fas fa-cog",
 					"title_i18n": "snmp_page.device_configuration",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_device_configuration"
 				},
 				{
 					"id": "interface_configuration",
 					"icon": "fas fa-cog",
 					"title_i18n": "snmp_page.interface_configuration",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_interface_configuration"
 				}
 			]

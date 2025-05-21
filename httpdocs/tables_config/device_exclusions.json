@@ -21,25 +21,18 @@
 					"id": "edit",
 					"icon": "fas fa-edit",
 					"title_i18n": "hosts_stats.page_scan_hosts.edit_host",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_edit_device"
 				},
 				{ 
 					"id": "historical_data", 
 					"icon": "fas fa-stream", 
 					"title_i18n": "db_explorer.historical_data", 
-					"class":["link-button"], 
 					"event_id": "click_button_historical_flows" 
 				},
 				{
 					"id": "delete",
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_delete"
 				}
 			]

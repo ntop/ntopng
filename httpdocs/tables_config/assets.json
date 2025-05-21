@@ -22,7 +22,6 @@
 					"icon": "fa-solid fa-magnifying-glass-plus",
 					"title_i18n": "host_details_tooltip",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_host_details"
@@ -32,7 +31,6 @@
 					"icon": "fas fa-stream",
 					"title_i18n": "db_explorer.historical_data",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_historical_flows"
@@ -42,7 +40,6 @@
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_delete"

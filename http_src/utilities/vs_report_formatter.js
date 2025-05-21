@@ -50,10 +50,10 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
       c.button_def_array.forEach((b) => {
           
         b.f_map_class = (current_class, row) => { 
-          current_class = current_class.filter((class_item) => class_item != "link-disabled");
+          current_class = current_class.filter((class_item) => class_item != "disabled");
           // FIX ME with UDP ports check
           if((row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || (row.last_scan == null || ((row.last_scan != null && row.last_scan.time == null))) ) && visible_dict[b.id]) {
-            current_class.push("link-disabled"); 
+            current_class.push("disabled"); 
           }
           return current_class;
         }

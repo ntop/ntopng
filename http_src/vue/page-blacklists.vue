@@ -130,11 +130,11 @@ const map_table_def_columns = (columns) => {
             };
             c.button_def_array.forEach((b) => {
                 b.f_map_class = (current_class, row) => {
-                    current_class = current_class.filter((class_item) => class_item != "link-disabled");
+                    current_class = current_class.filter((class_item) => class_item != "disabled");
                     if ((row.status != "enabled" || row.hits == 0) && b.id == "chart_blacklist") {
-                        current_class.push("link-disabled");
+                        current_class.push("disabled");
                     } else if((row.status != "error" && row.status !=  "enabled") && b.id == "refresh_blacklist") {
-                        current_class.push("link-disabled");
+                        current_class.push("disabled");
                     }
                     return current_class;
                 }

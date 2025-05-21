@@ -27,7 +27,6 @@
 					"icon": "fa-solid fa-magnifying-glass-plus",
 					"title_i18n": "flows",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_live_flows"
@@ -37,7 +36,6 @@
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "chart",
 					"class": [
-						"link-button",
 						"btn-info"
 					],
 					"event_id": "click_button_historical_data"

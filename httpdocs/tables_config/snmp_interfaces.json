@@ -26,9 +26,6 @@
 					"id": "interface_configuration",
 					"icon": "fas fa-cog",
 					"title_i18n": "flow_checks.callback_config",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_configuration"
 				}
 			]

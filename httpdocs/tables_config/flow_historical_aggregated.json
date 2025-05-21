@@ -17,7 +17,7 @@
 		 "min-width" : "80px",
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
-		{ "id": "row_data", "icon": "fas fa-sm fa-stream", "title_i18n": "flows", "class":["link-button"], "event_id": "click_button_flows" }
+		{ "id": "row_data", "icon": "fas fa-sm fa-stream", "title_i18n": "flows", "event_id": "click_button_flows" }
 	    ]
 	},
 	{

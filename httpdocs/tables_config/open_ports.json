@@ -25,9 +25,6 @@
 					"id": "show_hosts",
 					"icon": "fa-solid fa-list-ul",
 					"title_i18n": "hosts_stats.page_scan_hosts.show_hosts",
-					"class": [
-						"link-button"
-					],
 					"event_id": "click_button_show_hosts"
 				}
 			]

@@ -567,10 +567,10 @@ const map_table_def_columns = async (columns) => {
                         if (!(row.first_seen && row.first_seen.epoch &&
                             row.last_seen && row.last_seen.epoch &&
                             match_traffic_recording_window(row.first_seen.epoch, row.last_seen.epoch))) {
-                            current_class.push("link-disabled");
+                            current_class.push("disabled");
                         }
                     } else if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
-                        current_class.push("link-disabled");
+                        current_class.push("disabled");
                     }
                     return current_class;
                 }
