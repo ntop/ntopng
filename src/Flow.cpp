@@ -822,18 +822,25 @@ void Flow::processDetectedProtocolData() {
       && (l7proto != NDPI_PROTOCOL_DHCP) /* host_server_name in DHCP is for the
 					    client name, not the server */
       && (ndpiFlow->host_server_name[0] != '\0') && (!host_server_name)) {
+    bool skip_host_server_name = false;
+    
     Utils::sanitizeHostName((char *)ndpiFlow->host_server_name);
 
     if(ndpi_is_proto(ndpiDetectedProtocol.proto, NDPI_PROTOCOL_HTTP)) {
-      char *double_column = strrchr((char *)ndpiFlow->host_server_name, ':');
-
-      if(double_column) double_column[0] = '\0';
+      if(ndpiFlow->http.response_status_code == 200) {
+	char *double_column = strrchr((char *)ndpiFlow->host_server_name, ':');
+	
+	if(double_column) double_column[0] = '\0';
+      } else
+	skip_host_server_name = true;
     }
 
-    /*
-      Host server name equals the Host: HTTP header field.
-    */
-    host_server_name = strdup((char *)ndpiFlow->host_server_name);
+    if(!skip_host_server_name) {
+      /*
+	Host server name equals the Host: HTTP header field.
+      */
+      host_server_name = strdup((char *)ndpiFlow->host_server_name);
+    }
   }
 
   switch (l7proto) {
