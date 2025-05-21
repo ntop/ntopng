@@ -3601,6 +3601,7 @@ char* Flow::serialize(bool use_labels) {
   if(my_object != NULL) {
     /* JSON string */
     const char *json = json_object_to_json_string(my_object);
+
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "Emitting Flow: %s", json);
 
     if(json) {
@@ -3741,8 +3742,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     char buf[128], jsonbuf[64];
     u_char community_id[200];
 
-    json_object_object_add(
-			   network_object,
+    json_object_object_add(network_object,
 			   Utils::jsonLabel(PROTOCOL, "iana_number", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(protocol));
 
@@ -3806,16 +3806,14 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 #endif
 
     if(addr)
-      json_object_object_add(
-			     network_object,
+      json_object_object_add(network_object,
 			     Utils::jsonLabel(IP_PROTOCOL_VERSION, "type", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_string(addr->isIPv4() ? "ipv4" : "ipv6"));
 
     if(flow_device.device_ip)
       json_object_object_add(network_object, "exporter",
-                             json_object_new_string(intoaV4(
-							    flow_device.device_ip, buf, sizeof(buf))));
+                             json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
 
     json_object_object_add(network_object, "info",
 			   json_object_new_string(getFlowInfo(false).c_str()));
@@ -3838,15 +3836,14 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
     /* Adding MAC */
     if(host && host->getMac() && !host->getMac()->isNull())
       json_object_object_add(host_object,
-			     Utils::jsonLabel(is_client ? IN_SRC_MAC : IN_DST_MAC, "mac", jsonbuf,
-					      sizeof(jsonbuf)),
+			     Utils::jsonLabel(is_client ? IN_SRC_MAC : IN_DST_MAC, "mac", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(Utils::formatMac(host ? host->get_mac() : NULL,
 								     buf, sizeof(buf))));
 
     /* Adding IP */
     if(addr) {
       if(getPreNATSrcIp()) {
-        tmp_ip.set(getPreNATSrcIp());
+        tmp_ip.set(htonl(getPreNATSrcIp()));
         if(is_client && (getPreNATSrcIp() != getPostNATSrcIp()))
           use_nat = true;
       } else {
