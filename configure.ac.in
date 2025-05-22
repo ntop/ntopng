@@ -79,6 +79,10 @@ return 0;
 AC_ARG_WITH(hiredis, AS_HELP_STRING([--without-hiredis], [Build without hiredis integration]), [with_hiredis=no], [with_hiredis=yes])
 AC_ARG_WITH(dynamic_ndpi, AS_HELP_STRING([--with-dynamic-ndpi], [Build with dynamic ndpi]), [with_dynamic_ndpi=yes], [with_dynamic_ndpi=no])
 
+if test "$with_dynamic_ndpi" = "yes"; then
+  AC_DEFINE([HAVE_DYNAMIC_NDPI], [1], [Define if using dynamic linking with nDPI])
+fi
+
 dnl> CLANG_STDLIB="-stdlib=libc++"
 
 dnl> On Ubuntu do sudo apt-get install -y clang-14  clang-tools-14

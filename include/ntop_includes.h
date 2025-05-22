@@ -119,7 +119,12 @@ extern "C" {
 #include <pcap/bpf.h> /* Used for bpf_filter() */
 #endif
 
+#ifdef HAVE_DYNAMIC_NDPI
+#include <ndpi/ndpi_api.h>
+#else
 #include "ndpi_api.h"
+#endif
+
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
