@@ -41,7 +41,8 @@ bool UnexpectedDNSServer::isAllowedHost(Flow *f) {
 				   ntop->getPrefs()->isDNSServer(ip, f->get_vlan_id()) ? "Yes" : "No");
 #endif
       
-      return(ntop->getPrefs()->isDNSServer(ip, f->get_vlan_id()));    
+      return(ntop->getPrefs()->isDNSServer(ip, f->get_vlan_id()) ||
+        ntop->getPrefs()->isDNSServer(ip, 0 /* Check for the VLAN 0 (no vlan) too */));
     } else
       return(true);
   }

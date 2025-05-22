@@ -33,7 +33,8 @@ bool UnexpectedDHCPServer::isAllowedHost(Flow *f) {
     if (ip == NULL || ip->isBroadcastAddress())
       return(true);
     
-    return(ntop->getPrefs()->isDHCPServer(ip, f->get_vlan_id()));
+    return(ntop->getPrefs()->isDHCPServer(ip, f->get_vlan_id()) ||
+        ntop->getPrefs()->isDHCPServer(ip, 0 /* Check for the VLAN 0 (no vlan) too */));
   }
 }
 

@@ -380,6 +380,8 @@ end
 -- #################################
 
 function alert_utils.formatAlertFromFlow(alert)
+    local cli_host = interface.getHostMinInfo(alert["cli.ip"], alert.vlan)
+    local srv_host = interface.getHostMinInfo(alert["srv.ip"], alert.vlan)
     local alert_tmp = table.clone(alert)
     alert_tmp.vlan_id = alert.vlan
     alert_tmp.packets = alert.packets
@@ -388,6 +390,14 @@ function alert_utils.formatAlertFromFlow(alert)
     alert_tmp.srv2cli_pkts = alert["srv2cli.packets"]
     alert_tmp.cli2srv_bytes = alert["cli2srv.bytes"]
     alert_tmp.srv2cli_bytes = alert["srv2cli.bytes"]
+    alert_tmp.cli_ip = alert["cli.ip"]
+    alert_tmp.srv_ip = alert["srv.ip"]
+    if cli_host then
+        alert_tmp.cli_name = cli_host["name"]
+    end
+    if srv_host then
+        alert_tmp.srv_name = srv_host["name"]
+    end
 
     return alert_tmp
 end
