@@ -1,9 +1,7 @@
 --
 -- (C) 2019-24 - ntop.org
 --
-
 -- ##############################################
-
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -19,32 +17,38 @@ local alert_unexpected_smtp_server = classes.class(alert)
 -- ##############################################
 
 alert_unexpected_smtp_server.meta = {
-   alert_key = flow_alert_keys.flow_alert_unexpected_smtp_server,
-   i18n_title = "flow_alerts_explorer.alert_unexpected_smtp_title",
-   icon = "fas fa-fw fa-exclamation",
+    alert_key = flow_alert_keys.flow_alert_unexpected_smtp_server,
+    i18n_title = "flow_alerts_explorer.alert_unexpected_smtp_title",
+    icon = "fas fa-fw fa-exclamation",
 
-   -- Mitre Att&ck Matrix values
-   mitre_values = {
-      mitre_tactic = mitre.tactic.c_and_c,
-      mitre_technique = mitre.technique.app_layer_proto,
-      mitre_sub_technique = mitre.sub_technique.mail_protocol,
-      mitre_id = "T1071.003"
-   },
+    -- Mitre Att&ck Matrix values
+    mitre_values = {
+        mitre_tactic = mitre.tactic.c_and_c,
+        mitre_technique = mitre.technique.app_layer_proto,
+        mitre_sub_technique = mitre.sub_technique.mail_protocol,
+        mitre_id = "T1071.003"
+    },
 
-   has_attacker = true,
+    has_attacker = true
 }
 
 -- ##############################################
 
 function alert_unexpected_smtp_server:init()
-   -- Call the parent constructor
-   self.super:init()
+    -- Call the parent constructor
+    self.super:init()
 end
 
 -- #######################################################
 
 function alert_unexpected_smtp_server.format(ifid, alert, alert_type_params)
-    return(i18n("flow_alerts_explorer.status_unexpected_smtp_description", { server=alert.srv_ip} ))
+    return (i18n("flow_alerts_explorer.status_unexpected_smtp_description", {
+        server = hostinfo2label({
+            ip = alert.srv_ip,
+            vlan = alert.vlan_id,
+            name = alert.srv_name
+        }, true, false, true)
+    }))
 end
 
 -- #######################################################
