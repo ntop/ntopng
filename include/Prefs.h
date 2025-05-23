@@ -75,6 +75,7 @@ class Prefs {
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
+  TsDirectionSplit timeseries_direction_split;
   u_int64_t iec104_allowed_typeids[2];
   u_int32_t auth_session_duration;
   bool auth_session_midnight_expiration;
@@ -636,6 +637,7 @@ class Prefs {
   }
 #endif
   const TsDriver getTimeseriesDriver() const { return (timeseries_driver); }
+  const TsDirectionSplit getTimeseriesDirectionSplit() const { return (timeseries_direction_split); }
 
   inline u_int8_t getDefaultl7Policy() { return (default_l7policy); }
 

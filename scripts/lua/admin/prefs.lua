@@ -1675,7 +1675,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["toggle_ndpi_timeseries_creation"].description, l7_rrd_labels, l7_rrd_values,
             "per_protocol", "primary", "interfaces_ndpi_timeseries_creation",
             "ntopng.prefs.interface_ndpi_timeseries_creation", nil, elementToSwitch, showElementArray, nil, showElement)
+        
+        local ts_direction_split_labels = { i18n("total"), i18n("prefs.rx_tx") }
+        local ts_direction_split_values = { "total", "rx_tx" }
 
+        retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ts_direction_split"].title,
+            subpage_active.entries["toggle_ts_direction_split"].description, ts_direction_split_labels, ts_direction_split_values,
+            "total", "primary", "timeseries_direction_split",
+            "ntopng.prefs.timeseries_direction_split", nil, elementToSwitch, showElementArray, nil, showElement)
+        
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.local_hosts_timeseries') ..
             '</th></tr></thead>')
 

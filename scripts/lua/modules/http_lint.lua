@@ -2443,6 +2443,7 @@ local known_parameters = {
     ["toggle_host_mask"] = validateChoiceInline({"0", "1", "2"}),
     ["topk_heuristic_precision"] = validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
     ["timeseries_driver"] = validateChoiceInline({"rrd", "influxdb", "prometheus"}),
+    ["timeseries_direction_split"] = validateChoiceInline({"total", "rx_tx"}),
     ["message_broker"] = validateChoiceInline({"nats", "mqtt"}),
     ["edition"] = validateEmptyOr(validateChoiceInline(
         {"community", "pro", "enterprise", "enterprise_m", "enterprise_l"})),

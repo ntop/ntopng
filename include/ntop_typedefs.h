@@ -1054,6 +1054,11 @@ typedef enum ts_driver {
   ts_driver_prometheus
 } TsDriver;
 
+typedef enum ts_direction_split {
+  ts_direction_split_rx_tx = 0,
+  ts_direction_split_total
+} TsDirectionSplit;
+
 /* Wrapper for pcap_if_t and pfring_if_t */
 typedef struct _ntop_if_t {
   /* pcap fields */

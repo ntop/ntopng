@@ -141,6 +141,7 @@ Prefs::Prefs(Ntop *_ntop) {
   https_binding_address2 = NULL;
   enable_client_x509_auth = false;
   timeseries_driver = ts_driver_rrd;
+  timeseries_direction_split = ts_direction_split_total;
   cpu_affinity = other_cpu_affinity = NULL;
   flow_table_time = flow_table_probe_order = false;
 #ifdef HAVE_LIBCAP
@@ -907,6 +908,14 @@ static TsDriver str2TsDriver(const char *driver) {
 
 /* ******************************************* */
 
+static TsDirectionSplit str2TsDirectionSplit(const char *driver) {
+  if(!strcmp(driver, "rx_tx"))
+    return (ts_direction_split_rx_tx);
+  return (ts_direction_split_total);
+}
+
+/* ******************************************* */
+
 void Prefs::reloadPrefsFromRedis() {
   char *aux = NULL;
   char *tmp = NULL;
@@ -1031,6 +1040,12 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char *)"rrd");
   if(aux) {
     timeseries_driver = str2TsDriver(aux);
+    free(aux);
+  }
+
+  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DIRECTION_SPLIT, &aux, (char *)"total");
+  if(aux) {
+    timeseries_direction_split = str2TsDirectionSplit(aux);
     free(aux);
   }
 
