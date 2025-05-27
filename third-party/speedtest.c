@@ -324,7 +324,7 @@ static void* do_download(void* data)
   CURL *curl;
   CURLcode res;
   struct thread_para* p_para = (struct thread_para*)data;
-  double size = 0;
+  curl_off_t size = 0;
   double time = 0, time1 = 0, time2;
   char useragent[16];
   double v = (double) (rand() % 1000) / 100;
@@ -360,7 +360,7 @@ static void* do_download(void* data)
     curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time1);
     curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time2);
 #ifdef DEBUG_SPEEDTEST
-    printf("Completed: [Size: %lf][TotalTime: %lf][ConnectTime: %lf][TransferTime: %lf]\n", size, time, time1, time2);
+    printf("Completed: [Size: %lu][TotalTime: %lf][ConnectTime: %lf][TransferTime: %lf]\n", size, time, time1, time2);
 #endif
     p_para->result = size;
     p_para->finish = 1;
