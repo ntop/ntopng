@@ -302,27 +302,27 @@ ZMQParserInterface::~ZMQParserInterface() {
   if (!descriptions_map.empty()) {
     char buf[64];
     descriptions_map_t::iterator it;
-    
+
     snprintf(buf, sizeof(buf), DESCRIPTION_HASH_KEY, get_id());
 
     for (it = descriptions_map.begin(); it != descriptions_map.end(); it++) {
       char pen_buf[32], descr_buf[512];
-      
+
       snprintf(pen_buf, sizeof(pen_buf), "%d.%d", it->first.first, it->first.second);
       snprintf(descr_buf, sizeof(descr_buf), "%s", it->second.first.c_str());
       ntop->getRedis()->hashSet(buf, pen_buf, descr_buf);
     }
   }
-  
+
   if (!labels_map.empty()) {
     char buf[64];
     labels_map_t::iterator it;
-    
+
     snprintf(buf, sizeof(buf), LABEL_HASH_KEY, get_id());
-    
+
     for (it = labels_map.begin(); it != labels_map.end(); it++) {
       char pen_buf[32];
-      
+
       snprintf(pen_buf, sizeof(pen_buf), "%d.%d", it->second.first, it->second.second);
       ntop->getRedis()->hashSet(buf, pen_buf, it->first.c_str());
     }
@@ -1096,7 +1096,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   else
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[field %u.%d][%u]", NTOP_BASE_ID, field-NTOP_BASE_ID, value->int_num);
 #endif
-  
+
   switch (field) {
   case L7_PROTO:
     if (value->string) {
@@ -1474,7 +1474,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case QOE_SRC_TO_DST:
     flow->setQoESrc2Dst(value->int_num);
     break;
-    
+
   case QOE_DST_TO_SRC:
     flow->setQoEDst2Src(value->int_num);
     break;
@@ -1482,7 +1482,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case L7_OS_HINT:
     flow->setOSHint((ndpi_os)value->int_num);;
     break;
-    
+
   default:
     return false;
   }
@@ -3236,9 +3236,9 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
 
 void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
   nProbeStats *last_zrs, *cumulative_zrs;
-  map<u_int32_t, nProbeStats *>::iterator it;
-  u_int32_t last_time = getTimeLastPktRcvdRemote(), last_update = 0;
+  std::map<u_int32_t, nProbeStats *>::iterator it;
   struct timeval now;
+  u_int32_t last_update = 0;
 
   gettimeofday(&now, NULL);
 
@@ -3276,45 +3276,33 @@ void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
   lock.wrlock(__FILE__, __LINE__); /* Need write lock due to (*) */
 
   for (it = source_id_last_zmq_remote_stats.begin();
-       it != source_id_last_zmq_remote_stats.end();) {
+       it != source_id_last_zmq_remote_stats.end(); it++)  {
     nProbeStats *zrs_i = it->second;
 
-    if ((last_time > MAX_PROBE_IDLE_IDLE)
-	&& (zrs_i->remote_time < last_time - MAX_PROBE_IDLE_IDLE /* sec */)) {
-      /* Do not account inactive exporters, release them */
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Erased %s [local_time:
-      // %u][last_time: %u]", zrs_i->remote_ifname, zrs_i->local_time,
-      // last_time);
-      delete (zrs_i);
-      source_id_last_zmq_remote_stats.erase(it++); /* (*) */
-    } else {
-      last_update = ndpi_max(last_update, zrs_i->last_update);
-      cumulative_zrs->num_exporters += zrs_i->num_exporters;
-      cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
-      cumulative_zrs->remote_pkts += zrs_i->remote_pkts;
-      cumulative_zrs->remote_pkt_drops += zrs_i->remote_pkt_drops;
-      cumulative_zrs->num_flow_exports += zrs_i->num_flow_exports;
-      cumulative_zrs->remote_ifspeed = max_val(cumulative_zrs->remote_ifspeed, zrs_i->remote_ifspeed);
-      cumulative_zrs->remote_time = max_val(cumulative_zrs->remote_time, zrs_i->remote_time);
-      cumulative_zrs->local_time =  max_val(cumulative_zrs->local_time, zrs_i->local_time);
-      cumulative_zrs->avg_bps += zrs_i->avg_bps;
-      cumulative_zrs->avg_pps += zrs_i->avg_pps;
-      cumulative_zrs->remote_lifetime_timeout = max_val(cumulative_zrs->remote_lifetime_timeout,
-							zrs_i->remote_lifetime_timeout);
-      cumulative_zrs->remote_collected_lifetime_timeout = max_val(cumulative_zrs->remote_collected_lifetime_timeout,
-								  zrs_i->remote_collected_lifetime_timeout);
-      cumulative_zrs->remote_idle_timeout = max_val(cumulative_zrs->remote_idle_timeout, zrs_i->remote_idle_timeout);
-      cumulative_zrs->export_queue_full += zrs_i->export_queue_full;
-      cumulative_zrs->too_many_flows += zrs_i->too_many_flows;
-      cumulative_zrs->elk_flow_drops += zrs_i->elk_flow_drops;
-      cumulative_zrs->sflow_pkt_sample_drops += zrs_i->sflow_pkt_sample_drops;
-      cumulative_zrs->flow_collection_drops += zrs_i->flow_collection_drops;
-      cumulative_zrs->flow_collection_udp_socket_drops += zrs_i->flow_collection_udp_socket_drops;
-      cumulative_zrs->flow_collection.nf_ipfix_flows += zrs_i->flow_collection.nf_ipfix_flows;
-      cumulative_zrs->flow_collection.sflow_samples += zrs_i->flow_collection.sflow_samples;
-
-      ++it;
-    }
+    last_update = ndpi_max(last_update, zrs_i->last_update);
+    cumulative_zrs->num_exporters += zrs_i->num_exporters;
+    cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
+    cumulative_zrs->remote_pkts += zrs_i->remote_pkts;
+    cumulative_zrs->remote_pkt_drops += zrs_i->remote_pkt_drops;
+    cumulative_zrs->num_flow_exports += zrs_i->num_flow_exports;
+    cumulative_zrs->remote_ifspeed = max_val(cumulative_zrs->remote_ifspeed, zrs_i->remote_ifspeed);
+    cumulative_zrs->remote_time = max_val(cumulative_zrs->remote_time, zrs_i->remote_time);
+    cumulative_zrs->local_time =  max_val(cumulative_zrs->local_time, zrs_i->local_time);
+    cumulative_zrs->avg_bps += zrs_i->avg_bps;
+    cumulative_zrs->avg_pps += zrs_i->avg_pps;
+    cumulative_zrs->remote_lifetime_timeout = max_val(cumulative_zrs->remote_lifetime_timeout,
+						      zrs_i->remote_lifetime_timeout);
+    cumulative_zrs->remote_collected_lifetime_timeout = max_val(cumulative_zrs->remote_collected_lifetime_timeout,
+								zrs_i->remote_collected_lifetime_timeout);
+    cumulative_zrs->remote_idle_timeout = max_val(cumulative_zrs->remote_idle_timeout, zrs_i->remote_idle_timeout);
+    cumulative_zrs->export_queue_full += zrs_i->export_queue_full;
+    cumulative_zrs->too_many_flows += zrs_i->too_many_flows;
+    cumulative_zrs->elk_flow_drops += zrs_i->elk_flow_drops;
+    cumulative_zrs->sflow_pkt_sample_drops += zrs_i->sflow_pkt_sample_drops;
+    cumulative_zrs->flow_collection_drops += zrs_i->flow_collection_drops;
+    cumulative_zrs->flow_collection_udp_socket_drops += zrs_i->flow_collection_udp_socket_drops;
+    cumulative_zrs->flow_collection.nf_ipfix_flows += zrs_i->flow_collection.nf_ipfix_flows;
+    cumulative_zrs->flow_collection.sflow_samples += zrs_i->flow_collection.sflow_samples;
   }
 
   lock.unlock(__FILE__, __LINE__);
@@ -3325,7 +3313,7 @@ void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
   last_remote_pps = cumulative_zrs->avg_pps;
   last_remote_bps = cumulative_zrs->avg_bps;
   last_remote_update = last_update;
-  
+
   if (cumulative_zrs->flow_collection.sflow_samples > 0)
     is_sampled_traffic = true;
 
@@ -3626,6 +3614,36 @@ u_int8_t ZMQParserInterface::parseJSONCustomIE(const char *payload,
   }
 
   return 0;
+}
+
+/* **************************************************** */
+
+u_int16_t ZMQParserInterface::purgeIdleProbes(time_t when) {
+  u_int16_t num_purged = 0;
+  std::map<u_int32_t, nProbeStats *>::iterator it;
+  u_int32_t deadline = (u_int32_t)when - MAX_PROBE_IDLE_IDLE;
+  
+  lock.wrlock(__FILE__, __LINE__); /* Need write lock due to (*) */
+
+  for (it = source_id_last_zmq_remote_stats.begin();
+       it != source_id_last_zmq_remote_stats.end();) {
+    nProbeStats *zrs_i = it->second;
+
+    if (zrs_i->local_time < deadline /* sec */) {
+      /* Do not account inactive exporters, release them */
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Erased %s [local_time:
+      // %u][last_time: %u]", zrs_i->remote_ifname, zrs_i->local_time,
+      // last_time);
+      delete (zrs_i);
+      source_id_last_zmq_remote_stats.erase(it++); /* (*) */
+      num_purged++;
+    } else
+      it++;
+  }
+
+  lock.unlock(__FILE__, __LINE__);
+
+  return(num_purged);
 }
 
 #endif

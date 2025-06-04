@@ -146,6 +146,7 @@ class ZMQParserInterface : public ParserInterface {
   virtual void lua(lua_State *vm, bool fullStats);
   virtual void probeLuaStats(lua_State *vm);
   inline u_int32_t getFlowMaxIdle() { return (returned_flow_max_idle); }
+  u_int16_t purgeIdleProbes(time_t when);
 };
 
 #endif /* _ZMQ_PARSER_INTERFACE_H_ */
