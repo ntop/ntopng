@@ -53,6 +53,8 @@ class HostPoolStats : public GenericTrafficElement {
 
   void lua(lua_State *vm, NetworkInterface *iface);
   char *serialize(NetworkInterface *iface);
+  bool deserialize(char *json, NetworkInterface *iface);
+  void cleanup();
   json_object *getJSONObject(NetworkInterface *iface);
 
   inline void incStats(time_t when, u_int16_t ndpi_proto,

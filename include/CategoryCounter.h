@@ -46,6 +46,7 @@ class CategoryCounter {
   inline u_int64_t getTotalBytes() { return (bytes.getTotal()); }
   inline u_int32_t getDuration() { return (duration); }
   void resetStats();
+  bool deserialize(json_object *o);
 };
 
 #endif /* _CATEGORY_COUNTER_H_ */

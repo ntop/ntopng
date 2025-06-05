@@ -254,3 +254,34 @@ void ProtoCounter::resetStats() {
   packets.resetStats(), bytes.resetStats();
   duration = last_epoch_update = total_flows = 0;
 }
+
+/* ************************************************ */
+bool ProtoCounter::deserialize(json_object *o) {
+  if (!o || !json_object_is_type(o, json_type_object)) return false;
+
+  json_object *obj;
+
+  resetStats();
+
+  if (json_object_object_get_ex(o, "duration", &obj))
+    duration = json_object_get_int64(obj);
+
+  if (json_object_object_get_ex(o, "packets", &obj) && json_object_is_type(obj, json_type_object)) {
+    json_object *sent, *rcvd;
+    if (json_object_object_get_ex(obj, "sent", &sent))
+      packets.setSent(json_object_get_int64(sent));
+    if (json_object_object_get_ex(obj, "rcvd", &rcvd))
+      packets.setRcvd(json_object_get_int64(rcvd));
+      ;
+  }
+
+  if (json_object_object_get_ex(o, "bytes", &obj) && json_object_is_type(obj, json_type_object)) {
+    json_object *sent, *rcvd;
+    if (json_object_object_get_ex(obj, "sent", &sent))
+      bytes.setSent(json_object_get_int64(sent));
+    if (json_object_object_get_ex(obj, "rcvd", &rcvd))
+      bytes.setRcvd(json_object_get_int64(rcvd));
+  }
+
+  return true;
+}

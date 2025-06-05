@@ -108,3 +108,61 @@ char *HostPoolStats::serialize(NetworkInterface *iface) {
 
   return (rsp);
 }
+
+/* ***************************************** */
+
+bool HostPoolStats::deserialize(char *json, NetworkInterface *iface)
+{
+  json_object *o, *obj;
+  enum json_tokener_error jerr = json_tokener_success;
+
+  if (!json) return(false);
+
+  if((o = json_tokener_parse_verbose(json, &jerr)) == NULL)
+    return(false);
+
+  cleanup();
+  
+  if (json_object_object_get_ex(o, "sent", &obj)) {
+    sent.deserialize(obj);
+    ;
+  }
+
+  if (json_object_object_get_ex(o, "rcvd", &obj)) {
+    rcvd.deserialize(obj);
+  }
+
+  if (json_object_object_get_ex(o, "ndpi", &obj)) {
+    if (!ndpiStats) ndpiStats = new (std::nothrow) nDPIStats();
+    if (ndpiStats) ndpiStats->deserialize(obj, iface);
+  }
+
+  if (json_object_object_get_ex(o, "totals", &obj)) {
+    if (!totalStats) totalStats = new (std::nothrow) nDPIStats();
+    if (totalStats) totalStats->deserialize(obj, iface);
+  }
+
+  json_object_put(o);
+  return(true);
+}
+
+/* ***************************************** */
+
+void HostPoolStats::cleanup() {
+  if (ndpiStats) {
+    delete ndpiStats;
+    ndpiStats = NULL;
+  }
+
+  if (totalStats) {
+    delete totalStats;
+    totalStats = NULL;
+  }
+
+  sent.resetStats();  
+  rcvd.resetStats();
+
+  pool_name.clear();
+  mustReset = false;
+  first_seen = last_seen = 0;
+}

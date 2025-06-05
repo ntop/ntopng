@@ -113,3 +113,23 @@ void CategoryCounter::resetStats() {
   duration = 0, last_epoch_update = 0;
   bytes.resetStats();
 }
+
+/* *********************************************** */
+bool CategoryCounter::deserialize(json_object *o) {
+  if (!o || !json_object_is_type(o, json_type_object)) return false;
+
+  json_object *obj;
+
+  resetStats();
+
+  if (json_object_object_get_ex(o, "duration", &obj))
+    duration = json_object_get_int64(obj);
+
+  if (json_object_object_get_ex(o, "bytes_sent", &obj))
+    bytes.setSent(json_object_get_int64(obj));
+
+  if (json_object_object_get_ex(o, "bytes_rcvd", &obj))
+    bytes.setRcvd(json_object_get_int64(obj));
+
+  return true;
+}

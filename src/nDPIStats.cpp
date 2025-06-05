@@ -231,6 +231,55 @@ char *nDPIStats::serialize(NetworkInterface *iface) {
 
 /* *************************************** */
 
+bool nDPIStats::deserialize(json_object *o, NetworkInterface *iface) {
+  if (!o || !json_object_is_type(o, json_type_object))
+    return false;
+  
+  resetStats();
+
+  json_object *obj;
+  //CategoryCounter
+  if (json_object_object_get_ex(o, "categories", &obj) &&
+      json_object_is_type(obj, json_type_object)) {
+    json_object_object_foreach(obj, cat_key, cat_val) {
+      if (!cat_key || !cat_val) continue;
+
+      u_int16_t cat_id = (u_int16_t)atoi(cat_key);
+      CategoryCounter cat;
+
+      if (cat.deserialize(cat_val))
+        cat_counters[cat_id] = cat;
+    }
+  }
+  //ProtoCounter
+  json_object_object_foreach(o, key, val) {
+    if (!key || !val || strcmp(key, "categories") == 0) continue;
+    u_int16_t proto_id = iface->get_ndpi_proto_id(key);
+    if (proto_id == NDPI_PROTOCOL_UNKNOWN && strcmp(key, "Unknown") != 0) {
+      continue;
+    }
+
+    ProtoCounter *pc = new (std::nothrow) ProtoCounter(proto_id,
+    #ifdef NTOPNG_PRO
+      enable_throughput_stats,
+    #else
+      false,
+    #endif
+      enable_behavior_stats);
+
+    if (!pc) continue;
+
+    if (pc->deserialize(val))
+      counters[proto_id] = pc;
+    else
+      delete pc;
+  }
+
+  return true;
+}
+
+/* *************************************** */
+
 json_object *nDPIStats::getJSONObject(NetworkInterface *iface) {
   json_object *my_object;
   json_object *inner;

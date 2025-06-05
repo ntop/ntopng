@@ -104,7 +104,7 @@ class nDPIStats {
 
   void resetStats();
   char *serialize(NetworkInterface *iface);
-  void deserialize(NetworkInterface *iface, json_object *o);
+  bool deserialize(json_object *o, NetworkInterface *iface);
 };
 
 #endif /* _NDPI_STATS_H_ */

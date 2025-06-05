@@ -73,6 +73,7 @@ class ProtoCounter {
   inline void inc_total_flows() { total_flows++; }
   void addProtoJson(json_object *my_object, NetworkInterface *iface);
   void resetStats();
+  bool deserialize(json_object *o);
 };
 
 #endif /* _PROTO_COUNTER_H_ */
