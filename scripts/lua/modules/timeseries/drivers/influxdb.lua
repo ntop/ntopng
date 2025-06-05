@@ -58,6 +58,8 @@ local INFLUX_FLAG_DROPPING_POINTS = INFLUX_KEY_PREFIX .. "flag_dropping_points"
 local INFLUX_FLAG_FAILING_EXPORTS = INFLUX_KEY_PREFIX .. "flag_failing_exports"
 
 local INFLUX_QUEUE_FULL_FLAG = INFLUX_KEY_PREFIX .. "export_queue_full"
+local INFLUX_DB_1_INTERNAL_DB_NAME = "_internal"
+local INFLUX_DB_2_INTERNAL_DB_NAME = "_monitoring"
 
 -- ##############################################
 
@@ -706,7 +708,7 @@ end
 -- ##############################################
 
 local function getDatabaseName(schema, db)
-    return ternary(schema.options.influx_internal_query, '_internal', db)
+    return ternary(schema.options.influx_internal_query, ntop.getInfluxDBInternalDBName(), db)
 end
 
 function driver:_makeSeriesQuery(query_schema, metrics, tags, tstart, tend, time_step, schema)
@@ -757,6 +759,9 @@ function driver:query(schema, tstart, tend, tags, options)
   ]]
     local query = self:_makeSeriesQuery(query_schema, metrics, tags, tstart, tend + unaligned_offset, time_step, schema)
 
+    if not query then
+        return {}
+    end
     local url = self.url
     local data = {}
     local series, count
@@ -848,6 +853,9 @@ function driver:query(schema, tstart, tend, tags, options)
 
         local query = self:_makeSeriesQuery(query_schema, metrics, tags, tstart - time_step, tstart + unaligned_offset,
             time_step, schema)
+        if not query then
+            return {}
+        end
         local data = influx_query(url .. "/query?db=" .. getDatabaseName(schema, self.db) .. "&epoch=s", query,
             self.username, self.password, options)
 
@@ -964,7 +972,9 @@ function driver:timeseries_query(options)
 
     local query = self:_makeSeriesQuery(query_schema, metrics, options.tags, options.epoch_begin,
         options.epoch_end + unaligned_offset, time_step, options.schema_info)
-
+    if not query then
+        return {}
+    end
     local url = self.url
     local data = {}
     local series, count
@@ -1784,10 +1794,35 @@ end
 
 -- ##############################################
 
+-- This function checks the version of Influx and correctly setAdd commentMore actions
+-- the internal DB name, changes between influxdb versions
+local function checkInternalDB(version, url, user, pwd)
+    -- Check the version
+    if string.starts(version, "1") then
+        ntop.setInfluxDBInternalDBName(INFLUX_DB_1_INTERNAL_DB_NAME)        
+    elseif string.starts(version, "2") then
+        ntop.setInfluxDBInternalDBName(INFLUX_DB_2_INTERNAL_DB_NAME)
+    end
+
+    -- Now try running an internal db, to check if there is any problem
+    local query = 'SELECT LAST(Sys) - LAST(HeapReleased) FROM "' .. ntop.getInfluxDBInternalDBName() .. '".."runtime"'
+    local rsp = single_query(url .. "/query?db=" .. ntop.getInfluxDBInternalDBName(), query, user, pwd)
+    if not rsp then
+        ntop.setInfluxDBInternalAvailable(false)
+    else
+        ntop.setInfluxDBInternalAvailable(true)
+    end
+end
+
+-- ##############################################
+
 function driver:getDiskUsage()
+    if (not ntop.isInfluxDBInternalAvailable()) then
+        return nil
+    end
     local query = 'SELECT SUM(last) FROM (select LAST(diskBytes) FROM "monitor"."shard" where "database" = \'' ..
                       self.db .. '\' group by id)'
-    return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+    return single_query(self.url .. "/query?db=" .. ntop.getInfluxDBInternalDBName(), query, self.username, self.password)
 end
 
 -- ##############################################
@@ -1803,15 +1838,21 @@ function driver:getMemoryUsage()
      So the formula below has been obtained by tentatives and it seems to be pretty
      close to what top reports.
   --]]
-    local query = 'SELECT LAST(Sys) - LAST(HeapReleased) FROM "_internal".."runtime"'
-    return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+    if (not ntop.isInfluxDBInternalAvailable()) then
+        return nil
+    end
+    local query = 'SELECT LAST(Sys) - LAST(HeapReleased) FROM "' .. ntop.getInfluxDBInternalDBName() .. '".."runtime"'
+    return single_query(self.url .. "/query?db=" .. ntop.getInfluxDBInternalDBName(), query, self.username, self.password)
 end
 
 -- ##############################################
 
 function driver:getSeriesCardinality()
-    local query = 'SELECT LAST("numSeries") FROM "_internal".."database" where "database"=\'' .. self.db .. '\''
-    return single_query(self.url .. "/query?db=_internal", query, self.username, self.password)
+    if (not ntop.isInfluxDBInternalAvailable()) then
+        return nil
+    end
+    local query = 'SELECT LAST("numSeries") FROM "' .. ntop.getInfluxDBInternalDBName() .. '".."database" where "database"=\'' .. self.db .. '\''
+    return single_query(self.url .. "/query?db=" .. ntop.getInfluxDBInternalDBName(), query, self.username, self.password)
 end
 
 -- ##############################################
@@ -1926,6 +1967,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
         traceError(TRACE_ERROR, TRACE_CONSOLE, err)
         return false, err
     end
+    checkInternalDB(version, url, username, password)
 
     -- Check existing database (this is used to prevent db creationg error for unprivileged users)
     if verbose then
@@ -2123,12 +2165,15 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, dest_step, r
     end
 end
 
-function driver:setup(ts_utils)
+function driver:setup(ts_utils, is_first_setup)
     local version, err = getInfluxdbVersion(self.url, self.username, self.password)
     if version then
         isCompatibleVersion(version)
     end
     local skip = ntop.getCache(INFLUXDB_KEY_SKIP_RETENTION_AND_CREATION)
+    if is_first_setup then
+        checkInternalDB(version, self.url, self.username, self.password)
+    end
 
     if isEmptyString(skip) then
         skip = false

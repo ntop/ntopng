@@ -65,6 +65,8 @@ Prefs::Prefs(Ntop *_ntop) {
   fail_on_invalid_license = false;
   zmq_publish_events_url = NULL;
   custom_geoip_dir = NULL;
+  influx_internal_db_name = strdup(CONST_DEFAULT_INFLUXDB_INTERNAL_DB_NAME);
+  influx_internal_available = true;
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation =
     enable_observation_points_rrd_creation =
@@ -274,6 +276,7 @@ Prefs::~Prefs() {
     deferred_interfaces_to_register = NULL;
   }
 
+  if(influx_internal_db_name) free(influx_internal_db_name);
   if(http_log_path)           free(http_log_path);
   if(zmq_publish_events_url) free(zmq_publish_events_url);
   if(data_dir) free(data_dir);
@@ -3382,6 +3385,16 @@ void Prefs::setCustomGeoIPDir(char *d) {
     custom_geoip_dir = strdup(d);
   }
 }
+
+/* *************************************** */
+
+void Prefs::set_influx_internal_db_name(char *internal_name) {
+    if (internal_name && internal_name[0] != '\0') {
+        if (influx_internal_db_name) 
+            free(influx_internal_db_name);
+        influx_internal_db_name = strdup(internal_name); 
+    }
+};
 
 /* *************************************** */
 

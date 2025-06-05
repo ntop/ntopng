@@ -381,5 +381,5 @@ local mitre_utils = require "mitre_utils"
 local mitre_table = mitre_utils.insertDBMitreInfo()
 
 ntop.reloadServersConfiguration()
-
+ts_utils.runFirstSetup()
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

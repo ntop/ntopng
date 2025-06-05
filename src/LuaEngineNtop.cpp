@@ -7936,6 +7936,48 @@ static int ntop_toggle_new_delete_trace(lua_State *vm) {
 
 /* **************************************************************** */
 
+static int ntop_get_influxdb_internal_db_name(lua_State *vm) {
+  lua_pushstring(vm, ntop->getPrefs()->get_influx_internal_db_name());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_set_influxdb_internal_db_name(lua_State *vm) {
+  char *influx_internal_db;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  influx_internal_db = (char *)lua_tostring(vm, 1);
+
+  if (influx_internal_db && influx_internal_db[0] != '\0') {
+    ntop->getPrefs()->set_influx_internal_db_name(influx_internal_db);
+  }
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_get_influxdb_internal_available(lua_State *vm) {
+  lua_pushboolean(vm, ntop->getPrefs()->get_influx_internal_available());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_set_influxdb_internal_available(lua_State *vm) {
+  bool influx_internal_db_available;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  influx_internal_db_available = (bool)lua_toboolean(vm, 1);
+
+  ntop->getPrefs()->set_influx_internal_available(influx_internal_db_available);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static int ntop_get_license_limits(lua_State *vm) {
   u_int32_t num_hosts = 0, num_flows = 0;
 
@@ -8503,6 +8545,11 @@ static luaL_Reg _ntop_reg[] = {
     {"setnDPIProtoCategory", ntop_set_ndpi_protocol_category},
     {"isCustomApplication", ndpi_is_custom_application},
 
+    /* InfluxDB */
+    {"getInfluxDBInternalDBName", ntop_get_influxdb_internal_db_name},
+    {"setInfluxDBInternalDBName", ntop_set_influxdb_internal_db_name},
+    {"isInfluxDBInternalAvailable", ntop_get_influxdb_internal_available},
+    {"setInfluxDBInternalAvailable", ntop_set_influxdb_internal_available},
 /* nEdge */
 #ifdef HAVE_NEDGE
     {"setHTTPBindAddr", ntop_set_http_bind_addr},

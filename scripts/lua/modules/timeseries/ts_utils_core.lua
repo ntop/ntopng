@@ -819,14 +819,20 @@ function ts_utils.setupAgain()
     -- will run the setup again
     ntop.delCache(SETUP_OK_KEY)
 end
+-- ##############################################
+
+function ts_utils.runFirstSetup()
+    -- will run the setup again
+    ts_utils.setup(true)
+end
 
 -- ##############################################
 
-function ts_utils.setup()
+function ts_utils.setup(is_first_setup)
     local setup_ok = ntop.getPref(SETUP_OK_KEY)
 
     if (ntop.getCache(SETUP_OK_KEY) ~= "1") then
-        if ts_utils.getQueryDriver():setup(ts_utils) then
+        if ts_utils.getQueryDriver():setup(ts_utils, is_first_setup) then
             -- success, update version
             ntop.setCache(SETUP_OK_KEY, "1")
             return true
@@ -869,8 +875,11 @@ function ts_utils.get_memory_size_query(influxdb, schema, tstart, tend, time_ste
     --[[
       See comments in function driver:getMemoryUsage() to understand
       why it is necessary to subtract the HeapReleased from Sys.
-   --]]
-    local q = 'SELECT MEAN(Sys) - MEAN(HeapReleased) as mem_bytes' .. ' FROM "_internal".."runtime"' ..
+   --]]    
+    if (not ntop.isInfluxDBInternalAvailable()) then
+        return nil
+    end
+    local q = 'SELECT MEAN(Sys) - MEAN(HeapReleased) as mem_bytes' .. ' FROM "' .. ntop.getInfluxDBInternalDBName() .. '".."runtime"' ..
                   " WHERE time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" .. " GROUP BY TIME(" ..
                   time_step .. "s)"
 
