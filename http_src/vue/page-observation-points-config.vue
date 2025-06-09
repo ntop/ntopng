@@ -64,8 +64,8 @@ const saveButtonClass = computed(() => {
 });
 
 // API endpoints
-const get_alias_url = `${http_prefix}/lua/rest/v2/get/observation_points/alias.lua?observation_point=${props.context.obs_point_id}`;
-const set_alias_url = `${http_prefix}/lua/rest/v2/set/observation_points/alias.lua`;
+const get_alias_url = `${http_prefix}/lua/pro/rest/v2/get/observation_points/alias.lua?observation_point=${props.context.obs_point_id}`;
+const set_alias_url = `${http_prefix}/lua/pro/rest/v2/set/observation_points/alias.lua`;
 
 // get alias
 onMounted(async () => {
