@@ -71,8 +71,8 @@ local function get_pool_details_key(pool_id)
   return string.format("ntopng.prefs.host_pools.details.%d", tonumber(pool_id))
 end
 
-local function get_pools_serialized_key(ifid)
-  return "ntopng.serialized_host_pools.ifid_" .. ifid
+local function get_pools_serialized_key(ifid, pool_id)
+  return "ntopng.prefs.host_pools.stats.ifid_" .. ifid .. ".pool_" .. pool_id
 end
 
 function host_pools_nedge.getPoolDetail(pool_id, detail)
@@ -448,22 +448,49 @@ function host_pools_nedge.printQuotas(pool_id, host, page_params)
 end
 
 function host_pools_nedge.resetPoolsQuotas(pool_filter)
-  local serialized_key = get_pools_serialized_key(tostring(interface.getFirstInterfaceId()))
-  local keys_to_del
+  local pools = host_pools_nedge.getPoolsList()
+  for _, v in ipairs(pools) do
+    local serialized_key = get_pools_serialized_key(tostring(interface.getFirstInterfaceId()), v.id)
+    ntop.delCache(serialized_key)
+    interface.resetPoolsQuotas(v.id)
+  end
+end
 
-  if pool_filter ~= nil then
-    keys_to_del = {[pool_filter]=1, }
+function host_pools_nedge.startupCheckResetPoolsQuotas()
+  package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+  local nf_config = require("nf_config"):create()
+  local shapers_config = nf_config:getShapersConfig()
+  local quotas_control = shapers_config.quotas_control
+  local do_reset = true
+  local last_check_day = ntop.getCache("ntopng.prefs.host_pools.last_check_day")
+
+  local t1 = tonumber(last_check_str) or 0
+  if t1 == 0 then
+    ntop.setCache("ntopng.prefs.host_pools.last_check_day", tostring(os.time()))
   else
-    keys_to_del = ntop.getHashKeysCache(serialized_key) or {}
+    local t2 = os.time(os.date())
+    local diff = os.difftime(timestamp2, timestamp1)
+    
+    if quotas_control.reset == "daily" then 
+      local days = math.floor(diff / (60 * 60 * 24))
+      if days <= 0 then
+        do_reset = false
+      end
+    elseif quotas_control.reset == "monthly" then
+      if last_check_day.month == os.date().month then
+        do_reset = false
+      end
+    elseif quotas_control.reset == "weekly" then
+      local weeks = math.floor(diff /(7 * 24 * 60 * 60))
+      if weeks <=0 then
+        do_reset = false
+      end
+    end
+    if do_reset then
+      host_pools_nedge.resetPoolsQuotas()
+      ntop.setCache("ntopng.prefs.host_pools.last_check_day", tostring(os.time()))
+    end
   end
-
-  -- Delete the redis serialization
-  for key in pairs(keys_to_del) do
-    ntop.delHashCache(serialized_key, tostring(key))
-  end
-
-  -- Delete the in-memory stats
-  interface.resetPoolsQuotas(pool_filter)
 end
 
 -- @brief Performs a daily check and possibly resets host quotas.
@@ -474,23 +501,28 @@ function host_pools_nedge.dailyCheckResetPoolsQuotas()
   local shapers_config = nf_config:getShapersConfig()
   local quotas_control = shapers_config.quotas_control
   local do_reset = true
+  if quotas_control.reset == "daily" then 
+    local data = os.date("*t", timestamp)
+    if data.hour ~= 0 and data.min ~= 0 then
+      do_reset = false
+    end
+  elseif quotas_control.reset == "monthly" then
+    local day_of_month = os.date("*t").day
 
-  if quotas_control.reset == "monthly" then
-     local day_of_month = os.date("*t").day
-
-     if day_of_month ~= 1 --[[ First day of the month --]] then
-	do_reset = false
-     end
+    if day_of_month ~= 1 --[[ First day of the month --]] then
+	    do_reset = false
+    end
   elseif quotas_control.reset == "weekly" then
-     local day_of_week = os.date("*t").wday
+    local day_of_week = os.date("*t").wday
 
-     if day_of_week ~= 2 --[[ Monday --]] then
-	do_reset = false
-     end
+    if day_of_week ~= 2 --[[ Monday --]] then
+	    do_reset = false
+    end
   end
 
   if do_reset then
-     host_pools_nedge.resetPoolsQuotas()
+    host_pools_nedge.resetPoolsQuotas()
+    ntop.setCache("ntopng.prefs.host_pools.last_check_day", tostring(os.time()))
   end
 end
 

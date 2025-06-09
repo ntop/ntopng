@@ -92,6 +92,23 @@ void HostPools::deleteStats(HostPoolStats ***hps) {
     }
   }
 }
+/* *************************************** */
+
+void HostPools::storeStats(HostPoolStats **stats) {
+  char stats_key[CONST_MAX_LEN_REDIS_KEY];
+  Redis *redis = ntop->getRedis();
+  
+  for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    if (stats[i] == nullptr) continue;
+    u_int16_t pool_id = i;
+    snprintf(stats_key, sizeof(stats_key), HOST_POOL_STATS_KEY, iface->get_id(), pool_id);
+
+    std::string json = stats[i]->serialize(iface);
+    if (!json.empty()) {
+      redis->hashSet(stats_key, "stats", json.c_str());
+    }
+  }
+}
 
 /* *************************************** */
 
@@ -104,7 +121,11 @@ HostPools::~HostPools() {
   if (tree_shadow) delete tree_shadow;
   if (tree) delete tree;
 
-  if (stats) deleteStats(&stats);
+  if (stats){ 
+    #ifdef HAVE_NEDGE
+      storeStats(stats);
+    #endif
+    deleteStats(&stats); }
   if (stats_shadow) deleteStats(&stats_shadow);
 
 #ifdef NTOPNG_PRO
@@ -471,7 +492,10 @@ void HostPools::reloadPools() {
     delete [] new_stats;
     return; /* Something went wrong with redis? */
   }
-  
+  #ifdef HAVE_NEDGE
+    char stats_key[CONST_MAX_LEN_REDIS_KEY];
+    char json_stats[CONST_MAX_LEN_REDIS_VALUE];
+  #endif
   for (int i = 0; i < num_pools; i++) {
     if (!pools[i]) continue;
 
@@ -492,8 +516,15 @@ void HostPools::reloadPools() {
     if (_pool_id != 0) {            /* Pool id 0 stats already updated */
       if (stats && stats[_pool_id]) /* Duplicate existing statistics */
 	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
-      else /* Brand new statistics */
-	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
+      else{ /* Brand new statistics */
+	      new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
+        #ifdef HAVE_NEDGE
+          snprintf(stats_key, sizeof(stats_key), HOST_POOL_STATS_KEY, iface->get_id(), _pool_id);
+          if (redis->hashGet(stats_key, "stats", json_stats, sizeof(json_stats)) == 0) {
+            new_stats[_pool_id]->deserialize(json_stats,iface);
+          }
+        #endif
+      }
     }
 
     reloadPool(_pool_id, new_tree, new_stats);

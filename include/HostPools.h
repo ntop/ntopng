@@ -52,6 +52,7 @@ class HostPools {
     return stats[host_pool_id];
   }
   void reloadPoolStats();
+  void storeStats(HostPoolStats **stats);
   static void deleteStats(HostPoolStats ***hps);
 
   void swap(VLANAddressTree *new_trees, HostPoolStats **new_stats);
