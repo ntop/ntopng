@@ -515,15 +515,15 @@ void HostPools::reloadPools() {
 
     if (_pool_id != 0) {            /* Pool id 0 stats already updated */
       if (stats && stats[_pool_id]) /* Duplicate existing statistics */
-	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
-      else{ /* Brand new statistics */
+	      new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
+      else { /* Brand new statistics */
 	      new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
-        #ifdef HAVE_NEDGE
-          snprintf(stats_key, sizeof(stats_key), HOST_POOL_STATS_KEY, iface->get_id(), _pool_id);
-          if (redis->hashGet(stats_key, "stats", json_stats, sizeof(json_stats)) == 0) {
-            new_stats[_pool_id]->deserialize(json_stats,iface);
-          }
-        #endif
+      #ifdef HAVE_NEDGE
+        snprintf(stats_key, sizeof(stats_key), HOST_POOL_STATS_KEY, iface->get_id(), _pool_id);
+        if (redis->hashGet(stats_key, "stats", json_stats, sizeof(json_stats)) == 0) {
+          new_stats[_pool_id]->deserialize(json_stats,iface);
+        }
+      #endif
       }
     }
 

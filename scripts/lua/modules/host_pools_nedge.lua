@@ -447,7 +447,7 @@ function host_pools_nedge.printQuotas(pool_id, host, page_params)
 
 end
 
-function host_pools_nedge.resetPoolsQuotas(pool_filter)
+function host_pools_nedge.resetPoolsQuotas()
   local pools = host_pools_nedge.getPoolsList()
   for _, v in ipairs(pools) do
     local serialized_key = get_pools_serialized_key(tostring(interface.getFirstInterfaceId()), v.id)
@@ -462,11 +462,11 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
   local shapers_config = nf_config:getShapersConfig()
   local quotas_control = shapers_config.quotas_control
   local do_reset = true
-  local last_check_day = ntop.getCache("ntopng.prefs.host_pools.last_check_day")
+  local last_check_day = ntop.getCache("ntopng.prefs.host_pools.last_check_epoch")
 
   local t1 = tonumber(last_check_str) or 0
   if t1 == 0 then
-    ntop.setCache("ntopng.prefs.host_pools.last_check_day", tostring(os.time()))
+    ntop.setCache("ntopng.prefs.host_pools.last_check_epoch", tostring(os.time()))
   else
     local t2 = os.time(os.date())
     local diff = os.difftime(timestamp2, timestamp1)
@@ -488,7 +488,7 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
     end
     if do_reset then
       host_pools_nedge.resetPoolsQuotas()
-      ntop.setCache("ntopng.prefs.host_pools.last_check_day", tostring(os.time()))
+      ntop.setCache("ntopng.prefs.host_pools.last_check_epoch", tostring(os.time()))
     end
   end
 end
@@ -522,7 +522,7 @@ function host_pools_nedge.dailyCheckResetPoolsQuotas()
 
   if do_reset then
     host_pools_nedge.resetPoolsQuotas()
-    ntop.setCache("ntopng.prefs.host_pools.last_check_day", tostring(os.time()))
+    ntop.setCache("ntopng.prefs.host_pools.last_check_epoch", tostring(os.time()))
   end
 end
 
