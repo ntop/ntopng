@@ -101,11 +101,10 @@ void HostPools::storeStats(HostPoolStats **stats) {
   for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
     if (stats[i] == nullptr) continue;
     u_int16_t pool_id = i;
-    snprintf(stats_key, sizeof(stats_key), HOST_POOL_STATS_KEY, iface->get_id(), pool_id);
-
+    snprintf(stats_key, sizeof(stats_key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
     std::string json = stats[i]->serialize(iface);
     if (!json.empty()) {
-      redis->hashSet(stats_key, "stats", json.c_str());
+      redis->hashSet(stats_key, std::to_string(pool_id).c_str(), json.c_str());
     }
   }
 }
@@ -519,8 +518,8 @@ void HostPools::reloadPools() {
       else { /* Brand new statistics */
 	      new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
       #ifdef HAVE_NEDGE
-        snprintf(stats_key, sizeof(stats_key), HOST_POOL_STATS_KEY, iface->get_id(), _pool_id);
-        if (redis->hashGet(stats_key, "stats", json_stats, sizeof(json_stats)) == 0) {
+        snprintf(stats_key, sizeof(stats_key), HOST_POOL_SERIALIZED_KEY, iface->get_id());
+        if (redis->hashGet(stats_key, std::to_string(_pool_id).c_str(), json_stats, sizeof(json_stats)) == 0) {
           new_stats[_pool_id]->deserialize(json_stats,iface);
         }
       #endif

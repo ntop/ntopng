@@ -756,7 +756,6 @@
 #define HOST_POOL_MEMBERS_KEY NTOPNG_PREFS_PREFIX ".host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY NTOPNG_PREFS_PREFIX ".%u.l7_policies.%s"
 #define HOST_POOL_DETAILS_KEY NTOPNG_PREFS_PREFIX ".host_pools.details.%u"
-#define HOST_POOL_STATS_KEY NTOPNG_PREFS_PREFIX ".host_pools.stats.ifid_%u.pool_%u"
 #define HOST_POOL_LAST_CHECK_EPOCH_KEY NTOPNG_PREFS_PREFIX ".host_pools.last_check_epoch"
 #define CONST_SUBINTERFACES_PREFS NTOPNG_PREFS_PREFIX ".%u.sub_interfaces"
 #define CONST_PREFS_CLIENT_X509_AUTH \

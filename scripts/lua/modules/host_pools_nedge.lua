@@ -71,8 +71,8 @@ local function get_pool_details_key(pool_id)
   return string.format("ntopng.prefs.host_pools.details.%d", tonumber(pool_id))
 end
 
-local function get_pools_serialized_key(ifid, pool_id)
-  return "ntopng.prefs.host_pools.stats.ifid_" .. ifid .. ".pool_" .. pool_id
+local function get_pools_serialized_key(ifid)
+  return "ntopng.serialized_host_pools.ifid_" .. ifid
 end
 
 function host_pools_nedge.getPoolDetail(pool_id, detail)
@@ -447,14 +447,22 @@ function host_pools_nedge.printQuotas(pool_id, host, page_params)
 
 end
 
-function host_pools_nedge.resetPoolsQuotas()
-  local pools = host_pools_nedge.getPoolsList()
-  for _, v in ipairs(pools) do
-    local serialized_key = get_pools_serialized_key(tostring(interface.getFirstInterfaceId()), v.id)
-    ntop.delCache(serialized_key)
-    interface.resetPoolsQuotas(v.id)
+function host_pools_nedge.resetPoolsQuotas(pool_filter)
+
+  local serialized_key = get_pools_serialized_key(tostring(interface.getFirstInterfaceId()))
+  local keys_to_del
+
+  if pool_filter ~= nil then
+    keys_to_del = {[pool_filter]=1, }
+  else
+    keys_to_del = ntop.getHashKeysCache(serialized_key) or {}
   end
+  for key in pairs(keys_to_del) do
+    ntop.delHashCache(serialized_key, tostring(key))
+  end
+  interface.resetPoolsQuotas(pool_filter)
 end
+
 
 function host_pools_nedge.startupCheckResetPoolsQuotas()
   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
@@ -462,28 +470,33 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
   local shapers_config = nf_config:getShapersConfig()
   local quotas_control = shapers_config.quotas_control
   local do_reset = true
-  local last_check_day = ntop.getCache("ntopng.prefs.host_pools.last_check_epoch")
+  local last_check_epoch_cache = ntop.getCache("ntopng.prefs.host_pools.last_check_epoch")
 
-  local t1 = tonumber(last_check_str) or 0
-  if t1 == 0 then
+  local last_check_epoch = tonumber(last_check_epoch_cache) or 0
+  if last_check_epoch == 0 then
     ntop.setCache("ntopng.prefs.host_pools.last_check_epoch", tostring(os.time()))
   else
-    local t2 = os.time(os.date())
-    local diff = os.difftime(timestamp2, timestamp1)
-    
+    local last_check_date = os.date("*t", last_check_epoch)
+    local actual_time = os.time()
+    local actual_date = os.date("*t", actual_time)
+    local diff = os.difftime(actual_time, last_check_epoch)
     if quotas_control.reset == "daily" then 
       local days = math.floor(diff / (60 * 60 * 24))
       if days <= 0 then
         do_reset = false
       end
     elseif quotas_control.reset == "monthly" then
-      if last_check_day.month == os.date().month then
+      if last_check_date.month == actual_date.month and last_check_date.year == actual_date.year then
         do_reset = false
       end
     elseif quotas_control.reset == "weekly" then
-      local weeks = math.floor(diff /(7 * 24 * 60 * 60))
-      if weeks <=0 then
-        do_reset = false
+      -- Sunday = 1, Monday = 2, ...
+      if last_check_date.month == actual_date.month and last_check_date.year == actual_date.year then
+        if (actual_date.wday == 1 
+            or (last_check_date.wday ~= 1 and actual_date.wday >= last_check_date.wday)) 
+            and math.floor(diff /(7 * 24 * 60 * 60)) <= 0 then
+          do_reset = false
+        end
       end
     end
     if do_reset then
