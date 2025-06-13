@@ -483,8 +483,9 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
     local actual_date = os.date("*t", actual_time)
     local diff = os.difftime(actual_time, last_check_epoch)
     if quotas_control.reset == "daily" then 
-      local days = math.floor(diff / (60 * 60 * 24))
-      if days <= 0 then
+      if last_check_date.month == actual_date.month 
+          and last_check_date.year == actual_date.year 
+          and last_check_date.day == actual_date.day then
         do_reset = false
       end
     elseif quotas_control.reset == "monthly" then
@@ -492,17 +493,18 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
         do_reset = false
       end
     elseif quotas_control.reset == "weekly" then
-      -- Sunday = 1, Monday = 2, ...
-      -- Check if the last check and current date are in the same month and year 
-      if last_check_date.month == actual_date.month and last_check_date.year == actual_date.year then
-          -- Prevent reset if:
-          -- It's Sunday today (start of the week), or the weekday has progressed but we're still in the same week
-          -- AND less than a full week (7 days) has passed since the last check
-        if (actual_date.wday == 1 
-            or (last_check_date.wday ~= 1 and actual_date.wday >= last_check_date.wday)) 
-            and math.floor(diff /(7 * 24 * 60 * 60)) <= 0 then
-          do_reset = false
-        end
+      local last_monday_timestamp = actual_time
+      -- actual_date is not monday
+      if actual_date.wday  ~= 2 then 
+        last_monday_timestamp = actual_time - (((actual_date.wday - 2) % 7) * 86400)
+      end
+      local last_monday = os.date("*t", last_monday_timestamp)
+      last_monday.hour = 0
+      last_monday.min = 0
+      last_monday.sec = 0
+      last_monday_timestamp = os.time(last_monday)
+      if last_monday_timestamp < last_check_epoch then
+        do_reset = false
       end
     end
     if do_reset then
