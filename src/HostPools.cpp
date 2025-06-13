@@ -121,9 +121,9 @@ HostPools::~HostPools() {
   if (tree) delete tree;
 
   if (stats){ 
-    #ifdef HAVE_NEDGE
-      storeStats(stats);
-    #endif
+  #ifdef HAVE_NEDGE
+    storeStats(stats);
+  #endif
     deleteStats(&stats); }
   if (stats_shadow) deleteStats(&stats_shadow);
 

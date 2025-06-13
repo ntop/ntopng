@@ -457,9 +457,11 @@ function host_pools_nedge.resetPoolsQuotas(pool_filter)
   else
     keys_to_del = ntop.getHashKeysCache(serialized_key) or {}
   end
+  -- Delete the redis serialization
   for key in pairs(keys_to_del) do
     ntop.delHashCache(serialized_key, tostring(key))
   end
+    -- Delete the in-memory stats
   interface.resetPoolsQuotas(pool_filter)
 end
 
@@ -491,7 +493,11 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
       end
     elseif quotas_control.reset == "weekly" then
       -- Sunday = 1, Monday = 2, ...
+      -- Check if the last check and current date are in the same month and year 
       if last_check_date.month == actual_date.month and last_check_date.year == actual_date.year then
+          -- Prevent reset if:
+          -- It's Sunday today (start of the week), or the weekday has progressed but we're still in the same week
+          -- AND less than a full week (7 days) has passed since the last check
         if (actual_date.wday == 1 
             or (last_check_date.wday ~= 1 and actual_date.wday >= last_check_date.wday)) 
             and math.floor(diff /(7 * 24 * 60 * 60)) <= 0 then
@@ -514,12 +520,8 @@ function host_pools_nedge.dailyCheckResetPoolsQuotas()
   local shapers_config = nf_config:getShapersConfig()
   local quotas_control = shapers_config.quotas_control
   local do_reset = true
-  if quotas_control.reset == "daily" then 
-    local data = os.date("*t", timestamp)
-    if data.hour ~= 0 and data.min ~= 0 then
-      do_reset = false
-    end
-  elseif quotas_control.reset == "monthly" then
+
+  if quotas_control.reset == "monthly" then
     local day_of_month = os.date("*t").day
 
     if day_of_month ~= 1 --[[ First day of the month --]] then
