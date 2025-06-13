@@ -465,6 +465,20 @@ function host_pools_nedge.resetPoolsQuotas(pool_filter)
   interface.resetPoolsQuotas(pool_filter)
 end
 
+function host_pools_nedge.lastMondayMidnight(actual_time)
+  local last_monday_timestamp = actual_time
+  -- actual_date is not monday
+  if actual_date.wday  ~= 2 then 
+    last_monday_timestamp = actual_time - (((actual_date.wday - 2) % 7) * 86400)
+  end
+  local last_monday = os.date("*t", last_monday_timestamp)
+  last_monday.hour = 0
+  last_monday.min = 0
+  last_monday.sec = 0
+  last_monday_timestamp = os.time(last_monday)
+
+  return last_monday_timestamp
+end
 
 function host_pools_nedge.startupCheckResetPoolsQuotas()
   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
@@ -493,16 +507,7 @@ function host_pools_nedge.startupCheckResetPoolsQuotas()
         do_reset = false
       end
     elseif quotas_control.reset == "weekly" then
-      local last_monday_timestamp = actual_time
-      -- actual_date is not monday
-      if actual_date.wday  ~= 2 then 
-        last_monday_timestamp = actual_time - (((actual_date.wday - 2) % 7) * 86400)
-      end
-      local last_monday = os.date("*t", last_monday_timestamp)
-      last_monday.hour = 0
-      last_monday.min = 0
-      last_monday.sec = 0
-      last_monday_timestamp = os.time(last_monday)
+      local last_monday_timestamp = lastMondayMidnight(actual_time)
       if last_monday_timestamp < last_check_epoch then
         do_reset = false
       end
