@@ -466,6 +466,7 @@ function host_pools_nedge.resetPoolsQuotas(pool_filter)
 end
 
 local function lastMondayMidnight(actual_time)
+  local actual_date = os.date("*t", actual_time)
   local last_monday_timestamp = actual_time
   -- actual_date is not monday
   if actual_date.wday  ~= 2 then 
