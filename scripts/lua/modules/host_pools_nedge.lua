@@ -462,7 +462,8 @@ function host_pools_nedge.resetPoolsQuotas(pool_filter)
     ntop.delHashCache(serialized_key, tostring(key))
   end
     -- Delete the in-memory stats
-  interface.resetPoolsQuotas(pool_filter)
+    -- TODO: Fix interface.resetPoolsQuotas(pool_filter) with pool_filter != nil
+  interface.resetPoolsQuotas()
 end
 
 local function lastMondayMidnight(actual_time)
