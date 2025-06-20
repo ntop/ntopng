@@ -1272,7 +1272,7 @@ end
 -- Returns true if a system script is enabled for some hook
 function checks.isSystemScriptEnabled(script_key)
    -- Verify that the script is currently available
-   local k = "ntonpng.cache.checks.available_system_modules." .. script_key
+   local k = "ntopng.cache.checks.available_system_modules." .. script_key
    local available = ntop.getCache(k)
 
    if (isEmptyString(available)) then
@@ -2295,7 +2295,7 @@ function checks.loadChecks()
    end
 
    -- Remove the list of system scripts enabled, re-added from the checks.lua file
-   deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
+   deleteCachePattern("ntopng.cache.checks.available_system_modules.*")
 
    -- Reload checks with their configurations
    checks.initDefaultConfig()
