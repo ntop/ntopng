@@ -1875,30 +1875,33 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       if(tcp_flags & TH_SYN) {
 	if(tcp_len > sizeof(struct ndpi_tcphdr)) {
 	  u_int8_t *options = (u_int8_t*)(&l4[sizeof(struct ndpi_tcphdr)]);
-	  u_int8_t options_len = tcp_len - sizeof(struct ndpi_tcphdr);
+	  u_int32_t options_len = tcp_len - sizeof(struct ndpi_tcphdr);
 
-	  for(u_int i=0; i<options_len; ) {
+	  for(u_int32_t i=0; i<options_len; ) {
 	    u_int8_t kind = options[i];
 
 	    if(kind == 0) /* EOL */ {
 	      i++;
 	      continue;
-	    } else if(kind == 1) /* NOP */
+	    } else if(kind == 1) /* NOP */ {
 	      i++;
-	    else if((i+1) < options_len) {
+	    } else if((i+1) < options_len) {
 	      u_int8_t len = options[i+1];
 
-	      if(len == 0)
+	      if(len == 0) {
 		break;
-	      else if(kind == 3 /* Window Scale */) {
+	      } else if(kind == 3 /* Window Scale */) {
 		if(len == 3)
 		  tcp_window_scale = options[i+2];
-
 		break;
-	      }
-
-	      i += len;
-	    }
+	      } else if((i+len) < options_len) {
+	        i += len;
+              } else {
+                break;
+              }
+	    } else {
+              break;
+            }
 	  } /* for */
 	}
       }
