@@ -1502,6 +1502,11 @@ end
 
 -- #################################################################
 
+function validateSankeyAsCriteria(criteria)
+    return (criteria == 'ingress_traffic_criteria' or criteria == 'egress_traffic_criteria')
+end
+-- #################################################################
+
 function validateToken(token)
     if (not token) then
         return false
@@ -2072,6 +2077,7 @@ local known_parameters = {
     ["search_flows"] = validateBool, -- When set, a flow search should be performed
     ["custom_column"] = validateCustomColumn,
     ["criteria"] = validateSankeyCriteria,
+    ["criteria_as"] = validateSankeyAsCriteria,
     ["aggregation_criteria"] = validateSingleWord,
     ["row_id"] = validateUnquoted, -- A number used to identify a record in a database
     ["rrd_file"] = validateUnquoted, -- A path or special identifier to read an RRD file

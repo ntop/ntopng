@@ -62,6 +62,7 @@ import { default as PageCountryStats } from "./page-country-stats.vue"
 import { default as PageUploadPcap } from "./page-upload-pcap.vue"
 import { default as PageRedisStats } from "./page-redis-stats.vue"
 import { default as PageAsStats } from "./page-as-stats.vue"
+import { default as PageAsOverview } from "./page-as-overview.vue"
 import { default as PageProbes } from "./page-probes.vue"
 import { default as PageExporters } from "./page-exporters.vue"
 import { default as PageExportersDetails } from "./page-exporters-details.vue"
@@ -168,6 +169,7 @@ let ntopVue = {
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageFlowsList: PageFlowsList,
     PageAsStats: PageAsStats,
+    PageAsOverview: PageAsOverview,
     PageProbes: PageProbes,
     PageExportersDetails: PageExportersDetails,
     PageLimits: PageLimits,

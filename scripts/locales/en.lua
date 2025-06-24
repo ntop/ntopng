@@ -1828,6 +1828,10 @@ local lang = {
     ["as_timeseries_enable_message"] = "AS timeseries can be enabled from the <A HREF=\"%{url}\">%{icon_flask} Preferences</A>. Few minutes are necessary to see the first data points.",
     ["no_available_data_for_as"] = "No available data for AS %{asn}.",
   },
+  ["as_overview"] = {
+    ["ingress_traffic_criteria"]= "Ingress Traffic",
+    ["egress_traffic_criteria"] = "Egress Traffic",
+  },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",
   },

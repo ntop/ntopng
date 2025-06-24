@@ -50,7 +50,7 @@ const map_table_def_columns = (columns) => {
         },
         "asn": (value, row) => {
 
-            let return_value = `<A HREF='${http_prefix}/lua/hosts_stats.lua?asn=${row["asn"]}' title='${row["asname"]}'>${row["asn"]}</A>`
+            let return_value = `<A HREF='${http_prefix}/lua/as_overview.lua?asn=${row["asn"]}' title='${row["asname"]}'>${row["asn"]}</A>`
 
             if (row["ts_enabled"]) {
                 const url = `${http_prefix}/lua/as_stats.lua?asn=${row["asn"]}&page=historical`
