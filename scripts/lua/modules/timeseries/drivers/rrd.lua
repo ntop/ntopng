@@ -963,6 +963,9 @@ function driver:timeseries_top(options, top_tags)
                     partials[name] = partials[name] + serie_point * step
                 end
             end
+            if statistics and statistics.total == 0 then
+                goto continue
+            end
 
             available_items[serie_tags[top_tag]] = sum * step
             available_tags[serie_tags[top_tag]] = {serie_tags, partials}
@@ -971,6 +974,7 @@ function driver:timeseries_top(options, top_tags)
                 statistics = statistics,
                 tags = options_merged.tags
             }
+            ::continue::
         end
     end
 

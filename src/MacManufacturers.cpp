@@ -76,6 +76,7 @@ void MacManufacturers::init() {
         if (!manuf) manuf = shortmanuf;
       }
 
+     
 #ifdef MANUF_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [short: %s][full: %s]",
                                    mac, shortmanuf, manuf);
@@ -100,13 +101,22 @@ void MacManufacturers::init() {
 
         if (mac_manufacturers.find(mac_key) == mac_manufacturers.end()) {
           mac_manufacturers_t s;
-
+	  u_int len = strlen(shortmanuf);;
+	  
           s.manufacturer_name = (char *)calloc(strlen(manuf) + 1, sizeof(char));
           strcpy(s.manufacturer_name, manuf);
           Utils::purifyHTTPparam(s.manufacturer_name, false, false, false);
 
-          s.short_name = (char *)calloc(strlen(shortmanuf) + 1, sizeof(char));
+	  /* Zap chars that can create problem later on */
+	  for(u_int i=0; i<len; i++) {
+	    if(shortmanuf[i] == '\'')
+	      shortmanuf[i] = '_';
+	  }
+	  
+          s.short_name = (char *)calloc(len + 1, sizeof(char));
           strcpy(s.short_name, shortmanuf);
+
+	  /* Standard checks... */
           Utils::purifyHTTPparam(s.short_name, false, false, false);
 
           /* TODO: reduce memory usage for recurrent manufacturers */

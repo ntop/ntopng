@@ -488,6 +488,33 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   // load custom protocols
   loadProtocolsAssociations(ndpi_s);
 
+  /* TODO Testing code */
+  {
+    struct stat buf;
+    const char *domains_file = "./domain_categories.txt";
+    int rc;
+    
+    if((rc = stat(domains_file, &buf)) == -1)
+      domains_file = "/usr/share/ntopng/domain_categories.txt";
+
+    if((rc == 0) || (stat(domains_file, &buf) == 0)) {
+      int num = ndpi_load_categories_file(ndpi_s, domains_file, NULL);
+      
+      if(num < 0)
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Error while loading categories  %s",
+				     domains_file);
+      else {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Loaded %d custom domain categories",
+				     num);
+
+	/* Deleete domains cache */
+	ntop->getRedis()->del((char*)"ntopng.domains");
+      }
+    }
+  }
+  
   return (ndpi_s);
 }
 
@@ -990,7 +1017,7 @@ NetworkInterface::~NetworkInterface() {
 
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
-  
+
   if(isPacketInterface() && n > 0) {
     for (u_int i = 0; i < INTERFACE_PROFILING_NUM_SECTIONS; i++) {
       if (INTERFACE_PROFILING_SECTION_LABEL(i) != NULL)
@@ -3483,7 +3510,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
                                                 u_int active_flows_budget) {
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
   time_t when = time(NULL);
-  
+
   /*
     Process high-priority idle flows (they're high priority as an idle flow not dumped is lost)
   */
@@ -3619,7 +3646,7 @@ bool NetworkInterface::dumpFlowOut(Flow *f, time_t when) {
 
   if (!rc)
     incDBNumDroppedFlows(db);
-  
+
   f->decUses(); /* Add done, decrease the reference counter */
   f->set_dump_done();
 
@@ -5103,7 +5130,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
             (srv_pod && !strcmp(pod_filter, srv_pod))))
         return (false);
     }
-
+    
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     if (retriever->pag &&
@@ -5129,12 +5156,15 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       return (false);
     else if (retriever->pag && retriever->pag->asnFilter(&asn_filter) &&
              f->get_cli_host() && f->get_srv_host())
-#if DEBUG
-      ntop->getTrace()->traceEvent(
-				   TRACE_WARNING, "Filtering ASN: %u | Client ASN: %u | Server ASN: %u",
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Filtering ASN: %u | Client ASN: %u | Server ASN: %u",
 				   asn_filter, f->get_cli_host()->get_asn(),
 				   f->get_srv_host()->get_asn());
 #endif
+    
+
     if (retriever->pag && retriever->pag->usernameFilter(&username_filter) &&
         (!f->get_user_name(true /* client uid */) ||
          strcmp(f->get_user_name(true /* client uid */), username_filter)) &&
@@ -6843,7 +6873,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
             lua_insert(vm, -2);
             lua_settable(vm, -3);
           } else {
-            (getCheckpointOnly) ? 
+            (getCheckpointOnly) ?
                 h->checkpoint(vm) :
                 h->lua(vm, NULL /* Already checked */, host_details, false, false,
                     true);
@@ -6866,7 +6896,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
             lua_insert(vm, -2);
             lua_settable(vm, -3);
           } else {
-            (getCheckpointOnly) ? 
+            (getCheckpointOnly) ?
                 h->checkpoint(vm) :
                 h->lua(vm, NULL /* Already checked */, host_details, false, false,
                     true);
@@ -7005,7 +7035,7 @@ void NetworkInterface::getFlowsStats(lua_State *vm) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
     return;
   }
-  
+
   walker(&begin_slot, walk_all, walker_flows, flow_stats_walker, (void *)&stats);
 
   lua_newtable(vm);
@@ -7032,7 +7062,7 @@ void NetworkInterface::getFlowsStats(lua_State *vm) {
   lua_pushstring(vm, "breeds");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   free(stats.ndpi_bytes);
 }
 
@@ -7252,9 +7282,8 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm,
 	&& (!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
       snprintf(buf, sizeof(buf) - 1, "%d", ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), i));
 
-      if (!proto_defaults[i].protoName)
-        ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                     "NULL protoname for index %d!!", i);
+      if (proto_defaults[i].protoName[0] == '\0')
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "NULL protoname for index %d!!", i);
       else
         lua_push_str_table_entry(vm, proto_defaults[i].protoName, buf);
     }
@@ -7551,7 +7580,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   lua_newtable(vm); /* stats_since_reset */
 
   lua_push_uint64_table_entry(vm, "packets", getNumPacketsSinceReset());
@@ -8578,7 +8607,7 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
     /* Allocate only the DB connection, not any thread or queue for the export */
     if (!disable_dump)
       initFlowDB();
-    else 
+    else
       flow_dump_disabled_by_backend = true;
 
     if (!isViewed() && !disable_dump) {
@@ -9599,12 +9628,12 @@ bool NetworkInterface::initFlowDB() {
 void NetworkInterface::initFlowDump() {
   startFlowDumping();
 
-  /* Note: 
+  /* Note:
    * Database is initialized both on standard interfaces and views, however
    * startDBLoop is not called on view. This way:
    * - Flows are dumped on standard (non-view) interfaces only, in case of
    *   a view this allows us to dump in parallel from all viewed interfaces
-   * - Queries are executed on the interface in case of no view, or on the 
+   * - Queries are executed on the interface in case of no view, or on the
    *   view interface in case there is a view
    * Other exporters (ES, Kafka, Syslog) are initialized on interfaces only
    * as there is no explorer for them (no need to run queries)

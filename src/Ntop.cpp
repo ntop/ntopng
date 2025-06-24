@@ -3381,7 +3381,7 @@ void Ntop::initAllowedProtocolPresets() {
     num_protocols = ndpi_get_num_protocols(ndpi_struct);
     ndpi_exit_detection_module(ndpi_struct);
   } else
-    num_protocols = ndpi_get_num_internal_protocols();
+    throw "Allocation error";
 
   for (u_int i = 0; i < device_max_type; i++) {
     DeviceProtocolBitmask *b;
