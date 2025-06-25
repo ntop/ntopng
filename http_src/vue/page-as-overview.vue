@@ -32,30 +32,27 @@ const props = defineProps({
     context: Object,
 });
 
-const csrf = props.context.csrf;
 const _i18n = (t) => i18n(t);
 const first_open = ref(true);
-const exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
 const sankey_url = `${http_prefix}/lua/rest/v2/get/asn/sankey.lua`;
-const host_url = `${http_prefix}/lua/host_details.lua?`
 const sankey_chart = ref(null)
 const sankey_data = ref({});
 const loading = ref(false);
-const no_data_message = i18n("no_nprobes_message")
+const no_data_message = i18n("no_data_available")
 const active_sankey_type = ref({})
 const sankey_format_list = [
     { key: "criteria_as", value: 'ingress_traffic_criteria', label: _i18n('as_overview.ingress_traffic_criteria') },
-    //{ key: "criteria_as", value: 'egress_traffic_criteria', label: _i18n('as_overview.egress_traffic_criteria') },
+    { key: "criteria_as", value: 'egress_traffic_criteria', label: _i18n('as_overview.egress_traffic_criteria') },
 ];
 
 /* ************************************** */
 
 onBeforeMount(() => {
-    const criteria_as = ntopng_url_manager.get_url_entry("criteria_as");
+    const criteria = ntopng_url_manager.get_url_entry("criteria_as");
     active_sankey_type.value = sankey_format_list[0];
-    if (criteria_as) {
+    if (criteria) {
         sankey_format_list.forEach((element) => {
-            if (element.value == criteria_as) {
+            if (element.value == criteria) {
                 active_sankey_type.value = element
             }
         })

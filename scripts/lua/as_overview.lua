@@ -17,16 +17,16 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.autono
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("as_stats.autonomous_systems"), ntop.getHttpPrefix() .. "/lua/as_overview.lua", {{
+page_utils.print_navbar(i18n("as_overview.asn",{asn=asn}), ntop.getHttpPrefix() .. "/lua/as_overview.lua", {{
     active = true,
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
-        i18n("as_stats.autonomous_systems") .. "\"></i>"
+        i18n("as_overview.asn",{asn=asn}) .. "\"></i>"
 }, { 
     url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn .. "",
-    active = page == "host",
-    page_name = "host",
-    label = i18n("all_hosts")
+    active = page == "asn_hosts",
+    page_name = "asn_hosts",
+    label = i18n("as_overview.asn_hosts")
 }})
 
 template_utils.render("pages/vue_page.template", {

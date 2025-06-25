@@ -23,14 +23,11 @@ local flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_fil
 					   flows_filter["client"], flows_filter["server"], flows_filter["flow_info"])
 
 local unit
-if criteria_as == "traffic_criteria" then
-   unit = " Ingress"
+if criteria_as == "egress_traffic_criteria" then
+   unit = "Egress"
 else
-   unit = " Egress"
+   unit = "Ingress"
 end
-
--- For now only ingress
-unit = " Ingress"
 
 -- ################################################
 
@@ -88,11 +85,11 @@ end
 asn = tonumber(asn)
 for flow_id, flow in pairs(flows_stats.flows) do
    if type(flow) == "table" then
-      if flow.dst_as == asn then
-	 local exporter_ip = getProbeName(flow.device_ip) or "unknown"
+      local exporter_ip = getProbeName(flow.device_ip) or "unknown"
+      local bytes = tonumber(flow.bytes) or 0	 
+      local exporter_node_id = find_node_id(exporter_ip)
+      if unit == "Ingress" and flow.dst_as == asn then
 	 local port_index = format_portidx_name(flow.device_ip, flow.in_index) or "?"
-	 local bytes = tonumber(flow.bytes) or 0	 
-	 local exporter_node_id = find_node_id(exporter_ip)
 	 local n_id = exporter_ip .. "@" .. port_index
 	 local port_node_id = find_node_id(n_id)
 
@@ -110,6 +107,25 @@ for flow_id, flow in pairs(flows_stats.flows) do
 			 target_node_id = as_root_key,
 			 value = bytes
 	 })
+      end
+      if unit == "Egress" and flow.src_as == asn then
+	 local port_index = format_portidx_name(flow.device_ip, flow.out_index) or "?"
+	 local n_id = exporter_ip .. "@" .. port_index
+	 local port_node_id = find_node_id(n_id)
+
+	 add_unique_node(exporter_node_id, exporter_ip, "#")
+	 add_unique_node(port_node_id, port_index, "#")
+         table.insert(links, {
+			 source_node_id = as_root_key,
+			 target_node_id = exporter_node_id,
+			 value = bytes
+	 })
+	 table.insert(links, {
+			 source_node_id = exporter_node_id,port_node_id,
+			 target_node_id = port_node_id,
+			 value = bytes
+	 })
+
       end
    end
 end

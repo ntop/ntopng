@@ -64,7 +64,8 @@ page_utils.print_navbar(breadcrumb, ntop.getHttpPrefix() .. "/lua/as_stats.lua",
 }})
 
 local context = {
-    ifid = interface.getId()
+    ifid = interface.getId(),
+    isZMQ = interface.isZMQInterface()
 }
 
 local json_context = json.encode(context)

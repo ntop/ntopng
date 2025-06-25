@@ -23,7 +23,7 @@ const props = defineProps({
 const table_id = ref('as_stats');
 const table_as_stats = ref(null);
 const csrf = props.context.csrf;
-
+const isZMQ = props.context.isZMQ;
 onBeforeMount(() => {
 
 })
@@ -49,9 +49,13 @@ const map_table_def_columns = (columns) => {
             return return_value;
         },
         "asn": (value, row) => {
-
-            let return_value = `<A HREF='${http_prefix}/lua/as_overview.lua?asn=${row["asn"]}' title='${row["asname"]}'>${row["asn"]}</A>`
-
+            let return_value;
+            if(isZMQ) {
+                return_value = `<A HREF='${http_prefix}/lua/as_overview.lua?asn=${row["asn"]}' title='${row["asname"]}'>${row["asn"]}</A>`
+            }
+            else {
+                return_value = `<A HREF='${http_prefix}/lua/hosts_stats.lua?asn=${row["asn"]}' title='${row["asname"]}'>${row["asn"]}</A>`
+            }
             if (row["ts_enabled"]) {
                 const url = `${http_prefix}/lua/as_stats.lua?asn=${row["asn"]}&page=historical`
                 return_value += `&nbsp;<a href=${url}><i class="fas fa-chart-area fa-lg"></i></a>`

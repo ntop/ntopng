@@ -1829,8 +1829,10 @@ local lang = {
     ["no_available_data_for_as"] = "No available data for AS %{asn}.",
   },
   ["as_overview"] = {
-    ["ingress_traffic_criteria"]= "Ingress Traffic",
-    ["egress_traffic_criteria"] = "Egress Traffic",
+    ["asn"] = "ASN %{asn}",
+    ["asn_hosts"] = "ASN Hosts",
+    ["ingress_traffic_criteria"]= "Ingress Traffic (Bytes)",
+    ["egress_traffic_criteria"] = "Egress Traffic (Bytes)",
   },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",
