@@ -1833,6 +1833,7 @@ local lang = {
     ["asn_hosts"] = "ASN Hosts",
     ["ingress_traffic_criteria"]= "Ingress Traffic (Bytes)",
     ["egress_traffic_criteria"] = "Egress Traffic (Bytes)",
+    ["total_traffic_criteria"] = "Total Traffic (Bytes)",
   },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",

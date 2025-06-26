@@ -25,6 +25,8 @@ local nodes = {}
 local unit
 if criteria_as == "egress_traffic_criteria" then
    unit = "Egress"
+elseif criteria_as == "total_traffic_criteria" then
+   unit = "Total"
 else
    unit = "Ingress"
 end
@@ -87,60 +89,24 @@ end
 -- ####################
 
 local tot_bytes = {}
+local tot_bytes_exporter = {}
 
 function callback (_, flow)
-   -- tprint(flow) io.write("-------------------------------\n")
-
    local exporter_ip = getProbeName(flow.device_ip) or "unknown"
-   local bytes
-   local exporter_node_id = find_node_id(exporter_ip)
+   local port_index = format_portidx_name(flow.device_ip, flow.in_index) or "?"
+   local n_id = exporter_ip .. "@" .. port_index
 
-   -- TODO: handle all directions
+   if(tot_bytes[n_id] == nil) then tot_bytes[n_id] = { sent = 0, rcvd = 0 } end
+   if(tot_bytes_exporter[exporter_ip] == nil) then tot_bytes_exporter[exporter_ip] = { sent = 0, rcvd = 0 } end
    
-   if unit == "Ingress" and flow.dst_as == asn then	    
-      local port_index = format_portidx_name(flow.device_ip, flow.in_index) or "?"
-      local n_id = exporter_ip .. "@" .. port_index
-      local port_node_id = find_node_id(n_id)
-
-      bytes = tonumber(flow.bytes_sent) -- TODO haandle directions
-      add_unique_node(exporter_node_id, exporter_ip, "#")
-      add_unique_node(port_node_id, port_index, "#")
-
-      if(tot_bytes[n_id] == nil) then tot_bytes[n_id] = { sent = 0, rcvd = 0 } end
-      -- TODO sum bytes
-       
-      table.insert(links, {
-		      source_node_id = port_node_id,
-		      target_node_id = exporter_node_id,
-		      value = bytes -- TODO set bytes total 
-      })
-
-      table.insert(links, {
-		      source_node_id = exporter_node_id,
-		      target_node_id = as_root_key,
-		      value = bytes -- TODO set bytes total
-      })
+   if(flow.src_as == asn) then
+      tot_bytes[n_id].sent = tot_bytes[n_id].sent + flow.bytes_sent
+      tot_bytes_exporter[exporter_ip].sent = tot_bytes_exporter[exporter_ip].sent + flow.bytes_sent
    end
-   
-   if unit == "Egress" and flow.src_as == asn then
-      local port_index = format_portidx_name(flow.device_ip, flow.out_index) or "?"
-      local n_id = exporter_ip .. "@" .. port_index
-      local port_node_id = find_node_id(n_id)
 
-      bytes = tonumber(flow.bytes_rcvd) or 0
-      
-      add_unique_node(exporter_node_id, exporter_ip, "#")
-      add_unique_node(port_node_id, port_index, "#")
-      table.insert(links, {
-		      source_node_id = as_root_key,
-		      target_node_id = exporter_node_id,
-		      value = bytes
-      })
-      table.insert(links, {
-		      source_node_id = exporter_node_id,port_node_id,
-		      target_node_id = port_node_id,
-		      value = bytes
-      })
+   if(flow.dst_as == asn) then
+      tot_bytes[n_id].rcvd = tot_bytes[n_id].rcvd + flow.bytes_rcvd
+      tot_bytes_exporter[exporter_ip].rcvd = tot_bytes_exporter[exporter_ip].rcvd + flow.bytes_rcvd
    end
 end
 
@@ -149,6 +115,60 @@ callback_utils.foreachFlow(ifid,
 			   os.time()+30, -- deadline
 			   callback, flows_filter)
 
+local exporter_nodes = {}
+
+for n_id, data in pairs(tot_bytes) do
+   if (unit == "Ingress" and data.sent > 0) or 
+         (unit == "Egress" and data.rcvd > 0) or
+         (unit == "Total" and data.rcvd+data.sent > 0)then
+      local exporter_ip, port_index = string.match(n_id, "([^@]+)@(.+)")
+      local exporter_node_id = find_node_id(exporter_ip)
+      if(exporter_nodes[exporter_ip] == nil) then exporter_nodes[exporter_ip] = exporter_node_id end
+      local port_node_id = find_node_id(n_id)
+      add_unique_node(exporter_node_id, exporter_ip, "#")
+      add_unique_node(port_node_id, port_index, "#")
+      if unit == "Ingress" then
+         table.insert(links, {
+               source_node_id = port_node_id,
+               target_node_id = exporter_node_id,
+               value = data.sent 
+         })
+      elseif unit == "Egress" then
+         table.insert(links, {
+               source_node_id = exporter_node_id,
+               target_node_id = port_node_id,
+               value = data.rcvd
+         })
+      else
+         table.insert(links, {
+               source_node_id = port_node_id,
+               target_node_id = exporter_node_id,
+               value = data.rcvd+data.sent
+         })
+      end
+   end
+end
+for exporter_ip, exporter_node_id in pairs(exporter_nodes) do
+   if unit == "Ingress" and tot_bytes_exporter[exporter_ip].sent > 0 then
+      table.insert(links, {
+            source_node_id = exporter_node_id,
+            target_node_id = as_root_key,
+            value = tot_bytes_exporter[exporter_ip].sent
+      })
+   elseif unit == "Egress" and tot_bytes_exporter[exporter_ip].rcvd > 0 then
+      table.insert(links, {
+            source_node_id = as_root_key,
+            target_node_id = exporter_node_id,
+            value = tot_bytes_exporter[exporter_ip].rcvd
+      })
+   else
+      table.insert(links, {
+            source_node_id = exporter_node_id,
+            target_node_id = as_root_key,
+            value = tot_bytes_exporter[exporter_ip].rcvd+tot_bytes_exporter[exporter_ip].sent
+      })
+   end
+end
 
 rsp["nodes"] = nodes
 rsp["links"] = links
