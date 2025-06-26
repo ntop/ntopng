@@ -22,13 +22,19 @@ local rsp = {}
 local edges = {}
 local nodes = {}
 
-local unit
+local traffic_criteria = {
+   INGRESS = 0,
+   EGRESS = 1,
+   TOTAL = 2,
+}
+
+local criteria
 if criteria_as == "egress_traffic_criteria" then
-   unit = "Egress"
+   criteria = traffic_criteria.EGRESS
 elseif criteria_as == "total_traffic_criteria" then
-   unit = "Total"
+   criteria = traffic_criteria.TOTAL
 else
-   unit = "Ingress"
+   criteria = traffic_criteria.INGRESS
 end
 
 -- ################################################
@@ -96,7 +102,9 @@ function callback (_, flow)
    local port_index = format_portidx_name(flow.device_ip, flow.in_index) or "?"
    local n_id = exporter_ip .. "@" .. port_index
 
-   if(tot_bytes[n_id] == nil) then tot_bytes[n_id] = { sent = 0, rcvd = 0 } end
+   if(tot_bytes[n_id] == nil) then tot_bytes[n_id] = { 
+      sent = 0, rcvd = 0, exp_ip = exporter_ip, port  = port_index
+   } end
    if(tot_bytes_exporter[exporter_ip] == nil) then tot_bytes_exporter[exporter_ip] = { sent = 0, rcvd = 0 } end
    
    if(flow.src_as == asn) then
@@ -118,54 +126,63 @@ callback_utils.foreachFlow(ifid,
 local exporter_nodes = {}
 
 for n_id, data in pairs(tot_bytes) do
-   if (unit == "Ingress" and data.sent > 0) or 
-         (unit == "Egress" and data.rcvd > 0) or
-         (unit == "Total" and data.rcvd+data.sent > 0)then
-      local exporter_ip, port_index = string.match(n_id, "([^@]+)@(.+)")
+   if (criteria == traffic_criteria.INGRESS and data.sent > 0) or 
+         (criteria == traffic_criteria.EGRESS and data.rcvd > 0) or
+         (criteria == traffic_criteria.TOTAL and data.rcvd+data.sent > 0) then
+      local exporter_ip = data.exp_ip
+      local port_index = data.port
       local exporter_node_id = find_node_id(exporter_ip)
       if(exporter_nodes[exporter_ip] == nil) then exporter_nodes[exporter_ip] = exporter_node_id end
       local port_node_id = find_node_id(n_id)
       add_unique_node(exporter_node_id, exporter_ip, "#")
       add_unique_node(port_node_id, port_index, "#")
-      if unit == "Ingress" then
+      if criteria == traffic_criteria.INGRESS then
          table.insert(links, {
                source_node_id = port_node_id,
                target_node_id = exporter_node_id,
+               label = bytesToSize(data.sent),
                value = data.sent 
          })
-      elseif unit == "Egress" then
+      elseif criteria == traffic_criteria.EGRESS then
          table.insert(links, {
                source_node_id = exporter_node_id,
                target_node_id = port_node_id,
+               label = bytesToSize(data.rcvd),
                value = data.rcvd
          })
       else
          table.insert(links, {
                source_node_id = port_node_id,
                target_node_id = exporter_node_id,
+               label = bytesToSize(data.rcvd+data.sent),
                value = data.rcvd+data.sent
          })
       end
    end
 end
 for exporter_ip, exporter_node_id in pairs(exporter_nodes) do
-   if unit == "Ingress" and tot_bytes_exporter[exporter_ip].sent > 0 then
+   local sent = tot_bytes_exporter[exporter_ip].sent
+   local rcvd = tot_bytes_exporter[exporter_ip].rcvd
+   if criteria == traffic_criteria.INGRESS and sent > 0 then
       table.insert(links, {
             source_node_id = exporter_node_id,
             target_node_id = as_root_key,
-            value = tot_bytes_exporter[exporter_ip].sent
+            label = bytesToSize(sent),
+            value = sent
       })
-   elseif unit == "Egress" and tot_bytes_exporter[exporter_ip].rcvd > 0 then
+   elseif criteria == traffic_criteria.EGRESS and rcvd > 0 then
       table.insert(links, {
             source_node_id = as_root_key,
             target_node_id = exporter_node_id,
-            value = tot_bytes_exporter[exporter_ip].rcvd
+            label = bytesToSize(rcvd),
+            value = rcvd
       })
    else
       table.insert(links, {
             source_node_id = exporter_node_id,
             target_node_id = as_root_key,
-            value = tot_bytes_exporter[exporter_ip].rcvd+tot_bytes_exporter[exporter_ip].sent
+            label = bytesToSize(rcvd+sent),
+            value = rcvd+sent
       })
    end
 end
