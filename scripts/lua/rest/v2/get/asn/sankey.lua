@@ -119,16 +119,16 @@ function callback (_, flow)
    
    if(flow.src_as == asn) then
       tot_bytes[n_id].sent = tot_bytes[n_id].sent + flow.bytes_rcvd
-      tot_bytes_exporter[flow.device_ip].sent = tot_bytes_exporter[flow.device_ip].sent + flow.bytes_sent
-      tot_bytes_exporter[flow.device_ip].rcvd = tot_bytes_exporter[flow.device_ip].rcvd + flow.bytes_rcvd
+      tot_bytes_exporter[flow.device_ip].sent = tot_bytes_exporter[flow.device_ip].sent + flow.bytes_rcvd
+      tot_bytes_exporter[flow.device_ip].rcvd = tot_bytes_exporter[flow.device_ip].rcvd + flow.bytes_sent
    elseif(flow.dst_as == asn) then
       tot_bytes[n_id].rcvd = tot_bytes[n_id].rcvd + flow.bytes_sent
       tot_bytes_exporter[flow.device_ip].sent = tot_bytes_exporter[flow.device_ip].sent + flow.bytes_rcvd
       tot_bytes_exporter[flow.device_ip].rcvd = tot_bytes_exporter[flow.device_ip].rcvd + flow.bytes_sent
    end   
 
-   -- if(flow.in_index ~= flow.out_index) then
-   if(true) then
+   if(flow.in_index ~= flow.out_index) then
+   --if(true) then
       -- (2) in index
       n_id = flow.device_ip .. "@" .. flow.in_index
       
@@ -165,7 +165,7 @@ for n_id, data in pairs(tot_bytes) do
       local exporter_ip = getProbeName(data.exporter_ip)
       local port_index = format_portidx_name(data.exporter_ip, data.port_index) or "?"
       local exporter_node_id = find_node_id(exporter_ip)
-      if(exporter_nodes[exporter_ip] == nil) then exporter_nodes[exporter_ip] = exporter_node_id end
+      if(exporter_nodes[data.exporter_ip] == nil) then exporter_nodes[data.exporter_ip] = exporter_node_id end
       local port_node_id = find_node_id(n_id)
       add_unique_node(exporter_node_id, exporter_ip, "#")
       add_unique_node(port_node_id, port_index, "#")
