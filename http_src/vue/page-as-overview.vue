@@ -1,6 +1,6 @@
 <template>
     <div class="m-2 mb-3">
-        <div class="mb-3 d-flex flex-column" style="height: 30vh;">
+        <div class="mb-3 d-flex flex-column" style="height: 60vh;">
             <div class="d-flex align-items-center mb-2">
                 <div class="d-flex no-wrap">
                     <div class="m-1">
@@ -15,7 +15,7 @@
             </div>
             <Loading v-if="loading"></Loading>
             <Sankey ref="sankey_chart" :no_data_message="no_data_message" :sankey_data="sankey_data"
-                @node_click="on_node_click">
+                :autorefresh="autoRefreshEnabled" @node_click="on_node_click" @autorefresh_toggle="onAutoRefreshToggle">
             </Sankey>
         </div>
     </div>
@@ -39,6 +39,7 @@ const sankey_chart = ref(null)
 const sankey_data = ref({});
 const loading = ref(false);
 const no_data_message = i18n("no_data_available")
+const autoRefreshEnabled = ref(false);
 const active_sankey_type = ref({})
 const sankey_format_list = [
     { key: "criteria_as", value: 'ingress_traffic_criteria', label: _i18n('as_overview.ingress_traffic_criteria') },
@@ -60,11 +61,19 @@ onBeforeMount(() => {
     }
 })
 
+const onAutoRefreshToggle = (enabled) => {
+    autoRefreshEnabled.value = enabled;
+}
+
 onMounted(() => {
     update_sankey_data();
     setInterval(() => {
         first_open.value = false;
-        update_sankey_data()
+
+        // refresh only if autorefresh is enabled
+        if (autoRefreshEnabled.value) {
+            update_sankey_data()
+        }
     }, 10000 /* 10 sec refresh */)
 })
 

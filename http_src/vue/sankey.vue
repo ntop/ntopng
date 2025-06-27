@@ -9,9 +9,14 @@
                 <button type="button" class="btn zoom-btn" @click="zoomChart(-0.5)">
                     <i class="fa-solid fa-magnifying-glass-minus"></i>
                 </button>
+                <button v-if="showAutoRefresh" button type="button" class="btn refresh-btn" @click="toggleAutoRefresh"
+                    :class="{ 'active': autoRefreshEnabled }"
+                    :title="autoRefreshEnabled ? 'Auto-refresh enabled' : 'Auto-refresh disabled'">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
             </div>
         </div>
-    
+
         <!-- no data -->
         <div v-if="no_data" class="alert alert-info" id="empty-message">
             {{ no_data_message || _i18n('flows_page.no_data') }}
@@ -21,9 +26,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch } from "vue";
+import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed } from "vue";
+
 const d3 = d3v7;
-const emit = defineEmits(['node_click', 'update_width', 'update_height'])
+const emit = defineEmits(['node_click', 'update_width', 'update_height', 'autorefresh_toggle'])
 const _i18n = (t) => i18n(t);
 
 function set_no_data_flag(set_no_data) {
@@ -35,7 +41,11 @@ const props = defineProps({
     width: Number,
     height: Number,
     sankey_data: Object,
+    autorefresh: { type: Boolean, default: null }
 });
+
+const autoRefreshEnabled = ref(props.autorefresh ?? true);
+const showAutoRefresh = computed(() => props.autorefresh !== null);
 
 const sankey_size = ref({});
 const no_data = ref(false);
@@ -48,8 +58,15 @@ let sankey = null;
 let sankeyData = null;
 let isZoomed = ref(false);
 const currentScale = ref(1); // keep track of zzom
+let nodeDrag = null;
+let isDraggingNode = false;
 
 let zoom = null;
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled.value = !autoRefreshEnabled.value;
+    emit('autorefresh_toggle', autoRefreshEnabled.value);
+}
 
 /* ******************************************** */
 
@@ -112,7 +129,6 @@ function zoomChart(zoomValue) {
 }
 
 /* ******************************************** */
-
 function initializeZoom() {
     if (!svg) return;
     zoomGroup = svg.select('.zoom-group');
@@ -131,14 +147,31 @@ function initializeZoom() {
             if (event.type === 'mousedown' && event.button !== 0) {
                 return false;
             }
+            
+            // disable panning if not zoomed
+            if (event.type === 'mousedown' && currentScale.value <= 1) {
+                return false;
+            }
+            
             return !event.ctrlKey && event.type !== 'dblclick';
         });
 
-    // change cursor to move icon if left button is pressed
+    // update cursor style based on zoom
     svg.on('mousedown', (event) => {
         console.log("Mousedown" + event);
-        if (event.button === 0) { // left click
-            cursorIcon.value = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='18px' height='18px'%3E%3Cpath d='M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z'/%3E%3C/svg%3E"), move`;
+        if (event.button === 0 && currentScale.value > 1) { // left click and zoomed
+            svg.style("cursor", `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='18px' height='18px'%3E%3Cpath d='M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z'/%3E%3C/svg%3E"), move`);
+        } else {
+            svg.style("cursor", "default");
+        }
+    });
+
+    // reset cursor on mouse up
+    svg.on('mouseup', () => {
+        if (currentScale.value > 1) {
+            svg.style("cursor", "grab");
+        } else {
+            svg.style("cursor", "default");
         }
     });
 
@@ -375,4 +408,28 @@ defineExpose({ draw_sankey, set_no_data_flag });
     right: 10px;
     z-index: 10;
 }
+
+/* Refresh button style, green if autorefresh enabled, grey otherwise */
+.refresh-btn {
+    background-color: #6c757d !important;
+    color: white !important;
+    border: none !important;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+}
+
+.refresh-btn:hover {
+    background-color: #5a6268 !important;
+}
+
+.refresh-btn.active {
+    background-color: #28a745 !important;
+}
+
+.refresh-btn.active:hover {
+    background-color: #218838 !important;
+}
+
 </style>
