@@ -10,18 +10,18 @@ local page_utils = require("page_utils")
 local template_utils = require "template_utils"
 
 local asn = _GET["asn"]
-
+local asn_name = interface.getASInfo(tonumber(asn)).asname
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("as_overview.asn",{asn=asn}), ntop.getHttpPrefix() .. "/lua/as_overview.lua", {{
+page_utils.print_navbar(i18n("as_overview.asn",{asn=asn, asn_name = asn_name}), ntop.getHttpPrefix() .. "/lua/as_overview.lua", {{
     active = true,
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
-        i18n("as_overview.asn",{asn=asn}) .. "\"></i>"
+        i18n("as_overview.asn",{asn=asn, asn_name = asn_name}) .. "\"></i>"
 }, { 
     url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn .. "",
     active = page == "asn_hosts",

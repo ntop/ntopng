@@ -1829,7 +1829,7 @@ local lang = {
     ["no_available_data_for_as"] = "No available data for AS %{asn}.",
   },
   ["as_overview"] = {
-    ["asn"] = "ASN %{asn}",
+    ["asn"] = "ASN %{asn} (%{asn_name})",
     ["asn_hosts"] = "ASN Hosts",
     ["ingress_traffic_criteria"]= "Ingress Traffic (Bytes)",
     ["egress_traffic_criteria"] = "Egress Traffic (Bytes)",
