@@ -147,12 +147,12 @@ function initializeZoom() {
             if (event.type === 'mousedown' && event.button !== 0) {
                 return false;
             }
-            
+
             // disable panning if not zoomed
             if (event.type === 'mousedown' && currentScale.value <= 1) {
                 return false;
             }
-            
+
             return !event.ctrlKey && event.type !== 'dblclick';
         });
 
@@ -256,7 +256,15 @@ async function draw_sankey() {
     let data = props.sankey_data;
     const size = get_size();
     sankey_size.value = size;
-    sankey = create_sankey(size.width, size.height);
+
+    sankey = d3.sankey()
+        .nodeWidth(15)
+        .nodePadding(10)
+        .extent([[0, 0], [size.width, size.height]]);
+
+    // Sort nodes descending by value property
+    sankey.nodeSort((a, b) => d3.descending(a.value, b.value));
+
     let links, nodes;
     if (Object.keys(data).length !== 0) {
         sankeyData = sankey(data);
@@ -270,7 +278,7 @@ async function draw_sankey() {
 
     if (!links || !nodes) return;
 
-    svg.style("cursor", "move"); /* Add the move cursor */
+    svg.style("cursor", "move");
 
     const zoomGroup = svg.append("g")
         .attr("class", "zoom-group");
@@ -349,7 +357,7 @@ async function draw_sankey() {
         .attr("data-bs-placement", "top")
         .attr("title", (d) => `${d.label}`)
         .text((d) => `${d.label}`);
-    
+
 }
 
 defineExpose({ draw_sankey, set_no_data_flag });
@@ -431,5 +439,4 @@ defineExpose({ draw_sankey, set_no_data_flag });
 .refresh-btn.active:hover {
     background-color: #218838 !important;
 }
-
 </style>

@@ -690,8 +690,6 @@ function click_button_historical_flows(event) {
         url += `srv_ip=${host_ip};eq`
     }
 
-    debugger;
-
     if (alert.link_to_past_flows) {
         window.location.href = alert.link_to_past_flows;
     } else {

@@ -72,9 +72,9 @@ const map_table_def_columns = (columns) => {
             const visible_dict = {
                 historical_data: props.context.show_historical,
             };
-            debugger;
+
             c.button_def_array.forEach((b) => {
-                debugger;
+
                 if (!visible_dict[b.id]) {
                     b.class.push("disabled");
                 }

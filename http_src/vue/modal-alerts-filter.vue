@@ -123,7 +123,7 @@ const extract_domain_name_from_info = (info) => {
   let domain_name = info;
   // remove schema https:// etc
   let info_splitted_ = info.split("://");
-  debugger;
+
   if (info_splitted_.length > 1) domain_name = info_splitted_[1];
 
   // remove net port

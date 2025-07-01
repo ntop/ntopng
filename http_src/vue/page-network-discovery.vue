@@ -234,7 +234,6 @@ function columns_sorting(col, r0, r1) {
     } else if (col.id == "os") {
       return sortingFunctions.sortByNumber(r0.os, r1.os, col.sort);
     } else if (col.id == "device") {
-      debugger
       return sortingFunctions.sortByNumber(r0.device, r1.device, col.sort);
     } 
   }
