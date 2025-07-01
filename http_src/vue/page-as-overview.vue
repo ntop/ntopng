@@ -18,12 +18,16 @@
                 :autorefresh="autoRefreshEnabled" @node_click="on_node_click" @autorefresh_toggle="onAutoRefreshToggle">
             </Sankey>
         </div>
+        <div class="card-footer">
+            <NoteList :note_list="note_list"> </NoteList>
+        </div>
     </div>
 </template>
 
 
 <script setup>
 import { ref, onMounted, onBeforeMount } from "vue";
+import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue"
 import { default as Sankey } from "./sankey.vue";
 import { default as SelectSearch } from "./select-search.vue";
@@ -42,11 +46,15 @@ const no_data_message = i18n("no_data_available")
 const autoRefreshEnabled = ref(false);
 const active_sankey_type = ref({})
 const sankey_format_list = [
+    { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
     { key: "criteria_as", value: 'ingress_traffic_criteria', label: _i18n('as_overview.ingress_traffic_criteria') },
     { key: "criteria_as", value: 'egress_traffic_criteria', label: _i18n('as_overview.egress_traffic_criteria') },
     { key: "criteria_as", value: 'total_traffic_criteria', label: _i18n('as_overview.total_traffic_criteria') },
 ];
 
+const note_list = [
+    _i18n("as_overview.note_ingress_egress"),
+]
 /* ************************************** */
 
 onBeforeMount(() => {

@@ -1832,8 +1832,10 @@ local lang = {
   ["as_overview"] = {
     ["asn"] = "ASN %{asn} (%{asn_name})",
     ["asn_hosts"] = "ASN Hosts",
-    ["ingress_traffic_criteria"]= "Ingress Traffic (Bytes)",
     ["egress_traffic_criteria"] = "Egress Traffic (Bytes)",
+    ["ingress_egress_traffic_criteria"] = "Ingress-Egress Traffic (Bytes)",
+    ["ingress_traffic_criteria"]= "Ingress Traffic (Bytes)",
+    ["note_ingress_egress"] = "The Sankey diagram with Ingress-Egress Traffic has the autonomous system in the center, the ingress traffic on the left, and the egress traffic on the right.",
     ["total_traffic_criteria"] = "Total Traffic (Bytes)",
   },
   ["as_stats"] = {

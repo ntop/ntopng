@@ -45,6 +45,7 @@ local traffic_criteria = {
    INGRESS = 0,
    EGRESS = 1,
    TOTAL = 2,
+   ING_EGR = 3,
 }
 
 local criteria
@@ -52,8 +53,10 @@ if criteria_as == "egress_traffic_criteria" then
    criteria = traffic_criteria.EGRESS
 elseif criteria_as == "total_traffic_criteria" then
    criteria = traffic_criteria.TOTAL
-else
+elseif criteria_as == "ingress_traffic_criteria" then
    criteria = traffic_criteria.INGRESS
+else
+   criteria = traffic_criteria.ING_EGR
 end
 
 -- ################################################
@@ -99,7 +102,7 @@ local as_root_key = "root";
 table.insert(nodes, {
 		link = "/",
 		node_id = as_root_key,
-		label = "ASN "..asn
+		label = "ASN "..interface.getASInfo(asn).asname
 })
 
 -- ####################
@@ -109,6 +112,10 @@ local function add_unique_node(node_id, label, link)
       table.insert(nodes, { node_id = node_id, label = label, link = link })
       node_set[node_id] = true
    end
+end
+
+local function reset_nodes()
+   node_set={}
 end
 
 -- ####################
@@ -155,6 +162,90 @@ local function inc_interface_rcvd(key, bytes)
    tot_bytes_exp_if[key].rcvd = tot_bytes_exp_if[key].rcvd + bytes
 end
 
+local function build_interface_exporter(criteria, tot_bytes_exp_if, exporter_nodes)
+   for n_id, data in pairs(tot_bytes_exp_if) do
+      if (criteria == traffic_criteria.INGRESS and data.sent > 0) or 
+         (criteria == traffic_criteria.EGRESS  and data.rcvd > 0) or
+         (criteria == traffic_criteria.TOTAL   and (data.rcvd + data.sent) > 0) then
+         --tprint(n_id .. " " .. criteria .. " " .. data.sent .. " " .. data.rcvd)
+         local exporter_ip = getProbeName(data.exporter_ip)
+         local port_index = format_portidx_name(data.exporter_ip, data.port_index) or "?"
+         local exporter_node_id = find_node_id(exporter_ip)
+         local port_node_id = find_node_id(n_id)
+         if criteria == traffic_criteria.EGRESS then 
+            exporter_node_id = "egress".."_"..exporter_node_id
+            port_node_id = "egress".."_"..port_node_id
+         else
+            exporter_node_id = "ingress".."_"..exporter_node_id
+            port_node_id = "ingress".."_"..port_node_id
+         end
+         if(exporter_nodes[data.exporter_ip] == nil) then exporter_nodes[data.exporter_ip] = exporter_node_id end
+         add_unique_node(exporter_node_id, exporter_ip, "#")
+         add_unique_node(port_node_id, port_index, "#")
+
+         if criteria == traffic_criteria.INGRESS then
+            -- Interface -> Exporter
+            table.insert(links, {
+                  source_node_id = port_node_id,
+                  target_node_id = exporter_node_id,
+                  label = bytesToSize(data.sent),
+                  value = data.sent 
+            })
+         elseif criteria == traffic_criteria.EGRESS then
+            -- Exporter -> Interface
+            table.insert(links, {
+                  source_node_id = exporter_node_id,
+                  target_node_id = port_node_id,
+                  label = bytesToSize(data.rcvd),
+                  value = data.rcvd
+            })
+         elseif criteria == traffic_criteria.TOTAL then
+            -- Interface -> Exporter
+            table.insert(links, {
+                  source_node_id = port_node_id,
+                  target_node_id = exporter_node_id,
+                  label = bytesToSize(data.rcvd+data.sent),
+                  value = data.rcvd + data.sent
+            })
+         end
+
+      end
+   end
+end
+
+local function build_exporter_as(criteria, exporter_nodes)
+   for exporter_ip, exporter_node_id in pairs(exporter_nodes) do
+      local sent = tot_bytes_exporter[exporter_ip].sent
+      local rcvd = tot_bytes_exporter[exporter_ip].rcvd
+
+      if criteria == traffic_criteria.INGRESS and sent > 0 then
+         -- Exporter -> AS
+         table.insert(links, {
+               source_node_id = exporter_node_id,
+               target_node_id = as_root_key,
+               label = bytesToSize(sent),
+               value = sent
+         })
+      elseif criteria == traffic_criteria.EGRESS and rcvd > 0 then
+         -- AS -> Exporter
+         table.insert(links, {
+               source_node_id = as_root_key,
+               target_node_id = exporter_node_id,
+               label = bytesToSize(rcvd),
+               value = rcvd
+         })
+      elseif criteria == traffic_criteria.TOTAL then
+         -- Exporter -> AS
+         table.insert(links, {
+               source_node_id = exporter_node_id,
+               target_node_id = as_root_key,
+               label = bytesToSize(rcvd+sent),
+               value = rcvd + sent
+         })
+      end
+   end
+end
+
 -- Flow iterator callback
 function callback (_, flow)
    if(debug) then
@@ -194,82 +285,23 @@ end
 
 local exporter_nodes = {}
 
--- Build Interface <-> Exporter links
-for n_id, data in pairs(tot_bytes_exp_if) do
-   if (criteria == traffic_criteria.INGRESS and data.sent > 0) or 
-      (criteria == traffic_criteria.EGRESS  and data.rcvd > 0) or
-      (criteria == traffic_criteria.TOTAL   and (data.rcvd + data.sent) > 0) then
+if(criteria ~= traffic_criteria.ING_EGR) then
+   -- Build Interface <-> Exporter links
+   build_interface_exporter(criteria, tot_bytes_exp_if, exporter_nodes)
+   -- Build Exporter <-> AS links
+   build_exporter_as(criteria, exporter_nodes)
+else
+   -- Ingress
+   build_interface_exporter(traffic_criteria.INGRESS, tot_bytes_exp_if, exporter_nodes)
+   build_exporter_as(traffic_criteria.INGRESS, exporter_nodes)
+   
+   reset_nodes()
+   exporter_nodes = {}
 
-      local exporter_ip = getProbeName(data.exporter_ip)
-      local port_index = format_portidx_name(data.exporter_ip, data.port_index) or "?"
-      local exporter_node_id = find_node_id(exporter_ip)
-      if(exporter_nodes[data.exporter_ip] == nil) then exporter_nodes[data.exporter_ip] = exporter_node_id end
-      local port_node_id = find_node_id(n_id)
-
-      add_unique_node(exporter_node_id, exporter_ip, "#")
-      add_unique_node(port_node_id, port_index, "#")
-
-      if criteria == traffic_criteria.INGRESS then
-         -- Interface -> Exporter
-         table.insert(links, {
-               source_node_id = port_node_id,
-               target_node_id = exporter_node_id,
-               label = bytesToSize(data.sent),
-               value = data.sent 
-         })
-      elseif criteria == traffic_criteria.EGRESS then
-         -- Exporter -> Interface
-         table.insert(links, {
-               source_node_id = exporter_node_id,
-               target_node_id = port_node_id,
-               label = bytesToSize(data.rcvd),
-               value = data.rcvd
-         })
-      elseif criteria == traffic_criteria.TOTAL then
-         -- Interface -> Exporter
-         table.insert(links, {
-               source_node_id = port_node_id,
-               target_node_id = exporter_node_id,
-               label = bytesToSize(data.rcvd+data.sent),
-               value = data.rcvd + data.sent
-         })
-      end
-
-   end
+   -- Egress
+   build_interface_exporter(traffic_criteria.EGRESS, tot_bytes_exp_if, exporter_nodes)
+   build_exporter_as(traffic_criteria.EGRESS, exporter_nodes)
 end
-
--- Build Exporter <-> AS links
-for exporter_ip, exporter_node_id in pairs(exporter_nodes) do
-   local sent = tot_bytes_exporter[exporter_ip].sent
-   local rcvd = tot_bytes_exporter[exporter_ip].rcvd
-
-   if criteria == traffic_criteria.INGRESS and sent > 0 then
-      -- Exporter -> AS
-      table.insert(links, {
-            source_node_id = exporter_node_id,
-            target_node_id = as_root_key,
-            label = bytesToSize(sent),
-            value = sent
-      })
-   elseif criteria == traffic_criteria.EGRESS and rcvd > 0 then
-      -- AS -> Exporter
-      table.insert(links, {
-            source_node_id = as_root_key,
-            target_node_id = exporter_node_id,
-            label = bytesToSize(rcvd),
-            value = rcvd
-      })
-   elseif criteria == traffic_criteria.TOTAL then
-      -- Exporter -> AS
-      table.insert(links, {
-            source_node_id = exporter_node_id,
-            target_node_id = as_root_key,
-            label = bytesToSize(rcvd+sent),
-            value = rcvd + sent
-      })
-   end
-end
-
 rsp["nodes"] = nodes
 rsp["links"] = links
 

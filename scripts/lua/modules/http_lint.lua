@@ -1503,7 +1503,8 @@ end
 -- #################################################################
 
 function validateSankeyAsCriteria(criteria)
-    return (criteria == 'ingress_traffic_criteria' or criteria == 'egress_traffic_criteria' or criteria == 'total_traffic_criteria')
+    return (criteria == 'ingress_traffic_criteria' or criteria == 'egress_traffic_criteria' 
+            or criteria == 'total_traffic_criteria' or criteria == 'ingress_egress_traffic_criteria')
 end
 -- #################################################################
 
