@@ -239,15 +239,6 @@ function get_size() {
     return { width, height };
 }
 
-/* ******************************************** */
-
-function create_sankey(width, height) {
-    return d3.sankey()
-        .nodeWidth(15)
-        .nodePadding(10)
-        .extent([[0, 0], [width, height]])
-        .nodeAlign(d3.sankeyJustify);
-}
 
 /* ******************************************** */
 
@@ -294,7 +285,7 @@ async function draw_sankey() {
         .style("stroke-opacity", 0.3)
         .style("fill", "none");
 
-    const d3_nodes = svg.select("g.nodes")
+        const d3_nodes = svg.select("g.nodes")
         .selectAll("g")
         .data(nodes)
         .join((enter) => enter.append("g"))
@@ -357,7 +348,6 @@ async function draw_sankey() {
         .attr("data-bs-placement", "top")
         .attr("title", (d) => `${d.label}`)
         .text((d) => `${d.label}`);
-
 }
 
 defineExpose({ draw_sankey, set_no_data_flag });
@@ -368,7 +358,7 @@ defineExpose({ draw_sankey, set_no_data_flag });
 .btn-ontop {
     position: absolute;
     right: 0;
-    top: 0;
+    top: -20px;
     z-index: 10;
 }
 
@@ -417,7 +407,6 @@ defineExpose({ draw_sankey, set_no_data_flag });
     z-index: 10;
 }
 
-/* Refresh button style, green if autorefresh enabled, grey otherwise */
 .refresh-btn {
     background-color: #6c757d !important;
     color: white !important;
@@ -433,10 +422,10 @@ defineExpose({ draw_sankey, set_no_data_flag });
 }
 
 .refresh-btn.active {
-    background-color: #28a745 !important;
+    background-color: #007bff !important;
 }
 
 .refresh-btn.active:hover {
-    background-color: #218838 !important;
+    background-color: #0056b3 !important;
 }
 </style>
