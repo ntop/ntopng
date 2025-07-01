@@ -7901,6 +7901,7 @@ local lang = {
     ["top_alerted_instances"] = "Top Alerted Instances",
     ["top_as_exporter_if"] = "Top AS By Exporter Interface",
     ["top_asn"] = "Top Autonomous Systems",
+    ["top_1_week_asn"] = "Top Last Week ASN",
     ["top_by_throughput"] = "Top Instances By Throughput",
     ["top_countries"] = "Top Countries",
     ["top_l7_inout"] = "Top Applications Ingress/Egress",
