@@ -497,6 +497,8 @@ public:
 
 #if defined(NTOPNG_PRO)
   bool isFlowAllowed(bool *is_allowed);
+  inline u_int32_t getSrcPeerAS() const { return srcPeerAS; }
+  inline u_int32_t getDstPeerAS() const { return dstPeerAS; }
 #endif
 
   void setAlertInfo(FlowAlert *alert);

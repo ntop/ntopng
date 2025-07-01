@@ -259,6 +259,18 @@ tag_utils.defined_tags = {
         operators = { 'eq', 'neq' },
         hourly_available = true,
     },
+    src_peer_as = {
+        value_type = 'asn',
+        i18n_label = i18n('db_search.tags.src_peer_as'),
+        operators = { 'eq', 'neq' },
+        hourly_available = false,
+    },
+    dst_peer_as = {
+        value_type = 'asn',
+        i18n_label = i18n('db_search.tags.dst_peer_as'),
+        operators = { 'eq', 'neq' },
+        hourly_available = false,
+    },
     cli_nw_latency = {
         value_type = 'nw_latency_type',
         i18n_label = i18n('db_search.tags.cli_nw_latency'),

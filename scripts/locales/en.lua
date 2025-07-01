@@ -840,7 +840,6 @@ local lang = {
   ["tools"] = "Tools",
   ["top_alerted_hosts"] = "Top Alerted Hosts",
   ["top_asn"] = "Top Autonomous Systems",
-  ["top_1_week_asn"] = "Top Last Week ASN",
   ["top_cli_per_proto"] = "Top Clients per Application",
   ["top_dst_asn"] = "Top Autonomous Systems (Servers)",
   ["top_dst_flow_status"] = "Top Alerted Servers",
@@ -2447,6 +2446,8 @@ local lang = {
       ["wlan_ssid"] = "All WLAN SSID",
     },
     ["tags"] = {
+      ["src_peer_as"] = "Src Peer AS",
+      ["dst_peer_as"] = "Dst Peer AS",
       ["acknowledged"] = "Acknowledged",
       ["alert_category"] = "Category",
       ["alert_description"] = "Description",
