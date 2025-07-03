@@ -51,6 +51,7 @@ import { ntopng_url_manager } from "../services/context/ntopng_globals_services.
 import { default as ModalAddActiveMonitoring } from "./modal-add-active-monitoring.vue";
 import { default as ModalDeleteActiveMonitoring } from "./modal-delete-active-monitoring.vue";
 import { default as interfaceUtils } from "../utilities/map/interface-utils.js";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 const _i18n = (t) => i18n(t);
 
@@ -119,7 +120,8 @@ const map_table_def_columns = (columns) => {
         "last_measurement_time": (value, row) => {
             value = row.last_measurement.last_measurement_time;
             if (value > 0) {
-                return ntopng_utility.from_utc_to_server_date_format(value * 1000, date_format.value)
+                return FormatterUtils.formatDateTime(value * 1000)
+                //return ntopng_utility.from_utc_to_server_date_format(value * 1000, date_format.value)
             }
             return;
         },

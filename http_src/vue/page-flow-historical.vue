@@ -493,11 +493,11 @@ const map_table_def_columns = async (columns) => {
     let map_columns = {
         "first_seen": (first_seen, row) => {
             if (first_seen !== undefined)
-                return first_seen.time;
+                return FormatterUtils.formatDateTime(first_seen.epoch);
         },
         "last_seen": (last_seen, row) => {
             if (last_seen !== undefined)
-                return last_seen.time;
+                return FormatterUtils.formatDateTime(last_seen.epoch);
         },
         "DURATION": (duration, row) => {
             return NtopUtils.secondsToTime(duration)

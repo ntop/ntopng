@@ -153,14 +153,14 @@
                                                 <span class="detail-label">{{ _i18n("alert.graph.first_seen")
                                                     }}</span>
                                                 <span class="detail-value">{{
-                                                    selectedNodeData.host_info[role]?.first_seen
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.first_seen * 1000)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.last_seen")
                                                     }}</span>
                                                 <span class="detail-value">{{
-                                                    selectedNodeData.host_info[role]?.last_seen ||
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen * 1000)||
                                                     '-' }}</span>
                                             </div>
                                             <div class="detail-row">
@@ -344,6 +344,7 @@ import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_g
 import { default as RangePicker } from "./range-picker.vue";
 import formatterUtils from "../utilities/formatter-utils";
 import { default as Loading } from "./loading.vue";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 const _i18n = (t) => i18n(t);
 const d3 = d3v7;

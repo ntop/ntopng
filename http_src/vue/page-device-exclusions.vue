@@ -58,8 +58,8 @@ import ModalAddDeviceExclusion from "./modal-add-device-exclusion.vue";
 import ModalEditDeviceExclusion from "./modal-edit-device-exclusion.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
+import FormatterUtils from "../utilities/formatter-utils.js";
 import { ref, onMounted } from "vue";
-
 
 const table_device_exclusions = ref();
 const modal_delete_confirm = ref();
@@ -345,14 +345,14 @@ const map_table_def_columns = async (columns) => {
             if (first_seen.timestamp == 0) {
                 return '';
             } else {
-                return first_seen.data;
+                return FormatterUtils.formatDateTime(first_seen.timestamp * 1000)
             }
         },
         "last_seen": (last_seen, row) => {
             if (last_seen.timestamp == 0) {
                 return '';
             } else {
-                return last_seen.data;
+                return FormatterUtils.formatDateTime(last_seen.timestamp * 1000)
             }
         },
         "status": (status, row) => {

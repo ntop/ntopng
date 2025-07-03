@@ -69,6 +69,7 @@ import { default as ModalDeleteAssets } from "./modal-delete-assets.vue";
 import { default as ModalDeleteAssetsEpoch } from "./modal-delete-assets-epoch.vue";
 import { default as ModalImportAssets } from "./modal-import-assets.vue"
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 /* ************************************** */
 
@@ -252,10 +253,10 @@ const map_table_def_columns = (columns) => {
             return badge
         },
         "first_seen": (value, row) => {
-            return value.date
+            return FormatterUtils.formatDateTime(value.timestamp * 1000)
         },
         "last_seen": (value, row) => {
-            return value.date
+            return FormatterUtils.formatDateTime(value.timestamp * 1000)
         }
     };
 

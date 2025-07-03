@@ -72,6 +72,7 @@ import { default as ModalDeleteACLRule } from "./modal-delete-acl-rule.vue";
 import { default as ModalDeleteAllACLRules } from "./modal-delete-all-acl-rules.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as NoteList } from "./note-list.vue";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 const _i18n = (t) => i18n(t);
 const table_access_control_list = ref(null);
@@ -137,7 +138,7 @@ const map_table_def_columns = (columns) => {
     },
     "creation_timestamp": (value, row) => {
       if (value > 0) {
-        return ntopng_utility.from_utc_to_server_date_format(value * 1000, date_format.value)
+        return FormatterUtils.formatDateTime(value * 1000)
       }
       return ''
     }

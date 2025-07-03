@@ -162,6 +162,13 @@ const types = {
         max_value: 100,
         absolute_value: true,
     },
+    date: {
+        id: "date",
+        um: null,
+        step: null,
+        decimal: null,
+        scale_values: null
+    }
 };
 
 function getUnitMeasureLen(type) {
@@ -291,13 +298,86 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
     return formatter;
 }
 
+function formatDateTime(date_to_format, type = 'datetime') {
+    if (!date_to_format) {
+        return '';
+    }
+
+    let date;
+
+    if (date_to_format instanceof Date) {
+        date = date_to_format;
+    } else if (typeof date_to_format === 'string') {
+        // convert string to date
+        date = new Date(date_to_format);
+    } else if (typeof date_to_format === 'number') {
+        // unix epoch
+        date = new Date(date_to_format < 10000000000 ? date_to_format * 1000 : date_to_format);
+    } else {
+        return '';
+    }
+
+    // check that date exists
+    if (isNaN(date.getTime())) {
+        return '';
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const date_only = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const delta_days = Math.floor((today - date_only) / (1000 * 60 * 60 * 24));
+
+    // time formatter
+    const time_formatter = date.toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false 
+    });
+
+    
+    let formatted_date = '';
+    
+    if (delta_days === 0) {
+        // today
+        formatted_date = 'Today';
+    } else if (delta_days === 1) {
+        // yesterday
+        formatted_date = 'Yesterday';
+    } else if (delta_days > 2 && delta_days <= 6) {
+        // if in current last week show weekday
+        formatted_date = date.toLocaleDateString('en-GB', { weekday: 'short' });
+        formatted_date = date.toLocaleDateString('en-GB', { weekday: 'short' });
+    } else if (delta_days <= 365) {
+        // if in last year show month and day
+        formatted_date = date.toLocaleDateString('en-GB', { 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    } else {
+        //more than one year ago show date
+        formatted_date = date.toLocaleformatted_dateing('en-GB', { 
+            year: 'numeric',
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+
+    if (type === 'date_only') {
+        return formatted_date;
+    }
+
+    // datetime format
+    return `${formatted_date}, ${time_formatter}`;
+}
 const formatterUtils = function() {
     return {
         types,
         getUnitMeasureLen,
         getFormatter,
         getScaleFactorIndex,
-	formatAccounting
+        formatAccounting,
+        formatDateTime
     };
 }();
 
