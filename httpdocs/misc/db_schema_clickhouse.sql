@@ -2,6 +2,9 @@
 /* - httpdocs/misc/db_schema_clickhouse_cluster.sql */
 /* - pro/include/FlowsTable.h */
 /* - pro/src/ClickHouseDB.cpp -> ClickHouseDB::dumpFlow() */
+/* - scripts/lua/modules/tag_utils.lua -> By adding the new tags for filters */
+/* - scripts/lua/modules/historical_flow_utils.lua -> Columns mapping */
+
 CREATE TABLE IF NOT EXISTS `flows` (
 `FLOW_ID` UInt64,
 `IP_PROTOCOL_VERSION` UInt8,

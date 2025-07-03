@@ -3381,6 +3381,7 @@ local lang = {
     ["application_latency"] = "Application Latency",
     ["as_prev_next"] = "ASN Previous / Next",
     ["as_src_dst"] = "ASN [ Client / Server ]",
+    ["peer_as_src_dst"] = "PEER ASN [ Client / Server ]",
     ["average_cpu_load"] = "Average CPU Load",
     ["bittorrent_hash"] = "BitTorrent hash",
     ["blacklist"] = "Blacklist: \"%{blacklist}\"",

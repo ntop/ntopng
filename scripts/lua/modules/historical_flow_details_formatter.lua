@@ -219,6 +219,74 @@ function historical_flow_details_formatter.format_historical_bytes_progress_bar(
     }
 end
 
+-- formats asn peer or non peer. i18n_label is the string to identify the i18n
+function historical_flow_details_formatter.format_asn(flow)
+    local max_len = max_len
+    
+    local src_ip = flow["IPV4_SRC_ADDR"] or flow["IPV6_SRC_ADDR"]
+    local dst_ip = flow["IPV4_DST_ADDR"] or flow["IPV6_DST_ADDR"]
+    
+    local src_asn = flow["SRC_ASN"]
+    local dst_asn = flow["DST_ASN"]
+
+    local src_as = ""
+    if src_asn and src_asn ~= "0" then
+        local src_as_name = shortenString(ntop.getASName(src_ip), max_len)
+        local src_label = src_asn .. " (" .. (src_as_name or "") .. ")"      
+        src_as = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. src_asn .. "\">" .. src_label .. "</A>"
+    end
+    
+    local dst_as = ""
+    if dst_asn and dst_asn ~= "0" then
+        local dst_as_name = shortenString(ntop.getASName(dst_ip), max_len)
+        local dst_label = dst_asn .. " (" .. (dst_as_name or "") .. ")"      
+        dst_as = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. dst_asn .. "\">" .. dst_label .. "</A>"
+    end
+
+    return {
+        name = i18n("flow_details.as_src_dst"),
+        values = {
+            [1] = src_as,
+            [2] = dst_as
+        }
+    }
+end
+
+function historical_flow_details_formatter.format_asn_peer(flow, src_peer_asn, dst_peer_asn)
+    local max_len = max_len
+    local src_as_name = ""
+    local dst_as_name = ""
+    local src_asn = ""
+    local dst_asn = ""
+
+    if src_peer_asn ~= nil then
+        src_as_name = shortenString(ntop.getASNameFromASN(tonumber(src_peer_asn)), max_len)
+    end
+
+    if dst_peer_asn ~= nil then
+        dst_as_name = shortenString(ntop.getASNameFromASN(tonumber(dst_peer_asn)), max_len)
+    end
+
+    
+    if not isEmptyString(src_as_name) then
+        local src_label = src_peer_asn .. " (" .. (src_as_name or "") .. ")"      
+        src_asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. src_peer_asn .. "\">" .. src_label .. "</A>"
+    end
+    
+    if not isEmptyString(dst_as_name) then
+        local dst_label = dst_peer_asn .. " (" .. (dst_as_name or "") .. ")"      
+        dst_asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. dst_peer_asn .. "\">" .. dst_label .. "</A>"
+    end
+
+    return {
+        name = i18n("flow_details.peer_as_src_dst"),
+        values = {
+            [1] = src_asn,
+            [2] = dst_asn
+        }
+    }
+end
+
 -- ###############################################
 
 local function format_historical_wlan_ssid(flow, info)
@@ -814,6 +882,19 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         flow_details[#flow_details + 1] =
             historical_flow_details_formatter.format_historical_bytes_progress_bar(
                 flow, info)
+        -- Format ASN
+        flow_details[#flow_details + 1] =
+            historical_flow_details_formatter.format_asn(flow)
+        
+        -- Format ASN Peers if they are != 0
+        local src_peer_asn = flow["SRC_PEER_AS"]
+        local dst_peer_asn = flow["DST_PEER_AS"]
+
+        if src_peer_asn ~= nil or dst_peer_asn ~= nil then
+            flow_details[#flow_details + 1] =
+                historical_flow_details_formatter.format_asn_peer(flow, src_peer_asn, dst_peer_asn)
+        end
+
         if flow["QOE_SCORE"] and tonumber(flow["QOE_SCORE"]) > 0 then
             flow_details[#flow_details + 1] =
                 historical_flow_details_formatter.format_qoe(flow, info)

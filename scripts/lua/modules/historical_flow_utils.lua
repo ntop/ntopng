@@ -551,6 +551,7 @@ local function dt_format_asn(processed_record, record)
       end
       processed_record["asn"] = dt_format_asn_common(ip, record["ASN"])
    end
+
 end
 
 -- #####################################
@@ -1212,6 +1213,8 @@ local flow_columns = {
    ['REQUIRE_ATTENTION'] =    { tag = "require_attention" },
    ['USER_LABEL'] =           { tag = "user_label" },
    ['USER_LABEL_TSTAMP'] =    { tag = "user_label_tstamp" },
+   ['SRC_PEER_ASN'] =         { tag = "src_peer_asn" },
+   ['DST_PEER_ASN'] =         { tag = "dst_peer_asn" }
 }
 local aggregated_flow_columns = {
    ['FLOW_ID'] =              { tag = "rowid", db_type = "Number", db_raw_type = "Uint64" },
@@ -1547,6 +1550,7 @@ function historical_flow_utils.get_flow_columns_to_tags(aggregated)
 
    if aggregated then
       for k, v in pairs(aggregated_flow_columns) do
+
          if v.tag then
             c2t[k] = v.tag
             t2c[v.tag] = k
@@ -1614,7 +1618,7 @@ function historical_flow_utils.get_flow_select_by_tag(tag, aggregated)
          goto next
       end
    end
-
+   
    return s
 end
 
