@@ -268,19 +268,14 @@ async function draw_sankey() {
     svg = d3.select(sankey_wrapper.value)
         .append("svg")
         .attr("height", size.height)
-        .attr("width", size.width)
+        .attr("width", size.width);
 
     if (!links || !nodes) return;
 
-    svg.style("cursor", "move");
+    svg.style("cursor", "default");
 
     const zoomGroup = svg.append("g")
         .attr("class", "zoom-group");
-
-    zoomGroup.append("g")
-        .attr("class", "nodes")
-        .style("stroke", "#000")
-        .style("stroke-opacity", 0.5);
 
     zoomGroup.append("g")
         .attr("class", "links")
@@ -288,7 +283,12 @@ async function draw_sankey() {
         .style("stroke-opacity", 0.3)
         .style("fill", "none");
 
-        const d3_nodes = svg.select("g.nodes")
+    zoomGroup.append("g")
+        .attr("class", "nodes")
+        .style("stroke", "#000")
+        .style("stroke-opacity", 0.5);
+
+    const d3_nodes = svg.select("g.nodes")
         .selectAll("g")
         .data(nodes)
         .join((enter) => enter.append("g"))
@@ -304,8 +304,7 @@ async function draw_sankey() {
 
     d3.selectAll("rect").append("title").text((d) => `${d?.label}`);
 
-    d3_nodes.data(nodes)
-        .append("text")
+    d3_nodes.append("text")
         .attr('class', 'label')
         .style('pointer-events', 'auto')
         .attr("style", "cursor:pointer;")
@@ -318,6 +317,8 @@ async function draw_sankey() {
         .attr("font-size", 12)
         .text((d) => d.label)
         .on("click", function (event, data_obj) {
+            event.stopPropagation();
+            // emit node click event to parent component
             emit('node_click', data_obj.data, data_obj);
         });
 
