@@ -2448,8 +2448,8 @@ local lang = {
       ["wlan_ssid"] = "All WLAN SSID",
     },
     ["tags"] = {
-      ["src_peer_as"] = "Src Peer AS",
-      ["dst_peer_as"] = "Dst Peer AS",
+      ["src_peer_as"] = "Src Peer ASN",
+      ["dst_peer_as"] = "Dst Peer ASN",
       ["acknowledged"] = "Acknowledged",
       ["alert_category"] = "Category",
       ["alert_description"] = "Description",
