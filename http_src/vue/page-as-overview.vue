@@ -47,9 +47,9 @@ const autoRefreshEnabled = ref(false);
 const active_sankey_type = ref({})
 const sankey_format_list = [
     { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
-    { key: "criteria_as", value: 'ingress_traffic_criteria', label: _i18n('as_overview.ingress_traffic_criteria') },
-    { key: "criteria_as", value: 'egress_traffic_criteria', label: _i18n('as_overview.egress_traffic_criteria') },
-    { key: "criteria_as", value: 'total_traffic_criteria', label: _i18n('as_overview.total_traffic_criteria') },
+    //{ key: "criteria_as", value: 'ingress_traffic_criteria', label: _i18n('as_overview.ingress_traffic_criteria') },
+    //{ key: "criteria_as", value: 'egress_traffic_criteria', label: _i18n('as_overview.egress_traffic_criteria') },
+    //{ key: "criteria_as", value: 'total_traffic_criteria', label: _i18n('as_overview.total_traffic_criteria') },
 ];
 
 const note_list = [

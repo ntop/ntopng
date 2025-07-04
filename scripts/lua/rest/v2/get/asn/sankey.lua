@@ -90,6 +90,7 @@ local links = {}
 local node_set = {}
 local as_root_key = "root";
 local max_len = 32
+local ifstats = interface.getStats()
 
 table.insert(nodes, {
     link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn .. "",
@@ -108,6 +109,18 @@ end
 
 local function reset_nodes() node_set = {} end
 
+
+local function search_probe(ip)
+    for interface_id, probe_list in pairs(ifstats.probes or {}) do
+        for probe_ip, probe_info in pairsByKeys(probe_list or {}) do
+            for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}) do
+                if exporter_ip==ip then
+                    return {probe_uuid = probe_info["probe.uuid_num"], exporter_uuid = exporter_info["unique_source_id"]}
+                end
+            end
+        end
+    end
+end
 -- ####################
 
 -- Total bytes sent/rcvd per exporter (key = <device ip>)
@@ -181,10 +194,22 @@ local function build_interface_exporter(criteria, tot_bytes_exp_if,
             if (exporter_nodes[data.exporter_ip] == nil) then
                 exporter_nodes[data.exporter_ip] = exporter_node_id
             end
-            add_unique_node(exporter_node_id, exporter_ip, "#")
-            add_unique_node(port_node_id, port_index, ntop.getHttpPrefix() .. 
+            nprobe_stats = search_probe(data.exporter_ip)
+            local url = "#"
+            if ntop.isEnterprise() then 
+                url = ntop.getHttpPrefix() ..
+                        '/lua/pro/enterprise/exporter_details.lua?ip=' .. exporter_ip ..
+                        '&exporter_uuid=' .. nprobe_stats.exporter_uuid ..
+                        '&probe_uuid=' .. nprobe_stats.probe_uuid
+            end
+            add_unique_node(exporter_node_id, exporter_ip, url)
+            url = "#"
+            if ntop.isEnterprise() then 
+                url = ntop.getHttpPrefix() .. 
                         '/lua/pro/enterprise/snmp_interface_details.lua?host='.. data.exporter_ip .. 
-                        '&snmp_port_idx='.. data.port_index)
+                        '&snmp_port_idx='.. data.port_index 
+            end
+            add_unique_node(port_node_id, port_index, url)
 
             if criteria == traffic_criteria.INGRESS then
                 -- Interface -> Exporter
