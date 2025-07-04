@@ -339,8 +339,7 @@ function formatDateTime(date_to_format, type = 'datetime') {
     let formatted_date = '';
     
     if (delta_days === 0) {
-        // today
-        formatted_date = 'Today';
+        return time_formatter;
     } else if (delta_days === 1) {
         // yesterday
         formatted_date = 'Yesterday';
