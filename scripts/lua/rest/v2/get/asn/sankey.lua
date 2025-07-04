@@ -92,7 +92,7 @@ local as_root_key = "root";
 local max_len = 32
 
 table.insert(nodes, {
-    link = "/",
+    link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn .. "",
     node_id = as_root_key,
     label = format_utils.formatASN(asn)
 })
@@ -182,7 +182,9 @@ local function build_interface_exporter(criteria, tot_bytes_exp_if,
                 exporter_nodes[data.exporter_ip] = exporter_node_id
             end
             add_unique_node(exporter_node_id, exporter_ip, "#")
-            add_unique_node(port_node_id, port_index, "#")
+            add_unique_node(port_node_id, port_index, ntop.getHttpPrefix() .. 
+                        '/lua/pro/enterprise/snmp_interface_details.lua?host='.. data.exporter_ip .. 
+                        '&snmp_port_idx='.. data.port_index)
 
             if criteria == traffic_criteria.INGRESS then
                 -- Interface -> Exporter
