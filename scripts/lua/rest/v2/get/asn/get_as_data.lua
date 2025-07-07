@@ -63,8 +63,9 @@ if as_info ~= nil then
          bytes_sent = bytes_sent, 
          bytes_rcvd = bytes_rcvd 
       }
-      
-      table.insert(res, record)
+      if value["asn"] ~= 0 then
+         table.insert(res, record)
+      end
    end
 end
 
