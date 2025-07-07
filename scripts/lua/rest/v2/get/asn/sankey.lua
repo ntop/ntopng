@@ -95,14 +95,14 @@ local ifstats = interface.getStats()
 table.insert(nodes, {
     link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn .. "",
     node_id = as_root_key,
-    label = format_utils.formatASN(asn)
+    label = shortenString(format_utils.formatASN(asn), 64)
 })
 
 -- ####################
 
 local function add_unique_node(node_id, label, link)
     if not node_set[node_id] then
-        table.insert(nodes, {node_id = node_id, label = label, link = link})
+        table.insert(nodes, {node_id = node_id, label = shortenString(label, 64), link = link})
         node_set[node_id] = true
     end
 end
