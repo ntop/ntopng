@@ -211,8 +211,10 @@ function on_table_custom_event(event) {
 function columns_sorting(col, r0, r1) {
     if (col != null) {
         if (col.id == "name") {
-            return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
-        } else if (col.id == "num_hosts") {
+            return sortingFunctions.sortByName(r0.asname, r1.asname, col.sort);
+        } if (col.id == "as_number") {
+            return sortingFunctions.sortByNumber(r0.asn, r1.asn, col.sort);
+        }else if (col.id == "num_hosts") {
             return sortingFunctions.sortByNumber(r0.num_hosts, r1.num_hosts, col.sort);
         } else if (col.id == "seen_since") {
             return sortingFunctions.sortByNumber(r0.seen_since, r1.seen_since, col.sort);
