@@ -25,7 +25,12 @@ page_utils.print_navbar(i18n("asn_id",{id = format_utils.formatASN(asn)}), ntop.
     url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn .. "",
     active = page == "asn_hosts",
     page_name = "asn_hosts",
-    label = i18n("as_overview.asn_hosts")
+    label = "<i class=\"fas fa-laptop fa-lg\"></i>"
+}, { 
+    url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua?asn=" .. asn .. "",
+    active = page == "asn_flows",
+    page_name = "asn_flows",
+    label = "<i class=\"fas fa-stream fa-lg\"></i>"
 }})
 
 template_utils.render("pages/vue_page.template", {

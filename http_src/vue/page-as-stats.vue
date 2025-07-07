@@ -153,6 +153,7 @@ const map_table_def_columns = (columns) => {
         if (c.id == "actions") {
             const visible_dict = {
                 host: true,
+                flows: true,
                 exporters_distro: showSankey,
                 timeseries: props.context.showTimeseries,
             };
@@ -187,6 +188,13 @@ function click_button_host(event) {
 
 /* ************************************** */
 
+function click_button_flows(event) {
+    const row = event.row;
+    window.location.href = `${http_prefix}/lua/flows_stats.lua?asn=${row["asn"]}`;
+}
+
+/* ************************************** */
+
 function click_button_timeseries(event) {
     const row = event.row;
     window.location.href = `${http_prefix}/lua/as_stats.lua?asn=${row["asn"]}&page=historical`;
@@ -197,6 +205,7 @@ function click_button_timeseries(event) {
 function on_table_custom_event(event) {
     let events_managed = {
         "click_button_host": click_button_host,
+        "click_button_flows": click_button_flows,
         "click_button_exporters_distro": click_button_exporters_distro,
         "click_button_timeseries": click_button_timeseries,
     };

@@ -37,6 +37,13 @@
 					"title_i18n": "hosts",
 					"class": [],
 					"event_id": "click_button_host"
+				},
+                {
+					"id": "flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows",
+					"class": [],
+					"event_id": "click_button_flows"
 				}
 			]
 		}, {

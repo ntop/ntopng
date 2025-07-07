@@ -23,7 +23,7 @@ local server = _GET["server"]
 local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
 local selected_ip = _GET["flowhosts_type"]
-
+local asn = _GET["asn"]
 local rsp = {}
 
 if interface.isView() then
@@ -233,7 +233,24 @@ if not isEmptyString(_GET["port"]) then
         value = port_filters
     }
 end
+local as_filter = {{
+    key = "asn",
+    value = "",
+    label = i18n("all")
+}, {
+    key = "asn",
+    value = asn,
+    label = asn
+}}
 
+if (not isEmptyString(asn)) then 
+    rsp[#rsp + 1] = {
+        action = "asn",
+        label = i18n("as"),
+        name = "asn",
+        value = as_filter
+    }
+end
 local status_filters = {{
     key = "alert_type",
     value = "",
