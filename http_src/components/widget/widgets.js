@@ -352,7 +352,6 @@ export class ChartWidget extends Widget {
     }
 
     _buildTooltip(config, rsp) {
-        debugger;
         /* By default the areaChart tooltip[y] is overwritten */
         config["tooltip"]["y"] = {
             formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {

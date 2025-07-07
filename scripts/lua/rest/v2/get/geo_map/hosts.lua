@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local callback_utils = require "callback_utils"
 local rest_utils = require("rest_utils")
+local country_code = require "country_keys"
 
 local ifid = _GET["ifid"]
 
@@ -111,16 +112,22 @@ local function show_hosts(hosts_count, host_key, hosts_category)
 		for address, value in pairs(data["hosts"]) do
 
 			if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
+				local country = value["country"]
+				local country_info = country_code.get_country_info(country)
+				local iso3_country = country_info[1]
+            	local country_id = country_info[2]
 
 				local host = {
 					lat = value["latitude"],
 					lng = value["longitude"],
 					isRoot = false,
-					country = value["country"],
+					country = iso3_country,
+					country_id = country_id,
 					ip = address,
 					scoreClient = value["score.as_client"],
 					scoreServer = value["score.as_server"],
-					numAlerts = value["num_alerts"],
+					numAlerts = value["active_alerted_flows"],
+					country_code = country,
 					isAlert = value["num_alerts"] + value["active_alerted_flows"] > 0
 				}
 
