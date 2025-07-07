@@ -1643,11 +1643,20 @@ end
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
     local inputidx_name = format_portidx_name(snmpdevice, tostring(input_idx), true)
     local outputidx_name = format_portidx_name(snmpdevice, tostring(output_idx), true)
-
+    local url_input = "#"
+    local url_output = "#"
+    if ntop.isEnterprise() then
+        url_input = ntop.getHttpPrefix() .. 
+                            '/lua/pro/enterprise/snmp_interface_details.lua?host='.. snmpdevice .. 
+                            '&snmp_port_idx='.. input_idx
+        url_output = ntop.getHttpPrefix() .. 
+                            '/lua/pro/enterprise/snmp_interface_details.lua?host='.. snmpdevice .. 
+                            '&snmp_port_idx='.. output_idx
+    end
     print(
         "<tr><th rowspan='2'>" .. i18n("details.flow_snmp_localization") .. "</th><th>" .. i18n("flows_page.inIfIdx") ..
-            "</th><td><span class=\"badge bg-info\">" .. (inputidx_name or "") .. "</span></td></tr>")
-    print("<tr><th>" .. i18n("flows_page.outIfIdx") .. "</th><td><span class=\"badge bg-info\">" ..
+            "</th><td><span class=\"badge bg-info\">" .. "<a href=" .. url_input .. ">" .. (inputidx_name or "") .. "</span></td></tr>")
+    print("<tr><th>" .. i18n("flows_page.outIfIdx") .. "</th><td><span class=\"badge bg-info\">" .. "<a href=" .. url_output .. ">" ..
               (outputidx_name or "") .. "</span></td></tr>")
 end
 
