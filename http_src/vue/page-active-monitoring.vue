@@ -25,7 +25,7 @@
         </TableWithConfig>
         <div class="card-footer mt-3">
             <button v-if="props.context.is_admin" type="button" class="btn btn-secondary ms-1"
-                :href="manage_configurations_url">
+                @click="click_button_manage_configuration">
                 <i class="fas fa-tasks"></i>
                 {{ _i18n("manage_configurations.manage_configuration") }}
             </button>
@@ -65,7 +65,7 @@ const interfaces_list = ref([]);
 const modal_add_active_monitoring = ref(null);
 const modal_delete = ref(null);
 const error_message = ref(i18n('host_config.active_monitor_enable'))
-const manage_configurations_url = ref(http_prefix + '/lua/admin/manage_configurations.lua?item=active_monitoring')
+const manage_configurations_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=active_monitoring`
 const measurements_url = ref(http_prefix + '/lua/rest/v2/get/active_monitoring/measurements.lua')
 const interfaces_url = ref(http_prefix + '/lua/rest/v2/get/ntopng/interfaces.lua')
 const new_measurement_url = ref(http_prefix + '/lua/rest/v2/set/active_monitoring/measurement.lua')
@@ -75,6 +75,11 @@ const new_measurement_url = ref(http_prefix + '/lua/rest/v2/set/active_monitorin
 const props = defineProps({
     context: Object,
 });
+/* ************************************** */
+
+const click_button_manage_configuration = () => {
+  window.location.href = manage_configurations_url;
+}
 
 /* ************************************** */
 
