@@ -59,6 +59,8 @@ if as_info ~= nil then
       record["throughput"] = value["throughput_bps"]
       record["asname"] = value["asname"]
 
+      if value["asn"] == 0 then record["asname"] = "Private hosts" end
+
       record["breakdown"] = { 
          bytes_sent = bytes_sent, 
          bytes_rcvd = bytes_rcvd 
