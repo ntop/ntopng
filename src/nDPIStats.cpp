@@ -244,7 +244,7 @@ bool nDPIStats::deserialize(json_object *o, NetworkInterface *iface) {
     json_object_object_foreach(obj, cat_key, cat_val) {
       if (!cat_key || !cat_val) continue;
 
-      u_int16_t cat_id = (u_int16_t)atoi(cat_key);
+      u_int16_t cat_id = iface->get_ndpi_category_id(cat_key);
       CategoryCounter cat;
 
       if (cat.deserialize(cat_val))
