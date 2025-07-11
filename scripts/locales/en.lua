@@ -1834,12 +1834,10 @@ local lang = {
     ["asn"] = "ASN %{asn} (%{asn_name})",
     ["asn_hosts"] = "ASN Hosts",
     ["asn_exporters"] = "ASN / Exporters View",
-    ["egress_traffic_criteria"] = "Egress Traffic (Bytes)",
+    ["as_traffic_criteria"] = "AS Traffic (Bytes)",
     ["ingress_egress_traffic_criteria"] = "Ingress-Egress Traffic (Bytes)",
-    ["ingress_traffic_criteria"]= "Ingress Traffic (Bytes)",
     ["no_data"] = "No Data Available. Is the ASN still doing traffic?",
     ["note_ingress_egress"] = "The above diagram with Ingress-Egress Traffic depicts the AS at its center, with ingress traffic on the left and egress traffic on the right.",
-    ["total_traffic_criteria"] = "Total Traffic (Bytes)",
   },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",
