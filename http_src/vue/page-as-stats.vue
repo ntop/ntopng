@@ -33,6 +33,7 @@ import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as DashboardTimeseries } from "./dashboard-timeseries.vue";
 import { default as SelectSearch } from "./select-search.vue";
+import FormatterUtils from "../utilities/formatter-utils.js";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils.js";
 
@@ -188,7 +189,8 @@ const map_table_def_columns = (columns) => {
         "seen_since": (value, row) => {
             // `seen_since` might require formatting, e.g., date formatting.
             const formattedDate = ntopng_utility.from_utc_to_server_date_format(value * 1000); // Example date formatting
-            return formattedDate;
+
+            return FormatterUtils.formatDateTime(value * 1000);
         },
         "score": (value, row) => {
             // Assuming `score` is a number that might require some formatting.
