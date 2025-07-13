@@ -14,11 +14,17 @@
 /* White-Mode */
 :root[data-theme='light'] {
   --ntop-text-color: #111111;
+  --loading-bg: rgba(243, 244, 246, 0.9);
+  --loading-text-color: #374151;
+  --loading-spinner-border: #6b7280;
 }
 
 /* Dark-Mode */
 :root[data-theme='dark'] {
   --ntop-text-color: #e2e2e2;
+  --loading-bg: #28242c;
+  --loading-text-color: #e2e8f0;
+  --loading-spinner-border: #334155;
 }
 
 a,
