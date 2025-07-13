@@ -53,9 +53,9 @@ defineExpose({ hide_loading, show_loading });
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--ntop-orange);
+  border: 3px solid #334155;
   border-radius: 50%;
-  border-top-color: var(--ntop-orange);
+  border-top-color: var(--ntop-orange); /* Spinning part ntop orange */
   animation: spin 1s ease-in-out infinite;
   margin-bottom: 12px;
 }
@@ -67,21 +67,18 @@ defineExpose({ hide_loading, show_loading });
 }
 
 /* Light theme */
-:root.light .loading-overlay,
-.light .loading-overlay,
+:root[data-theme="light"] .loading-overlay,
 [data-theme="light"] .loading-overlay {
   background-color: rgba(243, 244, 246, 0.9);
 }
 
-:root.light .loading-spinner,
-.light .loading-spinner,
+:root[data-theme="light"] .loading-spinner,
 [data-theme="light"] .loading-spinner {
   border: 3px solid #6b7280;
   border-top-color: var(--ntop-orange);
 }
 
-:root.light .loading-text,
-.light .loading-text,
+:root[data-theme="light"] .loading-text,
 [data-theme="light"] .loading-text {
   color: #374151;
 }
