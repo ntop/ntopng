@@ -44,26 +44,48 @@ defineExpose({ hide_loading, show_loading });
   justify-content: center;
   align-items: center;
   z-index: 10;
-  background-color: var(--loading-bg);
+}
+
+.loading-overlay {
+  background-color: rgba(15, 23, 42, 0.9);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--loading-spinner-border);
-  border-top-color: var(--ntop-orange);
+  border: 3px solid var(--ntop-orange);
   border-radius: 50%;
+  border-top-color: var(--ntop-orange);
   animation: spin 1s ease-in-out infinite;
   margin-bottom: 12px;
 }
 
 .loading-text {
-  color: var(--loading-text-color);
+  color: #e2e8f0;
   font-size: 14px;
   letter-spacing: 1px;
 }
 
-/* Spinner Animation */
+/* Light theme */
+:root.light .loading-overlay,
+.light .loading-overlay,
+[data-theme="light"] .loading-overlay {
+  background-color: rgba(243, 244, 246, 0.9);
+}
+
+:root.light .loading-spinner,
+.light .loading-spinner,
+[data-theme="light"] .loading-spinner {
+  border: 3px solid #6b7280;
+  border-top-color: var(--ntop-orange);
+}
+
+:root.light .loading-text,
+.light .loading-text,
+[data-theme="light"] .loading-text {
+  color: #374151;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
