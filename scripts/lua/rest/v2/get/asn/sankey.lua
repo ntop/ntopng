@@ -248,6 +248,7 @@ end
 
 -- ####################
 
+-- Builds the nodes and links of the Sankey between the interfaces and the exporters
 local function build_interface_exporter(criteria, tot_bytes_exp_if,
                                         exporter_nodes)
     for n_id, data in pairs(tot_bytes_exp_if) do
@@ -307,6 +308,8 @@ end
 
 -- ####################
 
+-- Builds the nodes and links of the Sankey between the source/destination 
+-- autonomous systems and the transit autonomous systems
 local function build_as_transit(criteria, tot_bytes_as_transit, transit_nodes)
     for n_id, data in pairs(tot_bytes_as_transit) do
         if (criteria == traffic_criteria.INGRESS and data.sent > 0) or
@@ -365,6 +368,9 @@ end
 
 -- ####################
 
+-- Builds the nodes and links of the Sankey that lead to the root,
+-- the AS at the center of the Sankey.
+-- This function is general because it can connect both transit->AS and exporter->AS
 local function build_to_as(criteria, nodes, tot_bytes)
     for id, node_id in pairs(nodes) do
         local sent = tot_bytes[id].sent
@@ -405,7 +411,7 @@ function callback(_, flow)
             inc_exporter_sent(flow.device_ip, flow.bytes_rcvd)
             inc_exporter_rcvd(flow.device_ip, flow.bytes_sent)
 
-            -- Transit
+            -- Initialize transit
             if(flow.dst_peer_as ~= nil) then
                 init_transit(flow.dst_peer_as)
                 init_src_dst_as(flow.dst_peer_as, flow.dst_as)
@@ -429,7 +435,7 @@ function callback(_, flow)
             inc_exporter_sent(flow.device_ip, flow.bytes_sent)
             inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
 
-            -- Transit
+            -- Initialize transit
             if(flow.src_peer_as ~= nil) then
                 init_transit(flow.src_peer_as)
                 init_src_dst_as(flow.src_peer_as, flow.src_as)
@@ -438,7 +444,7 @@ function callback(_, flow)
                 inc_as_rcvd(get_as_key(flow.src_peer_as, flow.src_as),
                                 flow.bytes_rcvd)
                 inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
-                inc_transit_sent(flow.src_peer_as, flow.bytes_rcvd)
+                inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd)
             end
         end
     end
@@ -464,6 +470,10 @@ end
 local exporter_nodes = {}
 local transit_nodes = {}
 
+-- If the criteria is ING_EGR, the Sankey will consist of two parts:
+-- ingress: ingress interface -> exporter -> AS;
+-- egress: AS -> exporter -> egress interface.
+-- It is necessary to create the links interface<->exporter and then exporter<->AS root.
 if (criteria == traffic_criteria.ING_EGR) then
     -- Ingress
     build_interface_exporter(traffic_criteria.INGRESS, tot_bytes_exp_if,
@@ -478,6 +488,10 @@ if (criteria == traffic_criteria.ING_EGR) then
                              exporter_nodes)
     build_to_as(traffic_criteria.EGRESS, exporter_nodes, tot_bytes_exporter)
 
+-- If the criteria is AS_TRAFFIC, the Sankey diagram will consist of two parts:
+-- ingress: source AS -> transit AS -> AS;
+-- egress: AS -> transit AS -> destination AS.
+-- It is therefore necessary to create the links source/destination AS <-> transit AS and then transit AS <-> root AS.
 elseif (criteria == traffic_criteria.AS_TRAFFIC) then
      -- Ingress
     build_as_transit(traffic_criteria.INGRESS, tot_bytes_as_transit,
