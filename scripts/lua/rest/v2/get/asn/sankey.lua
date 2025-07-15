@@ -52,6 +52,15 @@ else
    criteria = traffic_criteria.ING_EGR
 end
 
+-- If the ingress or egress part of the graph has fewer nodes than max_nodes, 
+-- all nodes will be shown in the Sankey. Otherwise, only the nodes specified 
+-- in "Relevant Remote ASNs" will be displayed, along with an "others" node 
+-- representing the sum of all the remaining ones.
+local max_nodes = 20
+
+-- If show_all is enabled, the max_nodes setting is ignored and all nodes are 
+-- shown regardless of their number.
+local show_all = false
 -- ################################################
 
 if isEmptyString(ifid) then
@@ -248,6 +257,26 @@ end
 
 -- ####################
 
+-- Returns the number of ASNs involved in sending and receiving traffic. 
+-- This helps determine the number of Ingress and Egress nodes for AS 
+-- Traffic and whether the 'others' node should be used.
+local function send_rcvd_list_length(tot_bytes)
+   local sent = {}
+   local rcvd = {}
+   for n_id, data in pairs(tot_bytes) do
+      if data.sent > 0 and sent[tostring(data.src_dst_as)] == nil then
+        sent[tostring(data.src_dst_as)] = data.sent 
+      end
+      if data.rcvd > 0 and rcvd[tostring(data.src_dst_as)] == nil then
+        rcvd[tostring(data.src_dst_as)] = data.rcvd
+      end
+   end
+   return table.len(sent), table.len(rcvd)
+end
+
+-- ####################
+
+-- Builds the nodes and links of the Sankey between the interfaces and the exporters
 local function build_interface_exporter(criteria, tot_bytes_exp_if,
                                         exporter_nodes)
    for n_id, data in pairs(tot_bytes_exp_if) do
@@ -307,64 +336,86 @@ end
 
 -- ####################
 
+-- Builds the nodes and links of the Sankey between the source/destination 
+-- autonomous systems and the transit autonomous systems
 local function build_as_transit(criteria, tot_bytes_as_transit, transit_nodes)
+   local num_sent, num_rcvd = send_rcvd_list_length(tot_bytes_as_transit)
    for n_id, data in pairs(tot_bytes_as_transit) do
       if (criteria == traffic_criteria.INGRESS and data.sent > 0) or
 	 (criteria == traffic_criteria.EGRESS and data.rcvd > 0) or
 	 (criteria == traffic_criteria.TOTAL and (data.rcvd + data.sent) > 0) then
-	 -- tprint(n_id .. " " .. criteria .. " " .. data.sent .. " " .. data.rcvd)
-	 local transit = format_utils.formatASN(data.transit, false, true)
-	 local src_dst_as = format_utils.formatASN(data.src_dst_as, false, true)
-	 local transit_node_id = find_node_id(transit)
-	 local src_dst_as_id = find_node_id(n_id)
-	 -- tprint("--- " .. transit .. " " .. src_dst_as)
-	 if criteria == traffic_criteria.EGRESS then
-	    transit_node_id = "egress" .. "_" .. transit_node_id
-	    src_dst_as_id = "egress" .. "_" .. src_dst_as_id
-	 else
-	    transit_node_id = "ingress" .. "_" .. transit_node_id
-	    src_dst_as_id = "ingress" .. "_" .. src_dst_as_id
-	 end
-
-	 if (transit_nodes[data.transit] == nil and data.transit ~= data.src_dst_as) then
-	    transit_nodes[data.transit] = transit_node_id
-	 end
-
-	 local url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. src_dst_as .. ""
-	 add_unique_node(src_dst_as_id, src_dst_as, url)
-	 if data.transit ~= data.src_dst_as then
-	    url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. data.transit .. ""
-	    add_unique_node(transit_node_id, transit, url)
-	 end
-
-
-	 if criteria == traffic_criteria.INGRESS then
-	    if data.transit ~= data.src_dst_as then
-	       add_link(src_dst_as_id, transit_node_id, bytesToSize(data.sent), data.sent)
-	    else
-	       add_link(src_dst_as_id, as_root_key, bytesToSize(data.sent), data.sent)
-	    end
-	 elseif criteria == traffic_criteria.EGRESS then
-	    if data.transit ~= data.src_dst_as then
-	       add_link(transit_node_id, src_dst_as_id, bytesToSize(data.rcvd), data.rcvd)
-	    else
-	       add_link(as_root_key, src_dst_as_id, bytesToSize(data.rcvd), data.rcvd)
-	    end
-	 elseif criteria == traffic_criteria.TOTAL then
-	    if data.transit ~= data.src_dst_as then
-	       add_link(src_dst_as_id, transit_node_id,
-			bytesToSize(data.rcvd + data.sent), data.rcvd + data.sent)
-	    else
-	       add_link(src_dst_as_id, as_root_key,
-			bytesToSize(data.rcvd + data.sent), data.rcvd + data.sent)
-	    end
-	 end
+         -- This checks whether the number of nodes is excessive, and if so, adds only those in the 
+         -- preference list or the 'others' node (unless 'show_all' is set to true).
+         if (criteria == traffic_criteria.INGRESS and num_sent <= max_len and data.src_dst_as ~= "others") or
+          (criteria == traffic_criteria.EGRESS and num_rcvd <= max_len and data.src_dst_as ~= "others") or
+          (remote_asn[tostring(data.src_dst_as)] ~= nil) or
+          (criteria == traffic_criteria.INGRESS and num_sent >= max_len and data.src_dst_as == "others") or
+          (criteria == traffic_criteria.EGRESS and num_rcvd >= max_len and data.src_dst_as == "others") or
+          (show_all == true and data.src_dst_as ~= "others") then
+	   -- tprint(n_id .. " " .. criteria .. " " .. data.sent .. " " .. data.rcvd)
+	   local transit
+           local src_dst_as
+           if data.src_dst_as == "others" then 
+                src_dst_as = "others" 
+                transit = "others"
+           else
+                transit = format_utils.formatASN(data.transit, false, true)
+	     src_dst_as = format_utils.formatASN(data.src_dst_as, false, true) 
+           end
+	   local transit_node_id = find_node_id(transit)
+	   local src_dst_as_id = find_node_id(n_id)
+	   -- tprint("--- " .. transit .. " " .. src_dst_as)
+	   if criteria == traffic_criteria.EGRESS then
+	      transit_node_id = "egress" .. "_" .. transit_node_id
+	      src_dst_as_id = "egress" .. "_" .. src_dst_as_id
+	   else
+	      transit_node_id = "ingress" .. "_" .. transit_node_id
+	      src_dst_as_id = "ingress" .. "_" .. src_dst_as_id
+	   end
+  
+	   if (transit_nodes[data.transit] == nil and data.transit ~= data.src_dst_as) then
+	      transit_nodes[data.transit] = transit_node_id
+	   end
+  
+	   local url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. src_dst_as .. ""
+	   add_unique_node(src_dst_as_id, src_dst_as, url)
+	   if data.transit ~= data.src_dst_as then
+	      url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. data.transit .. ""
+	      add_unique_node(transit_node_id, transit, url)
+	   end
+  
+  
+	   if criteria == traffic_criteria.INGRESS then
+	      if data.transit ~= data.src_dst_as then
+	         add_link(src_dst_as_id, transit_node_id, bytesToSize(data.sent), data.sent)
+	      else
+	         add_link(src_dst_as_id, as_root_key, bytesToSize(data.sent), data.sent)
+	      end
+	   elseif criteria == traffic_criteria.EGRESS then
+	      if data.transit ~= data.src_dst_as then
+	         add_link(transit_node_id, src_dst_as_id, bytesToSize(data.rcvd), data.rcvd)
+	      else
+	         add_link(as_root_key, src_dst_as_id, bytesToSize(data.rcvd), data.rcvd)
+	      end
+	   elseif criteria == traffic_criteria.TOTAL then
+	      if data.transit ~= data.src_dst_as then
+	         add_link(src_dst_as_id, transit_node_id,
+	  		bytesToSize(data.rcvd + data.sent), data.rcvd + data.sent)
+	      else
+	         add_link(src_dst_as_id, as_root_key,
+	  		bytesToSize(data.rcvd + data.sent), data.rcvd + data.sent)
+	      end
+           end
+	end
       end
    end
 end
 
 -- ####################
 
+-- Builds the nodes and links of the Sankey that lead to the root,
+-- the AS at the center of the Sankey.
+-- This function is general because it can connect both transit->AS and exporter->AS
 local function build_to_as(criteria, nodes, tot_bytes)
    for id, node_id in pairs(nodes) do
       local sent = tot_bytes[id].sent
@@ -396,7 +447,6 @@ function callback(_, flow)
    if (flow.src_as == asn) then
       if (criteria ~= traffic_criteria.AS_TRAFFIC or
 	  (criteria == traffic_criteria.AS_TRAFFIC
-	   and (remote_asn[tostring(flow.dst_as)] ~= nil) -- This ASN is listed among the remote/relevant ones
 	   and customer_asn[tostring(asn)]==nil)) then
 	 inc_interface_sent(get_interface_key(flow.device_ip, flow.in_index),
                             flow.bytes_rcvd)
@@ -405,7 +455,7 @@ function callback(_, flow)
 	 inc_exporter_sent(flow.device_ip, flow.bytes_rcvd)
 	 inc_exporter_rcvd(flow.device_ip, flow.bytes_sent)
 
-	 -- Transit
+	 -- Initialize transit
 	 if((flow.dst_peer_as ~= nil) and (flow.dst_as ~= nil)) then
 	    init_transit(flow.dst_peer_as)
 	    init_src_dst_as(flow.dst_peer_as, flow.dst_as)
@@ -415,12 +465,20 @@ function callback(_, flow)
 			flow.bytes_sent)
 	    inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
 	    inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent)
+            if remote_asn[tostring(flow.dst_as)] then
+                init_transit("others")
+	        init_src_dst_as("others", "others")
+	        inc_as_sent(get_as_key("others", "others"), flow.bytes_rcvd)
+	        inc_as_rcvd(get_as_key("others", "others"), flow.bytes_sent)
+	        inc_transit_sent("others", flow.bytes_rcvd)
+	        inc_transit_rcvd("others", flow.bytes_sent)
+            end
 	 end
       end
 
    elseif (flow.dst_as == asn) then
       if (criteria ~= traffic_criteria.AS_TRAFFIC or
-	  (criteria == traffic_criteria.AS_TRAFFIC and remote_asn[tostring(flow.src_as)]
+           (criteria ~= traffic_criteria.AS_TRAFFIC
 	   and customer_asn[tostring(asn)]==nil)) then
 	 inc_interface_sent(get_interface_key(flow.device_ip, flow.out_index),
                             flow.bytes_sent)
@@ -429,7 +487,7 @@ function callback(_, flow)
 	 inc_exporter_sent(flow.device_ip, flow.bytes_sent)
 	 inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
 
-	 -- Transit
+	 -- Initialize transit
 	 if((flow.src_peer_as ~= nil) and (flow.src_as ~= nil)) then
 	    init_transit(flow.src_peer_as)
 	    init_src_dst_as(flow.src_peer_as, flow.src_as)
@@ -438,7 +496,15 @@ function callback(_, flow)
 	    inc_as_rcvd(get_as_key(flow.src_peer_as, flow.src_as),
 			flow.bytes_rcvd)
 	    inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
-	    inc_transit_sent(flow.src_peer_as, flow.bytes_rcvd)
+	    inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd)
+          if remote_asn[tostring(flow.src_as)] then
+                init_transit("others")
+	        init_src_dst_as("others", "others")
+	        inc_as_sent(get_as_key("others", "others"), flow.bytes_sent)
+	        inc_as_rcvd(get_as_key("others", "others"), flow.bytes_rcvd)
+	        inc_transit_sent("others", flow.bytes_sent)
+	        inc_transit_rcvd("others", flow.bytes_rcvd)
+            end
 	 end
       end
    end
@@ -463,7 +529,10 @@ end
 
 local exporter_nodes = {}
 local transit_nodes = {}
-
+-- If the criteria is ING_EGR, the Sankey will consist of two parts:
+-- ingress: ingress interface -> exporter -> AS;
+-- egress: AS -> exporter -> egress interface.
+-- It is necessary to create the links interface<->exporter and then exporter<->AS root.
 if (criteria == traffic_criteria.ING_EGR) then
    -- Ingress
    build_interface_exporter(traffic_criteria.INGRESS, tot_bytes_exp_if,
@@ -478,6 +547,10 @@ if (criteria == traffic_criteria.ING_EGR) then
 			    exporter_nodes)
    build_to_as(traffic_criteria.EGRESS, exporter_nodes, tot_bytes_exporter)
 
+-- If the criteria is AS_TRAFFIC, the Sankey diagram will consist of two parts:
+-- ingress: source AS -> transit AS -> AS;
+-- egress: AS -> transit AS -> destination AS.
+-- It is therefore necessary to create the links source/destination AS <-> transit AS and then transit AS <-> root AS.
 elseif (criteria == traffic_criteria.AS_TRAFFIC) then
    -- Ingress
    build_as_transit(traffic_criteria.INGRESS, tot_bytes_as_transit,
