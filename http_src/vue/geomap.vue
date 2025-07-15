@@ -1,9 +1,6 @@
 <template>
     <div class="geomap-container" ref="mapContainer">
-        <div v-if="loading" class="loading-overlay">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Loading ...</div>
-        </div>
+        <Loading v-if="isLoading"></Loading>
 
         <!-- Tooltip -->
         <div v-if="tooltip.show" ref="tooltipRef" class="static-tooltip" :style="{
@@ -25,10 +22,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick, onBeforeMount } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { default as Loading } from "./loading.vue";
 const d3 = d3v7;
 const topoData = ref(null);
 const countryMapping = ref(null);
+const dotSize = 1.8;
 
 const props = defineProps({
     tooltipFormatter: Function,
@@ -42,7 +41,7 @@ const geomapDataArray = ref(props.geomapDataArray);
 const mapContainer = ref(null);
 const svgElement = ref(null);
 const tooltipRef = ref(null);
-const loading = ref(true);
+const isLoading = ref(true);
 
 // tooltip state
 const tooltip = ref({
@@ -99,10 +98,10 @@ const closeTooltip = () => {
 const initializeMap = async () => {
     if (!mapContainer.value || !svgElement.value) return;
 
-    loading.value = true;
-    
+    isLoading.value = true;
+
     if (!topoData.value || !topoData.value.objects || !topoData.value.objects.countries) {
-        loading.value = false;
+        isLoading.value = false;
         return;
     }
 
@@ -157,7 +156,7 @@ const initializeMap = async () => {
             worldData = countries;
         } catch (error) {
             console.error('Error loading world map data:', error);
-            loading.value = false;
+            isLoading.value = false;
             return;
         }
     }
@@ -229,11 +228,7 @@ const initializeMap = async () => {
         }
     });
 
-    // request new data to parent component
-    await props.getGeomapData();
-    displayData();
-
-    loading.value = false;
+    isLoading.value = false;
 };
 
 
@@ -241,12 +236,12 @@ const initializeMap = async () => {
 // check data format, if lat and lng are present use renderDotsByCoordinates
 // else render in the centroid of the country given in the json
 const displayData = () => {
-    if ( !worldData || !worldData.features) {
+    if (!worldData || !worldData.features) {
         console.log('Missing required data for displaying events');
         return;
     }
 
-    // Clear existing
+    // Clear existing dots on map
     g.selectAll('.alert-dot').remove();
     g.selectAll('.pulse-circle').remove();
     g.selectAll('.alert-label').remove();
@@ -280,8 +275,6 @@ const renderDotsByCoordinates = () => {
             .attr('class', 'alert-group')
             .attr('transform', `translate(${x}, ${y})`)
             .style('cursor', 'pointer');
-
-        const dotSize = 2;
 
         const alertDot = nodeGroup.append('circle')
             .attr('class', 'alert-dot')
@@ -345,8 +338,6 @@ const renderDotsByCountryCentroid = () => {
                 .attr('class', 'alert-group')
                 .attr('transform', `translate(${x}, ${y})`)
                 .style('cursor', 'pointer');
-
-            const dotSize = 2;
 
             const alertDot = nodeGroup.append('circle')
                 .attr('class', 'alert-dot')
@@ -464,12 +455,12 @@ const handleResize = () => {
 };
 
 function buildCountryNameToIdMap() {
-    
+
     if (!topoData.value || !topoData.value.objects || !topoData.value.objects.countries) {
         console.warn('TopoJSON data not loaded yet');
         return {};
     }
-    
+
     const geometries = topoData.value.objects.countries.geometries;
     const map = {};
 
@@ -488,13 +479,13 @@ onMounted(async () => {
     try {
         // Load TopoJSON data
         topoData.value = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
-        
+
         // Build country mapping after data is loaded
         countryMapping.value = buildCountryNameToIdMap();
-        
+
     } catch (error) {
         console.error('Error loading map data:', error);
-        loading.value = false;
+        isLoading.value = false;
     }
 });
 
