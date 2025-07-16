@@ -244,12 +244,11 @@ function get_size() {
 
 
 /* ******************************************** */
-
 async function draw_sankey() {
     const colors = d3.scaleOrdinal(d3.schemeCategory10);
     let data = props.sankey_data;
     const size = get_size();
-    const margin = { top: 8, right: 8, bottom: 8, left: 8 }; /* Add a margin of 8 px (1 rem) on every side */
+    const margin = { top: 8, right: 8, bottom: 8, left: 8 };
     sankey_size.value = size;
 
     svg = d3.select(sankey_wrapper.value)
@@ -258,7 +257,7 @@ async function draw_sankey() {
         .attr("width", size.width)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
-    
+
     sankey = d3.sankey()
         .nodeWidth(15)
         .nodePadding(10)
@@ -287,9 +286,132 @@ async function draw_sankey() {
         .style("fill", "none");
 
     zoomGroup.append("g")
-        .attr("class", "nodes")
-        .style("stroke", "#000")
-        .style("stroke-opacity", 0.5);
+        .attr("class", "nodes");
+
+    // Helper function to find all nodes in the backward path (left side)
+    function findBackwardPath(targetNode, links) {
+        const pathNodes = new Set();
+        const queue = [targetNode];
+        const visited = new Set();
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            if (visited.has(current)) continue;
+            visited.add(current);
+            pathNodes.add(current);
+            
+            // Find all links where current node is the incoming links
+            const incomingLinks = links.filter(link => link.target === current);
+            
+            incomingLinks.forEach(link => {
+                const source = link.source;
+                // Only nodes to the left
+                if (!visited.has(source) && source.x0 < current.x0) {
+                    queue.push(source);
+                }
+            });
+        }
+        
+        return pathNodes;
+    }
+
+    // Helper function to find all nodes in the right side
+    function findForwardPath(sourceNode, links) {
+        const pathNodes = new Set();
+        const queue = [sourceNode];
+        const visited = new Set();
+        
+        while (queue.length > 0) {
+            const current = queue.shift();
+            if (visited.has(current)) continue;
+            visited.add(current);
+            pathNodes.add(current);
+            
+            const outgoingLinks = links.filter(link => link.source === current);
+            
+            outgoingLinks.forEach(link => {
+                const target = link.target;
+                // only nodes to the right
+                if (!visited.has(target) && target.x0 > current.x0) {
+                    queue.push(target);
+                }
+            });
+        }
+        
+        return pathNodes;
+    }
+
+    // function to find all links
+    function findFullPathLinks(pathNodes, links) {
+        const pathLinks = new Set();
+        
+        links.forEach(link => {
+            if (pathNodes.has(link.source) && pathNodes.has(link.target)) {
+                pathLinks.add(link);
+            }
+        });
+        
+        return pathLinks;
+    }
+
+    // Reset function to restore original styling
+    function resetHighlight() {
+        svg.selectAll(".sankey-link")
+            .style("stroke-opacity", 0.4)
+            .style("stroke", (d) => `url(#gradient-${d.index})`);
+        
+        svg.selectAll(".sankey-node")
+            .style("fill-opacity", 0.9)
+            .style("fill", (d) => colors(d.index % 10));
+        
+        svg.selectAll(".label")
+            .style("fill-opacity", 0.85);
+    }
+
+    // Highlight full path
+    function highlightFullPath(hoveredLink) {
+        const sourceNode = hoveredLink.source;
+        const targetNode = hoveredLink.target;
+        
+        // Find all nodes in the backward path
+        const backwardNodes = findBackwardPath(sourceNode, links);
+        
+        // Find all nodes in the forward path
+        const forwardNodes = findForwardPath(targetNode, links);
+        
+        // Combine all path nodes
+        const allPathNodes = new Set([...backwardNodes, ...forwardNodes]);
+        
+        // Find all links in the path
+        const pathLinks = findFullPathLinks(allPathNodes, links);
+        
+        // Dim all links
+        svg.selectAll(".sankey-link")
+            .style("stroke-opacity", 0.15);
+        
+        // Highlight path links
+        svg.selectAll(".sankey-link")
+            .filter(d => pathLinks.has(d))
+            .style("stroke-opacity", 0.7);
+        
+        // Dim all nodes
+        svg.selectAll(".sankey-node")
+            .style("fill-opacity", 0.2);
+        
+        // Highlight path nodes
+        svg.selectAll(".sankey-node")
+            .filter(d => allPathNodes.has(d))
+            .style("fill-opacity", 1.0);
+        
+        // Dim all labels
+        svg.selectAll(".label")
+            .style("fill-opacity", 0.25);
+        
+        // Highlight labels for path nodes
+        svg.selectAll(".label")
+            .filter(d => allPathNodes.has(d))
+            .style("fill-opacity", 1.0);
+    }
 
     const d3_nodes = svg.select("g.nodes")
         .selectAll("g")
@@ -298,12 +420,15 @@ async function draw_sankey() {
         .attr("transform", (d) => `translate(${d.x0}, ${d.y0})`);
 
     d3_nodes.append("rect")
-        .attr("height", (d) => d.y1 - d.y0)
-        .attr("width", (d) => d.x1 - d.x0)
+        .attr("height", (d) => Math.max(3, d.y1 - d.y0))
+        .attr("width", (d) => Math.max(15, d.x1 - d.x0))
         .attr("dataIndex", (d) => d.index)
-        .attr("fill", (d) => colors(d.index / nodes.length))
+        .attr("fill", (d) => colors(d.index % 10))
+        .attr("fill-opacity", 0.9)
         .attr("class", "sankey-node")
-        .attr("style", "cursor:move;");
+        .attr("style", "cursor:move;")
+        .style("stroke", "none")
+        .style("stroke-width", "0");
 
     d3.selectAll("rect").append("title").text((d) => `${d?.label}`);
 
@@ -311,10 +436,10 @@ async function draw_sankey() {
         .attr('class', 'label')
         .style('pointer-events', 'auto')
         .attr("style", "cursor:pointer;")
-        .style('fill-opacity', 1)
+        .style('fill-opacity', 0.85)
         .attr("fill", "#000")
-        .attr("x", (d) => (d.x0 < size.width / 2 ? 6 + (d.x1 - d.x0) : -6))
-        .attr("y", (d) => (d.y1 - d.y0) / 2)
+        .attr("x", (d) => (d.x0 < size.width / 2 ? 6 + Math.max(15, d.x1 - d.x0) : -6))
+        .attr("y", (d) => Math.max(3, d.y1 - d.y0) / 2)
         .attr("alignment-baseline", "middle")
         .attr("text-anchor", (d) => d.x0 < size.width / 2 ? "start" : "end")
         .attr("font-size", 12)
@@ -337,24 +462,28 @@ async function draw_sankey() {
         .attr("x1", (d) => d.source.x1)
         .attr("x2", (d) => d.target.x0);
 
-    lg_d3.append("stop")
-        .attr("offset", "0")
-        .attr("stop-color", (d) => colors(d.source.index / nodes.length));
-
-    lg_d3.append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", (d) => colors(d.target.index / nodes.length));
-
     links_d3
         .append("path")
         .attr("class", "sankey-link")
         .attr("d", d3.sankeyLinkHorizontal())
         .attr("stroke-width", (d) => Math.max(1, d.width))
-        .attr("stroke", (d) => `url(#gradient-${d.index}`)
+        .attr("stroke", (d) => `url(#gradient-${d.index})`)
+        .attr("stroke-opacity", 0.4)
         .attr("data-bs-toggle", "tooltip")
         .attr("data-bs-placement", "top")
         .attr("title", (d) => `${d.label}`)
-        .text((d) => `${d.label}`);
+        .text((d) => `${d.label}`)
+        .on("mouseover", function(event, d) {
+            highlightFullPath(d);
+        })
+        .on("mouseout", function(event, d) {
+            resetHighlight();
+        });
+
+
+    svg.on("mouseleave", function() {
+        resetHighlight();
+    });
 }
 
 defineExpose({ draw_sankey, setNoDataFlag });
