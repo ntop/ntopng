@@ -346,11 +346,11 @@ local function build_as_transit(criteria, tot_bytes_as_transit, transit_nodes)
 	 (criteria == traffic_criteria.TOTAL and (data.rcvd + data.sent) > 0) then
          -- This checks whether the number of nodes is excessive, and if so, adds only those in the 
          -- preference list or the 'others' node (unless 'show_all' is set to true).
-         if (criteria == traffic_criteria.INGRESS and num_sent <= max_len and data.src_dst_as ~= "others") or
-          (criteria == traffic_criteria.EGRESS and num_rcvd <= max_len and data.src_dst_as ~= "others") or
+         if (criteria == traffic_criteria.INGRESS and num_sent <= max_nodes and data.src_dst_as ~= "others") or
+          (criteria == traffic_criteria.EGRESS and num_rcvd <= max_nodes and data.src_dst_as ~= "others") or
           (remote_asn[tostring(data.src_dst_as)] ~= nil) or
-          (criteria == traffic_criteria.INGRESS and num_sent >= max_len and data.src_dst_as == "others") or
-          (criteria == traffic_criteria.EGRESS and num_rcvd >= max_len and data.src_dst_as == "others") or
+          (criteria == traffic_criteria.INGRESS and num_sent >= max_nodes and data.src_dst_as == "others") or
+          (criteria == traffic_criteria.EGRESS and num_rcvd >= max_nodes and data.src_dst_as == "others") or
           (show_all == true and data.src_dst_as ~= "others") then
 	   -- tprint(n_id .. " " .. criteria .. " " .. data.sent .. " " .. data.rcvd)
 	   local transit
@@ -446,66 +446,50 @@ function callback(_, flow)
    init_interface(flow.device_ip, flow.in_index)
    init_interface(flow.device_ip, flow.out_index)
    if (flow.src_as == asn) then
-      if criteria ~= traffic_criteria.AS_TRAFFIC or
-	  criteria == traffic_criteria.AS_TRAFFIC then
-	 inc_interface_sent(get_interface_key(flow.device_ip, flow.in_index),
-                            flow.bytes_rcvd)
-	 inc_interface_rcvd(get_interface_key(flow.device_ip, flow.in_index),
-                            flow.bytes_sent)
-	 inc_exporter_sent(flow.device_ip, flow.bytes_rcvd)
-	 inc_exporter_rcvd(flow.device_ip, flow.bytes_sent)
-
-	 -- Initialize transit
-	 if((flow.dst_peer_as ~= nil) and (flow.dst_as ~= nil)) then
-	    init_transit(flow.dst_peer_as)
-	    init_src_dst_as(flow.dst_peer_as, flow.dst_as)
-	    inc_as_sent(get_as_key(flow.dst_peer_as, flow.dst_as),
-			flow.bytes_rcvd)
-	    inc_as_rcvd(get_as_key(flow.dst_peer_as, flow.dst_as),
-			flow.bytes_sent)
-	    inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
-	    inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent)
-            if remote_asn[tostring(flow.dst_as)] then
-                init_transit("others")
-	        init_src_dst_as("others", "others")
-	        inc_as_sent(get_as_key("others", "others"), flow.bytes_rcvd)
-	        inc_as_rcvd(get_as_key("others", "others"), flow.bytes_sent)
-	        inc_transit_sent("others", flow.bytes_rcvd)
-	        inc_transit_rcvd("others", flow.bytes_sent)
-            end
-	 end
-      end
+     inc_interface_sent(get_interface_key(flow.device_ip, flow.in_index), flow.bytes_rcvd)
+     inc_interface_rcvd(get_interface_key(flow.device_ip, flow.in_index), flow.bytes_sent)
+     inc_exporter_sent(flow.device_ip, flow.bytes_rcvd)
+     inc_exporter_rcvd(flow.device_ip, flow.bytes_sent)
+     -- Initialize transit
+     if((flow.dst_peer_as ~= nil) and (flow.dst_as ~= nil)) then
+        init_transit(flow.dst_peer_as)
+        init_src_dst_as(flow.dst_peer_as, flow.dst_as)
+        inc_as_sent(get_as_key(flow.dst_peer_as, flow.dst_as), flow.bytes_rcvd)
+        inc_as_rcvd(get_as_key(flow.dst_peer_as, flow.dst_as), flow.bytes_sent)
+        inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
+        inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent)
+        if remote_asn[tostring(flow.dst_as)] then
+            init_transit("others")
+            init_src_dst_as("others", "others")
+            inc_as_sent(get_as_key("others", "others"), flow.bytes_rcvd)
+            inc_as_rcvd(get_as_key("others", "others"), flow.bytes_sent)
+            inc_transit_sent("others", flow.bytes_rcvd)
+            inc_transit_rcvd("others", flow.bytes_sent)
+        end
+     end
 
    elseif (flow.dst_as == asn) then
-      if criteria ~= traffic_criteria.AS_TRAFFIC or
-           criteria ~= traffic_criteria.AS_TRAFFIC then
-	 inc_interface_sent(get_interface_key(flow.device_ip, flow.out_index),
-                            flow.bytes_sent)
-	 inc_interface_rcvd(get_interface_key(flow.device_ip, flow.out_index),
-                            flow.bytes_rcvd)
-	 inc_exporter_sent(flow.device_ip, flow.bytes_sent)
-	 inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
-
-	 -- Initialize transit
-	 if((flow.src_peer_as ~= nil) and (flow.src_as ~= nil)) then
-	    init_transit(flow.src_peer_as)
-	    init_src_dst_as(flow.src_peer_as, flow.src_as)
-	    inc_as_sent(get_as_key(flow.src_peer_as, flow.src_as),
-			flow.bytes_sent)
-	    inc_as_rcvd(get_as_key(flow.src_peer_as, flow.src_as),
-			flow.bytes_rcvd)
-	    inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
-	    inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd)
-          if remote_asn[tostring(flow.src_as)] then
-                init_transit("others")
-	        init_src_dst_as("others", "others")
-	        inc_as_sent(get_as_key("others", "others"), flow.bytes_sent)
-	        inc_as_rcvd(get_as_key("others", "others"), flow.bytes_rcvd)
-	        inc_transit_sent("others", flow.bytes_sent)
-	        inc_transit_rcvd("others", flow.bytes_rcvd)
-            end
-	 end
-      end
+     inc_interface_sent(get_interface_key(flow.device_ip, flow.out_index), flow.bytes_sent)
+     inc_interface_rcvd(get_interface_key(flow.device_ip, flow.out_index), flow.bytes_rcvd)
+     inc_exporter_sent(flow.device_ip, flow.bytes_sent)
+     inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
+     -- Initialize transit
+     if((flow.src_peer_as ~= nil) and (flow.src_as ~= nil)) then
+        init_transit(flow.src_peer_as)
+        init_src_dst_as(flow.src_peer_as, flow.src_as)
+        inc_as_sent(get_as_key(flow.src_peer_as, flow.src_as), flow.bytes_sent)
+        inc_as_rcvd(get_as_key(flow.src_peer_as, flow.src_as), flow.bytes_rcvd)
+        inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
+        inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd)
+      if remote_asn[tostring(flow.src_as)] then
+            init_transit("others")
+            init_src_dst_as("others", "others")
+            inc_as_sent(get_as_key("others", "others"), flow.bytes_sent)
+            inc_as_rcvd(get_as_key("others", "others"), flow.bytes_rcvd)
+            inc_transit_sent("others", flow.bytes_sent)
+            inc_transit_rcvd("others", flow.bytes_rcvd)
+        end
+     end
    end
 end
 
