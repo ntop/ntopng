@@ -287,7 +287,7 @@ async function draw_sankey() {
         .style("fill", "none");
 
     zoomGroup.append("g")
-        .attr("class", "nodes");
+        .attr("class", "nodes")
 
     // Helper function to find all nodes in the backward path (left side)
     function findBackwardPath(targetNode, links) {
@@ -301,7 +301,7 @@ async function draw_sankey() {
             visited.add(current);
             pathNodes.add(current);
             
-            // Find all links where current node is the incoming links
+            // Find all links where current node is the target (incoming links)
             const incomingLinks = links.filter(link => link.target === current);
             
             incomingLinks.forEach(link => {
@@ -316,7 +316,7 @@ async function draw_sankey() {
         return pathNodes;
     }
 
-    // Helper function to find all nodes in the right side
+    // Helper function to find all nodes in the forward path (right side)
     function findForwardPath(sourceNode, links) {
         const pathNodes = new Set();
         const queue = [sourceNode];
@@ -328,12 +328,12 @@ async function draw_sankey() {
             visited.add(current);
             pathNodes.add(current);
             
+            // Find all links where current node is the source (outgoing links)
             const outgoingLinks = links.filter(link => link.source === current);
             
             outgoingLinks.forEach(link => {
                 const target = link.target;
-                // only nodes to the right
-                if (!visited.has(target) && target.x0 > current.x0) {
+                if (!visited.has(target) && target.x0 > current.x0) { // Only nodes to the right
                     queue.push(target);
                 }
             });
@@ -342,7 +342,7 @@ async function draw_sankey() {
         return pathNodes;
     }
 
-    // function to find all links
+    // Helper function to find all links in the full path
     function findFullPathLinks(pathNodes, links) {
         const pathLinks = new Set();
         
@@ -363,48 +363,48 @@ async function draw_sankey() {
         
         svg.selectAll(".sankey-node")
             .style("fill-opacity", 0.9)
-            .style("fill", (d) => colors(d.index % 10));
+            .style("fill", (d) => colors(d.index % 10)); // Fixed color calculation
         
         svg.selectAll(".label")
             .style("fill-opacity", 0.85);
     }
 
-    // Highlight full path
+    // Highlight function for full path
     function highlightFullPath(hoveredLink) {
         const sourceNode = hoveredLink.source;
         const targetNode = hoveredLink.target;
         
-        // Find all nodes in the backward path
+        // Find all nodes in the backward path (from source to leftmost nodes)
         const backwardNodes = findBackwardPath(sourceNode, links);
         
-        // Find all nodes in the forward path
+        // Find all nodes in the forward path (from target to rightmost nodes)
         const forwardNodes = findForwardPath(targetNode, links);
         
         // Combine all path nodes
         const allPathNodes = new Set([...backwardNodes, ...forwardNodes]);
         
-        // Find all links in the path
+        // Find all links in the full path
         const pathLinks = findFullPathLinks(allPathNodes, links);
         
-        // Dim all links
+        // Dim all links first
         svg.selectAll(".sankey-link")
             .style("stroke-opacity", 0.15);
         
-        // Highlight path links
+        // Highlight path links with moderate opacity
         svg.selectAll(".sankey-link")
             .filter(d => pathLinks.has(d))
             .style("stroke-opacity", 0.7);
         
-        // Dim all nodes
+        // Dim all nodes first
         svg.selectAll(".sankey-node")
             .style("fill-opacity", 0.2);
         
-        // Highlight path nodes
+        // Highlight path nodes with high opacity
         svg.selectAll(".sankey-node")
             .filter(d => allPathNodes.has(d))
             .style("fill-opacity", 1.0);
         
-        // Dim all labels
+        // Dim all labels first
         svg.selectAll(".label")
             .style("fill-opacity", 0.25);
         
@@ -421,15 +421,14 @@ async function draw_sankey() {
         .attr("transform", (d) => `translate(${d.x0}, ${d.y0})`);
 
     d3_nodes.append("rect")
-        .attr("height", (d) => Math.max(3, d.y1 - d.y0))
-        .attr("width", (d) => Math.max(15, d.x1 - d.x0))
+        .attr("height", (d) => Math.max(3, d.y1 - d.y0)) // Ensure minimum height of 3px
+        .attr("width", (d) => Math.max(15, d.x1 - d.x0)) // Ensure minimum width of 15px
         .attr("dataIndex", (d) => d.index)
-        .attr("fill", (d) => colors(d.index % 10))
+        .attr("fill", (d) => colors(d.index % 10)) // Fixed: use modulo to ensure proper color cycling
         .attr("fill-opacity", 0.9)
         .attr("class", "sankey-node")
         .attr("style", "cursor:move;")
-        .style("stroke", "none")
-        .style("stroke-width", "0");
+        .style("stroke", "none");
 
     d3.selectAll("rect").append("title").text((d) => `${d?.label}`);
 
@@ -439,8 +438,8 @@ async function draw_sankey() {
         .attr("style", "cursor:pointer;")
         .style('fill-opacity', 0.85)
         .attr("fill", "#000")
-        .attr("x", (d) => (d.x0 < size.width / 2 ? 6 + Math.max(15, d.x1 - d.x0) : -6))
-        .attr("y", (d) => Math.max(3, d.y1 - d.y0) / 2)
+        .attr("x", (d) => (d.x0 < size.width / 2 ? 6 + Math.max(15, d.x1 - d.x0) : -6)) // Adjusted for minimum width
+        .attr("y", (d) => Math.max(3, d.y1 - d.y0) / 2) // Adjusted for minimum height
         .attr("alignment-baseline", "middle")
         .attr("text-anchor", (d) => d.x0 < size.width / 2 ? "start" : "end")
         .attr("font-size", 12)
@@ -463,6 +462,14 @@ async function draw_sankey() {
         .attr("x1", (d) => d.source.x1)
         .attr("x2", (d) => d.target.x0);
 
+    lg_d3.append("stop")
+        .attr("offset", "0")
+        .attr("stop-color", (d) => colors(d.source.index % 10)); // Fixed color calculation
+
+    lg_d3.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", (d) => colors(d.target.index % 10)); // Fixed color calculation
+
     links_d3
         .append("path")
         .attr("class", "sankey-link")
@@ -481,7 +488,7 @@ async function draw_sankey() {
             resetHighlight();
         });
 
-
+    // Optional: Add hover effect to the entire SVG to reset on mouse leave
     svg.on("mouseleave", function() {
         resetHighlight();
     });
