@@ -162,7 +162,11 @@ end
 local function init_transit(transit)
    local key = transit
    if not tot_bytes_transit[key] then
-      tot_bytes_transit[key] = {sent = 0, rcvd = 0}
+      -- sent_np and rcvd_np are used to store the bytes of ASNs that may be 
+      -- grouped into the 'others' node. If the 'others' node is present, the 
+      -- transit->AS link will include only sent/rcvd; otherwise, it will be 
+      -- composed of sent + sent_np and rcvd + rcvd_np.
+      tot_bytes_transit[key] = {sent = 0, rcvd = 0, sent_np = 0, rcvd_np = 0}
    end
 end
 
@@ -188,6 +192,18 @@ end
 
 local function inc_transit_rcvd(key, bytes)
    tot_bytes_transit[key].rcvd = tot_bytes_transit[key].rcvd + bytes
+end
+
+-- ####################
+
+local function inc_transit_sent_np(key, bytes)
+   tot_bytes_transit[key].sent_np = tot_bytes_transit[key].sent_np + bytes
+end
+
+-- ####################
+
+local function inc_transit_rcvd_np(key, bytes)
+   tot_bytes_transit[key].rcvd_np = tot_bytes_transit[key].rcvd_np + bytes
 end
 
 -- ####################
@@ -415,12 +431,40 @@ end
 -- ####################
 
 -- Builds the nodes and links of the Sankey that lead to the root,
--- the AS at the center of the Sankey.
--- This function is general because it can connect both transit->AS and exporter->AS
+-- the AS at the center of the Sankey. (exporter->AS)
 local function build_to_as(criteria, nodes, tot_bytes)
    for id, node_id in pairs(nodes) do
       local sent = tot_bytes[id].sent
       local rcvd = tot_bytes[id].rcvd
+
+      if criteria == traffic_criteria.INGRESS and sent > 0 then
+	 add_link(node_id,as_root_key,bytesToSize(sent),sent)
+      elseif criteria == traffic_criteria.EGRESS and rcvd > 0 then
+	 add_link(as_root_key, node_id, bytesToSize(rcvd), rcvd)
+      elseif criteria == traffic_criteria.TOTAL then
+	 add_link(node_id, as_root_key, bytesToSize(rcvd + sent),rcvd + sent)
+      end
+   end
+end
+
+-- ####################
+
+-- Builds the nodes and links of the Sankey that lead to the root,
+-- the AS at the center of the Sankey. (transit->AS)
+local function build_transit_as(criteria, nodes, tot_bytes)
+   local num_sent, num_rcvd = send_rcvd_list_length(tot_bytes_as_transit)
+   for id, node_id in pairs(nodes) do
+      local sent
+      if num_sent >= max_nodes then 
+         sent = tot_bytes[id].sent
+      else
+         sent = tot_bytes[id].sent + tot_bytes[id].sent_np
+      end
+      if num_rcvd >= max_nodes then 
+         rcvd = tot_bytes[id].rcvd
+      else
+         rcvd = tot_bytes[id].rcvd + tot_bytes[id].rcvd_np
+      end
 
       if criteria == traffic_criteria.INGRESS and sent > 0 then
 	 add_link(node_id,as_root_key,bytesToSize(sent),sent)
@@ -456,15 +500,16 @@ function callback(_, flow)
         init_src_dst_as(flow.dst_peer_as, flow.dst_as)
         inc_as_sent(get_as_key(flow.dst_peer_as, flow.dst_as), flow.bytes_rcvd)
         inc_as_rcvd(get_as_key(flow.dst_peer_as, flow.dst_as), flow.bytes_sent)
-        inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
-        inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent)
-        if remote_asn[tostring(flow.dst_as)] then
+        if remote_asn[tostring(flow.dst_as)] ~= nil then
+            inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
+            inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent)
+        else 
+            inc_transit_sent_np(flow.dst_peer_as, flow.bytes_rcvd)
+            inc_transit_rcvd_np(flow.dst_peer_as, flow.bytes_sent)
             init_transit("others")
             init_src_dst_as("others", "others")
             inc_as_sent(get_as_key("others", "others"), flow.bytes_rcvd)
             inc_as_rcvd(get_as_key("others", "others"), flow.bytes_sent)
-            inc_transit_sent("others", flow.bytes_rcvd)
-            inc_transit_rcvd("others", flow.bytes_sent)
         end
      end
 
@@ -473,22 +518,22 @@ function callback(_, flow)
      inc_interface_rcvd(get_interface_key(flow.device_ip, flow.out_index), flow.bytes_rcvd)
      inc_exporter_sent(flow.device_ip, flow.bytes_sent)
      inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
-     -- Initialize transit
      if((flow.src_peer_as ~= nil) and (flow.src_as ~= nil)) then
         init_transit(flow.src_peer_as)
         init_src_dst_as(flow.src_peer_as, flow.src_as)
         inc_as_sent(get_as_key(flow.src_peer_as, flow.src_as), flow.bytes_sent)
         inc_as_rcvd(get_as_key(flow.src_peer_as, flow.src_as), flow.bytes_rcvd)
-        inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
-        inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd)
-      if remote_asn[tostring(flow.src_as)] then
+      if remote_asn[tostring(flow.src_as)] ~= nil then
+            inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
+            inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd)
+      else 
+            inc_transit_sent_np(flow.src_peer_as, flow.bytes_sent)
+            inc_transit_rcvd_np(flow.src_peer_as, flow.bytes_rcvd)
             init_transit("others")
             init_src_dst_as("others", "others")
             inc_as_sent(get_as_key("others", "others"), flow.bytes_sent)
             inc_as_rcvd(get_as_key("others", "others"), flow.bytes_rcvd)
-            inc_transit_sent("others", flow.bytes_sent)
-            inc_transit_rcvd("others", flow.bytes_rcvd)
-        end
+      end
      end
    end
 end
@@ -538,7 +583,7 @@ elseif (criteria == traffic_criteria.AS_TRAFFIC) then
    -- Ingress
    build_as_transit(traffic_criteria.INGRESS, tot_bytes_as_transit,
 		    transit_nodes)
-   build_to_as(traffic_criteria.INGRESS, transit_nodes, tot_bytes_transit)
+   build_transit_as(traffic_criteria.INGRESS, transit_nodes, tot_bytes_transit)
 
    reset_nodes()
    transit_nodes = {}
@@ -546,7 +591,7 @@ elseif (criteria == traffic_criteria.AS_TRAFFIC) then
    -- Egress
    build_as_transit(traffic_criteria.EGRESS, tot_bytes_as_transit,
 		    transit_nodes)
-   build_to_as(traffic_criteria.EGRESS, transit_nodes, tot_bytes_transit)
+   build_transit_as(traffic_criteria.EGRESS, transit_nodes, tot_bytes_transit)
 
 else
    -- Build Interface <-> Exporter links
