@@ -83,6 +83,7 @@
 <script>
 import { default as SelectSearch } from "./select-search.vue";
 import { ntopng_utility, ntopng_url_manager, ntopng_events_manager } from "../services/context/ntopng_globals_services";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 export default {
     components: {
@@ -203,25 +204,6 @@ export default {
             }, this.refresh_interval_seconds * 1000);
             // }, 10* 1000);
         },
-        utc_s_to_server_date: function (utc_seconds) {
-            let utc = utc_seconds * 1000;
-            let d_local = new Date(utc);
-            let local_offset = d_local.getTimezoneOffset();
-            let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
-            let offset_minutes = server_offset + local_offset;
-            let offset_ms = offset_minutes * 1000 * 60;
-            var d_server = new Date(utc + offset_ms);
-            return d_server;
-        },
-        server_date_to_date: function (date, format) {
-            let utc = date.getTime();
-            let local_offset = date.getTimezoneOffset();
-            let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
-            let offset_minutes = server_offset + local_offset;
-            let offset_ms = offset_minutes * 1000 * 60;
-            var d_local = new Date(utc - offset_ms);
-            return d_local;
-        },
         on_status_updated: function (status) {
             if (!status.epoch_begin && !status.epoch_end) {
                 // First iteration, choose from the time_preset_list based on the currently_active parameter
@@ -251,8 +233,8 @@ export default {
             }
             // this.flat_begin_date.setDate(new Date(status.epoch_begin * 1000));
             // this.flat_end_date.setDate(new Date(status.epoch_end * 1000));
-            this.flat_begin_date.setDate(this.utc_s_to_server_date(status.epoch_begin));
-            this.flat_end_date.setDate(this.utc_s_to_server_date(status.epoch_end));
+            this.flat_begin_date.setDate(FormatterUtils.utc_s_to_server_date(status.epoch_begin));
+            this.flat_end_date.setDate(FormatterUtils.utc_s_to_server_date(status.epoch_end));
             // this.set_date_time("begin-date", begin_date_time_utc, false);
             // this.set_date_time("begin-time", begin_date_time_utc, true);
             // this.set_date_time("end-date", end_date_time_utc, false);
@@ -312,9 +294,9 @@ export default {
             // let epoch_begin = this.get_utc_seconds(date_begin.valueOf());
             // let epoch_end = this.get_utc_seconds(date_end.valueOf());
             let now_s = this.get_utc_seconds(Date.now());
-            let begin_date = this.server_date_to_date(this.flat_begin_date.selectedDates[0]);
+            let begin_date = FormatterUtils.server_date_to_date(this.flat_begin_date.selectedDates[0]);
             let epoch_begin = this.get_utc_seconds(begin_date.getTime());
-            let end_date = this.server_date_to_date(this.flat_end_date.selectedDates[0]);
+            let end_date = FormatterUtils.server_date_to_date(this.flat_end_date.selectedDates[0]);
             let epoch_end = this.get_utc_seconds(end_date.getTime());
             if (epoch_end > now_s) {
                 epoch_end = now_s;

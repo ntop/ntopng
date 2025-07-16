@@ -61,7 +61,7 @@ const types = {
         um: ["flows", "Kflows", "Mflows", "Gflows"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     fps: {
@@ -69,7 +69,7 @@ const types = {
         um: ["flows/s", "Kflows/s", "Mflows/s", "Gflows/s"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     fps_short: {
@@ -77,7 +77,7 @@ const types = {
         um: ["fps", "Kfps", "Mfps", "Gfps"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     alerts: {
@@ -101,7 +101,7 @@ const types = {
         um: ["hits", "Khits", "Mhits", "Ghits"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     hitss: {
@@ -109,7 +109,7 @@ const types = {
         um: ["hits/s", "Khits/s", "Mhits/s", "Ghits/s"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     packets: {
@@ -117,7 +117,7 @@ const types = {
         um: ["packets", "Kpackets", "Mpackets", "Gpackets", "Tpackets"],
         step: 1000,
         decimal: 0,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     pps: {
@@ -125,7 +125,7 @@ const types = {
         um: ["pps", "Kpps", "Mpps", "Gpps", "Tpps"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     ms: {
@@ -133,7 +133,7 @@ const types = {
         um: ["ms", "s"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     drops: {
@@ -141,7 +141,7 @@ const types = {
         um: ["dps", "Kdps", "Mdps", "Gdps", "Tdps"],
         step: 1000,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         absolute_value: true,
     },
     percentage: {
@@ -149,7 +149,7 @@ const types = {
         um: ["%"],
         step: 101,
         decimal: 1,
-        scale_values: null,        
+        scale_values: null,
         max_value: 100,
         absolute_value: true,
     },
@@ -158,7 +158,7 @@ const types = {
         um: [""],
         step: 101,
         decimal: 2,
-        scale_values: null,        
+        scale_values: null,
         max_value: 100,
         absolute_value: true,
     },
@@ -175,7 +175,7 @@ function getUnitMeasureLen(type) {
     // 000.00
     let t = types[type];
     let spaceValue = 3;
-    if (t.decimal != null && t.decimal > 0) {        
+    if (t.decimal != null && t.decimal > 0) {
         spaceValue = 6;
     }
     let spaceUm = 0;
@@ -207,29 +207,29 @@ function getScaleFactorIndex(type, value) {
 
 function formatAccounting(amount, decimalCount = 0, decimal = ".", thousands = "'") {
     try {
-	decimalCount = Math.abs(decimalCount);
-	decimalCount = isNaN(decimalCount) ? 2 : decimalCount;
+        decimalCount = Math.abs(decimalCount);
+        decimalCount = isNaN(decimalCount) ? 2 : decimalCount;
 
-	const negativeSign = amount < 0 ? "-" : "";
+        const negativeSign = amount < 0 ? "-" : "";
 
-	let i = parseInt(amount = Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
-	let j = (i.length > 3) ? i.length % 3 : 0;
+        let i = parseInt(amount = Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
+        let j = (i.length > 3) ? i.length % 3 : 0;
 
-	return negativeSign +
-	    (j ? i.substr(0, j) + thousands : '') +
-	    i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands) +
-	    (decimalCount ? decimal + Math.abs(amount - i).toFixed(decimalCount).slice(2) : "");
+        return negativeSign +
+            (j ? i.substr(0, j) + thousands : '') +
+            i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands) +
+            (decimalCount ? decimal + Math.abs(amount - i).toFixed(decimalCount).slice(2) : "");
     } catch (e) {
-	console.log(e)
+        console.log(e)
     }
 }
 
 function getFormatter(type, absoluteValue, scaleFactorIndex) {
     let typeOptions = types[type];
     if (typeOptions == null) { return null; }
-    
-    absoluteValue |= typeOptions.absolute_value; 
-    let formatter = function(value) {
+
+    absoluteValue |= typeOptions.absolute_value;
+    let formatter = function (value) {
         if (value == null) {
             return '';
         }
@@ -257,7 +257,7 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
             }
             return x1 + x2;
         }
-        
+
         let step = typeOptions.step;
         let decimal = typeOptions.decimal;
         let measures = typeOptions.um;
@@ -268,7 +268,7 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
             i += 1;
         }
 
-        if (decimal != null && decimal > 0) {            
+        if (decimal != null && decimal > 0) {
             value = value * Math.pow(10, decimal);
             value = Math.round(value);
             value = value / Math.pow(10, decimal);
@@ -282,7 +282,7 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
                 value = Math.round(value);
             }
         }
-        
+
         if (negativeValue && !absoluteValue) { value *= -1; }
         let valString = `${value}`;
         // if (valString.length < maxLenValue) {
@@ -298,24 +298,13 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
     return formatter;
 }
 
-function formatDateTime(date_to_format, type = 'datetime') {
-    if (!date_to_format) {
+function formatDateTime(date, type = 'datetime') {
+    if (!date) {
         return '';
     }
 
-    let date;
-
-    if (date_to_format instanceof Date) {
-        date = date_to_format;
-    } else if (typeof date_to_format === 'string') {
-        // convert string to date
-        date = new Date(date_to_format);
-    } else if (typeof date_to_format === 'number') {
-        // unix epoch
-        date = new Date(date_to_format < 10000000000 ? date_to_format * 1000 : date_to_format);
-    } else {
-        return '';
-    }
+    // localize to server timestamp
+    date = utc_s_to_server_date(date);
 
     // check that date exists
     if (isNaN(date.getTime())) {
@@ -328,16 +317,15 @@ function formatDateTime(date_to_format, type = 'datetime') {
     const delta_days = Math.floor((today - date_only) / (1000 * 60 * 60 * 24));
 
     // time formatter
-    const time_formatter = date.toLocaleTimeString('en-GB', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
+    const time_formatter = date.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
         second: '2-digit',
-        hour12: false 
+        hour12: false
     });
 
-    
     let formatted_date = '';
-    
+
     if (delta_days === 0) {
         return time_formatter;
     } else if (delta_days === 1) {
@@ -349,35 +337,60 @@ function formatDateTime(date_to_format, type = 'datetime') {
         formatted_date = date.toLocaleDateString('en-GB', { weekday: 'short' });
     } else if (delta_days <= 365) {
         // if in last year show month and day
-        formatted_date = date.toLocaleDateString('en-GB', { 
-            month: 'short', 
-            day: 'numeric' 
+        formatted_date = date.toLocaleDateString('en-GB', {
+            month: 'short',
+            day: 'numeric'
         });
     } else {
         //more than one year ago show date
-        formatted_date = date.toLocaleformatted_dateing('en-GB', { 
+        formatted_date = date.toLocaleformatted_dateing('en-GB', {
             year: 'numeric',
-            month: 'short', 
-            day: 'numeric' 
+            month: 'short',
+            day: 'numeric'
         });
     }
 
     if (type === 'date_only') {
         return formatted_date;
     }
-
+    debugger
     // datetime format
     return `${formatted_date}, ${time_formatter}`;
 }
-const formatterUtils = function() {
+
+function utc_s_to_server_date(utc_seconds) {
+    let utc = utc_seconds * 1000;
+    let d_local = new Date(utc);
+    let local_offset = d_local.getTimezoneOffset();
+    let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
+    let offset_minutes = server_offset + local_offset;
+    let offset_ms = offset_minutes * 1000 * 60;
+    var d_server = new Date(utc + offset_ms);
+    return d_server;
+}
+function server_date_to_date(date, format) {
+    let utc = date.getTime();
+    let local_offset = date.getTimezoneOffset();
+    let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
+    let offset_minutes = server_offset + local_offset;
+    let offset_ms = offset_minutes * 1000 * 60;
+    var d_local = new Date(utc - offset_ms);
+    return d_local;
+}
+
+const formatterUtils = function () {
     return {
         types,
         getUnitMeasureLen,
         getFormatter,
         getScaleFactorIndex,
         formatAccounting,
-        formatDateTime
+        formatDateTime,
+        utc_s_to_server_date,
+        server_date_to_date
     };
 }();
+
+
 
 export default formatterUtils;
