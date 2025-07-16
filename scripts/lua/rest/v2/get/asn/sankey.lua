@@ -377,8 +377,9 @@ local function build_as_transit(criteria, tot_bytes_as_transit, transit_nodes)
 	      transit_nodes[data.transit] = transit_node_id
 	   end
   
-	   local url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. src_dst_as .. ""
-	   add_unique_node(src_dst_as_id, src_dst_as, url)
+	   local url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. data.src_dst_as .. ""
+	   if data.src_dst_as == "others" then url = "#" end
+           add_unique_node(src_dst_as_id, src_dst_as, url)
 	   if data.transit ~= data.src_dst_as then
 	      url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. data.transit .. ""
 	      add_unique_node(transit_node_id, transit, url)
@@ -445,9 +446,8 @@ function callback(_, flow)
    init_interface(flow.device_ip, flow.in_index)
    init_interface(flow.device_ip, flow.out_index)
    if (flow.src_as == asn) then
-      if (criteria ~= traffic_criteria.AS_TRAFFIC or
-	  (criteria == traffic_criteria.AS_TRAFFIC
-	   and customer_asn[tostring(asn)]==nil)) then
+      if criteria ~= traffic_criteria.AS_TRAFFIC or
+	  criteria == traffic_criteria.AS_TRAFFIC then
 	 inc_interface_sent(get_interface_key(flow.device_ip, flow.in_index),
                             flow.bytes_rcvd)
 	 inc_interface_rcvd(get_interface_key(flow.device_ip, flow.in_index),
@@ -477,9 +477,8 @@ function callback(_, flow)
       end
 
    elseif (flow.dst_as == asn) then
-      if (criteria ~= traffic_criteria.AS_TRAFFIC or
-           (criteria ~= traffic_criteria.AS_TRAFFIC
-	   and customer_asn[tostring(asn)]==nil)) then
+      if criteria ~= traffic_criteria.AS_TRAFFIC or
+           criteria ~= traffic_criteria.AS_TRAFFIC then
 	 inc_interface_sent(get_interface_key(flow.device_ip, flow.out_index),
                             flow.bytes_sent)
 	 inc_interface_rcvd(get_interface_key(flow.device_ip, flow.out_index),

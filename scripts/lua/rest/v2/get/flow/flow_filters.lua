@@ -224,7 +224,7 @@ if not isEmptyString(_GET["port"]) then
 end
 local as_filter = {
     {key = "asn", value = "", label = i18n("all")},
-    {key = "asn", value = asn, label = asn}
+    {key = "asn", value = asn, label = format_utils.formatASN(tonumber(asn))}
 }
 
 if (not isEmptyString(asn)) then
