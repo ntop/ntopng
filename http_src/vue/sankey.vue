@@ -248,7 +248,8 @@ async function draw_sankey() {
     const colors = d3.scaleOrdinal(d3.schemeCategory10);
     let data = props.sankey_data;
     const size = get_size();
-    const margin = { top: 8, right: 8, bottom: 8, left: 8 };  /* Add a margin of 8 px (1 rem) on every side */
+    /* Add a margin of 8 px (1 rem) on every side */
+    const margin = { top: 8, right: 8, bottom: 8, left: 8 };
     sankey_size.value = size;
 
     svg = d3.select(sankey_wrapper.value)
