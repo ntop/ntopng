@@ -1,5 +1,6 @@
 <template>
-    <div ref="sankey_div" class="d-flex align-items-center justify-content-center flex-column flex-grow-1 position-relative">
+    <div ref="sankey_div"
+        class="d-flex align-items-center justify-content-center flex-column flex-grow-1 position-relative">
         <!-- Zoom button group -->
         <div v-if="!no_data" class="mb-2">
             <div class="btn-group btn-ontop" role="group">
@@ -31,6 +32,8 @@ import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed } from 
 const d3 = d3v7;
 const emit = defineEmits(['node_click', 'update_width', 'update_height', 'autorefresh_toggle'])
 const _i18n = (t) => i18n(t);
+let eventsAttached = false;
+let resizeTimeout = null;
 
 function setNoDataFlag(set_no_data) {
     no_data.value = set_no_data
@@ -82,9 +85,17 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     if (svg) {
+        // clean up all D3 elements
+        svg.selectAll('*').remove();
         svg.on('dblclick', null);
         svg.on('mousemove', null);
+        svg.on('mouseleave', null);
     }
+    
+    // remove event listeners
+    window.removeEventListener('resize', resizeHandler);
+    
+    eventsAttached = false;
 });
 
 /* ******************************************** */
@@ -145,6 +156,11 @@ function initializeZoom() {
                 return false;
             }
             if (event.type === 'mousedown' && event.button !== 0) {
+                return false;
+            }
+
+            // don't pan if clicking on a draggable node
+            if (event.type === 'mousedown' && event.target.closest('.sankey-node, .label')) {
                 return false;
             }
 
@@ -212,7 +228,7 @@ async function set_sankey_data(reset) {
         setNoDataFlag(true); /* No data */
         return;
     }
-    
+
     setNoDataFlag(false) /* There is some data */
     await draw_sankey();
     attach_events();
@@ -220,12 +236,20 @@ async function set_sankey_data(reset) {
 }
 
 /* ******************************************** */
-
+// attach resize event listener
 function attach_events() {
-    window.addEventListener('resize', async () => {
-        set_sankey_data(true);
-        initializeZoom();
-    });
+    if (eventsAttached) return;
+    
+    const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(async () => {
+            await set_sankey_data(true);
+            initializeZoom();
+        }, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    eventsAttached = true;
 }
 
 /* ******************************************** */
@@ -234,7 +258,7 @@ function get_size() {
     emit('update_width');
     let width = props.width
     if (width == undefined) { width = $(sankey_div.value).width() }
-
+    
     emit('update_height');
     let height = props.height
     if (height == undefined) { height = $(sankey_div.value).height() }
@@ -244,6 +268,75 @@ function get_size() {
 
 
 /* ******************************************** */
+function createNodeDrag(links, svg) {
+    return d3.drag()
+        .on("start", function(event, d) {
+            d3.select(this).select("rect").style("fill-opacity", 1.0);
+        })
+        .on("drag", function(event, d) {
+            const nodeWidth = d.x1 - d.x0;
+            const nodeHeight = d.y1 - d.y0;
+            
+            // get current zoom
+            const transform = d3.zoomTransform(svg.node());
+            const scale = transform.k;
+            
+            // get svg dimensions
+            const svgRect = svg.node().getBoundingClientRect();
+            const margin = { top: 8, right: 8, bottom: 8, left: 8 };
+            
+            // calculate visible bounds
+            const visibleWidth = (svgRect.width - margin.left - margin.right) / scale;
+            const visibleHeight = (svgRect.height - margin.top - margin.bottom) / scale;
+            const visibleLeft = -transform.x / scale;
+            const visibleTop = -transform.y / scale;
+            const visibleRight = visibleLeft + visibleWidth;
+            const visibleBottom = visibleTop + visibleHeight;
+            
+            // do not let the node be dragged out of view
+            let constrainedX = Math.max(visibleLeft, Math.min(visibleRight - nodeWidth, event.x));
+            let constrainedY = Math.max(visibleTop, Math.min(visibleBottom - nodeHeight, event.y));
+            
+            // update node bounds with constrained positions
+            d.x0 = constrainedX;
+            d.x1 = constrainedX + nodeWidth;
+            d.y0 = constrainedY;
+            d.y1 = constrainedY + nodeHeight;
+            
+            // Move the node group
+            d3.select(this).attr("transform", `translate(${d.x0}, ${d.y0})`);
+            
+            // update links connected to dragged node
+            links.forEach(link => {
+                if (link.source === d) {
+                    // oonly update the source link on the left side of dragged node and keep the original link connected to still node
+                    // connect to center of dragged node
+                    link.y0 = d.y0 + nodeHeight / 2;
+                    // don't modify link.y1 as it stays connected to target node
+                } else if (link.target === d) {
+                    // oonly update the target link on the right side of dragged node and keep the original link connected to still node
+                    // Keep the source end connected to its original node
+                    link.y1 = d.y0 + nodeHeight / 2;
+                    // don't modify link.y0 as it stays connected to source node
+                }
+            });
+            
+            // redraw all links
+            svg.select("g.links").selectAll("path.sankey-link")
+                .attr("d", d3.sankeyLinkHorizontal());
+            
+            // update gradients for affected links only
+            svg.select("g.links").selectAll("linearGradient")
+                .attr("x1", link => link.source.x1)
+                .attr("y1", link => link.y0)
+                .attr("x2", link => link.target.x0)
+                .attr("y2", link => link.y1);
+        })
+        .on("end", function(event, d) {
+            d3.select(this).select("rect").style("fill-opacity", 0.9);
+        });
+}
+/* ******************************************** */
 async function draw_sankey() {
     const colors = d3.scaleOrdinal(d3.schemeCategory10);
     let data = props.sankey_data;
@@ -251,18 +344,19 @@ async function draw_sankey() {
     /* Add a margin of 8 px (1 rem) on every side */
     const margin = { top: 8, right: 8, bottom: 8, left: 8 };
     sankey_size.value = size;
+    console.log(`New width: ${sankey_size.value.width} New height: ${sankey_size.value.height}`)
 
     svg = d3.select(sankey_wrapper.value)
         .append("svg")
-        .attr("height", size.height)
-        .attr("width", size.width)
+        .attr("height", sankey_size.value.height)
+        .attr("width", sankey_size.value.width)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     sankey = d3.sankey()
         .nodeWidth(15)
         .nodePadding(10)
-        .extent([[0, 0], [size.width - margin.right - margin.left, size.height - margin.top - margin.bottom]]);
+        .extent([[0, 0], [sankey_size.value.width - margin.right - margin.left, sankey_size.value.height - margin.top - margin.bottom]]);
 
     // Sort nodes descending by value property
     sankey.nodeSort((a, b) => d3.descending(a.value, b.value));
@@ -294,16 +388,16 @@ async function draw_sankey() {
         const pathNodes = new Set();
         const queue = [targetNode];
         const visited = new Set();
-        
+
         while (queue.length > 0) {
             const current = queue.shift();
             if (visited.has(current)) continue;
             visited.add(current);
             pathNodes.add(current);
-            
+
             // Find all links where current node is the target (incoming links)
             const incomingLinks = links.filter(link => link.target === current);
-            
+
             incomingLinks.forEach(link => {
                 const source = link.source;
                 // Only nodes to the left
@@ -312,7 +406,7 @@ async function draw_sankey() {
                 }
             });
         }
-        
+
         return pathNodes;
     }
 
@@ -321,16 +415,16 @@ async function draw_sankey() {
         const pathNodes = new Set();
         const queue = [sourceNode];
         const visited = new Set();
-        
+
         while (queue.length > 0) {
             const current = queue.shift();
             if (visited.has(current)) continue;
             visited.add(current);
             pathNodes.add(current);
-            
+
             // Find all links where current node is the source (outgoing links)
             const outgoingLinks = links.filter(link => link.source === current);
-            
+
             outgoingLinks.forEach(link => {
                 const target = link.target;
                 if (!visited.has(target) && target.x0 > current.x0) { // Only nodes to the right
@@ -338,20 +432,20 @@ async function draw_sankey() {
                 }
             });
         }
-        
+
         return pathNodes;
     }
 
     // Helper function to find all links in the full path
     function findFullPathLinks(pathNodes, links) {
         const pathLinks = new Set();
-        
+
         links.forEach(link => {
             if (pathNodes.has(link.source) && pathNodes.has(link.target)) {
                 pathLinks.add(link);
             }
         });
-        
+
         return pathLinks;
     }
 
@@ -360,11 +454,11 @@ async function draw_sankey() {
         svg.selectAll(".sankey-link")
             .style("stroke-opacity", 0.4)
             .style("stroke", (d) => `url(#gradient-${d.index})`);
-        
+
         svg.selectAll(".sankey-node")
             .style("fill-opacity", 0.9)
             .style("fill", (d) => colors(d.index % 10)); // Fixed color calculation
-        
+
         svg.selectAll(".label")
             .style("fill-opacity", 0.85);
     }
@@ -373,52 +467,54 @@ async function draw_sankey() {
     function highlightFullPath(hoveredLink) {
         const sourceNode = hoveredLink.source;
         const targetNode = hoveredLink.target;
-        
+
         // Find all nodes in the backward path (from source to leftmost nodes)
         const backwardNodes = findBackwardPath(sourceNode, links);
-        
+
         // Find all nodes in the forward path (from target to rightmost nodes)
         const forwardNodes = findForwardPath(targetNode, links);
-        
+
         // Combine all path nodes
         const allPathNodes = new Set([...backwardNodes, ...forwardNodes]);
-        
+
         // Find all links in the full path
         const pathLinks = findFullPathLinks(allPathNodes, links);
-        
+
         // Dim all links first
         svg.selectAll(".sankey-link")
             .style("stroke-opacity", 0.15);
-        
+
         // Highlight path links with moderate opacity
         svg.selectAll(".sankey-link")
             .filter(d => pathLinks.has(d))
             .style("stroke-opacity", 0.7);
-        
+
         // Dim all nodes first
         svg.selectAll(".sankey-node")
             .style("fill-opacity", 0.2);
-        
+
         // Highlight path nodes with high opacity
         svg.selectAll(".sankey-node")
             .filter(d => allPathNodes.has(d))
             .style("fill-opacity", 1.0);
-        
+
         // Dim all labels first
         svg.selectAll(".label")
             .style("fill-opacity", 0.25);
-        
+
         // Highlight labels for path nodes
         svg.selectAll(".label")
             .filter(d => allPathNodes.has(d))
             .style("fill-opacity", 1.0);
     }
 
+
     const d3_nodes = svg.select("g.nodes")
         .selectAll("g")
         .data(nodes)
         .join((enter) => enter.append("g"))
-        .attr("transform", (d) => `translate(${d.x0}, ${d.y0})`);
+        .attr("transform", (d) => `translate(${d.x0}, ${d.y0})`)
+        .call(createNodeDrag(links, svg));
 
     d3_nodes.append("rect")
         .attr("height", (d) => Math.max(3, d.y1 - d.y0)) // Ensure minimum height of 3px
@@ -428,7 +524,8 @@ async function draw_sankey() {
         .attr("fill-opacity", 0.9)
         .attr("class", "sankey-node")
         .attr("style", "cursor:move;")
-        .style("stroke", "none");
+        .style("stroke", "none")
+
 
     d3.selectAll("rect").append("title").text((d) => `${d?.label}`);
 
@@ -438,10 +535,10 @@ async function draw_sankey() {
         .attr("style", "cursor:pointer;")
         .style('fill-opacity', 0.85)
         .attr("fill", "#000")
-        .attr("x", (d) => (d.x0 < size.width / 2 ? 6 + Math.max(15, d.x1 - d.x0) : -6)) // Adjusted for minimum width
+        .attr("x", (d) => (d.x0 < sankey_size.value.width / 2 ? 6 + Math.max(15, d.x1 - d.x0) : -6)) // Adjusted for minimum width
         .attr("y", (d) => Math.max(3, d.y1 - d.y0) / 2) // Adjusted for minimum height
         .attr("alignment-baseline", "middle")
-        .attr("text-anchor", (d) => d.x0 < size.width / 2 ? "start" : "end")
+        .attr("text-anchor", (d) => d.x0 < sankey_size.value.width / 2 ? "start" : "end")
         .attr("font-size", 12)
         .text((d) => d.label)
         .on("click", function (event, data_obj) {
@@ -481,15 +578,15 @@ async function draw_sankey() {
         .attr("data-bs-placement", "top")
         .attr("title", (d) => `${d.label}`)
         .text((d) => `${d.label}`)
-        .on("mouseover", function(event, d) {
+        .on("mouseover", function (event, d) {
             highlightFullPath(d);
         })
-        .on("mouseout", function(event, d) {
+        .on("mouseout", function (event, d) {
             resetHighlight();
         });
 
-    // Optional: Add hover effect to the entire SVG to reset on mouse leave
-    svg.on("mouseleave", function() {
+
+    svg.on("mouseleave", function () {
         resetHighlight();
     });
 }
@@ -575,5 +672,9 @@ defineExpose({ draw_sankey, setNoDataFlag });
 
 .sankey-container svg {
     overflow: visible;
+}
+
+.sankey-container {
+  overflow: hidden;
 }
 </style>
