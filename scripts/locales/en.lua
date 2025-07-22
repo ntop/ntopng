@@ -4263,6 +4263,16 @@ local lang = {
     ["ndpi_url_possible_sql_injection"] = "SQL Injection",
     ["ndpi_url_possible_xss"] = "XSS Attack",
   },
+  ["export"] = {
+    ["select_cols"] = "Select Export Columns",
+    ["select_cols_to_export"] = "Select Columns to Export",
+    ["select_all"] = "Select All",
+    ["select_none"] = "Deselect All",
+    ["selected_cols"] = "Selected Columns",
+    ["download"] = "Download",
+    ["about_to_download"] = "You are about to export the following number of columns: ",
+    ["apply"] = "Apply",
+  },
   ["flows_page"] = {
     ["active_flows"] = "%{filter} Live Flows",
     ["actual_throughput"] = "Actual Thpt",

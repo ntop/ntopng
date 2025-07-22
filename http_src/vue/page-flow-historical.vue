@@ -37,8 +37,9 @@
                                     <button v-if="context.show_permalink" class="btn btn-link btn-sm"
                                         @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')"
                                         ref="permanent_link_button"><i class="fas fa-lg fa-link"></i></button>
-                                    <a v-if="context.show_download" class="btn btn-link btn-sm"
-                                        :title="_i18n('graphs.download_records')" :href="href_download_records"><i
+                                    <!-- :href="href_download_records" -->
+                                        <a v-if="context.show_download" class="btn btn-link btn-sm"
+                                        :title="_i18n('graphs.download_records')" @click="show_modal_select_export_columns"><i
                                             class="fas fa-lg fa-file"></i></a>
                                     <a v-if="context.show_analyse_records" class="btn btn-link btn-sm"
                                         :title="_i18n('graphs.analyse_records')" :href="href_analyse_records"><i
@@ -125,6 +126,12 @@
 
     <ModalAlertsFilter :alert="current_alert" :page="page" @exclude="add_exclude" ref="modal_alerts_filter">
     </ModalAlertsFilter>
+
+    <ModalExportColumnsSelector 
+    ref="modal_choose_columns_export" 
+    :id="'select_columns'"
+  />
+
 </template>
 
 <script setup>
@@ -149,9 +156,9 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAlertsFilter } from "./modal-alerts-filter.vue";
 import { default as ModalAcknoledgeAlert } from "./modal-acknowledge-alert.vue";
 import { default as ModalDeleteAlert } from "./modal-delete-alert.vue";
+import { default as ModalExportColumnsSelector } from "./modal-historical-flows-downloader.vue";
 
 import { default as CustomSwitch } from "./switch-custom.vue";
-import { default as Switch } from "./switch.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -164,6 +171,7 @@ const alert_info = ref(null);
 const chart = ref(null);
 const table_flows = ref(null);
 const modal_traffic_extraction = ref(null);
+const modal_choose_columns_export = ref(null);
 const modal_snapshot = ref(null);
 const range_picker = ref(null);
 const permanent_link_button = ref(null);
@@ -171,6 +179,7 @@ const modal_alerts_filter = ref(null);
 const modal_acknowledge = ref(null);
 const modal_delete = ref(null);
 const show_pcap_download = ref(false);
+const columns_tags_values = ref(null);
 
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
@@ -182,18 +191,22 @@ const table_id = computed(() => {
     return id;
 });
 
-const href_download_records = computed(() => {
-    // add impossible if on ref variable to reload this expression every time count_page_components_reloaded.value change
-    if (count_page_components_reloaded.value < 0) { throw "never run"; }
-    const download_endpoint = props.context.download.endpoint;
-    let params = ntopng_url_manager.get_url_object();
-    let columns = table_flows.value.get_columns_defs();
-    let visible_columns = columns.filter((c) => c.visible).map((c) => c.id).join(",");
-    params.format = "txt";
-    params.visible_columns = visible_columns;
-    const url_params = ntopng_url_manager.obj_to_url_params(params);
-    return `${download_endpoint}?${url_params}`;
-});
+/*******************************************************/
+/* SELECT EXPORT COLUMNS MODAL */
+
+function show_modal_select_export_columns() {
+    // Get current columns from table_flows
+    modal_choose_columns_export.value.show(columns_tags_values.value);
+}
+
+// function to get the values of columns tag and formatted value
+async function get_modal_columns_names() {
+    const columns_tag_url = `${http_prefix}/lua/pro/rest/v2/get/flow/historical/column_names.lua`
+    let res = await ntopng_utility.http_request(columns_tag_url);
+    columns_tags_values.value = res;
+}
+
+/*******************************************************/
 
 const href_analyse_records = computed(() => {
     if (count_page_components_reloaded.value < 0) { throw "never run"; }
@@ -242,6 +255,8 @@ onBeforeMount(async () => {
 });
 
 onMounted(async () => {
+    // used in modal for flow csv export, fetch column tags (for url creation) and i18n value (for modal show)
+    await get_modal_columns_names();
     register_components_on_status_update();
     load_top_table_array_overview();
 });

@@ -1777,6 +1777,16 @@ function tag_utils.build_bpf(filters)
     return bpf
 end
 
+-- given a tag, returns the associated formatted i18n value
+function tag_utils.get_tag_i18n(tag_name)  
+    local tag = tag_utils.defined_tags[tag_name]  
+    if tag == nil then  
+        return nil  
+    end  
+      
+    return tag.i18n_label  
+end
+
 -- #####################################
 
 return tag_utils
