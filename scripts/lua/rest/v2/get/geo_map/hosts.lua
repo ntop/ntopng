@@ -112,7 +112,6 @@ local function show_hosts(hosts_count, host_key, hosts_category)
 
 	 if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
 	    local country = value["country"]
-	    tprint("Country: " .. country)
 	    local country_info = country_code.get_country_info(country)
 
 	    if(country_info ~= nil) then
