@@ -1030,7 +1030,6 @@ function page_utils.print_header(title, addLoginJS)
     print(http_prefix)
     print("/lua/locale.lua?" .. locale_when .. "&user_language=" .. language);
     print [["> </script>
-    <script src="https://unpkg.com/topojson-client@3"></script>
     <script type="application/javascript" src="]]
     print(http_prefix)
     print [[/dist/third-party.js?]]

@@ -24,6 +24,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { default as Loading } from "./loading.vue";
+
+import worldAtlasData from 'world-atlas/countries-110m.json';
+import * as topojson from "topojson-client";
+
 const d3 = d3v7;
 const topoData = ref(null);
 const countryMapping = ref(null);
@@ -52,7 +56,7 @@ const tooltip = ref({
     targetElement: null
 });
 
-// D3 fata
+// D3 data
 let svg = null;
 let projection = null;
 let path = null;
@@ -62,7 +66,6 @@ let width = 0;
 let height = 0;
 let resizeObserver = null;
 let worldData = null;
-
 
 let highlightedCountry = null;
 
@@ -93,7 +96,6 @@ const closeTooltip = () => {
     tooltip.value.targetElement = null;
     tooltip.value.content = '';
 };
-
 
 const initializeMap = async () => {
     if (!mapContainer.value || !svgElement.value) return;
@@ -221,7 +223,7 @@ const initializeMap = async () => {
             closeTooltip();
         }
 
-        // eeset previous highlighted country if exists
+        // reset previous highlighted country if exists
         if (highlightedCountry) {
             d3.select(highlightedCountry).attr('fill', '#1e293b');
             highlightedCountry = null;
@@ -230,7 +232,6 @@ const initializeMap = async () => {
 
     isLoading.value = false;
 };
-
 
 // display data on map, 
 // check data format, if lat and lng are present use renderDotsByCoordinates
@@ -455,7 +456,6 @@ const handleResize = () => {
 };
 
 function buildCountryNameToIdMap() {
-
     if (!topoData.value || !topoData.value.objects || !topoData.value.objects.countries) {
         console.warn('TopoJSON data not loaded yet');
         return {};
@@ -477,12 +477,13 @@ function buildCountryNameToIdMap() {
 
 onMounted(async () => {
     try {
-        // Load TopoJSON data
-        topoData.value = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
-
+        // Use the imported world atlas data
+        topoData.value = worldAtlasData;
+        console.log("TopoJSON data loaded:", topoData.value);
+        
         // Build country mapping after data is loaded
         countryMapping.value = buildCountryNameToIdMap();
-
+        
     } catch (error) {
         console.error('Error loading map data:', error);
         isLoading.value = false;
@@ -521,7 +522,6 @@ watch(() => props.geomapDataArray, async (newData) => {
         await initializeMap();
     }
 }, { immediate: true, deep: true });
-
 </script>
 
 <style scoped>

@@ -9,6 +9,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 // import css from 'rollup-plugin-css-only';
 //import nodeResolve from '@rollup/plugin-node-resolve';
+import json from '@rollup/plugin-json';
 
 
 const argv = minimist(process.argv.slice(2));
@@ -18,16 +19,12 @@ if (argv && argv.prod) {
     vue_path = 'node_modules/vue/dist/vue.esm-browser.prod.js'
 }
 
-let buildFormat = {
+const buildFormat = {
     input: './http_src/ntopng.js',
     plugins: [
-        // nodeResolve(),
         replace({
             'process.env.NODE_ENV': JSON.stringify('production')
         }),
-        // vue({ css: true }),
-        // css({ output: "test.css"}),
-        // Process only `<style module>` blocks.
         vue(),
         PostCSS({
             modules: {
@@ -35,7 +32,6 @@ let buildFormat = {
             },
             include: /&module=.*\.css$/,
         }),
-        // Process all `<style>` blocks except `<style module>`.
         PostCSS({ include: /(?<!&module=.*)\.css$/ }),
         alias({
             entries: [
@@ -44,24 +40,21 @@ let buildFormat = {
         }),
         resolve(),
         commonjs(),
-
+        json(),
     ],
     // external: ["vue", "Vue"],
-    // globals: { vue: "Vue", },
     output: {
         file: './httpdocs/dist/ntopng.js',
         format: 'iife',
         name: 'ntopng',
-        // globals: { vue: "Vue", },
-        // exports: "auto",
         sourcemap: argv && argv.prod ? "inline" : false,
     },
     watch: {
-        chokidar: {
-        },
+        chokidar: {},
         exclude: ['node_modules/**']
     }
 };
+
 if (argv && argv.prod) {
     let babelPlugin = babel({
         extensions: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
