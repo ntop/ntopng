@@ -25,27 +25,21 @@
 					"id": "historical_flows",
 					"icon": "fas fa-stream",
 					"title_i18n": "db_explorer.historical_data",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_historical_flows"
 				},
 				{
 					"id": "live_flows",
 					"icon": "fas fa-stream",
 					"title_i18n": "flows_page.live_flows",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_live_flows"
 				},
 				{
 					"id": "timeseries",
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "prefs.timeseries",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_timeseries"
 				}
 			]

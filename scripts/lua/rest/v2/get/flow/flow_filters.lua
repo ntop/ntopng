@@ -222,19 +222,6 @@ if not isEmptyString(_GET["port"]) then
         value = port_filters
     }
 end
-local as_filter = {
-    {key = "asn", value = "", label = i18n("all")},
-    {key = "asn", value = asn, label = format_utils.formatASN(tonumber(asn))}
-}
-
-if (not isEmptyString(asn)) then
-    rsp[#rsp + 1] = {
-        action = "asn",
-        label = i18n("as"),
-        name = "asn",
-        value = as_filter
-    }
-end
 local status_filters = {
     {key = "status", value = "", label = i18n("all")},
     {key = "status", value = "normal", label = i18n("flows_page.normal")},
@@ -436,6 +423,20 @@ if table.len(networks_stats) > 1 then
         label = i18n("flows_page.networks"),
         name = "network",
         value = networks_filter
+    }
+end
+
+local as_filter = {
+    {key = "asn", value = "", label = i18n("all")},
+    {key = "asn", value = asn, label = format_utils.formatASN(tonumber(asn))}
+}
+
+if (not isEmptyString(asn)) then
+    rsp[#rsp + 1] = {
+        action = "asn",
+        label = i18n("as"),
+        name = "asn",
+        value = as_filter
     }
 end
 

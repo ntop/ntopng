@@ -103,7 +103,15 @@ const search_value = (value) => {
     table.value.search_value(value);
 }
 
-defineExpose({ refresh_table, get_columns_defs, get_rows_num, search_value });
+const disableLoading = () => {
+    table.value.disableLoading();
+}
+
+const enableLoading = () => {
+    table.value.enableLoading();
+}
+
+defineExpose({ refresh_table, get_columns_defs, get_rows_num, search_value, disableLoading, enableLoading });
 
 </script>
 

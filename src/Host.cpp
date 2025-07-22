@@ -999,9 +999,8 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
        the actual, original interface the host is associated to. */
     lua_push_uint64_table_entry(vm, "ifid", iface->get_id());
     if(!mask_host)
-      luaStrTableEntryLocked(
-          vm, "info",
-          names.mdns_info); /* locked to protect against data-reset changes */
+      luaStrTableEntryLocked(vm, "info",
+			     names.mdns_info); /* locked to protect against data-reset changes */
 
     lua_get_names(vm, buf, sizeof(buf));
 
@@ -1447,11 +1446,20 @@ bool Host::addIfMatching(lua_State *vm, AddressTree *ptree, char *key) {
   keybuf_ptr = get_hostkey(keybuf, sizeof(keybuf));
 
   if(strcasestr((ipbuf_ptr = Utils::formatMac(m ? m->get_mac() : NULL, ipbuf,
-                                               sizeof(ipbuf))),
-                 key)                              /* Match by MAC */
-      || strcasestr((ipbuf_ptr = keybuf_ptr), key) /* Match by hostkey */
-      || strcasestr((ipbuf_ptr = get_visual_name(ipbuf, sizeof(ipbuf))),
-                    key)) { /* Match by name */
+					      sizeof(ipbuf))),
+		key)                          /* Match by MAC */
+     || strcasestr((ipbuf_ptr = keybuf_ptr), key) /* Match by hostkey */
+     || strcasestr((ipbuf_ptr = get_visual_name(ipbuf, sizeof(ipbuf))), key)
+
+     || strcasestr(getMDNSName(ipbuf, sizeof(ipbuf)), key)
+     || strcasestr(getMDNSTXTName(ipbuf, sizeof(ipbuf)), key)
+     || strcasestr(getResolvedName(ipbuf, sizeof(ipbuf)), key)
+     || strcasestr(getNetbiosName(ipbuf, sizeof(ipbuf)), key)
+     || strcasestr(getTLSName(ipbuf, sizeof(ipbuf)), key)
+     || strcasestr(getHTTPName(ipbuf, sizeof(ipbuf)), key)
+     || strcasestr(getDHCPName(ipbuf, sizeof(ipbuf)), key)
+     ) { /* Match by name */
+
     lua_push_str_table_entry(vm, keybuf_ptr, ipbuf_ptr);
     return (true);
   }
@@ -1987,38 +1995,47 @@ void Host::freeHostNames() {
     free(ssdpLocation);
     ssdpLocation = NULL;
   }
+  
   if(names.http) {
     free(names.http);
     names.http = NULL;
   }
+  
   if(names.mdns) {
     free(names.mdns);
     names.mdns = NULL;
   }
+  
   if(names.mdns_info) {
     free(names.mdns_info);
     names.mdns_info = NULL;
   }
+  
   if(names.mdns_txt) {
     free(names.mdns_txt);
     names.mdns_txt = NULL;
   }
+  
   if(names.netbios) {
     free(names.netbios);
     names.netbios = NULL;
   }
+  
   if(names.resolved) {
     free(names.resolved);
     names.resolved = NULL;
   }
+  
   if(names.server_name) {
     free(names.server_name);
     names.server_name = NULL;
   }
+  
   if(names.tls) {
     free(names.tls);
     names.tls = NULL;
   }
+  
   if(names.dhcp) {
     free(names.dhcp);
     names.dhcp = NULL;
@@ -2571,9 +2588,8 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
         tot = getNumOutgoingFlows() + getNumIncomingFlows();
 
         if(tot > 0)
-          v->push_back(ActiveHostWalkerInfo(
-              key, label, stats->getSentStats()->getNumSYN(),
-              stats->getRecvStats()->getNumSYN(), tot));
+          v->push_back(ActiveHostWalkerInfo(key, label, stats->getSentStats()->getNumSYN(),
+					    stats->getRecvStats()->getNumSYN(), tot));
       }
     } break;
 
@@ -2584,9 +2600,8 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
         tot = getNumOutgoingFlows() + getNumIncomingFlows();
 
         if(tot > 0)
-          v->push_back(ActiveHostWalkerInfo(
-              key, label, stats->getSentStats()->getNumSYN(),
-              stats->getRecvStats()->getNumRST(), tot));
+          v->push_back(ActiveHostWalkerInfo(key, label, stats->getSentStats()->getNumSYN(),
+					    stats->getRecvStats()->getNumRST(), tot));
       }
     } break;
 
@@ -2597,9 +2612,8 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
         tot = getNumOutgoingFlows() + getNumIncomingFlows();
 
         if(tot > 0)
-          v->push_back(ActiveHostWalkerInfo(
-              key, label, stats->getSentStats()->getNumSYN(),
-              stats->getRecvStats()->getNumSYNACK(), tot));
+          v->push_back(ActiveHostWalkerInfo(key, label, stats->getSentStats()->getNumSYN(),
+					    stats->getRecvStats()->getNumSYNACK(), tot));
       }
     } break;
 
@@ -2632,9 +2646,8 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
               l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes();
 
           if(tot > 0)
-            v->push_back(ActiveHostWalkerInfo(
-                key, label, l4->getTCPSent()->getNumBytes(),
-                l4->getTCPRcvd()->getNumBytes(), tot));
+            v->push_back(ActiveHostWalkerInfo(key, label, l4->getTCPSent()->getNumBytes(),
+					      l4->getTCPRcvd()->getNumBytes(), tot));
         }
       }
     } break;
@@ -2655,8 +2668,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       tot = getNumBytesSent() + getNumBytesRcvd();
 
       if(tot > 0)
-        v->push_back(
-            ActiveHostWalkerInfo(key, label, bytes_ratio, pkts_ratio, tot));
+        v->push_back(ActiveHostWalkerInfo(key, label, bytes_ratio, pkts_ratio, tot));
     } break;
 
     case SCORE:
@@ -2681,9 +2693,8 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
             unidirectionalTCPUDPFlows.numEgressFlows;
 
       if(tot > 0)
-        v->push_back(ActiveHostWalkerInfo(
-            key, label, unidirectionalTCPUDPFlows.numEgressFlows,
-            unidirectionalTCPUDPFlows.numIngressFlows, tot));
+        v->push_back(ActiveHostWalkerInfo(key, label, unidirectionalTCPUDPFlows.numEgressFlows,
+					  unidirectionalTCPUDPFlows.numIngressFlows, tot));
       break;
   }
 }

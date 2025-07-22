@@ -314,7 +314,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     hidden = not areASTimeseriesEnabled(ifid) or not asn,
     active = page == "exporters_stats",
     page_name = "exporters_stats",
-    label = i18n("exporters_stats"),
+    label = i18n("as_info"),
     url = ntop.getHttpPrefix() .. "/lua/as_overview.lua?asn=" .. (asn or 0)
 }})
 

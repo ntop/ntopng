@@ -8217,8 +8217,8 @@ bool NetworkInterface::findHostsByName(lua_State *vm,
     info.allowed_hosts = allowed_hosts;
 
   lua_newtable(vm);
-  walker(&begin_slot, walk_all, walker_hosts, hosts_search_walker,
-         (void *)&info);
+  walker(&begin_slot, walk_all, walker_hosts, hosts_search_walker, (void *)&info);
+  
   return (info.num_matches > 0);
 }
 

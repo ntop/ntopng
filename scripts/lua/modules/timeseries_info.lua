@@ -2367,11 +2367,12 @@ local function add_top_asn_timeseries(tags, timeseries)
                     timeseries = {
                         bytes_sent = {
                             label = i18n('graphs.metric_labels.sent'),
-                            color = timeseries_info.get_timeseries_color('bytes')
+                            color = timeseries_info.get_timeseries_color('bytes_sent')
                         },
                         bytes_rcvd = {
+                            invert_direction = true,
                             label = i18n('graphs.metric_labels.rcvd'),
-                            color = timeseries_info.get_timeseries_color('bytes')
+                            color = timeseries_info.get_timeseries_color('bytes_rcvd')
                         }
                     }
                 }

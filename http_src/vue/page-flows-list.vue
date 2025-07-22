@@ -7,7 +7,7 @@
             <template v-slot:custom_header>
                 <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
                     <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
-                            }}</b></span>
+                    }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
                         dropdown_size="small" :disabled="loading" :options="item['options']"
                         @select_option="add_table_filter">
@@ -409,7 +409,7 @@ function add_table_filter(opt, opt2, opt3) {
     if (opt3) {
         ntopng_url_manager.set_key_to_url(opt3.key, `${opt3.value}`);
     }
-    table_flows_list.value.refresh_table();
+    refresh_table();
     load_table_filters_array()
 }
 
@@ -461,7 +461,7 @@ async function load_table_filters_array() {
     set_filters_list(res)
     loading.value = false;
     clearInterval(interval_id.value);
-    interval_id.value = setInterval(refresh_table, refresh_rate)
+    interval_id.value = setInterval(periodicRefresh, refresh_rate)
 }
 
 /* ************************************** */
@@ -472,7 +472,7 @@ function reset_filters() {
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
     load_table_filters_array();
-    table_flows_list.value.refresh_table();
+    refresh_table();
 }
 
 /* ************************************** */
@@ -532,7 +532,12 @@ function on_table_custom_event(event) {
 /* ************************************** */
 
 function refresh_table() {
-    //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+    table_flows_list.value.refresh_table(false);
+}
+
+/* ************************************** */
+
+function periodicRefresh() {
     table_flows_list.value.refresh_table(true);
 }
 
@@ -545,9 +550,8 @@ onBeforeMount(() => {
 /* ************************************** */
 
 onMounted(() => {
-        clearInterval(interval_id.value);
-    interval_id.value = setInterval(refresh_table, refresh_rate)
-    //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+    clearInterval(interval_id.value);
+    interval_id.value = setInterval(periodicRefresh, refresh_rate)
 });
 
 </script>

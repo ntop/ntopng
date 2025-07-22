@@ -3694,7 +3694,9 @@ static int ntop_get_interface_find_host(lua_State *vm) {
 
   if (!curr_iface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  
   curr_iface->findHostsByName(vm, get_allowed_nets(vm), key);
+  
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

@@ -76,8 +76,8 @@
                 <span v-html="message_to_display"></span>
             </div>
 
-            <table ref="tableRef" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table" data-resizable="true"
-                :data-resizable-columns-id="id"> <!-- Table -->
+            <table ref="tableRef" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table"
+                data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
                 <thead>
                     <tr>
                         <!-- Column Headers -->
@@ -147,7 +147,7 @@
         <div v-if="query_info != null" class="mt-2">
             <div class="text-end">
                 <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed
-                }}</span>.</small>
+                        }}</span>.</small>
             </div>
             <div class="text-start">
                 <small id="historical_flows_table-query-time" style="" class="query">Query performed in <span
@@ -216,6 +216,7 @@ const tableContainerRef = ref(null);                   // Reference to the table
 const tableRef = ref(null);                             // Reference to the table element
 const dropdownRef = ref(null);                          // Reference to the column visibility dropdown
 const rowElementRefs = ref([]);                   // References to row HTML elements
+const showLoading = ref(props.showLoading)
 let currentPage = 0;                                 // Current active page
 let allRows = [];                                       // All fetched rows data
 const processedColumns = ref([]);                        // Wrapped column definitions with extra properties
@@ -225,7 +226,7 @@ const rowsPerPageOptions = [10, 20, 40, 50, 80, 100];  // Available rows per pag
 const rowsPerPage = ref(get_num_pages());               // Current rows per page setting
 const columnWidthStore = window.store;                          // Store for column width persistence
 const searchString = ref("");                          // Search term
-const isLoading = ref(props.showLoading ? props.showLoading : false);
+const isLoading = ref(showLoading.value ? showLoading.value : false);
 
 const paginationRef = ref(null);                 // Reference to pagination component
 const query_info = ref(null);                        // Query execution info (time, records, SQL)
@@ -532,7 +533,6 @@ function get_sort_function() {
 }
 
 let shouldForceRefresh = false;
-let shouldDisableLoading = false;
 
 /* ********************************************* */
 
@@ -544,9 +544,10 @@ let shouldDisableLoading = false;
 async function refresh_table(disable_loading) {
     /* NOTE: first refresh_table is called then set_rows */
     shouldForceRefresh = true;
-    shouldDisableLoading = disable_loading || false;
+    const shouldDisableLoading = disable_loading || false;
 
     if (shouldDisableLoading) {
+        disableLoading()
         /* In case of disabled loading, reload the same page */
         paginationRef.value.change_active_page();
     } else {
@@ -557,7 +558,10 @@ async function refresh_table(disable_loading) {
 
     /* Reset the refresh/loading params */
     shouldForceRefresh = false;
-    shouldDisableLoading = false;
+
+    if (shouldDisableLoading) {
+        enableLoading();
+    }
 }
 
 /* ********************************************* */
@@ -566,7 +570,7 @@ let isFirstDataLoad = true;
 
 // get and update rows data
 async function set_rows() {
-    if (props.showLoading) {
+    if (showLoading.value) {
         isLoading.value = true;
     }
     // get rows from backend
@@ -604,7 +608,7 @@ async function set_rows() {
     // wait for dom to update and emit event
     await nextTick();
     emit('rows_loaded', res);
-    if (props.showLoading) {
+    if (showLoading.value) {
         isLoading.value = false;
     }
 }
@@ -760,8 +764,16 @@ function get_rows_num() {
     return totalRowCount.value;
 }
 
+const disableLoading = () => {
+    showLoading.value = false;
+}
+
+const enableLoading = () => {
+    showLoading.value = true;
+}
+
 // expose methods for parent components
-defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num, search_value });
+defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num, search_value, disableLoading, enableLoading });
 
 </script>
 

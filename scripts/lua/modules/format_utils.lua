@@ -780,7 +780,7 @@ function format_utils.formatASN(asn, short_version, shorten_string)
         end
 
         if (name ~= asn) and (not short_version) then
-            name = string.format("%s (%d)", name, asn)
+            name = string.format("%d: %s", asn, name)
         end
     end
 

@@ -653,12 +653,6 @@ local function validateConsolidationFunction(mode)
     return validateChoice(modes, mode)
 end
 
-local function validateAlertStatus(mode)
-    local modes = {"engaged", "historical", "historical-flows"}
-
-    return validateChoice(modes, mode)
-end
-
 local function validateAggregation(mode)
     local modes = {"ndpi", "l4proto", "port"}
 

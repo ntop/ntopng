@@ -247,7 +247,7 @@ local function top_max_nodes(l, criteria)
    if criteria == traffic_criteria.INGRESS then
       table.sort(list, function(a, b) return a.sent > b.sent end)
    else
-      table.sort(list, function(a, b) return a.sent > b.sent end)
+      table.sort(list, function(a, b) return a.rcvd > b.rcvd end)
    end
    local reduced_transit = {}
    for i = 1, math.min(max_nodes-1, table.len(list)) do

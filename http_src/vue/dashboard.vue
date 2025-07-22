@@ -311,6 +311,7 @@ let printable = false;
 const edit_mode = ref(false);
 let template_sortable = null;
 const modal_new_template = ref(null);
+const isFirstLoading = ref(false);
 
 const is_live = computed(() => {
     return props.context.page != "report" && props.context.page != "vs-report";
@@ -908,7 +909,9 @@ function check_diff_params(previous_params, current_params) {
 /* Callback to request REST data from components */
 function get_component_data_func(component) {
     const get_component_data = async (url, query_params, post_params, refresh_epoch) => {
-        component.isLoading = true;
+        if (!isFirstLoading.value) {
+            component.isLoading = true;
+        }
         let info = {};
         if (data_from_backup) {
             // backward compatibility (component_id was not defined)
@@ -975,6 +978,10 @@ function get_component_data_func(component) {
                 info.data.then(() => {
                     info.data.done = true;
                     component.isLoading = false
+                    /* Disable the periodic loading component in case of Dashboard */
+                    if (!isFirstLoading.value && props.context.page !== "report") {
+                        isFirstLoading.value = true;
+                    }
                 });
 
             }

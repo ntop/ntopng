@@ -224,7 +224,7 @@ const map_table_def_columns = (columns) => {
                     // if is not defined is enabled
                     if (!visible_dict[b.id]) {
                         current_class.push("disabled");
-                    } else if (row.asn === 0 && (b.id === "exporters_stats" || b.id === "timeseries")) {
+                    } else if (row.asn === 0 && (b.id === "exporters_stats")) {
                         current_class.push("disabled");
                     }
                     return current_class;
@@ -261,7 +261,7 @@ function click_button_flows(event) {
 
 function click_button_timeseries(event) {
     const row = event.row;
-    window.location.href = `${http_prefix}/lua/as_stats.lua?asn=${row["asn"]}&page=historical`;
+    window.location.href = `${http_prefix}/lua/as_overview.lua?asn=${row["asn"]}&page=historical`;
 }
 
 /* ************************************** */

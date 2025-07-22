@@ -5,7 +5,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local template_utils = require("template_utils")
-local graph_utils = require "graph_utils"
 local page_utils = require "page_utils"
 local json = require "dkjson"
 require "lua_utils"
@@ -57,11 +56,6 @@ page_utils.print_navbar(breadcrumb, ntop.getHttpPrefix() .. "/lua/as_stats.lua",
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
         i18n("as_stats.autonomous_systems") .. "\"></i>"
-}, {
-    active = page == "historical",
-    hidden = isEmptyString(asn),
-    page_name = "historical",
-    label = "<i class='fas fa-lg fa-chart-area'></i>"
 }})
 
 local show_sankey = false
@@ -97,12 +91,6 @@ if page == "overview" or not page then
         vue_page_name = "PageAsStats",
         page_context = json_context
     })
-else
-    local source_value_object = {
-        asn = asn,
-        ifid = ifid
-    }
-    graph_utils.drawNewGraphs(source_value_object)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

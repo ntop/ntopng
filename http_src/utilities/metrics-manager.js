@@ -57,10 +57,10 @@ const get_ts_group = (source_type, source_array, metric, customized_ts) => {
         perc_95: false,
     }
 
-    if(customized_ts && customized_ts.raw != null) ts_config.raw = customized_ts.raw;
-    if(customized_ts && customized_ts.past != null) ts_config.past = customized_ts.past;
-    if(customized_ts && customized_ts.avg != null) ts_config.avg = customized_ts.avg;
-    if(customized_ts && customized_ts.perc_95 != null) ts_config.perc_95 = customized_ts.perc_95;
+    if (customized_ts && customized_ts.raw != null) ts_config.raw = customized_ts.raw;
+    if (customized_ts && customized_ts.past != null) ts_config.past = customized_ts.past;
+    if (customized_ts && customized_ts.avg != null) ts_config.avg = customized_ts.avg;
+    if (customized_ts && customized_ts.perc_95 != null) ts_config.perc_95 = customized_ts.perc_95;
 
     let id = get_ts_group_id(source_type, source_array, metric);
     let timeseries = [];
@@ -139,7 +139,7 @@ function get_timeseries(timeseries_url, metric) {
     let timeseries = [];
     ts_url_array.forEach((ts_url) => {
         let values = r.exec(ts_url);
-        if(values.length > 0) {
+        if (values.length > 0) {
             let id = values[1];
             let label = metric.timeseries[id].label;
             let raw = JSON.parse(values[2]);
@@ -148,7 +148,7 @@ function get_timeseries(timeseries_url, metric) {
             let perc_95 = JSON.parse(values[5]);
             timeseries.push({
                 id, label, raw, past, avg, perc_95,
-            });    
+            });
         }
     });
     return timeseries;
@@ -337,7 +337,8 @@ const get_metric_from_schema = async (http_prefix, source_type, source_array, me
         return metrics.find((m) => m.schema == metric_schema && m.query == metric_query) ||
             metrics.find((m) => m.schema == 'top:iface:ndpi_full' && m.query == metric_query)
     }
-    return metrics.find((m) => m.schema == metric_schema && m.query == metric_query);
+    const metric = metrics.find((m) => m.schema == metric_schema && m.query == metric_query);
+    return metric
 };
 
 const get_metric_query_from_ts_query = (ts_query, source_type) => {
@@ -346,14 +347,16 @@ const get_metric_query_from_ts_query = (ts_query, source_type) => {
     }
     let source_def_dict = {};
     source_type.source_def_array.forEach((s_def) => source_def_dict[s_def.value] = true);
+    let metric_query = null
     let ts_query_array = ts_query.split(",");
     for (let i = 0; i < ts_query_array.length; i += 1) {
         let ts_val_key = ts_query_array[i].split(":")[0];
         if (source_def_dict[ts_val_key] == null) {
-            return ts_query_array[i];
+            if (!metric_query) { metric_query = `${ts_query_array[i]}` }
+            else { metric_query = `${metric_query},${ts_query_array[i]}` }
         }
     }
-    return null;
+    return metric_query;
 };
 
 const get_default_metric = (metrics, metric_ts_schema, metric_query) => {
