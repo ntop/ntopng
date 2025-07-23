@@ -83,6 +83,7 @@ const table_id = ref(props.context.tableId);
 const sankey_format_list = [
     { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
     { key: "criteria_as", value: 'as_traffic_criteria', label: _i18n('as_overview.as_traffic_criteria') },
+    //{ key: "criteria_as", value: 'as_transit_criteria', label: _i18n('as_overview.as_transit_criteria') },
 ];
 
 const note_list = [
@@ -133,6 +134,8 @@ const changeCriteria = async (opt) => {
         if (opt.value === "ingress_egress_traffic_criteria") {
             table_id.value = "ingress_egress_as_stats"
         } else if(opt.value === "as_traffic_criteria") {
+            table_id.value = "traffic_as_stats"
+        } else if(opt.value === "as_transit_criteria") {
             table_id.value = "transit_as_stats"
         }
         reload.value = !reload.value
@@ -233,6 +236,10 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByName(r0.interface.name, r1.interface.name, col.sort);
         } else if (col.id == "as") {
             return sortingFunctions.sortByName(r0.as.name, r1.as.name, col.sort);
+        } else if (col.id == "as_dst") {
+            return sortingFunctions.sortByName(r0.as_dst.name, r1.as_dst.name, col.sort);
+        } else if (col.id == "as_src") {
+            return sortingFunctions.sortByName(r0.as_src.name, r1.as_src.name, col.sort);
         } else if (col.id == "transit_as") {
             return sortingFunctions.sortByName(r0.transit_as.name, r1.transit_as.name, col.sort);
         } else if (col.id == "bytes_sent") {
@@ -264,6 +271,18 @@ const map_table_def_columns = (columns) => {
             return `<span data-bs-toggle="tooltip" data-bs-placement="top" title="${value.id}">${value.name}</span>`;
         },
         "as": (value, row) => {
+            if (dataUtils.isEmptyString(value.name)) {
+                value.id
+            }
+            return `<span data-bs-toggle="tooltip" data-bs-placement="top" title="${value.id}">${value.name}</span>`;
+        },
+        "as_dst": (value, row) => {
+            if (dataUtils.isEmptyString(value.name)) {
+                value.id
+            }
+            return `<span data-bs-toggle="tooltip" data-bs-placement="top" title="${value.id}">${value.name}</span>`;
+        },
+        "as_src": (value, row) => {
             if (dataUtils.isEmptyString(value.name)) {
                 value.id
             }

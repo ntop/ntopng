@@ -1,24 +1,24 @@
 {
-	"id": "transit_as_stats",
-	"data_url": "lua/pro/rest/v2/get/as/transit_stats.lua",
+	"id": "traffic_as_stats",
+	"data_url": "lua/pro/rest/v2/get/as/traffic_stats.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": true,
 	"columns": [
         {
-            "id": "as_src",
-			"title_i18n": "as_overview.as_src",
-			"data_field": "as_src",
+            "id": "as",
+			"title_i18n": "as_details.as",
+			"data_field": "as",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
 			]
 		},
         {
-            "id": "as_dst",
-            "title_i18n": "as_overview.as_dst",
-            "data_field": "as_dst",
+            "id": "transit_as",
+            "title_i18n": "transit_as",
+            "data_field": "transit_as",
             "sortable": true,
             "class": [
                 "text-nowrap"

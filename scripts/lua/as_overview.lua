@@ -19,6 +19,8 @@ local content_type = _GET["type"]
 
 if (not criteria_as) or (criteria_as == "ingress_egress_traffic_criteria") then
     tableId = "ingress_egress_as_stats" 
+elseif (criteria_as == "as_traffic_criteria") then
+    tableId = "traffic_as_stats"
 else
     tableId = "transit_as_stats"
 end
