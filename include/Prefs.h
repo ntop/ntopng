@@ -72,7 +72,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
-  bool netbox_enabled, asset_inventory_enabled, snmp_trap_enabled;
+  bool data_archive_before_ttl_delete, netbox_enabled, asset_inventory_enabled, snmp_trap_enabled;
 #endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;

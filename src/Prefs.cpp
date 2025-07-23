@@ -169,6 +169,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
   max_aggregated_flows_upperbound = 10000, max_aggregated_flows_traffic_upperbound = 1;
+  data_archive_before_ttl_delete = false;
 #endif
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
@@ -983,6 +984,7 @@ void Prefs::reloadPrefsFromRedis() {
   network_discovery = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_NETWORK_DISCOVERY, false);
   starttls = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_STARTTLS, false);
   dump_pcap_to_clickhouse = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DUMP_PCAP_TO_CLICKHOUSE, false);
+  data_archive_before_ttl_delete = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ARCHIVE_BEFORE_TTL_DELETE, false);
   query_performance_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_QUERY_PERFORMANCE_LOG, false);
 
   enable_arp_matrix_generation =
@@ -2756,6 +2758,7 @@ void Prefs::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "network_discovery", network_discovery);
   lua_push_bool_table_entry(vm, "starttls", starttls);
   lua_push_bool_table_entry(vm, "dump_pcap_to_clickhouse", dump_pcap_to_clickhouse);
+  lua_push_bool_table_entry(vm, "data_archive_before_ttl_delete", data_archive_before_ttl_delete);
   lua_push_bool_table_entry(vm, "query_performance_log_enabled", query_performance_log);
   lua_push_bool_table_entry(vm, "tls_quic_hostnaming", tls_quic_hostnaming);
 
