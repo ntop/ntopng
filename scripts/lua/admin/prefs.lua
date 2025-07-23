@@ -2180,7 +2180,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- path for retention dump
         prefsInputFieldPrefs(subpage_active.entries["path_data_archive_before_ttl_delete"].title,
             subpage_active.entries["path_data_archive_before_ttl_delete"].description, "ntopng.prefs.",
-            "export_flows_path", "", "text",
+            "clickhouse_flows_archive_path", "", "text",
             showAggregateFlowsPrefs and not exportBeforeTTLEnabled, nil, nil, {
                 style = {
                     width = "25em;"

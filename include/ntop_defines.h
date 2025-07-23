@@ -791,7 +791,7 @@
   ""
 
 #define CONST_PREFS_CH_EXPORT_PATH \
-  NTOPNG_PREFS_PREFIX ".export_flows_path"
+  NTOPNG_PREFS_PREFIX ".clickhouse_flows_archive_path"
 #define DEFAULT_CH_EXPORT_PATH \
   ""
 

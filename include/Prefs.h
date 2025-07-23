@@ -588,7 +588,7 @@ class Prefs {
   inline char *getHttpIndexPage() {
     return http_index_page;
   };
-  inline char *getCHExportPath() {
+  inline char *getCHArchivePath() {
     return ch_export_path;
   };
   inline bool are_top_talkers_enabled()            { return (enable_top_talkers);      };
