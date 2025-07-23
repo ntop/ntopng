@@ -249,15 +249,15 @@ local function top_max_nodes(l, criteria)
    else
       table.sort(list, function(a, b) return a.rcvd > b.rcvd end)
    end
-   local transit = {}
+   local reduced = {}
    for i = 1, math.min(max_nodes-1, table.len(list)) do
       local entry = list[i]
-      transit[entry.id] = {
+      reduced[entry.id] = {
         sent = entry.sent,
         rcvd = entry.rcvd
       }
    end
-   return transit
+   return reduced
 end
 
 -- ####################
@@ -519,6 +519,21 @@ end
 
 -- ####################
 
+local function callback_transit(src_dst_peer_as, src_dst_as, bytes_rcvd, bytes_sent)
+   init_transit(src_dst_peer_as)
+   init_as(src_dst_as)
+   init_link_as_transit(src_dst_peer_as, src_dst_as)
+   inc_link_as_transit_sent(get_as_key(src_dst_peer_as, src_dst_as), bytes_sent)
+   inc_link_as_transit_rcvd(get_as_key(src_dst_peer_as, src_dst_as), bytes_rcvd)
+   inc_as_sent(src_dst_as, bytes_sent)
+   inc_as_rcvd(src_dst_as, bytes_rcvd)
+   if (src_dst_peer_as ~= src_dst_as) then
+      inc_transit_sent(src_dst_peer_as, bytes_sent)
+      inc_transit_rcvd(src_dst_peer_as, bytes_rcvd)
+   end
+end
+-- ####################
+
 -- Flow iterator callback
 function callback(_, flow)
    if (sankey_debug) then
@@ -539,28 +554,10 @@ function callback(_, flow)
      inc_exporter_rcvd(flow.device_ip, flow.bytes_sent)
      -- Initialize transit
      if(flow.src_peer_as ~= nil) and (flow.dst_as ~= nil) and 
-        (flow.src_peer_as ~= flow.dst_as) then
-           init_transit(flow.src_peer_as)
-           init_as(flow.dst_as)
-           init_link_as_transit(flow.src_peer_as, flow.dst_as)
-           inc_link_as_transit_sent(get_as_key(flow.src_peer_as, flow.dst_as), flow.bytes_rcvd)
-           inc_link_as_transit_rcvd(get_as_key(flow.src_peer_as, flow.dst_as), flow.bytes_sent)
-           inc_as_sent(flow.dst_as, flow.bytes_rcvd)
-           inc_as_rcvd(flow.dst_as, flow.bytes_sent)
-           inc_transit_sent(flow.src_peer_as, flow.bytes_rcvd)
-           inc_transit_rcvd(flow.src_peer_as, flow.bytes_sent) 
+        (flow.src_peer_as ~= flow.dst_as) and (flow.src_peer_as ~= flow.src_as) then
+           callback_transit(flow.src_peer_as, flow.dst_as, flow.bytes_sent, flow.bytes_rcvd)
      elseif((flow.dst_peer_as ~= nil) and (flow.dst_as ~= nil)) then
-           init_transit(flow.dst_peer_as)
-           init_as(flow.dst_as)
-           init_link_as_transit(flow.dst_peer_as, flow.dst_as)
-           inc_link_as_transit_sent(get_as_key(flow.dst_peer_as, flow.dst_as), flow.bytes_rcvd)
-           inc_link_as_transit_rcvd(get_as_key(flow.dst_peer_as, flow.dst_as), flow.bytes_sent)
-           inc_as_sent(flow.dst_as, flow.bytes_rcvd)
-           inc_as_rcvd(flow.dst_as, flow.bytes_sent)
-        if (flow.dst_peer_as ~= flow.dst_as) then
-           inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
-           inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent) 
-        end
+           callback_transit(flow.dst_peer_as, flow.dst_as, flow.bytes_sent, flow.bytes_rcvd)
      end
 
    elseif (flow.dst_as == asn) then
@@ -569,29 +566,11 @@ function callback(_, flow)
      inc_exporter_sent(flow.device_ip, flow.bytes_sent)
      inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
      if((flow.dst_peer_as ~= nil) and (flow.src_as ~= nil)) and
-        (flow.dst_peer_as ~= flow.dst_as) then
-           init_transit(flow.dst_peer_as)
-           init_as(flow.src_as)
-           init_link_as_transit(flow.dst_peer_as, flow.src_as)
-           inc_link_as_transit_sent(get_as_key(flow.dst_peer_as, flow.src_as), flow.bytes_rcvd)
-           inc_link_as_transit_rcvd(get_as_key(flow.dst_peer_as, flow.src_as), flow.bytes_sent)
-           inc_as_sent(flow.src_as, flow.bytes_rcvd)
-           inc_as_rcvd(flow.src_as, flow.bytes_sent)
-           inc_transit_sent(flow.dst_peer_as, flow.bytes_rcvd)
-           inc_transit_rcvd(flow.dst_peer_as, flow.bytes_sent) 
+        (flow.dst_peer_as ~= flow.dst_as) and (flow.dst_peer_as ~= flow.src_as) then
+           callback_transit(flow.dst_peer_as, flow.src_as, flow.bytes_rcvd, flow.bytes_sent) 
      elseif((flow.src_peer_as ~= nil) and (flow.src_as ~= nil)) then
-           init_transit(flow.src_peer_as)
-           init_as(flow.src_as)
-           init_link_as_transit(flow.src_peer_as, flow.src_as)
-           inc_link_as_transit_sent(get_as_key(flow.src_peer_as, flow.src_as), flow.bytes_sent)
-           inc_link_as_transit_rcvd(get_as_key(flow.src_peer_as, flow.src_as), flow.bytes_rcvd)
-           inc_as_sent(flow.src_as, flow.bytes_sent)
-           inc_as_rcvd(flow.src_as, flow.bytes_rcvd)
-        if (flow.src_peer_as ~= flow.src_as) then
-           inc_transit_sent(flow.src_peer_as, flow.bytes_sent)
-           inc_transit_rcvd(flow.src_peer_as, flow.bytes_rcvd) 
-        end
-      end
+           callback_transit(flow.src_peer_as, flow.src_as, flow.bytes_rcvd, flow.bytes_sent)
+     end
    end
 end
 
