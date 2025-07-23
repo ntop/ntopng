@@ -2181,11 +2181,16 @@ if auth.has_capability(auth.capabilities.preferences) then
         prefsInputFieldPrefs(subpage_active.entries["path_data_archive_before_ttl_delete"].title,
             subpage_active.entries["path_data_archive_before_ttl_delete"].description, "ntopng.prefs.",
             "export_flows_path", "", "text",
-            showAggregateFlowsPrefs and not exportBeforeTTLEnabled, false, false, {
-                required = true,
-                inputBoxWidth = "25em"
+            showAggregateFlowsPrefs and not exportBeforeTTLEnabled, nil, nil, {
+                style = {
+                    width = "25em;"
+                },
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 518
+                }
             })
-
+            
         prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
             "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",
