@@ -45,7 +45,7 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   char *http_index_page;
-  char *ch_export_path;
+  char *ch_flow_archive_path;
   char *influx_internal_db_name;
   bool influx_internal_available;
   bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge;
@@ -589,7 +589,7 @@ class Prefs {
     return http_index_page;
   };
   inline char *getCHArchivePath() {
-    return ch_export_path;
+    return ch_flow_archive_path;
   };
   inline bool are_top_talkers_enabled()            { return (enable_top_talkers);      };
   inline bool are_sites_collection_enabled()       { return (enable_sites_collection); };

@@ -127,6 +127,7 @@ Prefs::Prefs(Ntop *_ntop) {
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
   http_index_page = strdup(INDEX_URL);
+  ch_flow_archive_path = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
@@ -1069,14 +1070,24 @@ void Prefs::reloadPrefsFromRedis() {
 
   getDefaultStringPrefsValue(CONST_PREFS_HTTP_INDEX_PAGE, &tmp, DEFAULT_HTTP_INDEX_PAGE);
   if(http_index_page) free(http_index_page);
-
+  
   if(tmp[0] == '\0') {
     free(tmp);
     tmp = strdup(INDEX_URL);
   }
   http_index_page = tmp;
 
-  global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
+  getDefaultStringPrefsValue(CONST_PREFS_CH_FLOWS_ARCHIVE_PATH, &tmp, DEFAULT_CH_FLOWS_ARCHIVE_PATH);
+  if(ch_flow_archive_path) free(ch_flow_archive_path);
+
+  if(tmp[0] == '\0') {
+    free(tmp);
+    tmp = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
+  }
+  ch_flow_archive_path = tmp;
+
+  global_dns_forging_enabled =
+      getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
   enable_client_x509_auth = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
   emit_flow_alerts = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
   emit_host_alerts = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
@@ -2716,6 +2727,7 @@ void Prefs::lua(lua_State *vm) {
                             enable_interface_name_only);
   lua_push_uint64_table_entry(vm, "http_port", http_port);
   lua_push_str_table_entry(vm, "http_index_page", http_index_page);
+  lua_push_str_table_entry(vm, "ch_flow_archive_path", ch_flow_archive_path);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
