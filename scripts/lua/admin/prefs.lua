@@ -2159,7 +2159,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             '</th></tr></thead>')
 
         local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
-        local exportBeforeTTLEnabled = tonumber(ntop.getPref("ntopng.prefs.data_archive_before_ttl_delete")) == 0
 
         prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
             subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
@@ -2176,20 +2175,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "data_archive_before_ttl_delete",
             hidden = not showAggregateFlowsPrefs
         })
-
-        -- path for retention dump
-        prefsInputFieldPrefs(subpage_active.entries["path_data_archive_before_ttl_delete"].title,
-            subpage_active.entries["path_data_archive_before_ttl_delete"].description, "ntopng.prefs.",
-            "clickhouse_flows_archive_path", "", "text",
-            showAggregateFlowsPrefs and not exportBeforeTTLEnabled, nil, nil, {
-                style = {
-                    width = "25em;"
-                },
-                attributes = {
-                    spellcheck = "false",
-                    maxlength = 518
-                }
-            })
             
         prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
