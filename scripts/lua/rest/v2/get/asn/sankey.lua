@@ -48,7 +48,7 @@ local criteria
 local other_asns = "Other"
 local other_node
 
-if criteria_as == "as_traffic_criteria" then
+if criteria_as == "traffic_between_ases" then
    criteria = traffic_criteria.AS_TRAFFIC
 else
    criteria = traffic_criteria.ING_EGR

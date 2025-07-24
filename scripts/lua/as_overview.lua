@@ -19,8 +19,10 @@ local content_type = _GET["type"]
 
 if (not criteria_as) or (criteria_as == "ingress_egress_traffic_criteria") then
     tableId = "ingress_egress_as_stats" 
+elseif (criteria_as == "traffic_between_ases") then
+    tableId = "traffic_between_ases"
 else
-    tableId = "transit_as_stats"
+    tableId = "transit_only_as_stats"
 end
 
 sendHTTPContentTypeHeader('text/html')

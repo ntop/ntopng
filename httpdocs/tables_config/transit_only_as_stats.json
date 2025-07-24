@@ -1,0 +1,58 @@
+{
+	"id": "transit_only_as_stats",
+	"data_url": "lua/pro/rest/v2/get/as/transit_only_stats.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+        {
+            "id": "src_as",
+			"title_i18n": "as_overview.src_as",
+			"data_field": "src_as",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+            "id": "dst_as",
+            "title_i18n": "as_overview.dst_as",
+            "data_field": "dst_as",
+            "sortable": true,
+            "class": [
+                "text-nowrap"
+            ]
+        },
+		{
+            "id": "bytes_sent",
+			"title_i18n": "bytes_sent",
+			"data_field": "bytes_sent",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "bytes_rcvd",
+			"title_i18n": "bytes_rcvd",
+			"data_field": "bytes_rcvd",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "total_bytes",
+			"title_i18n": "total_bytes",
+			"data_field": "total_bytes",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}

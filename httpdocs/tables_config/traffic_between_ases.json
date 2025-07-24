@@ -1,6 +1,6 @@
 {
-	"id": "transit_as_stats",
-	"data_url": "lua/pro/rest/v2/get/as/transit_stats.lua",
+	"id": "traffic_between_ases",
+	"data_url": "lua/pro/rest/v2/get/as/traffic_between_ases.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,

@@ -8,7 +8,7 @@ On ubuntu (this will install sphinx 8.x or newer):
 
 ````
 apt-get install doxygen
-pip install breathe sphinx sphinx-rtd-theme mock rst2pdf sphinxcontrib.swaggerdoc
+pip install breathe sphinx sphinx-rtd-theme mock rst2pdf sphinxcontrib.swaggerdoc sphinxcontrib.jquery
 
 ````
 

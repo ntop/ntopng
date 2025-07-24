@@ -23,6 +23,7 @@ sys.path.append( "breathe/" )
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinxcontrib.jquery",
     'sphinx.ext.intersphinx',
     'sphinx.ext.autodoc',
     'breathe',

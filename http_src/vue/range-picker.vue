@@ -56,7 +56,7 @@ import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import filtersManager from "../utilities/filters-manager.js";
-
+import Tagify from '@yaireo/tagify'
 
 function get_page(alert_stats_page) {
     let page = ntopng_url_manager.get_url_entry("page");
@@ -144,12 +144,10 @@ const load_filters_data = async function () {
         let filter_def = FILTERS_CONST.find((fc) => fc.id == key);
         if (filter_def != null) {
             let options_string = value.split(",");
-            options_string.forEach((opt_stirng) => {
-                let [value, operator] = opt_stirng.split(";");
-                if (
-                    operator == null || value == null || operator == ""
-                    || (filter_def.options != null && filter_def.options.find((opt) => opt.value == value) == null)
-                ) {
+            debugger;
+            options_string.forEach((opt_string) => {
+                let [value, operator] = opt_string.split(";");
+                if (operator == null || value == null || operator == "") {
                     return;
                 }
                 let value_label = value;
@@ -322,10 +320,8 @@ function create_tagify(range_picker_vue) {
         let existingTagElement = existingTagElms.find(htmlTag =>
             htmlTag.getAttribute('key') === tag.key
             && htmlTag.getAttribute('realValue') === tag.realValue
-            //&& htmlTag.getAttribute('selectedOperator') === tag.selectedOperator
         );
-        let existingTag = tagify.tagData(existingTagElement);
-        if (existingTag !== undefined) {
+        if (existingTagElement && tagify.getSetTagData(existingTagElement) !== undefined) {
             return;
         }
 
@@ -343,8 +339,11 @@ function create_tagify(range_picker_vue) {
 
     // when an user remove the tag
     tagify.on('remove', async function (e) {
-        const key = e.detail.data.key;
-        const value = e.detail.data.realValue;
+        const detail = e.detail;
+        if (detail.data === undefined) { return; }
+        const tag = detail.data;
+        const key = tag?.key;
+        const value = tag?.realValue;
         const status = ntopng_status_manager.get_status();
 
         if (key === undefined) { return; }
@@ -380,15 +379,6 @@ function create_tagify(range_picker_vue) {
         ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, { id: tag.key, operator: tag.selectedOperator, value: tag.realValue });
     });
 
-    tagify.on('edit:updated', async function (e) {
-        console.warn("UPDATED");
-        return;
-    });
-
-    $(`tags`).on('change', 'select.operator', async function (e) {
-        console.warn("TAGS change");
-        return;
-    });
     return {
         tagify,
         addFilterTag,

@@ -24,7 +24,7 @@ const props = defineProps({
 });
 
 function adjustLoadingPosition() {
-    if (!overlay.value.parentElement) {
+    if (!overlay.value || !overlay.value.parentElement) {
         return
     }
 

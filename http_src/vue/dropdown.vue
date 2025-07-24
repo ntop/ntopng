@@ -80,7 +80,6 @@ onMounted(() => {
     });
     
     $(dropdown.value).on('hide.bs.dropdown', function () {
-
         $(dropdown.value).parent().closest('div')?.css('overflow', default_overflow);        
         $(dropdown.value).parent().closest('div')[0]?.style.setProperty('overflow', default_overflow, 'important');
         $(dropdown.value).parent().closest('td')[0]?.style.setProperty('z-index', 'auto', 'important');
