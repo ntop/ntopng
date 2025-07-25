@@ -5473,6 +5473,34 @@ static int ntop_clickhouse_exec_csv_query(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_clickhouse_archive_data(lua_State *vm) {
+#ifdef HAVE_CLICKHOUSE
+  NetworkInterface *curr_iface = getCurrentInterface(vm);
+  time_t epoch_begin, epoch_end;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!curr_iface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  epoch_begin = (time_t)lua_tointeger(vm, 1);
+  epoch_end = (time_t)lua_tointeger(vm, 2);
+
+  curr_iface->archiveDBData(epoch_begin, epoch_end);
+#endif
+
+  lua_pushnil(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_update_ip_reassignment(lua_State *vm) {
   NetworkInterface *iface = NULL;
   int ifid = -1;
@@ -5898,6 +5926,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 
     /* ClickHouse */
     {"clickhouseExecCSVQuery", ntop_clickhouse_exec_csv_query},
+    {"clickhouseArchiveData", ntop_clickhouse_archive_data},
 
     {NULL, NULL}};
 

@@ -2,7 +2,8 @@
 <template>
     <div class="col-12 mb-2 mt-2">
         <AlertInfo></AlertInfo>
-        <div class="card h-100 overflow-hidden">
+        <div class="card h-100 overflow-hidden" style="position: relative;">
+            <Loading :isLoading="loading"></Loading>
             <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker"
                 :enable_refresh="true" ref="date_time_picker" @epoch_change="epoch_change"
                 :min_time_interval_id="min_time_interval_id" :custom_time_interval_list="time_preset_list">
@@ -40,37 +41,43 @@
 
             </div>
 
-            <template v-for="(item, i) in charts_options_items" :key="item.key">
-                <TimeseriesChart :id="id_chart + i" :ref="el => { charts[i] = el }" :chart_type="chart_type"
-                    :register_on_status_change="false" :get_custom_chart_options="get_f_get_custom_chart_options(i)"
-                    @zoom="epoch_change" @chart_reloaded="chart_reloaded">
-                </TimeseriesChart>
-            </template>
+            <TransitionGroup name="list" mode="out-in">
+                <div v-for="(item, i) in charts_options_items" :key="item.key">
+                    <TimeseriesChart :id="id_chart + i" :ref="el => { charts[i] = el }" :chart_type="chart_type"
+                        :register_on_status_change="false" :get_custom_chart_options="get_f_get_custom_chart_options(i)"
+                        @zoom="epoch_change" @chart_reloaded="chart_reloaded">
+                    </TimeseriesChart>
+                </div>
+            </TransitionGroup>
         </div>
 
-        <div class="mt-4 card card-shadow" v-if="enable_stats_table">
-            <div class="card-body">
-                <BootstrapTable id="page_stats_bootstrap_table" :columns="stats_columns" :rows="stats_rows"
-                    :print_html_column="(col) => print_stats_column(col)"
-                    :print_html_row="(col, row) => print_stats_row(col, row)">
-                </BootstrapTable>
+        <Transition name="list" mode="out-in">
+            <div class="mt-4 card card-shadow" v-if="enable_stats_table">
+                <div class="card-body">
+                    <BootstrapTable id="page_stats_bootstrap_table" :columns="stats_columns" :rows="stats_rows"
+                        :print_html_column="(col) => print_stats_column(col)"
+                        :print_html_row="(col, row) => print_stats_row(col, row)">
+                    </BootstrapTable>
+                </div>
             </div>
-        </div>
+        </Transition>
 
         <div class="mt-4 card card-shadow" v-if="is_ntop_pro">
-            <div class="card-body">
-                <div v-if="selected_top_table?.table_config_def" class="inline select2-size me-2 mt-2">
-                    <SelectSearch v-model:selected_option="selected_top_table" :options="top_table_options">
-                    </SelectSearch>
+            <Transition name="list" mode="out-in">
+                <div v-if="selected_top_table?.table_config_def" class="card-body">
+                    <div class="inline select2-size me-2 mt-2">
+                        <SelectSearch v-model:selected_option="selected_top_table" :options="top_table_options">
+                        </SelectSearch>
+                    </div>
+                    <Datatable :key="selected_top_table?.value" ref="top_table_ref"
+                        :table_buttons="selected_top_table.table_config_def.table_button"
+                        :columns_config="selected_top_table.table_config_def.columns_config"
+                        :data_url="selected_top_table.table_config_def.data_url"
+                        :enable_search="selected_top_table.table_config_def.enable_search"
+                        :table_config="selected_top_table.table_config_def.table_config">
+                    </Datatable>
                 </div>
-                <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value"
-                    ref="top_table_ref" :table_buttons="selected_top_table.table_config_def.table_button"
-                    :columns_config="selected_top_table.table_config_def.columns_config"
-                    :data_url="selected_top_table.table_config_def.data_url"
-                    :enable_search="selected_top_table.table_config_def.enable_search"
-                    :table_config="selected_top_table.table_config_def.table_config">
-                </Datatable>
-            </div>
+            </Transition>
         </div>
     </div>
 
@@ -92,13 +99,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
+import { ref, onMounted, onBeforeMount, computed, watch, Transition, TransitionGroup } from "vue";
 import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalDownloadFile } from "./modal-download-file.vue";
+import { default as Loading } from "./loading.vue"
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as dataUtils } from "../utilities/data-utils.js";
 
@@ -138,6 +146,7 @@ const top_table_ref = ref(null);
 const modal_timeseries = ref(null);
 const modal_snapshot = ref(null);
 const modal_download_file = ref(null);
+const loading = ref(true);
 
 const is_safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const image_button_title = is_safari ? _i18n('page_stats.download_image_disabled') : _i18n('page_stats.title_modal_download_file');
@@ -409,6 +418,7 @@ let ts_charts_options;
 /* This function load the chart data and options, doing the request and then setting the options */
 async function load_page_stats_data(timeseries_groups, reload_charts_data, reload_top_table_options, refreshed_time_interval) {
     /* Get the information necessary for the request, like epoch ecc. */
+    loading.value = true;
     let status = ntopng_status_manager.get_status();
     let ts_compare = get_ts_compare(status);
     if (reload_charts_data) {
@@ -446,6 +456,7 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     last_timeseries_groups_loaded = timeseries_groups;
     // update url params
     update_url_params();
+    loading.value = false;
 }
 
 /* This function returns set the label of the timeseries; if available it should be
@@ -865,5 +876,30 @@ async function download_chart_png(filename) {
 
 .select2-size {
     min-width: 18rem;
+}
+
+.list-move,
+/* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.35s ease;
+}
+
+.list-enter-from {
+    opacity: 0;
+    transform: translateX(-60px);
+    /* entra da sinistra */
+}
+
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(0);
+    /* esce verso destra */
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+    position: absolute;
 }
 </style>

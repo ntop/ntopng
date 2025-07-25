@@ -1013,6 +1013,9 @@ public:
   };
   int execSQLQuery2CSV(const char *sql, bool dump_in_json_format,
                      struct mg_connection *conn);
+  inline void archiveDBData(time_t epoch_begin, time_t epoch_end) {
+    if (db) db->archiveData(epoch_begin, epoch_end);
+  }
 
   NetworkStats *getNetworkStats(u_int32_t networkId) const;
   void allocateStructures(bool disable_dump = false);

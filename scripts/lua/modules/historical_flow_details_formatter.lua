@@ -177,21 +177,20 @@ end
 
 -- ###############################################
 
-function historical_flow_details_formatter.format_historical_client_server_bytes(
-    flow)
+function historical_flow_details_formatter.format_historical_client_server_bytes(flow)
     return {
         name = "",
         values = {
             [1] = i18n("client") ..
                 " <i class=\"fas fa-long-arrow-alt-right\"></i> " ..
                 i18n("server") .. ": " ..
-                formatValue(flow['SRC2DST_PACKETS'] or flow["cli2srv_packets"]) ..
+                formatValue(flow['SRC2DST_PACKETS'] or flow["cli2srv_pkts"]) ..
                 " " .. i18n("pkts") .. " / " ..
                 bytesToSize(flow['SRC2DST_BYTES'] or flow["cli2srv_bytes"]),
             [2] = i18n("server") ..
                 " <i class=\"fas fa-long-arrow-alt-right\"></i> " ..
                 i18n("client") .. ": " ..
-                formatValue(flow['DST2SRC_PACKETS'] or flow["srv2cli_packets"]) ..
+                formatValue(flow['DST2SRC_PACKETS'] or flow["srv2cli_pkts"]) ..
                 " " .. i18n("pkts") .. " / " ..
                 bytesToSize(flow['DST2SRC_BYTES'] or flow["srv2cli_bytes"])
         }

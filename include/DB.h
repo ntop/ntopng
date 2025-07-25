@@ -72,6 +72,8 @@ class DB {
     return (-1);
   }
 
+  virtual void archiveData(time_t epoch_begin, time_t epoch_end) {}
+
   inline void startDBLoop() { if (startDumpLoop()) running = true; };
   inline int isRunning() { return (running); };
   virtual bool isDbCreated() { return (true); };

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local template_utils = require("template_utils")
 local page_utils = require "page_utils"
 local json = require "dkjson"
+local graph_utils = require "graph_utils"
 require "lua_utils"
 
 local page = _GET["page"]
@@ -40,22 +41,18 @@ if as_info ~= nil then
     end
 end
 
-local breadcrumb
-
-if page == "overview" or not page then
-    breadcrumb = i18n("as_stats.autonomous_systems")
-else
-    
-    local asn_string = ternary(asn == 0, tostring(asn),tostring(asn) .. " (" .. as_name .. ")")
-    
-    breadcrumb =  " ASN: " .. "<a href=".. ntop.getHttpPrefix().. "/lua/hosts_stats.lua?asn=" .. tostring(asn) .. "> " .. asn_string .. " </a>" 
-end
+local breadcrumb = i18n("as_stats.autonomous_systems")
 
 page_utils.print_navbar(breadcrumb, ntop.getHttpPrefix() .. "/lua/as_stats.lua", {{
     active = page == "overview" or not page,
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
         i18n("as_stats.autonomous_systems") .. "\"></i>"
+}, {
+    url = ntop.getHttpPrefix() .. "/lua/as_stats.lua?page=historical",
+    active = page == "historical",
+    page_name = "historical",
+    label = "<i class='fas fa-lg fa-chart-area'></i>"
 }})
 
 local show_sankey = false
@@ -91,6 +88,11 @@ if page == "overview" or not page then
         vue_page_name = "PageAsStats",
         page_context = json_context
     })
+elseif page == "historical" then
+    local source_value_object = {
+        ifid = interface.getId()
+    }
+    graph_utils.drawNewGraphs(source_value_object)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

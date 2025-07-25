@@ -81,8 +81,8 @@ const reload = ref(false);
 const main_epoch_interval = ref(null);
 const table_id = ref(props.context.tableId);
 const sankey_format_list = [
-    { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
     { key: "criteria_as", value: 'traffic_between_ases', label: _i18n('as_overview.as_traffic_criteria') },
+    { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
 //    { key: "criteria_as", value: 'as_transit_only_criteria', label: _i18n('as_overview.traffic_between_ases') },
 ];
 
@@ -106,6 +106,7 @@ onBeforeMount(() => {
             }
         })
     }
+    ntopng_url_manager.set_key_to_url("criteria_as", active_sankey_type.value.value);
 })
 
 const onAutoRefreshToggle = (enabled) => {

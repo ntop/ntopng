@@ -782,6 +782,10 @@ function format_utils.formatASN(asn, short_version, shorten_string)
         if (name ~= asn) and (not short_version) then
             name = string.format("%d: %s", asn, name)
         end
+        
+        if (asn == 0) then
+            name = i18n("no_asn")
+        end
     end
 
     return name

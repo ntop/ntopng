@@ -213,6 +213,18 @@ const sources_types = [
 		}],
 	},
 	{
+		id: "all_asn",
+		regex_page_url: "lua\/as_stats",
+		label: i18n("page_stats.source_def.as"),
+		query: "all_asn",
+		source_def_array: [{
+			label: i18n("page_stats.source_def.interface"),
+			sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
+			value: "ifid",
+			ui_type: ui_types.select,
+		}],
+	},
+	{
 		id: "country",
 		regex_page_url: "lua\/country_details",
 		label: i18n("page_stats.source_def.country"),

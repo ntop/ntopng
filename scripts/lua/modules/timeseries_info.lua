@@ -40,6 +40,7 @@ local timeseries_id = {
     mac = "mac",
     network = "subnet",
     asn = "asn",
+    all_asn = "all_asn",
     country = "country",
     os = "os",
     vlan = "vlan",
@@ -2327,6 +2328,79 @@ end
 
 -- #################################
 
+local function add_all_asn_timeseries(tags, timeseries)
+    local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
+    if asn_ts_enabled then
+        local format_utils = require "format_utils"
+        timeseries[#timeseries + 1] = {
+            schema = "top:asn:traffic",
+            label = i18n("graphs.top_asn"),
+            description = i18n("graphs.metric_descr.asn_traffic_rxtx"),
+            priority = 0,
+            measure_unit = "bps",
+            scale = i18n('graphs.metric_labels.traffic'),
+            timeseries = {
+                bytes = {
+                    label = i18n('graphs.metric_labels.bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes')
+                }
+            },
+            always_visibile = true,
+            default_visible = true,
+            disable_default_ago_ts = true
+        }
+
+        local series = ts_utils.listSeries("asn:traffic", table.clone(tags),
+                                           tags.epoch_begin)
+        if not table.empty(series) then
+            local tmp_tags = table.clone(tags)
+            for _, serie in pairs(series or {}) do
+                local tot = 0
+                tmp_tags.asn = serie.asn
+                local tot_serie = ts_utils.queryTotal("asn:traffic",
+                                                      tags.epoch_begin,
+                                                      tags.epoch_end, tmp_tags)
+                -- Remove serie with no data
+                for _, value in pairs(tot_serie or {}) do
+                    tot = tot + tonumber(value)
+                end
+
+                if (tot > 0) then
+                    timeseries[#timeseries + 1] = {
+                        schema = "asn:traffic",
+                        id = timeseries_id.asn,
+                        group = i18n("graphs.l7_proto"),
+                        priority = 2,
+                        query = "asn:" .. serie.asn,
+                        label = tostring(
+                            format_utils.formatASN(serie.asn, false, false)),
+                        measure_unit = "bps",
+                        scale = i18n('graphs.metric_labels.traffic'),
+                        timeseries = {
+                            bytes_sent = {
+                                label = serie.asn .. " " ..
+                                    i18n('graphs.metric_labels.sent'),
+                                color = timeseries_info.get_timeseries_color(
+                                    'bytes')
+                            },
+                            bytes_rcvd = {
+                                label = serie.asn .. " " ..
+                                    i18n('graphs.metric_labels.rcvd'),
+                                color = timeseries_info.get_timeseries_color(
+                                    'bytes')
+                            }
+                        }
+                    }
+                end
+            end
+        end
+    end
+
+    return timeseries
+end
+
+-- #################################
+
 local function add_top_asn_timeseries(tags, timeseries)
     local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
 
@@ -2367,12 +2441,14 @@ local function add_top_asn_timeseries(tags, timeseries)
                     timeseries = {
                         bytes_sent = {
                             label = i18n('graphs.metric_labels.sent'),
-                            color = timeseries_info.get_timeseries_color('bytes_sent')
+                            color = timeseries_info.get_timeseries_color(
+                                'bytes_sent')
                         },
                         bytes_rcvd = {
                             invert_direction = true,
                             label = i18n('graphs.metric_labels.rcvd'),
-                            color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                            color = timeseries_info.get_timeseries_color(
+                                'bytes_rcvd')
                         }
                     }
                 }
@@ -3448,6 +3524,9 @@ local function add_top_timeseries(tags, prefix, timeseries)
     elseif prefix == timeseries_id.snmp_device then
         -- Add the interfaces timeseries
         timeseries = add_snmp_interfaces_timeseries(tags, timeseries)
+    elseif prefix == timeseries_id.all_asn then
+        -- Add the interfaces timeseries
+        timeseries = add_all_asn_timeseries(tags, timeseries)
     elseif prefix == timeseries_id.flow_dev then
         -- Add the interfaces timeseries
         timeseries = add_flowdev_interfaces_timeseries(tags, timeseries)
