@@ -119,6 +119,7 @@ Prefs::Prefs(Ntop *_ntop) {
   lic_mgr_config_file = NULL;
 #endif
   pcap_dir = NULL;
+  clickhouse_archive_dir = NULL;
   test_pre_script_path = test_post_script_path = test_runtime_script_path =
     NULL;
   message_broker_url = NULL;
@@ -295,6 +296,7 @@ Prefs::~Prefs() {
   if(pro_callbacks_dir) free(pro_callbacks_dir);
 #endif
   if(pcap_dir) free(pcap_dir);
+  if(clickhouse_archive_dir) free(clickhouse_archive_dir);
   if(config_file_path) free(config_file_path);
   if(user) free(user);
   if(pid_path) free(pid_path);
@@ -435,6 +437,9 @@ void usage() {
 	 "[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic\n"
 	 "                                    | recording in PCAP format.\n"
 	 "                                    | Default: %s\n"
+	 "[--db-archive-dir|-6] <path>        | Directory used for archiving historical flows\n"
+	 "                                    | recorded on ClickHouse when data retention is over.\n"
+	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promisc mode.\n"
 	 "[--geoip-dir] <dir>                 | Load GeoIP databases from the specified directory.\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http "
@@ -571,6 +576,7 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
 	 CONST_DEFAULT_CALLBACKS_DIR, CONST_DEFAULT_DATA_DIR,
+         CONST_DEFAULT_DATA_DIR,
 	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT + 1,
 	 CONST_DEFAULT_NTOP_USER, CONST_DEFAULT_TLS_CIPHERS,
 	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
@@ -1206,7 +1212,6 @@ static const struct option long_options[] = {
   {"disable-login",           required_argument, NULL, 'l'},
   {"http-log",                required_argument, NULL, 'L'},
   {"local-networks",          required_argument, NULL, 'm'},
-  {"ppp-networks",            no_argument,       NULL, 'M'},
 #ifndef HAVE_NEDGE
   {"dns-mode",                required_argument, NULL, 'n'},
 #endif
@@ -1230,6 +1235,7 @@ static const struct option long_options[] = {
   {"pid",                     required_argument, NULL, 'G'},
 #endif
   {"export-flows",            required_argument, NULL, 'I'},
+  {"ppp-networks",            no_argument,       NULL, 'M'},
   {"instance-name",           required_argument, NULL, 'N'},
   {"capture-direction",       required_argument, NULL, 'Q'},
   {"sticky-hosts",            required_argument, NULL, 'S'},
@@ -1243,6 +1249,7 @@ static const struct option long_options[] = {
   {"callbacks-dir",           required_argument, NULL, '3'},
   {"prefs-dir",               required_argument, NULL, '4'},
   {"pcap-dir",                required_argument, NULL, '5'},
+  {"db-archive-dir",          required_argument, NULL, '6'},
   {"geoip-dir",               required_argument, NULL, 196},
 #ifdef NTOPNG_PRO
   {"license-mgr",             required_argument, NULL, 197},
@@ -1773,6 +1780,11 @@ int Prefs::setOption(int optkey, char *optarg) {
   case '5':
     if(pcap_dir) free(pcap_dir);
     pcap_dir = strdup(optarg);
+    break;
+
+  case '6':
+    if(clickhouse_archive_dir) free(clickhouse_archive_dir);
+    clickhouse_archive_dir = strdup(optarg);
     break;
 
   case 'l':
@@ -2473,10 +2485,13 @@ int Prefs::checkOptions() {
   data_dir = strdup(ntop->get_install_dir());
 
   if(!pcap_dir) pcap_dir = strdup(ntop->get_working_dir());
+  if(!clickhouse_archive_dir) clickhouse_archive_dir = strdup(ntop->get_working_dir());
 
   docs_dir = ntop->getValidPath(docs_dir);
   scripts_dir = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
+  pcap_dir = ntop->getValidPath(pcap_dir);
+  clickhouse_archive_dir = ntop->getValidPath(clickhouse_archive_dir);
 
 #ifdef NTOPNG_PRO
   pro_callbacks_dir = ntop->getValidPath(pro_callbacks_dir);
@@ -2507,11 +2522,16 @@ int Prefs::checkOptions() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate pcap dir");
     return (-1);
   }
+  if(!clickhouse_archive_dir[0]) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate ClickHouse archive dir");
+    return (-1);
+  }
 
   ntop->removeTrailingSlash(docs_dir);
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
   ntop->removeTrailingSlash(pcap_dir);
+  ntop->removeTrailingSlash(clickhouse_archive_dir);
 
   if(http_binding_address1 == NULL)
     http_binding_address1 = strdup(CONST_ANY_ADDRESS);
@@ -2544,7 +2564,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 #else
 			  argc, argv,
 #endif
-			  "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:L:uv:zA:B:c:CD:E:F:MN:G:I:O:Q:"
+			  "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:6:l:L:uv:zA:B:c:CD:E:F:MN:G:I:O:Q:"
 			  "S:TU:X:W:VZ:",
 			  long_options, NULL)) != '?') {
     if(c == 255) break;

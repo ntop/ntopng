@@ -282,6 +282,9 @@ dist:
 	npm install
 	npm run build
 
+#
+# Use ./create_dist.sh for building and committing the new dist
+#
 dist-ntopng:
 	npm run build:ntopngjs
 

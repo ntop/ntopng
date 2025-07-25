@@ -4906,7 +4906,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   transitAS transit_as;
   bool unicast, unidirectional, alerted_flows, periodic_flows,
     cli_pool_found = false, srv_pool_found = false;
-  u_int32_t asn_filter;
+  u_int32_t asn_filter = (u_int32_t) -1;
   char *username_filter;
   char *pidname_filter;
   char *wlan_ssid_filter;
@@ -5157,19 +5157,24 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       }
     }
 
-    if (retriever->pag && retriever->pag->asnFilter(&asn_filter) &&
-        f->get_cli_host() && f->get_srv_host() &&
-        f->get_cli_host()->get_asn() != asn_filter &&
-        f->get_srv_host()->get_asn() != asn_filter)
-      return (false);
-    else if (retriever->pag && retriever->pag->asnFilter(&asn_filter) &&
-             f->get_cli_host() && f->get_srv_host())
-
+    if (retriever->pag && retriever->pag->asnFilter(&asn_filter)) {
+        char *asname = NULL;
+        u_int32_t src_asn = 0, dst_asn = 0;
+        f->getSrcAS(&src_asn, asname);
+        f->getDstAS(&dst_asn, asname);
+        if (src_asn != asn_filter && dst_asn != asn_filter)
+            return (false);
+    }
 #ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Filtering ASN: %u | Client ASN: %u | Server ASN: %u",
-				   asn_filter, f->get_cli_host()->get_asn(),
-				   f->get_srv_host()->get_asn());
+    char *asname = NULL;
+    u_int32_t src_asn = 0, dst_asn = 0;
+    f->getSrcAS(&src_asn, asname);
+    f->getDstAS(&dst_asn, asname);
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Interface: %u | Filtering ASN: %u | Client ASN: %u | Server ASN: %u",
+				   f->getInterface()->get_id(), asn_filter, 
+                   src_asn,
+				   dst_asn);
 #endif
     
 

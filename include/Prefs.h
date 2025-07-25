@@ -139,7 +139,7 @@ class Prefs {
   bool insecure_tls; /**< Unsecure TLS connections a-la curl */
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir,
-      *pcap_dir
+      *pcap_dir, *clickhouse_archive_dir
 #ifdef NTOPNG_PRO
       ,
       *pro_callbacks_dir
@@ -374,6 +374,7 @@ class Prefs {
   inline void set_influx_internal_available(bool available) { influx_internal_available = available; };
   void set_callback_dir(char* path) { callbacks_dir = path; };
   inline const char* get_pcap_dir() { return (pcap_dir); };
+  inline const char* get_clickhouse_archive_dir() { return (clickhouse_archive_dir); };
 #ifdef NTOPNG_PRO
   inline const char* get_pro_callbacks_dir() { return (pro_callbacks_dir); };
 #endif
