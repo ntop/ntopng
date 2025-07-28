@@ -45,7 +45,7 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   char *http_index_page;
-  char *ch_flow_archive_path;
+  char *ch_flows_archive_path;
   char *influx_internal_db_name;
   bool influx_internal_available;
   bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge;
@@ -127,6 +127,7 @@ class Prefs {
   bool dump_flows_on_es, dump_flows_on_syslog,
       dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO
+  bool ixp_mode_enabled;
   bool dump_flows_direct;
   u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
 #endif
@@ -590,7 +591,10 @@ class Prefs {
     return http_index_page;
   };
   inline char *getCHArchivePath() {
-    return ch_flow_archive_path;
+    return ch_flows_archive_path;
+  };
+  inline bool getIXPModeEnabled() {
+    return ixp_mode_enabled;
   };
   inline bool are_top_talkers_enabled()            { return (enable_top_talkers);      };
   inline bool are_sites_collection_enabled()       { return (enable_sites_collection); };

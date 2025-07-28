@@ -48,6 +48,9 @@ Add the i18n mapping to `ntopng/scripts/lua/modules/prefs_menu.lua` under the ap
 
 Specify the UI component for the preference. For a toggle button:
 
+- field is the entries element to display
+- pref is the
+
 ```lua
 prefsToggleButton(subpage_active, {
     field = "toggle_data_archive_before_ttl_delete",

@@ -92,12 +92,6 @@ end
 function getProbeName(exporter_ip, show_vlan, shorten_len)
    local cached_device_name
    local snmp_cached_dev
-   local probe_alias = getFlowDevAlias(exporter_ip, true)
-
-   -- In case an alias is set to the flow exporter, directly use the alias
-   if not isEmptyString(probe_alias) and probe_alias ~= exporter_ip then
-      return probe_alias
-   end
 
    -- No alias set, let's try with the SNMP
    if ntop.isPro() then

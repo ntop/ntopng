@@ -7247,6 +7247,9 @@ local lang = {
     ["server_ports"] = "Server Ports",
   },
   ["prefs"] = {
+    ["ixp_mode"] = "ASN Mode",
+    ["toggle_ixp_mode_title"] = "Enable ASN Mode",
+    ["toggle_ixp_mode_description"] = "Enable ASN Mode",
     ["active_local_host_cache_interval_description"] = "Interval between consecutive active local hosts cache dumps. Default: 1 hour.",
     ["active_local_host_cache_interval_title"] = "Active Local Host Cache Interval",
     ["admin_group_description"] = "Group name to which user has to belong in order to authenticate as an administrator. Example: \"admin\"",

@@ -2229,6 +2229,31 @@ if auth.has_capability(auth.capabilities.preferences) then
         print [[  </table>]]
     end
 
+    function printIXPModeOptions()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.ixp_mode") ..
+            '</th></tr></thead>')
+
+        local enabledIXP = ntop.getPref("ntopng.prefs.toggle_ixp_mode")
+        -- enable ixp mode toggle button
+        prefsToggleButton(subpage_active, {
+            field = "ixp_mode_enabled",
+            default = "0",
+            pref = "toggle_ixp_mode"
+        })
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+            i18n("save") .. '</button></th></tr>')
+
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />]]
+        print [[  </form>]]
+        print [[  </table>]]
+    end
+
     function printNames()
         print('<form method="post">')
         print('<table class="table">')
@@ -2420,6 +2445,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "clickhouse") then
         printClickHouseOptions()
+    end
+
+    if (tab == "ixp_settings") then
+        printIXPModeOptions()
     end
 
     if (tab == "dump_settings") then

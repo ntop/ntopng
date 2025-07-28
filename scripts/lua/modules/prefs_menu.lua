@@ -283,6 +283,20 @@ local menu_subpages = {{
         }
     }
 }, {
+    -- url path value
+    id = "ixp_settings",
+    label = i18n("prefs.ixp_mode"),
+    advanced = true,
+    pro_only = true,
+    -- Enable IXP mode in EnterpriseXL and zmq interface
+    hidden = ((ntop.isEnterpriseXL() and interface.isZMQInterface()) == false),
+    entries = {
+        ixp_mode_enabled = {
+            title = i18n("prefs.toggle_ixp_mode_title"),
+            description = i18n("prefs.toggle_ixp_mode_description")
+        }
+    }
+},{
     id = "logging",
     label = i18n("prefs.logging"),
     advanced = false,

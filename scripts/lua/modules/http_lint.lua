@@ -2417,6 +2417,7 @@ local known_parameters = {
     ["http_index_page"] = validateUnquoted,
     ["clickhouse_flows_archive_path"] = validateUnquoted,
     ["toggle_data_archive_before_ttl_delete"] = validateBool,
+    ["ixp_mode_enabled"] = validateBool,
     ["safe_search_dns"] = validateIPV4,
     ["global_dns"] = validateEmptyOr(validateIPV4),
     ["secondary_dns"] = validateEmptyOr(validateIPV4),

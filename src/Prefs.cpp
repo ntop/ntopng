@@ -128,7 +128,8 @@ Prefs::Prefs(Ntop *_ntop) {
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
   http_index_page = strdup(INDEX_URL);
-  ch_flow_archive_path = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
+  ch_flows_archive_path = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
+  ixp_mode_enabled = false;
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
@@ -1084,14 +1085,16 @@ void Prefs::reloadPrefsFromRedis() {
   http_index_page = tmp;
 
   getDefaultStringPrefsValue(CONST_PREFS_CH_FLOWS_ARCHIVE_PATH, &tmp, DEFAULT_CH_FLOWS_ARCHIVE_PATH);
-  if(ch_flow_archive_path) free(ch_flow_archive_path);
+  if(ch_flows_archive_path) free(ch_flows_archive_path);
 
   if(tmp[0] == '\0') {
     free(tmp);
     tmp = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
   }
-  ch_flow_archive_path = tmp;
+  ch_flows_archive_path = tmp;
 
+  ixp_mode_enabled = getDefaultBoolPrefsValue(CONST_PREFS_IXP_MODE_ENABLED, false);
+  
   global_dns_forging_enabled =
       getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
   enable_client_x509_auth = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
@@ -2490,8 +2493,8 @@ int Prefs::checkOptions() {
   docs_dir = ntop->getValidPath(docs_dir);
   scripts_dir = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
-  pcap_dir = ntop->getValidPath(pcap_dir);
-  clickhouse_archive_dir = ntop->getValidPath(clickhouse_archive_dir);
+  ntop->fixPath(pcap_dir);
+  ntop->fixPath(clickhouse_archive_dir);
 
 #ifdef NTOPNG_PRO
   pro_callbacks_dir = ntop->getValidPath(pro_callbacks_dir);
@@ -2747,7 +2750,8 @@ void Prefs::lua(lua_State *vm) {
                             enable_interface_name_only);
   lua_push_uint64_table_entry(vm, "http_port", http_port);
   lua_push_str_table_entry(vm, "http_index_page", http_index_page);
-  lua_push_str_table_entry(vm, "ch_flow_archive_path", ch_flow_archive_path);
+  lua_push_str_table_entry(vm, "ch_flows_archive_path", ch_flows_archive_path);
+  lua_push_bool_table_entry(vm, "ixp_mode_enabled;", ixp_mode_enabled);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
