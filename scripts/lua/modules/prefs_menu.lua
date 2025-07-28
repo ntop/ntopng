@@ -289,7 +289,7 @@ local menu_subpages = {{
     advanced = true,
     pro_only = true,
     -- Enable IXP mode in EnterpriseXL and zmq interface
-    hidden = ((ntop.isEnterpriseXL() and interface.isZMQInterface()) == false),
+    hidden = (ntop.isEnterpriseXL() == false),
     entries = {
         ixp_mode_enabled = {
             title = i18n("prefs.toggle_ixp_mode_title"),

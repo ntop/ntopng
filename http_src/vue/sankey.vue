@@ -344,7 +344,7 @@ async function draw_sankey() {
     /* Add a margin of 8 px (1 rem) on every side */
     const margin = { top: 8, right: 8, bottom: 8, left: 8 };
     sankey_size.value = size;
-    console.log(`New width: ${sankey_size.value.width} New height: ${sankey_size.value.height}`)
+    //console.log(`New width: ${sankey_size.value.width} New height: ${sankey_size.value.height}`)
 
     svg = d3.select(sankey_wrapper.value)
         .append("svg")

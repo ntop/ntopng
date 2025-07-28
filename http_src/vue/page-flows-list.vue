@@ -24,7 +24,7 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted, onBeforeMount } from "vue";
+import { ref, onMounted, onBeforeMount, computed } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as protocolUtils } from "../utilities/map/protocol-utils.js";
@@ -45,20 +45,24 @@ const props = defineProps({
 
 /* ************************************** */
 
-const table_id = ref(null);
-if (props.context?.is_enterprise_l) {
-    if (props.context?.has_exporters) {
-        table_id.value = 'flows_list_with_exporters_enterprise_l'
+// conditionally render tables
+const table_id = computed(() => {
+  if (props.context?.is_enterprise_l) {
+      if (props.context?.ASNModeEnabled) {
+      return 'flows_list_with_exporters_enterprise_l_ixp_mode'
+    } else if (props.context?.has_exporters) {
+      return 'flows_list_with_exporters_enterprise_l'
     } else {
-        table_id.value = 'flows_list_enterprise_l'
+      return 'flows_list_enterprise_l'
     }
-} else {
+  } else {
     if (props.context?.has_exporters) {
-        table_id.value = 'flows_list_with_exporters'
+      return 'flows_list_with_exporters'
     } else {
-        table_id.value = 'flows_list'
+      return 'flows_list'
     }
-}
+  }
+})
 
 const table_flows_list = ref(null);
 const csrf = props.context.csrf;
@@ -69,6 +73,8 @@ const refresh_rate = 10000;
 const host_details_url = `${http_prefix}/lua/host_details.lua`
 const flow_exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua`
 const snmp_iface_url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua`
+const asn_hosts_url = `${http_prefix}/lua/hosts_stats.lua?asn=`
+
 const flow_exporter_icon = "<i class='fas fa-file-export'></i>"
 const host_details_icon = "<i class='fas fa-laptop'></i>"
 const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("host_pools.children_safe") + "'></i></font>"
@@ -203,6 +209,22 @@ const map_table_def_columns = (columns) => {
             if (value > 0) {
                 return NtopUtils.secondsToTime((Math.round(new Date().getTime() / 1000)) - value)
             }
+            return ''
+        },
+        "srv_asn": (value, row) => {
+            if (value.asn && value.name) {
+                let formatted_asn = formatterUtils.formatAsn(value.asn, value.name)
+                return `<a href="${asn_hosts_url}${value.asn}">${formatted_asn}</a>`
+            }
+
+            return ''
+        },
+        "cli_asn": (value, row) => {
+            if (value.asn && value.name) {
+                let formatted_asn = formatterUtils.formatAsn(value.asn, value.name)
+                return `<a href="${asn_hosts_url}${value.asn}">${formatted_asn}</a>`
+            }
+
             return ''
         },
         "score": (value, row) => {

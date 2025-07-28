@@ -367,6 +367,7 @@ function utc_s_to_server_date(utc_seconds) {
     var d_server = new Date(utc + offset_ms);
     return d_server;
 }
+
 function server_date_to_date(date, format) {
     let utc = date.getTime();
     let local_offset = date.getTimezoneOffset();
@@ -375,6 +376,13 @@ function server_date_to_date(date, format) {
     let offset_ms = offset_minutes * 1000 * 60;
     var d_local = new Date(utc - offset_ms);
     return d_local;
+}
+
+// formats the as as 
+function formatAsn(asn, as_name) {
+    if (asn !== 0) {
+        return `${asn} (${as_name})`
+    }
 }
 
 const formatterUtils = function () {
@@ -386,7 +394,8 @@ const formatterUtils = function () {
         formatAccounting,
         formatDateTime,
         utc_s_to_server_date,
-        server_date_to_date
+        server_date_to_date,
+        formatAsn
     };
 }();
 

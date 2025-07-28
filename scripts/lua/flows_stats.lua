@@ -574,7 +574,12 @@ elseif (page == "flows" or page == nil) then
             has_exporters = true
         end
     end
+
     local json = require "dkjson" 
+    
+    -- used to load a different table in vuejs if ASN mode is enabled
+    local ASNModeEnabled = ntop.getPref("ntopng.prefs.toggle_ixp_mode") == "1"
+
     local json_context = json.encode({
         ifid = ifstats.id,
         has_exporters = has_exporters,
@@ -582,7 +587,8 @@ elseif (page == "flows" or page == nil) then
         is_clickhouse_enabled = hasClickHouseSupport(),
         is_pcap = interface.isPcapDumpInterface(),
         csrf = ntop.getRandomCSRFValue(),
-        is_enterprise_l = ntop.isEnterpriseL()
+        is_enterprise_l = ntop.isEnterpriseL(),
+        ASNModeEnabled = ASNModeEnabled
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 else

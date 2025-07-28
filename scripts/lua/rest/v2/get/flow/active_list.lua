@@ -107,12 +107,15 @@ end
 for _, value in ipairs(flows_stats.flows) do
     local record = {}
     local key = value["ntopng.key"]
-    local info_cli = interface.getHostMinInfo(value["cli.ip"], value["cli.vlan"])
-    local info_srv = interface.getHostMinInfo(value["srv.ip"], value["srv.vlan"])
+    local cli_ip = value["cli.ip"]
+    local srv_ip = value["srv.ip"]
+
+    local info_cli = interface.getHostMinInfo(cli_ip, value["cli.vlan"])
+    local info_srv = interface.getHostMinInfo(srv_ip, value["srv.vlan"])
 
     if not info_cli then
         info_cli = {
-            host = value["cli.ip"],
+            host = cli_ip,
             vlan = value["cli.vlan"],
             localhost = value["cli.localhost"],
             systemhost = value["cli.systemhost"]
@@ -121,16 +124,40 @@ for _, value in ipairs(flows_stats.flows) do
 
     if not info_srv then
         info_srv = {
-            host = value["srv.ip"],
+            host = srv_ip,
             vlan = value["srv.vlan"],
             localhost = value["srv.localhost"],
             systemhost = value["srv.systemhost"]
         }
     end
 
+    -- ASN data extraction
+    local cli_asn = value['cli.asn']
+    local srv_asn = value['srv.asn']
+    local transit_asn = ""
+
+    --peer src !- src -> transit richiesta
+    --peer dst !- dst -> transit risposta
+    --se transit = 0 non far vedere
+
+    local cli_asn_data = {
+        asn = cli_asn,
+        name = ntop.getASName(cli_ip)
+    }
+
+    local srv_asn_data = {
+        asn = srv_asn,
+        name = ntop.getASName(srv_ip)
+    }
+
+    local transit_asn_data = {
+        asn = transit_asn,
+        name 
+    }
+
     -- Formatting client column
     local client = {
-        ip = value["cli.ip"],
+        ip = cli_ip,
         vlan = value["cli.vlan"],
         name = hostinfo2label(info_cli, true),
         port = value["cli.port"],
@@ -163,7 +190,7 @@ for _, value in ipairs(flows_stats.flows) do
 
     -- Formatting server column
     local server = {
-        ip = value["srv.ip"],
+        ip = srv_ip,
         vlan = value["srv.vlan"],
         name = hostinfo2label(info_srv, true),
         port = value["srv.port"],
@@ -274,6 +301,10 @@ for _, value in ipairs(flows_stats.flows) do
     record["periodic_flow"] = value.periodic_flow
     record["client"] = client
     record["server"] = server
+    record["cli_asn"] = cli_asn_data
+    record["srv_asn"] = srv_asn_data
+    record["transit_asn"] = transit_asn_data
+
     record["ifid"] = ifid
     if value.score then
         record["score"] = value.score.flow_score
