@@ -55,6 +55,12 @@ end
 
 -- #################################
 
+function conf_utils.set_restart_required()
+    ntop.setCache(redis_key, true)
+end
+
+-- #################################
+
 function conf_utils.restart_required()
     if ntop.getCache(redis_key) == '' then
         return false

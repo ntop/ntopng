@@ -5,7 +5,7 @@ This template is used by the `Service Map` page inside the `Hosts` menu.
 
 <template>
    <TimeseriesChart ref="chart" :id="id" :chart_type="chart_type" :get_custom_chart_options="get_chart_options"
-      :register_on_status_change="false" :disable_pointer_events="false">
+      :register_on_status_change="false">
    </TimeseriesChart>
 
 </template>

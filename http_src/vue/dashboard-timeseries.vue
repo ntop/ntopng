@@ -6,8 +6,7 @@
 <template>
     <div>
         <TimeseriesChart ref="chart" :id="id" :chart_type="chart_type" :base_url_request="base_url"
-            :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
-            :disable_pointer_events="false">
+            :get_custom_chart_options="get_chart_options" :register_on_status_change="false" :disable_fixed_height="true">
         </TimeseriesChart>
     </div>
 </template>

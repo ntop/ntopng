@@ -69,72 +69,74 @@
             </div>
         </div> <!-- TableHeader -->
 
-        <div :key="table_key" style="overflow:auto;width:100%;"> <!-- Table -->
+        <Transition name="list" mode="out-in">
+            <div :key="table_key" style="overflow:auto;width:100%;"> <!-- Table -->
 
-            <!-- Message display -->
-            <div v-if="display_message == true" class="centered-message">
-                <span v-html="message_to_display"></span>
-            </div>
+                <!-- Message display -->
+                <div v-if="display_message == true" class="centered-message">
+                    <span v-html="message_to_display"></span>
+                </div>
 
-            <table ref="tableRef" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table"
-                data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
-                <thead>
-                    <tr>
-                        <!-- Column Headers -->
-                        <template v-for="(col, col_index) in processedColumns">
-                            <th v-if="col.visible" scope="col" :class="[
-                                { 'pointer': col.sortable, 'unset': !col.sortable, },
-                                { 'sticky-column-th': col.sticky }
-                            ]" style="white-space: nowrap;" :style="[
+                <table ref="tableRef" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table"
+                    data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
+                    <thead>
+                        <tr>
+                            <!-- Column Headers -->
+                            <template v-for="(col, col_index) in processedColumns">
+                                <th v-if="col.visible" scope="col" :class="[
+                                    { 'pointer': col.sortable, 'unset': !col.sortable, },
+                                    { 'sticky-column-th': col.sticky }
+                                ]" style="white-space: nowrap;" :style="[
                                 (col.min_width ? 'min-width: ' + col.min_width + ';' : ''),
                             ]" @click="change_column_sort(col, col_index)"
-                                :data-resizable-column-id="get_column_id(col.data)">
-                                <div style="display:flex;">
-                                    <!-- Print column name -->
-                                    <span v-html="print_column_name(col.data)" class="wrap-column"></span>
+                                    :data-resizable-column-id="get_column_id(col.data)">
+                                    <div style="display:flex;">
+                                        <!-- Print column name -->
+                                        <span v-html="print_column_name(col.data)" class="wrap-column"></span>
 
-                                    <!-- Sort indicators, 0 double arrow, else up or down-->
-                                    <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
-                                    <i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
-                                    <i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
-                                </div>
-                            </th>
-                        </template>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data rows -->
-                    <tr v-if="!isChangingColumnVisibility && !isChangingRows" v-for="row in displayedRows">
-                        <template v-for="(col, col_index) in processedColumns">
-                            <td v-if="col.visible" scope="col" :class="[
-                                { 'sticky-column-td': col.sticky }
-                            ]">
-                                <!-- HTML content if provided -->
-                                <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null"
-                                    :class="col.classes" class="wrap-column" :style="col.style"
-                                    v-html="print_html_row(col.data, row)">
-                                </div>
-                                <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes">
-                                    <!-- Vue node if provided -->
-                                    <VueNode :key="row"
-                                        v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null"
-                                        :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
-                                </div>
-                            </td>
-                        </template>
-                    </tr>
-                    <!-- Show empty rows if present -->
-                    <tr v-if="display_empty_rows && displayedRows.length < rowsPerPage"
-                        v-for="index in (rowsPerPage - displayedRows.length)">
-                        <template v-for="(col, col_index) in processedColumns">
-                            <td style="" class="" v-if="col.visible" scope="col">
-                                <div class="wrap-column"></div>
-                            </td>
-                        </template>
-                    </tr>
-                </tbody>
-            </table> <!-- Table -->
-        </div> <!-- Table div-->
+                                        <!-- Sort indicators, 0 double arrow, else up or down-->
+                                        <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
+                                        <i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
+                                        <i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
+                                    </div>
+                                </th>
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data rows -->
+                        <tr v-if="!isChangingColumnVisibility && !isChangingRows" v-for="row in displayedRows">
+                            <template v-for="(col, col_index) in processedColumns">
+                                <td v-if="col.visible" scope="col" :class="[
+                                    { 'sticky-column-td': col.sticky }
+                                ]">
+                                    <!-- HTML content if provided -->
+                                    <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null"
+                                        :class="col.classes" class="wrap-column" :style="col.style"
+                                        v-html="print_html_row(col.data, row)">
+                                    </div>
+                                    <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes">
+                                        <!-- Vue node if provided -->
+                                        <VueNode :key="row"
+                                            v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null"
+                                            :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
+                                    </div>
+                                </td>
+                            </template>
+                        </tr>
+                        <!-- Show empty rows if present -->
+                        <tr v-if="display_empty_rows && displayedRows.length < rowsPerPage"
+                            v-for="index in (rowsPerPage - displayedRows.length)">
+                            <template v-for="(col, col_index) in processedColumns">
+                                <td style="" class="" v-if="col.visible" scope="col">
+                                    <div class="wrap-column"></div>
+                                </td>
+                            </template>
+                        </tr>
+                    </tbody>
+                </table> <!-- Table -->
+            </div> <!-- Table div-->
+        </Transition>
 
         <div>
             <!-- Pagination component, bottom right -->
@@ -147,7 +149,7 @@
         <div v-if="query_info != null" class="mt-2">
             <div class="text-end">
                 <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed
-                        }}</span>.</small>
+                }}</span>.</small>
             </div>
             <div class="text-start">
                 <small id="historical_flows_table-query-time" style="" class="query">Query performed in <span
@@ -161,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, nextTick, onUpdated } from "vue";
+import { ref, onMounted, computed, watch, nextTick, onUpdated, Transition } from "vue";
 import { h } from 'vue';
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Dropdown } from "./dropdown.vue";
@@ -784,5 +786,30 @@ defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num, search
  */
 td.sticky-column-td.dropdown-active {
     z-index: 3 !important;
+}
+
+.list-move,
+/* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.35s ease;
+}
+
+.list-enter-from {
+    opacity: 0;
+    transform: translateX(-60px);
+    /* entra da sinistra */
+}
+
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(0);
+    /* esce verso destra */
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+    position: absolute;
 }
 </style>

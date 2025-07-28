@@ -6,8 +6,7 @@
         </DateTimeRangePicker>
         <div class="m-2 mt-0">
             <TimeseriesChart ref="chart" :id="chart_id" :chart_type="chart_type" :base_url_request="base_url"
-                :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
-                :disable_pointer_events="false">
+                :get_custom_chart_options="get_chart_options" :register_on_status_change="false">
             </TimeseriesChart>
         </div>
         <div class="m-2 mb-3">

@@ -1738,17 +1738,13 @@ elseif (page == "config") then
             local new_value = (_POST["interface_flow_dump"] == "1")
 
             if new_value ~= interface_flow_dump then
+                local info = ntop.getInfo()
+                local conf_utils = require "configuration_utils"
                 -- Value changed
                 interface_flow_dump = new_value
                 ntop.setPref("ntopng.prefs.ifid_" .. interface.getId() .. ".is_flow_dump_disabled",
                     ternary(interface_flow_dump, "0", "1"))
-
-                messages[#messages + 1] = {
-                    type = "warning",
-                    text = i18n("prefs.restart_needed", {
-                        product = info.product
-                    })
-                }
+                conf_utils.set_restart_required()
             end
         end
     end

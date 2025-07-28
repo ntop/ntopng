@@ -32,8 +32,7 @@
 
         <div class="mt-3">
           <TimeseriesChart ref="all_qos_chart" :id="all_qos_id" :chart_type="chart_type" :base_url_request="base_url"
-            :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
-            :disable_pointer_events="false" :key="all_qos_id">
+            :get_custom_chart_options="get_chart_options" :register_on_status_change="false" :key="all_qos_id">
           </TimeseriesChart>
         </div>
 

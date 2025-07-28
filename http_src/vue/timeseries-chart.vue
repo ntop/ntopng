@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-    <div style="overflow-x: auto; white-space: nowrap; margin-bottom: 10px"> <!-- legend-wrapper -->
+    <div style="overflow-x: auto; white-space: nowrap; margin-bottom: 10px;min-height:31px;"> <!-- legend-wrapper -->
       <div class="d-flex"> <!-- legend-div -->
         <div class="ms-auto"></div>
         <label class="form-check-label form-control-sm" v-for="(item, i) in timeseries_list">
@@ -11,8 +11,8 @@
         </label>
       </div>
     </div>
-    <div v-if="disable_pointer_events == true" class="mb-3" style="width:100%;pointer-events:none;" ref="chart"></div>
-    <div v-else class="mb-3" style="width:100%;" ref="chart"></div>
+    <div v-if="disable_fixed_height == true" class="mb-3" style="width:100%;" ref="chart"></div>
+    <div v-else class="mb-3" style="width:100%;min-height:320px;" ref="chart"></div>
 </template>
 
 <script>
@@ -27,7 +27,7 @@ export default {
         base_url_request: String,
         get_params_url_request: Function,
         get_custom_chart_options: Function,
-        disable_pointer_events: Boolean,
+        disable_fixed_height: Boolean,
     },
     emits: ["apply", "hidden", "showed", "chart_reloaded", "zoom"],
     /** This method is the first method of the component called, it's called before html template creation. */

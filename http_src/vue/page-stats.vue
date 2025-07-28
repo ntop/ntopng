@@ -51,16 +51,16 @@
             </TransitionGroup>
         </div>
 
-        <Transition name="list" mode="out-in">
-            <div class="mt-4 card card-shadow" v-if="enable_stats_table">
-                <div class="card-body">
+        <div class="mt-4 card card-shadow">
+            <Transition name="list" mode="out-in">
+                <div class="card-body" v-if="enable_stats_table">
                     <BootstrapTable id="page_stats_bootstrap_table" :columns="stats_columns" :rows="stats_rows"
                         :print_html_column="(col) => print_stats_column(col)"
                         :print_html_row="(col, row) => print_stats_row(col, row)">
                     </BootstrapTable>
                 </div>
-            </div>
-        </Transition>
+            </Transition>
+        </div>
 
         <div class="mt-4 card card-shadow" v-if="is_ntop_pro">
             <Transition name="list" mode="out-in">
