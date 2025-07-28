@@ -1460,6 +1460,11 @@ local function get_flow_link(fmt, add_hyperlink)
       get_label_link(fmt['flow']['cli_ip']['label_long'], tag, value,
 		     add_hyperlink) .. cli_ip
 
+   -- client is blacklisted, add block icon
+   if fmt['flow']['cli_ip']['blacklisted'] and fmt['flow']['cli_ip']['blacklisted'] == "1" then
+      label = label .. ' <i class="fas fa-ban" style="color: red;" title="Blacklisted Client"></i>'
+   end
+
    local cli_port = fmt['flow']['cli_port']['value']
    if not isEmptyString(cli_port) and cli_port ~= '0' then
       label = label .. vlan .. ':' ..
@@ -1490,6 +1495,11 @@ local function get_flow_link(fmt, add_hyperlink)
    label = label ..
       get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value,
 		     add_hyperlink) .. srv_ip
+
+   -- server is blacklisted, add block icon
+   if fmt['flow']['srv_ip']['blacklisted'] and fmt['flow']['srv_ip']['blacklisted'] == "1" then
+      label = label .. ' <i class="fas fa-ban" title="Blacklisted Server"></i>'
+   end
 
    local srv_port = fmt['flow']['srv_port']['value']
    if not isEmptyString(srv_port) and srv_port ~= '0' then
@@ -1565,7 +1575,7 @@ function flow_alert_store:get_alert_details(value)
    local add_hyperlink = true
    local json = json.decode(value["json"]) or {}
    local proto_info = json["proto"]
-   
+
    value["packets"] = (value["cli2srv_pkts"] or 0) + (value["srv2cli_pkts"] or 0)
    
    details[#details + 1] = {
