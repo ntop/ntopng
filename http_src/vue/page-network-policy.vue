@@ -154,6 +154,7 @@ const import_network_policies_rest = async function (params) {
 
 // Function used to populate text area with data received from the backend at page initialization
 const getConfig = async () => {
+    isLoading.value = true;
     const data = await ntopng_utility.http_request(get_config_url)
 
     data.forEach(item => {
@@ -164,6 +165,7 @@ const getConfig = async () => {
                 : item.value_description;
         }
     })
+    isLoading.value = false;
 };
 
 // Used to mark a text area as modified so that only modified text areas are sent to the backend to be stored in redis
@@ -222,7 +224,6 @@ const saveConfig = async () => {
             }
         }
 
-        isLoading.value = true;
         const res = await ntopng_utility.http_post_request(set_config_url, data)
         modifiedInputs.value = [];
         if (!res.error) {
@@ -235,13 +236,11 @@ const saveConfig = async () => {
             setTimeout(() => {
                 saveSuccess.value = false;
                 getConfig();
-                isLoading.value = false;
             }, 500);
         } else {
             configuration_error.value = 'Error: ' + res.error_msg;
             show_configuration_error.value = true;
             show_border_error.value = true;
-            isLoading.value = false;
         }
         return true;
     }
