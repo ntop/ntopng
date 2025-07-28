@@ -67,7 +67,8 @@ const filter_table_array = ref([]);
 const filters = ref([]);
 const refresh_rate = 10000;
 const host_details_url = `${http_prefix}/lua/host_details.lua`
-const flow_exporter_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`
+const flow_exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua`
+const snmp_iface_url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua`
 const flow_exporter_icon = "<i class='fas fa-file-export'></i>"
 const host_details_icon = "<i class='fas fa-laptop'></i>"
 const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("host_pools.children_safe") + "'></i></font>"
@@ -273,7 +274,8 @@ const map_table_def_columns = (columns) => {
                     ifid_name = ` [${value.seen_on_interface.name}]`
                     tag_filter2 = ` tag-filter2="interface_filter" tag-value2="${value.seen_on_interface.id}" `
                 }
-                return `<a href="${flow_exporter_url}?ip=${value.device.ip}${ifid}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="deviceIP" tag-value="${value.device.ip}" ${tag_filter2}>${value.device.name}${ifid_name}</a>`
+
+                return `<a href="${flow_exporter_url}?probe_uuid=${value.device.probe_uuid}${ifid}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" data-bs-toggle='tooltip' data-bs-placement='bottom' title='${value.device.label}' tag-filter="deviceIP" tag-value="${value.device.ip}" ${tag_filter2}>${value.device.name}${ifid_name}</a>`
             }
             return ''
         },
@@ -296,7 +298,8 @@ const map_table_def_columns = (columns) => {
                     ifid = `&ifid=${row.flow_exporter.seen_on_interface.id}`
                     tag_filter3 = ` tag-filter3="interface_filter" tag-value3="${row.flow_exporter.seen_on_interface.id}" `
                 }
-                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.in_port.index}"${ifid}>${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="inIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.in_port.index}" tag-value2="${row.flow_exporter.device.ip}"${tag_filter3}>${name}</a>`
+
+                return `<a href="${snmp_iface_url}?host=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.in_port.index}"${ifid}>${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="inIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.in_port.index}" tag-value2="${row.flow_exporter.device.ip}"${tag_filter3}>${name}</a>`
             }
             return ''
         },
@@ -312,7 +315,7 @@ const map_table_def_columns = (columns) => {
                     ifid = `&ifid=${row.flow_exporter.seen_on_interface.id}`
                     tag_filter3 = ` tag-filter3="interface_filter" tag-value3="${row.flow_exporter.seen_on_interface.id}" `
                 }
-                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.out_port.index}"${ifid}>${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="outIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.out_port.index}" tag-value2="${row.flow_exporter.device.ip}"${tag_filter3}>${name}</a>`
+                return `<a href="${snmp_iface_url}?host=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.out_port.index}"${ifid}>${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="outIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.out_port.index}" tag-value2="${row.flow_exporter.device.ip}"${tag_filter3}>${name}</a>`
             }
             return ''
         },

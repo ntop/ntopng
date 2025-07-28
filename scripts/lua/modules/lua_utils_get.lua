@@ -89,9 +89,24 @@ end
 
 -- ##############################################
 
-function getProbeName(exporter_ip, show_vlan, shorten_len)
+function getProbeName(exporter_ip, show_vlan, shorten_len, show_ip_and_alias)
+   -- Set default to true if nil to show ip [alias]
+   if show_ip_and_alias == nil then
+      show_ip_and_alias = true
+   end
+
    local cached_device_name
    local snmp_cached_dev
+
+   local probe_alias = ""
+
+   -- if show_ip_and_alias == false only returns the alias
+   local probe_alias = getFlowDevAlias(exporter_ip, show_ip_and_alias)
+
+   -- In case an alias is set to the flow exporter, directly use the alias
+   if not isEmptyString(probe_alias) and probe_alias ~= exporter_ip then
+      return probe_alias
+   end
 
    -- No alias set, let's try with the SNMP
    if ntop.isPro() then
@@ -1037,7 +1052,7 @@ end
 function getFlowDevAlias(flowdev_ip, add_id)
    local alias = ntop.getHashCache(getFlowDevAliasKey(), flowdev_ip)
    local ret
-
+   
    if not isEmptyString(alias) then
       if (add_id == true) then
 	 ret = flowdev_ip .. " [" .. alias .. "]"

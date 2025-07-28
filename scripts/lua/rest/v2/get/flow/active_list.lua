@@ -194,11 +194,27 @@ for _, value in ipairs(flows_stats.flows) do
 
     if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
         local device_ip = value["device_ip"]
+        local probe_uuid = 0
+
+        -- get exporter info
+        local ifstats = interface.getStats()
+        for interface_id, probes_list in pairs(ifstats.probes or {}) do
+            for source_id, probe_info in pairs(probes_list or {}) do
+                local probe_ip = probe_info["probe.ip"]
+                
+                -- get probe uuid if ips match
+                if probe_ip == device_ip then
+                    probe_uuid = probe_info["probe.uuid_num"]
+                end
+            end
+        end
 
         record.flow_exporter = {
             device = {
-                ip = value["device_ip"],
-                name = getProbeName(value["device_ip"])
+                ip = device_ip,
+                name = device_ip,
+                label = getProbeName(device_ip, false, false, false),
+                probe_uuid = probe_uuid
             },
             in_port = {
                 index = value["in_index"],
