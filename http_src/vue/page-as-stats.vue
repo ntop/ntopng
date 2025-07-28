@@ -29,7 +29,7 @@
 
 
 <script setup>
-import { ref, onBeforeMount } from "vue";
+import { ref, onBeforeMount, computed } from "vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as DashboardTimeseries } from "./dashboard-timeseries.vue";
@@ -45,7 +45,12 @@ const props = defineProps({
 
 const current_time = Math.floor(Date.now() / 1000);
 const seconds_one_week = 3600 * 24 * 7;
-const table_id = ref('as_stats');
+
+// render table in httpdocs/tables_config/as_stats.json if context.ASNModeEnabled is false, else render the IXP mode table: httpdocs/tables_config/as_stats_ixp_mode.json
+const table_id = computed(() => {
+    return props.context?.ASNModeEnabled ? 'as_stats_ixp_mode' : 'as_stats';
+});
+
 const chart_title = _i18n('top_active_asn')
 const showTitle = ref(false);
 const timeseries_id = ref('top_asn');

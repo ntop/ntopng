@@ -71,13 +71,16 @@ elseif interface.isZMQInterface() then
     show_sankey = true
 end
 
+-- used to load a different table in vuejs if ASN mode is enabled
+local ASNModeEnabled = ntop.getPref("ntopng.prefs.toggle_ixp_mode") == "1"
 
 local context = {
     ifid = ifid,
     showSankey = show_sankey,
     csrf = ntop.getRandomCSRFValue(),
     isEnterprise = ntop.isEnterprise(),
-    showTimeseries = areASTimeseriesEnabled(ifid)
+    showTimeseries = areASTimeseriesEnabled(ifid),
+    ASNModeEnabled = ASNModeEnabled
 }
 
 local json_context = json.encode(context)

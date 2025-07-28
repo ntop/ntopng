@@ -1,0 +1,110 @@
+{
+	"id": "as_stats",
+	"data_url": "lua/rest/v2/get/asn/get_as_data.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"class": [],
+					"event_id": "click_button_timeseries"
+				},
+				{
+					"id": "exporters_stats",
+					"icon": "fas fa-file-export",
+					"title_i18n": "exporters_stats",
+					"class": [],
+					"event_id": "click_button_exporters_stats"
+				},
+				{
+					"id": "host",
+					"icon": "fas fa-laptop",
+					"title_i18n": "hosts",
+					"class": [],
+					"event_id": "click_button_host"
+				},
+                {
+					"id": "flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows",
+					"class": [],
+					"event_id": "click_button_flows"
+				}
+			]
+		}, {
+            "id": "as_number",
+			"title_i18n": "asn",
+			"data_field": "asn",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+            "id": "num_hosts",
+            "title_i18n": "asn_num_hosts",
+            "data_field": "num_hosts",
+            "sortable": true,
+            "class": [
+                "text-center",
+                "text-nowrap"
+            ]
+        },
+		{
+            "id": "name",
+            "title_i18n": "name",
+            "data_field": "asname",
+			"sortable": true,
+			"class": [
+                "text-left",
+				"text-nowrap"
+			]
+		},
+        {
+            "id": "throughput",
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-right"
+			]
+		},
+		{
+            "id": "traffic",
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-right"
+			]
+		},
+		{
+            "id": "alerted_flows",
+			"title_i18n": "flow_details.alerted_flows",
+			"data_field": "alerted_flows",
+			"sortable": true,
+			"class": [
+                "text-nowrap",
+				"text-center"
+			]
+		}
+		
+	]
+}

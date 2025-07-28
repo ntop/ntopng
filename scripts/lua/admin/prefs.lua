@@ -2235,7 +2235,6 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.ixp_mode") ..
             '</th></tr></thead>')
 
-        local enabledIXP = ntop.getPref("ntopng.prefs.toggle_ixp_mode")
         -- enable ixp mode toggle button
         prefsToggleButton(subpage_active, {
             field = "ixp_mode_enabled",
