@@ -72,7 +72,7 @@ elseif interface.isZMQInterface() then
 end
 
 -- used to load a different table in vuejs if ASN mode is enabled
-local ASNModeEnabled = ntop.getPref("ntopng.prefs.toggle_ixp_mode") == "1"
+local ASNModeEnabled = ntop.getPref("ntopng.prefs.toggle_asn_mode") == "1"
 
 local context = {
     ifid = ifid,
