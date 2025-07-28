@@ -45,7 +45,6 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   char *http_index_page;
-  char *ch_flows_archive_path;
   char *influx_internal_db_name;
   bool influx_internal_available;
   bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge;
@@ -590,9 +589,7 @@ class Prefs {
   inline char *getHttpIndexPage() {
     return http_index_page;
   };
-  inline char *getCHArchivePath() {
-    return ch_flows_archive_path;
-  };
+
   inline bool getIXPModeEnabled() {
     return ixp_mode_enabled;
   };

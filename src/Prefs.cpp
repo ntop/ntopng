@@ -128,7 +128,6 @@ Prefs::Prefs(Ntop *_ntop) {
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
   http_index_page = strdup(INDEX_URL);
-  ch_flows_archive_path = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
   ixp_mode_enabled = false;
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
@@ -1083,15 +1082,6 @@ void Prefs::reloadPrefsFromRedis() {
     tmp = strdup(INDEX_URL);
   }
   http_index_page = tmp;
-
-  getDefaultStringPrefsValue(CONST_PREFS_CH_FLOWS_ARCHIVE_PATH, &tmp, DEFAULT_CH_FLOWS_ARCHIVE_PATH);
-  if(ch_flows_archive_path) free(ch_flows_archive_path);
-
-  if(tmp[0] == '\0') {
-    free(tmp);
-    tmp = strdup(DEFAULT_CH_FLOWS_ARCHIVE_PATH);
-  }
-  ch_flows_archive_path = tmp;
 
   ixp_mode_enabled = getDefaultBoolPrefsValue(CONST_PREFS_IXP_MODE_ENABLED, false);
   
@@ -2750,7 +2740,6 @@ void Prefs::lua(lua_State *vm) {
                             enable_interface_name_only);
   lua_push_uint64_table_entry(vm, "http_port", http_port);
   lua_push_str_table_entry(vm, "http_index_page", http_index_page);
-  lua_push_str_table_entry(vm, "ch_flows_archive_path", ch_flows_archive_path);
   lua_push_bool_table_entry(vm, "ixp_mode_enabled;", ixp_mode_enabled);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);

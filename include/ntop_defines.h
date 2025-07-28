@@ -790,10 +790,6 @@
 #define DEFAULT_HTTP_INDEX_PAGE \
   ""
 
-#define CONST_PREFS_CH_FLOWS_ARCHIVE_PATH \
-  NTOPNG_PREFS_PREFIX ".clickhouse_flows_archive_path"
-#define DEFAULT_CH_FLOWS_ARCHIVE_PATH ""
-
 #define CONST_PREFS_IXP_MODE_ENABLED \
   NTOPNG_PREFS_PREFIX ".toggle_ixp_mode"
 #define DEFAULT_IXP_MODE_ENABLED \
