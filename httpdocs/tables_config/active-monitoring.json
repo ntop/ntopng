@@ -25,27 +25,21 @@
 					"id": "timeseries",
 					"icon": "fas fa-chart-area",
 					"title_i18n": "prefs.timeseries",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_timeseries"
 				},
 				{
 					"id": "edit",
 					"icon": "fas fa-edit",
 					"title_i18n": "edit",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_edit"
 				},
 				{
 					"id": "delete",
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_delete"
 				}
 			]
