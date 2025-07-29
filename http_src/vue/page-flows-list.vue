@@ -493,11 +493,6 @@ async function load_table_filters_array() {
     const url = `${http_prefix}/lua/rest/v2/get/flow/flow_filters.lua?${url_params}`;
     let res = await ntopng_utility.http_request(url);
 
-    /* If ASN Mode is enabled remove QOE from filter as it is not present in the table */
-    if (props.context?.ASNModeEnabled) {
-        res = res.filter((el) => el.name !== 'qoe');
-    }
-
     set_filters_list(res)
     loading.value = false;
     clearInterval(interval_id.value);

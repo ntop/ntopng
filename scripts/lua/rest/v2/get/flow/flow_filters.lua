@@ -10,6 +10,8 @@ require "label_utils"
 require "http_lint"
 require "lua_utils_get"
 require "flow_utils"
+require "check_redis_prefs"
+
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
@@ -298,7 +300,10 @@ rsp[#rsp + 1] = {
 }
 
 -- QOE filters
-if ntop.isEnterpriseL then
+-- If ASN Mode is enabled remove QOE from filter as it is not present in the live flows table
+local isASNModeEnabled = isASNModeEnabled()
+
+if ntop.isEnterpriseL() and (not isASNModeEnabled) then
     local qoe_filters = {{key = "qoe", value = "", label = i18n("all")}}
 
     if flowstats["qoe"] then

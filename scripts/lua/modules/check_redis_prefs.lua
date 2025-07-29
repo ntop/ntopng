@@ -12,6 +12,13 @@ end
 
 -- ###########################################
 
+-- Check If ASN Mode is enable
+function isASNModeEnabled()
+    return ((ntop.getPref("ntopng.prefs.toggle_asn_mode") ~= "0"))
+end
+
+-- ###########################################
+
 function areInterfaceL7TimeseriesEnabled(ifid)
     local l7proto_ts = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
     return (areInterfaceTimeseriesEnabled(ifid) and
