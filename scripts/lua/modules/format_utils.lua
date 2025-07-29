@@ -15,7 +15,7 @@ function format_utils.round(num, idp)
    end
 
    if num ~= num then -- nan (not a number)
-      tprint("Number is nan")
+      ttprint("Number is nan")
       io.write(debug.traceback() .. "\n")
       res = 0
    elseif math.abs(num) == math.huge then
@@ -772,6 +772,7 @@ function format_utils.formatASN(asn, short_version, shorten_string)
             if (as_info) then
                 name = as_info.asname
             else
+               -- if no asn info is present, curl to get ASN name
                 name = ntop.getASNameFromASN(asn)
             end
             if (shorten_string) then
@@ -790,6 +791,59 @@ function format_utils.formatASN(asn, short_version, shorten_string)
 
     return name
 end
+
+-- formats asn transit as ASN (AS NAME)  [via ASN X (AS NAME)]
+function format_utils.formatASN_transit(v, peer_as, ip, is_client_as)
+   local asn = ""
+   local max_len = 64
+
+   v = tonumber(v)
+   peer_as = tonumber(peer_as)
+
+   -- Only process asn != 0
+   if v and v ~= 0 then
+      local label = tostring(v)
+
+      -- if IP is present get AS name for that IP
+      if not isEmptyString(ip) then
+         local as_name = shortenString(ntop.getASName(ip), max_len)
+         if as_name and as_name ~= "" then
+            label = label .. " (" .. as_name .. ")"
+         end
+      end
+
+      -- format asn link
+      asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s</A>', ntop.getHttpPrefix(), v, label)
+   end
+
+   -- Process peer/transit ASN if valid, non-zero, and different from main ASN
+   if peer_as and peer_as ~= 0 and v ~= peer_as then
+      local peer_asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s', ntop.getHttpPrefix(), peer_as, peer_as)
+      local peer_as_name = shortenString(ntop.getASNameFromASN(peer_as), max_len)
+
+      local via = ""
+      if peer_as_name and peer_as_name ~= "" then
+         via = " (" .. peer_as_name .. ")"
+      end
+
+      local peer_info = "[via ASN " .. peer_asn .. via .. "</A>]"
+
+      -- append or prepend peer info if present
+      if asn ~= "" then
+         if is_client_as then
+            asn = asn .. " " .. peer_info
+         else
+            asn = peer_info .. " " .. asn
+         end
+      else
+         -- if no main ASN, output peer info
+         asn = peer_info
+      end
+   end
+
+   return asn
+end
+
 
 -- ######################################################
 

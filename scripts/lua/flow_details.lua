@@ -67,8 +67,6 @@ function formatASN(v, peer_as, ip, is_client_as)
       local label = v .. " (" .. (as_name or "") .. ")"      
 
       asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. v .. "\">" .. label .. "</A>"
-
-      -- tprint(v .. " / "..peer_as)
    end
    
    if((peer_as ~= nil) and (peer_as ~= 0) and (v ~= peer_as)) then

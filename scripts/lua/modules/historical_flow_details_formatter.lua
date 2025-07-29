@@ -252,33 +252,24 @@ function historical_flow_details_formatter.format_asn(flow)
 end
 
 function historical_flow_details_formatter.format_asn_peer(flow, src_peer_asn, dst_peer_asn)
-    local max_len = max_len
-    local src_as_name = ""
-    local dst_as_name = ""
-    local src_asn = ""
-    local dst_asn = ""
+    local format_utils = require "format_utils"
 
-    if src_peer_asn ~= nil then
-        src_as_name = shortenString(ntop.getASNameFromASN(tonumber(src_peer_asn)), max_len)
-    end
-
-    if dst_peer_asn ~= nil then
-        dst_as_name = shortenString(ntop.getASNameFromASN(tonumber(dst_peer_asn)), max_len)
-    end
-
+    -- source asn
+    local src_asn = flow.SRC_ASN or 0
+    local src_ip = flow and flow.IPV4_SRC_ADDR or flow.IPV6_SRC_ADDR or 0
     
-    if not isEmptyString(src_as_name) then
-        local src_label = src_peer_asn .. " (" .. (src_as_name or "") .. ")"      
-        src_asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. src_peer_asn .. "\">" .. src_label .. "</A>"
-    end
+    -- destination asn
+    local dst_asn = flow.DST_ASN or 0
+    local dst_ip = flow and flow.IPV4_DST_ADDR or flow.IPV6_DST_ADDR or 0
+
+    -- source asn formatting
+    src_asn = format_utils.formatASN_transit(src_asn, src_peer_asn, src_ip, true)
     
-    if not isEmptyString(dst_as_name) then
-        local dst_label = dst_peer_asn .. " (" .. (dst_as_name or "") .. ")"      
-        dst_asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. dst_peer_asn .. "\">" .. dst_label .. "</A>"
-    end
+    -- destination asn formatting
+    dst_asn = format_utils.formatASN_transit(dst_asn, dst_peer_asn, dst_ip, false)
 
     return {
-        name = i18n("flow_details.peer_as_src_dst"),
+        name = i18n("flow_details.as_src_dst"),
         values = {
             [1] = src_asn,
             [2] = dst_asn
@@ -881,17 +872,16 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         flow_details[#flow_details + 1] =
             historical_flow_details_formatter.format_historical_bytes_progress_bar(
                 flow, info)
-        -- Format ASN
-        flow_details[#flow_details + 1] =
-            historical_flow_details_formatter.format_asn(flow)
+        
         
         -- Format ASN Peers if they are != 0
-        local src_peer_asn = flow["SRC_PEER_AS"]
-        local dst_peer_asn = flow["DST_PEER_AS"]
+        local src_peer_asn = flow["SRC_PEER_ASN"]
+        local dst_peer_asn = flow["DST_PEER_ASN"]
+        local asn_data = historical_flow_details_formatter.format_asn_peer(flow, src_peer_asn, dst_peer_asn)
 
         if src_peer_asn ~= nil or dst_peer_asn ~= nil then
-            flow_details[#flow_details + 1] =
-                historical_flow_details_formatter.format_asn_peer(flow, src_peer_asn, dst_peer_asn)
+            flow_details[#flow_details + 1] = asn_data
+                
         end
 
         if flow["QOE_SCORE"] and tonumber(flow["QOE_SCORE"]) > 0 then
