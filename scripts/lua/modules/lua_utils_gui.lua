@@ -1014,7 +1014,6 @@ function format_portidx_name(device_ip, portidx, short_version)
                 local snmp_mappings = require "snmp_mappings"
 
                 local res = snmp_mappings.get_iface_name(device_ip, portidx)
-
                 if (res ~= nil) then idx_name = res end
             end
         end

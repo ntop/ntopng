@@ -2422,6 +2422,7 @@ local lang = {
     ["src2dst_tcp_flags"] = "Client TCP Flags",
     ["srv_as"] = "Srv AS",
     ["srv_asn"] = "Srv ASN",
+    ["transit_asn"] = "Transit ASN",
     ["srv_host_pool_id"] = "Srv Pool",
     ["srv_nw_latency"] = "Server Network Latency",
     ["srv_port"] = "Srv Port",

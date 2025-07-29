@@ -134,11 +134,19 @@ for _, value in ipairs(flows_stats.flows) do
     -- ASN data extraction
     local cli_asn = value['cli.asn']
     local srv_asn = value['srv.asn']
-    local transit_asn = ""
+    local transit_asn = 0
+    local transit_asn_ip = ""
 
-    --peer src !- src -> transit richiesta
-    --peer dst !- dst -> transit risposta
-    --se transit = 0 non far vedere
+    -- Get transit asn from flow
+    if(value.src_peer_as ~= value.src_as) then
+        transit_asn = value.src_peer_as
+        transit_asn_ip = cli_ip
+    else
+        if(value.dst_peer_as ~= value.dst_as) then
+            transit_asn = value.dst_peer_as
+            transit_asn_ip = srv_ip
+        end
+    end
 
     local cli_asn_data = {
         asn = cli_asn,
@@ -151,8 +159,8 @@ for _, value in ipairs(flows_stats.flows) do
     }
 
     local transit_asn_data = {
-        asn = transit_asn,
-        name 
+        asn = transit_asn or 0,
+        name = ntop.getASName(transit_asn_ip)
     }
 
     -- Formatting client column
@@ -219,6 +227,7 @@ for _, value in ipairs(flows_stats.flows) do
         server.container.pod = value["server_container"]["k8s.pod"]
     end
 
+    -- snmp interface index
     if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
         local device_ip = value["device_ip"]
         local probe_uuid = 0
@@ -245,10 +254,12 @@ for _, value in ipairs(flows_stats.flows) do
             },
             in_port = {
                 index = value["in_index"],
+                -- last param is short version
                 name = format_portidx_name(device_ip, value["in_index"], true)
             },
             out_port = {
                 index = value["out_index"],
+                -- last param is short version
                 name = format_portidx_name(device_ip, value["out_index"], true)
             }
         }

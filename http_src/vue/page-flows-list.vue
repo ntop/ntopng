@@ -227,6 +227,14 @@ const map_table_def_columns = (columns) => {
 
             return ''
         },
+        "transit_asn": (value, row) => {
+            if (value.asn && value.name) {
+                let formatted_asn = formatterUtils.formatAsn(value.asn, value.name)
+                return `<a href="${asn_hosts_url}${value.asn}">${formatted_asn}</a>`
+            }
+
+            return ''
+        },
         "score": (value, row) => {
             if (value > 0) {
                 let danger_icon = ''
@@ -479,10 +487,17 @@ async function load_table_filters_array() {
         it could happen some strange behavior */
     clearInterval(interval_id.value);
     loading.value = true;
-    let extra_params = get_extra_params_obj();
+    let extra_params = get_extra_params_obj();    
     let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
+
     const url = `${http_prefix}/lua/rest/v2/get/flow/flow_filters.lua?${url_params}`;
-    const res = await ntopng_utility.http_request(url);
+    let res = await ntopng_utility.http_request(url);
+
+    /* If ASN Mode is enabled remove QOE from filter as it is not present in the table */
+    if (props.context?.ASNModeEnabled) {
+        res = res.filter((el) => el.name !== 'qoe');
+    }
+
     set_filters_list(res)
     loading.value = false;
     clearInterval(interval_id.value);
@@ -502,7 +517,33 @@ function reset_filters() {
 
 /* ************************************** */
 
-function columns_sorting(col, r0, r1) { }
+function columns_sorting(col, r0, r1) {
+    console.log("-------")
+    console.log(col)
+    if (col != null) {
+        if (col.id == "ip") {
+            return sortingFunctions.sortByIP(r0.ip, r1.ip, col.sort);
+        } else if (col.id == "name") {
+            return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
+        } else if (col.id == "ntopng_interface") {
+            return sortingFunctions.sortByIP(r0.ntopng_interface, r1.ntopng_interface, col.sort);
+        } else if (col.id == "probe_ip") {
+            return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
+        } else if (col.id == "export_type") {
+            return sortingFunctions.sortByName(r0.export_type, r1.export_type, col.sort);
+        } else if (col.id == "exporter_interfaces") {
+            return sortingFunctions.sortByNumber(r0.exporter_interfaces, r1.exporter_interfaces, col.sort);
+        } else if (col.id == "time_last_used") {
+            return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
+        } else if (col.id == "exported_flows") {
+            return sortingFunctions.sortByNumber(r0.exported_flows, r1.exported_flows, col.sort);
+        } else if (col.id == "dropped_flows") {
+            return sortingFunctions.sortByNumber(r0.dropped_flows, r1.dropped_flows, col.sort);
+        } else if (col.id == "interface_name") {
+            return sortingFunctions.sortByName(r0.interface_name, r1.interface_name, col.sort);
+        }
+    }
+}
 
 /* ************************************** */
 

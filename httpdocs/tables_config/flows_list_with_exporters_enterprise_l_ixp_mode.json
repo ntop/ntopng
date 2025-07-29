@@ -65,7 +65,7 @@
 		{
 			"title_i18n": "protocol",
 			"data_field": "protocol",
-			"sortable": false,
+			"sortable": true,
 			"min-width" : "160px",
 			"class": [
 				"text-nowrap"
@@ -84,7 +84,7 @@
 		{
 			"title_i18n": "db_search.cli_asn",
 			"data_field": "cli_asn",
-			"sortable": false,
+			"sortable": true,
 			"min-width" : "200px",
 			"class": [
 				"text-nowrap"
@@ -93,7 +93,16 @@
         {
 			"title_i18n": "db_search.srv_asn",
 			"data_field": "srv_asn",
-			"sortable": false,
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.transit_asn",
+			"data_field": "transit_asn",
+			"sortable": true,
 			"min-width" : "200px",
 			"class": [
 				"text-nowrap"
