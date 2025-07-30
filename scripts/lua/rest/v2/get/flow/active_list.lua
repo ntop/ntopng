@@ -106,6 +106,7 @@ end
 
 for _, value in ipairs(flows_stats.flows) do
     local record = {}
+
     local key = value["ntopng.key"]
     local cli_ip = value["cli.ip"]
     local srv_ip = value["srv.ip"]
@@ -132,8 +133,8 @@ for _, value in ipairs(flows_stats.flows) do
     end
 
     -- ASN data extraction
-    local cli_asn = value['cli.asn']
-    local srv_asn = value['srv.asn']
+    local cli_asn = value['src_as']
+    local srv_asn = value['dst_as']
     local transit_asn = 0
     local transit_asn_ip = ""
 
@@ -150,17 +151,17 @@ for _, value in ipairs(flows_stats.flows) do
 
     local cli_asn_data = {
         asn = cli_asn,
-        name = ntop.getASName(cli_ip)
+        name = format_utils.formatASN(cli_asn, true, false)
     }
 
     local srv_asn_data = {
         asn = srv_asn,
-        name = ntop.getASName(srv_ip)
+        name = format_utils.formatASN(srv_asn, true, false)
     }
 
     local transit_asn_data = {
         asn = transit_asn or 0,
-        name = ntop.getASNameFromASN(tonumber(transit_asn) or 0)
+        name = format_utils.formatASN(transit_asn or 0, true, false)
     }
 
     -- Formatting client column
