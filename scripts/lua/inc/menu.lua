@@ -35,8 +35,7 @@ local checks = require "checks"
 
 -- ************************************
 local is_system_interface = toboolean(page_utils.is_system_view())
-tprint(is_system_interface)
-tprint("*****")
+
 local session_user = _SESSION['user'] 
 local checks_config = checks.getConfigset()["config"]
 local interface_config = checks_config["interface"]
@@ -551,10 +550,6 @@ page_utils.add_menubar_section({
             entry = page_utils.menu_entries.containers,
             hidden = not ifs.has_seen_containers,
             url = '/lua/containers_stats.lua'
-        }, {entry = page_utils.menu_entries.divider}, {
-            entry = page_utils.menu_entries.http_servers,
-            hidden = is_asn_mode_enabled,
-            url = '/lua/http_servers_stats.lua'
         }
     }
 })
