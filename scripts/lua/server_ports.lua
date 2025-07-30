@@ -10,15 +10,23 @@ if not ntop.isEnterpriseL() then
     return
 end
 
+require "check_redis_prefs"
 require "lua_utils"
 require "flow_utils"
 
 local page_utils = require("page_utils")
 local template = require "template_utils"
+local is_asn_mode_enabled = isASNModeEnabled()
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.server_ports)
+local menu = page_utils.menu_entries.server_ports
+
+if is_asn_mode_enabled then
+    menu = page_utils.menu_entries.server_ports_asn_mode
+end
+
+page_utils.print_header_and_set_active_menu_entry(menu)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

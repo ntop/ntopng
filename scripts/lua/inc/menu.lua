@@ -11,6 +11,7 @@ if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
     package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path
 end
 require "lua_utils"
+require "check_redis_prefs"
 
 local recording_utils = require "recording_utils"
 local format_utils = require "format_utils"
@@ -33,8 +34,9 @@ local behavior_utils = require("behavior_utils")
 local checks = require "checks"
 
 -- ************************************
-
-local is_system_interface = page_utils.is_system_view()
+local is_system_interface = toboolean(page_utils.is_system_view())
+tprint(is_system_interface)
+tprint("*****")
 local session_user = _SESSION['user'] 
 local checks_config = checks.getConfigset()["config"]
 local interface_config = checks_config["interface"]
@@ -63,8 +65,9 @@ if ntop.isEnterpriseL() then
            url = v.url,
         }
     end
-    local view = _GET["view"]
-    infrastructure_view = view and view == 'infrastructure' and table.len(infrastructure_instances) > 0
+    local view = _GET["view"] or false
+    
+    infrastructure_view = (view and view == 'infrastructure' and table.len(infrastructure_instances) > 0)
 end
 
 -- ************************************
@@ -239,6 +242,8 @@ local is_viewed = ifs.isViewed
 local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") ==
                                 "influxdb"
 local is_clickhouse_enabled = ntop.isClickHouseEnabled()
+local is_asn_mode_enabled = isASNModeEnabled()
+
 ifId = ifs.id
 
 -- NOTE: see sidebar.js for the client logic
@@ -347,7 +352,7 @@ else
     -- Flows
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.flows,
-        hidden = is_system_interface or infrastructure_view,
+        hidden = is_asn_mode_enabled or (is_system_interface or infrastructure_view),
         entries = {
             {
                 entry = page_utils.menu_entries.active_flows,
@@ -380,21 +385,69 @@ else
     ]] --
 
     -- ##############################################
+    -- Views menu entry for ASN Mode
+    -- Group hosts, flows 
+    
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.views,
+        hidden = not is_asn_mode_enabled or (is_system_interface or is_viewed or infrastructure_view),
+        entries = {{
+            entry = page_utils.menu_entries.hosts_asn_mode,
+            url = '/lua/hosts_stats.lua'
+        },
+        {
+            entry = page_utils.menu_entries.active_flows_asn_mode,
+            url = "/lua/flows_stats.lua"
+        }, {
+            entry = page_utils.menu_entries.historical_flows_asn_mode,
+            hidden = (not ntop.isEnterprise() and
+                not ntop.isnEdgeEnterprise()) or
+                not auth.has_capability(auth.capabilities.historical_flows) or
+                ifs.isViewed or ifs['type'] == 'db' or
+                not hasClickHouseSupport(),
+            url = "/lua/pro/db_search.lua"
+        }, {
+            entry = page_utils.menu_entries.server_ports_asn_mode,
+            url = '/lua/server_ports.lua',
+            hidden = not ntop.isEnterpriseL()
+        }}
+    })
+
+    -- ASN data + historical
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.as,
+        hidden = not is_asn_mode_enabled or (is_system_interface or is_viewed
+                 or infrastructure_view),
+        entries = {
+            {
+                entry = page_utils.menu_entries.autonomous_systems,
+                hidden = (not ntop.hasGeoIP()) or interface.isViewed(),
+                url = '/lua/as_stats.lua'
+            },
+            {
+                entry = page_utils.menu_entries.historical_autonomous_systems_asn_mode,
+                hidden = true,
+                url = '/lua/HISTORICAL_AS_STATS.LUA'
+            }
+        }
+    })
+    -- ##############################################
     -- Hosts
+
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.hosts,
         hidden = is_system_interface or is_viewed
-                 or infrastructure_view,
+                 or infrastructure_view or is_asn_mode_enabled,
         entries = {
             {
                 entry = page_utils.menu_entries.hosts,
                 url = '/lua/hosts_stats.lua'
             }, {
                 entry = page_utils.menu_entries.devices,
-                hidden = not ifs.has_macs,
+                hidden = (not ifs.has_macs),
                 url = '/lua/macs_stats.lua'
 	       }, {entry = page_utils.menu_entries.divider}, {
-	            hidden = not (ntop.isEnterpriseM() and not ntop.isWindows()) ,
+	            hidden = not (ntop.isEnterpriseM() and not ntop.isWindows()),
                 entry = page_utils.menu_entries.assets,
                 url = '/lua/pro/assets.lua'
             }
@@ -454,7 +507,7 @@ page_utils.add_menubar_section({
             url = '/lua/hosts_geomap.lua'
         }, {
             entry = page_utils.menu_entries.hosts_map,
-            hidden = not ntop.isEnterprise(),
+            hidden = not ntop.isEnterprise() or is_asn_mode_enabled,
             url = '/lua/pro/enterprise/hosts_map.lua'
         }
     }
@@ -479,7 +532,7 @@ page_utils.add_menubar_section({
             url = '/lua/pool_stats.lua'
         }, {
             entry = page_utils.menu_entries.autonomous_systems,
-            hidden = (not ntop.hasGeoIP()) or interface.isViewed(),
+            hidden = (not ntop.hasGeoIP()) or interface.isViewed() or is_asn_mode_enabled,
             url = '/lua/as_stats.lua'
         }, {
             entry = page_utils.menu_entries.countries,
@@ -498,6 +551,10 @@ page_utils.add_menubar_section({
             entry = page_utils.menu_entries.containers,
             hidden = not ifs.has_seen_containers,
             url = '/lua/containers_stats.lua'
+        }, {entry = page_utils.menu_entries.divider}, {
+            entry = page_utils.menu_entries.http_servers,
+            hidden = is_asn_mode_enabled,
+            url = '/lua/http_servers_stats.lua'
         }
     }
 })

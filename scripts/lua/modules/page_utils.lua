@@ -146,9 +146,14 @@ page_utils.menu_sections = {
         i18n_title = "policies",
         icon = "fa-solid fa-book-open"
     },
+    as = {
+        key = "as",
+        i18n_title = "as",
+        icon = "fas fa-globe"
+    },
     -- nEdge
     views = {
-        key = "hosts",
+        key = "views",
         i18n_title = "views",
         icon = "fas fa-bars"
     }
@@ -263,6 +268,12 @@ page_utils.menu_entries = {
         section = "flows",
         help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/historical_flows.html"
     },
+    historical_flows = {
+        key = "db_explorer",
+        i18n_title = "historical_flows",
+        section = "flows",
+        help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/historical_flows.html"
+    },
     server_ports = {
         key = "server_ports",
         i18n_title = "server_ports.server_ports",
@@ -275,6 +286,12 @@ page_utils.menu_entries = {
         key = "hosts",
         i18n_title = "hosts",
         section = "hosts",
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/hosts/hosts.html#id1"
+    },
+    hosts_asn_mode = {
+        key = "hosts",
+        i18n_title = "hosts",
+        section = "views",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/hosts/hosts.html#id1"
     },
     devices = {
@@ -323,6 +340,34 @@ page_utils.menu_entries = {
         section = "if_stats",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/interface/autonomous_systems.html"
     },
+
+    -- ASN Mode
+    autonomous_systems_asn_mode = {
+        key = "autonomous_systems_asn_mode",
+        i18n_title = "as_stats.autonomous_systems",
+        section = "as"
+    },
+    historical_autonomous_systems_asn_mode = {
+        key = "historical_autonomous_systems_asn_mode",
+        i18n_title = "db_explorer.historical_data_explorer",
+        section = "as"
+    },
+    active_flows_asn_mode = {
+        key = "active_flows_asn_mode",
+        i18n_title = "active_flows",
+        section = "views"
+    },
+    historical_flows_asn_mode = {
+        key = "historical_flows_asn_mode",
+        i18n_title = "historical_flows",
+        section = "views"
+    },
+    server_ports_asn_mode = {
+        key = "server_ports",
+        i18n_title = "server_ports.server_ports",
+        section = "views"
+    },
+
     countries = {
         key = "countries",
         i18n_title = "countries",

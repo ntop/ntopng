@@ -9,6 +9,8 @@ local page_utils = require "page_utils"
 local json = require "dkjson"
 local graph_utils = require "graph_utils"
 require "lua_utils"
+require "check_redis_prefs"
+local is_asn_mode_enabled = isASNModeEnabled()
 
 local page = _GET["page"]
 local asn = _GET["asn"]
@@ -17,7 +19,12 @@ interface.select(ifname)
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
+-- if asn mode, render active entry: 'as', not interface
+local menu = is_asn_mode_enabled and (page_utils.menu_entries.autonomous_systems_asn_mode
+                                  or page_utils.menu_entries.autonomous_systems)
+
+page_utils.print_header_and_set_active_menu_entry(menu)
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

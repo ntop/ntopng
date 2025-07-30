@@ -26,6 +26,7 @@ local have_nedge = ntop.isnEdge()
 local wheel = nil
 
 local host_ts_available = areHostTimeseriesEnabled()
+local is_asn_mode_enabled = isASNModeEnabled()
 
 local function generate_map_url(map, map_type, query, icon)
     local url = ""
@@ -45,8 +46,13 @@ local function generate_map_url(map, map_type, query, icon)
 end
 
 sendHTTPContentTypeHeader('text/html')
+local menu = page_utils.menu_entries.hosts
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts)
+if is_asn_mode_enabled then
+    menu = page_utils.menu_entries.hosts_asn_mode
+end
+
+page_utils.print_header_and_set_active_menu_entry(menu)
 local protocol = _GET["protocol"]
 local asn = _GET["asn"]
 local vlan = _GET["vlan"]

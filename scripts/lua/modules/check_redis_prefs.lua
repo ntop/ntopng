@@ -14,7 +14,7 @@ end
 
 -- Check If ASN Mode is enable
 function isASNModeEnabled()
-    return ((ntop.getPref("ntopng.prefs.toggle_asn_mode") ~= "0"))
+    return toboolean((ntop.getPref("ntopng.prefs.toggle_asn_mode") ~= "0"))
 end
 
 -- ###########################################

@@ -7,16 +7,26 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local ifstats = interface.getStats()
 
-require "lua_utils"
+require "check_redis_prefs"
 require "flow_utils"
+require "lua_utils"
 local page_utils = require("page_utils")
 local template = require "template_utils"
 local have_nedge = ntop.isnEdge()
+local is_asn_mode_enabled = isASNModeEnabled()
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header_and_set_active_menu_entry(ternary(have_nedge, page_utils.menu_entries.nedge_flows,
-    page_utils.menu_entries.active_flows))
+local menu = ternary(have_nedge, page_utils.menu_entries.nedge_flows,
+    page_utils.menu_entries.active_flows)
+
+-- Select active entry in asn mode
+if is_asn_mode_enabled then
+    menu = page_utils.menu_entries.active_flows_asn_mode
+end
+page_utils.print_header_and_set_active_menu_entry(menu)
+
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
