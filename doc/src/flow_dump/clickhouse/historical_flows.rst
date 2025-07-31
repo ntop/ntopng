@@ -447,4 +447,86 @@ This will create a new *Database* "live" interface, similar to any other physica
   Historical Flows Live View
 
 
+Historical Flows Archive for Compliance
+---------------------------------------
 
+To meet regulatory requirements such as GDPR, SOX, HIPAA, and PCI DSS, network data often needs to be retained for extended periods. ntopng supports exporting flow data from ClickHouse before it is deleted due to the TTL (time-to-live) mechanism, allowing for compliant long-term archiving on external storage systems.
+
+This document describes how to enable flow data export, configure it, and re-import archived data into ClickHouse when needed.
+
+Benefits
+--------
+
+- **Regulatory Compliance**: Satisfy long-term data retention mandates.
+- **Storage Optimization**: Prevent local storage exhaustion by exporting data before TTL deletion.
+- **Audit Trail**: Maintain historical records for forensic or compliance analysis.
+- **Data Recovery**: Re-import flow data as needed for investigation.
+
+Enabling Flow Export
+--------------------
+
+Follow these steps to enable flow data export in the ntopng web interface:
+
+1. Log in to the ntopng web interface.
+2. From the **Left Sidebar**, navigate to: Settings → Preferences (Expert View) → ClickHouse
+
+3. Locate the export option (e.g., "Export Deleted Flows to File").
+4. Enable this option by toggling it on.
+
+Once enabled, ntopng will automatically export flow records before they are deleted by the TTL mechanism. The export happens daily at midnight.
+
+Default Export Location
+-----------------------
+
+- **Path**: `/var/lib/ntopng`
+- **File Format**: Native ClickHouse format
+- **File Frequency**: One file per day
+
+Each exported file contains all flow data scheduled for TTL deletion that day.
+
+Custom Export Directory
+-----------------------
+
+To change the export directory:
+
+- Edit the ntopng configuration file or use the command-line argument: --db-archive-dir|6 <custom_path>
+- Replace `<custom_path>` with your desired export location.
+
+Importing Archived Flow Data
+----------------------------
+
+You can restore exported flow data to ClickHouse for analysis:
+
+**Prerequisites:**
+
+- A machine with `clickhouse-client` installed.
+
+**Command:**
+
+```bash
+clickhouse-client --query="INSERT INTO ntopng.flows FORMAT Native" < /path/to/exported_file
+```
+
+Steps:
+
+1. Copy the desired archived file to a system with access to ClickHouse.
+2. Run the clickhouse-client command as shown above.
+3. Confirm that the data has been successfully imported.
+
+Viewing Imported Data in ntopng
+-------------------------------
+
+Once the data is imported, it becomes visible in the ntopng UI:
+
+Go to:
+
+Flows → Historical and select the time range that corresponds to the data you imported.
+
+Important Notes
+---------------
+
+Timestamps: Each file contains exactly one day of data, with timestamps in UTC. For example, data from X 00:00:00 UTC to X+1 day is in one file.
+
+Retention: Imported data is subject to the same TTL rules. If the data is already older than the configured TTL window, it will be deleted at the next midnight cycle.
+
+Import Timing: Ensure you plan imports carefully to avoid losing data immediately after restoration.

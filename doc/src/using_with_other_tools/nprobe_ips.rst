@@ -13,7 +13,7 @@ combination with `nProbe in IPS mode <https://www.ntop.org/guides/nprobe/ips_mod
 
 Traffic policies are automatically exported to nProbe after a change to the policies configuration, or
 when a new nProbe instance connects to ntopng via ZMQ. In order to publish IPS events (including policies)
-an additional ZMQ channel is required. This can be configured using the :code:`--zmq-publish-events` option to 
+an additional ZMQ chann
 configure the ntopng ZMQ endpoint for IPS events. Example:
 
 .. code:: bash
@@ -24,14 +24,20 @@ configure the ntopng ZMQ endpoint for IPS events. Example:
 Please refer to the `nProbe documentation <https://www.ntop.org/guides/nprobe/ips_mode.html>`_ for more 
 details about the nProbe configuration and working mode.
 
-A different traffic policy can be configured for each pool of hosts (see :ref:`HostPools`) by clicking on the “key” button in 
-the *Pools* > *Host Pool Members* page, after selecting the *System* interface.
+A different traffic policy can be configured for each pool of hosts (see :ref:`HostPools`) by selecting the pool to edit, in the dropdown icon ('Actions column'), click 'Manage Pool'
+.. figure:: ../img/web_gui_interfaces_manage_pool.png
+  :align: center
+  :alt: Manage Host Pool
+
+  The Host Pool Page
+
+then on the “key” button in the *Interface* > *Host/Network/MAC Pools* page to edit the selected pool.
 
 .. figure:: ../img/web_gui_interfaces_edit_host_pool_policy.png
   :align: center
   :alt: Edit Host Pool Policy
 
-  The Host Pool Page
+  The Edit Host Pool Page
 
 The policies configuration includes a default policy, that can be Pass or Drop (Default Deny), and
 more specific rules that can be used to configure exceptions with respect to the default policy, including:
