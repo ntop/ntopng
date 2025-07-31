@@ -25,22 +25,16 @@ local transit_utils_debug = false
 -- Total bytes sent/rcvd per exporter (key = <device ip>)
 
 local tot_bytes_exporter = {}
-local tot_bytes_transit = {}
-local tot_bytes_as = {}
 
 -- Total bytes sent/rcvd per exporter/interface (key = <device ip>@<if index>)
 
 local tot_bytes_exp_if = {}
-local tot_bytes_as_transit = {}
 
 -- ####################
 
 local function resetAll()
     tot_bytes_exporter = {}
-    tot_bytes_transit = {}
-    tot_bytes_as = {}
     tot_bytes_exp_if = {}
-    tot_bytes_as_transit = {}
 end
 
 -- ####################
@@ -49,24 +43,6 @@ local function init_exporter(device_ip)
     local key = device_ip
     if not tot_bytes_exporter[key] then
         tot_bytes_exporter[key] = {sent = 0, rcvd = 0}
-    end
-end
-
--- ####################
-
-local function init_transit(transit)
-    local key = transit
-    if not tot_bytes_transit[key] then
-        tot_bytes_transit[key] = {sent = 0, rcvd = 0}
-    end
-end
-
--- ####################
-
-local function init_as(as)
-    local key = as
-    if not tot_bytes_as[key] then
-        tot_bytes_as[key] = {sent = 0, rcvd = 0}
     end
 end
 
@@ -84,38 +60,8 @@ end
 
 -- ####################
 
-local function inc_transit_sent(key, bytes)
-    tot_bytes_transit[key].sent = tot_bytes_transit[key].sent + bytes
-end
-
--- ####################
-
-local function inc_transit_rcvd(key, bytes)
-    tot_bytes_transit[key].rcvd = tot_bytes_transit[key].rcvd + bytes
-end
-
--- ####################
-
-local function inc_as_sent(key, bytes)
-    tot_bytes_as[key].sent = tot_bytes_as[key].sent + bytes
-end
-
--- ####################
-
-local function inc_as_rcvd(key, bytes)
-    tot_bytes_as[key].rcvd = tot_bytes_as[key].rcvd + bytes
-end
-
--- ####################
-
 local function get_interface_key(device_ip, interface_index)
     return device_ip .. "@" .. interface_index
-end
-
--- ####################
-
-local function get_as_key(transit, src_dst_as)
-    return transit .. "@" .. src_dst_as
 end
 
 -- ####################
@@ -128,18 +74,6 @@ local function init_interface(device_ip, interface_index)
 	        rcvd = 0,
 	        exporter_ip = device_ip,
 	        port_index = interface_index
-        }
-   end
-end
-
-local function init_link_as_transit(transit, as)
-   local key = get_as_key(transit, as)
-   if not tot_bytes_as_transit[key] then
-        tot_bytes_as_transit[key] = {
-	        sent = 0,
-	        rcvd = 0,
-	        transit = transit,
-	        src_dst_as = as
         }
    end
 end
@@ -158,30 +92,21 @@ end
 
 -- ####################
 
-local function inc_link_as_transit_sent(key, bytes)
-    tot_bytes_as_transit[key].sent = tot_bytes_as_transit[key].sent + bytes
-end
+local aggregation_keys = {}
 
--- ####################
+local field_keys = {}
 
-local function inc_link_as_transit_rcvd(key, bytes)
-    tot_bytes_as_transit[key].rcvd = tot_bytes_as_transit[key].rcvd + bytes
-end
+local aggregated_table = {}
 
--- ####################
-
-local function callback_transit(src_dst_peer_as, src_dst_as, bytes_rcvd, bytes_sent)
-    init_transit(src_dst_peer_as)
-    init_as(src_dst_as)
-    init_link_as_transit(src_dst_peer_as, src_dst_as)
-    inc_link_as_transit_sent(get_as_key(src_dst_peer_as, src_dst_as), bytes_sent)
-    inc_link_as_transit_rcvd(get_as_key(src_dst_peer_as, src_dst_as), bytes_rcvd)
-    inc_as_sent(src_dst_as, bytes_sent)
-    inc_as_rcvd(src_dst_as, bytes_rcvd)
-    if (src_dst_peer_as ~= src_dst_as) then
-        inc_transit_sent(src_dst_peer_as, bytes_sent)
-        inc_transit_rcvd(src_dst_peer_as, bytes_rcvd)
+local function get_aggregation_key(keys)
+    local result = ""
+    for _,key in pairs(keys) do
+        if result == "" then result = key 
+        else
+            result = result .. "@" .. key
+        end
     end
+    return result
 end
 
 -- ####################
@@ -194,6 +119,30 @@ local function callback(_, flow)
             flow.in_index .. " -> " .. flow.out_index .. " | " ..
             flow.bytes_sent .. " / " .. flow.bytes_rcvd)
     end
+
+    local key = ""
+    for _,k in ipairs(aggregation_keys) do
+        if flow[k] ~= nil then
+            if key == "" then key = flow[k] 
+            else
+                key = key .. "@" .. flow[k]
+            end
+        end
+    end
+    for _,k in ipairs(field_keys) do
+        if flow[k] ~= nil then
+            if aggregated_table[key] == nil then 
+                aggregated_table[key] = {}
+                aggregated_table[key][k] = flow[k]
+            elseif aggregated_table[key][k] ~= nil and 
+                    (k == "bytes_sent" or k == "bytes_rcvd" or k == "bytes_total") then
+                aggregated_table[key][k] = aggregated_table[key][k] + flow[k]
+            else
+                aggregated_table[key][k] = flow[k]
+            end
+        end
+    end
+
     -- Initialize hash entries if not yet popupated
     init_exporter(flow.device_ip)
     --init_interface(flow.device_ip, flow.in_index)
@@ -204,13 +153,6 @@ local function callback(_, flow)
         inc_interface_rcvd(get_interface_key(flow.device_ip, flow.in_index), flow.bytes_sent)
         inc_exporter_sent(flow.device_ip, flow.bytes_rcvd)
         inc_exporter_rcvd(flow.device_ip, flow.bytes_sent)
-        -- Initialize transit
-        if(flow.src_peer_as ~= nil) and (flow.dst_as ~= nil) and 
-            (flow.src_peer_as ~= flow.dst_as) and (flow.src_peer_as ~= flow.src_as) then
-                callback_transit(flow.src_peer_as, flow.dst_as, flow.bytes_sent, flow.bytes_rcvd)
-        elseif((flow.dst_peer_as ~= nil) and (flow.dst_as ~= nil)) then
-                callback_transit(flow.dst_peer_as, flow.dst_as, flow.bytes_sent, flow.bytes_rcvd)
-        end
 
     elseif (flow.dst_as == asn) then
         init_interface(flow.device_ip, flow.out_index)
@@ -218,12 +160,6 @@ local function callback(_, flow)
         inc_interface_rcvd(get_interface_key(flow.device_ip, flow.out_index), flow.bytes_rcvd)
         inc_exporter_sent(flow.device_ip, flow.bytes_sent)
         inc_exporter_rcvd(flow.device_ip, flow.bytes_rcvd)
-        if((flow.dst_peer_as ~= nil) and (flow.src_as ~= nil)) and
-            (flow.dst_peer_as ~= flow.dst_as) and (flow.dst_peer_as ~= flow.src_as) then
-            callback_transit(flow.dst_peer_as, flow.src_as, flow.bytes_rcvd, flow.bytes_sent) 
-        elseif((flow.src_peer_as ~= nil) and (flow.src_as ~= nil)) then
-            callback_transit(flow.src_peer_as, flow.src_as, flow.bytes_rcvd, flow.bytes_sent)
-        end
     end
 end
 
@@ -231,6 +167,7 @@ end
 
 function flow_as_utils.loadFlows(as, ifid)
     asn = as
+    aggregated_table = {}
     local flows_filter = {
         asnFilter = as,
         detailsLevel = "normal",
@@ -239,14 +176,30 @@ function flow_as_utils.loadFlows(as, ifid)
 		    callback, flows_filter)
 end
 
-function flow_as_utils.getTransit(as, ifid)
-    if tot_bytes_transit == nil or asn ~= as then flow_as_utils.loadFlows(as, ifid) end
-    return tot_bytes_transit
+function flow_as_utils.getAsTransit(asn, ifid, src_dst)
+    aggregation_keys = {"src_as", "dst_as", "dst_peer_as", "src_peer_as"}
+    if src_dst == 0 then
+        field_keys = {"src_as", "dst_as", "dst_peer_as", "src_peer_as", "bytes_rcvd"} 
+    elseif src_dst == 0 then
+        field_keys = {"src_as", "dst_as", "dst_peer_as", "src_peer_as", "bytes_sent"} 
+    else 
+        field_keys = {"src_as", "dst_as", "dst_peer_as", "src_peer_as", "bytes_sent", "bytes_rcvd"}
+    end
+    flow_as_utils.loadFlows(as, ifid)
+    --tprint(aggregated_table)
+    return aggregated_table
 end
 
-function flow_as_utils.getAs(as, ifid)
-    if tot_bytes_as == nil or asn ~= as then flow_as_utils.loadFlows(as, ifid) end
-    return tot_bytes_as
+function flow_as_utils.getTransitList(asn, ifid, src_dst)
+    if src_dst == 0 then
+        aggregation_keys = {"dst_peer_as"}
+        field_keys = {"dst_peer_as", "bytes_rcvd"} 
+    else
+        aggregation_keys = {"src_peer_as"}
+        field_keys = {"src_peer_as", "bytes_sent"}
+    end
+    flow_as_utils.loadFlows(as, ifid)
+    return aggregated_table
 end
 
 function flow_as_utils.getExporter(as, ifid)
@@ -259,20 +212,5 @@ function flow_as_utils.getExporterIf(as, ifid)
     return tot_bytes_exp_if
 end
 
-function flow_as_utils.getAsTransit(as, ifid)
-    if tot_bytes_as_transit == nil or asn ~= as then flow_as_utils.loadFlows(as, ifid) end
-    return tot_bytes_as_transit
-end
-
-function flow_as_utils.getAll(as, ifid)
-    if tot_bytes_as_transit == nil or asn ~= as then flow_as_utils.loadFlows(as, ifid) end
-    return {
-        exporter = tot_bytes_exporter,
-        transit = tot_bytes_transit,
-        as = tot_bytes_as,
-        exp_if = tot_bytes_exp_if,
-        as_transit = tot_bytes_as_transit
-    }
-end
 
 return flow_as_utils
