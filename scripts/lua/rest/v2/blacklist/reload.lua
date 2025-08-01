@@ -16,6 +16,7 @@ local auth = require "auth"
 -- Hot reload enabled blacklists in ntopng
 -- Example: curl -X POST -u admin:admin http://localhost:3000/lua/rest/v2/blacklist/reload.lua
 --
+local is_nedge = ntop.isnEdge()
 
 local rc = rest_utils.consts.success.ok
 local result = {}
@@ -48,6 +49,11 @@ if success then
         local STATUS_KEY = "ntopng.cache.category_lists.status"
         ntop.setPref(STATUS_KEY, json.encode(status))
     end
+end
+
+-- to drop active flows in nedge after reloading the blacklists
+if is_nedge then
+    interface.updateFlowsShapers() 
 end
 
 result.success = success
