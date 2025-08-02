@@ -235,7 +235,6 @@ function pools_rest_utils.edit_member()
 
    -- pool_id as number
    pool_id = tonumber(pool_id)
-   tprint("Pool id: " ..tostring(pool_id))
    
    -- Create the instance
    local s = pools:create()
