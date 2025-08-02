@@ -32,7 +32,7 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.host_p
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local url = ntop.getHttpPrefix() .. "/lua/admin/manage_host_members.lua"
-page_utils.print_navbar(i18n("host_pools.host_members"), url, {{
+page_utils.print_navbar(i18n("host_pools.manage_pool") .. ": " .. pool_name, url, {{
     active = page == "overview" or not page,
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..

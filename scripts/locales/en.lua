@@ -4958,6 +4958,7 @@ local lang = {
     ["create_new_quotas_here"] = "You can create new quotas <a href=\"%{url}\">here</a>.",
     ["create_pool_hint"] = "You can create new pools from the Manage Pools tab.",
     ["create_pools"] = "Manage Pools",
+    ["manage_pool"] = "Manage Pools",
     ["delete_pool"] = "Delete Pool",
     ["edit_traffic_policy"] = "Edit Pool Policy",
     ["duplicate_member"] = "Duplicate member address",
