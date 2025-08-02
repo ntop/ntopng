@@ -58,6 +58,9 @@ import { default as PageHistoricalFlow } from "./page-historical-flow-details.vu
 import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
 import { default as PageGeoMap } from "./hosts-geomap.vue"
 import { default as PageCountryStats } from "./page-country-stats.vue"
+import { default as PageHostPools } from "./page-host-pools.vue"
+import { default as PageManageHostPoolMembers } from "./page-manage-host-members.vue"
+import { default as PagePoolPolicy } from "./page-pool-policy.vue"
 import { default as PageUploadPcap } from "./page-upload-pcap.vue"
 import { default as PageRedisStats } from "./page-redis-stats.vue"
 import { default as PageAsStats } from "./page-as-stats.vue"
@@ -182,6 +185,9 @@ let ntopVue = {
     PageObservationPointsConfig: PageObservationPointsConfig,
     PageObservationPointsList: PageObservationPointsList,
     PageActiveMonitoring: PageActiveMonitoring,
+    PageHostPools: PageHostPools,
+    PageManageHostPoolMembers: PageManageHostPoolMembers,
+    PagePoolPolicy: PagePoolPolicy,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,

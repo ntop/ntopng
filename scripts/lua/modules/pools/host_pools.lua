@@ -435,6 +435,12 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
     record["key"] = tostring(pool_id)
 
     local pool_name = self:get_pool_name(pool_id)
+
+    -- prevent error if no pool_name is found
+    if not pool_name then
+        return record
+    end
+
     local pool_link = "<A HREF='" .. ntop.getHttpPrefix() ..
                           '/lua/hosts_stats.lua?pool=' .. pool_id .. "' title='" ..
                           pool_name .. "'>" .. pool_name .. '</A>'

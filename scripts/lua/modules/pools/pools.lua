@@ -484,6 +484,7 @@ end
 -- ##############################################
 
 function pools:get_pool(pool_id)
+
     local pool_details
     local pool_details_key = self:_get_pool_details_key(pool_id)
 

@@ -161,14 +161,183 @@ end
 
 -- ##############################################
 
--- @brief Bind a member to a pool
-function pools_rest_utils.bind_member(pools)
+-- faccio add alla pool che voglio
+-- @brief Add a member to a pool
+function pools_rest_utils.add_member()
+   local pools = require "host_pools"
+   local pool_id = _GET["pool"]
+   local member = fixPoolMemberFormat(_POST["member"])
+   
+   if not isAdministrator() then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
+   if not pool_id or not member then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   -- pool_id as number
+   pool_id = tonumber(pool_id)
+   
+   -- Create the instance
+   local s = pools:create()
+   local res, err
+
+   if pool_id == s.DEFAULT_POOL_ID then
+      -- Because default pool must always contain all hosts seen on the network
+      -- Always bind the member to the default pool id (possibly removing it from any other pool)
+      res, err = s:bind_member(member, pool_id)
+   else
+      -- Bind the member only if it is not already in another pool
+      res, err = s:bind_member_if_not_already_bound(member, pool_id)
+   end
+
+   if not res then
+      if err == pools.ERRORS.ALREADY_BOUND then
+         -- Member already existing, return current pool information in the response
+         local cur_pool = s:get_pool_by_member(member)
+         rest_utils.answer(rest_utils.consts.err.bind_pool_member_already_bound, cur_pool)
+      else
+         -- Generic
+         rest_utils.answer(rest_utils.consts.err.bind_pool_member_failed)
+      end
+      return
+   end
+
+   local rc = rest_utils.consts.success.pool_member_bound
+   rest_utils.answer(rc)
+
+   local dst_pool = s:get_pool(pool_id)
+
+   -- TRACKER HOOK
+   tracker.log('bind_pool_member', { pool_id = pool_id, pool_name = dst_pool["name"], member = member, pool_key = s.key })
+end
+
+-- @brief Edit a member (move from old pool to new pool)
+function pools_rest_utils.edit_member()
+   local pools = require "host_pools"
    local old_pool_name = _GET["pool_name"]
    local pool_id = _GET["pool"]
    local member = fixPoolMemberFormat(_POST["member"])
-   local action = _POST["action"]
    local old_member = _POST["old_member"]
+   
+   if not isAdministrator() then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
 
+   if not pool_id or not member or not old_member then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   -- pool_id as number
+   pool_id = tonumber(pool_id)
+   tprint("Pool id: " ..tostring(pool_id))
+   
+   -- Create the instance
+   local s = pools:create()
+   local res, err
+
+   -- First, bind the old member to default pool (remove from current pool)
+   res, err = s:bind_member(old_member, s.DEFAULT_POOL_ID)
+   
+   if not res then
+      rest_utils.answer(rest_utils.consts.err.bind_pool_member_failed)
+      return
+   end
+
+   if pool_id == s.DEFAULT_POOL_ID then
+      -- Because default pool must always contain all hosts seen on the network
+      -- Always bind the member to the default pool id (possibly removing it from any other pool)
+      res, err = s:bind_member(member, pool_id)
+      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+         local policy_utils = require "policy_utils"
+         policy_utils.broadcast_ips_rules()
+      end
+   else
+      -- Bind the member only if it is not already in another pool
+      res, err = s:bind_member_if_not_already_bound(member, pool_id)
+   end
+
+   if not res then
+      if err == pools.ERRORS.ALREADY_BOUND then
+         -- Member already existing, return current pool information in the response
+         local cur_pool = s:get_pool_by_member(member)
+         rest_utils.answer(rest_utils.consts.err.bind_pool_member_already_bound, cur_pool)
+      else
+         -- Generic
+         rest_utils.answer(rest_utils.consts.err.bind_pool_member_failed)
+      end
+      return
+   end
+
+   local rc = rest_utils.consts.success.pool_member_bound
+   rest_utils.answer(rc)
+
+   local dst_pool = s:get_pool(pool_id)
+
+   -- TRACKER HOOK
+   tracker.log('bind_pool_member', { pool_id = pool_id, pool_name = dst_pool["name"], member = member, pool_key = s.key })
+end
+
+-- @brief Delete a member (move to default pool)
+function pools_rest_utils.delete_member()
+   local pools = require "host_pools"
+   local old_pool_name = _GET["pool_name"]
+   local member = fixPoolMemberFormat(_POST["member"])
+   
+   if not isAdministrator() then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
+   if not member then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   -- Create the instance
+   local s = pools:create()
+   local res, err
+
+   -- Always bind the member to the default pool (removing it from any other pool)
+   res, err = s:bind_member(member, s.DEFAULT_POOL_ID)
+   
+   if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+      local policy_utils = require "policy_utils"
+      policy_utils.broadcast_ips_rules()
+   end
+
+   if not res then
+      rest_utils.answer(rest_utils.consts.err.bind_pool_member_failed)
+      return
+   end
+
+   local rc = rest_utils.consts.success.pool_member_bound
+   rest_utils.answer(rc)
+
+   local dst_pool = s:get_pool(s.DEFAULT_POOL_ID)
+
+   -- TRACKER HOOK
+   tracker.log('bind_pool_member', { pool_id = s.DEFAULT_POOL_ID, pool_name = dst_pool["name"], member = member, pool_key = s.key })
+end
+
+--
+-- @brief Bind a member to a pool
+function pools_rest_utils.bind_member(pools)
+   local old_pool_name = _GET["pool_name"] -- edit
+
+   local pool_id = _GET["pool"] -- sempre
+   local member = fixPoolMemberFormat(_POST["member"]) -- sempre (nome membro IP ETC)
+
+   local action = _POST["action"] -- se edit
+   local old_member = _POST["old_member"] -- se edit
+   
    if not isAdministrator() then
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return
@@ -191,6 +360,7 @@ function pools_rest_utils.bind_member(pools)
    end
 
    if pool_id == s.DEFAULT_POOL_ID then
+      -- Because default pool must always contain all hosts seen on the network
       -- Always bind the member to the default pool id (possibly removing it from any other pool)
       res, err = s:bind_member(member, pool_id)
       if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
@@ -306,7 +476,7 @@ function pools_rest_utils.get_pool_members(pools)
 
    -- Create the instance
    local s = pools:create()
-
+   
    local cur_pool = s:get_pool(pool_id)
 
    if not cur_pool then

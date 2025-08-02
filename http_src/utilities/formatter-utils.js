@@ -394,6 +394,17 @@ function getMidnightEpoch(utc_seconds) {
   return utc_midnight.valueOf()/1000;
 }
 
+/* Makes uppercase each first character of a string */
+function capitalizeFirstLetters(str) {
+    return str
+      .split(' ')
+      .map(word => {
+        if (word.length === 0) return word;
+        return word[0].toUpperCase() + word.slice(1);
+      })
+      .join(' ');
+}
+  
 const formatterUtils = function () {
     return {
         types,
@@ -405,7 +416,8 @@ const formatterUtils = function () {
         utc_s_to_server_date,
         server_date_to_date,
         formatAsn,
-        getMidnightEpoch
+        getMidnightEpoch,
+        capitalizeFirstLetters
     };
 }();
 

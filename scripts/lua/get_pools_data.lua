@@ -8,100 +8,65 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 require "lua_utils"
 local host_pools = require "host_pools"
-local json = require("dkjson")
+local rest_utils = require "rest_utils"
 
-sendHTTPContentTypeHeader('text/html')
-
--- Table parameters
-local currentPage  = _GET["currentPage"]
-local perPage      = _GET["perPage"]
-local sortColumn   = _GET["sortColumn"]
-local sortOrder    = _GET["sortOrder"]
-
-local sortPrefs = "pool_id"
+-- to extract pool members, given pool id
+local pools = require "pools"
 
 -- Instantiate host pools
 local host_pools_instance = host_pools:create()
 
-if((sortColumn == nil) or (sortColumn == "column_"))then
-   sortColumn = getDefaultTableSort(sortPrefs)
-else
-   if((sortColumn ~= "column_")
-    and (sortColumn ~= "")) then
-      tablePreferences("sort_"..sortPrefs,sortColumn)
-   end
-end
-
-if(sortOrder == nil) then
-   sortOrder = getDefaultTableSortOrder(sortPrefs)
-else
-   if((sortColumn ~= "column_")
-    and (sortColumn ~= "")) then
-      tablePreferences("sort_order_"..sortPrefs,sortOrder)
-   end
-end
-
-if(currentPage == nil) then
-   currentPage = 1
-else
-   currentPage = tonumber(currentPage)
-end
-
-if(perPage == nil) then
-   perPage = getDefaultTableSize()
-else
-   perPage = tonumber(perPage)
-   tablePreferences("rows_number", perPage)
-end
-
-local to_skip = (currentPage-1) * perPage
-
-if(sortOrder == "desc") then sOrder = false else sOrder = true end
-
 local ifid = interface.getId()
 local pools_stats = interface.getHostPoolsStats()
-local total_rows = 0
-
-local sortable_pools = {}
-for pool_id, pool_stats in pairs(pools_stats) do
-   total_rows = total_rows + 1
-
-   if sortColumn == "column_hosts" then
-      sortable_pools[pool_id] = pool_stats["num_hosts"]
-   elseif sortColumn == "column_thpt" then
-      sortable_pools[pool_id] = pool_stats["throughput_bps"]
-   elseif sortColumn == "column_traffic" then
-      sortable_pools[pool_id] = pool_stats["bytes.sent"] + pool_stats["bytes.rcvd"]
-   else
-      sortable_pools[pool_id] = host_pools_instance:get_pool_name(pool_id)
-   end
-end
-
-local res_formatted = {}
-local cur_row = 0
-for n, _ in pairsByValues(sortable_pools, ternary(sOrder, asc, rev)) do
-   cur_row = cur_row + 1
-
-   if cur_row <= to_skip then
-      goto continue
-   end
-
-   if cur_row > to_skip + perPage then
-      break
-   end
-
-   local record = host_pools_instance:hostpool2record(ifid, n, pools_stats[n])
-   res_formatted[#res_formatted + 1] = record
-
-
-   ::continue::
-end
 
 local result = {}
-result["perPage"] = perPage
-result["currentPage"] = currentPage
-result["totalRows"] = total_rows
-result["data"] = res_formatted
-result["sort"] = {{sortColumn, sortOrder}}
 
-print(json.encode(result, nil))
+-- Create the pool instance
+local s = pools:create()
+
+for pool_id, pool_stats in pairs(pools_stats) do
+  -- Try to convert pool to record (contains pool name and host info)
+  local record = host_pools_instance:hostpool2record(ifid, pool_id, pool_stats)
+
+  -- geet pool details to show in gui
+  local pool_name = host_pools_instance:get_pool_name(pool_id)
+  local hosts = record["hosts"] or pool_stats["num_hosts"] or 0
+  local seen_since = pool_stats["seen.last"] or 0
+  local bytes_rcvd = pool_stats["bytes.rcvd"] or 0
+  local bytes_sent = pool_stats["bytes.sent"] or 0
+  local throughput = pool_stats["throughput_bps"] or 0
+  local traffic = bytes_sent + bytes_rcvd
+
+  local cur_pool = host_pools_instance:get_pool(pool_id)
+
+  -- extract members from cur_pool.members table
+  -- clean_members is used to show in the ui
+  -- members is used for the pool edit value
+  local clean_members = {}
+  local members = {}
+
+  if cur_pool and cur_pool.members then
+    for i, member in pairs(cur_pool.members) do
+      -- remove '@' and everything after it (used for ntopng key)
+      local clean_member = member:match("^[^@]+")
+      table.insert(clean_members, clean_member)
+      table.insert(members, member)
+    end
+  end
+  table.insert(result, {
+    ["pool_name"] = pool_name,
+    ["pool_id"] = pool_id,
+    ["hosts"] = hosts,
+    ["seen_since"] = seen_since,
+    ["breakdown"] = {
+      ["bytes_rcvd"] = bytes_rcvd,
+      ["bytes_sent"] = bytes_sent
+    },
+    ["throughput"] = throughput,
+    ["traffic"] = traffic,
+    ["clean_members"] = clean_members,
+    ["members"] = members
+  })
+end
+
+rest_utils.answer(rest_utils.consts.success.ok, result)

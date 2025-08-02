@@ -1386,6 +1386,7 @@ export default class NtopUtils {
     }
 
     static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
+        if (percentage_1 == 0 && percentage_2 == 0) return ''
         return `<div class="d-flex flex-row align-items-center">
               <div class="col-12 progress">
                 <div class="progress-bar bg-warning" aria-valuenow="${percentage_1}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_1}%;">${label_1}</div>

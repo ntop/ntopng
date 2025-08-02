@@ -1,0 +1,67 @@
+{
+	"id": "manage_host_pool",
+	"data_url": "lua/rest/v2/get/host/pool/members.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"min-width": "20px",
+			"max-width": "30px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_edit_member"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"event_id": "click_delete_member"
+				}
+			]
+		},
+		{
+			"id": "member_address",
+			"title_i18n": "host_pools.member_address",
+			"data_field": "name",
+			"sortable": true,
+			"sticky": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "member_type",
+			"title_i18n": "host_pools.member_type",
+			"data_field": "type",
+			"sortable": true,
+			"sticky": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "vlan",
+			"data_field": "vlan",
+			"min-width" : "90px",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}
