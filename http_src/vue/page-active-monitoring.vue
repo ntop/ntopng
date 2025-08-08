@@ -17,7 +17,7 @@
                 <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
                     <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"]
                             }}</b></span>
-                    <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
+                    <SelectSearch :selected_option="item['current_option']" theme="bootstrap-5"
                         dropdown_size="small" :options="item['options']" @select_option="add_table_filter">
                     </SelectSearch>
                 </div>
