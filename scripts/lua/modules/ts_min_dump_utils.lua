@@ -1,9 +1,10 @@
 --
 -- (C) 2019-24 - ntop.org
 --
-
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
+package.path = dirs.installdir ..
+                   "/scripts/lua/modules/timeseries/schemas/?.lua;" ..
+                   package.path
 local profiling = require "profiling"
 
 -- ########################################################
@@ -14,8 +15,11 @@ require "check_redis_prefs"
 local ts_utils = require("ts_utils_core")
 
 local ts_custom
-if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
-    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+if ntop.exists(dirs.installdir ..
+                   "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
+    package.path = dirs.installdir ..
+                       "/scripts/lua/modules/timeseries/custom/?.lua;" ..
+                       package.path
     ts_custom = require "ts_5min_custom"
 end
 
@@ -34,16 +38,16 @@ function ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose, config)
                 bytes_rcvd = ifstats["ndpi"][k]["bytes.rcvd"]
             }, when)
         else
-            local v = ifstats["ndpi"][k]["bytes.sent"] + ifstats["ndpi"][k]["bytes.rcvd"]
+            local v = ifstats["ndpi"][k]["bytes.sent"] +
+                          ifstats["ndpi"][k]["bytes.rcvd"]
             if (verbose) then
-                print("[" .. __FILE__() .. ":" .. __LINE__() .. "] " .. _ifname .. ": " .. k .. "=" .. v .. "\n")
+                print(
+                    "[" .. __FILE__() .. ":" .. __LINE__() .. "] " .. _ifname ..
+                        ": " .. k .. "=" .. v .. "\n")
             end
 
-            ts_utils.append(ts_id, {
-                ifid = ifstats.id,
-                protocol = k,
-                bytes = v
-            }, when)
+            ts_utils.append(ts_id, {ifid = ifstats.id, protocol = k, bytes = v},
+                            when)
         end
 
         if config.ndpi_flows_timeseries_creation == "1" then
@@ -62,14 +66,12 @@ function ts_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
     for k, v in pairs(ifstats["ndpi_categories"]) do
         v = v["bytes"]
         if (verbose) then
-            print("[" .. __FILE__() .. ":" .. __LINE__() .. "] " .. _ifname .. ": " .. k .. "=" .. v .. "\n")
+            print("[" .. __FILE__() .. ":" .. __LINE__() .. "] " .. _ifname ..
+                      ": " .. k .. "=" .. v .. "\n")
         end
 
-        ts_utils.append("iface:ndpi_categories", {
-            ifid = ifstats.id,
-            category = k,
-            bytes = v
-        }, when)
+        ts_utils.append("iface:ndpi_categories",
+                        {ifid = ifstats.id, category = k, bytes = v}, when)
     end
 end
 
@@ -98,7 +100,9 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
     local subnet_stats = interface.getNetworksStats(false, true)
 
     for subnet, sstats in pairs(subnet_stats or {}) do
-        if ntop.isPro() and not isEmptyString(ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation") or "") then
+        if ntop.isPro() and
+            not isEmptyString(
+                ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation") or "") then
             for second_subnet, traffic in pairs(sstats["intranet_traffic"]) do
                 if traffic.bytes_sent ~= 0 or traffic.bytes_rcvd ~= 0 then
                     ts_utils.append("subnet:intranet_traffic_min", {
@@ -152,10 +156,12 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
         if ntop.isEnterpriseL() then
             local qoe_list = {}
             for id, value in pairs(sstats.qoe or {}) do
-                local delta = delta_val(interface, "subnet_qoe_stats.".. ifstats.id .. "." .. subnet .. "." .. id, "min", value.num, true)
+                local delta = delta_val(interface, "subnet_qoe_stats." ..
+                                            ifstats.id .. "." .. subnet .. "." ..
+                                            id, "min", value.num, true)
                 qoe_list[id] = delta
             end
-    
+
             if table.len(qoe_list) > 0 then
                 qoe_list.ifid = ifstats.id
                 qoe_list.subnet = subnet
@@ -218,18 +224,14 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
     }, when)
 
     -- General stats
-    ts_utils.append("iface:flows", {
-        ifid = ifstats.id,
-        num_flows = ifstats.stats.flows
-    }, when)
-    ts_utils.append("iface:alerted_flows", {
-        ifid = ifstats.id,
-        num_flows = ifstats.num_alerted_flows
-    }, when)
-    ts_utils.append("iface:new_flows", {
-        ifid = ifstats.id,
-        new_flows = ifstats.stats.new_flows
-    }, when)
+    ts_utils.append("iface:flows",
+                    {ifid = ifstats.id, num_flows = ifstats.stats.flows}, when)
+    ts_utils.append("iface:alerted_flows",
+                    {ifid = ifstats.id, num_flows = ifstats.num_alerted_flows},
+                    when)
+    ts_utils.append("iface:new_flows",
+                    {ifid = ifstats.id, new_flows = ifstats.stats.new_flows},
+                    when)
 
     -- QoE Stats
     if ntop.isEnterpriseL() then
@@ -251,12 +253,16 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
             -- Go back to the view interface
             interface.select(ifstats.id)
             for id, value in pairs(qoe_list) do
-                local delta = delta_val(interface, "iface_qoe_stats.".. ifstats.id .. "." .. id, "min", value, true)
+                local delta = delta_val(interface, "iface_qoe_stats." ..
+                                            ifstats.id .. "." .. id, "min",
+                                        value, true)
                 qoe_list[id] = delta
             end
         else
             for id, value in pairs(ifstats.qoe or {}) do
-                local delta = delta_val(interface, "iface_qoe_stats.".. ifstats.id .. "." .. id, "min", value.num, true)
+                local delta = delta_val(interface, "iface_qoe_stats." ..
+                                            ifstats.id .. "." .. id, "min",
+                                        value.num, true)
                 qoe_list[id] = delta
             end
         end
@@ -269,10 +275,9 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 
     if not ifstats.isViewed then
         -- Viewed interfaces don't have hosts, their hosts stay in the view
-        ts_utils.append("iface:hosts", {
-            ifid = ifstats.id,
-            num_hosts = ifstats.stats.hosts
-        }, when)
+        ts_utils.append("iface:hosts",
+                        {ifid = ifstats.id, num_hosts = ifstats.stats.hosts},
+                        when)
         ts_utils.append("iface:local_hosts", {
             ifid = ifstats.id,
             num_hosts = ifstats.stats.local_hosts
@@ -282,12 +287,10 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
             num_hosts = ifstats.stats.http_hosts
         }, when)
 
-        if not ifstats.isView then
-            ts_utils.append("iface:devices", {
-                ifid = ifstats.id,
-                num_devices = ifstats.stats.devices
-            }, when)
-        end
+        ts_utils.append("iface:devices", {
+            ifid = ifstats.id,
+            num_devices = ifstats.stats.devices
+        }, when)
     end
 
     -- Alert stats
@@ -303,9 +306,8 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
     end
 
     if ntop.isEnterpriseM() then
-        if not ifstats["score_behavior"] or not ifstats["traffic_rx_behavior"] or not ifstats["traffic_tx_behavior"] then
-            goto continue
-        end
+        if not ifstats["score_behavior"] or not ifstats["traffic_rx_behavior"] or
+            not ifstats["traffic_tx_behavior"] then goto continue end
 
         -- Score Behaviour
         ts_utils.append("iface:score_behavior_v2", {
@@ -317,14 +319,10 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 
         -- Score Anomalies
         local anomaly = 0
-        if ifstats["score_behavior"]["anomaly"] == true then
-            anomaly = 1
-        end
+        if ifstats["score_behavior"]["anomaly"] == true then anomaly = 1 end
 
-        ts_utils.append("iface:score_anomalies_v2", {
-            ifid = ifstats.id,
-            anomaly = anomaly
-        }, when)
+        ts_utils.append("iface:score_anomalies_v2",
+                        {ifid = ifstats.id, anomaly = anomaly}, when)
 
         -- Traffic Behaviour
         ts_utils.append("iface:traffic_rx_behavior_v5", {
@@ -343,13 +341,12 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 
         -- Traffic Anomalies
         local anomaly = 0
-        if ifstats["traffic_tx_behavior"]["anomaly"] == true or ifstats["traffic_rx_behavior"]["anomaly"] == true then
+        if ifstats["traffic_tx_behavior"]["anomaly"] == true or
+            ifstats["traffic_rx_behavior"]["anomaly"] == true then
             anomaly = 1
         end
-        ts_utils.append("iface:traffic_anomalies_v2", {
-            ifid = ifstats.id,
-            anomaly = anomaly
-        }, when)
+        ts_utils.append("iface:traffic_anomalies_v2",
+                        {ifid = ifstats.id, anomaly = anomaly}, when)
 
         ::continue::
     end
@@ -360,12 +357,14 @@ function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
 
     for id, _ in pairs(l4_protocol_list.l4_keys) do
         k = l4_protocol_list.l4_keys[id][2]
-        if ((ifstats.stats[k .. ".bytes.sent"] ~= nil) and (ifstats.stats[k .. ".bytes.rcvd"] ~= nil)) then
+        if ((ifstats.stats[k .. ".bytes.sent"] ~= nil) and
+            (ifstats.stats[k .. ".bytes.rcvd"] ~= nil)) then
             ts_utils.append("iface:l4protos", {
                 ifid = ifstats.id,
                 -- NOTE: direction may not be correct for PCAP interfaces, so it cannot be split
                 l4proto = tostring(k),
-                bytes = ifstats.stats[k .. ".bytes.sent"] + ifstats.stats[k .. ".bytes.rcvd"]
+                bytes = ifstats.stats[k .. ".bytes.sent"] +
+                    ifstats.stats[k .. ".bytes.rcvd"]
             }, when)
         end
     end
@@ -374,8 +373,10 @@ end
 function ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
     ts_utils.append("iface:dumped_flows", {
         ifid = ifstats.id,
-        dumped_flows = ifstats.stats.db and ifstats.stats.db.flow_export_count or 0,
-        dropped_flows = ifstats.stats.db and ifstats.stats.db.flow_export_drops or 0
+        dumped_flows = ifstats.stats.db and ifstats.stats.db.flow_export_count or
+            0,
+        dropped_flows = ifstats.stats.db and ifstats.stats.db.flow_export_drops or
+            0
     }, when)
 end
 
@@ -395,7 +396,7 @@ function ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
         fin_ack = ifstats.pktSizeDistribution.tcp_flags.finack,
         syn_ack = ifstats.pktSizeDistribution.tcp_flags.synack,
         syn = ifstats.pktSizeDistribution.tcp_flags.syn,
-        rst = ifstats.pktSizeDistribution.tcp_flags.rst,
+        rst = ifstats.pktSizeDistribution.tcp_flags.rst
     }, when)
 end
 
@@ -403,11 +404,9 @@ end
 
 function ts_dump.profiles_update_stats(when, ifstats, verbose)
     for pname, ptraffic in pairs(ifstats.profiles) do
-        ts_utils.append("profile:traffic", {
-            ifid = ifstats.id,
-            profile = pname,
-            bytes = ptraffic
-        }, when)
+        ts_utils.append("profile:traffic",
+                        {ifid = ifstats.id, profile = pname, bytes = ptraffic},
+                        when)
     end
 end
 
@@ -422,10 +421,12 @@ local function update_internals_hash_tables_stats(when, ifstats, verbose)
 
         if ht_stats["hash_entry_states"] then
             if ht_stats["hash_entry_states"]["hash_entry_state_idle"] then
-                num_idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"]
+                num_idle =
+                    ht_stats["hash_entry_states"]["hash_entry_state_idle"]
             end
             if ht_stats["hash_entry_states"]["hash_entry_state_active"] then
-                num_active = ht_stats["hash_entry_states"]["hash_entry_state_active"]
+                num_active =
+                    ht_stats["hash_entry_states"]["hash_entry_state_active"]
             end
         end
 
@@ -440,9 +441,12 @@ end
 
 -- ########################################################
 
-function ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)
+function ts_dump.update_internals_periodic_activities_stats(when, ifstats,
+                                                            verbose)
     local periodic_scripts_stats = interface.getPeriodicActivitiesStats()
-    local to_stdout = ntop.getPref("ntopng.prefs.periodic_activities_stats_to_stdout") == "1"
+    local to_stdout = ntop.getPref(
+                          "ntopng.prefs.periodic_activities_stats_to_stdout") ==
+                          "1"
 
     for ps_name, ps_stats in pairs(periodic_scripts_stats) do
         if to_stdout then
@@ -456,19 +460,24 @@ function ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbo
                 cur_ifname = getInterfaceName(cur_ifid)
             end
 
-            if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] and ps_stats["timeseries"]["write"]["last"] then
+            if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] and
+                ps_stats["timeseries"]["write"]["last"] then
                 rrd_out = string.format(
-                    "[timeseries.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][timeseries.write.tot_drops: %u][last_is_slow: %s]",
-                    ps_stats["timeseries"]["write"]["tot_calls"] or 0,
-                    ps_stats["timeseries"]["write"]["last"]["avg_call_duration_ms"] or 0,
-                    ps_stats["timeseries"]["write"]["last"]["max_call_duration_ms"] or 0,
-                    ps_stats["timeseries"]["write"]["tot_drops"] or 0,
-                    tostring(ps_stats["timeseries"]["write"]["last"]["is_slow"]))
+                              "[timeseries.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][timeseries.write.tot_drops: %u][last_is_slow: %s]",
+                              ps_stats["timeseries"]["write"]["tot_calls"] or 0,
+                              ps_stats["timeseries"]["write"]["last"]["avg_call_duration_ms"] or
+                                  0,
+                              ps_stats["timeseries"]["write"]["last"]["max_call_duration_ms"] or
+                                  0,
+                              ps_stats["timeseries"]["write"]["tot_drops"] or 0,
+                              tostring(
+                                  ps_stats["timeseries"]["write"]["last"]["is_slow"]))
             end
 
             if rrd_out then
                 traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                    string.format("[ifname: %s][ifid: %i][%s]%s", cur_ifname, cur_ifid, ps_name, rrd_out))
+                           string.format("[ifname: %s][ifid: %i][%s]%s",
+                                         cur_ifname, cur_ifid, ps_name, rrd_out))
             end
         end
 
@@ -490,8 +499,10 @@ function ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbo
         -- Only if RRD is enabled, also total number of writes and dropped points are written
         if ts_utils.getDriverName() == "rrd" then
             if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] then
-                local tot_calls = ps_stats["timeseries"]["write"]["tot_calls"] or 0
-                local tot_drops = ps_stats["timeseries"]["write"]["tot_drops"] or 0
+                local tot_calls =
+                    ps_stats["timeseries"]["write"]["tot_calls"] or 0
+                local tot_drops =
+                    ps_stats["timeseries"]["write"]["tot_drops"] or 0
 
                 -- Do not generate nor update the timeseries if no point has been written or dropped
                 -- to prevent generation of empty files and empty timeseries
@@ -591,9 +602,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
 
     local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
 
-    if not iface_rrd_creation_enabled then
-        return
-    end
+    if not iface_rrd_creation_enabled then return end
 
     ts_dump.subnet_update_rrds(when, ifstats, verbose)
 
@@ -613,8 +622,8 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
         ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
     end
 
-    if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation ==
-        "both" then
+    if config.interface_ndpi_timeseries_creation == "per_protocol" or
+        config.interface_ndpi_timeseries_creation == "both" then
         ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose, config)
     end
 
@@ -623,8 +632,8 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
         ts_custom.iface_update_stats(when, _ifname, ifstats, verbose)
     end
 
-    if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation ==
-        "both" then
+    if config.interface_ndpi_timeseries_creation == "per_category" or
+        config.interface_ndpi_timeseries_creation == "both" then
         ts_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
     end
 
@@ -634,7 +643,8 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
         update_internals_hash_tables_stats(when, ifstats, verbose)
 
         -- Save duration of periodic activities
-        ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)
+        ts_dump.update_internals_periodic_activities_stats(when, ifstats,
+                                                           verbose)
     end
 
     -- Save Profile stats every minute
@@ -649,10 +659,13 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     if ifstats.has_seen_pods then
         ts_dump.pods_update_stats(when, ifstats, verbose)
     end
-    
+
     -- Create RRDs for flow and sFlow probes
-    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM() and highExporterTimeseriesResolution()) then
-        package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" .. package.path
+    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM() and
+        highExporterTimeseriesResolution()) then
+        package.path = dirs.installdir ..
+                           "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" ..
+                           package.path
         local exporters_timeseries = require "exporters_timeseries"
         exporters_timeseries.update_timeseries(when, ifstats, verbose, true)
     end
@@ -660,10 +673,8 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
         local st = ifstats.netfilter.nfq or {}
 
-        ts_utils.append("iface:nfq_pct", {
-            ifid = ifstats.id,
-            num_nfq_pct = st.queue_pct
-        }, when)
+        ts_utils.append("iface:nfq_pct",
+                        {ifid = ifstats.id, num_nfq_pct = st.queue_pct}, when)
     end
 end
 
