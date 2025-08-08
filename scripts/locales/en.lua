@@ -7150,7 +7150,7 @@ local lang = {
     ["rule"] = "Rule",
     ["rules"] = "Policy Rules",
     ["traffic_policies"] = "Traffic Policies",
-    ["traffic_policy_for"] = "Traffic Policies for <a href='%{url}'>%{pool} <i class='fas fa-users'></i></a>",
+    ["traffic_policy_for"] = "Traffic Policies for <a href='%{url}'>%{pool}</a>",
     ["markers"] = {
       ["drop"] = "Drop",
       ["pass"] = "Pass",
@@ -7265,6 +7265,13 @@ local lang = {
     ["server_ports"] = "Server Ports",
   },
   ["prefs"] = {
+    ["domain_classification"] = "Domain Classification",
+    ["domain_classification_user_id_title"] = "User Id Authenticator",
+    ["domain_classification_user_id_description"] = "Insert the user id to authenticate to the classification service",
+    
+    ["domain_classification_token_title"] = "Authentication Token",
+    ["domain_classification_token_description"] = "Insert the authentication token to the classification service",
+
     ["asn_mode"] = "ASN Mode",
     ["toggle_asn_mode_title"] = "Enable ASN Mode",
     ["toggle_asn_mode_description"] = "Implement ASN traffic analysis and data aggregation capabilities. Optimal outcomes are attainable when utilizing nProbe to collect NetFlow flows.",

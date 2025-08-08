@@ -676,6 +676,10 @@
   NTOPNG_PREFS_PREFIX ".dump_pcap_to_clickhouse"
 #define CONST_PREFS_ENABLE_ARCHIVE_BEFORE_TTL_DELETE \
   NTOPNG_PREFS_PREFIX ".archive_before_ttl_delete"
+#define CONST_PREFS_DOMAIN_CLASSIFICATION_USER_ID \
+  NTOPNG_PREFS_PREFIX ".domain_classification_user_id"
+#define CONST_PREFS_DOMAIN_CLASSIFICATION_TOKEN \
+  NTOPNG_PREFS_PREFIX ".domain_classification_token"
 #define CONST_PREFS_ENABLE_QUERY_PERFORMANCE_LOG \
   NTOPNG_PREFS_PREFIX ".enable_query_performance_log"
 #define CONST_PREFS_ENABLE_ACCESS_LOG NTOPNG_PREFS_PREFIX ".enable_access_log"

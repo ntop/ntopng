@@ -587,9 +587,6 @@ elseif (page == "flows" or page == nil) then
 
     local json = require "dkjson" 
     
-    -- used to load a different table in vuejs if ASN mode is enabled
-    local ASNModeEnabled = ntop.getPref("ntopng.prefs.toggle_asn_mode") == "1"
-
     local json_context = json.encode({
         ifid = ifstats.id,
         has_exporters = has_exporters,
@@ -598,7 +595,7 @@ elseif (page == "flows" or page == nil) then
         is_pcap = interface.isPcapDumpInterface(),
         csrf = ntop.getRandomCSRFValue(),
         is_enterprise_l = ntop.isEnterpriseL(),
-        ASNModeEnabled = ASNModeEnabled
+        ASNModeEnabled = is_asn_mode_enabled
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 else

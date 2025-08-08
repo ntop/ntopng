@@ -728,6 +728,26 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pattern = getURLPattern(),
                 required = false
             })
+	    --print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.domain_classification") .. '</th></tr></thead>')
+
+        prefsInputFieldPrefs(subpage_active.entries["domain_classification_user_id"].title,
+            subpage_active.entries["domain_classification_user_id"].description, "ntopng.prefs.", "classification_user_id", "",
+            false, false, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                required = false,
+            })
+
+        -- second false is to not show pref
+        prefsInputFieldPrefs(subpage_active.entries["domain_classification_token"].title,
+            subpage_active.entries["domain_classification_token"].description, "ntopng.prefs.", "classification_user_token", "",
+            false, false, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                required = false
+            })
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.report") ..
             '</th></tr></thead>')

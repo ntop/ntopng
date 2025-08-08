@@ -14,7 +14,9 @@ end
 
 -- Check If ASN Mode is enable
 function isASNModeEnabled()
-    return toboolean((ntop.getPref("ntopng.prefs.toggle_asn_mode") ~= "0"))
+    local is_zmq_interface = toboolean(interface.isZMQInterface())
+
+    return toboolean((ntop.getPref("ntopng.prefs.toggle_asn_mode") ~= "0") and (is_zmq_interface))
 end
 
 -- ###########################################

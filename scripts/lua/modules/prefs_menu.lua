@@ -289,7 +289,7 @@ local menu_subpages = {{
     advanced = true,
     pro_only = true,
     -- Enable ASN mode in EnterpriseXL and zmq interface
-    hidden = (ntop.isEnterpriseXL() == false),
+    hidden = (ntop.isEnterpriseXL() == false) or (not interface.isZMQInterface()),
     entries = {
         asn_mode_enabled = {
             title = i18n("prefs.toggle_asn_mode_title"),
@@ -374,6 +374,14 @@ local menu_subpages = {{
         connectivity_check_url = {
             title = i18n("prefs.connectivity_check_url_title"),
             description = i18n("prefs.connectivity_check_url_description")
+        },
+        domain_classification_user_id = {
+            title = i18n("prefs.domain_classification_user_id_title"),
+            description = i18n("prefs.domain_classification_user_id_description")
+        },
+        domain_classification_token = {
+            title = i18n("prefs.domain_classification_token_title"),
+            description = i18n("prefs.domain_classification_token_description")
         },
         toggle_thpt_content = {
             title = i18n("prefs.toggle_thpt_content_title"),
