@@ -2176,18 +2176,18 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     -- Status selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local alert_type_params = table.clone(page_params)
-    alert_type_params["alert_type"] = nil
+    alert_type_params["status"] = nil
 
     print [[, '\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]]
     print(i18n("status"))
-    print(getParamFilter(page_params, "alert_type"))
+    print(getParamFilter(page_params, "status"))
     print [[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
 	  ]]
     print('<li><a class="dropdown-item')
-    print(page_params.alert_type == nil and ' active' or '')
+    print(page_params.status == nil and ' active' or '')
     print [[" href="]]
     print(getPageUrl(base_url, alert_type_params))
     print [[">]]
@@ -2223,8 +2223,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     if isBridgeInterface(ifstats) then
         entries[#entries + 1] = {"filtered", i18n("flows_page.blocked")}
     end
-
-    printDropdownEntries(entries, base_url, alert_type_params, "alert_type", page_params.alert_type)
+    printDropdownEntries(entries, base_url, alert_type_params, "status", page_params.status)
 
     print [[\
 	  </ul>\

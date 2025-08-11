@@ -101,6 +101,7 @@ if ((page == "flows" or page == nil) and ntop.isnEdge()) then
     local traffic_type = _GET["traffic_type"] or "unicast"
     local alert_type = _GET["alert_type"]
     local alert_type_severity = _GET["alert_type_severity"]
+    local status = _GET["status"]
     local tcp_state = _GET["tcp_flow_state"]
     local port = _GET["port"]
     local network_id = _GET["network"]
@@ -178,6 +179,10 @@ if ((page == "flows" or page == nil) and ntop.isnEdge()) then
 
     if (alert_type_severity ~= nil) then
         page_params["alert_type_severity"] = alert_type_severity
+    end
+
+    if (status ~= nil) then
+        page_params["status"] = status
     end
 
     if (tcp_state ~= nil) then
