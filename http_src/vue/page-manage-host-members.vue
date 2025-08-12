@@ -4,13 +4,6 @@
         <TableWithConfig ref="table_host_pools" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
             :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event"
             :get_extra_params_obj="get_extra_params_obj">
-            <template v-slot:custom_header>
-                <!-- Edit traffic policy button -->
-                <button class="btn btn-primary btn-sm" type="button" @click="editTrafficPolicy" v-show="true">
-                    <i class="fas fa-shield-alt" data-bs-toggle="tooltip" data-bs-placement="top"></i>
-                    {{ _i18n('host_pools.edit_traffic_policy') }}
-                </button>
-            </template>
             <template v-slot:custom_buttons>
                 <button class="btn btn-link" type="button" ref="add_new_pool" @click="addNewPool">
                     <i class="fas fa-plus"></i>
@@ -73,19 +66,6 @@ const pool_configuration_url = `${http_prefix}/lua/admin/manage_configurations.l
 // add new pool
 const addNewPool = () => {
     modal_add_member.value.show();
-};
-
-/* redirect to pool policy page */
-const editTrafficPolicy = () => {
-    console.log('editTrafficPolicy called!');
-    console.log('props.context:', props.context);
-    console.log('pool_id:', props.context.pool_id);
-
-    let pool_id = props.context.pool_id;
-    let edit_policy_url = `${http_prefix}/lua/pro/policy.lua?pool=${pool_id}`;
-
-    console.log('Navigating to:', edit_policy_url);
-    window.location.href = edit_policy_url;
 };
 
 
