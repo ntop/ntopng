@@ -1,4 +1,3 @@
-<!-- Host Pool Member Modal -->
 <template>
     <modal ref="modal_id">
         <template v-slot:title>
@@ -6,142 +5,180 @@
         </template>
         <template v-slot:body>
             <!-- Member Type Selection -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">{{ _i18n("host_pools.member_type") }}</label>
-                <div class="btn-group w-100" role="group">
-                    <input type="radio" class="btn-check" id="ip-radio" value="ip" v-model="memberType" @change="onMemberTypeChange">
-                    <label class="btn btn-outline-primary" for="ip-radio">{{ _i18n("host_pools.ipv4") }}/{{ _i18n("host_pools.ipv6") }}</label>
-                    
-                    <input type="radio" class="btn-check" id="network-radio" value="network" v-model="memberType" @change="onMemberTypeChange">
-                    <label class="btn btn-outline-primary" for="network-radio">{{ _i18n("network") }}</label>
-                    
-                    <input type="radio" class="btn-check" id="mac-radio" value="mac" v-model="memberType" @change="onMemberTypeChange">
-                    <label class="btn btn-outline-primary" for="mac-radio">{{ _i18n("host_pools.mac_filter") }}</label>
+            <div class="ms-2 me-2 mt-3 row">
+                <label class="col-form-label col-sm-4">
+                    <b>{{ _i18n("host_pools.member_type") }}</b>
+                </label>
+                <div class="col-sm-8">
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check btn-primary" id="ip-radio" value="ip" v-model="memberType" @change="onMemberTypeChange">
+                        <label class="btn btn-sm flex-fill" :class="memberType === 'ip' ? 'btn-primary active' : 'btn-secondary'" for="ip-radio">{{ _i18n("host_pools.ipv4") }}/{{ _i18n("host_pools.ipv6") }}</label>
+                        
+                        <input type="radio" class="btn-check btn-primary" id="network-radio" value="network" v-model="memberType" @change="onMemberTypeChange">
+                        <label class="btn btn-sm flex-fill" :class="memberType === 'network' ? 'btn-primary active' : 'btn-secondary'" for="network-radio">{{ _i18n("network") }}</label>
+                        
+                        <input type="radio" class="btn-check btn-primary" id="mac-radio" value="mac" v-model="memberType" @change="onMemberTypeChange">
+                        <label class="btn btn-sm flex-fill" :class="memberType === 'mac' ? 'btn-primary active' : 'btn-secondary'" for="mac-radio">{{ _i18n("host_pools.mac_filter") }}</label>
+                    </div>
                 </div>
             </div>
 
             <!-- IP Address Fields -->
-            <div v-show="memberType === 'ip'" class="ip-fields">
-                <div class="mb-3">
-                    <label for="ip_address" class="form-label fw-bold">{{ _i18n("ip_address") }}</label>
-                    <input 
-                        id="ip_address" 
-                        type="text" 
-                        class="form-control" 
-                        :class="{ 'is-invalid': ipAddressError }"
-                        v-model="ipAddress" 
-                        :placeholder="_i18n('enter_ip_address')" 
-                        @input="validateIpAddress"
-                        @keyup.enter="handleSubmit"
-                    />
-                    <div v-if="ipAddressError" class="invalid-feedback">
-                        {{ ipAddressError }}
+            <template v-if="memberType === 'ip'">
+                <div class="ms-2 me-2 mt-3 row">
+                    <label class="col-form-label col-sm-4">
+                        <b>{{ _i18n("ip_address") }}</b>
+                    </label>
+                    <div class="col-sm-8">
+                        <div class="btn-group w-100" role="group">
+                            <input 
+                                id="ip_address" 
+                                type="text" 
+                                class="form-control" 
+                                :class="{ 'invalid': ipAddressError }"
+                                v-model="ipAddress" 
+                                :placeholder="_i18n('enter_ip_address')" 
+                                @input="validateIpAddress"
+                                @keyup.enter="handleSubmit"
+                                required
+                            />
+                        </div>
+                        <small v-if="ipAddressError" class="text-danger">
+                            {{ ipAddressError }}
+                        </small>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label for="ip_vlan" class="form-label fw-bold">{{ _i18n("vlan") }}</label>
-                    <input 
-                        id="ip_vlan" 
-                        type="text" 
-                        class="form-control" 
-                        :class="{ 'is-invalid': ipVlanError }"
-                        v-model.number="ipVlan" 
-                        placeholder="0"
-                        min="0"
-                        max="4094"
-                        @input="validateIpVlan"
-                        @keyup.enter="handleSubmit"
-                    />
-                    <div v-if="ipVlanError" class="invalid-feedback">
-                        {{ ipVlanError }}
+                <div class="ms-2 me-2 mt-3 row">
+                    <label class="col-form-label col-sm-4">
+                        <b>{{ _i18n("vlan") }}</b>
+                    </label>
+                    <div class="col-sm-8">
+                        <div class="btn-group w-100" role="group">
+                            <input 
+                                id="ip_vlan" 
+                                type="number" 
+                                class="form-control" 
+                                :class="{ 'invalid': ipVlanError }"
+                                v-model.number="ipVlan" 
+                                placeholder="0"
+                                min="0"
+                                max="4094"
+                                @input="validateIpVlan"
+                                @keyup.enter="handleSubmit"
+                            />
+                        </div>
+                        <small v-if="ipVlanError" class="text-danger">
+                            {{ ipVlanError }}
+                        </small>
                     </div>
                 </div>
-            </div>
+            </template>
 
             <!-- Network Fields -->
-            <div v-show="memberType === 'network'" class="network-fields">
-                <div class="mb-3">
-                    <label for="network_address" class="form-label fw-bold">{{ _i18n("network") }}</label>
-                    <input 
-                        id="network_address" 
-                        type="text" 
-                        class="form-control" 
-                        :class="{ 'is-invalid': networkAddressError }"
-                        v-model="networkAddress" 
-                        :placeholder="_i18n('enter_network_address')" 
-                        @input="validateNetworkAddress"
-                        @keyup.enter="handleSubmit"
-                    />
-                    <div v-if="networkAddressError" class="invalid-feedback">
-                        {{ networkAddressError }}
+            <template v-if="memberType === 'network'">
+                <div class="ms-2 me-2 mt-3 row">
+                    <label class="col-form-label col-sm-4">
+                        <b>{{ _i18n("network") }}</b>
+                    </label>
+                    <div class="col-sm-8 d-flex">
+                        <div class="flex-grow-1 me-2">
+                            <input 
+                                id="network_address" 
+                                type="text" 
+                                class="form-control" 
+                                :class="{ 'invalid': networkAddressError }"
+                                v-model="networkAddress" 
+                                :placeholder="_i18n('enter_network_address')" 
+                                @input="validateNetworkAddress"
+                                @keyup.enter="handleSubmit"
+                                required
+                            />
+                            <small v-if="networkAddressError" class="text-danger">
+                                {{ networkAddressError }}
+                            </small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">/</span>
+                            <div style="width: 80px;">
+                                <input 
+                                    id="cidr" 
+                                    type="number" 
+                                    class="form-control" 
+                                    :class="{ 'invalid': cidrError }"
+                                    v-model.number="cidr" 
+                                    :placeholder="_i18n('enter_cidr')"
+                                    min="1"
+                                    :max="isIPv6Network ? 128 : 32"
+                                    @input="validateCidr"
+                                    @keyup.enter="handleSubmit"
+                                    required
+                                />
+                                <small v-if="cidrError" class="text-danger">
+                                    {{ cidrError }}
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label for="cidr" class="form-label fw-bold">{{ _i18n("cidr") }}</label>
-                    <input 
-                        id="cidr" 
-                        type="number" 
-                        class="form-control" 
-                        :class="{ 'is-invalid': cidrError }"
-                        v-model.number="cidr" 
-                        :placeholder="_i18n('enter_cidr')"
-                        min="1"
-                        :max="isIPv6Network ? 128 : 32"
-                        @input="validateCidr"
-                        @keyup.enter="handleSubmit"
-                    />
-                    <div v-if="cidrError" class="invalid-feedback">
-                        {{ cidrError }}
+                <div class="ms-2 me-2 mt-3 row">
+                    <label class="col-form-label col-sm-4">
+                        <b>{{ _i18n("vlan") }}</b>
+                    </label>
+                    <div class="col-sm-8">
+                        <div class="btn-group w-100" role="group">
+                            <input 
+                                id="network_vlan" 
+                                type="number" 
+                                class="form-control" 
+                                :class="{ 'invalid': networkVlanError }"
+                                v-model.number="networkVlan" 
+                                placeholder="0"
+                                min="0"
+                                max="4094"
+                                @input="validateIpVlan"
+                                @keyup.enter="handleSubmit"
+                            />
+                        </div>
+                        <small v-if="networkVlanError" class="text-danger">
+                            {{ networkVlanError }}
+                        </small>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label for="network_vlan" class="form-label fw-bold">{{ _i18n("vlan") }}</label>
-                    <input 
-                        id="network_vlan" 
-                        type="number" 
-                        class="form-control" 
-                        :class="{ 'is-invalid': networkVlanError }"
-                        v-model.number="networkVlan" 
-                        placeholder="0"
-                        min="0"
-                        max="4094"
-                        @input="validateIpVlan"
-                        @keyup.enter="handleSubmit"
-                    />
-                    <div v-if="networkVlanError" class="invalid-feedback">
-                        {{ networkVlanError }}
-                    </div>
-                </div>
-            </div>
+            </template>
 
             <!-- MAC Address Fields -->
-            <div v-show="memberType === 'mac'" class="mac-fields">
-                <div class="mb-3">
-                    <label for="mac_address" class="form-label fw-bold">{{ _i18n("mac_address") }}</label>
-                    <input 
-                        id="mac_address" 
-                        type="text" 
-                        class="form-control" 
-                        :class="{ 'is-invalid': macAddressError }"
-                        v-model="macAddress" 
-                        :placeholder="_i18n('enter_mac_address')" 
-                        @input="validateMacAddress"
-                        @keyup.enter="handleSubmit"
-                    />
-                    <div v-if="macAddressError" class="invalid-feedback">
-                        {{ macAddressError }}
+            <template v-if="memberType === 'mac'">
+                <div class="ms-2 me-2 mt-3 row">
+                    <label class="col-form-label col-sm-4">
+                        <b>{{ _i18n("mac_address") }}</b>
+                    </label>
+                    <div class="col-sm-8">
+                        <div class="btn-group w-100" role="group">
+                            <input 
+                                id="mac_address" 
+                                type="text" 
+                                class="form-control" 
+                                :class="{ 'invalid': macAddressError }"
+                                v-model="macAddress" 
+                                :placeholder="_i18n('enter_mac_address')" 
+                                @input="validateMacAddress"
+                                @keyup.enter="handleSubmit"
+                                required
+                            />
+                        </div>
+                        <small v-if="macAddressError" class="text-danger">
+                            {{ macAddressError }}
+                        </small>
                     </div>
                 </div>
-            </div>
-
-            <!-- Error feedback -->
-            <div v-if="generalError" class="alert alert-danger">
-                {{ generalError }}
-            </div>
+            </template>
         </template>
         
         <template v-slot:footer>
-            <div class="d-flex justify-content-end w-100">
+            <div v-if="generalError" class="me-auto text-danger d-inline">
+                {{ generalError }}
+            </div>
+            <div>
                 <button type="button" @click="handleSubmit" class="btn btn-primary" :disabled="!isFormValid">
                     {{ isEditMode ? _i18n("save") : _i18n("add") }}
                 </button>
