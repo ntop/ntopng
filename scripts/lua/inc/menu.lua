@@ -528,7 +528,8 @@ page_utils.add_menubar_section({
             url = '/lua/network_stats.lua'
         }, {
             entry = page_utils.menu_entries.host_pools,
-            url = '/lua/pool_stats.lua'
+            hidden = is_nedge,
+            url = '/lua/pool_stats.lua',
         }, {
             entry = page_utils.menu_entries.autonomous_systems,
             hidden = (not ntop.hasGeoIP()) or interface.isViewed() or is_asn_mode_enabled,
