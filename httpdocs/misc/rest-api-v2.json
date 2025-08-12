@@ -1209,53 +1209,6 @@
       }
     },
 
-      "/lua/pro/rest/v2/set/nedge/interface/drop_host_flows.lua": {
-      "post": {
-        "tags": [
-          "nEdge"
-        ],
-        "summary": "Drop all active flows for the specified host",
-        "description": "Set flow verdict to drop for all active flows for the specified host",
-        "operationId": "drop_host_flows",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-	  "parameters": [
-	      {
-		  "in": "body",
-		  "name": "body",
-		  "description": "JSON payload",
-		  "required": true,
-		  "schema": {
-		      "type": "object",
-		      "properties": {
-			  "interface": {
-			      "type": "string",
-			      "description": "Interface name on which flows will be dropped (e.g. nf:0)"
-			  },
-			  "host": {
-			      "type": "string",
-			      "description": "Host IP address (e.g. 1.2.3.4)"
-			  }
-		      },
-		      "required": ["interface", "host"]
-		  }
-	      }
-	  ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
-
     "/lua/pro/rest/v2/edit/device/exclusion.lua": {
       "get": {
         "tags": [
