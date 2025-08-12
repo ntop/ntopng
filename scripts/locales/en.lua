@@ -4966,6 +4966,7 @@ local lang = {
     ["create_pools"] = "Manage Pools",
     ["manage_pool"] = "Manage Pools",
     ["delete_pool"] = "Delete Pool",
+    ["edit_name"] = "Edit Name",
     ["edit_traffic_policy"] = "Edit Pool Policy",
     ["duplicate_member"] = "Duplicate member address",
     ["duplicate_pool"] = "Duplicate pool name",

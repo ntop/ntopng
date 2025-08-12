@@ -54,6 +54,8 @@ const props = defineProps({
 const table_id = ref('host_pools');
 const table_host_pools = ref(null);
 const csrf = props.context.csrf;
+const isnEdge = props.context.isnEdge;
+const isPro = props.context.isPro;
 const pool_base_url = `${http_prefix}/lua/hosts_stats.lua?pool=`;
 const modal_add_pool = ref(null);
 const modal_delete_pool = ref(null);
@@ -211,6 +213,9 @@ const map_table_def_columns = (columns) => {
                         // disable dropdown button manage pool for pool: 'Default'
                         current_class.push("disabled");
                     }
+                    else if (b.id === "edit_pool_policy" && (!isPro || isnEdge)) {
+                        current_class.push("disabled");
+                    }
                     return current_class;
                 }
             });
@@ -240,6 +245,7 @@ function on_table_custom_event(event) {
     let events_managed = {
         "click_manage_pool": click_manage_pool,
         "click_edit_pool": click_edit_pool,
+        "click_edit_pool_policy": click_edit_pool_policy,
         "click_delete_pool": click_delete_pool,
     };
     if (events_managed[event.event_id] == null) {
@@ -277,6 +283,14 @@ const click_edit_pool = (param) => {
     };
 
     modal_add_pool.value.showEdit(poolData);
+};
+
+/* edit pool button to change pool policy */
+const click_edit_pool_policy = (param) => {
+    let pool_id = param.row.pool_id;
+    let manage_pool_url = `${http_prefix}/lua/pro/policy.lua?pool=${pool_id}`;
+    // open page in current tab
+    window.location.href = manage_pool_url;
 };
 
 /* delete host pool */

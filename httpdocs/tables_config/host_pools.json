@@ -27,8 +27,14 @@
 				{
 					"id": "edit",
 					"icon": "fas fa-edit",
-					"title_i18n": "edit",
+					"title_i18n": "host_pools.edit_name",
 					"event_id": "click_edit_pool"
+				},
+                {
+					"id": "edit_pool_policy",
+					"icon": "fas fa-shield-alt",
+					"title_i18n": "host_pools.edit_traffic_policy",
+					"event_id": "click_edit_pool_policy"
 				},
 				{
 					"id": "delete",

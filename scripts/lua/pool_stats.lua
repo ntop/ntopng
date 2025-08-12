@@ -34,7 +34,9 @@ page_utils.print_navbar(i18n("pools.host_pools"), ntop.getHttpPrefix() .. "/lua/
 
 local context = {
     csrf = ntop.getRandomCSRFValue(),
-    ifid = interface.getId()
+    ifid = interface.getId(),
+    isnEdge = ntop.isnEdge(),
+    isPro = ntop.isPro()
 }
 
 local json_context = json.encode(context)
