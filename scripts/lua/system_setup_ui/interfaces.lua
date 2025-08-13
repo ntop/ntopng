@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
+local template = require "template_utils"
 local system_setup_ui_utils = require "system_setup_ui_utils"
 require "lua_utils"
 require "prefs_utils"
@@ -26,8 +26,11 @@ end
 system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 local mode = sys_config:getOperatingMode()
-    
-if (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
+
+if (_POST["rescan_interfaces"] ~= nil) then
+    sys_config:rescanInterfaces()
+
+elseif (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
   sys_config:setLanWanIfaces(split(_POST["lan_interfaces"], ","), split(_POST["wan_interfaces"], ","))
 
   if (mode == "routing") then
@@ -211,9 +214,31 @@ print_page_body = function()
     });
   </script>
 ]]
+  print('<tr><th colspan=2 style="text-align:right;">')
+  print('<button class="btn btn-danger" type="button" onclick="$(\'#RescanInterfacesDialog\').modal(\'show\');" style="width:200px; float:left;">'..i18n("nedge.rescan_interfaces")..'</button>')
+  print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
+  print('</th></tr>')
 
-  printSaveButton()
 end
 
 system_setup_ui_utils.print_setup_page(print_page_body, sys_config)
 
+print(
+   template.gen("modal_confirm_dialog.html", {
+		   dialog={
+		      id      = "RescanInterfacesDialog",
+		      action  = "$('#RescanInterfacesForm').submit()",
+		      title   = i18n("nedge.rescan_interfaces"),
+		      message = i18n("nedge.rescan_interfaces_msg"),
+		      confirm = i18n("nedge.rescan_and_restart_self"),
+		      confirm_button = "btn-danger",
+		   }
+   })
+  )
+
+  print[[
+  <form id="RescanInterfacesForm" method="POST">
+    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
+    <input name="rescan_interfaces" value="" type="hidden" />
+  </form>
+  ]]

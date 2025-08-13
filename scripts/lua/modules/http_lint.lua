@@ -2651,6 +2651,7 @@ local known_parameters = {
     ["factory"] = validateBool,
     ["factory_reset"] = validateEmpty,
     ["data_reset"] = validateEmpty,
+    ["rescan_interfaces"] = validateEmpty,
     ["policy_filter"] = validateEmptyOr(validateNumber),
     ["hostname"] = validateSingleWord,
     ["delete"] = validateEmpty,

@@ -713,6 +713,15 @@ end
 
 -- ##############################################
 
+function system_config:rescanInterfaces()
+  if isAdministrator() then
+    os.remove(system_config.configFile())
+    sys_utils.rebootSystem()
+  end
+end
+
+-- ##############################################
+
 function system_config:_getNetworkInterfaceConfig(iface, if_type)
   local network_config = self.config.interfaces.configuration 
 
