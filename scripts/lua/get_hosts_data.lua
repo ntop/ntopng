@@ -383,7 +383,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    -- exists only for bridged interfaces
    if isBridgeInterface(interface.getStats()) then
-      record["column_num_dropped_flows"] = (value["flows.dropped"] or 0)
+      record["column_num_dropped_flows"] = (format_high_num_value_for_tables(value,"flows.dropped") or 0)
    end
 
    record["column_score"] = format_high_num_value_for_tables(value, "score") 

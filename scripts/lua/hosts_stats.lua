@@ -679,15 +679,16 @@ if page == 'active_hosts' and ntop.isnEdge() then
                {
                title: "]]
         print(i18n("hosts_stats.page_scan_hosts.title_hosts_page") )
+        -- hidden the CVEs column
         print [[",
                field: "column_num_vulnerabilities",
                sortable: false,
                      css: {
                   textAlign: 'center'
                },
-               hidden: ]]
-        local scan_modules = vs_utils.list_scan_modules()
-        print(#scan_modules == 0)
+               hidden: true]]
+        --local scan_modules = vs_utils.list_scan_modules()
+        --print(#scan_modules == 0)
         print [[
 
                }, {
