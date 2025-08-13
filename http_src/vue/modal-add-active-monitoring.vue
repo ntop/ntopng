@@ -212,7 +212,7 @@ const add_ = async () => {
         granularity: selected_granularity.value.id,
         measurement: selected_measurement.value.id,
         threshold: threshold.value.value,
-        ifname: selected_interface.value.id
+        ifname: selected_interface?.value?.id
     }
     /* Handle the edit */
     if (row.value) {
