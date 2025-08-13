@@ -174,7 +174,7 @@ if(hosts_stats ~= nil) then
       -- Safety check (trace failure for debugging)
       if type(value) ~= "table" then
          traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key.." (not a table)")
-	 tprint(value)
+
 	 goto skip
       end
 
@@ -262,6 +262,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
    
    local symkey = hostinfo2jqueryid(hosts_stats[key])
+
    record["key"] = symkey
 
    local url = hostinfo2detailsurl(hosts_stats[key])
@@ -418,4 +419,5 @@ result["currentPage"] = currentPage
 result["totalRows"] = total
 result["data"] = formatted_res
 result["sort"] = {{sortColumn, sortOrder}}
+
 print(json.encode(result))

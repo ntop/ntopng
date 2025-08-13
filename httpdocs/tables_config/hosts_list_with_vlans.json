@@ -30,6 +30,15 @@
 						"btn-info"
 					],
 					"event_id": "click_button_live_flows"
+				},
+				{
+					"id": "block_host",
+					"icon": "fas fa-ban",
+					"title_i18n": "block",
+					"class": [
+						"btn-info"
+					],
+					"event_id": "click_button_drop_host_traffic"
 				}
 			]
 		},

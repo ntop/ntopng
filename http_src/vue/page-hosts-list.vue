@@ -121,6 +121,12 @@ const map_table_def_columns = (columns) => {
             if (!dataUtils.isEmptyOrNull(host.is_blackhole)) {
                 icons = `${icons} ${blackhole_icon}`
             }
+
+            // Strike throough in nEdge
+            if (row.isBlocked) {
+                ip_address = `<span style="text-decoration: line-through">${ip_address}</span>`;
+            }
+
             return `<a href=${url}>${ip_address}</a> ${icons}`
         },
         "num_flows": (value, row) => {
@@ -204,8 +210,22 @@ const map_table_def_columns = (columns) => {
             return ''
         },
     };
+
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];
+        if (c.id == "actions") {
+            c.button_def_array.forEach((b) => {
+                b.f_map_class = (current_class, row) => {
+
+                    // handle block button
+                    if ((b.id === "block_host") && (props.context.isNedge)) {
+                        current_class[0] = row.isBlocked ? "btn-danger" : "btn-secondary";
+                    }
+
+                    return current_class;
+                }
+            });
+        }
     });
 
     return columns;
@@ -327,11 +347,34 @@ function click_button_live_flows(event) {
     window.open(create_config_url_link(row));
 }
 
+async function click_button_drop_host_traffic(event) {
+
+    const host_ip = event.row.host.ip;
+    const url = `${http_prefix}/lua/pro/nedge/toggle_block_host.lua?host=${host_ip}`;
+
+    try {
+        const res = await ntopng_utility.http_request(url);
+        let status = res.status
+
+        if (status == "BLOCKED") {
+            event.row.isBlocked = true;
+        }
+        else if (status == "UNBLOCKED") {
+            event.row.isBlocked = false;
+        }
+
+    } catch (err) {
+        console.error("HTTP request failed:", err);
+    }
+}
+
+
 /* ************************************** */
 
 function on_table_custom_event(event) {
     let events_managed = {
         "click_button_live_flows": click_button_live_flows,
+        "click_button_drop_host_traffic": click_button_drop_host_traffic,
     };
     if (events_managed[event.event_id] == null) {
         return;

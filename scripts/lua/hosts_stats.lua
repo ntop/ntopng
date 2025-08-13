@@ -324,7 +324,8 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     url = ntop.getHttpPrefix() .. "/lua/as_overview.lua?asn=" .. (asn or 0)
 }})
 
-if page == 'active_hosts' and ntop.isnEdge() then
+-- added not to use new table, remove not to use old table (in case of errors)
+if page == 'active_hosts' and not ntop.isnEdge() then
     page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, device_ip_title, network_name, cidr,
         ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title, vlan_alias))
 
@@ -903,7 +904,8 @@ elseif page == "active_hosts" then
     local json_context = json.encode({
         ifid = ifstats.id,
         has_vlans = (vlans ~= nil),
-        csrf = ntop.getRandomCSRFValue()
+        csrf = ntop.getRandomCSRFValue(),
+        isNedge = have_nedge
     })
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageHostsList", page_context = json_context })
 elseif page == "local_hosts_report" then

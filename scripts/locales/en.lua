@@ -360,6 +360,7 @@ local lang = {
    ["flow_status"] = "Flows",
    ["flowdev_alias"] = "Flow Device Alias",
    ["flows"] = "Flows",
+   ["block"] = "Block",
    ["flush_map_data"] = "Flush Data",
    ["forbidden"] = "Forbidden",
    ["free"] = "Free",

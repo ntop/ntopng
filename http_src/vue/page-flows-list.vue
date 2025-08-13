@@ -171,7 +171,12 @@ const map_table_def_columns = (columns) => {
         "flow": (value, row) => {
             const client = format_host(row.client)
             const server = format_host(row.server)
-            return `${client} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${server}`
+
+            let flow_label = `${client} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${server}`
+            // strike through if verdict is to drop
+            flow_label = !row.verdict ? ` <strike>${flow_label}</strike>` : `${flow_label}`
+            
+            return flow_label
         },
         "protocol": (value, row) => {
             value = row.application
@@ -364,7 +369,7 @@ const map_table_def_columns = (columns) => {
                     c.button_def_array.splice(pos, 1)
                 }
                 b.f_map_class = (current_class, row) => {
-                    if (visible_dict[b.id] != null && b.id === "block_list" && row.verdict) {
+                    if (visible_dict[b.id] != null && b.id === "block_list" && !row.verdict) {
                         current_class.push("disabled");
                     } else if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
                         current_class.push("disabled");

@@ -10,6 +10,7 @@ require "ntop_utils"
 require "http_lint"
 local rest_utils = require "rest_utils"
 local vs_utils = require "vs_utils"
+local have_nedge = ntop.isnEdge()
 
 -- Table parameters
 local all = _GET["all"]
@@ -111,10 +112,19 @@ local hosts_stats = hosts_retrv_function(false, mapping_column_lua_c[sort_column
 
 for key, value in pairs(hosts_stats["hosts"]) do
     local record = {}
+    local host_ip = value.ip
 
     local column_ip = {
-        ip = value.ip
+        ip = host_ip
     }
+
+    local drop_traffic = false
+    local host_vlan = value.vlan
+
+    if have_nedge and ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_ip) == "true" then
+        drop_traffic = true
+    end
+
     if not isEmptyString(value.os) then
         column_ip.os = tonumber(value.os)
     end
@@ -205,6 +215,8 @@ for key, value in pairs(hosts_stats["hosts"]) do
     record["alerts"] = value["num_alerts"]
     record["num_flows"] = value["active_flows.as_client"] + value["active_flows.as_server"]
     record["score"] = value["score"]
+    record["isBlocked"] = drop_traffic
+
     rsp[#rsp + 1] = record
 end
 
