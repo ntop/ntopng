@@ -1873,6 +1873,7 @@ local known_parameters = {
 
     -- CONFIGSETS
     ["filters"] = validateScriptFilter, -- Currently active exclusion list for the alert
+    ["filter"] = validateScriptFilter, -- Currently active exclusion list for the alert
     ["delete_alerts"] = validateBool,
     ["alert_generation"] = {jsonCleanup, validateJSON},
 
