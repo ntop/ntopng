@@ -2496,6 +2496,9 @@ local known_parameters = {
 
     --
     ["assets"] = validateMessage,
+    
+    --
+    ["is_snmp"] = validateBool,
 
     -- LIVE CAPTURE
     ["capture_id"] = validateNumber, -- Live capture id

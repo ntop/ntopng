@@ -82,7 +82,8 @@ const _i18n = (t) => i18n(t);
 /* ************************************** */
 
 const import_assets_url = `${http_prefix}/lua/pro/rest/v2/add/assets/assets.lua`;
-const export_assets_url = `${http_prefix}/lua/pro/rest/v2/export/assets/assets.lua`;
+// For the export, it’s necessary to know if the page is the SNMP page
+const export_assets_url = `${http_prefix}/lua/pro/rest/v2/export/assets/assets.lua?is_snmp=${props.context.is_system_interface}`
 const modal_import_assets = ref();
 
 const host_filters_key = ref(0);
