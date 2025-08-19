@@ -49,6 +49,11 @@
               <input @click="set_rule_type('profiles')" class="btn-check" type="radio" name="rule_type" value="profiles"> {{
                 _i18n("if_stats_config.add_rules_type_profiles") }}
             </label>
+            <label v-if="props.has_asn == true" class="btn "
+              :class="[rule_type == 'asn' ? 'btn-primary active' : 'btn-secondary']">
+              <input @click="set_rule_type('asn')" class="btn-check" type="radio" name="rule_type" value="asn"> {{
+                _i18n("if_stats_config.add_rules_type_asn") }}
+            </label>
           </div>
         </div>
       </div>
@@ -141,6 +146,17 @@
         </div>
       </div>
 
+      <!-- ASN -->
+      <div v-if="rule_type == 'asn'" class="form-group ms-2 me-2 mt-3 row">
+        <label class="col-form-label col-sm-2">
+          <b>{{ _i18n("if_stats_config.target_asn") }}</b>
+        </label>
+        <div class="col-10">
+          <SelectSearch v-model:selected_option="selected_asn" :options="asn_list">
+          </SelectSearch>
+        </div>
+      </div>
+
       <!-- Metric information, here a metric is selected (e.g. DNS traffic) -->
       <div v-if="metrics_ready" class="form-group ms-2 me-2 mt-3 row">
         <label class="col-form-label col-sm-2">
@@ -193,6 +209,13 @@
           <div class="col-10">
             <SelectSearch v-model:selected_option="selected_profile_metric" 
               :options="profiles_metric_list">
+            </SelectSearch>
+          </div>
+        </template>
+        <template v-else-if="rule_type == 'asn'">
+          <div class="col-10">
+            <SelectSearch v-model:selected_option="selected_asn_metric" 
+              :options="asn_metric_list">
             </SelectSearch>
           </div>
         </template>
@@ -356,6 +379,10 @@ const profiles_list = ref([]);
 const selected_profile = ref({});
 const profiles_metric_list = ref(null);
 const selected_profile_metric = ref({});
+const asn_list = ref([]);
+const selected_asn = ref({});
+const asn_metric_list = ref(null);
+const selected_asn_metric = ref({});
 
 let active_metric_type_list = ref([]);
 
@@ -430,6 +457,7 @@ const props = defineProps({
   frequency_list: Array,
   has_vlans: Boolean,
   has_profiles: Boolean,
+  has_asn: Boolean,
   init_func: Function,
   page_csrf: String,
 });
@@ -771,6 +799,13 @@ const set_row_to_edit = (row) => {
         item.schema == row.metric
       );
     }
+    else if (rule_type.value == 'asn') {
+      selected_asn.value = asn_list.value.find((item) => item.id == row.target);
+      
+      selected_asn_metric.value = asn_metric_list.value.find((item) => 
+        item.schema == row.metric
+      );
+    }
   }
 }
 
@@ -1048,6 +1083,24 @@ const add_ = (is_edit) => {
       rule_threshold_sign: tmp_sign_value,
       rule_id: tmp_edit_row_id
     });
+  } else if (rule_type.value == "asn") {
+
+    tmp_metric = selected_asn_metric.value.schema;
+    tmp_metric_label = selected_asn_metric.value.label;
+    const tmp_asn = selected_asn.value.id;
+
+    emit(emit_name, {
+      asn: tmp_asn,
+      frequency: tmp_frequency,
+      metric: tmp_metric,
+      metric_label: tmp_metric_label,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      extra_metric: tmp_extra_metric,
+      rule_type: tmp_rule_type,
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id
+    });
   }
 
 };
@@ -1092,7 +1145,7 @@ const format_ifid_list = function (data) {
 
 const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, 
                              page_csrf, _init_func, _delete_row, _host_pool_list, _network_list, _host_pool_metric_list, _network_metric_list, 
-                             _vlan_list, _vlan_metric_list, _profiles_list, _profiles_metric_list) => {
+                             _vlan_list, _vlan_metric_list, _profiles_list, _profiles_metric_list, _asn_list, _asn_metric_list) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
@@ -1141,6 +1194,12 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
     selected_profile.value = profiles_list.value[0];
     profiles_metric_list.value = _profiles_metric_list;
     selected_profile_metric.value = profiles_metric_list.value[0];
+  }
+  if (props.has_asn) {
+    asn_list.value = format_asn_list(_asn_list);
+    selected_asn.value = asn_list.value[0];
+    asn_metric_list.value = _asn_metric_list;
+    selected_asn_metric.value = asn_metric_list.value[0];
   }
 }
 
@@ -1255,6 +1314,20 @@ const format_profile_list = function(data) {
     1 /* by default asc */
   ));
   return f_profile_list;
+}
+
+const format_asn_list = function(data) {
+  const f_asn_list = [];
+  data.forEach((asn) => {
+    if (asn.asn != 0) {
+      f_asn_list.push({
+        id: asn.asn,
+        label: asn.asn + " ("+asn.asname + ")",
+        value: asn.traffic,
+      })
+    }
+  });
+  return f_asn_list;
 }
 
 /* *************************************************** */

@@ -1366,6 +1366,7 @@ local lang = {
     ["too_many_hosts_details"] = "Do you want to increase the current number of maximum Hosts?",
     ["too_many_hosts_err"] = "Unable to increase max Hosts. Please tune -X from the configuration file and restart ntopng.",
     ["too_many_hosts_title"] = "Increase Max Hosts",
+    ["traffic_asn_volume_alert"] = "[ASN: <a href=\"%{url}%{asn}\">%{asn}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_flowdev_port_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\" target='_blank'>%{host}</a> Interface %{iface}] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_flowdev_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\">%{host}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_host_pool_volume_alert"] = "[Host Pool: <a href=\"%{url}%{host_pool_id}\">%{host_pool_label}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
@@ -5568,6 +5569,7 @@ local lang = {
   ["if_stats_config"] = {
     ["add_traffic_title"] = "Add Rule",
     ["add_rules_type"] = "Rule type",
+    ["add_rules_type_asn"] = "ASN",
     ["add_rules_type_cidr"] = "Networks",
     ["add_rules_type_flow_exporter"] = "Flow Exporter Device",
     ["add_rules_type_host"] = "Host",
@@ -5624,6 +5626,7 @@ local lang = {
     ["snmp_device"] = "Device",
     ["snmp_interface"] = "Interface",
     ["target"] = "Target",
+    ["target_asn"] = "ASN",
     ["target_exporter_device"] = "Exporter Device",
     ["target_exporter_device_ifid"] = "Network Interface",
     ["target_interface"] = "Network Interface Timeseries",

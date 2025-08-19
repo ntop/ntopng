@@ -109,6 +109,7 @@ local other_alert_keys = {
    alert_exporters_limit_exceeded       = OTHER_BASE_KEY + 96,
    alert_acl_violation_arp              = OTHER_BASE_KEY + 97,
    alert_redis_reads_writes_exceeded    = OTHER_BASE_KEY + 98,
+   alert_asn_rule_threshold_crossed     = OTHER_BASE_KEY + 99,
 
    MAX_OTHER_ALERT_TYPE = OTHER_BASE_KEY + 127 -- see ntop_typedefs.h
 }

@@ -3713,6 +3713,19 @@ function timeseries_info.get_traffic_rules_schema(rule_type)
         end
 
         return metric_list
+    elseif rule_type == "asn" then
+        local metric_list = {}
+        for _, item in ipairs(community_timeseries) do
+            if (item.id == timeseries_id.asn) then
+                -- When the custom threshold is added, remove this check to use all time series
+                if(item.schema == "asn:traffic_rcvd" or
+                        item.schema == "asn:traffic_sent" or
+                        item.schema == "asn:traffic") then
+                    metric_list[#metric_list + 1] = item
+                end
+            end
+        end
+        return metric_list
     elseif rule_type == "interface" then
         local ifname_ts_enabled = ntop.getCache(
                                       "ntopng.prefs.ifname_ndpi_timeseries_creation")
