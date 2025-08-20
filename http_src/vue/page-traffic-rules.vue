@@ -99,9 +99,9 @@ const rest_params = {
 };
 
 let traffic_rules_table_config = {};
-let title_delete = _i18n('if_stats_config.delete_traffic_rules_title');
+let title_delete = _i18n('if_stats_config.delete_traffic_title');
 let title_edit = _i18n('if_stats_config.edit_local_network_rules');
-let body_delete = _i18n('if_stats_config.delete_traffic_rules_description');
+let body_delete = _i18n('if_stats_config.delete_traffic_description');
 let metric_list = [];
 let interface_metric_list = [];
 let host_pool_metric_list = [];
@@ -328,7 +328,7 @@ const format_rule_type = function (data, rowData) {
   } else if ((rowData.rule_type) && rowData.rule_type == 'profiles') {
     formatted_data = "<span class='badge bg-secondary'>" + _i18n("if_stats_config.target_profile") + " <i class='fas fa-ethernet'></i></span>"
   }
-  else if ((rowData.rule_type) && rowData.rule_type == 'profiles') {
+  else if ((rowData.rule_type) && rowData.rule_type == 'asn') {
     formatted_data = "<span class='badge bg-secondary'>" + _i18n("if_stats_config.target_asn") + " <i class='fas fa-ethernet'></i></span>"
   }
 
