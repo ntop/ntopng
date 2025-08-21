@@ -215,7 +215,7 @@
         <template v-else-if="rule_type == 'asn'">
           <div class="col-10">
             <SelectSearch v-model:selected_option="selected_asn_metric" 
-              :options="asn_metric_list">
+              :options="asn_metric_list" @select_option="change_asn_threshold">
             </SelectSearch>
           </div>
         </template>
@@ -560,7 +560,9 @@ const set_rule_type = (type) => {
       change_interface_threshold();
     } else if (type == "vlan") {
       change_vlan_threshold();
-    } else {
+    } else if (type == "asn") {
+      change_asn_threshold();
+    }else {
       visible.value = true;
     }
     
@@ -801,10 +803,15 @@ const set_row_to_edit = (row) => {
     }
     else if (rule_type.value == 'asn') {
       selected_asn.value = asn_list.value.find((item) => item.id == row.target);
-      
-      selected_asn_metric.value = asn_metric_list.value.find((item) => 
-        item.schema == row.metric
-      );
+      if (row.extra_metric != null) {
+        selected_asn_metric.value = asn_metric_list.value.find((item) => 
+          item.schema == row.metric && item.extra_metric == row.extra_metric
+        );
+      } else {
+        selected_asn_metric.value = asn_metric_list.value.find((item) => 
+          item.schema == row.metric
+        );
+      }
     }
   }
 }
@@ -830,6 +837,10 @@ const change_interface_threshold = () => {
 
 const change_vlan_threshold = () => {
   (selected_vlan_metric.value.show_volume == true) ? visible.value = true : visible.value = false
+}
+
+const change_asn_threshold = () => {
+  (selected_asn_metric.value.show_volume == true) ? visible.value = true : visible.value = false
 }
 
 const check_empty_host = () => {
@@ -1084,7 +1095,7 @@ const add_ = (is_edit) => {
       rule_id: tmp_edit_row_id
     });
   } else if (rule_type.value == "asn") {
-
+    tmp_extra_metric = ((selected_asn_metric.value.extra_metric) ? selected_asn_metric.value.extra_metric : null)
     tmp_metric = selected_asn_metric.value.schema;
     tmp_metric_label = selected_asn_metric.value.label;
     const tmp_asn = selected_asn.value.id;

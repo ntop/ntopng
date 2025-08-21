@@ -3714,15 +3714,37 @@ function timeseries_info.get_traffic_rules_schema(rule_type)
 
         return metric_list
     elseif rule_type == "asn" then
+        local ifname_ts_enabled = ntop.getCache(
+                                      "ntopng.prefs.ifname_ndpi_timeseries_creation")
+        local has_top_protocols = ifname_ts_enabled == "both" or
+                                      ifname_ts_enabled == "per_protocol" or
+                                      ifname_ts_enabled ~= "0"
+        
         local metric_list = {}
         for _, item in ipairs(community_timeseries) do
             if (item.id == timeseries_id.asn) then
+                item.show_volume = false
                 -- When the custom threshold is added, remove this check to use all time series
                 if(item.schema == "asn:traffic_rcvd" or
                         item.schema == "asn:traffic_sent" or
                         item.schema == "asn:traffic") then
-                    metric_list[#metric_list + 1] = item
+                    item.show_volume = true
                 end
+                metric_list[#metric_list + 1] = item
+            end
+        end
+        if has_top_protocols then
+            local id = 'top:asn:ndpi'
+            local application_list = interface.getnDPIProtocols()
+            for application, _ in pairsByKeys(application_list or {}, asc) do
+                metric_list[#metric_list + 1] = {
+                    label = application,
+                    group = i18n('applications_long'),
+                    title = application,
+                    schema = id,
+                    extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]] ,
+                    show_volume = true
+                }
             end
         end
         return metric_list
