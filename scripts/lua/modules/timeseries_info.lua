@@ -3724,13 +3724,12 @@ function timeseries_info.get_traffic_rules_schema(rule_type)
         for _, item in ipairs(community_timeseries) do
             if (item.id == timeseries_id.asn) then
                 item.show_volume = false
-                -- When the custom threshold is added, remove this check to use all time series
                 if(item.schema == "asn:traffic_rcvd" or
                         item.schema == "asn:traffic_sent" or
                         item.schema == "asn:traffic") then
                     item.show_volume = true
+                    metric_list[#metric_list + 1] = item
                 end
-                metric_list[#metric_list + 1] = item
             end
         end
         if has_top_protocols then
