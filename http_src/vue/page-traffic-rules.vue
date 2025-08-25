@@ -348,7 +348,7 @@ const format_target = function (data, rowData) {
   } else if (rowData.rule_type == 'profiles') {
     formatted_data = rowData.target;
   }  else if (rowData.rule_type == 'asn') {
-    formatted_data = rowData.target;
+    formatted_data = rowData.target + " " + rowData.name;
   }else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric == "flowdev:traffic") {
     formatted_data = rowData.target;
   } else {

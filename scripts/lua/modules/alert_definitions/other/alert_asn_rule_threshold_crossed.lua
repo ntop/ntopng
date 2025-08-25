@@ -1,5 +1,5 @@
 --
--- (C) 2019-24 - ntop.org
+-- (C) 2019-25 - ntop.org
 --
 
 -- ##############################################
@@ -62,7 +62,9 @@ function alert_asn_rule_threshold_crossed.format(ifid, alert, alert_type_params)
       alert_type_params.frequency = i18n("edit_check.hooks_name.day")
    end
 
-   if(alert_type_params.metric == "asn:traffic") then
+   if(alert_type_params.metric == "asn:traffic" or 
+             alert_type_params.metric == "asn:traffic_rcvd" or
+             alert_type_params.metric == "asn:traffic_sent") then
       if(alert_type_params.metric_type == "volume") then
          alert_type_params.value = bytesToSize(alert_type_params.value)
          alert_type_params.threshold = bytesToSize(alert_type_params.threshold)
@@ -79,10 +81,10 @@ function alert_asn_rule_threshold_crossed.format(ifid, alert, alert_type_params)
             alert_type_params.threshold = string.format("%s",tostring(alert_type_params.threshold)).. "%"
         end
     end
-   
+
     return(i18n("alert_messages.traffic_asn_volume_alert", {
-        url = "/lua/as_overview.lua?asn=",
-        asn = alert_type_params.asn,
+        url = "/lua/as_overview.lua?asn="..alert_type_params.asn,
+        asn = alert_type_params.asn .. " " .. format_utils.formatASN(tonumber(alert_type_params.asn), true, false),
         metric = alert_type_params.metric,
         value = alert_type_params.value,
         threshold_sign = alert_type_params.threshold_sign,
