@@ -883,32 +883,40 @@ const set_active_radio = (selected_radio) => {
 /**
  * Function to add rule to rules list
  */
-const add_ = (is_edit) => {
+ const add_ = (is_edit) => {
+ 
   let tmp_host = ''
   if (rule_type.value != 'interface')
     tmp_host = host.value;
-
+      
   const tmp_frequency = selected_frequency.value.id;
   let tmp_metric = selected_metric.value.id;
   let tmp_metric_label = selected_metric.value.label;
- 
+
   const tmp_rule_type = rule_type.value;
 
   let tmp_metric_type = metric_type.value.id;
-  let tmp_extra_metric 
+  let tmp_extra_metric
   let basic_value;
   let basic_sign_value;
   let tmp_threshold;
-  let tmp_sign_value;
+  // default for host score threshold
+   let tmp_sign_value = 1;
 
   let tmp_edit_row_id = (is_edit) ? row_to_edit_id.value : null;
 
   if (visible.value === false) {
     tmp_metric_type = ''
     tmp_extra_metric = ''
+
+    // with score the threshold is not visible, do not init to empty the metric type or score rules
+    // will be invalid and not correctly added in the backend for checks as 'metric_type' is missing in the request
+    if (tmp_metric === 'host:score') {
+      tmp_metric_type = 'score'
+    }
+
     tmp_threshold = threshold.value.value;
   }
-
 
   if (tmp_metric_type == 'throughput') {
     sign_threshold_list.value.forEach((measure) => { if (measure.active) basic_sign_value = measure.value; })
