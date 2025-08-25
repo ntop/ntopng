@@ -84,7 +84,8 @@ function alert_asn_rule_threshold_crossed.format(ifid, alert, alert_type_params)
 
     return(i18n("alert_messages.traffic_asn_volume_alert", {
         url = "/lua/as_overview.lua?asn="..alert_type_params.asn,
-        asn = alert_type_params.asn .. " " .. format_utils.formatASN(tonumber(alert_type_params.asn), true, false),
+        asn = alert_type_params.asn,
+        asn_name = format_utils.formatASN(tonumber(alert_type_params.asn), true, false),
         metric = alert_type_params.metric,
         value = alert_type_params.value,
         threshold_sign = alert_type_params.threshold_sign,
