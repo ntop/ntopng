@@ -152,14 +152,16 @@
                                                 <span class="detail-label">{{ _i18n("alert.graph.first_seen")
                                                     }}</span>
                                                 <span class="detail-value">{{
-                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.first_seen * 1000)
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.first_seen
+                                                        * 1000)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.last_seen")
                                                     }}</span>
                                                 <span class="detail-value">{{
-                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen * 1000)||
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen
+                                                        * 1000) ||
                                                     '-' }}</span>
                                             </div>
                                             <div class="detail-row">
@@ -730,12 +732,13 @@ async function draw_graph(redraw = false, centerIP = null) {
 
                 try {
                     // Reset all node styles
-                    d3.selectAll(".node-group circle")
+                    d3.selectAll(".node-group circle, .node-group path")
                         .attr("stroke", "#212121")
                         .attr("stroke-width", 1);
 
                     // Highlight selected node
-                    d3.select(event.currentTarget).select("circle")
+
+                    d3.select(event.currentTarget).selectAll("circle, path")
                         .attr("stroke", "#FFC107")
                         .attr("stroke-width", 2);
 
@@ -752,8 +755,8 @@ async function draw_graph(redraw = false, centerIP = null) {
                     d3.selectAll(".link")
                         .filter(d => outgoingPathLinks.has(d))
                         .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
-                        .attr("stroke-width", 6)
-                        .attr("stroke-opacity", 1.0);
+                        .attr("stroke-width", 10)
+                        .attr("stroke-opacity", 4.0);
 
                     // Dashed lines, outgoing links
                     d3.selectAll(".link")
@@ -812,18 +815,33 @@ async function draw_graph(redraw = false, centerIP = null) {
                 add_filter('ip', clicked_node.id);
                 await get_host_info();
                 activeFlows.value = await get_active_flows();
-                
+
                 // Redraw graph with the new filtered data
                 await draw_graph(true, clicked_node.id);
             });
 
         // Add the node circles with color based on alert count
         const nodeRadius = 10;
-        nodeGroup.append("circle")
-            .attr("r", nodeRadius)
-            .attr("fill", d => nodeColorScale(d.alert_count))
-            .attr("stroke", "#212121")
-            .attr("stroke-width", 1);
+
+        nodeGroup.each(function (d) {
+            const group = d3.select(this);
+
+            if (d.is_localhost) {
+                // Circle for local hosts
+                group.append("circle")
+                    .attr("r", nodeRadius)
+                    .attr("fill", nodeColorScale(d.alert_count))
+                    .attr("stroke", "#212121")
+                    .attr("stroke-width", 1);
+            } else {
+                // Triangle for remote hosts
+                group.append("path")
+                    .attr("d", d3.symbol().type(d3.symbolTriangle).size(200)) // size controls area, tweak if needed
+                    .attr("fill", nodeColorScale(d.alert_count))
+                    .attr("stroke", "#212121")
+                    .attr("stroke-width", 1);
+            }
+        });
 
         nodeGroup.append("text")
             .attr("x", -nodeRadius - 6)
@@ -962,10 +980,11 @@ function findNode() {
         d3.selectAll(".link")
             .attr("stroke-dasharray", link =>
                 (link.source.id === foundNode.id || link.source === foundNode.id) ? "5,5" : null);
-
+        /*
         d3.selectAll(".node-group circle")
             .attr("stroke", "#212121")
             .attr("stroke-width", 1);
+        */
 
         d3.selectAll(".node-group")
             .filter(d => d.id === foundNode.id)
@@ -1097,7 +1116,11 @@ const get_links_and_nodes = async function () {
         if (!nodesDict.has(alert.src_ip)) {
 
             let node_data = {
-                id: alert.src_ip, name: alert.src_ip, src_asn: alert.src_asn, src_country: alert.src_country,
+                id: alert.src_ip,
+                name: alert.src_ip,
+                src_asn: alert.src_asn,
+                src_country: alert.src_country,
+                is_localhost: alert.src_localhost === 1,
                 incoming_count: incomingAlertsCounts.get(alert.src_ip) || 0,
                 outgoing_count: outgoingAlertsCounts.get(alert.src_ip) || 0,
                 // total alerts count for node
@@ -1113,7 +1136,11 @@ const get_links_and_nodes = async function () {
 
         if (!nodesDict.has(alert.dst_ip)) {
             let node_data = {
-                id: alert.dst_ip, name: alert.dst_ip, dst_asn: alert.dst_asn, dst_country: alert.dst_country,
+                id: alert.dst_ip,
+                name: alert.dst_ip,
+                dst_asn: alert.dst_asn,
+                dst_country: alert.dst_country,
+                is_localhost: alert.dst_localhost === 1,
                 incoming_count: incomingAlertsCounts.get(alert.dst_ip) || 0,
                 outgoing_count: outgoingAlertsCounts.get(alert.dst_ip) || 0,
                 // total alerts count for node
