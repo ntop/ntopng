@@ -21,6 +21,22 @@ local devices_mode  = _GET["devices_mode"]
 local manufacturer  = _GET["manufacturer"]
 local device_type   = tonumber(_GET["device_type"])
 
+function macHosts(mac)
+    require "lua_utils_gui"
+    local mac_hosts = interface.getMacHosts(mac)
+    local num_hosts = table.len(mac_hosts)
+    if num_hosts > 0 then
+        local first_host
+
+        for _, h in pairsByKeys(mac_hosts, asc) do
+            first_host = h
+            break
+        end
+        local host_label = first_host["ip"]
+        return {host_label = host_label, num_hosts = num_hosts, has_name = false}
+    end
+    return {host_label='', num_hosts, has_name = false}
+end
 
 local c_order = true
 local lua_order = asc
@@ -64,20 +80,41 @@ if macs_stats.macs then
             manufacturer = manufacturer .. " [ " .. shortenString(_model) .. " ]"
         end
         record["manufacturer"] = manufacturer
+        
+        local device_type_string = discover.devtype2stringId(value["devtype"])
+        local device_type_label = discover.devtype2string(value["devtype"])
+        local device_type = {
+            device_type_label = device_type_label
+        }
+        if device_type_string == "printer" then device_type.printer = true end
+        if device_type_string == "video" then device_type.video = true end 
+        if device_type_string == "workstation" then device_type.workstation = true end
+        if device_type_string == "laptop" then device_type.laptop = true end
+        if device_type_string == "tablet" then device_type.tablet = true end
+        if device_type_string == "phone" then device_type.phone = true end
+        if device_type_string == "tv" then device_type.tv = true end
+        if device_type_string == "networking" then device_type.networking = true end
+        if device_type_string == "wifi" then device_type.wifi = true end
+        if device_type_string == "nas" then device_type.nas = true end
+        if device_type_string == "multimedia" then device_type.multimedia = true end
+        if device_type_string == "iot" then device_type.iot = true end
+        record["device_type"] = device_type
 
-        record["device_type"] = discover.devtype2string(value["devtype"]) .. " " .. discover.devtype2icon(value["devtype"])
-        local name = getDeviceName(value["mac"], true)
-        if (isEmptyString(name)) then
-            name = printMacHosts(value.mac)
+        local name_device = {name = getDeviceName(value["mac"], true), has_name = true}
+        if (isEmptyString(name_device.name)) then
+            name_device = macHosts(value.mac)
         end
-        record["name"] = name
+        record["name"] = name_device
+        
         record["hosts"] = value["num_hosts"]
+        
         if (value["arp_requests.sent"] == None) then
             record["arp"] = 0
         else
             record["arp"] = formatValue(value["arp_requests.sent"] + value["arp_replies.sent"] +
                                                         value["arp_requests.rcvd"] + value["arp_replies.rcvd"])
         end
+        
         record["seen_since"] = value["seen.first"]
         if ((value["bytes.sent"] == None) and (value.sent ~= None)) then
             value["bytes.sent"] = value.sent.bytes
@@ -87,21 +124,17 @@ if macs_stats.macs then
 
         record["breakdown"] = ""
         local total_bytes = value["bytes.sent"] + value["bytes.rcvd"]
-        if total_bytes > 0 then
-            local sent2rcvd = round((value["bytes.sent"] * 100) / total_bytes, 0) or 0
-            record["breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
-                                        sent2rcvd .. "%;'>Sent</div><div class='progress-bar bg-success' style='width: " ..
-                                        (100 - sent2rcvd) .. "%;'>Rcvd</div></div>"
-        end
+        record["bytes_sent"] = value["bytes.sent"]
+        record["bytes_rcvd"] = value["bytes.rcvd"]
 
         if (throughput_type == "pps") then
-            record["throughput"] = value["throughput_pps"]--pktsToSize(value["throughput_pps"])
+            record["throughput"] = value["throughput_pps"]
             record["throughput_type"] = "pps"
         else
-            record["throughput"] = value["throughput_bps"]--bitsToSize(8 * value["throughput_bps"])
+            record["throughput"] = value["throughput_bps"]
             record["throughput_type"] = "bps"
         end
-        record["traffic"] = value["bytes.sent"] + value["bytes.rcvd"]--bytesToSize(value["bytes.sent"] + value["bytes.rcvd"])
+        record["traffic"] = value["bytes.sent"] + value["bytes.rcvd"]
         rsp[#rsp + 1] = record
     end
 end

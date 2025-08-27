@@ -541,6 +541,19 @@ end
 
 -- ################################################################################
 
+function discover.devtype2stringId(devtype)
+    devtype = tonumber(devtype)
+    for k, v in pairs(id2label) do
+        if (k == devtype) then
+            return v[1]
+        end
+    end
+
+    return ("") -- unknown
+end
+
+-- ################################################################################
+
 function discover.isSpecialPurposeDevice(id)
     local v = id2label[id]
 

@@ -51,6 +51,18 @@ const table_id = ref("macs_list");
 const table_macs_list = ref(null);
 const filter_table_array = ref([]);
 const csrf = props.context.csrf;
+const workstation_icon = '<i class="fas fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>';
+const networking_icon = '<i class="fas fa-arrows-alt fa-lg devtype-icon" aria-hidden="true"></i>';
+const tv_icon = '<i class="fas fa-tv fa-lg devtype-icon" aria-hidden="true"></i>';
+const printer_icon = '<i class="fas fa-print fa-lg devtype-icon" aria-hidden="true"></i>';
+const iot_icon = '<i class="fas fa-thermometer fa-lg devtype-icon" aria-hidden="true"></i>';
+const multimedia_icon = '<i class="fas fa-music fa-lg devtype-icon" aria-hidden="true"></i>';
+const tablet_icon = '<i class="fas fa-tablet fa-lg devtype-icon" aria-hidden="true"></i>';
+const video_icon = '<i class="fas fa-video fa-lg devtype-icon" aria-hidden="true"></i>';
+const wifi_icon = '<i class="fas fa-wifi fa-lg devtype-icon" aria-hidden="true"></i>';
+const laptop_icon = '<i class="fas fa-laptop fa-lg devtype-icon" aria-hidden="true"></i>';
+const phone_icon = '<i class="fas fa-mobile fa-lg devtype-icon" aria-hidden="true"></i>';
+const nas_icon = '<i class="fas fa-database fa-lg devtype-icon" aria-hidden="true"></i>';
 
 /* ************************************** */
 
@@ -60,28 +72,65 @@ const map_table_def_columns = (columns) => {
             return value
         },
         "manufacturer": (value, row) => {
-            let name = value
-            if (!dataUtils.isEmptyOrNull(value.alt_name)) {
-                name = value.alt_name
-                if (value.alt_name != value.name && !dataUtils.isEmptyOrNull(value.name)) {
-                    name = `${name} [${value.name}]`
-                }
-            }
-
-            return name
+            return value
         },
         "device_type": (value, row) => {
-            let name = value
-            if (!dataUtils.isEmptyOrNull(value.alt_name)) {
-                name = value.alt_name
-                if (value.alt_name != value.name && !dataUtils.isEmptyOrNull(value.name)) {
-                    name = `${name} [${value.name}]`
-                }
+            let device_type_label = value.device_type_label
+            let icons = ''
+            if (!dataUtils.isEmptyOrNull(value.workstation)) {
+                icons = `${icons} ${workstation_icon}`
             }
-            return value
+            if (!dataUtils.isEmptyOrNull(value.networking)) {
+                icons = `${icons} ${networking_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.tv)) {
+                icons = `${icons} ${tv_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.printer)) {
+                icons = `${icons} ${printer_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.iot)) {
+                icons = `${icons} ${iot_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.multimedia)) {
+                icons = `${icons} ${multimedia_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.tablet)) {
+                icons = `${icons} ${tablet_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.video)) {
+                icons = `${icons} ${video_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.wifi)) {
+                icons = `${icons} ${wifi_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.laptop)) {
+                icons = `${icons} ${laptop_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.phone)) {
+                icons = `${icons} ${phone_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(value.nas)) {
+                icons = `${icons} ${nas_icon}`
+            }
+
+            return `${device_type_label} ${icons}`
         },
         "name": (value, row) => {
-            return value
+            if(value.has_name === false){
+                if(value.num_hosts > 0){
+                    let url_first_device = `${http_prefix}/lua/host_details.lua?host=${value.host_label}`
+                    let url_mac = `${http_prefix}/lua/hosts_stats.lua?mac=${row.mac}`
+                    if(value.num_hosts == 1){
+                        return `<a href=${url_first_device}>${value.host_label}</a>`
+                    }
+                    else if(value.num_hosts > 1) {
+                        return `<a href=${url_first_device}>${value.host_label}</a> and <a href=${url_mac}>${value.num_hosts-1} more host(s)</a>`
+                    }
+                }
+                else return ''
+            }
+            else return value.name
         },
         "hosts": (value, row) => {
             return formatterUtils.getFormatter("full_number")(value)
@@ -95,9 +144,9 @@ const map_table_def_columns = (columns) => {
             }
             return ''
         },
-        "traffic_breakdown": (value, row) => {
-            const sent_pctg = row.bytes.sent * 100 / row.bytes.total
-            const rcvd_pctg = row.bytes.rcvd * 100 / row.bytes.total
+        "breakdown": (value, row) => {
+            const sent_pctg = row.bytes_sent * 100 / row.traffic
+            const rcvd_pctg = row.bytes_rcvd * 100 / row.traffic
             return NtopUtils.createBreakdown(sent_pctg, rcvd_pctg, _i18n('sent'), _i18n('rcvd'))
         },
         "throughput": (value, row) => {
