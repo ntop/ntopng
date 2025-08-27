@@ -24,7 +24,7 @@
               <input @click="set_rule_type('interface')" class="btn-check" type="radio" name="rule_type"
                 value="interface"> {{ _i18n("if_stats_config.add_rules_type_interface") }}
             </label>
-            <label v-if="flow_device_timeseries_available == true" class="btn "
+            <label v-if="flow_device_timeseries_available == true  && isExporterInterface == true " class="btn "
               :class="[rule_type == 'exporter' ? 'btn-primary active' : 'btn-secondary']">
               <input @click="set_rule_type('exporter')" class="btn-check" type="radio" name="rule_type" value="exporter">
               {{ _i18n("if_stats_config.add_rules_type_flow_exporter") }}
@@ -100,7 +100,7 @@
         </div>
       </div>
 
-      <div v-if="rule_type == 'exporter' && flow_device_timeseries_available == true"
+      <div v-if="rule_type == 'exporter' && flow_device_timeseries_available == true && isExporterInterface == true"
         class="form-group ms-2 me-2 mt-3 row">
         <label class="col-form-label col-sm-2">
           <b>{{ _i18n("if_stats_config.target_exporter_device") }}</b>
@@ -112,7 +112,7 @@
           </SelectSearch>
         </div>
 
-        <template v-if="selected_exporter_device.id != '*'">
+        <template v-if="selected_exporter_device != '*' ">
         <label class="col-form-label col-sm-2">
           <b>{{ _i18n("if_stats_config.target_exporter_device_ifid") }}</b>
         </label>
@@ -460,6 +460,7 @@ const props = defineProps({
   has_asn: Boolean,
   init_func: Function,
   page_csrf: String,
+  isExporterInterface: Boolean
 });
 
 const rest_params = {
@@ -717,6 +718,7 @@ const set_row_to_edit = (row) => {
         })
       }
     } else if (rule_type.value == 'exporter') {
+
       flow_exporter_devices.value.forEach((item) => {
         if (item.id == row.target)
           selected_exporter_device.value = item

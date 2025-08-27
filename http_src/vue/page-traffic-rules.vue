@@ -24,7 +24,7 @@
             <ModalAddTrafficRules ref="modal_add_host_rule" :metric_list="metric_list"
               :interface_metric_list="interface_metric_list" :frequency_list="frequency_list" :init_func="init_edit"
               :has_vlans="props.context.has_vlans" :has_profiles="props.context.has_profiles"
-              :has_asn="props.context.has_asn" @add="add_host_rule" @edit="edit">
+              :has_asn="props.context.has_asn" :isExporterInterface="isExporterInterface" @add="add_host_rule" @edit="edit">
             </ModalAddTrafficRules>
 
             <Datatable ref="table_traffic_rules" :table_buttons="traffic_rules_table_config.table_buttons"
@@ -55,6 +55,7 @@ const props = defineProps({
     context: Object,
 });
 
+const isExporterInterface = props.context.isExporterInterface;
 const table_traffic_rules = ref(null);
 const modal_delete_confirm = ref(null);
 const modal_add_host_rule = ref(null);
