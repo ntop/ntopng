@@ -1,0 +1,110 @@
+{
+	"id": "macs_list",
+	"data_url": "lua/rest/v2/get/mac/macs_list.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "mac",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"title_i18n": "mac_address",
+			"data_field": "mac",
+			"sortable": true,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "manufacturer",
+			"data_field": "manufacturer",
+			"sortable": true,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "device_type",
+			"data_field": "device_type",
+			"sortable": false,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "name",
+			"data_field": "name",
+			"sortable": false,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "hosts",
+			"data_field": "hosts",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+        {
+			"title_i18n": "arp",
+			"data_field": "arp",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "seen_since",
+			"data_field": "seen_since",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "if_stats_overview.traffic_breakdown",
+			"data_field": "breakdown",
+			"min-width" : "250px",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"min-width" : "110px",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"min-width" : "110px",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}

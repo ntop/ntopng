@@ -6062,6 +6062,7 @@ local lang = {
     ["mac"] = "MAC",
     ["mac_cannot_be_found_message"] = "MAC %{mac} cannot be found.",
     ["mac_host"] = "<a href='%{host_url}'>%{host_label}</a>",
+    ["mac_list"] = "Mac List",
     ["mac_parameter_missing_message"] = "MAC parameter is missing (internal error ?)",
     ["reset_mac_stats"] = "Reset MAC Stats",
     ["reset_mac_stats_note"] = "<b>NOTE</b>: historical charts for this mac address may have a gap after the reset.",
