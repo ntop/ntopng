@@ -89,4 +89,9 @@ if as_info ~= nil then
     end
 end
 
+-- sort by asn number ascending
+table.sort(res, function(a, b)
+    return a.asn < b.asn
+end)
+
 rest_utils.answer(rest_utils.consts.success.ok, res)
