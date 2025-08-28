@@ -28,7 +28,7 @@ alert_asn_rule_threshold_crossed.meta = {
 
 -- ##############################################
 
-function alert_asn_rule_threshold_crossed:init(ifid, asn, metric, frequency, threshold, value, threshold_sign, metric_type)
+function alert_asn_rule_threshold_crossed:init(ifid, asn, metric, metric_label, frequency, threshold, value, threshold_sign, metric_type)
    -- Call the parent constructor
    self.super:init()
 
@@ -36,6 +36,7 @@ function alert_asn_rule_threshold_crossed:init(ifid, asn, metric, frequency, thr
       ifid = ifid,
       asn = asn,
       metric = metric,
+      metric_label = metric_label,
       frequency = frequency,
       threshold = threshold,
       value = value,
@@ -80,18 +81,22 @@ function alert_asn_rule_threshold_crossed.format(ifid, alert, alert_type_params)
             alert_type_params.threshold = string.format("%s",tostring(alert_type_params.threshold)).. "%"
         end
     end
-
-    return(i18n("alert_messages.traffic_asn_volume_alert", {
-        url = "/lua/as_overview.lua?asn="..alert_type_params.asn,
-        asn = alert_type_params.asn,
-        asn_name = format_utils.formatASN(tonumber(alert_type_params.asn), true, false),
-        metric = alert_type_params.metric,
-        value = alert_type_params.value,
-        threshold_sign = alert_type_params.threshold_sign,
-        threshold = alert_type_params.threshold,
-        frequency = alert_type_params.frequency
+    if alert_type_params.metric_label ~= nil then
+        return(i18n("alert_messages.traffic_asn_volume_alert", {
+            metric = alert_type_params.metric_label,
+            value = alert_type_params.value,
+            threshold_sign = alert_type_params.threshold_sign,
+            threshold = alert_type_params.threshold,
+            frequency = alert_type_params.frequency
         }))
-  
+    else
+        return(i18n("alert_messages.traffic_asn_volume_alert_no_metric", {
+            value = alert_type_params.value,
+            threshold_sign = alert_type_params.threshold_sign,
+            threshold = alert_type_params.threshold,
+            frequency = alert_type_params.frequency
+        }))
+    end
 end
 
 -- #######################################################
