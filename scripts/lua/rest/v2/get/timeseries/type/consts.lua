@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local rest_utils = require "rest_utils"
 local timeseries_info = require "timeseries_info"
+require "lua_utils_gui"
 
 local rc = rest_utils.consts.success.ok
 local ifid = tostring(_GET["ifid"] or interface.getId())

@@ -2402,6 +2402,7 @@ end
 -- #################################
 
 local function add_top_asn_timeseries(tags, timeseries)
+    require "lua_utils_gui"
     local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
 
     local series = ts_utils.listSeries("asn:exporter_traffic",
