@@ -51,6 +51,7 @@ const table_id = ref("macs_list");
 const table_macs_list = ref(null);
 const filter_table_array = ref([]);
 const csrf = props.context.csrf;
+
 const workstation_icon = '<i class="fas fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>';
 const networking_icon = '<i class="fas fa-arrows-alt fa-lg devtype-icon" aria-hidden="true"></i>';
 const tv_icon = '<i class="fas fa-tv fa-lg devtype-icon" aria-hidden="true"></i>';
@@ -69,7 +70,9 @@ const nas_icon = '<i class="fas fa-database fa-lg devtype-icon" aria-hidden="tru
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "mac": (value, row) => {
-            return value
+            let mac_details_url = `${http_prefix}/lua/mac_details.lua?host=${value}`
+
+            return `<a href=${mac_details_url}>${value}</a>`
         },
         "manufacturer": (value, row) => {
             return value
