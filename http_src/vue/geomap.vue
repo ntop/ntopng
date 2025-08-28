@@ -445,14 +445,18 @@ function animatePulseElement(element) {
 }
 
 // Handle window resize
-const handleResize = () => {
-    nextTick(() => {
-        // Close tooltip on resize
-        if (tooltip.value.show) {
-            closeTooltip();
-        }
-        initializeMap();
-    });
+const handleResize = async () => {
+    await nextTick();
+    
+    // Close tooltip on resize
+    if (tooltip.value.show) {
+        closeTooltip();
+    }
+    
+    // Re-display the data dots after map is reinitialized
+    if (geomapDataArray.value && geomapDataArray.value.length > 0) {
+        displayData();
+    }
 };
 
 function buildCountryNameToIdMap() {
@@ -478,9 +482,7 @@ function buildCountryNameToIdMap() {
 onMounted(async () => {
     try {
         // Use the imported world atlas data
-        topoData.value = worldAtlasData;
-        console.log("TopoJSON data loaded:", topoData.value);
-        
+        topoData.value = worldAtlasData;        
         // Build country mapping after data is loaded
         countryMapping.value = buildCountryNameToIdMap();
         

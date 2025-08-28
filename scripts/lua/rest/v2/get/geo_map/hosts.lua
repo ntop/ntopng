@@ -5,6 +5,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils_gui"
+require "lua_utils_get"
 local rest_utils = require("rest_utils")
 local country_code = require "country_keys"
 
@@ -29,36 +30,13 @@ local MAX_HOSTS = 512
 
 local function handlePeer(host_key)
     local host_data = interface.getHostInfo(host_key)
-
     return host_data
 end
 
 -- ##############
 
--- Get single host data (host_key is the requested IP)
-if (host_key) then
-    -- From req create a table
-    local host_info = url2hostinfo(_GET)
-    local flows = getTopFlowPeers(hostinfo2hostkey(host_info),
-                                  MAX_HOSTS - hosts_count, nil,
-                                  {detailsLevel = "max"})
-
-    data.hosts = {}
-
-    for key, value in pairs(flows) do
-
-        -- create table for client IP
-        local h = handlePeer(value["cli.ip"])
-        if h ~= nil then data.hosts[value["cli.ip"]] = h end
-
-        -- create table for server IP
-        local h = handlePeer(value["srv.ip"])
-        if h ~= nil then data.hosts[value["srv.ip"]] = h end
-
-    end
-
-    -- Active hosts
-elseif (hosts_category == 0) then
+-- Active hosts
+if (hosts_category == 0) then
     data =
         interface.getHostsInfo(false, "column_traffic", MAX_HOSTS, nil, false --[[ Desc order ]] )
     -- Alerted hosts
@@ -79,9 +57,27 @@ else
     data = nil
 end
 
--- tprint(data)
+-- Get single host data (host_key is the requested IP)
+if host_key then
+    data.hosts = {}
+
+    local flowstats = interface.getActiveFlowsStats(host_key, nil, false, nil,
+                                                    nil, nil, nil)
+
+    -- now only print the IPs inside "talking_with"
+    if flowstats["talking_with"] then
+        for ip, count in pairs(flowstats["talking_with"]) do
+
+            local host_info = interface.getHostMinInfo(ip)
+            table.insert(data.hosts, host_info)
+        end
+    end
+end
+
+
 if (data) and (data["hosts"]) then
     for address, value in pairs(data["hosts"]) do
+
         if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
             local country = value["country"]
             local country_info = country_code.get_country_info(country)
@@ -96,24 +92,20 @@ if (data) and (data["hosts"]) then
                                    address .. "][Score: " .. value.score .. "]")
                     goto skip_host
                 end
-                --[[
-                traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                           "[Host: " .. address .. "][Score: " .. value.score ..
-                               "][Num Alerts: " .. value["num_alerts"] +
-                               value["active_alerted_flows"] .. "]")
-                ]]
+                tprint(value)
+                tprint("-------")
                 local host = {
                     lat = value["latitude"],
                     lng = value["longitude"],
                     isRoot = false,
                     country = iso3_country,
                     country_id = country_id,
-                    ip = address,
-                    scoreClient = value["score.as_client"],
-                    scoreServer = value["score.as_server"],
-                    numAlerts = value["active_alerted_flows"],
+                    ip = value["ip"],
+                    scoreClient = value["score.as_client"] or 0,
+                    scoreServer = value["score.as_server"] or 0,
+                    numAlerts = value["active_alerted_flows"] or 0,
                     country_code = country,
-                    isAlert = value.score > 0
+                    isAlert = (value.score or 0) > 0
                 }
 
                 if not isEmptyString(value["city"]) then
