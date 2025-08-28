@@ -18,6 +18,7 @@
             <h4>{{ _i18n('if_stats_config.traffic_rules') }}</h4>
           </div>
           <div id="traffic_rules">
+            <Loading :isLoading="loading"></Loading>
             <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete"
               @delete="delete_row">
             </ModalDeleteConfirm>
@@ -45,10 +46,11 @@
 
 <script setup>
 import { ref, onBeforeMount, onUnmounted } from "vue";
+import { default as ModalAddTrafficRules } from "./modal-add-traffic-rules.vue";
+import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
+import { default as Loading } from "./loading.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as NoteList } from "./note-list.vue";
-import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
-import { default as ModalAddTrafficRules } from "./modal-add-traffic-rules.vue";
 import NtopUtils from "../utilities/ntop-utils";
 
 const props = defineProps({
@@ -63,6 +65,7 @@ const _i18n = (t) => i18n(t);
 const row_to_delete = ref({});
 const row_to_edit = ref({});
 const invalid_add = ref(false);
+const isLoading = ref(false);
 
 const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/traffic_rules/metrics.lua?rule_type=host`;
 const metric_ifname_url = `${http_prefix}/lua/pro/rest/v2/get/interface/traffic_rules/metrics.lua?rule_type=interface`;
@@ -360,15 +363,18 @@ const format_target = function (data, rowData) {
 };
 
 const get_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_url, rest_params)
 
   await $.get(url, function (rsp, status) {
     metric_list = rsp.rsp;
+    isLoading.value = false;
   });
 };
 
 
 const get_host_pool_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(host_pool_url, rest_params)
   let tmp_host_pool_list;
   await $.get(url, function (rsp, status) {
@@ -377,9 +383,11 @@ const get_host_pool_list = async function () {
 
   tmp_host_pool_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   host_pool_list = tmp_host_pool_list;
+  isLoading.value = false;
 };
 
 const get_network_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(network_list_url, rest_params)
 
   let tmp_network_list
@@ -389,19 +397,23 @@ const get_network_list = async function () {
 
   tmp_network_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   network_list = tmp_network_list;
+  isLoading.value = false;
 
 };
 
 const get_interface_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_ifname_url, rest_params)
 
   await $.get(url, function (rsp, status) {
     interface_metric_list = rsp.rsp;
+    isLoading.value = false;
   });
 
 };
 
 const get_host_pool_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_host_pool_url, rest_params)
 
   let tmp_host_pool_metric_list
@@ -411,10 +423,12 @@ const get_host_pool_metric_list = async function () {
 
   tmp_host_pool_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   host_pool_metric_list = tmp_host_pool_metric_list;
+  isLoading.value = false;
 };
 
 
 const get_network_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_network_url, rest_params)
 
   let tmp_network_metric_list;
@@ -424,10 +438,12 @@ const get_network_metric_list = async function () {
 
   tmp_network_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   network_metric_list = tmp_network_metric_list;
+  isLoading.value = false;
 
 };
 
 const get_vlan_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_vlan_url, rest_params)
 
   let tmp_vlan_metric_list;
@@ -437,10 +453,12 @@ const get_vlan_metric_list = async function () {
 
   tmp_vlan_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   vlan_metric_list = tmp_vlan_metric_list;
+  isLoading.value = false;
 
 };
 
 const get_profiles_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_profiles_url, rest_params)
 
   let tmp_profiles_metric_list;
@@ -449,66 +467,81 @@ const get_profiles_metric_list = async function () {
   });
 
   profiles_metric_list = tmp_profiles_metric_list;
+  isLoading.value = false;
 }
 
 const get_asn_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_asn_url, rest_params)
   let tmp_asn_metric_list;
   await $.get(url, function (rsp, status) {
     tmp_asn_metric_list = rsp.rsp;
   });
   asn_metric_list = tmp_asn_metric_list;
+  isLoading.value = false;
 }
 
 const get_flow_exporter_devices_metric_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(metric_flow_exp_device_url, {
     ...rest_params
   })
 
   await $.get(url, function (rsp, status) {
     flow_exporter_metric_list = rsp.rsp;
+    isLoading.value = false;
   });
 
 };
 
 const get_flow_exporter_devices_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(flow_devices_url, {
     ...rest_params
   })
 
   await $.get(url, function (rsp, status) {
     flow_exporter_list = rsp.rsp;
+    isLoading.value = false;
   });
 
 };
 
 const get_ifid_list = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(ifid_url, rest_params)
 
   await $.get(url, function (rsp, status) {
     ifid_list = rsp.rsp;
+    isLoading.value = false;
   });
 };
 
 const get_vlans = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(vlans_url, rest_params)
 
   await $.get(url, function (rsp, status) {
     vlan_list = JSON.parse(rsp).data;
+    isLoading.value = false;
   });
 };
 
 const get_profiles = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(profiles_url, rest_params)
 
   await $.get(url, function (rsp, status) {
     profiles_list = rsp.data;
+    isLoading.value = false;
   });
 }
 
 const get_asn = async function () {
+  isLoading.value = true;
   const url = NtopUtils.buildURL(asn_url, rest_params)
   asn_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 }
 
 const start_datatable = function () {
