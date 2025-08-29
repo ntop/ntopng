@@ -18,7 +18,7 @@
                         :title="_i18n('manage_configurations.manage_configuration')"></i> {{
                             _i18n('manage_configurations.manage_configuration') }}
                 </a>
-                <a class="btn btn-primary" download="policy.json" :href="export_policy_url">
+                <a v-if="!isnEdge" class="btn btn-primary" download="policy.json" :href="export_policy_url">
                     <i class="fas fa-file-export" data-bs-toggle="tooltip" data-bs-placement="top"
                         :title="_i18n('manage_configurations.export_policy')"></i> {{
                             _i18n('manage_configurations.export_policy') }}
