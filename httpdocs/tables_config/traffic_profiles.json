@@ -1,0 +1,66 @@
+{
+	"id": "traffic_profiles",
+	"data_url": "lua/pro/get_traffic_profiles.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "mac",
+		"sort": 0
+	},
+	"columns": [
+        {
+            "id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"min-width": "20px",
+			"max-width": "30px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+            "button_def_array": [
+                {
+                    "id": "edit_rule",
+                    "icon": "fas fa-edit",
+                    "title_i18n": "edit",
+                    "class": [
+                        "btn-info"
+                    ],
+                    "event_id": "click_button_edit_profile"
+                },
+                {
+                    "id": "delete_rule",
+                    "icon": "fas fa fa-trash",
+                    "title_i18n": "delete",
+                    "class": [
+                        "btn-info"
+                    ],
+                    "event_id": "click_button_delete_profile"
+                }
+            ]
+        },
+		{
+			"id": "profileName",
+			"title_i18n": "traffic_profiles.profile_name",
+			"data_field": "profileName",
+			"sortable": true,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "traffic_profiles.traffic_filter_bpf",
+			"data_field": "profileFilter",
+			"sortable": false,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

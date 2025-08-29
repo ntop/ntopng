@@ -86,6 +86,7 @@ import { default as PageObservationPointsList } from "./page-flow-exporters-list
 import { default as PageActiveMonitoring } from "./page-active-monitoring.vue"
 import { default as PageAlertsGraph } from "./page-alerts-graph.vue"
 import { default as PageAlertsGeoMap } from "./page-alerts-geomap.vue"
+import { default as PageTrafficProfiles } from "./page-traffic-profiles.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -190,6 +191,7 @@ let ntopVue = {
     PageHostPools: PageHostPools,
     PageManageHostPoolMembers: PageManageHostPoolMembers,
     PagePoolPolicy: PagePoolPolicy,
+    PageTrafficProfiles: PageTrafficProfiles,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,
