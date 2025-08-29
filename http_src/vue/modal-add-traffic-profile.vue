@@ -115,6 +115,8 @@ const validateName = () => {
         name_error.value = _i18n("error_messages.name_cannot_be_empty");
     } else if (trimmed_name.length <= 1) {
         name_error.value = _i18n("error_messages.name_must_be_longer_than_1_character");
+    } else if (trimmed_name.includes(' ')) {
+        name_error.value = _i18n("error_messages.name_cannot_contain_spaces");
     } else {
         name_error.value = "";
     }

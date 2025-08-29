@@ -187,7 +187,7 @@ const handleEditProfile = async (data) => {
         const addParams = {
             csrf: props.context.csrf,
             profiles: [{
-                name: new_profile_name,
+                traffic_profile_name: new_profile_name,
                 filter: new_profile_filter
             }]
         };
