@@ -726,7 +726,7 @@ else
       print("</tr>")
    end
 
-   if (ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
+   if (ntop.isPro() and ifstats.inline and (flow["shaper.cli"] ~= nil)) then
       local host_pools_nedge = require("host_pools_nedge")
       print("<tr><th width=10% rowspan=2>" .. i18n("flow_details.flow_shapers") .. "</th>")
       c = flowinfo2hostname(flow, "cli")
@@ -751,11 +751,8 @@ else
 
       print("<td nowrap>" .. c .. "</td>")
       print("<td>")
-      print(client_to_server_label .. ": ")
-      shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli2srv_ingress"])
-      print(i18n("ingress") .. " " .. shaper.icon .. " " .. shaper.text .. " / ")
-      shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli2srv_egress"])
-      print(i18n("egress") .. " " .. shaper.icon .. " " .. shaper.text)
+      shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli"])
+      print(shaper.icon .. shaper.text)
 
       if ntop.isnEdge() then
          local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
@@ -770,11 +767,8 @@ else
 
       print("<td nowrap>" .. s .. "</td>")
       print("<td>")
-      print(server_to_client_label .. ": ")
-      shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.srv2cli_ingress"])
-      print(i18n("ingress") .. " " .. shaper.icon .. " " .. shaper.text .. " / ")
-      shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.srv2cli_egress"])
-      print(i18n("egress") .. " " .. shaper.icon .. " " .. shaper.text)
+      shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.srv"])
+      print(shaper.icon .. shaper.text)
       print("</td>")
       print("</tr>")
 

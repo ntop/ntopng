@@ -5532,13 +5532,11 @@ static int ntop_get_l7_policy_info(lua_State *vm) {
   as_client = lua_toboolean(vm, 4);
 
   if (ntop->getPrefs()->are_device_protocol_policies_enabled() &&
-      ((device_proto_status = ntop->getDeviceAllowedProtocolStatus(
-								   dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
+      ((device_proto_status = ntop->getDeviceAllowedProtocolStatus(dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
     shaper_id = DROP_ALL_SHAPER_ID;
     policy_source = policy_source_device_protocol;
   } else {
-    shaper_id = curr_iface->getL7Policer()->getShaperIdForPool(
-							       pool_id, proto, !as_client, &policy_source);
+    shaper_id = curr_iface->getL7Policer()->getShaperIdForPool(pool_id, proto, &policy_source);
   }
 
   lua_newtable(vm);

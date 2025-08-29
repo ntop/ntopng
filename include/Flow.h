@@ -184,7 +184,6 @@ private:
   FlowProfile *trafficProfile;
 #else
   u_int8_t routing_table_id;
-  u_int16_t cli2srv_in, cli2srv_out, srv2cli_in, srv2cli_out;
   L7PolicySource_t cli_quota_source, srv_quota_source;
 #endif
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
@@ -343,14 +342,10 @@ private:
 
 #ifdef HAVE_NEDGE
   struct {
-    struct {
-      TrafficShaper *ingress, *egress;
-    } cli2srv;
-
-    struct {
-      TrafficShaper *ingress, *egress;
-    } srv2cli;
+    TrafficShaper *cli;
+    TrafficShaper *srv;
   } flowShapers;
+  u_int16_t cli_shaper_id, srv_shaper_id;
 #endif
   struct timeval last_update_time;
 
@@ -1378,18 +1373,11 @@ public:
 
   void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
                        u_int64_t s2d_bytes, u_int64_t d2s_bytes);
-  void getFlowShapers(bool src2dst_direction, TrafficShaper **shaper_ingress,
-                      TrafficShaper **shaper_egress) {
-    if (src2dst_direction) {
-      *shaper_ingress = flowShapers.cli2srv.ingress,
-	*shaper_egress = flowShapers.cli2srv.egress;
-    } else {
-      *shaper_ingress = flowShapers.srv2cli.ingress,
-	*shaper_egress = flowShapers.srv2cli.egress;
-    }
+  void getFlowShapers(TrafficShaper **shaper_cli, TrafficShaper **shaper_srv) {
+    *shaper_cli = flowShapers.cli;
+    *shaper_srv = flowShapers.srv;
   }
-  bool updateCli2SrvShapers(TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
-  bool updateSrv2CliShapers(TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
+  bool updateCliSrvShapers(TrafficShaper **ingress_shaper, TrafficShaper **egress_shaper);
   void updateFlowShapers(bool first_update = false);
   void recheckQuota(const struct tm *now);
   inline u_int8_t getFlowRoutingTableId() { return (routing_table_id); }

@@ -345,7 +345,7 @@ class Host : public GenericHashEntry,
   };
 
 #ifdef HAVE_NEDGE
-  TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol, bool isIngress);
+  TrafficShaper *get_shaper(ndpi_protocol ndpiProtocol);
 
   inline AddressTree* getDynamicBlacklist() const {
     return (iface->getHostPools()->getDynamicBlacklist(host_pool_id));

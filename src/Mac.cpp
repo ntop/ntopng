@@ -235,8 +235,7 @@ bool Mac::statsResetRequested() {
 #ifdef HAVE_NEDGE
 MacLocation Mac::locate() {
   if (iface->is_bridge_interface()) {
-    InterfaceLocation location =
-        iface->getInterfaceLocation(bridge_seen_iface_id);
+    InterfaceLocation location = iface->getInterfaceLocation(bridge_seen_iface_id);
     if (location == lan_interface)
       return (located_on_lan_interface);
     else if (location == wan_interface)

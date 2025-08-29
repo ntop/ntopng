@@ -2493,16 +2493,35 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       pass_verdict = flow->checkPassVerdict(&now);
 
       if (pass_verdict) {
-        TrafficShaper *shaper_ingress, *shaper_egress;
-        char buf[64];
+        u_int64_t usecTime = Utils::toUs(&h->ts);
+        u_int64_t num_bits = 8 * (h->caplen + 24); /* Ethernet overhead [TODO: Do we readdly need it ?] */
+        TrafficShaper *shaper_cli, *shaper_srv;
+        Host *cli_host = flow->get_cli_host();
+        Host *srv_host = flow->get_srv_host();
 
-        flow->getFlowShapers(src2dst_direction, &shaper_ingress,
-                             &shaper_egress);
-        ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
-				     flow->get_detected_protocol_name(buf, sizeof(buf)), shaper_ingress,
-				     shaper_egress);
-        pass_verdict = passShaperPacket(shaper_ingress, shaper_egress,
-                                        (struct pcap_pkthdr *)h);
+        /* See also Flow::updateCliSrvShapers */
+
+        flow->getFlowShapers(&shaper_cli, &shaper_srv);
+
+        if (cli_host && srv_host && shaper_cli && shaper_srv) {
+          u_int16_t cli_pool = cli_host->get_host_pool();
+          u_int16_t srv_pool = srv_host->get_host_pool();
+
+          if(cli_pool != NO_HOST_POOL_ID || srv_pool == NO_HOST_POOL_ID)
+            pass_verdict = shaper_cli->pass(usecTime, num_bits);
+          else
+            pass_verdict = shaper_srv->pass(usecTime, num_bits);
+        }
+
+#ifdef SHAPER_DEBUG
+        char buf[64];
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [shapers] %d [%ld Kbps] %d [%ld Kbps] -> %s\n",
+                               flow->get_detected_protocol_name(buf, sizeof(buf)),
+			       shaper_cl->get_shaper_id(), shaper_cli->get_max_rate_kbit_sec(),
+			       shaper_srv->get_shaper_id(), shaper_srv->get_max_rate_kbit_sec(),
+                               pass_verdict ? "pass" : "DROP");
+#endif
+
       } else {
         flow->incFlowDroppedCounters();
       }

@@ -1517,7 +1517,7 @@ void Host::decNumFlows(time_t t, bool as_client, bool isTCP,
 /* *************************************** */
 
 #ifdef HAVE_NEDGE
-TrafficShaper *Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
+TrafficShaper *Host::get_shaper(ndpi_protocol ndpiProtocol) {
   HostPools *hp;
   TrafficShaper *ts = NULL, **shapers = NULL;
   u_int8_t shaper_id = DEFAULT_SHAPER_ID;
@@ -1534,15 +1534,15 @@ TrafficShaper *Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
   }
 
   shaper_id = policer->getShaperIdForPool(get_host_pool(), ndpiProtocol,
-                                          isIngress, &policy_source);
+                                          &policy_source);
 
 #ifdef SHAPER_DEBUG
   {
     char buf[64], buf1[64];
 
     ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "[%s] [%s@%u][ndpiProtocol=%d/%s] => [shaper_id=%d]",
-        isIngress ? "INGRESS" : "EGRESS", ip.print(buf, sizeof(buf)), vlan_id,
+        TRACE_NORMAL, "[shaper] [%s@%u][ndpiProtocol=%d/%s] => [shaper_id=%d]",
+        ip.print(buf, sizeof(buf)), vlan_id,
         ndpiProtocol.proto.app_protocol,
         ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1,
                            sizeof(buf1)),

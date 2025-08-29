@@ -164,7 +164,7 @@ function http_bridge_conf_utils.configureBridge()
 			shaper_utils.deleteProtocol(ifid, pool_id, proto_id_or_category)
 		     else
 			shaper_utils.setProtocolShapers(ifid, pool_id, proto_id_or_category,
-							policy.id, policy.id,
+							policy.id,
 							0 --[[traffic_quota--]], 0--[[time_quota--]])
 			host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": setting '"..proto_name.."' policy '"..policy.name.."' for user: "..username.. " pool id: "..pool_id)
 		     end

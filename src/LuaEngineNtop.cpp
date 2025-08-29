@@ -6296,24 +6296,25 @@ static int ntop_check_sub_interface_syntax(lua_State *vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
 static int ntop_check_filter_syntax(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  
+#ifdef HAVE_NEDGE
+  lua_pushboolean(vm, true); /* TODO need to implement the logic */
+#else
   char *filter;
   NetworkInterface *curr_iface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
+  
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   filter = (char *)lua_tostring(vm, 1);
 
-  lua_pushboolean(vm,
-                  curr_iface ? curr_iface->checkFilterSyntax(filter) : false);
-
+  lua_pushboolean(vm, curr_iface ? curr_iface->checkFilterSyntax(filter) : false);
+#endif
+  
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
-#endif
 #endif
 
 /* ****************************************** */
@@ -8235,9 +8236,9 @@ static luaL_Reg _ntop_reg[] = {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     {"checkSubInterfaceSyntax", ntop_check_sub_interface_syntax},
-    {"checkFilterSyntax", ntop_check_filter_syntax},
     {"reloadProfiles", ntop_reload_traffic_profiles},
 #endif
+    {"checkFilterSyntax", ntop_check_filter_syntax},
 #endif
 
     {"isForcedCommunity", ntop_is_forced_community},

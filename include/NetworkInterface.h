@@ -1018,8 +1018,6 @@ public:
   }
 #endif
 
-  bool passShaperPacket(TrafficShaper *a_shaper, TrafficShaper *b_shaper,
-                        struct pcap_pkthdr *h);
   void initL7Policer();
 #endif
 

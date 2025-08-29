@@ -229,7 +229,7 @@ class Utils {
     if (!ewma) return;
     (*ewma) = (alpha_percent * sample + (100 - alpha_percent) * (*ewma)) / 100;
   }
-  static inline u_int64_t toUs(struct timeval *t) {
+  static inline u_int64_t toUs(const struct timeval *t) {
     return (((u_int64_t)t->tv_sec) * 1000000 + ((u_int64_t)t->tv_usec));
   };
   static void replacestr(char *line, const char *search, const char *replace);
