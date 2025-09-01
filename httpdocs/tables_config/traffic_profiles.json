@@ -33,6 +33,13 @@
                     "event_id": "click_button_edit_profile"
                 },
                 {
+					"id": "timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"class": [],
+					"event_id": "click_button_timeseries"
+				},
+                {
                     "id": "delete_rule",
                     "icon": "fas fa fa-trash",
                     "title_i18n": "delete",

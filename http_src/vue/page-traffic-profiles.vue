@@ -2,7 +2,7 @@
 <template>
     <div class="m-2 mb-3">
         <TableWithConfig ref="table_traffic_rules" :table_id="table_id" :csrf="context.csrf"
-            :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
+            :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event" :f_map_columns="map_table_def_columns">
             <template v-slot:custom_buttons>
                 <button class="btn btn-link" type="button" @click="add_profile">
                     <i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -35,22 +35,43 @@ const props = defineProps({
 });
 
 const ifid = props.context.ifid;
+const areTsEnabled = props.context.areTsEnabled;
 
 const _i18n = (t) => i18n(t);
 const table_traffic_rules = ref(null);
 const trafficProfileModal = ref(null);
 
-const modal_add = ref(null);
-const modal_edit = ref(null);
-const modal_delete = ref(null);
-const modal_delete_all = ref(null);
 const table_id = ref('traffic_profiles');
 
 const delete_profile_url = `${http_prefix}/lua/pro/rest/v2/delete/filters/traffic_profile.lua`;
 const add_profile_url = `${http_prefix}/lua/pro/rest/v2/add/filters/traffic_profile.lua`;
-const edit_profile_url = `${http_prefix}/lua/pro/rest/v2/edit/filters/traffic_profile.lua`;
 
+/* ******************************************************************** */
+const map_table_def_columns = (columns) => {
 
+    columns.forEach((c) => {
+
+        if (c.id == "actions") {
+            const visible_dict = {
+                edit_rule: true,
+                timeseries: areTsEnabled,
+                delete_rule: true
+            };
+
+            c.button_def_array.forEach((b) => {
+                b.f_map_class = (current_class, row) => {
+                    // if is not defined is enabled
+                    if (!visible_dict[b.id]) {
+                        current_class.push("disabled");
+                    }
+                    return current_class;
+                }
+            });
+        }
+    });
+
+    return columns;
+};
 /* ******************************************************************** */
 
 /* Function to add a new host to scan */
@@ -109,6 +130,7 @@ function on_table_custom_event(event) {
     let events_managed = {
         "click_button_edit_profile": click_button_edit_profile,
         "click_button_delete_profile": click_button_delete_profile,
+        "click_button_timeseries": click_button_timeseries,
     };
     if (events_managed[event.event_id] == null) {
         return;
@@ -154,10 +176,10 @@ const click_button_edit_profile = (event) => {
     showEditModal(profile_data);
 };
 
-// To show the modal for adding a profile
-const showAddModal = () => {
-    trafficProfileModal.value.show();
-};
+function click_button_timeseries(event) {
+    let profileName = event.row.profileName
+    window.location.href = `${http_prefix}/lua/pro/profile_details.lua?profile=${profileName}`;
+}
 
 const handleEditProfile = async (data) => {
     // data = { profile_name, profile_filter, item }
