@@ -87,6 +87,7 @@ import { default as PageActiveMonitoring } from "./page-active-monitoring.vue"
 import { default as PageAlertsGraph } from "./page-alerts-graph.vue"
 import { default as PageAlertsGeoMap } from "./page-alerts-geomap.vue"
 import { default as PageTrafficProfiles } from "./page-traffic-profiles.vue"
+import { default as PageNetworksList } from "./page-networks-list.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -238,6 +239,7 @@ let ntopVue = {
     PageTrafficRules: PageTrafficRules,
     PageAlertsGraph: PageAlertsGraph,
     PageAlertsGeoMap: PageAlertsGeoMap,
+    PageNetworksList: PageNetworksList,
     
     // components
     AlertInfo: AlertInfo,

@@ -1,0 +1,96 @@
+{
+	"id": "networks_list",
+	"data_url": "lua/rest/v2/get/network/networks_stats.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+		{
+			"id": "network_name",
+			"title_i18n": "network_stats.network_name",
+			"data_field": "networkName",
+			"sortable": true,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "hosts",
+			"title_i18n": "hosts",
+			"data_field": "hosts",
+			"sortable": true,
+			"min-width" : "120px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "score",
+			"title_i18n": "score",
+			"data_field": "score",
+			"min-width" : "90px",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "hosts_score_ratio",
+			"title_i18n": "host_score_ratio",
+			"data_field": "hostsScoreRatio",
+			"sortable": true,
+			"min-width" : "90px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "alerted_flows",
+			"title_i18n": "alerted_flows",
+			"data_field": "alertedFlows",
+			"min-width" : "90px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "breakdown",
+			"title_i18n": "breakdown",
+			"data_field": "breakdown",
+			"sortable": false,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"min-width" : "110px",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "traffic",
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"min-width" : "110px",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}
