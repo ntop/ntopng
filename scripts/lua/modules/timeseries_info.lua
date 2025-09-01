@@ -331,20 +331,6 @@ local community_timeseries = {
         },
         nedge_exclude = true
     }, {
-        schema = "iface:throughput_bps",
-        id = timeseries_id.iface,
-        label = i18n("graphs.throughput_bps"),
-        description = i18n("graphs.metric_descr.iface_throughput_bps"),
-        priority = 0,
-        measure_unit = "bps",
-        scale = i18n("graphs.metric_labels.traffic"),
-        timeseries = {
-            bps = {
-                label = i18n('graphs.metric_labels.throughput'),
-                color = timeseries_info.get_timeseries_color('bytes')
-            }
-        }
-    }, {
         schema = "iface:throughput_pps",
         id = timeseries_id.iface,
         label = i18n("graphs.throughput_pps"),

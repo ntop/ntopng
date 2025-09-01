@@ -41,16 +41,6 @@ schema:addTag("ifid")
 schema:addMetric("bytes_ipv4")
 schema:addMetric("bytes_ipv6")
 
--- ##############################################
-
-schema = ts_utils.newSchema("iface:throughput_bps", {
-   step=1,
-   is_critical_ts=true,
-   metrics_type = ts_utils.metrics.gauge,
-   aggregation_function = ts_utils.aggregation.max
-})
-schema:addTag("ifid")
-schema:addMetric("bps")
 
 -- ##############################################
 

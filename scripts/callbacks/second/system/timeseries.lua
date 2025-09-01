@@ -28,6 +28,7 @@ local num_runs = 60
 local max_time = os.time() + 60 -- See SECOND_SCRIPT_DIR in PeriodicActivities.cpp
 
 for i = 1, num_runs do
+    local when = os.time()
     local check_view = false
     local view_id = nil
     local viewed_zmq_stats = {
@@ -70,8 +71,6 @@ for i = 1, num_runs do
                 bps = ifstats.stats.throughput_bps
             end
 
-            ts_utils.append("iface:throughput_bps",
-                            {ifid = ifstats.id, bps = bps}, when)
             ts_utils.append("iface:throughput_pps",
                             {ifid = ifstats.id, pps = pps}, when)
             ts_utils.append("iface:traffic",

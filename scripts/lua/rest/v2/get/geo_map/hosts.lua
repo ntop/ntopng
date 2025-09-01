@@ -92,8 +92,7 @@ if (data) and (data["hosts"]) then
                                    address .. "][Score: " .. value.score .. "]")
                     goto skip_host
                 end
-                tprint(value)
-                tprint("-------")
+
                 local host = {
                     lat = value["latitude"],
                     lng = value["longitude"],
