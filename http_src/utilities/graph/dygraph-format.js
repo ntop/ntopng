@@ -311,7 +311,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
     if (extra_timeseries?.past == true && !disable_past_ts) {
       addNewSerie(past_name, "dash", { color: constant_serie_colors["past"], palette: 1 }, config)
     }
-
+    addNewSerie(perc_name, "point", { color: constant_serie_colors["perc_95"], palette: 1 }, config)
     /* ************************************** */
 
     compactSerie(config, ts_info, extra_timeseries, serie, past_value, scalar, step, epoch_begin, {
