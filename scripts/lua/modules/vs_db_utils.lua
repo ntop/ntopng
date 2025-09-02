@@ -30,15 +30,16 @@ vs_db_utils.report_type = {
 -- ####################################################################################
 -- Function to save data of single scan on db
 function vs_db_utils.save_vs_result(scan_type, host, end_epoch, json_info, scan_result)
-
+    
     if debug_me then
         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Saving on DB HOST: ".. host .. " SCAN_TYPE: " .. scan_type .. " ENDEPOCH: "..end_epoch.." \n")
     end
 
     local sql = string.format("INSERT INTO %s (HOST, SCAN_TYPE, LAST_SCAN, JSON_INFO, VS_RESULT_FILE) Values",data_table_name)
+    
     -- it's necessary replace the ' character with a common character like |
     scan_result = scan_result:gsub("%'","|")
-
+    
     sql = string.format("%s ('%s', '%s', %s, '%s', '%s');", sql, host, scan_type, end_epoch, json_info, scan_result)
     
     return(interface.execSQLQuery(sql))
