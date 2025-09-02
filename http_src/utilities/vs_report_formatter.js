@@ -474,13 +474,14 @@ const build_host_to_scan_report_url = (host, scan_type, date, epoch) => {
 
 export const host_f = (host, row, ifid) => {
   let label = host;
+
   let host_not_reachable = row.is_ok_last_scan == 5 && row.is_down != null && row.is_down == true;
   if ((row.is_ok_last_scan == 1 || host_not_reachable) && (row.last_scan != null && row.last_scan.time != null)) {
     let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time.replace(" ","_"), row.last_scan.epoch);
-    if (row.scan_type == 'ipv4_netscan') {
-      // add cidr only for ipv4_netscan 
-      const cidr = row.cidr != null ? "/" + row.cidr : "/24";
-      host = host + cidr;
+    if (row.cidr !== undefined) {
+      // add cidr if present
+      const cidr = row.cidr;
+      host = host + "/" + cidr;
     }
     label = `<a href="${url}">${host}</a>`;
     if (host_not_reachable) {

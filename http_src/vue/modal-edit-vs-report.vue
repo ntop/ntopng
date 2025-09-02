@@ -77,6 +77,7 @@ const reset_modal_form = function () {
   report_date.value = "";
   report_name.value = "";
   row_to_edit.value = null;
+  is_report_name_correct.value = false; 
   
 };
 
@@ -137,16 +138,37 @@ const close = () => {
 /* ****************************************************** */
 
 const check_title = () => {
-  let report_name_splitted_by_spaces = report_name.value.split(" ");
+  // Handle empty input
+  if (!report_name.value || report_name.value.trim() === "") {
+    is_report_name_correct.value = false;
+    return;
+  }
 
-  // with .every the loop stops when the condition is not met (like while)
-  const isReportNameValid = report_name_splitted_by_spaces.every((single_word) =>
-      regexValidation.validateSingleWord(single_word));
-
-  is_report_name_correct.value = isReportNameValid;
+  const name = report_name.value.trim();
+  
+  // Only allow alphanumeric characters, spaces, hyphens, and underscores
+  const safeCharacterPattern = /^[a-zA-Z0-9\s\-_]+$/;
+  
+  const sqlInjectionPatterns = [
+    /['"`]/,           // Single quotes, double quotes, backticks
+    /[;]/,             // Semicolon
+    /--/,              // SQL comments
+    /\/\*/,            // Multi-line comment start
+    /\*\//,            // Multi-line comment end
+    /\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b/i, // SQL keywords
+    /[<>]/,            // HTML/XML tags (XSS prevention)
+    /[\\]/,            // Backslashes
+    /\x00/,            // Null bytes
+  ];
+  
+  const containsOnlySafeChars = safeCharacterPattern.test(name);
+  const containsSqlInjection = sqlInjectionPatterns.some(pattern => pattern.test(name));
+  
+  // length check
+  const isReasonableLength = name.length > 0 && name.length <= 100;
+  
+  is_report_name_correct.value = containsOnlySafeChars && !containsSqlInjection && isReasonableLength;
 };
-
-
 
 defineExpose({ show, close });
 </script>
