@@ -34,6 +34,11 @@
                 <Sankey ref="sankey_chart" :no_data_message="no_data_message" :sankey_data="sankey_data"
                     @node_click="onNodeClick" @autorefresh_toggle="onAutoRefreshToggle">
                 </Sankey>
+                <!--    
+                <Pie ref="pie_chart" :no_data_message="no_data_message" :pie_data="pie_data"
+                    @autorefresh_toggle="onAutoRefreshToggle">>
+                </Pie>
+                -->
             </div>
         </div>
         <Transition name="add-effect" mode="out-in">
@@ -56,6 +61,7 @@ import { ref, onMounted, onBeforeMount, computed } from "vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue"
 import { default as Sankey } from "./sankey.vue";
+import { default as Pie } from "./pie-test.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as SelectSearch } from "./select-search.vue";
@@ -72,8 +78,11 @@ const props = defineProps({
 
 const _i18n = (t) => i18n(t);
 const sankey_url = `${http_prefix}/lua/rest/v2/get/asn/sankey.lua`;
-const sankey_chart = ref(null)
+const pie_url = `${http_prefix}/lua/rest/v2/get/asn/pie.lua`;
+const sankey_chart = ref(null);
 const sankey_data = ref({});
+const pie_chart = ref(null);
+const pie_data = ref({});
 const loading = ref(true);
 const no_data_message = _i18n("as_overview.no_data")
 let intervalId = null;
@@ -92,6 +101,7 @@ const remoteIcon = '<i class="fa-solid fa-house-fire" data-bs-toggle="tooltip" d
 const sankey_format_list = [
     { key: "criteria_as", value: 'traffic_between_ases', label: _i18n('as_overview.as_traffic_criteria') },
     { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
+    //{ key: "criteria_as", value: 'user_traffic_breakdown', label: _i18n('as_overview.user_traffic_breakdown') },
 ];
 const time_preset_list = [
     { value: "live", label: i18n('live'), currently_active: true },
@@ -113,6 +123,7 @@ const note_list = [
 
 onMounted(() => {
     updateSankeyData();
+    updatePieData();
 })
 
 /* ************************************** */
@@ -150,6 +161,7 @@ const onAutoRefreshToggle = (enabled) => {
     if (enabled) {
         intervalId = setInterval(() => {
             updateSankeyData()
+            updatePieData()
         }, 10000 /* 10 sec refresh */)
     } else {
         clearInterval(intervalId);
@@ -162,6 +174,7 @@ const onAutoRefreshToggle = (enabled) => {
 const changeCriteria = async (opt) => {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
     updateSankeyData();
+    updatePieData();
     if (table_as_stats.value) {
         if (opt.value === "ingress_egress_traffic_criteria") {
             table_id.value = "ingress_egress_as_stats"
@@ -169,7 +182,9 @@ const changeCriteria = async (opt) => {
             table_id.value = "traffic_between_ases"
         } else if (opt.value === "as_transit_only_criteria") {
             table_id.value = "transit_only_as_stats"
-        }
+
+        } //else if (opt.value === "user_traffic_breakdown") {
+        //}
         reRenderTable.value = !reRenderTable.value
     }
 }
@@ -196,6 +211,7 @@ function setTimeInterval(epoch_interval) {
     }
     main_epoch_interval.value = epoch_interval;
     updateSankeyData();
+    updatePieData();
     reloadTable()
 }
 
@@ -203,6 +219,35 @@ function setTimeInterval(epoch_interval) {
 
 function saveSwitch() {
     localStorage.setItem("as-overview-slider", toggle_slider.value);
+}
+
+/* ************************************** */
+
+const updatePieData = async () => {
+    loading.value = true;
+    let data = await getPieData();
+    pie_data.value = data;
+    loading.value = false;
+}
+
+/* ************************************** */
+
+const getPieData = async () => {
+    const url_request = getPieUrl();
+    let graph = await ntopng_utility.http_request(url_request);
+    return graph
+}
+
+/* ************************************** */
+
+const getPieUrl = () => {
+    let params = {
+        ifid: props.context.ifid,
+        ...getExtraParameters()
+    }
+    let url_params = ntopng_url_manager.obj_to_url_params(params);
+    let url_request = `${pie_url}?${url_params}`;
+    return url_request;
 }
 
 /* ************************************** */

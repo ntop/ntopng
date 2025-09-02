@@ -1865,7 +1865,9 @@ local lang = {
     ["as_traffic_criteria"] = "AS Traffic",
     ["ingress_egress_traffic_criteria"] = "Ingress/Egress Interfaces",
     ["no_data"] = "No Data Available. Is the ASN still doing traffic?",
+    ["no_asn_available"] = "No Asn Available",
     ["note_ingress_egress"] = "The above diagram with Ingress-Egress Traffic depicts the AS at its center, with ingress traffic on the left and egress traffic on the right.",
+    ["user_traffic_breakdown"] = "User Traffic Breakdown", 
   },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",
