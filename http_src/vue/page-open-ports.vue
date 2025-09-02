@@ -1,5 +1,5 @@
 <!--
-  (C) 2013-22 - ntop.org
+  (C) 2013-25 - ntop.org
 -->
 
 <template>
@@ -7,50 +7,40 @@
     <div class="col-md-12 col-lg-12">
       <div class="card  card-shadow">
         <div class="card-body">
-          
-          
           <div id="open_ports">
-            
             <TableWithConfig ref="table_open_ports" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
               :f_sort_rows="columns_sorting" :f_map_config="map_config" @custom_event="on_table_custom_event">
-              
             </TableWithConfig>
-
           </div>
-          
         </div>
-        
-
-        
-
       </div>
     </div>
   </div>
 </template>
-  
+
 <script setup>
 
-/* Imports */ 
+/* Imports */
 import { ref, onBeforeMount, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import dataUtils from '../utilities/data-utils';
 
-/* ******************************************************************** */ 
+/* ******************************************************************** */
 
-/* Consts */ 
+/* Consts */
 const _i18n = (t) => i18n(t);
 
 
 
 const active_monitoring_url = `${http_prefix}/lua/vulnerability_scan.lua`;
- 
+
 
 const table_id = ref('open_ports');
 const map_config = (config) => {
-    return config;
+  return config;
 };
 
 const table_open_ports = ref();
@@ -58,31 +48,29 @@ const table_open_ports = ref();
 const props = defineProps({
   context: Object,
 });
+
 const rest_params = {
   csrf: props.context.csrf
 };
+
 const context = ref({
   csrf: props.context.csrf,
   ifid: props.context.ifid,
   is_enterprise_l: props.context.is_enterprise_l
 });
 
-/* ******************************************************************** */ 
-
-
-
-/* ******************************************************************** */ 
+/* ******************************************************************** */
 
 const get_extra_params_obj = () => {
   let extra_params = ntopng_url_manager.get_url_object();
   return extra_params;
 };
 
-/* ******************************************************************** */ 
+/* ******************************************************************** */
 
 /* Function to handle all buttons */
 function on_table_custom_event(event) {
-  
+
   let events_managed = {
     "click_button_show_hosts": click_button_show_hosts
   };
@@ -93,22 +81,22 @@ function on_table_custom_event(event) {
 }
 
 
-function compare_by_port(r0,r1) {
+function compare_by_port(r0, r1) {
 
   let col = {
-      "data": {
-          "title_i18n": "port",
-          "data_field": "port",
-          "sortable": true,
-          "class": [
-              "text-nowrap",
-              "text-end"
-          ]
-      }
-    };
+    "data": {
+      "title_i18n": "port",
+      "data_field": "port",
+      "sortable": true,
+      "class": [
+        "text-nowrap",
+        "text-end"
+      ]
+    }
+  };
   let r0_col = r0[col.data.data_field];
   let r1_col = r1[col.data.data_field];
-    
+
   r0_col = format_num_ports_for_sort(r0_col);
   r1_col = format_num_ports_for_sort(r1_col);
   return r0_col - r1_col;
@@ -119,7 +107,7 @@ function columns_sorting(col, r0, r1) {
   if (col != null) {
     let r0_col = r0[col.data.data_field];
     let r1_col = r1[col.data.data_field];
-    if(col.id == "port") {
+    if (col.id == "port") {
 
       r0_col = format_num_ports_for_sort(r0_col);
       r1_col = format_num_ports_for_sort(r1_col);
@@ -127,35 +115,35 @@ function columns_sorting(col, r0, r1) {
         return r0_col - r1_col;
       }
       return r1_col - r0_col;
-    } else if(col.id == "count_host") {
+    } else if (col.id == "count_host") {
       r0_col = format_cve_num(r0_col);
       r1_col = format_cve_num(r1_col);
 
       if (r0_col == r1_col) {
-        return compare_by_port(r0,r1);
+        return compare_by_port(r0, r1);
       }
       if (col.sort == 1) {
         return r0_col - r1_col;
       }
       return r1_col - r0_col;
     }
-    else if(col.id == "cves") {
+    else if (col.id == "cves") {
       r0_col = format_cve_num(r0_col);
       r1_col = format_cve_num(r1_col);
 
       if (r0_col == r1_col) {
-        return compare_by_port(r0,r1);
+        return compare_by_port(r0, r1);
       }
       if (col.sort == 1) {
         return r0_col - r1_col;
       }
       return r1_col - r0_col;
     }
-    else if(col.id == "hosts") {
+    else if (col.id == "hosts") {
       /* It's an array */
 
       if (r0_col == r1_col) {
-        return compare_by_port(r0,r1);
+        return compare_by_port(r0, r1);
       }
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
@@ -175,18 +163,18 @@ function columns_sorting(col, r0, r1) {
         r1_col = "";
       }
       if (r0_col == r1_col) {
-        return compare_by_port(r0,r1);
+        return compare_by_port(r0, r1);
       }
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
       }
       return r1_col.localeCompare(r0_col);
     }
-   
+
   } else {
-    return compare_by_port(r0,r1);
+    return compare_by_port(r0, r1);
   }
-  
+
 }
 
 function format_cve_num(num) {
@@ -202,36 +190,31 @@ function format_cve_num(num) {
 }
 
 function format_num_ports_for_sort(num) {
-  if (dataUtils.isEmptyOrNull(num) || isNaN(value)) 
+  if (dataUtils.isEmptyOrNull(num))
     num = 0;
 
   num = parseInt(num);;
   return num;
 }
 
-
-
-
-/* ******************************************************************** */ 
-
-
+/* ******************************************************************** */
 /* Function to map columns data */
 const map_table_def_columns = (columns) => {
   const visible_dict = {
-        download: true,
-        show_result: true
-      };
+    download: true,
+    show_result: true
+  };
   let map_columns = {
     "hosts": (hosts, row) => {
       let label = ``;
       const hosts_splited = hosts.split(", ");
       const length = hosts_splited.length;
       let i = 0;
-      while ( i < 5 && i < length) {
+      while (i < 5 && i < length) {
         const host_splitted = hosts_splited[i].split("|");
         const host = host_splitted[0];
         const scan_type = host_splitted[1];
-        const date = host_splitted[2].replace(" ","_");
+        const date = host_splitted[2].replace(" ", "_");
         const is_ipv4 = host_splitted[3] === 'true';
         const epoch = host_splitted[4];
 
@@ -252,45 +235,36 @@ const map_table_def_columns = (columns) => {
         let url_params = ntopng_url_manager.obj_to_url_params(params);
 
         let url = `${active_monitoring_url}?${url_params}`;
-        
-        const host_label = host_name != ''? (is_ipv4 == false ? `${host_name}  <span class="badge bg-secondary">${i18n('ipv6')}</span>` : host_name) : host;
-        
+
+        const host_label = host_name != '' ? (is_ipv4 == false ? `${host_name}  <span class="badge bg-secondary">${i18n('ipv6')}</span>` : host_name) : host;
+
         if (label == ``)
-          label += `<a href="${url}">${host_label}</a>`;  
+          label += `<a href="${url}">${host_label}</a>`;
         else
-          label += `, <a href="${url}">${host_label}</a>`;  
+          label += `, <a href="${url}">${host_label}</a>`;
 
         i++;
       }
-      
+
       if (length > 5) {
         label += `...`;
-      } 
+      }
 
       return label;
 
     }
   }
-    
+
 
   columns.forEach((c) => {
     c.render_func = map_columns[c.data_field];
   });
-  
+
   return columns;
 };
 
-/* ******************************************************************** */ 
-
-
-
-
-
-
 /* ************************** REST Functions ************************** */
-
 /* Function to show all hosts during edit */
-
 async function click_button_show_hosts(event) {
   let port = event.row.port_number;
 
@@ -304,7 +278,6 @@ async function click_button_show_hosts(event) {
   ntopng_url_manager.go_to_url(url);
 }
 
-
 /* Function to download last vulnerability scan result */
 async function click_button_download(event) {
   let params = {
@@ -316,8 +289,7 @@ async function click_button_download(event) {
   let url = `${scan_result_url}?${url_params}`;
   ntopng_utility.download_URI(url);
 }
-
-/* ******************************************************************** */ 
+/* ******************************************************************** */
 
 /* Function to show last vulnerability scan result */
 async function click_button_show_result(event) {
@@ -339,7 +311,6 @@ async function click_button_show_result(event) {
 }
 
 
-/* ******************************************************************** */ 
+/* ******************************************************************** */
 
 </script>
-  
