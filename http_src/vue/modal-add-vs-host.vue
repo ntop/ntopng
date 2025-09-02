@@ -78,11 +78,11 @@
       <div>
         <Spinner :show="activate_add_spinner" size="1rem" class="me-2"></Spinner>
         <button v-if="is_edit_page == false" type="button" @click="add_" class="btn btn-primary"
-          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct && is_netscan_ok)">
+          :disabled="!(isCIDRValid && isHostValid && isPortCorrect && isNetscanValid)">
           {{ _i18n("add") }}
         </button>
         <button v-else type="button" @click="edit_" class="btn btn-primary"
-          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct && is_netscan_ok)">
+          :disabled="!(isCIDRValid && isHostValid && isPortCorrect && isNetscanValid)">
           {{ _i18n("apply") }}
         </button>
       </div>
@@ -143,10 +143,10 @@ const host = ref(null);
 const ports = ref(null);
 const show_port_feedback = ref(false);
 const is_enterprise_l = ref(null);
-const is_port_correct = ref(true);
-const is_cidr_correct = ref(false);
-const is_netscan_ok = ref(true); // bool to be sure that on netscan at least one discovered hosts scan type is selected
-const is_host_correct = ref(false);
+const isPortCorrect = ref(true);
+const isCIDRValid = ref(false);
+const isNetscanValid = ref(true); // bool to be sure that on netscan at least one discovered hosts scan type is selected
+const isHostValid = ref(false);
 const is_ipv4_netscan = ref(false);
 const scan_frequencies_list = ref([
   { id: "disabled", label: i18n("hosts_stats.page_scan_hosts.disabled") },
@@ -172,9 +172,9 @@ const reset_modal_form = function () {
   host.value = "";
   ports.value = "";
   selected_cidr.value = "";
-  is_port_correct.value = true;
-  is_cidr_correct.value = false;
-  is_host_correct.value = false;
+  isPortCorrect.value = true;
+  isCIDRValid.value = false;
+  isHostValid.value = false;
   activate_add_spinner.value = false;
   show_port_feedback.value = false;
   selected_scan_type.value = scan_type_list.value[0];
@@ -183,7 +183,7 @@ const reset_modal_form = function () {
   is_edit_page.value = false;
   is_data_not_ok.value = false;
   is_ipv4_netscan.value = false;
-  is_netscan_ok.value = !is_ipv4_netscan.value;
+  isNetscanValid.value = !is_ipv4_netscan.value;
 };
 
 /* ****************************************************** */
@@ -197,8 +197,8 @@ const set_row_to_edit = (row) => {
   /* Set host values */
   host.value = row.host;
   ports.value = row.ports;
-  is_host_correct.value = true;
-  is_port_correct.value = true;
+  isHostValid.value = true;
+  isPortCorrect.value = true;
   row_to_edit_id.value = row.id;
 
   /* Set the correct values if available */
@@ -226,7 +226,7 @@ const set_row_to_edit = (row) => {
     selected_cidr.value = CIDR_32;
   }
 
-  is_cidr_correct.value = true;
+  isCIDRValid.value = true;
 
   /* Scan Frequency */
   if (is_enterprise_l) {
@@ -251,7 +251,7 @@ const show = (row, _host) => {
 
   if (!dataUtils.isEmptyOrNull(_host)) {
     host.value = _host;
-    is_host_correct.value = true;
+    isHostValid.value = true;
   }
 
   modal_id.value.show();
@@ -264,14 +264,14 @@ const show = (row, _host) => {
 */
 const update_selected_discovered_scan_types = (items) => {
   selected_discovered_scan_types.value = items;
-  is_netscan_ok.value = selected_discovered_scan_types.value.length > 0;
+  isNetscanValid.value = selected_discovered_scan_types.value.length > 0;
 }
 
 /* Function called when is removed a selected discovered scan type
 */
 const remove_selected_discovered_scan_types = (item_to_delete) => {
   selected_discovered_scan_types.value = selected_discovered_scan_types.value.filter((item) => item.id != item_to_delete.id);
-  is_netscan_ok.value = selected_discovered_scan_types.value.length > 0; 
+  isNetscanValid.value = selected_discovered_scan_types.value.length > 0; 
 }
 
 /* ****************************************************** */
@@ -285,13 +285,13 @@ const set_is_ipv4_netscan = () => {
     selected_cidr.value = CIDR_24;
     // is_ipv4_netscan -> enable the discovered_hosts_scan_types multiselection
     is_ipv4_netscan.value = true;
-    // is_netscan_ok -> disabled apply or add button because is necessary at least one discovered_hosts_scan_type
-    is_netscan_ok.value = false;
+    // isNetscanValid -> disabled apply or add button because is necessary at least one discovered_hosts_scan_type
+    isNetscanValid.value = false;
   } else {
     // is_ipv4_netscan -> disable the discovered_hosts_scan_types multiselection
     is_ipv4_netscan.value = false;
-    // is_netscan_ok -> enable the add or apply button because is not ipv4_netscan case
-    is_netscan_ok.value = true;
+    // isNetscanValid -> enable the add or apply button because is not ipv4_netscan case
+    isNetscanValid.value = true;
   }
 
 }
@@ -316,12 +316,12 @@ const check_host_regex = () => {
     if (is_ipv4) {
       // the IP must be an IPv4
       /* IPv4 */
-      is_host_correct.value = true;
+      isHostValid.value = true;
       // the selected_discovered_scan_types must be an array with lenght more than 0
-      is_netscan_ok.value = selected_discovered_scan_types.value && selected_discovered_scan_types.value.length > 0;
+      isNetscanValid.value = selected_discovered_scan_types.value && selected_discovered_scan_types.value.length > 0;
     }
 
-    is_netscan_ok.value = true; // not ipv4_netscan case so is_netscan_ok is true
+    isNetscanValid.value = true; // not ipv4_netscan case so isNetscanValid is true
   } else {
 
     /* When it isn't the ipv4_netscan case the cidr selection is enabled */
@@ -334,25 +334,25 @@ const check_host_regex = () => {
       } else {
         selected_cidr.value = CIDR_24;
       }
-      is_host_correct.value = true;
-      is_cidr_correct.value = true;
+      isHostValid.value = true;
+      isCIDRValid.value = true;
     } else if (is_ipv6) {
       /* IPv6 */
-      is_host_correct.value = true;
-      is_cidr_correct.value = true;
+      isHostValid.value = true;
+      isCIDRValid.value = true;
       /* In case the CIDR is wrong */
       selected_cidr.value = CIDR_128
       /* IPv6 */
 
     } else if (is_host_name) {
       /* Host Name */
-      is_host_correct.value = true;
-      is_cidr_correct.value = true;
+      isHostValid.value = true;
+      isCIDRValid.value = true;
       /* In case the CIDR is wrong */
       selected_cidr.value = CIDR_32;
       
     } else {
-      is_host_correct.value = false;
+      isHostValid.value = false;
     }
   }
 };
@@ -360,10 +360,10 @@ const check_host_regex = () => {
 const check_cidr = () => {
   if (( selected_cidr.value >= CIDR_24 && selected_cidr.value <= CIDR_30) || 
         selected_cidr.value == CIDR_32 || selected_cidr.value == CIDR_128) {
-    is_cidr_correct.value = true;
+    isCIDRValid.value = true;
     return true;
   } 
-  is_cidr_correct.value = false;
+  isCIDRValid.value = false;
   return false;
 }
 
@@ -376,10 +376,10 @@ const check_ports = () => {
     !regexValidation.validateCommaSeparatedPortList(ports.value) &&
     !dataUtils.isEmptyOrNull(ports.value)
   ) {
-    is_port_correct.value = false;
+    isPortCorrect.value = false;
   } else {
     /* Empty port is alright! */
-    is_port_correct.value = true;
+    isPortCorrect.value = true;
   }
 };
 
@@ -427,7 +427,7 @@ const add_ = async (is_edit) => {
   /* Check if it's an IP or not, if not it means it's an hostname */
   if (!regexValidation.validateIP(host.value)) {
     /* During the validation disable the add button */
-    is_host_correct.value = false;
+    isHostValid.value = false;
     new_host = await resolve_host_name(host.value);
     if (new_host === "no_success") {
       /* The resolution failed! */
@@ -440,7 +440,7 @@ const add_ = async (is_edit) => {
       }, 4000)
     }
     /* Validation ended, re-enable the button */
-    is_host_correct.value = true;
+    isHostValid.value = true;
   }
 
   let tmp_second_scan_types = [];
@@ -500,7 +500,7 @@ const metricsLoaded = async (_scan_type_list, _ifid, _is_enterprise_l) => {
       <button
       type="button"
       @click="load_ports"
-      :disabled="!is_host_correct || disable_load_ports"
+      :disabled="!isHostValid || disable_load_ports"
       class="btn btn-primary"
     >
       {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
