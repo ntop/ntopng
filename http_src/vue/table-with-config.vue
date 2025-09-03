@@ -4,12 +4,13 @@
         :get_rows="table_config.get_rows" :get_column_id="table_config.get_column_id"
         :print_column_name="table_config.print_column_name" :print_html_row="table_config.print_html_row"
         :print_vue_node_row="table_config.print_vue_node_row" :f_is_column_sortable="table_config.f_is_column_sortable"
-        :f_column_min_width="table_config.f_column_min_width" :f_get_column_classes="table_config.f_get_column_classes"
-        :f_get_column_style="table_config.f_get_column_style" :display_empty_rows="table_config.display_empty_rows"
-        :f_sort_rows="f_sort_rows" :enable_search="table_config.enable_search" :default_sort="table_config.default_sort"
-        :show_autorefresh="table_config.show_autorefresh" :paging="table_config.paging" :csrf="csrf" :showLoading="showLoading"
-        :display_message="display_message" :message_to_display="message_to_display" @loaded="on_loaded"
-        @rows_loaded="rows_loaded" @custom_event="on_custom_event">
+        :f_column_min_width="table_config.f_column_min_width" :f_column_max_width="table_config.f_column_max_width"
+        :f_get_column_classes="table_config.f_get_column_classes" :f_get_column_style="table_config.f_get_column_style"
+        :display_empty_rows="table_config.display_empty_rows" :f_sort_rows="f_sort_rows"
+        :enable_search="table_config.enable_search" :default_sort="table_config.default_sort"
+        :show_autorefresh="table_config.show_autorefresh" :paging="table_config.paging" :csrf="csrf"
+        :showLoading="showLoading" :display_message="display_message" :message_to_display="message_to_display"
+        @loaded="on_loaded" @rows_loaded="rows_loaded" @custom_event="on_custom_event">
         <template v-slot:custom_header>
             <slot name="custom_header"></slot>
         </template>

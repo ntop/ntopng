@@ -19,7 +19,8 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"min-width" : "88px",
+			"min-width" : "80px",
+			"max-width" : "80px",
 			"render_v_node_type": "button_array",
 			"button_def_array": [
 				{

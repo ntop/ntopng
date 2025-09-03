@@ -5810,7 +5810,7 @@ static int ntop_update_ranking(lua_State *vm) {
   char *key, *values;
   u_int32_t epoch;
   NetworkInterface *curr_iface = getCurrentInterface(vm);
-  
+#ifdef NTOPNG_PRO
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   else
@@ -5827,7 +5827,7 @@ static int ntop_update_ranking(lua_State *vm) {
     values = (char*)lua_tostring(vm, 3);
 
   curr_iface->updateRanking(vm, epoch, key, values);
-  
+#endif  
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

@@ -88,6 +88,7 @@
                                     { 'sticky-column-th': col.sticky }
                                 ]" style="white-space: nowrap;" :style="[
                                     (col.min_width ? 'min-width: ' + col.min_width + ';' : ''),
+                                    (col.max_width ? 'max-width: ' + col.max_width + ';' : ''),
                                 ]" @click="change_column_sort(col, col_index)"
                                     :data-resizable-column-id="get_column_id(col.data)">
                                     <div style="display:flex;">
@@ -193,6 +194,7 @@ const props = defineProps({
     print_vue_node_row: Function,   // Function to render Vue component in cell
     f_is_column_sortable: Function, // Function to determine if column is sortable
     f_column_min_width: Function,   // Function to determine column minimum width
+    f_column_max_width: Function,   // Function to determine column maximum width
     f_sort_rows: Function,          // Function for custom row sorting
     f_get_column_classes: Function, // Function to get CSS classes for column
     f_get_column_style: Function,   // Function to get inline styles for column
@@ -426,6 +428,7 @@ async function set_columns_wrap() {
             sort: sort,
             sortable: is_column_sortable(c),
             min_width: column_min_width(c),
+            max_width: column_max_width(c),
             order: col_opt?.order || i,
             sticky: c?.sticky,
             classes,
@@ -669,6 +672,14 @@ function is_column_sortable(col) {
 function column_min_width(col) {
     if (props.f_column_min_width != null) {
         return props.f_column_min_width(col); // use custom function for min width
+    }
+    return true;
+}
+
+// determine column minimum width
+function column_max_width(col) {
+    if (props.f_column_max_width != null) {
+        return props.f_column_max_width(col); // use custom function for min width
     }
     return true;
 }

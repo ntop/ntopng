@@ -15,8 +15,8 @@
 			"title_i18n": "actions",
 			"sortable": false,
 			"sticky": true,
-			"min-width": "20px",
-			"max-width": "30px",
+			"min-width": "80px",
+			"max-width": "80px",
 			"class": [
 				"text-nowrap",
 				"text-center"
