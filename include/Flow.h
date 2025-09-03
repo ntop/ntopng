@@ -110,6 +110,7 @@ private:
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
   u_int32_t srcAS, dstAS; /* Calculated via GeoIP */
+  u_int32_t transitAS;
   char *srcASName, *dstASName;
   u_int32_t srcPeerAS, dstPeerAS; /* Collected via NetFLow/IPFIX */
   u_int32_t protocolErrorCode;
@@ -1579,6 +1580,7 @@ public:
 
   u_int32_t getSrcAS()     { return(srcAS);     }
   u_int32_t getDstAS()     { return(dstAS);     }
+  u_int32_t getTransitAS() { return(transitAS);     }
   u_int32_t getSrcPeerAS() { return(srcPeerAS); }
   u_int32_t getDstPeerAS() { return(dstPeerAS); }
 };

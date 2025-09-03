@@ -47,6 +47,7 @@ end
 local throughput_type = getThroughputType()
 local flows_filter = getFlowsFilter()
 
+-- column names defined in include/ntop_typedefs.h:682 enum sortField
 local mapping_column_lua_c = {
     server = "column_server",
     client = "column_client",
@@ -62,7 +63,10 @@ local mapping_column_lua_c = {
     flow_exporter = "column_device_ip",
     in_index = "column_in_index",
     out_index = "column_out_index",
-    qoe = "column_qoe"
+    qoe = "column_qoe",
+    cli_asn = "column_cli_asn",
+    srv_asn = "column_srv_asn",
+    transit_asn = "column_transit_asn"
 }
 
 if _GET["start"] and _GET["length"] then

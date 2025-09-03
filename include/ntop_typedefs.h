@@ -731,6 +731,9 @@ typedef enum {
   column_score,
   column_score_as_client,
   column_score_as_server,
+  column_cli_asn,
+  column_srv_asn,
+  column_transit_asn,
   /* Macs */
   column_num_hosts,
   column_manufacturer,

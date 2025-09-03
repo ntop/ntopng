@@ -5488,6 +5488,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
     retriever->totBytesSent += f->get_bytes_cli2srv();
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
 
+    // retriever->sorter column values are defined in include/ntop_typedefs.h inside enum sortField
     switch (retriever->sorter) {
     case column_client:
       if (f->getInterface()->isViewed()) {
@@ -5521,6 +5522,16 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
       break;
     case column_duration:
       retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
+      break;
+    case column_cli_asn:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getSrcAS();
+      break;
+    case column_srv_asn:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getDstAS();
+      break;
+    case column_transit_asn:
+      retriever->elems[retriever->actNumEntries++].numericValue =
+          0;  // f->getTransitAS();
       break;
     case column_score:
       {
@@ -6328,6 +6339,12 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
     retriever->sorter = column_key, sorter = numericSorter;
   else if (!strcmp(sortColumn, "column_qoe"))
     retriever->sorter = column_qoe, sorter = numericSorter;
+  else if (!strcmp(sortColumn, "column_cli_asn"))
+    retriever->sorter = column_cli_asn, sorter = numericSorter;
+  else if (!strcmp(sortColumn, "column_srv_asn"))
+    retriever->sorter = column_srv_asn, sorter = numericSorter;
+  else if (!strcmp(sortColumn, "column_transit_asn"))
+    retriever->sorter = column_transit_asn, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s",
                                  sortColumn);
@@ -6472,6 +6489,7 @@ int NetworkInterface::getFlows(lua_State *vm, u_int32_t *begin_slot,
 
   lua_newtable(vm);
 
+  // sort flows in ascending order
   if (p->a2zSortOrder()) {
     for (int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries; i++) {
       lua_newtable(vm);
