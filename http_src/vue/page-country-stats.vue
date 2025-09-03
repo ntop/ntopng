@@ -56,7 +56,11 @@ const map_table_def_columns = (columns) => {
             return formatterUtils.getFormatter("number")(value);
         },
         "breakdown": (value, row) => {
-            return NtopUtils.createBreakdown(value["bytes_sent"], value["bytes_rcvd"], "Sent", "Rcvd")
+            console.log(value)
+            let traffic = value.bytes_sent + value.bytes_rcvd
+            const sent_pctg = value.bytes_sent * 100 / traffic
+            const rcvd_pctg = value.bytes_rcvd * 100 / traffic
+            return NtopUtils.createBreakdown(sent_pctg, rcvd_pctg, _i18n('sent'), _i18n('rcvd'))
         },
         "throughput": (value, row) => {
             return formatterUtils.getFormatter("bps")(value);

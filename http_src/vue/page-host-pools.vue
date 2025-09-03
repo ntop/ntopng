@@ -179,10 +179,7 @@ const map_table_def_columns = (columns) => {
             return formattedDate;
         },
         "breakdown": (value, row) => {
-            const received_bytes = value["bytes_rcvd"]
-            const sent_bytes = value["bytes_sent"]
-            const total_bytes = sent_bytes + received_bytes
-            return NtopUtils.createBreakdown((sent_bytes * 100) / total_bytes, (received_bytes * 100) / total_bytes, "Sent", "Rcvd")
+            return NtopUtils.createBreakdown(value.bytes_sent, value.bytes_rcvd, _i18n('sent'), _i18n('rcvd'))
         },
         "throughput": (value, row) => {
             return formatterUtils.getFormatter("bps")(value);

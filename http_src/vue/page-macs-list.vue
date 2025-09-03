@@ -148,8 +148,9 @@ const map_table_def_columns = (columns) => {
             return ''
         },
         "breakdown": (value, row) => {
-            const sent_pctg = row.bytes_sent * 100 / row.traffic
-            const rcvd_pctg = row.bytes_rcvd * 100 / row.traffic
+            let traffic = row.bytes_sent + row.bytes_rcvd
+            const sent_pctg = (row.bytes_sent / traffic) * 100
+            const rcvd_pctg = (row.bytes_rcvd / traffic) * 100
             return NtopUtils.createBreakdown(sent_pctg, rcvd_pctg, _i18n('sent'), _i18n('rcvd'))
         },
         "throughput": (value, row) => {

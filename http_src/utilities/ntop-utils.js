@@ -1388,13 +1388,26 @@ export default class NtopUtils {
     static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
         if (percentage_1 == 0 && percentage_2 == 0) {
             return `<div class="d-flex flex-row align-items-center progress">
-                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>`
-        } 
-        return `<div class="d-flex flex-row align-items-center progress">
-                <div class="progress-bar bg-warning" aria-valuenow="${percentage_1}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_1}%;">${label_1}</div>
-                <div class="progress-bar bg-success" aria-valuenow="${percentage_2}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_2}%;">${label_2}</div>
-            </div>`
+            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" 
+                 data-bs-toggle="tooltip" data-bs-placement="top" title="No data available"></div>
+        </div>`
+        }
+
+        let progressBars = '';
+
+        if (percentage_1 > 0) {
+            progressBars += `<div class="progress-bar bg-warning" aria-valuenow="${percentage_1}" aria-valuemin="0" aria-valuemax="100" 
+                 style="width: ${percentage_1}%;" 
+                 data-bs-toggle="tooltip" data-bs-placement="top" title="${label_1}: ${Math.floor(percentage_1)}%">${label_1}</div>`;
+        }
+
+        if (percentage_2 > 0) {
+            progressBars += `<div class="progress-bar bg-success" aria-valuenow="${percentage_2}" aria-valuemin="0" aria-valuemax="100" 
+                 style="width: ${percentage_2}%;" 
+                 data-bs-toggle="tooltip" data-bs-placement="top" title="${label_2}: ${Math.floor(percentage_2)}%">${label_2}</div>`;
+        }
+
+        return `<div class="d-flex flex-row align-items-center progress">${progressBars}</div>`
     }
 
     /* Return the number of rows available in a table */
