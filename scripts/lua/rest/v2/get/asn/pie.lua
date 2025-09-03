@@ -54,7 +54,8 @@ if criteria_as == "user_traffic_breakdown" then
             },
             only_costumers = true,
             value_ref = "total_bytes",
-            section_ref = "costumer"
+            section_ref = "costumer",
+            section_format = format_utils.formatASN
         }, {
             select_query = {
                 "dst_asn", "total_bytes"
@@ -72,7 +73,8 @@ if criteria_as == "user_traffic_breakdown" then
             },
             only_costumers = true,
             value_ref = "total_bytes",
-            section_ref = "costumer"
+            section_ref = "costumer",
+            section_format = format_utils.formatASN
         }
     }
 end

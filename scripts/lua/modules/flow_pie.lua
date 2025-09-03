@@ -14,21 +14,23 @@ local values_table = {}
 
 -- ##########################################
 
-local function update_section(sections, section_ref, value)
+local function update_section(sections, section_ref, value, formatter)
+    local section_label = formatter(section_ref)
     local index = values_table[section_ref].index
     local previous_value = values_table[section_ref].value
     local new_value = previous_value + value
-    sections[index].label = section_ref .. " (" ..  bytesToSize(new_value) .. ")"
+    sections[index].label = section_label .. " (" ..  bytesToSize(new_value) .. ")"
     sections[index].value = new_value
     values_table[section_ref].value = new_value
 end
 
 -- ##########################################
 
-local function create_section(sections, section_ref, value)
+local function create_section(sections, section_ref, value, formatter)
+    local section_label = formatter(section_ref)
     local index = #sections + 1
     sections[index] = {
-        label = section_ref .. " (" ..  bytesToSize(value) .. ")",
+        label = section_label .. " (" ..  bytesToSize(value) .. ")",
         value = value,
         url = '#'
     }
@@ -57,9 +59,9 @@ local function format_table(sections, query, table, max_sections)
         if query.only_costumers == nil or query.only_costumers == false or
             (query.only_costumers == true and remote_asn[section_ref] ~= nil) then
             if values_table[section_ref] ~= nil then
-                update_section(sections, section_ref, value_ref)
+                update_section(sections, section_ref, value_ref, query.section_format)
             elseif #sections <= max_sections then
-                create_section(sections, section_ref, value_ref)
+                create_section(sections, section_ref, value_ref, query.section_format)
             else
                 others.value = others.value + value_ref
             end
@@ -67,9 +69,9 @@ local function format_table(sections, query, table, max_sections)
     end
     if others.value > 0 then
         if values_table["others"] ~= nil then
-            update_section(sections, "others", others.value)
+            update_section(sections, "others", others.value, query.section_format)
         else
-            create_section(sections, "others", others.value)
+            create_section(sections, "others", others.value, query.section_format)
         end
     end
 end
