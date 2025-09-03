@@ -10,10 +10,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
-import formatterUtils from "../utilities/formatter-utils";
-import NtopUtils from "../utilities/ntop-utils.js";
 
 const _i18n = (t) => i18n(t);
 
@@ -24,20 +21,18 @@ const props = defineProps({
 const table_id = ref('dhcp_leases');
 const table_dhcp_leases = ref(null);
 const csrf = props.context.csrf;
-
-
+const ifid = props.context.ifid;
 
 const map_table_def_columns = (columns) => {
-    //country_details.lua?country=IT&page=historical
-    
+
     let map_columns = {
         "macAddress": (value, row) => {
-            const mac_details_url = `${http_prefix}/lua/mac_details.lua?host=${value}`
+            const mac_details_url = `${http_prefix}/lua/mac_details.lua?host=${value}&ifid=${ifid}`
 
             return `<a href=${mac_details_url}>${value}</a>`
         },
         "leasedIP": (value, row) => {
-            const host_info_url = `${http_prefix}/lua/host_details.lua?host=${value}&mac=${row.macAddress}`
+            const host_info_url = `${http_prefix}/lua/host_details.lua?host=${value}&mac=${row.macAddress}&ifid=${ifid}`
             return `<a href=${host_info_url}>${value}</a>`
         }
     };
