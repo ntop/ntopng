@@ -114,7 +114,7 @@ function drawChart(data) {
     // add others to the chart if there is at least an element
     if (otherItems.length > 0 && othersSum > 0) {
         finalChartItems.push({
-            label: `Others (${othersSum})`, // othersSum is the total of devices count
+            label: `Others (${NtopUtils.bytesToVolume(othersSum)})`, // othersSum is the total of devices count
             value: othersSum,
             color: "#999999", // gray for others
             url: '' 
@@ -317,7 +317,6 @@ async function refresh_chart() {
             return;
         }
         const data = props.pie_data;
-        console.log(data)
         if (!data) {
             chart_data_available.value = false;
             return;

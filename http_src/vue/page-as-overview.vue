@@ -101,7 +101,6 @@ const remoteIcon = '<i class="fa-solid fa-house-fire" data-bs-toggle="tooltip" d
 const sankey_format_list = [
     { key: "criteria_as", value: 'traffic_between_ases', label: _i18n('as_overview.as_traffic_criteria') },
     { key: "criteria_as", value: 'ingress_egress_traffic_criteria', label: _i18n('as_overview.ingress_egress_traffic_criteria') },
-    { key: "criteria_as", value: 'user_traffic_breakdown', label: _i18n('as_overview.user_traffic_breakdown') },
 ];
 const time_preset_list = [
     { value: "live", label: i18n('live'), currently_active: true },
@@ -129,6 +128,7 @@ onMounted(() => {
 /* ************************************** */
 
 onBeforeMount(() => {
+    defineDropdown();
     const criteria = ntopng_url_manager.get_url_entry("criteria_as");
     toggle_slider.value = localStorage.getItem("as-overview-slider") == "true"
     active_sankey_type.value = sankey_format_list[0];
@@ -188,7 +188,6 @@ const onAutoRefreshToggle = (enabled) => {
 /* ************************************** */
 
 const table_id = computed(() => {
-    debugger;
     if (active_sankey_type.value?.value === "ingress_egress_traffic_criteria") {
         return "ingress_egress_as_stats"
     } else if (active_sankey_type.value?.value === "traffic_between_ases") {
@@ -329,6 +328,19 @@ const getExtraParameters = () => {
     let extra_params = ntopng_url_manager.get_url_object();
     return extra_params;
 };
+
+/* ************************************** */
+
+function defineDropdown() {
+    let asn_configuration = props.context.configuration
+    if (asn_configuration != "customer_asn" && asn_configuration != "remote_asn"){
+        sankey_format_list.push({
+            key: "criteria_as",
+            value: "user_traffic_breakdown",
+            label: _i18n("as_overview.user_traffic_breakdown")
+        });
+    }
+}
 
 /* ************************************** */
 

@@ -10,6 +10,8 @@ local page_utils = require("page_utils")
 local template_utils = require "template_utils"
 local format_utils = require "format_utils"
 local graph_utils = require "graph_utils"
+local as_utils = require "as_utils"
+
 
 local asn = _GET["asn"]
 local criteria_as = _GET["criteria_as"]
@@ -81,6 +83,7 @@ if page == "overview" or not page then
         page_context = json.encode({
             csrf = ntop.getRandomCSRFValue(),
             ifid = interface.getId(),
+            configuration = as_utils.getASNConfiguration(asn),
             isEnterpriseL = ntop.isEnterpriseL(),
             tableId = tableId,
             historical = show_historical,

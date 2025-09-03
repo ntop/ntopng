@@ -48,4 +48,16 @@ function as_utils.getAllConfigurations()
    return customer_asn, sub_customer_asn, remote_asn
 end
 
+function as_utils.getASNConfiguration(asn)
+    local res = nil
+    local customer_asn, sub_customer_asn, remote_asn = as_utils.getAllConfigurations()
+    if customer_asn[asn] ~= nil then
+        res = "customer_asn"
+    elseif sub_customer_asn[asn] ~= nil then
+        res = "sub_customer_asn" 
+    elseif remote_asn[asn] ~= nil then 
+        res = "remote_asn"
+    end
+    return res
+end
 return as_utils

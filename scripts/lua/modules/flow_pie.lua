@@ -18,8 +18,9 @@ local function update_section(sections, section_ref, value)
     local index = values_table[section_ref].index
     local previous_value = values_table[section_ref].value
     local new_value = previous_value + value
-    sections[index].label = section_ref .. " (" ..  new_value .. ")"
+    sections[index].label = section_ref .. " (" ..  bytesToSize(new_value) .. ")"
     sections[index].value = new_value
+    values_table[section_ref].value = new_value
 end
 
 -- ##########################################
@@ -27,7 +28,7 @@ end
 local function create_section(sections, section_ref, value)
     local index = #sections + 1
     sections[index] = {
-        label = section_ref .. " (" ..  value .. ")",
+        label = section_ref .. " (" ..  bytesToSize(value) .. ")",
         value = value,
         url = '#'
     }
@@ -78,9 +79,13 @@ end
 -- @brief Given a list of queries to be run, it will generate a pie
 -- @param queries Queries to run
 -- @return
-function flow_pie.generatePie(queries, max_sections)
+function flow_pie.generatePie(queries, max_sections, isHistorical)
 
     local sections = {}
+
+    if not isHistorical then
+        interface.aggregateASNFlows()
+    end
 
     for _, query in pairs(queries) do
         local table_stats = flow_data.getStats({query})
