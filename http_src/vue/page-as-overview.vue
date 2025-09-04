@@ -333,7 +333,7 @@ const getExtraParameters = () => {
 
 function defineDropdown() {
     let asn_configuration = props.context.configuration
-    if (asn_configuration != "customer_asn" && asn_configuration != "remote_asn"){
+    if (asn_configuration != "customer_asn" && asn_configuration != "sub_customer_asn"){
         sankey_format_list.push({
             key: "criteria_as",
             value: "user_traffic_breakdown",

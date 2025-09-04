@@ -41,7 +41,7 @@ if criteria_as == "user_traffic_breakdown" then
             select_query = {
                 "src_asn", "total_bytes"
             },
-            rename_key_field = {"costumer"},
+            rename_key_field = {"customer"},
             different_from = {nil, "src_asn", "dst_asn"},
             skip_flow = {{key = "src_asn", value = "0"}},
             where_query = {"dst_asn"},
@@ -52,15 +52,15 @@ if criteria_as == "user_traffic_breakdown" then
                 first_seen = epoch_begin,
                 last_seen = epoch_end
             },
-            only_costumers = true,
+            only_customers = true,
             value_ref = "total_bytes",
-            section_ref = "costumer",
+            section_ref = "customer",
             section_format = format_utils.formatASN
         }, {
             select_query = {
                 "dst_asn", "total_bytes"
             },
-            rename_key_field = {"costumer"},
+            rename_key_field = {"customer"},
             where_query = {"src_asn"},
             sort_by = {"total_bytes"},
             different_from = {"src_asn", "dst_asn"},
@@ -71,9 +71,9 @@ if criteria_as == "user_traffic_breakdown" then
                 first_seen = epoch_begin,
                 last_seen = epoch_end
             },
-            only_costumers = true,
+            only_customers = true,
             value_ref = "total_bytes",
-            section_ref = "costumer",
+            section_ref = "customer",
             section_format = format_utils.formatASN
         }
     }

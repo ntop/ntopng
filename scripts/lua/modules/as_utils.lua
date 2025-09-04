@@ -60,4 +60,18 @@ function as_utils.getASNConfiguration(asn)
     end
     return res
 end
+
+function as_utils.getCustomerAndSubCustomerASNs()
+    local res = {}
+    local sub_customer_asns = as_utils.getSubCustomerASNs()
+    local my_asns = as_utils.getCustomerASNs()
+    for k, v in pairs(sub_customer_asns) do
+        res[k] = v
+    end
+    for k, v in pairs(my_asns) do
+        res[k] = v
+    end
+    return res
+end
+
 return as_utils

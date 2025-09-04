@@ -44,20 +44,20 @@ end
 -- ##########################################
 
 local function format_table(sections, query, table, max_sections)
-    local remote_asn = {}
+    local custumer_asns = {}
     local others = {
         label = i18n("others"),
         value = 0 
     }
-    if query.only_costumers == true then
+    if query.only_custumers == true then
         local as_utils = require "as_utils"
-        remote_asn = as_utils.getRemoteASNs()
+        custumer_asns = as_utils.getCustomerAndSubCustomerASNs()
     end
     for _, value in pairs(table or {}) do
         local section_ref = value[query.section_ref]
         local value_ref = tonumber(value[query.value_ref])
-        if query.only_costumers == nil or query.only_costumers == false or
-            (query.only_costumers == true and remote_asn[section_ref] ~= nil) then
+        if query.only_custumers == nil or query.only_custumers == false or
+            (query.only_custumers == true and custumer_asns[section_ref] ~= nil) then
             if values_table[section_ref] ~= nil then
                 update_section(sections, section_ref, value_ref, query.section_format)
             elseif #sections <= max_sections then
