@@ -235,6 +235,18 @@ end
 
 -- ##############################################
 
+function alert_consts.formatRanking(ranking)
+    local result = ""
+    for _, table in pairs(ranking) do
+        local ex = getProbeName(table.exporter)
+        if result == "" then result = ex
+        else result = result..",".. ex end
+    end
+    return result
+end
+
+-- ##############################################
+
 function getMacUrl(mac)
    if not mac then
       return ""
