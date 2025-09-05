@@ -138,7 +138,7 @@ const map_table_def_columns = (columns) => {
     },
     "creation_timestamp": (value, row) => {
       if (value > 0) {
-        return FormatterUtils.formatDateTime(value * 1000)
+        return FormatterUtils.formatDateTime(value)
       }
       return ''
     }

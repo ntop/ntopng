@@ -312,11 +312,14 @@ function formatDateTime(date, type = 'datetime') {
     }
 
     const now = new Date();
+    
+    // create date only
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const date_only = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const delta_days = Math.floor((today - date_only) / (1000 * 60 * 60 * 24));
-
-    // time formatter
+    const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    // Calculate difference in days
+    const delta_days = Math.floor((today.getTime() - inputDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Time formatter
     const time_formatter = date.toLocaleTimeString('en-GB', {
         hour: '2-digit',
         minute: '2-digit',
@@ -327,36 +330,45 @@ function formatDateTime(date, type = 'datetime') {
     let formatted_date = '';
 
     if (delta_days === 0) {
-	if (type === 'date_only')
-        	formatted_date = 'Today';
-	else
-	        return time_formatter;
+        // Today
+        formatted_date = 'Today';
+        if (type === 'date_only') {
+            return formatted_date;
+        }
+        return `${formatted_date}, ${time_formatter}`;
     } else if (delta_days === 1) {
-        // yesterday
+        // Yesterday
         formatted_date = 'Yesterday';
     } else if (delta_days >= 2 && delta_days <= 6) {
-        // if in current last week show weekday
+        // Within the last week - show weekday
         formatted_date = date.toLocaleDateString('en-GB', { weekday: 'short' });
-        formatted_date = date.toLocaleDateString('en-GB', { weekday: 'short' });
-    } else if (delta_days <= 365) {
-        // if in last year show month and day
+    } else if (delta_days >= 7 && delta_days <= 365) {
+        // Within the last year - show month and day
         formatted_date = date.toLocaleDateString('en-GB', {
             month: 'short',
             day: 'numeric'
         });
+    } else if (delta_days > 365) {
+        // More than one year ago - show full date
+        formatted_date = date.toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
     } else {
-        //more than one year ago show date
-        formatted_date = date.toLocaleformatted_dateing('en-GB', {
+        // Future dates (negative delta_days)
+        formatted_date = date.toLocaleDateString('en-GB', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
     }
 
+    // Return based on type
     if (type === 'date_only') {
         return formatted_date;
     }
-    // datetime format
+    
     return `${formatted_date}, ${time_formatter}`;
 }
 

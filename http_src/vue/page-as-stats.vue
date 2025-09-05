@@ -194,9 +194,7 @@ const map_table_def_columns = (columns) => {
         },
         "seen_since": (value, row) => {
             // `seen_since` might require formatting, e.g., date formatting.
-            const formattedDate = ntopng_utility.from_utc_to_server_date_format(value * 1000); // Example date formatting
-
-            return FormatterUtils.formatDateTime(value * 1000);
+            return FormatterUtils.formatDateTime(value);
         },
         "score": (value, row) => {
             // Assuming `score` is a number that might require some formatting.

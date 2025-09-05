@@ -254,10 +254,13 @@ const map_table_def_columns = (columns) => {
             return badge
         },
         "first_seen": (value, row) => {
-            return FormatterUtils.formatDateTime(value.timestamp * 1000)
+            return FormatterUtils.formatDateTime(value.timestamp)
         },
         "last_seen": (value, row) => {
-            return FormatterUtils.formatDateTime(value.timestamp * 1000)
+            if (row.online) {
+                return ""
+            }
+            return FormatterUtils.formatDateTime(value.timestamp)
         }
     };
 

@@ -345,14 +345,14 @@ const map_table_def_columns = async (columns) => {
             if (first_seen.timestamp == 0) {
                 return '';
             } else {
-                return FormatterUtils.formatDateTime(first_seen.timestamp * 1000)
+                return FormatterUtils.formatDateTime(first_seen.timestamp)
             }
         },
         "last_seen": (last_seen, row) => {
             if (last_seen.timestamp == 0) {
                 return '';
             } else {
-                return FormatterUtils.formatDateTime(last_seen.timestamp * 1000)
+                return FormatterUtils.formatDateTime(last_seen.timestamp)
             }
         },
         "status": (status, row) => {

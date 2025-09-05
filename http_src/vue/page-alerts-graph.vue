@@ -152,16 +152,14 @@
                                                 <span class="detail-label">{{ _i18n("alert.graph.first_seen")
                                                     }}</span>
                                                 <span class="detail-value">{{
-                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.first_seen
-                                                        * 1000)
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.first_seen)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.last_seen")
                                                     }}</span>
                                                 <span class="detail-value">{{
-                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen
-                                                        * 1000) ||
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen) ||
                                                     '-' }}</span>
                                             </div>
                                             <div class="detail-row">

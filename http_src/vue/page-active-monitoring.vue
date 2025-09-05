@@ -125,8 +125,7 @@ const map_table_def_columns = (columns) => {
         "last_measurement_time": (value, row) => {
             value = row.last_measurement.last_measurement_time;
             if (value > 0) {
-                return FormatterUtils.formatDateTime(value * 1000)
-                //return ntopng_utility.from_utc_to_server_date_format(value * 1000, date_format.value)
+                return FormatterUtils.formatDateTime(value)
             }
             return;
         },
