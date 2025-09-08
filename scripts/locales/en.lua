@@ -2064,6 +2064,7 @@ local lang = {
     },
     ["granularities"] = {
       ["active_monitoring"] = "Active Monitoring",
+      ["as"] = "AS",
       ["flow"] = "Flow",
       ["host"] = "Host",
       ["interface"] = "Interface",

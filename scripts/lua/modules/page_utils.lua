@@ -662,6 +662,13 @@ page_utils.menu_entries = {
         section = "policies",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
+    scripts_config_as = {
+        key = "scripts_config",
+        subkey = "as",
+        i18n_title = "as",
+        section = "policies",
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
+    },
     device_exclusions = {
         key = "device_exclusions",
         i18n_title = "edit_check.device_exclusion",

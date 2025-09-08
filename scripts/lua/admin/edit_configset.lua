@@ -78,7 +78,11 @@ local sub_menu_entries = {
   ['syslog'] = {
      order = 8,
      entry = page_utils.menu_entries.scripts_config_syslog
-  }
+  },
+  ['as'] = {
+     order = 9,
+     entry = page_utils.menu_entries.scripts_config_as
+  },
 }
 local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.scripts_config
 page_utils.print_header_and_set_active_menu_entry(active_entry)

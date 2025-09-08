@@ -20,7 +20,8 @@ function checks_utils.load_configset_titles()
         ["interface"] = i18n("config_scripts.granularities.interface"),
         ["network"] = i18n("report.local_networks"),
         ["syslog"] = i18n("config_scripts.granularities.syslog"),
-        ["active_monitoring"] = i18n("config_scripts.granularities.active_monitoring")
+        ["active_monitoring"] = i18n("config_scripts.granularities.active_monitoring"),
+        ["as"] = i18n("config_scripts.granularities.as")
      }
 end
 
