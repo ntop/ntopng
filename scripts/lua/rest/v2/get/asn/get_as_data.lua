@@ -94,4 +94,18 @@ table.sort(res, function(a, b)
     return a.asn < b.asn
 end)
 
+local customer_asn, sub_customer_asn, remote_asn = as_utils.getAllConfigurations()
+for pos, value in pairs(res or {}) do
+    if value.asn ~= nil and value.asname ~= nil then
+        local as = tostring(value.asn)
+        if customer_asn[as] then
+            value.is_customer_asn = true
+        elseif sub_customer_asn[as] then
+            value.is_sub_customer_asn = true
+        elseif remote_asn[as] then
+            value.is_remote_asn = true
+        end
+    end
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, res)

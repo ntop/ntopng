@@ -67,6 +67,9 @@ const epoch_end = ref(current_time);
 const showSankey = props.context.showSankey;
 const showChart = ref(props.context.isEnterprise);
 const current_selected_option = ref([])
+const customerIcon = '<i class="fa-solid fa-house-flag" data-bs-toggle="tooltip" data-bs-placement="top" title="' + _i18n("asn_configuration.customer_asn_title") + '"></i>'
+const subCustomerIcon = '<i class="fa-solid fa-house-laptop" data-bs-toggle="tooltip" data-bs-placement="top" title="' + _i18n("asn_configuration.sub_customer_asn_title") + '"></i>'
+const remoteIcon = '<i class="fa-solid fa-house-fire" data-bs-toggle="tooltip" data-bs-placement="top" title="' + _i18n("asn_configuration.remote_asn_title") + '"></i>'
 const timeseries_key = ref(false);
 const asn_type_option = ref([{
     key: "show_as",
@@ -167,6 +170,25 @@ const get_extra_params_obj = () => {
     return extra_params;
 };
 
+/* ************************************** */
+
+const formatIconAS = (value, row) => {
+    if (!value) {
+        return ''
+    }
+    let importantASNIcon = ''
+    if (row.is_customer_asn) {
+        importantASNIcon = customerIcon;
+    } else if (row.is_sub_customer_asn) {
+        importantASNIcon = subCustomerIcon;
+    } else if (row.is_remote_asn) {
+        importantASNIcon = remoteIcon;
+    }
+    return importantASNIcon
+}
+
+/* ************************************** */
+
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "asname": (value, row) => {
@@ -175,6 +197,7 @@ const map_table_def_columns = (columns) => {
             const asName = row["asname"];
 
             let return_value = "";
+            let icon = formatIconAS(value,row);
 
             if (asName.length > 0) {
                 return_value += `${row["asname"]}`;
@@ -183,6 +206,7 @@ const map_table_def_columns = (columns) => {
                     return_value += ` | <A class='ntopng-external-link' href='https://www.peeringdb.com/asn/${row["asn"]}'>PeeringDB <i class='fas fa-external-link-alt fa-sm'></i></A> ]`;
                 }
             }
+            return_value += icon;
             return return_value;
         },
         "asn": (value, row) => {
