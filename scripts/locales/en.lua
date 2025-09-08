@@ -1244,7 +1244,7 @@ local lang = {
     ["alert_ids_ips_jail_add"] = "Host %{host} added to the jailed hosts pool on %{when}",
     ["alert_ids_ips_jail_remove"] = "Host %{host} removed from the jailed hosts pool on %{when}",
     ["alert_port_too_many_macs"] = "Too many MACs on non-trunk <a href=\"%{url}\">%{ip}</a> Interface Id <a href=\"%{port_url}\">%{port}</a> [%{value} %{op} %{threshold} MACs]",
-    ["alert_as_ranking_changed"] = "[ASN %{as}] The current ranking has changed from %{current_ranking} to %{previous_ranking}",
+    ["alert_as_ranking_changed"] = "The current ranking has changed from %{current_ranking} to %{previous_ranking}",
     ["anomalous_tcp_flags"] = "%{entity} has %{sent_or_rcvd} too many TCP RST flags vs SYN [Ratio: %{ratio}%%]",
     ["attack_mitigation_via_snmp_failure"] = "Failure to set interface <a href=\"%{port_url}\">%{port}</a> admin status on SNMP device <a href=\"%{url}\">%{device}</a> to %{admin_down}: %{granularity} <b>%{metric}</b> crossed by %{entity} [%{value} %{op} %{threshold}]. Make sure the SNMP device has a (valid) write community configured.",
     ["attack_mitigation_via_snmp_success"] = "Interface <a href=\"%{port_url}\">%{port}</a> admin status on SNMP device <a href=\"%{url}\">%{device}</a> set to %{admin_down}: %{granularity} <b>%{metric}</b> crossed by %{entity} [%{value} %{op} %{threshold}]",

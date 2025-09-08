@@ -40,10 +40,9 @@ alert_as_ranking_changed.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function alert_as_ranking_changed:init(as, current_ranking, previous_ranking)
+function alert_as_ranking_changed:init(current_ranking, previous_ranking)
     self.super:init()
     self.alert_type_params = {
-        as = as,
         current_ranking = current_ranking,
         previous_ranking = previous_ranking
   }
@@ -60,8 +59,7 @@ function alert_as_ranking_changed.format(ifid, alert, alert_type_params)
     local alert_consts = require("alert_consts")
     current = alert_consts.formatRanking(alert_type_params.current_ranking)
     prev = alert_consts.formatRanking(alert_type_params.previous_ranking)
-    return i18n("alert_messages.alert_as_ranking_changed", { 
-        as = alert_type_params.as,
+    return i18n("alert_messages.alert_as_ranking_changed", {
         current_ranking = current,
         previous_ranking = prev
     })
