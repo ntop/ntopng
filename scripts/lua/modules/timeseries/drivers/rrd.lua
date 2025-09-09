@@ -282,8 +282,23 @@ local function number_to_rrd_string(what, schema)
         err_msg = "Trying to convert inf to integer"
     elseif (math.maxinteger and
         ((what >= math.maxinteger) or (what <= math.mininteger))) then
-        err_msg = "Number out of integers range: " .. what
-    elseif what == math.floor(what) then
+        -- Handle integer overflow by capping to reasonable maximum values
+        -- For score metrics, cap to 100000; for other metrics use math.maxinteger/2
+        local max_value
+        if schema_name and string.find(schema_name, ":score") then
+            max_value = 100000  -- Reasonable maximum for score values
+        else
+            max_value = math.floor(math.maxinteger / 2)  -- Safe maximum for other metrics
+        end
+        
+        local capped_value = what > 0 and max_value or -max_value
+        traceError(TRACE_WARNING, TRACE_CONSOLE,
+                   string.format("Number out of integers range: %s [%s], capping to %s", 
+                                what, schema_name, capped_value))
+        what = capped_value
+    end
+
+    if what == math.floor(what) then
         -- If the number has no decimal place, print it as a digit
         return (string.format("%d", what))
     else
@@ -292,12 +307,11 @@ local function number_to_rrd_string(what, schema)
         return (string.format("%f", what))
     end
 
-    -- Log the error with the schema name
+    -- This should never be reached due to the logic above
     traceError(TRACE_ERROR, TRACE_CONSOLE,
                string.format("%s [%s]", err_msg, schema_name))
     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
     tprint(what)
-    -- tprint(schema)
 
     return ("0")
 end
