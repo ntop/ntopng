@@ -77,6 +77,7 @@ import { default as PageLimits } from "./page-limits.vue"
 import { default as PageLocalHostsReport } from "./page-local-hosts-report.vue"
 import { default as PageAssets } from "./page-assets.vue"
 import { default as PageAssetDetails } from "./page-asset-details.vue"
+import { default as PageAssetDetailsNew } from "./page-asset-details-new.vue"
 import { default as PageAccessControlList } from "./page-access-control-list.vue"
 import { default as PageTopInterfaceApplications } from "./page-top-interface-applications.vue"
 import { default as PageTopInterfaceCategories } from "./page-top-interface-categories.vue"
@@ -183,6 +184,7 @@ let ntopVue = {
     PageLocalHostsReport: PageLocalHostsReport,
     PageAssets: PageAssets,
     PageAssetDetails: PageAssetDetails,
+    PageAssetDetailsNew: PageAssetDetailsNew,
     PageAccessControlList: PageAccessControlList,
     PageTopInterfaceApplications: PageTopInterfaceApplications,
     PageTopInterfaceCategories: PageTopInterfaceCategories,

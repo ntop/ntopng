@@ -28,6 +28,7 @@ triggering threshold is still met or not. Alerts on flows are always one-shot.
 .. toctree::
     :maxdepth: 2
 
+    others/alerts_graph
     alerts_type/engaged_alerts
     alerts_type/past_alerts
     alerts_type/flow_alerts
