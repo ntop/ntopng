@@ -1546,7 +1546,8 @@ end
 
 -- #####################################
 
-function historical_flow_utils.get_flow_columns_to_tags(aggregated)
+function historical_flow_utils.get_flow_columns_to_tags(aggregated, real_cols_only)
+
    local c2t = {}
    local t2c = {}
 
@@ -1567,15 +1568,18 @@ function historical_flow_utils.get_flow_columns_to_tags(aggregated)
       end
    end
 
-   for k, v in pairs(additional_flow_columns) do
-      if v.tag then 
-         if not t2c[v.tag] then -- tag not already defined in real columns
-            c2t[k] = v.tag
-            -- t2c[v.tag] = k
+   -- if real_cols_only is provided, exclude additional_flow_columns for historical flow export errors
+   if not real_cols_only then
+      for k, v in pairs(additional_flow_columns) do
+         if v.tag then 
+            if not t2c[v.tag] then -- tag not already defined in real columns
+               c2t[k] = v.tag
+               -- t2c[v.tag] = k
+            end
          end
       end
    end
-
+      
    return c2t 
 end
 
