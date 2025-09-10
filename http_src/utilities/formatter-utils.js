@@ -335,7 +335,7 @@ function formatDateTime(date, type = 'datetime') {
         if (type === 'date_only') {
             return formatted_date;
         }
-        return `${formatted_date}, ${time_formatter}`;
+        return `${time_formatter}`;
     } else if (delta_days === 1) {
         // Yesterday
         formatted_date = 'Yesterday';
