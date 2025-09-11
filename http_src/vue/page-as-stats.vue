@@ -2,7 +2,7 @@
     <div>
         <div class="button-group mb-2 d-flex align-items-center">
             <div class="dropdown me-3 d-flex"><span class="no-wrap d-flex align-items-center filters-label me-2"><b>{{
-                _i18n("filtered_as")
+                _i18n("asn_configuration.filter")
                         }}: </b></span>
                 <SelectSearch v-model:selected_option="current_selected_option" theme="bootstrap-5"
                     :options="asn_type_option" @select_option="add_filter">
@@ -74,7 +74,7 @@ const timeseries_key = ref(false);
 const asn_type_option = ref([{
     key: "show_as",
     value: "all",
-    label: i18n("none")
+    label: i18n("asn_configuration.all_asns")
 }, {
     key: "show_as",
     value: "my_as",
