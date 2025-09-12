@@ -134,15 +134,29 @@ const map_table_def_columns = (columns) => {
         },
         "measurement_value": (value, row) => {
             let measurement = row.last_measurement.measurement_value;
+            let measurement_type = row.last_measurement.measurement_type;
+
+            if (measurement_type == "throughput") {
+                // measurement is in bytes per second, so * 8 to format bps
+                return FormatterUtils.getFormatter("bps")(measurement * 8);
+            }
             if (!dataUtils.isEmptyString(measurement)) {
                 measurement = measurement + " " + (row.last_measurement.measurement_type == "speedtest" ? "" : i18n(row.metadata.unit));
             }
             return measurement;
         },
         "extra_measurements": (value, row) => {
+            let measurement_type = row.last_measurement.measurement_type;
+
+            // measurements different than continuous icmp do not have jutter and mean RTT
+            if (measurement_type != "cicmp") {
+                return ""
+            }
+
             if (dataUtils.isEmptyString(value.mean)) {
                 value.mean = "-"
             }
+
             if (dataUtils.isEmptyString(value.jitter)) {
                 value.jitter = "-"
             }

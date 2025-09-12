@@ -41,24 +41,27 @@ local function check(measurement, hosts, granularity)
       end
       ]]
 
-      rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
+      rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], false --[[ whether to return the content --]],
 				  nil, true --[[ follow redirects ]])
     else
-       rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
+       rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], false --[[ whether to return the content --]],
 			 nil, true --[[ don't follow redirects ]])
     end
 
+    tprint("----------------------------------------")
+    tprint(rv)
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
-      local download_bytes = rv.BYTES_DOWNLOAD
+      local download_bytes = rv.HTTP_STATS.BYTES_DOWNLOAD
       local total_time = rv.HTTP_STATS.TOTAL_TIME
 
-      -- the total_time is in seconds, being Bps, bandwidth is bit / seconds,
+      -- the total_time is in seconds, being Bps, throughput is bit / seconds,
       -- however all the timeseries are saved as Bps
-      local bandwidth = download_bytes / total_time
+      local throughput = download_bytes / total_time
+
 
       result[measurement][key] = {
         calculate_scaling = false,
-	      value = bandwidth,
+	      value = throughput,
         resolved_addr = rv.RESOLVED_IP,
 	    }
     end

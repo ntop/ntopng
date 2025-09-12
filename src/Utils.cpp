@@ -1671,6 +1671,19 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State *vm) {
   curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &stats->start);
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &stats->total);
 
+  // this is the new curl version, the two below are deprecated:
+  // CURL INFO: https://curl.se/libcurl/c/curl_easy_getinfo.html
+  // https://curl.se/libcurl/c/CURLINFO_SIZE_DOWNLOAD_T.html
+  // https://curl.se/libcurl/c/CURLINFO_SIZE_UPLOAD_T.html
+  //curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD_T, &stats->bytes_download);
+  //curl_easy_getinfo(curl, CURLINFO_SIZE_UPLOAD_T, &stats->bytes_upload);
+
+  // TODO: Deprecated with new curl versions, working on current ntopng curl version, use the commented lines above
+  // Deprecated since curl 7.55.0 -> https://curl.se/libcurl/c/CURLINFO_SIZE_DOWNLOAD.html
+  
+  curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &stats->bytes_download);
+  curl_easy_getinfo(curl, CURLINFO_SIZE_UPLOAD, &stats->bytes_upload);
+
   if (vm) {
     lua_newtable(vm);
 
@@ -1691,9 +1704,9 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State *vm) {
       TRACE_INFO,
       "[NAMELOOKUP_TIME %.02f][CONNECT_TIME %.02f][APPCONNECT_TIME "
       "%.02f][PRETRANSFER_TIME %.02f]"
-      "[REDIRECT_TIME %.02f][STARTTRANSFER_TIME %.02f][TOTAL_TIME %.02f]",
+      "[REDIRECT_TIME %.02f][STARTTRANSFER_TIME %.02f][TOTAL_TIME %.02f][BYTES_DOWNLOAD_T %.02f][BYTES_UPLOAD_T %.02f]",
       stats->namelookup, stats->connect, stats->appconnect, stats->pretransfer,
-      stats->redirect, stats->start, stats->total);
+      stats->redirect, stats->start, stats->total, stats->bytes_download, stats->bytes_upload);
 }
 
 /* **************************************** */

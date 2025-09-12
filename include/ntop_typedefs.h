@@ -1009,7 +1009,7 @@ typedef enum {
 } UserCapabilities;
 
 typedef struct {
-  double namelookup, connect, appconnect, pretransfer, redirect, start, total;
+  double namelookup, connect, appconnect, pretransfer, redirect, start, total, bytes_download, bytes_upload;
 } HTTPTranferStats;
 
 typedef struct {
