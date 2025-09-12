@@ -48,8 +48,6 @@ local function check(measurement, hosts, granularity)
 			 nil, true --[[ don't follow redirects ]])
     end
 
-    tprint("----------------------------------------")
-    tprint(rv)
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
       local download_bytes = rv.HTTP_STATS.BYTES_DOWNLOAD
       local total_time = rv.HTTP_STATS.TOTAL_TIME
