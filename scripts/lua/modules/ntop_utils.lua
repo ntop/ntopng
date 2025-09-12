@@ -946,22 +946,24 @@ end
 -- ##############################################
 
 function generateExporterLink(ip)
-    local probe_info = getProbeInfoFromExporterIP(ip)
+    ip_string = ntop.inet_ntoa(ip)
+    local probe_info = getProbeInfoFromExporterIP(ip_string)
     if probe_info then
         return string.format("probe_uuid=%s", probe_info.probe_uuid)
     end
-    return string.format("ip=%s", ip)
+    return string.format("ip=%s", ip_string)
 end
 
 -- ##############################################
 
 function generateExporterInterfaceLink(ip, interface)
-    local probe_info = getProbeInfoFromExporterIP(ip)
+    ip_string = ntop.inet_ntoa(ip)
+    local probe_info = getProbeInfoFromExporterIP(ip_string)
     if probe_info then
-        return string.format("ip=%s&exporter_uuid=%s&probe_uuid=%s", ip,
+        return string.format("ip=%s&exporter_uuid=%s&probe_uuid=%s", ip_string,
                              probe_info.exporter_uuid, probe_info.probe_uuid)
     end
-    return string.format("ip=%s&interface=%s", ip, interface)
+    return string.format("ip=%s&interface=%s", ip_string, interface)
 end
 
 -- ##############################################

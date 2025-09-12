@@ -436,11 +436,17 @@ const mapTableColumns = (columns) => {
             if (dataUtils.isEmptyString(value.name)) {
                 return value.id
             }
+            if(!dataUtils.isEmptyString(value.url)){
+                return `<a href="${value.url}" title="${value.id}">${value.name}</a>`
+            }
             return `<span data-bs-toggle="tooltip" data-bs-placement="top" title="${value.id}">${value.name}</span>`;
         },
         "interface": (value, row) => {
             if (dataUtils.isEmptyString(value.name)) {
                 return value.id
+            }
+            if(!dataUtils.isEmptyString(value.url)){
+                return `<a href="${value.url}" title="${value.id}">${value.name}</a>`
             }
             return `<span data-bs-toggle="tooltip" data-bs-placement="top" title="${value.id}">${value.name}</span>`;
         },
