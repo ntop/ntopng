@@ -365,21 +365,16 @@ const format_target = function (data, rowData) {
 const get_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_url, rest_params)
-
-  await $.get(url, function (rsp, status) {
-    metric_list = rsp.rsp;
-    isLoading.value = false;
-  });
+  metric_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 };
 
 
 const get_host_pool_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(host_pool_url, rest_params)
-  let tmp_host_pool_list;
-  await $.get(url, function (rsp, status) {
-    tmp_host_pool_list = rsp.rsp;
-  });
+  
+  let tmp_host_pool_list = await ntopng_utility.http_request(url);
 
   tmp_host_pool_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   host_pool_list = tmp_host_pool_list;
@@ -390,10 +385,7 @@ const get_network_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(network_list_url, rest_params)
 
-  let tmp_network_list
-  await $.get(url, function (rsp, status) {
-    tmp_network_list = rsp.rsp;
-  });
+  let tmp_network_list = await ntopng_utility.http_request(url);
 
   tmp_network_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   network_list = tmp_network_list;
@@ -404,22 +396,15 @@ const get_network_list = async function () {
 const get_interface_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_ifname_url, rest_params)
-
-  await $.get(url, function (rsp, status) {
-    interface_metric_list = rsp.rsp;
-    isLoading.value = false;
-  });
-
+  interface_metric_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 };
 
 const get_host_pool_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_host_pool_url, rest_params)
 
-  let tmp_host_pool_metric_list
-  await $.get(url, function (rsp, status) {
-    tmp_host_pool_metric_list = rsp.rsp;
-  });
+  let tmp_host_pool_metric_list = await ntopng_utility.http_request(url);
 
   tmp_host_pool_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   host_pool_metric_list = tmp_host_pool_metric_list;
@@ -431,10 +416,7 @@ const get_network_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_network_url, rest_params)
 
-  let tmp_network_metric_list;
-  await $.get(url, function (rsp, status) {
-    tmp_network_metric_list = rsp.rsp;
-  });
+  let tmp_network_metric_list = await ntopng_utility.http_request(url);
 
   tmp_network_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   network_metric_list = tmp_network_metric_list;
@@ -446,10 +428,7 @@ const get_vlan_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_vlan_url, rest_params)
 
-  let tmp_vlan_metric_list;
-  await $.get(url, function (rsp, status) {
-    tmp_vlan_metric_list = rsp.rsp;
-  });
+  let tmp_vlan_metric_list = await ntopng_utility.http_request(url);
 
   tmp_vlan_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   vlan_metric_list = tmp_vlan_metric_list;
@@ -461,11 +440,8 @@ const get_profiles_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_profiles_url, rest_params)
 
-  let tmp_profiles_metric_list;
-  await $.get(url, function (rsp, status) {
-    tmp_profiles_metric_list = rsp.rsp;
-  });
-
+  let tmp_profiles_metric_list = await ntopng_utility.http_request(url);
+  
   profiles_metric_list = tmp_profiles_metric_list;
   isLoading.value = false;
 }
@@ -473,10 +449,7 @@ const get_profiles_metric_list = async function () {
 const get_asn_metric_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(metric_asn_url, rest_params)
-  let tmp_asn_metric_list;
-  await $.get(url, function (rsp, status) {
-    tmp_asn_metric_list = rsp.rsp;
-  });
+  let tmp_asn_metric_list = await ntopng_utility.http_request(url);
   asn_metric_list = tmp_asn_metric_list;
   isLoading.value = false;
 }
@@ -486,11 +459,8 @@ const get_flow_exporter_devices_metric_list = async function () {
   const url = NtopUtils.buildURL(metric_flow_exp_device_url, {
     ...rest_params
   })
-
-  await $.get(url, function (rsp, status) {
-    flow_exporter_metric_list = rsp.rsp;
-    isLoading.value = false;
-  });
+  flow_exporter_metric_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 
 };
 
@@ -499,22 +469,16 @@ const get_flow_exporter_devices_list = async function () {
   const url = NtopUtils.buildURL(flow_devices_url, {
     ...rest_params
   })
-
-  await $.get(url, function (rsp, status) {
-    flow_exporter_list = rsp.rsp;
-    isLoading.value = false;
-  });
+  flow_exporter_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 
 };
 
 const get_ifid_list = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(ifid_url, rest_params)
-
-  await $.get(url, function (rsp, status) {
-    ifid_list = rsp.rsp;
-    isLoading.value = false;
-  });
+  ifid_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 };
 
 const get_vlans = async function () {
@@ -530,11 +494,8 @@ const get_vlans = async function () {
 const get_profiles = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(profiles_url, rest_params)
-
-  await $.get(url, function (rsp, status) {
-    profiles_list = rsp.data;
-    isLoading.value = false;
-  });
+  profiles_list = await ntopng_utility.http_request(url);
+  isLoading.value = false;
 }
 
 const get_asn = async function () {
