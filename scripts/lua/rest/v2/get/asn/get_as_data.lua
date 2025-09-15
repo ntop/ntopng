@@ -25,19 +25,6 @@ interface.select(ifname)
 local selected_asn = _GET["show_as"]
 local check_as = nil
 
-if not isEmptyString(selected_asn) then
-    local customer_as, sub_customer_as, remote_as =
-        as_utils.getAllConfigurations()
-
-    if selected_asn == "my_as" then
-        check_as = customer_as
-    elseif selected_asn == "my_customer_as" then
-        check_as = sub_customer_as
-    elseif selected_asn == "remote_as" then
-        check_as = remote_as
-    end
-end
-
 local asn = tonumber(_GET["asn"])
 local as_info;
 
@@ -48,6 +35,20 @@ if (asn ~= nil) then
 else
     as_info = interface.getASesInfo({detailsLevel = "high"})
     as_info = as_info["ASes"]
+end
+
+if not isEmptyString(selected_asn) then
+    local customer_as, sub_customer_as, remote_as =
+        as_utils.getAllConfigurations()
+    if selected_asn == "my_as" then
+        check_as = customer_as
+    elseif selected_asn == "my_customer_as" then
+        check_as = sub_customer_as
+    elseif selected_asn == "remote_as" then
+        check_as = remote_as
+    elseif selected_asn == "other_as" then
+        check_as = as_utils.getOtherASNs(as_info)
+    end
 end
 
 local res = {}

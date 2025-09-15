@@ -74,7 +74,7 @@ const timeseries_key = ref(false);
 const asn_type_option = ref([{
     key: "show_as",
     value: "all",
-    label: i18n("asn_configuration.all_asns")
+    label: i18n("asn_configuration.all_asn")
 }, {
     key: "show_as",
     value: "my_as",
@@ -87,6 +87,10 @@ const asn_type_option = ref([{
     key: "show_as",
     value: "remote_as",
     label: i18n("asn_configuration.remote_asn_title")
+}, {
+    key: "show_as",
+    value: "other_as",
+    label: i18n("asn_configuration.other_asn")
 }])
 
 const params = {

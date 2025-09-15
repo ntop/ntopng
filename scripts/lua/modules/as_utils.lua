@@ -1,5 +1,5 @@
 --
--- (C) 2021 - ntop.org
+-- (C) 2025 - ntop.org
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -46,6 +46,30 @@ function as_utils.getAllConfigurations()
    local sub_customer_asn = as_utils.getSubCustomerASNs()
    local remote_asn = as_utils.getRemoteASNs()
    return customer_asn, sub_customer_asn, remote_asn
+end
+
+-- The function filters from a table of ASNs those that are not customers, sub-customers, or remote
+function as_utils.getOtherASNs(as_info)
+    local customer_asn, sub_customer_asn, remote_asn = as_utils.getAllConfigurations()
+    local res = {}
+    local costumer_sub = table.merge(customer_asn, sub_customer_asn)
+    local total = table.merge(costumer_sub,remote_asn)
+    if as_info ~= nil then
+        for key, value in pairs(as_info) do
+            if total then
+                local value_total = total[tostring(value["asn"])]
+                if not value_total then
+                    value_check = res[tostring(value["asn"])]
+                    if not value_check then
+                        res[tostring(value["asn"])] = 1
+                    else
+                        res[tostring(value["asn"])] = value_check + 1
+                    end
+                end
+            end
+        end
+    end
+    return res
 end
 
 function as_utils.getASNConfiguration(asn)

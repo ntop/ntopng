@@ -6810,11 +6810,12 @@ local lang = {
     ["trigger_network_alerts"] = "Trigger Network Alerts",
   },
   ["asn_configuration"] = {
-    ["all_asns"] = "All ASNs",
+    ["all_asn"] = "All ASNs",
     ["customer_asn_description"] = "Comma separated list of ASNs, that belong to this organization.",
     ["customer_asn_title"] = "My ASNs",
     ["filter"] = "Filter",
     ["notes"] = "Comma separated list of ASNs. Example: 10,2404,4044",
+    ["other_asn"] = "Other ASNs",
     ["remote_asn_title"] = "Relevant Remote ASNs",
     ["sub_customer_asn_description"] = "Comma separated list of Customer ASNs, interconnected to the Internet via my ASNs.",
     ["sub_customer_asn_title"] = "My Customers ASNs",
