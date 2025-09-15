@@ -11,7 +11,7 @@ local template_utils = require "template_utils"
 local format_utils = require "format_utils"
 local graph_utils = require "graph_utils"
 local as_utils = require "as_utils"
-
+local auth = require "auth"
 
 local asn = _GET["asn"]
 local criteria_as = _GET["criteria_as"]
@@ -62,6 +62,13 @@ page_utils.print_navbar(i18n("asn_id", {id = format_utils.formatASN(asn)}),
         page_name = "as_stats",
         label = "<i class=\"fas fa-globe fa-lg\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
             i18n("as_stats.autonomous_systems") .. "\"></i>"
+    }, {
+        hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
+        url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?page=as&status=engaged&asn="..asn .."%3Beq",
+        active = page == "alerts",
+        page_name = "alerts",
+        label = "<i class=\"fas fa-lg fa-exclamation-triangle\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
+            i18n("alerts_dashboard.alerts") .. "\"></i>"
     }
 })
 
