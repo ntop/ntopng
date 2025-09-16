@@ -58,7 +58,7 @@
 	},
 	{
 	    "title_i18n": "as",
-	    "data_field": "name",
+	    "data_field": "asn",
 	    "sortable": true,
 	    "min-width" : "155px",
 	    "render_type": "formatAS",

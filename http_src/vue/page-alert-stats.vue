@@ -389,7 +389,6 @@ function update_select_query_presets() {
 
 const map_table_def_columns = async (columns) => {
     await ntopng_sync.on_ready(get_query_presets_sync_key());
-
     let map_columns = {
         "l7_proto": (proto, row) => {
             let confidence = "";
@@ -415,6 +414,9 @@ const map_table_def_columns = async (columns) => {
         },
         "srv2cli_bytes": (info, row) => {
             return `${DataTableRenders.filterize('srv2cli_bytes', row.total_bytes.bytes_rcvd, formatterUtils.getFormatter("bytes")(row.total_bytes.bytes_rcvd))}`;
+        },
+        "asn": (info, row) =>{
+            return `${DataTableRenders.filterize('asn', info, row.name)}`;
         }
 
     };
