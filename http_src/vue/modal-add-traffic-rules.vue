@@ -1319,11 +1319,11 @@ const format_vlan_list = function(data) {
 const format_profile_list = function(data) {
   const f_profile_list = [];
   data.forEach((profile) => {
-    if (profile.column_profile != "") {
+    if (profile.profileName != "") {
       f_profile_list.push({
-        id: profile.column_profile,
-        label: profile.column_profile,
-        value: profile.column_profile,
+        id: profile.profileName,
+        label: profile.profileName,
+        value: profile.profileName,
       })
     }
     
