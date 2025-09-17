@@ -23,6 +23,7 @@ local blacklist_name = _GET["blacklist_name"]
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
 local if_index = _GET["if_index"]
+local profile = _GET["profile"]
 
 local res = {}
 
@@ -46,6 +47,7 @@ local tags = {
     port = port,
     blacklist_name = blacklist_name,
     if_index = if_index,
+    profile = profile,
     epoch_begin = tonumber(epoch_begin),
     epoch_end = tonumber(epoch_end)
 }
