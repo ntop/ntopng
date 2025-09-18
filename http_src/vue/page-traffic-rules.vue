@@ -18,7 +18,7 @@
             <h4>{{ _i18n('if_stats_config.traffic_rules') }}</h4>
           </div>
           <div id="traffic_rules">
-            <Loading :isLoading="loading"></Loading>
+            <Loading :isLoading="isLoading"></Loading>
             <ModalDeleteConfirm ref="modal_delete_confirm" :title="title_delete" :body="body_delete"
               @delete="delete_row">
             </ModalDeleteConfirm>
