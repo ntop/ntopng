@@ -94,35 +94,34 @@ export default defineComponent({
 	},
 	apply: async function() {
 	    if (this.bpf_filter != null && this.bpf_filter != "") {
-		let url_request = `${http_prefix}/lua/pro/rest/v2/check/filter.lua?query=${this.bpf_filter}`;
-		let res = await ntopng_utility.http_request(url_request, null, false, true);
-		this.invalid_bpf = !res.response;
-		if (this.invalid_bpf == true) {
-		    return;
-		}		
+            let url_request = `${http_prefix}/lua/pro/rest/v2/check/filter.lua?query=${this.bpf_filter}`;
+            let res = await ntopng_utility.http_request(url_request, null, false, true);
+            this.invalid_bpf = !res.rsp.response;
+            if (this.invalid_bpf == true) {
+                return;
+            }		
 	    }
 	    let url_request_obj = {
-		ifid: ntopng_url_manager.get_url_entry("ifid"),
-		epoch_begin: this.epoch_interval.epoch_begin,
-		epoch_end: this.epoch_interval.epoch_end,
-		bpf_filter: this.bpf_filter,
+            ifid: ntopng_url_manager.get_url_entry("ifid"),
+            epoch_begin: this.epoch_interval.epoch_begin,
+            epoch_end: this.epoch_interval.epoch_end,
+            bpf_filter: this.bpf_filter,
 	    };
 	    let url_request_params = ntopng_url_manager.obj_to_url_params(url_request_obj);
 	    if (this.extract_now == true) {
-		
-		let url_request = `${http_prefix}/lua/rest/v2/get/pcap/live_extraction.lua?${url_request_params}`;
-		window.open(url_request, '_self', false);
+            let url_request = `${http_prefix}/lua/rest/v2/get/pcap/live_extraction.lua?${url_request_params}`;
+            window.open(url_request, '_self', false);
 	    } else {
-		let url_request = `${http_prefix}/lua/rest/v2/create/pcap/extraction/task.lua?${url_request_params}`;
-		let job_info = await ntopng_utility.http_request(url_request);
-		let job_id = job_info.id;
-		let alert_text_html = i18n('traffic_recording.extraction_scheduled');
-		let page_name = i18n('traffic_recording.traffic_extraction_jobs');
-		let ifid = ntopng_url_manager.get_url_entry("ifid");
-		let href = `<a href="/lua/if_stats.lua?ifid=${ifid}&page=traffic_recording&tab=jobs&job_id=${job_id}">${page_name}</a>`; 
-		alert_text_html = alert_text_html.replace('%{page}', href);
-		alert_text_html = `${alert_text_html} ${job_id}`;
-		ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, { text_html: alert_text_html, type: "alert-success" });
+            let url_request = `${http_prefix}/lua/rest/v2/create/pcap/extraction/task.lua?${url_request_params}`;
+            let job_info = await ntopng_utility.http_request(url_request);
+            let job_id = job_info.id;
+            let alert_text_html = i18n('traffic_recording.extraction_scheduled');
+            let page_name = i18n('traffic_recording.traffic_extraction_jobs');
+            let ifid = ntopng_url_manager.get_url_entry("ifid");
+            let href = `<a href="/lua/if_stats.lua?ifid=${ifid}&page=traffic_recording&tab=jobs&job_id=${job_id}">${page_name}</a>`; 
+            alert_text_html = alert_text_html.replace('%{page}', href);
+            alert_text_html = `${alert_text_html} ${job_id}`;
+            ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, { text_html: alert_text_html, type: "alert-success" });
 	    }
 	    this.close();
 	},
