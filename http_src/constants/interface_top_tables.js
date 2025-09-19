@@ -91,12 +91,15 @@ const top_application = {
         },
     }, {
         columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: true,
-        render: (data) => {
-            if (!data)
-                return '';
-            //return bytesToSizeFormatter(data);
-            return NtopUtils.bytesToSize(data)
-        },
+        render: (data, type) => {
+                if (!data) {
+                    return '';
+                }
+                if (type === 'sort' || type === 'type') {
+                    return data
+                }
+                return bytesToSizeFormatter(data);
+            },
     }, {
         columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage', orderable: false,
         render: (data) => {
@@ -192,7 +195,13 @@ const top_categories = {
         },
     }, {
         columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'traffic', orderable: true,
-        render: (data) => {
+        render: (data, type) => {
+            if (!data) {
+                return '';
+            }
+            if (type === 'sort' || type === 'type') {
+                return data
+            }
             return bytesToSizeFormatter(data);
             //return NtopUtils.bytesToSize(data)
         },
