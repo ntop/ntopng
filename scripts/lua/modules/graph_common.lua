@@ -18,11 +18,14 @@ local graph_common = {}
 graph_common.zoom_vals = {
     { "1m",  "now-60s",  60},
     { "5m",  "now-300s", 60*5},
+    { "10m",  "now-600s", 60*10},
     { "30m", "now-1800s", 60*30},
     { "1h",  "now-1h",   60*60*1},
-    --{ "3h",  "now-3h",   60*60*3},
-    --{ "6h",  "now-6h",   60*60*6},
-    --{ "12h", "now-12h",  60*60*12},
+    { "3h",  "now-3h",   60*60*3},
+    { "6h",  "now-6h",   60*60*6},
+    -- 12h does not compare the previous 12 hours, but the same 
+    -- time window from the previous day
+    { "12h", "now-12h",  60*60*24},
     { "1d",  "now-1d",   60*60*24},
     { "1w",  "now-1w",   60*60*24*7},
     --{ "2w",  "now-2w",   60*60*24*14},
