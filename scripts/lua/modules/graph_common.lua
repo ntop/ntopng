@@ -21,6 +21,7 @@ graph_common.zoom_vals = {
     { "10m",  "now-600s", 60*10},
     { "30m", "now-1800s", 60*30},
     { "1h",  "now-1h",   60*60*1},
+    { "2h",  "now-2h",   60*60*2},
     { "3h",  "now-3h",   60*60*3},
     { "6h",  "now-6h",   60*60*6},
     -- 12h does not compare the previous 12 hours, but the same 
