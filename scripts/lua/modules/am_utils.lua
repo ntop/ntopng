@@ -601,7 +601,7 @@ local function loadAmScripts()
 
             if (loaded_measurements[measurement.key]) then
                 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Measurement '%s' already defined in '%s'",
-                    measurement.key, loaded_measurements[measurement.key].key))
+                    measurement.key, loaded_measurements[measurement.key]))
                 goto skip
             end
 

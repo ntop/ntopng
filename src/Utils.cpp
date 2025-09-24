@@ -1694,6 +1694,8 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State *vm) {
     lua_push_float_table_entry(vm, "REDIRECT_TIME", stats->redirect);
     lua_push_float_table_entry(vm, "STARTTRANSFER_TIME", stats->start);
     lua_push_float_table_entry(vm, "TOTAL_TIME", stats->total);
+    lua_push_float_table_entry(vm, "BYTES_DOWNLOAD", stats->bytes_download);
+    lua_push_float_table_entry(vm, "BYTES_UPLOAD", stats->bytes_upload);
 
     lua_pushstring(vm, "HTTP_STATS");
     lua_insert(vm, -2);
