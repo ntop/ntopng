@@ -162,14 +162,14 @@ export default defineComponent({
 		    extra_info = res.info;
 	    };
 	    if (bpf_filter == null) {
-		let url_params = ntopng_url_manager.get_url_params();
-		let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
-		let res = await ntopng_utility.http_request(url_request);
-		if (res == null || res.bpf == null) {
-		    console.error(`modal-traffic-extraction: ${url_request} return null value`);
-		    return;
-		}
-		bpf_filter = res.bpf;
+            let url_params = ntopng_url_manager.get_url_params();
+            let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/filter/bpf.lua?${url_params}`;
+            let res = await ntopng_utility.http_request(url_request);
+            if (res == null || res.bpf == null) {
+                console.error(`modal-traffic-extraction: ${url_request} return null value`);
+                return;
+            }
+            bpf_filter = res.bpf;
 	    }
 	    this.set_descriptions(epoch_interval.epoch_begin, epoch_interval.epoch_end, extra_info);
 	    
