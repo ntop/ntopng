@@ -133,27 +133,33 @@ export default defineComponent({
 	},
 	show: async function(bpf_filter, epoch_interval) {
 	    if (epoch_interval == null) {
-		let status = ntopng_status_manager.get_status();
-		if (status.epoch_begin == null || status.epoch_end == null) {
-		    console.error("modal-traffic-extraction: epoch_begin and epoch_end undefined in url");
-		    return;
-		}
-		epoch_interval = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
+            let epoch_begin = Number(ntopng_url_manager.get_url_entry("epoch_begin"));
+            let epoch_end = Number(ntopng_url_manager.get_url_entry("epoch_end"));
+            let status = ntopng_status_manager.get_status();
+            if (status.epoch_begin != null && status.epoch_end != null) {
+                epoch_begin = status.epoch_begin;
+                epoch_end = status.epoch_end;
+            }
+            if (epoch_begin == null || epoch_end == null) {
+                console.error("modal-traffic-extraction: epoch_begin and epoch_end undefined");
+                return;
+            }
+            epoch_interval = { epoch_begin: epoch_begin, epoch_end: epoch_end };
 	    }
 	    this.epoch_interval = epoch_interval;
 	    let url_params = ntopng_url_manager.obj_to_url_params(epoch_interval);
 	    let url_request = `${http_prefix}/lua/check_recording_data.lua?${url_params}`;
 	    let res = await ntopng_utility.http_request(url_request, null, null, true);
 	    if (res.available == false) {
-		this.data_available = 2;
-		this.description = i18n('traffic_recording.no_recorded_data');
-		this.$refs["modal"].show();
-		return;
+            this.data_available = 2;
+            this.description = i18n('traffic_recording.no_recorded_data');
+            this.$refs["modal"].show();
+            return;
 	    }
 	    this.data_available = 1;
 	    let extra_info = "";
 	    if (res.info != null) {
-		extra_info = res.info;
+		    extra_info = res.info;
 	    };
 	    if (bpf_filter == null) {
 		let url_params = ntopng_url_manager.get_url_params();
