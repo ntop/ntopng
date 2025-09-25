@@ -568,6 +568,12 @@ tag_utils.defined_tags = {
         operators = { 'eq', 'neq', 'empty', 'nempty' },
         hourly_available = false,
     },
+    ndpi_tcp_fingerprint = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.tags.ndpi_tcp_fingerprint'),
+        operators = { 'eq', 'neq', 'empty', 'nempty' },
+        hourly_available = false,
+    },
     --ja4_client = {
     --    value_type = 'text',
     --    i18n_label = i18n('ja4_client_hash'),

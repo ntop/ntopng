@@ -1441,6 +1441,7 @@ public:
     if (tcp_fingerprint) free(tcp_fingerprint);
     tcp_fingerprint = strdup(fp);
   }
+  inline char *getTCPFingerprint(){ return tcp_fingerprint; }
   inline void setTOS(u_int8_t tos, bool is_cli_tos) {
     if (is_cli_tos) cli2srv_tos = tos; else srv2cli_tos = tos;
   }

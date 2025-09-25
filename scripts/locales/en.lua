@@ -2570,6 +2570,7 @@ local lang = {
       ["mitre_tactic"] = "Mitre Tactic",
       ["mitre_technique"] = "Mitre Technique",
       ["name"] = "Hostname",
+      ["ndpi_tcp_fingerprint"] = "NDPI TCP Fingerprint",
       ["netbios_name"] = "NetBios Name",
       ["network"] = "Network",
       ["network_cidr"] = "Network CIDR",

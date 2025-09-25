@@ -1156,6 +1156,7 @@ local flow_columns = {
    ['DST_MAC'] =              { tag = "srv_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['COMMUNITY_ID'] =         { tag = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10, db_type = "String", db_raw_type = "String" },
    ['CLIENT_FINGERPRINT'] =   { tag = "cli_fingerprint", dt_func = dt_format_generic, order = 11, db_type = "String", db_raw_type = "String" },
+   ['NDPI_TCP_FINGERPRINT'] = { tag = "ndpi_tcp_fingerprint", dt_func = dt_format_generic, order = 11, db_type = "String", db_raw_type = "String" },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn, db_type = "Number", db_raw_type = "Uint32" },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn, db_type = "Number", db_raw_type = "Uint32" },
    ['PROBE_IP'] =             { tag = "probe_ip",     dt_func = dt_format_probe, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", db_type = "Number", db_raw_type = "Uint32" },
@@ -1360,6 +1361,7 @@ historical_flow_utils.extra_where_tags = {
    ["vlan_id"] = "VLAN_ID",
    ["community_id"] = "COMMUNITY_ID",
    ["cli_fingerprint"] = "CLIENT_FINGERPRINT",
+   ["ndpi_tcp_fingerprint"] = "NDPI_TCP_FINGERPRINT",
    ["duration"] = "DURATION",
 }
 
@@ -2049,6 +2051,7 @@ function historical_flow_utils.convertFlowToAlert(flow)
          severity = flow.SEVERITY,
          community_id = flow.COMMUNITY_ID,
          cli_fingerprint = flow.CLIENT_FINGERPRINT,
+         ndpi_tcp_fingerprint = flow.NDPI_TCP_FINGERPRINT,
          srv_network = flow.DST_NETWORK_ID,
          is_cli_victim = flow.IS_CLI_VICTIM,
          l7_cat = flow.L7_CATEGORY,
