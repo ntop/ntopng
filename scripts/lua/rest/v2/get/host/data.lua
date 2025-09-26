@@ -123,6 +123,16 @@ if host_stats_flows ~= nil and host_stats_flows ~= "" then
    host["flows_count"] = total
 end
 
+if table.len(host["names"]) > 0 then
+    local names = {}
+    for source,name in pairs(host["names"]) do
+        if name ~= nil and name ~= "(null)" then
+            names[source] = name
+        end
+    end
+    host["names"] = names
+end
+
 res = host
 
 tracker.log("host_get_json", {host_info["host"], host_info["vlan"]})
