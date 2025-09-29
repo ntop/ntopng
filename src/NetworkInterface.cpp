@@ -5808,7 +5808,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
       Utils::macaddr_int(h->get_mac());
     break;
   case column_mac_location_filter:
+  #ifdef HAVE_NEDGE
     r->elems[r->actNumEntries++].numericValue = h->getMac() ? h->getMac()->locate() : located_on_unknown_interface;
+  #endif
   case column_pool_id:
     r->elems[r->actNumEntries++].numericValue = h->get_host_pool();
     break;
