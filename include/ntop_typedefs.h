@@ -709,6 +709,7 @@ typedef enum {
   column_local_network,
   column_country,
   column_mac,
+  column_mac_location_filter,
   column_os,
   column_num_flows,         /* = column_incomingflows + column_outgoingflows */
   column_num_dropped_flows, /* for bridge interfaces */

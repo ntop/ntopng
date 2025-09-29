@@ -5807,7 +5807,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
     r->elems[r->actNumEntries++].numericValue =
       Utils::macaddr_int(h->get_mac());
     break;
-
+  case column_mac_location_filter:
+    r->elems[r->actNumEntries++].numericValue = h->getMac() ? h->getMac()->locate() : located_on_unknown_interface;
   case column_pool_id:
     r->elems[r->actNumEntries++].numericValue = h->get_host_pool();
     break;
@@ -6715,6 +6716,9 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot, bool walk_all, struct flo
     retriever->sorter = column_local_network, sorter = ipNetworkSorter;
   else if (!strcmp(sortColumn, "column_mac"))
     retriever->sorter = column_mac, sorter = numericSorter;
+  else if (!strcmp(sortColumn, "column_mac_location_filter"))
+    retriever->sorter = column_mac_location_filter, sorter = numericSorter;
+
   /* criteria (datatype sortField in ntop_typedefs.h / see also
    * host_search_walker:NetworkInterface.cpp) */
   else if (!strcmp(sortColumn, "column_traffic_sent"))
