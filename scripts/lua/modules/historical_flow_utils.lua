@@ -1786,8 +1786,36 @@ end
 
 -- #####################################
 
-function historical_flow_utils.get_historical_mac(mac)
-   return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?mac=" .. mac .. "\">" .. mac .. "</a>"
+function historical_flow_utils.get_historical_mac(mac, info)
+   -- live mac data (OLD URL)
+   --return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?mac=" .. mac .. "\">" .. mac .. "</a>"
+
+   local url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
+   
+   -- Add ifid
+   if info.interface_id then
+      url = url .. "ifid=" .. info.interface_id .. "&"
+   end
+   
+   -- Add epoch begin and end from filter or first_seen/last_seen
+   if info.filter and info.filter.epoch_begin and info.filter.epoch_end then
+      url = url .. "epoch_begin=" .. info.filter.epoch_begin .. "&"
+      url = url .. "epoch_end=" .. info.filter.epoch_end .. "&"
+   elseif info.first_seen and info.last_seen then
+      url = url .. "epoch_begin=" .. info.first_seen.epoch .. "&"
+      url = url .. "epoch_end=" .. info.last_seen.epoch .. "&"
+   end
+   
+   -- Add parameters for hist flow filter
+   url = url .. "aggregated=false&"
+   url = url .. "count=traffic_presence&"
+   url = url .. "query_preset=&"
+   
+   -- Add MAC addr for hist filtering
+   local encoded_mac = string.gsub(mac, ":", "%%3A")
+   url = url .. "mac=" .. encoded_mac .. "%3Beq"
+   
+   return "<a href=\"" .. url .. "\">" .. mac .. "</a>"
 end
 
 -- #####################################
@@ -1843,7 +1871,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
          label = label .. " [ " ..historical_flow_utils.get_historical_url(info.cli_asn.title, "cli_asn", info.cli_asn.value, add_hyperlinks) .. " ]"
       elseif not isEmptyString(info.cli_mac) and (info.cli_mac ~= '00:00:00:00:00:00') then
          local manufacturer = get_manufacturer_mac(info.cli_mac)
-         local mac = historical_flow_utils.get_historical_mac(info.cli_mac)
+         local mac = historical_flow_utils.get_historical_mac(info.cli_mac, info)
          if not isEmptyString(manufacturer) then
             mac = string.format("%s (%s)", mac, manufacturer)
          end
@@ -1892,7 +1920,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
          label = label .. " [ " ..historical_flow_utils.get_historical_url(info.srv_asn.title, "srv_asn", info.srv_asn.value, add_hyperlinks) .. " ]"
       elseif not isEmptyString(info.srv_mac) and (info.srv_mac ~= '00:00:00:00:00:00') then
          local manufacturer = get_manufacturer_mac(info.srv_mac)
-         local mac = historical_flow_utils.get_historical_mac(info.srv_mac)
+         local mac = historical_flow_utils.get_historical_mac(info.srv_mac, info)
          if not isEmptyString(manufacturer) then
             mac = string.format("%s (%s)", mac, manufacturer)
          end
