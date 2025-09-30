@@ -149,7 +149,11 @@ const format_host = function (value) {
         icons = `${icons} ${blackhole_icon}`
     }
     if (value.port !== 0) {
-        port_name = ` : <a href="#" class="tableFilter" tag-filter="port" data-bs-toggle='tooltip' data-bs-placement='bottom' title='${value.service_port}' tag-value="${value.port}">${value.port}</a>`
+        const show_port_number = true
+        const p = format_port(value.port, value.service_port, show_port_number);
+        const title = p[0];
+        const hover = p[1];
+        port_name = ` : <a href="#" class="tableFilter" tag-filter="port" data-bs-toggle='tooltip' data-bs-placement='bottom' title='${hover}' tag-value="${value.port}">${title}</a>`
     } else {
         port_name = ''
     }
@@ -383,6 +387,15 @@ const map_table_def_columns = (columns) => {
 
     return columns;
 };
+
+/* ************************************** */
+// format_port returns the display value as the first element and the hover as the second
+function format_port(port_number, service_name, show_number)
+{
+    if (show_number)
+        return [port_number, service_name]
+    else return [service_name, port_number]
+}
 
 /* ************************************** */
 
