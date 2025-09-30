@@ -149,7 +149,7 @@ const format_host = function (value) {
         icons = `${icons} ${blackhole_icon}`
     }
     if (value.port !== 0) {
-        port_name = ` : <a href="#" class="tableFilter" tag-filter="port" data-bs-toggle='tooltip' data-bs-placement='bottom' title='${value.port}' tag-value="${value.port}">${value.service_port || value.port}</a>`
+        port_name = ` : <a href="#" class="tableFilter" tag-filter="port" data-bs-toggle='tooltip' data-bs-placement='bottom' title='${value.service_port}' tag-value="${value.port}">${value.port}</a>`
     } else {
         port_name = ''
     }
