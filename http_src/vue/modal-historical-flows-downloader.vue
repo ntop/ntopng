@@ -33,7 +33,8 @@
                                     <button type="button" @click="selectAllCols" class="btn btn-sm btn-outline-primary">
                                         {{ _i18n('export.select_all') }}
                                     </button>
-                                    <button type="button" @click="deselectCols" class="btn btn-sm btn-outline-secondary">
+                                    <button type="button" @click="deselectCols"
+                                        class="btn btn-sm btn-outline-secondary">
                                         {{ _i18n('export.select_none') }}
                                     </button>
                                 </div>
@@ -81,16 +82,31 @@ const downloadUrl = computed(() => {
     if (selectedColumns.value.length === 0) {
         return '#';
     }
+
     // create url for download
     try {
+        const entries = ntopng_url_manager.get_url_entries();
 
-        let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin")
-        let epoch_end = ntopng_url_manager.get_url_entry("epoch_end")
-        let base_url = `${http_prefix}/lua/pro/rest/v2/get/host/flows/download_flow_records.lua?epoch_begin=${epoch_begin}&epoch_end=${epoch_end}`
+        // epoch eend and begin
+        let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+        let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 
-        // add visible columns url
-        base_url += `&visible_columns=${selectedColumns.value.join(',')}`
-        
+        // base download historical flows URL
+        let base_url = `${http_prefix}/lua/pro/rest/v2/get/host/flows/download_flow_records.lua?epoch_begin=${epoch_begin}&epoch_end=${epoch_end}`;
+
+        // Add visible columns
+        base_url += `&visible_columns=${selectedColumns.value.join(',')}`;
+
+        // check if I already added the param
+        const addedParams = new Set(['epoch_begin', 'epoch_end', 'visible_columns']);
+
+        // extract all params from url to set where clause in backend before db query
+        for (const [key, value] of entries) {
+            // only add non added params
+            if (!addedParams.has(key)) {
+                base_url += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+            }
+        }
         return base_url;
 
     } catch (error) {
