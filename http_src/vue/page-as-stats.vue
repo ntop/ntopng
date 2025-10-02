@@ -50,7 +50,7 @@ const props = defineProps({
 });
 
 const current_time = Math.floor(Date.now() / 1000);
-const seconds_one_week = 3600 * 24 * 7;
+const seconds_one_day = 3600 * 24;
 
 // render table in httpdocs/tables_config/as_stats.json if context.ASNModeEnabled is false, else render the IXP mode table: httpdocs/tables_config/as_stats_ixp_mode.json
 const table_id = computed(() => {
@@ -62,7 +62,7 @@ const timeseries_id = ref('top_asn');
 const loading = ref(true);
 const timeseries_chart = ref(null);
 const table_as_stats = ref(null);
-const epoch_begin = ref(current_time - seconds_one_week); // Get one week ago
+const epoch_begin = ref(current_time - seconds_one_day); // Get one day ago
 const epoch_end = ref(current_time);
 const showSankey = props.context.showSankey;
 const showChart = ref(props.context.isEnterprise);
