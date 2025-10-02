@@ -226,7 +226,7 @@ ntopng supports a large number of command line parameters. To see what they are,
     [--simulate-macs]                   | Simulate MACs in the traffic (debug only)
     [--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses
     [--limit-resources]                 | Non-essential features are disabled
-                                        | in order to save memoty and threads
+                                        | in order to save memory and threads
     [--help|-h]                         | Help
     
 	

@@ -768,7 +768,7 @@ void usage() {
 	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients "
 	 "and servers among <num> random addresses\n"
 	 "[--limit-resources]                 | Non-essential features are disabled\n"
-	 "                                    | in order to save memoty and threads\n"
+	 "                                    | in order to save memory and threads\n"
 	 "[--help|-h]                         | Help\n"
 	 );
 
