@@ -831,6 +831,7 @@ local lang = {
   ["system_host"] = "System Host",
   ["system_interface"] = "System Interface",
   ["system_interfaces_status"] = "Interfaces",
+  ["system_iface"] = "System",
   ["system_status"] = "System",
   ["table_format"] = "Table",
   ["table_view"] = "Table View",

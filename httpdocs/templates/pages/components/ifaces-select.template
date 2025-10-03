@@ -1,8 +1,8 @@
 <div class="d-flex">
     <select class="form-select" id="iface-select">
-        <optgroup label="{{ i18n("system") }}">
+        <optgroup label="{{ i18n("system_iface") }}">
 	    <option value="{{ getSystemInterfaceId() }}" {{ (is_sys_iface and 'selected' or '') }}>
-                {{ i18n("system") }}
+                {{ i18n("system_iface") }}
             </option>
         </optgroup>
         <optgroup label="{{ i18n("interfaces") }}">

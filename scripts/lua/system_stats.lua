@@ -28,7 +28,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid="..interface.getId()
-local title = i18n("system")
+local title = i18n("system_iface")
 local info = ntop.getInfo()
 
 page_utils.print_navbar(title, url,
