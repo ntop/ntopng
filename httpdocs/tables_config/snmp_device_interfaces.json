@@ -48,6 +48,15 @@
 				"text-nowrap"
 			]
 		},
+        {
+			"title_i18n": "snmp.interface_port_type",
+			"data_field": "port_type",
+			"min-width" : "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
 		{
 			"title_i18n": "snmp.in_bytes",
 			"data_field": "in_bytes",
