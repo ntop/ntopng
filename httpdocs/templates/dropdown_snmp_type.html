@@ -1,0 +1,10 @@
+<div class="form-group mb-3">
+  <label class="{* label_class or "" *}" for="{* id *}">{* label or "" *}</label> {* icon or "" *}
+  <select id="{* id *}" name="{* id *}" class="form-select">
+    {% for _, opt in ipairs(options) do %}
+      <option value="{* opt.value *}" {% if opt.value == value then %}selected{% end %}>
+        {{ opt.label }}
+      </option>
+    {% end %}
+  </select>
+</div>

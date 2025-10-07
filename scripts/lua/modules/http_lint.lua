@@ -2384,6 +2384,7 @@ local known_parameters = {
     ["toggle_snmp_qos_mib_polling"] = validateBool,
     ["toggle_snmp_alerts_port_status_change"] = validateBool,
     ["toggle_snmp_alerts_port_errors"] = validateBool,
+    ["snmp_interface_port_type_change"] = validateNumber,
     ["snmp_port_load_threshold"] = validateNumber,
     ["toggle_midnight_stats_reset"] = validateBool,
     ["toggle_ndpi_flows_rrds"] = validateBool,
