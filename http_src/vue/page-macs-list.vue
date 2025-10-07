@@ -302,7 +302,6 @@ function refresh_table() {
 /* ************************************** */
 
 onMounted(async () => {
-    setInterval(refresh_table, 10000)
     filter_table_array.value = await load_table_filters_array();
     set_filter_array_label()
 });
