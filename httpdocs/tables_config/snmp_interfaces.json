@@ -57,6 +57,15 @@
 				"text-nowrap"
 			]
 		},
+        {
+			"title_i18n": "snmp.interface_role",
+			"data_field": "role",
+			"min-width" : "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
 		{
 			"title_i18n": "snmp.in_bytes",
 			"data_field": "in_bytes",
