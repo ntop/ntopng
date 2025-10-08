@@ -49,8 +49,8 @@
 			]
 		},
         {
-			"title_i18n": "snmp.interface_port_type",
-			"data_field": "port_type",
+			"title_i18n": "snmp.interface_role",
+			"data_field": "role",
 			"min-width" : "100px",
 			"sortable": true,
 			"class": [
