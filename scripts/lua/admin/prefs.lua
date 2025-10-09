@@ -2201,7 +2201,13 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "data_archive_before_ttl_delete",
             hidden = not showAggregateFlowsPrefs
         })
-            
+        prefsInputFieldPrefs(subpage_active.entries["aggregated_asn_data_retention"].title,
+            subpage_active.entries["aggregated_asn_data_retention"].description, "ntopng.prefs.",
+            "aggregated_asn_data_retention_days", data_retention_utils.getAggregatedAsnDataRetention(), "number",
+            showAggregateFlowsPrefs, nil, nil, {
+                min = 2,
+                max = 365 * 10
+            })
         prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
             "aggregated_flows_data_retention_days", data_retention_utils.getAggregatedFlowsDataRetention(), "number",

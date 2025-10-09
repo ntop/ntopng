@@ -3,10 +3,12 @@
 --
 
 local DEFAULT_DATA_RETENTION_DAYS = 30
+local DEFAULT_AGGREGATED_ASN_DATA_RETENTION_DAYS = 30
 local DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS = 60
 local DEFAULT_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.data_retention_days"
 local FLOWS_AND_ALERTS_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.flows_and_alerts_data_retention_days"
 local AGGREGATED_FLOWS_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.aggregated_flows_data_retention_days"
+local AGGREGATED_ASN_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.aggregated_asn_data_retention_days"
 local TS_AND_STATS_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.ts_and_stats_data_retention_days"
 
 local data_retention_utils = {}
@@ -25,6 +27,12 @@ end
 
 -- ########################################################
 
+function data_retention_utils.getAggregatedAsnDataRetention()
+  return DEFAULT_AGGREGATED_ASN_DATA_RETENTION_DAYS
+end
+
+-- ########################################################
+
 function data_retention_utils.getFlowsAndAlertsDataRetentionDays()
   local data_retention = ntop.getCache(FLOWS_AND_ALERTS_DATA_RETENTION_DAYS_KEY) or ntop.getCache(DEFAULT_DATA_RETENTION_DAYS_KEY) 
 
@@ -35,6 +43,15 @@ end
 
 function data_retention_utils.getAggregatedFlowsRetentionDays()
   local data_retention = ntop.getCache(AGGREGATED_FLOWS_DATA_RETENTION_DAYS_KEY)
+  -- aggregated data is at least one day more that non-aggregated data
+  return tonumber(data_retention) or (data_retention_utils.getDefaultRetention() + 1)
+end
+
+-- ########################################################
+
+function data_retention_utils.getAggregatedAsnRetentionDays()
+  local data_retention = ntop.getCache(AGGREGATED_ASN_DATA_RETENTION_DAYS_KEY)
+  tprint(data_retention)
   -- aggregated data is at least one day more that non-aggregated data
   return tonumber(data_retention) or (data_retention_utils.getDefaultRetention() + 1)
 end

@@ -2405,6 +2405,7 @@ local known_parameters = {
     ["companion_interface"] = validateEmptyOr(validateInterface),
     ["flows_and_alerts_data_retention_days"] = validateNumber,
     ["aggregated_flows_data_retention_days"] = validateNumber,
+    ["aggregated_asn_data_retention_days"] = validateNumber,
     ["reports_data_retention_days"] = validateNumber,
     ["ts_and_stats_data_retention_days"] = validateNumber,
     ["max_entity_alerts"] = validateNumber,
