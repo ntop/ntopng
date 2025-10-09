@@ -92,7 +92,7 @@ onMounted(() => {
         first_open.value = false;
         table_probes.value.refresh_table()
         update_sankey_data()
-    }, 10000 /* 10 sec refresh */)
+    }, 60000 /* 60 sec refresh */)
 })
 
 /* ************************************** */
@@ -200,7 +200,7 @@ const map_table_def_columns = (columns) => {
             let diff_value = value
             if (!first_open.value) {
                 const old_value = localStorage.getItem("exporter_exported_flows." + row.exporter_uuid + row.ip)
-                diff_value = (value - Number(old_value)) / 10
+                diff_value = (value - Number(old_value)) / 60 // keep in sync with table refresh
             }
             localStorage.setItem("exporter_exported_flows." + row.exporter_uuid + row.ip, value)
             if (!value)
@@ -213,7 +213,8 @@ const map_table_def_columns = (columns) => {
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} ] ${updated_counter}`
+                // change in exported flows since the last refresh
+                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} fps] ${updated_counter}`
             }
             return formatted_value
         },

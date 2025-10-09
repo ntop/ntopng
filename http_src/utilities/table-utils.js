@@ -226,6 +226,7 @@ function get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows) {
 
 function get_f_print_column_name(table_def) {
 	return (col) => {
+		//debugger
 		if (col.title_i18n != null) {
 			return _i18n(col.title_i18n);
 		}

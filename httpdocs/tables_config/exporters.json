@@ -24,6 +24,7 @@
 			"title_i18n": "name",
 			"data_field": "name",
 			"sortable": true,
+			"min-width": "40px",
 			"class": [
 				"text-nowrap"
 			]
@@ -33,7 +34,7 @@
 			"title_i18n": "flow_devices.ntopng_interface",
 			"data_field": "ntopng_interface",
 			"sortable": true,
-			"min-width": 150,
+			"min-width": "40px",
 			"class": [
 				"text-nowrap"
 			]
@@ -43,7 +44,7 @@
 			"title_i18n": "if_stats_overview.probe_ip",
 			"data_field": "probe_ip",
 			"sortable": true,
-			"max-width": "20px",
+			"min-width": "40px",
 			"class": [
 				"text-nowrap"
 			]
@@ -62,6 +63,7 @@
 			"title_i18n": "if_stats_overview.flow_exporters_interfaces_num",
 			"data_field": "exporter_interfaces",
 			"sortable": true,
+			"min-width": "30px",
 			"class": [
 				"text-center",
 				"text-nowrap"

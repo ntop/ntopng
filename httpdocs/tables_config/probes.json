@@ -45,6 +45,7 @@
 		    "title_i18n": "flow_devices.nprobe_interface",
 			"data_field": "probe_interface",
 			"sortable": true,
+			"min-width": "30px",
 			"class": [
 				"text-nowrap"
 			]
