@@ -164,50 +164,17 @@ const get_extra_params_obj = () => {
 
 const map_table_def_columns = (columns) => {
     let map_columns = {
-        "asname": (value, row) => {
-            // value is ASNumber
-            // row is the json element
-            const asName = row["asname"];
-
-            let return_value = "";
-            let icon = formatIconAS(value,row);
-
-            if (asName.length > 0) {
-                return_value += `${row["asname"]}`;
-                if (row["asn"] != 0) {
-                    return_value += ` [ <A class='ntopng-external-link' href='https://stat.ripe.net/app/launchpad/S1_${row["asn"]}_C13C31C4C34C9C22C28C20C6C7C26C29C30C14C17C2C21C33C16C10'>RIPEstat <i class='fas fa-external-link-alt fa-sm'></i></A>`;
-                    return_value += ` | <A class='ntopng-external-link' href='https://www.peeringdb.com/asn/${row["asn"]}'>PeeringDB <i class='fas fa-external-link-alt fa-sm'></i></A> ]`;
-                }
-            }
-            return_value += icon;
-            return return_value;
+        "exporter_ip": (value, row) => {
+            return value;
         },
-        "asn": (value, row) => {
-            let return_value = row["asn"]
-            return return_value;
+        "interface_name": (value, row) => {
+            return value;
         },
-        "hosts": (value, row) => {
-            return FormatterUtils.getFormatter("number")(value);
-        },
-        "seen_since": (value, row) => {
-            // `seen_since` might require formatting, e.g., date formatting.
-            return FormatterUtils.formatDateTime(value);
-        },
-        "score": (value, row) => {
-            // Assuming `score` is a number that might require some formatting.
-            return FormatterUtils.getFormatter("number")(value);
-        },
-        "breakdown": (value, row) => {
-            return NtopUtils.createBreakdown(value["bytes_sent"], value["bytes_rcvd"], "Sent", "Rcvd")
-        },
-        "throughput": (value, row) => {
-            return FormatterUtils.getFormatter("bps")(value);
+        "role": (value, row) => {
+            return value;
         },
         "traffic": (value, row) => {
             return FormatterUtils.getFormatter("bytes")(value);
-        },
-        "alerted_flows": (value, row) => {
-            return FormatterUtils.getFormatter("number")(value);
         },
     };
 
@@ -241,7 +208,7 @@ const map_table_def_columns = (columns) => {
 
 function click_button_exporters_stats(event) {
     const row = event.row;
-    window.location.href = `${http_prefix}/lua/as_overview.lua?asn=${row["asn"]}`;
+    //window.location.href = `${http_prefix}/lua/as_overview.lua?asn=${row["asn"]}`;
 }
 
 /* ************************************** */
@@ -284,25 +251,14 @@ function on_table_custom_event(event) {
 
 function columns_sorting(col, r0, r1) {
     if (col != null) {
-        if (col.id == "name") {
-            return sortingFunctions.sortByName(r0.asname, r1.asname, col.sort);
-        } if (col.id == "as_number") {
-            return sortingFunctions.sortByNumber(r0.asn, r1.asn, col.sort);
-        } else if (col.id == "num_hosts") {
-            return sortingFunctions.sortByNumber(r0.num_hosts, r1.num_hosts, col.sort);
-        } else if (col.id == "seen_since") {
-            return sortingFunctions.sortByNumber(r0.seen_since, r1.seen_since, col.sort);
-        } else if (col.id == "avg_host_score") {
-            return sortingFunctions.sortByNumber(r0.avg_host_score, r1.avg_host_score, col.sort);
-        } else if (col.id == "score") {
-            return sortingFunctions.sortByNumber(r0.score, r1.score, col.sort);
-        } else if (col.id == "throughput") {
-            return sortingFunctions.sortByNumber(r0.throughput, r1.throughput, col.sort);
-        } else if (col.id == "traffic") {
+        if (col.id == "traffic") {
             return sortingFunctions.sortByNumber(r0.traffic, r1.traffic, col.sort);
-        }
-        else if (col.id == "alerted_flows") {
-            return sortingFunctions.sortByNumber(r0.alerted_flows, r1.alerted_flows, col.sort);
+        } else if (col.id == "exporter_ip") {
+            return sortingFunctions.sortByName(r0.exporter_ip, r1.exporter_ip, col.sort);
+        } else if (col.id == "interface_name") {
+            return sortingFunctions.sortByName(r0.interface_name, r1.interface_name, col.sort);
+        } else if (col.id == "role") {
+            return sortingFunctions.sortByName(r0.role, r1.role, col.sort);
         }
     }
 }
