@@ -1192,7 +1192,9 @@ typedef enum {
   app_client_server_criteria,
   info_criteria,
   client_server_srv_port,
-  client_server_srv_port_app_proto
+  client_server_srv_port_app_proto,
+  src_as_dst_as_criteria,
+  src_as_transit_as_dst_as_criteria
 } AnalysisCriteria;
 
 typedef enum {

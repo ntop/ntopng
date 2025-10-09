@@ -445,6 +445,66 @@ if (not isEmptyString(asn)) then
     }
 end
 
+-- Source AS filter
+if flowstats["src_asn"] and table.len(flowstats["src_asn"]) > 0 then
+    local src_as_filters = {{key = "src_asn", value = "", label = i18n("all")}}
+    tmp_list = {}
+
+    for as_num, count in pairsByKeys(flowstats["src_asn"], asc) do
+        if tonumber(as_num) and tonumber(as_num) > 0 then
+            local as_label = format_utils.formatASN(tonumber(as_num))
+            tmp_list[as_label] = {
+                key = "src_asn",
+                value = as_num,
+                label = as_label .. " (" .. format_utils.formatValue(count) .. ")"
+            }
+        end
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        src_as_filters[#src_as_filters + 1] = value
+    end
+
+    if #src_as_filters > 1 then
+        rsp[#rsp + 1] = {
+            action = "src_asn",
+            label = i18n("as_overview.src_as"),
+            name = "src_asn",
+            value = src_as_filters
+        }
+    end
+end
+
+-- Destination AS filter
+if flowstats["dst_asn"] and table.len(flowstats["dst_asn"]) > 0 then
+    local dst_as_filters = {{key = "dst_asn", value = "", label = i18n("all")}}
+    tmp_list = {}
+
+    for as_num, count in pairsByKeys(flowstats["dst_asn"], asc) do
+        if tonumber(as_num) and tonumber(as_num) > 0 then
+            local as_label = format_utils.formatASN(tonumber(as_num))
+            tmp_list[as_label] = {
+                key = "dst_asn",
+                value = as_num,
+                label = as_label .. " (" .. format_utils.formatValue(count) .. ")"
+            }
+        end
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        dst_as_filters[#dst_as_filters + 1] = value
+    end
+
+    if #dst_as_filters > 1 then
+        rsp[#rsp + 1] = {
+            action = "dst_asn",
+            label = i18n("as_overview.dst_as"),
+            name = "dst_asn",
+            value = dst_as_filters
+        }
+    end
+end
+
 local wlan_ssid_filters = {{key = "wlan_ssid", value = "", label = i18n("all")}}
 
 if table.len(flowstats["wlan_ssid"]) > 0 then

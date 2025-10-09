@@ -5,41 +5,37 @@
 <template>
     <div class="row">
         <div class="col-md-12 col-lg-12">
-            <div class="card  card-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
-                            <label class="my-auto me-1">{{ _i18n('criteria_filter') }}: </label>
-                            <SelectSearch v-model:selected_option="selected_criteria" :options="criteria_list"
-                                @select_option="update_criteria">
+            <div class="d-flex align-items-center mb-2">
+                <div class="d-flex no-wrap" style="text-align:left;margin-right:1rem;min-width:25rem;">
+                    <label class="my-auto me-1">{{ _i18n('criteria_filter') }}: </label>
+                    <SelectSearch v-model:selected_option="selected_criteria" :options="criteria_list"
+                        @select_option="update_criteria">
+                    </SelectSearch>
+                </div>
+            </div>
+
+            <div>
+                <TableWithConfig ref="table_aggregated_live_flows" :csrf="csrf" :table_id="table_id"
+                    :table_config_id="table_config_id" :f_map_columns="map_table_def_columns"
+                    :get_extra_params_obj="get_extra_params_obj" :f_map_config="map_config">
+                    <template v-slot:custom_header>
+                        <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
+                            <span class="no-wrap d-flex align-items-center filters-label">
+                                <b>{{ item["basic_label"] }}</b>
+                            </span>
+                            <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
+                                dropdown_size="small" :disabled="loading" :options="item['options']"
+                                @select_option="add_table_filter">
                             </SelectSearch>
                         </div>
-                    </div>
-
-                    <div>
-                        <TableWithConfig ref="table_aggregated_live_flows" :csrf="csrf" :table_id="table_id"
-                            :table_config_id="table_config_id" :f_map_columns="map_table_def_columns"
-                            :get_extra_params_obj="get_extra_params_obj" :f_map_config="map_config">
-                            <template v-slot:custom_header>
-                                <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
-                                    <span class="no-wrap d-flex align-items-center filters-label">
-                                        <b>{{ item["basic_label"] }}</b>
-                                    </span>
-                                    <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
-                                        dropdown_size="small" :disabled="loading" :options="item['options']"
-                                        @select_option="add_table_filter">
-                                    </SelectSearch>
-                                </div>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <div class="btn btn-sm btn-primary mt-2 me-3" type="button" @click="reset_filters">
-                                        {{ _i18n('reset') }}
-                                    </div>
-                                    <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
-                                </div>
-                            </template>
-                        </TableWithConfig>
-                    </div>
-                </div>
+                        <div class="d-flex justify-content-center align-items-center">
+                            <div class="btn btn-sm btn-primary mt-2 me-3" type="button" @click="reset_filters">
+                                {{ _i18n('reset') }}
+                            </div>
+                            <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
+                        </div>
+                    </template>
+                </TableWithConfig>
             </div>
         </div>
     </div>
@@ -70,12 +66,13 @@ const criteria_list_def = [
     { label: _i18n("client_server_srv_port_app_proto"), value: 8, param: "client_server_srv_port_app_proto", table_id: "aggregated_client_server_srv_port_app_proto", enterprise_m: false, search_enabled: false },
     { label: _i18n("info"), value: 6, param: "info", table_id: "aggregated_info", enterprise_m: true, search_enabled: true },
     { label: _i18n("server"), value: 3, param: "server", table_id: "aggregated_server", enterprise_m: false, search_enabled: false },
+    { label: _i18n("src_as_dst_as"), value: 9, param: "src_as_dst_as", table_id: "aggregated_src_as_dst_as", enterprise_m: true, search_enabled: false },
+    { label: _i18n("src_as_transit_as_dst_as"), value: 10, param: "src_as_transit_as_dst_as", table_id: "aggregated_src_as_transit_as_dst_as", enterprise_m: true, search_enabled: false },
 ];
 
 const loading = ref(false)
 const table_aggregated_live_flows = ref();
 const filter_table_array = ref([]);
-const filter_table_dropdown_array = ref([])
 const filters = ref([]);
 
 const table_config_id = ref('aggregated_live_flows');
@@ -348,6 +345,37 @@ const map_table_def_columns = async (columns) => {
                         return `${infoUtils.addFlowInfoIcon(data_field.label)}`
                     }
                 });
+        } else if (selected_criteria.value.value == 9) {
+            // src_as_dst_as case
+            columns.push(
+                {
+                    title_i18n: "as_overview.src_as", sortable: true, name: 'src_as', data_field: 'src_as', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
+                        return format_as_name(data_field);
+                    }
+                },
+                {
+                    title_i18n: "as_overview.dst_as", sortable: true, name: 'dst_as', data_field: 'dst_as', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
+                        return format_as_name(data_field);
+                    }
+                });
+        } else if (selected_criteria.value.value == 10) {
+            // src_as_transit_as_dst_as case
+            columns.push(
+                {
+                    title_i18n: "as_overview.src_as", sortable: true, name: 'src_as', data_field: 'src_as', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
+                        return format_as_name(data_field);
+                    }
+                },
+                {
+                    title_i18n: "transit_as", sortable: true, name: 'transit_as', data_field: 'transit_as', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
+                        return format_as_name(data_field);
+                    }
+                },
+                {
+                    title_i18n: "as_overview.dst_as", sortable: true, name: 'dst_as', data_field: 'dst_as', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
+                        return format_as_name(data_field);
+                    }
+                });
         }
     }
 
@@ -370,10 +398,10 @@ const map_table_def_columns = async (columns) => {
         title_i18n: "total_score", sortable: true, name: 'score', data_field: 'tot_score', class: ['text-center'], responsivePriority: 1
     });
 
-    if (selected_criteria.value.value != 2 && selected_criteria.value.value != 4 && selected_criteria.value.value != 7)
+    if (selected_criteria.value.value != 2 && selected_criteria.value.value != 4 && selected_criteria.value.value != 7 && selected_criteria.value.value != 9 && selected_criteria.value.value != 10)
         columns.push({ title_i18n: "clients", sortable: true, name: 'num_clients', data_field: 'num_clients', class: ['text-nowrap ', 'text-center'], responsivePriority: 1 });
 
-    if (selected_criteria.value.value != 3 && selected_criteria.value.value != 4 && selected_criteria.value.value != 7)
+    if (selected_criteria.value.value != 3 && selected_criteria.value.value != 4 && selected_criteria.value.value != 7 && selected_criteria.value.value != 9 && selected_criteria.value.value != 10)
         columns.push({ title_i18n: "servers", sortable: true, name: 'num_servers', data_field: 'num_servers', class: ['text-nowrap ', 'text-center'], responsivePriority: 1 });
 
     columns.push({
@@ -393,8 +421,6 @@ const map_table_def_columns = async (columns) => {
             return NtopUtils.bytesToSize(data_field);
         }
     });
-
-    console.log(columns)
     return columns;
 }
 
@@ -441,7 +467,7 @@ const format_flows_icon = function (data, rowData) {
     const exporter = ntopng_url_manager.get_url_entry("deviceIP")
     const in_interface = ntopng_url_manager.get_url_entry("inIfIdx")
     const out_interface = ntopng_url_manager.get_url_entry("outIfIdx")
-    
+
     if (props.context.host != null && props.context.host != "")
         add_host = true;
     if (selected_criteria.value.value == 1) {
@@ -466,6 +492,14 @@ const format_flows_icon = function (data, rowData) {
     else if (selected_criteria.value.value == 8) {
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}&srv_port=${rowData.srv_port.id}`;
     }
+    else if (selected_criteria.value.value == 9) {
+        url = `${http_prefix}/lua/flows_stats.lua?asn=${rowData.src_as?.asn || 0}`;
+        if (add_host) url = url + `&host=` + props.context.host;
+    }
+    else if (selected_criteria.value.value == 10) {
+        url = `${http_prefix}/lua/flows_stats.lua?asn=${rowData.src_as?.asn || 0}`;
+        if (add_host) url = url + `&host=` + props.context.host;
+    }
 
     if (!(exporter === "")) {
         url = `${url}&deviceIP=${exporter}`
@@ -485,8 +519,12 @@ const format_application_proto_guessed = function (data, rowData) {
         return `${data.label_with_icons} <span class=\"badge bg-warning\" title=\" ` + rowData.confidence_name + `\">` + rowData.confidence_name + ` </span>`
     else if (rowData.confidence)
         return `${data.label_with_icons} <span class=\"badge bg-success\" title=\"` + rowData.confidence_name + ` \"> ` + rowData.confidence_name + `</span>`
+}
 
+const format_as_name = function (data) {
 
+    // Link to AS details page if it exists, otherwise just show the AS number
+    return `<a href="${http_prefix}/lua/hosts_stats.lua?asn=${data.asn}">${data.label}</a>`;
 }
 
 </script>

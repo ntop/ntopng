@@ -112,6 +112,28 @@ void FlowStats::incStats(Bitmap128 alert_bitmap, u_int8_t l4_protocol,
         if (srcAS != srcPeerAS) transit_asn_list.insert(srcPeerAS);
         if (dstAS != dstPeerAS) transit_asn_list.insert(dstPeerAS);
     }
+
+    /* Track source and destination AS numbers */
+    u_int32_t srcAS = 0, dstAS = 0;
+    char src_as_name[32], dst_as_name[32];
+    flow->getSrcAS(&srcAS, src_as_name);
+    flow->getDstAS(&dstAS, dst_as_name);
+
+    if (srcAS > 0) {
+      std::map<u_int32_t, u_int32_t>::iterator it = src_asn.find(srcAS);
+      if (it == src_asn.end())
+        src_asn[srcAS] = 1;
+      else
+        it->second++;
+    }
+
+    if (dstAS > 0) {
+      std::map<u_int32_t, u_int32_t>::iterator it = dst_asn.find(dstAS);
+      if (it == dst_asn.end())
+        dst_asn[dstAS] = 1;
+      else
+        it->second++;
+    }
   }
 }
 
@@ -264,6 +286,28 @@ void FlowStats::lua(lua_State *vm) {
   lua_pushstring(vm, "transit_asn");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  std::map<u_int32_t, u_int32_t>::iterator it_src_as;
+  for (it_src_as = src_asn.begin(); it_src_as != src_asn.end(); it_src_as++) {
+    lua_push_uint32_table_entry(vm, std::to_string(it_src_as->first).c_str(), it_src_as->second);
+  }
+
+  lua_pushstring(vm, "src_asn");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  std::map<u_int32_t, u_int32_t>::iterator it_dst_as;
+  for (it_dst_as = dst_asn.begin(); it_dst_as != dst_asn.end(); it_dst_as++) {
+    lua_push_uint32_table_entry(vm, std::to_string(it_dst_as->first).c_str(), it_dst_as->second);
+  }
+
+  lua_pushstring(vm, "dst_asn");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -304,6 +348,8 @@ void FlowStats::resetStats() {
   memset(host_pools, 0, sizeof(host_pools));
   talking_hosts.clear();
   wlan_ssid.clear();
+  src_asn.clear();
+  dst_asn.clear();
 }
 
 /* *************************************** */

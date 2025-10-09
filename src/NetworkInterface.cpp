@@ -11999,7 +11999,8 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
   if (set_resp) {
     char buf[128];
     u_int8_t add_client = false, add_server = false, add_app_proto = false,
-      add_info = false, add_srv_port = false;
+      add_info = false, add_srv_port = false, add_src_as = false,
+      add_dst_as = false, add_transit_as = false;
 
     lua_newtable(vm);
 
@@ -12030,6 +12031,14 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
 
     case 8:
       add_client = add_server = add_srv_port = add_app_proto = true;
+      break;
+
+    case 9:
+      add_src_as = add_dst_as = true;
+      break;
+
+    case 10:
+      add_src_as = add_dst_as = add_transit_as = true;
       break;
 
     default:
@@ -12091,6 +12100,18 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
 
     if (add_info) {
       lua_push_str_table_entry(vm, "info", flow_stats->getInfoKey());
+    }
+
+    if (add_src_as) {
+      lua_push_uint32_table_entry(vm, "src_as", flow_stats->getSrcAS());
+    }
+
+    if (add_dst_as) {
+      lua_push_uint32_table_entry(vm, "dst_as", flow_stats->getDstAS());
+    }
+
+    if (add_transit_as) {
+      lua_push_uint32_table_entry(vm, "transit_as", flow_stats->getTransitAS());
     }
 
     lua_push_uint64_table_entry(vm, "vlan_id",
@@ -12185,6 +12206,32 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       for (it = stats->info_count.begin(); it != stats->info_count.end(); ++it) {
 	// check filters
 
+	if((search_string == NULL) || (strcasestr(it->second->getInfoKey(), search_string) != NULL))
+	  vector.push_back(it->second);
+      }
+    }
+    break;
+
+  case AnalysisCriteria::src_as_dst_as_criteria:
+    {
+      /* src AS / dst AS criteria */
+      std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
+
+      for (it = stats->count.begin(); it != stats->count.end(); ++it) {
+	// For AS aggregation, no protocol name filtering needed
+	if(search_string == NULL)
+	  vector.push_back(it->second);
+      }
+    }
+    break;
+
+  case AnalysisCriteria::src_as_transit_as_dst_as_criteria:
+    {
+      /* src AS / transit AS / dst AS criteria */
+      std::unordered_map<string, AggregatedFlowsStats *>::iterator it;
+
+      for (it = stats->info_count.begin(); it != stats->info_count.end(); ++it) {
+	// check filters
 	if((search_string == NULL) || (strcasestr(it->second->getInfoKey(), search_string) != NULL))
 	  vector.push_back(it->second);
       }
@@ -12346,6 +12393,20 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
     if (ntop->getPrefs()->is_enterprise_m_edition())
       walker(&begin_slot, true /* walk_all */, walker_flows,
 	     compute_info_flow_stats, &stats);
+    break;
+
+  case AnalysisCriteria::src_as_dst_as_criteria:
+    /* src AS dst AS criteria flows stats case */
+    if (ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows,
+	     compute_src_as_dst_as_flow_stats, &stats);
+    break;
+
+  case AnalysisCriteria::src_as_transit_as_dst_as_criteria:
+    /* src AS transit AS dst AS criteria flows stats case */
+    if (ntop->getPrefs()->is_enterprise_m_edition())
+      walker(&begin_slot, true /* walk_all */, walker_flows,
+	     compute_src_as_transit_as_dst_as_flow_stats, &stats);
     break;
 #endif
 

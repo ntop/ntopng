@@ -1407,6 +1407,10 @@ public:
                                                    bool *matched);
   static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data,
                                       bool *matched);
+  static bool compute_src_as_dst_as_flow_stats(GenericHashEntry *node,
+                                                void *user_data, bool *matched);
+  static bool compute_src_as_transit_as_dst_as_flow_stats(GenericHashEntry *node,
+                                                           void *user_data, bool *matched);
 
 #ifndef HAVE_NEDGE
   inline u_int8_t getNumProfiles() { return (flow_profiles) ? flow_profiles->getNumProfiles() : 0; }

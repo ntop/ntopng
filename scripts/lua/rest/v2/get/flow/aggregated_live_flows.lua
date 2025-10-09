@@ -217,6 +217,33 @@ for _, data in pairs(aggregated_info or {}) do
         }
     end
 
+    local src_as_info = nil
+    local dst_as_info = nil
+    local transit_as_info = nil
+
+    if (table.len(response) > 0 and (response.add_src_as or response.add_dst_as or response.add_transit_as)) then
+        if response.add_src_as and data.src_as then
+            src_as_info = {
+                label = format_utils.formatASN(data.src_as),
+                asn = data.src_as
+            }
+        end
+
+        if response.add_dst_as and data.dst_as then
+            dst_as_info = {
+                label = format_utils.formatASN(data.dst_as),
+                asn = data.dst_as
+            }
+        end
+
+        if response.add_transit_as and data.transit_as then
+            transit_as_info = {
+                label = format_utils.formatASN(data.transit_as),
+                asn = data.transit_as
+            }
+        end
+    end
+
     -- TODO: remove this data from inside the for
     num_entries = data.num_entries
 
@@ -238,6 +265,9 @@ for _, data in pairs(aggregated_info or {}) do
         info = info,
         srv_port = srv_port,
         application = application,
+        src_as = src_as_info,
+        dst_as = dst_as_info,
+        transit_as = transit_as_info,
         device_ip = data.device_ip,
         vlan_id = {
             id = nil,

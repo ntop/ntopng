@@ -38,6 +38,8 @@ class FlowStats {
   std::map<std::string, u_int16_t> talking_hosts;
   std::map<std::string, u_int16_t> wlan_ssid;
   std::set<u_int32_t> transit_asn_list;
+  std::map<u_int32_t, u_int32_t> src_asn;
+  std::map<u_int32_t, u_int32_t> dst_asn;
 
  public:
   FlowStats();

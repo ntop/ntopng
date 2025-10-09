@@ -42,6 +42,7 @@ class AggregatedFlowsStats {
   u_int64_t proto_key;
   bool is_not_guessed;
   u_int32_t flow_device_ip;
+  u_int32_t src_as, dst_as, transit_as;
 
  public:
   AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
@@ -89,6 +90,9 @@ class AggregatedFlowsStats {
     return (flow_device_ip != 0 ? Utils::intoaV4(flow_device_ip, buf, len) : (char *)"");
   };
   inline bool isNotGuessed() { return(is_not_guessed); };
+  inline u_int32_t getSrcAS() { return src_as; };
+  inline u_int32_t getDstAS() { return dst_as; };
+  inline u_int32_t getTransitAS() { return transit_as; };
 
   /* Setters */
   inline void setProtoName(char* _proto_name) {
@@ -110,6 +114,9 @@ class AggregatedFlowsStats {
   };
   inline void setSrvPort(u_int16_t _srv_port) { srv_port = _srv_port; };
   inline void setFlowDeviceIP(u_int32_t _flow_device_ip) { flow_device_ip = _flow_device_ip; };
+  inline void setSrcAS(u_int32_t as) { src_as = as; };
+  inline void setDstAS(u_int32_t as) { dst_as = as; };
+  inline void setTransitAS(u_int32_t as) { transit_as = as; };
 
   void setFlowIPVLANDeviceIP(Flow *f);
 
