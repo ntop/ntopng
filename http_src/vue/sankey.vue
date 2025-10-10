@@ -269,27 +269,42 @@ function createNodeDrag(links, svg) {
     return d3.drag()
         .on("start", function(event, d) {
             d3.select(this).select("rect").style("fill-opacity", 1.0);
+
+            // Store initial relative positions ONLY ONCE (on first drag)
+            // These offsets should remain constant based on the original layout
+            links.forEach(link => {
+                if (link.source === d && link.sourceY0Offset === undefined) {
+                    // Store the relative offset from the top of the source node
+                    link.sourceY0Offset = link.y0 - d.y0;
+                }
+                if (link.target === d && link.targetY1Offset === undefined) {
+                    // Store the relative offset from the top of the target node
+                    link.targetY1Offset = link.y1 - d.y0;
+                }
+            });
         })
         .on("drag", function(event, d) {
             const nodeWidth = d.x1 - d.x0;
             const nodeHeight = d.y1 - d.y0;
-            
+
             // get current zoom
             const transform = d3.zoomTransform(svg.node());
             const scale = transform.k;
-            
+
             // get svg dimensions
             const svgRect = svg.node().getBoundingClientRect();
             const margin = { top: 8, right: 8, bottom: 8, left: 8 };
-            
-            // calculate visible bounds
-            const visibleWidth = (svgRect.width - margin.left - margin.right) / scale;
-            const visibleHeight = (svgRect.height - margin.top - margin.bottom) / scale;
-            const visibleLeft = -transform.x / scale;
-            const visibleTop = -transform.y / scale;
-            const visibleRight = visibleLeft + visibleWidth;
-            const visibleBottom = visibleTop + visibleHeight;
-            
+
+            // calculate visible bounds in the sankey coordinate space
+            // The sankey extent is [0, 0] to [width - margins, height - margins]
+            const sankeyWidth = sankey_size.value.width - margin.left - margin.right;
+            const sankeyHeight = sankey_size.value.height - margin.top - margin.bottom;
+
+            const visibleLeft = Math.max(0, -transform.x / scale);
+            const visibleTop = Math.max(0, -transform.y / scale);
+            const visibleRight = Math.min(sankeyWidth, visibleLeft + svgRect.width / scale);
+            const visibleBottom = Math.min(sankeyHeight, visibleTop + svgRect.height / scale);
+
             // do not let the node be dragged out of view
             let constrainedX = Math.max(visibleLeft, Math.min(visibleRight - nodeWidth, event.x));
             let constrainedY = Math.max(visibleTop, Math.min(visibleBottom - nodeHeight, event.y));
@@ -302,19 +317,16 @@ function createNodeDrag(links, svg) {
             
             // Move the node group
             d3.select(this).attr("transform", `translate(${d.x0}, ${d.y0})`);
-            
-            // update links connected to dragged node
+
+            // update links connected to dragged node, preserving relative positions
             links.forEach(link => {
                 if (link.source === d) {
-                    // oonly update the source link on the left side of dragged node and keep the original link connected to still node
-                    // connect to center of dragged node
-                    link.y0 = d.y0 + nodeHeight / 2;
-                    // don't modify link.y1 as it stays connected to target node
-                } else if (link.target === d) {
-                    // oonly update the target link on the right side of dragged node and keep the original link connected to still node
-                    // Keep the source end connected to its original node
-                    link.y1 = d.y0 + nodeHeight / 2;
-                    // don't modify link.y0 as it stays connected to source node
+                    // Update source link position preserving relative offset
+                    link.y0 = d.y0 + (link.sourceY0Offset !== undefined ? link.sourceY0Offset : 0);
+                }
+                if (link.target === d) {
+                    // Update target link position preserving relative offset
+                    link.y1 = d.y0 + (link.targetY1Offset !== undefined ? link.targetY1Offset : 0);
                 }
             });
             
