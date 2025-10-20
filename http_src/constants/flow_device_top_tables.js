@@ -127,18 +127,30 @@ const top_flow_interface = {
 		},
 	}, {
 		columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'total', orderable: true,
-		render: (data) => {
+		render: (data, type) => {
+            if (!data) {
+                    return '';
+                }
+            if (type === 'sort' || type === 'type') {
+                return data
+            }
 			return bytesToSizeFormatter(data);
 		},
 	}, {
-		columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage',
+		columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage', orderable: false,
 		render: (data) => {
 			const percentage = data.toFixed(1);
 			return NtopUtils.createProgressBar(percentage)
 		}
 	}, {
 		columnName: i18n("page_stats.top.throughput"), name: 'throughput', className: 'text-end', data: 'throughput', orderable: true,
-		render: (data) => {
+		render: (data,type) => {
+            if (!data) {
+                    return '';
+                }
+            if (type === 'sort' || type === 'type') {
+                return data
+            }
 			return bpsFormatter(data);
 		},
 	},],

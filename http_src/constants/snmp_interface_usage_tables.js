@@ -77,7 +77,13 @@ const top_snmp_interface = {
 		},
 	}, {
 		columnName: i18n("traffic"), name: 'traffic', className: 'text-end', data: 'total', orderable: true,
-		render: (data) => {
+		render: (data, type) => {
+            if (!data) {
+                    return '';
+                }
+            if (type === 'sort' || type === 'type') {
+                return data
+            }
 			return bytesToSizeFormatter(data);
 			//return NtopUtils.bytesToSize(data)
 		},
@@ -97,7 +103,13 @@ const top_snmp_interface = {
 		}
 	}, {
 		columnName: i18n("page_stats.top.throughput"), name: 'throughput', className: 'text-end', data: 'throughput', orderable: true,
-		render: (data) => {
+		render: (data, type) => {
+            if (!data) {
+                    return '';
+                }
+            if (type === 'sort' || type === 'type') {
+                return data
+            }
 			return bpsFormatter(data);
 			//return NtopUtils.bytesToSize(data)
 		},
