@@ -3678,7 +3678,7 @@ local lang = {
     ["exporters_interfaces"] = "Interfaces",
     ["exporters_interfaces_stats"] = "Exporters/Interfaces Stats",
     ["exporters_menu_entry"] = "Probes",
-    ["flow_device"] = "Flow Exporter</a>: %{device}",
+    ["flow_device"] = "Flow Exporter: %{device}",
     ["flow_device_x"] = "<a href=\"%{url}\">Flow Exporter</a>: %{device}",
     ["flow_device_x_interface_y"] = "Flow Exporter %{device} / %{interface}",
     ["flow_exporter_ip"] = "Exporter IP",
