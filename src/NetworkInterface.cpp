@@ -11930,6 +11930,18 @@ static bool asc_vlan_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
   return a->getVlanId() < b->getVlanId();
 }
 
+static bool asc_src_as_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
+  return a->getSrcAS() < b->getSrcAS();
+}
+
+static bool asc_dst_as_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
+  return a->getDstAS() < b->getDstAS();
+}
+
+static bool asc_transit_as_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
+  return a->getTransitAS() < b->getTransitAS();
+}
+
 static bool asc_num_servers_cmp(AggregatedFlowsStats *a,
 				AggregatedFlowsStats *b) {
   return a->getNumServers() < b->getNumServers();
@@ -12301,6 +12313,12 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       sorter = &asc_total_traffic_cmp;
     else if (!strcmp(sortColumn, "vlan_id"))
       sorter = &asc_vlan_cmp;
+    else if (!strcmp(sortColumn, "dst_as"))
+      sorter = &asc_dst_as_cmp;
+    else if (!strcmp(sortColumn, "src_as"))
+      sorter = &asc_src_as_cmp;
+    else if (!strcmp(sortColumn, "transit_as"))
+      sorter = &asc_transit_as_cmp;
   }
 
   std::sort(vector.begin(), vector.end(), sorter);
