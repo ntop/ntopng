@@ -200,6 +200,7 @@ const map_table_def_columns = (columns) => {
                 flows: true,
                 exporters_stats: showSankey,
                 timeseries: props.context.showTimeseries,
+                hosts: true,
             };
             c.button_def_array.forEach((b) => {
                 b.f_map_class = (current_class, row) => {
@@ -234,6 +235,14 @@ function click_button_flows(event) {
 
 /* ************************************** */
 
+function click_button_hosts(event) {
+    const row = event.row;
+    window.location.href = 
+        `${http_prefix}/lua/flows_stats.lua?page=analysis&aggregation_criteria=src_as_dst_as&draw=0&sort=flows&order=desc&start=0&length=10&deviceIP=${row["exporter_ip"]}`;
+}
+
+/* ************************************** */
+
 function click_button_timeseries(event) {
     const row = event.row;
     const url = linksUtils.getExporterInterfaceDetailsPageURL(row.exporter_ip, row.interface_id, row.ifid, http_prefix)
@@ -247,6 +256,7 @@ function on_table_custom_event(event) {
         "click_button_flows": click_button_flows,
         "click_button_exporters_stats": click_button_exporters_stats,
         "click_button_timeseries": click_button_timeseries,
+        "click_button_hosts": click_button_hosts,
     };
     if (events_managed[event.event_id] == null) {
         return;
