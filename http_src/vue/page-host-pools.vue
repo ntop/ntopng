@@ -179,7 +179,10 @@ const map_table_def_columns = (columns) => {
             return formattedDate;
         },
         "breakdown": (value, row) => {
-            return NtopUtils.createBreakdown(value.bytes_sent, value.bytes_rcvd, _i18n('sent'), _i18n('rcvd'))
+            const total_bytes = value.bytes_sent + value.bytes_rcvd;
+            const sent_pctg = value.bytes_sent * 100 / total_bytes;
+            const rcvd_pctg = value.bytes_rcvd * 100 / total_bytes;
+            return NtopUtils.createBreakdown(sent_pctg, rcvd_pctg, _i18n('sent'), _i18n('rcvd'))
         },
         "throughput": (value, row) => {
             return formatterUtils.getFormatter("bps")(value);
