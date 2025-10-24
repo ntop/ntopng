@@ -231,6 +231,7 @@ const no_host_feedback = ref("");
 const with_privacy = ref(false);
 const with_auth = ref(false);
 const enable_v3_options = ref(false);
+const default_snmp_community = props.context.default_snmp_community
 
 const selected_version = ref(null);
 const snmp_versions = props.context.snmp_v3_available ?
@@ -285,7 +286,7 @@ const refresh_select_search = ref(false);
 const reset_modal_form = function () {
     snmp_host.value = "";
     selected_cidr.value = "";
-    snmp_read_community.value = "";
+    snmp_read_community.value = default_snmp_community;
     snmp_context.value = "";
     snmp_write_community.value = "";
     no_host_feedback.value = "";
@@ -297,7 +298,7 @@ const reset_modal_form = function () {
     snmp_privacy_passphrase.value = "";
     is_cidr_correct.value = false;
     is_host_correct.value = false;
-    is_community_correct.value = false;
+    check_community();
     activate_add_spinner.value = false;
     row_to_edit_id.value = null;
     is_edit_page.value = false;
@@ -418,6 +419,7 @@ const update_v3_fields = () => {
         is_community_correct.value = true;
     } else {
         enable_v3_options.value = false;
+        check_community()
     }
 }
 
