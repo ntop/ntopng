@@ -51,7 +51,12 @@ page_utils.print_navbar(i18n('server_ports.server_ports'), base_url .. "?", {
         page_name = "flows_sankey",
         label = i18n("chart")
     },
-    {active = page == "live", page_name = "live", label = i18n("jump_to_table")}
+    {   
+        hidden = isASNModeEnabled(),
+        active = page == "live", 
+        page_name = "live", 
+        label = i18n("jump_to_table")
+    }
 })
 
 if (page == "live" or page == nil) then

@@ -326,25 +326,27 @@ page_utils.print_navbar(title, url, { {
     page_name = "packets",
     label = i18n("packets")
 }, {
-    hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge(),
+    hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge() or isASNModeEnabled(),
     active = page == "DSCP",
     page_name = "DSCP",
     label = i18n("dscp")
 }, {
+    hidden = isASNModeEnabled(),
     active = page == "ndpi",
     page_name = "ndpi",
     label = i18n("applications_long")
 }, {
+    hidden = isASNModeEnabled(),
     active = page == "ndpi_categories",
     page_name = "ndpi_categories",
     label = i18n("categories")
 }, {
-    hidden = have_nedge,
+    hidden = have_nedge or isASNModeEnabled(),
     active = page == "ICMP",
     page_name = "ICMP",
     label = i18n("icmp")
 }, {
-    hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge(),
+    hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge() or isASNModeEnabled() or interface.isZMQInterface(),
     active = page == "ARP",
     page_name = "ARP",
     label = i18n("arp")
@@ -399,7 +401,7 @@ page_utils.print_navbar(title, url, { {
     page_name = "syslog_producers",
     label = "<i class='fas fa-lg fa-hand-holding' title='" .. i18n("syslog.producers") .. "'></i>"
 }, {
-    hidden = not isAdministrator() or not ifstats.has_macs or have_nedge,
+    hidden = not isAdministrator() or not ifstats.has_macs or have_nedge or isASNModeEnabled(),
     active = page == "unassigned_pool_devices",
     page_name = "unassigned_pool_devices",
     label = "<i class='fas fa-lg fa-user-slash' title='" .. i18n("unknown_devices.unassigned_devices") .. "'></i>"
@@ -409,7 +411,7 @@ page_utils.print_navbar(title, url, { {
     page_name = "dhcp",
     label = "<i class='fas fa-lg fa-bolt' title='" .. i18n("dhcp.dhcp") .. "'></i>"
 }, {
-    hidden = (not periodicity_map_available),
+    hidden = (not periodicity_map_available) or isASNModeEnabled(),
     page_name = "periodicity_map",
     url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
     label = "<i class=\"fas fa-lg fa-clock\"></i>"
