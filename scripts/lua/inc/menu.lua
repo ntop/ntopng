@@ -289,7 +289,7 @@ else
 	 entries = {
             {
 	       entry = page_utils.menu_entries.active_monitoring,
-	       hidden = is_windows,
+	       hidden = is_windows or interface.isZMQInterface(),
 	       url = "/lua/active_monitoring.lua"
             }, {
 	       entry = page_utils.menu_entries.network_discovery,
@@ -312,7 +312,7 @@ else
             {
 	       entry = page_utils.menu_entries.vulnerability_scan,
 	       url = '/lua/vulnerability_scan.lua',
-	       hidden = not vs_utils.is_available()
+	       hidden = not vs_utils.is_available() or interface.isZMQInterface()
             }
 	 }
    })
