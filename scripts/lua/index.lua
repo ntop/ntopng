@@ -85,6 +85,9 @@ if ntop.isnEdge() then
 else
     if ntop.isEnterprise() then
         default_template = "enterprise"
+        --if isASNModeEnabled() then
+        --    default_template = "enterprise_as_mode"
+        --end
     elseif ntop.isPro() then
         default_template = "pro"
     end

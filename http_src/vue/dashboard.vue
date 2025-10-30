@@ -251,6 +251,7 @@ import { default as BarComponent } from "./dashboard-bar.vue";
 import { default as LateralPieComponent } from "./dashboard-lateral-pie.vue";
 import { default as BoxOverview } from "./dashboard-box-overview.vue";
 import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
+import { default as TopTimeseriesComponent } from "./dashboard-top-timeseries.vue";
 import { default as SankeyComponent } from "./dashboard-sankey.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as dataUtils } from "../utilities/data-utils";
@@ -269,6 +270,7 @@ const components_dict = {
     "lateral-pie": LateralPieComponent,
     "box-overview": BoxOverview,
     "timeseries": TimeseriesComponent,
+    "top-timeseries": TopTimeseriesComponent,
     "bar": BarComponent,
     "table": TableComponent,
     "sankey": SankeyComponent,
