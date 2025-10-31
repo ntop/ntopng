@@ -243,24 +243,18 @@ function remove_extra_params() {
 
 /* *************************************************** */
 
-const get_top_data = async (url, query_params, post_params) => {
-
-};
-
-/* *************************************************** */
-
 /* This function run the REST API with the data */
 async function get_chart_options() {
     await resolve_any_params();
     await retrieve_basic_info();
     remove_extra_params();
     const url = base_url.value;
-    const query_params = {
-        csrf: props.csrf,
-        ifid: props.ifid,
-        epoch_begin: props.epoch_begin,
-        epoch_end: props.epoch_end
-    }
+
+    const query_params = props.params.url_params
+    query_params.csrf = props.csrf
+    query_params.ifid = props.ifid,
+    query_params.epoch_begin = props.epoch_begin,
+    query_params.epoch_end= props.epoch_end
     
     const post_params = {
         csrf: props.csrf,
@@ -273,7 +267,6 @@ async function get_chart_options() {
         }
     }
     let ts_query = {}
-    console.log(ts_request)
     if(ts_request.value[0].ts_schema ==="top:flowdev_port:traffic"){
         ts_query = {
             ts_query: `ifid:$IFID$,device:$DEVICE$,port:$PORT$`,
@@ -291,11 +284,10 @@ async function get_chart_options() {
     const top_url = `${http_prefix}${url}?${url_params}`;
     const top_data = await ntopng_utility.http_request(top_url)
     const ts_requests = [];
-    console.log(ts_request.value[0].ts_schema)
     if (ts_request.value[0].ts_schema === "top:flowdev_port:traffic"){
         top_data?.forEach((el) => {
             const tmp_query = { ...ts_query };
-            tmp_query.ts_query = tmp_query.ts_query.replace('$IFID$', el.ifid); /* SNMP timeseries are in the system interface */
+            tmp_query.ts_query = tmp_query.ts_query.replace('$IFID$', el.ifid);
             tmp_query.ts_query = tmp_query.ts_query.replace('$DEVICE$', el.exporter_ip);
             tmp_query.ts_query = tmp_query.ts_query.replace('$PORT$', el.interface_id);
             tmp_query.tskey = `${el.interface_id}`;
@@ -306,7 +298,7 @@ async function get_chart_options() {
     else if (ts_request.value[0].ts_schema === "top:asn:traffic"){
         top_data?.forEach((el) => {
             const tmp_query = { ...ts_query };
-            tmp_query.ts_query = tmp_query.ts_query.replace('$IFID$', el.ifid);
+            tmp_query.ts_query = tmp_query.ts_query.replace('$IFID$', props.ifid);
             tmp_query.ts_query = tmp_query.ts_query.replace('$ASN$', el.asn);
             tmp_query.tskey = `${el.asn}`;
             tmp_query.ts_unify = true
@@ -316,11 +308,7 @@ async function get_chart_options() {
     post_params.ts_requests = ts_requests;
     const data_url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua?${url_params}`;
     let result = await ntopng_utility.http_post_request(data_url, post_params);
-    
-    //Rework this
-    let previous_data = await props.get_component_data(url,
-        { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end },
-        post_params, props.epoch_begin);
+    let previous_data = await props.get_component_data(undefined, undefined, undefined, undefined, true);
     
     /* Format the result in the format needed by Dygraph */
     result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');

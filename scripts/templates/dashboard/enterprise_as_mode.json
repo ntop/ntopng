@@ -1,5 +1,5 @@
 {
-	"name" : "Default Enterprise Dashboard",
+	"name" : "Default ASN Enterprise Dashboard",
 	"readonly" : true,
 	"components" : [
 		{
@@ -83,15 +83,16 @@
 			"height" : 4,
 			"params" : {
 				"url" : "/lua/rest/v2/get/asn/get_top_asn.lua",
-				"url_params" : { },
+				"url_params" : { 
+                    "show_as":"all"
+                },
 				"post_params" : {
 					"limit" : 180,
 					"version" : 4,
                     "ts_requests": {
 						"$ANY_IFID$" : {
 							"ts_query": "ifid:$IFID$",
-							"ts_schema": "top:asn:traffic",
-							"tskey": "$IFID$"
+							"ts_schema": "top:asn:traffic"
 						}
 					}
 				},
@@ -100,13 +101,40 @@
 		},
 		{
 			"component" : "top-timeseries",
-			"id" : "top_exporters_interfaces",
-			"i18n_name" : "db_search.top_exporter_interfaces",
+			"id" : "top_ix_exporters_interfaces",
+			"i18n_name" : "dashboard.asn_dashboard.top_ix_exporter_interfaces",
 			"width" : 12,
 			"height" : 4,
 			"params" : {
 				"url" : "/lua/pro/rest/v2/get/flowdevices/get_top_exporters_interfaces.lua",
-				"url_params" : { },
+				"url_params" : {
+                    "interface_role":"ix"
+                },
+				"post_params" : {
+					"limit" : 180,
+					"version" : 4,
+                    "ts_requests": {
+						"$ANY_IFID$" : {
+							"ts_query": "ifid:$IFID$",
+							"ts_schema": "top:flowdev_port:traffic",
+							"tskey": "$IFID$"
+						}
+					}
+				},
+				"source_type" : "flow_device"
+			}
+		},
+        {
+			"component" : "top-timeseries",
+			"id" : "top_peering_exporters_interfaces",
+			"i18n_name" : "dashboard.asn_dashboard.top_peering_exporter_interfaces",
+			"width" : 12,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/flowdevices/get_top_exporters_interfaces.lua",
+				"url_params" : {
+                    "interface_role":"peering"
+                },
 				"post_params" : {
 					"limit" : 180,
 					"version" : 4,
