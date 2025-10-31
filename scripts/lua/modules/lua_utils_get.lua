@@ -837,48 +837,54 @@ end
 -- ###########################################
 
 function getNtopngRelease(ntopng_info, verbose)
-   local release
+    local release
 
-   if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
-      release = ""
-   elseif (ntopng_info["version.enterprise_xl_edition"]) then
-      release = "Enterprise XL"
-   elseif (ntopng_info["version.enterprise_l_edition"]) then
-      release = "Enterprise L"
-   elseif (ntopng_info["version.enterprise_m_edition"]) then
-      release = "Enterprise M"
-   elseif (ntopng_info["version.enterprise_edition"]) or (ntopng_info["version.nedge_enterprise_edition"]) then
-      release = "Enterprise"
-   elseif (ntopng_info["pro.release"]) then
-      release = "Professional"
-   else
-      release = "Community"
-   end
+    if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
+        release = ""
+    elseif (ntopng_info["version.enterprise_xxl_edition"]) then
+        release = "Enterprise XXL"
+    elseif (ntopng_info["version.enterprise_xl_edition"]) then
+        release = "Enterprise XL"
+    elseif (ntopng_info["version.enterprise_l_edition"]) then
+        release = "Enterprise L"
+    elseif (ntopng_info["version.enterprise_m_edition"]) then
+        release = "Enterprise M"
+    elseif (ntopng_info["version.enterprise_edition"]) or
+        (ntopng_info["version.nedge_enterprise_edition"]) then
+        release = "Enterprise"
+    elseif (ntopng_info["pro.release"]) then
+        release = "Professional"
+    else
+        release = "Community"
+    end
 
-   if not isEmptyString(release) and ntopng_info["version.embedded_edition"] then
-      release = release .. " (Embedded)"
-   end
+    if not isEmptyString(release) and ntopng_info["version.embedded_edition"] then
+        release = release .. " (Embedded)"
+    end
 
-   -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
-   local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.OS)
+    -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
+    local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release,
+                              ntopng_info.version, ntopng_info.OS)
 
-   if verbose and ntopng_info.revision then
-      res = string.format("%s %s v.%s rev.%s (%s)", ntopng_info.product, release, ntopng_info.version,
-			  ntopng_info.revision, ntopng_info.OS)
-   end
+    if verbose and ntopng_info.revision then
+        res = string.format("%s %s v.%s rev.%s (%s)", ntopng_info.product,
+                            release, ntopng_info.version, ntopng_info.revision,
+                            ntopng_info.OS)
+    end
 
-   if not ntopng_info.oem then
-      local vers = string.split(ntopng_info["version.git"], ":")
+    if not ntopng_info.oem then
+        local vers = string.split(ntopng_info["version.git"], ":")
 
-      if vers and vers[2] then
-	 local ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/" .. vers[2] ..
-	    "\"><i class='fab fa-github'></i></A>"
+        if vers and vers[2] then
+            local ntopng_git_url =
+                "<A HREF=\"https://github.com/ntop/ntopng/commit/" .. vers[2] ..
+                    "\"><i class='fab fa-github'></i></A>"
 
-	 res = string.format("%s | %s", res, ntopng_git_url)
-      end
-   end
+            res = string.format("%s | %s", res, ntopng_git_url)
+        end
+    end
 
-   return res
+    return res
 end
 
 -- ###########################################
