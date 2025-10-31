@@ -13,7 +13,7 @@ local network_consts = require "network_consts"
 local qoe_utils
 local historical_ts_definitions
 if ntop.isEnterpriseM() then
-    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+    package.path = dirs.installdir .. "/pro/scripts/lua/modules/flow_db/?.lua;" .. package.path
     historical_ts_definitions = require "historical_ts_definitions"
 end
 if ntop.isEnterpriseL() then
