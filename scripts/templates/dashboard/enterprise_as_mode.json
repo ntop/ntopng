@@ -79,6 +79,8 @@
 			"component" : "top-timeseries",
 			"id" : "top_active_asn",
 			"i18n_name" : "graphs.top_customer_asn",
+            "time_window" : "day",
+		    "time_offset" : "",
 			"width" : 12,
 			"height" : 4,
 			"params" : {
@@ -103,6 +105,8 @@
 			"component" : "top-timeseries",
 			"id" : "top_ix_exporters_interfaces",
 			"i18n_name" : "dashboard.asn_dashboard.top_ix_exporter_interfaces",
+            "time_window" : "day",
+		    "time_offset" : "",
 			"width" : 12,
 			"height" : 4,
 			"params" : {
@@ -128,6 +132,8 @@
 			"component" : "top-timeseries",
 			"id" : "top_peering_exporters_interfaces",
 			"i18n_name" : "dashboard.asn_dashboard.top_peering_exporter_interfaces",
+            "time_window" : "day",
+		    "time_offset" : "",
 			"width" : 12,
 			"height" : 4,
 			"params" : {
