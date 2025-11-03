@@ -64,36 +64,36 @@ onBeforeMount(async () => {
 });
 
 function edit_rule(rule) {    
-    const edit_url = `${http_prefix}/lua/rest/v2/edit/nedge/policy/rule.lua`;
+    const edit_url = `${http_prefix}/lua/pro/rest/v2/edit/nedge/policy/rule.lua`;
     set_rule(rule, edit_url);
 }
 
 function add_rule(rule) {
-    const add_url = `${http_prefix}/lua/rest/v2/add/nedge/policy/rule.lua`;
+    const add_url = `${http_prefix}/lua/pro/rest/v2/add/nedge/policy/rule.lua`;
     set_rule(rule, add_url);
 }
 
 async function load_default_policy(policy) {
     if (policy == null) {
-	const get_policy_url = `${http_prefix}/lua/rest/v2/get/nedge/policy/default.lua`;
-	let policy_res = await ntopng_utility.http_request(get_policy_url);
-	policy = policy_res.default_policy;
+        const get_policy_url = `${http_prefix}/lua/pro/rest/v2/get/nedge/policy/default.lua`;
+        let policy_res = await ntopng_utility.http_request(get_policy_url);
+        policy = policy_res.default_policy;
     }
     if (policy == "accept") {
-	default_policy.value = {
-	    value: policy,
-	    label: _i18n("nedge.page_rules_config.accept"),
-	};
+        default_policy.value = {
+            value: policy,
+            label: _i18n("nedge.page_rules_config.accept"),
+        };
     } else {
-	default_policy.value = {
-	    value: policy,
-	    label: _i18n("nedge.page_rules_config.deny"),
-	};    
+        default_policy.value = {
+            value: policy,
+            label: _i18n("nedge.page_rules_config.deny"),
+        };    
     }
 }
 
 async function set_default_policy(policy) {
-    const set_policy_url = `${http_prefix}/lua/rest/v2/set/nedge/policy/default.lua`;
+    const set_policy_url = `${http_prefix}/lua/pro/rest/v2/set/nedge/policy/default.lua`;
     let headers = {
         'Content-Type': 'application/json'
     };
@@ -121,23 +121,23 @@ function set_datatable_config() {
     const datatableButton = [];
     
     let params = { 
-	ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,	
+	    ifid: ntopng_url_manager.get_url_entry("ifid") || props.ifid,	
     };
     let url_params = ntopng_url_manager.obj_to_url_params(params);
     
     datatableButton.push({
-	text: '<i class="fas fa-sync"></i>',
-	className: 'btn-link',
-	action: function (e, dt, node, config) {
-	    refresh_table();
-            // table_rules.value.reload();
-	}
+        text: '<i class="fas fa-sync"></i>',
+        className: 'btn-link',
+        action: function (e, dt, node, config) {
+            refresh_table();
+                // table_rules.value.reload();
+        }
     }, {
-	text: '<i class="fas fa-plus"></i>',
-	className: 'btn-link',
-	action: function () {
-	    modal_add_rule_config.value.show(null, default_policy.value);
-	}
+        text: '<i class="fas fa-plus"></i>',
+        className: 'btn-link',
+        action: function () {
+            modal_add_rule_config.value.show(null, default_policy.value);
+        }
     });
     
     let defaultDatatableConfig = {
@@ -192,27 +192,27 @@ function set_datatable_config() {
 
 const add_action_column = function (rowData) {
     let delete_handler = {
-	handlerId: "delete_host",	  
-	onClick: () => {
-	    delete_rule(rowData);
-	},
+        handlerId: "delete_host",	  
+        onClick: () => {
+            delete_rule(rowData);
+        },
     };
     
     let edit_handler = {
-	handlerId: "edit_rule",
-	onClick: () => {
-	    modal_add_rule_config.value.show(rowData);
-	},
+        handlerId: "edit_rule",
+        onClick: () => {
+            modal_add_rule_config.value.show(rowData);
+        },
     }
     
     return DataTableUtils.createActionButtons([
-	{ class: `btn-secondary`, handler: edit_handler, handlerId: "edit_rule", icon: 'fa-edit', title: i18n('edit') },
-	{ class: `btn-danger`, handler: delete_handler, handlerId: "delete_rule", icon: 'fa-trash', title: i18n('delete') },
+        { class: `btn-secondary`, handler: edit_handler, handlerId: "edit_rule", icon: 'fa-edit', title: i18n('edit') },
+        { class: `btn-danger`, handler: delete_handler, handlerId: "delete_rule", icon: 'fa-trash', title: i18n('delete') },
     ]);
 };
 
 async function delete_rule(rule) {
-    const add_url = `${http_prefix}/lua/rest/v2/delete/nedge/policy/rule.lua`;
+    const add_url = `${http_prefix}/lua/pro/rest/v2/delete/nedge/policy/rule.lua`;
     let headers = {
         'Content-Type': 'application/json'
     };

@@ -49,12 +49,12 @@ onBeforeMount(async () => {
 });
 
 function edit_repeater(repeater) {    
-    const edit_url = `${http_prefix}/lua/rest/v2/edit/nedge/forwarder.lua`;
+    const edit_url = `${http_prefix}/lua/pro/rest/v2/edit/nedge/forwarder.lua`;
     set_rule(repeater, edit_url);
 }
 
 function add_repeater(repeater) {
-    const add_url = `${http_prefix}/lua/rest/v2/add/nedge/forwarder.lua`;
+    const add_url = `${http_prefix}/lua/pro/rest/v2/add/nedge/forwarder.lua`;
     set_rule(repeater, add_url);
 }
 
@@ -156,7 +156,7 @@ const add_action_column = function (rowData) {
 };
 
 function delete_rule(repeater) {
-    const add_url = `${http_prefix}/lua/rest/v2/delete/nedge/forwarder.lua`;
+    const add_url = `${http_prefix}/lua/pro/rest/v2/delete/nedge/forwarder.lua`;
     let headers = {
         'Content-Type': 'application/json'
     };
