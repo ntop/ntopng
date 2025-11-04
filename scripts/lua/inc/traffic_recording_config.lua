@@ -247,7 +247,7 @@ print [[
       <tr id="tr-bpf_filter">
         <th>]] print(i18n("traffic_recording.capture_filter_bpf")) print [[</th>
         <td colspan=2>
-          <input style="width:300px;display:inline;" class="form-control" name="bpf_filter" placeholder="" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false" value="]] print(bpf_filter) print [["></input><br>
+          <input style="width:300px;display:inline;" name="bpf_filter" placeholder="" class="form-control input-sm" data-bpf="" autocomplete="off" spellcheck="false" value="]] print(bpf_filter) print [["></input><br>
 <small>]] print(i18n("traffic_recording.capture_filter_bpf_note")) print[[</small>
         </td>
       </tr>
