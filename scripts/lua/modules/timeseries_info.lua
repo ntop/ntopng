@@ -2334,24 +2334,6 @@ local function add_all_asn_timeseries(tags, timeseries)
     local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
     if asn_ts_enabled then
         local format_utils = require "format_utils"
-        timeseries[#timeseries + 1] = {
-            schema = "top:asn:traffic",
-            label = i18n("graphs.top_asn"),
-            description = i18n("graphs.metric_descr.asn_traffic_rxtx"),
-            priority = 0,
-            measure_unit = "bps",
-            scale = i18n('graphs.metric_labels.traffic'),
-            timeseries = {
-                bytes = {
-                    label = i18n('graphs.metric_labels.bytes'),
-                    color = timeseries_info.get_timeseries_color('bytes')
-                }
-            },
-            always_visibile = true,
-            default_visible = true,
-            disable_perc_95_ts = true,
-            disable_default_ago_ts = true
-        }
 
         local series = ts_utils.listSeries("asn:traffic", table.clone(tags),
                                            tags.epoch_begin)
@@ -2372,7 +2354,6 @@ local function add_all_asn_timeseries(tags, timeseries)
                     timeseries[#timeseries + 1] = {
                         schema = "asn:traffic",
                         id = timeseries_id.asn,
-                        group = i18n("graphs.l7_proto"),
                         priority = 2,
                         query = "asn:" .. serie.asn,
                         label = tostring(
