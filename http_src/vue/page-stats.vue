@@ -285,6 +285,7 @@ async function init() {
     if (timeseries_groups.length == 1) {
         push_custom_metric = false;
         metric_ts_schema = timeseries_groups[0]?.metric?.schema;
+        metric_query =  timeseries_groups[0]?.metric?.query;
     }
 
     if (push_custom_metric == true) {
