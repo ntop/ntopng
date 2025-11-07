@@ -136,7 +136,7 @@ const selected_dest_type = ref({});
 const dest_regex = ref("");
 const dest = ref("");
 
-const interface_list_url = `${http_prefix}/lua/rest/v2/get/nedge/interfaces.lua`;
+const interface_list_url = `${http_prefix}/lua/pro/rest/v2/get/nedge/interfaces.lua`;
 let interface_list;
 const interface_array = ref([]);
 
