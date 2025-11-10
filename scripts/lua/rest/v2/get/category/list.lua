@@ -32,7 +32,7 @@ for item_name, item_id in pairs(items) do
   record["column_category_id"] = item_id
   record["column_category_name"] = getCategoryLabel(item_name, item_id)
   record["column_num_hosts"] = tostring(num_hosts)
-  record["column_num_protos"] = string.format('<a href="%s/lua/admin/edit_categories?tab=protocols&category=cat_%u">%s</a>', ntop.getHttpPrefix(), item_id, tostring(num_protocols))
+  record["column_num_protos"] = tostring(num_protocols)
   record["column_category_hosts"] = table.concat(hosts_list, ",")
 
   res[#res + 1] = record

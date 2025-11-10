@@ -1,9 +1,3 @@
-<!--
-  (C) 2022 - ntop.org
-
-  Edit categories page
--->
-
 <table id='table-custom-cat-form' class='table table-striped table-bordered w-100'>
   <thead>
     <tr>
@@ -14,6 +8,12 @@
     </tr>
   </thead>
 </table>
+
+<div class="mt-3">
+  <button type="button" class="btn btn-primary" id="download-categories-btn">
+    <i class="fas fa-download"></i> {{ i18n("download_categories") }}
+  </button>
+</div>
 
 {# add modals if defined #}
 {% if modals then %}
@@ -74,6 +74,12 @@
     });
     
     const $table = $('#table-custom-cat-form').DataTable(config);
+
+
+    $('#download-categories-btn').on('click', function() {
+      const downloadUrl = '{* http_prefix *}/lua/rest/v2/get/ndpi/export/categories.lua';
+      window.location.href = NtopUtils.buildURL(downloadUrl, urlParams);
+    });
 
     const $editCategory = $('#edit-category-rules form').modalHandler({
       method: 'post',

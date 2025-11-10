@@ -1,5 +1,7 @@
 local lang = {
    ["abort"] = "Abort",
+   ["download_applications"] = "Download nDPI Applications",
+   ["download_categories"] = "Download nDPI Categories",
    ["access_control_list"] = "Access Control List",
    ["acknowledge"] = "Acknowledge",
    ["acknowledge_alerts"] = "Acknowledge Alerts",

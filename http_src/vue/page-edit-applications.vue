@@ -2,7 +2,7 @@
   (C) 2013-22 - ntop.org
 -->
 
-<template>    
+<template>
   <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
     <div class="text-center">
       <div class="spinner-border text-primary mt-5" role="status">
@@ -13,25 +13,25 @@
 
   <div v-show="!hidden" ref="update_message" class="alert alert-info">{{ message }}</div>
 
-  <ModalAddApplication ref="modal_add_application"
-    :category_list="category_list"
-    :page_csrf="page_csrf"
-    :ifid="ifid"
+  <ModalAddApplication ref="modal_add_application" :category_list="category_list" :page_csrf="page_csrf" :ifid="ifid"
     @add="_add">
   </ModalAddApplication>
-  <ModalDeleteApplication ref="modal_delete_application"
-    @remove="_remove">
+  <ModalDeleteApplication ref="modal_delete_application" @remove="_remove">
   </ModalDeleteApplication>
 
-  <Datatable ref="applications_table"
-    :table_buttons="config_applications_table.table_buttons"
-    :columns_config="config_applications_table.columns_config"
-    :data_url="config_applications_table.data_url"
-    :enable_search="config_applications_table.enable_search"
-    :table_config="config_applications_table.table_config">
+  <Datatable ref="applications_table" :table_buttons="config_applications_table.table_buttons"
+    :columns_config="config_applications_table.columns_config" :data_url="config_applications_table.data_url"
+    :enable_search="config_applications_table.enable_search" :table_config="config_applications_table.table_config">
   </Datatable>
+
+  <div class="mt-3">
+    <button type="button" class="btn btn-primary" @click="download_categories">
+      <i class="fas fa-download"></i> {{ _i18n("download_applications") }}
+    </button>
+  </div>
+
 </template>
-  
+
 <script setup>
 import { ref, onUnmounted, onBeforeMount, onMounted } from "vue";
 import { default as Datatable } from "./datatable.vue";
@@ -58,7 +58,7 @@ const props = defineProps({
   has_protos_file: Boolean,
 })
 
-const _remove = async (params) => {  
+const _remove = async (params) => {
   const url_params = {
     csrf: props.page_csrf,
     ifid: props.ifid
@@ -69,7 +69,7 @@ const _remove = async (params) => {
     ...params
   })
 
-  await $.get(url, function(rsp, status){
+  await $.get(url, function (rsp, status) {
     show_message(i18n('custom_categories.succesfully_removed'));
   });
 
@@ -93,10 +93,10 @@ const _add = async (params) => {
     ...url_params,
     ...params
   })
-  
-  await $.get(url, function(rsp, status){
-    if(status == 'success') {
-      if(is_edit_page)
+
+  await $.get(url, function (rsp, status) {
+    if (status == 'success') {
+      if (is_edit_page)
         show_message(i18n('custom_categories.succesfully_edited'));
       else
         show_message(i18n('custom_categories.succesfully_added'));
@@ -128,7 +128,7 @@ const reload_table = () => {
 }
 
 const load_categories = async () => {
-  await $.get(category_list_url, function(rsp, status){
+  await $.get(category_list_url, function (rsp, status) {
     category_list.value = rsp.rsp;
   });
   modal_add_application.value.loadCategoryList(category_list.value);
@@ -137,7 +137,7 @@ const load_categories = async () => {
 const search = (filter_app) => {
   applications_table.value.search_value(filter_app);
 }
-    
+
 onBeforeMount(async () => {
   start_datatable();
 });
@@ -145,7 +145,7 @@ onBeforeMount(async () => {
 onMounted(async () => {
   await load_categories();
   const filter_app = ntopng_url_manager.get_url_entry("application");
-  if(filter_app) {
+  if (filter_app) {
     search(filter_app);
   }
 })
@@ -167,25 +167,30 @@ const add_action_column = function (rowData) {
     { class: `pointer ${props.has_protos_file ? '' : 'disabled'}`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
   ]
 
-  if(rowData.is_custom) {
+  if (rowData.is_custom) {
     let delete_handler = {
       handlerId: "delete_rule",
       onClick: () => {
         open_delete_modal(rowData);
       },
     }
-  
-    actions.push(    
+
+    actions.push(
       { class: `pointer`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
     )
   }
   return DataTableUtils.createActionButtons(actions);
 }
 
+const download_categories = () => {
+  const downloadUrl = `${http_prefix}/lua/rest/v2/get/ndpi/export/protocols.lua`;
+  window.location.href = downloadUrl;
+}
+
 function start_datatable() {
   const datatableButton = [];
 
-  if(props.has_protos_file) {
+  if (props.has_protos_file) {
     datatableButton.push({
       text: '<i class="fas fa-plus"></i>',
       className: 'btn-link',
@@ -201,19 +206,26 @@ function start_datatable() {
     action: function () {
       reload_table();
     }
-  });
-    
+  },
+    {
+      text: '<i class="fas fa-download"></i>',
+      className: 'btn-link',
+      action: function () {
+        download_categories();
+      }
+    });
+
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
     data_url: NtopUtils.buildURL(`${http_prefix}/lua/rest/v2/get/ntopng/applications.lua`, { ifid: props.ifid }),
     enable_search: true,
-    table_config: { 
-      serverSide: false, 
-      order: [[ 0 /* application column */, 'asc' ]],
+    table_config: {
+      serverSide: false,
+      order: [[0 /* application column */, 'asc']],
     }
   };
-  
-  /* Applications table configuration */  
+
+  /* Applications table configuration */
 
   let columns = [
     { columnName: i18n("application"), name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1 },
@@ -230,9 +242,3 @@ function start_datatable() {
   config_applications_table.value = trafficConfig;
 }
 </script>
-
-
-
-
-
-
