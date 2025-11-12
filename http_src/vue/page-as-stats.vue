@@ -8,7 +8,7 @@
                     :options="asn_type_option" @select_option="add_filter" :dropdown_size="'small'">
                 </SelectSearch>
             </div>
-            <div class="dropdown me-3 d-flex">
+            <div v-if="(showChart) && props.context.showTimeseries" class="dropdown me-3 d-flex">
                 <span class="no-wrap d-flex align-items-center filters-label me-2"><b>{{
                     _i18n("resolution")
                         }}: </b></span>
