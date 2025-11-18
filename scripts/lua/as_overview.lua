@@ -98,7 +98,7 @@ if page == "overview" or not page then
             csrf = ntop.getRandomCSRFValue(),
             ifid = interface.getId(),
             configuration = as_utils.getASNConfiguration(asn),
-            isEnterpriseL = ntop.isEnterpriseL(),
+            isEnterpriseXL = ntop.isEnterpriseXL(),
             tableId = tableId,
             historical = show_historical,
             first_date_epoch = first_seen,

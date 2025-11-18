@@ -8,7 +8,7 @@
                 @select_option="changeCriteria">
             </SelectSearch>
         </div>
-        <div v-if="props.context.isEnterpriseL" class="w-100 d-flex align-items-center button-group">
+        <div v-if="props.context.isEnterpriseXL" class="w-100 d-flex align-items-center button-group">
             <CustomSwitch v-model:value="toggle_slider" :change_label_side="true" :label="toggle_slider_label" style=""
                 class="me-1" icon="fa-calendar-days" :title="toggle_slider_label" @change_value="saveSwitch">
             </CustomSwitch>
@@ -42,7 +42,7 @@
             </div>
         </Transition>
         <Transition name="add-effect" mode="out-in">
-            <div class="position-relative" v-if="props.context.isEnterpriseL" :key="reRenderTable" style="min-height: 614px;">
+            <div class="position-relative" v-if="props.context.isEnterpriseXL" :key="reRenderTable" style="min-height: 614px;">
                 <TableWithConfig ref="table_as_stats" :table_id="table_id"
                     :csrf="props.context.csrf" :showLoading="true" :f_map_columns="mapTableColumns"
                     :f_sort_rows="columnsSorting" :get_extra_params_obj="getExtraParameters"
