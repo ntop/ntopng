@@ -68,14 +68,21 @@ end
 
 local function buildMessageHeader(now_ts, from, to, cc, subject, body)
     local msg_id = "<" .. now_ts .. "." .. os.clock() .. "@ntopng>"
-
-    local lines = {
+    local lines = {}
+    local unformatted_lines = {
         "From: " .. from, "To: " .. to, "Subject: " .. subject,
         "Date: " .. format_utils.formatEpochRFC2822(now_ts),
         "Message-ID: " .. msg_id, "Content-Type: text/html; charset=UTF-8"
-    }
+    }    
+    
+    if not isEmptyString(cc) then unformatted_lines[#unformatted_lines + 1] = "Cc: " .. cc end
 
-    if not isEmptyString(cc) then lines[#lines + 1] = "Cc: " .. cc end
+    -- Just to be sure, remove all the \r or \n from the lines and body,
+    -- in some cases, the are not correctly formatted https://www.rfc-editor.org/rfc/rfc5321.html
+    for _, info in ipairs(unformatted_lines) do
+        lines[#lines + 1] = info:gsub("[\r\n]", "")
+    end
+    body = body:gsub("[\r\n]", " ") -- Put a space here instead of removing it
 
     return table.concat(lines, "\r\n") .. "\r\n\r\n" .. body .. "\r\n"
 end
