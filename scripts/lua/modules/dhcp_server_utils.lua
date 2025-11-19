@@ -35,17 +35,26 @@ function dhcp_server_utils.getDhcpServerHandler()
   end
 
   local kea_service = "kea-dhcp4-server"
+  local kea_service_alias "isc-kea-dhcp4-server"
   local isc_service = "isc-dhcp-server"
 
   -- Check if kea-dhcp4-server systemd service exists
   local kea_exists = serviceExists(kea_service)
 
+  if not kea_exists then
+    -- Try with the service alias (this depends on version)
+    kea_service = kea_service_alias
+    kea_exists = serviceExists(kea_service)
+  end
+
   if kea_exists then
     traceError(TRACE_INFO, TRACE_CONSOLE, "Using Kea DHCP server")
     cached_module = require "conf_handlers.kea_dhcp_server"
+    cached_module.service_name = kea_service
   else
     traceError(TRACE_INFO, TRACE_CONSOLE, "Using ISC DHCP server")
     cached_module = require "conf_handlers.isc_dhcp_server"
+    cached_module.service_name = isc_service
   end
 
   return cached_module

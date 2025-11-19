@@ -9,7 +9,6 @@ local KEA_CONF_PATH = "/etc/kea/kea-dhcp4.conf"
 local KEA_CONF_EXT_PATH = "/etc/ntopng/kea-dhcp4-ext.conf"
 
 local kea_dhcp_server = {}
-kea_dhcp_server.service_name = "kea-dhcp4-server"
 
 -- ###############################################################
 

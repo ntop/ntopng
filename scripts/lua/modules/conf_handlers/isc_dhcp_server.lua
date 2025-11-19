@@ -5,7 +5,6 @@
 local sys_utils = require "sys_utils"
 
 local isc_dhcp_server = {}
-isc_dhcp_server.service_name = "isc-dhcp-server"
 
 -- ###############################################################
 
