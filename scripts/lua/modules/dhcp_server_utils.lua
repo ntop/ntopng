@@ -35,7 +35,7 @@ function dhcp_server_utils.getDhcpServerHandler()
   end
 
   local kea_service = "kea-dhcp4-server"
-  local kea_service_alias "isc-kea-dhcp4-server"
+  local kea_service_alias = "isc-kea-dhcp4-server"
   local isc_service = "isc-dhcp-server"
 
   -- Check if kea-dhcp4-server systemd service exists
