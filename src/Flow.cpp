@@ -5435,12 +5435,13 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
     /* We have received a RST flag not observed before for this flow */
     if((flags == TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
       iface->getTcpFlowStats()->incReset();
+      if((src2dst_tcp_flags & TH_SYN) != TH_SYN){
+        if(cli_host)
+	  cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
 
-      if(cli_host)
-	cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
-
-      if(srv_host)
-	srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+        if(srv_host)
+	  srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+      }
     }
 
     /* We have received a FIN flag not observed before for this flow */
@@ -5544,12 +5545,13 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
     if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
       iface->getTcpFlowStats()->incReset();
+      if((src2dst_tcp_flags & TH_SYN) != TH_SYN){
+        if(cli_host)
+	  cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
 
-      if(cli_host)
-	cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
-
-      if(srv_host)
-	srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+        if(srv_host )
+	  srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+      }
     }
 
     if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
