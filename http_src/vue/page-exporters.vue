@@ -218,7 +218,10 @@ const map_table_def_columns = (columns) => {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
                 // change in exported flows since the last refresh
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} fps] ${updated_counter}`
+                if (diff_value > 0)
+                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)}] ${updated_counter}`
+                else
+                    formatted_value = `${formatted_value} ${updated_counter}`
             }
             return formatted_value
         },
@@ -239,7 +242,10 @@ const map_table_def_columns = (columns) => {
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
-                formatted_value = `${formatted_value} [ ${formatterUtils.formatAccounting(diff_value)} ] ${updated_counter}`
+                if (diff_value > 0)
+                    formatted_value = `${formatted_value} [ ${formatterUtils.formatAccounting(diff_value)} ] ${updated_counter}`
+                else
+                    formatted_value = `${formatted_value} ${updated_counter}`
             }
             return formatted_value
         },
