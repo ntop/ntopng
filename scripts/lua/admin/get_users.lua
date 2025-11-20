@@ -82,7 +82,7 @@ local num = 0
 for _key, _value in pairsByValues(vals, funct) do
    local key = _key
    local value = users_list[_key]
-   local js_key = _key:gsub("%.", "\\\\\\\\.")
+   local js_key = key--_key:gsub("%.", "\\\\\\\\.")
    local id_key = _key:gsub("%.", "")
    id_key = id_key:gsub("@", "")
 
