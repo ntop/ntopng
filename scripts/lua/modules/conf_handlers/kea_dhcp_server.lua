@@ -51,6 +51,7 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
   local lan_interfaces = {}
   local subnet4_configs = {}
   local reservations = {}
+  local subnet_id = 1
 
   -- Build the list of LAN interfaces and subnet configurations
   for if_name, role in pairsByKeys(all_interfaces, asc_insensitive) do
@@ -67,6 +68,7 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
 
       -- Build subnet configuration
       local subnet_config = {
+        id = subnet_id,  -- Required by KEA v3
         subnet = lan_dhcp_config["network"] .. "/" .. netmask2cidr(lan_dhcp_config["netmask"]),
         pools = {
           {
@@ -93,6 +95,7 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
         },
         interface = if_name
       }
+      subnet_id = subnet_id + 1
 
       -- Add custom options if present
       if not isEmptyString(lan_dhcp_config["option_114"]) then
@@ -163,7 +166,7 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
           name = "kea-dhcp4",
           ["output_options"] = {
             {
-              output = "/var/log/kea-dhcp4.log",
+              output = "/var/log/kea/kea-dhcp4.log", -- v2 was in "/var/log/kea-dhcp4.log"
               maxsize = 10485760,
               maxver = 8,
               flush = true
