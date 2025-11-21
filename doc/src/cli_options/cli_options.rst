@@ -184,6 +184,9 @@ ntopng supports a large number of command line parameters. To see what they are,
                                         |   
                                         |   See at the bottom of this help the list of supported kafka configuration options.
                                         |
+    [--direct-flows-dump]               | Dump collected flows directly before any additional
+                                        | processing. When this option is enabled, flows are
+                                        | dumped as they are collected without being processed.
     [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
                                         | See https://wp.me/p1LxdS-O5 for a -I use case.
     [--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only) 
