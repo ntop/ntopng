@@ -376,7 +376,9 @@ const f_map_chart_options = async (chart_options) => {
     if (formatter_type == null) {
         formatter_type = "number";
     }
-    chart_options.yaxis.labels.formatter = FormatterUtils.getFormatter(formatter_type);
+    if (chart_options?.yaxis?.labels) {
+        chart_options.yaxis.labels.formatter = FormatterUtils.getFormatter(formatter_type);
+    }
     return chart_options;
 };
 
