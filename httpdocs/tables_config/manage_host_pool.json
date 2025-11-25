@@ -36,7 +36,7 @@
 		{
 			"id": "member_address",
 			"title_i18n": "host_pools.member_address",
-			"data_field": "name",
+			"data_field": "member_cidr",
 			"sortable": true,
 			"sticky": false,
 			"class": [

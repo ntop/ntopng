@@ -485,6 +485,7 @@ function pools_rest_utils.get_pool_members(pools)
 
    for member, details in pairs(cur_pool["member_details"]) do
       details["member"] = member
+      details["member_cidr"] = member:match("([^@]+)")
       res[#res + 1] = details
    end
 
