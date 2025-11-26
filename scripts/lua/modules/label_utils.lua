@@ -232,6 +232,35 @@ end
 
 -- ##############################################
 
+-- Split the pool key (ip/sub@vlan) creating a new lua table.
+-- Example:
+--    info = poolkey2poolinfo(key)
+--    ip = info["host"]
+--    vlan = info["vlan"]
+--
+function poolkey2poolinfo(key)
+    local pool = {}
+    local info = split(key, "@")
+    
+    if table.len(info) == 0 and not isEmptyString(key) then
+        pool["host"] = key
+    end
+
+    if (info and info[1] ~= nil) then
+        pool["host"] = info[1]
+    end
+
+    if (info and info[2] ~= nil) then
+        pool["vlan"] = tonumber(info[2])
+    else
+        pool["vlan"] = 0
+    end
+
+    return pool
+end
+
+-- ##############################################
+
 -- Retrieve an host label from an host_info. The minimum fields of
 -- the host_info are "host" and "vlan", however a full JSON from Host::lua
 -- is needed to provide an accurate result.

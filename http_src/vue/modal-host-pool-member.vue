@@ -371,7 +371,7 @@ const showEdit = async (item) => {
         ipVlan.value = item.vlan || 0;
     } else { // network
         memberType.value = "network";
-        const parts = item.name.split('/');
+        const parts = item.member.split('/');
         if (parts.length === 2) {
             networkAddress.value = parts[0];
             cidr.value = parseInt(parts[1]);

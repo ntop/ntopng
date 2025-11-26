@@ -161,7 +161,6 @@ end
 
 -- ##############################################
 
--- faccio add alla pool che voglio
 -- @brief Add a member to a pool
 function pools_rest_utils.add_member()
    local pools = require "host_pools"
@@ -485,7 +484,10 @@ function pools_rest_utils.get_pool_members(pools)
 
    for member, details in pairs(cur_pool["member_details"]) do
       details["member"] = member
-      details["member_cidr"] = member:match("([^@]+)")
+      details["member_cidr"] = details["name"]
+      if details["type"] ~= "ip" then
+         details["member_cidr"] = member:match("([^@]+)")
+      end
       res[#res + 1] = details
    end
 

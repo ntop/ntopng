@@ -112,7 +112,7 @@ function host_pools:get_member_details(member)
     local res = {}
     local member_name
     local member_type
-    local host_info = hostkey2hostinfo(member)
+    local host_info = poolkey2poolinfo(member)
     local address = host_info["host"]
 
     if isMacAddress(address) then
