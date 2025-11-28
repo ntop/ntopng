@@ -103,8 +103,6 @@ function columns_sorting(col, r0, r1) {
         } else if (col.id == "score") {
             return sortingFunctions.sortByNumber(r0.score, r1.score, col.sort);
         } else if (col.id == "hosts_score_ratio") {
-            return sortingFunctions.sortByNumber(r0.score, r1.score, col.sort);
-        } else if (col.id == "throughput") {
             return sortingFunctions.sortByNumber(r0.hostsScoreRatio, r1.hostsScoreRatio, col.sort);
         } else if (col.id == "alerted_flows") {
             return sortingFunctions.sortByNumber(r0.alertedFlows, r1.alertedFlows, col.sort);
