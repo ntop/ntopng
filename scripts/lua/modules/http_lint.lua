@@ -2008,6 +2008,7 @@ local known_parameters = {
     ["flowtype"] = validateFlowType,
     ["all_values"] = validateBool, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if all the values have to be returned
     ["collapse_stats"] = validateBool, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know if stats need to be collapsed
+    ["show_top"] = validateBool, -- Used by rest/v2/get/interface/l7/stats.lua to know whether to display the top max_value statistics
     ["max_values"] = validateNumber, -- Used by scripts/lua/rest/v2/get/interface/l7/stats.lua to know the max number of stats to be returned
     ["_"] = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
     ["__"] = validateUnquoted, -- see LDAP prefs page

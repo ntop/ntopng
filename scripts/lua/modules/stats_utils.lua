@@ -60,6 +60,37 @@ end
 
 -- ###############################################
 
+function stats_utils.collapse_top_stats(stats, threshold)
+    local top_res = {}
+    local other_total = 0
+
+    for i, entry in ipairs(stats) do
+        if i <= threshold then
+            top_res[#top_res + 1] = entry
+        else
+            other_total = other_total + entry.value
+        end
+    end
+
+    if other_total > 0 then
+        top_res[#top_res + 1] = {
+            label = i18n("other"),
+            value = other_total,
+        }
+   end
+
+   if #top_res == 0 then
+        top_res[#top_res + 1] = {
+            label = i18n("no_flows"),
+            value = 0,
+        }
+    end
+    
+    return top_res
+end
+
+-- ###############################################
+
 function stats_utils.get_severity_by_export_drops(export_drops, total_exports)
    if export_drops and total_exports then
       local drops_fraction = export_drops / (export_drops + total_exports + 1)

@@ -26,6 +26,7 @@ local breed = _GET["breed"]
 local ndpi_category = _GET["ndpi_category"]
 local get_all_values = (_GET["all_values"] or "false")
 local collapse_stats = (_GET["collapse_stats"] or "true")
+local show_top = (_GET["show_top"] or "false")
 local max_values = tonumber(_GET["max_values"] or 5)
 local new_charts = toboolean(_GET["new_charts"])
 
@@ -134,7 +135,9 @@ for key, value in pairsByValues(_ifstats, rev) do
    }
 end
 
-if collapse_stats == "true" then
+if show_top == "true" then
+   res = stats_utils.collapse_top_stats(res, max_values)
+elseif collapse_stats == "true" then
   res = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
 end
 

@@ -49,7 +49,7 @@ const chart_options_since_startup = ref([
     title: i18n('top_l7_cat'),
     type: ntopChartApex.typeChart.DONUT,
     url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
-    extra_params: { ndpi_category: true, ndpistats_mode: "sinceStartup", ifid: props.context.ifid },
+    extra_params: { ndpi_category: true, show_top: true, ndpistats_mode: "sinceStartup", ifid: props.context.ifid },
     tab: `applications`,
     id: `top_l7_categories`,
   }])
