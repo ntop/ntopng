@@ -11,7 +11,7 @@
                             <div class="ms-4 d-flex align-items-center ms-2">
                                 <label class="text-nowrap fw-semibold me-1"> {{
                                     _i18n("map_page.asset_in_edges")
-                                }} </label>
+                                    }} </label>
                                 <input ref="slider_min_incoming_edges" type="range" class="form-range" min="0"
                                     max="1000" v-model="minIncomingEdges" data-bs-toggle="tooltip"
                                     data-bs-placement="top" :title="minIncomingEdges" />
@@ -82,8 +82,11 @@
                         <div v-if="lastClickedElementIsNode" class="node-details">
                             <div class="mb-4">
                                 <h6 class="fw-bold fs-5 text-black">
+                                    <!-- Display host IP and hostname if different than IP -->
                                     <i class='fas fa-laptop'></i> {{ selectedNodeData?.host_info?.info?.ip || 'N/A'
-                                    }}
+                                    }} <span v-if="selectedNodeData?.host_info?.info?.host_name && (selectedNodeData?.host_info?.info?.host_name != selectedNodeData?.host_info?.info?.ip)">
+                                        ({{ selectedNodeData.host_info.info.host_name }})
+                                    </span>
                                 </h6>
                                 <div class="row g-3">
                                     <div class="col-12">
@@ -114,7 +117,7 @@
                                             <i class="fas fa-lg fa-chart-area me-1"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_flows")
-                                                }}</span>
+                                            }}</span>
                                         </a>
                                     </div>
                                     <div class="col-12">
@@ -122,7 +125,7 @@
                                             <i class="fa-solid fa-triangle-exclamation me-1"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_alerts")
-                                                }} </span>
+                                            }} </span>
                                         </a>
                                     </div>
                                 </div>
@@ -150,44 +153,45 @@
                                             v-if="selectedNodeData && selectedNodeData.host_info && selectedNodeData.host_info[role]">
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.first_seen")
-                                                    }}</span>
+                                                }}</span>
                                                 <span class="detail-value">{{
                                                     FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.first_seen)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.last_seen")
-                                                    }}</span>
+                                                }}</span>
                                                 <span class="detail-value">{{
-                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen) ||
+                                                    FormatterUtils.formatDateTime(selectedNodeData.host_info[role]?.last_seen)
+                                                    ||
                                                     '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.alerts_count")
-                                                    }}</span>
+                                                }}</span>
                                                 <span class="detail-value">{{
                                                     formatterUtils.getFormatter("number")(selectedNodeData.host_info[role]?.alerts_count)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.total_score")
-                                                    }}</span>
+                                                }}</span>
                                                 <span class="detail-value">{{
                                                     formatterUtils.getFormatter("number")(selectedNodeData.host_info[role]?.total_score)
                                                     || '-' }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.total_traffic")
-                                                    }}</span>
+                                                }}</span>
                                                 <span class="detail-value">{{
                                                     formatterUtils.getFormatter("bytes")(selectedNodeData.host_info[role]?.total_traffic_bytes)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
 
                                         <div v-else>
                                             <span class="detail-label">No alerts for {{ selectedNode }} as {{ role
-                                                }}</span>
+                                            }}</span>
                                         </div>
 
                                         <div v-if="selectedNodeData && selectedNodeData.host_info && selectedNodeData.host_info[role]"
@@ -302,7 +306,7 @@
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.ip") }}</span>
                                                 <span class="detail-value">{{ selectedAlertData?.dst_ip || 'N/A'
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="detail-row">
                                                 <span class="detail-label">{{ _i18n("alert.graph.country") }}</span>
@@ -406,6 +410,9 @@ let resizeTimeout;
 
 let clickTimer = null;
 let lastClickedNode = null;
+
+// highlight node function
+let highlightNodeFn = null;
 
 /**********************************************/
 const applyFilters = async () => {
@@ -558,6 +565,45 @@ async function draw_graph(redraw = false, centerIP = null) {
             dfs(sourceId);
             return pathLinks;
         }
+
+        // Highlight a node and its outgoing paths
+        function highlightNode(nodeId) {
+            // Reset all node styles
+            d3.selectAll(".node-group circle, .node-group path")
+                .attr("stroke", "#212121")
+                .attr("stroke-width", 1);
+
+            // Highlight selected node
+            d3.selectAll(".node-group")
+                .filter(d => d.id === nodeId)
+                .selectAll("circle, path")
+                .attr("stroke", "#FFC107")
+                .attr("stroke-width", 2);
+
+            // Reset all links to default style
+            d3.selectAll(".link")
+                .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
+                .attr("stroke-width", 8)
+                .attr("stroke-dasharray", null);
+
+            // Find all paths with the node as source
+            const outgoingPathLinks = findOutgoingPathsFromNode(nodeId);
+
+            // Highlight outgoing paths
+            d3.selectAll(".link")
+                .filter(d => outgoingPathLinks.has(d))
+                .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
+                .attr("stroke-width", 10)
+                .attr("stroke-opacity", 4.0);
+
+            // Dashed lines, outgoing links
+            d3.selectAll(".link")
+                .attr("stroke-dasharray", link =>
+                    (link.source.id === nodeId || link.source === nodeId) ? "5,5" : null);
+        }
+
+        // Store the highlight function for external access
+        highlightNodeFn = highlightNode;
 
         // Replace the line-based links with path-based curved links
         const link = mainGroup.append("g")
@@ -729,38 +775,8 @@ async function draw_graph(redraw = false, centerIP = null) {
                 selectedNode.value = clicked_node.id;
 
                 try {
-                    // Reset all node styles
-                    d3.selectAll(".node-group circle, .node-group path")
-                        .attr("stroke", "#212121")
-                        .attr("stroke-width", 1);
-
-                    // Highlight selected node
-
-                    d3.select(event.currentTarget).selectAll("circle, path")
-                        .attr("stroke", "#FFC107")
-                        .attr("stroke-width", 2);
-
-                    // Reset all links to default style
-                    d3.selectAll(".link")
-                        .attr("style", d => `stroke: ${linkColorScale(d.weight)} !important`)
-                        .attr("stroke-width", 8)
-                        .attr("stroke-dasharray", null);
-
-                    // Find all paths with the node as source
-                    const outgoingPathLinks = findOutgoingPathsFromNode(clicked_node.id);
-
-                    // Highlight outgoing paths
-                    d3.selectAll(".link")
-                        .filter(d => outgoingPathLinks.has(d))
-                        .attr("style", d => `stroke: ${highlightColorScale(d.weight)} !important`)
-                        .attr("stroke-width", 10)
-                        .attr("stroke-opacity", 4.0);
-
-                    // Dashed lines, outgoing links
-                    d3.selectAll(".link")
-                        .attr("stroke-dasharray", link =>
-                            (link.source.id === clicked_node.id || link.source === clicked_node.id) ? "5,5" : null);
-
+                    // Highlight the selected node and its outgoing paths
+                    highlightNode(clicked_node.id);
                 } catch (err) {
                     console.error("Error in updating visual:", err);
                 }
@@ -921,6 +937,11 @@ async function draw_graph(redraw = false, centerIP = null) {
                 .call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
         }
 
+        // Highlight initially selected node, the node with most alerts
+        if (selectedNode.value && !redraw) {
+            highlightNode(selectedNode.value);
+        }
+
         loading.value = false;
 
     } catch (error) {
@@ -974,21 +995,10 @@ function findNode() {
             .transition().duration(300)
             .call(zoom.translateTo, foundNode.x, foundNode.y);
 
-        // Highlight links and node
-        d3.selectAll(".link")
-            .attr("stroke-dasharray", link =>
-                (link.source.id === foundNode.id || link.source === foundNode.id) ? "5,5" : null);
-        /*
-        d3.selectAll(".node-group circle")
-            .attr("stroke", "#212121")
-            .attr("stroke-width", 1);
-        */
-
-        d3.selectAll(".node-group")
-            .filter(d => d.id === foundNode.id)
-            .select("circle")
-            .attr("stroke", "#FFC107")
-            .attr("stroke-width", 2);
+        // Highlight the found node
+        if (highlightNodeFn) {
+            highlightNodeFn(foundNode.id);
+        }
 
         nodeNotFoundMessage.value = false;
     } else {
