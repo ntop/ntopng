@@ -23,7 +23,7 @@ alert_quota_exceeded.meta = {
    i18n_title = "alerts_dashboard.quota_exceeded",
    icon = "fas fa-fw fa-thermometer-full",
    entities = {
-      alert_entities.host_pool
+      alert_entities.interface
    },
 }
 
