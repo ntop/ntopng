@@ -171,6 +171,8 @@ Prefs::Prefs(Ntop *_ntop) {
   routing_mode_enabled = false;
   global_dns_forging_enabled = false;
 #ifdef NTOPNG_PRO
+  dump_queue_len = CLICKHOUSE_MAX_DUMP_BLOCKS;
+  dump_queue_block_size = CLICKHOUSE_MAX_DUMP_ROWS_PER_BLOCK;
   dump_flows_direct = false;
   max_aggregated_flows_upperbound = 10000, max_aggregated_flows_traffic_upperbound = 1;
   data_archive_before_ttl_delete = false;
@@ -683,9 +685,9 @@ void usage() {
 	 );
 #endif
 
-  printf(
 #ifndef HAVE_NEDGE
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+  printf(
 	 "                                    |\n"
 	 "                                    | kafka   Dump to Kafka (Enterprise "
 	 "M/L/XL/XXL)\n"
@@ -702,10 +704,22 @@ void usage() {
 	 "                                    |   See at the bottom of this help "
 	 "the list of (comma separated) supported kafka configuration options.\n"
 	 "                                    |\n"
+         );
 #endif
 #endif
+
+#ifdef NTOPNG_PRO
+  printf(
+         "[--dump-queue-len] <len>            | Set the in-memory ClickHouse dump queue length (Default: %u)\n"
+         "[--dump-queue-block-size] <size>    | Set the in-memory ClickHouse data block size (Default: %u)\n"
 	 "[--direct-flows-dump]               | Dump collected flows directly before "
-	 "any additional processing\n"
+	 "any additional processing\n",
+         CLICKHOUSE_MAX_DUMP_BLOCKS,
+         CLICKHOUSE_MAX_DUMP_ROWS_PER_BLOCK
+         );
+#endif
+
+  printf(
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified "
 	 "endpoint\n"
 	 "                                    | See https://wp.me/p1LxdS-O5 for a "
@@ -1290,6 +1304,8 @@ static const struct option long_options[] = {
   {"insecure",                no_argument,       NULL, 225},
   {"offline",                 no_argument,       NULL, 226},
 #ifdef NTOPNG_PRO
+  {"dump-queue-len",          no_argument,       NULL, 248},
+  {"dump-queue-block-size",   no_argument,       NULL, 249},
   {"direct-flows-dump",       no_argument,       NULL, 250},
   {"fail-invalid-license",    no_argument,       NULL, 251},
   {"check-maintenance",       no_argument,       NULL, 252},
@@ -2343,6 +2359,14 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
 #ifdef NTOPNG_PRO
+  case 248:
+    dump_queue_len = atoi(optarg);
+    break;
+
+  case 249:
+    dump_queue_block_size = atoi(optarg);
+    break;
+
   case 250:
     toggle_dump_flows_direct(true);
     break;

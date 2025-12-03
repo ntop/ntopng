@@ -130,6 +130,7 @@ class Prefs {
   bool asn_mode_enabled;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
+  u_int32_t dump_queue_len, dump_queue_block_size;
   u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
 #endif
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable
@@ -346,6 +347,8 @@ class Prefs {
   };
 
 #ifdef NTOPNG_PRO
+  inline u_int32_t get_dump_queue_len() { return dump_queue_len; };
+  inline u_int32_t get_dump_queue_block_size() { return dump_queue_block_size; };
   inline void toggle_dump_flows_direct(bool enable) {
     dump_flows_direct = enable;
   };
