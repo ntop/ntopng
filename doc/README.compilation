@@ -139,7 +139,7 @@ On MacOS
 
 Using Brew (http://brew.sh):
 
-brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git son-c libmaxminddb zmq openssl
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git json-c libmaxminddb zmq openssl
 
 Using MacPorts:
 
