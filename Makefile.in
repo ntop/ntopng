@@ -34,15 +34,17 @@ LUA_HOME=${PWD}/third-party/lua-5.4.6
 LUA_INC=-I$(LUA_HOME)/src
 LUA_LIB=$(LUA_HOME)/src/liblua.a
 
-CLICKHOUSE_HOME=@CLICKHOUSE_HOME@
+HAVE_CLICKHOUSE=@HAVE_CLICKHOUSE@
+CLICKHOUSE_HOME=
 CLICKHOUSE_INC=
 CLICKHOUSE_LIB=
 CLICKHOUSE_DEP_LIBS=
-#ifeq ($(OS),Linux)
+ifeq ($(HAVE_CLICKHOUSE),1)
+CLICKHOUSE_HOME=@CLICKHOUSE_HOME@
 CLICKHOUSE_INC=-I$(CLICKHOUSE_HOME) -I$(CLICKHOUSE_HOME)/contrib/absl
 CLICKHOUSE_LIB=$(CLICKHOUSE_HOME)/build/clickhouse/libclickhouse-cpp-lib.a
 CLICKHOUSE_DEP_LIBS=$(CLICKHOUSE_HOME)/build/contrib/cityhash/cityhash/libcityhash.a $(CLICKHOUSE_HOME)/build/contrib/lz4/lz4/liblz4.a
-#endif
+endif
 
 ifeq ($(OS),Linux)
 	LUA_PLATFORM=linux
@@ -111,7 +113,11 @@ RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
 RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@REVISION@.noarch.rpm
 ######
 
-LIB_TARGETS = $(LUA_LIB) $(CLICKHOUSE_LIB)
+LIB_TARGETS = $(LUA_LIB)
+
+ifeq ($(HAVE_CLICKHOUSE),1)
+LIB_TARGETS += $(CLICKHOUSE_LIB)
+endif
 
 ifneq ($(HAS_ZEROMQ), 0)
 LIB_TARGETS += $(ZEROMQ_LIB)
@@ -162,9 +168,11 @@ test_alert_engine: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 $(LUA_LIB):
 	$(MAKE) -C $(LUA_HOME) $(LUA_PLATFORM)
 
+ifeq ($(HAVE_CLICKHOUSE),1)
 $(CLICKHOUSE_LIB):
 	cd $(CLICKHOUSE_HOME) && cmake -B build -DWITH_OPENSSL=ON .
 	cd $(CLICKHOUSE_HOME) && cmake --build build
+endif
 
 $(ZEROMQ_LIB):
 	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; $(MAKE)

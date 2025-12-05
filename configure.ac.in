@@ -262,7 +262,7 @@ if [ test -f /usr/bin/lsb_release ]; then
   fi
 fi
 
-if test -d "pro/"; then
+if test -d "pro"; then
   NTOPCLOUD_LIB=
   NTOPCLOUD_HOME="../ntopcloud"
   if test -d "${NTOPCLOUD_HOME}"; then
@@ -467,7 +467,8 @@ else
   APP=ntopng
 fi
 
-CLICKHOUSE_HOME=${PWD}/third-party/clickhouse-cpp
+HAVE_CLICKHOUSE=
+CLICKHOUSE_HOME=
 
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
@@ -479,18 +480,24 @@ PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 
+dnl> if test $SYSTEM = "Linux"; then
+
 dnl> if test "$MACHINE" = "aarch64"; then
 dnl>  echo "Native ClickHouse support diabled on this architecture"
 dnl> else
- AC_DEFINE_UNQUOTED(HAVE_CLICKHOUSE, 1, [Building with ClickHouse support])
+HAVE_CLICKHOUSE=1
+AC_DEFINE_UNQUOTED(HAVE_CLICKHOUSE, 1, [Building with ClickHouse support])
 dnl> fi
 
+CLICKHOUSE_HOME=${PWD}/third-party/clickhouse-cpp
 TMP_CLICKHOUSE_HOME=${PWD}/../clickhouse-cpp
 if test -d ${TMP_CLICKHOUSE_HOME}; then
  CLICKHOUSE_HOME=${TMP_CLICKHOUSE_HOME}
 fi
 echo "Using clickhouse-cpp stored at ${CLICKHOUSE_HOME}"
-   
+
+dnl> fi dnl> test $SYSTEM = "Linux"
+ 
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
 DUMMY=`cd ./pro; ${MAKE} build`
@@ -504,9 +511,9 @@ if test -r "../license/license.h"; then :
   LICENSE_VERSION=`${LICENSEDIR}/packages/version.sh --version`
   LICENSE_DEP="ntop-license = ${LICENSE_VERSION}, ndpi"
 fi
-else
+else dnl> not test -d "pro"
   AC_MSG_RESULT(not found)
-fi
+fi dnl> close test -d "pro"
 
 GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
 REVISION=${GIT_COMMITS}
@@ -658,8 +665,7 @@ fi
 
 SNMP_LIB=
 SNMP_INC=
-if test "${with_nedge+set}" != set; then
-  if test $SYSTEM = "Darwin"; then
+if test $SYSTEM = "Darwin"; then
     dnl>
     dnl> MacOS Note on NET-SNMP
     dnl>
@@ -673,20 +679,19 @@ if test "${with_nedge+set}" != set; then
     dnl>   AC_DEFINE_UNQUOTED(HAVE_LIBSNMP, 1, [has net-snmp])
     dnl> fi
     SNMP_LIB=
-  else
-    AC_CHECK_LIB([snmp], [init_snmp])
-
-    if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
-      SNMP_LIB="-lsnmp"
-     else
+else
       AC_CHECK_LIB([netsnmp], [init_snmp])
 
       if test "x$ac_cv_lib_netsnmp_init_snmp" = xyes; then :
          SNMP_LIB="-lnetsnmp"
          AC_DEFINE_UNQUOTED(HAVE_LIBSNMP, 1, [has net-snmp])
-      fi
-    fi
-   fi
+	 AC_CHECK_LIB([netsnmp], [snmp_sess_select_info2], AC_DEFINE_UNQUOTED(HAVE_LIBSNMP_LARGE_FD, 1, [has large file descriptors]))
+       else
+        AC_CHECK_LIB([snmp], [init_snmp])
+         if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
+          SNMP_LIB="-lsnmp"
+	 fi
+       fi
 fi
 
 if test "${with_nedge+set}" != set; then
@@ -918,6 +923,7 @@ AC_SUBST(STABLE_SUFFIX)
 AC_SUBST(LIBS)
 AC_SUBST(FUZZ_MAKEFILE_INC)
 AC_SUBST(FUZZ_OBJECTS)
+AC_SUBST(HAVE_CLICKHOUSE)
 AC_SUBST(CLICKHOUSE_HOME)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)

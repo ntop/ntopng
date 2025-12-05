@@ -30,6 +30,25 @@ extern "C" {
 
 #ifdef HAVE_LIBSNMP
 
+#include <net-snmp/library/snmp_assert.h>
+#include <net-snmp/library/large_fd_set.h>
+
+//#include <net-snmp/session_api.h>
+
+
+/*
+  In case of large installations with many devices to poll
+  libsnmp offers and alternative API for handling large
+  workloads.
+
+  In case you want to use the "classic" API please:
+*/
+
+#if NETSNMP_API_VERSION < 5008000
+// #define USE_STANDARD_FDSET
+#endif
+
+
 /* ******************************* */
 
 SNMP::SNMP() {
@@ -37,6 +56,7 @@ SNMP::SNMP() {
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
+  snmp_disable_stderrlog();  /* Suppress SNMP library error messages to stderr */
 #endif
   getbulk_max_num_repetitions = 10;
 }
@@ -371,9 +391,18 @@ bool SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
   } else {
     /* Send the request */
     if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
+      int liberr, snmperr;
+      char *errstr = NULL;
+
+      /* Get detailed error information */
+      snmp_sess_error(snmpSession->session_ptr, &liberr, &snmperr, &errstr);
+
       snmp_free_pdu(pdu);
-      snmp_perror("snmp_sess_send");
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+        "SNMP send error [rc: %d][error: %s]",
+        rc, errstr ? errstr : "unknown");
+
+      if(errstr) free(errstr);  /* Must free the error string */
       return(false);
     }
   }
@@ -621,9 +650,18 @@ bool SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
 
   /* Send the request */
   if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
+    int liberr, snmperr;
+    char *errstr = NULL;
+
+    /* Get detailed error information */
+    snmp_sess_error(snmpSession->session_ptr, &liberr, &snmperr, &errstr);
+
     snmp_free_pdu(pdu);
-    snmp_perror("snmp_sess_send");
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+      "SNMP send error [rc: %d][host: %s][error: %s]",
+      rc, agent_host, errstr ? errstr : "unknown");
+
+    if(errstr) free(errstr);  /* Must free the error string */
     return(false);
   }
 
@@ -706,9 +744,18 @@ bool SNMP::send_snmp_set_request(char *agent_host, char *community,
 
   /* Send the request */
   if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
+    int liberr, snmperr;
+    char *errstr = NULL;
+
+    /* Get detailed error information */
+    snmp_sess_error(snmpSession->session_ptr, &liberr, &snmperr, &errstr);
+
     snmp_free_pdu(pdu);
-    snmp_perror("snmp_sess_send");
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+      "SNMP send error [rc: %d][error: %s]",
+      rc, errstr ? errstr : "unknown");
+
+    if(errstr) free(errstr);  /* Must free the error string */
     return(false);
   }
 
@@ -719,19 +766,32 @@ bool SNMP::send_snmp_set_request(char *agent_host, char *community,
 
 void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
   bool add_nil = true;
+#ifdef HAVE_LIBSNMP_LARGE_FD
+  netsnmp_large_fd_set fdset;
+#else
+  fd_set fdset;
+#endif
+
+#ifdef HAVE_LIBSNMP_LARGE_FD
+  netsnmp_large_fd_set_init(&fdset, 1024 /* max # file descriptors */);
+#endif
 
   for (unsigned int i = 0; i < sessions.size(); i++) {
     int numfds;
-    fd_set fdset;
     struct timeval tvp;
     int count, block = 0;
     SNMPSession *snmpSession = sessions.at(i);
 
     numfds = 0;
-    FD_ZERO(&fdset);
     tvp.tv_sec = timeout, tvp.tv_usec = 0;
 
+#ifdef HAVE_LIBSNMP_LARGE_FD
+    NETSNMP_LARGE_FD_ZERO(&fdset);
+    snmp_sess_select_info2(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
+#else
+    FD_ZERO(&fdset);
     snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
+#endif
 
     /*
       Experiments run have shown that:
@@ -756,11 +816,21 @@ void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
       if((timeout > 0) && (tvp.tv_sec == 0))
 	tvp.tv_sec = 1; /* Set a minimum timeout in case it has been cleared by snmp_sess_select_info */
 
+#ifdef HAVE_LIBSNMP_LARGE_FD
+      snmp_select_info2(&numfds, &fdset, NULL, &block);
+      count = netsnmp_large_fd_set_select(fdset.lfs_setsize, &fdset, NULL, NULL, &tvp);
+#else
+      snmp_select_info(&numfds, &fdset, NULL, &block);
       count = select(numfds, &fdset, NULL, NULL, &tvp);
+#endif
 
       if(count > 0) {
         vm = _vm;
-        snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
+#ifdef HAVE_LIBSNMP_LARGE_FD
+	snmp_sess_read2(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
+#else
+	snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
+#endif
 
         /* Add a nil in case no response was pushed in the stack */
         if(lua_gettop(vm) > 0) add_nil = false;
@@ -773,6 +843,11 @@ void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
       }
     }
   }
+
+#ifdef HAVE_LIBSNMP_LARGE_FD
+  // netsnmp_large_fd_set_cleanup(&fdset);
+  netsnmp_large_fd_set_resize(&fdset, 0);
+#endif
 
   if(add_nil) lua_pushnil(_vm);
 }
