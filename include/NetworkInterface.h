@@ -356,7 +356,7 @@ protected:
                 bool dhcpOnly, const AddressTree *const cidr_filter,
                 u_int8_t ipver_filter, int proto_filter,
                 TrafficType traffic_type_filter, u_int32_t device_ip,
-                bool alertedHost, u_int8_t mac_location_filter, char *sortColumn);
+                bool alertedHost, u_int8_t mac_location_filter, char *sortColumn, char *map_search);
   int sortASes(struct flowHostRetriever *retriever, char *sortColumn);
   int sortObsPoints(struct flowHostRetriever *retriever, char *sortColumn);
   int sortCountries(struct flowHostRetriever *retriever, char *sortColumn);
@@ -813,7 +813,7 @@ public:
 			 TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
 			 bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter, bool alertedHost,
 			 char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder, bool useArrayFormat, 
-             bool getCheckpointOnly = false, u_int8_t mac_location_filter = -1);
+             bool getCheckpointOnly = false, u_int8_t mac_location_filter = -1, char *map_search = NULL);
   int getActiveASList(lua_State *vm, const Paginator *p, bool diff = false, ASType as_type = all);
   int getActiveObsPointsList(lua_State *vm, const Paginator *p);
   int getActiveCountriesList(lua_State *vm, const Paginator *p);

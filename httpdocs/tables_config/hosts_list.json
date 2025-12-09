@@ -2,7 +2,7 @@
 	"id": "hosts_list",
 	"data_url": "lua/rest/v2/get/host/active_list.lua",
 	"use_current_page": false,
-	"enable_search": false,
+	"enable_search": true,
 	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {

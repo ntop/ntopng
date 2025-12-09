@@ -5022,6 +5022,7 @@ struct flowHostRetriever {
   u_int16_t observationPointId;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
+  char *map_search;
   bool sourceMacsOnly, dhcpHostsOnly;
   time_t min_first_seen;
   char *country;
@@ -5723,12 +5724,15 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 static bool host_search_walker(GenericHashEntry *he, void *user_data,
                                bool *matched) {
   char buf[64];
+  char ipbuf[64];
+  char namebuf[256];
   u_int8_t network_prefix = 0;
   IpAddress *ip_addr = NULL;
   struct flowHostRetriever *r = (struct flowHostRetriever *)user_data;
   Host *h = (Host *)he;
   u_int32_t prev_actNumEntries = r->actNumEntries;
-
+  const char *ipstr   = h->get_ip()->print(ipbuf, sizeof(ipbuf));
+  const char *namestr = h->get_visual_name(namebuf, sizeof(namebuf));
   if (r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
 
@@ -5799,8 +5803,11 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
 #endif
       (r->ipVersionFilter &&
        (((r->ipVersionFilter == 4) && (!h->get_ip()->isIPv4())) ||
-        ((r->ipVersionFilter == 6) && (!h->get_ip()->isIPv6()))))
-      )
+        ((r->ipVersionFilter == 6) && (!h->get_ip()->isIPv6())))) || 
+      (r->map_search && r->map_search[0] && 
+        (strncmp(ipstr, r->map_search, strlen(r->map_search)) != 0 &&
+         strncmp(namestr, r->map_search, strlen(r->map_search)) != 0))
+    )
     return (false); /* false = keep on walking */
 
   if(r->currentSize == r->actNumEntries) {
@@ -6773,7 +6780,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot, bool walk_all, struct flo
 				bool blacklisted_hosts, bool anomalousOnly, bool dhcpOnly,
 				const AddressTree *const cidr_filter, u_int8_t ipver_filter,
 				int proto_filter, TrafficType traffic_type_filter, u_int32_t device_ip,
-				bool alertedHost, u_int8_t mac_location_filter, char *sortColumn) {
+				bool alertedHost, u_int8_t mac_location_filter, char *sortColumn, char *map_search) {
   u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
 
@@ -6802,8 +6809,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot, bool walk_all, struct flo
     retriever->device_ip = device_ip,
     retriever->maxNumEntries = getHostsHashSize(),
     retriever->alerted = alertedHost,
-    retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE;
-
+    retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE,
+    retriever->map_search = map_search;
   retriever->elems = (struct flowHostRetrieveList *)calloc(sizeof(struct flowHostRetrieveList), retriever->currentSize);
 
   if (retriever->elems == NULL) {
@@ -7164,7 +7171,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
 					 TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
 					 bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
 					 bool alertedHost, char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder,
-					 bool useArrayFormat, bool getCheckpointOnly, u_int8_t mac_location_filter) {
+					 bool useArrayFormat, bool getCheckpointOnly, u_int8_t mac_location_filter, char *map_search) {
   struct flowHostRetriever retriever;
   int count = 1;
 #ifdef NTOPNG_PRO
@@ -7190,7 +7197,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
                 pool_filter, filtered_hosts, blacklisted_hosts, anomalousOnly,
                 dhcpOnly, cidr_filter, ipver_filter, proto_filter,
                 traffic_type_filter, device_ip, alertedHost,
-                mac_location_filter, sortColumn) < 0) {
+                mac_location_filter, sortColumn, map_search) < 0) {
     return (-1);
   }
 

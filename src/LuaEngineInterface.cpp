@@ -1770,6 +1770,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   bool alertedHost = false;
   AddressTree cidr_filter;
   bool arrayFormat = false;
+  char *map_search = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1811,6 +1812,8 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   if (lua_type(vm, 23) == LUA_TBOOLEAN) alertedHost = lua_toboolean(vm, 23);
   if (lua_type(vm, 24) == LUA_TSTRING)
     location_filter = str_2_location(lua_tostring(vm, 24));
+  if (lua_type(vm, 25) == LUA_TSTRING)
+    map_search = (char *)lua_tostring(vm, 25);
 
   if ((!curr_iface) ||
       curr_iface->getActiveHostsList(vm, &begin_slot, walk_all,
@@ -1820,7 +1823,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
 				     filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
 				     traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
 				     dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, alertedHost, sortColumn,
-				     maxHits, toSkip, a2zSortOrder, arrayFormat, false, location_filter) < 0)
+				     maxHits, toSkip, a2zSortOrder, arrayFormat, false, location_filter, map_search) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
