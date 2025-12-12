@@ -91,14 +91,20 @@ if test "x$USE_CLANG" = xyes; then
         CC=clang
         CXX="clang++ -fno-color-diagnostics -fPIE -stdlib=libc++"
     else
-       if test -x "/usr/bin/clang-10"; then
+       if test -x "$(command -v clang)"; then
+           CLANG_VERSION=$(echo -n | clang -dM -E - | sed  -n 's/^#define __clang_major__ \([0-9]\+\).*$/\1/gp')
+       elif test -x "/usr/bin/clang-10"; then
            CLANG_VERSION=10
        elif test -x "/usr/bin/clang-13"; then
            CLANG_VERSION=13
        elif test -x "/usr/bin/clang-14"; then
            CLANG_VERSION=14
+       elif test -x "/usr/bin/clang-19"; then
+           CLANG_VERSION=19
+       elif test -x "/usr/bin/clang-20"; then
+           CLANG_VERSION=20
        else
-           echo "Could not find clang. Please install clang-14 clang-tools-14"
+           echo "Could not find clang. Please install clang clang-tools"
            exit 1
        fi
 
