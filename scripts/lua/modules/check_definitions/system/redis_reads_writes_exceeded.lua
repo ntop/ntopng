@@ -1,5 +1,5 @@
 --
--- (C) 2019-24 - ntop.org
+-- (C) 2019-25 - ntop.org
 --
 
 local alert_consts = require("alert_consts")
@@ -7,16 +7,16 @@ local alerts_api = require("alerts_api")
 local alert_categories = require "alert_categories"
 
 local script = {
-  -- Script category
-  category = alert_categories.internals,
-  severity = alert_consts.get_printable_severities().warning,
+   -- Script category
+   category = alert_categories.internals,
+   severity = alert_consts.get_printable_severities().warning,
 
-  hooks = {},
+   hooks = {},
 
-  gui = {
-     i18n_title = "alerts_dashboard.redis_reads_writes_exceeded",
-     i18n_description = "alerts_dashboard.redis_reads_writes_exceeded_descr",
-  }
+   gui = {
+      i18n_title = "alerts_dashboard.redis_reads_writes_exceeded",
+      i18n_description = "alerts_dashboard.redis_reads_writes_exceeded_descr",
+   }
 }
 
 -- #################################################################
@@ -40,6 +40,18 @@ local function check_redis_reads_writes_exceeded(params)
       schema = 'redis:reads_writes_v2'
    }
    local ts = ts_utils.timeseries_query(options)
+   -- Sanity checks
+   if not ts
+      or not ts.series
+      or not ts.series[1]
+      or not ts.series[2]
+      or not ts.series[1].statistics
+      or not ts.series[2].statistics
+      or ts.series[1].statistics.average == nil
+      or ts.series[2].statistics.average == nil
+   then
+      return
+   end
    -- Check if the day target is nan
    if not ts or not (ts.series[1].data[7] == ts.series[1].data[7]) then
       return
