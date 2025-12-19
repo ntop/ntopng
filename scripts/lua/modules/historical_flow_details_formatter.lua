@@ -665,10 +665,7 @@ local function format_historical_custom_fields(flow_details, custom_fields)
    if table.len(custom_fields) > 0 then
       require "flow_utils"
       local flow_field_value_maps = require "flow_field_value_maps"
-      flow_details[#flow_details + 1] = {
-         name = i18n("flow_details.additional_flow_elements"),
-         values = {""}
-      }
+      local ordered_fields = {}
 
       for key, value in pairs(custom_fields) do
          local nprobe_descr, value = flow_field_value_maps.map_field_value(interface.getId(), key, value)
@@ -681,14 +678,39 @@ local function format_historical_custom_fields(flow_details, custom_fields)
          else
             nprobe_descr = getFlowKey(nprobe_descr)
          end
-         flow_details[#flow_details + 1] = {
-            name = "",
-            values = {nprobe_descr, value}
-         }
+
+         if not isEmptyString(value) and value~=0 then
+            ordered_fields[#ordered_fields + 1] = {
+               name = "<b>" .. nprobe_descr .. "</b>",
+               values = value
+            }
+         end
       end
+      
+      if table.len(ordered_fields) > 0 then
+
+         flow_details[#flow_details + 1] = {
+            name = i18n("flow_details.additional_flow_elements"),
+            values = {""}
+         }
+
+         table.sort(ordered_fields, function(a, b)
+            return a.name:lower() < b.name:lower()
+         end)
+
+         for _, field in ipairs(ordered_fields) do
+            flow_details[#flow_details + 1] = {
+               name = "",
+               values = { field.name, field.values }
+            }
+         end
+      
+      end
+
    end
 
    return flow_details
+
 end
 
 -- ###############################################
