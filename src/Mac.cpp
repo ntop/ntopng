@@ -30,6 +30,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
   memcpy(mac, _mac, 6);
 
   broadcast_mac = Utils::isBroadcastMac(mac);
+  empty_mac = Utils::isEmptyMac(mac);
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;

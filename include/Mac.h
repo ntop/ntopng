@@ -30,7 +30,7 @@ class Mac : public GenericHashEntry {
   u_int8_t mac[6];
   u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
-  bool special_mac, lockDeviceTypeChanges, broadcast_mac, asset_map_updated;
+  bool special_mac, lockDeviceTypeChanges, broadcast_mac, asset_map_updated, empty_mac;
   bool stats_reset_requested, data_delete_requested;
   const char *manuf;
   MacStats *stats, *stats_shadow;
@@ -81,6 +81,7 @@ class Mac : public GenericHashEntry {
   }
   inline void decUses() { GenericHashEntry::decUses(); }
   inline bool isSpecialMac() { return (special_mac); }
+  inline bool isEmptyMac() { return (empty_mac); }
   inline bool isSourceMac() { return (source_mac); }
   inline void setSourceMac() {
     if (!source_mac && !special_mac) {
