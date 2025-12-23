@@ -89,13 +89,17 @@ async function refresh_component() {
     }
 
     let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params, undefined, props.epoch_begin);
-
+    if(props.params.badge_index) {
+      data = data[props.params.badge_index]
+    }
     /* TODO handle dot-separated path for non-flat json */
     let counter_value = data[props.params.counter_path];
     if (props.params.i18n_counter_title) {
       counter_title.value = _i18n(props.params.i18n_counter_title);
     }
-
+    if(props.params.i18n_counter_title_path) {
+      name.value = _i18n(data[props.params.i18n_counter_title_path]);
+    }
     let has_secondary_counter = false;
     let secondary_counter_value = '';
     if (props.params.secondary_counter_path) {
@@ -137,6 +141,9 @@ async function refresh_component() {
 
         const link_query_params = ntopng_url_manager.obj_to_url_params(link_url_params);
         link_url.value = `${http_prefix}${props.params.link.url}?${link_query_params}`;
+      }
+      if (props.params.link_path && data[props.params.link_path]) {
+        link_url.value = `${http_prefix}${data[props.params.link_path]}`;
       }
     }
   }
