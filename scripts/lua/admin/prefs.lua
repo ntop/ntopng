@@ -1302,6 +1302,18 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- ######################
 
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("assets") ..
+            '</th></tr></thead>')
+
+        -- Assets
+        prefsToggleButton(subpage_active, {
+            field = "toggle_assets_inventory",
+            default = "1",
+            pref = "enable_asset_inventory"
+        })
+
+        -- ######################
+
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.service_map") ..
             '</th></tr></thead>')
         -- Behavior analysis for asn, network and l7proto (iface)
@@ -1969,6 +1981,9 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         if ntop.isEnterpriseM() then
+            if _POST["toggle_asset_log"] then
+                ntop.enableAssetsLog(tonumber(_POST["toggle_asset_log"]))
+            end
             prefsToggleButton(subpage_active, {
                 field = "toggle_assets_log",
                 default = "0",

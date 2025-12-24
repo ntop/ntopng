@@ -61,16 +61,7 @@ end
 -- Infrastructure
 local infrastructure_view = false
 local infrastructure_instances = {}
-if ntop.isEnterpriseL() then
-    local infrastructure_utils = require("infrastructure_utils")
-    for _, v in pairs(infrastructure_utils.get_all_instances()) do
-        infrastructure_instances[v.id] = {name = v.alias, url = v.url}
-    end
-    local view = _GET["view"] or false
-
-    infrastructure_view = (view and view == 'infrastructure' and
-                              table.len(infrastructure_instances) > 0)
-end
+infrastructure_view, infrastructure_instances = isInfrastructureView()
 
 -- ************************************
 
@@ -243,15 +234,10 @@ local is_db_view_interface = interface.isDatabaseViewInterface()
 local is_viewed = ifs.isViewed
 local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") ==
                                 "influxdb"
-local is_clickhouse_enabled = ntop.isClickHouseEnabled()
+local is_clickhouse_enabled = hasClickHouseSupport()
 local is_asn_mode_enabled = isASNModeEnabled()
 
-if is_clickhouse_enabled and
-    not auth.has_capability(auth.capabilities.historical_flows) then
-    is_clickhouse_enabled = false
-end
-
-ifId = ifs.id
+local ifId = ifs.id
 
 -- NOTE: see sidebar.js for the client logic
 page_utils.init_menubar()
@@ -271,9 +257,7 @@ else
                 url = '/lua/index.lua'
             }, {
                 entry = page_utils.menu_entries.assets_dashboard,
-                hidden = not (ntop.isEnterpriseL() and is_clickhouse_enabled) or
-                    interface.isViewed() or infrastructure_view or
-                    isASNModeEnabled(),
+                hidden = (not assetsInventoryEnabled()) or (not ntop.isEnterpriseL()),
                 url = "/lua/pro/assets_dashboard.lua"
             }, {
                 entry = page_utils.menu_entries.traffic_report,
@@ -456,7 +440,7 @@ else
                 hidden = (not ifs.has_macs),
                 url = '/lua/macs_stats.lua'
             }, {entry = page_utils.menu_entries.divider}, {
-                hidden = not (ntop.isEnterpriseM() and not ntop.isWindows()),
+                hidden = not assetsInventoryEnabled(),
                 entry = page_utils.menu_entries.assets,
                 url = '/lua/pro/assets.lua'
             }
@@ -616,7 +600,7 @@ page_utils.add_menubar_section({
 
 local poller_entries = {
     {entry = page_utils.menu_entries.divider}, {
-        hidden = not (ntop.isEnterpriseM() and not ntop.isWindows()),
+        hidden = not assetsInventoryEnabled(),
         entry = page_utils.menu_entries.assets_snmp,
         url = '/lua/pro/assets.lua'
     }, {

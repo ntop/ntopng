@@ -121,6 +121,10 @@ local menu_subpages = {{
     advanced = true,
     hidden = not ntop.isEnterprise(),
     entries = {
+        toggle_assets_inventory = {
+            title = i18n("prefs.toggle_assets_inventory_title"),
+            description = i18n("prefs.toggle_assets_inventory_description")
+        },
         toggle_behaviour_analysis = {
             title = i18n("prefs.toggle_behaviour_analysis_title"),
             description = i18n("prefs.toggle_behaviour_analysis_description")

@@ -818,7 +818,7 @@
   0  // disabled by default
 
 #define CONST_PREFS_NTOPNG_ASSETS_INVENTORY_ENABLED \
-  NTOPNG_PREFS_PREFIX ".toggle_ntopng_assets_inventory"
+  NTOPNG_PREFS_PREFIX ".enable_asset_inventory"
 #define CONST_DEFAULT_NTOPNG_ASSETS_INVENTORY_ENABLED \
   0  // disabled by default
   

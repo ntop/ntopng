@@ -2261,6 +2261,7 @@ local known_parameters = {
     ["bandwidth_threshold"] = validateNumber,
     ["toggle_netbox"] = validateBool,
     ["toggle_ntopng_assets_inventory"] = validateBool,
+    ["toggle_assets_inventory"] = validateBool,
     ["netbox_activation_url"] = validateSingleWord,
     ["netbox_default_site"] = validateSingleWord,
     ["netbox_personal_access_token"] = validateSingleWord,

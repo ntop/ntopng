@@ -328,3 +328,47 @@ function areNewInterfacesExcludedFromUsage()
     end
     return excluded
 end
+
+-- ##############################################
+
+-- This function returns two parameters, the first one indicating
+-- if the ntopng is an infrastructure_view or not, the second one, in case
+-- the first one is true, returns the list of the viewed infrastructures
+function isInfrastructureView()
+    local infrastructure_view = false
+    local infrastructure_instances = {}
+
+    if ntop.isEnterpriseL() then
+        local infrastructure_utils = require("infrastructure_utils")
+        for _, v in pairs(infrastructure_utils.get_all_instances()) do
+            infrastructure_instances[v.id] = {name = v.alias, url = v.url}
+        end
+        local view = _GET["view"] or false
+
+        infrastructure_view = (view and view == 'infrastructure' and
+                                table.len(infrastructure_instances) > 0)
+    end
+
+    return infrastructure_view, infrastructure_instances
+end
+
+-- ##############################################
+
+-- This preference checks all the conditions to enable the assets inventory;
+-- Enterprise M license, preference enabled and not Windows
+function assetsInventoryEnabled()
+    local is_infrastructure = isInfrastructureView()
+    if not (ntop.isEnterpriseM()) then
+        return false
+    end
+    if (ntop.isWindows()) then
+        return false
+    end
+    if interface.isViewed() then
+        return false
+    end
+    if is_infrastructure then
+        return false
+    end
+    return ntop.assetsEnabled()
+end
