@@ -76,6 +76,9 @@ for key, info in pairs(active_monitoring_hosts) do
         info.label = ip2label(ip_address)
     end
 
+    local custom_name = getHumanReadableInterfaceName(info.ifname)
+    if isEmptyString(custom_name) then custom_name = nil end
+
     res[#res + 1] = {
         key = key,
         ip_address = ip_address,
@@ -94,7 +97,7 @@ for key, info in pairs(active_monitoring_hosts) do
         metadata = {
             is_infrastructure_instance = info.is_infrastructure,
             is_alerted = is_alerted,
-            interface_name = getHumanReadableInterfaceName(info.ifname),
+            interface_name = custom_name or info.ifname,
             interface_id = getInterfaceId(info.ifname),
             granularity = info.granularity,
             availability = availability or "",
