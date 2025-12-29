@@ -29,6 +29,7 @@ for id, ifname in pairs(interfaces) do
     custom_name = nil
   end
 
+  -- Note: returning in a format compatible with /lua/rest/v2/get/ntopng/interfaces.lua
   res[#res + 1] = {
     ifid = tonumber(id),
     ifname = ifname,
