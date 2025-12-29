@@ -145,7 +145,7 @@ watch(() => [props.interfaces], (cur_value, old_value) => {
         };
     })
     selected_interface.value = interfaces_list.value[0] || [];
-    disable_interface.value = (interfaces_list.value.length <= 1)
+    disable_interface.value = (interfaces_list.value.length < 1)
 }, { flush: 'pre', deep: true });
 
 /* ************************************** */
