@@ -572,10 +572,12 @@ function get_symbolic_mac_rev(mac_address)
         return (magic_macs[mac_address])
     else
         local m = string.sub(mac_address, 1, 8)
-        local s = get_mac_classification(m)
-
-        if ((s ~= nil) and (s ~= m)) then
-            return (mac_address .. " [" .. trimSpace(s) .. "]")
+        
+        if not isEmptyString(m) then
+            local s = get_mac_classification(m)
+            if ((s ~= nil) and (s ~= m)) then
+                return (mac_address .. " [" .. trimSpace(s) .. "]")
+            end
         end
     end
 
