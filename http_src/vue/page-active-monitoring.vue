@@ -67,7 +67,7 @@ const modal_delete = ref(null);
 const error_message = ref(i18n('host_config.active_monitor_enable'))
 const manage_configurations_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=active_monitoring`
 const measurements_url = ref(http_prefix + '/lua/rest/v2/get/active_monitoring/measurements.lua')
-const interfaces_url = ref(http_prefix + '/lua/rest/v2/get/ntopng/interfaces.lua')
+const interfaces_url = ref(http_prefix + '/lua/rest/v2/get/ping/interfaces.lua')
 const new_measurement_url = ref(http_prefix + '/lua/rest/v2/set/active_monitoring/measurement.lua')
 
 /* ************************************** */
