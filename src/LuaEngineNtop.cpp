@@ -2669,6 +2669,25 @@ static int ntop_collect_ping_results(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_ping_interface_names(lua_State *vm) {
+#ifndef WIN32
+  ContinuousPing *cping = ntop->getContinuousPing();
+#endif
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_newtable(vm);
+
+#ifndef WIN32
+  if (cping)
+    cping->getAllInterfaces(vm);
+#endif  
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_nologin_username(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -8397,6 +8416,7 @@ static luaL_Reg _ntop_reg[] = {
     { "isPingIfaceAvailable", ntop_is_ping_iface_available },
     { "pingHost", ntop_ping_host },
     { "collectPingResults", ntop_collect_ping_results },
+    { "getPingIfNames", ntop_get_ping_interface_names },
 
     /* HTTP utils */
     { "httpRedirect", ntop_http_redirect },

@@ -50,6 +50,7 @@ class ContinuousPing {
 
   void start();
   void runPingCampaign();
+  void getAllInterfaces(lua_State *vm);
   void ping(char* _addr, bool use_v6, char* ifname);
   void pollResults();
   void collectResponses(lua_State* vm, bool v6);

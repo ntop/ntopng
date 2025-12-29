@@ -74,7 +74,7 @@ ContinuousPing::ContinuousPing() {
   /* Create pingers for all interfaces with IP */
   if (Utils::ntop_findalldevs(&devpointer) == 0) {
     for (cur = devpointer; cur; cur = cur->next) {
-      if (cur->name) {
+      if (cur->name && strcmp(cur->name, "lo") != 0) {
         std::string key = std::string(cur->name);
         std::map<std::string, Ping *>::iterator it;
 
@@ -458,5 +458,28 @@ void ContinuousPing::runPingCampaign() {
     sleep(5);
   }
 }
+
+/* ***************************************** */
+
+void ContinuousPing::getAllInterfaces(lua_State *vm) {
+  char num_str[10];
+  int num = 0;
+
+#ifdef TRACE_PING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
+#endif
+
+  m.lock(__FILE__, __LINE__);
+
+  for (std::map<std::string, Ping *>::iterator it = if_pinger.begin(); it != if_pinger.end(); ++it) {
+    num++;
+    snprintf(num_str, sizeof(num_str), "%d", num);
+    lua_push_str_table_entry(vm, num_str, it->first.c_str());
+  }
+
+  m.unlock(__FILE__, __LINE__);
+}
+
+/* ***************************************** */
 
 #endif /* WIN32 */
