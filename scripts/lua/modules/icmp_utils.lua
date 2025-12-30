@@ -40,6 +40,11 @@ end
 
 -- #######################
 
+icmp_utils.ICMP_PROTOCOL = 1
+icmp_utils.ICMPv6_PROTOCOL = 58
+
+-- #######################
+
 function icmp_utils.get_icmp_type(icmp_type, omit_number)
   local icmp_type_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".info") or ""
 
