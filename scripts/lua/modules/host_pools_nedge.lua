@@ -143,7 +143,8 @@ end
 function getMembershipInfo(member_and_vlan)
   -- Check if the member is already in another pool
   local hostinfo = hostkey2hostinfo(member_and_vlan)
-  local addr, mask = splitNetworkPrefix(hostinfo["host"])
+  local addr = hostinfo["host"]
+  local mask = hostinfo["mask"]
   local vlan = hostinfo["vlan"]
   local is_mac = isMacAddress(addr)
 

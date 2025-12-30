@@ -221,10 +221,11 @@ function hostkey2hostinfo(key)
         host["vlan"] = 0
     end
 
-    -- Remove / if any
+    -- Handle CIDR (and remove /xx from host, if any)
     local info = split(host["host"], '/')
     if info and info[1] ~= nil then
         host["host"] = info[1]
+        host["mask"] = tonumber(info[2])
     end
 
     return host
