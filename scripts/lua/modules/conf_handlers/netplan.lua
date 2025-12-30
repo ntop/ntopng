@@ -110,7 +110,13 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
     if_config.addresses[#if_config.addresses+1] = network_conf.ip .."/".. cidr
 
     if not isEmptyString(network_conf.gateway) then
-      if_config.gateway4 = network_conf.gateway
+      if if_config.gateway4 then -- Remove deprecated conf
+        if_config.gateway4 = nil
+      end
+      if not if_config.routes then
+        if_config.routes = {}
+      end
+      if_config.routes[#if_config.routes+1] = { to = "default", via = network_conf.gateway }
       if not if_config.nameservers then
         if_config.nameservers = {}
       end
@@ -185,8 +191,12 @@ function config._dumpInterfacesConfig(f, interfaces)
       f:write("      dhcp4: true\n")
     end
 
-    if if_config.gateway4 then
-      f:write("      gateway4: " .. if_config.gateway4 .. "\n")
+    if if_config.routes then
+      f:write("      routes:\n")
+      for _, route in ipairs(if_config.routes) do
+        f:write("        - to: " .. route.to .. "\n")
+        f:write("          via: " .. route.via .. "\n")
+      end
     end
 
     if if_config.nameservers then
@@ -238,6 +248,9 @@ function config.closeNetworkInterfacesConfigFile(f)
   config._dumpNetworkInterfaceConfig(f)
 
   f:close()
+
+  -- Set restrictive permissions (600) on the configuration file
+  sys_utils.execShellCmd("chmod 600 " .. NETPLAN_DIR .. "/" .. NEDGE_NETPLAN_CONF)
 
   sys_utils.execShellCmd("netplan generate")
 end
