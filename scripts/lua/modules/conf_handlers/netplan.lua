@@ -9,7 +9,9 @@ local config = {}
 
 -- ################################################################
 
-local NEDGE_NETPLAN_CONF = "20-nedge.yaml"
+local NETPLAN_DIR = "/etc/netplan"
+local NEDGE_NETPLAN_CONF = "60-nedge.yaml"
+local OLD_NEDGE_NETPLAN_CONF = "20-nedge.yaml"
 local CLOUD_DIRECTORY = "/etc/cloud/cloud.cfg.d"
 local CLOUD_DISABLED_FNAME = "99-disable-network-config.cfg"
 
@@ -150,7 +152,12 @@ end
 -- ################################################################
 
 function config.openNetworkInterfacesConfigFile()
-  local f = sys_utils.openFile("/etc/netplan/" .. NEDGE_NETPLAN_CONF, "w")
+
+  if ntop.exists(NETPLAN_DIR .. "/" .. OLD_NEDGE_NETPLAN_CONF) then
+    os.rename(NETPLAN_DIR .. "/" .. OLD_NEDGE_NETPLAN_CONF, NETPLAN_DIR .. "/" .. NEDGE_NETPLAN_CONF)
+  end
+
+  local f = sys_utils.openFile(NETPLAN_DIR .. "/" .. NEDGE_NETPLAN_CONF, "w")
 
   netplan_config.version = 2
 
@@ -265,9 +272,13 @@ end
 function config.isConfiguredInterface(iface)
   local files_to_rename = {}
 
-  for fname in pairs(ntop.readdir("/etc/netplan")) do
+  if ntop.exists(NETPLAN_DIR .. "/" .. OLD_NEDGE_NETPLAN_CONF) then
+    os.rename(NETPLAN_DIR .. "/" .. OLD_NEDGE_NETPLAN_CONF, NETPLAN_DIR .. "/" .. NEDGE_NETPLAN_CONF)
+  end
+
+  for fname in pairs(ntop.readdir(NETPLAN_DIR)) do
     if fname ~= NEDGE_NETPLAN_CONF then
-      local fpath = "/etc/netplan/".. fname
+      local fpath = NETPLAN_DIR .. "/" .. fname
       -- e.g.: "renderer: NetworkManager", "iface: enp1s0"
       local res = sys_utils.execCmd("grep \"^\\s*[^#]*\\(" .. iface .. "\\|renderer\\):\" ".. fpath .." >/dev/null 2>/dev/null")
 
