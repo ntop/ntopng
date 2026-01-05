@@ -433,6 +433,10 @@ local menu_subpages = {{
         flow_table_probe_order = {
             title = i18n("prefs.flow_table_probe_order_title"),
             description = i18n("prefs.flow_table_probe_order_description")
+        },
+        toggle_enable_flow_deduplication = {
+            title = i18n("prefs.flow_deduplication_title"),
+            description = i18n("prefs.flow_deduplication_description")
         }
     }
 }, {

@@ -831,6 +831,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["flow_table_probe_order"].description, h_labels, h_values, "0", "primary",
             "flow_table_probe_order", "ntopng.prefs.flow_table_probe_order")
 
+        if (ntop.isEnterpriseXL()) then
+            prefsToggleButton(subpage_active, {
+                field = "toggle_enable_flow_deduplication",
+                default = "0",
+                pref = "enable_flow_deduplication"
+            })
+        end
+        
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
             i18n("save") .. '</button></th></tr>')
