@@ -873,6 +873,12 @@ if ((page == "overview") or (page == nil)) then
         "</span> <span id=remote_hosts_anomalies_trend></span></td>")
     print("</tr>\n")
 
+    if ntop.isFlowDedupEnabled() and ntop.isEnterpriseXL() then
+        print("<tr><th nowrap>" .. i18n("report.deduplicated_flows") .. ternary(charts_available, " <A HREF='" .. url ..
+                "&page=historical&ts_schema=iface:deduplicated_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
+            "</th><td width=20%><span id=num_deduplicated_flows>" .. formatValue(ifstats.stats.num_deduplicated_flows))
+    end
+
     print("<tr><th nowrap>" .. i18n("report.total_traffic") .. ternary(charts_available, " <A HREF='" .. url ..
             "&page=historical&ts_schema=iface:traffic'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
         "</th><td width=20%><span id=if_bytes>" .. bytesToSize(ifstats.stats.bytes) ..

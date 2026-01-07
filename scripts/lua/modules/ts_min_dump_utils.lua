@@ -233,6 +233,13 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
                     {ifid = ifstats.id, new_flows = ifstats.stats.new_flows},
                     when)
 
+    if ntop.isEnterpriseXL() then
+        -- Deduplicated Flows
+        if ntop.isFlowDedupEnabled() then
+            ts_utils.append("iface:deduplicated_flows",
+                        {ifid = ifstats.id, num_flows = ifstats.stats.num_deduplicated_flows}, when)
+        end
+    end
     -- QoE Stats
     if ntop.isEnterpriseL() then
         local qoe_list = {}

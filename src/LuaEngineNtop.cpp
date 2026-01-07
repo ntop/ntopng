@@ -1406,6 +1406,14 @@ static int ntop_set_iec104_allowed_typeids(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_flow_deduplication_enabled(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->isFlowDedupEnabled());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 #ifdef NTOPNG_PRO
 static int ntop_set_modbus_allowed_function_codes(lua_State *vm) {
   char *function_codes;
@@ -8557,6 +8565,7 @@ static luaL_Reg _ntop_reg[] = {
     { "getHostCheckInfo", ntop_get_host_check_info },
     { "shouldResolveHost", ntop_should_resolve_host },
     { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
+    { "isFlowDedupEnabled", ntop_is_flow_deduplication_enabled },
 #ifdef NTOPNG_PRO
     { "setModbusAllowedFunctionCodes", ntop_set_modbus_allowed_function_codes },
 #endif
