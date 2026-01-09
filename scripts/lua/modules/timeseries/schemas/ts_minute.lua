@@ -232,11 +232,12 @@ schema:addMetric("scoreAsServer")
 -- ##############################################
 
 if ntop.isEnterpriseXL() then
-    schema = ts_utils.newSchema("iface:deduplicated_flows", {
+    schema = ts_utils.newSchema("iface:deduplicated_flows_v2", {
         step = 60
     })
     schema:addTag("ifid")
-    schema:addMetric("num_flows")
+    schema:addMetric("num_flows_dedup")
+    schema:addMetric("num_flows_rec")
 end
 
 

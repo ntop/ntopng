@@ -235,9 +235,13 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 
     if ntop.isEnterpriseXL() then
         -- Deduplicated Flows
-        if ntop.isFlowDedupEnabled() then
-            ts_utils.append("iface:deduplicated_flows",
-                        {ifid = ifstats.id, num_flows = ifstats.stats.num_deduplicated_flows}, when)
+        if ntop.isFlowDedupEnabled() and 
+                ifstats.zmqRecvStats ~= nil and table.len(ifstats.zmqRecvStats) > 0 then
+            ts_utils.append("iface:deduplicated_flows_v2", {
+                ifid = ifstats.id, 
+                num_flows_dedup = ifstats.stats.num_deduplicated_flows,
+                num_flows_rec = ifstats.zmqRecvStats.flows,
+            }, when)
         end
     end
     -- QoE Stats
