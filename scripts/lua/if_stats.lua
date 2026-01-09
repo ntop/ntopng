@@ -873,10 +873,18 @@ if ((page == "overview") or (page == nil)) then
         "</span> <span id=remote_hosts_anomalies_trend></span></td>")
     print("</tr>\n")
 
-    if ntop.isFlowDedupEnabled() and ntop.isEnterpriseXL() then
+    if ntop.isFlowDedupEnabled() and ntop.isEnterpriseXL() 
+             and (ifstats.zmqRecvStats ~= nil and table.len(ifstats.zmqRecvStats) > 0) then
+        local tot_flows = (ifstats.zmqRecvStats.flows or 0) + (ifstats.zmqRecvStats.dropped_flows or 0)
+        if tot_flows == 0 then
+            tot_flows = 1
+        end
+        local pctg_deduplicated_flows = ((ifstats.stats.num_deduplicated_flows * 100) / (tot_flows or 1)) or 0
+
         print("<tr><th nowrap>" .. i18n("report.deduplicated_flows") .. ternary(charts_available, " <A HREF='" .. url ..
-                "&page=historical&ts_schema=iface:deduplicated_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
-            "</th><td width=20%><span id=num_deduplicated_flows>" .. formatValue(ifstats.stats.num_deduplicated_flows))
+                "&page=historical&ts_schema=iface:deduplicated_flows_v2'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
+            "</th><td width=20%><span id=num_deduplicated_flows>" .. formatValue(ifstats.stats.num_deduplicated_flows) ..
+             " [ " .. pctg_deduplicated_flows .. " % ] " .. "</span></td>")
     end
 
     print("<tr><th nowrap>" .. i18n("report.total_traffic") .. ternary(charts_available, " <A HREF='" .. url ..
@@ -2572,6 +2580,7 @@ if (ifstats.zmqRecvStats ~= nil) then
     print("var last_zmq_avg_msg_flows = 1;\n")
 
     print("var last_probe_zmq_exported_flows = " .. (ifstats["zmq.num_flow_exports"] or 0) .. ";\n")
+    print("var last_deduplicated_flows = " .. (ifstats.num_deduplicated_flows or 0) .. ";\n")
 end
 
 if ifstats.stats.discarded_probing_packets then
@@ -2672,7 +2681,7 @@ if page == 'overview' or isEmptyString(page) then
             }
                 const pctg_dropped_flows = ((rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) ? rsp.zmqRecvStats.dropped_flows * 100 / (rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) : 0).toFixed(1)
                 const pctg_dropped_zmq_msg = ((rsp.zmqRecvStats.zmq_msg_rcvd + rsp.zmqRecvStats.zmq_msg_drops) ? rsp.zmqRecvStats.zmq_msg_drops * 100 / (rsp.zmqRecvStats.zmq_msg_rcvd + rsp.zmqRecvStats.zmq_msg_drops) : 0).toFixed(1)
-
+                const pctg_deduplicated_flows = ((rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) ? rsp.num_deduplicated_flows * 100 / (rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) : 0).toFixed(1)
             $('#if_zmq_remote_bps').html(NtopUtils.bitsToSize(rsp.remote_bps) + " " + NtopUtils.get_trend(rsp.remote_bps, last_zmq_remote_bps));
             $('#if_zmq_remote_pps').html(NtopUtils.fpackets(rsp.remote_pps) + " " + NtopUtils.get_trend(rsp.remote_pps, last_zmq_remote_pps));
             $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows || 0)+flows_label);
@@ -2686,6 +2695,8 @@ if page == 'overview' or isEmptyString(page) then
             $('#if_zmq_msg_rcvd').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_rcvd || 0)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_rcvd || 0, last_zmq_msg_rcvd));
             $('#if_zmq_avg_msg_flows').html(NtopUtils.addCommas(NtopUtils.formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows || 0)));
             $('#if_num_remote_zmq_flow_exports').html(NtopUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
+            if ($('#num_deduplicated_flows').length && $('#num_deduplicated_flows').val()!=undefined)
+                $('#num_deduplicated_flows').html(NtopUtils.addCommas(rsp.num_deduplicated_flows || 0)+" [ "+pctg_deduplicated_flows+" % ] "+ NtopUtils.get_trend((rsp.num_deduplicated_flows || 0), last_deduplicated_flows));
 
             last_remote_pps = rsp.remote_pps;
             last_remote_bps = rsp.remote_bps;
@@ -2701,6 +2712,7 @@ if page == 'overview' or isEmptyString(page) then
             last_zmq_avg_msg_flows = rsp.zmqRecvStats.zmq_avg_msg_flows || 0;
             last_probe_zmq_exported_flows = rsp["zmq.num_flow_exports"];
             last_zmq_time = now;
+            last_deduplicated_flows = rsp.num_deduplicated_flows || 0;
             }
 
             $('#if_pkts').html(NtopUtils.addCommas(rsp.packets)+"]]

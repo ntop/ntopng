@@ -149,7 +149,7 @@ function dumpInterfaceStats(ifid)
 
         res["throughput_bps"] = ifstats.stats.throughput_bps;
         res["throughput_pps"] = ifstats.stats.throughput_pps;
-
+        res["num_deduplicated_flows"] = ifstats.stats.num_deduplicated_flows
         local function getExportStats(db_type)
             local s = {}
             s["flow_export_count"] = ifstats.stats_since_reset[db_type].flow_export_count
