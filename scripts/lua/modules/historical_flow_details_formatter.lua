@@ -750,9 +750,12 @@ local function format_historical_flow_traffic_stats(rowspan, cli2srv_retr, srv2c
 end
 
 local function format_historical_flow_rtt(client_nw_latency, server_nw_latency)
-   local rtt = client_nw_latency + server_nw_latency
-   local cli2srv = round(client_nw_latency, 3)
-   local srv2cli = round(server_nw_latency, 3)
+   -- server_nw_latency and client_nw_latency are in us
+   local client_nw_latency_ms = client_nw_latency / 1000
+   local server_nw_latency_ms = server_nw_latency / 1000
+   local rtt = client_nw_latency_ms + server_nw_latency_ms
+   local cli2srv = round(client_nw_latency_ms, 3)
+   local srv2cli = round(server_nw_latency_ms, 3)
    local values =
       '<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">' .. cli2srv ..
          ' ms (client)</div>' .. '<div class="progress-bar bg-success" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli ..
@@ -799,8 +802,8 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
       end
 
       if ((tonumber(flow["SERVER_NW_LATENCY_US"]) > 0) or (tonumber(flow["CLIENT_NW_LATENCY_US"]) > 0)) then
-         flow_details[#flow_details + 1] = format_historical_flow_rtt(tonumber(flow["SERVER_NW_LATENCY_US"]),
-            tonumber(flow["CLIENT_NW_LATENCY_US"]))
+         flow_details[#flow_details + 1] = format_historical_flow_rtt(tonumber(flow["CLIENT_NW_LATENCY_US"]),
+            tonumber(flow["SERVER_NW_LATENCY_US"]))
       end
 
       if (info['dst2src_dscp']) and (info['src2dst_dscp']) then
