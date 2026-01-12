@@ -138,7 +138,7 @@ else
     end
 
     local context = {
-        ifid = ifId,
+        ifid = ifstats.id,
         vlans = json.encode(vlans),
         aggregation_criteria = aggregation_criteria,
         is_ntop_enterprise_m = ntop.isEnterpriseM(),
