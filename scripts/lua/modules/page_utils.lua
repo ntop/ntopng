@@ -532,6 +532,11 @@ page_utils.menu_entries = {
         i18n_title = "category_lists.category_lists",
         section = "admin"
     },
+    --labels = {
+    --    key = "labels",
+    --    i18n_title = "labels_page.labels",
+    --    section = "admin"
+    --},
     conf_backup = {
         key = "conf_backup",
         i18n_title = "conf_backup.conf_backup",

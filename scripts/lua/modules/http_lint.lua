@@ -2822,6 +2822,9 @@ local known_parameters = {
     ["rules"] = validateUnquoted,
     ["include_empty_ts"] = validateBool,
 
+    -- labels
+    ["color"] = validateSingleWord,
+
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies
     ["policy"] = validatePolicy, -- nedge policies

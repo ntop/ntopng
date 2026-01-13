@@ -49,6 +49,7 @@ import { default as PageSNMPUsage } from "./page-snmp-usage.vue"
 import { default as PageHostsList } from "./page-hosts-list.vue"
 import { default as PageFlowsList } from "./page-flows-list.vue"
 import { default as PageMacsList } from "./page-macs-list.vue"
+import { default as PageLabels } from "./page-labels.vue"
 import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
 import { default as PageSNMPTopology } from "./page-snmp-topology.vue"
 import { default as PageSNMPTopologyMap } from "./page-snmp-topology-map.vue"
@@ -182,6 +183,7 @@ let ntopVue = {
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageFlowsList: PageFlowsList,
     PageMacsList: PageMacsList,
+    PageLabels: PageLabels,
     PageAsStats: PageAsStats,
     PageExportersInterfacesStats: PageExportersInterfacesStats,
     PageAsOverview: PageAsOverview,

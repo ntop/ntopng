@@ -6074,6 +6074,15 @@ local lang = {
     ["description"] = "Collect Kerberos authentication logs exported by NXLog in XML format: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "Kerberos/NXLog",
   },
+  ["labels_page"] = {
+    ["edit_label"] = "Edit Label",
+    ["hosts"] = "Hosts",
+    ["label_color"] = "Label Color",
+    ["label_description"] = "Label Description",
+    ["label_name"] = "Label",
+    ["labels"] = "Labels",
+    ["reserved_message"] = "Reserved System Label",
+  },
   ["license_page"] = {
     ["agreement"] = "License Agreement",
     ["license"] = "License",
