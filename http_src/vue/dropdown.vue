@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
     /* Just to be sure, before unmounting the element reset correctly the css */
     $(dropdown.value).parent().closest('div')?.css('overflow', default_overflow);
     $(dropdown.value).parent().closest('div')[0]?.style.setProperty('overflow', default_overflow, 'important');
-    $(dropdown.value).parent().closest('td')[0]?.style.setProperty('z-index', 'auto', 'important');
+    $(dropdown.value).parent().closest('td')[0]?.style.removeProperty('z-index');
     if (props.f_on_close != null) {
         props.f_on_close(el);
     }
@@ -92,7 +92,7 @@ onMounted(() => {
     $(dropdown.value).on('hide.bs.dropdown', function () {
         $(dropdown.value).parent().closest('div')?.css('overflow', default_overflow);
         $(dropdown.value).parent().closest('div')[0]?.style.setProperty('overflow', default_overflow, 'important');
-        $(dropdown.value).parent().closest('td')[0]?.style.setProperty('z-index', 'auto', 'important');
+        $(dropdown.value).parent().closest('td')[0]?.style.removeProperty('z-index');
         if (props.f_on_close != null) {
             props.f_on_close(el);
         }
