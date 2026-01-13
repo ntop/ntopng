@@ -14,6 +14,7 @@ local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local recipients = require "recipients"
 local alert_entity_builders = require "alert_entity_builders"
+local json = require("dkjson")
 local do_trace = false
 
 local alerts_api = {}
@@ -202,7 +203,6 @@ end
 -- ! @param when (optional) the time when the release event occurs
 -- ! @return true if the alert was successfully stored, false otherwise
 function alerts_api.store(entity_info, type_info, when)
-    local json = require("dkjson")
     if (not areAlertsEnabled()) then
         return (false)
     end
@@ -306,7 +306,6 @@ end
 -- ! @note The actual trigger is performed asynchronously
 -- ! @note false is also returned if an existing alert is found and refreshed
 function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
-    local json = require("dkjson")
 
     if (not areAlertsEnabled()) then
         return (false)
