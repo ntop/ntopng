@@ -872,8 +872,9 @@ if isEmptyString(page) or page == "overview" then
       if(flow.tcp_fingerprint) then num = num + 1 end
       if(flow.ndpi_fingerprint) then num = num + 1 end
       if(flow["protos.tls.ja4.client_hash"]) then num = num + 1 end
-
-      print("<tr><th width=33% rowspan="..num..">" .. i18n("details.fingerprint") .. "</th>")
+      if num > 0 then 
+         print("<tr><th width=33% rowspan="..num..">" .. i18n("details.fingerprint") .. "</th>")
+      end
 
       num = 0
       if (flow.tcp_fingerprint) then
