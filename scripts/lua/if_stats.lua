@@ -882,7 +882,7 @@ if ((page == "overview") or (page == nil)) then
         local pctg_deduplicated_flows = round(((ifstats.stats.num_deduplicated_flows * 100) / (tot_flows or 1)),3) or 0
 
         print("<tr><th nowrap>" .. i18n("report.deduplicated_flows") .. ternary(charts_available, " <A HREF='" .. url ..
-                "&page=historical&ts_schema=iface:deduplicated_flows_v2'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
+                "&page=historical&ts_schema=iface:deduplicated_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
             "</th><td width=20%><span id=num_deduplicated_flows>" .. formatValue(ifstats.stats.num_deduplicated_flows) ..
              " [ " .. pctg_deduplicated_flows .. " % ] " .. "</span></td>")
     end
