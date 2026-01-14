@@ -5840,8 +5840,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
        (((r->ipVersionFilter == 4) && (!h->get_ip()->isIPv4())) ||
         ((r->ipVersionFilter == 6) && (!h->get_ip()->isIPv6())))) ||
       (r->map_search && r->map_search[0] &&
-        (strncmp(ipstr, r->map_search, strlen(r->map_search)) != 0 &&
-         strncmp(namestr, r->map_search, strlen(r->map_search)) != 0))
+        (strstr(ipstr, r->map_search) == NULL &&
+         strstr(namestr, r->map_search) == NULL))
     )
     return (false); /* false = keep on walking */
 
