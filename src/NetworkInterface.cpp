@@ -523,10 +523,16 @@ bool NetworkInterface::initnDPIReload() {
   ndpiReloadInProgress = true;
   cleanShadownDPI();
 
-  /* No need to dedicate another variable for the reload, we can use the shadow
-   * itself */
+  /* No need to dedicate another variable for the reload, we can use the shadow itself */
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload started");
   ndpi_struct_shadow = initnDPIStruct();
+
+  if(ndpi_struct_shadow == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nDPI initialization failed");
+    ndpiReloadInProgress = false;
+    return(false);
+  }
+
   return (true);
 }
 
@@ -563,7 +569,7 @@ void NetworkInterface::finalizenDPIReload() {
     ndpi_struct = ndpi_struct_shadow;
     ndpi_struct_shadow = old_struct;
 
-    /* Update hosts policies based on nDPi configuration */
+    /* Update hosts policies based on nDPI configuration */
     reloadHostsBlacklist();
 
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "nDPI reload completed");
@@ -3131,7 +3137,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 		eth_type = ETHERTYPE_IPV6;
 		ip6 = (struct ndpi_ipv6hdr *)&packet[offset];
 		iph = NULL;
-	      }		
+	      }
 	    } else {
 	      incStats(ingressPacket, h->ts.tv_sec, 0,
 		       NDPI_PROTOCOL_UNKNOWN,
