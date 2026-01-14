@@ -879,7 +879,7 @@ if ((page == "overview") or (page == nil)) then
         if tot_flows == 0 then
             tot_flows = 1
         end
-        local pctg_deduplicated_flows = ((ifstats.stats.num_deduplicated_flows * 100) / (tot_flows or 1)) or 0
+        local pctg_deduplicated_flows = round(((ifstats.stats.num_deduplicated_flows * 100) / (tot_flows or 1)),3) or 0
 
         print("<tr><th nowrap>" .. i18n("report.deduplicated_flows") .. ternary(charts_available, " <A HREF='" .. url ..
                 "&page=historical&ts_schema=iface:deduplicated_flows_v2'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
