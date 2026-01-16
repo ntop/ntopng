@@ -76,9 +76,7 @@ end
 -- ############################################
 
 if isEmptyString(ifid) then
-    rc = rest_utils.consts.err.invalid_interface
-    rest_utils.answer(rc)
-    return
+    ifid = interface.getId()
 end
 
 local res = {}
