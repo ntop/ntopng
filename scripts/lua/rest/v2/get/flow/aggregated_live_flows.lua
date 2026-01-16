@@ -46,8 +46,6 @@ if (isEmptyString(device_ip)) then
     device_ip = nil
 end
 
-interface.select(ifid)
-
 -- ############################################
 
 local debugger = false
@@ -78,6 +76,8 @@ end
 if isEmptyString(ifid) then
     ifid = interface.getId()
 end
+
+interface.select(ifid)
 
 local res = {}
 local num_entries = 0
