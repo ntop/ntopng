@@ -1312,6 +1312,18 @@ function format_http_info(http_info, no_html)
    return formatted_http_info
 end
 
+function format_fingerprints_info(fingerprint_info)
+   local formatted_fingerprints_info = {}
+   if fingerprint_info["ndpi_fingerprint"] then
+	   formatted_fingerprints_info["ndpi_fingerprint"] =
+	   i18n("copy_button", {
+         full_name = fingerprint_info["ndpi_fingerprint"],
+         name = fingerprint_info["ndpi_fingerprint"]
+	    })
+   end
+   return formatted_fingerprints_info
+end
+
 -- ##############################################
 
 function format_proto_info(flow_details, proto_info)
@@ -1319,6 +1331,12 @@ function format_proto_info(flow_details, proto_info)
 
    for key, value in pairs(proto_info) do
       if type(value) ~= "table" then proto_info[key] = nil end
+   end
+
+   for proto, info in pairs(proto_info or {}) do
+      if proto == "fingerprints" then
+         proto_details[proto] = format_fingerprints_info(info)
+      end
    end
 
    for proto, info in pairs(proto_info or {}) do

@@ -1069,6 +1069,7 @@ public:
              u_int16_t _u_int16_t, u_int16_t _observation_point_id,
              u_int32_t _private_flow_id, u_int8_t _protocol,
              const ICMPinfo *const icmp_info, bool *src2srv_direction) const;
+  void getFingerprintInfo(ndpi_serializer *serializer);
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
   bool dump(time_t t, bool last_dump_before_free);
   bool match(AddressTree *ptree);
@@ -1460,7 +1461,15 @@ public:
   void setTCPFingerprint(char *fp);
   void setnDPIFingerprint(char *fp);
   inline char *getTCPFingerprint() { return(tcp_fingerprint); }
-
+  inline char *getnDPIFingerprint() { return(ndpi_fingerprint); }
+  
+  /* For now, the check is only on the nDPI fingerprint, but it will 
+    need to be extended to the TCP fingerprint and JA4 when they are 
+    merged into the fingerprints block of proto_json_info.*/
+  inline bool isFingerprintAvailable() { 
+    return getnDPIFingerprint() != nullptr;
+  }
+  
   inline void setSearchedField(const char *field) {
     snprintf(searched_field, sizeof(searched_field), "%s", field);
   }

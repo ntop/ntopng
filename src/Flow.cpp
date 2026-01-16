@@ -7623,6 +7623,14 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
 
 /* ***************************************************** */
 
+void Flow::getFingerprintInfo(ndpi_serializer *serializer) {
+  if(getnDPIFingerprint())
+    ndpi_serialize_string_string(serializer, "ndpi_fingerprint",
+				                         getnDPIFingerprint());
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_ssh_info(lua_State *vm) const {
   if(isSSH()) {
     if(protos.ssh.client_signature)
@@ -8154,6 +8162,13 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
 				   (ndpiConfidence)confidence_guessed);
       break;
     }
+  }
+
+  /* fingerprints block*/
+  if (isFingerprintAvailable()) {
+    ndpi_serialize_start_of_block(serializer, "fingerprints");
+    getFingerprintInfo(serializer);
+    ndpi_serialize_end_of_block(serializer);
   }
 
   ndpi_serialize_end_of_block(serializer); /* proto block */
