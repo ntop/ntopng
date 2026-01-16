@@ -76,6 +76,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { NDPI_TLS_SUSPICIOUS_EXTENSION, flow_alert_ndpi_tls_suspicious_extension, alert_category_security}, "ndpi_tls_suspicious_extension"},
   { { NDPI_TLS_FATAL_ALERT, flow_alert_ndpi_tls_fatal_alert, alert_category_other}, "ndpi_tls_fatal_alert"},
   { { NDPI_SUSPICIOUS_ENTROPY, flow_alert_ndpi_suspicious_entropy, alert_category_security}, "ndpi_suspicious_entropy"},
+  //{ { NDPI_SLOW_DOS, flow_alert_ndpi_slow_dos, alert_category_security}, "ndpi_slow_dos"},
   { { NDPI_CLEAR_TEXT_CREDENTIALS, flow_alert_ndpi_clear_text_credentials, alert_category_security}, "ndpi_clear_text_credentials"},
   { { NDPI_DNS_LARGE_PACKET, flow_alert_ndpi_dns_large_packet, alert_category_security}, "ndpi_dns_large_packet"},
   { { NDPI_DNS_FRAGMENTED, flow_alert_ndpi_dns_fragmented, alert_category_security}, "ndpi_dns_fragmented"},

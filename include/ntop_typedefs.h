@@ -544,6 +544,7 @@ typedef enum {
   flow_alert_s7comm_too_many_errors = 109,
   flow_alert_s7comm_invalid_transition = 110,
   flow_alert_profinet_too_many_errors = 111,
+  flow_alert_ndpi_slow_dos = 112,
 
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

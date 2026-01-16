@@ -118,6 +118,7 @@ local flow_alert_keys = {
    flow_alert_s7comm_too_many_errors               = 109,
    flow_alert_s7comm_invalid_transition            = 110,
    flow_alert_profinet_too_many_errors             = 111,
+   flow_alert_ndpi_slow_dos                        = 112,
 
    -- NOTE: do not go beyond the size of the alert_map bitmal inside Flow.h (currently 128)
 }
