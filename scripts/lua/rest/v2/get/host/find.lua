@@ -18,22 +18,15 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-local rc = rest_utils.consts.success.ok
-
-if not isEmptyString(_GET["ifid"]) then
-   interface.select(_GET["ifid"])
-else
-   interface.select(ifname)
-end
-
 local query = _GET["query"]
 local hosts_only = _GET["hosts_only"]
+local ifid = _GET["ifid"] or interface.getId()
 
-local ifid = interface.getId()
+local rc = rest_utils.consts.success.ok
 
-if (isEmptyString(query)) then
-   query = ""
-else
+local results = {}
+
+if not isEmptyString(query) then
    -- clean trailing spaces
    query = trimString(query)
    -- remove any decorator from string end
@@ -44,22 +37,15 @@ else
    query = query:gsub("% %[.*%]*", "")
 end
 
--- Empty query
-if(isEmptyString(query)) then
-   local data = {
-      interface = ifname,
-      results = {},
-   }
-   
-   rest_utils.answer(rc, data)
-   return
+if not isEmptyString(query) then
+   -- Lookup
+   results = find_utils.find(query, hosts_only, tonumber(ifid))
+
+   -- results = find_utils.find_on_any_interface(query, hosts_only)
 end
 
--- Lookup
-local results = find_utils.find(query, hosts_only, ifid)
-
 local data = {
-   interface = ifname,
+   -- interface = ifname,
    results = results,
 }
 

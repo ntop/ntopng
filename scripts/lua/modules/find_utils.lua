@@ -153,8 +153,51 @@ end
 
 -- -----------------------------------------------
 
+local function build_result(label, value, value_type, links, badges, context, ifid)
+   local r = {
+      name = label,
+      type = value_type,
+      links = links,
+      badges = badges,
+      context = context,
+      ifid = ifid,
+   }
+
+   r[value_type] = value
+
+   return r
+end
+
+-- -----------------------------------------------
+
+-- No results - add shortcut to search in historical data
+local function build_search_result(query, ifid)
+   local label = ""
+   local what = ""
+   if isHostKey(query) then
+      what = "ip"
+      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      query = query .. tag_utils.SEPARATOR .. "eq"
+   elseif isMacAddress(query) then
+      what = "mac"
+      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      query = query .. tag_utils.SEPARATOR .. "eq"
+   elseif isCommunityId(query) then
+      what = "community_id"
+      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      query = query .. tag_utils.SEPARATOR .. "eq"
+   else
+      what = "hostname"
+      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      query = query .. tag_utils.SEPARATOR .. "in"
+   end
+   return build_result(label, query, what, nil, nil, "historical", ifid)
+end
+
+-- -----------------------------------------------
+
 -- Look by network
-local function find_network(query, tot_results)
+local function find_network(query, tot_results, ifid)
    local results = {}
 
    local network_stats = interface.getNetworksStats()
@@ -176,6 +219,7 @@ local function find_network(query, tot_results)
             type = "network",
             network = network_id,
             links = links,
+            ifid = ifid,
          }
       end
    end
@@ -211,6 +255,7 @@ local function find_as(query, tot_results, ifid)
             asn = as.asn,
             links = links,
             badges = badges,
+            ifid = ifid,
          }
       elseif string.containsIgnoreCase(asn, query) then
          results[#results + 1] = {
@@ -219,6 +264,7 @@ local function find_as(query, tot_results, ifid)
             asn = as.asn,
             links = links,
             badges = badges,
+            ifid = ifid,
          }
       end
    end
@@ -266,6 +312,7 @@ local function find_snmp_mac(query, tot_results)
             snmp = snmp_device_ip,
             snmp_port_idx = snmp_port_idx,
             links = links,
+            ifid = ifid,
          }
       end
    end
@@ -307,6 +354,7 @@ local function find_snmp_interface(query, tot_results)
             snmp = snmp_device_ip,
             snmp_port_idx = snmp_port_idx,
             links = links,
+            ifid = ifid,
          }
       end
    end
@@ -340,6 +388,7 @@ local function find_snmp_device(query, tot_results)
 	    ip = snmp_device["ip"],
             snmp_device = snmp_device["ip"],
             links = links,
+            ifid = ifid,
          }
       end
    end
@@ -524,8 +573,8 @@ local function find_host(query, tot_results, ifid)
 
 
    -- Also look at the DHCP cache
-   local key_prefix_offset = string.len(getDhcpNameKey(getInterfaceId(ifname), "")) + 1
-   local mac_to_name = ntop.getKeysCache(getDhcpNameKey(getInterfaceId(ifname), "*")) or {}
+   local key_prefix_offset = string.len(getDhcpNameKey(ifid, "")) + 1
+   local mac_to_name = ntop.getKeysCache(getDhcpNameKey(ifid, "*")) or {}
    for k in pairs(mac_to_name) do
 
       local mac = string.sub(k, key_prefix_offset)
@@ -550,25 +599,11 @@ local function find_host(query, tot_results, ifid)
 
    -- Build final array with results
 
-   local function build_result(label, value, value_type, links, badges, context)
-      local r = {
-         name = label,
-         type = value_type,
-         links = links,
-         badges = badges,
-         context = context,
-      }
-
-      r[value_type] = value
-
-      return r
-   end
-
    if is_full_ip and partial_ip_match and not exact_ip_match then
       what = "ip"
       label = i18n("db_search.no_exact_match", {what=what, query=query})
       query = query .. tag_utils.SEPARATOR .. "eq"
-      results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
+      results[#results + 1] = build_result(label, query, what, nil, nil, "historical", ifid)
    end
 
    for k, v in pairsByField(hosts, 'name', asc) do
@@ -580,7 +615,7 @@ local function find_host(query, tot_results, ifid)
          already_printed[v] = true
 
          if v.mac then
-            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges)
+            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges, ifid)
          elseif v.ip then
 
             -- Add badge for services
@@ -592,36 +627,9 @@ local function find_host(query, tot_results, ifid)
                end
             end
 
-            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges)
+            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges, ifid)
          end
       end -- if
-   end
-
-   if #results == 0 and not isEmptyString(query) then
-      -- No results - add shortcut to search in historical data
-      if hasClickHouseSupport() then
-         local label = ""
-         local what = ""
-         if isHostKey(query) then
-            what = "ip"
-            label = i18n("db_search.find_in_historical", {what=what, query=query})
-            query = query .. tag_utils.SEPARATOR .. "eq"
-         elseif isMacAddress(query) then
-            what = "mac"
-            label = i18n("db_search.find_in_historical", {what=what, query=query})
-            query = query .. tag_utils.SEPARATOR .. "eq"
-         elseif isCommunityId(query) then
-            what = "community_id"
-            label = i18n("db_search.find_in_historical", {what=what, query=query})
-            query = query .. tag_utils.SEPARATOR .. "eq"
-         else
-            what = "hostname"
-            label = i18n("db_search.find_in_historical", {what=what, query=query})
-            query = query .. tag_utils.SEPARATOR .. "in"
-         end
-
-         results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
-      end
    end
 
    return results
@@ -629,28 +637,93 @@ end
 
 -- -----------------------------------------------
 
--- Look by network
-function find_utils.find(query, hosts_only, ifid)
+-- Lookup on all entities
+local function find_on_interface(query, hosts_only, ifid, tot_results)
    local results = {}
+   local host_results = {}
+
+   tot_results = tot_results or 0
+
+   -- Select requested ifid
+   local active_ifid = interface.getId()
+   if active_ifid ~= ifid then
+      interface.select(ifid)
+   end
 
    local is_system_interface = false
    if interface.getId() == tonumber(getSystemInterfaceId()) then
       is_system_interface = true
    end
 
+   -- Lookups
+
    if not hosts_only then
       if not is_system_interface then
-         results = table.merge(results, find_network(query, #results, ifid))
-         results = table.merge(results, find_as(query, #results, ifid))
+         results = table.merge(results, find_network(query, #results + tot_results, ifid))
+         results = table.merge(results, find_as(query, #results + tot_results, ifid))
       end
+   end 
+
+   if not is_system_interface then
+      host_results = find_host(query, #results + tot_results, ifid)
+      results = table.merge(results, host_results)
+   end
+
+   -- Select actual ifid
+   if active_ifid ~= ifid then
+      interface.select(active_ifid)
+   end
+
+   return results, #host_results
+end
+
+-- -----------------------------------------------
+
+-- Lookup on all entities
+function find_utils.find(query, hosts_only, ifid)
+   local results = {}
+
+   -- Lookups
+
+   results, num_hosts = find_on_interface(query, hosts_only, ifid, #results)
+
+   if num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
+      results[#results + 1] = build_search_result(query, ifid)
+   end
+
+   if not hosts_only then
       results = table.merge(results, find_snmp_mac(query, #results, ifid))
       results = table.merge(results, find_snmp_interface(query, #results, ifid))
       results = table.merge(results, find_snmp_device(query, #results, ifid))
    end 
 
-   if not is_system_interface then
-      results = table.merge(results, find_host(query, #results, ifid))
+   return results
+end
+
+-- -----------------------------------------------
+
+-- Lookup on all entities
+function find_utils.find_on_any_interface(query, hosts_only)
+   local results = {}
+   local tot_num_hosts = 0
+
+   local interfaces = interface.getIfNames()
+   
+   for id, name in pairs(interfaces) do
+      local host_results, num_hosts =  find_on_interface(query, hosts_only, id, #results)
+      results = table.merge(results, host_results)
+      tot_num_hosts = tot_num_hosts + num_hosts
    end
+
+   if tot_num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
+      results[#results + 1] = build_search_result(query)
+   end
+
+   if not hosts_only then
+      results = table.merge(results, find_snmp_mac(query, #results, ifid))
+      results = table.merge(results, find_snmp_interface(query, #results, ifid))
+      results = table.merge(results, find_snmp_device(query, #results, ifid))
+   end 
 
    return results
 end
