@@ -197,11 +197,11 @@ end
 -- -----------------------------------------------
 
 -- No Exact Match - add shortcut to search in historical data
-local function build_no_exact_match_entry(query)
+local function build_no_exact_match_entry(query, ifid)
    what = "ip"
    label = i18n("db_search.no_exact_match", {what=what, query=query})
    query = query .. tag_utils.SEPARATOR .. "eq"
-   return build_result(label, query, what, nil, nil, "historical")
+   return build_result(label, query, what, nil, nil, "historical", ifid)
 end
 
 -- -----------------------------------------------
@@ -618,7 +618,7 @@ local function find_host(query, tot_results, ifid)
          already_printed[v] = true
 
          if v.mac then
-            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges, ifid)
+            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges, nil, ifid)
          elseif v.ip then
 
             -- Add badge for services
@@ -630,7 +630,7 @@ local function find_host(query, tot_results, ifid)
                end
             end
 
-            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges, ifid)
+            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges, nil, ifid)
          end
       end -- if
    end
