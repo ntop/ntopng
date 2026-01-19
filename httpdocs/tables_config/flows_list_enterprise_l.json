@@ -58,7 +58,7 @@
 		},
 		{
 			"title_i18n": "duration",
-			"data_field": "first_seen",
+			"data_field": "duration",
 			"sortable": true,
 			"min-width" : "100px",
 			"class": [
