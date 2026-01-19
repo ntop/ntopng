@@ -137,10 +137,9 @@ end
 function historical_flow_utils.get_selected_filters(ifid)
    local selected_filters = tag_utils.get_tag_filters_from_request()
 
-   if ifid == nil then
-      ifid = interface.getId()
+   if ifid ~= nil then
+      selected_filters['ifid'] = ifid
    end
-   selected_filters['ifid'] = ifid
 
    -- Exception parsing
    if not isEmptyString(selected_filters['cli_asn']) then
