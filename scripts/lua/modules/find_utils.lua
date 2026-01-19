@@ -171,7 +171,7 @@ end
 -- -----------------------------------------------
 
 -- No results - add shortcut to search in historical data
-local function build_search_result(query, ifid)
+local function build_no_results_entry(query, ifid)
    local label = ""
    local what = ""
    if isHostKey(query) then
@@ -192,6 +192,16 @@ local function build_search_result(query, ifid)
       query = query .. tag_utils.SEPARATOR .. "in"
    end
    return build_result(label, query, what, nil, nil, "historical", ifid)
+end
+
+-- -----------------------------------------------
+
+-- No Exact Match - add shortcut to search in historical data
+local function build_no_exact_match_entry(query)
+   what = "ip"
+   label = i18n("db_search.no_exact_match", {what=what, query=query})
+   query = query .. tag_utils.SEPARATOR .. "eq"
+   return build_result(label, query, what, nil, nil, "historical")
 end
 
 -- -----------------------------------------------
@@ -691,15 +701,12 @@ function find_utils.find(query, hosts_only, ifid)
    results, lookup_info = find_on_interface(query, hosts_only, ifid, #results)
 
    if lookup_info.num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
-      results[#results + 1] = build_search_result(query, ifid)
-   end
-
-   local no_exact_ip_match = (lookup_info.is_full_ip and lookup_info.partial_ip_match and not lookup_info.exact_ip_match)
-   if no_exact_ip_match then
-      what = "ip"
-      label = i18n("db_search.no_exact_match", {what=what, query=query})
-      query = query .. tag_utils.SEPARATOR .. "eq"
-      results[#results + 1] = build_result(label, query, what, nil, nil, "historical", ifid)
+      results[#results + 1] = build_no_results_entry(query, ifid)
+   else
+      local no_exact_ip_match = (lookup_info.is_full_ip and lookup_info.partial_ip_match and not lookup_info.exact_ip_match)
+      if no_exact_ip_match then
+         results[#results + 1] = build_no_exact_match_entry(query)
+      end
    end
 
    if not hosts_only then
@@ -734,15 +741,12 @@ function find_utils.find_on_any_interface(query, hosts_only)
    end
 
    if tot_num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
-      results[#results + 1] = build_search_result(query)
-   end
-
-   local no_exact_ip_match = (is_full_ip and partial_ip_match and not exact_ip_match)
-   if no_exact_ip_match then
-      what = "ip"
-      label = i18n("db_search.no_exact_match", {what=what, query=query})
-      query = query .. tag_utils.SEPARATOR .. "eq"
-      results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
+      results[#results + 1] = build_no_results_entry(query)
+   else
+      local no_exact_ip_match = (is_full_ip and partial_ip_match and not exact_ip_match)
+      if no_exact_ip_match then
+         results[#results + 1] = build_no_exact_match_entry(query)
+      end
    end
 
    if not hosts_only then
