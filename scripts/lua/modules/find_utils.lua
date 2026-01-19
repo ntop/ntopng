@@ -599,13 +599,6 @@ local function find_host(query, tot_results, ifid)
 
    -- Build final array with results
 
-   if is_full_ip and partial_ip_match and not exact_ip_match then
-      what = "ip"
-      label = i18n("db_search.no_exact_match", {what=what, query=query})
-      query = query .. tag_utils.SEPARATOR .. "eq"
-      results[#results + 1] = build_result(label, query, what, nil, nil, "historical", ifid)
-   end
-
    for k, v in pairsByField(hosts, 'name', asc) do
       if #results >= max_group_items or (#results + tot_results) >= max_total_items then
          break
@@ -632,7 +625,13 @@ local function find_host(query, tot_results, ifid)
       end -- if
    end
 
-   return results
+   local lookup_info = {
+      is_full_ip = is_full_ip,
+      partial_ip_match = partial_ip_match,
+      exact_ip_match = exact_ip_match,
+   }
+
+   return results, lookup_info
 end
 
 -- -----------------------------------------------
@@ -641,6 +640,7 @@ end
 local function find_on_interface(query, hosts_only, ifid, tot_results)
    local results = {}
    local host_results = {}
+   local lookup_info = {}
 
    tot_results = tot_results or 0
 
@@ -665,7 +665,7 @@ local function find_on_interface(query, hosts_only, ifid, tot_results)
    end 
 
    if not is_system_interface then
-      host_results = find_host(query, #results + tot_results, ifid)
+      host_results, lookup_info = find_host(query, #results + tot_results, ifid)
       results = table.merge(results, host_results)
    end
 
@@ -674,7 +674,9 @@ local function find_on_interface(query, hosts_only, ifid, tot_results)
       interface.select(active_ifid)
    end
 
-   return results, #host_results
+   lookup_info.num_hosts = #host_results
+
+   return results, lookup_info
 end
 
 -- -----------------------------------------------
@@ -682,13 +684,22 @@ end
 -- Lookup on all entities
 function find_utils.find(query, hosts_only, ifid)
    local results = {}
+   local lookup_info = {}
 
    -- Lookups
 
-   results, num_hosts = find_on_interface(query, hosts_only, ifid, #results)
+   results, lookup_info = find_on_interface(query, hosts_only, ifid, #results)
 
-   if num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
+   if lookup_info.num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
       results[#results + 1] = build_search_result(query, ifid)
+   end
+
+   local no_exact_ip_match = (lookup_info.is_full_ip and lookup_info.partial_ip_match and not lookup_info.exact_ip_match)
+   if no_exact_ip_match then
+      what = "ip"
+      label = i18n("db_search.no_exact_match", {what=what, query=query})
+      query = query .. tag_utils.SEPARATOR .. "eq"
+      results[#results + 1] = build_result(label, query, what, nil, nil, "historical", ifid)
    end
 
    if not hosts_only then
@@ -705,18 +716,33 @@ end
 -- Lookup on all entities
 function find_utils.find_on_any_interface(query, hosts_only)
    local results = {}
+   local lookup_info = {}
    local tot_num_hosts = 0
+   local is_full_ip = false
+   local exact_ip_match = false
+   local partial_ip_match = false
 
    local interfaces = interface.getIfNames()
    
    for id, name in pairs(interfaces) do
-      local host_results, num_hosts =  find_on_interface(query, hosts_only, id, #results)
+      local host_results, lookup_info =  find_on_interface(query, hosts_only, id, #results)
       results = table.merge(results, host_results)
-      tot_num_hosts = tot_num_hosts + num_hosts
+      tot_num_hosts = tot_num_hosts + lookup_info.num_hosts
+      if lookup_info.is_full_ip then is_full_ip = true end
+      if lookup_info.exact_ip_match then exact_ip_match = true end
+      if lookup_info.partial_ip_match then partial_ip_match = true end
    end
 
    if tot_num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
       results[#results + 1] = build_search_result(query)
+   end
+
+   local no_exact_ip_match = (is_full_ip and partial_ip_match and not exact_ip_match)
+   if no_exact_ip_match then
+      what = "ip"
+      label = i18n("db_search.no_exact_match", {what=what, query=query})
+      query = query .. tag_utils.SEPARATOR .. "eq"
+      results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
    end
 
    if not hosts_only then
