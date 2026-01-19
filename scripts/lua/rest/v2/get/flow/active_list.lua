@@ -71,7 +71,8 @@ local mapping_column_lua_c = {
    qoe = "column_qoe",
    cli_asn = "column_cli_asn",
    srv_asn = "column_srv_asn",
-   transit_asn = "column_transit_asn"
+   transit_asn = "column_transit_asn",
+   duration = "column_duration"
 }
 
 if _GET["start"] and _GET["length"] then

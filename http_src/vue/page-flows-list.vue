@@ -220,6 +220,12 @@ const map_table_def_columns = (columns) => {
             }
             return ''
         },
+        "duration": (value, row) => {
+            if (value > 0) {
+                return NtopUtils.secondsToTime(value)
+            }
+            return ''
+        },
         "srv_asn": (value, row) => {
             if (value.asn && value.name) {
                 let formatted_asn = formatterUtils.formatAsn(value.asn, value.name)
