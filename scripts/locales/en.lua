@@ -7897,6 +7897,8 @@ local lang = {
     ["toggle_radius_external_auth_for_local_users_descr"] = "Toggle authentication of local users via RADIUS (remote authentication, local authorization).",
     ["toggle_send_telemetry_data_description"] = "Contribute to the project by sending encrypted, <a href=\"%{url}\">anonymous telemetry data</a> to <a href=\"%{ntop_org}\">ntop.org</a>. Data only involves the status of %{product} (e.g., uptime, status, crash reports). Nothing regarding the monitored traffic will ever be sent.",
     ["toggle_send_telemetry_data_title"] = "Telemetry Data",
+    ["toggle_search_in_all_interfaces_description"] = "Enable searching for hosts in all interfaces, not just the currently selected one.",
+    ["toggle_search_in_all_interfaces_title"] = "Search In All Interfaces",
     ["toggle_shaping_directions_description"] = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",
     ["toggle_shaping_directions_title"] = "Split Shaping Directions",
     ["toggle_sites_collection_description"] = "Create s database of visited domains for classification purposes (stored on redis ntopng.domains)",

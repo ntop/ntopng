@@ -633,6 +633,19 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     -- #####################
 
+    local function printSearchPrefs()
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.search_preferences") ..
+            '</th></tr></thead>')
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_search_in_all_interfaces",
+            pref = "search_in_all_interfaces",
+            default = "0"
+        })
+    end
+
+    -- #####################
+
     function printGUI()
         print('<form method="post">')
         print('<table class="table">')
@@ -712,6 +725,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         printMenuEntriesPrefs()
+
+        printSearchPrefs()
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..

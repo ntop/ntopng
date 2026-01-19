@@ -24,6 +24,8 @@ local ifid = _GET["ifid"] or interface.getId()
 
 local rc = rest_utils.consts.success.ok
 
+local search_all_interfaces = (ntop.getPref("ntopng.prefs.search_in_all_interfaces") == '1')
+
 local results = {}
 
 if not isEmptyString(query) then
@@ -39,9 +41,11 @@ end
 
 if not isEmptyString(query) then
    -- Lookup
-   results = find_utils.find(query, hosts_only, tonumber(ifid))
-
-   -- results = find_utils.find_on_any_interface(query, hosts_only)
+   if search_all_interfaces then
+      results = find_utils.find_on_any_interface(query, hosts_only)
+   else
+      results = find_utils.find(query, hosts_only, tonumber(ifid))
+   end
 end
 
 local data = {
