@@ -844,7 +844,8 @@ tag_utils.defined_tags = {
         hourly_available = false
     },
     interface_id = {
-        value_type = 'number',
+        type = tag_utils.input_types.select,
+        value_type = 'interface_id',
         i18n_label = i18n('db_search.tags.interface_id'),
         operators = {'eq', 'neq'},
         hourly_available = true
@@ -1204,6 +1205,20 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 value = id,
                 label = info.label
             }
+        end
+    elseif tag.value_type == "interface_id" then
+        filter.value_type = 'array'
+        filter.options = {}
+        local iface_id_key = "ntopng.prefs.iface_id"
+        local keys = ntop.getHashKeysCache(iface_id_key) or {}
+        for name, _ in pairs(keys) do
+           if not isnumber(name) then 
+           local id = ntop.getHashCache(iface_id_key, name)
+              filter.options[#filter.options + 1] = {
+                 value = id,
+                 label = name
+              }
+           end
         end
     elseif tag.value_type == "qoe_score" then
         if not qoe_utils then
