@@ -700,12 +700,16 @@ export default class NtopUtils {
     }
 
     static _add_find_host_link(form, name, data) {
-        $('<input>').attr({
-            type: 'hidden',
-            id: name,
-            name: name,
-            value: data,
-        }).appendTo(form);
+        let input = form.find(`input[name="${name}"]`);
+        if (input.length > 0) {
+            input.val(data);
+        } else {
+            $('<input>').attr({
+                type: 'hidden',
+                name: name,
+                value: data,
+            }).appendTo(form);
+        }
     }
 
     /* Used while searching hosts a and macs with typeahead */
@@ -744,6 +748,9 @@ export default class NtopUtils {
                     form.attr("action", http_prefix + "/lua/host_details.lua");
                     NtopUtils._add_find_host_link(form, "mode", "restore");
                 }
+            }
+            if (data.ifid) {
+                NtopUtils._add_find_host_link(form, "ifid", data.ifid);
             }
 
             return true;
