@@ -241,10 +241,11 @@ local function find_network(query, tot_results, ifid, add_interface_name)
       if string.containsIgnoreCase(name, query) then
          local network_id = stats.network_id
          local links = {}
+         local badges = {}
          add_network_link(links)
 
          if add_interface_name then
-            name = string.format("[%s] %s", interface_name, name)
+            add_badge(badges, interface_name)
          end
 
          results[#results + 1] = {
@@ -252,6 +253,7 @@ local function find_network(query, tot_results, ifid, add_interface_name)
             type = "network",
             network = network_id,
             links = links,
+            badges = badges,
             ifid = ifid
          }
       end
@@ -283,7 +285,7 @@ local function find_as(query, tot_results, ifid, add_interface_name)
       add_as_info_link(links, as.asn, ifid)
 
       if add_interface_name then
-         name = string.format("[%s] ", interface_name)
+         add_badge(badges, interface_name)
       end
 
       if string.containsIgnoreCase(as_name, query) then
@@ -453,6 +455,8 @@ end
 local function find_host(query, tot_results, ifid, add_interface_name)
    local results = {}
 
+   local interface_name = getInterfaceName(ifid)
+
    local query_info = hostkey2hostinfo(query)
    local is_full_ip = isIPv4(query_info['host']) or isIPv6(query_info['host'])
 
@@ -550,6 +554,10 @@ local function find_host(query, tot_results, ifid, add_interface_name)
             add_historical_flows_link(links, 'name', host_key, ifid)
          end
 
+         if add_interface_name then
+            add_badge(badges, interface_name)
+         end
+
          partial_ip_match = true
          exact_ip_match = is_full_ip and host_info['host'] == query_info['host']
 
@@ -578,10 +586,15 @@ local function find_host(query, tot_results, ifid, add_interface_name)
          add_historical_flows_link(links, 'ip', h.host, ifid)
 
          local badges = {}
+
          if isIPv6(h.host) then -- IP
             add_badge(badges, 'IPv6')
          end
          add_inactive_badge(badges)
+
+         if add_interface_name then
+            add_badge(badges, interface_name)
+         end
 
          hosts[h.host] = {
             label = hostinfo2label({
@@ -616,6 +629,10 @@ local function find_host(query, tot_results, ifid, add_interface_name)
             add_badge(badges, 'IPv6')
          end
          add_inactive_badge(badges)
+
+         if add_interface_name then
+            add_badge(badges, interface_name)
+         end
 
          hosts[host_key] = {
             label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
@@ -658,11 +675,6 @@ local function find_host(query, tot_results, ifid, add_interface_name)
    end
 
    -- Build final array with results
-   local name = ""
-   local interface_name = getInterfaceName(ifid)
-   if add_interface_name then
-      name = string.format("[%s] ", interface_name)
-   end
 
    for k, v in pairsByField(hosts, 'name', asc) do
       if #results >= max_group_items or (#results + tot_results) >= max_total_items then
@@ -673,7 +685,7 @@ local function find_host(query, tot_results, ifid, add_interface_name)
          already_printed[v] = true
 
          if v.mac then
-            results[#results + 1] = build_result(name .. v.label, v.mac, "mac", v.links, v.badges, nil, ifid)
+            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges, nil, ifid)
          elseif v.ip then
 
             -- Add badge for services
@@ -687,7 +699,7 @@ local function find_host(query, tot_results, ifid, add_interface_name)
                end
             end
 
-            results[#results + 1] = build_result(name .. v.label, v.ip, "ip", v.links, v.badges, nil, ifid)
+            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges, nil, ifid)
          end
       end -- if
    end
