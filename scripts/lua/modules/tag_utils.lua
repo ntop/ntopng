@@ -1663,8 +1663,14 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     if cached_interfaces and cached_interfaces["interfaces"] then
                         local interfaces = cached_interfaces["interfaces"]
                         for if_index, if_info in pairs(interfaces) do
-                            local label = format_portidx_name(probe_ip, if_index, true)
-                            label = probe_label .. ' - ' .. label
+                            local interface_name = if_index
+                            if if_info.name then
+                                interface_name = if_info.name
+                            end
+                            local label = interface_name .. ' · ' .. probe_label
+                            if hide_exporters_name then
+                                label = interface_name
+                            end
 
                             interfaces_list[label] = {
                                 value = probe_ip .. "_" .. if_index,
@@ -1682,7 +1688,9 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     for _, interfaces_table in pairs(interfaces or {}) do
                         for if_index, _ in pairsByKeys(interfaces_table) do
                             local label = format_portidx_name(exporter_ip, if_index, true)
-                            label = exporter_ip .. ' - ' .. label
+                            if not hide_exporters_name then
+                                label = exporter_ip .. ' · ' .. label
+                            end
                             interfaces_list[tostring(label)] = {
                                 value = exporter_ip .. "_" .. if_index,
                                 label = label,
