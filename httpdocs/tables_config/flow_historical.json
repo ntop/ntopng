@@ -325,6 +325,16 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.tags.interface_id",
+			"data_field": "interface_id",
+			"min-width": "100px",
+			"sortable": true,
+			"render_generic": "interface_id",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.probe_ip",
 			"data_field": "probe_ip",
 			"sortable": true,

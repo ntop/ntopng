@@ -414,6 +414,7 @@ local all_datatable_columns_def_by_tag = {
    ["input_snmp"] = build_datatable_column_def_snmp_interface("input_snmp", "db_search.tags.input_snmp"),
    ["output_snmp"] = build_datatable_column_def_snmp_interface("output_snmp", "db_search.tags.output_snmp"),
    ["snmp_interface"] = build_datatable_column_def_snmp_interface("snmp_interface", "db_search.tags.snmp_interface"),
+   ['interface_id'] = build_datatable_column_def_obj('interface_id', "db_search.tags.interface_id"),
    ['country'] = build_datatable_column_def_country('country', "db_search.tags.country"),
    ['cli_country'] = build_datatable_column_def_country('cli_country', "db_search.tags.cli_country"),
    ['srv_country'] = build_datatable_column_def_country('srv_country', "db_search.tags.srv_country"),

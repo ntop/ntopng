@@ -831,11 +831,30 @@ local function dt_format_snmp_interface(interface, flow)
     label = format_portidx_name(exporter, tostring(interface), true)
     value = exporter .. "_" .. tostring(interface)
   end
-    
+
   local interface_tag = {
     value = value,
     label = label,
     title = interface,
+  }
+
+  return interface_tag
+end
+
+-- #####################################
+
+local function dt_format_interface(interface_id)
+  local ifid = tonumber(interface_id) or 0
+  local label = getInterfaceName(ifid)
+
+  if isEmptyString(label) then
+    label = tostring(ifid)
+  end
+
+  local interface_tag = {
+    value = ifid,
+    label = label,
+    title = label,
   }
 
   return interface_tag
@@ -1153,7 +1172,7 @@ local flow_columns = {
    ['INFO'] =                 { tag = "info",         dt_func = dt_format_info, format_func = format_flow_info, i18n = i18n("info"), order = 11, db_type = "String", db_raw_type = "String" },
    ['PROFILE'] =              { db_type = "String", db_raw_type = "String" },
    ['NTOPNG_INSTANCE_NAME'] = { db_type = "String", db_raw_type = "String" },
-   ['INTERFACE_ID'] =         { tag = "interface_id", db_type = "Number", db_raw_type = "Uint16" },
+   ['INTERFACE_ID'] =         { tag = "interface_id", dt_func = dt_format_interface, db_type = "Number", db_raw_type = "Uint16" },
    ['STATUS'] =               { tag = "alert_id",       dt_func = dt_format_flow_alert_id, format_func = format_flow_alert_id, i18n = i18n("status"), simple_dt_func = format_flow_alert_id , order = 8, db_type = "Number", db_raw_type = "Uint8" },
    ['SRC_COUNTRY_CODE'] =     { tag = "cli_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
    ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
