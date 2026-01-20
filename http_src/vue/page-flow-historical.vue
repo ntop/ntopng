@@ -33,6 +33,10 @@
                                         class="me-2" :change_label_side="true" :label="flow_type_label" style=""
                                         icon="fa-truck-fast" :title="flow_type_label" @change_value="change_flow_type">
                                     </CustomSwitch>
+                                    <CustomSwitch v-model:value="any_interface"
+                                        class="me-2" :change_label_side="true" :label="any_interface_label" style=""
+                                        icon="fa-layer-group" :title="any_interface_label" @change_value="change_any_interface">
+                                    </CustomSwitch>
                                 </template>
                                 <template v-slot:extra_range_buttons>
                                     <button v-if="context.show_permalink" class="btn btn-link btn-sm"
@@ -240,6 +244,8 @@ const mount_range_picker = ref(false);
 
 const flows_aggregated = ref(false);
 const flow_type_label = ref(_i18n("datatable.aggregated"));
+const any_interface = ref(false);
+const any_interface_label = ref(_i18n("db_search.any_interface"));
 const min_time_interval_id = ref(null);
 const round_time = ref(false);
 const count_page_components_reloaded = ref(0)
@@ -277,6 +283,10 @@ function init_params() {
         flows_aggregated.value = true;
         min_time_interval_id.value = "hour";
         round_time.value = true;
+    }
+    const any = ntopng_url_manager.get_url_entry("any");
+    if (any == "true") {
+        any_interface.value = true;
     }
 }
 
@@ -388,6 +398,15 @@ function change_flow_type() {
         ntopng_url_manager.delete_params(["aggregated"]);
     } else {
         ntopng_url_manager.set_key_to_url("aggregated", "true");
+    }
+    ntopng_url_manager.reload_url();
+}
+
+function change_any_interface() {
+    if (any_interface.value == false) {
+        ntopng_url_manager.delete_params(["any"]);
+    } else {
+        ntopng_url_manager.set_key_to_url("any", "true");
     }
     ntopng_url_manager.reload_url();
 }

@@ -2427,6 +2427,7 @@ local lang = {
   ["db_search"] = {
     ["alert_category"] = "Category",
     ["alert_id"] = "Status",
+    ["any_interface"] = "Query any interface",
     ["asn"] = "ASN",
     ["bytes"] = "Bytes",
     ["cli_as"] = "Cli AS",
