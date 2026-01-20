@@ -1,6 +1,7 @@
 --
 -- (C) 2017-24 - ntop.org
 --
+require "label_utils"
 local json = require "dkjson"
 local tag_utils = require "tag_utils"
 local snmp_utils
@@ -52,14 +53,15 @@ end
 
 -- -----------------------------------------------
 
-local function add_historical_flows_link(links, key --[[ ip, mac, name --]], value --[[ actual ip or mac or name (including vlan) --]], ifid)
+local function add_historical_flows_link(links, key --[[ ip, mac, name --]] , value --[[ actual ip or mac or name (including vlan) --]] ,
+   ifid)
    -- Alerts
    local flow_alerts_icon = 'exclamation-triangle'
    local flow_alerts_url = build_flow_alerts_url(key, value, ifid)
    links[#links + 1] = {
       icon = flow_alerts_icon,
       title = i18n('alerts_dashboard.alerts'),
-      url = flow_alerts_url,
+      url = flow_alerts_url
    }
 
    if hasClickHouseSupport() then
@@ -69,7 +71,7 @@ local function add_historical_flows_link(links, key --[[ ip, mac, name --]], val
       links[#links + 1] = {
          icon = historical_flows_icon,
          title = i18n('db_explorer.historical_data_explorer'),
-         url = historical_flows_url,
+         url = historical_flows_url
       }
    end
 end
@@ -83,7 +85,7 @@ local function add_as_info_link(links, asn, ifid)
    links[#links + 1] = {
       icon = as_info_icon,
       title = i18n('as_info'),
-      url = as_info_url,
+      url = as_info_url
    }
 end
 
@@ -94,7 +96,7 @@ local function add_icon_link(links, icon, title, url)
    links[#links + 1] = {
       icon = icon,
       title = title,
-      url = url,
+      url = url
    }
 end
 
@@ -141,7 +143,7 @@ local function add_badge(badges, label, icon, title)
    badges[#badges + 1] = {
       label = label,
       icon = icon,
-      title = title,
+      title = title
    }
 end
 
@@ -161,6 +163,7 @@ local function build_result(label, value, value_type, links, badges, context, if
       badges = badges,
       context = context,
       ifid = ifid,
+      if_name = interface.getName()
    }
 
    r[value_type] = value
@@ -176,19 +179,31 @@ local function build_no_results_entry(query, ifid)
    local what = ""
    if isHostKey(query) then
       what = "ip"
-      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      label = i18n("db_search.find_in_historical", {
+         what = what,
+         query = query
+      })
       query = query .. tag_utils.SEPARATOR .. "eq"
    elseif isMacAddress(query) then
       what = "mac"
-      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      label = i18n("db_search.find_in_historical", {
+         what = what,
+         query = query
+      })
       query = query .. tag_utils.SEPARATOR .. "eq"
    elseif isCommunityId(query) then
       what = "community_id"
-      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      label = i18n("db_search.find_in_historical", {
+         what = what,
+         query = query
+      })
       query = query .. tag_utils.SEPARATOR .. "eq"
    else
       what = "hostname"
-      label = i18n("db_search.find_in_historical", {what=what, query=query})
+      label = i18n("db_search.find_in_historical", {
+         what = what,
+         query = query
+      })
       query = query .. tag_utils.SEPARATOR .. "in"
    end
    return build_result(label, query, what, nil, nil, "historical", ifid)
@@ -199,7 +214,10 @@ end
 -- No Exact Match - add shortcut to search in historical data
 local function build_no_exact_match_entry(query, ifid)
    what = "ip"
-   label = i18n("db_search.no_exact_match", {what=what, query=query})
+   label = i18n("db_search.no_exact_match", {
+      what = what,
+      query = query
+   })
    query = query .. tag_utils.SEPARATOR .. "eq"
    return build_result(label, query, what, nil, nil, "historical", ifid)
 end
@@ -207,8 +225,9 @@ end
 -- -----------------------------------------------
 
 -- Look by network
-local function find_network(query, tot_results, ifid)
+local function find_network(query, tot_results, ifid, add_interface_name)
    local results = {}
+   local interface_name = getInterfaceName(ifid)
 
    local network_stats = interface.getNetworksStats()
 
@@ -224,12 +243,16 @@ local function find_network(query, tot_results, ifid)
          local links = {}
          add_network_link(links)
 
+         if add_interface_name then
+            name = string.format("[%s] %s", interface_name, name)
+         end
+
          results[#results + 1] = {
-	    name = name,
+            name = name,
             type = "network",
             network = network_id,
             links = links,
-            ifid = ifid,
+            ifid = ifid
          }
       end
    end
@@ -240,10 +263,11 @@ end
 -- -----------------------------------------------
 
 -- Look by AS
-local function find_as(query, tot_results, ifid)
+local function find_as(query, tot_results, ifid, add_interface_name)
    local results = {}
 
    local as_info = interface.getASesInfo() or {}
+   local interface_name = getInterfaceName(ifid)
 
    for _, as in pairs(as_info.ASes or {}) do
       if #results >= max_group_items or (#results + tot_results) >= max_total_items then
@@ -254,27 +278,34 @@ local function find_as(query, tot_results, ifid)
       local as_name = as.asname
       local links = {}
       local badges = {}
+      local name = ""
       add_asn_link(links)
       add_as_info_link(links, as.asn, ifid)
+
+      if add_interface_name then
+         name = string.format("[%s] ", interface_name)
+      end
 
       if string.containsIgnoreCase(as_name, query) then
          add_badge(badges, asn)
          results[#results + 1] = {
-	    name = as_name,
-            type="asn",
+            name = name .. as_name,
+            type = "asn",
             asn = as.asn,
             links = links,
             badges = badges,
             ifid = ifid,
+            if_name = interface.getName()
          }
       elseif string.containsIgnoreCase(asn, query) then
          results[#results + 1] = {
-            name = asn,
-	    type = "asn",
+            name = name .. asn,
+            type = "asn",
             asn = as.asn,
             links = links,
             badges = badges,
             ifid = ifid,
+            if_name = interface.getName()
          }
       end
    end
@@ -300,7 +331,7 @@ local function find_snmp_mac(query, tot_results)
 
       for _, snmp_port in ipairs(matches) do
          if #results >= max_group_items or (#results + tot_results) >= max_total_items then
-	    break
+            break
          end
 
          local snmp_device_ip = snmp_port["snmp_device_ip"]
@@ -308,7 +339,12 @@ local function find_snmp_mac(query, tot_results)
          local snmp_port_idx = snmp_port["id"]
          local snmp_port_name = snmp_port["name"]
 
-         local title = i18n("snmp.snmp_interface_x", { interface = shortenString(snmp_utils.get_snmp_interface_label({index = snmp_port_idx, name = snmp_port_name}))})
+         local title = i18n("snmp.snmp_interface_x", {
+            interface = shortenString(snmp_utils.get_snmp_interface_label({
+               index = snmp_port_idx,
+               name = snmp_port_name
+            }))
+         })
 
          title = title .. " · " .. snmp_utils.get_snmp_device_label(snmp_device_ip)
 
@@ -316,13 +352,13 @@ local function find_snmp_mac(query, tot_results)
          add_snmp_interface_link(links, snmp_device_ip, snmp_port_idx)
 
          results[#results + 1] = {
-	    name = matching_mac .. ' '..title,
+            name = matching_mac .. ' ' .. title,
             type = "snmp",
-	    ip = snmp_device_ip,
+            ip = snmp_device_ip,
             snmp = snmp_device_ip,
             snmp_port_idx = snmp_port_idx,
             links = links,
-            ifid = ifid,
+            ifid = ifid
          }
       end
    end
@@ -342,7 +378,7 @@ local function find_snmp_interface(query, tot_results)
 
       for _, snmp_port in ipairs(matches) do
          if #results >= max_group_items or (#results + tot_results) >= max_total_items then
-	    break
+            break
          end
 
          local snmp_device_ip = snmp_port["snmp_device_ip"]
@@ -350,7 +386,12 @@ local function find_snmp_interface(query, tot_results)
          local snmp_port_name = snmp_port["name"]
          local snmp_port_index_match = snmp_port["index_match"]
 
-         local title = i18n("snmp.snmp_interface_x", { interface = shortenString(snmp_utils.get_snmp_interface_label({index = snmp_port_idx, name = snmp_port_name}))})
+         local title = i18n("snmp.snmp_interface_x", {
+            interface = shortenString(snmp_utils.get_snmp_interface_label({
+               index = snmp_port_idx,
+               name = snmp_port_name
+            }))
+         })
 
          title = title .. " · " .. snmp_utils.get_snmp_device_label(snmp_device_ip)
 
@@ -358,13 +399,13 @@ local function find_snmp_interface(query, tot_results)
          add_snmp_interface_link(links, snmp_device_ip, snmp_port_idx)
 
          results[#results + 1] = {
-	    name = title,
+            name = title,
             type = "snmp",
-	    ip = snmp_device_ip,
+            ip = snmp_device_ip,
             snmp = snmp_device_ip,
             snmp_port_idx = snmp_port_idx,
             links = links,
-            ifid = ifid,
+            ifid = ifid
          }
       end
    end
@@ -384,7 +425,7 @@ local function find_snmp_device(query, tot_results)
 
       for _, snmp_device in ipairs(matches) do
          if #results >= max_group_items or (#results + tot_results) >= max_total_items then
-	    break
+            break
          end
 
          local title = snmp_utils.get_snmp_device_label(snmp_device["ip"])
@@ -393,12 +434,12 @@ local function find_snmp_device(query, tot_results)
          add_snmp_device_link(links, snmp_device["ip"])
 
          results[#results + 1] = {
-	    name = title,
+            name = title,
             type = "snmp_device",
-	    ip = snmp_device["ip"],
+            ip = snmp_device["ip"],
             snmp_device = snmp_device["ip"],
             links = links,
-            ifid = ifid,
+            ifid = ifid
          }
       end
    end
@@ -409,7 +450,7 @@ end
 -- -----------------------------------------------
 
 -- Hosts
-local function find_host(query, tot_results, ifid)
+local function find_host(query, tot_results, ifid, add_interface_name)
    local results = {}
 
    local query_info = hostkey2hostinfo(query)
@@ -461,10 +502,13 @@ local function find_host(query, tot_results, ifid)
             end
 
             hosts[ip] = {
-               label = hostinfo2label({host = ip, name = name}),
+               label = hostinfo2label({
+                  host = ip,
+                  name = name
+               }),
                ip = ip,
                name = name,
-               links = links,
+               links = links
             }
          end
       end
@@ -515,7 +559,7 @@ local function find_host(query, tot_results, ifid)
             ip = ip,
             mac = mac,
             links = links,
-            badges = badges,
+            badges = badges
          }
       end
    end
@@ -540,11 +584,14 @@ local function find_host(query, tot_results, ifid)
          add_inactive_badge(badges)
 
          hosts[h.host] = {
-            label = hostinfo2label({host=h.host, vlan=h.vlan}, true),
+            label = hostinfo2label({
+               host = h.host,
+               vlan = h.vlan
+            }, true),
             ip = h.host,
             name = h.host,
             links = links,
-            badges = badges,
+            badges = badges
          }
       end
    end
@@ -581,7 +628,6 @@ local function find_host(query, tot_results, ifid)
    end
    --]]
 
-
    -- Also look at the DHCP cache
    local key_prefix_offset = string.len(getDhcpNameKey(ifid, "")) + 1
    local mac_to_name = ntop.getKeysCache(getDhcpNameKey(ifid, "*")) or {}
@@ -598,39 +644,50 @@ local function find_host(query, tot_results, ifid)
             add_historical_flows_link(links, 'mac', mac, ifid)
 
             hosts[mac] = {
-               label = hostinfo2label({host = mac, mac = mac, name = name}) .. " · " .. mac,
+               label = hostinfo2label({
+                  host = mac,
+                  mac = mac,
+                  name = name
+               }) .. " · " .. mac,
                mac = mac,
                name = name,
-               links = links,
+               links = links
             }
          end
       end
    end
 
    -- Build final array with results
+   local name = ""
+   local interface_name = getInterfaceName(ifid)
+   if add_interface_name then
+      name = string.format("[%s] ", interface_name)
+   end
 
    for k, v in pairsByField(hosts, 'name', asc) do
       if #results >= max_group_items or (#results + tot_results) >= max_total_items then
          break
       end
 
-      if((v.label ~= "") and (already_printed[v.label] == nil)) then
+      if ((v.label ~= "") and (already_printed[v.label] == nil)) then
          already_printed[v] = true
 
          if v.mac then
-            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges, nil, ifid)
+            results[#results + 1] = build_result(name .. v.label, v.mac, "mac", v.links, v.badges, nil, ifid)
          elseif v.ip then
 
             -- Add badge for services
             local info = interface.getHostMinInfo(v.ip)
             if info and info.services then
-               if not v.badges then v.badges = {} end
-               for s,_ in pairs(info.services) do
+               if not v.badges then
+                  v.badges = {}
+               end
+               for s, _ in pairs(info.services) do
                   add_badge(v.badges, s:upper())
                end
             end
 
-            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges, nil, ifid)
+            results[#results + 1] = build_result(name .. v.label, v.ip, "ip", v.links, v.badges, nil, ifid)
          end
       end -- if
    end
@@ -638,7 +695,7 @@ local function find_host(query, tot_results, ifid)
    local lookup_info = {
       is_full_ip = is_full_ip,
       partial_ip_match = partial_ip_match,
-      exact_ip_match = exact_ip_match,
+      exact_ip_match = exact_ip_match
    }
 
    return results, lookup_info
@@ -647,7 +704,7 @@ end
 -- -----------------------------------------------
 
 -- Lookup on all entities
-local function find_on_interface(query, hosts_only, ifid, tot_results)
+local function find_on_interface(query, hosts_only, ifid, tot_results, add_interface_name)
    local results = {}
    local host_results = {}
    local lookup_info = {}
@@ -669,13 +726,13 @@ local function find_on_interface(query, hosts_only, ifid, tot_results)
 
    if not hosts_only then
       if not is_system_interface then
-         results = table.merge(results, find_network(query, #results + tot_results, ifid))
-         results = table.merge(results, find_as(query, #results + tot_results, ifid))
+         results = table.merge(results, find_network(query, #results + tot_results, ifid, add_interface_name))
+         results = table.merge(results, find_as(query, #results + tot_results, ifid, add_interface_name))
       end
-   end 
+   end
 
    if not is_system_interface then
-      host_results, lookup_info = find_host(query, #results + tot_results, ifid)
+      host_results, lookup_info = find_host(query, #results + tot_results, ifid, add_interface_name)
       results = table.merge(results, host_results)
    end
 
@@ -713,7 +770,7 @@ function find_utils.find(query, hosts_only, ifid)
       results = table.merge(results, find_snmp_mac(query, #results, ifid))
       results = table.merge(results, find_snmp_interface(query, #results, ifid))
       results = table.merge(results, find_snmp_device(query, #results, ifid))
-   end 
+   end
 
    return results
 end
@@ -730,14 +787,20 @@ function find_utils.find_on_any_interface(query, hosts_only)
    local partial_ip_match = false
 
    local interfaces = interface.getIfNames()
-   
+
    for id, name in pairs(interfaces) do
-      local host_results, lookup_info =  find_on_interface(query, hosts_only, id, #results)
+      local host_results, lookup_info = find_on_interface(query, hosts_only, id, #results, true --[[ Add the interface name to the label ]])
       results = table.merge(results, host_results)
       tot_num_hosts = tot_num_hosts + lookup_info.num_hosts
-      if lookup_info.is_full_ip then is_full_ip = true end
-      if lookup_info.exact_ip_match then exact_ip_match = true end
-      if lookup_info.partial_ip_match then partial_ip_match = true end
+      if lookup_info.is_full_ip then
+         is_full_ip = true
+      end
+      if lookup_info.exact_ip_match then
+         exact_ip_match = true
+      end
+      if lookup_info.partial_ip_match then
+         partial_ip_match = true
+      end
    end
 
    if tot_num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
@@ -753,7 +816,7 @@ function find_utils.find_on_any_interface(query, hosts_only)
       results = table.merge(results, find_snmp_mac(query, #results, ifid))
       results = table.merge(results, find_snmp_interface(query, #results, ifid))
       results = table.merge(results, find_snmp_device(query, #results, ifid))
-   end 
+   end
 
    return results
 end
