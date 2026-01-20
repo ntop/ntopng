@@ -1545,6 +1545,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["post_nat_ipv4_dst_addr"] = tag_utils.defined_tags["post_nat_ipv4_dst_addr"]
    flow_defined_tags["post_nat_dst_port"] = tag_utils.defined_tags["post_nat_dst_port"]
    flow_defined_tags["verdict"] = tag_utils.defined_tags["verdict"]
+   flow_defined_tags["ndpi_fingerprint"] = tag_utils.defined_tags["ndpi_fingerprint"]
 
    return flow_defined_tags
 end

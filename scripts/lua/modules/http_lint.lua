@@ -2096,6 +2096,7 @@ local known_parameters = {
     ["community_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
     ["cli_fingerprint"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
     ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
+    ["ndpi_fingerprint"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
     ["issuer_dn"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
     ["last_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
     ["retransmissions"] = validateListOfTypeInline(validateFilters(validateNumber)),
