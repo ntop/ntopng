@@ -108,7 +108,10 @@ onBeforeMount(async () => {
 function init_selected_criteria() {
     let aggregation_criteria = ntopng_url_manager.get_url_entry("aggregation_criteria");
     if (aggregation_criteria == null || aggregation_criteria == "") {
-        return;
+        if(props.context.aggregation_criteria != null)
+            aggregation_criteria = props.context.aggregation_criteria;
+        else 
+            return;
     }
     const tmp_criteria = criteria_list.value.find((c) => c.param == aggregation_criteria);
     // In case it's not found, use the first available criteria
@@ -221,6 +224,8 @@ async function load_table_filters_array() {
 /* ************************************** */
 
 function get_url_params() {
+    //console.log(ntopng_url_manager.get_url_entry("aggregation_criteria"))
+    //console.log(selected_criteria.value.param)
     let actual_params = {
         ifid: ntopng_url_manager.get_url_entry("ifid") || props.context.ifid,
         vlan_id: ntopng_url_manager.get_url_entry("vlan_id")  /* No filter by default */,
