@@ -1059,6 +1059,7 @@ public:
   bool matchFlowDeviceIP(u_int32_t flow_device_ip);
   bool matchInIfIdx(u_int32_t in_if_idx);
   bool matchOutIfIdx(u_int32_t out_if_idx);
+  bool matchAlertsStatus(u_int32_t out_if_idx);
   void dissectHTTP(bool src2dst_direction, char *payload,
                    u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);

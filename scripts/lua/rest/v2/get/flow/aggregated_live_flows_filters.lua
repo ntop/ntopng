@@ -34,6 +34,8 @@ rest_filters["host"] = _GET["host"]
 -- ##################################################################
 -- Enums
 
+local alert_consts = require "alert_consts"
+
 local filter_types = {vlan = 1, flow_device = 2}
 
 -- ##################################################################
@@ -117,7 +119,7 @@ end
 
 local function build_response(criteria)
     local formatted_vlan_filters = {}
-
+    local status_filter = {}
     local criteria_type_id = retrieve_aggregation_criteria(criteria)
 
     local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id,
@@ -135,11 +137,23 @@ local function build_response(criteria)
                                                                     "",
                                                                 rest_filters["host"],
                                                                 nil), nil)
-
+    --tprint(aggregated_info)
     for _, data in pairs(aggregated_info or {}) do
         add_new_filter_item_to_filters_array(data.vlan_id,
                                              formatted_vlan_filters,
                                              filter_types.vlan)
+        if data["status"] then
+            for _, status in pairs(data["status"]) do
+                local name =
+                alert_consts.alertTypeLabel(status, true --[[ no html --]] )
+                status_filter[name] = {
+                    group = i18n('flow_details.alerted_flows'),
+                    key = "status",
+                    value = status,
+                    label = name
+                }
+            end
+        end
     end
 
     table.sort(formatted_vlan_filters,
@@ -173,6 +187,10 @@ local function build_response(criteria)
         end
     end
 
+    local formatted_status_filters = {{key = "status", value = -1, label = i18n("all")}}
+    for _, status in pairs(status_filter) do
+        formatted_status_filters[#formatted_status_filters + 1] = status
+    end 
     local rsp = {}
     if (#formatted_vlan_filters > 2) then
         rsp[#rsp + 1] = {
@@ -191,6 +209,16 @@ local function build_response(criteria)
             tooltip = i18n("flows_page.device_ip"),
             name = "deviceIP",
             value = formatted_device_filters
+        }
+    end
+
+    if (#formatted_status_filters > 1) then
+        rsp[#rsp + 1] = {
+            action = "status",
+            label = i18n("status"),
+            tooltip = i18n("status"),
+            name = "status",
+            value = formatted_status_filters
         }
     end
 

@@ -228,6 +228,7 @@ function get_url_params() {
         inIfIdx: ntopng_url_manager.get_url_entry("inIfIdx"),
         outIfIdx: ntopng_url_manager.get_url_entry("outIfIdx"),
         ifIdx: ntopng_url_manager.get_url_entry("ifIdx"),
+        status: ntopng_url_manager.get_url_entry("status"),
         aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
         host: ntopng_url_manager.get_url_entry("host") || props.context.host,
     };

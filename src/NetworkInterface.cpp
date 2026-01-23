@@ -11867,6 +11867,10 @@ bool NetworkInterface::matchAggregatedFlow(Flow *flow, struct aggregated_stats *
       if (!flow->matchOutIfIdx(stats->out_if_index))
         return(false);
     }
+    if (stats->alert_status != NO_ALERTS_STATUS /* -1 == any Flow Device In Interface Index */) {
+      if (!flow->matchAlertsStatus(stats->alert_status))
+        return(false);
+    }
   }
 
   return (true);
@@ -11902,7 +11906,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
 
   if (it == stats->count.end()) {
     AggregatedFlowsStats *fs = new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs) {
       fs->setProtoKey(key);
@@ -11913,7 +11917,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   } else {
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
                              f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-                             f->getScore());
+                             f->getScore(), f->getAlertsBitmap());
   }
 
   *matched = true;
@@ -11943,7 +11947,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
 
   if (it == stats->count.end()) {
     AggregatedFlowsStats *fs = new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs != NULL) {
       fs->setFlowIPVLANDeviceIP(f);
@@ -11953,7 +11957,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
   } else {
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
                              f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-                             f->getScore());
+                             f->getScore(), f->getAlertsBitmap());
   }
 
   *matched = true;
@@ -11983,7 +11987,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
 
   if (it == stats->count.end()) {
     AggregatedFlowsStats *fs = new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs != NULL) {
       fs->setFlowIPVLANDeviceIP(f);
@@ -11993,7 +11997,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
   } else {
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
                              f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-                             f->getScore());
+                             f->getScore(), f->getAlertsBitmap());
   }
 
   *matched = true;
@@ -12022,7 +12026,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
   if (it == stats->count.end()) {
     AggregatedFlowsStats *fs =
       new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs != NULL) {
       fs->setFlowIPVLANDeviceIP(f);
@@ -12033,7 +12037,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			     f->getScore());
+			     f->getScore(), f->getAlertsBitmap());
 
   *matched = true;
 
@@ -12073,7 +12077,7 @@ bool NetworkInterface::compute_client_server_srv_port_app_proto_flow_stats(Gener
   if (it == stats->count.end()) {
     AggregatedFlowsStats *fs =
       new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs != NULL) {
       fs->setFlowIPVLANDeviceIP(f);
@@ -12086,7 +12090,7 @@ bool NetworkInterface::compute_client_server_srv_port_app_proto_flow_stats(Gener
   } else
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			     f->getScore());
+			     f->getScore(), f->getAlertsBitmap());
 
   *matched = true;
 
@@ -12114,7 +12118,7 @@ bool NetworkInterface::compute_host_flow_stats(GenericHashEntry *node,
   if (it == stats->count.end()) {
     AggregatedFlowsStats *fs =
       new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs != NULL) {
       fs->setKey(cli_key);
@@ -12125,7 +12129,7 @@ bool NetworkInterface::compute_host_flow_stats(GenericHashEntry *node,
   } else {
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-			     f->getScore());
+			     f->getScore(), f->getAlertsBitmap());
   }
 
   // Server, first check if client and server are different, otherwise
@@ -12136,7 +12140,7 @@ bool NetworkInterface::compute_host_flow_stats(GenericHashEntry *node,
     if (it == stats->count.end()) {
       AggregatedFlowsStats *fs =
 	new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-						f->get_bytes_srv2cli(), f->get_bytes_cli2srv(), f->getScore());
+						f->get_bytes_srv2cli(), f->get_bytes_cli2srv(), f->getScore(), f->getAlertsBitmap());
 
       if (fs != NULL) {
 	fs->setKey(srv_key);
@@ -12147,7 +12151,7 @@ bool NetworkInterface::compute_host_flow_stats(GenericHashEntry *node,
     } else {
       it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			       f->get_bytes_srv2cli(), f->get_bytes_cli2srv(),
-			       f->getScore());
+			       f->getScore(), f->getAlertsBitmap());
     }
   }
   *matched = true;
@@ -12313,7 +12317,8 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
     char buf[128];
     u_int8_t add_client = false, add_server = false, add_app_proto = false,
       add_info = false, add_srv_port = false, add_src_as = false,
-      add_dst_as = false, add_transit_as = false, add_host = false;
+      add_dst_as = false, add_transit_as = false, add_host = false,
+      add_alert_status = true;
 
     lua_newtable(vm);
 
@@ -12388,6 +12393,20 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
       lua_push_str_table_entry(vm, "proto_name",
 			       get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, "is_not_guessed", flow_stats->isNotGuessed());
+    }
+
+    if(add_alert_status){
+      lua_newtable(vm);
+
+      Bitmap128 alerts = flow_stats->getAlertsBitmap();
+      for(int id = alerts.getNext(0); id >= 0;
+        id = alerts.getNext(id + 1)) {
+        std::string key = std::to_string(id);
+        lua_push_uint32_table_entry(vm, key.c_str(), id);
+      }
+      lua_pushstring(vm, "status");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
     }
 
     if (add_client) {
@@ -12692,7 +12711,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   u_int32_t in_if_idx = NO_IN_IF_INDEX /* Any inIfIdx */;
   u_int32_t out_if_idx = NO_OUT_IF_INDEX /* Any outIfIdx */;
   u_int32_t if_idx = NO_OUT_IF_INDEX /* Any interface index */;
-
+  u_int32_t alert_status = NO_ALERTS_STATUS /* Any Alert Status */;
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
   if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm,9);
@@ -12700,14 +12719,14 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   if (lua_type(vm, 11) == LUA_TNUMBER) in_if_idx = lua_tonumber(vm,11);
   if (lua_type(vm, 12) == LUA_TNUMBER) out_if_idx = lua_tonumber(vm,12);
   if (lua_type(vm, 13) == LUA_TNUMBER) if_idx = lua_tonumber(vm,13);
-
+  if (lua_type(vm, 14) == LUA_TNUMBER) alert_status = lua_tonumber(vm,14);
   stats.vlan_id = vlan_id;
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.flow_device_ip = flow_device_ip ? ntohl(inet_addr(flow_device_ip)) : /* Any flow device */ (u_int32_t)-1;
   stats.in_if_index = in_if_idx;
   stats.out_if_index = out_if_idx;
   stats.if_index = if_idx;
-
+  stats.alert_status =  alert_status;
   switch (filter_type) {
   case AnalysisCriteria::application_criteria:
     /* application protocol criteria flows stats case */
@@ -13291,13 +13310,13 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data,
 
   if (it == count->end()) {
     AggregatedFlowsStats *fs = new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(), f->getAlertsBitmap());
 
     if (fs != NULL) (*count)[key] = fs;
   } else {
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
                              f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-                             f->getScore());
+                             f->getScore(), f->getAlertsBitmap());
   }
 
   *matched = true;

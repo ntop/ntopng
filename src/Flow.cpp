@@ -8936,6 +8936,10 @@ bool Flow::matchOutIfIdx(u_int32_t out_if_idx) {
   return(getFlowDeviceOutIndex() == out_if_idx ? true : false);
 }
 
+bool Flow::matchAlertsStatus(u_int32_t alert_status){
+  return(getAlertsBitmap().isSetBit(alert_status));
+}
+
 /* **************************************************** */
 
 void Flow::lua_get_flow_connection_state(lua_State *vm) {

@@ -44,10 +44,11 @@ class AggregatedFlowsStats {
   bool is_not_guessed;
   u_int32_t flow_device_ip;
   u_int32_t src_as, dst_as, transit_as;
+  Bitmap128 alerts_status;
 
  public:
   AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
-		       u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score);
+		       u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score, Bitmap128 flow_alerts);
 
   ~AggregatedFlowsStats();
 
@@ -70,6 +71,8 @@ class AggregatedFlowsStats {
   inline char* getProtoName() { return (proto_name ? proto_name : (char *)""); };
   inline char* getInfoKey() { return (info_key ? info_key : (char *)""); };
  
+  inline Bitmap128 getAlertsBitmap() { return alerts_status; }
+  
   inline const char* getHostIP(char* buf, u_int len) { return (host ? host->getIP(buf, len) : (char *)""); };
   inline const char* getCliIP(char* buf, u_int len) { return (client ? client->getIP(buf, len) : (char *)""); };
   inline const char* getSrvIP(char* buf, u_int len) { return (server ? server->getIP(buf, len) : (char *)""); };
@@ -139,7 +142,7 @@ class AggregatedFlowsStats {
 
   void incFlowStats(const IpAddress* _client, const IpAddress* _server,
                            u_int64_t bytes_sent, u_int64_t bytes_rcvd,
-                           u_int32_t score);
+                           u_int32_t score, Bitmap128 flow_alerts);
 };
 
 struct aggregated_stats {
@@ -151,6 +154,7 @@ struct aggregated_stats {
   u_int32_t in_if_index;
   u_int32_t out_if_index;
   u_int32_t if_index;
+  u_int32_t alert_status;
 };
 
 #endif /* _FLOWS_STATS_H_ */
