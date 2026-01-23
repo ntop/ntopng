@@ -142,16 +142,18 @@ local function build_response(criteria)
         add_new_filter_item_to_filters_array(data.vlan_id,
                                              formatted_vlan_filters,
                                              filter_types.vlan)
-        if data["status"] then
-            for _, status in pairs(data["status"]) do
-                local name =
-                alert_consts.alertTypeLabel(status, true --[[ no html --]] )
-                status_filter[name] = {
-                    group = i18n('flow_details.alerted_flows'),
-                    key = "status",
-                    value = status,
-                    label = name
-                }
+        if ntop.isEnterpriseM() then
+            if data["status"] then
+                for _, status in pairs(data["status"]) do
+                    local name =
+                    alert_consts.alertTypeLabel(status, true --[[ no html --]] )
+                    status_filter[name] = {
+                        group = i18n('flow_details.alerted_flows'),
+                        key = "status",
+                        value = status,
+                        label = name
+                    }
+                end
             end
         end
     end
@@ -162,7 +164,7 @@ local function build_response(criteria)
                  {key = "vlan_id", label = i18n('all'), value = ""})
 
     local formatted_device_filters = {}
-    if ntop.isPro() and interface.isPacketInterface() == false then
+    if ntop.isEnterpriseM() and interface.isPacketInterface() == false then
         local flowdevs = interface.getFlowDevices() or {}
         local devips = getProbesName(flowdevs)
         if table.len(devips) > 0 then
@@ -212,17 +214,19 @@ local function build_response(criteria)
         }
     end
 
-    if (#formatted_status_filters > 1) then
-        rsp[#rsp + 1] = {
-            action = "status",
-            label = i18n("status"),
-            tooltip = i18n("status"),
-            name = "status",
-            value = formatted_status_filters
-        }
+    if ntop.isEnterpriseM() then
+        if (#formatted_status_filters > 1) then
+            rsp[#rsp + 1] = {
+                action = "status",
+                label = i18n("status"),
+                tooltip = i18n("status"),
+                name = "status",
+                value = formatted_status_filters
+            }
+        end
     end
 
-    if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
+    if ntop.isEnterpriseM() and not isEmptyString(_GET["deviceIP"]) then
         local dev_ip = _GET["deviceIP"]
         
         if not isEmptyString(_GET["ifIdx"]) then
