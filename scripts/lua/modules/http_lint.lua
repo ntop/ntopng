@@ -2830,6 +2830,10 @@ local known_parameters = {
 
     -- labels
     ["color"] = validateSingleWord,
+    ["latitude"] = validateSingleWord,
+    ["longitude"] = validateSingleWord,
+    ["exporter_site"] = validateSingleWord,
+    ["exporter_site_id"] = validateSingleWord,
 
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies

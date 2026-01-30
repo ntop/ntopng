@@ -1,0 +1,81 @@
+{
+	"id": "exporter_sites_list",
+	"data_url": "lua/pro/rest/v2/get/exporter_site/exporter_sites_list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "name",
+		"sort": 0
+	},
+	"columns": [
+        {
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"min-width" : "80px",
+            "max-width" : "80px",
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit_exporter_site",
+					"icon": "fas fa-cog",
+					"title_i18n": "exporter_sites_page.edit_exporter_site",
+					"class": [],
+					"event_id": "click_button_edit_exporter_site"
+				},
+				{
+                    "id": "delete_exporter_site",
+                    "icon": "fas fa fa-trash",
+                    "title_i18n": "delete",
+                    "class": [
+                        "btn-info"
+                    ],
+                    "event_id": "click_button_delete_exporter_site"
+                }
+			]
+		},
+		{
+			"title_i18n": "exporter_sites_page.exporter_site_name",
+			"data_field": "name",
+			"sortable": true,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "exporter_sites_page.exporter_site_description",
+			"data_field": "description",
+			"sortable": false,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "exporter_sites_page.exporter_site_location",
+			"data_field": "latitude",
+			"sortable": false,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "exporter_sites_page.exporter_site_location",
+			"data_field": "longitude",
+			"sortable": false,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

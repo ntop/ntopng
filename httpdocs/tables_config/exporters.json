@@ -73,6 +73,16 @@
 			]
 		},
 		{
+			"id": "exporter_site",
+			"title_i18n": "flow_devices.exporter_site",
+			"data_field": "exporter_site",
+			"sortable": true,
+			"min-width": "40px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "probe_ip",
 			"title_i18n": "flow_devices.probe",
 			"data_field": "probe_ip",
