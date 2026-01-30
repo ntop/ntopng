@@ -99,6 +99,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
       processed = sub_interfaces->processFlow(zflow);
+      if (processed && (!showDynamicInterfaceTraffic())) return true;
     }
 #endif
 #endif
