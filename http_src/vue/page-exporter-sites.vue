@@ -36,7 +36,7 @@ const props = defineProps({ context: Object });
 const loading = ref(false);
 const table_id = ref("exporter_sites_list");
 const exporter_sites_list = ref(null);
-const editingExporterSiteName = ref(null);
+const editingExporterSiteId = ref(null);
 const modalErrorMessage = ref("");
 const csrf = props.context.csrf;
 const exporterSiteModal = ref(null);
@@ -100,7 +100,7 @@ function on_table_custom_event(event) {
 }
 
 const click_button_edit_exporter_site = (event) => {
-    editingExporterSiteName.value = event.row.name;
+    editingExporterSiteId.value = event.row.id;
     
     const exporter_site_data = {
         exporter_site_name: event.row.name,
@@ -114,7 +114,7 @@ const click_button_edit_exporter_site = (event) => {
 };
 
 async function click_button_delete_exporter_site(event) {
-    const exporter_site = event.row.name;
+    const exporter_site = event.row.id;
 
     const requestParams = {
         csrf: props.context.csrf,
@@ -157,7 +157,7 @@ function addExporterSite() {
 const handleEditExporterSite = async (data) => {
     modalErrorMessage.value = "";
     
-    const old_exporter_site_name = editingExporterSiteName.value;
+    const exporter_site_id = editingExporterSiteId.value;
     const new_exporter_site_name = data.exporter_site_name;
     const new_exporter_site_description = data.exporter_site_description;
     const new_exporter_site_lat = data.exporter_site_lat;
@@ -171,7 +171,7 @@ const handleEditExporterSite = async (data) => {
         const addParams = {
             csrf: props.context.csrf,
             exporter_sites: [{
-                old_name: old_exporter_site_name,
+                exporter_site_id: exporter_site_id,
                 name: new_exporter_site_name,
                 description: new_exporter_site_description,
                 latitude: new_exporter_site_lat,
