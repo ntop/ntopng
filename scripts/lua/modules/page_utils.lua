@@ -483,6 +483,12 @@ page_utils.menu_entries = {
         section = "collection",
         help_link = "https://www.ntop.org"
     },
+    exporter_sites = {
+        key = "exporter_sites",
+        i18n_title = "exporter_sites_page.exporter_sites",
+        section = "collection",
+        help_link = "https://www.ntop.org"
+    },
 
     -- Map
     analysis_map = {

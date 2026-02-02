@@ -476,6 +476,10 @@ else
                 entry = page_utils.menu_entries.observation_points,
                 hidden = (interface.getObsPointsInfo().numObsPoints or 0) == 0,
                 url = '/lua/pro/enterprise/observation_points.lua'
+            }, {
+                entry = page_utils.menu_entries.exporter_sites,
+                hidden = false,
+                url = '/lua/pro/enterprise/exporter_sites.lua'
             }
         }
     })
