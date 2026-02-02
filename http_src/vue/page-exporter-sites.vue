@@ -12,7 +12,11 @@
             </button>
         </template>
     </TableWithConfig>
-    <ModalEditExporterSite ref="exporterSiteModal" @edit="handleEditExporterSite" @add="handleAddExporterSite"> </ModalEditExporterSite>
+    <ModalEditExporterSite 
+        ref="exporterSiteModal" 
+        :errorMessage="modalErrorMessage"
+        @edit="handleEditExporterSite" @add="handleAddExporterSite"> 
+    </ModalEditExporterSite>
   </div>
 </template>
 
@@ -33,6 +37,7 @@ const loading = ref(false);
 const table_id = ref("exporter_sites_list");
 const exporter_sites_list = ref(null);
 const editingExporterSiteName = ref(null);
+const modalErrorMessage = ref("");
 const csrf = props.context.csrf;
 const exporterSiteModal = ref(null);
 const edit_exporter_site_url = `${http_prefix}/lua/pro/rest/v2/edit/exporter_site/exporter_site.lua`;
@@ -150,6 +155,8 @@ function addExporterSite() {
 /* ************************************** */
 
 const handleEditExporterSite = async (data) => {
+    modalErrorMessage.value = "";
+    
     const old_exporter_site_name = editingExporterSiteName.value;
     const new_exporter_site_name = data.exporter_site_name;
     const new_exporter_site_description = data.exporter_site_description;
@@ -172,24 +179,33 @@ const handleEditExporterSite = async (data) => {
             }]
         };
 
-        await ntopng_utility.http_request(edit_exporter_site_url, {
+        const rsp = await ntopng_utility.http_request(edit_exporter_site_url, {
             method: 'post',
             headers,
             body: JSON.stringify(addParams)
         });
+
+        if (rsp?.success === false) {
+            modalErrorMessage.value = rsp.msg || _i18n("error");
+            return;
+        }
+
+        exporter_sites_list.value.refresh_table(true);
+        exporterSiteModal.value.close();
 
         // Refresh table
         exporter_sites_list.value.refresh_table(true);
 
     } catch (e) {
         console.error('Error during exporter site edit:', e);
-        exporter_sites_list.value.refresh_table(true);
     }
 };
 
 /* ************************************** */
 
 const handleAddExporterSite = async (data) => {
+    modalErrorMessage.value = "";
+    
     const headers = { 'Content-Type': 'application/json' };
 
     const addParams = {
@@ -203,16 +219,22 @@ const handleAddExporterSite = async (data) => {
     };
 
     try {
-        await ntopng_utility.http_request(add_exporter_site_url, {
+        const res = await ntopng_utility.http_request(add_exporter_site_url, {
             method: 'post',
             headers,
             body: JSON.stringify(addParams)
         });
+        
+        if (res?.success === false) {
+            modalErrorMessage.value = res.msg || _i18n("error");
+            return;
+        }
 
         exporter_sites_list.value.refresh_table(true);
+        exporterSiteModal.value.close();
+
     } catch (e) {
         console.error('Error adding exporter site:', e);
-        exporter_sites_list.value.refresh_table(true);
     }
 };
 

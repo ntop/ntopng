@@ -82,6 +82,9 @@
                     </div>
                 </div>
             </div>
+            <div v-if="errorMessage" class="alert alert-danger mb-3">
+                {{ errorMessage }}
+            </div>
         </template>
 
         <template v-slot:footer>
@@ -125,6 +128,7 @@ const isReserved = computed(() => {
 
 const props = defineProps({
     context: Object,
+    errorMessage: String
 });
 
 const is_form_valid = computed(() => {
@@ -165,7 +169,6 @@ const handleSubmit = () => {
         emit("add", formData);
     }
 
-    close();
 };
 
 const showAdd = () => {
