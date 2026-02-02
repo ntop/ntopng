@@ -478,7 +478,7 @@ else
                 url = '/lua/pro/enterprise/observation_points.lua'
             }, {
                 entry = page_utils.menu_entries.exporter_sites,
-                hidden = false,
+                hidden = true,
                 url = '/lua/pro/enterprise/exporter_sites.lua'
             }
         }
