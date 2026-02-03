@@ -186,8 +186,8 @@ const handleEditExporterSite = async (data) => {
             csrf: props.context.csrf,
             exporter_sites: [{
                 exporter_site_id: exporter_site_id,
-                name: new_exporter_site_name,
-                description: new_exporter_site_description,
+                exporter_site_name: new_exporter_site_name,
+                exporter_site_description: new_exporter_site_description,
                 latitude: new_exporter_site_lat,
                 longitude: new_exporter_site_lng
             }]
@@ -225,8 +225,8 @@ const handleAddExporterSite = async (data) => {
     const addParams = {
         csrf: props.context.csrf,
         exporter_sites: [{
-            name: data.exporter_site_name,
-            description: data.exporter_site_description,
+            exporter_site_name: data.exporter_site_name,
+            exporter_site_description: data.exporter_site_description,
             latitude: data.exporter_site_lat,
             longitude: data.exporter_site_lng
         }]

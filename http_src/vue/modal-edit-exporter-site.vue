@@ -141,11 +141,14 @@ const validateName = () => {
         return;
     }
     const trimmed = exporter_site_name.value.trim();
+    const alphanumericRegex = /^[\p{L}0-9 ]+$/u;
 
     if (!trimmed) {
         name_error.value = _i18n("error_messages.name_cannot_be_empty");
     } else if (trimmed.length <= 1) {
         name_error.value = _i18n("error_messages.name_must_be_longer_than_1_character");
+    } else if (!alphanumericRegex.test(trimmed)) {
+        name_error.value = _i18n("error_messages.name_must_be_alphanumeric");
     } else {
         name_error.value = "";
     }
