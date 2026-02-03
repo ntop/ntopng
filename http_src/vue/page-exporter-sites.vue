@@ -66,6 +66,16 @@ const map_table_def_columns = (columns) => {
 
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];
+        if (c.id === "actions") {
+            c.button_def_array.forEach((b) => {
+                b.f_map_class = (current_class, row) => {
+                    if (row.id === 0) {
+                        current_class.push("disabled");
+                    }
+                    return current_class;
+                };
+            });
+        }
     });
 
     return columns;
@@ -102,6 +112,7 @@ function on_table_custom_event(event) {
 }
 
 const click_button_edit_exporter_site = (event) => {
+    if(event.row.id === 0) return;
     editingExporterSiteId.value = event.row.id;
     
     const exporter_site_data = {
@@ -116,6 +127,7 @@ const click_button_edit_exporter_site = (event) => {
 };
 
 async function click_button_delete_exporter_site(event) {
+    if(event.row.id === 0) return;
     const exporter_site = event.row.id;
 
     const requestParams = {
