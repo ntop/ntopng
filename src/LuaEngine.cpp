@@ -1035,8 +1035,21 @@ bool LuaEngine::setParamsTable(lua_State *vm,
 
 /* ****************************************** */
 
-void build_redirect(const char *url, const char *query_string, char *buf,
-                    size_t bufsize) {
+void build_redirect(const char *url, const char *query_string,
+		    char *buf, size_t bufsize) {
+  /*
+    Inside ntopng
+    - we cannot redirect outside of the application
+    - no paramenters or anything else should be allowed
+    
+    hence we implement a lighweighted URL checker that
+  */
+  
+  if((url[0] != '/') || strchr(url, '%')) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid redirect URL: %s", url);
+    url = "/"; /* Let's redirect to the root page */
+  }
+
   snprintf(buf, bufsize,
            "HTTP/1.1 302 Found\r\n"
            "Server: ntopng %s (%s)\r\n"
