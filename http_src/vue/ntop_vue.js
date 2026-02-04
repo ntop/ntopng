@@ -94,6 +94,7 @@ import { default as PageNetworksList } from "./page-networks-list.vue"
 import { default as PageDHCPLeases } from "./page-DHCP-leases.vue"
 import { default as PageExporterInterfaceOverview } from "./page-exporter-interface-overview.vue"
 import { default as PageExporterMap } from "./page-exporter-map.vue"
+import { default as PageChordTest } from "./page-chord-test.vue"
 
 /* Testing page */
 import { default as PageTest } from "./page-test.vue";
@@ -120,6 +121,7 @@ import { default as RangePicker } from "./range-picker.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
 import { default as Sankey } from "./sankey.vue";
+import { default as Chord } from "./chord-chart.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
 import { default as SearchBox } from "./components/search-box.vue";
@@ -215,6 +217,7 @@ let ntopVue = {
     PageDHCPLeases: PageDHCPLeases,
     PageExporterInterfaceOverview: PageExporterInterfaceOverview,
     PageExporterMap: PageExporterMap,
+    PageChordTest: PageChordTest,
 
     /* Testing page */
     PageTest: PageTest,
@@ -283,6 +286,7 @@ let ntopVue = {
     SelectSearch: SelectSearch,
     TabList: TabList,
     Sankey: Sankey,
+    Chord: Chord,
     NoteList: NoteList,
     Loading: Loading,
 
