@@ -1000,11 +1000,13 @@ static void authorize(struct mg_connection *conn,
   } else {
     /* Referer url must begin with '/' */
     if ((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
+#if 0
       char *r = strchr(referer, '/');
 
       if (r)
         memmove(referer, r, strlen(r) + 1 /* with null terminator */);
       else
+#endif
         strcpy(referer, "/");
     }
 
