@@ -178,6 +178,10 @@ const map_table_def_columns = (columns) => {
         "last_change": (value, row) => {
             return row.last_change_string
         },
+        "ip_addr": (value, row) => {
+            const arr = value.split(",");
+            return NtopUtils.arrayToListString((arr),2)
+        },
     };
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];

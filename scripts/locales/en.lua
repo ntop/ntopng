@@ -8685,6 +8685,7 @@ local lang = {
     ["interface_alias"] = "Interface Alias",
     ["interface_device"] = "Interface %{interface} [ %{device} ]",
     ["interface_device_2"] = "%{interface}",
+    ["interface_ip"] = "Interface IPs",
     ["interface_role"] = "Role",
     ["interface_similarity"] = "Interface Similarity",
     ["interfaces_with_discards"] = "Interfaces With Discards",

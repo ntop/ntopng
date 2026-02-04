@@ -57,6 +57,15 @@
 				"text-nowrap"
 			]
 		},
+		{
+			"title_i18n": "snmp.interface_ip",
+			"data_field": "ip_addr",
+			"min-width" : "145px",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
         {
 			"title_i18n": "snmp.interface_role",
 			"data_field": "role",
