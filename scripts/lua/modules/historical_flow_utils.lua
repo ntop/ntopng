@@ -718,7 +718,7 @@ local function dt_format_exporter_site(exporter_site_id)
       local exporter_site_utils = require "exporter_site_utils"
       local sites = exporter_site_utils.getExporterSites() or {}
       for _, site in pairs(sites) do
-         if site.id == tonumber(exporter_site_id) then
+         if site.id == tostring(exporter_site_id) then
             exporter_site["title"] = site.name
             exporter_site["label"] = site.name
             break

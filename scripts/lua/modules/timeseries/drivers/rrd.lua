@@ -1001,6 +1001,7 @@ function driver:timeseries_top(options, top_tags)
    for top_item, value in pairsByValues(available_items, rev) do
       if value > 0 then
          local ifindex = available_tags[top_item][1].if_index or available_tags[top_item][1].port
+         local ext_label = nil
          -- Interface index available, probe, exporter, ecc.
          if options.tags.device and ifindex then
             ext_label = format_portidx_name(options.tags.device, ifindex, true)

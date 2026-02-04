@@ -639,9 +639,13 @@ function predicates.flow_dump(toast, container)
     local ifstats = interface.getStats()
 
     if IS_ADMIN and prefs.is_dump_flows_enabled and prefs.is_dump_flows_runtime_enabled and
-        not ifstats.isFlowDumpDisabled and not ifstats.isFlowDumpRunning and not ifstats.isViewed then
-
-        table.insert(container, create_flow_dump_toast_ui(toast))
+        not ifstats.isFlowDumpDisabled and not ifstats.isViewed then
+        if not ifstats.isFlowDumpRunning -- Clickhouse
+            and not ifstats.syslog -- Syslog
+            and not ifstats.kafka -- Kafka
+            and not ifstats.es then -- Elasticsearch
+            table.insert(container, create_flow_dump_toast_ui(toast))
+        end
     end
 end
 

@@ -58,6 +58,7 @@ class Redis {
   int info(char *rsp, u_int rsp_len);
   u_int dbsize();
   int expire(char *key, u_int expire_sec);
+  char* getWithAlloc(char *key, bool cache_it = false);
   int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
   int hashGet(const char *key, const char *member, char *const rsp,
               u_int rsp_len);

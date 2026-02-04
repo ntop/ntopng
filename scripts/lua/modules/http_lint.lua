@@ -2834,6 +2834,8 @@ local known_parameters = {
     ["longitude"] = validateSingleWord,
     ["exporter_site"] = validateSingleWord,
     ["exporter_site_id"] = validateSingleWord,
+    ["exporter_site_name"] = validateUnquoted,
+    ["exporter_site_description"] = validateUnchecked,
 
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies

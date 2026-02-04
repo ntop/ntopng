@@ -201,8 +201,8 @@ async function loadExporterSitesList() {
   }));
   
   exporterSiteOptions.value = [
-    tmpSites.find(e => e.value === 0),
-    ...tmpSites.filter(site => site.value !== 0).sort(sortByLabel)
+    tmpSites.find(e => e.value == 0),
+    ...tmpSites.filter(site => site.value != 0).sort(sortByLabel)
   ];
 }
 

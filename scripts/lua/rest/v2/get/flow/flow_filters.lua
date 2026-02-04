@@ -3,8 +3,7 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" ..
-   package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "label_utils"
 require "http_lint"
@@ -24,27 +23,28 @@ local talking_with = _GET["talkingWith"]
 local client = _GET["client"]
 local server = _GET["server"]
 local flow_info = _GET["flow_info"]
-local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with,
-                                                client, server, flow_info)
+local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
 local selected_ip = _GET["flowhosts_type"]
 local asn = _GET["asn"]
 local rsp = {}
 
 if interface.isView() then
-   local interfaces_filter = {
-      {key = "interface_filter", value = "", label = i18n("all")}
-   }
+   local interfaces_filter = {{
+      key = "interface_filter",
+      value = "",
+      label = i18n("all")
+   }}
 
    local interfaces = interface.getIfNames()
    if table.len(interfaces) > 1 then
       for id, _ in pairsByValues(interfaces, asc) do
-	 if tonumber(id) ~= interface.getId() then
-	    interfaces_filter[#interfaces_filter + 1] = {
-	       key = "interface_filter",
-	       value = id,
-	       label = getInterfaceName(id)
-	    }
-	 end
+         if tonumber(id) ~= interface.getId() then
+            interfaces_filter[#interfaces_filter + 1] = {
+               key = "interface_filter",
+               value = id,
+               label = getInterfaceName(id)
+            }
+         end
       end
    end
 
@@ -57,55 +57,54 @@ if interface.isView() then
 end
 
 if not host then
-   local hosts_type_filters = {
-      {key = "flowhosts_type", value = "", label = i18n("all")}
-   }
+   local hosts_type_filters = {{
+      key = "flowhosts_type",
+      value = "",
+      label = i18n("all")
+   }}
 
    local host = hostkey2hostinfo(selected_ip)
-   if ((not isEmptyString(host)) and (not isEmptyString(host.host)) and
-      (isIPv4(host.host) or isIPv6(host.host))) then
+   if ((not isEmptyString(host)) and (not isEmptyString(host.host)) and (isIPv4(host.host) or isIPv6(host.host))) then
       local newFilter = {
-	 key = "flowhosts_type",
-	 value = selected_ip,
-	 label = selected_ip
+         key = "flowhosts_type",
+         value = selected_ip,
+         label = selected_ip
       }
 
       table.insert(hosts_type_filters, newFilter)
    end
 
-   local hosts_type_filters2 = {
-      {
-	 key = "flowhosts_type",
-	 value = "ip_version_4",
-	 label = i18n("flows_page.ipv4_only"),
-	 group = i18n("flows_page.ip_version")
-      }, {
-	 key = "flowhosts_type",
-	 value = "ip_version_6",
-	 label = i18n("flows_page.ipv6_only"),
-	 group = i18n("flows_page.ip_version")
-	 }, {
-	 key = "flowhosts_type",
-	 value = "local_only",
-	 label = i18n("flows_page.local_only"),
-	 group = i18n("db_search.traffic_direction")
-	    }, {
-	 key = "flowhosts_type",
-	 value = "remote_only",
-	 label = i18n("flows_page.remote_only"),
-	 group = i18n("db_search.traffic_direction")
-	       }, {
-	 key = "flowhosts_type",
-	 value = "local_origin_remote_target",
-	 label = i18n("flows_page.local_cli_remote_srv"),
-	 group = i18n("db_search.traffic_direction")
-		  }, {
-	 key = "flowhosts_type",
-	 value = "remote_origin_local_target",
-	 label = i18n("flows_page.local_srv_remote_cli"),
-	 group = i18n("db_search.traffic_direction")
-		     }
-   }
+   local hosts_type_filters2 = {{
+      key = "flowhosts_type",
+      value = "ip_version_4",
+      label = i18n("flows_page.ipv4_only"),
+      group = i18n("flows_page.ip_version")
+   }, {
+      key = "flowhosts_type",
+      value = "ip_version_6",
+      label = i18n("flows_page.ipv6_only"),
+      group = i18n("flows_page.ip_version")
+   }, {
+      key = "flowhosts_type",
+      value = "local_only",
+      label = i18n("flows_page.local_only"),
+      group = i18n("db_search.traffic_direction")
+   }, {
+      key = "flowhosts_type",
+      value = "remote_only",
+      label = i18n("flows_page.remote_only"),
+      group = i18n("db_search.traffic_direction")
+   }, {
+      key = "flowhosts_type",
+      value = "local_origin_remote_target",
+      label = i18n("flows_page.local_cli_remote_srv"),
+      group = i18n("db_search.traffic_direction")
+   }, {
+      key = "flowhosts_type",
+      value = "remote_origin_local_target",
+      label = i18n("flows_page.local_srv_remote_cli"),
+      group = i18n("db_search.traffic_direction")
+   }}
 
    hosts_type_filters = table.merge(hosts_type_filters, hosts_type_filters2)
 
@@ -117,7 +116,11 @@ if not host then
    }
 end
 
-local protocol_filters = {{key = "l4proto", value = "", label = i18n("all")}}
+local protocol_filters = {{
+   key = "l4proto",
+   value = "",
+   label = i18n("all")
+}}
 
 if flowstats["l4_protocols"] then
    local tmp_list = {}
@@ -126,9 +129,9 @@ if flowstats["l4_protocols"] then
       local proto_name = l4_proto_to_string(key)
 
       tmp_list[proto_name] = {
-	 key = "l4proto",
-	 value = num_proto,
-	 label = proto_name
+         key = "l4proto",
+         value = num_proto,
+         label = proto_name
       }
    end
 
@@ -144,9 +147,11 @@ rsp[#rsp + 1] = {
    value = protocol_filters
 }
 
-local application_filters = {
-   {key = "application", value = "", label = i18n("all")}
-}
+local application_filters = {{
+   key = "application",
+   value = "",
+   label = i18n("all")
+}}
 
 local ndpicatstats = flowstats["ndpi_categories"]
 local tmp_list = {}
@@ -155,7 +160,7 @@ local max_asn_len = 32
 local function formatASN(asn, asn_cache)
    local name = shortenString(asn_cache[asn] or "", max_asn_len)
 
-   return(string.format("%d (%s)", asn, name))
+   return (string.format("%d (%s)", asn, name))
 end
 
 for key, value in pairs(ndpicatstats) do
@@ -189,19 +194,21 @@ rsp[#rsp + 1] = {
 }
 
 if not isEmptyString(host) then
-   local talking_with = {
-      {key = "talking_with", value = "", label = i18n("all")}
-   }
+   local talking_with = {{
+      key = "talking_with",
+      value = "",
+      label = i18n("all")
+   }}
    tmp_list = {}
    for talk_to_host, num_flows in pairs(flowstats["talking_with"] or {}) do
       if talk_to_host ~= host then
-	 local hinfo = hostkey2hostinfo(talk_to_host)
-	 local name = hostinfo2label(hinfo)
-	 tmp_list[name] = {
-	    key = "talking_with",
-	    value = talk_to_host,
-	    label = name
-	 }
+         local hinfo = hostkey2hostinfo(talk_to_host)
+         local name = hostinfo2label(hinfo)
+         tmp_list[name] = {
+            key = "talking_with",
+            value = talk_to_host,
+            label = name
+         }
       end
    end
 
@@ -218,7 +225,11 @@ if not isEmptyString(host) then
 end
 
 if not isEmptyString(_GET["port"]) then
-   local port_filters = {{key = "port", value = "", label = i18n("all")}}
+   local port_filters = {{
+      key = "port",
+      value = "",
+      label = i18n("all")
+   }}
    port_filters[#port_filters + 1] = {
       key = "port",
       value = _GET["port"],
@@ -232,11 +243,19 @@ if not isEmptyString(_GET["port"]) then
       value = port_filters
    }
 end
-local status_filters = {
-   {key = "status", value = "", label = i18n("all")},
-   {key = "status", value = "normal", label = i18n("flows_page.normal")},
-   {key = "status", value = "alerted", label = i18n("flows_page.all_alerted")}
-}
+local status_filters = {{
+   key = "status",
+   value = "",
+   label = i18n("all")
+}, {
+   key = "status",
+   value = "normal",
+   label = i18n("flows_page.normal")
+}, {
+   key = "status",
+   value = "alerted",
+   label = i18n("flows_page.all_alerted")
+}}
 
 if table.len(flowstats["transit_asn"]) > 0 then
    status_filters[#status_filters + 1] = {
@@ -255,15 +274,13 @@ if table.len(flowstats["transit_asn"]) > 0 then
 end
 
 local severity_stats = flowstats["alert_levels"]
-for s, severity_details in pairsByField(alert_consts.severity_groups,
-                                        "severity_group_id", asc) do
+for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_group_id", asc) do
    if severity_stats[s] and severity_stats[s] > 0 then
       status_filters[#status_filters + 1] = {
-	 group = i18n('severity'),
-	 key = "status",
-	 value = s,
-	 label = (i18n(severity_details.i18n_title) or s) .. " (" ..
-	    format_utils.formatValue(severity_stats[s]) .. ")"
+         group = i18n('severity'),
+         key = "status",
+         value = s,
+         label = (i18n(severity_details.i18n_title) or s) .. " (" .. format_utils.formatValue(severity_stats[s]) .. ")"
       }
    end
 end
@@ -280,14 +297,12 @@ end
 tmp_list = {}
 for status_key, status in pairs(flowstats["status"]) do
    if status.count > 0 then
-      local name =
-	 alert_consts.alertTypeLabel(status_key, true --[[ no html --]] )
+      local name = alert_consts.alertTypeLabel(status_key, true --[[ no html --]] )
       tmp_list[name] = {
-	 group = i18n('flow_details.alerted_flows'),
-	 key = "status",
-	 value = status_key,
-	 label = name .. " (" .. format_utils.formatValue(status.count) ..
-	    ")"
+         group = i18n('flow_details.alerted_flows'),
+         key = "status",
+         value = status_key,
+         label = name .. " (" .. format_utils.formatValue(status.count) .. ")"
       }
    end
 end
@@ -308,15 +323,19 @@ rsp[#rsp + 1] = {
 local isASNModeEnabled = isASNModeEnabled()
 
 if ntop.isEnterpriseL() and (not isASNModeEnabled) then
-   local qoe_filters = {{key = "qoe", value = "", label = i18n("all")}}
+   local qoe_filters = {{
+      key = "qoe",
+      value = "",
+      label = i18n("all")
+   }}
 
    if flowstats["qoe"] then
       for key, value in pairsByField(flowstats["qoe"], "id", rev) do
-	 qoe_filters[#qoe_filters + 1] = {
-	    key = "qoe",
-	    value = value.id,
-	    label = i18n("flow_details.qoe_" .. key .. "_label")
-	 }
+         qoe_filters[#qoe_filters + 1] = {
+            key = "qoe",
+            value = value.id,
+            label = i18n("flow_details.qoe_" .. key .. "_label")
+         }
       end
    end
 
@@ -328,29 +347,33 @@ if ntop.isEnterpriseL() and (not isASNModeEnabled) then
    }
 end
 
-local tcp_state_filters = {
-   {key = "tcp_flow_state", value = "", label = i18n("all")}
-}
+local tcp_state_filters = {{
+   key = "tcp_flow_state",
+   value = "",
+   label = i18n("all")
+}}
 
-local traffic_filters = {
-   {key = "traffic_type", value = "", label = i18n("all")}, {
-      key = "traffic_type",
-      value = "unicast",
-      label = i18n("flows_page.non_multicast")
-							    }, {
-      key = "traffic_type",
-      value = "broadcast_multicast",
-      label = i18n("flows_page.multicast")
-							       }, {
-      key = "traffic_type",
-      value = "one_way_unicast",
-      label = i18n("flows_page.one_way_non_multicast")
-								  }, {
-      key = "traffic_type",
-      value = "one_way_broadcast_multicast",
-      label = i18n("flows_page.one_way_multicast")
-								     }
-}
+local traffic_filters = {{
+   key = "traffic_type",
+   value = "",
+   label = i18n("all")
+}, {
+   key = "traffic_type",
+   value = "unicast",
+   label = i18n("flows_page.non_multicast")
+}, {
+   key = "traffic_type",
+   value = "broadcast_multicast",
+   label = i18n("flows_page.multicast")
+}, {
+   key = "traffic_type",
+   value = "one_way_unicast",
+   label = i18n("flows_page.one_way_non_multicast")
+}, {
+   key = "traffic_type",
+   value = "one_way_broadcast_multicast",
+   label = i18n("flows_page.one_way_multicast")
+}}
 
 rsp[#rsp + 1] = {
    action = "traffic_type",
@@ -361,14 +384,20 @@ rsp[#rsp + 1] = {
 
 local vlans = interface.getVLANsList()
 if vlans then
-   local vlan_filters = {{key = "vlan", value = "", label = i18n("all")}}
+   local vlan_filters = {{
+      key = "vlan",
+      value = "",
+      label = i18n("all")
+   }}
    for _, vlan in pairs(vlans.VLANs) do
       local vlan_name = tostring(getFullVlanName(vlan["vlan_id"]))
-      if isEmptyString(vlan_name) then vlan_name = i18n('no_vlan') end
+      if isEmptyString(vlan_name) then
+         vlan_name = i18n('no_vlan')
+      end
       vlan_filters[#vlan_filters + 1] = {
-	 key = "vlan",
-	 value = vlan["vlan_id"],
-	 label = vlan_name
+         key = "vlan",
+         value = vlan["vlan_id"],
+         label = vlan_name
       }
    end
 
@@ -386,14 +415,16 @@ local host_pools_instance = host_pools:create()
 local pools = host_pools_instance:get_all_pools()
 if (table.len(pools) > 1) then
    tmp_list = {}
-   local pool_filters = {
-      {key = "host_pool_id", value = "", label = i18n("all")}
-   }
+   local pool_filters = {{
+      key = "host_pool_id",
+      value = "",
+      label = i18n("all")
+   }}
    for _, pool in pairs(pools) do
       tmp_list[pool.name] = {
-	 key = "host_pool_id",
-	 value = pool.pool_id,
-	 label = pool.name
+         key = "host_pool_id",
+         value = pool.pool_id,
+         label = pool.name
       }
    end
 
@@ -411,15 +442,19 @@ end
 
 local networks_stats = interface.getNetworksStats()
 if table.len(networks_stats) > 1 then
-   local networks_filter = {{key = "network", value = "", label = i18n("all")}}
+   local networks_filter = {{
+      key = "network",
+      value = "",
+      label = i18n("all")
+   }}
 
    tmp_list = {}
    for n, local_network in pairs(networks_stats) do
       local name = getFullLocalNetworkName(local_network["network_key"])
       tmp_list[name] = {
-	 key = "network",
-	 value = local_network["network_id"],
-	 label = name
+         key = "network",
+         value = local_network["network_id"],
+         label = name
       }
    end
 
@@ -436,14 +471,15 @@ if table.len(networks_stats) > 1 then
 end
 
 if (not isEmptyString(asn)) then
-   local as_filter = {
-      {key = "asn", value = "", label = i18n("all")},
-      {
-	 key = "asn",
-	 value = asn,
-	 label = formatASN(asn, flowstats.asn_names)
-      }
-   }
+   local as_filter = {{
+      key = "asn",
+      value = "",
+      label = i18n("all")
+   }, {
+      key = "asn",
+      value = asn,
+      label = formatASN(asn, flowstats.asn_names)
+   }}
    rsp[#rsp + 1] = {
       action = "asn",
       label = i18n("as"),
@@ -454,18 +490,21 @@ end
 
 -- Source AS filter
 if flowstats["src_asn"] and table.len(flowstats["src_asn"]) > 0 then
-   local src_as_filters = {{key = "src_asn", value = "", label = i18n("all")}}
+   local src_as_filters = {{
+      key = "src_asn",
+      value = "",
+      label = i18n("all")
+   }}
    tmp_list = {}
 
    for as_num, count in pairsByKeys(flowstats["src_asn"], asc) do
       if tonumber(as_num) and tonumber(as_num) > 0 then
-	 local as_label = formatASN(as_num, flowstats.asn_names)
-	 tmp_list[as_label] = {
-	    key = "src_asn",
-	    value = as_num,
-	    label = as_label .. " (" .. format_utils.formatValue(count) ..
-	       ")"
-	 }
+         local as_label = formatASN(as_num, flowstats.asn_names)
+         tmp_list[as_label] = {
+            key = "src_asn",
+            value = as_num,
+            label = as_label .. " (" .. format_utils.formatValue(count) .. ")"
+         }
       end
    end
 
@@ -475,28 +514,31 @@ if flowstats["src_asn"] and table.len(flowstats["src_asn"]) > 0 then
 
    if #src_as_filters > 1 then
       rsp[#rsp + 1] = {
-	 action = "src_asn",
-	 label = i18n("as_overview.src_as"),
-	 name = "src_asn",
-	 value = src_as_filters
+         action = "src_asn",
+         label = i18n("as_overview.src_as"),
+         name = "src_asn",
+         value = src_as_filters
       }
    end
 end
 
 -- Destination AS filter
 if flowstats["dst_asn"] and table.len(flowstats["dst_asn"]) > 0 then
-   local dst_as_filters = {{key = "dst_asn", value = "", label = i18n("all")}}
+   local dst_as_filters = {{
+      key = "dst_asn",
+      value = "",
+      label = i18n("all")
+   }}
    tmp_list = {}
 
    for as_num, count in pairsByKeys(flowstats["dst_asn"], asc) do
       if tonumber(as_num) and tonumber(as_num) > 0 then
-	 local as_label = formatASN(as_num, flowstats.asn_names)
-	 tmp_list[as_label] = {
-	    key = "dst_asn",
-	    value = as_num,
-	    label = as_label .. " (" .. format_utils.formatValue(count) ..
-	       ")"
-	 }
+         local as_label = formatASN(as_num, flowstats.asn_names)
+         tmp_list[as_label] = {
+            key = "dst_asn",
+            value = as_num,
+            label = as_label .. " (" .. format_utils.formatValue(count) .. ")"
+         }
       end
    end
 
@@ -506,20 +548,28 @@ if flowstats["dst_asn"] and table.len(flowstats["dst_asn"]) > 0 then
 
    if #dst_as_filters > 1 then
       rsp[#rsp + 1] = {
-	 action = "dst_asn",
-	 label = i18n("as_overview.dst_as"),
-	 name = "dst_asn",
-	 value = dst_as_filters
+         action = "dst_asn",
+         label = i18n("as_overview.dst_as"),
+         name = "dst_asn",
+         value = dst_as_filters
       }
    end
 end
 
-local wlan_ssid_filters = {{key = "wlan_ssid", value = "", label = i18n("all")}}
+local wlan_ssid_filters = {{
+   key = "wlan_ssid",
+   value = "",
+   label = i18n("all")
+}}
 
 if table.len(flowstats["wlan_ssid"]) > 0 then
    local tmp_list = {}
    for key, value in pairs(flowstats["wlan_ssid"] or {}, asc) do
-      tmp_list[key] = {key = "wlan_ssid", value = key, label = key}
+      tmp_list[key] = {
+         key = "wlan_ssid",
+         value = key,
+         label = key
+      }
    end
 
    for _, value in pairsByKeys(tmp_list, asc) do
@@ -535,36 +585,46 @@ if table.len(flowstats["wlan_ssid"]) > 0 then
 end
 
 if ntop.isPro() and interface.isPacketInterface() == false then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+   local exporter_site_utils = require "exporter_site_utils"
    local flowdevs = interface.getFlowDevices() or {}
    local devips = getProbesName(flowdevs)
    if table.len(devips) > 0 then
       local in_out_rsp = {}
-      local exporter_filters = {
-	 {key = "deviceIP", value = "", label = i18n("all")}
-      }
+      local exporter_filters = {{
+         key = "deviceIP",
+         value = "",
+         label = i18n("all")
+      }}
       tmp_list = {}
       for _, device_list in pairs(devips or {}) do
-	 for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
-	    local dev_name = dev_ip
-	    if not isEmptyString(dev_resolved_name) and dev_resolved_name ~=
-	       dev_name then dev_name = dev_resolved_name end
-	    tmp_list[dev_name] = {
-	       key = "deviceIP",
-	       value = dev_ip,
-	       label = dev_name
-	    }
-	 end
+         for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
+            local dev_name = dev_ip
+            local group = nil
+            if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
+               dev_name = dev_resolved_name
+            end
+            if ntop.isEnterpriseM() then
+               group = exporter_site_utils.getFlowDevExporterSite(dev_ip).name
+            end
+            tmp_list[dev_name] = {
+               key = "deviceIP",
+               value = dev_ip,
+               label = dev_name,
+               group = group
+            }
+         end
       end
 
       for _, value in pairsByKeys(tmp_list, asc) do
-	 exporter_filters[#exporter_filters + 1] = value
+         exporter_filters[#exporter_filters + 1] = value
       end
 
       rsp[#rsp + 1] = {
-	 action = "deviceIP",
-	 label = i18n("flows_page.device_ip"),
-	 name = "deviceIP",
-	 value = exporter_filters
+         action = "deviceIP",
+         label = i18n("flows_page.device_ip"),
+         name = "deviceIP",
+         value = exporter_filters
       }
    end
 end
@@ -573,60 +633,72 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
    local dev_ip = _GET["deviceIP"]
 
    if not isEmptyString(_GET["ifIdx"]) then
-      local ports = {
-	 {key = "ifIdx", value = "", label = i18n("all")}, {
-	    key = "ifIdx",
-	    value = _GET["ifIdx"],
-	    label = format_portidx_name(dev_ip, _GET["ifIdx"], true)
-							   }
-      }
+      local ports = {{
+         key = "ifIdx",
+         value = "",
+         label = i18n("all")
+      }, {
+         key = "ifIdx",
+         value = _GET["ifIdx"],
+         label = format_portidx_name(dev_ip, _GET["ifIdx"], true)
+      }}
 
       rsp[#rsp + 1] = {
-	 action = "ifIdx",
-	 label = i18n("db_search.exporter_interface"),
-	 name = "ifIdx",
-	 value = ports,
-	 show_with_value = dev_ip,
-	 show_with_key = "deviceIP"
+         action = "ifIdx",
+         label = i18n("db_search.exporter_interface"),
+         name = "ifIdx",
+         value = ports,
+         show_with_value = dev_ip,
+         show_with_key = "deviceIP"
       }
    else
       -- Flow exporter requested
-      local in_ports = {{key = "inIfIdx", value = "", label = i18n("all")}}
-      local out_ports = {{key = "outIfIdx", value = "", label = i18n("all")}}
-      local ports_table =
-	 interface.getFlowDeviceInfoByIP(dev_ip, false --[[ Show minimal info ]] )
+      local in_ports = {{
+         key = "inIfIdx",
+         value = "",
+         label = i18n("all")
+      }}
+      local out_ports = {{
+         key = "outIfIdx",
+         value = "",
+         label = i18n("all")
+      }}
+      local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false --[[ Show minimal info ]] )
 
       tmp_list = {}
       for _, ports in pairs(ports_table) do
-	 for portidx, _ in pairsByKeys(ports, asc) do
-	    local name = format_portidx_name(dev_ip, portidx, true)
-	    tmp_list[tostring(name)] = {value = portidx, label = name}
-	 end
+         for portidx, _ in pairsByKeys(ports, asc) do
+            local name = format_portidx_name(dev_ip, portidx, true)
+            tmp_list[tostring(name)] = {
+               value = portidx,
+               label = name
+            }
+         end
       end
 
       for _, value in pairsByKeys(tmp_list, asc) do
-	 value["key"] = "inIfIdx"
-	 in_ports[#in_ports + 1] = value
-	 value["key"] = "outIfIdx"
-	 out_ports[#out_ports + 1] = value
+         value["key"] = "inIfIdx"
+         in_ports[#in_ports + 1] = value
+         value["key"] = "outIfIdx"
+         out_ports[#out_ports + 1] = value
       end
 
       rsp[#rsp + 1] = {
-	 action = "inIfIdx",
-	 label = i18n("db_search.input_snmp"),
-	 name = "inIfIdx",
-	 value = in_ports,
-	 show_with_value = dev_ip,
-	 show_with_key = "deviceIP"
+         action = "inIfIdx",
+         label = i18n("db_search.input_snmp"),
+         name = "inIfIdx",
+         value = in_ports,
+         show_with_value = dev_ip,
+         show_with_key = "deviceIP"
       }
 
       rsp[#rsp + 1] = {
-	 action = "outIfIdx",
-	 label = i18n("db_search.output_snmp"),
-	 name = "outIfIdx",
-	 value = out_ports,
-	 show_with_value = dev_ip,
-	 show_with_key = "deviceIP"
+         action = "outIfIdx",
+         label = i18n("db_search.output_snmp"),
+         name = "outIfIdx",
+         value = out_ports,
+         show_with_value = dev_ip,
+         show_with_key = "deviceIP"
       }
    end
 end

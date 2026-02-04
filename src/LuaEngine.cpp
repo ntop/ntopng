@@ -50,7 +50,7 @@ extern luaL_Reg *ntop_cloud_reg;
 NtopngLuaContext *getUserdata(struct lua_State *vm) {
   if (vm) {
     NtopngLuaContext *userdata;
-    
+
     lua_getglobal(vm, "userdata");
     userdata = (NtopngLuaContext *)lua_touserdata(vm, lua_gettop(vm));
     lua_pop(vm, 1);  // undo the push done by lua_getglobal
@@ -105,7 +105,7 @@ static u_int32_t upper_power_of_two(u_int32_t n) {
   n |= n >> 8;
   n |= n >> 16;
   n++;
-  
+
   return n;
 }
 
@@ -129,12 +129,12 @@ static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
       new_size = 32;
     else
       new_size = upper_power_of_two(new_size);
-    
+
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "[Lua realloc] new size: %d ptr %p / tot: %d",
 				 new_size, ptr, le->getMemUsed());
-#endif 
+#endif
 
     return(realloc(ptr, new_size));
   }
@@ -146,14 +146,14 @@ LuaEngine::LuaEngine() {
   std::bad_alloc bax;
 
   // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   ntop->incNumLuaVMs();
   start_epoch= (u_int32_t)time(NULL);
-  
+
   loaded_script_path = NULL;
   is_system_vm = false;
   mem_used = 0;
-  
+
   L = lua_newstate(l_alloc, this);
 
   if (!L) {
@@ -177,17 +177,17 @@ LuaEngine::LuaEngine() {
 
 LuaEngine::~LuaEngine() {
   // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
-  
+
   if (L) {
     lua_settop(L, 0);
 
 #ifdef DUMP_STACK
     stackDump(L);
 #endif
-    
+
     if(lua_context)
-      delete lua_context;     
-    
+      delete lua_context;
+
     ntop->decNumLuaVMs();
 
 #ifdef TRACE_VM_ENGINES
@@ -333,7 +333,7 @@ static int ntop_lua_http_print(lua_State *vm) {
           mg_printf(conn, "%s", key);
           // PrintTable(vm);
         }
-	
+
         lua_pop(vm, 1);
       }
     } break;
@@ -382,7 +382,7 @@ int ntop_lua_cli_print(lua_State *vm) {
 int ntop_lua_cloud_print(lua_State *vm) {
   int t;
   LuaEngine *engine = getLuaVMUserdata(vm, engine);
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   switch (t = lua_type(vm, 1)) {
@@ -434,11 +434,11 @@ static int ntop_lua_require(lua_State *L) {
       || (script_name = (char *)lua_tostring(L, 1)) == NULL)
     return 0;
 
-  if(engine->require(std::string(script_name))) {    
+  if(engine->require(std::string(script_name))) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Circular dependency found %s\n", script_name);
     // return(0); /* Already loaded */
   }
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
 
   lua_getglobal(L, "package");
@@ -451,7 +451,7 @@ static int ntop_lua_require(lua_State *L) {
     /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"
      * .. package.path */
     unsigned found = parsed.find_last_of("?");
-    
+
     if (found) {
       string s = parsed.substr(0, found) + script_name + ".lua";
       size_t first_dot = s.find("."), last_dot = s.rfind(".");
@@ -534,7 +534,7 @@ void LuaEngine::lua_register_classes(lua_State *L, LuaEngineMode mode) {
   if (!L) return;
 
   getLuaVMContext(L)->engine = this;
-    
+
   /* ntop add-ons */
   luaRegister(L, "interface", ntop_interface_reg);
   luaRegister(L, "ntop",      ntop_reg);
@@ -544,23 +544,23 @@ void LuaEngine::lua_register_classes(lua_State *L, LuaEngineMode mode) {
 #ifdef HAVE_NTOP_CLOUD
   luaRegister(L, "cloud",     ntop_cloud_reg);
 #endif
-  
+
   switch(mode) {
   case lua_engine_mode_http:
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps
      * data on HTTP server */
     lua_register(L, "print", ntop_lua_http_print);
     break;
-    
+
   case lua_engine_mode_callback:
     lua_register(L, "print", ntop_lua_cli_print);
     break;
 
   case lua_engine_mode_cloud:
-    lua_register(L, "print", ntop_lua_cloud_print);    
+    lua_register(L, "print", ntop_lua_cloud_print);
     break;
   }
-  
+
 #if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
   if (ntop->getPro()->has_valid_license()) {
     lua_register(L, "ntopRequire", ntop_lua_require);
@@ -698,7 +698,7 @@ int LuaEngine::run_loaded_script() {
 
       if(err) {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [%s]", err, loaded_script_path);
-        ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, err, 50 /* No Trim */);   
+        ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, err, 50 /* No Trim */);
       }
     }
 
@@ -710,7 +710,7 @@ int LuaEngine::run_loaded_script() {
 #ifndef HAS_LUAJIT
   lua_gc(L, LUA_GCCOLLECT); /* Run garbage collector */
 #endif
-  
+
   return (rv);
 }
 
@@ -1035,8 +1035,21 @@ bool LuaEngine::setParamsTable(lua_State *vm,
 
 /* ****************************************** */
 
-void build_redirect(const char *url, const char *query_string, char *buf,
-                    size_t bufsize) {
+void build_redirect(const char *url, const char *query_string,
+		    char *buf, size_t bufsize) {
+  /*
+    Inside ntopng
+    - we cannot redirect outside of the application
+    - no paramenters or anything else should be allowed
+
+    hence we implement a lighweighted URL checker that
+  */
+
+  if((url[0] != '/') || strchr(url, '%')) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid redirect URL: %s", url);
+    url = "/"; /* Let's redirect to the root page */
+  }
+
   snprintf(buf, bufsize,
            "HTTP/1.1 302 Found\r\n"
            "Server: ntopng %s (%s)\r\n"
@@ -1252,7 +1265,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
           lua_newtable(L);
 
 	  /* This payload is NOT parsed, checked or verified against attacks */
-          lua_push_str_table_entry(L, "payload", post_data); 
+          lua_push_str_table_entry(L, "payload", post_data);
           lua_setglobal(L, "_POST");
         }
 
@@ -1489,7 +1502,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]",
                                  script_path, err ? err : "Unknown error");
-    
+
     return (redirect_to_error_page(conn, request_info, "internal_error",
                                    script_path, (char *)err));
   }
@@ -1571,16 +1584,15 @@ Host* LuaEngine::getHost() {
 NetworkInterface* LuaEngine::getNetworkInterface() {
   return (getLuaVMContext(L)->iface);
 }
-  
+
 /* ****************************************** */
 
-bool LuaEngine::require(std::string name) {  
+bool LuaEngine::require(std::string name) {
   std::set<std::string>::iterator it = require_list.find(name);
 
   if(it != require_list.end())
     return(true);
-  
+
   require_list.insert(name);
   return(false);
 }
-  

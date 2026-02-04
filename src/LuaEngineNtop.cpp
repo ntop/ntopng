@@ -5689,7 +5689,7 @@ static int ntop_get_redis(lua_State *vm) {
   if ((key = (char *)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  rsp = redis->get(key);
+  rsp = redis->getWithAlloc(key);
 
   if (rsp) {
     lua_pushfstring(vm, "%s", rsp);

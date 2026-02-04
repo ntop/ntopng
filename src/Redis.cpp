@@ -333,7 +333,7 @@ void Redis::addToCache(const char *key, const char *value, u_int expire_secs) {
   NOTE:
   the returned string must be freed by the caller
 */
-char* Redis::get(char *key, bool cache_it) {
+char* Redis::getWithAlloc(char *key, bool cache_it) {
   char *rsp = NULL;
   bool cacheable = cache_it && isCacheable(key);
   redisReply *reply;

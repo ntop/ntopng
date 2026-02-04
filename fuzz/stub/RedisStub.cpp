@@ -77,6 +77,18 @@ int Redis::expire(char *key, u_int expire_sec) {
   return 0;
 }
 
+char* Redis::getWithAlloc(char *key, bool cache_it) {
+  char *ret = NULL;
+
+  stats.num_get++;
+  std::string strKey(key);
+  if (this->store.find(strKey) != this->store.end()) {
+    ret = strdup(this->store[strKey].c_str());
+  }
+
+  return ret;
+}
+
 int Redis::get(char *key, char *rsp, u_int rsp_len,
                bool cache_it /* = false */) {
   if (rsp_len == 0) return -1;
