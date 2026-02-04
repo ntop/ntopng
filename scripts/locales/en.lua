@@ -3205,6 +3205,9 @@ local lang = {
     ["note_active_hosts"] = "Only active hosts are returned.",
     ["note_maximum_number"] = "The maximum number of downloadable hosts is 32,768.",
   },
+  ["exporters_map"] = {
+    ["exporters_map"] = "Exporters Map",
+  },
   ["exporters_page"] = {
     ["flow_drops_criteria"] = "Total Drops",
     ["flow_volume_criteria"] = "Total Flows",
