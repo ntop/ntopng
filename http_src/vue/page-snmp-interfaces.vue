@@ -179,7 +179,10 @@ const map_table_def_columns = (columns) => {
             return row.last_change_string
         },
         "ip_addr": (value, row) => {
-            const arr = value.split(",");
+            let arr = value.split(",");
+            arr = arr.map(ip => {
+                return `<a href='${http_prefix}/lua/host_details.lua?host=${ip}&mode=restore&ifid=number'>${ip}</a>`;
+            });
             return NtopUtils.arrayToListString((arr),2)
         },
     };
