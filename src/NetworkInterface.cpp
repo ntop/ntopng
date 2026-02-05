@@ -1547,7 +1547,7 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,
   flowHashing[criteria] = sub_iface; /* Add it to the hash */
 
   numSubInterfaces++;
-  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
+  // ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
 
   return true;
 }
