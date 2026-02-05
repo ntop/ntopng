@@ -218,7 +218,7 @@ const map_table_def_columns = (columns) => {
             let diff_value = value
             if (!first_open.value) {
                 const old_value = localStorage.getItem("exporter_dropped_flows." + row.exporter_uuid + row.ip)
-                diff_value = (value - Number(old_value)) / 10
+                diff_value = (value - Number(old_value)) / 60
             }
             localStorage.setItem("exporter_dropped_flows." + row.exporter_uuid + row.ip, value)
             if (!value)
@@ -232,7 +232,7 @@ const map_table_def_columns = (columns) => {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
                 if (diff_value > 0)
-                    formatted_value = `${formatted_value} [ ${formatterUtils.formatAccounting(diff_value)} ] ${updated_counter}`
+                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} ] ${updated_counter}`
                 else
                     formatted_value = `${formatted_value} ${updated_counter}`
             }
