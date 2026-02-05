@@ -17,6 +17,9 @@
         :errorMessage="modalErrorMessage"
         @edit="handleEditExporterSite" @add="handleAddExporterSite"> 
     </ModalEditExporterSite>
+    <ModalDeleteExporterSite
+        ref="exporterSiteModalDelete" @delete="handleDeleteExporterSite">
+    </ModalDeleteExporterSite>
   </div>
 </template>
 
@@ -26,6 +29,7 @@ import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as ModalEditExporterSite } from "./modal-edit-exporter-site.vue";
+import { default as ModalDeleteExporterSite } from "./modal-delete-exporter-site.vue";
 
 
 /* ************************************** */
@@ -41,6 +45,7 @@ const editingExporterSiteId = ref(null);
 const modalErrorMessage = ref("");
 const csrf = props.context.csrf;
 const exporterSiteModal = ref(null);
+const exporterSiteModalDelete = ref(null)
 const edit_exporter_site_url = `${http_prefix}/lua/pro/rest/v2/edit/exporter_site/exporter_site.lua`;
 const add_exporter_site_url = `${http_prefix}/lua/pro/rest/v2/add/exporter_site/exporter_site.lua`;
 const delete_exporter_site_url = `${http_prefix}/lua/pro/rest/v2/delete/exporter_site/exporter_site.lua`;
@@ -69,7 +74,7 @@ const map_table_def_columns = (columns) => {
         if (c.id === "actions") {
             c.button_def_array.forEach((b) => {
                 b.f_map_class = (current_class, row) => {
-                    if (row.id === 0) {
+                    if (row.id == 0) {
                         current_class.push("disabled");
                     }
                     return current_class;
@@ -128,28 +133,16 @@ const click_button_edit_exporter_site = (event) => {
 
 async function click_button_delete_exporter_site(event) {
     if(event.row.id === 0) return;
-    const exporter_site = event.row.id;
-
-    const requestParams = {
-        csrf: props.context.csrf,
-        exporter_site: exporter_site
+    
+    const exporter_site_data = {
+        exporter_site_name: event.row.name,
+        exporter_site_description: event.row.description,
+        exporter_site_lat: event.row.latitude,
+        exporter_site_lng: event.row.longitude,
+        exporter_site_id: event.row.id,
     };
 
-    const headers = { 'Content-Type': 'application/json' };
-
-    try {
-        await ntopng_utility.http_request(delete_exporter_site_url, {
-            method: 'post',
-            headers,
-            body: JSON.stringify(requestParams)
-        });
-
-        // Refresh table after delete
-        exporter_sites_list.value.refresh_table(true);
-    } catch (e) {
-        console.error('Error deleting exporter site:', e);
-        exporter_sites_list.value.refresh_table(true);
-    }
+    showDeleteModal(exporter_site_data);
 }
 
 
@@ -165,6 +158,11 @@ function addExporterSite() {
     exporterSiteModal.value.showAdd();
 }
 
+/* ************************************** */
+
+const showDeleteModal = (item) => {
+    exporterSiteModalDelete.value.showDelete(item);
+};
 
 /* ************************************** */
 
@@ -253,6 +251,34 @@ const handleAddExporterSite = async (data) => {
 };
 
 /* ************************************** */
+
+const handleDeleteExporterSite = async (item) => {
+    if (item) {
+        const exporter_site = item.exporter_site_id;
+    
+        const requestParams = {
+            csrf: props.context.csrf,
+            exporter_site: exporter_site
+        };
+
+        const headers = { 'Content-Type': 'application/json' };
+
+        try {
+            await ntopng_utility.http_request(delete_exporter_site_url, {
+                method: 'post',
+                headers,
+                body: JSON.stringify(requestParams)
+            });
+
+            // Refresh table after delete
+            exporter_sites_list.value.refresh_table(true);
+        } catch (e) {
+            console.error('Error deleting exporter site:', e);
+            exporter_sites_list.value.refresh_table(true);
+        }
+    }
+    exporterSiteModalDelete.value.close();
+};
 
 onMounted(async () => {
 });
