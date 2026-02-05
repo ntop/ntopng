@@ -156,13 +156,14 @@ async function draw_chord() {
     const width = chord_size.value.width;
     const height = chord_size.value.height;
 
-    const { names, matrix } = data;
+    const { names, matrix, colors } = data;
 
     // get min between height and width, else default to 600px
     const dimension = Math.max(Math.min(width, height), 600);
 
     // Formula for chord: https://observablehq.com/@d3/chord-diagram
-    const outerRadius = dimension * 0.5 - 60;
+    // margin of 100 to prevent labels from getting outside the panel
+    const outerRadius = dimension * 0.5 - 100;
     const innerRadius = outerRadius - 10;
 
     // compute total for percentage calculation
@@ -183,7 +184,10 @@ async function draw_chord() {
         .radius(innerRadius - 1)
         .padAngle(1 / innerRadius);
 
-    const color = d3.scaleOrdinal(d3.schemeSet1);
+    // use colors from API if provided, else default scheme
+    const color = colors && colors.length > 0
+        ? d3.scaleOrdinal(colors)
+        : d3.scaleOrdinal(d3.schemeSet1);
 
     // take 100% size and colors
     svg = d3.select(chord_wrapper.value)
@@ -211,6 +215,12 @@ async function draw_chord() {
         .style("stroke", d => d3.color(color(names[d.index])).darker(0.5))
         .style("stroke-width", "1px")
         .style("cursor", "pointer")
+        .on("click", function (event, d) {
+            // on node click go to exporter_interfaces.lua page for the clciked node
+            const nodeName = names[d.index];
+            console.log(`clicked node: ${nodeName}`)
+            window.location.href = `${http_prefix}/lua/pro/enterprise/exporter_interfaces.lua?ip=${encodeURIComponent(nodeName)}`;
+        })
         .on("mouseover", function (event, d) {
             d3.select(this)
                 .transition()
