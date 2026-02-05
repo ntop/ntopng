@@ -3216,7 +3216,7 @@ local lang = {
     ["dropped_packets_descr"] = "Capture Drops (probe mode): nProbe packet drops hence not accounted in exported flows (drops are reported by nProbe).",
   },
   ["exporter_sites_page"] = {
-    ["exporter_sites_chord"] = "Chord test",
+    ["exporters_map"] = "Exporters Map",
     ["exporter_sites"] = "Exporter Sites",
     ["edit_exporter_site"] = "Edit Site",
     ["add_exporter_site"] = "Add Site",

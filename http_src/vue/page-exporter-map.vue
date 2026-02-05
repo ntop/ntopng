@@ -138,7 +138,6 @@ const reload = function () {
 }
 
 async function set_chord_data() {
-    console.log('test')
     let data = await get_chord_data();
     chord_data.value = data;
 }

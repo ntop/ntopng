@@ -333,6 +333,7 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid)
    -- URLs and state flags initialization
    local interfaces_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua"
    local exporter_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters.lua"
+   local exporter_map_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_map.lua"
 
    local snmp_available = false
    local nprobe_info = nil
@@ -388,6 +389,11 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid)
       page_name = "interfaces",
       active = page == "interfaces",
       label = i18n("flow_devices.exporters_interfaces")
+   }, {
+      url = exporter_map_url,
+      hidden = page ~= "exporters",
+      page_name = "exporter_map",
+      label = "<i class=\"fas fa-lg fa-map\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("exporter_sites_page.exporters_map") .. "\"></i>"
    }, {
       hidden = not snmp_available or isEmptyString(ip),
       url = snmp_url,
