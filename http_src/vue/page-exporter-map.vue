@@ -124,7 +124,7 @@ const _i18n = (t) => i18n(t);
 const no_data_message = _i18n('flows_page.no_data')
 const chord_data = ref({});
 
-const chord_rest_url = `${http_prefix}/lua/pro/rest/v2/get/exporters/exporters_map.lua`
+const chord_rest_url = `${http_prefix}/lua/pro/rest/v2/get/exporters/map.lua`
 
 onBeforeMount(() => {
 });

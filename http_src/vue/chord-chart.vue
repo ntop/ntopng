@@ -156,7 +156,7 @@ async function draw_chord() {
     const width = chord_size.value.width;
     const height = chord_size.value.height;
 
-    const { names, matrix, colors } = data;
+    const { names, matrix } = data;
 
     // get min between height and width, else default to 600px
     const dimension = Math.max(Math.min(width, height), 600);
@@ -184,9 +184,11 @@ async function draw_chord() {
         .radius(innerRadius - 1)
         .padAngle(1 / innerRadius);
 
-    // use colors from API if provided, else default scheme
-    const color = colors && colors.length > 0
-        ? d3.scaleOrdinal(colors)
+    // extract colors from names array from the api, else use default d3 colors
+    const apiColors = names.map(n => n.color).filter(c => c);
+    const apiColorsPresent = apiColors.length === names.length;
+    const color = apiColorsPresent
+        ? d3.scaleOrdinal(apiColors)
         : d3.scaleOrdinal(d3.schemeSet1);
 
     // take 100% size and colors
@@ -208,18 +210,21 @@ async function draw_chord() {
 
     group.append("path")
         .attr("class", "chord-group")
-        .attr("fill", d => color(names[d.index]))
+        .attr("fill", d => apiColorsPresent ? names[d.index].color : color(d.index))
         .attr("d", arc)
         .attr("fill-opacity", 0.9)
         .style("filter", "drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15))")
-        .style("stroke", d => d3.color(color(names[d.index])).darker(0.5))
+        .style("stroke", d => {
+            const fillColor = apiColorsPresent ? names[d.index].color : color(d.index);
+            return d3.color(fillColor).darker(0.5);
+        })
         .style("stroke-width", "1px")
         .style("cursor", "pointer")
         .on("click", function (event, d) {
-            // on node click go to exporter_interfaces.lua page for the clciked node
-            const nodeName = names[d.index];
-            console.log(`clicked node: ${nodeName}`)
-            window.location.href = `${http_prefix}/lua/pro/enterprise/exporter_interfaces.lua?ip=${encodeURIComponent(nodeName)}`;
+            // on node click redirect to URL
+            const nodeData = names[d.index];
+            const nodeUrl = nodeData.url;
+            window.location.href = nodeUrl;
         })
         .on("mouseover", function (event, d) {
             d3.select(this)
@@ -239,7 +244,10 @@ async function draw_chord() {
         });
 
     group.append("title")
-        .text(d => `${names[d.index]}\n${formatValue(d.value)}`);
+        .text(d => {
+            const nodeName = names[d.index].name || names[d.index];
+            return `${nodeName}\n${formatValue(d.value)}`;
+        });
 
     // add labels percentage outer circle
     group.append("g")
@@ -264,7 +272,7 @@ async function draw_chord() {
             return angle > Math.PI ? "end" : "start";
         })
         .style("letter-spacing", "0.3px")
-        .text(d => names[d.index]);
+        .text(d => names[d.index].name || names[d.index]);
 
     // reset to original style 
     function resetHighlight() {
@@ -355,12 +363,15 @@ async function draw_chord() {
         .style("mix-blend-mode", "multiply")
         .attr("fill", d => {
             // create gradient from src to target
-            const sourceColor = d3.color(color(names[d.source.index]));
-            return sourceColor;
+            const sourceColor = apiColorsPresent ? names[d.source.index].color : color(d.source.index);
+            return d3.color(sourceColor);
         })
         .attr("d", ribbon)
         .attr("fill-opacity", 0.65)
-        .style("stroke", d => d3.color(color(names[d.source.index])).darker(0.3))
+        .style("stroke", d => {
+            const sourceColor = apiColorsPresent ? names[d.source.index].color : color(d.source.index);
+            return d3.color(sourceColor).darker(0.3);
+        })
         .style("stroke-width", "0.5px")
         .style("cursor", "pointer")
         .on("mouseover", function (event, d) {
@@ -439,7 +450,10 @@ async function draw_chord() {
                 .attr("text-anchor", "middle")
                 .attr("font-size", "11px")
                 .attr("font-weight", "700")
-                .attr("fill", d3.color(color(names[d.source.index])).darker(1.5))
+                .attr("fill", () => {
+                    const sourceColor = apiColorsPresent ? names[d.source.index].color : color(d.source.index);
+                    return d3.color(sourceColor).darker(1.5);
+                })
                 .attr("opacity", 0.95)
                 .style("paint-order", "stroke")
                 .style("stroke", "rgba(255, 255, 255, 0.95)")
@@ -455,7 +469,10 @@ async function draw_chord() {
                     .attr("text-anchor", "middle")
                     .attr("font-size", "11px")
                     .attr("font-weight", "700")
-                    .attr("fill", d3.color(color(names[d.target.index])).darker(1.5))
+                    .attr("fill", () => {
+                        const targetColor = apiColorsPresent ? names[d.target.index].color : color(d.target.index);
+                        return d3.color(targetColor).darker(1.5);
+                    })
                     .attr("opacity", 0.95)
                     .style("paint-order", "stroke")
                     .style("stroke", "rgba(255, 255, 255, 0.95)")
