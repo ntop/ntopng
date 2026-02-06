@@ -3217,7 +3217,9 @@ local lang = {
   },
   ["exporter_sites_page"] = {
     ["exporters_map"] = "Exporters Map",
+    ["exporters_map_notes"] = "The chart above shows a connection chart where each edge is traffic, and each node is an exporter",
     ["sites_map"] = "Sites Map",
+    ["sites_map_notes"] = "The chart above shows a connection chart where each edge is traffic, and each node is a site",
     ["exporter_sites"] = "Exporter Sites",
     ["edit_exporter_site"] = "Edit Site",
     ["add_exporter_site"] = "Add Site",

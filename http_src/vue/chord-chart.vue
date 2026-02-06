@@ -17,6 +17,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed } from "vue";
 import { default as Loading } from "./loading.vue"
+import colorUtils from "../utilities/color-utils.js";
 
 const d3 = d3v7;
 const emit = defineEmits(['update_width', 'update_height', 'autorefresh_toggle'])
@@ -184,12 +185,9 @@ async function draw_chord() {
         .radius(innerRadius - 1)
         .padAngle(1 / innerRadius);
 
-    // extract colors from names array from the api, else use default d3 colors
-    const apiColors = names.map(n => n.color).filter(c => c);
-    const apiColorsPresent = apiColors.length === names.length;
-    const color = apiColorsPresent
-        ? d3.scaleOrdinal(apiColors)
-        : d3.scaleOrdinal(d3.schemeSet1);
+    // Use color utility to assign consistent colors based on node names
+    const nodeColors = colorUtils.assignChordColors(names);
+    const color = d3.scaleOrdinal(nodeColors);
 
     // take 100% size and colors
     svg = d3.select(chord_wrapper.value)
@@ -210,12 +208,12 @@ async function draw_chord() {
 
     group.append("path")
         .attr("class", "chord-group")
-        .attr("fill", d => apiColorsPresent ? names[d.index].color : color(d.index))
+        .attr("fill", d => color(d.index))
         .attr("d", arc)
         .attr("fill-opacity", 0.9)
         .style("filter", "drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15))")
         .style("stroke", d => {
-            const fillColor = apiColorsPresent ? names[d.index].color : color(d.index);
+            const fillColor = color(d.index);
             return d3.color(fillColor).darker(0.5);
         })
         .style("stroke-width", "1px")
@@ -362,14 +360,14 @@ async function draw_chord() {
         .attr("class", "chord-ribbon")
         .style("mix-blend-mode", "multiply")
         .attr("fill", d => {
-            // create gradient from src to target
-            const sourceColor = apiColorsPresent ? names[d.source.index].color : color(d.source.index);
+            // Use source color for ribbon
+            const sourceColor = color(d.source.index);
             return d3.color(sourceColor);
         })
         .attr("d", ribbon)
         .attr("fill-opacity", 0.65)
         .style("stroke", d => {
-            const sourceColor = apiColorsPresent ? names[d.source.index].color : color(d.source.index);
+            const sourceColor = color(d.source.index);
             return d3.color(sourceColor).darker(0.3);
         })
         .style("stroke-width", "0.5px")
@@ -451,7 +449,7 @@ async function draw_chord() {
                 .attr("font-size", "11px")
                 .attr("font-weight", "700")
                 .attr("fill", () => {
-                    const sourceColor = apiColorsPresent ? names[d.source.index].color : color(d.source.index);
+                    const sourceColor = color(d.source.index);
                     return d3.color(sourceColor).darker(1.5);
                 })
                 .attr("opacity", 0.95)
@@ -470,7 +468,7 @@ async function draw_chord() {
                     .attr("font-size", "11px")
                     .attr("font-weight", "700")
                     .attr("fill", () => {
-                        const targetColor = apiColorsPresent ? names[d.target.index].color : color(d.target.index);
+                        const targetColor = color(d.target.index);
                         return d3.color(targetColor).darker(1.5);
                     })
                     .attr("opacity", 0.95)
