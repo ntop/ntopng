@@ -345,10 +345,12 @@ end
 function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
    local page_utils = require("page_utils")
    probe_uuid = probe_uuid or ""
+   num_exporters = num_exporters or 0
    -- URLs and state flags initialization
    local interfaces_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua"
    local exporter_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters.lua"
    local exporter_map_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_map.lua?probe_uuid="..probe_uuid
+   local exporter_sites_map_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_sites_map.lua?probe_uuid="..probe_uuid
 
    local snmp_available = false
    local nprobe_info = nil
@@ -382,7 +384,7 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       if not isEmptyString(ip) then
          local _, tmp1 = exporters_utils.getProbeUUID(ip)
          if not isEmptyString(tmp1) then
-            -- tmp1 is not available in case no exporter is available, 
+            -- tmp1 is not available in case no exporter is available,
             -- e.g. nprobe not currently exporting flows
             conf_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. ip .. "&ifid=" .. tmp1 ..
                           "&page=config&probe_uuid=" .. probe_uuid
@@ -406,9 +408,16 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       label = i18n("flow_devices.exporters_interfaces")
    }, {
       url = exporter_map_url,
-      hidden = page ~= "exporters" or num_exporters < 2 or not(isASNModeEnabled()),
+      hidden = page == "nprobe" or (isEmptyString(probe_uuid) and page == "exporters") or num_exporters < 2 or not(isASNModeEnabled()),
       page_name = "exporter_map",
-      label = "<i class=\"fas fa-lg fa-map\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("exporter_sites_page.exporters_map") .. "\"></i>"
+      active = page == "exporters_map",
+      label = i18n("exporter_sites_page.exporters_map")
+   }, {
+      url = exporter_sites_map_url,
+      hidden = page == "nprobe" or (isEmptyString(probe_uuid) and page == "exporters") or num_exporters < 2 or not(isASNModeEnabled()) ,
+      page_name = "exporters_sites_map",
+      active = page == "exporters_sites_map",
+      label = i18n("exporter_sites_page.sites_map")
    }, {
       hidden = not snmp_available or isEmptyString(ip),
       url = snmp_url,

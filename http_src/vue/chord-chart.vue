@@ -257,7 +257,7 @@ async function draw_chord() {
         .append("text")
         .attr("class", "group-label")
         .attr("font-weight", "600")
-        .attr("font-size", "11px")
+        .attr("font-size", "14px")
         .attr("opacity", 0.95)
         .attr("dy", "0.35em")
         .attr("fill", "#1a1a1a")
@@ -446,7 +446,7 @@ async function draw_chord() {
                 .attr("y", sourceY)
                 .attr("dy", "0.35em")
                 .attr("text-anchor", "middle")
-                .attr("font-size", "11px")
+                .attr("font-size", "14px")
                 .attr("font-weight", "700")
                 .attr("fill", () => {
                     const sourceColor = color(d.source.index);
@@ -465,7 +465,7 @@ async function draw_chord() {
                     .attr("y", targetY)
                     .attr("dy", "0.35em")
                     .attr("text-anchor", "middle")
-                    .attr("font-size", "11px")
+                    .attr("font-size", "14px")
                     .attr("font-weight", "700")
                     .attr("fill", () => {
                         const targetColor = color(d.target.index);
