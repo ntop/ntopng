@@ -2165,6 +2165,7 @@ local known_parameters = {
     ["global_flow_victim_threshold"] = validateEmptyOr(validateNumber),
     ["re_arm_minutes"] = validateEmptyOr(validateNumber), -- Number of minute before alert re-arm check
     ["device_type"] = validateNumber,
+    ["site_mode"] = validateNumber,
     ["ewma_alpha_percent"] = validateNumber,
     ["sidebar_collapsed"] = validateNumber,
     ["senders_receivers"] = validateSendersReceivers, -- Used in top scripts

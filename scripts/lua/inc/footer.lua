@@ -327,7 +327,7 @@ print [[&status=engaged'>"
 					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=']]
 print(ntop.getHttpPrefix())
-print [[/lua/flows_stats.lua?alert_type=warning'>"
+print [[/lua/flows_stats.lua?status=warning'>"
 						msg += "<span class=\"badge bg-warning\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=']]
 print(i18n("flow_details.alerted_flows"))
 print [['>"+NtopUtils.formatValue(rsp.alerted_flows_warning, 1)+ " <i class=\"fas fa-stream\"></i> ]]
@@ -337,7 +337,7 @@ print [[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=']]
 print(ntop.getHttpPrefix())
-print [[/lua/flows_stats.lua?alert_type=error'>"
+print [[/lua/flows_stats.lua?status=error'>"
 						msg += "<span class=\"badge bg-danger\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=']]
 print(i18n("flow_details.dangerous_flows"))
 print [['>"+NtopUtils.formatValue(rsp.alerted_flows_error, 1)+ " <i class=\"fas fa-stream\"></i> ]]

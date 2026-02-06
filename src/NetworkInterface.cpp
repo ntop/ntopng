@@ -533,7 +533,7 @@ bool NetworkInterface::initnDPIReload() {
   cleanShadownDPI();
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
-  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload started");
+  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** nDPI reload started [%s]", ifname); */
   ndpi_struct_shadow = initnDPIStruct();
 
   if(ndpi_struct_shadow == NULL) {
@@ -642,7 +642,7 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, u_int16_t id, char *
     ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL hostname category");
 
   else if(ndpi_struct_shadow == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error [%s]: invalid nDPI state", ifname);
   else
     success = (ndpi_load_hostname_category(ndpi_struct_shadow, what,
 					   (ndpi_protocol_category_t)id,
@@ -659,7 +659,7 @@ int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
   if(domain == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL domain");
   else if(ndpi_struct_shadow == NULL)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error [%s]: invalid nDPI state", ifname);
   else
     return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
 
@@ -694,8 +694,8 @@ void NetworkInterface::setnDPIProtocolCategory(struct ndpi_detection_module_stru
   u_int16_t mappedProtoId = ndpi_map_user_proto_id_to_ndpi_id(ndpi_str, protoId);
 
   if(mappedProtoId == 0)
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Internal error: ID %d (mapped to %u)",
-				 protoId, mappedProtoId);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Internal error [%s]: ID %d (mapped to %u)",
+				 ifname, protoId, mappedProtoId);
   else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Setting protocol association: ID %d (mapped to %u) -> category %d",
 				 protoId, mappedProtoId, protoCategory);
@@ -1565,7 +1565,8 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,
   flowHashing[criteria] = sub_iface; /* Add it to the hash */
 
   numSubInterfaces++;
-  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
+
+  //ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
 
   return true;
 }
@@ -6122,8 +6123,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
     break;
 
   default:
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
   }
 
@@ -6229,8 +6229,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data,
     break;
 
   default:
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
   }
 
@@ -6289,8 +6288,7 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data,
     break;
 
   default:
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
   }
 
@@ -6344,8 +6342,7 @@ static bool obs_point_search_walker(GenericHashEntry *he, void *user_data,
     break;
 
   default:
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
   }
 
@@ -6399,8 +6396,7 @@ static bool country_search_walker(GenericHashEntry *he, void *user_data,
     break;
 
   default:
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
   }
 
@@ -6453,8 +6449,7 @@ static bool vlan_search_walker(GenericHashEntry *he, void *user_data,
     break;
 
   default:
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
   }
 

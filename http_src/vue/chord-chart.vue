@@ -7,7 +7,7 @@
         <Loading :isLoading="loading"></Loading>
 
         <!-- no data -->
-        <div v-if="no_data && !loading" class="alert alert-info" id="empty-message">
+        <div v-if="no_data && !loading" class="alert alert-info no-data-message" id="empty-message">
             {{ no_data_message || _i18n('flows_page.no_data') }}
         </div>
         <div ref="chord_wrapper" class="chord-wrapper"></div>
@@ -17,6 +17,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed } from "vue";
 import { default as Loading } from "./loading.vue"
+import colorUtils from "../utilities/color-utils.js";
 
 const d3 = d3v7;
 const emit = defineEmits(['update_width', 'update_height', 'autorefresh_toggle'])
@@ -162,7 +163,8 @@ async function draw_chord() {
     const dimension = Math.max(Math.min(width, height), 600);
 
     // Formula for chord: https://observablehq.com/@d3/chord-diagram
-    const outerRadius = dimension * 0.5 - 60;
+    // margin of 100 to prevent labels from getting outside the panel
+    const outerRadius = dimension * 0.5 - 100;
     const innerRadius = outerRadius - 10;
 
     // compute total for percentage calculation
@@ -183,7 +185,9 @@ async function draw_chord() {
         .radius(innerRadius - 1)
         .padAngle(1 / innerRadius);
 
-    const color = d3.scaleOrdinal(d3.schemeSet1);
+    // Use color utility to assign consistent colors based on node names
+    const nodeColors = colorUtils.assignChordColors(names);
+    const color = d3.scaleOrdinal(nodeColors);
 
     // take 100% size and colors
     svg = d3.select(chord_wrapper.value)
@@ -204,13 +208,22 @@ async function draw_chord() {
 
     group.append("path")
         .attr("class", "chord-group")
-        .attr("fill", d => color(names[d.index]))
+        .attr("fill", d => color(d.index))
         .attr("d", arc)
         .attr("fill-opacity", 0.9)
         .style("filter", "drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15))")
-        .style("stroke", d => d3.color(color(names[d.index])).darker(0.5))
+        .style("stroke", d => {
+            const fillColor = color(d.index);
+            return d3.color(fillColor).darker(0.5);
+        })
         .style("stroke-width", "1px")
         .style("cursor", "pointer")
+        .on("click", function (event, d) {
+            // on node click redirect to URL
+            const nodeData = names[d.index];
+            const nodeUrl = nodeData.url;
+            window.location.href = nodeUrl;
+        })
         .on("mouseover", function (event, d) {
             d3.select(this)
                 .transition()
@@ -229,7 +242,10 @@ async function draw_chord() {
         });
 
     group.append("title")
-        .text(d => `${names[d.index]}\n${formatValue(d.value)}`);
+        .text(d => {
+            const nodeName = names[d.index].name || names[d.index];
+            return `${nodeName}\n${formatValue(d.value)}`;
+        });
 
     // add labels percentage outer circle
     group.append("g")
@@ -254,7 +270,7 @@ async function draw_chord() {
             return angle > Math.PI ? "end" : "start";
         })
         .style("letter-spacing", "0.3px")
-        .text(d => names[d.index]);
+        .text(d => names[d.index].name || names[d.index]);
 
     // reset to original style 
     function resetHighlight() {
@@ -344,13 +360,16 @@ async function draw_chord() {
         .attr("class", "chord-ribbon")
         .style("mix-blend-mode", "multiply")
         .attr("fill", d => {
-            // create gradient from src to target
-            const sourceColor = d3.color(color(names[d.source.index]));
-            return sourceColor;
+            // Use source color for ribbon
+            const sourceColor = color(d.source.index);
+            return d3.color(sourceColor);
         })
         .attr("d", ribbon)
         .attr("fill-opacity", 0.65)
-        .style("stroke", d => d3.color(color(names[d.source.index])).darker(0.3))
+        .style("stroke", d => {
+            const sourceColor = color(d.source.index);
+            return d3.color(sourceColor).darker(0.3);
+        })
         .style("stroke-width", "0.5px")
         .style("cursor", "pointer")
         .on("mouseover", function (event, d) {
@@ -429,7 +448,10 @@ async function draw_chord() {
                 .attr("text-anchor", "middle")
                 .attr("font-size", "11px")
                 .attr("font-weight", "700")
-                .attr("fill", d3.color(color(names[d.source.index])).darker(1.5))
+                .attr("fill", () => {
+                    const sourceColor = color(d.source.index);
+                    return d3.color(sourceColor).darker(1.5);
+                })
                 .attr("opacity", 0.95)
                 .style("paint-order", "stroke")
                 .style("stroke", "rgba(255, 255, 255, 0.95)")
@@ -445,7 +467,10 @@ async function draw_chord() {
                     .attr("text-anchor", "middle")
                     .attr("font-size", "11px")
                     .attr("font-weight", "700")
-                    .attr("fill", d3.color(color(names[d.target.index])).darker(1.5))
+                    .attr("fill", () => {
+                        const targetColor = color(d.target.index);
+                        return d3.color(targetColor).darker(1.5);
+                    })
                     .attr("opacity", 0.95)
                     .style("paint-order", "stroke")
                     .style("stroke", "rgba(255, 255, 255, 0.95)")
@@ -494,6 +519,16 @@ defineExpose({ draw_chord, setNoDataFlag });
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     color: #0c5460;
+}
+
+.no-data-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    min-width: 200px;
 }
 
 :deep(.chord-ribbon) {

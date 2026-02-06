@@ -1045,7 +1045,8 @@ void build_redirect(const char *url, const char *query_string,
     hence we implement a lighweighted URL checker that
   */
 
-  if((url[0] != '/') || strchr(url, '%')) {
+  if((strncmp(url, "http", 4) == 0)
+     || strchr(url, '%')) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid redirect URL: %s", url);
     url = "/"; /* Let's redirect to the root page */
   }
@@ -1328,9 +1329,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       (char *)request_info->uri ? (char *)request_info->uri : (char *)"");
   lua_push_str_table_entry(L, "REFERER",
                            (char *)mg_get_header(conn, "Referer")
-                               ? (char *)mg_get_header(conn, "Referer")
-                               : (char *)"");
-
+			   ? (char *)mg_get_header(conn, "Referer")
+			   : (char *)"");
+  
   const char *host = mg_get_header(conn, "Host");
 
   if (host) {

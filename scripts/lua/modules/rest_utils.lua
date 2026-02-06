@@ -501,8 +501,27 @@ function rest_utils.disable_direct_mode()
     rest_utils.rest_answer = nil
 end
 
--- Return the REST answer locally (direct_mode)
-function rest_utils.get_answer() return rest_utils.rest_answer end
+function rest_utils.local_query(endpoint, query_params, post_data)
+   local script_path = dirs.installdir .. "/scripts" .. endpoint
+
+   -- Run a direct REST request without going through the HTTP server
+   rest_utils.enable_direct_mode()
+
+   -- _SESSION = {}
+   _GET = query_params or {}
+   _POST = post_data or {}
+
+   dofile(script_path)
+
+   local data = rest_utils.rest_answer
+   if data and data.rsp then
+      data = data.rsp
+   end
+
+   rest_utils.disable_direct_mode()
+
+   return data
+end
 
 function rest_utils.rc(ret_const, payload, additional_response_param, format)
     local ret_code = ret_const.rc

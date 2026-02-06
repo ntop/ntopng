@@ -64,6 +64,28 @@ end
 
 -- ###############################################
 
+function get_domain_from_url(url)
+   -- Strips the prefix (either http:// or https://) and a possible port
+
+   -- Extract the domain, e.g.,
+   -- http://user:password@www.example.com/p1/p2 becomes www.example.com
+   -- http://www.example.com:3000/p1/p2 becomes www.example.com
+
+   -- See if domain has user and password encoded, i.e.,
+   -- http://user:password@www.example.com becomes www.example.com
+   local domain = url:match('^%w+://[^:]+:[^@]+@([^/:]+)')
+
+   if not domain then
+      -- Domain has no user and password encoded, i.e.,
+      -- http://www.example.com:3000/p1/p2
+      domain = url:match('^%w+://([^/:]+)')
+   end
+
+   return domain
+end
+
+-- ###############################################
+
 -- TODO: improve this function
 function jsonencode(what)
    what = string.gsub(what, '"', "'")

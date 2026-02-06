@@ -26,23 +26,10 @@ local function reportError(msg)
 end
 
 local function isValidHostMeasurementCombination(host, measurement)
-   -- Strips the prefix (either http:// or https://) and a possible port
 
-   -- Extract the domain, e.g.,
-   -- http://user:password@www.example.com/p1/p2 becomes www.example.com
-   -- http://www.example.com:3000/p1/p2 becomes www.example.com
+   local domain = get_domain_from_url(host)
 
-   -- See if domain has user and password encoded, i.e.,
-   -- http://user:password@www.example.com becomes www.example.com
-   local domain = host:match('^%w+://[^:]+:[^@]+@([^/:]+)')
-
-   if not domain then
-      -- Domain has no user and password encoded, i.e.,
-      -- http://www.example.com:3000/p1/p2
-      domain = host:match('^%w+://([^/:]+)')
-   end
-
-   -- Take the domain (if found) or the host as-is
+   -- Take the domain (if found) or the url as-is
    host = domain or host
 
    local host_v4 = isIPv4(host)
