@@ -54,9 +54,9 @@
 			]
 		},
 		{
-			"id": "ip",
+			"id": "name",
 			"title_i18n": "flow_devices.exporter",
-			"data_field": "ip",
+			"data_field": "name",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -83,11 +83,10 @@
 			]
 		},
 		{
-			"id": "probe_ip",
-			"title_i18n": "flow_devices.probe",
-			"data_field": "probe_ip",
+			"id": "ip",
+			"title_i18n": "flow_devices.exporter_ip",
+			"data_field": "ip",
 			"sortable": true,
-			"min-width": "40px",
 			"class": [
 				"text-nowrap"
 			]

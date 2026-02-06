@@ -155,12 +155,7 @@ const get_extra_params_obj = () => {
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "ip": (value, row) => {
-            let exporter_ip = value;
-            if (!dataUtils.isEmptyOrNull(row['name'])) {
-                exporter_ip = `${row['name']}`;
-            }
-
-            return `<a href="${exporter_interfaces_url}ip=${value}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}&probe_ip=${row.probe_ip}">${exporter_ip}</a> `;
+            return value;
         },
         "probe_ip": (value, row) => {
             let probe_ip = value;
@@ -171,7 +166,7 @@ const map_table_def_columns = (columns) => {
             return probe_ip;
         },
         "name": (value, row) => {
-            return value
+            return `<a href="${exporter_interfaces_url}ip=${row.ip}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}&probe_ip=${row.probe_ip}">${value}</a> `;
         },
         "ntopng_interface": (value, row) => {
             return value
