@@ -3012,6 +3012,8 @@ local function validateParameter(k, v)
             if (trace_failures) then
                 error("[LINT] Validation error: Unknown key '" .. k .. "' [" .. tostring(v) .. "]: missing validation perhaps?\n")
                 tprint(debug.traceback())
+                tprint(_GET)
+                tprint(_POST)
             end
             return false, nil
         end
