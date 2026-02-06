@@ -2969,10 +2969,10 @@ local special_parameters = { --[[Suffix validator]]
 -- #################################################################
 
 local function validateParameter(k, v)
-    local debug = false
+    local print_debug = false
     local trace_failures = true
 
-    if (debug) then
+    if (print_debug) then
         io.write("[LINT] validateParameter [" .. k .. "] " .. type(v) .. "\n")
     end
 
@@ -2996,7 +2996,7 @@ local function validateParameter(k, v)
 
             -- Success, all the table keys have been validated successfully
             return true, "OK", v
-        elseif k:starts('custom_fields') then
+        elseif (type(k) == "string") and (k:starts('custom_fields')) then
             -- Possible error, try the last check for historical custom_fields
             local tmp_1 = k:split("_")
             local i = 3
@@ -3011,6 +3011,7 @@ local function validateParameter(k, v)
         else
             if (trace_failures) then
                 error("[LINT] Validation error: Unknown key '" .. k .. "' [" .. tostring(v) .. "]: missing validation perhaps?\n")
+                tprint(debug.traceback())
             end
             return false, nil
         end
