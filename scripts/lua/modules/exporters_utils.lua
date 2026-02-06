@@ -330,6 +330,7 @@ end
 --
 function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
    local page_utils = require("page_utils")
+   probe_uuid = probe_uuid or ""
    -- URLs and state flags initialization
    local interfaces_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua"
    local exporter_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters.lua"
@@ -391,7 +392,7 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       label = i18n("flow_devices.exporters_interfaces")
    }, {
       url = exporter_map_url,
-      hidden = page ~= "exporters" or num_exporters < 2 or not(isASNModeEnabled()),
+      hidden = page ~= "exporters",-- or num_exporters < 2 or not(isASNModeEnabled()),
       page_name = "exporter_map",
       label = "<i class=\"fas fa-lg fa-map\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("exporter_sites_page.exporters_map") .. "\"></i>"
    }, {

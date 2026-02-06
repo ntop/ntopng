@@ -7,7 +7,7 @@
         <Loading :isLoading="loading"></Loading>
 
         <!-- no data -->
-        <div v-if="no_data && !loading" class="alert alert-info" id="empty-message">
+        <div v-if="no_data && !loading" class="alert alert-info no-data-message" id="empty-message">
             {{ no_data_message || _i18n('flows_page.no_data') }}
         </div>
         <div ref="chord_wrapper" class="chord-wrapper"></div>
@@ -521,6 +521,16 @@ defineExpose({ draw_chord, setNoDataFlag });
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     color: #0c5460;
+}
+
+.no-data-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    text-align: center;
+    min-width: 200px;
 }
 
 :deep(.chord-ribbon) {

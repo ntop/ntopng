@@ -3217,6 +3217,7 @@ local lang = {
   },
   ["exporter_sites_page"] = {
     ["exporters_map"] = "Exporters Map",
+    ["sites_map"] = "Sites Map",
     ["exporter_sites"] = "Exporter Sites",
     ["edit_exporter_site"] = "Edit Site",
     ["add_exporter_site"] = "Add Site",
