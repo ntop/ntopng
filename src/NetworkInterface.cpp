@@ -615,10 +615,16 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s][%s][id: %u]", __FUNCTION__, what, list_name, id);
 
-  if (what && ndpi_struct_shadow)
-    success = (ndpi_load_ip_category(ndpi_struct_shadow, what, (ndpi_protocol_category_t)id,
-                                     (void *)list_name) == 0);
-
+  if (what) {
+    if(!ndpi_struct_shadow) initnDPIReload(); /* Might be an interface is being created and init was missed */
+    
+    if(ndpi_struct_shadow)
+      success = (ndpi_load_ip_category(ndpi_struct_shadow, what, (ndpi_protocol_category_t)id,
+				       (void *)list_name) == 0);
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state"), success = false;
+  }
+  
   return success;
 }
 
@@ -629,13 +635,18 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, u_int16_t id, char *
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
 
-  if (what && ndpi_struct_shadow)
-    success = (ndpi_load_hostname_category(ndpi_struct_shadow, what,
-					   (ndpi_protocol_category_t)id,
-					   NDPI_PROTOCOL_UNRATED) == 0);
-  else
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
-
+  if (what) {
+    if(!ndpi_struct_shadow) initnDPIReload(); /* Might be an interface is being created and init was missed */
+      
+    if(ndpi_struct_shadow)
+      success = (ndpi_load_hostname_category(ndpi_struct_shadow, what,
+					     (ndpi_protocol_category_t)id,
+					     NDPI_PROTOCOL_UNRATED) == 0);
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state"), success = false;
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL category"), success = false;
+  
   return success;
 }
 
@@ -644,20 +655,29 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, u_int16_t id, char *
 int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, domain);
 
-  if(domain && ndpi_struct_shadow)
-    return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
-  else
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  if(domain) {
+    if(!ndpi_struct_shadow) initnDPIReload(); /* Might be an interface is being created and init was missed */
 
+    if(ndpi_struct_shadow)      
+      return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL domain");
+  
   return(-1);
 }
 
 /* *************************************** */
 
 int NetworkInterface::addTrustedIssuerDN(const char *dn) {
-  if(dn && ndpi_struct_shadow)
-    return(ndpi_add_trusted_issuer_dn(ndpi_struct_shadow, (char*)dn));
-
+  if(dn) {
+    if(!ndpi_struct_shadow) initnDPIReload(); /* Might be an interface is being created and init was missed */
+    
+    if(ndpi_struct_shadow)
+      return(ndpi_add_trusted_issuer_dn(ndpi_struct_shadow, (char*)dn));
+  }
+  
   return(-1);
 }
 
@@ -1547,7 +1567,7 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,
   flowHashing[criteria] = sub_iface; /* Add it to the hash */
 
   numSubInterfaces++;
-  // ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
+  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
 
   return true;
 }
