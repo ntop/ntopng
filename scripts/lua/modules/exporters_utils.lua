@@ -298,15 +298,29 @@ local function build_navbar_title(ip, nprobe_info)
    local navbar_title = i18n("flow_devices.nprobe_instances")
 
    if nprobe_info then
-      local breadcrumb = "<span>"
+      
+      local overview_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua?page=overview"
+      navbar_title = "<a href='".. overview_url .."'>" .. navbar_title .. "</a>"
+      
+      local breadcrumb = "<span> | "
       local probe_ip = nprobe_info["probe.ip"]
       local probe_name = getProbeName(probe_ip, true, true, false)
 
-      breadcrumb = breadcrumb .. " | " .. probe_name .. " (" .. i18n("flow_devices.probe") .. ")"
-
       if not isEmptyString(ip) and ip ~= probe_ip then
+         local probe_uuid =  tostring(nprobe_info["probe.source_id"])
+         local exporters_url = ntop.getHttpPrefix() 
+                                 .. "/lua/pro/enterprise/exporters.lua?probe_uuid=" .. probe_uuid
+         
+         breadcrumb = breadcrumb .. "<a href='".. exporters_url .."'>" 
+                                 .. i18n("flow_devices.probe") .. " " .. probe_name .. "</a>"
+         
          local exporter_name = getProbeName(ip, true, true, false)
-         breadcrumb = breadcrumb .. " / " .. exporter_name .. " (" .. i18n("flow_devices.exporter") .. ") "
+         breadcrumb = breadcrumb .. " / " .. i18n("flow_devices.exporter") .. " " .. exporter_name
+         if exporter_name ~= ip then
+            breadcrumb = breadcrumb .. " (" .. ip .. ") "
+         end
+      else
+         breadcrumb = breadcrumb .. i18n("flow_devices.probe") .. " " .. probe_name
       end
 
       breadcrumb = breadcrumb .. "</span>"
@@ -337,6 +351,7 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
 
    local snmp_available = false
    local nprobe_info = nil
+   local probe_ip = nil
    local conf_url = ""
    local timeseries_url = ""
    local snmp_url = ""
@@ -347,6 +362,10 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       if isEmptyString(ip) and nprobe_info then
          ip = nprobe_info["probe.ip"]
       end
+   end
+
+   if nprobe_info then
+      probe_ip = nprobe_info["probe.ip"]
    end
 
    local title_navbar = build_navbar_title(ip, nprobe_info)
@@ -375,11 +394,6 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
 
    -- Render navbar
    page_utils.print_navbar(title_navbar, ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua", {{
-      active = page == "nprobe",
-      page_name = "overview",
-      label = "<i class=\"fas fa-lg fa-home\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("flow_devices.exporters_menu_entry") ..
-         "\"></i>"
-   }, {
       url = exporter_url,
       page_name = "exporters",
       active = (page == "exporters"),
@@ -402,13 +416,13 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
    }, {
       active = page == "historical",
       page_name = "historical",
-      hidden = isEmptyString(ip),
+      hidden = isEmptyString(ip) or (probe_ip == ip),
       url = timeseries_url,
       label = "<i class=\"fas fa-lg fa-chart-area\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("prefs.timeseries") .. "\"></i>"
    }, {
       active = page == "config",
       page_name = "config",
-      hidden = isEmptyString(ip),
+      hidden = isEmptyString(ip) or (probe_ip == ip),
       url = conf_url,
       label = "<i class=\"fas fa-lg fa-cog\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("flow_checks.callback_config") .. "\"></i>"
    }})
