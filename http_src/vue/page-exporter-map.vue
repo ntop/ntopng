@@ -68,11 +68,10 @@ async function set_chord_data() {
 async function get_chord_data() {
     try {
         const url_params = ntopng_url_manager.get_url_object();
-        console.log(url_params)
+        
         const url = NtopUtils.buildURL(chord_rest_url, url_params);
         const response = await ntopng_utility.http_request(url);
 
-        console.log(response)
         if (response) {
             return response;
         }
