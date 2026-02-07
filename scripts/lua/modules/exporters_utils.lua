@@ -307,7 +307,7 @@ local function build_navbar_title(ip, nprobe_info)
       local probe_name = getProbeName(probe_ip, true, true, false)
 
       if not isEmptyString(ip) and ip ~= probe_ip then
-         local probe_uuid =  tostring(nprobe_info["probe.source_id"])
+         local probe_uuid = tostring(nprobe_info["probe.source_id"])
          local exporters_url = ntop.getHttpPrefix() 
                                  .. "/lua/pro/enterprise/exporters.lua?probe_uuid=" .. probe_uuid
          
@@ -320,7 +320,13 @@ local function build_navbar_title(ip, nprobe_info)
             breadcrumb = breadcrumb .. " (" .. ip .. ") "
          end
       else
-         breadcrumb = breadcrumb .. i18n("flow_devices.probe") .. " " .. probe_name
+         -- clickable probe IP in the breadcrumb
+         local probe_uuid = tostring(nprobe_info["probe.source_id"])
+         local exporters_url = ntop.getHttpPrefix() 
+                                 .. "/lua/pro/enterprise/exporters.lua?probe_uuid=" .. probe_uuid
+         
+         breadcrumb = breadcrumb .. "<a href='".. exporters_url .."'>" 
+                                 .. i18n("flow_devices.probe") .. " " .. probe_name .. "</a>"
       end
 
       breadcrumb = breadcrumb .. "</span>"
