@@ -385,7 +385,7 @@ async function draw_chord() {
             tooltip = d3.select("body")
                 .append("div")
                 .attr("class", "chord-ribbon-tooltip")
-                .html(`${sourceName} -> ${targetName}: ${sourceToTargetPercent}<br/>${targetName} -> ${sourceName}: ${targetToSourcePercent}`)
+                .html(`${sourceName} -> ${targetName}: ${sourceToTargetPercent} of ${sourceName}'s traffic<br/>${targetName} -> ${sourceName}: ${targetToSourcePercent} of ${targetName}'s traffic`)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 10) + "px")
                 .style("opacity", 0);
