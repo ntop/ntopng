@@ -200,6 +200,9 @@ async function draw_chord() {
 
     const chords = chord(matrix);
 
+    // Detect theme for styling
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
     //  draw svg
     const group = svg.append("g")
         .selectAll()
@@ -208,13 +211,21 @@ async function draw_chord() {
 
     group.append("path")
         .attr("class", "chord-group")
-        .attr("fill", d => color(d.index))
+        .attr("fill", d => {
+            const baseColor = color(d.index);
+            // Brighten colors slightly in dark mode for better visibility
+            return isDarkMode ? d3.color(baseColor).brighter(0.3) : baseColor;
+        })
         .attr("d", arc)
-        .attr("fill-opacity", 0.9)
-        .style("filter", "drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15))")
+        .attr("fill-opacity", isDarkMode ? 0.95 : 0.9)
+        .style("filter", isDarkMode ?
+            "drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.4))" :
+            "drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15))")
         .style("stroke", d => {
             const fillColor = color(d.index);
-            return d3.color(fillColor).darker(0.5);
+            return isDarkMode ?
+                d3.color(fillColor).brighter(0.5) :
+                d3.color(fillColor).darker(0.5);
         })
         .style("stroke-width", "1px")
         .style("cursor", "pointer")
@@ -241,12 +252,6 @@ async function draw_chord() {
                 .style("stroke-width", "1px");
         });
 
-    group.append("title")
-        .text(d => {
-            const nodeName = names[d.index].name || names[d.index];
-            return `${nodeName}\n${formatValue(d.value)}`;
-        });
-
     // add labels percentage outer circle
     group.append("g")
         .attr("transform", d => {
@@ -260,7 +265,7 @@ async function draw_chord() {
         .attr("font-size", "14px")
         .attr("opacity", 0.95)
         .attr("dy", "0.35em")
-        .attr("fill", "#1a1a1a")
+        .attr("fill", isDarkMode ? "#e2e2e2" : "#1a1a1a")
         .attr("transform", d => {
             const angle = (d.startAngle + d.endAngle) / 2;
             return angle > Math.PI ? "rotate(180)" : null;
@@ -270,9 +275,10 @@ async function draw_chord() {
             return angle > Math.PI ? "end" : "start";
         })
         .style("letter-spacing", "0.3px")
+        .style("text-shadow", isDarkMode ? "0 1px 3px rgba(0, 0, 0, 0.8)" : "none")
         .text(d => names[d.index].name || names[d.index]);
 
-    // reset to original style 
+    // reset to original style
     function resetHighlight() {
         svg.selectAll(".chord-ribbon")
             .transition()
@@ -288,14 +294,9 @@ async function draw_chord() {
             .transition()
             .duration(90)
             .attr("opacity", 0.95);
-
-        svg.selectAll(".ribbon-label")
-            .transition()
-            .duration(90)
-            .attr("opacity", 0.95);
     }
 
-    // highlihgt ribbon
+    // highlight ribbon
     function highlightRibbon(hoveredChord) {
         // dim all ribbons
         svg.selectAll(".chord-ribbon")
@@ -335,42 +336,32 @@ async function draw_chord() {
             .transition()
             .duration(90)
             .attr("opacity", 1.0);
-
-        // dim all ribbon labels
-        svg.selectAll(".ribbon-label")
-            .transition()
-            .duration(90)
-            .attr("opacity", 0.15);
-
-        // highlight the hovered ribbon labels
-        svg.selectAll(".ribbon-label")
-            .filter(d => d === hoveredChord)
-            .transition()
-            .duration(90)
-            .attr("opacity", 1.0);
     }
 
     // draw ribbon with hover
     const ribbonGroup = svg.append("g")
         .attr("fill-opacity", 0.8);
 
+    // Tooltip for ribbons
+    let tooltip = null;
+
     ribbonGroup.selectAll("path")
         .data(chords)
         .join("path")
         .attr("class", "chord-ribbon")
-        .style("mix-blend-mode", "multiply")
+        .style("mix-blend-mode", isDarkMode ? "normal" : "multiply")
         .attr("fill", d => {
             // Use source color for ribbon
             const sourceColor = color(d.source.index);
             return d3.color(sourceColor);
         })
         .attr("d", ribbon)
-        .attr("fill-opacity", 0.65)
+        .attr("fill-opacity", isDarkMode ? 0.75 : 0.65)
         .style("stroke", d => {
             const sourceColor = color(d.source.index);
-            return d3.color(sourceColor).darker(0.3);
+            return isDarkMode ? d3.color(sourceColor).brighter(0.3) : d3.color(sourceColor).darker(0.3);
         })
-        .style("stroke-width", "0.5px")
+        .style("stroke-width", isDarkMode ? "1px" : "0.5px")
         .style("cursor", "pointer")
         .on("mouseover", function (event, d) {
             // smooth transition for hovered ribbon
@@ -381,6 +372,33 @@ async function draw_chord() {
                 .attr("fill-opacity", 0.9);
 
             highlightRibbon(d);
+
+            // Remove existing tooltip
+            if (tooltip) tooltip.remove();
+
+            const sourceName = names[d.source.index].name || names[d.source.index];
+            const targetName = names[d.target.index].name || names[d.target.index];
+            const sourceToTargetPercent = d3.format(".1~%")(d.source.value / chords.groups[d.source.index].value);
+            const targetToSourcePercent = d3.format(".1~%")(d.target.value / chords.groups[d.target.index].value);
+
+            // Create tooltip using theme-aware class
+            tooltip = d3.select("body")
+                .append("div")
+                .attr("class", "chord-ribbon-tooltip")
+                .html(`${sourceName} -> ${targetName}: ${sourceToTargetPercent}<br/>${targetName} -> ${sourceName}: ${targetToSourcePercent}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px")
+                .style("opacity", 0);
+
+            // Fade in
+            tooltip.transition().duration(150).style("opacity", 1);
+        })
+        .on("mousemove", function(event) {
+            if (tooltip) {
+                tooltip
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 10) + "px");
+            }
         })
         .on("mouseout", function () {
             // smooth transition to normal highlight
@@ -391,93 +409,14 @@ async function draw_chord() {
                 .attr("fill-opacity", 0.65);
 
             resetHighlight();
-        });
 
-    // add percentage label
-    ribbonGroup.selectAll("text")
-        .data(chords)
-        .join("text")
-        .attr("class", "ribbon-label")
-        .style("cursor", "pointer")
-        .on("mouseover", function (event, d) {
-            // highlight ribbon when hovering
-            highlightRibbon(d);
-
-            ribbonGroup.selectAll("path")
-                .filter(chord => chord === d)
-                .transition()
-                .duration(90)
-                .style("stroke-width", "1.5px")
-                .attr("fill-opacity", 0.9);
-        })
-        .on("mouseout", function (event, d) {
-            resetHighlight();
-
-            ribbonGroup.selectAll("path")
-                .filter(chord => chord === d)
-                .transition()
-                .duration(90)
-                .style("stroke-width", "0.5px")
-                .attr("fill-opacity", 0.65);
-        })
-        .each(function (d) {
-            const elem = d3.select(this);
-
-            // compute percentage relative to source total
-            const sourcePercent = d3.format(".1~%")(d.source.value / chords.groups[d.source.index].value);
-            // compute percentage relative to target total
-            const targetPercent = d3.format(".1~%")(d.target.value / chords.groups[d.target.index].value);
-
-            // position at source arc center
-            const sourceAngle = (d.source.startAngle + d.source.endAngle) / 2;
-            const sourceLabelRadius = outerRadius + 25;
-            const sourceX = sourceLabelRadius * Math.cos(sourceAngle - Math.PI / 2);
-            const sourceY = sourceLabelRadius * Math.sin(sourceAngle - Math.PI / 2);
-
-            // position at target arc center
-            const targetAngle = (d.target.startAngle + d.target.endAngle) / 2;
-            const targetLabelRadius = outerRadius + 25;
-            const targetX = targetLabelRadius * Math.cos(targetAngle - Math.PI / 2);
-            const targetY = targetLabelRadius * Math.sin(targetAngle - Math.PI / 2);
-
-            // add source label
-            elem.append("tspan")
-                .attr("x", sourceX)
-                .attr("y", sourceY)
-                .attr("dy", "0.35em")
-                .attr("text-anchor", "middle")
-                .attr("font-size", "14px")
-                .attr("font-weight", "700")
-                .attr("fill", () => {
-                    const sourceColor = color(d.source.index);
-                    return d3.color(sourceColor).darker(1.5);
-                })
-                .attr("opacity", 0.95)
-                .style("paint-order", "stroke")
-                .style("stroke", "rgba(255, 255, 255, 0.95)")
-                .style("stroke-width", "3px")
-                .text(sourcePercent);
-
-            // add target label
-            if (d.source.index !== d.target.index) {
-                elem.append("tspan")
-                    .attr("x", targetX)
-                    .attr("y", targetY)
-                    .attr("dy", "0.35em")
-                    .attr("text-anchor", "middle")
-                    .attr("font-size", "14px")
-                    .attr("font-weight", "700")
-                    .attr("fill", () => {
-                        const targetColor = color(d.target.index);
-                        return d3.color(targetColor).darker(1.5);
-                    })
-                    .attr("opacity", 0.95)
-                    .style("paint-order", "stroke")
-                    .style("stroke", "rgba(255, 255, 255, 0.95)")
-                    .style("stroke-width", "3px")
-                    .text(targetPercent);
+            // Remove tooltip
+            if (tooltip) {
+                tooltip.transition().duration(150).style("opacity", 0).remove();
+                tooltip = null;
             }
         });
+
 
     // reset highlight when leaving svg
     svg.on("mouseleave", function () {
@@ -490,6 +429,16 @@ defineExpose({ draw_chord, setNoDataFlag });
 </script>
 
 <style scoped>
+/* Light mode */
+:root[data-theme='light'] .chord-container {
+    background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
+}
+
+/* Dark mode */
+:root[data-theme='dark'] .chord-container {
+    background: linear-gradient(135deg, #1a1d23 0%, #0d1117 100%);
+}
+
 .chord-container {
     width: 100%;
     height: 100%;
@@ -497,7 +446,6 @@ defineExpose({ draw_chord, setNoDataFlag });
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
 }
 
 .chord-wrapper {
@@ -515,10 +463,18 @@ defineExpose({ draw_chord, setNoDataFlag });
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.alert-info {
+/* Light mode alert */
+:root[data-theme='light'] .alert-info {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     color: #0c5460;
+}
+
+/* Dark mode alert */
+:root[data-theme='dark'] .alert-info {
+    background-color: #1e2936;
+    border: 1px solid #2d3748;
+    color: #9ca3af;
 }
 
 .no-data-message {
@@ -543,9 +499,37 @@ defineExpose({ draw_chord, setNoDataFlag });
     transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
+</style>
 
-:deep(.ribbon-label) {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+<style>
+/* Chord ribbon tooltip - Light mode */
+:root[data-theme='light'] .chord-ribbon-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Chord ribbon tooltip - Dark mode */
+:root[data-theme='dark'] .chord-ribbon-tooltip {
+    position: absolute;
+    background-color: #2D3748;
+    color: var(--ntop-text-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 </style>
