@@ -4405,12 +4405,11 @@ u_int32_t Ntop::getMaxNumLocalNetworks() {
 
 bool Ntop::isInLocalASN(IpAddress *ip) {
   u_int32_t asn;
-  char *asname;
 
   if((geo == NULL) || (local_asn.size() == 0 /* No ASN defined */))
     return(false);
 
-  if(geo->getAS(ip, &asn, &asname)) {
+  if(geo->getAS(ip, &asn, NULL)) {
     if(local_asn.find(asn) != local_asn.end())
       return(true);
   }
