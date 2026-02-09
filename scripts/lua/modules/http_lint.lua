@@ -2207,7 +2207,7 @@ local known_parameters = {
     ["enabled"] = validateBool,
 
     -- CLASSIFICAION
-    ["classification_user_id"] = validateNumber,
+    ["classification_user_id"] = validateUnquoted,
     ["classification_user_token"] = validateSingleWord,
     
     -- VULNERABILITY SCAN
