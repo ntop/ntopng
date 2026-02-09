@@ -848,7 +848,7 @@ const render_template = () => {
       if(field_max == undefined)
         field_max = metadata.default_value[field].field_max
       if(title == undefined)
-        title = metadata.default_value[field].i18n_title
+        title = i18n(metadata.default_value[field].i18n_title)
 
       let $select = null;
   
@@ -858,7 +858,7 @@ const render_template = () => {
         $select = $(`<span class='input-group-text'>&${field_operator}</span>`).data('value', field_operator);
       }
 
-      const $title = `<span class='mt-auto mb-auto ms-2 me-2'>${i18n(title) ? i18n(title) : ""}</span>`;
+      const $title = `<span class='mt-auto mb-auto ms-2 me-2'>${title ? title : ""}</span>`;
       
       $field.append($select);
       $field.append(`<input
