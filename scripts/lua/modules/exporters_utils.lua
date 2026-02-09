@@ -296,12 +296,11 @@ end
 --
 local function build_navbar_title(ip, nprobe_info)
    local navbar_title = i18n("flow_devices.nprobe_instances")
-
+   
+   local overview_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua?page=overview"
+   navbar_title = "<a href='".. overview_url .."'>" .. navbar_title .. "</a>"
+   
    if nprobe_info then
-
-      local overview_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua?page=overview"
-      navbar_title = "<a href='".. overview_url .."'>" .. navbar_title .. "</a>"
-
       local breadcrumb = "<span> | "
       local probe_ip = nprobe_info["probe.ip"]
       local probe_name = getProbeName(probe_ip, true, true, false)
@@ -437,6 +436,11 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       hidden = isEmptyString(ip) or (probe_ip == ip),
       url = conf_url,
       label = "<i class=\"fas fa-lg fa-cog\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("flow_checks.callback_config") .. "\"></i>"
+   },{
+      page_name = "sites",
+      hidden = page ~= "exporter_map",
+      url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_sites_map.lua?site_mode=1&probe_uuid=" .. probe_uuid,
+      label = i18n("exporter_sites_page.sites")
    }})
 end
 
