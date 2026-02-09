@@ -109,11 +109,15 @@ const handleLoadedColumns = (columns) => {
         })
     }
     if (props.context.ASNModeEnabled === false) {
-        /* Remove the column QoE in case ntopng is not Enterprise L, not available/computed in that version */
         modified_columns = modified_columns.filter((element) => {
             return ((element.id !== "cli_asn")
                 && (element.id !== "srv_asn")
                 && (element.id !== "transit_asn"))
+        })
+    }
+    if (props.context.ASNModeEnabled === true) {
+        modified_columns = modified_columns.filter((element) => {
+            return ((element.id !== "qoe"))
         })
     }
     return modified_columns
