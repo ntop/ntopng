@@ -8,7 +8,7 @@ local label_badge_utils = {}
 
 -- ##############################################
 
-local function get_radis_key()
+local function get_redis_key()
     return "ntopng.prefs.labels"
 end
 
@@ -32,7 +32,7 @@ end
 -- ##############################################
 
 local function get_labels_from_cache()
-    return ntop.getHashAllCache(get_radis_key()) or {}
+    return ntop.getHashAllCache(get_redis_key()) or {}
 end
 
 -- ##############################################
@@ -85,7 +85,7 @@ function label_badge_utils.editLabel(id, name, color, description, reserved)
         description = description, 
         reserved = reserved
     }
-    ntop.setHashCache(get_radis_key(), id, json.encode(label))
+    ntop.setHashCache(get_redis_key(), id, json.encode(label))
     --tprint(old_name .. " " .. name .. " " .. color .. " " .. description)
 end
 
@@ -103,7 +103,7 @@ function label_badge_utils.deleteLabel(id)
     -- Check if label exists before deletion
     if labels[id] then
         -- Remove label from Redis
-        ntop.delHashCache(get_radis_key(), id)
+        ntop.delHashCache(get_redis_key(), id)
     else
         return false, "Invalid Site"
     end
