@@ -6135,6 +6135,8 @@ local lang = {
     ["label_name"] = "Label",
     ["labels"] = "Labels",
     ["reserved_message"] = "Reserved System Label",
+    ["reset_label"] = "Are you sure to reset the selected label? This action cannot be undone.",
+    ["reset_label_title"] = "Reset Label",
   },
   ["license_page"] = {
     ["agreement"] = "License Agreement",

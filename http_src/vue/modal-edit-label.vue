@@ -74,18 +74,28 @@
         </template>
 
         <template v-slot:footer>
-            <div class="d-flex justify-content-end w-100">
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    @click="handleSubmit"
-                    :disabled="!is_form_valid"
-                >
-                    {{ _i18n("save") }}
-                </button>
-            </div>
+            <button
+                v-if="!isReserved"
+                type="button"
+                class="btn btn-secondary btn-block"
+                @click="handleResetButton"
+            >
+                {{ _i18n("reset") }}
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-primary btn-blo"
+                @click="handleSubmit"
+                :disabled="!is_form_valid"
+            >
+                {{ _i18n("save") }}
+            </button>
         </template>
     </modal>
+    <ModalResetLabel
+        ref="labelReset" @reset="handleReset">
+    </ModalResetLabel>
 </template>
 
 
@@ -93,6 +103,7 @@
 
 import { ref, computed, nextTick } from "vue";
 import { default as modal } from "./modal.vue";
+import { default as ModalResetLabel } from "./modal-reset-label.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -103,7 +114,8 @@ const emit = defineEmits(["edit"]);
 const label_name = ref("");
 const label_color = ref("#000000");
 const label_description = ref("");
-
+const label_id = ref("");
+const labelReset = ref(null);
 const name_error = ref("");
 const currentItem = ref(null);
 
@@ -119,21 +131,31 @@ const is_form_valid = computed(() => {
     return label_name.value.trim().length > 1 && !name_error.value;
 });
 
+/* ************************************** */
+
 const validateName = () => {
     if (isReserved.value) {
         name_error.value = "";
         return;
     }
-    const trimmed = label_name.value.trim();
+    const name = label_name.value;
 
-    if (!trimmed) {
+    const alphanumericRegex = /^[\p{L}0-9]+$/u;
+
+    if (!name) {
         name_error.value = _i18n("error_messages.name_cannot_be_empty");
-    } else if (trimmed.length <= 1) {
+    } else if (name.length <= 1) {
         name_error.value = _i18n("error_messages.name_must_be_longer_than_1_character");
+    } else if (/\s/.test(name)) {
+        name_error.value = _i18n("error_messages.name_cannot_contain_spaces");
+    } else if (!alphanumericRegex.test(name)) {
+        name_error.value = _i18n("error_messages.name_must_be_alphanumeric");
     } else {
         name_error.value = "";
     }
 };
+
+/* ************************************** */
 
 const handleSubmit = () => {
     validateName();
@@ -152,17 +174,45 @@ const handleSubmit = () => {
     close();
 };
 
+/* ************************************** */
+
 const showEdit = async (item) => {
     currentItem.value = item;
     label_name.value = item.label_name;
     label_color.value = item.label_color || "#000000";
     label_description.value = item.label_description || "";
+    label_id.value = item.label_id;
 
     name_error.value = "";
 
     await nextTick();
     modal_id.value.show();
 };
+
+/* ************************************** */
+
+const showReset = (item) => {
+    labelReset.value.showReset(item);
+};
+
+const handleResetButton = () => {
+    const label_data = {
+        label_name: label_name.value,
+        label_id: label_id.value,
+    };
+
+    showReset(label_data);
+};
+
+/* ****************************************** */
+
+async function handleReset(item) {
+    emit("reset", item);
+    labelReset.value.close();
+    close();
+}
+
+/* ************************************** */
 
 const close = () => {
     modal_id.value.close();

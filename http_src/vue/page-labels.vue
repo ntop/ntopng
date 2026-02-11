@@ -6,18 +6,14 @@
       :get_extra_params_obj="get_extra_params_obj"
       :f_sort_rows="columns_sorting">
     </TableWithConfig>
-    <ModalEditLabel ref="labelModal" @edit="handleEditLabel"> </ModalEditLabel>
+    <ModalEditLabel ref="labelModal" @edit="handleEditLabel" @reset="handleResetLabel"> </ModalEditLabel>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
-import { default as SelectSearch } from "./select-search.vue";
-import { default as dataUtils } from "../utilities/data-utils.js";
-import { default as Spinner } from "./spinner.vue";
-import formatterUtils from "../utilities/formatter-utils";
 import { default as ModalEditLabel } from "./modal-edit-label.vue";
 
 
@@ -33,6 +29,8 @@ const labels_list = ref(null);
 const csrf = props.context.csrf;
 const labelModal = ref(null);
 const edit_label_url = `${http_prefix}/lua/rest/v2/edit/label/label.lua`;
+const reset_label_url = `${http_prefix}/lua/rest/v2/delete/label/label.lua`;
+let edit_label_id = ref(null);
 /* ************************************** */
 
 const map_table_def_columns = (columns) => {
@@ -83,7 +81,9 @@ function on_table_custom_event(event) {
 }
 
 const click_button_edit_label = (event) => {
+    edit_label_id = event.row.id;
     const label_data = {
+        label_id: event.row.id,
         label_name: event.row.name,
         label_color: event.row.color,
         label_description: event.row.description,
@@ -102,7 +102,7 @@ const showEditModal = (item) => {
 /* ************************************** */
 
 const handleEditLabel = async (data) => {
-    const old_label_name = data.item.label_name;
+    const new_label_id = edit_label_id;
     const new_label_name = data.label_name;
     const new_label_color = data.label_color;
     const new_label_description = data.label_description;
@@ -115,8 +115,8 @@ const handleEditLabel = async (data) => {
         const addParams = {
             csrf: props.context.csrf,
             labels: [{
-                old_name: old_label_name,
-                name: new_label_name,
+                label_id: new_label_id,
+                label_name: new_label_name,
                 color: new_label_color,
                 description: new_label_description
             }]
@@ -138,6 +138,33 @@ const handleEditLabel = async (data) => {
 };
 
 /* ************************************** */
+
+const handleResetLabel = async (item) => {
+    if (item) {
+        const label_id = item.label_id;
+    
+        const requestParams = {
+            csrf: props.context.csrf,
+            label_id: label_id
+        };
+
+        const headers = { 'Content-Type': 'application/json' };
+
+        try {
+            await ntopng_utility.http_request(reset_label_url, {
+                method: 'post',
+                headers,
+                body: JSON.stringify(requestParams)
+            });
+
+            // Refresh table after delete
+            labels_list.value.refresh_table(true);
+        } catch (e) {
+            console.error('Error deleting exporter site:', e);
+            labels_list.value.refresh_table(true);
+        }
+    }
+};
 
 onMounted(async () => {
 });

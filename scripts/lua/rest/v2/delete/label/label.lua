@@ -13,12 +13,8 @@ local rest_utils = require "rest_utils"
 local label_badge_utils = require "label_badge_utils"
 
 local post_data = _POST or {}
-local labels = post_data["labels"]
+local label_id = post_data["label_id"]
 
-if labels then
-    for index, l in pairs(labels) do
-        label_badge_utils.editLabel(l.label_id, l.label_name, l.color, l.description, false)
-    end
-end
+label_badge_utils.deleteLabel(label_id)
 
 rest_utils.answer(rest_utils.consts.success.ok)

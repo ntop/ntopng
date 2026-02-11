@@ -2830,7 +2830,11 @@ local known_parameters = {
     ["include_empty_ts"] = validateBool,
 
     -- labels
+    ["label_id"] = validateNumber,
+    ["label_name"] = validateUnquoted,
     ["color"] = validateSingleWord,
+
+    -- exporter sites
     ["latitude"] = validateSingleWord,
     ["longitude"] = validateSingleWord,
     ["exporter_site"] = validateSingleWord,
