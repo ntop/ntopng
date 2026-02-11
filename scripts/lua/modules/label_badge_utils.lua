@@ -100,7 +100,6 @@ function label_badge_utils.deleteLabel(id)
     else
         return false, "Invalid ID"
     end
-    tprint(labels)
     -- Check if label exists before deletion
     if labels[id] then
         -- Remove label from Redis
