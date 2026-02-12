@@ -404,7 +404,7 @@ function graph_utils.drawNewGraphs(source_value_object)
 
     -- Interface stats
     local ifstats = interface.getStats()
-    local ifid = ifstats.id
+    local ifid = (source_value_object.ifid) or (ifstats.id)
 
     -- Check extraction permissions
     local traffic_extraction_permitted =
@@ -512,14 +512,14 @@ function graph_utils.drawNewGraphs(source_value_object)
 
     local context = {
         traffic_extraction_permitted = traffic_extraction_permitted,
-        sources_types_enabled = json.encode(sources_types_enabled),
-        source_value_object = json.encode(source_value_object),
-        sources_types_top_enabled = json.encode(sources_types_top_enabled),
-        is_dark_mode = ntop.getPref("ntopng.user." .. _SESSION["user"] ..
-                                        ".theme") == "dark"
+        sources_types_enabled = sources_types_enabled,
+        source_value_object = source_value_object,
+        sources_types_top_enabled = sources_types_top_enabled,
+        is_ntop_pro = ntop.isPro(),
+        is_history_enabled = hasClickHouseSupport(),
     }
-    template_utils.render("pages/components/historical_interface.template",
-                          context)
+    local json_context = json.encode(context)
+    template_utils.render("pages/vue_page.template", { vue_page_name = "PageStats", page_context = json_context })
 end
 
 -- #################################################
