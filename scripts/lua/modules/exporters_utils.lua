@@ -365,12 +365,18 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
 
    if(num_exporters == nil) then num_exporters = 0 end
 
-
    -- Resolve probe information if available
    if not isEmptyString(probe_uuid) then
       nprobe_info = getProbeFromUUID(probe_uuid)
       if isEmptyString(ip) and nprobe_info then
          ip = nprobe_info["probe.ip"]
+      end
+   else
+      if not isEmptyString(ip) then
+         local probe,_ = exporters_utils.getProbeUUID(ip)
+         if probe then
+            nprobe_info = getProbeFromUUID(probe)
+         end
       end
    end
 
