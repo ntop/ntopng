@@ -1617,7 +1617,7 @@ function driver:timeseries_top(options, top_tags)
             end
 
             local ext_label = nil
-            if options.tags.device then
+            if (ntop.isPro() and options.tags.device) then
                 local snmp_utils = require "snmp_utils"
                 local snmp_cached_dev = require "snmp_cached_dev"
                 local cached_device = snmp_cached_dev:create(options.tags.device)
