@@ -150,12 +150,12 @@ const map_table_def_columns = (columns) => {
             if (!dataUtils.isEmptyOrNull(row['probe_name'])) {
                 probe_ip = `${row['probe_name']}`;
             }
-            return `<a href=${exporter_url}probe_uuid=${row.probe_source_id}>${probe_ip}</a>`
+            return `<a href=${exporter_url}probe_source_id=${row.probe_source_id}>${probe_ip}</a>`
         },
         "probe_public_ip": (value, row) => {
             return value
         },
-        "probe_uuid": (value, row) => {
+        "probe_source_id": (value, row) => {
             return value
         },
         "probe_interface": (value, row) => {
@@ -204,6 +204,7 @@ const map_table_def_columns = (columns) => {
         "captured_packets": (value, row) => {
             let diff_value = value
             if (!first_open.value) {
+                // is row.exporter_uuid defined?
                 const old_value = localStorage.getItem("exporter_captured_packets." + row.exporter_uuid + row.ip)
                 diff_value = (value - Number(old_value)) / 10
             }
@@ -225,6 +226,7 @@ const map_table_def_columns = (columns) => {
         "dropped_packets": (value, row) => {
             let diff_value = value
             if (!first_open.value) {
+                // is row.exporter_uuid defined?
                 const old_value = localStorage.getItem("exporter_dropped_packets." + row.exporter_uuid + row.ip)
                 diff_value = (value - Number(old_value)) / 10
             }
@@ -297,8 +299,8 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
         } else if (col.id == "probe_public_ip") {
             return sortingFunctions.sortByIP(r0.probe_public_ip, r1.probe_public_ip, col.sort);
-        } else if (col.id == "probe_uuid") {
-            return sortingFunctions.sortByName(r0.probe_uuid, r1.probe_uuid, col.sort);
+        } else if (col.id == "probe_source_id") {
+            return sortingFunctions.sortByName(r0.probe_source_id, r1.probe_source_id, col.sort);
         } else if (col.id == "probe_interface") {
             return sortingFunctions.sortByName(r0.probe_interface, r1.probe_interface, col.sort);
         } else if (col.id == "ntopng_interface") {

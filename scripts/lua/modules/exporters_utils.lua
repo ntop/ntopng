@@ -94,19 +94,19 @@ function exporters_utils.getAllInterfacesList(add_role_to_interfaces)
    -- Iterate over all probes grouped by interface ID
    for ifid, probe_list in pairs(ifstats.probes or {}) do
       for _, probe_info in pairsByKeys(probe_list or {}) do
-         local uuid = probe_info["probe.source_id"]
+         local source_id = probe_info["probe.source_id"]
          local probe_ip = probe_info["probe.ip"]
 
-         -- Ensure probe has a valid UUID
-         if (uuid) then
+         -- Ensure probe has a valid source_id
+         if (source_id) then
             if (table.len(probe_info.exporters) == 0) then
                -- Packet probe (no exporters, traffic captured locally)
-               local ports_table = interface.getFlowDeviceInfo(uuid, true)
+               local ports_table = interface.getFlowDeviceInfo(source_id, true)
                local exporter_ip = probe_info["remote.if_addr"]
 
                formatInterfaceData(exporter_ip, ports_table, list, {
-                  probe_uuid = uuid,
-                  exporter_uuid = uuid,
+                  probe_source_id = source_id,
+                  exporter_source_id = source_id,
                   ifid = ifid
                }, add_role_to_interfaces)
             else
@@ -115,8 +115,8 @@ function exporters_utils.getAllInterfacesList(add_role_to_interfaces)
                   local ports_table = interface.getFlowDeviceInfo(exporter_info.unique_source_id, true)
 
                   formatInterfaceData(exporter_ip, ports_table, list, {
-                     probe_uuid = uuid,
-                     exporter_uuid = unique_source_id,
+                     probe_source_id = source_id,
+                     exporter_source_id = unique_source_id,
                      ifid = ifid
                   }, add_role_to_interfaces)
                end
@@ -145,7 +145,7 @@ function exporters_utils.getAllProbesList()
    -- Iterate over all probes
    for ifid, probe_list in pairs(ifstats.probes or {}) do
       for _, probe_info in pairsByKeys(probe_list or {}) do
-         local uuid = probe_info["probe.source_id"]
+         local source_id = probe_info["probe.source_id"]
          local probe_ip = probe_info["probe.ip"]
 
          -- Flow-based probes (NetFlow / sFlow)
@@ -174,7 +174,7 @@ function exporters_utils.getAllProbesList()
 
             list[#list + 1] = {
                name = name,
-               unique_source_id = uuid,
+               unique_source_id = source_id,
                ip = probe_ip,
                ifid = ifid
             }
@@ -189,18 +189,18 @@ end
 -- Exporter UUID resolution (with cache)
 -- ################################################
 
--- Cache: exporter_ip -> { exporter_uuid, ifid }
-local _exporter_uuid = {}
+-- Cache: exporter_ip -> { exporter_source_id, ifid }
+local _exporter_source_id = {}
 
 ---
 -- Retrieve exporter UUID and interface ID from exporter IP.
 --
 -- @param exporter_ip string
--- @return string exporter_uuid
+-- @return string exporter_source_id
 -- @return number ifid
 --
-function exporters_utils.getExporterUUID(exporter_ip)
-   local ret = _exporter_uuid[exporter_ip]
+function exporters_utils.getExporterID(exporter_ip)
+   local ret = _exporter_source_id[exporter_ip]
    if (ret ~= nil) then
       return ret
    end
@@ -209,10 +209,10 @@ function exporters_utils.getExporterUUID(exporter_ip)
       local flow_exporters = interface.getFlowDevices()
 
       for ifid, info in pairs(flow_exporters or {}) do
-         for exporter_uuid, exporter_info in pairs(info or {}) do
+         for exporter_source_id, exporter_info in pairs(info or {}) do
             if exporter_info.exporter_ip == exporter_ip then
-               _exporter_uuid[exporter_ip] = {exporter_uuid, ifid}
-               return exporter_uuid, ifid
+               _exporter_source_id[exporter_ip] = {exporter_source_id, ifid}
+               return exporter_source_id, ifid
             end
          end
       end
@@ -222,57 +222,57 @@ function exporters_utils.getExporterUUID(exporter_ip)
 end
 
 -- ################################################
--- Probe UUID resolution (with cache)
+-- Probe ID resolution (with cache)
 -- ################################################
 
--- Cache: exporter_ip -> { probe_uuid, ifid }
-local _probe_uuid = {}
+-- Cache: exporter_ip -> { probe_source_id, ifid }
+local _probe_source_id = {}
 
 ---
--- Retrieve probe UUID associated with a given exporter IP.
+-- Retrieve probe ID associated with a given exporter IP.
 --
 -- @param exporter_ip string
--- @return string probe_uuid
+-- @return string probe_source_id
 -- @return number ifid
 --
-function exporters_utils.getProbeUUID(exporter_ip)
-   local ret = _probe_uuid[exporter_ip]
+function exporters_utils.getProbeID(exporter_ip)
+   local ret = _probe_source_id[exporter_ip]
    if (ret ~= nil) then
       return ret
    end
 
    if not isEmptyString(exporter_ip) then
-      local exporter_uuid = nil
+      local exporter_source_id = nil
       local flow_exporters = interface.getFlowDevices()
 
-      -- Resolve exporter UUID
+      -- Resolve exporter ID
       for ifid, info in pairs(flow_exporters or {}) do
-         for uuid, exporter_info in pairs(info or {}) do
+         for source_id, exporter_info in pairs(info or {}) do
             if exporter_info.exporter_ip == exporter_ip then
-               exporter_uuid = uuid
+               exporter_source_id = source_id
                goto uuid_found
             end
          end
       end
       ::uuid_found::
 
-      -- Map exporter UUID to probe UUID
-      if (exporter_uuid) then
+      -- Map exporter ID to probe ID
+      if (exporter_source_id) then
          local ifstats = interface.getStats()
 
          for ifid, probe_list in pairs(ifstats.probes or {}) do
-            for probe_uuid, probe_info in pairsByKeys(probe_list or {}) do
-               if tostring(probe_uuid) == tostring(exporter_uuid) then
+            for probe_source_id, probe_info in pairsByKeys(probe_list or {}) do
+               if tostring(probe_source_id) == tostring(exporter_source_id) then
                   -- Packet probe
-                  _probe_uuid[exporter_ip] = {probe_uuid, ifid}
-                  return probe_uuid, ifid
+                  _probe_source_id[exporter_ip] = {probe_source_id, ifid}
+                  return probe_source_id, ifid
                end
 
                for _, exporter_info in pairs(probe_info.exporters or {}) do
-                  if tostring(exporter_info.unique_source_id) == tostring(exporter_uuid) then
+                  if tostring(exporter_info.unique_source_id) == tostring(exporter_source_id) then
                      -- Flow exporter
-                     _probe_uuid[exporter_ip] = {probe_uuid, ifid}
-                     return probe_uuid, ifid
+                     _probe_source_id[exporter_ip] = {probe_source_id, ifid}
+                     return probe_source_id, ifid
                   end
                end
             end
@@ -306,9 +306,9 @@ local function build_navbar_title(ip, nprobe_info)
       local probe_name = getProbeName(probe_ip, true, true, false)
 
       if not isEmptyString(ip) and ip ~= probe_ip then
-         local probe_uuid = tostring(nprobe_info["probe.source_id"])
+         local probe_source_id = tostring(nprobe_info["probe.source_id"])
          local exporters_url = ntop.getHttpPrefix()
-                                 .. "/lua/pro/enterprise/exporters.lua?probe_uuid=" .. probe_uuid
+                                 .. "/lua/pro/enterprise/exporters.lua?probe_source_id=" .. probe_source_id
 
          breadcrumb = breadcrumb .. "<a href='".. exporters_url .."'>"
                                  .. i18n("flow_devices.probe") .. " " .. probe_name .. "</a>"
@@ -320,9 +320,9 @@ local function build_navbar_title(ip, nprobe_info)
          end
       else
          -- clickable probe IP in the breadcrumb
-         local probe_uuid = tostring(nprobe_info["probe.source_id"])
+         local probe_source_id = tostring(nprobe_info["probe.source_id"])
          local exporters_url = ntop.getHttpPrefix()
-                                 .. "/lua/pro/enterprise/exporters.lua?probe_uuid=" .. probe_uuid
+                                 .. "/lua/pro/enterprise/exporters.lua?probe_source_id=" .. probe_source_id
 
          breadcrumb = breadcrumb .. "<a href='".. exporters_url .."'>"
                                  .. i18n("flow_devices.probe") .. " " .. probe_name .. "</a>"
@@ -345,9 +345,9 @@ end
 -- @param ifid number Interface ID
 -- @param page string Active page
 -- @param ip string Exporter IP
--- @param probe_uuid string Probe UUID
+-- @param probe_source_id string Probe ID
 --
-function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
+function exporters_utils.printNavbar(ifid, page, ip, probe_source_id, num_exporters)
    local page_utils = require("page_utils")
    -- URLs and state flags initialization
    local interfaces_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua"
@@ -360,22 +360,22 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
    local timeseries_url = ""
    local snmp_url = ""
 
-   probe_uuid = probe_uuid or ""
-   exporter_map_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_map.lua?probe_uuid="..probe_uuid
+   probe_source_id = probe_source_id or ""
+   exporter_map_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_map.lua?probe_source_id="..probe_source_id
 
    if(num_exporters == nil) then num_exporters = 0 end
 
    -- Resolve probe information if available
-   if not isEmptyString(probe_uuid) then
-      nprobe_info = getProbeFromUUID(probe_uuid)
+   if not isEmptyString(probe_source_id) then
+      nprobe_info = getProbeFromID(probe_source_id)
       if isEmptyString(ip) and nprobe_info then
          ip = nprobe_info["probe.ip"]
       end
    else
       if not isEmptyString(ip) then
-         local probe,_ = exporters_utils.getProbeUUID(ip)
+         local probe,_ = exporters_utils.getProbeID(ip)
          if probe then
-            nprobe_info = getProbeFromUUID(probe)
+            nprobe_info = getProbeFromID(probe)
          end
       end
    end
@@ -388,22 +388,22 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
 
    -- Check SNMP availability
    snmp_available = exporters_utils.isSNMPAvailable(ip)
+   snmp_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host=" .. ip
 
    -- Append parameters
-   if not isEmptyString(probe_uuid) then
-      interfaces_url = interfaces_url .. "?probe_uuid=" .. probe_uuid
-      exporter_url = exporter_url .. "?probe_uuid=" .. probe_uuid
+   if not isEmptyString(probe_source_id) then
+      interfaces_url = interfaces_url .. "?probe_source_id=" .. probe_source_id
+      exporter_url = exporter_url .. "?probe_source_id=" .. probe_source_id
 
       if not isEmptyString(ip) then
-         local _, tmp1 = exporters_utils.getProbeUUID(ip)
+         local _, tmp1 = exporters_utils.getProbeID(ip)
          if not isEmptyString(tmp1) then
             -- tmp1 is not available in case no exporter is available,
             -- e.g. nprobe not currently exporting flows
             conf_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. ip .. "&ifid=" .. tmp1 ..
-                          "&page=config&probe_uuid=" .. probe_uuid
+                          "&page=config&probe_source_id=" .. probe_source_id
             timeseries_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_details.lua?ip=" .. ip .. "&ifid=" .. tmp1 ..
-                                "&page=historical&probe_uuid=" .. probe_uuid
-            snmp_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host=" .. ip
+                                "&page=historical&probe_source_id=" .. probe_source_id
          end
       end
    end
@@ -424,6 +424,7 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       hidden = (num_exporters < 2) or not(isASNModeEnabled()),
       hidden = false, page ~= "exporters" or num_exporters < 2 or not(isASNModeEnabled()),
       page_name = "exporter_map",
+      active = page == "exporter_map",
       label = "<i class=\"fas fa-lg fa-map\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("exporter_sites_page.exporters_map") .. "\"></i>"
    }, {
       hidden = not snmp_available or isEmptyString(ip),
@@ -444,8 +445,9 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_uuid, num_exporters)
       label = "<i class=\"fas fa-lg fa-cog\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("flow_checks.callback_config") .. "\"></i>"
    },{
       page_name = "sites",
-      hidden = page ~= "exporter_map",
-      url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_sites_map.lua?site_mode=1&probe_uuid=" .. probe_uuid,
+      hidden = page ~= "exporter_map" and page ~= "exporter_sites_map",
+      active = page == "exporter_sites_map",
+      url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporters_sites_map.lua?site_mode=1&probe_source_id=" .. probe_source_id,
       label = i18n("exporter_sites_page.sites")
    }})
 end

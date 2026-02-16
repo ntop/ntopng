@@ -168,7 +168,7 @@ const get_extra_params_obj = () => {
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "exporter_ip": (value, row) => {
-            const url = linksUtils.getExporterDetailsPageURL({ ip: value, probe_uuid: row.probe_uuid, exporter_uuid: row.exporter_uuid }, http_prefix)
+            const url = linksUtils.getExporterDetailsPageURL({ ip: value, probe_source_id: row.probe_source_id, exporter_source_id: row.exporter_source_id }, http_prefix)
             return formatterUtils.formatHTMLaTagNameValue(value, row.exporter_name, url, true)
         },
         "interface_name": (value, row) => {

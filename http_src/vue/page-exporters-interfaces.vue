@@ -133,15 +133,15 @@ const map_table_def_columns = (columns) => {
             return value
       },
       "probe_name": (value, row) => {
-         if (row.probe_uuid) {
-            const probe_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?probe_uuid=${row.probe_uuid}`
+         if (row.probe_source_id) {
+            const probe_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?probe_source_id=${row.probe_source_id}`
             return `<a href="${probe_url}">${value}</a>`
          }
          return value
       },
       "exporter_name": (value, row) => {
-         if (row.exporter_uuid && row.probe_uuid && row.exporter_ip && row.probe_ip) {
-            const exporter_url = `${http_prefix}/lua/pro/enterprise/exporter_interfaces.lua?ip=${row.exporter_ip}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}&probe_ip=${row.probe_ip}`
+         if (row.exporter_source_id && row.probe_source_id && row.exporter_ip && row.probe_ip) {
+            const exporter_url = `${http_prefix}/lua/pro/enterprise/exporter_interfaces.lua?ip=${row.exporter_ip}&exporter_source_id=${row.exporter_source_id}&probe_source_id=${row.probe_source_id}&probe_ip=${row.probe_ip}`
             return `<a href="${exporter_url}">${value}</a>`
          }
          return value
@@ -208,7 +208,7 @@ function columns_sorting(col, r0, r1) {
       } else if (col.id == "snmp_ifname") {
          return sortingFunctions.sortByName(r0.snmp_ifname, r1.snmp_ifname, col.sort);
       } else if (col.id == "exported_flows") {
-         return sortingFunctions.sortByNumber(r0.probe_uuid, r1.probe_uuid, col.sort);
+         return sortingFunctions.sortByNumber(r0.probe_source_id, r1.probe_source_id, col.sort);
       } else if (col.id == "interface_name") {
          return sortingFunctions.sortByName(r0.probe_interface, r1.probe_interface, col.sort);
       } else if (col.id == "in_bytes") {

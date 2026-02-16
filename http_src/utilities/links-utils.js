@@ -12,27 +12,27 @@
 /* Returns the URL of the exporters details */
 const getExporterDetailsPageURL = (exporter_info, http_prefix) => {
     const exporter_ip = exporter_info.ip
-    let probe_uuid = ''
-    let exporter_uuid = ''
+    let probe_source_id = ''
+    let exporter_source_id = ''
     let probe_ip = ''
     
-    if (exporter_info.probe_uuid) {
-        probe_uuid = exporter_info.probe_uuid
+    if (exporter_info.probe_source_id) {
+        probe_source_id = exporter_info.probe_source_id
     }
-    if (exporter_info.exporter_uuid) {
-        exporter_uuid = exporter_info.exporter_uuid
+    if (exporter_info.exporter_source_id) {
+        exporter_source_id = exporter_info.exporter_source_id
     }
     if (exporter_info.probe_ip) {
         probe_ip = exporter_info.probe_ip
     }
-    return `${http_prefix}/lua/pro/enterprise/exporter_interfaces.lua?ip=${exporter_ip}&exporter_uuid=${exporter_uuid}&probe_uuid=${probe_uuid}&probe_ip=${probe_ip}`
+    return `${http_prefix}/lua/pro/enterprise/exporter_interfaces.lua?ip=${exporter_ip}&exporter_source_id=${exporter_source_id}&probe_source_id=${probe_source_id}&probe_ip=${probe_ip}`
 }
 
 /* ******************************************************************** */
 
 /* Returns the URL of the exporters details */
 const getExporterTimeseriesPageURL = (exporter_info, http_prefix) => {
-    return `${http_prefix}/lua/pro/enterprise/exporter_details.lua?ip=${exporter_info.ip}&ifid=${exporter_info.ifid}&probe_uuid=${exporter_info.probe_uuid}`
+    return `${http_prefix}/lua/pro/enterprise/exporter_details.lua?ip=${exporter_info.ip}&ifid=${exporter_info.ifid}&probe_source_id=${exporter_info.probe_source_id}`
 }
 
 /* ******************************************************************** */

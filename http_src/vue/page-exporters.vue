@@ -166,7 +166,7 @@ const map_table_def_columns = (columns) => {
             return probe_ip;
         },
         "name": (value, row) => {
-            return `<a href="${exporter_interfaces_url}ip=${row.ip}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}&probe_ip=${row.probe_ip}">${value}</a> `;
+            return `<a href="${exporter_interfaces_url}ip=${row.ip}&exporter_source_id=${row.exporter_source_id}&probe_source_id=${row.probe_source_id}&probe_ip=${row.probe_ip}">${value}</a> `;
         },
         "ntopng_interface": (value, row) => {
             return value
@@ -187,10 +187,10 @@ const map_table_def_columns = (columns) => {
         "exported_flows": (value, row) => {
             let diff_value = value
             if (!first_open.value) {
-                const old_value = localStorage.getItem("exporter_exported_flows." + row.exporter_uuid + row.ip)
+                const old_value = localStorage.getItem("exporter_exported_flows." + row.exporter_source_id + row.ip)
                 diff_value = (value - Number(old_value)) / 60 // keep in sync with table refresh
             }
-            localStorage.setItem("exporter_exported_flows." + row.exporter_uuid + row.ip, value)
+            localStorage.setItem("exporter_exported_flows." + row.exporter_source_id + row.ip, value)
             if (!value)
                 return '';
             let formatted_value = formatterUtils.formatAccounting(value)
@@ -212,10 +212,10 @@ const map_table_def_columns = (columns) => {
         "dropped_flows": (value, row) => {
             let diff_value = value
             if (!first_open.value) {
-                const old_value = localStorage.getItem("exporter_dropped_flows." + row.exporter_uuid + row.ip)
+                const old_value = localStorage.getItem("exporter_dropped_flows." + row.exporter_source_id + row.ip)
                 diff_value = (value - Number(old_value)) / 60
             }
-            localStorage.setItem("exporter_dropped_flows." + row.exporter_uuid + row.ip, value)
+            localStorage.setItem("exporter_dropped_flows." + row.exporter_source_id + row.ip, value)
             if (!value)
                 return '';
             let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
@@ -236,10 +236,10 @@ const map_table_def_columns = (columns) => {
         "dropped_packets": (value, row) => {
             let diff_value = value
             if (!first_open.value) {
-                const old_value = localStorage.getItem("exporter_dropped_packets." + row.exporter_uuid + row.ip)
+                const old_value = localStorage.getItem("exporter_dropped_packets." + row.exporter_source_id + row.ip)
                 diff_value = (value - Number(old_value)) / 10
             }
-            localStorage.setItem("exporter_dropped_packets." + row.exporter_uuid + row.ip, value)
+            localStorage.setItem("exporter_dropped_packets." + row.exporter_source_id + row.ip, value)
             if (!value)
                 return '';
             let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
@@ -291,7 +291,7 @@ const map_table_def_columns = (columns) => {
 
 function click_button_configuration(event) {
     const row = event.row;
-    const url = linksUtils.getExporterDetailsPageURL({ ip: row.ip, probe_uuid: row.probe_uuid }, http_prefix)
+    const url = linksUtils.getExporterDetailsPageURL({ ip: row.ip, probe_source_id: row.probe_source_id }, http_prefix)
     window.location.href = `${url}&page=config`
 }
 
@@ -314,7 +314,7 @@ function click_button_live_hosts(event) {
 function click_button_timeseries(event) {
     const row = event.row;
     debugger;
-    const url = linksUtils.getExporterTimeseriesPageURL({ ip: row.ip, ifid: row.ifid, probe_uuid: row.probe_uuid }, http_prefix)
+    const url = linksUtils.getExporterTimeseriesPageURL({ ip: row.ip, ifid: row.ifid, probe_source_id: row.probe_source_id }, http_prefix)
     window.location.href = url;
 }
 

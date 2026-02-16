@@ -155,9 +155,9 @@
 				"text-nowrap"
 			]
 		},	    		{
-			"id": "probe_uuid",
+			"id": "probe_source_id",
 			"title_i18n": "if_stats_overview.probe_uuid",
-			"data_field": "probe_uuid",
+			"data_field": "probe_source_id",
 			"sortable": true,
 			"class": [
 				"text-nowrap"

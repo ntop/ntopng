@@ -905,15 +905,15 @@ end
 
 -- ##############################################
 
-function getProbeFromUUID(nprobe_uuid)
-   nprobe_uuid = tonumber(nprobe_uuid)
+function getProbeFromID(nprobe_source_id)
+   nprobe_source_id = tonumber(nprobe_source_id)
    local ifstats = interface.getStats()
    local exporter = {}
    local found = false
    if ifstats.probes then
       for interface_id, probe_list in pairs(ifstats.probes or {}) do
 	 for probe_id, probe_info in pairs(probe_list or {}) do
-	    if nprobe_uuid == probe_info["probe.source_id"] then
+	    if nprobe_source_id == probe_info["probe.source_id"] then
 	       return probe_info
 	    end
 	 end
@@ -934,7 +934,7 @@ function getProbeInfoFromExporterIP(ip)
 	    if exporter_ip == ip then
 	       return {
 		  probe_uuid = tostring(probe_info["probe.source_id"]),
-		  exporter_uuid = tostring(
+		  exporter_source_id = tostring(
 		     exporter_info["unique_source_id"])
 	       }
 	    end
@@ -959,16 +959,16 @@ function generateExporterLink(ip)
    if ntop.isPro() then
       -- Fallback SNMP not available, use exporter link
       local exporters_utils = require "exporters_utils"
-      local exporter_uuid = nil
+      local exporter_source_id = nil
       local probe_uuid = nil
       local exporter_ifid = nil
 
       if tonumber(ip) then ip = ntop.inet_ntoa(ip) end
-      exporter_uuid, exporter_ifid = exporters_utils.getExporterUUID(ip)
-      probe_uuid = exporters_utils.getProbeUUID(ip)
+      exporter_source_id, exporter_ifid = exporters_utils.getExporterID(ip)
+      probe_uuid = exporters_utils.getProbeID(ip)
       return string.format(
-	 "%s/lua/pro/enterprise/exporters.lua?ip=%s&exporter_uuid=%s&probe_uuid=%s",
-	 ntop.getHttpPrefix(), ip, exporter_uuid, probe_uuid)
+	 "%s/lua/pro/enterprise/exporters.lua?ip=%s&exporter_source_id=%s&probe_uuid=%s",
+	 ntop.getHttpPrefix(), ip, exporter_source_id, probe_uuid)
    end
 
    return nil
@@ -980,11 +980,11 @@ function generateExporterInterfaceLink(ip, interface)
    if ntop.isPro() then
       -- Fallback SNMP not available, use exporter link
       local exporters_utils = require "exporters_utils"
-      local exporter_uuid = nil
+      local exporter_source_id = nil
       local exporter_ifid = nil
       if tonumber(ip) then ip = ntop.inet_ntoa(ip) end
 
-      exporter_uuid, exporter_ifid = exporters_utils.getExporterUUID(ip)
+      exporter_source_id, exporter_ifid = exporters_utils.getExporterID(ip)
 
       return string.format(
 	 "%s/lua/pro/exporter_interface_overview?deviceIP=%s&ifIdx=%s&ifid=%s",
