@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-25 - ntop.org
+ * (C) 2013-26 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,8 @@ class SNMP {
   u_int32_t request_id;
 #endif
   u_int8_t getbulk_max_num_repetitions;
-  
+
+  void configure_timeout(void *snmpSession);  
   bool send_snmp_request(char *agent_host, u_int version, char *community,
                          char *level, char *username, char *auth_protocol,
                          char *auth_passphrase, char *privacy_protocol,

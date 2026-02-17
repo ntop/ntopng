@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-25 - ntop.org
+ * (C) 2013-26 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -65,6 +65,16 @@ SNMP::SNMP() {
 
 SNMP::~SNMP() {
   for (unsigned int i = 0; i < sessions.size(); i++) delete sessions.at(i);
+}
+
+/* ******************************* */
+
+void SNMP::configure_timeout(void *_snmpSession) {
+  SNMPSession *snmpSession = (SNMPSession *) _snmpSession;
+  
+  /* Avoid long delays on disconnected devices */
+  snmpSession->session.timeout = 1000000; /* usec (1s) */
+  snmpSession->session.retries = 1;       /* num retries (2 total) */
 }
 
 /* ******************************* */
@@ -331,6 +341,8 @@ bool SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
     snmp_sess_init(&snmpSession->session);
     snmpSession->session.peername = agent_host;
 
+    configure_timeout(snmpSession);
+
     /* set the SNMP version number */
     snmpSession->session.version = (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
 
@@ -472,6 +484,8 @@ bool SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
   if(initSession) {
     snmp_sess_init(&snmpSession->session);
     snmpSession->session.peername = agent_host;
+
+    configure_timeout(snmpSession);
 
     if(version <= 1) {
       /* SNMP v1/v2c */
@@ -649,17 +663,26 @@ bool SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
   }
 
   /* Send the request */
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
   if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
     int liberr, snmperr;
     char *errstr = NULL;
+
+    gettimeofday(&end, NULL);
+
+    /* Note: in case of SNMPv3, if the device is unreachable snmp_sess_send() call
+     * takes "session.timeout × session.retries" time. This because Net-SNMP has 
+     * to discover the engineID before it can build a proper encrypted packet
+     * and this is done in snmp_sess_send by sending an empty get. */
 
     /* Get detailed error information */
     snmp_sess_error(snmpSession->session_ptr, &liberr, &snmperr, &errstr);
 
     snmp_free_pdu(pdu);
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-      "SNMP send error [rc: %d][host: %s][error: %s]",
-      rc, agent_host, errstr ? errstr : "unknown");
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+				 "SNMP send error [rc: %d][%.03fs][host: %s][error: %s]",
+				 rc, Utils::msTimevalDiff(&end, &start)/1000, agent_host, errstr ? errstr : "unknown");
 
     if(errstr) free(errstr);  /* Must free the error string */
     return(false);
@@ -708,6 +731,8 @@ bool SNMP::send_snmp_set_request(char *agent_host, char *community,
   if(initSession) {
     snmp_sess_init(&snmpSession->session);
     snmpSession->session.peername = agent_host;
+
+    configure_timeout(snmpSession);
 
     /* set the SNMP version number */
     snmpSession->session.version =
