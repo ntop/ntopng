@@ -30,7 +30,7 @@ vs_db_utils.report_type = {
 -- ####################################################################################
 -- Function to save data of single scan on db
 function vs_db_utils.save_vs_result(scan_type, host, end_epoch, json_info, scan_result)
-    
+    if not ntop.isClickHouseEnabled() then return end
     if debug_me then
         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Saving on DB HOST: ".. host .. " SCAN_TYPE: " .. scan_type .. " ENDEPOCH: "..end_epoch.." \n")
     end
@@ -49,6 +49,7 @@ end
 -- ####################################################################################
 -- Function to retrieve nmap result from DB
 function vs_db_utils.retrieve_scan_result(scan_type, host, end_epoch) 
+    if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT VS_RESULT_FILE FROM %s WHERE HOST = '%s' AND SCAN_TYPE = '%s' AND LAST_SCAN = %u;"
     sql = string.format(sql, data_table_name, host, scan_type, tonumber(end_epoch))
     local res = interface.execSQLQuery(sql)
@@ -73,7 +74,7 @@ end
 -- ####################################################################################
 -- Function to retrieve all reports from DB
 function vs_db_utils.retrieve_reports(sort_item, epoch)
-
+    if not ntop.isClickHouseEnabled() then return end
     if (isEmptyString(sort_item) or sort_item == 'DATE') then
         sort_item = 'REPORT_DATE'
     else
@@ -116,6 +117,7 @@ end
 -- ####################################################################################
 -- Function to retrieve single report from DB
 function vs_db_utils.retrieve_report(epoch)
+    if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT REPORT_NAME,toInt32(REPORT_DATE) REPORT_DATE, REPORT_JSON_INFO, "
                 .."NUM_SCANNED_HOSTS,NUM_CVES, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
                 "FROM %s " ..
@@ -148,6 +150,7 @@ end
 -- ####################################################################################
 -- Function to retrieve single report name from DB
 function vs_db_utils.retrieve_report_name(epoch)
+    if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT REPORT_NAME ".. 
                 "FROM %s " ..
                 "WHERE REPORT_DATE = %u"
@@ -168,7 +171,7 @@ end
 -- ####################################################################################
 -- Function to save report on DB
 function vs_db_utils.save_report_info(report_info)
-
+    if not ntop.isClickHouseEnabled() then return end
     local report_name = report_info.name
     report_name = report_name:gsub(" ","_")
     local report_date = report_info.date
@@ -187,7 +190,7 @@ end
 -- ####################################################################################
 -- Function to delete single report from DB
 function vs_db_utils.delete_report(epoch)
-
+    if not ntop.isClickHouseEnabled() then return end
     local sql = string.format("DELETE FROM %s WHERE REPORT_DATE = %u;",report_table_name, tonumber(epoch))
     return(interface.execSQLQuery(sql))
 end
@@ -195,11 +198,13 @@ end
 -- ####################################################################################
 -- Function to edit single report from DB
 function vs_db_utils.edit_report(epoch, report_name)
+    if not ntop.isClickHouseEnabled() then return end
     local sql = string.format("ALTER TABLE %s UPDATE REPORT_NAME = '%s' WHERE REPORT_DATE = %u;",report_table_name,report_name, tonumber(epoch))
     return(interface.execSQLQuery(sql))
 end
 
 function vs_db_utils.update_last_result(scan_result, scan_type, host, epoch, last_port)
+    if not ntop.isClickHouseEnabled() then return end
     local db_current_scan_result = vs_db_utils.retrieve_scan_result(scan_type,host,epoch)
 
     scan_result = scan_result:gsub("%'","|")
