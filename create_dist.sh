@@ -26,7 +26,7 @@ cd ../ntopng/ || exit 1
 echo "Current directory: $(pwd)"
 
 echo "-- Compiling Dist -- "
-make dist-ntopng
+npm run build
 echo "-------------------- "
 
 echo "** Changing to ntopng-dist directory"
