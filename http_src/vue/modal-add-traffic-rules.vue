@@ -1253,7 +1253,7 @@ async function update_exporter_interfaces() {
     }
 
     const url_device_exporter_details =
-        NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/exporters/exporters_interfaces.lua?exporter_source_id=${selected_exporter_device.value.id}&ifid=${selected_exporter_device.value.ifid}&ip=${selected_exporter_device.value.ip}`);
+        NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/exporters/exporters_interfaces.lua?exporter_source_id=${selected_exporter_device.value.id}&ifid=${selected_exporter_device.value.ifid}&ip=${selected_exporter_device.value.ip}`);
 
     await $.get(url_device_exporter_details, function (response, status) {
         interfaces_list = response.rsp;
