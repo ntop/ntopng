@@ -9,6 +9,7 @@
         }">
             <div class="static-tooltip-content">
                 <div class="tooltip-header">
+
                     <button @click="closeTooltip" class="close-btn" type="button" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -276,15 +277,6 @@ const renderDotsByCoordinates = () => {
             .attr('class', 'alert-group')
             .attr('transform', `translate(${x}, ${y})`)
             .style('cursor', 'pointer');
-
-        const alertDot = nodeGroup.append('circle')
-            .attr('class', 'alert-dot')
-            .attr('r', dotSize)
-            .attr('fill', color)
-            .attr('stroke', '#ffffff')
-            .attr('stroke-width', 0.5)
-            .attr('data-original-radius', dotSize)
-            .attr('data-original-color', color);
 
         nodeGroup.on('click', function (event) {
             // prevent map click handler from firing

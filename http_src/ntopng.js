@@ -1,4 +1,5 @@
-//import './ntopng.scss'
+import './ntopng.scss'
+import './components/components.scss'
 import './utilities/utilities'
 import './validators/validators'
 import './services/services'

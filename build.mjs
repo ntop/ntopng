@@ -1,0 +1,235 @@
+#!/usr/bin/env node
+/**
+ * Full ntopng frontend build: all JS + CSS + images
+ *
+ * Usage:
+ *   node build.mjs           -> development build (sourcemaps, unminified)
+ *   node build.mjs --prod    -> production build (minified, no sourcemaps)
+ *
+ * Rollup's IIFE format does not support code-splitting, so each entry must be
+ * built in its own Vite invocation. This script runs them sequentially, reusing
+ * shared plugin/CSS/resolve config to keep things DRY.
+ *
+ * Build order:
+ *   1. third-party.js  — large self-contained IIFE (jQuery, Bootstrap, DataTables etc)
+ *   2. ntopng.js       — Vue app IIFE (jQuery/moment external -> from window.$ / window.moment)
+ *   3. CSS themes      — dark-mode, white-mode, custom-theme (CSS-only, parallel)
+ *   4. images          — flags.png, blank.gif, Leaflet markers (asset copy)
+ *   5. login.js        — standalone particle animation IIFE
+ */
+
+import { build } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { renameSync } from 'fs';
+import inject from '@rollup/plugin-inject';
+import autoprefixer from 'autoprefixer';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const isProd = process.argv.includes('--prod');
+
+const terserOptions = {
+    compress: { drop_console: true },
+    output: { ecma: 5 },
+};
+
+/** Shared SCSS / PostCSS options */
+const sharedCSS = {
+    preprocessorOptions: {
+        scss: {
+            silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'mixed-decls'],
+        }
+    },
+    postcss: {
+        plugins: [autoprefixer()]
+    }
+};
+
+/** Shared module aliases */
+const sharedResolve = {
+    alias: {
+        '@': resolve(__dirname, 'http_src'),
+        'vue': isProd
+            ? 'vue/dist/vue.esm-browser.prod.js'
+            : 'vue/dist/vue.esm-browser.js'
+    }
+};
+
+/** Asset output path rules */
+const assetFileNames = (assetInfo) => {
+    const name = assetInfo.name || '';
+    if (/\.(png|gif|svg|jpg|jpeg|ico)$/i.test(name)) return 'images/[name][extname]';
+    if (/\.(woff2?|ttf|eot|otf)$/i.test(name))       return 'assets/[name][extname]';
+    return '[name][extname]';
+};
+
+const handleEvalFiles = {
+    name: 'handle-eval-files',
+    transform(code, id) {
+        if (id.includes('store-js/plugins/lib/json2.js') ||
+            id.includes('jquery.tablesorter.js')) {
+            return { code, map: null };
+        }
+    }
+};
+
+/**
+ * The inject plugin adds `import $ from 'jquery'` (and jQuery / moment)
+ * to any module that uses those names as free variables without importing them.
+ * This covers legacy vendor scripts (bootstrap-datatable, bootstrap-select,
+ * jquery.tablesorter, etc.) that assume jQuery is available as a global.
+ */
+const injectGlobals = inject({ $: 'jquery', jQuery: 'jquery', moment: 'moment-timezone' });
+
+// Build 1: third-party.js
+// Self-contained IIFE — bundles jQuery, Bootstrap, DataTables, Leaflet, etc.
+// and exposes them as window globals (window.$, window.moment, window.L ...).
+//
+console.log('[1/5] Building third-party.js ...');
+await build({
+    plugins: [injectGlobals, handleEvalFiles],
+    css: sharedCSS,
+    // base: '' -> relative asset paths in CSS
+    // so fonts resolve correctly when third-party.css is served from /dist/
+    base: '',
+    build: {
+        outDir: 'httpdocs/dist',
+        emptyOutDir: true,           // wipe dist only on the first build step
+        cssCodeSplit: false,         // extract CSS to a file (not inline via __vite_style__)
+        sourcemap: !isProd,
+        minify: isProd ? 'terser' : false,
+        terserOptions: isProd ? terserOptions : undefined,
+        chunkSizeWarningLimit: 5000,
+        rollupOptions: {
+            context: 'window',
+            input: { 'third-party': resolve(__dirname, 'assets/third-party.js') },
+            output: {
+                format: 'iife',
+                name: 'ntopThirdParty',
+                entryFileNames: '[name].js',
+                assetFileNames,
+                strict: false,
+            }
+        }
+    }
+});
+
+// Vite names the CSS 'style.css' -> rename to match ntopng format
+renameSync(resolve(__dirname, 'httpdocs/dist/style.css'), resolve(__dirname, 'httpdocs/dist/third-party.css'));
+
+// Build 2: ntopng.js
+console.log('[2/5] Building ntopng.js ...');
+await build({
+    plugins: [
+        vue(),
+        injectGlobals,
+        handleEvalFiles,
+    ],
+    css: sharedCSS,
+    resolve: sharedResolve,
+    base: '',
+    build: {
+        outDir: 'httpdocs/dist',
+        emptyOutDir: false,
+        cssCodeSplit: false,         // extract CSS to a file (not inline via __vite_style__)
+        sourcemap: !isProd,
+        minify: isProd ? 'terser' : false,
+        terserOptions: isProd ? terserOptions : undefined,
+        chunkSizeWarningLimit: 5000,
+        rollupOptions: {
+            input: { ntopng: resolve(__dirname, 'http_src/ntopng.js') },
+            external: ['jquery', 'moment', 'moment-timezone'],
+            output: {
+                format: 'iife',
+                name: 'ntopVue',
+                entryFileNames: '[name].js',
+                assetFileNames,
+                globals: {
+                    'jquery': '$',
+                    'moment': 'moment',
+                    'moment-timezone': 'moment',
+                }
+            }
+        }
+    }
+});
+
+// Vite names the CSS 'style.css' -> rename to match ntopng format
+renameSync(resolve(__dirname, 'httpdocs/dist/style.css'), resolve(__dirname, 'httpdocs/dist/ntopng.css'));
+
+
+// Build 3: CSS theme bundles (dark-mode, white-mode, custom-theme) — sequential
+console.log('[3/5] Building theme CSS files ...');
+const cssEntries = [
+    { entry: 'http_src/views/private/clients/dark-mode.js',    name: 'dark-mode'     },
+    { entry: 'http_src/views/private/clients/white-mode.js',   name: 'white-mode'    },
+    { entry: 'http_src/views/private/clients/custom_theme.js', name: 'custom-theme'  },
+];
+
+for (const { entry, name } of cssEntries) {
+    await build({
+        css: sharedCSS,
+        base: '',
+        build: {
+            outDir: 'httpdocs/dist',
+            emptyOutDir: false,
+            cssCodeSplit: false,     // extract CSS to a file (not inline via __vite_style__)
+            minify: isProd ? 'terser' : false,
+            rollupOptions: {
+                input: { [name]: resolve(__dirname, entry) },
+                output: {
+                    format: 'iife',
+                    // Replace hyphens so the IIFE wrapper variable is a valid identifier
+                    name: name.replace(/-/g, '_'),
+                    entryFileNames: '[name].js',
+                    assetFileNames,
+                }
+            }
+        }
+    });
+    // Vite names the CSS 'style.css' -> rename to match ntopng format
+    renameSync(resolve(__dirname, 'httpdocs/dist/style.css'), resolve(__dirname, `httpdocs/dist/${name}.css`));
+}
+
+// Build 4: images
+console.log('[4/5] Copying images ...');
+await build({
+    build: {
+        outDir: 'httpdocs/dist',
+        emptyOutDir: false,
+        assetsInlineLimit: 0,
+        rollupOptions: {
+            input: { images: resolve(__dirname, 'assets/images/images.js') },
+            output: {
+                format: 'iife',
+                name: 'ntopImages',
+                entryFileNames: '[name].js',
+                assetFileNames,
+            }
+        }
+    }
+});
+
+// Standalone IIFE for the login page particle animation.
+console.log('[5/5] Building login.js ...');
+await build({
+    build: {
+        outDir: 'httpdocs/dist',
+        emptyOutDir: false,
+        minify: isProd ? 'terser' : false,
+        terserOptions: isProd ? terserOptions : undefined,
+        rollupOptions: {
+            input: { login: resolve(__dirname, 'assets/scripts/login.js') },
+            output: {
+                format: 'iife',
+                name: 'ntopLogin',
+                entryFileNames: '[name].js',
+                assetFileNames,
+                strict: false,
+            }
+        }
+    }
+});
+
+console.log('\nBuild complete.');

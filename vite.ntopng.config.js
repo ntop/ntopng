@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { renameSync } from 'fs';
 import inject from '@rollup/plugin-inject';
 import autoprefixer from 'autoprefixer';
 
@@ -10,28 +11,28 @@ import autoprefixer from 'autoprefixer';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export default defineConfig(({ command, mode }) => {
+// This config is used exclusively for watch mode  and for build:ntopngjs
+// Full JS + CSS + images check build.mjs.
+export default defineConfig(({ mode }) => {
     const isProduction = mode === 'production';
 
     return {
-        // Ensure we're using the proper mode for hot reloading
-        mode: command === 'serve' ? 'development' : mode,
 
-        // Build configuration
+        base: '',
         build: {
-            outDir: 'dist',
-            emptyOutDir: true,
+            outDir: 'httpdocs/dist',
+            emptyOutDir: false,
+            cssCodeSplit: false,     // extract CSS to ntopng.css
             sourcemap: !isProduction,
             minify: isProduction ? 'terser' : false,
-            terserOptions: {
+            terserOptions: isProduction ? {
                 compress: {
-                    drop_console: isProduction,
+                    drop_console: true,
                 },
                 output: {
                     ecma: 5,
                 },
-            },
-            // Increase chunk size warning limit to prevent unnecessary warnings
+            } : undefined,
             chunkSizeWarningLimit: 5000,
             rollupOptions: {
                 plugins: [
@@ -41,87 +42,56 @@ export default defineConfig(({ command, mode }) => {
                         moment: 'moment-timezone'
                     })
                 ],
-                input: {
-                    'ntopng': resolve(__dirname, 'http_src/ntopng.js'),
-                    'ntopng_css': resolve(__dirname, 'http_src/ntopng_css.js'),
-                    'third-party': resolve(__dirname, 'assets/third-party.js'),
-                    'custom-theme': resolve(__dirname, 'http_src/views/private/clients/custom_theme.js'),
-                    'dark-mode': resolve(__dirname, 'http_src/views/private/clients/dark-mode.js'),
-                    'white-mode': resolve(__dirname, 'http_src/views/private/clients/white-mode.js'),
-                    'images': resolve(__dirname, 'assets/images/images.js'),
-                    'login': resolve(__dirname, 'assets/scripts/login.js')
-                },
+                input: { ntopng: resolve(__dirname, 'http_src/ntopng.js') },
+                // jQuery and moment are provided by third-party.js as window.$ / window.moment
+                // Marking them external keeps ntopng.js lean and avoids duplicating those libraries
+                external: ['jquery', 'moment', 'moment-timezone'],
                 output: {
+                    format: 'iife',
+                    name: 'ntopVue',
                     entryFileNames: '[name].js',
-                    chunkFileNames: '[name].js',
                     assetFileNames: (assetInfo) => {
-                        if (assetInfo.name.endsWith('.css')) {
-                            return '[name].css';
+                        const name = assetInfo.name || '';
+                        if (/\.(png|gif|svg|jpg|jpeg|ico)$/i.test(name)) {
+                            return 'images/[name][extname]';
                         }
-                        return 'assets/[name].[ext]';
+                        if (/\.(woff2?|ttf|eot|otf)$/i.test(name)) {
+                            return 'assets/[name][extname]';
+                        }
+                        return '[name][extname]';
                     },
-                    // Split large third-party dependencies into separate chunks
-                    manualChunks: {
-                        'vendor-core': ['vue', 'jquery', 'bootstrap'],
-                        'vendor-datatables': [
-                            'datatables.net-dt',
-                            'datatables.net-buttons-dt',
-                            'datatables.net-colreorder-dt',
-                            'datatables.net-responsive-dt'
-                        ],
-                        'vendor-charts': ['d3', 'apexcharts', 'nvd3'],
-                        // Add problematic dependencies with evals here
-                        'vendor-eval-safe': ['store-js']
+                    globals: {
+                        'jquery': '$',
+                        'moment': 'moment',
+                        'moment-timezone': 'moment',
                     }
                 }
             }
         },
 
-        // Plugins configuration
         plugins: [
             vue(),
             {
-                name: 'provide-globals',
-                config() {
-                    return {
-                        define: {
-                            $: 'jquery',
-                            jQuery: 'jquery',
-                            'window.jQuery': 'jquery',
-                        }
-                    };
-                }
-            },
-            // Special handling for files with eval
-            {
                 name: 'handle-eval-files',
                 transform(code, id) {
-                    // Skip transforming problematic files that use eval
                     if (id.includes('store-js/plugins/lib/json2.js') ||
                         id.includes('jquery.tablesorter.js')) {
                         return { code, map: null };
                     }
                 }
+            },
+            // Vite names the CSS style.css -> rename it to ntopng.css after every build
+            {
+                name: 'rename-css-to-ntopng',
+                closeBundle() {
+                    renameSync(
+                        resolve(__dirname, 'httpdocs/dist/style.css'),
+                        resolve(__dirname, 'httpdocs/dist/ntopng.css')
+                    );
+                }
             }
         ],
 
-        // Add proper watch configuration
-        server: {
-            watch: {
-                ignored: ['!**/node_modules/**', '**/httpdocs/dist/**'],
-                usePolling: true, // This helps with file system watchers in some environments
-                interval: 1000
-            }
-        },
-
-        // Explicitly configure the watch mode for build
-        watch: {
-            include: ['http_src/**/*', 'assets/**/*'],
-            exclude: ['node_modules/**', 'httpdocs/dist/**'],
-            buildDelay: 100
-        },
-
-        // Resolve aliases
         resolve: {
             alias: {
                 '@': resolve(__dirname, 'http_src'),
@@ -131,11 +101,11 @@ export default defineConfig(({ command, mode }) => {
             }
         },
 
-        // CSS processing
         css: {
             preprocessorOptions: {
                 scss: {
-                    // SCSS options if needed
+                    // Bootstrap 5.3.x uses legacy @import. Silence those warnings
+                    silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'mixed-decls'],
                 }
             },
             postcss: {
@@ -144,27 +114,5 @@ export default defineConfig(({ command, mode }) => {
                 ]
             }
         },
-
-        // Optimize dependencies
-        optimizeDeps: {
-            include: [
-                'jquery',
-                'bootstrap',
-                'vue',
-                'd3',
-                'moment',
-                'flatpickr',
-                '@popperjs/core',
-                'apexcharts',
-                'datatables.net-dt',
-                'select2',
-                'leaflet'
-            ],
-            exclude: [
-                // Exclude problematic packages that use eval
-                'store-js',
-                'jquery.tablesorter'
-            ]
-        }
     };
 });

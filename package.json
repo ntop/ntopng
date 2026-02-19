@@ -10,11 +10,10 @@
   "scripts": {
     "css:lint": "stylelint './http_src/**/*.scss' || true",
     "js:lint": "eslint './http_src/**/*.js'",
-    "watch": "rollup -c -w",
-    "build:ntopngjs": "rollup -c --prod",
-    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c --prod",
-    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist;rollup -c",
-    "build:ntopngjs:no-lint": "ESLINT_NO_DEV_ERRORS=true vite build --mode production --config vite.ntopng.config.js --emptyOutDir=false",
+    "watch": "vite build --config vite.ntopng.config.js --watch --mode development",
+    "build:ntopngjs": "vite build --config vite.ntopng.config.js",
+    "build": "node build.mjs --prod",
+    "build:dev": "node build.mjs",
     "detect_circular_link": "madge --circular --extensions js http_src httpdocs "
   },
   "repository": {

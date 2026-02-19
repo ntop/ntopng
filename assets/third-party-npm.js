@@ -16,7 +16,7 @@ import 'jquery-ui'
 import './scripts/vendors/jquery/jquery.resizableColumns.js';
 import './scripts/vendors/jquery/jquery-print.min.js';
 
-import * as store from 'store-js';
+import store from 'store-js';
 window.store = store;
 
 import Sortable from './scripts/vendors/sortablejs/sortable.core.esm.js';

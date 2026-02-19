@@ -47,8 +47,11 @@
 
   /* ******************************************************* */
 
-  // Initialize the Vue app when the DOM is loaded.
-  $(function () {
+  // Initialize the Vue app when the DOM is loaded
+  // Note: third-party.js and ntopng.js are ES modules (type="module"), which are deferred
+  // they execute after HTML parsing but before DOMContentLoaded. Using native
+  // DOMContentLoaded avoids a dependency on $ being available synchronously.
+  document.addEventListener('DOMContentLoaded', function () {
     start_vue("{* vue_page_name *}", ntopVue["{* vue_page_name *}"], {* page_context *});
   });
 </script>
