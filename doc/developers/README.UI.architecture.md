@@ -206,4 +206,4 @@ In the interim, both styles coexist: older pages are pure Lua HTML, newer ones u
 - [GUI quickstart](README.GUI.quickstart.md)
 - [URL manager utility](README.GUI.ntopng_utility_js.md)
 - [Adding preferences](README.add_new_pref.md)
-- [Adding startup params](README.Add_startup_param.md)
+- [Adding startup params](README.Add_startup_param.md)git 

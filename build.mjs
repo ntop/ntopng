@@ -25,6 +25,10 @@ import { fileURLToPath } from 'url';
 import { renameSync } from 'fs';
 import inject from '@rollup/plugin-inject';
 import autoprefixer from 'autoprefixer';
+import imagemin from 'imagemin';
+import imageminMozjpeg from 'imagemin-mozjpeg';
+import imageminPngquant from 'imagemin-pngquant';
+import imageminGifsicle from 'imagemin-gifsicle';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const isProd = process.argv.includes('--prod');
@@ -55,6 +59,40 @@ const sharedResolve = {
             : 'vue/dist/vue.esm-browser.js'
     }
 };
+
+/** Vite plugin: compress PNG/JPEG/GIF assets using imagemin (production only) */
+const imageminPlugin = isProd ? {
+    name: 'vite-plugin-imagemin',
+    async generateBundle(_, bundle) {
+        for (const [fileName, asset] of Object.entries(bundle)) {
+            if (asset.type !== 'asset') continue;
+            const src = asset.source instanceof Uint8Array
+                ? Buffer.from(asset.source)
+                : Buffer.from(asset.source);
+
+            let plugins;
+            if (/\.(jpg|jpeg)$/i.test(fileName)) {
+                plugins = [imageminMozjpeg({ progressive: true })];
+            } else if (/\.png$/i.test(fileName)) {
+                plugins = [imageminPngquant({ quality: [0.65, 0.90], speed: 4 })];
+            } else if (/\.gif$/i.test(fileName)) {
+                plugins = [imageminGifsicle({ interlaced: false })];
+            } else {
+                continue;
+            }
+
+            try {
+                const compressed = await imagemin.buffer(src, { plugins });
+                if (compressed.length < src.length) {
+                    asset.source = compressed;
+                    console.log(`  imagemin: ${fileName} ${src.length} → ${compressed.length} bytes`);
+                }
+            } catch (e) {
+                console.warn(`  imagemin: skipped ${fileName} — ${e.message}`);
+            }
+        }
+    }
+} : null;
 
 /** Asset output path rules */
 const assetFileNames = (assetInfo) => {
@@ -88,7 +126,7 @@ const injectGlobals = inject({ $: 'jquery', jQuery: 'jquery', moment: 'moment-ti
 //
 console.log('[1/5] Building third-party.js ...');
 await build({
-    plugins: [injectGlobals, handleEvalFiles],
+    plugins: [injectGlobals, handleEvalFiles, imageminPlugin].filter(Boolean),
     css: sharedCSS,
     // base: '' -> relative asset paths in CSS
     // so fonts resolve correctly when third-party.css is served from /dist/
@@ -121,11 +159,7 @@ renameSync(resolve(__dirname, 'httpdocs/dist/style.css'), resolve(__dirname, 'ht
 // Build 2: ntopng.js
 console.log('[2/5] Building ntopng.js ...');
 await build({
-    plugins: [
-        vue(),
-        injectGlobals,
-        handleEvalFiles,
-    ],
+    plugins: [vue(), injectGlobals, handleEvalFiles, imageminPlugin].filter(Boolean),
     css: sharedCSS,
     resolve: sharedResolve,
     base: '',
@@ -169,6 +203,7 @@ const cssEntries = [
 
 for (const { entry, name } of cssEntries) {
     await build({
+        plugins: [imageminPlugin].filter(Boolean),
         css: sharedCSS,
         base: '',
         build: {
@@ -195,6 +230,7 @@ for (const { entry, name } of cssEntries) {
 // Build 4: images
 console.log('[4/5] Copying images ...');
 await build({
+    plugins: [imageminPlugin].filter(Boolean),
     build: {
         outDir: 'httpdocs/dist',
         emptyOutDir: false,
@@ -214,6 +250,7 @@ await build({
 // Standalone IIFE for the login page particle animation.
 console.log('[5/5] Building login.js ...');
 await build({
+    plugins: [imageminPlugin].filter(Boolean),
     build: {
         outDir: 'httpdocs/dist',
         emptyOutDir: false,
