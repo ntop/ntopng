@@ -10,7 +10,7 @@
   "scripts": {
     "css:lint": "stylelint './http_src/**/*.scss' || true",
     "js:lint": "eslint './http_src/**/*.js'",
-    "watch": "vite build --config vite.ntopng.config.js --watch --mode development",
+    "watch": "find httpdocs/dist -name '*.gz' -delete 2>/dev/null; vite build --config vite.ntopng.config.js --watch --mode development",
     "build:ntopngjs": "vite build --config vite.ntopng.config.js",
     "build": "node build.mjs --prod",
     "build:dev": "node build.mjs",

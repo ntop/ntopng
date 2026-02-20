@@ -1,7 +1,6 @@
 <template>
     <div class="geomap-container" ref="mapContainer">
         <Loading :isLoading="isLoading"></Loading>
-
         <!-- Tooltip -->
         <div v-if="tooltip.show" ref="tooltipRef" class="static-tooltip" :style="{
             left: tooltip.x + 'px',
@@ -38,7 +37,8 @@ const props = defineProps({
     tooltipFormatter: Function,
     geomapDataArray: Array,
     getGeomapData: Function,
-    glowDots: Boolean
+    glowDots: Boolean,
+    showTooltipOnHover: { type: Boolean, default: true }
 });
 
 const geomapDataArray = ref(props.geomapDataArray);
@@ -278,13 +278,39 @@ const renderDotsByCoordinates = () => {
             .attr('transform', `translate(${x}, ${y})`)
             .style('cursor', 'pointer');
 
+        nodeGroup.append('circle')
+            .attr('class', 'alert-dot')
+            .attr('r', dotSize)
+            .attr('fill', color)
+            .attr('stroke', '#ffffff')
+            .attr('stroke-width', 0.5)
+            .attr('data-original-radius', dotSize)
+            .attr('data-original-color', color);
+
         nodeGroup.on('click', function (event) {
-            // prevent map click handler from firing
-            event.stopPropagation();
+            showTooltip(event);
+        });
+        nodeGroup.on('mouseover', function (event) {
+            if (props.showTooltipOnHover) {
+                showTooltip(event, alert);
+            }
+        });
+        nodeGroup.on('mouseout', function (event) {
+            // Close tooltip on resize
+            if (tooltip.value.show) {
+                closeTooltip();
+            }
+        });
+    });
+};
+
+const showTooltip = (eventName, alert) => {
+// prevent map click handler from firing
+            eventName.stopPropagation();
             const tooltipContent = props.tooltipFormatter(alert);
 
             // get mouse position to put tooltip
-            const [mouseX, mouseY] = d3.pointer(event, mapContainer.value);
+            const [mouseX, mouseY] = d3.pointer(eventName, mapContainer.value);
 
             // show tooltip
             tooltip.value = {
@@ -294,10 +320,8 @@ const renderDotsByCoordinates = () => {
                 content: tooltipContent,
                 targetElement: this
             };
-        });
-    });
-};
 
+        }
 ///////////////////////////////
 const renderDotsByCountryCentroid = () => {
     const alertsByCountry = {};
