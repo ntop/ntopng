@@ -22,7 +22,8 @@ import { build } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { renameSync } from 'fs';
+import { renameSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { gzipSync } from 'zlib';
 import inject from '@rollup/plugin-inject';
 import autoprefixer from 'autoprefixer';
 import imagemin from 'imagemin';
@@ -268,5 +269,21 @@ await build({
         }
     }
 });
+
+// gzip files for static serving
+if (isProd) {
+    console.log('\n[+] Compressing JS and CSS ...');
+    const distDir = resolve(__dirname, 'httpdocs/dist');
+    for (const file of readdirSync(distDir).filter(f => /\.(js|css)$/.test(f))) {
+        const filePath = resolve(distDir, file);
+        const content = readFileSync(filePath);
+        const compressed = gzipSync(content, { level: 9 });
+        if (compressed.length < content.length) {
+            writeFileSync(filePath + '.gz', compressed);
+            const ratio = ((1 - compressed.length / content.length) * 100).toFixed(1);
+            console.log(`  ${file}: ${(content.length / 1024).toFixed(0)}KB → ${(compressed.length / 1024).toFixed(0)}KB (-${ratio}%)`);
+        }
+    }
+}
 
 console.log('\nBuild complete.');
