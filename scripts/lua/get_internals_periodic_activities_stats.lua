@@ -197,6 +197,20 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       else
 	 sort_to_key[k] = 0
       end
+   elseif(sortColumn == "column_snmp_fat_mibs") then
+      if script_stats.stats.snmp and script_stats.stats.snmp.calls then
+	 local c = script_stats.stats.snmp.calls
+	 sort_to_key[k] = ((c.fat_mibs_v1_v2c or 0) + (c.fat_mibs_v3 or 0))
+      else
+	 sort_to_key[k] = 0
+      end
+   elseif(sortColumn == "column_snmp_other_mibs") then
+      if script_stats.stats.snmp and script_stats.stats.snmp.calls then
+	 local c = script_stats.stats.snmp.calls
+	 sort_to_key[k] = ((c.other_mibs_v1_v2c or 0) + (c.other_mibs_v3 or 0))
+      else
+	 sort_to_key[k] = 0
+      end
    elseif(sortColumn == "column_max_duration_secs") then
       sort_to_key[k] = script_stats.stats.max_duration_secs or 0
    elseif(sortColumn == "column_tot_not_executed") then
@@ -263,6 +277,19 @@ for key in pairsByValues(sort_to_key, sOrder) do
 	    if script_stats.stats.timeseries.write.tot_drops and script_stats.stats.timeseries.write.tot_drops > 0 then
 	       record["column_rrd_drops"] = script_stats.stats.timeseries.write.tot_drops
 	    end
+	 end
+      end
+
+      if script_stats.stats.snmp and script_stats.stats.snmp.calls then
+	 local c = script_stats.stats.snmp.calls
+	 local fat_mibs = (c.fat_mibs_v1_v2c or 0) + (c.fat_mibs_v3 or 0)
+	 local other_mibs = (c.other_mibs_v1_v2c or 0) + (c.other_mibs_v3 or 0)
+
+	 if fat_mibs > 0 then
+	    record["column_snmp_fat_mibs"] = fat_mibs
+	 end
+	 if other_mibs > 0 then
+	    record["column_snmp_other_mibs"] = other_mibs
 	 end
       end
 

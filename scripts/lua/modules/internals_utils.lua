@@ -398,6 +398,22 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '4%',
        }
      }, {
+       title: "]] print(i18n("internals.snmp_fat_mibs")) print[[",
+       field: "column_snmp_fat_mibs",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '4%',
+       }
+     }, {
+       title: "]] print(i18n("internals.snmp_other_mibs")) print[[",
+       field: "column_snmp_other_mibs",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '4%',
+       }
+     }, {
        title: "]] print(i18n("internals.tot_not_executed")) print[[",
        field: "column_tot_not_executed",
        sortable: true,
@@ -424,6 +440,8 @@ $("#table-internals-periodic-activities").datatable({
                   "column_tot_rrd_running_slow": NtopUtils.fint,
                   "column_timeseries_writes": NtopUtils.fint,
                   "column_rrd_drops": NtopUtils.fint,
+                  "column_snmp_fat_mibs": NtopUtils.fint,
+                  "column_snmp_other_mibs": NtopUtils.fint,
                });
    },
 });
