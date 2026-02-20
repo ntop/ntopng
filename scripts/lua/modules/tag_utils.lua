@@ -43,7 +43,7 @@ tag_utils.tag_operators_sql = {
     ["in"] = "",
     ["nin"] = "",
     ["empty"] = "",
-    ["nempty"] = "",
+    ["nempty"] = ""
 }
 
 -- Operator to string (i18n)
@@ -57,7 +57,7 @@ tag_utils.tag_operators_label = {
     ["in"] = i18n("has"),
     ["nin"] = i18n("does_not_have"),
     ["empty"] = i18n("is_empty"),
-    ["nempty"] = i18n("is_not_empty"),
+    ["nempty"] = i18n("is_not_empty")
 }
 
 -- #####################################
@@ -66,7 +66,7 @@ tag_utils.tag_operators_label = {
 tag_utils.input_types = {
     input = 'input',
     select = 'select',
-    select_with_input = 'select-with-input',
+    select_with_input = 'select-with-input'
 }
 
 -- #####################################
@@ -76,795 +76,795 @@ tag_utils.defined_tags = {
         type = tag_utils.input_types.select,
         value_type = 'alert_id',
         i18n_label = i18n('db_search.tags.alert_id'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     alert_category = {
         type = tag_utils.input_types.select,
         value_type = 'alert_category',
         i18n_label = i18n('db_search.tags.alert_category'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     l7proto = {
         type = tag_utils.input_types.select,
         value_type = 'l7_proto',
         i18n_label = i18n('db_search.tags.l7_proto'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     l7proto_master = {
         type = tag_utils.input_types.select,
         value_type = 'l7_proto',
         i18n_label = i18n('db_search.tags.l7_proto'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         hide = true,
-        hourly_available = true,
+        hourly_available = true
     },
     l7cat = {
         type = tag_utils.input_types.select,
         value_type = 'l7_category',
         i18n_label = i18n('db_search.tags.l7cat'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     flow_risk = {
         type = tag_utils.input_types.select,
         value_type = 'flow_risk',
         i18n_label = i18n('db_search.tags.flow_risk'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     l4proto = {
         type = tag_utils.input_types.select,
         value_type = 'l4_proto',
         i18n_label = i18n('db_search.tags.l4proto'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ip proto',
-        hourly_available = true,
+        hourly_available = true
     },
     ip_version = {
         type = tag_utils.input_types.select,
         value_type = 'ip_version',
         i18n_label = i18n('db_search.tags.ip_version'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     ip = {
         value_type = 'ip,cidr', -- Set to 'ip' to accept IP only
         i18n_label = i18n('db_search.tags.ip'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ip host',
-        hourly_available = true,
+        hourly_available = true
     },
     cli_ip = {
         value_type = 'ip,cidr', -- Set to 'ip' to accept IP only
         i18n_label = i18n('db_search.tags.cli_ip'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ip host',
-        hourly_available = true,
+        hourly_available = true
     },
     srv_ip = {
         value_type = 'ip,cidr', -- Set to 'ip' to accept IP only
         i18n_label = i18n('db_search.tags.srv_ip'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ip host',
-        hourly_available = true,
+        hourly_available = true
     },
     network_cidr = {
         value_type = 'cidr',
         i18n_label = i18n('db_search.tags.network_cidr'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'net',
-        hourly_available = true,
+        hourly_available = true
     },
     cli_network_cidr = {
         value_type = 'cidr',
         i18n_label = i18n('db_search.tags.cli_network_cidr'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'net',
-        hourly_available = true,
+        hourly_available = true
     },
     srv_network_cidr = {
         value_type = 'cidr',
         i18n_label = i18n('db_search.tags.srv_network_cidr'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'net',
-        hourly_available = true,
+        hourly_available = true
     },
     traffic_direction = {
         type = tag_utils.input_types.select,
         value_type = 'traffic_direction',
         i18n_label = i18n('db_search.tags.traffic_direction'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     name = {
         value_type = 'hostname',
         i18n_label = i18n('db_search.tags.name'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = true
     },
     cli_name = {
         value_type = 'hostname',
         i18n_label = i18n('db_search.tags.cli_name'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = true
     },
     srv_name = {
         value_type = 'hostname',
         i18n_label = i18n('db_search.tags.srv_name'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = true
     },
     network_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.network_name'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     src2dst_dscp = {
         type = tag_utils.input_types.select,
         value_type = 'dscp_type',
         i18n_label = i18n('db_search.tags.src2dst_dscp'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     dst2src_dscp = {
         type = tag_utils.input_types.select,
         value_type = 'dscp_type',
         i18n_label = i18n('db_search.tags.dst2src_dscp'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     duration = {
         value_type = 'number',
         i18n_label = i18n('db_search.duration'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     cli_port = {
         value_type = 'port',
         i18n_label = i18n('db_search.tags.cli_port'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
         bpf_key = 'port',
-        hourly_available = false,
+        hourly_available = false
     },
     srv_port = {
         value_type = 'port',
         i18n_label = i18n('db_search.tags.srv_port'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
         bpf_key = 'port',
-        hourly_available = true,
+        hourly_available = true
     },
     country = {
         type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.country'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     cli_country = {
         type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.cli_country'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     srv_country = {
         type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.srv_country'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.asn'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     cli_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.cli_asn'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     srv_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.srv_asn'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     src_peer_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.src_peer_asn'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     dst_peer_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.dst_peer_asn'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     cli_nw_latency = {
         value_type = 'nw_latency_type',
         i18n_label = i18n('db_search.tags.cli_nw_latency'),
-        operators = { 'eq', 'lt', 'gt', 'lte', 'gte' },
-        hourly_available = false,
+        operators = {'eq', 'lt', 'gt', 'lte', 'gte'},
+        hourly_available = false
     },
     srv_nw_latency = {
         value_type = 'nw_latency_type',
         i18n_label = i18n('db_search.tags.srv_nw_latency'),
-        operators = { 'eq', 'lt', 'gt', 'lte', 'gte' },
-        hourly_available = false,
+        operators = {'eq', 'lt', 'gt', 'lte', 'gte'},
+        hourly_available = false
     },
     observation_point_id = {
         type = tag_utils.input_types.select,
         value_type = 'observation_point_id',
         i18n_label = i18n('db_search.tags.observation_point_id'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     probe_ip = {
         type = tag_utils.input_types.select_with_input,
         value_type = 'probe_ip',
         i18n_label = i18n('db_search.tags.probe_ip'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     vlan_id = {
         value_type = 'vlan_id',
         i18n_label = i18n('db_search.tags.vlan_id'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     snmp_interface = {
         type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.snmp_interface'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     input_snmp = {
         type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.input_snmp'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     output_snmp = {
         type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.output_snmp'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     src2dst_tcp_flags = {
         value_type = 'flags',
         i18n_label = i18n('db_search.src2dst_tcp_flags'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     dst2src_tcp_flags = {
         value_type = 'flags',
         i18n_label = i18n('db_search.dst2src_tcp_flags'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     alert_status = {
         type = tag_utils.input_types.select,
         value_type = 'alert_status',
         i18n_label = i18n('db_search.tags.alert_status'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     require_attention = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.require_attention'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     severity = {
         type = tag_utils.input_types.select,
         value_type = 'severity',
         i18n_label = i18n('db_search.tags.severity'),
-        operators = { 'eq', 'lte', 'gte', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'lte', 'gte', 'neq'},
+        hourly_available = false
     },
     score = {
         value_type = 'score',
         i18n_label = i18n('db_search.tags.score'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     qoe_score = {
         type = tag_utils.input_types.select,
         value_type = 'qoe_score',
         i18n_label = i18n('db_search.tags.qoe'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = false
     },
     mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.mac'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ether host',
-        hourly_available = true,
+        hourly_available = true
     },
     cli_mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.cli_mac'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ether host',
-        hourly_available = true,
+        hourly_available = true
     },
     srv_mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.srv_mac'),
-        operators = { 'eq', 'neq' },
+        operators = {'eq', 'neq'},
         bpf_key = 'ether host',
-        hourly_available = true,
+        hourly_available = true
     },
     network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.network'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     cli_network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     srv_network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.srv_network'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     info = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.info'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     bytes = {
         value_type = 'bytes',
         i18n_label = i18n('db_search.tags.bytes'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     cli2srv_bytes = {
         type = tag_utils.input_types.input,
         value_type = 'number',
         i18n_label = i18n('traffic_labels.cli2srv_bytes'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     srv2cli_bytes = {
         type = tag_utils.input_types.input,
         value_type = 'number',
         i18n_label = i18n('traffic_labels.srv2cli_bytes'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     packets = {
         value_type = 'packets',
         i18n_label = i18n('db_search.tags.packets'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     cli2srv_packets = {
         value_type = 'packets',
         i18n_label = i18n('traffic_labels.cli2srv_packets'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     srv2cli_packets = {
         value_type = 'packets',
         i18n_label = i18n('traffic_labels.srv2cli_packets'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     number = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.number'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = false
     },
     out_of_order = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.out_of_order'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = false
     },
     lost = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.lost'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = false
     },
     retransmissions = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.retransmissions'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = false
     },
     flows_number = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.flows_number'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     host_pool = {
         type = tag_utils.input_types.select,
         value_type = 'host_pool',
         i18n_label = i18n('db_search.tags.host_pool_id'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     cli_host_pool_id = {
         type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.cli_host_pool_id'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     srv_host_pool_id = {
         type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.srv_host_pool_id'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     subtype = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.subtype'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     role = {
         type = tag_utils.input_types.select,
         value_type = 'role',
         i18n_label = i18n('db_search.tags.role'),
-        operators = { 'eq' },
-        hourly_available = false,
+        operators = {'eq'},
+        hourly_available = false
     },
     role_cli_srv = {
         type = tag_utils.input_types.select,
         value_type = 'role_cli_srv',
         i18n_label = i18n('db_search.tags.role_cli_srv'),
-        operators = { 'eq' },
-        hourly_available = false,
+        operators = {'eq'},
+        hourly_available = false
     },
     l7_error_id = {
         value_type = 'l7_error_id',
         i18n_label = i18n('db_search.tags.error_code'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     confidence = {
         type = tag_utils.input_types.select,
         value_type = 'confidence',
         i18n_label = i18n('db_search.tags.confidence'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     community_id = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.community_id'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     cli_fingerprint = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.cli_fingerprint'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
     tcp_fingerprint = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.tcp_fingerprint'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
-    --ja4_client = {
+    -- ja4_client = {
     --    value_type = 'text',
     --    i18n_label = i18n('ja4_client_hash'),
     --    operators = { 'eq', 'neq' }
-    --},
+    -- },
     http_method = {
         type = tag_utils.input_types.select,
         value_type = 'http_method',
         i18n_label = i18n('db_search.tags.http_method'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     http_return = {
         type = tag_utils.input_types.select,
         value_type = 'http_return',
         i18n_label = i18n('db_search.tags.http_return_code'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     http_url = {
         value_type = 'http_url',
         i18n_label = i18n('db_search.tags.http_url'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     issuer_dn = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.issuer_dn'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     user_agent = {
         value_type = 'user_agent',
         i18n_label = i18n('db_search.tags.user_agent'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     last_server = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.last_server'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     netbios_name = {
         value_type = 'netbios_name',
         i18n_label = i18n('db_search.tags.netbios_name'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     dns_query = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.dns_query'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     dns_answer = {
         value_type = 'dns_answer',
         i18n_label = i18n('db_search.tags.dns_answer'),
-        operators = { 'eq', 'neq', 'in', 'nin' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin'},
+        hourly_available = false
     },
     mdns_answer = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.mdns_answer'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
     mdns_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.mdns_name'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     mdns_name_txt = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.mdns_name_txt'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     mdns_ssid = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.mdns_ssid'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     domain_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.domain_name'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     alert_domain = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.dga_domain_name'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
     },
     cli_location = {
         type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.cli_location'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     srv_location = {
         type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.srv_location'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     host_location = {
         type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.host_location'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     cli_proc_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.cli_proc_name'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
     srv_proc_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.srv_proc_name'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
     cli_user_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.cli_user_name'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
     srv_user_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.srv_user_name'),
-        operators = { 'eq', 'neq', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'eq', 'neq', 'empty', 'nempty'},
+        hourly_available = false
     },
     major_connection_state = {
         type = tag_utils.input_types.select,
         value_type = 'major_connection_state',
         i18n_label = i18n("db_search.tags.major_connection_state"),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     minor_connection_state = {
         type = tag_utils.input_types.select,
         value_type = 'minor_connection_state',
         i18n_label = i18n("db_search.tags.minor_connection_state"),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     post_nat_ipv4_src_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.post_nat_ipv4_src_addr"),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     post_nat_ipv4_dst_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.post_nat_ipv4_dst_addr"),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     post_nat_src_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.post_nat_src_port"),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     post_nat_dst_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.post_nat_dst_port"),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     description = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.alert_description'),
-        operators = { 'in', 'empty', 'nempty' },
-        hourly_available = false,
+        operators = {'in', 'empty', 'nempty'},
+        hourly_available = false
     },
     mitre_tactic = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_tactic',
         i18n_label = i18n('db_search.tags.mitre_tactic'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     mitre_technique = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_technique',
         i18n_label = i18n('db_search.tags.mitre_technique'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     mitre_subtechnique = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_subtechnique',
         i18n_label = i18n('db_search.tags.mitre_subtechnique'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     mitre_id = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_id',
         i18n_label = i18n('db_search.tags.mitre_id'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     wlan_ssid = {
         -- type = tag_utils.input_types.select,
         -- value_type = 'wlan_ssid',
         value_type = 'text',
         i18n_label = i18n('db_search.tags.wlan_ssid'),
-        operators = { 'eq', 'neq', 'in', 'nin', 'empty', 'nempty' }
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'}
     },
     apn_mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.apn_mac'),
-        operators = { 'eq', 'neq' }
+        operators = {'eq', 'neq'}
     },
     is_srv_blacklisted = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.is_srv_blacklisted'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     is_cli_blacklisted = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.is_cli_blacklisted'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     is_srv_victim = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.is_srv_victim'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     is_cli_victim = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.is_cli_victim'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     is_srv_attacker = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.is_srv_attacker'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     is_cli_attacker = {
         value_type = 'boolean',
         i18n_label = i18n('db_search.tags.is_cli_attacker'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     verdict = {
         type = tag_utils.input_types.select,
         value_type = 'verdict',
         i18n_label = i18n('details.flow_verdict'),
-        operators = { 'eq', 'neq' },
-        hourly_available = false,
+        operators = {'eq', 'neq'},
+        hourly_available = false
     },
     interface_id = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.interface_id'),
-        operators = { 'eq', 'neq' },
-        hourly_available = true,
+        operators = {'eq', 'neq'},
+        hourly_available = true
     },
     first_seen = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.first_seen'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
     },
     last_seen = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.last_seen'),
-        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
-        hourly_available = true,
-    },
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        hourly_available = true
+    }
 }
 -- #####################################
 
-tag_utils.traffic_direction = { {
+tag_utils.traffic_direction = {{
     label = i18n("flows_page.remote_only"),
     id = 0
 }, {
@@ -876,11 +876,11 @@ tag_utils.traffic_direction = { {
 }, {
     label = i18n("flows_page.local_cli_remote_srv"),
     id = 3
-} }
+}}
 
 -- #####################################
 
-tag_utils.confidence = { {
+tag_utils.confidence = {{
     label = i18n("confidence_unknown"),
     id = -1
 }, {
@@ -889,11 +889,11 @@ tag_utils.confidence = { {
 }, {
     label = i18n("confidence_dpi"),
     id = 1
-} }
+}}
 
 -- #####################################
 
-tag_utils.http_return = { {
+tag_utils.http_return = {{
     label = i18n("http_info.return_codes.200"),
     id = 200
 }, {
@@ -947,11 +947,11 @@ tag_utils.http_return = { {
 }, {
     label = i18n("http_info.return_codes.503"),
     id = 503
-} }
+}}
 
 -- #####################################
 
-tag_utils.http_method = { {
+tag_utils.http_method = {{
     label = i18n("http_info.methods.get"),
     id = 'GET'
 }, {
@@ -978,11 +978,11 @@ tag_utils.http_method = { {
 }, {
     label = i18n("http_info.methods.patch"),
     id = 'PATCH'
-} }
+}}
 
 -- #####################################
 
-tag_utils.location = { {
+tag_utils.location = {{
     label = i18n("details.label_remote"),
     id = 0
 }, {
@@ -991,7 +991,7 @@ tag_utils.location = { {
 }, {
     label = i18n("multicast"),
     id = 2
-} }
+}}
 
 -- #####################################
 
@@ -1171,9 +1171,8 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         end
     end
 
-    if is_aggregated and tag.hourly_available 
-        and (is_aggregated ~= tag.hourly_available)
-        or is_aggregated and not tag.hourly_available then
+    if is_aggregated and tag.hourly_available and (is_aggregated ~= tag.hourly_available) or is_aggregated and
+        not tag.hourly_available then
         return nil
     end
 
@@ -1195,7 +1194,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
 
     -- select (array of values)
     -- tprint(tag.value_type)
-    if (tag.value_type == "alert_id" or tag.value_type == "alert_type" --[[ alert_id should be used --]]) and entity ~=
+    if (tag.value_type == "alert_id" or tag.value_type == "alert_type" --[[ alert_id should be used --]] ) and entity ~=
         nil then
         filter.value_type = 'array'
         filter.options = {}
@@ -1217,7 +1216,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         for _, info in pairsByKeys(qoe_utils.getPossibleQoE(), asc) do
             filter.options[#filter.options + 1] = {
                 value = info.value,
-                label = i18n(info.i18n_label),
+                label = i18n(info.i18n_label)
             }
         end
     elseif tag.value_type == "mitre_id" then
@@ -1226,10 +1225,10 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         for name, info in pairsByField(alert_consts.getAllAlertMitreInfoIDs(), 'mitre_id', asc) do
             filter.options[#filter.options + 1] = {
                 value = info.mitre_id,
-                label = info.mitre_id,
+                label = info.mitre_id
             }
         end
-    --[[ Temporary commented out to reduce overhead (using open 'text' as value_type)
+        --[[ Temporary commented out to reduce overhead (using open 'text' as value_type)
     elseif tag.value_type == "wlan_ssid" then
         local flows_stats = interface.getActiveFlowsStats()
         filter.value_type = 'array'
@@ -1313,8 +1312,14 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         filter.options = {}
         -- Using 1 and 2 because some issue can happen with value = 0; it's going to be
         -- transformed into 0 and 1 respectively in pro/scripts/lua/modules/flow_db/clickhouse_utils.lua
-        filter.options[1] = { value = 1, label = i18n('policy.drop') }
-        filter.options[2] = { value = 2, label = i18n('policy.pass') }
+        filter.options[1] = {
+            value = 1,
+            label = i18n('policy.drop')
+        }
+        filter.options[2] = {
+            value = 2,
+            label = i18n('policy.pass')
+        }
     elseif tag.value_type == "flow_risk" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1657,18 +1662,12 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     end
                     if cached_interfaces and cached_interfaces["interfaces"] then
                         local interfaces = cached_interfaces["interfaces"]
-                        for interface_id, interface_info in pairs(interfaces) do
-                            local interface_name = interface_id
-                            if interface_info.name then
-                                interface_name = interface_info.name
-                            end
-                            local label = interface_name .. ' · ' .. probe_label
-                            if hide_exporters_name then
-                                label = interface_name
-                            end
+                        for if_index, if_info in pairs(interfaces) do
+                            local label = format_portidx_name(probe_ip, if_index, true)
+                            label = probe_label .. ' - ' .. label
 
                             interfaces_list[label] = {
-                                value = probe_ip .. "_" .. interface_id,
+                                value = probe_ip .. "_" .. if_index,
                                 label = label,
                                 show_only_value = probe_ip
                             }
@@ -1681,13 +1680,11 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     local interfaces = interface.getFlowDeviceInfoByIP(exporter_ip)
 
                     for _, interfaces_table in pairs(interfaces or {}) do
-                        for interface_id, _ in pairsByKeys(interfaces_table) do
-                            local label = format_portidx_name(exporter_ip, interface_id, true)
-                            if not hide_exporters_name then
-                                label = exporter_ip .. ' · ' .. label
-                            end
+                        for if_index, _ in pairsByKeys(interfaces_table) do
+                            local label = format_portidx_name(exporter_ip, if_index, true)
+                            label = exporter_ip .. ' - ' .. label
                             interfaces_list[tostring(label)] = {
-                                value = exporter_ip .. "_" .. interface_id,
+                                value = exporter_ip .. "_" .. if_index,
                                 label = label,
                                 show_only_value = exporter_ip
                             }
@@ -1703,7 +1700,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             end
         end
     end
-    
+
     if changed_ifid then
         interface.select(current_ifid)
     end
@@ -1864,7 +1861,7 @@ function tag_utils.get_tag_i18n(tag_name)
     if tag == nil then
         return nil
     end
-    
+
     return tag.i18n_label
 end
 
