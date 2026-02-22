@@ -53,10 +53,23 @@ static Mutex live_extraction_num_lock;
 int ntop_lua_check(lua_State *vm, const char *func, int pos,
                    int expected_type) {
   if (lua_type(vm, pos) != expected_type) {
+    lua_Debug ar;
+    
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "%s : expected %s[@pos %d], got %s", func,
                                  lua_typename(vm, expected_type), pos,
                                  lua_typename(vm, lua_type(vm, pos)));
+    
+    if (lua_getstack(vm, 1, &ar)) {
+      // Fill 'ar' with Source (S) and current Line (l)
+      lua_getinfo(vm, "Sl", &ar);
+      
+      const char *err_msg = lua_tostring(vm, -1);
+      // Create a formatted string: "filename:line: error message"
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s:%d %s",
+				   ar.short_src, ar.currentline, err_msg ? err_msg : "");
+    }
+    
     return (CONST_LUA_PARAM_ERROR);
   }
 
