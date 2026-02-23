@@ -131,8 +131,11 @@ function draw() {
 
   const CURVE_AMP = 40;
 
-  /* SVG path string for one edge. Straight when unidirectional, curved when
-   * part of a bidirectional pair so the two directions don'dst overlap. */
+  /* SVG path string for one edge.
+   * - Bidirectional pair  -> quadratic bezier, offset to each side so both arrows are visible.
+   * - LR layout           -> cubic S-curve (control points share x-midpoint, keep source/target y).
+   *                          This naturally spreads parallel edges that share the same target.
+   * - Force layout        -> straight line. */
   function edge_path(d) {
     const sx0 = d.source.x, sy0 = d.source.y;
     const tx  = d.target.x,  ty  = d.target.y;
@@ -145,19 +148,25 @@ function draw() {
     const ex = tx  - (dx / dist) * (d.target._fmt.radius + 7);
     const ey = ty  - (dy / dist) * (d.target._fmt.radius + 7);
 
-    if (!bidir_set.has(`${d.src}->${d.dst}`)) {
-      return `M${sx},${sy} L${ex},${ey}`;
+    if (bidir_set.has(`${d.src}->${d.dst}`)) {
+      /* Perpendicular offset: edge with smaller source id curves +side, other −side */
+      const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+      const sign = Number(d.src) < Number(d.dst) ? 1 : -1;
+      const cpx = mx + sign * CURVE_AMP * (-dy / dist);
+      const cpy = my + sign * CURVE_AMP * ( dx / dist);
+      return `M${sx},${sy} Q${cpx},${cpy} ${ex},${ey}`;
     }
 
-    /* Perpendicular offset: edge with smaller source id curves +side, other −side */
-    const mx = (sx + ex) / 2, my = (sy + ey) / 2;
-    const sign = Number(d.src) < Number(d.dst) ? 1 : -1;
-    const cpx = mx + sign * CURVE_AMP * (-dy / dist);
-    const cpy = my + sign * CURVE_AMP * ( dx / dist);
-    return `M${sx},${sy} Q${cpx},${cpy} ${ex},${ey}`;
+    if (props.layout === "lr") {
+      /* S-curve: horizontal tangent at both ends, natural fanout for parallel edges */
+      const mid_x = (sx + ex) / 2;
+      return `M${sx},${sy} C${mid_x},${sy} ${mid_x},${ey} ${ex},${ey}`;
+    }
+
+    return `M${sx},${sy} L${ex},${ey}`;
   }
 
-  /* Label anchor: midpoint for straight, bezier midpoint (dst=0.5) for curved */
+  /* Label anchor: midpoint for straight S-curve, bezier midpoint (t=0.5) for curved */
   function edge_label_xy(d) {
     const sx0 = d.source.x, sy0 = d.source.y;
     const tx  = d.target.x,  ty  = d.target.y;
@@ -168,15 +177,17 @@ function draw() {
     const ex = tx  - (dx / dist) * (d.target._fmt.radius + 7);
     const ey = ty  - (dy / dist) * (d.target._fmt.radius + 7);
 
-    if (!bidir_set.has(`${d.src}->${d.dst}`)) {
-      return { x: (sx + ex) / 2, y: (sy + ey) / 2 - 6 };
+    if (bidir_set.has(`${d.src}->${d.dst}`)) {
+      const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+      const sign = Number(d.src) < Number(d.dst) ? 1 : -1;
+      const cpx = mx + sign * CURVE_AMP * (-dy / dist);
+      const cpy = my + sign * CURVE_AMP * (dx / dist);
+      
+      /* Quadratic bezier midpoint: 0.25·P0 + 0.5·CP + 0.25·P3 */
+      return { x: 0.25*sx + 0.5*cpx + 0.25*ex, y: 0.25*sy + 0.5*cpy + 0.25*ey - 6 };
     }
-    const mx = (sx + ex) / 2, my = (sy + ey) / 2;
-    const sign = Number(d.src) < Number(d.dst) ? 1 : -1;
-    const cpx = mx + sign * CURVE_AMP * (-dy / dist);
-    const cpy = my + sign * CURVE_AMP * ( dx / dist);
-    /* Bezier midpoint: 0.25·P0 + 0.5·CP + 0.25·P3 */
-    return { x: 0.25*sx + 0.5*cpx + 0.25*ex, y: 0.25*sy + 0.5*cpy + 0.25*ey - 6 };
+    /* Geometric midpoint works for both straight lines and S-curves */
+    return { x: (sx + ex) / 2, y: (sy + ey) / 2 - 6 };
   }
 
   /* Arrow-head markers */
@@ -248,7 +259,7 @@ function draw() {
 
   /* Layout */
   if (props.layout === "lr") {
-    lr_positions(nodes, width, height);
+    lr_positions(nodes, links, width, height);
     tick();
 
     /* LR drag: no simulation update x/y directly and re-tick */
@@ -294,11 +305,51 @@ function draw() {
 
 /* LR layout */
 
-function lr_positions(nodes, width, height) {
+function lr_positions(nodes, links, width, height) {
   const px = 80, py = 60;
-  const cols = {};
-  nodes.forEach((node) => { (cols[node.column ?? 0] ??= []).push(node); });
-  const keys = Object.keys(cols).map(Number).sort((a, b) => a - b);
+  const col_map = {};
+  nodes.forEach((n) => { (col_map[n.column ?? 0] ??= []).push(n); });
+  let keys = Object.keys(col_map).map(Number).sort((a, b) => a - b);
+
+  /* Enforce: leftmost and rightmost columns must have at most 1 node */
+  if (keys.length >= 2) {
+    if (col_map[keys[0]].length > 1) {
+      const vk = (keys[0] + keys[1]) / 2;
+      const extras = col_map[keys[0]].splice(1);
+      (col_map[vk] ??= []).push(...extras);
+      keys = Object.keys(col_map).map(Number).sort((a, b) => a - b);
+    }
+    if (col_map[keys[keys.length - 1]].length > 1) {
+      const vk = (keys[keys.length - 2] + keys[keys.length - 1]) / 2;
+      const extras = col_map[keys[keys.length - 1]].splice(1);
+      (col_map[vk] ??= []).push(...extras);
+      keys = Object.keys(col_map).map(Number).sort((a, b) => a - b);
+    }
+  }
+
+  /* Minimise edge crossings */
+  const id_to_row = {};
+  keys.forEach((k) => col_map[k].forEach((n, i) => { id_to_row[n._id] = i; }));
+
+  for (let pass = 0; pass < 3; pass++) {
+    keys.forEach((k, ki) => {
+      if (ki === 0 || ki === keys.length - 1) return; /* preserve extreme positions */
+      const col_nodes = col_map[k];
+      const scores = col_nodes.map((n) => {
+        const connected = links.filter((l) => l.src === n._id || l.dst === n._id);
+        if (!connected.length) return 0;
+        const sum = connected.reduce((acc, l) => {
+          const other = l.src === n._id ? l.dst : l.src;
+          return acc + (id_to_row[other] ?? 0);
+        }, 0);
+        return sum / connected.length;
+      });
+      col_map[k] = col_nodes.map((n, i) => ({ n, s: scores[i] }))
+        .sort((a, b) => a.s - b.s)
+        .map(({ n }) => n);
+      col_map[k].forEach((n, i) => { id_to_row[n._id] = i; });
+    });
+  }
 
   const MAX_COL_GAP = 150;
   const spread = keys.length > 1 ? Math.min(width - 2 * px, MAX_COL_GAP * (keys.length - 1)) : 0;
@@ -306,9 +357,9 @@ function lr_positions(nodes, width, height) {
 
   keys.forEach((k, ci) => {
     const x = keys.length > 1 ? x_offset + (ci / (keys.length - 1)) * spread : width / 2;
-    cols[k].forEach((node, ni, arr) => {
-      node.x = node.fx = x;
-      node.y = node.fy = arr.length === 1 ? height / 2 : py + (ni / (arr.length - 1)) * (height - 2 * py);
+    col_map[k].forEach((n, ni, arr) => {
+      n.x = n.fx = x;
+      n.y = n.fy = arr.length === 1 ? height / 2 : py + (ni / (arr.length - 1)) * (height - 2 * py);
     });
   });
 }
