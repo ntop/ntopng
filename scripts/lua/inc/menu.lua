@@ -257,7 +257,7 @@ else
                 url = '/lua/index.lua'
             }, {
                 entry = page_utils.menu_entries.assets_dashboard,
-                hidden = (not assetsInventoryEnabled()) or (not ntop.isEnterpriseL()),
+                hidden = (not is_clickhouse_enabled) or (not assetsInventoryEnabled()) or (not ntop.isEnterpriseL()),
                 url = "/lua/pro/assets_dashboard.lua"
             }, {
                 entry = page_utils.menu_entries.traffic_report,
