@@ -5,7 +5,7 @@
         <div v-if="tooltip.show" ref="tooltipRef" class="static-tooltip" :style="{
             left: tooltip.x + 'px',
             top: tooltip.y + 'px'
-        }">
+        }" @mouseenter="onTooltipMouseEnter" @mouseleave="onTooltipMouseLeave">
             <div class="static-tooltip-content">
                 <div class="tooltip-header">
 
@@ -69,6 +69,15 @@ let resizeObserver = null;
 let worldData = null;
 
 let highlightedCountry = null;
+let hide_timer = null;
+
+const onTooltipMouseEnter = () => {
+    if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
+};
+
+const onTooltipMouseLeave = () => {
+    closeTooltip();
+};
 
 const closeTooltip = () => {
     tooltip.value.show = false;
@@ -288,40 +297,54 @@ const renderDotsByCoordinates = () => {
             .attr('data-original-color', color);
 
         nodeGroup.on('click', function (event) {
-            showTooltip(event);
+            if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
+            showTooltip(event, alert, this);
         });
         nodeGroup.on('mouseover', function (event) {
+            if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
             if (props.showTooltipOnHover) {
-                showTooltip(event, alert);
+                showTooltip(event, alert, this);
             }
         });
         nodeGroup.on('mouseout', function (event) {
-            // Close tooltip on resize
-            if (tooltip.value.show) {
-                closeTooltip();
-            }
+            // Delay close so the user can move the pointer to the tooltip without it disappearing
+            hide_timer = setTimeout(() => {
+                if (tooltip.value.show) closeTooltip();
+            }, 150);
         });
     });
 };
 
-const showTooltip = (eventName, alert) => {
-// prevent map click handler from firing
-            eventName.stopPropagation();
-            const tooltipContent = props.tooltipFormatter(alert);
+const showTooltip = (event, alert, targetElement) => {
+    // prevent map click handler from firing
+    event.stopPropagation();
+    const tooltipContent = props.tooltipFormatter(alert);
 
-            // get mouse position to put tooltip
-            const [mouseX, mouseY] = d3.pointer(eventName, mapContainer.value);
+    // get mouse position relative to the container
+    const [mouseX, mouseY] = d3.pointer(event, mapContainer.value);
 
-            // show tooltip
-            tooltip.value = {
-                show: true,
-                x: mouseX,
-                y: mouseY,
-                content: tooltipContent,
-                targetElement: this
-            };
+    // offset tooltip away from cursor so it never sits on top of the SVG node
+    // (positioning on the node causes immediate mouseout → glitch loop)
+    const OFFSET_X = 16, OFFSET_Y = 12;
+    const TOOLTIP_W = 300, TOOLTIP_H = 160; // conservative estimates
+    const containerW = mapContainer.value?.clientWidth  || width;
+    const containerH = mapContainer.value?.clientHeight || height;
 
-        }
+    const x = (mouseX + OFFSET_X + TOOLTIP_W > containerW)
+        ? mouseX - TOOLTIP_W - OFFSET_X
+        : mouseX + OFFSET_X;
+    const y = (mouseY + OFFSET_Y + TOOLTIP_H > containerH)
+        ? mouseY - TOOLTIP_H - OFFSET_Y
+        : mouseY + OFFSET_Y;
+
+    tooltip.value = {
+        show: true,
+        x,
+        y,
+        content: tooltipContent,
+        targetElement,
+    };
+}
 ///////////////////////////////
 const renderDotsByCountryCentroid = () => {
     const alertsByCountry = {};
@@ -584,9 +607,15 @@ defineExpose({ redraw });
     min-height: 500px;
     background-color: #0f172a;
     border-radius: 8px;
-    overflow: hidden;
+    /* overflow: visible so the tooltip is not clipped; the SVG is clipped separately */
+    overflow: visible;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.graph-svg, :deep(svg) {
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .static-tooltip {
