@@ -6,7 +6,8 @@
 <template>
     <div>
         <TimeseriesChart ref="chart" :id="id" :chart_type="chart_type" :base_url_request="base_url"
-            :get_custom_chart_options="get_chart_options" :register_on_status_change="false" :disable_fixed_height="true">
+            :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
+            :disable_fixed_height="true">
         </TimeseriesChart>
     </div>
 </template>
@@ -130,7 +131,7 @@ async function format_exporters(params_to_format) {
         /* Already populated, return */
         return;
     }
-    const exporters_url = "lua/pro/rest/v2/get/flowdevices/stats.lua"
+    const exporters_url = "lua/pro/rest/v2/get/flowdevices/list.lua"
     const exporters_list = await ntopng_utility.http_request(`${http_prefix}/${exporters_url}?ifid=${props.ifid}&gui=true`) || [];
     if (exporters_list) {
         exporters_list.forEach((exporter) => {
@@ -175,6 +176,10 @@ async function format_networks(params_to_format) {
  */
 async function resolve_any_params() {
     /* Clear the Array */
+    if (ts_request.value.length > 0) {
+        /* Already populated, return */
+        return;
+    }
     ts_request.value = [];
     /* Here possible ANY, can be found in the post_params */
     const params = props.params.post_params?.ts_requests;
@@ -220,6 +225,8 @@ async function get_timeseries_groups_from_metric(metric_schema, source_def) {
 async function retrieve_basic_info() {
     /* Return the timeseries group, info found in the json */
     if (timeseries_groups.value.length == 0) {
+        /* Order the request just the first time */
+        order_ts_request();
         for (const value of ts_request.value) {
             const metric_schema = value?.ts_schema;
             const source_def = value.source_def;
@@ -227,7 +234,14 @@ async function retrieve_basic_info() {
             const group = await get_timeseries_groups_from_metric(metric_schema, source_def);
             timeseries_groups.value.push(group);
         }
+        remove_extra_params();
     }
+}
+
+/* *************************************************** */
+
+function order_ts_request() {
+    ts_request.value.sort((a, b) => a.tskey.localeCompare(b.tskey));
 }
 
 /* *************************************************** */
@@ -247,7 +261,6 @@ function remove_extra_params() {
 async function get_chart_options() {
     await resolve_any_params();
     await retrieve_basic_info();
-    remove_extra_params();
     const url = base_url.value;
     const post_params = {
         csrf: props.csrf,
@@ -270,6 +283,7 @@ async function get_chart_options() {
     result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
     if (result[0]) {
         result[0].height = height.value;
+        result[0].connectSeparatedPoints = true;
     }
     return result?.[0];
 }
@@ -305,7 +319,7 @@ async function init() {
 async function refreshChart() {
     if (chart.value) {
         const result = await get_chart_options();
-        chart.value.update_chart_series(result.data);
+        chart.value.updateChartSeries(result);
     }
 }
 

@@ -27,6 +27,7 @@ const group_option_mode = timeseriesUtils.getGroupOptionMode('1_chart_x_yaxis');
 const height = ref(null);
 const ts_request = ref([]);
 const multi_ts_requests = ref([]);
+const ts_preferences = ref({})
 
 /* *************************************************** */
 
@@ -220,7 +221,10 @@ async function retrieve_basic_info(request) {
     /* Return the timeseries group, info found in the json */
     if (timeseries_groups.value.length == 0) {
         for (const value of request) {
-            const metric_schema = value?.ts_schema;
+            let metric_schema = value?.ts_schema;
+            if (metric_schema === "top:flowdev_port:traffic" && ts_preferences.value.highResolutionFlowExportersTimeseries) {
+                metric_schema = metric_schema + "_min"
+            }
             const source_def = value.source_def;
             const group = await get_timeseries_groups_from_metric(metric_schema, source_def);
             timeseries_groups.value.push(group);
@@ -248,7 +252,6 @@ async function get_chart_options() {
     await init();
     const post_params = {
         csrf: props.csrf,
-        ifid: props.ifid,
         epoch_begin: props.epoch_begin,
         epoch_end: props.epoch_end,
         ...props.params.post_params,
@@ -276,6 +279,11 @@ async function get_chart_options() {
 onBeforeMount(async () => {
     // Initialize the height of the chart
     height.value = (props.max_height || 4) * height_per_row;
+    const preferences_url = `${http_prefix}/lua/rest/v2/get/timeseries/preferences.lua`;
+    const preferences = await ntopng_utility.http_request(`${preferences_url}`);
+    if (preferences) {
+        ts_preferences.value = preferences
+    } 
 });
 
 /* *************************************************** */
@@ -308,7 +316,10 @@ async function getTopInfo() {
     // Format the GET request
     const url = base_url.value;
     const ts_source = []
-    const query_params = props.params.url_params
+    const query_params = {
+        ...props.params.url_params,
+        ...{}
+    };
     query_params.csrf = props.csrf
     query_params.ifid = props.ifid
     query_params.epoch_begin = props.epoch_begin
@@ -319,9 +330,13 @@ async function getTopInfo() {
     // Retrieve the top data and update the ts_requests used by the ts_multi.lua
     let ts_query = {}
     if (ts_request.value[0].ts_schema === "top:flowdev_port:traffic") {
+        let ts_schema = `flowdev_port:traffic`
+        if (ts_preferences.value.highResolutionFlowExportersTimeseries) {
+            ts_schema = `flowdev_port:traffic_min`
+        }
         ts_query = {
             ts_query: `ifid:$IFID$,device:$DEVICE$,port:$PORT$`,
-            ts_schema: `flowdev_port:traffic`,
+            ts_schema: ts_schema,
         }
     } else if (ts_request.value[0].ts_schema === "top:asn:traffic") {
         ts_query = {
@@ -361,9 +376,7 @@ async function getTopInfo() {
 async function refreshChart() {
     if (chart.value) {
         const result = await get_chart_options();
-        if (result?.data) {
-            chart.value.update_chart_series(result.data);
-        }
+        chart.value.updateChartSeries(result);
     }
 }
 
