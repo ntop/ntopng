@@ -5,7 +5,7 @@
 [submodule "dist"]
 	path = httpdocs/dist
 	url = https://github.com/ntop/ntopng-dist.git
-	branch = dev
+	branch = 6.6-stable
 [submodule "third-party/clickhouse-cpp"]
 	path = third-party/clickhouse-cpp
 	url = https://github.com/ClickHouse/clickhouse-cpp.git
