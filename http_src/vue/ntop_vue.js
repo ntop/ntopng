@@ -94,6 +94,7 @@ import { default as PageNetworksList } from "./page-networks-list.vue"
 import { default as PageDHCPLeases } from "./page-DHCP-leases.vue"
 import { default as PageExporterInterfaceOverview } from "./page-exporter-interface-overview.vue"
 import { default as PageExporterMap } from "./page-exporter-map.vue"
+import { default as PageExportersGraph } from "./pages/page-graph.vue"
 
 /* Testing page */
 import { default as PageTest } from "./page-test.vue";
@@ -216,6 +217,8 @@ let ntopVue = {
     PageDHCPLeases: PageDHCPLeases,
     PageExporterInterfaceOverview: PageExporterInterfaceOverview,
     PageExporterMap: PageExporterMap,
+
+    PageExportersGraph: PageExportersGraph,
 
     /* Testing page */
     PageTest: PageTest,

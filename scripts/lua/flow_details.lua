@@ -36,6 +36,9 @@ local exporter_site_utils = nil
 
 local page = _GET["page"]
 
+-- remove after graph testing
+local show_graph = _GET["showGraph"] or false
+
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    exporter_site_utils = require "exporter_site_utils"
@@ -2296,6 +2299,91 @@ print [[
 	    var network = new vis.Network(container, data, options);
 	    </script>
 	       ]]
+
+          if show_graph then
+         -- Build graph_nodes array (array of {id, label, color?, first?})
+         local graph_nodes = {}
+
+         for ip, id in pairs(nodes) do
+            local label
+            local color
+            if ip == flow["cli.ip"] then
+               label = ip .. " (Client)"
+               color = "#FFCA28"
+            elseif ip == flow["srv.ip"] then
+               label = ip .. " (Server)"
+               color = "#FF7043"
+            else
+               if nodes_names[ip] ~= nil then
+                  local ret = nodes_names[ip]
+                  local site = ret[2]
+                  label = ret[1]
+                  if site ~= nil then label = label .. " (" .. site .. ")" end
+               else
+                  label = ip
+               end
+            end
+            local node = { id = id, label = label }
+            if color ~= nil then node["color"] = color end
+            if ip == flow["cli.ip"] then node["first"] = true end
+            graph_nodes[#graph_nodes + 1] = node
+         end
+
+         -- Build graph_edges array (array of {from, to, return_path?})
+         local graph_edges = {}
+
+         -- Exporter -> next-hop edges
+         for exporter_ip, x in pairs(flow_trajectory) do
+            for _, v in pairs(x) do
+               local next_hop = v.next_hop
+               local return_path = v.return_path
+               if next_hop ~= nil then
+                  local edge = { from = nodes[exporter_ip], to = nodes[next_hop] }
+                  if return_path then edge["return_path"] = true end
+                  graph_edges[#graph_edges + 1] = edge
+               end
+            end
+         end
+
+         -- Terminal edges: last hop -> server (or -> client for return path)
+         for exporter_ip, x in pairs(flow_trajectory) do
+            for _, v in pairs(x) do
+               local next_hop = v.next_hop
+               local return_path = v.return_path
+               if next_hop ~= nil then
+                  if flow_trajectory[next_hop] == nil then
+                     if return_path then
+                        graph_edges[#graph_edges + 1] = { from = nodes[next_hop], to = client_id, return_path = true }
+                     else
+                        graph_edges[#graph_edges + 1] = { from = nodes[next_hop], to = server_id }
+                     end
+                  end
+               else
+                  graph_edges[#graph_edges + 1] = { from = nodes[exporter_ip], to = server_id }
+               end
+            end
+         end
+
+         -- Head edges: client -> first exporter (or server -> first exporter for return path)
+         for exporter_ip, x in pairs(flow_trajectory) do
+            for _, v in pairs(x) do
+               local return_path = v.return_path
+               if next_hops[exporter_ip] == nil then
+                  if return_path then
+                     graph_edges[#graph_edges + 1] = { from = server_id, to = nodes[exporter_ip], return_path = true }
+                  else
+                     graph_edges[#graph_edges + 1] = { from = client_id, to = nodes[exporter_ip] }
+                  end
+               end
+            end
+         end
+
+         local json_context = json.encode({ nodes = graph_nodes, edges = graph_edges })
+         template.render("pages/vue_page.template", {
+            vue_page_name = "PageExportersGraph",
+            page_context  = json_context
+         })
+      end
 	       print('</th></tr>\n')
 
 	 end

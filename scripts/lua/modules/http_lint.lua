@@ -2205,6 +2205,7 @@ local known_parameters = {
    ["flows_page_type"] = validateSingleWord,
    ["view"] = validateSingleWord,
    ["enabled"] = validateBool,
+   ["showGraph"] = validateBool,
 
    -- CLASSIFICAION
    ["classification_user_id"] = validateUnquoted,

@@ -9,6 +9,8 @@ local lang = {
    ["actions"] = "Actions",
    ["active_flows"] = "Live Flows",
    ["active_hosts"] = "Live Hosts",
+   ["hop_exporter"] = "Hop / Exporter",
+   ["return_path"] = "Return Path",
    ["historical_flows"] = "Historical Flows",
    ["active_inactive"] = "Active/Inactive Hosts",
    ["active_monitoring"] = "Active Monitoring",
@@ -3784,6 +3786,7 @@ local lang = {
   },
   ["flow_devices"] = {
     ["active_sflow"] = "sFlow Counters Exporters",
+    ["all_probes"] = "All Exporters",
     ["all_device_ports"] = "All %{device} Ports",
     ["all_exporters"] = "All NetFlow/IPFIX Exporter Devices",
     ["all_flow_devices"] = "All Flow Exporters",

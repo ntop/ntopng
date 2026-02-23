@@ -324,7 +324,6 @@ const showTooltip = (event, alert, targetElement) => {
     const [mouseX, mouseY] = d3.pointer(event, mapContainer.value);
 
     // offset tooltip away from cursor so it never sits on top of the SVG node
-    // (positioning on the node causes immediate mouseout → glitch loop)
     const OFFSET_X = 16, OFFSET_Y = 12;
     const TOOLTIP_W = 300, TOOLTIP_H = 160; // conservative estimates
     const containerW = mapContainer.value?.clientWidth  || width;
