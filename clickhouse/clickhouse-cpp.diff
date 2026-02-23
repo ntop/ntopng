@@ -37,6 +37,26 @@ index 3bb1aa5..dad6e4d 100644
          setsockopt(handle_, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
  #   elif defined(_darwin_)
          setsockopt(handle_, IPPROTO_TCP, TCP_KEEPALIVE, &idle, sizeof(idle));
+diff --git a/clickhouse/client.cpp b/clickhouse/client.cpp
+index a8c8ea6..875c32d 100644
+--- a/clickhouse/client.cpp
++++ b/clickhouse/client.cpp
+@@ -289,10 +289,15 @@ Client::Impl::Impl(const ClientOptions& opts,
+ }
+ 
+ Client::Impl::~Impl() {
++#if 0
+     try {
+         EndInsert();
+     } catch (...) {
+     }
++#else
++    // Prevent EndInsert() attempts to send data on a broken connection triggering an exception.
++    inserting_ = false;
++#endif
+ }
+ 
+ void Client::Impl::ExecuteQuery(Query query) {
 diff --git a/clickhouse/columns/ip6.cpp b/clickhouse/columns/ip6.cpp
 index 55ba2d4..96fd2a2 100644
 --- a/clickhouse/columns/ip6.cpp
