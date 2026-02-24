@@ -12,7 +12,9 @@
     layout        'force' | 'lr'
                     force – physics-based force-directed graph (default)
                     lr    – left-to-right column layout, ideal for traffic-flow diagrams
-                            (e.g. client -> hop1 -> hop2 -> server)
+                            (e.g. client -> hop1 -> hop2 -> server).
+                            Give the server node the highest `column` value to ensure
+                            it appears on the far right.
     format_node   (node)               => { label, color, radius, stroke, stroke_width }
     format_edge   (edge, src, tgt)     => { label, color, width, dashed }
     on_node_click (node)               => void   (alternative to the 'node_click' emit)
@@ -22,10 +24,30 @@
   Emits:
     node_click(node)   — fired when a node circle is clicked
     edge_click(edge)   — fired when an edge line/curve is clicked
+
+  Edge rendering:
+    - Parallel edges (multiple A->B)   -> fanned out with perpendicular bezier curves,
+                                        evenly spaced so every edge is visible.
+    - Bidirectional edges (A->B + B->A) -> opposite-side curves, same fan logic applies
+                                        if there are also multiple A->B or B->A.
+    - Single, non-bidirectional edge  -> straight line (force) or S-curve (lr).
 -->
 <template>
-  <div ref="container_ref" class="graph-container" :style="{ height: height + 'px' }">
-    <svg ref="svg_ref" class="graph-svg">
+  <div
+    ref="container_ref"
+    class="graph-container"
+    :style="{
+      position: 'relative',
+      touchAction: 'none',
+      userSelect: 'none',
+      WebkitUserDrag: 'none',
+      WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+      width: '100%',
+      height: typeof height === 'number' ? height + 'px' : height,
+      overflow: 'hidden',
+    }"
+  >
+    <svg ref="svg_ref" class="graph-svg" style="display: block;">
       <defs ref="defs_ref" />
       <g ref="graph_g_ref" />
     </svg>
@@ -40,14 +62,14 @@ const d3 = d3v7;
 /* Props */
 
 const props = defineProps({
-  nodes: { type: Array, default: () => [] },
-  edges: { type: Array, default: () => [] },
-  layout: { type: String, default: "force" },
-  format_node: { type: Function, default: null },
-  format_edge: { type: Function, default: null },
+  nodes:         { type: Array,    default: () => [] },
+  edges:         { type: Array,    default: () => [] },
+  layout:        { type: String,   default: "force" },
+  format_node:   { type: Function, default: null },
+  format_edge:   { type: Function, default: null },
   on_node_click: { type: Function, default: null },
   on_edge_click: { type: Function, default: null },
-  height: { type: Number, default: 400 },
+  height:        { type: [Number, String], default: 400 },
 });
 
 const emit = defineEmits(["node_click", "edge_click"]);
@@ -57,18 +79,16 @@ const svg_ref       = ref(null);
 const graph_g_ref   = ref(null);
 const defs_ref      = ref(null);
 
-/* Internal state */
-
 let simulation      = null;
 let zoom_behavior   = null;
 let resize_observer = null;
 
 /* Format helpers */
 
-const NODE_DEFAULTS = { label: "", color: "#4e79a7", radius: 20, stroke: "#2a5f8f", stroke_width: 2 };
+const NODE_DEFAULTS  = { label: "", color: "#4e79a7", radius: 20, stroke: "#2a5f8f", stroke_width: 2 };
 const EDGE_DEFAULTS  = { label: "", color: "#999999", width: 2, dashed: false };
-const MIN_EDGE_WIDTH = 1.5;   // minimum stroke-width when value scaling is active
-const MAX_EDGE_WIDTH = 12;    // maximum stroke-width
+const MIN_EDGE_WIDTH = 1.5;
+const MAX_EDGE_WIDTH = 12;
 
 function node_formatter(d) {
   const base = { ...NODE_DEFAULTS, label: String(d.label ?? d.id ?? "") };
@@ -80,85 +100,137 @@ function edge_formatter(e, src, tgt) {
   return props.format_edge ? { ...base, ...props.format_edge(e, src, tgt) } : base;
 }
 
-/* Main draw */
-
 function draw() {
   if (!svg_ref.value || !graph_g_ref.value || !defs_ref.value) return;
 
   if (simulation) { simulation.stop(); simulation = null; }
 
-  const width = container_ref.value?.clientWidth || 600;
-  const height = props.height;
+  const width  = container_ref.value?.clientWidth  || 600;
+  const height = container_ref.value?.clientHeight || (typeof props.height === "number" ? props.height : 400);
 
   const svg  = d3.select(svg_ref.value).attr("width", width).attr("height", height);
   const g    = d3.select(graph_g_ref.value);
   const defs = d3.select(defs_ref.value);
 
-  /* Working copies. D3 mutates x/y/fx/fy onto these */
-  const nodes   = props.nodes.map((node) => ({ ...node, _id: String(node.id) }));
-  const by_id = Object.fromEntries(nodes.map((node) => [node._id, node]));
+  /* Working copies — D3 mutates x/y/fx/fy onto these */
+  const nodes  = props.nodes.map((node) => ({ ...node, _id: String(node.id) }));
+  const by_id  = Object.fromEntries(nodes.map((n) => [n._id, n]));
 
   const links = props.edges.map((e) => {
     const src = String(e.source), dst = String(e.target);
-    return { _e: e, src: src, dst: dst, source: by_id[src] ?? src, target: by_id[dst] ?? dst };
+    return { _e: e, src, dst, source: by_id[src] ?? src, target: by_id[dst] ?? dst };
   });
 
-  nodes.forEach((node) => { node._fmt = node_formatter(node); });
+  nodes.forEach((n)    => { n._fmt    = node_formatter(n); });
   links.forEach((link) => { link._fmt = edge_formatter(link._e, by_id[link.src], by_id[link.dst]); });
 
-  /* Value-based edge width scaling — when edges carry a numeric `value` field,
-   * widths are mapped linearly from MIN_EDGE_WIDTH (smallest value) to MAX_EDGE_WIDTH
-   * (largest value).  Edges without a value keep their format_edge width. */
+  /* Value-based edge width scaling */
   const valued = links.filter((link) => typeof link._e.value === "number");
   if (valued.length > 0) {
-    const val_min = Math.min(...valued.map((link) => link._e.value));
-    const val_max = Math.max(...valued.map((link) => link._e.value));
-    const range = val_max - val_min;
-    
+    const val_min = Math.min(...valued.map((l) => l._e.value));
+    const val_max = Math.max(...valued.map((l) => l._e.value));
+    const range   = val_max - val_min;
     valued.forEach((link) => {
-      const dst = range > 0 ? (link._e.value - val_min) / range : 1;
-      link._fmt.width = MIN_EDGE_WIDTH + dst * (MAX_EDGE_WIDTH - MIN_EDGE_WIDTH);
+      const t = range > 0 ? (link._e.value - val_min) / range : 1;
+      link._fmt.width = MIN_EDGE_WIDTH + t * (MAX_EDGE_WIDTH - MIN_EDGE_WIDTH);
     });
   }
 
-  /* Bidirectional edge detection
-   * When both A -> B and B -> A exist the pair is rendered as two opposite side
-   * quadratic bezier curves so both arrows remain visually distinct.
-   * Edges without a reverse counterpart stay as straight lines. */
-  const fwd_set   = new Set(links.map((link) => `${link.src}->${link.dst}`));
-  const bidir_set = new Set(links.filter((link) => fwd_set.has(`${link.dst}->${link.src}`)).map((link) => `${link.src}->${link.dst}`)
-  );
+  /* Parallel + bidirectional edge separation
+   *
+   * For every directed (src->dst) pair we collect all edges that share it.
+   * Each edge gets a `_curve_offset` — a signed perpendicular displacement
+   * from the straight line between the two nodes:
+   *
+   *   1 edge, no reverse   -> offset 0  (straight line / S-curve)
+   *   1 edge, has reverse  -> ±CURVE_AMP (classic bidir separation)
+   *   N parallel edges     -> evenly spread around 0 in steps of CURVE_AMP
+   *
+   * This means any number of A->B edges are always visually distinct, and
+   * bidirectional pairs (A->B + B->A) never overlap even when there are
+   * multiple edges in each direction.
+   */
+  
+   // base perpendicular offset in px per "slot"
+  const CURVE_AMP = 38;
 
-  const CURVE_AMP = 40;
+  // Group links by directed pair key "src->dst"
+  const pair_groups = {};
+  links.forEach((link) => {
+    const key = `${link.src}->${link.dst}`;
+    (pair_groups[key] ??= []).push(link);
+  });
 
-  /* SVG path string for one edge.
-   * - Bidirectional pair  -> quadratic bezier, offset to each side so both arrows are visible.
-   * - LR layout           -> cubic S-curve (control points share x-midpoint, keep source/target y).
-   *                          This naturally spreads parallel edges that share the same target.
-   * - Force layout        -> straight line. */
-  function edge_path(d) {
+  function is_canonical_forward(a, b) {
+    // string comparison
+    return a < b;
+  }
+
+  links.forEach((link) => {
+    const key         = `${link.src}->${link.dst}`;
+    const rkey        = `${link.dst}->${link.src}`;
+    const group       = pair_groups[key];
+    const n           = group.length;
+    const idx         = group.indexOf(link);
+    const rev_group   = pair_groups[rkey] ?? [];
+    const has_reverse = rev_group.length > 0;
+
+    if (!has_reverse && n === 1) {
+      // Truly isolated edge — keep straight/S-curve
+      link._curve_offset = 0;
+      return;
+    }
+
+    // Total slots = forward edges + reverse edges
+    // Forward edges occupy the positive side, reverse the negative side.
+    // This way A->B edges and B->A edges always curve to opposite sides,
+    // and multiple parallels in each direction fan out within their half.
+    const fwd_count = n;
+    const rev_count = rev_group.length;
+    const total     = fwd_count + rev_count;
+    const step      = CURVE_AMP * (total <= 2 ? 1.0 : 0.75);
+
+    const is_fwd = is_canonical_forward(link.src, link.dst);
+
+    if (is_fwd) {
+      // Forward direction occupies slots 0 … fwd_count-1 (positive offsets)
+      link._curve_offset = (idx + 0.5) * step;
+    } else {
+      // Reverse direction occupies slots 0 … rev_count-1 (negative offsets)
+      link._curve_offset = -(idx + 0.5) * step;
+    }
+  });
+
+  /* Returns start/end points trimmed to node borders + unit direction vector. */
+  function trimmed_endpoints(d) {
     const sx0 = d.source.x, sy0 = d.source.y;
     const tx  = d.target.x,  ty  = d.target.y;
-    const dx = tx - sx0, dy = ty - sy0;
+    const dx  = tx - sx0,    dy  = ty - sy0;
     const dist = Math.hypot(dx, dy) || 1;
+    return {
+      sx: sx0 + (dx / dist) * d.source._fmt.radius,
+      sy: sy0 + (dy / dist) * d.source._fmt.radius,
+      ex: tx  - (dx / dist) * (d.target._fmt.radius + 7),   // +7 leaves room for arrowhead
+      ey: ty  - (dy / dist) * (d.target._fmt.radius + 7),
+      dx, dy, dist,
+    };
+  }
 
-    /* Start on source border; end short of target border to leave room for arrowhead */
-    const sx = sx0 + (dx / dist) * d.source._fmt.radius;
-    const sy = sy0 + (dy / dist) * d.source._fmt.radius;
-    const ex = tx  - (dx / dist) * (d.target._fmt.radius + 7);
-    const ey = ty  - (dy / dist) * (d.target._fmt.radius + 7);
+  /* SVG path string for one edge:
+   *   offset != 0  -> quadratic bezier with perpendicular control-point
+   *   offset = 0  -> S-curve (lr) or straight line (force) */
+  function edge_path(d) {
+    const { sx, sy, ex, ey, dx, dy, dist } = trimmed_endpoints(d);
+    const off = d._curve_offset;
 
-    if (bidir_set.has(`${d.src}->${d.dst}`)) {
-      /* Perpendicular offset: edge with smaller source id curves +side, other −side */
-      const mx = (sx + ex) / 2, my = (sy + ey) / 2;
-      const sign = Number(d.src) < Number(d.dst) ? 1 : -1;
-      const cpx = mx + sign * CURVE_AMP * (-dy / dist);
-      const cpy = my + sign * CURVE_AMP * ( dx / dist);
+    if (off !== 0) {
+      const mx  = (sx + ex) / 2, my = (sy + ey) / 2;
+      const cpx = mx + off * (-dy / dist);
+      const cpy = my + off * ( dx / dist);
       return `M${sx},${sy} Q${cpx},${cpy} ${ex},${ey}`;
     }
 
     if (props.layout === "lr") {
-      /* S-curve: horizontal tangent at both ends, natural fanout for parallel edges */
       const mid_x = (sx + ex) / 2;
       return `M${sx},${sy} C${mid_x},${sy} ${mid_x},${ey} ${ex},${ey}`;
     }
@@ -166,36 +238,33 @@ function draw() {
     return `M${sx},${sy} L${ex},${ey}`;
   }
 
-  /* Label anchor: midpoint for straight S-curve, bezier midpoint (t=0.5) for curved */
+  /* Label position:
+   *   curved -> quadratic bezier midpoint at t = 0.5: 0.25·P0 + 0.5·CP + 0.25·P1
+   *   straight / S-curve -> geometric midpoint */
   function edge_label_xy(d) {
-    const sx0 = d.source.x, sy0 = d.source.y;
-    const tx  = d.target.x,  ty  = d.target.y;
-    const dx = tx - sx0, dy = ty - sy0;
-    const dist = Math.hypot(dx, dy) || 1;
-    const sx = sx0 + (dx / dist) * d.source._fmt.radius;
-    const sy = sy0 + (dy / dist) * d.source._fmt.radius;
-    const ex = tx  - (dx / dist) * (d.target._fmt.radius + 7);
-    const ey = ty  - (dy / dist) * (d.target._fmt.radius + 7);
+    const { sx, sy, ex, ey, dx, dy, dist } = trimmed_endpoints(d);
+    const off = d._curve_offset;
 
-    if (bidir_set.has(`${d.src}->${d.dst}`)) {
-      const mx = (sx + ex) / 2, my = (sy + ey) / 2;
-      const sign = Number(d.src) < Number(d.dst) ? 1 : -1;
-      const cpx = mx + sign * CURVE_AMP * (-dy / dist);
-      const cpy = my + sign * CURVE_AMP * (dx / dist);
-      
-      /* Quadratic bezier midpoint: 0.25·P0 + 0.5·CP + 0.25·P3 */
-      return { x: 0.25*sx + 0.5*cpx + 0.25*ex, y: 0.25*sy + 0.5*cpy + 0.25*ey - 6 };
+    if (off !== 0) {
+      const mx  = (sx + ex) / 2, my = (sy + ey) / 2;
+      const cpx = mx + off * (-dy / dist);
+      const cpy = my + off * ( dx / dist);
+      return {
+        x: 0.25 * sx + 0.5 * cpx + 0.25 * ex,
+        y: 0.25 * sy + 0.5 * cpy + 0.25 * ey - 6,
+      };
     }
-    /* Geometric midpoint works for both straight lines and S-curves */
+
     return { x: (sx + ex) / 2, y: (sy + ey) / 2 - 6 };
   }
 
-  /* Arrow-head markers */
+  /* Arrow-head markers (one per unique edge color) */
   defs.selectAll("marker").remove();
-  [...new Set(links.map((link) => link._fmt.color))].forEach((color) => {
+  [...new Set(links.map((l) => l._fmt.color))].forEach((color) => {
     const mid = `arrow-${color.replace(/[^a-zA-Z0-9]/g, "")}`;
     defs.append("marker")
-      .attr("id", mid).attr("viewBox", "0 -5 10 10")
+      .attr("id", mid)
+      .attr("viewBox", "0 -5 10 10")
       .attr("refX", 10).attr("refY", 0)
       .attr("markerWidth", 6).attr("markerHeight", 6)
       .attr("orient", "auto")
@@ -203,9 +272,9 @@ function draw() {
   });
 
   g.selectAll("*").remove();
-  const graph_links  = g.append("g").attr("class", "g-links");
+  const graph_links       = g.append("g").attr("class", "g-links");
   const graph_link_labels = g.append("g").attr("class", "g-link-labels");
-  const graph_nodes  = g.append("g").attr("class", "g-nodes");
+  const graph_nodes       = g.append("g").attr("class", "g-nodes");
   const graph_node_labels = g.append("g").attr("class", "g-node-labels");
 
   /* Edges */
@@ -223,9 +292,14 @@ function draw() {
     });
 
   /* Edge labels */
-  const ll_sel = graph_link_labels.selectAll("text").data(links.filter((d) => d._fmt.label)).join("text")
-    .attr("text-anchor", "middle").attr("dominant-baseline", "middle")
-    .attr("font-size", "11px").attr("fill", "#555")
+  const ll_sel = graph_link_labels
+    .selectAll("text")
+    .data(links.filter((d) => d._fmt.label))
+    .join("text")
+    .attr("text-anchor", "middle")
+    .attr("dominant-baseline", "middle")
+    .attr("font-size", "11px")
+    .attr("fill", "#555")
     .style("pointer-events", "none")
     .text((d) => d._fmt.label);
 
@@ -245,16 +319,19 @@ function draw() {
   /* Node labels */
   const nl_sel = graph_node_labels.selectAll("text").data(nodes, (d) => d._id).join("text")
     .attr("text-anchor", "middle")
-    .attr("font-size", "12px").attr("fill", "#222")
+    .attr("font-size", "12px")
+    .attr("fill", "#222")
     .style("pointer-events", "none")
     .text((d) => d._fmt.label);
 
   /* Tick: push positions into DOM */
   function tick() {
     node_sel.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
-    nl_sel.attr("x",  (d) => d.x).attr("y", (d) => d.y + d._fmt.radius + 14);
-    link_sel.attr("d", edge_path);
-    ll_sel.attr("x", (d) => edge_label_xy(d).x).attr("y", (d) => edge_label_xy(d).y);
+    nl_sel  .attr("x",  (d) => d.x).attr("y",  (d) => d.y + d._fmt.radius + 14);
+    link_sel.attr("d",  edge_path);
+    ll_sel
+      .attr("x", (d) => edge_label_xy(d).x)
+      .attr("y", (d) => edge_label_xy(d).y);
   }
 
   /* Layout */
@@ -262,12 +339,12 @@ function draw() {
     lr_positions(nodes, links, width, height);
     tick();
 
-    /* LR drag: no simulation update x/y directly and re-tick */
+    /* LR drag: no simulation — update x/y directly and re-tick */
     node_sel.call(
       d3.drag()
-        .on("start", () => { node_sel.style("cursor", "grabbing"); })
-        .on("drag",  (ev, d) => { d.x = ev.x; d.y = ev.y; tick(); })
-        .on("end",   () => { node_sel.style("cursor", "grab"); })
+        .on("start", ()        => { node_sel.style("cursor", "grabbing"); })
+        .on("drag",  (ev, d)   => { d.x = ev.x; d.y = ev.y; tick(); })
+        .on("end",   ()        => { node_sel.style("cursor", "grab"); })
     );
 
     setTimeout(() => fit(svg, g, width, height), 0);
@@ -303,10 +380,23 @@ function draw() {
   svg.call(zoom_behavior);
 }
 
-/* LR layout */
-
+/* LR layout
+ *
+ * Assigns fixed (x, y) positions for the left-to-right column layout.
+ *
+ * The server node should be given the HIGHEST `column` value in the data
+ * (e.g. column: 3 when clients are at column: 0) — columns are sorted
+ * ascending so the highest always appears on the far right.
+ *
+ * Constraints enforced automatically:
+ *   • Leftmost and rightmost columns are capped at 1 node each.
+ *     Extra nodes are moved to a virtual intermediate column.
+ *   • 3 passes of barycentric sorting minimise edge crossings.
+ */
 function lr_positions(nodes, links, width, height) {
   const px = 80, py = 60;
+
+  /* Build column map */
   const col_map = {};
   nodes.forEach((n) => { (col_map[n.column ?? 0] ??= []).push(n); });
   let keys = Object.keys(col_map).map(Number).sort((a, b) => a - b);
@@ -314,28 +404,28 @@ function lr_positions(nodes, links, width, height) {
   /* Enforce: leftmost and rightmost columns must have at most 1 node */
   if (keys.length >= 2) {
     if (col_map[keys[0]].length > 1) {
-      const vk = (keys[0] + keys[1]) / 2;
+      const vk     = (keys[0] + keys[1]) / 2;
       const extras = col_map[keys[0]].splice(1);
       (col_map[vk] ??= []).push(...extras);
       keys = Object.keys(col_map).map(Number).sort((a, b) => a - b);
     }
     if (col_map[keys[keys.length - 1]].length > 1) {
-      const vk = (keys[keys.length - 2] + keys[keys.length - 1]) / 2;
+      const vk     = (keys[keys.length - 2] + keys[keys.length - 1]) / 2;
       const extras = col_map[keys[keys.length - 1]].splice(1);
       (col_map[vk] ??= []).push(...extras);
       keys = Object.keys(col_map).map(Number).sort((a, b) => a - b);
     }
   }
 
-  /* Minimise edge crossings */
+  /* Barycentric crossing-reduction (3 passes, skip extreme columns) */
   const id_to_row = {};
   keys.forEach((k) => col_map[k].forEach((n, i) => { id_to_row[n._id] = i; }));
 
   for (let pass = 0; pass < 3; pass++) {
     keys.forEach((k, ki) => {
-      if (ki === 0 || ki === keys.length - 1) return; /* preserve extreme positions */
+      if (ki === 0 || ki === keys.length - 1) return;
       const col_nodes = col_map[k];
-      const scores = col_nodes.map((n) => {
+      const scores    = col_nodes.map((n) => {
         const connected = links.filter((l) => l.src === n._id || l.dst === n._id);
         if (!connected.length) return 0;
         const sum = connected.reduce((acc, l) => {
@@ -344,38 +434,44 @@ function lr_positions(nodes, links, width, height) {
         }, 0);
         return sum / connected.length;
       });
-      col_map[k] = col_nodes.map((n, i) => ({ n, s: scores[i] }))
+      col_map[k] = col_nodes
+        .map((n, i) => ({ n, s: scores[i] }))
         .sort((a, b) => a.s - b.s)
         .map(({ n }) => n);
       col_map[k].forEach((n, i) => { id_to_row[n._id] = i; });
     });
   }
 
+  /* Assign pixel positions */
   const MAX_COL_GAP = 150;
-  const spread = keys.length > 1 ? Math.min(width - 2 * px, MAX_COL_GAP * (keys.length - 1)) : 0;
+  const spread   = keys.length > 1 ? Math.min(width - 2 * px, MAX_COL_GAP * (keys.length - 1)) : 0;
   const x_offset = keys.length > 1 ? (width - spread) / 2 : width / 2;
 
   keys.forEach((k, ci) => {
     const x = keys.length > 1 ? x_offset + (ci / (keys.length - 1)) * spread : width / 2;
     col_map[k].forEach((n, ni, arr) => {
       n.x = n.fx = x;
-      n.y = n.fy = arr.length === 1 ? height / 2 : py + (ni / (arr.length - 1)) * (height - 2 * py);
+      n.y = n.fy = arr.length === 1
+        ? height / 2
+        : py + (ni / (arr.length - 1)) * (height - 2 * py);
     });
   });
 }
 
-/* Fit to view  */
+/* Fit to view */
 
 function fit(svg, g, width, height) {
   const bb = g.node()?.getBBox();
   if (!bb || bb.width === 0 || bb.height === 0) return;
-  const src  = Math.min(width / (bb.width + 80), height / (bb.height + 80)) * 0.9;
-  const tx = (width - bb.width  * src) / 2 - bb.x * src;
-  const ty = (height - bb.height * src) / 2 - bb.y * src;
+  const scale = Math.min(width / (bb.width + 80), height / (bb.height + 80)) * 0.9;
+  const tx    = (width  - bb.width  * scale) / 2 - bb.x * scale;
+  const ty    = (height - bb.height * scale) / 2 - bb.y * scale;
 
   svg.transition().duration(400)
-    .call(zoom_behavior.transform, d3.zoomIdentity.translate(tx, ty).scale(src));
+    .call(zoom_behavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
 }
+
+/* Lifecycle */
 
 onMounted(() => {
   resize_observer = new ResizeObserver(draw);
@@ -389,7 +485,4 @@ onBeforeUnmount(() => {
 });
 
 watch(() => [props.nodes, props.edges, props.layout, props.height], draw, { deep: true });
-
 </script>
-
-

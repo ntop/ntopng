@@ -8,42 +8,40 @@
     edges : [{ from, to, return_path? }]
 -->
 <template>
-  <div class="card card-shadow mt-3">
-    <div class="card-body p-0">
-      <Graph
-        ref="graph_ref"
-        :nodes="nodes"
-        :edges="edges"
-        layout="lr"
-        :height="420"
-        :format_node="format_node"
-        :format_edge="format_edge"
-        @node_click="on_node_click"
-        @edge_click="on_edge_click"
-      />
-    </div>
-
+  <div class="exporter-graph-wrap">
     <!-- Legend -->
-    <div class="card-footer d-flex gap-4 py-2">
+    <div class="d-flex gap-4 py-1">
       <span class="d-flex align-items-center gap-2 small text-muted">
         <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#FFCA28" stroke="#b8960f" stroke-width="1.5"/></svg>
         {{ _i18n('client') }}
-    </span>
-    <span class="d-flex align-items-center gap-2 small text-muted">
+      </span>
+      <span class="d-flex align-items-center gap-2 small text-muted">
         <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#FF7043" stroke="#b34d27" stroke-width="1.5"/></svg>
         {{ _i18n('server') }}
-    </span>
-    <span class="d-flex align-items-center gap-2 small text-muted">
+      </span>
+      <span class="d-flex align-items-center gap-2 small text-muted">
         <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#42A5F5" stroke="#1976d2" stroke-width="1.5"/></svg>
         {{ _i18n('hop_exporter') }}
-    </span>
-    <span class="d-flex align-items-center gap-2 small text-muted">
+      </span>
+      <span class="d-flex align-items-center gap-2 small text-muted">
         <svg width="40" height="14">
-            <line x1="0" y1="7" x2="38" y2="7" stroke="#adb5bd" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="0" y1="7" x2="38" y2="7" stroke="#adb5bd" stroke-width="1.5" stroke-dasharray="4,3"/>
         </svg>
         {{ _i18n('return_path') }}
       </span>
     </div>
+    
+    <Graph
+      ref="graph_ref"
+      :nodes="nodes"
+      :edges="edges"
+      layout="lr"
+      height="35vh"
+      :format_node="format_node"
+      :format_edge="format_edge"
+      @node_click="on_node_click"
+      @edge_click="on_edge_click"
+    />
   </div>
 </template>
 
@@ -154,3 +152,10 @@ onMounted(() => {
 });
 
 </script>
+
+<style scoped>
+.exporter-graph-wrap {
+  max-width: 70vw;
+  overflow: hidden;
+}
+</style>
