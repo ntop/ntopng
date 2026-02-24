@@ -45,23 +45,9 @@ const props = defineProps({
 
 /* ************************************** */
 
-// conditionally render tables
+
 const table_id = computed(() => {
-    if (props.context?.is_enterprise_l) {
-        if (props.context?.ASNModeEnabled) {
-            return 'flows_list_with_exporters_enterprise_l_ixp_mode'
-        } else if (props.context?.has_exporters) {
-            return 'flows_list_with_exporters_enterprise_l'
-        } else {
-            return 'flows_list_enterprise_l'
-        }
-    } else {
-        if (props.context?.has_exporters) {
-            return 'flows_list_with_exporters'
-        } else {
-            return 'flows_list'
-        }
-    }
+    return 'flows_list'
 })
 
 const table_flows_list = ref(null);

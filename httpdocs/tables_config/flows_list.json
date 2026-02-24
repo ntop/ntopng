@@ -2,7 +2,7 @@
 	"id": "flows_list",
 	"data_url": "lua/rest/v2/get/flow/active_list.lua",
 	"use_current_page": false,
-	"enable_search": false,
+	"enable_search": true,
 	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {
@@ -86,6 +86,43 @@
 			]
 		},
 		{
+			"title_i18n": "qoe",
+			"data_field": "qoe",
+			"sortable": true,
+			"min-width" : "70px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "db_search.cli_asn",
+			"data_field": "cli_asn",
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "db_search.srv_asn",
+			"data_field": "srv_asn",
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.transit_asn",
+			"data_field": "transit_asn",
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "flow",
 			"data_field": "flow",
 			"sortable": false,
@@ -118,6 +155,33 @@
 			"title_i18n": "info",
 			"data_field": "info",
 			"sortable": false,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flow_devices.exporter_ip",
+			"data_field": "flow_exporter",
+			"sortable": true,
+			"min-width" : "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.inIfIdx",
+			"data_field": "in_index",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.outIfIdx",
+			"data_field": "out_index",
+			"sortable": true,
 			"min-width" : "100px",
 			"class": [
 				"text-nowrap"
