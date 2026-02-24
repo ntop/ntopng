@@ -38,6 +38,7 @@ const props = defineProps({
     geomapDataArray: Array,
     getGeomapData: Function,
     glowDots: Boolean,
+    onMapClick: Function,
     showTooltipOnHover: { type: Boolean, default: true }
 });
 
@@ -213,6 +214,12 @@ const initializeMap = async () => {
             // highlight this country
             d3.select(this).attr('fill', '#475569');
             highlightedCountry = this;
+                        
+            // Emit event to parent with lat/lng
+            if (typeof props.onMapClick === 'function') {
+                const [lng, lat] = getLatLngFromEvent(event);
+                props.onMapClick({ lat, lng });
+            }
         });
 
     // draw country shape
@@ -237,6 +244,12 @@ const initializeMap = async () => {
         if (highlightedCountry) {
             d3.select(highlightedCountry).attr('fill', '#1e293b');
             highlightedCountry = null;
+        }
+            
+        // Emit event to parent with lat/lng
+        if (typeof props.onMapClick === 'function') {
+            const [lng, lat] = getLatLngFromEvent(event);
+            props.onMapClick({ lat, lng });
         }
     });
 
@@ -447,6 +460,12 @@ const renderDotsByCountryCentroid = () => {
 };
 
 ///////////////////////////////
+
+// convert mouse position to geographic coordinates using projection.invert
+function getLatLngFromEvent(event) {
+    const [x, y] = d3.pointer(event, zoomGroup.node());
+    return projection.invert([x, y]);
+}
 
 // get country name from topodata feature
 const getCountryNameFromTopoData = (feature) => {

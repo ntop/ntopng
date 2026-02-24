@@ -73,7 +73,7 @@
             <!-- Map visualization of the selected location -->
             <Transition name="fade-scale">
                 <Geomap ref="geomap" :geomapDataArray="geomapDataArray" :tooltipFormatter="formatTooltipData"
-                    :glowDots="true" :style="['height: 25vh']" />
+                    :glowDots="true" :style="['height: 25vh']" :onMapClick="handleMapClick" />
             </Transition>
 
             <!-- Error message display area (validation errors, server errors) -->
@@ -96,7 +96,7 @@
 
 
 <script setup>
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, watch } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as Geomap } from "./geomap.vue";
 
@@ -141,6 +141,29 @@ const is_form_valid = computed(() => {
     return exporter_site_name.value.trim().length > 1 && !name_error.value;
 });
 
+// ==================== Watchers ====================
+
+/**
+ * Watcher for latitude and longitude.
+ * This watcher is triggered whenever the user updates the
+ * `exporter_site_lat` or `exporter_site_lng` fields.
+ * 
+ * Purpose:
+ * - Updates `geomapDataArray` with a single point representing
+ *   the current site location.
+ */
+
+watch([exporter_site_lat, exporter_site_lng], ([newLat, newLng]) => {
+    if (newLat != null && newLng != null) {
+        geomapDataArray.value = [{
+            name: exporter_site_name.value || "",               // Current site name
+            description: exporter_site_description.value || "", // Current description
+            lat: newLat,                                        // Updated latitude
+            lng: newLng                                         // Updated longitude
+        }];
+    }
+});
+
 // ==================== Validation Methods ====================
 
 /**
@@ -171,6 +194,17 @@ const validateName = () => {
     } else {
         name_error.value = "";
     }
+};
+
+/* ************************************** */
+
+/**
+ * Updates latitude and longitude when the user clicks on the map.
+ * Called by the <Geomap> component via the onMapClick prop.
+ */
+const handleMapClick = ({ lat, lng }) => {
+    exporter_site_lat.value = parseFloat(lat.toFixed(6)); // round to 6 decimals
+    exporter_site_lng.value = parseFloat(lng.toFixed(6));
 };
 
 /* ************************************** */
@@ -264,7 +298,6 @@ const close = () => {
  * Redraw the geomap
  */
 const redrawGeomap = () => {
-    debugger;
     nextTick(() => {
         geomap.value?.redraw(); // ridisegna mappa con altezza corretta
     });
