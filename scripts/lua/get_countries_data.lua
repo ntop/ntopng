@@ -61,9 +61,9 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 -- stats table for each country
 local country_stats = interface.getCountriesInfo({sortColumn = sortColumn,
-					  maxHits = perPage, toSkip = to_skip,
+               -- maxHits = perPage, toSkip = to_skip: used in the old tables
+					  nil, nil,
 					  a2zSortOrder = sOrder, detailsLevel = "higher"})
-
 local total_rows = 0
 
 if(country_stats ~= nil) then
