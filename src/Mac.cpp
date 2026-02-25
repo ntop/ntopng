@@ -183,7 +183,7 @@ void Mac::lua(lua_State *vm, bool show_details, bool asListElement) {
     if (ssid) lua_push_str_table_entry(vm, "ssid", (char *)ssid);
   }
 
-  stats->lua(vm, show_details);
+  if(stats) stats->lua(vm, show_details);
 
   if(dhcpv4_fingerprint) lua_push_str_table_entry(vm, "dhcp_fingerprint", dhcpv4_fingerprint);
 
@@ -426,7 +426,7 @@ void Mac::checkStatsReset() {
 void Mac::periodic_stats_update(const struct timeval *tv, bool force_update) {
   checkDataReset();
   checkStatsReset();
-  stats->updateStats(tv);
+  if(stats) stats->updateStats(tv);
 }
 
 /* *************************************** */
