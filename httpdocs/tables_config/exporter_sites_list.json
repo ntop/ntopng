@@ -4,7 +4,7 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
 	"default_sort": {
 		"column_id": "name",
 		"sort": 1
