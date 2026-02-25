@@ -7,10 +7,10 @@
 
 # Check if dist folder exists as sibling folder of ntopng
 if [ ! -d "../ntopng-dist" ]; then
-  echo "** Cloning ntopng-dist repository"
-  git clone https://github.com/ntop/ntopng-dist.git ../ntopng-dist || {
-    echo "Failed to clone repository"
-    exit 1
+    echo "** Cloning ntopng-dist repository"
+  git clone -b 6.6-stable https://github.com/ntop/ntopng-dist.git ../ntopng-dist || {
+      echo "Failed to clone repository"
+      exit 1
   }
 fi
 echo "** Changing to ntopng-dist directory"
