@@ -43,7 +43,7 @@ const _i18n = (t) => i18n(t);
 
 const d3 = d3v7
 let zoom = null
-const DOT_RADIUS = 2
+const DOT_RADIUS = 1.6
 
 const props = defineProps({
     tooltipFormatter: Function,
