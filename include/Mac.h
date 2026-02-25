@@ -159,7 +159,8 @@ class Mac : public GenericHashEntry {
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     if (first_seen == 0) first_seen = t;
-    stats->incSentStats(t, num_pkts, num_bytes), last_seen = t;
+    if(stats) stats->incSentStats(t, num_pkts, num_bytes);
+    last_seen = t;
   }
 
   bool is_hash_entry_state_idle_transition_ready();
@@ -168,11 +169,12 @@ class Mac : public GenericHashEntry {
                            u_int64_t sent_packets, u_int64_t sent_bytes,
                            u_int64_t sent_goodput_bytes, u_int64_t rcvd_packets,
                            u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
-    stats->incnDPIStats(when, ndpi_category, sent_packets, sent_bytes,
-                        sent_goodput_bytes, rcvd_packets, rcvd_bytes,
-                        rcvd_goodput_bytes);
+    if(stats != NULL)
+      stats->incnDPIStats(when, ndpi_category, sent_packets, sent_bytes,
+			  sent_goodput_bytes, rcvd_packets, rcvd_bytes,
+			  rcvd_goodput_bytes);
   }
-
+  
   inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     stats->incRcvdStats(t, num_pkts, num_bytes);
   }
@@ -181,11 +183,11 @@ class Mac : public GenericHashEntry {
 
   inline u_int64_t getNumSentArp() { return (stats->getNumSentArp()); }
   inline u_int64_t getNumRcvdArp() { return (stats->getNumRcvdArp()); }
-  inline void incNumDroppedFlows() { stats->incNumDroppedFlows();     }
-  inline void incSentArpRequests() { stats->incSentArpRequests();     }
-  inline void incSentArpReplies()  { stats->incSentArpReplies();      }
-  inline void incRcvdArpRequests() { stats->incRcvdArpRequests();     }
-  inline void incRcvdArpReplies()  { stats->incRcvdArpReplies();      }
+  inline void incNumDroppedFlows() { if(stats != NULL) stats->incNumDroppedFlows();     }
+  inline void incSentArpRequests() { if(stats != NULL) stats->incSentArpRequests();     }
+  inline void incSentArpReplies()  { if(stats != NULL) stats->incSentArpReplies();      }
+  inline void incRcvdArpRequests() { if(stats != NULL) stats->incRcvdArpRequests();     }
+  inline void incRcvdArpReplies()  { if(stats != NULL) stats->incRcvdArpReplies();      }
   void periodic_stats_update(const struct timeval *tv, bool force_update);
   inline u_int64_t getNumBytes() { return (stats->getNumBytes());     }
   inline float getBytesThpt() { return (stats->getBytesThpt());       }
