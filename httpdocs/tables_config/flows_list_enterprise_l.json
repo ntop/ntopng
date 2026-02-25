@@ -1,5 +1,5 @@
 {
-	"id": "flows_list",
+	"id": "flows_list_enterprise_l",
 	"data_url": "lua/rest/v2/get/flow/active_list.lua",
 	"use_current_page": false,
 	"enable_search": false,
@@ -78,6 +78,16 @@
 		{
 			"title_i18n": "score",
 			"data_field": "score",
+			"sortable": true,
+			"min-width" : "70px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "qoe",
+			"data_field": "qoe",
 			"sortable": true,
 			"min-width" : "70px",
 			"class": [

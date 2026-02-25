@@ -1,5 +1,5 @@
 {
-	"id": "flows_list",
+	"id": "flows_list_with_exporters",
 	"data_url": "lua/rest/v2/get/flow/active_list.lua",
 	"use_current_page": false,
 	"enable_search": false,
@@ -69,7 +69,7 @@
 		{
 			"title_i18n": "protocol",
 			"data_field": "protocol",
-			"sortable": true,
+			"sortable": false,
 			"min-width" : "160px",
 			"class": [
 				"text-nowrap"
@@ -118,6 +118,33 @@
 			"title_i18n": "info",
 			"data_field": "info",
 			"sortable": false,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flow_devices.exporter_ip",
+			"data_field": "flow_exporter",
+			"sortable": true,
+			"min-width" : "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.inIfIdx",
+			"data_field": "in_index",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.outIfIdx",
+			"data_field": "out_index",
+			"sortable": true,
 			"min-width" : "100px",
 			"class": [
 				"text-nowrap"

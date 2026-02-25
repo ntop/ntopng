@@ -1,5 +1,5 @@
 {
-	"id": "flows_list",
+	"id": "flows_list_with_exporters_enterprise_l",
 	"data_url": "lua/rest/v2/get/flow/active_list.lua",
 	"use_current_page": false,
 	"enable_search": false,
@@ -26,24 +26,21 @@
 				{
 					"id": "live_flows",
 					"icon": "fa-solid fa-magnifying-glass-plus",
-					"title_i18n": "info",
-					"class": [],
+					"title_i18n": "flows",
+					"class": [
+						"btn-info"
+					],
 					"event_id": "click_button_live_flows"
 				},
 				{
 					"id": "historical_chart",
 					"icon": "fas fa-lg fa-chart-area",
 					"title_i18n": "chart",
-					"class": [],
+					"class": [
+						"btn-info"
+					],
 					"event_id": "click_button_historical_data"
-				},
-				{
-                    "id": "block_host",
-                    "icon": "fas fa-ban",
-                    "title_i18n": "flow_details.drop_flow_traffic_btn",
-                    "class": [],
-                    "event_id": "click_button_drop_host_traffic"
-                }
+				}
 			]
 		},
 		{
@@ -86,6 +83,33 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.cli_asn",
+			"data_field": "cli_asn",
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+			"title_i18n": "db_search.srv_asn",
+			"data_field": "srv_asn",
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.transit_asn",
+			"data_field": "transit_asn",
+			"sortable": true,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "flow",
 			"data_field": "flow",
 			"sortable": false,
@@ -115,9 +139,27 @@
 			]
 		},
 		{
-			"title_i18n": "info",
-			"data_field": "info",
-			"sortable": false,
+			"title_i18n": "flow_devices.exporter_ip",
+			"data_field": "flow_exporter",
+			"sortable": true,
+			"min-width" : "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.inIfIdx",
+			"data_field": "in_index",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.outIfIdx",
+			"data_field": "out_index",
+			"sortable": true,
 			"min-width" : "100px",
 			"class": [
 				"text-nowrap"
