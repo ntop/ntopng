@@ -13,6 +13,15 @@ code {
   color: #000000 !important;
 }
 
+.badge.bg-dark {
+    background-color: #FFA026 !important
+}
+
+.badge.bg-info,
+.badge.bg-info * {
+    color: #FFFFFF !important;
+}
+
 .graph-val-total-title,
 .graph-val-95percentile-title,
 .graph-val-average-title,

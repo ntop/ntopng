@@ -11,19 +11,19 @@
   <div class="exporter-graph-wrap">
     <!-- Legend -->
     <div class="d-flex gap-4 py-1">
-      <span class="d-flex align-items-center gap-2 small text-muted">
+      <span class="d-flex align-items-center gap-2">
         <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#FFCA28" stroke="#b8960f" stroke-width="1.5"/></svg>
         {{ _i18n('client') }}
       </span>
-      <span class="d-flex align-items-center gap-2 small text-muted">
+      <span class="d-flex align-items-center gap-2">
         <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#FF7043" stroke="#b34d27" stroke-width="1.5"/></svg>
         {{ _i18n('server') }}
       </span>
-      <span class="d-flex align-items-center gap-2 small text-muted">
+      <span class="d-flex align-items-center gap-2">
         <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#42A5F5" stroke="#1976d2" stroke-width="1.5"/></svg>
         {{ _i18n('hop_exporter') }}
       </span>
-      <span class="d-flex align-items-center gap-2 small text-muted">
+      <span class="d-flex align-items-center gap-2 ">
         <svg width="40" height="14">
           <line x1="0" y1="7" x2="38" y2="7" stroke="#adb5bd" stroke-width="1.5" stroke-dasharray="4,3"/>
         </svg>
