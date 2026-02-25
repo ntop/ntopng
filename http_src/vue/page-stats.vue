@@ -10,15 +10,15 @@
                 <template v-slot:begin>
                 </template>
                 <template v-slot:extra_buttons>
-                    <button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot"
+                    <button v-if="props.context.enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot"
                         :title="_i18n('page_stats.manage_snapshots_btn')"><i
                             class="fas fa-lg fa-camera-retro"></i></button>
-                    <button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm"
+                    <button v-if="props.context.traffic_extraction_permitted" class="btn btn-link btn-sm"
                         @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i
                             class="fas fa-lg fa-download"></i></button>
                     <button :disabled="is_safari" class="btn btn-link btn-sm" @click="show_modal_download_file"
                         :title="image_button_title"><i class="fas fa-lg fa-file-image"></i></button>
-                    <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
+                    <button v-if="props.context.is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
                         :title="_i18n('page_stats.historical_flows')"><i class="fas fa-search-plus"></i></button>
                 </template>
             </DateTimeRangePicker>
@@ -35,7 +35,7 @@
                     </SelectSearch>
                 </div>
                 <button type="button" @click="show_manage_timeseries" class="btn btn-sm btn-primary inline"
-                    style='vertical-align: super;' v-if="is_ntop_pro">
+                    style='vertical-align: super;' v-if="props.context.is_ntop_pro">
                     Manage Timeseries
                 </button>
 
@@ -62,7 +62,7 @@
             </Transition>
         </div>
 
-        <div class="mt-4 card card-shadow" v-if="is_ntop_pro">
+        <div class="mt-4 card card-shadow" v-if="props.context.is_ntop_pro">
             <Transition name="list" mode="out-in">
                 <div v-if="selected_top_table?.table_config_def" class="card-body">
                     <div class="inline select2-size me-2 mt-2">
@@ -81,12 +81,12 @@
         </div>
     </div>
 
-    <ModalSnapshot v-if="enable_snapshots" ref="modal_snapshot" :csrf="csrf" :page="page_snapshots"
+    <ModalSnapshot v-if="props.context.enable_snapshots" ref="modal_snapshot" :csrf="context.csrf" :page="page_snapshots"
         @added_snapshot="refresh_snapshots" @deleted_snapshots="refresh_snapshots"
         @deleted_all_snapshots="refresh_snapshots">
     </ModalSnapshot>
 
-    <ModalTimeseries v-if="is_ntop_pro" ref="modal_timeseries" :sources_types_enabled="sources_types_enabled"
+    <ModalTimeseries v-if="props.context.is_ntop_pro" ref="modal_timeseries" :sources_types_enabled="props.context.sources_types_enabled"
         @apply="apply_modal_timeseries">
     </ModalTimeseries>
 
@@ -121,15 +121,7 @@ import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils";
 
 const props = defineProps({
-    csrf: String,
-    is_ntop_pro: Boolean,
-    source_value_object: Object,
-    sources_types_enabled: Object,
-    sources_types_top_enabled: Object,
-    enable_snapshots: Boolean,
-    is_history_enabled: Boolean,
-    traffic_extraction_permitted: Boolean,
-    is_dark_mode: Boolean,
+    context: Object,
 });
 
 //ntopng_utility.check_and_set_default_time_interval();
@@ -204,9 +196,9 @@ function init_groups_option_mode() {
 }
 
 function set_default_source_object_in_url() {
-    if (props.source_value_object == null) { return; }
+    if (props.context.source_value_object == null) { return; }
     let source_type = metricsManager.get_current_page_source_type();
-    metricsManager.set_source_value_object_in_url(source_type, props.source_value_object);
+    metricsManager.set_source_value_object_in_url(source_type, props.context.source_value_object);
 }
 
 /* This function retrieves the global status (epoch_begin and epoch_end),
@@ -250,7 +242,7 @@ onBeforeMount(async () => {
         stats_columns = columns_tmp;
     }
 
-    if (props.source_value_object.is_va) {
+    if (props.context.source_value_object.is_va) {
         min_time_interval_id.value = "hour";
         ntopng_utility.check_and_set_default_time_interval("day");
     };
@@ -308,7 +300,7 @@ async function get_metrics(push_custom_metric, force_refresh) {
     if (cache_snapshots == null || force_refresh) {
         cache_snapshots = await get_snapshots_metrics();
     }
-    if (props.enable_snapshots) {
+    if (props.context.enable_snapshots) {
         let snapshots_metrics = cache_snapshots;
         snapshots_metrics.forEach((sm) => metrics.push(sm));
     }
@@ -320,7 +312,7 @@ async function get_metrics(push_custom_metric, force_refresh) {
 }
 
 async function get_snapshots_metrics() {
-    if (!props.enable_snapshots) { return; }
+    if (!props.context.enable_snapshots) { return; }
     let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
 
     let snapshots_obj = await ntopng_utility.http_request(url);
@@ -463,7 +455,7 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
             console.warn("Empty timeseries_groups request");
             return;
         }
-        ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
+        ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.context.is_ntop_pro);
     }
 
     /* Update timeseries label to display */
@@ -582,7 +574,7 @@ function get_top_table_url(ts_group, table_value, table_view, table_source_def_v
 }
 
 async function refresh_top_table() {
-    if (!props.is_ntop_pro) { return; }
+    if (!props.context.is_ntop_pro) { return; }
     let table_config = selected_top_table.value?.table_config_def;
     if (table_config == null) { return; }
     // NtopUtils.showOverlays();
@@ -595,7 +587,7 @@ async function refresh_top_table() {
 const top_table_options = ref([]);
 const selected_top_table = ref({});
 function set_top_table_options(timeseries_groups, status) {
-    if (!props.is_ntop_pro) { return; }
+    if (!props.context.is_ntop_pro) { return; }
     if (timeseries_groups == null) {
         timeseries_groups = last_timeseries_groups_loaded;
     }
@@ -624,7 +616,7 @@ function set_top_table_options(timeseries_groups, status) {
         if (source_type_tables == null) { continue; }
 
         source_type_tables.forEach((table_def) => {
-            let enables_table_value = props.sources_types_top_enabled[table_def.table_value];
+            let enables_table_value = props.context.sources_types_top_enabled[table_def.table_value];
             if (enables_table_value == null) { return; }
             let enable_table_def = enables_table_value[table_def.view];
             if (!enable_table_def) { return; }
@@ -661,7 +653,7 @@ function set_top_table_options(timeseries_groups, status) {
             // it should be here in this instance the vuetify object with its properties
             table_config_def.columns_config = table_def.columns.map((column) => {
                 let render_if_context = {
-                    is_history_enabled: props.is_history_enabled
+                    is_history_enabled: props.context.is_history_enabled
                 };
                 let c = {
                     visible: !column.render_if || column.render_if(render_if_context),
@@ -672,7 +664,7 @@ function set_top_table_options(timeseries_groups, status) {
                 c.render = column.render.bind({
                     add_metric_from_metric_schema,
                     add_ts_group_from_source_value_dict,
-                    sources_types_enabled: props.sources_types_enabled,
+                    sources_types_enabled: props.context.sources_types_enabled,
                     status, source_type, source_array: ts_group.source_array,
                 });
                 return c;
@@ -770,7 +762,7 @@ function print_stats_column(col) {
 
 function print_stats_row(col, row) {
     let label = row[col.id];
-    const historical_filter = props.source_value_object.historical_link_to_table;
+    const historical_filter = props.context.source_value_object.historical_link_to_table;
     if (historical_filter && historical_filter.add_historical_link_to_table && historical_filter.historical_link_col_id == col.id) {
         const element = historical_filter.historical_filters.find((el) => { return el.table_label === label })
         if (element) {
