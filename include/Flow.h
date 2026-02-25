@@ -1061,6 +1061,7 @@ public:
              u_int32_t _private_flow_id, u_int8_t _protocol,
              const ICMPinfo *const icmp_info, bool *src2srv_direction) const;
   void getFingerprintInfo(ndpi_serializer *serializer);
+  void getDedupInfo(ndpi_serializer *serializer);
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
   bool dump(time_t t, bool last_dump_before_free);
   bool match(AddressTree *ptree);
@@ -1466,6 +1467,10 @@ public:
     merged into the fingerprints block of proto_json_info.*/
   inline bool isFingerprintAvailable() {
     return getnDPIFingerprint() != nullptr;
+  }
+
+  inline bool isDedupAvailable() {
+    return dedupStats.size() > 0;
   }
 
   inline void setSearchedField(const char *field) {

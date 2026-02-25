@@ -7693,6 +7693,52 @@ void Flow::getFingerprintInfo(ndpi_serializer *serializer) {
 
 /* ***************************************************** */
 
+/* Serialize deduplication information for the flow */
+void Flow::getDedupInfo(ndpi_serializer *serializer) {
+  if(serializer == NULL) return;
+  if(!isDedupAvailable()) return;
+
+  int i = 0;
+
+  // Iterate over all stored duplicated flow records
+  for(std::vector<DuplicatedFlowInfo>::iterator it = dedupStats.begin();
+    it != dedupStats.end(); ++it) {
+
+    if(it->exporter_ipv4 == 0)
+      break;
+
+    char key[16];
+    char b1[32], b2[32];
+    
+    // Generate a numeric key for JSON block
+    snprintf(key, sizeof(key), "%d", i++);
+
+    ndpi_serialize_start_of_block(serializer, key);
+    
+    // Serialize exporter IP as string
+    ndpi_serialize_string_string(serializer, "exporter_ip",
+      Utils::intoaV4(it->exporter_ipv4, b1, sizeof(b1)));
+
+    // Serialize next hop address
+    ndpi_serialize_string_string(serializer, "next_hop",
+      it->next_hop.print(b2, sizeof(b2)));
+
+    // Serialize boolean indicating return path
+    ndpi_serialize_string_boolean(serializer, "return_path",
+      it->return_path);
+    
+    // Serialize input and output indexes
+    ndpi_serialize_string_uint32(serializer, "input_idx",
+      it->in_index);
+    ndpi_serialize_string_uint32(serializer, "output_idx",
+      it->out_index);
+
+    ndpi_serialize_end_of_block(serializer);
+  }
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_ssh_info(lua_State *vm) const {
   if(isSSH()) {
     if(protos.ssh.client_signature)
@@ -8236,6 +8282,13 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
   }
 
   ndpi_serialize_end_of_block(serializer); /* proto block */
+
+  /* additional exporters block*/
+  if (isDedupAvailable()) {
+    ndpi_serialize_start_of_block(serializer, "additional_exporters");
+    getDedupInfo(serializer);
+    ndpi_serialize_end_of_block(serializer);
+  }
 
   if(ebpf && ebpf->process_info_set) {
     ndpi_serialize_start_of_block(serializer, "process");
