@@ -10,18 +10,18 @@
                         <template v-slot:extra_range_buttons>
                             <div class="ms-4 d-flex align-items-center ms-2">
                                 <label class="text-nowrap fw-semibold me-1"> {{
-                                    _i18n("map_page.asset_in_edges")
+                                    _i18n("map_page.rcvd_alerts")
                                     }} </label>
                                 <input ref="slider_min_incoming_edges" type="range" class="form-range" min="0"
-                                    max="1000" v-model="minIncomingEdges" data-bs-toggle="tooltip"
-                                    data-bs-placement="top" :title="minIncomingEdges" />
+                                    max="1000" v-model="minimumReceivedAlerts" data-bs-toggle="tooltip"
+                                    data-bs-placement="top" :title="minimumReceivedAlerts" />
                             </div>
                             <div class="ms-4 d-flex align-items-center ms-2">
                                 <label class="text-nowrap fw-semibold me-1"> {{
-                                    _i18n("map_page.asset_out_edges") }} </label>
+                                    _i18n("map_page.generated_alerts") }} </label>
                                 <input ref="slider_min_outgoing_edges" type="range" class="form-range" min="0"
-                                    max="1000" v-model="minOutgoingEdges" data-bs-toggle="tooltip"
-                                    data-bs-placement="top" :title="minOutgoingEdges" />
+                                    max="1000" v-model="minimumGeneratedAlerts" data-bs-toggle="tooltip"
+                                    data-bs-placement="top" :title="minimumGeneratedAlerts" />
                             </div>
 
                             <div class="ms-4 d-flex align-items-center">
@@ -81,7 +81,7 @@
                         <!-- Node Details Section -->
                         <div v-if="lastClickedElementIsNode" class="node-details">
                             <div class="mb-4">
-                                <h6 class="fw-bold fs-5 text-black">
+                                <h6 class="fw-bold fs-5">
                                     <!-- Display host IP and hostname if different than IP -->
                                     <i class='fas fa-laptop'></i> {{ selectedNodeData?.host_info?.info?.ip || 'N/A'
                                     }} <span v-if="selectedNodeData?.host_info?.info?.host_name && (selectedNodeData?.host_info?.info?.host_name != selectedNodeData?.host_info?.info?.ip)">
@@ -115,7 +115,7 @@
                                     <div class="col-12">
                                         <a :href="hist_flows_url" target="_blank" class="fw-bold">
                                             <i class="fas fa-lg fa-chart-area me-1"> </i>
-                                            <span class="detail-label text-primary">{{
+                                        <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_flows")
                                             }}</span>
                                         </a>
@@ -366,8 +366,8 @@ const no_data = ref(false);
 const slider_min_incoming_edges = ref(null);
 const slider_min_outgoing_edges = ref(null);
 const last_url = ref();
-const minIncomingEdges = ref(0); // minimum number of incoming edges (alerts) of a node
-const minOutgoingEdges = ref(0); // minimum number of outgoing edges (alerts) of a node
+const minimumReceivedAlerts = ref(1); // minimum number of incoming edges (alerts) of a node
+const minimumGeneratedAlerts = ref(1); // minimum number of outgoing edges (alerts) of a node
 
 // Selected node information (right div next to graph)
 const selectedNodeData = ref({});
@@ -1324,21 +1324,21 @@ onMounted(async () => {
         NtopUtils.reloadBSTooltips();
     });
 
-    const tooltipTriggerminIncomingEdges = new bootstrap.Tooltip(slider_min_incoming_edges.value, { trigger: 'manual' });
+    const tooltipTriggerminimumReceivedAlerts = new bootstrap.Tooltip(slider_min_incoming_edges.value, { trigger: 'manual' });
     slider_min_incoming_edges.value.addEventListener('input', () => {
-        $(".tooltip-inner").text(minIncomingEdges.value)
-        slider_min_incoming_edges.value.setAttribute('data-bs-original-title', minIncomingEdges.value);
-        tooltipTriggerminIncomingEdges.show();
+        $(".tooltip-inner").text(minimumReceivedAlerts.value)
+        slider_min_incoming_edges.value.setAttribute('data-bs-original-title', minimumReceivedAlerts.value);
+        tooltipTriggerminimumReceivedAlerts.show();
     });
     slider_min_incoming_edges.value.addEventListener('mouseup', () => {
         applyFilters()
     })
 
-    const tooltipTriggerminOutgoingEdges = new bootstrap.Tooltip(slider_min_outgoing_edges.value, { trigger: 'manual' });
+    const tooltipTriggerminimumGeneratedAlerts = new bootstrap.Tooltip(slider_min_outgoing_edges.value, { trigger: 'manual' });
     slider_min_outgoing_edges.value.addEventListener('input', () => {
-        $(".tooltip-inner").text(minOutgoingEdges.value)
-        slider_min_outgoing_edges.value.setAttribute('data-bs-original-title', minOutgoingEdges.value);
-        tooltipTriggerminOutgoingEdges.show();
+        $(".tooltip-inner").text(minimumGeneratedAlerts.value)
+        slider_min_outgoing_edges.value.setAttribute('data-bs-original-title', minimumGeneratedAlerts.value);
+        tooltipTriggerminimumGeneratedAlerts.show();
     });
     slider_min_outgoing_edges.value.addEventListener('mouseup', () => {
         applyFilters()
@@ -1353,12 +1353,12 @@ onBeforeUnmount(() => {
 
 });
 
-watch(minOutgoingEdges, (newValue) => {
+watch(minimumGeneratedAlerts, (newValue) => {
     let min_outgoing_edges = newValue;
     add_filter('min_outgoing', min_outgoing_edges);
 });
 
-watch(minIncomingEdges, (newValue) => {
+watch(minimumReceivedAlerts, (newValue) => {
     let min_incoming_edges = newValue;
     add_filter('min_incoming', min_incoming_edges);
 });
@@ -1384,13 +1384,15 @@ function init_url_params() {
         ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
     }
 
-    // initial filters
-    let score_greater_equal = minOutgoingEdges.value + ";gte";
+    // initial filters. Min alert score >= 50
+    let score_greater_equal = 50 + ";gte";
     ntopng_url_manager.set_key_to_url("score", score_greater_equal);
     ntopng_url_manager.set_key_to_url("severity", "");
     ntopng_url_manager.set_key_to_url("ip", "");
-    ntopng_url_manager.set_key_to_url("min_outgoing", 0);
-    ntopng_url_manager.set_key_to_url("min_incoming", 0);
+
+    // by default show hosts with at least 1 generated and 1 received alert
+    ntopng_url_manager.set_key_to_url("min_outgoing", 1);
+    ntopng_url_manager.set_key_to_url("min_incoming", 1);
 }
 
 function add_filter(filter, value) {
@@ -1398,8 +1400,8 @@ function add_filter(filter, value) {
 }
 
 function reset_filters() {
-    minOutgoingEdges.value = 0;
-    minIncomingEdges.value = 0;
+    minimumGeneratedAlerts.value = 0;
+    minimumReceivedAlerts.value = 0;
 
     // get all url parameters
     const currentParams = Object.keys(ntopng_url_manager.get_url_object());
