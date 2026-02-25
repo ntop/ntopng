@@ -1,27 +1,24 @@
 <!-- (C) 2026 - ntop.org -->
 <template>
-    <!-- Two-column layout: left side table, right side map -->
-    <div class="row">
-        <!-- Left column: Exporter sites table -->
-        <div class="col-6">
-            <TableWithConfig ref="exporter_sites_list" :table_id="table_id" :csrf="csrf" :showLoading="true"
-                @custom_event="on_table_custom_event" :f_map_columns="map_table_def_columns"
-                :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting">
-                <!-- Custom button slot for adding new sites -->
-                <template v-slot:custom_buttons>
-                    <button class="btn btn-link" type="button" @click="addExporterSite">
-                        <i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top"
-                            :title="_i18n('exporter_sites_page.add_exporter_site')"></i>
-                    </button>
-                </template>
-            </TableWithConfig>
-        </div>
-        
-        <!-- Right column: Geographic map visualization of sites -->
-        <div class="col-6">
-            <Geomap :geomapDataArray="geomapDataArray" :tooltipFormatter="formatTooltipData" :glowDots="true"
-                :style="['height: 50vh']"/>
-        </div>
+    <!-- Geographic map visualization of sites -->
+     <div class="mt-3">
+        <Geomap :geomapDataArray="geomapDataArray" :tooltipFormatter="formatTooltipData" :glowDots="true"
+            :style="['height: 50vh']"/>
+    </div>
+    
+    <!-- Exporter sites table -->
+    <div class="m-2 mb-3">
+        <TableWithConfig ref="exporter_sites_list" :table_id="table_id" :csrf="csrf" :showLoading="true"
+            @custom_event="on_table_custom_event" :f_map_columns="map_table_def_columns"
+            :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting">
+            <!-- Custom button slot for adding new sites -->
+            <template v-slot:custom_buttons>
+                <button class="btn btn-link" type="button" @click="addExporterSite">
+                    <i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top"
+                        :title="_i18n('exporter_sites_page.add_exporter_site')"></i>
+                </button>
+            </template>
+        </TableWithConfig>
     </div>
     
     <!-- Modal components for site management -->
