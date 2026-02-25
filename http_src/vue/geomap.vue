@@ -1,6 +1,18 @@
 <template>
     <div class="geomap-container" ref="mapContainer">
         <Loading :isLoading="isLoading"></Loading>
+        <!-- Zoom button group -->
+        <div class="mb-2">
+            <div class="btn-group btn-ontop" role="group">
+                <button type="button" class="btn zoom-btn" @click="zoomChart(0.5)">
+                    <i class="fa-solid fa-magnifying-glass-plus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_in')"></i>
+                </button>
+                <button type="button" class="btn zoom-btn" @click="zoomChart(-0.5)">
+                    <i class="fa-solid fa-magnifying-glass-minus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_out')"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Tooltip -->
         <div v-if="tooltip.show" ref="tooltipRef" class="static-tooltip" :style="{
             left: tooltip.x + 'px',
@@ -27,8 +39,10 @@ import Loading from "./loading.vue"
 
 import worldAtlasData from 'world-atlas/countries-110m.json'
 import * as topojson from "topojson-client"
+const _i18n = (t) => i18n(t);
 
 const d3 = d3v7
+let zoom = null
 const DOT_RADIUS = 2
 
 const props = defineProps({
@@ -154,7 +168,7 @@ const initializeMap = async () => {
 
     // Zoom
 
-    const zoom = d3.zoom()
+    zoom = d3.zoom()
         .scaleExtent([1, 60])
         .on('zoom', (event) => {
             zoomGroup.attr('transform', event.transform)
@@ -223,6 +237,18 @@ const renderDotsByCoordinates = () => {
             showTooltip(event, alert)
         })
     })
+}
+
+const zoomChart = (direction) => {
+    if (!svg || !zoom) return
+
+    // 1.2 is a common multiplier for smooth zooming
+    // If direction is positive (0.5), it zooms in. If negative (-0.5), it zooms out.
+    const factor = direction > 0 ? 1.5 : 0.66
+
+    svg.transition()
+       .duration(300)
+       .call(zoom.scaleBy, factor)
 }
 
 //////////////////////////////////////////////
@@ -486,5 +512,27 @@ onUnmounted(() => {
     pointer-events: none;
     user-select: none;
     transition: opacity 0.2s ease;
+}
+
+/* zoom controls */
+.btn-ontop {
+    position: absolute;
+    right: 0;
+    top: -0.7rem;
+    z-index: 10;
+}
+
+.zoom-btn {
+    background-color: #fd7e14 !important;
+    color: white !important;
+    border: none !important;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+}
+
+.zoom-btn:hover {
+    background-color: #e76b06 !important;
 }
 </style>
