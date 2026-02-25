@@ -22,599 +22,257 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { default as Loading } from "./loading.vue";
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import Loading from "./loading.vue"
 
-import worldAtlasData from 'world-atlas/countries-110m.json';
-import * as topojson from "topojson-client";
+import worldAtlasData from 'world-atlas/countries-110m.json'
+import * as topojson from "topojson-client"
 
-const d3 = d3v7;
-const topoData = ref(null);
-const countryMapping = ref(null);
-const dotSize = 1.8;
+const d3 = d3v7
+const DOT_RADIUS = 2
 
 const props = defineProps({
     tooltipFormatter: Function,
     geomapDataArray: Array,
-    getGeomapData: Function,
     glowDots: Boolean,
     onMapClick: Function,
     showTooltipOnHover: { type: Boolean, default: true }
-});
+})
 
-const geomapDataArray = ref(props.geomapDataArray);
-// Refs
-const mapContainer = ref(null);
-const svgElement = ref(null);
-const tooltipRef = ref(null);
-const isLoading = ref(true);
+const geomapDataArray = ref(props.geomapDataArray || [])
 
-// tooltip state
+const mapContainer = ref(null)
+const svgElement = ref(null)
+const isLoading = ref(true)
+
 const tooltip = ref({
     show: false,
     x: 0,
     y: 0,
     content: '',
     targetElement: null
-});
+})
 
-// D3 data
-let svg = null;
-let projection = null;
-let path = null;
-let g = null;
-let zoomGroup = null;
-let width = 0;
-let height = 0;
-let resizeObserver = null;
-let worldData = null;
-
-let highlightedCountry = null;
-let hide_timer = null;
-
-const onTooltipMouseEnter = () => {
-    if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
-};
-
-const onTooltipMouseLeave = () => {
-    closeTooltip();
-};
-
-const closeTooltip = () => {
-    tooltip.value.show = false;
-
-    // reset highlited dot
-    if (tooltip.value.targetElement) {
-        const dotElement = d3.select(tooltip.value.targetElement).select('.alert-dot');
-        if (!dotElement.empty()) {
-            const originalRadius = parseFloat(dotElement.attr('data-original-radius')) || 2;
-            const originalColor = dotElement.attr('data-original-color') || '#ff0000';
-
-            dotElement
-                .transition()
-                .duration(200)
-                .attr('r', originalRadius)
-                .attr('fill', originalColor);
-        }
-    }
-
-    // reset highlighted country
-    if (highlightedCountry) {
-        d3.select(highlightedCountry).attr('fill', '#1e293b');
-        highlightedCountry = null;
-    }
-
-    tooltip.value.targetElement = null;
-    tooltip.value.content = '';
-};
+let svg = null
+let projection = null
+let path = null
+let g = null
+let zoomGroup = null
+let worldData = null
+let resizeObserver = null
+let highlightedCountry = null
 
 const initializeMap = async () => {
-    if (!mapContainer.value || !svgElement.value) return;
+    if (!mapContainer.value || !svgElement.value) return
 
-    isLoading.value = true;
+    isLoading.value = true
 
-    if (!topoData.value || !topoData.value.objects || !topoData.value.objects.countries) {
-        isLoading.value = false;
-        return;
-    }
+    // Convert TopoJSON -> GeoJSON ONCE
+    worldData = topojson.feature(
+        worldAtlasData,
+        worldAtlasData.objects.countries
+    )
 
-    // set dimensions
-    const containerRect = mapContainer.value.getBoundingClientRect();
-    width = containerRect.width;
-    height = containerRect.height;
+    const rect = mapContainer.value.getBoundingClientRect()
+    const width = rect.width
+    const height = rect.height
 
-    // clear previous SVG content
-    d3.select(svgElement.value).selectAll('*').remove();
+    d3.select(svgElement.value).selectAll('*').remove()
 
-    // initialize SVG and groups
     svg = d3.select(svgElement.value)
         .attr('width', width)
         .attr('height', height)
-        .attr('viewBox', [0, 0, width, height]);
+        .attr('viewBox', [0, 0, width, height])
 
-    zoomGroup = svg.append('g');
-
-    projection = d3.geoEquirectangular()
-        .scale((width) / (2 * Math.PI) * 0.9)
-        .translate([width / 2, height / 2]);
-
-    path = d3.geoPath().projection(projection);
-
-    // Add grid/graticule with cybersecurity theme
-    const graticule = d3.geoGraticule().step([15, 15]);
-    zoomGroup.append('path')
-        .attr('class', 'graticule')
-        .attr('d', path(graticule()))
-        .attr('fill', 'none')
-        .attr('stroke', '#1e293b')
-        .attr('stroke-width', 0.3)
-        .attr('stroke-opacity', 0.7);
-
+    zoomGroup = svg.append('g')
     g = zoomGroup.append('g');
 
-    // zoom behaviour
-    const zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on('zoom', (event) => {
-            zoomGroup.attr('transform', event.transform);
-        });
+    projection = d3.geoEquirectangular()
+        .scale(width / (2 * Math.PI) * 0.9)
+        .translate([width / 2, height / 2])
 
-    svg.call(zoom);
+    path = d3.geoPath().projection(projection)
 
-    // load world data if not already loaded
-    if (!worldData) {
-        try {
-            // Convert TopoJSON to GeoJSON using topojson-client
-            const countries = topojson.feature(topoData.value, topoData.value.objects.countries);
-            worldData = countries;
-        } catch (error) {
-            console.error('Error loading world map data:', error);
-            isLoading.value = false;
-            return;
-        }
-    }
+    // Draw countries
 
-    // draw countries
-    const countryPaths = g.selectAll('path.country')
+    g.selectAll('path.country')
         .data(worldData.features)
         .enter()
         .append('path')
         .attr('class', 'country')
-        .attr('id', d => `country-${d.id || 'unknown'}`)
         .attr('d', path)
         .attr('fill', '#1e293b')
         .attr('stroke', '#334155')
         .attr('stroke-width', 0.5)
-        .attr('stroke-opacity', 0.7)
-        .attr('data-country-id', d => d.id)
-        .attr('data-country-name', d => getCountryNameFromTopoData(d))
-        .style('cursor', 'pointer');
+        .style('cursor', 'pointer')
+        .on('click', function (event) {
+            event.stopPropagation()
 
-    // add mouse event handlers
-    countryPaths
-        .on('mouseover', function (event, d) {
-            if (highlightedCountry !== this) {
-                d3.select(this).attr('fill', '#334155');
-            }
-        })
-        .on('mouseout', function (event, d) {
-            if (highlightedCountry !== this) {
-                d3.select(this).attr('fill', '#1e293b');
-            }
-        })
-        .on('click', function (event, d) {
-            // stop event propagation first
-            event.stopPropagation();
-
-            // reset previous highlighted country
             if (highlightedCountry) {
-                d3.select(highlightedCountry).attr('fill', '#1e293b');
+                d3.select(highlightedCountry).attr('fill', '#1e293b')
             }
 
-            // highlight this country
-            d3.select(this).attr('fill', '#475569');
-            highlightedCountry = this;
-                        
-            // Emit event to parent with lat/lng
+            d3.select(this).attr('fill', '#475569')
+            highlightedCountry = this
+
             if (typeof props.onMapClick === 'function') {
-                const [lng, lat] = getLatLngFromEvent(event);
-                props.onMapClick({ lat, lng });
+                const [lng, lat] = getLatLngFromEvent(event)
+                props.onMapClick({ lat, lng })
             }
-        });
+        })
 
-    // draw country shape
-    const borders = topojson.mesh(topoData.value, topoData.value.objects.countries, (a, b) => a !== b);
+    // Labels
+    g.append("g")
+        .attr("class", "country-labels")
+        .selectAll("text")
+        .data(worldData.features.filter(d => path.area(d) > 60))
+        .enter()
+        .append("text")
+        .attr("class", "country-label")
+        .attr("transform", d => {
+            let geom = d.geometry;
 
-    g.append('path')
-        .attr('class', 'country-borders')
-        .attr('d', path(borders))
-        .attr('fill', 'none')
-        .attr('stroke', '#475569')
-        .attr('stroke-width', 0.7)
-        .attr('stroke-opacity', 0.7);
+            // For MultiPolygon, pick the largest polygon by area
+            if (geom.type === "MultiPolygon") {
+                let largest = geom.coordinates.reduce((maxPoly, poly) => {
+                    const area = d3.geoArea({ type: "Polygon", coordinates: poly });
+                    return area > maxPoly.area ? { coords: poly, area } : maxPoly;
+                }, { coords: geom.coordinates[0], area: 0 });
+                geom = { type: "Polygon", coordinates: largest.coords };
+            }
 
-    // close tooltip on svg click
-    svg.on('click', function (event) {
-        // Close tooltip if open
-        if (tooltip.value.show) {
-            closeTooltip();
-        }
+            const [x, y] = path.centroid({ type: geom.type, coordinates: geom.coordinates });
+            return `translate(${x}, ${y})`;
+        })
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle")
+        .attr("font-size", "8px")
+        .attr("fill", "#94a3b8")
+        .attr("pointer-events", "none")
+        .text(d => d.properties.name || "")
 
-        // reset previous highlighted country if exists
-        if (highlightedCountry) {
-            d3.select(highlightedCountry).attr('fill', '#1e293b');
-            highlightedCountry = null;
-        }
-            
-        // Emit event to parent with lat/lng
-        if (typeof props.onMapClick === 'function') {
-            const [lng, lat] = getLatLngFromEvent(event);
-            props.onMapClick({ lat, lng });
-        }
-    });
 
-    isLoading.value = false;
-};
+    // Zoom
 
-// display data on map, 
-// check data format, if lat and lng are present use renderDotsByCoordinates
-// else render in the centroid of the country given in the json
+    const zoom = d3.zoom()
+        .scaleExtent([1, 60])
+        .on('zoom', (event) => {
+            zoomGroup.attr('transform', event.transform)
+
+            const k = event.transform.k
+            let newRadius = DOT_RADIUS / k
+            if (newRadius > DOT_RADIUS) newRadius = DOT_RADIUS
+            if (newRadius < 0.3) newRadius = 0.3
+
+            g.selectAll(".alert-dot")
+                .attr("r", newRadius)
+                .attr("stroke-width", 0.5 / k)
+
+            g.selectAll(".country-label")
+                .attr("font-size", `${8 / k}px`)
+
+            const textScale = Math.max(1 / k, 0.15)
+
+            g.selectAll(".country-label")
+                .attr("transform", d => {
+                    const [x, y] = path.centroid(d)
+                    return `translate(${x}, ${y}) scale(${textScale})`
+                })
+        })
+
+    svg.call(zoom)
+
+    isLoading.value = false
+}
+
 const displayData = () => {
-    if (!worldData || !worldData.features) {
-        console.log('Missing required data for displaying events');
-        return;
-    }
+    if (!worldData || !g) return
 
-    // Clear existing dots on map
-    g.selectAll('.alert-dot').remove();
-    g.selectAll('.pulse-circle').remove();
-    g.selectAll('.alert-label').remove();
+    g.selectAll('.alert-group').remove()
 
-    // Decide format type
-    const sample = geomapDataArray.value[0];
-    const isCoordinateBased = sample && 'lat' in sample && 'lng' in sample;
+    const sample = geomapDataArray.value?.[0]
+    const isCoordinateBased = sample && 'lat' in sample && 'lng' in sample
 
     if (isCoordinateBased) {
-        renderDotsByCoordinates();
-    } else {
-        renderDotsByCountryCentroid();
+        renderDotsByCoordinates()
     }
-};
+}
 
-///////////////////////////////
 const renderDotsByCoordinates = () => {
     geomapDataArray.value.forEach(alert => {
-        const latitude = alert.lat;
-        const longitude = alert.lng;
-        const color = '#FF8F00';
+        if (alert.lat == null || alert.lng == null) return
 
-        if (latitude == null || longitude == null) return;
+        const [x, y] = projection([alert.lng, alert.lat])
+        if (!x || !y) return
 
-        const coordinates = projection([longitude, latitude]);
-        if (!coordinates || isNaN(coordinates[0]) || isNaN(coordinates[1])) return;
-
-        const [x, y] = coordinates;
-
-        const nodeGroup = g.append('g')
+        const node = g.append('g')
             .attr('class', 'alert-group')
             .attr('transform', `translate(${x}, ${y})`)
-            .style('cursor', 'pointer');
+            .style('cursor', 'pointer')
 
-        nodeGroup.append('circle')
+        node.append('circle')
             .attr('class', 'alert-dot')
-            .attr('r', dotSize)
-            .attr('fill', color)
+            .attr('r', DOT_RADIUS)
+            .attr('fill', alert.color || '#FF8F00')
             .attr('stroke', '#ffffff')
             .attr('stroke-width', 0.5)
-            .attr('data-original-radius', dotSize)
-            .attr('data-original-color', color);
+            .attr('vector-effect', 'non-scaling-stroke')
 
-        nodeGroup.on('click', function (event) {
-            if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
-            showTooltip(event, alert, this);
-        });
-        nodeGroup.on('mouseover', function (event) {
-            if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
-            if (props.showTooltipOnHover) {
-                showTooltip(event, alert, this);
-            }
-        });
-        nodeGroup.on('mouseout', function (event) {
-            // Delay close so the user can move the pointer to the tooltip without it disappearing
-            hide_timer = setTimeout(() => {
-                if (tooltip.value.show) closeTooltip();
-            }, 150);
-        });
-    });
-};
+        node.on('click', (event) => {
+            event.stopPropagation()
+            showTooltip(event, alert)
+        })
+    })
+}
 
-const showTooltip = (event, alert, targetElement) => {
-    // prevent map click handler from firing
-    event.stopPropagation();
-    const tooltipContent = props.tooltipFormatter(alert);
+//////////////////////////////////////////////
+// TOOLTIP
 
-    // get mouse position relative to the container
-    const [mouseX, mouseY] = d3.pointer(event, mapContainer.value);
-
-    // offset tooltip away from cursor so it never sits on top of the SVG node
-    const OFFSET_X = 16, OFFSET_Y = 12;
-    const TOOLTIP_W = 300, TOOLTIP_H = 160; // conservative estimates
-    const containerW = mapContainer.value?.clientWidth  || width;
-    const containerH = mapContainer.value?.clientHeight || height;
-
-    const x = (mouseX + OFFSET_X + TOOLTIP_W > containerW)
-        ? mouseX - TOOLTIP_W - OFFSET_X
-        : mouseX + OFFSET_X;
-    const y = (mouseY + OFFSET_Y + TOOLTIP_H > containerH)
-        ? mouseY - TOOLTIP_H - OFFSET_Y
-        : mouseY + OFFSET_Y;
+const showTooltip = (event, alert) => {
+    const [mouseX, mouseY] = d3.pointer(event, mapContainer.value)
 
     tooltip.value = {
         show: true,
-        x,
-        y,
-        content: tooltipContent,
-        targetElement,
-    };
+        x: mouseX + 15,
+        y: mouseY + 10,
+        content: props.tooltipFormatter
+            ? props.tooltipFormatter(alert)
+            : JSON.stringify(alert),
+        targetElement: null
+    }
 }
-///////////////////////////////
-const renderDotsByCountryCentroid = () => {
-    const alertsByCountry = {};
 
-    geomapDataArray.value.forEach(alert => {
-        const countryId = alert.country_id;
-        if (!alertsByCountry[countryId]) alertsByCountry[countryId] = [];
-        alertsByCountry[countryId].push(alert);
-    });
+const closeTooltip = () => {
+    tooltip.value.show = false
+}
 
-    Object.keys(alertsByCountry).forEach(countryId => {
-        const feature = worldData.features.find(f => Number(f.id) === Number(countryId));
-        if (!feature) return;
 
-        const centroid = path.centroid(feature);
-        const offsetBase = 10;
-        const offsets = [
-            [0, 0], [offsetBase, 0], [-offsetBase, 0],
-            [0, offsetBase], [0, -offsetBase],
-            [offsetBase, offsetBase], [-offsetBase, offsetBase],
-            [offsetBase, -offsetBase], [-offsetBase, -offsetBase]
-        ];
-
-        alertsByCountry[countryId].forEach((alert, index) => {
-            const color = alert.color || '#ff0000';
-            const severity = alert.severity || 'Info';
-            const offset = offsets[index % offsets.length];
-            const [x, y] = [centroid[0] + offset[0], centroid[1] + offset[1]];
-
-            const nodeGroup = g.append('g')
-                .attr('class', 'alert-group')
-                .attr('transform', `translate(${x}, ${y})`)
-                .style('cursor', 'pointer');
-
-            const alertDot = nodeGroup.append('circle')
-                .attr('class', 'alert-dot')
-                .attr('r', dotSize)
-                .attr('fill', color)
-                .attr('stroke', '#ffffff')
-                .attr('stroke-width', 0.5)
-                .attr('data-original-radius', dotSize)
-                .attr('data-original-color', color);
-
-            nodeGroup.on('click', function (event) {
-                event.stopPropagation();
-                const countryName = getCountryNameFromTopoData(feature);
-
-                // get tooltip content
-                const tooltipContent = props.tooltipFormatter(alert, countryName);
-
-                // get mouse position to show tooltup
-                const [mouseX, mouseY] = d3.pointer(event, mapContainer.value);
-
-                // show tooltip
-                tooltip.value = {
-                    show: true,
-                    x: mouseX,
-                    y: mouseY,
-                    content: tooltipContent,
-                    targetElement: this
-                };
-
-            });
-
-            if (props.glowDots && ['Critical', 'Emergency', 'Warning'].includes(severity)) {
-                const glowId = `glow-${alert.country_id}-${severity}`;
-                if (!document.getElementById(glowId)) {
-                    const glowFilter = svg.append('defs')
-                        .append('filter')
-                        .attr('id', glowId)
-                        .attr('x', '-50%')
-                        .attr('y', '-50%')
-                        .attr('width', '200%')
-                        .attr('height', '200%');
-
-                    glowFilter.append('feGaussianBlur')
-                        .attr('stdDeviation', severity === 'Warning' ? '1' : '2')
-                        .attr('result', 'coloredBlur');
-
-                    const feMerge = glowFilter.append('feMerge');
-                    feMerge.append('feMergeNode').attr('in', 'coloredBlur');
-                    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
-                }
-
-                alertDot.attr('filter', `url(#${glowId})`);
-            }
-
-            if (['Critical', 'Emergency', 'Warning', 'Error'].includes(severity)) {
-                nodeGroup.append('circle')
-                    .attr('class', 'pulse-circle')
-                    .attr('r', dotSize)
-                    .attr('fill', 'none')
-                    .attr('stroke', color)
-                    .attr('stroke-width', 1)
-                    .attr('opacity', 0.8)
-                    .call(animatePulseElement);
-            }
-
-        });
-    });
-};
-
-///////////////////////////////
-
-// convert mouse position to geographic coordinates using projection.invert
 function getLatLngFromEvent(event) {
-    const [x, y] = d3.pointer(event, zoomGroup.node());
-    return projection.invert([x, y]);
-}
-
-// get country name from topodata feature
-const getCountryNameFromTopoData = (feature) => {
-    if (!feature) return 'Unknown';
-
-    if (feature.properties) {
-        return feature.properties.NAME ||
-            feature.properties.name ||
-            feature.properties.ADMIN ||
-            feature.properties.admin ||
-            `Country #${feature.id || 'unknown'}`;
-    }
-
-    return `Country #${feature.id || 'unknown'}`;
-};
-
-// pulse nodes
-function animatePulseElement(element) {
-    let baseRadius = parseFloat(element.attr('r')) * 1.2;
-
-    if (baseRadius >= 2) baseRadius = 2;
-
-    element
-        .attr('r', baseRadius)
-        .attr('opacity', 0.8)
-        .transition()
-        .duration(1500)
-        .attr('r', baseRadius)
-        .attr('opacity', 0)
-        .ease(d3.easeQuadOut)
-        .on('end', function () {
-            d3.select(this).call(animatePulseElement);
-        });
-}
-
-// Handle window resize
-const handleResize = async () => {
-    await nextTick();
-
-    // Close tooltip on resize
-    if (tooltip.value.show) {
-        closeTooltip();
-    }
-
-    // Re-display the data dots after map is reinitialized
-    if (geomapDataArray.value && geomapDataArray.value.length > 0) {
-        displayData();
-    }
-};
-
-function buildCountryNameToIdMap() {
-    if (!topoData.value || !topoData.value.objects || !topoData.value.objects.countries) {
-        console.warn('TopoJSON data not loaded yet');
-        return {};
-    }
-
-    const geometries = topoData.value.objects.countries.geometries;
-    const map = {};
-
-    geometries.forEach(geom => {
-        const name = geom.properties.name;
-        const id = parseInt(geom.id, 10);
-        if (name && id) {
-            map[name] = id;
-        }
-    });
-
-    return map;
+    const [x, y] = d3.pointer(event, zoomGroup.node())
+    return projection.invert([x, y])
 }
 
 onMounted(async () => {
-    try {
-        // Use the imported world atlas data
-        topoData.value = worldAtlasData;
-        // Build country mapping after data is loaded
-        countryMapping.value = buildCountryNameToIdMap();
+    await nextTick()
+    await initializeMap()
+    displayData()
 
-    } catch (error) {
-        console.error('Error loading map data:', error);
-        isLoading.value = false;
-    }
-    isLoading.value = false;
-});
+    resizeObserver = new ResizeObserver(async () => {
+        await initializeMap()
+        displayData()
+    })
+
+    resizeObserver.observe(mapContainer.value)
+})
+
+watch(() => props.geomapDataArray, (newVal) => {
+    geomapDataArray.value = newVal || []
+    displayData()
+}, { deep: true })
 
 onUnmounted(() => {
-    // clean up resources
-    if (resizeObserver) {
-        resizeObserver.disconnect();
-    }
-
-    // clear all transitions and intervals
-    d3.selectAll('.pulse-circle').interrupt();
-});
-
-// watch to render data only after topojson is ready
-watch(topoData, async (newData) => {
-    if (newData && mapContainer.value) {
-        await initializeMap();
-        displayData();
-        // set up resize observer
-        resizeObserver = new ResizeObserver(handleResize);
-        resizeObserver.observe(mapContainer.value);
-    }
-}, { immediate: true });
-
-// watch data props change and re-render
-watch(() => props.geomapDataArray, async (newData) => {
-    geomapDataArray.value = newData;
-
-    if (g && worldData) {
-        displayData();
-    } else {
-        await initializeMap();
-    }
-}, { immediate: true, deep: true });
-
-const redraw = async () => {
-    if (!mapContainer.value || !svgElement.value || !worldData) return;
-
-    await nextTick(); 
-
-    const rect = mapContainer.value.getBoundingClientRect();
-    width = rect.width;
-    height = rect.height;
-
-    svg
-        .attr('width', width)
-        .attr('height', height)
-        .attr('viewBox', [0, 0, width, height]);
-
-    projection
-        .translate([width / 2, height / 2])
-        .scale((width) / (2 * Math.PI) * 0.9);
-
-    path = d3.geoPath().projection(projection);
-
-    g.selectAll('path.country')
-        .attr('d', path);
-
-    g.selectAll('path.country-borders')
-        .attr('d', path(topojson.mesh(topoData.value, topoData.value.objects.countries, (a, b) => a !== b)));
-
-    if (geomapDataArray.value && geomapDataArray.value.length > 0) {
-        displayData();
-    }
-};
-
-// Expose methods to parent components
-defineExpose({ redraw });
+    if (resizeObserver) resizeObserver.disconnect()
+})
 </script>
 
 <style scoped>
@@ -631,7 +289,8 @@ defineExpose({ redraw });
     font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-.graph-svg, :deep(svg) {
+.graph-svg,
+:deep(svg) {
     border-radius: 8px;
     overflow: hidden;
 }
@@ -819,5 +478,13 @@ defineExpose({ redraw });
 
 :deep(.pulse-circle) {
     animation: pulse 1.5s infinite ease-out;
+}
+
+:deep(.country-label) {
+    fill: #94a3b8;
+    font-size: 8px;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity 0.2s ease;
 }
 </style>
