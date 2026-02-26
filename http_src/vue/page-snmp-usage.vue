@@ -186,7 +186,7 @@ async function epoch_change() {
 
     if (chart.value) {
         const options = await get_chart_options();
-        chart.value.update_chart_series(options?.data);
+        chart.value.updateChartSeries(options?.data);
     }
 }
 

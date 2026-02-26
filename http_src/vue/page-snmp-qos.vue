@@ -442,7 +442,7 @@ function epoch_change() {
 async function refresh_chart() {
   if (all_qos_chart.value) {
     const result = await get_chart_options();
-    all_qos_chart.value.update_chart_series(result.data);
+    all_qos_chart.value.updateChartSeries(result.data);
   }
 }
 

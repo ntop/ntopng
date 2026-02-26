@@ -81,7 +81,7 @@ const update = async function (url) {
    
    data2.push([ current_time, rsp.totBytesSent, rsp.totBytesRcvd ])
    const serie = data.map((el) => { return [el[0] /* Timestamp */, el[1] /* Value */, el[2]] })
-   chart.value.update_chart_series(serie);
+   chart.value.updateChartSeries(serie);
 }
 
 const reset = async function () {
@@ -93,7 +93,7 @@ const reset = async function () {
    }
    data2 = [...data];
    is_first_update = true;
-   chart.value.update_chart_series(data);
+   chart.value.updateChartSeries(data);
 }
 
 defineExpose({ update, reset });

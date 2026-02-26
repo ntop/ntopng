@@ -124,7 +124,7 @@ export default {
 			}
 			let chart_options = await this.get_chart_options(url_request);
             if (chart_options?.series) {
-                this.update_chart_series(chart_options.series)
+                this.updateChartSeries(chart_options.series)
             } else {
 			    this.chart.updateChart(chart_options);
             }
@@ -132,7 +132,7 @@ export default {
 		update_chart_options: function (chart_options) {
 			this.chart.updateChart(chart_options);
 		},
-		update_chart_series: function (series) {
+		updateChartSeries: function (series) {
 			if (series == null) { return; }
 			this.chart.updateSeries(series);
 		},
