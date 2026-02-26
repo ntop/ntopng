@@ -75,6 +75,12 @@ let zoomGroup = null
 let worldData = null
 let resizeObserver = null
 let highlightedCountry = null
+let hide_timer = null;
+
+
+const onTooltipMouseEnter = () => {
+    if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
+};
 
 const initializeMap = async () => {
     if (!mapContainer.value || !svgElement.value) return
@@ -176,7 +182,7 @@ const initializeMap = async () => {
             const k = event.transform.k
             let newRadius = DOT_RADIUS / k
             if (newRadius > DOT_RADIUS) newRadius = DOT_RADIUS
-            if (newRadius < 0.3) newRadius = 0.3
+            if (newRadius < 0.15) newRadius = 0.15
 
             g.selectAll(".alert-dot")
                 .attr("r", newRadius)
@@ -212,33 +218,72 @@ const displayData = () => {
     }
 }
 
+///////////////////////////////
 const renderDotsByCoordinates = () => {
     geomapDataArray.value.forEach(alert => {
-        if (alert.lat == null || alert.lng == null) return
+        const latitude = alert.lat;
+        const longitude = alert.lng;
+        const color = '#FF8F00';
 
-        const [x, y] = projection([alert.lng, alert.lat])
-        if (!x || !y) return
+        if (latitude == null || longitude == null) return;
 
-        const node = g.append('g')
+        const coordinates = projection([longitude, latitude]);
+        if (!coordinates || isNaN(coordinates[0]) || isNaN(coordinates[1])) return;
+
+        const [x, y] = coordinates;
+
+        const nodeGroup = g.append('g')
             .attr('class', 'alert-group')
             .attr('transform', `translate(${x}, ${y})`)
-            .style('cursor', 'pointer')
+            .style('cursor', 'pointer');
 
-        node.append('circle')
+        nodeGroup.append('circle')
             .attr('class', 'alert-dot')
             .attr('r', DOT_RADIUS)
-            .attr('fill', alert.color || '#FF8F00')
+            .attr('fill', color)
             .attr('stroke', '#ffffff')
             .attr('stroke-width', 0.5)
-            .attr('vector-effect', 'non-scaling-stroke')
+            .attr('data-original-radius', DOT_RADIUS)
+            .attr('data-original-color', color);
 
-        node.on('click', (event) => {
-            event.stopPropagation()
-            showTooltip(event, alert)
-        })
-    })
+        nodeGroup.on('click', function (event) {
+            if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
+            showTooltip(event, alert, this);
+        });
+        nodeGroup.on('mouseover', function (event) {
+            if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
+            if (props.showTooltipOnHover) {
+                showTooltip(event, alert, this);
+            }
+        });
+        nodeGroup.on('mouseout', function (event) {
+            // Delay close so the user can move the pointer to the tooltip without it disappearing
+            hide_timer = setTimeout(() => {
+                if (tooltip.value.show) closeTooltip();
+            }, 200);
+        });
+    });
+};
+
+const showTooltip = (eventName, alert) => {
+// prevent map click handler from firing
+    eventName.stopPropagation();
+    const tooltipContent = props.tooltipFormatter(alert);
+
+    // get mouse position to put tooltip
+    const [mouseX, mouseY] = d3.pointer(eventName, mapContainer.value);
+
+    // show tooltip
+    tooltip.value = {
+        show: true,
+        x: mouseX,
+        y: mouseY,
+        content: tooltipContent,
+        targetElement: this
+    };
+
 }
-
+        
 const zoomChart = (direction) => {
     if (!svg || !zoom) return
 
@@ -254,24 +299,9 @@ const zoomChart = (direction) => {
 //////////////////////////////////////////////
 // TOOLTIP
 
-const showTooltip = (event, alert) => {
-    const [mouseX, mouseY] = d3.pointer(event, mapContainer.value)
-
-    tooltip.value = {
-        show: true,
-        x: mouseX + 15,
-        y: mouseY + 10,
-        content: props.tooltipFormatter
-            ? props.tooltipFormatter(alert)
-            : JSON.stringify(alert),
-        targetElement: null
-    }
-}
-
 const closeTooltip = () => {
     tooltip.value.show = false
 }
-
 
 function getLatLngFromEvent(event) {
     const [x, y] = d3.pointer(event, zoomGroup.node())
