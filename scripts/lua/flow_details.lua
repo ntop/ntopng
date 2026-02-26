@@ -115,18 +115,6 @@ local function colorNotZero(v)
    end
 end
 
-local function firstDottedElement(str)
-   if(isIPv4(str)
-      -- the string does not contain a dot
-      or (string.find(str, ".", 1, true) == nil)) then
-   return str
-   else
-      local items = split(str, "%.")
-
-      return(items[1])
-   end
-end
-
 local function draw_graph(iec, total, mapping)
    local nodes = {}
    local nodes_id = {}
@@ -2110,132 +2098,21 @@ if isEmptyString(page) or page == "overview" then
 	 end
 
 	 if(table.len(flow_trajectory) > 0) then
-	    print('<tr>')
-	    if(table.len(flow.deduplication) == 0) then print("<td></td>") end
-	    print('<th colspan=2 style="height: 400px; width: 66%; max-width: 66%; overflow: hidden;">')
-
-	    local nodes = {}
-	    local next_hops = {}
-	    local i = 1
-	    local client_id
-	    local server_id
-
-	    if nodes[flow["cli.ip"]] == nil then
-	       nodes[flow["cli.ip"]] = i
-	       client_id = i
-	       i = i + 1
-	    end
-
-	    if nodes[flow["srv.ip"]] == nil then
-	       nodes[flow["srv.ip"]] = i
-	       server_id = i
-	       i = i + 1
-	    end
-
-	    for exporter_ip, x in pairs(flow_trajectory) do
-	       for _, v in pairs(x) do
-		  local next_hop = v.next_hop
-		  if nodes[exporter_ip] == nil then
-		     nodes[exporter_ip] = i
-		     i = i + 1
-		  end
-		  if next_hop ~= nil and nodes[next_hop] == nil then
-		     nodes[next_hop] = i
-		     i = i + 1
-		  end
-		  if next_hop ~= nil then
-		     next_hops[next_hop] = true
-		  end
-	       end
-	    end
-
-	    -- Build graph_nodes
-	    local graph_nodes = {}
-	    for ip, id in pairs(nodes) do
-	       local label, color
-	       if ip == flow["cli.ip"] then
-		  label = ip .. " (Client)"
-		  color = "#FFCA28"
-	       elseif ip == flow["srv.ip"] then
-		  label = ip .. " (Server)"
-		  color = "#FF7043"
-	       else
-		  if nodes_names[ip] ~= nil then
-		     local ret = nodes_names[ip]
-		     local site = ret[2]
-		     label = ret[1]
-		     if site ~= nil then label = label .. " (" .. site .. ")" end
-		  else
-		     label = ip
-		  end
-	       end
-	       local node = { id = id, label = label }
-	       if color ~= nil then node["color"] = color end
-	       if ip == flow["cli.ip"] then node["first"] = true end
-	       graph_nodes[#graph_nodes + 1] = node
-	    end
-
-	    if(table.len(flow_trajectory) > 0) then
-	       -- Build graph_edges
-	       local graph_edges = {}
-
-	       for exporter_ip, x in pairs(flow_trajectory) do
-		  for _, v in pairs(x) do
-		     local next_hop = v.next_hop
-		     local return_path = v.return_path
-		     if next_hop ~= nil then
-			local edge = { from = nodes[exporter_ip], to = nodes[next_hop] }
-			if return_path then edge["return_path"] = true end
-			graph_edges[#graph_edges + 1] = edge
-		     end
-		  end
-	       end
-
-	       for exporter_ip, x in pairs(flow_trajectory) do
-		  for _, v in pairs(x) do
-		     local next_hop = v.next_hop
-		     local return_path = v.return_path
-		     if next_hop ~= nil then
-			if flow_trajectory[next_hop] == nil then
-			   if return_path then
-			      graph_edges[#graph_edges + 1] = { from = nodes[next_hop], to = client_id, return_path = true }
-			   else
-			      graph_edges[#graph_edges + 1] = { from = nodes[next_hop], to = server_id }
-			   end
-			end
-		     else
-			graph_edges[#graph_edges + 1] = { from = nodes[exporter_ip], to = server_id }
-		     end
-		  end
-	       end
-
-	       for exporter_ip, x in pairs(flow_trajectory) do
-		  for _, v in pairs(x) do
-		     local return_path = v.return_path
-		     if next_hops[exporter_ip] == nil then
-			if return_path then
-			   if(server_id ~= nodes[exporter_ip]) then
-			      graph_edges[#graph_edges + 1] = { from = server_id, to = nodes[exporter_ip], return_path = true }
-			   end
-			else
-			   if(client_id ~=  nodes[exporter_ip]) then
-			      graph_edges[#graph_edges + 1] = { from = client_id, to = nodes[exporter_ip] }
-			   end
-			end
-		     end
-		  end
-	       end
-	       
-	       local json_context = json.encode({ nodes = graph_nodes, edges = graph_edges })
-	       print('<div style="width:100%; max-width:100%; overflow:hidden;">')
-	       template.render("pages/vue_page.template", {
-				  vue_page_name = "PageExportersGraph",
-				  page_context  = json_context
-	       })
-	       print('</div>')
-	    end
-	    
-	    print('</th></tr>\n')	    
+      print('<tr>')
+	   if(table.len(flow.deduplication) == 0) then print("<td></td>") end
+	   print('<th colspan=2 style="height: 400px; width: 66%; max-width: 66%; overflow: hidden;">')
+	   
+      local nodes, edges = buildExportersGraph(flow_trajectory, nodes_names, flow["cli.ip"], flow["srv.ip"])
+      
+      local json_context = json.encode({ nodes = nodes, edges = edges })
+      print('<div style="width:100%; max-width:100%; overflow:hidden;">')
+      template.render("pages/vue_page.template", {
+         vue_page_name = "PageExportersGraph",
+         page_context  = json_context
+      })
+      
+      print('</div>')
+      print('</th></tr>\n')
 	 end
 
          local function format_custom_field(key, value, snmpdevice)

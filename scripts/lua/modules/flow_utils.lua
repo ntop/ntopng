@@ -1688,6 +1688,140 @@ end
 
 -- #######################
 
+function firstDottedElement(str)
+   if(isIPv4(str)
+      -- the string does not contain a dot
+      or (string.find(str, ".", 1, true) == nil)) then
+   return str
+   else
+      local items = split(str, "%.")
+
+      return(items[1])
+   end
+end
+
+-- #######################
+
+function buildExportersGraph(flow_trajectory, nodes_names, cli_ip, srv_ip)
+    if(table.len(flow_trajectory) > 0) then
+	    local nodes = {}
+	    local next_hops = {}
+	    local i = 1
+	    local client_id
+	    local server_id
+
+	    if nodes[cli_ip] == nil then
+	        nodes[cli_ip] = i
+	        client_id = i
+	        i = i + 1
+	    end
+
+	    if nodes[srv_ip] == nil then
+	        nodes[srv_ip] = i
+	        server_id = i
+	        i = i + 1
+	    end
+
+	    for exporter_ip, x in pairs(flow_trajectory) do
+            for _, v in pairs(x) do
+                local next_hop = v.next_hop
+                if nodes[exporter_ip] == nil then
+                    nodes[exporter_ip] = i
+                    i = i + 1
+                end
+                if next_hop ~= nil and nodes[next_hop] == nil then
+                    nodes[next_hop] = i
+                    i = i + 1
+                end
+                if next_hop ~= nil then
+                    next_hops[next_hop] = true
+                end
+            end
+	    end
+
+	    -- Build graph_nodes
+	    local graph_nodes = {}
+	    for ip, id in pairs(nodes) do
+            local label, color
+            if ip == cli_ip then
+                label = ip .. " (Client)"
+                color = "#FFCA28"
+            elseif ip == srv_ip then
+                label = ip .. " (Server)"
+                color = "#FF7043"
+            else
+                if nodes_names[ip] ~= nil then
+                    local ret = nodes_names[ip]
+                    local site = ret[2]
+                    label = ret[1]
+                    if site ~= nil then label = label .. " (" .. site .. ")" end
+                else
+                    label = ip
+                end
+            end
+            local node = { id = id, label = label }
+            if color ~= nil then node["color"] = color end
+            if ip == cli_ip then node["first"] = true end
+            graph_nodes[#graph_nodes + 1] = node
+	    end
+
+	    if(table.len(flow_trajectory) > 0) then
+            -- Build graph_edges
+            local graph_edges = {}
+
+            for exporter_ip, x in pairs(flow_trajectory) do
+                for _, v in pairs(x) do
+                    local next_hop = v.next_hop
+                    local return_path = v.return_path
+                    if next_hop ~= nil then
+                        local edge = { from = nodes[exporter_ip], to = nodes[next_hop] }
+                        if return_path then edge["return_path"] = true end
+                        graph_edges[#graph_edges + 1] = edge
+                    end
+                end
+            end
+
+            for exporter_ip, x in pairs(flow_trajectory) do
+                for _, v in pairs(x) do
+                    local next_hop = v.next_hop
+                    local return_path = v.return_path
+                    if next_hop ~= nil then
+                        if flow_trajectory[next_hop] == nil then
+                            if return_path then
+                                graph_edges[#graph_edges + 1] = { from = nodes[next_hop], to = client_id, return_path = true }
+                            else
+                                graph_edges[#graph_edges + 1] = { from = nodes[next_hop], to = server_id }
+                            end
+                        end
+                    else
+                        graph_edges[#graph_edges + 1] = { from = nodes[exporter_ip], to = server_id }
+                    end
+                end
+            end
+
+            for exporter_ip, x in pairs(flow_trajectory) do
+                for _, v in pairs(x) do
+                    local return_path = v.return_path
+                    if next_hops[exporter_ip] == nil then
+                        if return_path then
+                            if(server_id ~= nodes[exporter_ip]) then
+                                graph_edges[#graph_edges + 1] = { from = server_id, to = nodes[exporter_ip], return_path = true }
+                            end
+                        else
+                            if(client_id ~=  nodes[exporter_ip]) then
+                                graph_edges[#graph_edges + 1] = { from = client_id, to = nodes[exporter_ip] }
+                            end
+                        end
+                    end
+                end
+            end
+            return graph_nodes, graph_edges
+	    end	    
+	end 
+end
+
+-- #######################
+
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx, as_row)
     local inputidx_name = format_portidx_name(snmpdevice, tostring(input_idx), true)
     local outputidx_name = format_portidx_name(snmpdevice, tostring(output_idx), true)

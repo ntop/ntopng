@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
 require "lua_utils"
+require("flow_utils")
 local json = require "dkjson"
 local dscp_consts = require "dscp_consts"
 local flow_risk_utils = require "flow_risk_utils"
@@ -749,6 +750,90 @@ local function format_historical_flow_traffic_stats(rowspan, cli2srv_retr, srv2c
    return flow_details
 end
 
+-- ###############################################
+
+-- If protocol JSON contains additional exporters information,
+-- append their formatted representation to the flow details output.
+-- This block extends the standard flow details with deduplicated/exporter-hop path data.
+local function format_historical_flow_additional_exporter(additional_exporters, cli_ip, srv_ip)
+   local flow_details = {}
+
+   -- Validate input: must be a table of exporters
+   if not additional_exporters or type(additional_exporters) ~= "table" then
+      return flow_details
+   end
+
+   -- Graph structures:
+   -- flow_trajectory maps exporter_ip -> list of next hops
+   -- nodes_names maps ip -> {label, site}
+   local flow_trajectory = {}
+   local nodes_names = {}
+
+   -- Add header row for the exporters table
+   flow_details[#flow_details + 1] = {
+      name = i18n("dedup_flows"),
+      values = {
+         "<b>" .. i18n("flow_exporter") .. " / " .. i18n("next_hop") .. "</b>",
+         "<b>" .. i18n("flows_page.inIfIdx") .. " / ".. i18n("flows_page.outIfIdx") .. "</b>"
+      }
+   }
+
+   -- Collect exporter indexes so they can be sorted numerically
+   local ordered = {}
+   for k in pairs(additional_exporters) do
+      ordered[#ordered + 1] = k
+   end
+   table.sort(ordered, function(a,b) return tonumber(a) < tonumber(b) end)
+
+   -- Iterate exporters in sorted order
+   for _, idx in ipairs(ordered) do
+      local exp = additional_exporters[idx]
+      if exp then
+         -- Resolve exporter and next hop display info
+         local exporter_url, exporter_ip, exporter_name, site = formatExporter(exp.exporter_ip)
+         local next_hop_label, next_hop_ip, next_hop_name, next_hop_site = formatNextHop(exp.next_hop)
+
+         -- Add row to details table
+         flow_details[#flow_details + 1] = {
+            name = "",
+            values = {
+               tostring(exporter_url or "-") .. " / " .. tostring(next_hop_label or "-"),
+               tostring(exp.input_idx or "-") .. " / " .. tostring(exp.output_idx or "-")
+            }
+         }
+         -- Build graph edge: exporter -> next_hop 
+         if exporter_ip then
+            -- Initialize adjacency list for exporter if not present
+            if not flow_trajectory[exporter_ip] then
+               flow_trajectory[exporter_ip] = {}
+            end
+
+            -- Insert directed edge
+            table.insert(flow_trajectory[exporter_ip], {
+               next_hop = next_hop_ip,
+               return_path = false
+            })
+            -- Register exporter node label
+            nodes_names[exporter_ip] = { firstDottedElement(exporter_name), site }
+         end
+         -- Register next hop node label
+         if next_hop_ip then
+            nodes_names[next_hop_ip] = { firstDottedElement(next_hop_name), next_hop_site }
+         end
+      end
+   end
+   if table.len(flow_trajectory) > 0 then
+      -- Build graph only if at least one exporter node exists
+      local nodes, edges = buildExportersGraph(flow_trajectory, nodes_names, cli_ip, srv_ip)
+
+      -- Add the graph
+   end
+   return flow_details
+end
+
+-- ###############################################
+
+
 local function format_historical_flow_rtt(client_nw_latency, server_nw_latency)
    -- server_nw_latency and client_nw_latency are in us
    local client_nw_latency_ms = client_nw_latency / 1000
@@ -881,6 +966,11 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
                protocol_info_json["traffic_stats"]["srv2cli_retransmissions"], protocol_info_json["traffic_stats"]["cli2srv_out_of_order"],
                protocol_info_json["traffic_stats"]["srv2cli_out_of_order"], protocol_info_json["traffic_stats"]["cli2srv_lost"],
                protocol_info_json["traffic_stats"]["srv2cli_lost"]))
+      end
+
+      if (protocol_info_json["additional_exporters"] and table.len(protocol_info_json["additional_exporters"]) > 0) then
+         flow_details = table.merge(flow_details, 
+               format_historical_flow_additional_exporter(protocol_info_json["additional_exporters"], info.cli_ip.ip, info.srv_ip.ip))
       end
 
       if tonumber(flow["OBSERVATION_POINT_ID"]) ~= 0 then
