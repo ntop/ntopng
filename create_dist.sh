@@ -1,52 +1,17 @@
 #!/bin/bash
 
-# Instructions
-# this script is used to create the ntopng GUI dist
-# 1. Pull ntopng dist under ../ https://github.com/ntop/ntopng-dist.git
-# run ./create_dist.sh to create and push the compiled dist directly
-
-# Check if dist folder exists as sibling folder of ntopng
-if [ ! -d "../ntopng-dist" ]; then
-    echo "** Cloning ntopng-dist repository"
-  git clone -b 6.6-stable https://github.com/ntop/ntopng-dist.git ../ntopng-dist || {
-      echo "Failed to clone repository"
-      exit 1
-  }
-fi
-echo "** Changing to ntopng-dist directory"
-cd ../ntopng-dist/ || exit 1
-echo "Current directory: $(pwd)"
-
-# Pull the latest changes and rebase
-git pull --rebase || exit 1
-echo "Pulled latest changes"
-
-echo "** Changing to ntopng directory"
-cd ../ntopng/ || exit 1
-echo "Current directory: $(pwd)"
+branch_name=`git branch | head | cut -d ' ' -f 2`
 
 echo "-- Compiling Dist -- "
-make dist-ntopng
-echo "-------------------- "
+npm run build || exit 1
 
-echo "** Changing to ntopng-dist directory"
+echo "-- Pushing code -- "
+cd httpdocs/dist
+git checkout $branch_name
 
-# Checkout old dist
-cd ../ntopng-dist/ || exit 1
-git checkout ntopng.js
-
-# Copy the new dist file after pulling the updates
-cp ../ntopng/httpdocs/dist/ntopng.js ./ || exit 1
-echo "Copied ntopng.js"
-
-
-git add ntopng.js || exit 1
-git add dark-mode.css || exit 1
-git add white-mode.css || exit 1
-
+git add *
 git commit -m 'updated dist' || exit 1
 echo "Committed"
-
 
 git push || exit 1
 echo "Pushed"
