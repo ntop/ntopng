@@ -2042,9 +2042,6 @@ if isEmptyString(page) or page == "overview" then
 
 	    nodes_names[exporter_ip] = { firstDottedElement(exporter_name), site }
 
-            print("<tr><th>" .. i18n("details.flow_exporter") .. " / "..  i18n("next_hop") .. "</th>")
-            print("<td>" .. exporter_info_url .. "</td>")
-
 	    if(next_hop == nil) then
 	       next_hop = ""
 	    else
@@ -2052,15 +2049,6 @@ if isEmptyString(page) or page == "overview" then
 	       nodes_names[next_hop_ip] = { firstDottedElement(next_hop_name), next_hop_site }
 	    end
 
-	    print("<td>".. next_hop .."</tr></tr>")
-
-            if (flow["in_index"] or flow["out_index"]) then
-               if ((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
-                  -- nothing to do (they are likely to be not initialized)
-               else
-                  printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
-               end
-            end
 
 	    if(flow_trajectory[exporter_ip] == nil) then
 	       flow_trajectory[exporter_ip] = {}

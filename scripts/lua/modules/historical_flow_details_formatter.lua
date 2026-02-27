@@ -929,10 +929,6 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
          end
       end
 
-      if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP']) and (flow['PROBE_IP'] ~= '0.0.0.0')) then
-         flow_details = format_historical_probe(flow_details, flow, info)
-      end
-
       if tonumber(flow["CLIENT_NW_LATENCY_US"]) ~= 0 then
          flow_details[#flow_details + 1] = format_historical_latency(flow, "CLIENT_NW_LATENCY_US", "cli")
       end
