@@ -756,6 +756,8 @@ end
 -- append their formatted representation to the flow details output.
 -- This block extends the standard flow details with deduplicated/exporter-hop path data.
 local function format_historical_flow_additional_exporter(exporters, cli_ip, srv_ip)
+   local historical_flow_utils = require "historical_flow_utils"
+   local format_utils = require "format_utils"
    local flow_details = {}
 
    -- Validate input: must be a table of exporters
@@ -791,14 +793,25 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
       if exp then
          -- Resolve exporter and next hop display info
          local exporter_url, exporter_ip, exporter_name, site = formatExporter(exp.exporter_ip)
+         exporter_url = historical_flow_utils.get_historical_url(exporter_name, "probe_ip", exporter_ip, true, exporter_name)
+
          local next_hop_label, next_hop_ip, next_hop_name, next_hop_site = formatNextHop(exp.next_hop)
 
+         -- Resolve input_idx and output_idx display info
+         local input_idx = historical_flow_utils.get_historical_url(
+            format_utils.formatSNMPInterface(exporter_ip, exp.input_idx), "input_snmp", exporter_ip .."_"..exp.input_idx, true,
+            exp.input_idx)
+
+         local output_idx = historical_flow_utils.get_historical_url(
+            format_utils.formatSNMPInterface(exporter_ip, exp.output_idx), "output_snmp", exporter_ip .."_"..exp.output_idx, true,
+            exp.output_idx)
+         
          -- Add row to details table
          flow_details[#flow_details + 1] = {
             name = "",
             values = {
                tostring(exporter_url or "-") .. " / " .. tostring(next_hop_label or "-"),
-               tostring(exp.input_idx or "-") .. " / " .. tostring(exp.output_idx or "-")
+               tostring(input_idx or "-") .. " / " .. tostring(output_idx or "-")
             }
          }
          -- Build graph edge: exporter -> next_hop 
@@ -927,6 +940,10 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
          if add_info_field(flow) then
             flow_details[#flow_details + 1] = format_historical_info(flow)
          end
+      end
+      
+      if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP']) and (flow['PROBE_IP'] ~= '0.0.0.0')) then
+         flow_details = format_historical_probe(flow_details, flow, info)
       end
 
       if tonumber(flow["CLIENT_NW_LATENCY_US"]) ~= 0 then
