@@ -2072,7 +2072,7 @@ if isEmptyString(page) or page == "overview" then
 	 if(flow.exporters ~= nil) then
 	    local len = table.len(flow.exporters)+1
 
-	    print("<tr><th rowspan=\""..(len+1).."\">" .. i18n("dedup_flows") .. "</th>")
+	    print("<tr><th rowspan=\""..(len+1).."\">" .. i18n("exporters_info") .. "</th>")
 	    print("<th>" .. i18n("flow_exporter") .. " / " .. i18n("next_hop") .. "</th><th>" .. i18n("flows_page.inIfIdx") .. " / ".. i18n("flows_page.outIfIdx") .. "</th></tr>\n")
 
 	    for k,v in pairs(flow.exporters) do

@@ -3481,7 +3481,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
 	  break;
       }
 
-      lua_pushstring(vm, "deduplication");
+      lua_pushstring(vm, "exporters");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }

@@ -755,11 +755,11 @@ end
 -- If protocol JSON contains additional exporters information,
 -- append their formatted representation to the flow details output.
 -- This block extends the standard flow details with deduplicated/exporter-hop path data.
-local function format_historical_flow_additional_exporter(additional_exporters, cli_ip, srv_ip)
+local function format_historical_flow_additional_exporter(exporters, cli_ip, srv_ip)
    local flow_details = {}
 
    -- Validate input: must be a table of exporters
-   if not additional_exporters or type(additional_exporters) ~= "table" then
+   if not exporters or type(exporters) ~= "table" then
       return flow_details
    end
 
@@ -771,7 +771,7 @@ local function format_historical_flow_additional_exporter(additional_exporters, 
 
    -- Add header row for the exporters table
    flow_details[#flow_details + 1] = {
-      name = i18n("dedup_flows"),
+      name = i18n("exporters_info"),
       values = {
          "<b>" .. i18n("flow_exporter") .. " / " .. i18n("next_hop") .. "</b>",
          "<b>" .. i18n("flows_page.inIfIdx") .. " / ".. i18n("flows_page.outIfIdx") .. "</b>"
@@ -780,14 +780,14 @@ local function format_historical_flow_additional_exporter(additional_exporters, 
 
    -- Collect exporter indexes so they can be sorted numerically
    local ordered = {}
-   for k in pairs(additional_exporters) do
+   for k in pairs(exporters) do
       ordered[#ordered + 1] = k
    end
    table.sort(ordered, function(a,b) return tonumber(a) < tonumber(b) end)
 
    -- Iterate exporters in sorted order
    for _, idx in ipairs(ordered) do
-      local exp = additional_exporters[idx]
+      local exp = exporters[idx]
       if exp then
          -- Resolve exporter and next hop display info
          local exporter_url, exporter_ip, exporter_name, site = formatExporter(exp.exporter_ip)
@@ -968,9 +968,9 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
                protocol_info_json["traffic_stats"]["srv2cli_lost"]))
       end
 
-      if (protocol_info_json["additional_exporters"] and table.len(protocol_info_json["additional_exporters"]) > 0) then
+      if (protocol_info_json["exporters"] and table.len(protocol_info_json["exporters"]) > 0) then
          flow_details = table.merge(flow_details, 
-               format_historical_flow_additional_exporter(protocol_info_json["additional_exporters"], info.cli_ip.ip, info.srv_ip.ip))
+               format_historical_flow_additional_exporter(protocol_info_json["exporters"], info.cli_ip.ip, info.srv_ip.ip))
       end
 
       if tonumber(flow["OBSERVATION_POINT_ID"]) ~= 0 then
