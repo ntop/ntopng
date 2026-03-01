@@ -866,6 +866,8 @@ else
                      '/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
             print(' <A class="ntopng-external-link" href="https://www.abuseipdb.com/check/' .. host["ip"] ..
                      '" target=_blank><small>AbuseIP DB</small> <i class=\"fas fa-external-link-alt\"></i></A>')
+            print(' <A class="ntopng-external-link" href="https://ipinfo.io/' .. host["ip"] ..
+                     '" target=_blank><small>IPinfo</small> <i class=\"fas fa-external-link-alt\"></i></A>')
          end
 
          if (ifstats.inline and ((host["localhost"] == true) and (host["is_multicast"] == false) and (host["is_broadcast"] == false))) then
