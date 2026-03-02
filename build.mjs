@@ -26,10 +26,7 @@ import { renameSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { gzipSync } from 'zlib';
 import inject from '@rollup/plugin-inject';
 import autoprefixer from 'autoprefixer';
-import imagemin from 'imagemin';
-import imageminMozjpeg from 'imagemin-mozjpeg';
-import imageminPngquant from 'imagemin-pngquant';
-import imageminGifsicle from 'imagemin-gifsicle';
+import sharp from 'sharp';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const isProd = process.argv.includes('--prod');
@@ -63,33 +60,30 @@ const sharedResolve = {
 
 /** Vite plugin: compress PNG/JPEG/GIF assets using imagemin (production only) */
 const imageminPlugin = isProd ? {
-    name: 'vite-plugin-imagemin',
+    name: 'vite-plugin-sharp',
     async generateBundle(_, bundle) {
         for (const [fileName, asset] of Object.entries(bundle)) {
             if (asset.type !== 'asset') continue;
-            const src = asset.source instanceof Uint8Array
-                ? Buffer.from(asset.source)
-                : Buffer.from(asset.source);
-
-            let plugins;
-            if (/\.(jpg|jpeg)$/i.test(fileName)) {
-                plugins = [imageminMozjpeg({ progressive: true })];
-            } else if (/\.png$/i.test(fileName)) {
-                plugins = [imageminPngquant({ quality: [0.65, 0.90], speed: 4 })];
-            } else if (/\.gif$/i.test(fileName)) {
-                plugins = [imageminGifsicle({ interlaced: false })];
-            } else {
-                continue;
-            }
+            const src = Buffer.from(asset.source);
 
             try {
-                const compressed = await imagemin.buffer(src, { plugins });
+                let compressed;
+                if (/\.(jpg|jpeg)$/i.test(fileName)) {
+                    compressed = await sharp(src).jpeg({ progressive: true, quality: 80 }).toBuffer();
+                } else if (/\.png$/i.test(fileName)) {
+                    compressed = await sharp(src).png({ compressionLevel: 9, quality: 80 }).toBuffer();
+                } else if (/\.gif$/i.test(fileName)) {
+                    continue; // sharp doesn't process GIFs, skip
+                } else {
+                    continue;
+                }
+
                 if (compressed.length < src.length) {
                     asset.source = compressed;
-                    console.log(`  imagemin: ${fileName} ${src.length} → ${compressed.length} bytes`);
+                    console.log(`  sharp: ${fileName} ${src.length} → ${compressed.length} bytes`);
                 }
             } catch (e) {
-                console.warn(`  imagemin: skipped ${fileName} — ${e.message}`);
+                console.warn(`  sharp: skipped ${fileName} — ${e.message}`);
             }
         }
     }

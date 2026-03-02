@@ -29,23 +29,6 @@ import 'datatables.net-responsive-dt'
 window.dt = dt
 
 import 'peity'
-import * as L from 'leaflet'
-import 'leaflet.markercluster'
-
-/* See issue https://github.com/PaulLeCam/react-leaflet/issues/255 */
-import marker from 'leaflet/dist/images/marker-icon.png';
-import marker2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-const iconDefault = L.icon({
-  iconRetinaUrl: marker2x,
-  iconUrl: marker,
-  shadowUrl: markerShadow,
-});
-
-L.Marker.prototype.options.icon = iconDefault;
-
-window.L = L
 
 import 'flatpickr'
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle'
@@ -97,12 +80,8 @@ window.aysUpdateForm = aysUpdateForm
 window.aysRecheckForm = aysRecheckForm
 
 import * as d3v7 from "d3v7";
-import * as sankey from "d3-sankey";
-import { chord } from "d3-chord";
 
 window.d3v7 = {
-  ...d3v7,
-  ...sankey,
-  ...chord,
+  ...d3v7
 };
 

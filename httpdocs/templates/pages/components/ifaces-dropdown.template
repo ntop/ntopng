@@ -1,4 +1,3 @@
-
 {% -- Print out the infrastructure dropdown %}
 
 {% if ntop.isEnterpriseM() and isAdministrator() and (table.len(infrastructure_instances) > 0) then %}  
@@ -10,28 +9,26 @@
     <input name="instance_id" type="hidden" value="" />
   </form>
 
-  <li class="nav-item d-sm-flex">
-    <div class="d-flex">
-      <select name="infrastructure-dropdown" id="infrastructure-dropdown" class="selectpicker form-select-lg pb-0"
-        data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+  <li class="nav-item d-none d-sm-done d-md-flex d-lg-flex p-2">
+      <select name="infrastructure-dropdown" id="infrastructure-dropdown" class="form-select">
+        <option value="{{ ntop.getHttpPrefix() }}/lua/index.lua" data-content="">&nbsp;&nbsp;{{ i18n('infrastructure_dashboard.local') }}</option>
 
-        <option value="{{ ntop.getHttpPrefix() }}/lua/index.lua" href="#" data-content=""> {{ i18n('infrastructure_dashboard.local') }}</option>
-
-        <option disabled>{{ i18n('infrastructure_dashboard.dashboards') }}</option>
+        <optgroup label="{{ i18n('infrastructure_dashboard.dashboards') }}"> 
 
         {% local selected = '' %}
         {% if infrastructure_view then %}
-            {% selected = 'selected=""' %}
+          {% selected = 'selected' %}
         {% end %}
-        <option value="{{ ntop.getHttpPrefix() }}/lua/index.lua?view=infrastructure" href="#" data-content="{{ "<i class='fas fa-tachometer-alt'></i> "..i18n('infrastructure_dashboard.infrastructure') }}" {{ selected }}></option>
+        <option value="{{ ntop.getHttpPrefix() }}/lua/index.lua?view=infrastructure" data-content="&nbsp;&nbsp;{{ "<i class='fas fa-tachometer-alt'></i> "..i18n('infrastructure_dashboard.infrastructure') }}" {{ selected }}>{{ i18n('infrastructure_dashboard.infrastructure') }}</option>
+        </optgroup>
 
-        <option disabled>{{ i18n('infrastructure_dashboard.instances') }}</option>
-        {% for k,v in pairs(infrastructure_instances or {}) do %}
-        <option value="{{ v.url }}" href="#" data-content="{{ "<i class='fas fa-building'></i> "..v.name }}"></option>
-        {% end %} 
+        <optgroup label="{{ i18n('infrastructure_dashboard.instances') }}">
+        {% for k, v in pairs(infrastructure_instances or {}) do %}
+          <option value="{{ v.url }}" data-content="&nbsp;&nbsp;{{ "<i class='fas fa-building'></i> "..v.name }}">{{ v.name }}</option>
+        {% end %}
+        </optgroup>
 
       </select>
-    </div>
   </li>
 {% end %}
 
@@ -50,45 +47,45 @@
   <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
 </form>
 {% end %}
+
 {% local system_interface_name = i18n('system') %}
 {% if ntop.isnEdge() then %}
-{%    system_interface_name = i18n('setup') %}
+{%   system_interface_name = i18n('setup') %}
 {% end %}
 
 {% if not infrastructure_view then %}
 
-<li class="nav-item d-sm-flex">
+<li class="nav-item d-none d-sm-done d-md-flex d-lg-flex p-2">
   <div class="d-flex">
-  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg pb-0" 
-    data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+    <select name="interfaces-dropdown" id="interfaces-dropdown" class="form-select">
 
-    {% if isAdministrator() then %}
-    <option disabled>{{ i18n('system') }}</option>
-    <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ system_interface_name }}" style="padding-left: 2rem !important;">{{ system_interface_name }}</option>
-    {% end %}
+      {% if isAdministrator() then %}
+      <optgroup label="{{ i18n('system') }}">
+        <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="&nbsp;&nbsp;{{ system_interface_name }}">{{ system_interface_name }}</option>
+      </optgroup>
+      {% end %}
 
-    {% -- The Interfaces optgroup %}
-    <option disabled>{{ i18n('interfaces') }}</option>
+      <optgroup label="{{ i18n('interfaces') }}">
 
-    {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
-      {% for k, v in pairsByValues(ifHdescr, asc) do %}
-        {% if round == 1 and ifCustom[k] then %}
-          {% -- Nothing to do, this round is for physical, non-disaggregated interfaces ... %}
-        {% elseif round == 2 and not ifCustom[k] then %}
-          {% -- Nothing to do, this round is for disaggregated interfaces only ... %}
-        {% else %}
-          {% local icons, selected = {}, '' %}
-	  
+      {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
+        {% for k, v in pairsByValues(ifHdescr, asc) do %}
+          {% if round == 1 and ifCustom[k] then %}
+            {% -- Nothing to do, this round is for physical, non-disaggregated interfaces ... %}
+          {% elseif round == 2 and not ifCustom[k] then %}
+            {% -- Nothing to do, this round is for disaggregated interfaces only ... %}
+          {% else %}
+            {% local icons, selected = {}, '' %}
+
             {% if tonumber(k) == interface.getId() and not is_system_interface then %}
-              {% selected = 'selected=""' %}
-   	    {% end %}
-  
+              {% selected = 'selected' %}
+            {% end %}
+
             {% if pcapdump[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-file'></i>" %}
             {% elseif packetinterfaces[k] then %}
               {% icons[#icons + 1] = "<i class='fas fa-ethernet'></i>" %}
             {% elseif zmqinterfaces[k] then %}
-              {% icons[#icons + 1] = "<i class='fas fa-bezier-curve'></i>" %} {% --broadcast-tower %}
+              {% icons[#icons + 1] = "<i class='fas fa-bezier-curve'></i>" %}
             {% end %}
 
             {% if views[k] then %}
@@ -107,79 +104,99 @@
               {% icons[#icons + 1] = "<i class='fas fa-hdd'></i>" %}
             {% end %}
 
-            <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ shortenCollapse(ifHdescr[k]) }}" style="padding-left: 2rem !important;">{{ ifHdescr[k] }}</option>
+            <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="&nbsp;&nbsp;{{ table.concat(icons, ' ') }} {{ shortenCollapse(ifHdescr[k]) }}">{{ ifHdescr[k] }}</option>
           {% end %}
         {% end %}
       {% end %}
-  </select>
-</div>
+      </optgroup>
+    </select>
+  </div>
 </li>
 
-{% -- not infrastructure_view %}
-{% end %}
+{% end %} {% -- not infrastructure_view %}
 
 {% -- Print the observation point dropdown %}
 {% if(observationPoints ~= nil) then %}
   {% for _, v in pairsByKeys(observationPoints, asc) do %}
-  <form id="switch_observation_point_form_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. "" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}" >
+  <form id="switch_observation_point_form_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}">
     <input name="switch_interface" type="hidden" value="1" />
     <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
   </form>
   {% end %}
 
-  <li class="nav-item d-sm-flex">
+  <li class="nav-item d-none d-sm-done d-md-flex d-lg-flex p-2">
     <div class="d-flex">
-      <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker form-select-lg pb-0" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
-      {% for _, v in pairsByField(observationPoints, 'obs_point', asc) do %}
-        {% local selected = '' %}
-        {% if((observationPointId ~= nil) and (tostring(v["obs_point"]) == tostring(observationPointId))) then selected = 'selected' end %}
-        <option value="{{ v["obs_point"] }}" {{ selected }}>{{ getObsPointAlias(v["obs_point"], true) }}</option>
-      {% end %}
-        </optgroup>
+      <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="form-select">
+        {% for _, v in pairsByField(observationPoints, 'obs_point', asc) do %}
+          {% local selected = '' %}
+          {% if((observationPointId ~= nil) and (tostring(v["obs_point"]) == tostring(observationPointId))) then selected = 'selected' end %}
+          <option value="{{ v["obs_point"] }}" {{ selected }}>{{ getObsPointAlias(v["obs_point"], true) }}</option>
+        {% end %}
       </select>
     </div>
   </li>
 {% end %}
 
 <script type="text/javascript">
-  // initialize the selectpicker
-  $('#infrastructure-dropdown').selectpicker();
-  $('#interfaces-dropdown').selectpicker();
-  $('#observationpoint-dropdown').selectpicker();
- 
-  $(`#infrastructure-dropdown`).on('change', function(e) {
-    const selectedValue = $(this).val();
 
-    /* URL */
-    window.location.replace(selectedValue);
-
-    /* Instance ID (not yet supported)
-    $('#switch_infrastructure_form [name="instance_id"]').val(selectedValue);
-    toggleSystemInterface($('#switch_infrastructure_form'));
-    */
-
-  });
-  
-  $(`#observationpoint-dropdown`).on('change', function(e) {
-    const selectedValue = $(this).val();
-    $('#switch_observation_point_form_'+ selectedValue).submit();
-  });
-
-  $("#interfaces-dropdown").on("change", function(e) {
-    const selectedValue = $(this).val();
-
-    if (isNaN(Number(selectedValue)) ) {
-      /* URL */
-      window.location.replace(selectedValue);
-    } else {
-      /* Interface ID */
-      toggleSystemInterface($('#switch_interface_form_' + selectedValue));
+function formatOptionWithIcon(option) {
+    if (!option.id) {
+        // disabled group headers
+        return $('<span class="text-muted">' + option.text + '</span>');
     }
-  });
+    const content = $(option.element).data('content');
+    if (content && content.trim() !== '') {
+      return $('<span>' + content + '</span>');
+    }
+    return $('<span>' + option.text + '</span>');
+}
 
-  const toggleObservationPoint = ($form = null) => {
-    if($form != null) 
-      $form.submit();
-  }
+function formatSelectionWithIcon(option) {
+    const content = $(option.element).data('content');
+    if (content && content.trim() !== '') {
+      return $('<span>' + content + '</span>');
+    }
+    return $('<span>' + option.text + '</span>');
+}
+
+const select2Config = {
+    theme: 'bootstrap-5',
+    width: 'auto',
+    dropdownAutoWidth: true,
+    language: {
+        searching: function() { return '{{ i18n("search") }}...'; },
+        noResults: function() { return '{{ i18n("no_results") }}'; },
+    },
+    templateResult: formatOptionWithIcon,
+    templateSelection: formatSelectionWithIcon,
+};
+
+$('#infrastructure-dropdown').select2(select2Config);
+$('#interfaces-dropdown').select2(select2Config);
+$('#observationpoint-dropdown').select2(select2Config);
+
+$('#infrastructure-dropdown').on('change', function(e) {
+    const selectedValue = $(this).val();
+    window.location.replace(selectedValue);
+});
+
+$('#observationpoint-dropdown').on('change', function(e) {
+    const selectedValue = $(this).val();
+    $('#switch_observation_point_form_' + selectedValue).submit();
+});
+
+$('#interfaces-dropdown').on('change', function(e) {
+    const selectedValue = $(this).val();
+    if (isNaN(Number(selectedValue))) {
+        window.location.replace(selectedValue);
+    } else {
+        toggleSystemInterface($('#switch_interface_form_' + selectedValue));
+    }
+});
+
+const toggleObservationPoint = ($form = null) => {
+    if ($form != null)
+        $form.submit();
+};
 
 </script>
