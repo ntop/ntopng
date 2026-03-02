@@ -194,7 +194,7 @@ function maintenance_check() {
 
 		# Allow updates on missing license file as this does not 
 		# invalidate the license and handle community mode
-		if [ `${APP_BIN} --check-license | grep Empty | wc -l ` -eq 0 ]; then
+		if [ `${APP_BIN} --check-license | grep "Empty\|Missing" | wc -l ` -eq 0 ]; then
 
 			# Expired or invalid license
 			set_failure "no-license" 1
