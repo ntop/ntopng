@@ -23,11 +23,20 @@
   <table v-else class="table table-bordered table-striped">
     <tbody>
       <tr v-for="row in rows">
-        <th v-if="head_width" :class="'col-' + head_width" v-html="print_html_title(row.name)"></th>
-        <th v-else class="col-2" v-html="print_html_title(row.name)"></th>
-        <td :class="row_class" style="overflow-wrap:anywhere; max-width: 500px;"
-          :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)">
-        </td>
+        <!-- Row containing an Exporter Graph -->
+        <template v-if="row.graph">
+          <th class="col-2" v-html="print_html_title(row.name)"></th>
+          <td :colspan="2">
+            <ExportersGraph :context="row.graph" />
+          </td>
+        </template>
+        <template v-else>
+          <th v-if="head_width" :class="'col-' + head_width" v-html="print_html_title(row.name)"></th>
+          <th v-else class="col-2" v-html="print_html_title(row.name)"></th>
+          <td :class="row_class" style="overflow-wrap:anywhere; max-width: 500px;"
+            :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)">
+          </td>
+        </template>
       </tr>
     </tbody>
   </table>
@@ -35,6 +44,7 @@
 
 <script setup>
 import { ref, onBeforeMount } from "vue";
+import { default as ExportersGraph } from "./pages/page-graph.vue";
 
 const row_class = ref();
 const props = defineProps({

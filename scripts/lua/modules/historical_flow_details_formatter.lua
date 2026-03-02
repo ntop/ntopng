@@ -840,6 +840,13 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
       local nodes, edges = buildExportersGraph(flow_trajectory, nodes_names, cli_ip, srv_ip)
 
       -- Add the graph
+      flow_details[#flow_details + 1] = {
+         name = "",
+         graph = {
+            nodes = nodes,
+            edges = edges
+         }
+      }
    end
    return flow_details
 end
