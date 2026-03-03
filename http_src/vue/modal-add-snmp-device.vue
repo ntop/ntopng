@@ -236,13 +236,13 @@ const default_snmp_community = props.context.default_snmp_community
 const selected_version = ref(null);
 const snmp_versions = props.context.snmp_v3_available ?
     ref([
-        { id: "0", label: "v1" },
         { id: "1", label: "v2c" },
         { id: "2", label: "v3" },
+        { id: "0", label: "v1" },
     ]) :
     ref([
-        { id: "0", label: "v1" },
-        { id: "1", label: "v2c" }]);
+        { id: "1", label: "v2c" },
+        { id: "0", label: "v1" }]);
 
 const selected_snmp_level = ref(null);
 const snmp_levels = ref([
