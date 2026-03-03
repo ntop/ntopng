@@ -824,7 +824,7 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
             -- Insert directed edge
             table.insert(flow_trajectory[exporter_ip], {
                next_hop = next_hop_ip,
-               return_path = false
+               return_path = exp.return_path
             })
             -- Register exporter node label
             nodes_names[exporter_ip] = { firstDottedElement(exporter_name), site }
