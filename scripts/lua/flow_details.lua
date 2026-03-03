@@ -2079,7 +2079,7 @@ if isEmptyString(page) or page == "overview" then
 		  source_label = source_label .. "</span>"
 	       end
 
-	       tprint(source_label)
+	       --tprint(source_label)
 	       
 	       print("<tr><td>".. ret .. ' <i class="fas fa-long-arrow-alt-right"></i> ' .. ret1)
 	       if(v.return_path == true) then print(" <span class='badge bg-secondary'>".. i18n("dedup_flow_swapped").."</span>") end
@@ -2103,22 +2103,22 @@ if isEmptyString(page) or page == "overview" then
 	 end
 
 	 if(table.len(flow_trajectory) > 0) then
-	    print('<tr>')
-	    if(table.len(flow.exporters) == 0) then print("<td></td>") end
-	    print('<th colspan=2 style="height: 400px; width: 66%; max-width: 66%; overflow: hidden;">')
-
-	    --tprint(flow_trajectory)
-	    local nodes, edges = buildExportersGraph(flow_trajectory, nodes_names, flow["cli.ip"], flow["srv.ip"])
-
-	    local json_context = json.encode({ nodes = nodes, edges = edges })
-	    print('<div style="width:100%; max-width:100%; overflow:hidden;">')
-	    template.render("pages/vue_page.template", {
-			       vue_page_name = "PageExportersGraph",
-			       page_context  = json_context
-	    })
-
-      print('</div>')
-      print('</th></tr>\n')
+	   local nodes, edges = buildExportersGraph(flow_trajectory, nodes_names, flow["cli.ip"], flow["srv.ip"])
+      -- If there are at least 3 nodes -> show the graph
+      if table.len(nodes) >= 3 then
+         print('<tr>')
+         if(table.len(flow.exporters) == 0) then print("<td></td>") end
+         print('<th colspan=2 style="height: 400px; width: 66%; max-width: 66%; overflow: hidden;">')
+         
+         local json_context = json.encode({ nodes = nodes, edges = edges })
+         print('<div style="width:100%; max-width:100%; overflow:hidden;">')
+         template.render("pages/vue_page.template", {
+                  vue_page_name = "PageExportersGraph",
+                  page_context  = json_context
+         })
+         print('</div>')
+         print('</th></tr>\n')
+      end
 	 end
 
          local function format_custom_field(key, value, snmpdevice)

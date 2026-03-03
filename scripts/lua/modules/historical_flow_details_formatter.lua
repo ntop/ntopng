@@ -838,15 +838,16 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
    if table.len(flow_trajectory) > 0 then
       -- Build graph only if at least one exporter node exists
       local nodes, edges = buildExportersGraph(flow_trajectory, nodes_names, cli_ip, srv_ip)
-
-      -- Add the graph
-      flow_details[#flow_details + 1] = {
-         name = "",
-         graph = {
-            nodes = nodes,
-            edges = edges
+      -- If there are at least 3 nodes -> show the graph
+      if table.len(nodes) >= 3 then
+         flow_details[#flow_details + 1] = {
+            name = "",
+            graph = {
+               nodes = nodes,
+               edges = edges
+            }
          }
-      }
+      end
    end
    return flow_details
 end
