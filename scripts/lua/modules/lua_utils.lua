@@ -721,6 +721,41 @@ function hostinfo2json(host_info, host_type)
     return rsp
 end
 
+-- used to return a lua table instead of string
+function hostinfo2table(host_info, host_type)
+   local rsp = {}
+
+   if (host_type == "cli") then
+      if (host_info["cli.ip"] ~= nil) then
+         rsp["host"] = host_info["cli.ip"]
+      end
+   elseif (host_type == "srv") then
+      if (host_info["srv.ip"] ~= nil) then
+         rsp["host"] = host_info["srv.ip"]
+      end
+   else
+      if ((type(host_info) ~= "table") and (string.find(host_info, "@"))) then
+         host_info = hostkey2hostinfo(host_info)
+      end
+
+      if (host_info["host"] ~= nil) then
+         rsp["host"] = host_info["host"]
+      elseif (host_info["ip"] ~= nil) then
+         rsp["host"] = host_info["ip"]
+      elseif (host_info["name"] ~= nil) then
+         rsp["host"] = host_info["name"]
+      elseif (host_info["mac"] ~= nil) then
+         rsp["host"] = host_info["mac"]
+      end
+   end
+
+   if ((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0)) then
+      rsp["vlan"] = tostring(host_info["vlan"])
+   end
+
+   return rsp
+end
+
 -- ##############################################
 
 --

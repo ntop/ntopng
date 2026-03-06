@@ -6,101 +6,46 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-
-sendHTTPContentTypeHeader('text/html')
+local rest_utils = require "rest_utils"
 
 local host_info = url2hostinfo(_GET)
-mode = _GET["direction"]
+-- Use sent or rcvd based on the direction parameter, defaulting to rcvd
+local what      = (_GET["direction"] == "sent") and "sent" or "rcvd"
+local host      = interface.getHostInfo(host_info["host"], host_info["vlan"])
+local res       = {}
 
-local what = "rcvd"
-if mode == "sent" then
-   what = "sent"
-end
+if host ~= nil then
+   -- Navigate the dns.{direction}.queries table, nil if any level is missing
+   local queries = host["dns"] and host["dns"][what] and host["dns"][what]["queries"]
 
-local host = interface.getHostInfo(host_info["host"],host_info["vlan"])
-local tot = 0
-local left = 0
+   if queries ~= nil then
+      local types = {
+         { label = "A",     key = "num_a"     },
+         { label = "NS",    key = "num_ns"    },
+         { label = "CNAME", key = "num_cname" },
+         { label = "SOA",   key = "num_soa"   },
+         { label = "PTR",   key = "num_ptr"   },
+         { label = "MX",    key = "num_mx"    },
+         { label = "TXT",   key = "num_txt"   },
+         { label = "AAAA",  key = "num_aaaa"  },
+         { label = "ANY",   key = "num_any"   },
+      }
+      
+      local other_count = queries["num_other"] or 0
 
-print "[\n"
-
-if(host ~= nil) then
-   if(host["dns"][what]["queries"] ~= nil) then
-      tot = host["dns"][what]["queries"]["num_a"] + host["dns"][what]["queries"]["num_ns"] + host["dns"][what]["queries"]["num_cname"] + host["dns"][what]["queries"]["num_soa"] + host["dns"][what]["queries"]["num_ptr"] + host["dns"][what]["queries"]["num_mx"]  + host["dns"][what]["queries"]["num_txt"] + host["dns"][what]["queries"]["num_aaaa"] + host["dns"][what]["queries"]["num_any"] + host["dns"][what]["queries"]["num_other"]
-   else
-      tot = 0
-   end
-
-   if(tot > 0) then
-      local min = 0 -- Show all the queries, they are just a buch and fit well in the pie chart
-      local comma = ""
-
-      if(host["dns"][what]["queries"]["num_a"] > min) then
-         print('\t { "label": "A", "value": '.. host["dns"][what]["queries"]["num_a"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_a"]
+      for _, dns_type in ipairs(types) do
+         local count = queries[dns_type.key] or 0
+         if count > 0 then
+            res[#res + 1] = { label = dns_type.label, value = count }
+         else
+            other_count = other_count + count
+         end
       end
 
-      if(host["dns"][what]["queries"]["num_ns"] > min) then
-         print(comma..'\t { "label": "NS", "value": '.. host["dns"][what]["queries"]["num_ns"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_ns"]
-      end
-
-      if(host["dns"][what]["queries"]["num_cname"] > min) then
-         print(comma..'\t { "label": "CNAME", "value": '.. host["dns"][what]["queries"]["num_cname"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_cname"]
-      end
-
-      if(host["dns"][what]["queries"]["num_soa"] > min) then
-         print(comma..'\t { "label": "SOA", "value": '.. host["dns"][what]["queries"]["num_soa"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_soa"]
-      end
-
-      if(host["dns"][what]["queries"]["num_ptr"] > min) then
-         print(comma..'\t { "label": "PTR", "value": '.. host["dns"][what]["queries"]["num_ptr"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_ptr"]
-      end
-
-      if(host["dns"][what]["queries"]["num_mx"] > min) then
-         print(comma..'\t { "label": "MX", "value": '.. host["dns"][what]["queries"]["num_mx"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_mx"]
-      end
-
-      if(host["dns"][what]["queries"]["num_txt"] > min) then
-         print(comma..'\t { "label": "TXT", "value": '.. host["dns"][what]["queries"]["num_txt"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_txt"]
-      end
-
-      if(host["dns"][what]["queries"]["num_aaaa"] > min) then
-         print(comma..'\t { "label": "AAAA", "value": '.. host["dns"][what]["queries"]["num_aaaa"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_aaaa"]
-      end
-
-      if(host["dns"][what]["queries"]["num_any"] > min) then
-         print(comma..'\t { "label": "ANY", "value": '.. host["dns"][what]["queries"]["num_any"] .. '}\n')
-         comma = ","
-      else
-         left = left + host["dns"][what]["queries"]["num_any"]
-      end
-
-      local other = host["dns"][what]["queries"]["num_other"] + left
-      if(other > 0) then print(comma..'\t { "label": "Other", "value": '.. other .. '}\n')
+      if other_count > 0 then
+         res[#res + 1] = { label = "Other", value = other_count }
       end
    end
 end
 
-print "\n]"
+rest_utils.answer(rest_utils.consts.success.ok, res)

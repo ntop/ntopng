@@ -23,6 +23,7 @@ require "mac_utils"
 local page_utils = require("page_utils")
 
 local have_nedge = ntop.isnEdge()
+local http_prefix = ntop.getHttpPrefix()
 
 local info = ntop.getInfo()
 local os_utils = require "os_utils"
@@ -106,7 +107,7 @@ local mac_info = interface.getMacInfo(mac)
 
 local only_historical = (mac_info == nil) and (page == "historical")
 local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. ifId .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
-local historical_flow_link = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?ifid=" .. ifId .. "&mac=" .. mac .. ";eq"
+local historical_flow_link = http_prefix .. "/lua/pro/db_search.lua?ifid=" .. ifId .. "&mac=" .. mac .. ";eq"
 if(mac_info == nil) and not only_historical then
    print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg fa-ntopng-warning"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
    print("</div>")
@@ -114,7 +115,7 @@ if(mac_info == nil) and not only_historical then
    return
 end
 
-local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
+local url = http_prefix.."/lua/mac_details.lua?"..hostinfo2url(host_info)
 local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(mac)
 local title = i18n("mac_details.mac")..": "..mac
 
@@ -171,7 +172,7 @@ if((page == "overview") or (page == nil)) then
    end
 
    if mac_info["num_hosts"] > 0 then
-      print("<br>[ <A HREF=\"".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac.."\">"..i18n("details.show_hosts").."</A> ]")
+      print("<br>[ <A HREF=\"".. http_prefix.."/lua/hosts_stats.lua?mac="..mac.."\">"..i18n("details.show_hosts").."</A> ]")
    end
    
    print("</td>")
@@ -185,7 +186,7 @@ if((page == "overview") or (page == nil)) then
    end
    
    if isAdministrator() then
-      print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
+      print('<a href="'..http_prefix..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
    end
 
    if(not isEmptyString(mac_info.model)) then
@@ -208,7 +209,7 @@ if((page == "overview") or (page == nil)) then
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
 
    if isAdministrator() then
-      print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
+      print[[ <a href="]] print(http_prefix) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
       print[[<i class="fas fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
    end
 
@@ -218,9 +219,9 @@ if((page == "overview") or (page == nil)) then
 
    print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
    if not ifstats.isView then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_instance:get_pool_name(pool_id)) print[[</a></span>]]
+      print[[<a href="]] print(http_prefix) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_instance:get_pool_name(pool_id)) print[[</a></span>]]
          if isAdministrator() then
-          print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
+          print[[&nbsp; <a href="]] print(http_prefix) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
           print[[<i class="fas fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
          end
       else
@@ -355,7 +356,7 @@ end
 var host_details_interval = window.setInterval(function() {
   $.ajax({
     type: 'GET',
-    url: ']] print (ntop.getHttpPrefix()) print [[/lua/mac_stats.lua',
+    url: ']] print (http_prefix) print [[/lua/mac_stats.lua',
     data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(mac_info)) print [[ },
     datatype: "json",
     /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
@@ -403,23 +404,29 @@ print[[
 
 ]]
    print('</script>')
-
+   
 elseif(page == "packets") then
-   print [[ <table class="table table-bordered table-striped"> ]]
-   print("<tr><th width=30% rowspan=3>" .. i18n("packets_page.ip_version_distribution") .. '</th><td><div class="pie-chart" id="ipverDistro"></div></td></tr>\n')
-   print[[</table>
+   local refresh = interface.getStatsUpdateFreq(ifstats.id) * 1000
 
-   <script type='text/javascript'>
-    var refresh = ]] print(interface.getStatsUpdateFreq(ifstats.id)) print[[ * 1000; /* ms */;
+   print([[<table class="table table-bordered table-striped">]])
+   print([[<tr><th width="30%" rowspan="3">]] .. i18n("packets_page.ip_version_distribution") .. [[</th><td>]])
 
-	 window.onload=function() {
-       do_pie("#ipverDistro", ']]
-   print (ntop.getHttpPrefix())
-   print [[/lua/mac_pkt_distro.lua', { distr: "ipver", mac: "]] print(mac) print[[", ifid: "]] print(ifstats.id.."\"")
-   print [[
-	   }, "", refresh);
-   };
-   </script>]]
+   template.render("pages/vue_page.template", {
+      vue_page_name = "MultiPieChart",
+      page_context  = json.encode({
+         charts = {{
+            name       = "ipverDistro",
+            title      = i18n("packets_page.ip_version_distribution"),
+            update_url = http_prefix .. "/lua/mac_pkt_distro.lua",
+            url_params = { distr = "ipver", mac = mac, ifid = ifstats.id },
+            refresh    = refresh,
+            unit       = "number",
+         }}
+      }),
+   })
+
+   print([[</td></tr>]])
+   print([[</table>]])
 
 elseif(page == "snmp" and has_snmp_location) then
    print[[<table class="table table-bordered table-striped">]]

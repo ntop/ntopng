@@ -37,6 +37,7 @@ local storage_utils = require "storage_utils"
 local have_nedge = ntop.isnEdge()
 local sites_granularities = nil
 local show_zmq_encryption_public_key = false
+local http_prefix = ntop.getHttpPrefix()
 
 if ntop.isPro() then
     shaper_utils = require("shaper_utils")
@@ -303,7 +304,7 @@ local has_traffic_recording_page = (recording_utils.isAvailable() and
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
 
-local url = ntop.getHttpPrefix() .. '/lua/if_stats.lua?ifid=' .. ifid
+local url = http_prefix .. '/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
@@ -380,7 +381,7 @@ page_utils.print_navbar(title, url, { {
     hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
     active = page == "alerts",
     page_name = "alerts",
-    url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",
+    url = http_prefix .. "/lua/alert_stats.lua?&page=interface",
     label = "<i class='fas fa-lg fa-exclamation-triangle' title='" .. i18n("alerts_dashboard.alerts") .. "'></i>"
 }, {
     hidden = not hasTrafficReport(),
@@ -419,12 +420,12 @@ page_utils.print_navbar(title, url, { {
 }, {
     hidden = (not periodicity_map_available) or isASNModeEnabled(),
     page_name = "periodicity_map",
-    url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
+    url = http_prefix .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
     label = "<i class=\"fas fa-lg fa-clock\"></i>"
 }, {
     hidden = (not service_map_available),
     page_name = "service_map",
-    url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
+    url = http_prefix .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
     label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>"
 } })
 
@@ -494,7 +495,7 @@ if ((page == "overview") or (page == nil)) then
         if ntop.isEnterpriseM() then
             msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices", {
                 num = tot_num_nprobes,
-                url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua"
+                url = http_prefix .. "/lua/pro/enterprise/nprobe.lua"
             })
         else
             msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices_no_link", {
@@ -744,7 +745,7 @@ if ((page == "overview") or (page == nil)) then
         print("<th>" .. ternary(ifstats.num_alerts_engaged > 0, warning, "") .. i18n("show_alerts.engaged_alerts") ..
             ternary(charts_available, " <A HREF='" .. url ..
                 "&page=historical&ts_schema=iface:engaged_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
-            "</th><td colspan=2  nowrap><a href='" .. ntop.getHttpPrefix() ..
+            "</th><td colspan=2  nowrap><a href='" .. http_prefix ..
             "/lua/alert_stats.lua?status=engaged&page=host&ifid=" .. ifstats.id .. "'>" ..
             formatValue(ifstats.num_alerts_engaged) .. "</a> <span id=engaged_alerts_trend></span></td>\n")
         print("<th width=250>" .. ternary(ifstats.num_dropped_alerts > 0, warning, "") ..
@@ -757,39 +758,43 @@ if ((page == "overview") or (page == nil)) then
     end
 
     label = i18n("pkts")
+print [[</tbody></table>]]
+print [[<table class="table table-striped table-bordered"><tbody>]]
 
-    print [[</tbody></table>]]
-    print [[<table class="table table-striped table-bordered"><tbody>]]
+local charts = {
+    {
+        name       = "ifaceTrafficBreakdown",
+        title      = i18n("if_stats_overview.traffic_breakdown"),
+        update_url = http_prefix .. "/lua/iface_local_stats.lua",
+        url_params = { ifid = ifstats.id },
+        refresh    = refresh,
+        unit       = "bytes",
+    }
+}
 
-    print [[ <tr><th colspan=1 nowrap>]]
-    print(i18n("if_stats_overview.traffic_breakdown"))
-    print [[</th> ]]
+if (ifstats.type ~= "zmq") then
+    charts[#charts + 1] = {
+        name       = "ifaceTrafficDistribution",
+        title      = i18n("if_stats_overview.traffic_distribution"),
+        update_url = http_prefix .. "/lua/iface_local_stats.lua",
+        url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
+        refresh    = refresh,
+        unit       = "bytes",
+    }
+end
 
-    if (ifstats.type ~= "zmq") then
-        print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=3> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
-    else
-        print [[ <td colspan=5><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr> ]]
-    end
+print [[ <tr><th colspan=1 nowrap>]]
+print(i18n("if_stats_overview.traffic_breakdown"))
+print [[</th><td colspan=5>]]
 
-    print [[
-        <script type='text/javascript'>
-               window.onload=function() {
-                                   do_pie("#ifaceTrafficBreakdown", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/iface_local_stats.lua', { ifid: ]]
-    print(ifstats.id .. " }, \"\", refresh); \n")
+template.render("pages/vue_page.template", {
+    vue_page_name = "MultiPieChart",
+    page_context  = json.encode({
+        charts = charts,
+    }),
+})
 
-    if (ifstats.type ~= "zmq") then
-        print [[                                   do_pie("#ifaceTrafficDistribution", ']]
-        print(ntop.getHttpPrefix())
-        print [[/lua/iface_local_stats.lua', { ifid: ]]
-        print(ifstats.id .. ", iflocalstat_mode: \"distribution\" }, \"\", refresh); \n")
-    end
-    print [[ }
-
-]]
-    print("</script>\n")
-
+print [[</td></tr>]]
     if (ifstats.zmqRecvStats ~= nil and table.len(ifstats.zmqRecvStats) > 0) then
         print("<tr><th colspan=7 nowrap>" .. i18n("if_stats_overview.zmq_rx_statistics") .. "</th></tr>\n")
         local tot_flows = (ifstats.zmqRecvStats.flows or 0) + (ifstats.zmqRecvStats.dropped_flows or 0)
@@ -1224,7 +1229,7 @@ if ((page == "overview") or (page == nil)) then
                 local link = nil
 
                 if recording_utils.isAvailable(ifstats.id) then
-                    link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+                    link = http_prefix .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
                 end
 
                 table.insert(storage_items, {
@@ -1342,7 +1347,7 @@ elseif page == "networks" and is_packet_interface then
         local bcast_domains = {}
         for bcast_domain, domain_info in pairsByKeys(ifstats.bcast_domains) do
             bcast_domain = string.format("<a href='%s/lua/hosts_stats.lua?network_cidr=%s'>%s</a>",
-                ntop.getHttpPrefix(), bcast_domain, bcast_domain)
+                http_prefix, bcast_domain, bcast_domain)
 
             if domain_info.ghost_network then
                 has_ghost_networks = true
@@ -1399,70 +1404,88 @@ elseif ((page == "packets")) then
         "</th><td align=right><span id=pkt_lost>" .. formatPackets(ifstats.tcpPacketStats.lost) ..
         percentage(ifstats.tcpPacketStats.lost, ifstats.stats.packets) ..
         "</span> <span id=pkt_lost_trend></span></td></tr>\n")
-
-    if (ifstats.type ~= "zmq") then
+if (ifstats.type ~= "zmq") then
         print [[<tr ]]
         print(nedge_hidden)
         print [[><th class="text-start">]]
         print(i18n("packets_page.size_distribution"))
-        print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
+        print [[</th><td colspan=5>]]
+
+        template.render("pages/vue_page.template", {
+            vue_page_name = "MultiPieChart",
+            page_context  = json.encode({
+                charts = {
+                    {
+                        name       = "sizeDistro",
+                        title      = i18n("packets_page.size_distribution"),
+                        update_url = http_prefix .. "/lua/if_pkt_distro.lua",
+                        url_params = { distr = "size", ifid = ifstats.id },
+                        refresh    = refresh,
+                        unit       = "number",
+                    }
+                }
+            }),
+        })
+
+        print [[</td></tr>]]
     end
 
-    print [[
-           <tr ]]
+    print [[<tr ]]
     print(nedge_hidden)
     print [[><th class="text-start">]]
     print(i18n("packets_page.version_vs_flags_distribution"))
-    print [[</th>
-<td colspan=1><div class="pie-chart" id="ipverDistro"></div></td><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td></tr>
-      </table>
+    print [[</th><td colspan=5>]]
 
-        <script type='text/javascript'>
-         window.onload=function() {
+    template.render("pages/vue_page.template", {
+        vue_page_name = "MultiPieChart",
+        page_context  = json.encode({
+            charts = {
+                {
+                    name       = "ipverDistro",
+                    update_url = http_prefix .. "/lua/if_pkt_distro.lua",
+                    url_params = { distr = "ipver", ifid = ifstats.id },
+                    refresh    = refresh,
+                    unit       = "number",
+                },
+                {
+                    name       = "flagsDistro",
+                    update_url = http_prefix .. "/lua/if_tcpflags_pkt_distro.lua",
+                    url_params = { ifid = ifstats.id },
+                    refresh    = refresh,
+                    unit       = "number",
+                },
+            }
+        }),
+    })
 
-       do_pie("#sizeDistro", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/if_pkt_distro.lua', { distr: "size", ifid: "]]
-    print(ifstats.id .. "\"")
-    print [[
-           }, "", refresh);
+    print [[</td></tr>
+    </table>]]
 
-       do_pie("#flagsDistro", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]]
-    print(ifstats.id .. "\"")
-    print [[
-           }, "", refresh);
-
-      do_pie("#ipverDistro", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/if_pkt_distro.lua', { distr: "ipver", ifid: "]]
-    print(ifstats.id .. "\"")
-    print [[
-           }, "", refresh);
-    }
-
-      </script><p>
-  ]]
 elseif (page == "DSCP") then
     print [[
-     <table id="dscp_table" class="table table-bordered table-striped tablesorter">
+    <table id="dscp_table" class="table table-bordered table-striped tablesorter">
         <tr>
           <th class="text-start">]]
     print(i18n("dscp_page.statistics"))
-    print [[</th>
-          <td colspan=4><div class="pie-chart" id="dscpGroups"></td>
-        </tr>
-     </table>
-<script>
- do_pie("#dscpGroups", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/dscp/stats.lua', { ifid: "]]
-    print(ifid)
-    print [[" }, "", refresh);
-</script>
+    print [[</th><td colspan=4>]]
 
-]]
+    template.render("pages/vue_page.template", {
+        vue_page_name = "MultiPieChart",
+        page_context  = json.encode({
+            charts = {
+                {
+                    name       = "dscpGroups",
+                    update_url = http_prefix .. "/lua/rest/v2/get/interface/dscp/stats.lua",
+                    url_params = { ifid = ifid },
+                    refresh    = refresh,
+                    unit       = "number",
+                }
+            }
+        }),
+    })
+
+    print [[</td></tr>
+    </table>]]
 elseif (page == "ndpi") then
     local context = {
         ifid = ifid,
@@ -1541,7 +1564,7 @@ function update_icmp_table(ip_version) {
   $.ajax({
     type: 'GET',
     url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/get_icmp_data.lua',
     data: { ifid: "]]
     print(interface.getId() .. "")
@@ -1566,7 +1589,7 @@ setInterval(update_icmp_tables, 5000);
 
 ]]
 elseif (page == "ARP") then
-    local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v2/get/interface/arp.lua?ifid=%s", ifid)
+    local endpoint = string.format(http_prefix .. "/lua/rest/v2/get/interface/arp.lua?ifid=%s", ifid)
     local context = {
         json = json,
         template = template,
@@ -1579,12 +1602,12 @@ elseif (page == "ARP") then
 elseif (page == "sites") then
     if not prefs.are_top_talkers_enabled then
         local msg = i18n("sites_page.top_sites_not_enabled_message", {
-            url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=protocols"
+            url = http_prefix .. "/lua/admin/prefs.lua?tab=protocols"
         })
         print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> " .. msg ..
             "</div>")
     elseif table.len(sites_granularities) > 0 then
-        local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/interface/top/sites.lua?ifid=%s",
+        local endpoint = string.format(http_prefix .. "/lua/pro/rest/v2/get/interface/top/sites.lua?ifid=%s",
             ifid)
         local context = {
             json = json,
@@ -1610,7 +1633,7 @@ elseif (page == "historical") then
     graph_utils.drawNewGraphs(source_value_object)
 elseif (page == "trafficprofiles") then
     print("<table class=\"table table-striped table-bordered\">\n")
-    print("<tr><th width=15%><a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/admin/edit_profiles.lua\">" ..
+    print("<tr><th width=15%><a href=\"" .. http_prefix .. "/lua/pro/admin/edit_profiles.lua\">" ..
         i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" ..
         i18n("traffic") .. "</th></tr>\n")
     for pname, pbytes in pairsByKeys(ifstats.profiles, asc) do
@@ -1618,7 +1641,7 @@ elseif (page == "trafficprofiles") then
         local statschart_icon = ''
 
         if areInterfaceTimeseriesEnabled(ifid) then
-            statschart_icon = '<A HREF=\"' .. ntop.getHttpPrefix() .. '/lua/pro/profile_details.lua?profile=' .. pname ..
+            statschart_icon = '<A HREF=\"' .. http_prefix .. '/lua/pro/profile_details.lua?profile=' .. pname ..
                 '\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
         end
 
@@ -1635,7 +1658,7 @@ elseif (page == "trafficprofiles") then
           $.ajax({
                     type: 'GET',
                     url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/rest/v2/get/interface/data.lua',
                     data: { iffilter: "]]
     print(tostring(interface.name2id(if_name)))
@@ -1670,7 +1693,7 @@ elseif (page == "traffic_recording" and has_traffic_recording_page) then
     if not dismiss_recording_providers_reminder then
         print('<div id="traffic-recording-providers-detected" class="alert alert-info alert-dismissable">' ..
             i18n('traffic_recording.msg_external_providers_detected', {
-                url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=config"
+                url = http_prefix .. "/lua/if_stats.lua?page=config"
             }) .. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
 
         print [[
@@ -1679,7 +1702,7 @@ elseif (page == "traffic_recording" and has_traffic_recording_page) then
          var dismiss_notice = $.ajax({
           type: 'POST',
           url: ']]
-        print(ntop.getHttpPrefix())
+        print(http_prefix)
         print [[/lua/traffic_recording_config.lua',
           data: { ifid: ]]
         print(tostring(master_ifid))
@@ -2429,7 +2452,7 @@ elseif (page == "snmp_bind") then
     print [[
                </select>
                <img id="snmp_loading" style="margin-left:0.5em; visibility:hidden;" src="]]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/img/loading.gif"\>
             </td>
       </tr>
@@ -2491,13 +2514,13 @@ elseif (page == "snmp_bind") then
          snmp_set_loading_status(true);
          $("#snmp_device_link").removeAttr("disabled");
          $("#snmp_device_link").attr("href", "]]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/pro/enterprise/snmp_device_details.lua?host=" + selected_device);
 
          snmp_bind_port_ajax = $.ajax({
           type: 'GET',
           url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/pro/enterprise/get_snmp_device_details.lua',
           data: { ifid: ]]
     print(ifstats.id)
@@ -2593,7 +2616,7 @@ function resetCounters(drops_only) {
   if(drops_only) action = "reset_drops";
   $.ajax({ type: 'post',
     url: ']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/reset_stats.lua',
     data: {ifid: ]]
 print(ifstats.id)
@@ -2618,7 +2641,7 @@ var resetInterfaceCounters = function(drops_only) {
 function resetBroadcastDomains() {
     $.ajax({ type: 'post',
     url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/reset_broadcast_domains.lua',
         data: {ifid: ]]
     print(ifstats.id)

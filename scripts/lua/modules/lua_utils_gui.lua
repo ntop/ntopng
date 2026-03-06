@@ -290,17 +290,6 @@ function flowinfo2process(process, host_info_to_url)
 	    full_clean_name, process["pid"], clean_name)
       end
 
-      -- if not isEmptyString(process["user_name"]) then
-      -- 	 local clean_user_name = process["user_name"]:gsub("'", '')
-
-      -- 	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fas fa-linux'></i> %s</A>",
-      -- 					ntop.getHttpPrefix(),
-      -- 					host_info_to_url,
-      -- 					clean_user_name,
-      -- 					process["uid"],
-      -- 					clean_user_name)
-      -- end
-
       if ((proc_user_name ~= '') or (proc_name ~= '')) then
 	 fmt = string.format("[%s]",
 			     table.concat({proc_user_name, proc_name}, ' '))

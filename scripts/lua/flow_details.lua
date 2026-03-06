@@ -505,13 +505,11 @@ local function displayProc(proc, label)
 
    print(label)
 
-   print("<tr><th class='colspan-4'>" .. i18n("flow_details.user_name") .. "</th><td colspan=2><A HREF=\"" .. ntop.getHttpPrefix() ..
-	 "/lua/username_details.lua?uid=" .. proc.uid .. "&username=" .. proc.user_name .. "&" .. hostinfo2url(flow, "cli") .. "\">" ..
-	 proc.user_name .. "</A></td></tr>\n")
+   print("<tr><th class='colspan-4'>" .. i18n("flow_details.user_name") .. "</th><td colspan=2>
+	 proc.user_name .. "</td></tr>\n")
 
-   print("<tr><th class='colspan-4'>" .. i18n("flow_details.process_pid_name") .. "</th><td colspan=2><A HREF=\"" .. ntop.getHttpPrefix() ..
-	 "/lua/process_details.lua?pid=" .. proc.pid .. "&pid_name=" .. proc.name .. "&" .. hostinfo2url(flow, "srv") .. "\">" ..
-	 proc.name .. "</a> ")
+   print("<tr><th class='colspan-4'>" .. i18n("flow_details.process_pid_name") .. "</th><td colspan=2>" ..
+	 proc.name)
    if proc.pid then
       print("[" .. i18n("flow_details.process_pid") .. ": " .. proc.pid .. "]")
    end
@@ -520,9 +518,7 @@ local function displayProc(proc, label)
    end
 
    if not isEmptyString(proc.father_name) then
-      print(" " .. i18n("flow_details.son_of_father_process") .. " <a href ='" .. ntop.getHttpPrefix() .. "/lua/process_details.lua?pid=" ..
-	    proc.father_pid .. "&pid_name=" .. proc.father_name .. "&" .. hostinfo2url(flow, "srv") .. "'>" .. proc.father_name ..
-	    "</a> ")
+      print(" " .. i18n("flow_details.son_of_father_process") .. proc.father_name)
       if proc.father_pid then
          print(i18n("flow_details.process_pid") .. ": " .. proc.father_pid)
       end

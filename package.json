@@ -60,7 +60,6 @@
     "@yaireo/tagify": "^4.35.3",
     "apexcharts": "^3.33.1",
     "bootstrap": "^5.3.0",
-    "crossfilter2": "^1.5.4",
     "d3": "^3.5.17",
     "d3-array": "^3.1.1",
     "d3-chord": "^3.0.1",

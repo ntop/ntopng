@@ -41,6 +41,83 @@ const defaultColors = [
 /* ***************************************** */
 
 /**
+ * A perceptually distinct palette optimized for side-by-side pie/donut charts.
+ * Colors are ordered so that adjacent entries are maximally distinguishable,
+ * avoiding similar hues next to each other in round-robin assignment.
+ *
+ * Unlike defaultColors (which is grouped by hue family), this palette
+ * interleaves hues so that the first N colors used across multiple charts
+ * on the same page are always visually distinct from one another.
+ */
+const roundRobinColors = [
+    "#E63946", // Vivid Red
+    "#2196F3", // Strong Blue
+    "#4CAF50", // Medium Green
+    "#FF9800", // Amber Orange
+    "#9C27B0", // Purple
+    "#00BCD4", // Cyan
+    "#FF5722", // Deep Orange
+    "#3F51B5", // Indigo
+    "#8BC34A", // Light Green
+    "#F06292", // Pink
+    "#009688", // Teal
+    "#FFC107", // Yellow
+    "#673AB7", // Deep Purple
+    "#03A9F4", // Light Blue
+    "#CDDC39", // Lime
+    "#795548", // Brown
+    "#607D8B", // Blue Grey
+    "#E91E63", // Hot Pink
+    "#00E676", // Bright Green
+    "#FF6D00", // Burnt Orange
+];
+
+/* ***************************************** */
+
+/**
+ * Assigns colors to chart series in a round-robin style, always starting
+ * from index 0 of the palette regardless of call order or label names.
+ *
+ * Key properties:
+ *  - Starts from palette index 0 on every call (no global state).
+ *  - Within a single call, the same label always gets the same color
+ *    (first-seen order determines the index).
+ *  - Each unique label consumes the next slot; duplicates reuse their slot.
+ *
+ * @param {Array<string|{name:string}>} labels - The series labels to color.
+ *   Each element is either a plain string or an object with a `.name` property.
+ * @param {string[]} [palette=roundRobinColors] - Optional override palette.
+ * @returns {string[]} Array of hex color strings, one per label.
+ *
+ * @example
+ * assignRoundRobinColors(["Local->Local", "Remote->Local", "Other"]);
+ * // → ["#E63946", "#2196F3", "#4CAF50"]
+ *
+ * assignRoundRobinColors(["IPv4", "ARP", "Other"]);
+ * // → ["#E63946", "#2196F3", "#4CAF50"]  ← always starts at index 0
+ *
+ * assignRoundRobinColors(["IPv4", "ARP", "IPv4"]);
+ * // → ["#E63946", "#2196F3", "#E63946"]  ← duplicate reuses its color
+ */
+function assignRoundRobinColors(labels, palette = roundRobinColors) {
+    const localRegistry = new Map();
+    let counter = 0;
+
+    return labels.map((item) => {
+        const key = (typeof item === "object" && item !== null) ? (item.name || JSON.stringify(item)) : String(item);
+
+        if (!localRegistry.has(key)) {
+            localRegistry.set(key, counter % palette.length);
+            counter += 1;
+        }
+
+        return palette[localRegistry.get(key)];
+    });
+}
+
+/* ***************************************** */
+
+/**
  * Assigns consistent colors to items in a list.
  * This function mutates the input array by replacing palette objects with actual color strings.
  * Items with the same identity will receive the same color across calls.
@@ -69,13 +146,13 @@ function formatSerieColors(palette_list, getKey = null) {
 /* ***************************************** */
 
 /**
- * Assigns consistent colors to chord chart nodes based on their names.
+ * Assigns consistent colors to chart nodes based on their names.
  * Uses a hash function to ensure the same name always gets the same color.
  *
  * @param {Array} names - Array of node objects with {name, url} properties
  * @returns {Array} Array of color strings corresponding to each node
  */
-function assignChordColors(names) {
+function assignColors(names) {
     const colors = defaultColors;
     const colorMap = new Map();
     const result = [];
@@ -106,8 +183,10 @@ function assignChordColors(names) {
 const colorUtils = function () {
     return {
         formatSerieColors,
-        assignChordColors,
+        assignColors,
+        assignRoundRobinColors,
         defaultColors,
+        roundRobinColors,
     };
 }();
 

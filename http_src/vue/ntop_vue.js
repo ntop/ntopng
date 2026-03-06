@@ -161,7 +161,13 @@ import { default as ModalEditACLRule } from "./modal-edit-acl-rule.vue";
 import { default as ModalDeleteACLRule } from "./modal-delete-acl-rule.vue";
 import { default as ModalDeleteAllACLRule } from "./modal-delete-all-acl-rules.vue";
 
+import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
+import { default as PieChart } from "./charts/pie-chart.vue";
+
 let ntopVue = {
+    // graphs
+    MultiPieChart: MultiPieChart,
+    PieChart: PieChart,
     // pages
     PageAlertStats: PageAlertStats,
     PageFlowHistorical: PageFlowHistorical,

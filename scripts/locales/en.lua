@@ -5937,6 +5937,7 @@ local lang = {
     ["state"] = "State",
     ["syslog_statistics"] = "Syslog Collection Statistics",
     ["traffic_breakdown"] = "Traffic Breakdown",
+    ["traffic_distribution"] = "Traffic Distribution",
     ["traffic_statistics"] = "Traffic Statistics",
     ["unhandled_logs"] = "Unsupported Events",
     ["zmq_avg_msg_flows"] = "Avg Flows/Msg",

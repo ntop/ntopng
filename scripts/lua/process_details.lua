@@ -54,23 +54,15 @@ else
       title = title..' <i class="fas fa-terminal"></i> '..name_key
 
       page_utils.print_navbar(title, nav_url,
-			      {
-				 {
-				    active = page == "process_ndpi" or not page,
-				    page_name = "process_ndpi",
-				    label = i18n("applications"),
-				 },
-				 {
+			      {{
 				    active = page == "flows",
 				    page_name = "flows",
 				    label = '<i class="fas fa-stream"></i>',
 				 },
-			      }
+		}
       )
 
-      if page == "process_ndpi" then
-	 ebpf_utils.draw_ndpi_piecharts(ifstats, "get_process_data.lua", host_info, nil, name_key)
-      elseif page == "flows" then
+      if page == "flows" then
 	 ebpf_utils.draw_flows_datatable(ifstats, host_info, nil, name_key)
       end
    end

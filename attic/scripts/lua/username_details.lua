@@ -26,6 +26,7 @@ local name
 local ifstats = interface.getStats()
 local refresh_rate
 
+local http_prefix = ntop.getHttpPrefix()
 local have_nedge = ntop.isnEdge()
 if have_nedge then
    refresh_rate = 5
@@ -38,7 +39,7 @@ if(user_key == nil) then
    print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("user_info.missing_user_name_message").."</div>")
 else
    local title = ''
-   local nav_url = ntop.getHttpPrefix().."/lua/username_details.lua?username="..user_key.."&uid="..uid
+   local nav_url = http_prefix.."/lua/username_details.lua?username="..user_key.."&uid="..uid
 
    if host_info and host_info["host"] then
       name = hostinfo2label(host_info)
@@ -72,30 +73,25 @@ else
    )
 
    if(page == "username_processes") then
-      print [[
-    <table class="table table-bordered table-striped">
-      <tr><th class="text-start">
-      ]] print(i18n("user_info.processes_overview")) print[[
-	<td><div class="pie-chart" id="topProcesses"></div></td>
+      print([[<table class="table table-bordered table-striped">]])
+      print([[<tr><th class="text-start">]] .. i18n("user_info.processes_overview") .. [[</th><td>]])
 
-      </th>
-    </tr>]]
+      template.render("pages/vue_page.template", {
+         vue_page_name = "MultiPieChart",
+         page_context  = json.encode({
+            charts = {{
+               name       = "topProcesses",
+               title      = i18n("user_info.processes_overview"),
+               update_url = http_prefix .. "/lua/get_username_data.lua",
+               url_params = { username = user_key, ebpf_data = "processes" },
+               refresh    = refresh_rate * 1000,
+               unit       = "number",
+            }}
+         }),
+      })
 
-      print [[
-      </table>
-<script type='text/javascript'>
-window.onload=function() {
-   var refresh = ]] print(refresh_rate..'') print[[000 /* ms */;
-		    do_pie("#topProcesses", ']]
-      print (ntop.getHttpPrefix())
-      print [[/lua/get_username_data.lua', { username: "]] print(user_key) print [[", ebpf_data: "processes" ]]
-      if (host_info ~= nil) then print(", "..hostinfo2json(host_info)) end
-      print [[
- }, "", refresh);
-}
-</script>
-]]
-
+      print([[</td></tr>]])
+      print([[</table>]])
    elseif(page == "username_ndpi") then
       ebpf_utils.draw_ndpi_piecharts(ifstats, "get_username_data.lua", host_info, user_key, nil)
    elseif page == "flows" then

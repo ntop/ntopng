@@ -35,13 +35,13 @@ import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle'
 
 window.bootstrap = bootstrap
 
-import crossfilter from 'crossfilter2'
+
 import * as dc from 'dc'
 import * as cubism from 'cubism'
 
 import 'jquery.are-you-sure'
 
-window.crossfilter = crossfilter
+
 window.dc = dc
 window.cubism = cubism
 

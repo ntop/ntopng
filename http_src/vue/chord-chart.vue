@@ -186,7 +186,7 @@ async function draw_chord() {
         .padAngle(1 / innerRadius);
 
     // Use color utility to assign consistent colors based on node names
-    const nodeColors = colorUtils.assignChordColors(names);
+    const nodeColors = colorUtils.assignColors(names);
     const color = d3.scaleOrdinal(nodeColors);
 
     // take 100% size and colors

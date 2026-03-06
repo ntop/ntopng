@@ -79,6 +79,8 @@ local prefs = ntop.getPrefs()
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]] )
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 
+local http_prefix = ntop.getHttpPrefix()
+
 if not host_ip then
    sendHTTPContentTypeHeader('text/html')
 
@@ -481,11 +483,6 @@ else
       active = page == "ports",
       page_name = "ports",
       label = i18n("ports")
-   }, {
-      hidden = only_historical or interface.isLoopback(),
-      active = page == "peers",
-      page_name = "peers",
-      label = i18n("peers")
    }, {
       hidden = have_nedge or only_historical or not (has_icmp),
       active = page == "ICMP",
@@ -1418,156 +1415,7 @@ else
          vue_page_name = "PageHostDetailsPackets",
          page_context = json_context
       })
-   elseif ((page == "peers")) then
-      host_info = url2hostinfo(_GET)
-      peers = getTopFlowPeers(hostinfo2hostkey(host_info), 1 --[[exists query]] )
-      found = 0
 
-      for key, value in pairs(peers) do
-         found = 1
-         break
-      end
-
-      if (found) then
-         print [[
-
-   <br />
-   <table border=0>
-   <tr>
-     <td>
-       <div id="chart-row-hosts">
-         <strong>]]
-         print(i18n("peers_page.top_peers_for_host", {
-            hostkey = hostinfo2hostkey(host_info)
-         }))
-         print [[</strong>
-         <div class="clearfix"></div>
-       </div>
-
-       <div id="chart-ring-protocol">
-         <strong>]]
-         print(i18n("peers_page.top_peer_protocol"))
-         print [[</strong>
-         <div class="clearfix"></div>
-       </div>
-     </td>
-   </tr>
-   </table>
-   <br />
-   <table class="table table-hover dc-data-table">
-        <thead>
-        <tr class="header">
-            <th>]]
-         print(i18n("peers_page.host"))
-         print [[</th>
-            <th>]]
-         print(i18n("application"))
-         print [[</th>
-            <th>]]
-         print(i18n("peers_page.traffic_volume"))
-         print [[</th>
-        </tr>
-        </thead>
-   </table>
-
-<script>
-var protocolChart = dc.pieChart("#chart-ring-protocol");
-var hostChart     = dc.rowChart("#chart-row-hosts");
-
-$.ajax({
-      type: 'GET',]]
-         print("url: '" .. ntop.getHttpPrefix() .. "/lua/host_top_peers_protocols.lua?ifid=" .. ifId .. "&host=" .. host_info["host"])
-         if ((host_info["vlan"] ~= nil) and ifstats.vlan) then
-            print("&vlan=" .. host_info["vlan"])
-         end
-         print("',\n")
-         print [[
-      data: { },
-      error: function(content) { console.log("Host Top Peers: Parse error"); },
-      success: function(content) {
-   var rsp;
-// set crossfilter
-var ndx = crossfilter(content),
-    protocolDim  = ndx.dimension(function(d) {return d.l7proto;}),
-    trafficDim = ndx.dimension(function(d) {return Math.floor(d.traffic/10);}),
-    nameDim  = ndx.dimension(function(d) {return d.name;});
-    // actually this script expects input data to be aggregated by host, otherwise we are making the sum of logarithms here
-    trafficPerl7proto = protocolDim.group().reduceSum(function(d) {return +d.traffic;}),
-    trafficPerhost = nameDim.group().reduceSum(function(d) {return +d.traffic;}),
-    trafficHist    = trafficDim.group().reduceCount();
-
-protocolChart
-    .width(400).height(300)
-    .dimension(protocolDim)
-    .group(trafficPerl7proto)
-    .innerRadius(70);
-
-// Tooltip
-protocolChart.title(function(d){
-      return d.key+": " + NtopUtils.bytesToVolume(d.value);
-      })
-
-hostChart
-    .width(800).height(300)
-    .dimension(nameDim)
-    .group(trafficPerhost)
-    .elasticX(true);
-
-// Tooltip
-hostChart.title(function(d){
-      return "Host "+d.key+": " + NtopUtils.bytesToVolume(d.value);
-      })
-
-hostChart.xAxis().tickFormat(function(v) {
-  if(v < 1024)
-    return(v.toFixed(2));
-  else
-    return NtopUtils.bytesToVolume(v);
-});
-
-  // dimension by full date
-    var dateDimension = ndx.dimension(function (d) {
-        return d.host;
-    });
-
-   dc.dataTable(".dc-data-table")
-        .dimension(dateDimension)
-        .group(function (d) { return d.name; })
-        .size(10) // (optional) max number of records to be shown, :default = 25
-        // dynamic columns creation using an array of closures
-        .columns([
-            function (d) {
-                return d.url;
-            },
-            function (d) {
-                return d.l7proto_url;
-            },
-            function (d) {
-                return NtopUtils.bytesToVolume(d.traffic);
-            }
-        ])
-        // (optional) sort using the given field, :default = function(d){return d;}
-        .sortBy(function (d) {
-            return +d.traffic;
-        })
-        // (optional) sort order, :default ascending
-        .order(d3.descending)
-        // (optional) custom renderlet to post-process chart using D3
-        .renderlet(function (table) {
-            table.selectAll(".dc-table-group").classed("info", true);
-        });
-
-
-dc.renderAll();
-}
-});
-
-</script>
-   ]]
-      else
-         print("<disv class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
-                  i18n("peers_page.no_active_flows_message") .. "</div>")
-      end
    elseif ((page == "traffic")) then
       -- template render
       local json_context = json.encode({})
@@ -1598,30 +1446,33 @@ dc.renderAll();
          printPorts(host.used_ports.remote_contacted_ports, false)
       end
 
-      print('<tr><th class="text-start">' .. i18n("ports_page.client_ports") ..
-               '</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
-      print('<tr><th class="text-start">' .. i18n("ports_page.server_ports") ..
-               '</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
+   local host_params = host_info and hostinfo2table(host_info) or {}
 
-      print [[
-  </table>
-    <script type='text/javascript'>
-           window.onload=function() {
-               do_pie("#clientPortsDistro", ']]
-      print(ntop.getHttpPrefix())
-      print [[/lua/iface_ports_list.lua', { clisrv: "client", ifid: "]]
-      print(ifId .. "")
-      print('", ' .. hostinfo2json(host_info) .. "}, \"\", refresh); \n")
-      print [[
-               do_pie("#serverPortsDistro", ']]
-      print(ntop.getHttpPrefix())
-      print [[/lua/iface_ports_list.lua', { clisrv: "server", ifid: "]]
-      print(ifId .. "")
-      print('", ' .. hostinfo2json(host_info) .. "}, \"\", refresh); \n")
-      print [[
-            }
-        </script><p>
-    ]]
+   print([[<tr><th class="text-start" colspan=6>]])
+
+   template.render("pages/vue_page.template", {
+      vue_page_name = "MultiPieChart",
+      page_context  = json.encode({
+         charts = {
+            {
+               name       = "clientPortsDistro",
+               title      = i18n("ports_page.client_ports"),
+               update_url = http_prefix .. "/lua/iface_ports_list.lua",
+               url_params = table.merge({ clisrv = "client", ifid = ifId }, host_params),
+               refresh    = refresh
+            },
+            {
+               name       = "serverPortsDistro",
+               title      = i18n("ports_page.server_ports"),
+               update_url = http_prefix .. "/lua/iface_ports_list.lua",
+               url_params = table.merge({ clisrv = "server", ifid = ifId }, host_params),
+               refresh    = refresh
+            },
+         }
+      }),
+   })
+
+   print([[</th></tr>]])
       -- template render
       -- template.render("pages/hosts/ports_stats.template", {})
 
@@ -1792,35 +1643,45 @@ setInterval(update_icmp_table, 5000);
                print(i18n("dns_page.dns_query_sent_vs_rcvd_distribution"))
                print [[</th>]]
                if (host["dns"]["sent"]["num_queries"] > 0) then
-                  print [[<td colspan=2>
-                     <div class="pie-chart" id="dnsSent"></div>
-                     <script type='text/javascript'>
+                  print([[<td colspan=2>]])
 
-                                         do_pie("#dnsSent", ']]
-                  print(ntop.getHttpPrefix())
-                  print [[/lua/host_dns_breakdown.lua', { ]]
-                  print(hostinfo2json(host_info))
-                  print [[, direction: "sent" }, "", refresh);
-                                      </script>
-                                         </td>
-           ]]
+                  template.render("pages/vue_page.template", {
+                     vue_page_name = "MultiPieChart",
+                     page_context  = json.encode({
+                        charts = {{
+                           name       = "dnsSent",
+                           title      = i18n("dns.sent"),
+                           update_url = http_prefix .. "/lua/host_dns_breakdown.lua",
+                           url_params = table.merge({ direction = "sent" }, hostinfo2table(host_info)),
+                           refresh    = refresh,
+                           unit       = "number",
+                        }}
+                     }),
+                  })
+
+                  print([[</td>]])
                else
                   print [[<td colspan=2>&nbsp;</td>]]
                end
 
-               if (host["dns"]["rcvd"]["num_queries"] > 0) then
-                  print [[
-         <td colspan=2><div class="pie-chart" id="dnsRcvd"></div>
-         <script type='text/javascript'>
+               if host["dns"]["rcvd"]["num_queries"] > 0 then
+                  print([[<td colspan=2>]])
 
-             do_pie("#dnsRcvd", ']]
-                  print(ntop.getHttpPrefix())
-                  print [[/lua/host_dns_breakdown.lua', { ]]
-                  print(hostinfo2json(host_info))
-                  print [[, direction: "recv" }, "", refresh);
-         </script>
-         </td>
-]]
+                  template.render("pages/vue_page.template", {
+                     vue_page_name = "MultiPieChart",
+                     page_context  = json.encode({
+                        charts = {{
+                           name       = "dnsRcvd",
+                           title      = i18n("dns.received"),
+                           update_url = http_prefix .. "/lua/host_dns_breakdown.lua",
+                           url_params = table.merge({ direction = "rcvd" }, hostinfo2table(host_info)),
+                           refresh    = refresh,
+                           unit       = "number",
+                        }}
+                     }),
+                  })
+
+                  print([[</td>]])
                else
                   print [[<td colspan=2>&nbsp;</td>]]
                end
@@ -1869,19 +1730,21 @@ setInterval(update_icmp_table, 5000);
                      formatValue(http["sender"]["query"]["num_get"]) ..
                      "</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
-            print [[
-         <div class="pie-chart" id="httpQueries"></div>
-         <script type='text/javascript'>
+            template.render("pages/vue_page.template", {
+               vue_page_name = "MultiPieChart",
+               page_context  = json.encode({
+                  charts = {{
+                     name       = "httpQueries",
+                     title      = i18n("http.queries"),
+                     update_url = http_prefix .. "/lua/host_http_breakdown.lua",
+                     url_params = table.merge({ http_mode = "queries" }, hostinfo2table(host_info)),
+                     refresh    = refresh,
+                     unit       = "number",
+                  }}
+               }),
+            })
 
-             do_pie("#httpQueries", ']]
-            print(ntop.getHttpPrefix())
-            print [[/lua/host_http_breakdown.lua', { ]]
-            print(hostinfo2json(host_info))
-            print [[, http_mode: "queries" }, "", refresh);
-         </script>
-]]
-
-            print("</td></tr>")
+            print([[</td></tr>]])
             print("<tr><th>POST</th><td style=\"text-align: right;\"><span id=http_query_num_post>" ..
                      formatValue(http["sender"]["query"]["num_post"]) .. "</span> <span id=trend_http_query_num_post></span></td></tr>")
             print("<tr><th>HEAD</th><td style=\"text-align: right;\"><span id=http_query_num_head>" ..
@@ -1894,25 +1757,29 @@ setInterval(update_icmp_table, 5000);
 
          if http["receiver"]["response"]["total"] > 0 then
             print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>" ..
-                     i18n("http_page.http_responses") .. "</A></th><th width=20%>" .. i18n("http_page.response_code") ..
-                     "</th><th width=20% class='text-end'>" .. i18n("http_page.responses") .. "</th><th colspan=2 class='text-center'>" ..
-                     i18n("http_page.distribution") .. "</th></tr>")
+               i18n("http_page.http_responses") .. "</A></th><th width=20%>" .. i18n("http_page.response_code") ..
+               "</th><th width=20% class='text-end'>" .. i18n("http_page.responses") .. "</th><th colspan=2 class='text-center'>" ..
+               i18n("http_page.distribution") .. "</th></tr>")
             print("<tr><th>" .. i18n("http_page.response_code_1xx") ..
-                     "</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>" ..
-                     formatValue(http["receiver"]["response"]["num_1xx"]) ..
-                     "</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
-            print [[
-         <div class="pie-chart" id="httpResponses"></div>
-         <script type='text/javascript'>
+               "</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>" ..
+               formatValue(http["receiver"]["response"]["num_1xx"]) ..
+               "</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
 
-             do_pie("#httpResponses", ']]
-            print(ntop.getHttpPrefix())
-            print [[/lua/host_http_breakdown.lua', { ]]
-            print(hostinfo2json(host_info))
-            print [[, http_mode: "responses" }, "", refresh);
-         </script>
-]]
-            print("</td></tr>")
+            template.render("pages/vue_page.template", {
+               vue_page_name = "MultiPieChart",
+               page_context  = json.encode({
+                  charts = {{
+                     name       = "httpResponses",
+                     title      = i18n("http_page.http_responses"),
+                     update_url = http_prefix .. "/lua/host_http_breakdown.lua",
+                     url_params = table.merge({ http_mode = "responses" }, hostinfo2table(host_info)),
+                     refresh    = refresh,
+                     unit       = "number",
+                  }}
+               }),
+            })
+
+            print([[</td></tr>]])
             print("<tr><th>" .. i18n("http_page.response_code_2xx") ..
                      "</th><td style=\"text-align: right;\"><span id=http_response_num_2xx>" ..
                      formatValue(http["receiver"]["response"]["num_2xx"]) ..
