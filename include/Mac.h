@@ -176,7 +176,7 @@ class Mac : public GenericHashEntry {
   }
   
   inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
-    stats->incRcvdStats(t, num_pkts, num_bytes);
+    if(stats) stats->incRcvdStats(t, num_pkts, num_bytes);
   }
 
   char *getSerializationKey(char *buf, u_int bufsize, bool short_format = false);
