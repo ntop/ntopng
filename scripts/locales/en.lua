@@ -153,6 +153,7 @@ local lang = {
    ["bytes"] = "Bytes",
    ["cancel"] = "Cancel",
    ["categories"] = "Categories",
+   ["categories_short"] = "Cat",
    ["category"] = "Category",
    ["category_custom_rule"] = "Category Custom Rule",
    ["cc_list"] = "Comma separated list of email addresses.",

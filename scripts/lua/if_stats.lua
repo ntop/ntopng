@@ -341,12 +341,12 @@ page_utils.print_navbar(title, url, { {
     hidden = isASNModeEnabled(),
     active = page == "ndpi",
     page_name = "ndpi",
-    label = i18n("applications_long")
+    label = i18n("applications")
 }, {
     hidden = isASNModeEnabled(),
     active = page == "ndpi_categories",
     page_name = "ndpi_categories",
-    label = i18n("categories")
+    label = i18n("categories_short")
 }, {
     hidden = have_nedge or isASNModeEnabled(),
     active = page == "ICMP",
