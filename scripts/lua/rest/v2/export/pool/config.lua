@@ -31,10 +31,6 @@ if not auth.has_capability(auth.capabilities.pools) then
 end
 
 local instances = {}
-instances["snmp"] = snmp_import_export:create()
-instances["active_monitoring"] = am_import_export:create()
-instances["notifications"] = notifications_import_export:create()
-instances["scripts"] = checks_import_export:create()
 instances["pool"] = pool_import_export:create()
 import_export_rest_utils.export(instances, not isEmptyString(download))
 

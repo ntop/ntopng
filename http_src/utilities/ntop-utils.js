@@ -798,30 +798,35 @@ export default class NtopUtils {
             reader.readAsText(file, "UTF-8");
 
             reader.onload = function (responseJSON) {
-                // Client-side configuration file format check
-                let jsonConfiguration = null
-                try {
-                    jsonConfiguration = JSON.parse(reader.result);
-                } catch (e) {
+                const fileName = file.name || '';
+                const isCsv = fileName.toLowerCase().endsWith('.csv');
 
-                    ToastUtils.showToast({
-                        id: 'import-error-toast',
-                        level: 'error',
-                        title: i18n("error"),
-                        body: e,
-                        delay: 3000
-                    });
-                    return;
-                }
+                if (!isCsv) {
+                    // Client-side configuration file format check
+                    let jsonConfiguration = null
+                    try {
+                        jsonConfiguration = JSON.parse(reader.result);
+                    } catch (e) {
 
-                if (!jsonConfiguration) {
-                    $("#import-error").text(i18n_ext.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
-                    $button.removeAttr("disabled");
-                    return;
+                        ToastUtils.showToast({
+                            id: 'import-error-toast',
+                            level: 'error',
+                            title: i18n("error"),
+                            body: e,
+                            delay: 3000
+                        });
+                        return;
+                    }
+
+                    if (!jsonConfiguration) {
+                        $("#import-error").text(i18n_ext.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
+                        $button.removeAttr("disabled");
+                        return;
+                    }
                 }
 
                 // Submit configuration file
-                params.loadConfigXHR(reader.result)
+                params.loadConfigXHR(reader.result, isCsv)
                     .done((response, status, xhr) => {
                         if (response.rc < 0) {
                             $("#import-error").text(response.rc_str).show();

@@ -175,17 +175,29 @@ confirm_button = 'btn-danger'
 
     // configure import config modal
     NtopUtils.importModalHelper({
-        loadConfigXHR: (jsonConf) => {
+        loadConfigXHR: (jsonConf, isCsv) => {
             const key = $(`input[name='configuration']:checked`).val();
+            /* CSV only for the pool */
+            if (isCsv) {
+                /* CSV pool import: send via dedicated "pool_CSV" field, bypassing JSON processing */
+                return $.post(`${http_prefix}/lua/rest/v2/import/${key}/config.lua`, {
+                    pool_CSV: jsonConf,
+                    csrf: importCSRF
+                });
+            }
 
             let json_str = jsonConf;
 
-            /* Cleanup configuation to avoid huge uploads */
-            let conf = JSON.parse(json_str);
-            if (conf && conf['modules'] && conf['modules']['all'] &&
-                conf['modules']['all']['ntopng.prefs.config_save_backup']) {
-                delete conf['modules']['all']['ntopng.prefs.config_save_backup'];
-                json_str = JSON.stringify(conf);
+            /* Cleanup configuration to avoid huge uploads */
+            try {
+                let conf = JSON.parse(json_str);
+                if (conf && conf['modules'] && conf['modules']['all'] &&
+                    conf['modules']['all']['ntopng.prefs.config_save_backup']) {
+                    delete conf['modules']['all']['ntopng.prefs.config_save_backup'];
+                    json_str = JSON.stringify(conf);
+                }
+            } catch (e) {
+                /* Should not happen for JSON files */
             }
 
             return $.post(`${http_prefix}/lua/rest/v2/import/${key}/config.lua`, {

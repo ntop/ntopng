@@ -41,12 +41,65 @@ end
 
 -- ##############################################
 
+-- @brief Parse a CSV string and convert it into the pool conf format.
+-- @param csv_data The raw CSV string
+-- @return A table compatible with the pool conf format used by import()
+function pool_import_export:parse_csv(csv_data)
+   local conf = { host = {} }
+
+   -- Map pool_name -> list of members
+   local pools_map = {}
+
+   for line in csv_data:gmatch("[^\r\n]+") do
+      -- Skip empty lines and comment lines starting with #
+      line = line:match("^%s*(.-)%s*$")
+      if line ~= "" and not line:match("^#") then
+         -- Split on whitespace, comma or semicolon: first token = address, second = pool name
+         local member, pool_name = line:match("^(%S+)[%s,;]+(%S+)%s*$")
+
+         if member and pool_name then
+            -- Normalise IP: if @vlan is missing append @0 as default (vlan 0)
+            if member:match("^%d+%.%d+%.%d+%.%d+/%d+$") then
+               member = member .. "@0"
+            end
+
+            local is_ip   = member:match("^%d+%.%d+%.%d+%.%d+/%d+@%d+$")
+            local is_mac  = member:match("^%x%x[:%-%.]%x%x[:%-%.]%x%x[:%-%.]%x%x[:%-%.]%x%x[:%-%.]%x%x$")
+
+            if is_ip or is_mac then
+               if not pools_map[pool_name] then
+                  pools_map[pool_name] = {}
+               end
+               pools_map[pool_name][#pools_map[pool_name] + 1] = member
+            else
+               traceError(TRACE_WARNING, TRACE_CONSOLE,
+                  "pool_import_export CSV: skipping invalid member format '" .. member .. "' on line: " .. line)
+            end
+         else
+            traceError(TRACE_WARNING, TRACE_CONSOLE,
+               "pool_import_export CSV: skipping malformed line: " .. line)
+         end
+      end
+   end
+
+   -- Convert map to the list format expected by import()
+   for pool_name, members in pairs(pools_map) do
+      conf.host[#conf.host + 1] = {
+         name    = pool_name,
+         members = members
+      }
+   end
+
+   return conf
+end
+
+-- ##############################################
+
 -- @brief Import configuration
 -- @param conf The configuration to be imported
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
 function pool_import_export:import(conf)
    local res = {}
-
    local MAX_POOLS_NUMBER = host_pools:get_max_num_pools()
    for pool_name, pool_list in pairs(conf) do
       if pool_instances[pool_name] ~= nil then

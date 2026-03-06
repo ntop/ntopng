@@ -418,6 +418,29 @@ local function validateJSON(j)
    return (json.decode(j) ~= nil)
 end
 
+local function validatePoolCSV(v)
+   if (v == "") then
+      return true
+   end
+   
+   local ip_pat_vlan = "^%d+%.%d+%.%d+%.%d+/%d+@%d+$"
+   local ip_pat_bare = "^%d+%.%d+%.%d+%.%d+/%d+$"
+   local mac_pat = "^%x%x[:%-%.]%x%x[:%-%.]%x%x[:%-%.]%x%x[:%-%.]%x%x[:%-%.]%x%x$"
+   for line in v:gmatch("[^\r\n]+") do
+      line = line:match("^%s*(.-)%s*$")
+      if line ~= "" and not line:match("^#") then
+         local member, _ = line:match("^(%S+)[%s,;]+(%S+)%s*$")
+         if member then
+            if member:match(ip_pat_vlan) or member:match(ip_pat_bare) or member:match(mac_pat) then
+               return true
+            end
+         end
+      end
+   end
+   return false
+
+end
+
 local function validateMeasurement(p)
    --[[ FIXX include loop check (pragma_once_checks)
       local am_utils = require "am_utils"
@@ -2871,6 +2894,7 @@ local known_parameters = {
     ["associations"] = {jsonCleanup, validateAssociations},
     ["host_visibility"] = validateSingleWord,
     ["hide"] = validateBool,
+    ["pool_CSV"]  = {jsonCleanup, validatePoolCSV},
 
     -- json POST DATA
     ["payload"] = {jsonCleanup, validateJSON},

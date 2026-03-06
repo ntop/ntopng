@@ -29,72 +29,58 @@ end
 
 -- ################################################
 
-local modules = import_export_rest_utils.unpack(_POST["JSON"])
-
-if not modules then
+local raw = _POST["pool_CSV"] or _POST["JSON"]
+if not raw or raw == "" then
    rest_utils.answer(rest_utils.consts.err.invalid_args)
    return
 end
 
-local expected_modules = { "snmp", "active_monitoring", "notifications", "scripts", "pool" }
-local missing_modules = {}
-for _, m in ipairs(expected_modules) do
-  if not modules[m] then
-    rest_utils.answer(rest_utils.consts.err.configuration_file_mismatch)
-    missing_modules[#missing_modules+1] = m
-  end
-end
-
-if #missing_modules == #expected_modules then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Failure importing configuration, none of the expected modules found: " .. table.concat(expected_modules, ", "))
-  return
-end
-
 local items = {}
+local pool_ie = pool_import_export:create()
 
-if modules["snmp"] then
-   local snmp_ie = snmp_import_export:create()
+if _POST["pool_CSV"] then
+   -- CSV path
    items[#items+1] = {
-      name = "snmp",
-      conf = modules["snmp"],
-      instance = snmp_ie
-   }
-end
-
-if modules["active_monitoring"] then
-   local am_ie = am_import_export:create()
-   items[#items+1] = {
-      name = "active_monitoring", 
-      conf = modules["active_monitoring"],
-      instance = am_ie
-   }
-end
-
-if modules["notifications"] then
-   local notifications_ie = notifications_import_export:create()
-   items[#items+1] = {
-      name = "notifications", 
-      conf = modules["notifications"],     
-      instance = notifications_ie
-   }
-end
-
-if modules["scripts"] then
-   local scripts_ie = checks_import_export:create()
-   items[#items+1] = {
-      name = "scripts", 
-      conf = modules["scripts"],           
-      instance = scripts_ie
-   }
-end
-
-if modules["pool"] then
-   local pool_ie = pool_import_export:create()
-   items[#items+1] = {
-      name = "pool", 
-      conf = modules["pool"],              
+      name     = "pool",
+      conf     = pool_ie:parse_csv(raw),
       instance = pool_ie
    }
+elseif _POST["JSON"] then
+   -- Standard JSON path: unpack and extract only the "pool" module
+   local modules = import_export_rest_utils.unpack(raw)
+
+   if not modules then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   local expected_modules = { "pool" }
+
+   local missing_modules = {}
+   for _, m in ipairs(expected_modules) do
+      if not modules[m] then
+         rest_utils.answer(rest_utils.consts.err.configuration_file_mismatch)
+         missing_modules[#missing_modules+1] = m
+      end
+   end
+
+   if #missing_modules == #expected_modules then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Failure importing configuration, none of the expected modules found: " .. table.concat(expected_modules, ", "))
+      return
+   end
+
+   if modules["pool"] then
+      items[#items+1] = {
+         name = "pool", 
+         conf = modules["pool"],              
+         instance = pool_ie
+      }
+   end
+else
+   traceError(TRACE_ERROR, TRACE_CONSOLE,
+      "Failure importing pool configuration: unrecognised file format")
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
 end
 
 import_export_rest_utils.import(items)
