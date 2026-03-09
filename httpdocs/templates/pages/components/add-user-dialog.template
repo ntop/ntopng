@@ -73,19 +73,6 @@
               </div>
             </div>
 
-            {% if #host_pools_list > 0 then %}
-            <div class="form-group mb-3">
-              <label for="allowed_host_pools_select">{* messages.allowed_host_pools *}</label>
-              <select id="allowed_host_pools_select" multiple class="form-select">
-                {% for _, pool in ipairs(host_pools_list) do %}
-                <option value="{* pool.pool_id *}">{* pool.name *}</option>
-                {% end %}
-              </select>
-              <input type="hidden" id="allowed_host_pools" name="allowed_host_pools" value="">
-              <small>{* messages.allowed_host_pools_descr *}</small>
-            </div>
-            {% end %}
-
             <div class="form-group mb-3">
               <label for="allowed_networks_input">{* messages.allowed_networks *}</label>
               <div class="input-group mb-6">
@@ -159,19 +146,6 @@
     }
   }
 
-  /* Init host pools select on page load */
-  {% if #host_pools_list > 0 then %}
-  $(document).ready(function() {
-    $("#allowed_host_pools_select").select2({
-      width: '100%',
-      theme: 'bootstrap-5',
-      dropdownParent: $("#allowed_host_pools_select").parent(),
-      placeholder: '{* messages.allowed_host_pools *}',
-      allowClear: true,
-    });
-  });
-  {% end %}
-
   /* Reset modal on close */
   $("#add_user_dialog").on('hidden.bs.modal', function() {
     frmadduser[0].reset();
@@ -212,8 +186,6 @@
     $("#password_input").val("");
     $("#confirm_password_input").val("");
     $("#allowed_networks_input").val("0.0.0.0/0,::/0");
-    $("#allowed_host_pools_select").val(null).trigger("change");
-    $("#allowed_host_pools").val("");
   }
 
   resetAddUserForm();
@@ -266,10 +238,6 @@
         }
       }
     }
-
-    /* Set selected host pools in the hidden field */
-    const selectedPools = ($("#allowed_host_pools_select").val() || []).join(',');
-    $("#allowed_host_pools").val(selectedPools);
 
     $.getJSON('{* http_prefix *}/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&allowed_networks="+$("#allowed_networks_input").val(), function(data){
       if (!data.valid) {

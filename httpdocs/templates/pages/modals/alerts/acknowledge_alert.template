@@ -1,0 +1,30 @@
+<div id="{{dialog.id}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{dialog.id}}_label" aria-hidden="true">
+  <form>  
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ i18n('show_alerts.acknowledge_alert') }}: <span class="alert_label"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body {{dialog.custom_dialog_class}}">
+
+          <div class="form-group row">
+            <div class="col-sm-6">
+              <label class="col-form-label"><b>{{ i18n("comment") }}</b></label>
+            </div>
+            <div class="col-sm-6 mt-1">
+              <input id="alert-label" name="label" class="form-control" type="text" value=""  maxlength="255"/>
+            </div>
+          </div>
+
+	  <div class='alert alert-warning mt-3 mb-1'>{* dialog.message *}</div>
+	</div>
+
+        <div class="modal-footer">
+	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
+          <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

@@ -20,7 +20,7 @@
     // Using a registry ensures we can explicitly unmount and clean up apps
     // when pages are dynamically updated or re-rendered.
     if (!window.vueApps) {
-      window.vueApps = {};
+      window.vueApps = {}
     }
 
     // If an app is already mounted on this container, unmount it first.
@@ -38,37 +38,20 @@
       }
     });
 
-    // Store the app instance (not the mount return value) so that
-    // unmount() is available when re-rendering the same container.
-    window.vueApps[id] = app;
-    app.mount(`#${id}`);
+    // Mount the Vue app on the target DOM element identified by id.
+    window.vueApps[id] = app.mount(`#${id}`);
 
-    return app;
+    // Return the mounted app instance (useful for future interop or cleanup).
+    return window.vueApps[id];
   }
 
   /* ******************************************************* */
 
-  (function() {
-    const base_id = "{* vue_page_name *}";
-
-    // All Vue app ids are prefixed with "ntop_vue_".
-    // If the same component is rendered multiple times on the same page,
-    // append an incrementing counter: ntop_vue_MultiPieChart, ntop_vue_MultiPieChart_2, etc.
-    if (!window._vueAppCounters) window._vueAppCounters = {};
-    window._vueAppCounters[base_id] = (window._vueAppCounters[base_id] || 0) + 1;
-
-    const count     = window._vueAppCounters[base_id];
-    const unique_id = "ntop_vue_" + base_id + (count > 1 ? "_" + count : "");
-
-    // Rename the div above this script tag to the unique id before Vue mounts.
-    document.currentScript.previousElementSibling.id = unique_id;
-
-    // Initialize the Vue app when the DOM is loaded.
-    // Note: third-party.js and ntopng.js are ES modules (type="module"), which are deferred
-    // they execute after HTML parsing but before DOMContentLoaded. Using native
-    // DOMContentLoaded avoids a dependency on $ being available synchronously.
-    document.addEventListener('DOMContentLoaded', function () {
-      start_vue(unique_id, ntopVue[base_id], {* page_context *});
-    });
-  })();
+  // Initialize the Vue app when the DOM is loaded
+  // Note: third-party.js and ntopng.js are ES modules (type="module"), which are deferred
+  // they execute after HTML parsing but before DOMContentLoaded. Using native
+  // DOMContentLoaded avoids a dependency on $ being available synchronously.
+  document.addEventListener('DOMContentLoaded', function () {
+    start_vue("{* vue_page_name *}", ntopVue["{* vue_page_name *}"], {* page_context *});
+  });
 </script>

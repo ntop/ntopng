@@ -1,0 +1,53 @@
+{#
+  (C) 2021-22 - ntop.org    
+  Template for the Listening Ports Host details.
+#}
+
+<div class="row">
+  <div class="col-12">
+      <div class="card card-shadow">
+          <div class="card-body">
+              <table id="listening-ports-table" class="table table-striped table-hover table-bordered w-100">
+                  <thead>                
+                      <tr>
+                          <th>{{ i18n("tcp_udp") }}</th>
+                          <th>{{ i18n("port") }}</th> 
+                          <th>{{ i18n("process") }}</th>
+                          <th>{{ i18n("package") }}</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  const pageCsrf = "{* csrf *}";
+  const listeningPortsEndpoint = "{* processes_endpoint *}"
+  const http_prefix = "{* http_prefix *}"
+  
+  let dtConfig = DataTableUtils.getStdDatatableConfig([{
+    text: '<i class="fas fa-sync"></i>',
+    className: 'btn-link',
+    action: function (e, dt, node, config) {
+      $listeningPortsDatatable.ajax.reload();
+    }
+  }]);
+  dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}${listeningPortsEndpoint}?host={* host *}&vlan={* vlan *}`, 'rsp');
+  dtConfig = DataTableUtils.extendConfig(dtConfig, {
+    order: [[ 1, 'asc' ]],
+    columns: [
+      {data: "tcp_udp", class: "no-wrap"},
+      {data: "port", class: "no-wrap" },
+      {data: "process", class: "no-wrap"},
+      {data: "package", class: "no-wrap"},
+    ]
+  })
+
+  const $listeningPortsDatatable = $(`#listening-ports-table`).DataTable(dtConfig);
+});
+</script>
