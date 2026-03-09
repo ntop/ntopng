@@ -417,7 +417,7 @@ elseif(page == "packets") then
          charts = {{
             name       = "ipverDistro",
             title      = i18n("packets_page.ip_version_distribution"),
-            update_url = http_prefix .. "/lua/mac_pkt_distro.lua",
+            update_url = http_prefix .. "/lua/rest/v2/get/interface/mac_pkts_distribution.lua",
             url_params = { distr = "ipver", mac = mac, ifid = ifstats.id },
             refresh    = refresh,
             unit       = "number",

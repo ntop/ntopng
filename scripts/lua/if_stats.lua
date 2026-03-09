@@ -765,7 +765,7 @@ local charts = {
     {
         name       = "ifaceTrafficBreakdown",
         title      = i18n("if_stats_overview.traffic_breakdown"),
-        update_url = http_prefix .. "/lua/iface_local_stats.lua",
+        update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
         url_params = { ifid = ifstats.id },
         refresh    = refresh,
         unit       = "bytes",
@@ -776,7 +776,7 @@ if (ifstats.type ~= "zmq") then
     charts[#charts + 1] = {
         name       = "ifaceTrafficDistribution",
         title      = i18n("if_stats_overview.traffic_distribution"),
-        update_url = http_prefix .. "/lua/iface_local_stats.lua",
+        update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
         url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
         refresh    = refresh,
         unit       = "bytes",
@@ -1418,7 +1418,7 @@ if (ifstats.type ~= "zmq") then
                     {
                         name       = "sizeDistro",
                         title      = i18n("packets_page.size_distribution"),
-                        update_url = http_prefix .. "/lua/if_pkt_distro.lua",
+                        update_url = http_prefix .. "/lua/rest/v2/get/interface/pkt_distribution.lua",
                         url_params = { distr = "size", ifid = ifstats.id },
                         refresh    = refresh,
                         unit       = "number",
@@ -1442,14 +1442,14 @@ if (ifstats.type ~= "zmq") then
             charts = {
                 {
                     name       = "ipverDistro",
-                    update_url = http_prefix .. "/lua/if_pkt_distro.lua",
+                    update_url = http_prefix .. "/lua/rest/v2/get/interface/pkt_distribution.lua",
                     url_params = { distr = "ipver", ifid = ifstats.id },
                     refresh    = refresh,
                     unit       = "number",
                 },
                 {
                     name       = "flagsDistro",
-                    update_url = http_prefix .. "/lua/if_tcpflags_pkt_distro.lua",
+                    update_url = http_prefix .. "/lua/rest/v2/get/interface/tcp_flags_distribution.lua",
                     url_params = { ifid = ifstats.id },
                     refresh    = refresh,
                     unit       = "number",

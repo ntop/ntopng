@@ -10,7 +10,7 @@
     <!-- Chart loading -->
     <Loading v-if="loading" />
 
-    <div v-else-if="no_data" class="no-data">{{ _i18n('no_data') }}</div>
+    <div v-else-if="no_data" class="no-data">{{ _i18n('flows_page.no_data') }}</div>
     
     <!-- Pie Chart -->
     <div ref="wrapper" class="pie-wrapper"></div>
@@ -31,8 +31,8 @@
            @click="it.url && (window.location.href = it.url)">
 
         <span class="legend-dot" :style="{ background: it.color }"></span>
-        <span>{{ it.name }}</span>
-        <span>{{ it.pct }}%</span>
+        <span class="legend-text">{{ it.name }}</span>
+        <span class="legend-text">{{ it.pct }}%</span>
       </div>
     </div>
   </div>
@@ -112,9 +112,10 @@ async function load() {
       : update_url;
 
     const res  = await ntopng_utility.http_request(url, null, null, true);
-    let data = res?.rsp ?? res;
-    
+    let data = res?.rsp;
+
     if (!Array.isArray(data) || !data.length) { no_data.value = true; return; }
+
     no_data.value = false;
     render(data.filter(d => d.value > 0));
 
@@ -218,6 +219,7 @@ defineExpose({ update: load });
   flex: 1 1 280px;
   min-width: 220px;
   max-width: 420px;
+  min-height: 300px;
   border-radius: 12px;
   padding: 14px 14px 12px;
   box-sizing: border-box;
@@ -230,7 +232,10 @@ defineExpose({ update: load });
 
 .pie-wrapper { width: 100%; display: flex; justify-content: center; }
 
-.no-data { color: #999; padding: 40px 0; }
+.no-data {
+  color: #999;
+  margin: auto;
+}
 
 :deep(.donut-hole) { fill: var(--loading-bg, #fff); }
 :deep(path.slice)  { cursor: pointer; }
@@ -274,6 +279,6 @@ defineExpose({ update: load });
 .legend-item.clickable { cursor: pointer; }
 .legend-item.clickable:hover .legend-name { text-decoration: underline; }
 .legend-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-
+.legend-text { font-size: 0.75rem; }
 
 </style>
