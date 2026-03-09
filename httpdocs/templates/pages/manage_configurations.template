@@ -43,11 +43,11 @@ This is the template for the manage configurations page.
         </div>
 {% if true then %}
         <div class="notes bg-light border">
-        <b>{{ i18n('notes') }}</b>
-        <ul>
-            <li><p class="mb-1">{{ i18n('manage_configurations.snmp_config_moved') }}</p></li>
-            <li><p class="mb-1">{{ i18n('manage_configurations.pool_import_doc') }}</p></li>
-        </ul>
+            <b>{{ i18n('notes') }}</b>
+            <ul>
+                <li><p class="mb-1">{{ i18n('manage_configurations.snmp_config_moved') }}</p></li>
+                <li><p class="mb-1">{{ i18n('manage_configurations.pool_import_doc') }}</p></li>
+            </ul>
         </div>
 {% end %}
     </div>
