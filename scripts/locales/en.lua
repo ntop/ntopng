@@ -6289,6 +6289,7 @@ local lang = {
     ["manage_configurations_backup"] = "Nightly Backups",
     ["notifications"] = "Endpoints and Recipients",
     ["pool_endpoint_recipients"] = "Pools",
+    ["pool_import_doc"] = "Pools can be imported through CSV files with the format <ip_or_mac><separator><pool_name> where the supported separators are space, comma (,), and semicolon (;)",
     ["restart_request"] = "<b>Restart</b> %{product} to make the changes set effective.",
     ["snmp"] = "SNMP (Devices Only)",
     ["snmp_config_moved"] = "SNMP Configuration import/export can be found in the SNMP Page",
