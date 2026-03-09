@@ -2,29 +2,13 @@
 <template>
     <div class="m-2 mb-3">
         <div class="row ms-4" id="interface_applications">
-            <div class="col-6 widget-box row">
+            <div class="col-6 widget-box">
                 <h3 class="widget-name">{{ _i18n('since_startup') }}</h3>
-                <template v-for="chart_option in chart_options_since_startup">
-                    <div class="col-6">
-                        <h5 class="widget-name">{{ chart_option.title }}</h5>
-                        <Chart :id="chart_option.id" :chart_type="chart_option.type"
-                            :get_params_url_request="get_params_url_request" :base_url_request="chart_option.url"
-                            :register_on_status_change="false">
-                        </Chart>
-                    </div>
-                </template>
+                <MultiPieChart :context="pie_charts_since_startup" />
             </div>
-            <div class="col-6 widget-box row">
+            <div class="col-6 widget-box">
                 <h3 class="widget-name">{{ _i18n('active_flows') }}</h3>
-                <template v-for="chart_option in chart_options_live">
-                    <div class="col-6">
-                        <h5 class="widget-name">{{ chart_option.title }}</h5>
-                        <Chart :id="chart_option.id" :chart_type="chart_option.type"
-                            :get_params_url_request="get_params_url_request" :base_url_request="chart_option.url"
-                            :register_on_status_change="false">
-                        </Chart>
-                    </div>
-                </template>
+                <MultiPieChart :context="pie_charts_live" />
             </div>
         </div>
         <TableWithConfig :key="recreate_table" ref="table_top_app" :table_id="table_id" :csrf="context.csrf"
@@ -35,7 +19,7 @@
 </template>
 
 <script setup>
-import { default as Chart } from "./chart.vue";
+import MultiPieChart from "./charts/multi-pie-chart.vue";
 import { ref, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
@@ -56,37 +40,46 @@ const props = defineProps({
 const table_id = ref('top_interface_applications');
 const table_top_app = ref([]);
 const recreate_table = ref(false);
-const chart_options_since_startup = ref([
-    {
-        title: i18n('top_l7_proto'),
-        type: ntopChartApex.typeChart.DONUT,
-        url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
-        extra_params: { ndpistats_mode: "sinceStartup", ifid: props.context.ifid },
-        id: `top_applications_since_startup`,
-    },
-    {
-        title: i18n('breed_title'),
-        type: ntopChartApex.typeChart.DONUT,
-        url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
-        extra_params: { breed: "true", ndpistats_mode: "sinceStartup", ifid: props.context.ifid },
-        id: `top_breed_since_startup`,
-    }])
-const chart_options_live = ref([
-    {
-        title: i18n('top_l7_proto'),
-        type: ntopChartApex.typeChart.DONUT,
-        url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
-        extra_params: { breed: "true", ndpistats_mode: "count", ifid: props.context.ifid },
-        id: `top_breed_live`,
-    },
-    {
-        title: i18n('graphs.tcp_flags'),
-        type: ntopChartApex.typeChart.DONUT,
-        url: `${http_prefix}/lua/rest/v2/get/interface/tcp_stats.lua`,
-        extra_params: {},
-        id: `top_breed_live`,
-    }])
 
+const pie_charts_since_startup = {
+    charts_per_row: 2,
+    charts: [
+        {
+            name: 'top_applications_since_startup',
+            title: i18n('top_l7_proto'),
+            update_url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
+            url_params: { ndpistats_mode: 'sinceStartup', ifid: props.context.ifid },
+            unit: 'bytes'
+        },
+        {
+            name: 'top_breed_since_startup',
+            title: i18n('breed_title'),
+            update_url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
+            url_params: { breed: 'true', ndpistats_mode: 'sinceStartup', ifid: props.context.ifid },
+            unit: 'bytes'
+        },
+    ],
+};
+
+const pie_charts_live = {
+    charts_per_row: 2,
+    charts: [
+        {
+            name: 'top_breed_live',
+            title: i18n('top_l7_proto'),
+            update_url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
+            url_params: { breed: 'true', ndpistats_mode: 'count', ifid: props.context.ifid },
+            unit: 'number'
+        },
+        {
+            name: 'tcp_flags_live',
+            title: i18n('graphs.tcp_flags'),
+            update_url: `${http_prefix}/lua/rest/v2/get/interface/tcp_stats.lua`,
+            url_params: { ifid: props.context.ifid },
+            unit: 'number'
+        },
+    ],
+};
 /* ************************************** */
 
 function column_data(col, row) {

@@ -21,7 +21,8 @@
 			"height" : 4,
 			"params" : {
 				"url" : "/lua/rest/v2/get/interface/top/hosts.lua",
-				"url_params" : {}
+				"url_params" : {},
+				"unit": "number"
 			}
 		},
 		{
@@ -35,7 +36,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "count"
-				}
+				},
+				"unit": "number"
 			}
 		},
 		{
@@ -49,7 +51,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "sinceStartup"
-				}
+				},
+				"unit": "number"
 			}
 		}
 	]

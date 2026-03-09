@@ -1,29 +1,13 @@
 <!--
-  (C) 2013-22 - ntop.org
+  (C) 2013-26 - ntop.org
 -->
 
 <template>
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="card">
-        <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
-          <div class="text-center">
-            <div class="spinner-border text-primary mt-5" role="status">
-              <span class="sr-only position-absolute">Loading...</span>
-            </div>
-          </div>
-        </div>
         <div class="card-body">
-          <div class="row">
-            <template v-for="chart_option in chart_options">
-              <div class="col-6 mb-4 mt-4">
-                <h3 class="widget-name">{{ chart_option.title }}</h3>
-                <Chart :id="chart_option.id" :chart_type="chart_option.type" :base_url_request="chart_option.url"
-                  :register_on_status_change="false" @chart_reloaded="chart_done">
-                </Chart>
-              </div>
-            </template>
-          </div>
+          <MultiPieChart :context="pie_charts_context" />
         </div>
       </div>
     </div>
@@ -31,41 +15,56 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, computed } from "vue";
 import NtopUtils from "../utilities/ntop-utils";
-import { default as Chart } from "./chart.vue";
+import MultiPieChart from "./charts/multi-pie-chart.vue";
 
 const props = defineProps({
   context: Object,
 });
 
 const _i18n = (t) => i18n(t);
-const chart_options = [
-  {
-    title: i18n('graphs.packets_sent'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/packets/sent_data.lua`,
-    id: `packets_sent`,
-  },
-  {
-    title: i18n('graphs.packets_rcvd'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/packets/rcvd_data.lua`,
-    id: `packets_rcvd`,
-  },
-  {
-    title: i18n('graphs.tcp_flags'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/packets/tcp_flags_data.lua`,
-    id: `tcp_flags`,
-  },
-  {
-    title: i18n('graphs.arp_distribution'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/packets/arp_data.lua`,
-    id: `arp_requests`,
-  },
-]
+
+const url_params = {
+  host: ntopng_url_manager.get_url_entry("host") || '',
+  vlan: ntopng_url_manager.get_url_entry("vlan") || '',
+  ifid: ntopng_url_manager.get_url_entry("ifid") || '',
+};
+
+const pie_charts_context = computed(() => ({
+  charts_per_row: 2,
+  charts: [
+    {
+      name:       'packets_sent',
+      title:      i18n('graphs.packets_sent'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/packets/sent_data.lua`,
+      url_params,
+      unit : 'number'
+    },
+    {
+      name:       'packets_rcvd',
+      title:      i18n('graphs.packets_rcvd'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/packets/rcvd_data.lua`,
+      url_params,
+      unit : 'number'
+    },
+    {
+      name:       'tcp_flags',
+      title:      i18n('graphs.tcp_flags'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/packets/tcp_flags_data.lua`,
+      url_params,
+      unit : 'number'
+    },
+    {
+      name:       'arp_requests',
+      title:      i18n('graphs.arp_distribution'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/packets/arp_data.lua`,
+      url_params,
+      unit : 'number'
+    },
+  ],
+}));
+
 
 function chart_done(data, tmp, tmp2) {
   NtopUtils.hideOverlays()

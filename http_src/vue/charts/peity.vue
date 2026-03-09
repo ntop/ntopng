@@ -1,130 +1,112 @@
 <!--
-  (C) 2024 - ntop.org
-
-  PeityChart — Pure D3v7 sparkline display component.
-
-  Mounted by vue_page.template which passes `context` as the root prop.
-  context shape (from Lua page_context):
-    upload_values    Array<Number>  initial bps history, newest last
-    download_values  Array<Number>  initial bps history, newest last
-    upload_label     String
-    download_label   String
-    width            Number   px (default 96)
-    height           Number   px (default 24)
-
-  Live updates arrive via window.__peity_update(up_arr, dn_arr, up_label, dn_label)
-  which is installed as a queue-proxy in footer.lua BEFORE DOMContentLoaded.
-  On mount this component calls window.__peity_register(fn) to hand over control.
+  (C) 2026 - ntop.org
 -->
 <template>
-  <div class="info-stats">
-    <div class="up d-flex align-items-center gap-1">
-      <i class="fas fa-arrow-up"></i>
-      <svg ref="svg_up"
-           :width="width"
-           :height="height"
-           style="display:inline-block;vertical-align:middle;" />
-      <span class="text-end chart-upload-text" style="min-width:60px">{{ upload_label }}</span>
-    </div>
-    <div class="down d-flex align-items-center gap-1">
-      <i class="fas fa-arrow-down"></i>
-      <svg ref="svg_down"
-           :width="width"
-           :height="height"
-           style="display:inline-block;vertical-align:middle;" />
-      <span class="text-end chart-download-text" style="min-width:60px">{{ download_label }}</span>
-    </div>
+  <div ref="container" class="sparkline-container">
+    <svg ref="svg"></svg>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 
 const d3 = d3v7;
 
-/* ── vue_page.template passes everything as a single `context` prop ─────── */
 const props = defineProps({
-  context: { type: Object, default: () => ({}) },
+  data:       { type: Array,   default: () => [] },  // array of numbers
+  width:      { type: Number,  default: 100 },
+  height:     { type: Number,  default: 30 },
+  color:      { type: String,  default: "#FF6B35" },
+  fill:       { type: String,  default: null },       // null = auto (transparent tint)
+  max:        { type: Number,  default: null },       // null = auto
+  min:        { type: Number,  default: 0 },
+  stroke_width: { type: Number, default: 1.5 },
 });
 
-/* ── Reactive state initialised from context ────────────────────────────── */
-const svg_up        = ref(null);
-const svg_down      = ref(null);
-const upload_values  = ref((props.context.upload_values  || []).slice());
-const download_values = ref((props.context.download_values || []).slice());
-const upload_label   = ref(props.context.upload_label   || "");
-const download_label = ref(props.context.download_label || "");
-const width          = props.context.width  || 96;
-const height         = props.context.height || 24;
+const container = ref(null);
+const svg       = ref(null);
 
-/* ── Colours ────────────────────────────────────────────────────────────── */
-const UPLOAD_STROKE   = "#ff7f0e";
-const UPLOAD_FILL     = "rgba(255,127,14,0.25)";
-const DOWNLOAD_STROKE = "#2ca02c";
-const DOWNLOAD_FILL   = "rgba(144,238,144,0.4)";
+let xScale = null, yScale = null, line = null, area = null;
 
-/* ── Draw one sparkline ─────────────────────────────────────────────────── */
-function draw(svg_el, data, stroke, fill) {
-  if (!svg_el) return;
+function draw() {
+  const data = props.data;
+  if (!svg.value || !data.length) return;
 
-  const values = (data && data.length >= 2)
-    ? data.map(v => Math.abs(+v || 0))
-    : Array(2).fill(0);
-  const n = values.length;
+  const W = props.width;
+  const H = props.height;
 
-  const x = d3.scaleLinear().domain([0, n - 1]).range([0, width]);
-  const y = d3.scaleLinear().domain([0, d3.max(values) || 1]).range([height, 0]);
+  d3.select(svg.value)
+    .attr("width", W)
+    .attr("height", H)
+    .style("display", "block");
 
-  const area_fn = d3.area()
-    .x((_, i) => x(i))
-    .y0(height)
-    .y1(d => y(d))
+  const yMax = props.max != null ? props.max : d3.max(data);
+  const yMin = props.min;
+
+  xScale = d3.scaleLinear().domain([0, data.length - 1]).range([0, W]);
+  yScale = d3.scaleLinear().domain([yMin, yMax || 1]).range([H, 0]);
+
+  line = d3.line()
+    .x((_, i) => xScale(i))
+    .y(d => yScale(d))
     .curve(d3.curveMonotoneX);
 
-  const line_fn = d3.line()
-    .x((_, i) => x(i))
-    .y(d => y(d))
+  area = d3.area()
+    .x((_, i) => xScale(i))
+    .y0(H)
+    .y1(d => yScale(d))
     .curve(d3.curveMonotoneX);
 
-  const svg = d3.select(svg_el);
+  const s = d3.select(svg.value);
+  s.selectAll("*").remove();
 
-  let ap = svg.select("path.spark-area");
-  if (ap.empty()) ap = svg.append("path").attr("class", "spark-area").attr("stroke", "none");
-  ap.attr("fill", fill).attr("d", area_fn(values));
+  // Fill area
+  const fillColor = props.fill || (props.color + "33"); // 20% opacity tint
+  s.append("path")
+    .datum(data)
+    .attr("class", "spark-area")
+    .attr("d", area)
+    .attr("fill", fillColor);
 
-  let lp = svg.select("path.spark-line");
-  if (lp.empty()) lp = svg.append("path").attr("class", "spark-line").attr("fill", "none").attr("stroke-width", 1.5);
-  lp.attr("stroke", stroke).attr("d", line_fn(values));
+  // Line
+  s.append("path")
+    .datum(data)
+    .attr("class", "spark-line")
+    .attr("d", line)
+    .attr("fill", "none")
+    .attr("stroke", props.color)
+    .attr("stroke-width", props.stroke_width)
+    .attr("stroke-linejoin", "round")
+    .attr("stroke-linecap", "round");
+
+  // Dot at last value
+  const last = data[data.length - 1];
+  s.append("circle")
+    .attr("cx", xScale(data.length - 1))
+    .attr("cy", yScale(last))
+    .attr("r", 2.5)
+    .attr("fill", props.color);
 }
 
-function redraw() {
-  draw(svg_up.value,   upload_values.value,   UPLOAD_STROKE,   UPLOAD_FILL);
-  draw(svg_down.value, download_values.value, DOWNLOAD_STROKE, DOWNLOAD_FILL);
+// Push a new value and redraw (keeps a rolling window)
+function push(value, maxPoints = 30) {
+  const next = [...props.data, value].slice(-maxPoints);
+  // emit so parent can update :data
+  emit("update:data", next);
 }
 
-/* ── Updater called by window.__peity_register handshake ────────────────── */
-function apply_update(up_vals, dn_vals, up_lbl, dn_lbl) {
-  upload_values.value   = up_vals;
-  download_values.value = dn_vals;
-  if (up_lbl !== undefined) upload_label.value   = up_lbl;
-  if (dn_lbl !== undefined) download_label.value = dn_lbl;
-  nextTick(redraw);
-}
+const emit = defineEmits(["update:data"]);
 
-/* ── Lifecycle ──────────────────────────────────────────────────────────── */
-onMounted(() => {
-  // Register with the proxy that footer.lua installed before DOMContentLoaded.
-  // __peity_register hands over apply_update and immediately flushes any
-  // calls that arrived before this component finished mounting.
-  if (typeof window.__peity_register === "function") {
-    window.__peity_register(apply_update);
-  }
+watch(() => props.data, draw, { deep: true });
 
-  nextTick(redraw);
-});
+onMounted(() => draw());
 
-onBeforeUnmount(() => {
-  delete window.__peity_register;
-  delete window.__peity_update;
-});
+defineExpose({ push, draw });
 </script>
+
+<style scoped>
+.sparkline-container {
+  display: inline-flex;
+  align-items: center;
+}
+</style>

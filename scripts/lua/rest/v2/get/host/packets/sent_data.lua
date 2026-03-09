@@ -4,47 +4,33 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
--- Imports
 require "lua_utils"
 local rest_utils = require "rest_utils"
 local stats_utils = require "stats_utils"
-local graph_utils = require "graph_utils"
 
--- Local variables
-local host_ip = _GET["host"]
-local vlan = _GET["vlan"]
+local host_ip   = _GET["host"]
+local vlan      = _GET["vlan"]
 local host_stats = interface.getHostInfo(host_ip, vlan) or {}
 local total = 0
-local rsp = {
-    labels = {},
-    series = {},
-    colors = {}
-}
+local data  = {}
 
 if host_stats and host_stats["pktStats.sent"] then
-    local serie = {}
-    local current_data = 0
-    local data = host_stats["pktStats.sent"]["size"]
+  local serie = {}
 
-    for label, value in pairs(data or {}) do
-        total = total + value
-        serie[#serie + 1] = {
-            label = label,
-            value = value
-        }
-    end
+  for label, value in pairs(host_stats["pktStats.sent"]["size"] or {}) do
+    total = total + value
+    serie[#serie + 1] = { label = label, value = value }
+  end
 
-    local collapsed = stats_utils.collapse_stats(serie, 1, 5 --[[ threshold ]] )
-    for _, value in pairs(collapsed or {}) do
-        current_data = current_data + 1
-        rsp["labels"][#rsp["labels"] + 1] = value.label
-        rsp["series"][#rsp["series"] + 1] = value.value
-        rsp["colors"][#rsp["colors"] + 1] = graph_utils.get_html_color(current_data)
+  local collapsed = stats_utils.collapse_stats(serie, 1, 5)
+  for i, item in pairs(collapsed or {}) do
+    if item.value > 0 then
+      data[#data + 1] = {
+        label = item.label,
+        value = item.value
+      }
     end
+  end
 end
 
-if total == 0 then
-    rsp = {}
-end
-
-rest_utils.answer(rest_utils.consts.success.ok, rsp)
+rest_utils.answer(rest_utils.consts.success.ok, data)

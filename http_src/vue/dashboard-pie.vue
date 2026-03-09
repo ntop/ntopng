@@ -1,79 +1,54 @@
 <!--
-  (C) 2013-22 - ntop.org
+  (C) 2013-26 - ntop.org
 -->
-
 <template>
-    <div>
-        <Chart ref="chart" :id="id" :chart_type="chart_type" :base_url_request="base_url"
-            :get_custom_chart_options="get_chart_options" :register_on_status_change="false">
-        </Chart>
-    </div>
-</template>
-
-<script setup>
-import { ref, onMounted, onBeforeMount, watch, computed } from "vue";
-import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
-import formatterUtils from "../utilities/formatter-utils";
-import NtopUtils from "../utilities/ntop-utils";
-import { default as Chart } from "./chart.vue";
-
-const _i18n = (t) => i18n(t);
-
-const chart_type = ref(ntopChartApex.typeChart.DONUT);
-const chart = ref(null);
-
-const props = defineProps({
-    id: String,          /* Component ID */
-    i18n_title: String,  /* Title (i18n) */
-    ifid: String,        /* Interface ID */
-    epoch_begin: Number, /* Time interval begin */
-    epoch_end: Number,   /* Time interval end */
-    max_width: Number,   /* Component Width (4, 8, 12) */
-    max_height: Number,  /* Component Hehght (4, 8, 12)*/
-    params: Object,      /* Component-specific parameters from the JSON template definition */
-    get_component_data: Function, /* Callback to request data (REST) */
-    filters: Object
-});
-
-const base_url = computed(() => {
-    return `${http_prefix}${props.params.url}`;
-});
-
-const get_url_params = () => {
-    const url_params = {
-        ifid: props.ifid,
-        epoch_begin: props.epoch_begin,
-        epoch_end: props.epoch_end,
-        new_charts: true,
-        ...props.params.url_params,
-        ...props.filters
-    }
-    return url_params;
-}
-
-function get_chart_options() {
-    const url = base_url.value;
-    const url_params = get_url_params();
-    return props.get_component_data(url, url_params, undefined, props.epoch_begin);
-}
-
-/* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
-watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
-    refresh_chart();
-}, { flush: 'pre', deep: true });
-
-onBeforeMount(() => {
-    init();
-});
-
-onMounted(() => {
-});
-
-function init() {
-    //refresh_chart();
-}
-
-async function refresh_chart() {
-    chart.value.update_chart();
-}
-</script>
+    <PieChartSingle ref="chart" :chart="chart_config" />
+  </template>
+  
+  <script setup>
+  import { ref, computed, watch } from "vue";
+  import PieChartSingle from "./charts/pie-chart.vue";
+  
+  const chart = ref(null);
+  
+  const props = defineProps({
+    id:                 String,
+    i18n_title:         String,
+    ifid:               String,
+    epoch_begin:        Number,
+    epoch_end:          Number,
+    max_width:          Number,
+    max_height:         Number,
+    params:             Object,
+    get_component_data: Function,
+    filters:            Object,
+  });
+  
+  const get_url_params = () => {
+    const raw = {
+      ifid:        props.ifid,
+      epoch_begin: props.epoch_begin,
+      epoch_end:   props.epoch_end,
+      ...props.params.url_params,
+      ...props.filters,
+    };
+    return Object.fromEntries(Object.entries(raw).filter(([_, v]) => v != null));
+  };
+  
+  // Override the fetch function so the dashboard loading lifecycle works
+  const custom_fetch = async (url, url_params) => {
+    // Return raw response, pie-chart.vue will unwrap result
+    return await props.get_component_data(url, url_params, undefined, props.epoch_begin);
+    };
+  
+  const chart_config = computed(() => ({
+    name:       props.id,
+    update_url: `${http_prefix}${props.params.url}`,
+    url_params: get_url_params(),
+    custom_fetch,
+  }));
+  
+  watch(() => [props.epoch_begin, props.epoch_end, props.filters], () => {
+    chart.value?.update();
+  }, { flush: 'pre', deep: true });
+  </script>

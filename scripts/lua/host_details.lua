@@ -1457,7 +1457,7 @@ else
             {
                name       = "clientPortsDistro",
                title      = i18n("ports_page.client_ports"),
-               update_url = http_prefix .. "/lua/iface_ports_list.lua",
+               update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_ports_list.lua",
                url_params = table.merge({ clisrv = "client", ifid = ifId }, host_params),
                refresh    = refresh,
                unit       = "bytes"
@@ -1465,7 +1465,7 @@ else
             {
                name       = "serverPortsDistro",
                title      = i18n("ports_page.server_ports"),
-               update_url = http_prefix .. "/lua/iface_ports_list.lua",
+               update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_ports_list.lua",
                url_params = table.merge({ clisrv = "server", ifid = ifId }, host_params),
                refresh    = refresh,
                unit       = "bytes"

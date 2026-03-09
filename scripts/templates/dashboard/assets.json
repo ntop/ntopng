@@ -169,25 +169,18 @@
 				"counter_formatter" : "number"
 			}
 		},	
-
-
-
-
-
-
-
-
-	    
 		{
-			"component": "lateral-pie",
+			"component": "pie",
 			"id": "manufacturer_distribution",
 			"i18n_name": "asset_details.manufacturer_distribution",
 			"width": 4,
 			"height": 4,
 			"params": {
 				"url": "/lua/pro/rest/v2/get/host/assets_dashboard/manufacturer_distribution.lua",
-				"url_params": {}
-			}
+				"url_params": {},
+				"unit": "number"
+			},
+			"legend_position": "right"
 		},
 		{
 			"component": "bar",

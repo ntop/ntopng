@@ -1,69 +1,51 @@
-<!--
-  (C) 2013-22 - ntop.org
--->
-
 <template>
-<div class="row">
-  <div class="col-md-12 col-lg-12">
-    <div class="card">
-      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
-        <div class="text-center">
-          <div class="spinner-border text-primary mt-5" role="status">
-            <span class="sr-only position-absolute">Loading...</span>
+  <div class="row">
+    <div class="col-md-12 col-lg-12">
+      <div class="card">
+        <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+          <div class="text-center">
+            <div class="spinner-border text-primary mt-5" role="status">
+              <span class="sr-only position-absolute">Loading...</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="card-body">
-      	<div id="host_details_traffic">
-          <div class="row mb-4 mt-4" id="host_details_traffic">
-            <template v-for="chart_option in chart_options">
-              <div class="col-4">
-                <h3 class="widget-name">{{ chart_option.title }}</h3>
-                <Chart
-                  :id="chart_option.id"
-                  :chart_type="chart_option.type"
-                  :base_url_request="chart_option.url"
-                  :register_on_status_change="false">
-                </Chart>
-              </div>
-            </template>
+        <div class="card-body">
+
+          <div id="host_details_traffic">
+            <div class="row mb-4 mt-4">
+              <MultiPieChart :context="pie_charts_context" />
+            </div>
+  
+            <Datatable ref="traffic_table"
+              :table_buttons="config_traffic_table.table_buttons"
+              :columns_config="config_traffic_table.columns_config"
+              :data_url="config_traffic_table.data_url"
+              :enable_search="config_traffic_table.enable_search"
+              :table_config="config_traffic_table.table_config">
+            </Datatable>
           </div>
-          
-          <Datatable ref="traffic_table"
-            :table_buttons="config_traffic_table.table_buttons"
-            :columns_config="config_traffic_table.columns_config"
-            :data_url="config_traffic_table.data_url"
-            :enable_search="config_traffic_table.enable_search"
-            :table_config="config_traffic_table.table_config">
-          </Datatable>
         </div>
       </div>
     </div>
   </div>
-</div>
-</template>
+  </template>
 
 <script setup>
 import { ref, onUnmounted, onBeforeMount, computed, watch } from "vue";
-import { default as Chart } from "./chart.vue";
 import { default as Datatable } from "./datatable.vue";
 import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
+import MultiPieChart from './charts/multi-pie-chart.vue'
 
 const traffic_table = ref(null);
 const charts = ref([]);
 const config_traffic_table = ref({});
 
 const _i18n = (t) => i18n(t);
+
 const props = defineProps({
   context: Object,
 });
 
-const get_f_get_custom_chart_options = () => {
-  console.log("get_f_");
-  return async (url) => {
-    return charts_options_items.value[chart_index].chart_options;
-  }
-}
 
 const destroy = () => {
   traffic_table.value.destroy_table();
@@ -81,26 +63,44 @@ onUnmounted(async () => {
   destroy()
 });
 
-const chart_options = [
-  {
-    title: i18n('graphs.l4_proto'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/l4/proto_data.lua`,
-    id: `traffic_protos`,
-  },
-  {
-    title: i18n('graphs.contacted_hosts'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/l4/contacted_hosts_data.lua`,
-    id: `contacted_hosts`,
-  },
-  {
-    title: i18n('graphs.traffic'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/l4/traffic_data.lua`,
-    id: `traffic`,
-  },
-]
+const pie_charts_context = computed(() => ({
+  charts: [
+    {
+      name:       'traffic_protos',
+      title:      i18n('graphs.l4_proto'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/l4/proto_data.lua`,
+      url_params: {
+        host: ntopng_url_manager.get_url_entry("host") || '',
+        vlan: ntopng_url_manager.get_url_entry("vlan") || '',
+        ifid: ntopng_url_manager.get_url_entry("ifid") || '',
+      },
+      unit : 'number'
+    },
+    {
+      name:       'contacted_hosts',
+      title:      i18n('graphs.contacted_hosts'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/l4/contacted_hosts_data.lua`,
+      url_params: {
+        host: ntopng_url_manager.get_url_entry("host") || '',
+        vlan: ntopng_url_manager.get_url_entry("vlan") || '',
+        ifid: ntopng_url_manager.get_url_entry("ifid") || '',
+      },
+      unit : 'number'
+    },
+    {
+      name:       'traffic',
+      title:      i18n('graphs.traffic'),
+      update_url: `${http_prefix}/lua/rest/v2/get/host/l4/traffic_data.lua`,
+      url_params: {
+        host: ntopng_url_manager.get_url_entry("host") || '',
+        vlan: ntopng_url_manager.get_url_entry("vlan") || '',
+        ifid: ntopng_url_manager.get_url_entry("ifid") || '',
+      },
+      unit : 'number'
+    },
+  ],
+  charts_per_row: 3,
+}));
 
 function start_datatable(PageVue) {
   const datatableButton = [];

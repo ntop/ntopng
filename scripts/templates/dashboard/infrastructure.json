@@ -265,7 +265,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "count"
-				}
+				},
+				"unit": "number"
 			}
 		}
 	]

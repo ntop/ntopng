@@ -109,7 +109,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "sinceStartup"
-				}
+				},
+				"unit": "number"
 			}
 		},
 		{
@@ -152,7 +153,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "count"
-				}
+				},
+				"unit": "number"
 			}
 		},
 		{
@@ -203,7 +205,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "sinceStartup"
-				}
+				},
+				"unit": "number"
 			}
 		},
 		{
@@ -220,7 +223,8 @@
 				"url_params" : {
 					"breed" : "true",
 					"ndpistats_mode" : "count"
-				}
+				},
+				"unit": "number"
 			}
 		},
 		{

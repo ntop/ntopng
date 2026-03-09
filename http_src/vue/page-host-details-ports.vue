@@ -88,21 +88,6 @@ onUnmounted(async () => {
   destroy()
 });
 
-const chart_options = [
-  {
-    title: i18n('graphs.cli_ports'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/port/cli_port_data.lua`,
-    id: `cli_port_flows`,
-  },
-  {
-    title: i18n('graphs.srv_ports'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/port/srv_port_data.lua`,
-    id: `srv_port_flows`,
-  },
-]
-
 const table_options = [
   {
     url: `${http_prefix}/lua/rest/v2/get/host/port/table_port_data.lua`,

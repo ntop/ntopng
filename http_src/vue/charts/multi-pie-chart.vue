@@ -3,8 +3,8 @@
 -->
 
 <template>
-  <div class="pie-charts-wrapper" :style="gridStyle">
-    <PieChartSingle
+  <div class="donut-charts-wrapper" :style="gridStyle">
+    <PieChart
       v-for="chart in charts"
       :key="chart.name"
       :chart="chart"
@@ -14,7 +14,7 @@
 
 <script setup>
 import { computed } from "vue";
-import PieChartSingle from "./pie-chart.vue";
+import PieChart from "./pie-chart.vue";
 
 const props = defineProps({
   context:        { type: Object, default: undefined },

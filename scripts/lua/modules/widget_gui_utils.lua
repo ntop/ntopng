@@ -186,24 +186,6 @@ function widget_gui_utils.register_geomap(name, update_time, datasources, additi
     widget_gui_utils.register_chart_widget(name, 'geomap', update_time, datasources, additional_params)
 end
 
----Render all registered chart widgets.
----@return string
-function widget_gui_utils.render_chart_widgets()
-
-    local template_buff = {}
-
-    for widget_name, widget in pairs(registered_widgets.charts) do
-
-        local rendered_html = template_utils.gen("widgets/chart-widget.template", {
-            widget_name = widget_name, widget = widget, json = json
-        })
-
-        template_buff[#template_buff + 1] = rendered_html
-    end
-
-    return table.concat(template_buff, "\n")
-end
-
 ---Get an array of chart widgets registered
 ---@return table
 function widget_gui_utils.get_registered_chart_names()
@@ -215,43 +197,6 @@ function widget_gui_utils.get_registered_chart_names()
     end
 
     return names
-end
-
----Render a chart widget into a string
----@param widget_name string The widget's name to render
----@param additional_params table Additional paramaters used to customize the widgets {css_styles = {...}, displaying_label = '...'}
----@return string The chart widget template rendered
-function widget_gui_utils.render_chart(widget_name, additional_params)
-    local displaying_label = additional_params.displaying_label or widget_name
-    local css_styles = additional_params.css_styles or {}
-    local chart_type = additional_params.chart_type
-
-    if not (table.has_key(registered_widgets.charts, widget_name)) then
-        return string.format("Chart %s not found!", widget_name)
-    end
-
-    local rendered_html
-    local widget = registered_widgets.charts[widget_name]
-
-    if (chart_type) and (chart_type == "geomap") then
-        rendered_html = template_utils.gen("widgets/geomap-widget.template", {
-            json = json, 
-            widget_name = widget_name, 
-            widget = widget, 
-            css_styles = build_css_styles(css_styles),
-            displaying_label = displaying_label
-        })
-    else
-        rendered_html = template_utils.gen("widgets/chart-widget.template", {
-            json = json, 
-            widget_name = widget_name, 
-            widget = widget, 
-            css_styles = build_css_styles(css_styles),
-            displaying_label = displaying_label
-        })
-    end
-
-    return rendered_html
 end
 
 function widget_gui_utils.datasource(name, params)

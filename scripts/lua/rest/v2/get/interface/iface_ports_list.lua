@@ -51,21 +51,21 @@ local accumulate = 0
 for key, value in pairsByValues(ports, rev) do
     if value < threshold then break end
 
-    local url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua?port=" .. key
-    if host_key then
-        url = url .. "&host=" .. host_key
+    if value > 0 then
+        local url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua?port=" .. key
+        if host_key then
+            url = url .. "&host=" .. host_key
+        end
+        res[#res + 1] = {
+            label = tostring(key),
+            value = value,
+            url   = url,
+        }
+
+        accumulate = accumulate + value
+        num        = num + 1
     end
-
-    res[#res + 1] = {
-        label = tostring(key),
-        value = value,
-        url   = url,
-    }
-
-    accumulate = accumulate + value
-    num        = num + 1
 end
-
 -- Leftover "Other" slice
 if accumulate < tot then
     local other_label = i18n("other")
@@ -83,10 +83,6 @@ if accumulate < tot then
         value = tot - accumulate,
         url   = url,
     }
-end
-
-if tot == 0 then
-    res[#res + 1] = { label = i18n("no_ports"), value = 0 }
 end
 
 rest_utils.answer(rest_utils.consts.success.ok, res)

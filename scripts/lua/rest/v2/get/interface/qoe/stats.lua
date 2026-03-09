@@ -1,55 +1,42 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-26 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local rest_utils = require("rest_utils")
-local stats_utils = require("stats_utils")
-local graph_utils = require "graph_utils"
+local rest_utils  = require "rest_utils"
+local stats_utils = require "stats_utils"
 
---
--- Read statistics about nDPI application protocols on an interface
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/interface/qoe/stats.lua
---
--- NOTE: in case of invalid login, no error is returned but redirected to login
---
-
-local rc = rest_utils.consts.success.ok
-local res = {}
-
-local ifid = _GET["ifid"]
+local ifid           = _GET["ifid"]
 local collapse_stats = toboolean(_GET["collapse_stats"])
 
 if isEmptyString(ifid) then
-   rc = rest_utils.consts.err.invalid_interface
-   rest_utils.answer(rc)
-   return
+  rest_utils.answer(rest_utils.consts.err.invalid_interface)
+  return
 end
 
 interface.select(ifid)
 
 local stats = interface.getActiveFlowsStats()
 
-local js_formatter = "formatValue"
-
 if not stats or not stats.qoe then
-   rest_utils.answer(rest_utils.consts.err.internal_error)
-   return
+  rest_utils.answer(rest_utils.consts.err.internal_error)
+  return
 end
 
+local data = {}
+
 for key, value in pairsByField(stats.qoe, "num", rev) do
-   res[#res + 1] = {
-      label = i18n("flow_details.qoe_" .. key .. "_label") or "",
-      value = value.num,
-      url = nil
-   }
+  data[#data + 1] = {
+    label = i18n("flow_details.qoe_" .. key .. "_label") or "",
+    value = value.num
+  }
 end
 
 if collapse_stats then
-  res = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
+  data = stats_utils.collapse_stats(data, 1, 3)
 end
 
-rest_utils.answer(rc, graph_utils.convert_pie_data(res, true, js_formatter))
+rest_utils.answer(rest_utils.consts.success.ok, data)

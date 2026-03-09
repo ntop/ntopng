@@ -161,13 +161,21 @@ import { default as ModalEditACLRule } from "./modal-edit-acl-rule.vue";
 import { default as ModalDeleteACLRule } from "./modal-delete-acl-rule.vue";
 import { default as ModalDeleteAllACLRule } from "./modal-delete-all-acl-rules.vue";
 
+/* Charts */
 import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
 import { default as PieChart } from "./charts/pie-chart.vue";
+import { default as PeityChart } from "./charts/peity.vue";
+
+//import { default as LLMTest } from "./llm_test.vue";
 
 let ntopVue = {
+    //LLMTest: LLMTest,
+    
     // graphs
     MultiPieChart: MultiPieChart,
     PieChart: PieChart,
+    PeityChart: PeityChart,
+    
     // pages
     PageAlertStats: PageAlertStats,
     PageFlowHistorical: PageFlowHistorical,

@@ -2,60 +2,60 @@
   (C) 2026 - ntop.org
 -->
 <template>
-
-  <div ref="container" class="pie-container">
+  <div ref="container" class="pie-container" :class="`legend-${legend_position}`">
     <!-- Title -->
     <div v-if="chart.title" class="pie-title"><strong>{{ chart.title }}</strong></div>
-    
-    <!-- Chart loading -->
-    <Loading v-if="loading" />
 
-    <div v-else-if="no_data" class="no-data">{{ _i18n('flows_page.no_data') }}</div>
-    
-    <!-- Pie Chart -->
-    <div ref="wrapper" class="pie-wrapper"></div>
-    
-    <!-- Tooltip on hover -->
-    <div v-if="tooltip.visible" class="pie-tooltip"
-      :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
-      <span class="tt-dot" :style="{ background: tooltip.color }"></span>
-      <span class="tt-name">{{ tooltip.name }}</span>
-      <span class="tt-val">{{ tooltip.value.toLocaleString() }}</span>
-      <span class="tt-pct">({{ tooltip.pct }}%)</span>
-    </div>
-  
-  <!-- Legend -->
-    <div v-if="items.length" class="pie-legend">
-      <div v-for="(it, i) in items" :key="i" class="legend-item"
-           :class="{ clickable: !!it.url }"
-           @click="it.url && (window.location.href = it.url)">
+    <Loading :isLoading="loading" />
 
-        <span class="legend-dot" :style="{ background: it.color }"></span>
-        <span class="legend-text">{{ it.name }}</span>
-        <span class="legend-text">{{ it.pct }}%</span>
+    <!-- No data -->
+    <div v-if="no_data && !loading" class="no-data">{{ _i18n('flows_page.no_data') }}</div>
+
+    <div class="pie-body">
+      <!-- Pie Chart -->
+      <div ref="wrapper" class="pie-wrapper" v-show="!loading && !no_data"></div>
+
+      <!-- Tooltip on hover -->
+      <div v-if="!loading && tooltip.visible" class="pie-tooltip"
+        :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
+        <span class="tt-dot" :style="{ background: tooltip.color }"></span>
+        <span class="tt-name">{{ tooltip.name }}</span>
+        <span class="tt-val">{{ tooltip.value.toLocaleString() }}</span>
+        <span class="tt-pct">({{ tooltip.pct }}%)</span>
+      </div>
+
+      <!-- Legend -->
+      <div v-if="!loading && items.length" class="pie-legend">
+        <div v-for="(it, i) in items" :key="i" class="legend-item" :class="{ clickable: !!it.url }"
+          @click="it.url && (window.location.href = it.url)">
+          <span class="legend-dot" :style="{ background: it.color }"></span>
+          <span class="legend-text">{{ it.name }}</span>
+          <span class="legend-text">{{ it.pct }}%</span>
+        </div>
       </div>
     </div>
-  </div>
 
+  </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { default as Loading } from "../loading.vue";
 import colorUtils from "../../utilities/color-utils.js";
-import formatterUtils from "../../utilities/formatter-utils";
+import formatterUtils from "../../utilities/formatter-utils.js";
 
-const d3    = d3v7;
+const d3 = d3v7;
 const _i18n = (t) => (typeof i18n === "function" ? i18n(t) : t);
 
 const props = defineProps({ chart: { type: Object, required: true } });
-const { name, update_url, url_params, refresh, unit } = props.chart;
+const { name, update_url, url_params, refresh, unit, custom_fetch } = props.chart;
+const legend_position = props.chart.legend_position || "bottom"; // "bottom" or "left" or "right"
 
 const container = ref(null);
 const wrapper   = ref(null);
 const loading   = ref(false);
 const no_data   = ref(false);
-const items = ref([]);
+const items     = ref([]);
 
 const tooltip = reactive({
   visible: false,
@@ -67,15 +67,32 @@ const tooltip = reactive({
   color: ""
 });
 
-let svg = null, g = null, arc = null, arcHover = null, pie = null;
-let oldData = [], refreshTimer = null, resizeTimer = null;
-const W = 280, H = 220, TWEEN = 300;
+let svg = null;
+let g = null;
+let arc = null;
+let arcHover = null;
+let pie = null;
+let oldData = [];
+let refreshTimer = null;
+let resizeTimer = null;
+
+const TWEEN = 300;
+
+// Measure the wrapper div and return { W, H, R }
+function getDims() {
+  const el = wrapper.value;
+  if (!el) return { W: 200, H: 200, R: 80 };
+  
+  const W = el.clientWidth  || 200;
+  const H = el.clientHeight || 200;
+  const R = Math.min(W, H) * 0.42;
+  return { W, H, R };
+}
 
 onMounted(async () => {
   await nextTick();
   drawSVG();
   await load();
-
   if (refresh > 0) refreshTimer = setInterval(load, refresh);
   window.addEventListener("resize", onResize);
 });
@@ -88,101 +105,107 @@ onBeforeUnmount(() => {
 
 function drawSVG() {
   wrapper.value?.replaceChildren();
-  const R = Math.min(W, H) * 0.42;
-  const r = R * 0.52;
-  const cr = (R - r) * 0.18;   // subtle rounding, not pill-shaped
 
-  pie      = d3.pie().value(d => Math.max(d.value, 1)).sort(null).padAngle(0.03);
+  const { W, H, R } = getDims();
+  const r  = R * 0.52;
+  const cr = (R - r) * 0.18;
+
+  pie      = d3.pie().value(d => Math.max(Math.round(d.value), 1)).sort(null).padAngle(0.03);
   arc      = d3.arc().innerRadius(r).outerRadius(R).cornerRadius(cr);
   arcHover = d3.arc().innerRadius(r).outerRadius(R + 7).cornerRadius(cr);
 
-  svg = d3.select(wrapper.value).append("svg")
-    .attr("width", W).attr("height", H).style("display", "block");
+  svg = d3.select(wrapper.value)
+    .append("svg")
+    .attr("width",  "100%")
+    .attr("height", "100%")
+    .attr("viewBox", `0 0 ${W} ${H}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
-  g = svg.append("g").attr("transform", `translate(${W/2},${H/2})`);
-  g.append("circle").attr("class", "donut-hole").attr("r", r - 1);
+  g = svg.append("g")
+    .attr("transform", `translate(${W / 2},${H / 2})`);
+
+  g.append("circle").attr("class", "pie-hole").attr("r", r - 1);
 }
 
 async function load() {
   loading.value = true;
 
   try {
-    const url = url_params && Object.keys(url_params).length
-      ? `${update_url}?${new URLSearchParams(url_params)}`
-      : update_url;
+    let data;
+    // used for dashboard, as it passes data directly
+    if (custom_fetch) {
+      data = await custom_fetch(update_url, url_params);
+    } else {
+      const url = url_params && Object.keys(url_params).length
+        ? `${update_url}?${new URLSearchParams(url_params)}`
+        : update_url;
 
-    const res  = await ntopng_utility.http_request(url, null, null, true);
-    let data = res?.rsp;
+      const res = await ntopng_utility.http_request(url, null, null, true);
+      data = res?.rsp?.data || res?.rsp;
+    }
 
     if (!Array.isArray(data) || !data.length) { no_data.value = true; return; }
-
     no_data.value = false;
     render(data.filter(d => d.value > 0));
 
-  } catch(e) {
-    console.error(`PieChart-${name}:`, e);
+  } catch (e) {
+    console.error(`pieChart-${name}:`, e);
     no_data.value = true;
-
   } finally {
     loading.value = false;
   }
 }
 
+// assign colors from palette, first element has the same color on all pages
 function render(data) {
-
-  let node_label = data.map(elem => elem.label);
-
-  //const PALETTE = colorUtils.assignColors(node_label);
-  const PALETTE = colorUtils.assignRoundRobinColors(node_label);
-
+  const PALETTE  = colorUtils.assignRoundRobinColors(data.map(d => d.label));
   const getColor = (d, i) => d.color || PALETTE[i % PALETTE.length];
-  const total = data.reduce((s, d) => s + d.value, 0);
+  const total    = data.reduce((s, d) => s + d.value, 0);
 
   items.value = data.map((d, i) => ({
-    name: d.label,
-    // format if unit is defined, else plot value as is
+    name:  d.label,
     value: unit ? formatterUtils.getFormatter(unit)(d.value) : d.value,
     color: getColor(d, i),
-    url: d.url || null,
-    pct: total > 0 ? (d.value / total * 100).toFixed(1) : "0",
+    url:   d.url || null,
+    pct:   total > 0 ? (d.value / total * 100).toFixed(1) : "0",
   }));
 
-  const newPie = pie(data);
+  const newpie = pie(data);
 
-  const tween  = (d) => {
+  const tween = (d) => {
     const old    = oldData.find(o => o.data.label === d.data.label);
     const interp = d3.interpolate(old ?? { startAngle: 0, endAngle: 0 }, d);
-    return t => arc(interp(t));
+    return t => { try { return arc(interp(t)); } catch (e) { return ""; } };
   };
 
-  const paths = g.selectAll("path.slice").data(newPie, d => d.data.label);
+  const paths = g.selectAll("path.slice").data(newpie, d => d.data.label);
 
   paths.enter().append("path").attr("class", "slice")
     .attr("fill", (d, i) => getColor(d.data, i))
 
-    .on("mouseover", function(ev, d) {
+    .on("mouseover", function (ev, d) {
       d3.select(this).transition().duration(100).attr("d", arcHover);
       const rect = container.value.getBoundingClientRect();
       const idx = items.value.findIndex(it => it.name === d.data.label);
-
-      // Update tooltip
+      
       Object.assign(tooltip, {
         visible: true,
-        color: getColor(d.data, idx),
-        x: ev.clientX - rect.left + 14,
-        y: ev.clientY - rect.top - 12,
-        name: d.data.label,
-        // format if unit is defined, else plot value as is
-        value: unit ? formatterUtils.getFormatter(unit)(d.data.value) : d.data.value,
-        pct: total > 0 ? (d.data.value / total * 100).toFixed(1) : "0",
+        color:   getColor(d.data, idx),
+        x:       ev.clientX - rect.left + 14,
+        y:       ev.clientY - rect.top  - 12,
+        name:    d.data.label,
+        value:   unit ? formatterUtils.getFormatter(unit)(d.data.value) : d.data.value,
+        pct:     total > 0 ? (d.data.value / total * 100).toFixed(1) : "0",
       });
+
     })
     .on("mousemove", (ev) => {
       const rect = container.value.getBoundingClientRect();
+
       tooltip.x = ev.clientX - rect.left + 14;
       tooltip.y = ev.clientY - rect.top  - 12;
     })
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       d3.select(this).transition().duration(100).attr("d", arc);
       tooltip.visible = false;
     })
@@ -196,10 +219,10 @@ function render(data) {
     .transition().duration(TWEEN)
     .attrTween("d", d => {
       const interp = d3.interpolate(d, { startAngle: Math.PI * 2, endAngle: Math.PI * 2 });
-      return t => arc(interp(t));
+      return t => { try { return arc(interp(t)); } catch (e) { return ""; } };
     }).remove();
 
-  oldData = newPie;
+  oldData = newpie;
 }
 
 const onResize = () => {
@@ -215,30 +238,65 @@ defineExpose({ update: load });
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  flex: 1 1 280px;
-  min-width: 220px;
-  max-width: 420px;
-  min-height: 300px;
-  border-radius: 12px;
-  padding: 14px 14px 12px;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
 .pie-title {
-  align-self: flex-start;
+  flex-shrink: 0;
   margin-bottom: 4px;
 }
 
-.pie-wrapper { width: 100%; display: flex; justify-content: center; }
+.pie-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  gap: 8px;
+}
+
+/* Side legend */
+.legend-left .pie-body,
+.legend-right .pie-body {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.legend-right .pie-body { flex-direction: row; }
+.legend-left  .pie-body { flex-direction: row-reverse; }
+
+.pie-wrapper {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.legend-left  .pie-wrapper,
+.legend-right .pie-wrapper {
+  flex: 1 1 auto;
+  max-width: 60%;
+}
 
 .no-data {
   color: #999;
   margin: auto;
 }
 
-:deep(.donut-hole) { fill: var(--loading-bg, #fff); }
-:deep(path.slice)  { cursor: pointer; }
+:deep(.pie-hole)  { fill: var(--loading-bg, #fff); }
+:deep(path.slice) { cursor: pointer; }
 
 .pie-tooltip {
   position: absolute;
@@ -246,29 +304,39 @@ defineExpose({ update: load });
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(10,10,10,0.85);
+  background: rgba(10, 10, 10, 0.85);
   color: #fff;
   padding: 5px 10px 5px 8px;
   border-radius: 6px;
   white-space: nowrap;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   z-index: 100;
   backdrop-filter: blur(4px);
 }
 .tt-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .tt-name { font-weight: 500; }
 .tt-val  { font-weight: 700; }
-.tt-pct  { color: rgba(255,255,255,0.5); }
+.tt-pct  { color: rgba(255, 255, 255, 0.5); }
 
 .pie-legend {
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 16px;
-  margin-top: 10px;
-  padding-top: 8px;
-  width: 100%;
+  align-content: flex-start;
+  gap: 4px 12px;
 }
+
+/* Vertical legend for left right positioning */
+.legend-left  .pie-legend,
+.legend-right .pie-legend {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
 .legend-item {
   display: flex;
   align-items: center;
@@ -277,8 +345,6 @@ defineExpose({ update: load });
   user-select: none;
 }
 .legend-item.clickable { cursor: pointer; }
-.legend-item.clickable:hover .legend-name { text-decoration: underline; }
 .legend-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 .legend-text { font-size: 0.75rem; }
-
 </style>

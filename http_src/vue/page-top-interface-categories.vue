@@ -2,17 +2,10 @@
 <template>
   <div class="m-2 mb-3">
     <div class="row ms-3" id="interface_categories">
-      <div class="col-12 widget-box row">
-        <h3 class="widget-name">{{ _i18n('since_startup') }}</h3>
-        <template v-for="chart_option in chart_options_since_startup">
-          <div class="col-12">
-            <h5 class="widget-name">{{ chart_option.title }}</h5>
-            <Chart :id="chart_option.id" :chart_type="chart_option.type"
-              :get_params_url_request="get_params_url_request" :base_url_request="chart_option.url"
-              :register_on_status_change="false">
-            </Chart>
-          </div>
-        </template>
+      <div class="col-12 widget-box d-flex justify-content-center">
+        <div style="max-width: 420px; width: 100%;">
+          <MultiPieChart :context="donut_charts_context" />
+        </div>
       </div>
     </div>
     <TableWithConfig :key="recreate_table" ref="table_top_cat" :table_id="table_id" :csrf="context.csrf"
@@ -23,7 +16,7 @@
 </template>
 
 <script setup>
-import { default as Chart } from "./chart.vue";
+import MultiPieChart from "./charts/multi-pie-chart.vue";
 import { ref, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
@@ -40,19 +33,24 @@ const props = defineProps({
 });
 
 /* ************************************** */
+// Donut chart def
+const donut_charts_context = {
+    charts: [
+        {
+            name: 'top_l7_categories',
+            title: i18n('top_l7_cat') + " " + i18n('since_startup'),
+            update_url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
+            url_params: { ndpi_category: true, show_top: true, ndpistats_mode: "sinceStartup", ifid: props.context.ifid },
+            unit: 'bytes'
+        }
+    ],
+};
+
+/* ************************************** */
 
 const table_id = ref('top_interface_categories');
 const table_top_cat = ref([]);
 const recreate_table = ref(false);
-const chart_options_since_startup = ref([
-  {
-    title: i18n('top_l7_cat'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/interface/l7/stats.lua`,
-    extra_params: { ndpi_category: true, show_top: true, ndpistats_mode: "sinceStartup", ifid: props.context.ifid },
-    tab: `applications`,
-    id: `top_l7_categories`,
-  }])
 
 /* ************************************** */
 
@@ -60,17 +58,6 @@ function column_data(col, row) {
   return row[col.data.data_field];
 }
 
-/* ************************************** */
-
-function get_params_url_request(status) {
-  if (status.id) {
-    let array_element = chart_options_since_startup.value.find((el) => el.id === status.id);
-    if (!array_element) array_element = chart_options_live.value.find((el) => el.id === status.id);
-    const params = array_element.extra_params;
-    return ntopng_url_manager.obj_to_url_params(params);
-  }
-  return "";
-}
 
 /* ************************************** */
 
