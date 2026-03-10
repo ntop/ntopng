@@ -8,8 +8,8 @@
 
     <Loading :isLoading="loading" />
 
-    <!-- No data -->
-    <div v-if="no_data && !loading" class="no-data">{{ _i18n('flows_page.no_data') }}</div>
+    <!-- no data -->
+    <NoData :show="no_data && !loading"></NoData>
 
     <div class="pie-body">
       <div class="d-flex">
@@ -46,6 +46,7 @@ import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { default as Loading } from "../loading.vue";
 import colorUtils from "../../utilities/color-utils.js";
 import formatterUtils from "../../utilities/formatter-utils.js";
+import NoData from '../components/no-data.vue'
 
 const d3 = d3v7;
 const _i18n = (t) => (typeof i18n === "function" ? i18n(t) : t);
