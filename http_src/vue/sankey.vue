@@ -19,9 +19,8 @@
         </div>
 
         <!-- no data -->
-        <div v-if="no_data" class="alert alert-info" id="empty-message">
-            {{ no_data_message || _i18n('flows_page.no_data') }}
-        </div>
+        <NoData :show="no_data"></NoData>
+        
         <div ref="sankey_wrapper"></div>
     </div>
 </template>
@@ -29,6 +28,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed } from "vue";
 import { sankey, sankeyLinkHorizontal } from "d3-sankey";
+import NoData from './components/no-data.vue'
 
 const d3 = d3v7;
 const emit = defineEmits(['node_click', 'update_width', 'update_height', 'autorefresh_toggle'])
@@ -613,17 +613,6 @@ defineExpose({ draw_sankey, setNoDataFlag });
     z-index: 10;
 }
 
-.alert {
-    margin: 20px;
-    padding: 15px;
-    border-radius: 4px;
-}
-
-.alert-info {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    color: #0c5460;
-}
 
 .zoom-btn {
     background-color: #fd7e14 !important;

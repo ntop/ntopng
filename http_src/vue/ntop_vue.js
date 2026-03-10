@@ -123,6 +123,7 @@ import { default as Chord } from "./chord-chart.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
 import { default as SearchBox } from "./components/search-box.vue";
+import { default as NoData } from "./components/no-data.vue";
 
 // dashboard
 import { default as Dashboard } from "./dashboard.vue";
@@ -259,6 +260,7 @@ let ntopVue = {
 
     PageBlacklists: PageBlacklists,
     //PageChatbot: PageChatbot,
+
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
     PageHostDetailsTraffic: PageHostDetailsTraffic,
@@ -301,6 +303,7 @@ let ntopVue = {
     Chord: Chord,
     NoteList: NoteList,
     Loading: Loading,
+    NoData: NoData,
 
     // dashboard
     Dashboard: Dashboard,

@@ -162,3 +162,60 @@ All pie chart endpoints must return a JSON array:
 | `label` | Yes | Slice label shown in legend |
 | `value` | Yes | Numeric value |
 | `url` | No | Click-through URL for slice and legend item |
+
+---
+
+## NoData
+
+Simple info banner rendered when there is no data to display. Supports both i18n keys and direct strings.
+
+### Props
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `show` | Boolean | Yes | Renders the component when `true` |
+| `i18nKey` | String | No | i18n translation key (default: `'flows_page.no_data'`) |
+| `message` | String | No | Direct string — takes priority over `i18nKey` if provided |
+
+### Vue
+```vue
+<!-- Default message -->
+<NoData :show="no_data" />
+
+<!-- Custom i18n key -->
+<NoData :show="no_data" i18nKey="some_page.empty_table" />
+
+<!-- Direct string -->
+<NoData :show="no_data" message="No flows available" />
+
+<!-- Compound expression -->
+<NoData :show="no_data && !loading" :message="no_data_message" i18nKey="flows_page.no_data" />
+```
+
+---
+
+## LoadingOverlay
+
+Full-area loading overlay with spinner and translated label. Positions itself as `fixed` when the parent element exceeds 70% of the viewport height.
+
+### Props
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `isLoading` | Boolean | Yes | Shows the overlay when `true`, hides when `false` |
+| `styles` | String | No | Inline styles applied to the spinner element |
+
+### Notes
+- The overlay uses `position: absolute` and fills the parent via `inset: 0` — the parent must have `position: relative`
+- Automatically listens to `resize` events to recompute fixed positioning
+- Respects `data-theme="light"` / `data-theme="dark"` on `:root`
+
+### Vue
+```vue
+<div class="position-relative">
+  <LoadingOverlay :isLoading="loading" />
+</div>
+
+<!-- With custom spinner style -->
+<LoadingOverlay :isLoading="loading" styles="width: 60px; height: 60px;" />
+```

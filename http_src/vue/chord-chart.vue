@@ -7,9 +7,8 @@
         <Loading :isLoading="loading"></Loading>
 
         <!-- no data -->
-        <div v-if="no_data && !loading" class="alert alert-info no-data-message" id="empty-message">
-            {{ no_data_message || _i18n('flows_page.no_data') }}
-        </div>
+
+        <NoData :show="no_data && !loading" :message="props.no_data_message" i18nKey="flows_page.no_data" />
         <div ref="chord_wrapper" class="chord-wrapper"></div>
     </div>
 </template>
@@ -18,6 +17,7 @@
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed } from "vue";
 import { default as Loading } from "./loading.vue"
 import colorUtils from "../utilities/color-utils.js";
+import NoData from './components/no-data.vue'
 
 const d3 = d3v7;
 const emit = defineEmits(['update_width', 'update_height', 'autorefresh_toggle'])
