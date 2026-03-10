@@ -23,10 +23,11 @@ import timeseriesUtils from "../utilities/timeseries-utils.js";
 const height_per_row = 62 /* px */
 const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
 const chart = ref(null);
-const timeseries_groups = ref([]);
+const timeseries_groups = ref(null);
 const group_option_mode = timeseriesUtils.getGroupOptionMode('1_chart_x_yaxis');
 const height = ref(null);
 const ts_request = ref([]);
+const source_def = {};
 
 /* *************************************************** */
 
@@ -50,6 +51,13 @@ const props = defineProps({
 const base_url = computed(() => {
     return `${http_prefix}${props.params.url}`;
 });
+
+/* *************************************************** */
+
+const formatUniqueKey = (requestInfo) => {
+    return `${requestInfo?.ts_schema}-${requestInfo?.ts_query}`
+}
+
 
 /* *************************************************** */
 
@@ -115,8 +123,9 @@ async function format_ifids(params_to_format) {
     const ifid_url = "lua/rest/v2/get/ntopng/interfaces.lua"
     const ifid_list = await ntopng_utility.http_request(`${http_prefix}/${ifid_url}`) || [];
     ifid_list.forEach((iface) => {
-        let new_formatted_params = substitute_ifid(params_to_format, iface.ifid);
-        new_formatted_params.source_def = [iface.ifid]
+        const new_formatted_params = substitute_ifid(params_to_format, iface.ifid);
+        const source_def_key = formatUniqueKey(new_formatted_params)
+        source_def[source_def_key] = [iface.ifid]
         ts_request.value.push(new_formatted_params);
     });
 }
@@ -138,7 +147,8 @@ async function format_exporters(params_to_format) {
             if (exporter) {
                 let new_formatted_params = substitute_exporter(params_to_format, exporter.probe_ip);
                 new_formatted_params = substitute_ifid(new_formatted_params, exporter.ifid);
-                new_formatted_params.source_def = [exporter.ifid, exporter.probe_ip]
+                const source_def_key = formatUniqueKey(new_formatted_params)
+                source_def[source_def_key] = [exporter.ifid, exporter.probe_ip]
                 ts_request.value.push(new_formatted_params);
             }
         });
@@ -162,7 +172,8 @@ async function format_networks(params_to_format) {
             if (network) {
                 let new_formatted_params = substitute_network(params_to_format, network.id);
                 new_formatted_params = substitute_ifid(new_formatted_params, props.ifid);
-                new_formatted_params.source_def = [props.ifid, network.id];
+                const source_def_key = formatUniqueKey(new_formatted_params)
+                source_def[source_def_key] = [props.ifid, network.id]
                 ts_request.value.push(new_formatted_params);
             }
         });
@@ -196,7 +207,8 @@ async function resolve_any_params() {
                 break;
             default:
                 let new_formatted_params = substitute_ifid(params[any_param], props.ifid);
-                new_formatted_params.source_def = [props.ifid];
+                const source_def_key = formatUniqueKey(new_formatted_params)
+                source_def[source_def_key] = [props.ifid]
                 ts_request.value.push(new_formatted_params);
                 break;
         }
@@ -224,17 +236,18 @@ async function get_timeseries_groups_from_metric(metric_schema, source_def) {
 
 async function retrieve_basic_info() {
     /* Return the timeseries group, info found in the json */
-    if (timeseries_groups.value.length == 0) {
+    if (!timeseries_groups.value) {
+        timeseries_groups.value = [];
         /* Order the request just the first time */
         order_ts_request();
         for (const value of ts_request.value) {
             const metric_schema = value?.ts_schema;
-            const source_def = value.source_def;
-            delete value.source_def /* Remove the property otherwise it's going to be added to the REST */
-            const group = await get_timeseries_groups_from_metric(metric_schema, source_def);
-            timeseries_groups.value.push(group);
+            const source_def_key = formatUniqueKey(value)
+            if (source_def[source_def_key]) {
+                const group = await get_timeseries_groups_from_metric(metric_schema, source_def[source_def_key]);
+                timeseries_groups.value.push(group);
+            }
         }
-        remove_extra_params();
     }
 }
 
@@ -242,17 +255,6 @@ async function retrieve_basic_info() {
 
 function order_ts_request() {
     ts_request.value.sort((a, b) => a.tskey.localeCompare(b.tskey));
-}
-
-/* *************************************************** */
-
-/* Remove the property otherwise it's going to be added to the REST */
-function remove_extra_params() {
-    for (const value of ts_request.value) {
-        if (value.source_def) {
-            delete value.source_def
-        }
-    }
 }
 
 /* *************************************************** */
