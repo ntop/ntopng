@@ -44,7 +44,10 @@ This is the template for the manage configurations page.
 {% if true then %}
         <div class="notes bg-light border">
             <b>{{ i18n('notes') }}</b>
-            <p class="mb-1">{{ i18n('manage_configurations.snmp_config_moved') }}</p>
+            <ul>
+                <li><p class="mb-1">{{ i18n('manage_configurations.snmp_config_moved') }}</p></li>
+                <li><p class="mb-1">{{ i18n('manage_configurations.pool_import_doc') }}</p></li>
+            </ul>
         </div>
 {% end %}
     </div>
@@ -175,17 +178,29 @@ confirm_button = 'btn-danger'
 
     // configure import config modal
     NtopUtils.importModalHelper({
-        loadConfigXHR: (jsonConf) => {
+        loadConfigXHR: (jsonConf, isCsv) => {
             const key = $(`input[name='configuration']:checked`).val();
+            /* CSV only for the pool */
+            if (isCsv) {
+                /* CSV pool import: send via dedicated "pool_CSV" field, bypassing JSON processing */
+                return $.post(`${http_prefix}/lua/rest/v2/import/${key}/config.lua`, {
+                    pool_CSV: jsonConf,
+                    csrf: importCSRF
+                });
+            }
 
             let json_str = jsonConf;
 
             /* Cleanup configuation to avoid huge uploads */
-            let conf = JSON.parse(json_str);
-            if (conf && conf['modules'] && conf['modules']['all'] &&
-                conf['modules']['all']['ntopng.prefs.config_save_backup']) {
-                delete conf['modules']['all']['ntopng.prefs.config_save_backup'];
-                json_str = JSON.stringify(conf);
+            try {
+                let conf = JSON.parse(json_str);
+                if (conf && conf['modules'] && conf['modules']['all'] &&
+                    conf['modules']['all']['ntopng.prefs.config_save_backup']) {
+                    delete conf['modules']['all']['ntopng.prefs.config_save_backup'];
+                    json_str = JSON.stringify(conf);
+                }
+            } catch (e) {
+                /* Should not happen for JSON files */
             }
 
             return $.post(`${http_prefix}/lua/rest/v2/import/${key}/config.lua`, {
