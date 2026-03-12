@@ -19,6 +19,25 @@
                 <SelectSearch v-model:selected_option="selected_resolution" theme="bootstrap-5"
                     :options="resolutionOptions" @select_option="select_resolution" :dropdown_size="'small'" />
             </div>
+
+            <!-- Interface Role Filter Dropdown -->
+            <div class="dropdown me-3 d-flex">
+                <span class="no-wrap d-flex align-items-center filters-label me-2">
+                    <b>{{ _i18n("as_stats.interface_role") }}: </b>
+                </span>
+                <SelectSearch v-model:selected_option="current_interface_role" theme="bootstrap-5"
+                    :options="interface_role_options" @select_option="add_interface_role_filter" :dropdown_size="'small'" />
+            </div>
+
+            <!-- Interface Filter Dropdown (visible only when role is peering or transit) -->
+            <div v-if="current_interface_role?.value === 'peering' || current_interface_role?.value === 'transit'"
+                class="dropdown me-3 d-flex">
+                <span class="no-wrap d-flex align-items-center filters-label me-2">
+                    <b>{{ _i18n("as_stats.interfaces") }}: </b>
+                </span>
+                <SelectSearch v-model:selected_option="current_interface_filter" theme="bootstrap-5"
+                    :options="interface_filter_options" @select_option="add_interface_filter" :dropdown_size="'small'" />
+            </div>
         </div>
 
         <!-- Timeseries Chart Section -->
@@ -101,6 +120,8 @@ const showTimeResolution = ref(props.context.ASNModeEnabled && props.context.isC
 const showChart = ref(props.context.isEnterprise && props.context.showTimeseries);
 const isLive = ref(true);
 const current_selected_option = ref([]);
+const current_interface_role = ref([]);
+const current_interface_filter = ref([]);
 
 // ASN Type Icons with Tooltips
 const customerIcon = '<i class="fa-solid fa-house-flag" data-bs-toggle="tooltip" data-bs-placement="top" title="' + _i18n("asn_configuration.customer_asn_title") + '"></i>';
@@ -118,6 +139,16 @@ const asn_type_option = ref([
     { key: "show_as", value: "remote_as", label: i18n("asn_configuration.remote_asn_title") },
     { key: "show_as", value: "other_as", label: i18n("asn_configuration.other_asn") }
 ]);
+
+// Interface Role Filter Options
+const interface_role_options = ref([
+    { key: "interface_role", value: "all",     label: i18n("as_stats.all_roles") },
+    { key: "interface_role", value: "peering",   label: i18n("prefs.snmp_interface_role_list.peering") },
+    { key: "interface_role", value: "transit",  label: i18n("prefs.snmp_interface_role_list.transit") },
+]);
+
+// Interface Filter Options
+const interface_filter_options = ref([]);
 
 // Time Resolution Options
 let resolutionOptions = ref([
@@ -169,7 +200,7 @@ const updateChartDone = () => {
  * Component initialization before mounting
  * Loads saved filter preferences from URL or localStorage
  */
-onBeforeMount(() => {
+onBeforeMount(async () => {
     // Load ASN filter from URL
     const selected_as = ntopng_url_manager.get_url_entry("show_as");
     if (selected_as) {
@@ -181,6 +212,29 @@ onBeforeMount(() => {
         current_selected_option.value = asn_type_option.value[0];
     }
     ntopng_url_manager.set_key_to_url(current_selected_option.value.key, current_selected_option.value.value);
+    
+    // Load Interface Role filter from URL
+    const selected_role = ntopng_url_manager.get_url_entry("interface_role");
+    if (selected_role) {
+        const role_option = interface_role_options.value.find((el) => el.value === selected_role);
+        if (role_option) {
+            current_interface_role.value = role_option;
+        }
+    } else {
+        current_interface_role.value = interface_role_options.value[0];
+    }
+    ntopng_url_manager.set_key_to_url(current_interface_role.value.key, current_interface_role.value.value);
+
+    // Load Interface filter from URL
+    await load_table_filters_array();
+    const selected_interface = ntopng_url_manager.get_url_entry("interface_filter");
+    if (selected_interface) {
+        const iface_option = interface_filter_options.value.find((el) => String(el.value) === String(selected_interface));
+        if (iface_option) {
+            current_interface_filter.value = iface_option;
+            ntopng_url_manager.set_key_to_url(current_interface_filter.value.key, current_interface_filter.value.value);
+        }
+    }
 
     // If ClickHouse is enabled, then it is possible to not only see th "live" data
     // but also see historical data, so simply add data
@@ -251,9 +305,78 @@ const add_filter = async (value) => {
     table_as_stats.value.refresh_table(false);
 };
 
+/**
+ * Adds Interface Role filter and refreshes data
+ * @param {Object} value - Selected filter option
+*/
+const add_interface_role_filter = async (value) => {
+    current_interface_role.value = value;
+    ntopng_url_manager.set_key_to_url(current_interface_role.value.key, current_interface_role.value.value);
+    // If interface_filter is present, remove it
+    ntopng_url_manager.delete_key_from_url(current_interface_filter.value.key);
+    await load_table_filters_array();
+    table_as_stats.value.refresh_table(false);
+};
+
+/**
+ * Adds Interface filter and refreshes data
+ * @param {Object} value - Selected filter option
+*/
+const add_interface_filter = (value) => {
+    current_interface_filter.value = value;
+    ntopng_url_manager.set_key_to_url(current_interface_filter.value.key, current_interface_filter.value.value);
+    table_as_stats.value.refresh_table(false);
+};
+
 /* *************************************************** */
 // Data Fetching
 /* *************************************************** */
+
+/**
+ * Fetches the list of interfaces for the currently selected role (peering or transit)
+ * and populates the interface filter dropdown accordingly.
+ * If the role is neither "peering" nor "transit", clears the dropdown and returns early.
+ */
+async function load_table_filters_array() {
+    const role = current_interface_role.value?.value;
+
+    // If the selected role is not peering or transit, the interface filter is not applicable
+    if (role !== "peering" && role !== "transit") {
+        interface_filter_options.value = [];
+        current_interface_filter.value = [];
+        return;
+    }
+    
+    // Build the "select all" default option based on the current role
+    const default_option = {
+        key: "interface_filter",
+        value: `all_${role}`,
+        label: i18n(role === "peering" ? "as_stats.all_peering" : "as_stats.all_transit"),
+    };
+
+    // Fetch interfaces filtered by the current role from the REST endpoint
+    const url = `${http_prefix}/lua/pro/rest/v2/get/snmp/metric/role_interfaces.lua?snmp_interface_role=${role}`;
+    const res = await ntopng_utility.http_request(url);
+
+    // If the REST returns no results, only expose the default "all" option
+    if (!res || res.length === 0) {
+        interface_filter_options.value = [ default_option ];
+    }
+    else{
+        // Prepend the default "all" option to the list of interfaces returned by the REST
+        interface_filter_options.value = [
+            default_option,
+            ...res.map((iface) => ({
+                key: "interface_filter",
+                value: iface.device_ip + "_" + iface.interface_id,
+                label: iface.interface_name,
+            }))
+        ];
+    }
+    // Auto-select the first option (the "all" default) and sync it to the URL
+    current_interface_filter.value = interface_filter_options.value[0];
+    ntopng_url_manager.set_key_to_url("interface_filter", current_interface_filter.value.value);
+}
 
 /**
  * Requests REST data from components for timeseries chart

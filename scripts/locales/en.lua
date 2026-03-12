@@ -1930,7 +1930,12 @@ local lang = {
     ["user_traffic_breakdown"] = "Customer Breakdown", 
   },
   ["as_stats"] = {
+    ["all_roles"] = "All Roles",
+    ["all_peering"] = "All Peering",
+    ["all_transit"] = "All Transit",
     ["autonomous_systems"] = "Autonomous Systems",
+    ["interface_role"] = "Interface Role",
+    ["interfaces"] = "Interfaces",
   },
   ["assets_page"] = {
     ["address"] = "IP Address",
