@@ -703,4 +703,29 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
    end
 end
 
+if isASNModeEnabled then
+   -- Interface Role filter
+   local interface_role_filters = {{
+      key = "interface_role",
+      value = "",
+      label = i18n("all")
+   }, {
+      key = "interface_role",
+      value = "peering",
+      label = i18n("flows_page.interface_role_peering")
+   }, {
+      key = "interface_role",
+      value = "transit",
+      label = i18n("flows_page.interface_role_transit")
+   }}
+
+   rsp[#rsp + 1] = {
+      action = "interface_role",
+      label = i18n("flows_page.interface_role"),
+      name = "interface_role",
+      value = interface_role_filters
+}
+
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, rsp)
