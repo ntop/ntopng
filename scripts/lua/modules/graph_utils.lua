@@ -730,37 +730,25 @@ end
 -- { labels = [ 'xxx', ...], series = [ yyy, ... ], colors = [ ... ], ... }
 function graph_utils.convert_pie_data(res, new_charts, js_formatter)
     if not new_charts then return res end
-
-    local labels = {}
-    local series = {}
-    local colors = {}
-    local urls = {}
-
-    for _, v in ipairs(res) do
-        labels[#labels + 1] = v.label
-
+ 
+    local data = {}
+ 
+    for i, v in ipairs(res) do
         local value = 0
         if v.count then
             value = v.count
         elseif v.value then
             value = v.value
         end
-        series[#series + 1] = value
-        urls[#urls + 1] = v.url or ''
-        colors[#colors + 1] = graph_utils.get_html_color(#colors)
+ 
+        data[#data + 1] = {
+            label = v.label,
+            value = value,
+            url   = v.url or nil
+        }
     end
-
-    res = {
-        labels = labels,
-        series = series,
-        colors = colors,
-        yaxis = {show = false, labels = {formatter = js_formatter}},
-        tooltip = {y = {formatter = js_formatter}},
-        urls = urls,
-        extra_x_tooltip_label = 'None'
-    }
-
-    return res
+ 
+    return data
 end
 
 -- #################################################

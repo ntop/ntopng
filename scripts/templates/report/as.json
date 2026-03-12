@@ -49,7 +49,8 @@
 				"url": "/lua/pro/rest/v2/get/db/charts/top_l7_categories.lua",
 				"url_params": {
 					"length": 10
-				}
+				},
+				"unit": "bytes"
 			}
 		},
 		{
@@ -62,7 +63,8 @@
 				"url": "/lua/pro/rest/v2/get/db/charts/top_l7_proto.lua",
 				"url_params": {
 					"length": 10
-				}
+				},
+				"unit": "bytes"
 			}
 		},
 		{
@@ -75,7 +77,8 @@
 				"url": "/lua/pro/rest/v2/get/db/charts/top_l4_proto.lua",
 				"url_params": {
 					"length": 10
-				}
+				},
+				"unit": "bytes"
 			}
 		},
 		{

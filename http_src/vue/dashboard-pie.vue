@@ -38,10 +38,6 @@
   // Override the fetch function so the dashboard loading lifecycle works
   const custom_fetch = async (url, url_params) => {
     const res = await props.get_component_data(url, url_params, undefined, props.epoch_begin);
-    // Convert format {series, labels} to [{label, value}] expected by pie-chart.vue
-    if (res?.series && res?.labels) {
-      return res.labels.map((label, i) => ({ label, value: res.series[i] || 0 }));
-    }
     return res;
   };
   

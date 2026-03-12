@@ -45,7 +45,8 @@
 				"action" : "top_hosts",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	},
 	{
@@ -60,7 +61,8 @@
 				"action" : "top_mitre_id",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	},
 	{
@@ -75,7 +77,8 @@
 				"action" : "top_mitre_id",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	},
 	{
@@ -90,7 +93,8 @@
 				"action" : "top_mitre_tactic",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	},
 	{
@@ -105,7 +109,8 @@
 				"action" : "top_mitre_tactic",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	},
 	{
@@ -120,7 +125,8 @@
 				"action" : "top_mitre_technique",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	},
 	{
@@ -135,7 +141,8 @@
 				"action" : "top_mitre_technique",
 				"status" : "any",
 				"ajax_format" : "pie"
-			}
+			},
+			"unit": "number"
 		}
 	}
 	]

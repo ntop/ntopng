@@ -51,7 +51,8 @@
 					"detail_view": "flows",
 					"version": 4,
 					"length": 10
-				}
+				},
+				"unit": "bytes"
 			}
 		},
 		{
@@ -70,7 +71,8 @@
 					"query_preset": "protos",
 					"version": 4,
 					"length": 10
-				}
+				},
+				"unit": "bytes"
 			}
 		},
 		{
@@ -89,7 +91,8 @@
 					"query_preset": "protos",
 					"version": 4,
 					"length": 10
-				}
+				},
+				"unit": "bytes"
 			}
 		},
 		{
@@ -460,8 +463,10 @@
 				"url_params": {
 					"action": "top_hosts",
 					"ajax_format": "pie"
-				}
+				},
+				"unit": "number"
 			}
+			
 		}
 	]
 }

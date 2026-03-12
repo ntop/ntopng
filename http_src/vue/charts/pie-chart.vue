@@ -12,7 +12,7 @@
     <NoData :show="no_data && !loading"></NoData>
 
     <div class="pie-body">
-      <div class="d-flex">
+      <div class="d-flex pie-row">
         <!-- Pie Chart -->
         <div ref="wrapper" class="pie-wrapper" v-show="!loading && !no_data"></div>
 
@@ -53,7 +53,7 @@ const _i18n = (t) => (typeof i18n === "function" ? i18n(t) : t);
 
 const props = defineProps({ chart: { type: Object, required: true } });
 const { name, update_url, url_params, refresh, unit, label, custom_fetch } = props.chart;
-const formatted_label = label ? i18n(label) : null;
+const formatted_label = label ? (i18n(label) || label) : null;
 const legend_position = props.chart.legend_position || "bottom"; // "bottom" or "left" or "right"
 const container = ref(null);
 const wrapper = ref(null);
@@ -74,61 +74,47 @@ const tooltip = reactive({
 let svg = null;
 let g = null;
 let arc = null;
-let arcHover = null;
 let pie = null;
 let oldData = [];
 let refreshTimer = null;
-let resizeTimer = null;
+let currentR = 0, currentr = 0, currentcr = 0;
 
 const TWEEN = 300;
 
-// Measure the wrapper div and return { W, H, R }
-function getDims() {
-  const el = wrapper.value;
-  if (!el) return { W: 200, H: 200, R: 80 };
-
-  const W = el.clientWidth || 200;
-  const H = el.clientHeight || 200;
-  const R = Math.min(W, H) * 0.42;
-  return { W, H, R };
-}
+const CHART_SIZE = 200;
+const _R  = CHART_SIZE * 0.42;
+const _r  = _R * 0.52;
+const _cr = (_R - _r) * 0.18;
 
 onMounted(async () => {
   await nextTick();
   drawSVG();
   await load();
   if (refresh > 0) refreshTimer = setInterval(load, refresh);
-  window.addEventListener("resize", onResize);
 });
 
 onBeforeUnmount(() => {
   clearInterval(refreshTimer);
-  clearTimeout(resizeTimer);
-  window.removeEventListener("resize", onResize);
 });
 
 function drawSVG() {
   wrapper.value?.replaceChildren();
-  
-  const { W, H, R } = getDims();
-  const r = R * 0.52;
-  const cr = (R - r) * 0.18;
 
+  currentR = _R; currentr = _r; currentcr = _cr;
   pie = d3.pie().value(d => Math.max(Math.round(d.value), 1)).sort(null).padAngle(0.02);
-  arc = d3.arc().innerRadius(r).outerRadius(R).cornerRadius(cr);
-  arcHover = d3.arc().innerRadius(r).outerRadius(R + 7).cornerRadius(cr);
+  arc = d3.arc().innerRadius(_r).outerRadius(_R).cornerRadius(_cr);
 
   svg = d3.select(wrapper.value)
     .append("svg")
     .attr("width", "100%")
     .attr("height", "100%")
-    .attr("viewBox", `0 0 ${W} ${H}`)
+    .attr("viewBox", `0 0 ${CHART_SIZE} ${CHART_SIZE}`)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
   g = svg.append("g")
-    .attr("transform", `translate(${W / 2},${H / 2})`);
+    .attr("transform", `translate(${CHART_SIZE / 2},${CHART_SIZE / 2})`);
 
-  g.append("circle").attr("class", "pie-hole").attr("r", r - 1);
+  g.append("circle").attr("class", "pie-hole").attr("r", _r - 1);
 }
 
 async function load() {
@@ -141,13 +127,13 @@ async function load() {
       data = await custom_fetch(update_url, url_params);
     } else {
       const url = url_params && Object.keys(url_params).length
-        ? `${update_url}?${new URLSearchParams(url_params)}`
-        : update_url;
-
+      ? `${update_url}?${new URLSearchParams(url_params)}`
+      : update_url;
+      
       const res = await ntopng_utility.http_request(url, null, null, true);
       data = res?.rsp?.data || res?.rsp;
     }
-
+    
     if (!Array.isArray(data) || !data.length) { no_data.value = true; return; }
     no_data.value = false;
     render(data);
@@ -180,7 +166,7 @@ function render(data) {
     color: getColor(d, i),
     url: d.url || null,
     percentage: total > 0 ? (d.value / total * 100).toFixed(1) : "0",
-  }))
+  })).sort((a, b) => b.percentage - a.percentage) // sort percentage descending to display the legend descending
 
   const newpie = pie(filtered_data);
 
@@ -196,7 +182,12 @@ function render(data) {
     .attr("fill", (d, i) => getColor(d.data, i))
 
     .on("mouseover", function (ev, d) {
-      d3.select(this).transition().duration(100).attr("d", arcHover);
+      const R = currentR, r = currentr, cr = currentcr;
+      d3.select(this).transition().duration(100).attrTween("d", () => {
+        const interp = d3.interpolate(R, R + 7);
+        const a = d3.arc().innerRadius(r).cornerRadius(cr);
+        return t => a.outerRadius(interp(t))(d);
+      });
       const rect = container.value.getBoundingClientRect();
       const idx = items.value.findIndex(it => it.name === d.data.label);
 
@@ -217,8 +208,13 @@ function render(data) {
       tooltip.x = ev.clientX - rect.left + 14;
       tooltip.y = ev.clientY - rect.top - 12;
     })
-    .on("mouseout", function () {
-      d3.select(this).transition().duration(100).attr("d", arc);
+    .on("mouseout", function (ev, d) {
+      const R = currentR, r = currentr, cr = currentcr;
+      d3.select(this).transition().duration(100).attrTween("d", () => {
+        const interp = d3.interpolate(R + 7, R);
+        const a = d3.arc().innerRadius(r).cornerRadius(cr);
+        return t => a.outerRadius(interp(t))(d);
+      });
       tooltip.visible = false;
     })
     .on("click", (_, d) => { if (d.data.url) window.location.href = d.data.url; })
@@ -236,11 +232,6 @@ function render(data) {
 
   oldData = newpie;
 }
-
-const onResize = () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { oldData = []; drawSVG(); load(); }, 150);
-};
 
 defineExpose({ update: load });
 </script>
@@ -260,51 +251,36 @@ defineExpose({ update: load });
 .pie-title {
   flex-shrink: 0;
   margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pie-body {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  gap: 8px;
-}
-
-/* Side legend */
-.legend-left .pie-body,
-.legend-right .pie-body {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-
-.legend-right .pie-body {
-  flex-direction: row;
-}
-
-.legend-left .pie-body {
-  flex-direction: row-reverse;
-}
-
-.pie-wrapper {
-  flex: 1 1 auto;
-  min-width: 0;
   min-height: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
 }
 
-.legend-left .pie-wrapper,
-.legend-right .pie-wrapper {
+.pie-row {
   flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.pie-wrapper {
+  flex: 0 0 auto;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
   max-width: 60%;
+  overflow: hidden;
 }
 
 .no-data {
@@ -356,34 +332,27 @@ defineExpose({ update: load });
 }
 
 .pie-legend {
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: flex-start;
   gap: 4px 0;
-  overflow: hidden;
-  min-width: 0;
-  max-height: 100%;
-}
-
-.legend-left .pie-legend,
-.legend-right .pie-legend {
   overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100%;
   scrollbar-width: thin;
-  /* Firefox */
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
-.legend-left .pie-legend::-webkit-scrollbar,
-.legend-right .pie-legend::-webkit-scrollbar {
+.pie-legend::-webkit-scrollbar {
   width: 3px;
 }
 
-.legend-left .pie-legend::-webkit-scrollbar-thumb,
-.legend-right .pie-legend::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+.pie-legend::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 2px;
 }
 
