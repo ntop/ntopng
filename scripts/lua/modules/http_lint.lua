@@ -1465,7 +1465,7 @@ local function validateInterfaceRole(m)
 	 package.path
       local snmp_utils = require "snmp_utils"
       local roles_list = snmp_utils.get_snmp_interface_role_options()
-      local validation_list = {}
+      local validation_list = {"all"}
       -- Dinamically retrieve the roles list in order to not need to modify
       -- also this function in case of future changes
       for _, info in pairs(roles_list) do
@@ -2462,6 +2462,7 @@ local known_parameters = {
 
    ["show_as"] = validateImportantASN,
    ["interface_role"] = validateInterfaceRole,
+   ["interface_filter"] = validateSingleWord,
 
    -- Input fields
    ["companion_interface"] = validateEmptyOr(validateInterface),
