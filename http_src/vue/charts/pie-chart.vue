@@ -17,7 +17,10 @@
         <div ref="wrapper" class="pie-wrapper" v-show="!loading && !no_data"></div>
 
         <!-- Legend -->
-        <div v-if="!loading && items.length" class="pie-legend">
+        <!--
+          <div v-if="!loading && items.length" class="pie-legend">
+        -->
+        <div v-if="!loading && items.length && !no_data" class="pie-legend">
           <div v-for="(it, i) in items" :key="i" class="legend-item" :class="{ clickable: !!it.url }"
             @click="it.url && (window.location.href = it.url)">
             <span class="legend-dot" :style="{ background: it.color }"></span>
@@ -42,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { default as Loading } from "../loading.vue";
 import colorUtils from "../../utilities/color-utils.js";
 import formatterUtils from "../../utilities/formatter-utils.js";
@@ -50,7 +53,7 @@ import NoData from '../components/no-data.vue'
 
 const d3 = d3v7;
 const _i18n = (t) => (typeof i18n === "function" ? i18n(t) : t);
-
+ 
 const props = defineProps({ chart: { type: Object, required: true } });
 const { name, update_url, url_params, refresh, unit, label, custom_fetch } = props.chart;
 const formatted_label = label ? (i18n(label) || label) : null;
@@ -119,33 +122,38 @@ function drawSVG() {
 
 async function load() {
   loading.value = true;
+  const { update_url, url_params, custom_fetch } = props.chart;
 
   try {
     let data;
-    // used for dashboard, as it passes data directly
+
     if (custom_fetch) {
       data = await custom_fetch(update_url, url_params);
     } else {
-      const url = url_params && Object.keys(url_params).length
-      ? `${update_url}?${new URLSearchParams(url_params)}`
-      : update_url;
-      
+      const url =
+        url_params && Object.keys(url_params).length
+          ? `${update_url}?${new URLSearchParams(url_params)}`
+          : update_url;
+
       const res = await ntopng_utility.http_request(url, null, null, true);
       data = res?.rsp?.data || res?.rsp;
     }
-    
-    if (!Array.isArray(data) || !data.length) { no_data.value = true; return; }
+
+    if (!Array.isArray(data) || !data.length) {
+      no_data.value = true;
+      return;
+    }
+
     no_data.value = false;
     render(data);
 
   } catch (e) {
-    console.error(`pieChart-${name}:`, e);
+    console.error(`pieChart-${props.chart.name}:`, e);
     no_data.value = true;
   } finally {
     loading.value = false;
   }
 }
-
 // assign colors from palette, first element has the same color on all pages
 function render(data) {
   const PALETTE = colorUtils.assignRoundRobinColors(data.map(d => d.label));
@@ -233,7 +241,17 @@ function render(data) {
   oldData = newpie;
 }
 
-defineExpose({ update: load });
+defineExpose({
+  update: async () => {
+    await load();
+  }
+});
+
+// url params updated
+watch(() => props.chart.url_params, () => {
+  load();
+}, { deep: true });
+
 </script>
 
 <style scoped>

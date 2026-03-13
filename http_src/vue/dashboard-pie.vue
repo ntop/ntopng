@@ -52,5 +52,5 @@
   
   watch(() => [props.epoch_begin, props.epoch_end, props.filters], () => {
     chart.value?.update();
-  }, { flush: 'pre', deep: true });
+  }, { flush: 'post', deep: true });
   </script>
