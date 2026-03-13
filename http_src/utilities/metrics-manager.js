@@ -38,14 +38,7 @@ const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups
         return null;
     }
     let groups = url_timeseries_groups.split(";;");
-    groups.map(async (g) => {
-        let ts_group = await get_url_param_from_ts_group(g);
-        return ts_group;
-    });
-    let timeseries_groups = Promise.all(groups.map(async (g) => {
-        let ts_group = await get_url_param_from_ts_group(g);
-        return ts_group;
-    }));
+    let timeseries_groups = Promise.all(groups.map((g) => get_url_param_from_ts_group(g)));
     return timeseries_groups;
 };
 
@@ -66,9 +59,7 @@ const get_ts_group = (source_type, source_array, metric, customized_ts) => {
     let timeseries = [];
     for (let key in metric?.timeseries) {
         let ts = metric.timeseries[key];
-        ts_config.id = key;
-        ts_config.label = ts.label;
-        timeseries.push(ts_config);
+        timeseries.push({ ...ts_config, id: key, label: ts.label });
     }
     return {
         id, source_type, source_array, metric, timeseries,
@@ -161,6 +152,7 @@ const sources_url_el_to_source = metricsConsts.sources_url_el_to_source;
 
 const sources_types = metricsConsts.sources_types;
 const sources_types_tables = metricsConsts.sources_types_tables;
+sources_types.forEach((st) => { st._regex = new RegExp(st.regex_page_url); });
 
 const get_source_type_from_id = (source_type_id) => {
     return sources_types.find((st) => st.id == source_type_id);
@@ -182,24 +174,16 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
     if (source_type == null) {
         source_type = get_current_page_source_type();
     }
-    let source_array = [];
-    let source;
-    for (let i = 0; i < source_value_array.length; i++) {
-        let source_value = source_value_array[i];
-        let source_def = source_type.source_def_array[i];
+    const promises = source_type.source_def_array.map((source_def, i) => {
+        const source_value = source_value_array[i];
         if (source_def.sources_url || source_def.sources_function) {
-            let sources = [];
-            sources = await get_sources(http_prefix, source_type.id, source_def, source_value_array);
-            source = sources.find((s) => s.value == source_value);
-            if (source == null) {
-                source = sources[0];
-            }
-        } else {
-            source = { label: source_value, value: source_value };
+            return get_sources(http_prefix, source_type.id, source_def, source_value_array).then((sources) => {
+                return sources.find((s) => s.value == source_value) || sources[0];
+            });
         }
-        source_array.push(source);
-    }
-    return source_array;
+        return Promise.resolve({ label: source_value, value: source_value });
+    });
+    return Promise.all(promises);
 };
 
 let cache_sources = {};
@@ -214,30 +198,30 @@ function get_source_def_key(id, source_def, selected_source_value_array) {
     return key;
 }
 
-const get_sources = async (http_prefix, id, source_def, selected_source_value_array) => {
+const get_sources = (http_prefix, id, source_def, selected_source_value_array) => {
     let key = get_source_def_key(id, source_def, selected_source_value_array);
     if (cache_sources[key] == null) {
         if (source_def.sources_url) {
+            let f_map_source_element = sources_url_el_to_source[source_def.value_map_sources_res];
+            if (f_map_source_element == null) {
+                f_map_source_element = sources_url_el_to_source[source_def.value];
+            }
+            if (f_map_source_element == null) {
+                throw `:Error: metrics-manager.js, missing sources_url_to_source ${source_def.value} key`;
+            }
             let url = `${http_prefix}/${source_def.sources_url}`;
-            cache_sources[key] = ntopng_utility.http_request(url);
+            cache_sources[key] = ntopng_utility.http_request(url).then((sources) =>
+                sources.map((s) => f_map_source_element(s)).sort(NtopUtils.sortAlphabetically)
+            );
         } else if (source_def.sources_function) {
-            cache_sources[key] = source_def.sources_function(selected_source_value_array);
+            cache_sources[key] = Promise.resolve(source_def.sources_function(selected_source_value_array)).then((sources) =>
+                sources.sort(NtopUtils.sortAlphabetically)
+            );
         } else {
-            return [];
+            return Promise.resolve([]);
         }
     }
-    let sources = await cache_sources[key];
-    if (source_def.sources_url) {
-        let f_map_source_element = sources_url_el_to_source[source_def.value_map_sources_res];
-        if (f_map_source_element == null) {
-            f_map_source_element = sources_url_el_to_source[source_def.value];
-        }
-        if (f_map_source_element == null) {
-            throw `:Error: metrics-manager.js, missing sources_url_to_source ${source_def.value} key`;
-        }
-        sources = sources.map((s) => f_map_source_element(s));
-    }
-    return sources.sort(NtopUtils.sortAlphabetically);
+    return cache_sources[key];
 };
 
 function set_source_value_object_in_url(source_type, source_value_object) {
@@ -283,7 +267,9 @@ function get_metrics_url(http_prefix, source_type, source_array, epoch, include_
     if (include_empty_ts) {
         include_empty_ts_string = "include_empty_ts=true"
     }
-    if (epoch != null) {
+    /* When include_empty_ts is set, all metrics are returned regardless of data availability,
+     * so the epoch has no effect on the response — omit it to maximise cache hits. */
+    if (epoch != null && !include_empty_ts) {
         epoch_string = `epoch_end=${epoch.epoch_end}&epoch_begin=${epoch.epoch_begin}`
     }
     let url = `${http_prefix}/lua/rest/v2/get/timeseries/type/consts.lua?query=${source_type.query}&${params}&${epoch_string}&${include_empty_ts_string}`;
@@ -296,25 +282,42 @@ function get_metric_key(source_type, source_array) {
     return key;
 }
 
+/* Permanent cache for include_empty_ts=true calls (metric definitions, epoch-independent) */
+let cache_metrics_static = {};
+/* Epoch-dependent cache, cleared on time interval change */
 let cache_metrics = {};
 let last_metrics_time_interval = null;
 const get_metrics = async (http_prefix, source_type, source_array, status, include_empty_ts) => {
-    let epoch_begin = status?.epoch_begin || ntopng_url_manager.get_url_entry("epoch_begin");
-    let epoch_end = status?.epoch_end || ntopng_url_manager.get_url_entry("epoch_end");
-    let current_last_metrics_time_interval = `${epoch_begin}_${epoch_end}`;
     if (source_type == null) {
         source_type = get_current_page_source_type();
     }
     if (source_array == null) {
         source_array = await get_default_source_array(http_prefix, source_type);
     }
-    // let url = `${http_prefix}/lua/rest/v2/get/timeseries/type/consts.lua?query=${source_type.value}`;
-    let url = get_metrics_url(http_prefix, source_type, source_array, { epoch_begin: epoch_begin, epoch_end: epoch_end }, include_empty_ts);
     let key = get_metric_key(source_type, source_array);
+
+    /* include_empty_ts=true returns static metric definitions — cache permanently */
+    if (include_empty_ts) {
+        if (cache_metrics_static[key] == null) {
+            let url = get_metrics_url(http_prefix, source_type, source_array, null, true);
+            cache_metrics_static[key] = ntopng_utility.http_request(url);
+        }
+        let metrics = await cache_metrics_static[key];
+        if (metrics == null || metrics.length == 0) { return [{}]; }
+        if (metrics.some((m) => m.default_visible == true) == false) {
+            metrics[0].default_visible = true;
+        }
+        return ntopng_utility.clone(metrics);
+    }
+
+    let epoch_begin = status?.epoch_begin || ntopng_url_manager.get_url_entry("epoch_begin");
+    let epoch_end = status?.epoch_end || ntopng_url_manager.get_url_entry("epoch_end");
+    let current_last_metrics_time_interval = `${epoch_begin}_${epoch_end}`;
     if (current_last_metrics_time_interval != last_metrics_time_interval) {
         cache_metrics[key] = null;
         last_metrics_time_interval = current_last_metrics_time_interval;
     }
+    let url = get_metrics_url(http_prefix, source_type, source_array, { epoch_begin, epoch_end }, false);
     if (cache_metrics[key] == null) {
         cache_metrics[key] = ntopng_utility.http_request(url);
     }
@@ -329,8 +332,7 @@ const get_metrics = async (http_prefix, source_type, source_array, status, inclu
 const get_current_page_source_type = () => {
     let pathname = window.location.pathname;
     for (let i = 0; i < sources_types.length; i += 1) {
-        let regExp = new RegExp(sources_types[i].regex_page_url);
-        if (regExp.test(pathname) == true) {
+        if (sources_types[i]._regex.test(pathname)) {
             return sources_types[i];
         }
     }

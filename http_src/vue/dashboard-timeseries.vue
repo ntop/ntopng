@@ -30,6 +30,7 @@ const group_option_mode = timeseriesUtils.getGroupOptionMode('1_chart_x_yaxis');
 const height = ref(null);  // Calculated height of the component
 const ts_request = ref([]);  // Timeseries requests to be processed
 const source_def = {};
+let refresh_generation = 0;  // Incremented on each refresh; lets async chains self-cancel when stale
 
 const emit = defineEmits(['chart-updated', 'update-requested']);  // Events emitted to parent component
 
@@ -90,7 +91,7 @@ const formatUniqueKey = (requestInfo) => {
 function substitute_ifid(params_to_format, current_ifid) {
     let new_formatted_params = {};
     for (const param in (params_to_format)) {
-        if (params_to_format[param].contains('$IFID$')) {
+        if (params_to_format[param].includes('$IFID$')) {
             /* Contains $IFID$, substitute with the interface id */
             new_formatted_params[param] = params_to_format[param].replace('$IFID$', current_ifid);
         } else {
@@ -108,7 +109,7 @@ function substitute_ifid(params_to_format, current_ifid) {
 function substitute_exporter(params_to_format, current_exporter) {
     let new_formatted_params = {};
     for (const param in (params_to_format)) {
-        if (params_to_format[param].contains('$EXPORTER$')) {
+        if (params_to_format[param].includes('$EXPORTER$')) {
             /* Contains $EXPORTER$, substitute with the exporter IP */
             new_formatted_params[param] = params_to_format[param].replace('$EXPORTER$', current_exporter);
         } else {
@@ -126,7 +127,7 @@ function substitute_exporter(params_to_format, current_exporter) {
 function substitute_network(params_to_format, current_network) {
     let new_formatted_params = {};
     for (const param in (params_to_format)) {
-        if (params_to_format[param].contains('$NETWORK$')) {
+        if (params_to_format[param].includes('$NETWORK$')) {
             /* Contains $NETWORK$, substitute with the network ID */
             new_formatted_params[param] = params_to_format[param].replace('$NETWORK$', current_network);
         } else {
@@ -261,17 +262,12 @@ async function get_timeseries_groups_from_metric(metric_schema, source_def) {
 async function retrieve_basic_info() {
     /* Return the timeseries groups, info found in the JSON */
     if (!timeseries_groups.value) {
-        timeseries_groups.value = [];
         /* Order requests only the first time */
         order_ts_request();
-        for (const value of ts_request.value) {
-            const metric_schema = value?.ts_schema;
-            const source_def_key = formatUniqueKey(value)
-            if (source_def[source_def_key]) {
-                const group = await get_timeseries_groups_from_metric(metric_schema, source_def[source_def_key]);
-                timeseries_groups.value.push(group);
-            }
-        }
+        const promises = ts_request.value
+            .filter((value) => source_def[formatUniqueKey(value)])
+            .map((value) => get_timeseries_groups_from_metric(value?.ts_schema, source_def[formatUniqueKey(value)]));
+        timeseries_groups.value = await Promise.all(promises);
     }
 }
 
@@ -290,8 +286,14 @@ function order_ts_request() {
 
 /* Main function that fetches data from REST API and formats it for the chart */
 async function get_chart_options() {
+    const generation = ++refresh_generation;
+
     await resolve_any_params();
+    if (generation !== refresh_generation) return null;  // Superseded by a newer refresh
+
     await retrieve_basic_info();
+    if (generation !== refresh_generation) return null;
+
     const url = base_url.value;
     const post_params = {
         csrf: props.csrf,
@@ -309,6 +311,7 @@ async function get_chart_options() {
         /* Note: passing query params (not required) to be used by check_diff_params() */
         { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end },
         post_params, props.epoch_begin);
+    if (generation !== refresh_generation) return null;
 
     /* Format the result for Dygraph chart compatibility */
     result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
@@ -356,7 +359,9 @@ async function init() {
 async function refreshChart() {
     if (chart.value) {
         const result = await get_chart_options();
-        chart.value.updateChartSeries(result);
+        if (result !== null) {
+            chart.value.updateChartSeries(result);
+        }
     }
 }
 
