@@ -559,6 +559,9 @@ Flow::~Flow() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Server MAC not updated %s", print(buf, sizeof(buf)));
   }
 
+  if(c_mac) c_mac->decUses();
+  if(s_mac) s_mac->decUses();
+
 #ifdef NTOPNG_PRO
   if(udp != NULL) {
     ndpi_free_data_analysis(&udp->rtt.cli_min_rtt, 0);
@@ -9424,6 +9427,9 @@ TransitAS Flow::getTransitASType() {
 void Flow::updateMac() {
   c_mac = iface->getMac(cli_mac, false /* don't create if missing */, true /* Inline call */);
   s_mac = iface->getMac(srv_mac, false /* don't create if missing */, true /* Inline call */);
+
+  if (c_mac) c_mac->incUses();
+  if (s_mac) s_mac->incUses();
 
 #ifdef DEBUG
   char a[32], b[32];
