@@ -8,7 +8,7 @@
 
 CURR_DIR=$(pwd)
 
-branch_name=`git branch | head | cut -d ' ' -f 2` | tail -n 1
+branch_name=`git branch | head | cut -d ' ' -f 2 | tail -n 1`
 
 echo "-- Pushing code -- "
 cd httpdocs/dist
