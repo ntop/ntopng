@@ -144,6 +144,19 @@ end
 
 -- ###########################################
 
+function highSNMPExporterTimeseriesResolution()
+    local resolution = ntop.getPref("ntopng.prefs.snmp_devices_exporters_rrd")
+    return (resolution == "60" or isEmptyString(resolution))
+end
+
+-- ###########################################
+
+function areSNMPExporterTimeseriesDisabled()
+    return (ntop.getPref("ntopng.prefs.snmp_devices_exporters_rrd") == "0")
+end
+
+-- ###########################################
+
 function highExporterTimeseriesResolution()
     return (ntop.getPref("ntopng.prefs.exporters_ts_resolution") == "60")
 end
