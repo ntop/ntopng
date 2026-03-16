@@ -229,15 +229,17 @@ const updateStackedOption = function (chart_options) {
  * @throws May throw if HTTP request fails
  */
 const getChartOptions = async function (url_request) {
-    let chart_options = {};
-    const date_format = await ntopng_utility.get_date_format(false, props.csrf, http_prefix);
+    /* date_format is only needed for axis label formatting, fetch it in parallel with the actual chart data */
+    const chart_options_promise = props.get_custom_chart_options != null
+        ? props.get_custom_chart_options(url_request)
+        : ntopng_utility.http_request(url_request);
 
-    /* Retrieve the chart options from server or custom provider */
-    if (props.get_custom_chart_options == null) {
-        chart_options = await ntopng_utility.http_request(url_request);
-    } else {
-        chart_options = await props.get_custom_chart_options(url_request);
-    }
+    const [date_format, chart_options_raw] = await Promise.all([
+        ntopng_utility.get_date_format(false, props.csrf, http_prefix),
+        chart_options_promise,
+    ]);
+
+    let chart_options = chart_options_raw || {};
     if (!chart_options) {
         chart_options = {}
     }

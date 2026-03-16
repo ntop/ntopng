@@ -63,6 +63,7 @@ const wrapper = ref(null);
 const loading = ref(false);
 const no_data = ref(false);
 const items = ref([]);
+const has_loaded = ref(false); /* true after the first successful data fetch */
 
 const tooltip = reactive({
   visible: false,
@@ -121,7 +122,8 @@ function drawSVG() {
 }
 
 async function load() {
-  loading.value = true;
+  /* show loading on first fetch, then reffresh */
+  if (!has_loaded.value) loading.value = true;
   const { update_url, url_params, custom_fetch } = props.chart;
 
   try {
@@ -140,16 +142,17 @@ async function load() {
     }
 
     if (!Array.isArray(data) || !data.length) {
-      no_data.value = true;
+      if (!has_loaded.value) no_data.value = true;
       return;
     }
 
     no_data.value = false;
+    has_loaded.value = true;
     render(data);
 
   } catch (e) {
     console.error(`pieChart-${props.chart.name}:`, e);
-    no_data.value = true;
+    if (!has_loaded.value) no_data.value = true;
   } finally {
     loading.value = false;
   }
@@ -381,6 +384,7 @@ watch(() => props.chart.url_params, () => {
   min-width: 0;
   width: 100%;
   user-select: none;
+  transition: opacity 0.3s ease;
 }
 
 .legend-item.clickable {
@@ -406,5 +410,6 @@ watch(() => props.chart.url_params, () => {
   flex-shrink: 0;
   color: color-mix(in srgb, currentColor 60%, transparent);
   margin-left: 2px;
+  transition: opacity 0.3s ease;
 }
 </style>

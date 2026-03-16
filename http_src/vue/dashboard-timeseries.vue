@@ -288,11 +288,10 @@ function order_ts_request() {
 async function get_chart_options() {
     const generation = ++refresh_generation;
 
+    /* resolve_any_params must complete first — it populates ts_request.value which
+     * is needed by both retrieve_basic_info() and the POST body below. */
     await resolve_any_params();
     if (generation !== refresh_generation) return null;  // Superseded by a newer refresh
-
-    await retrieve_basic_info();
-    if (generation !== refresh_generation) return null;
 
     const url = base_url.value;
     const post_params = {
@@ -306,20 +305,27 @@ async function get_chart_options() {
         }
     }
 
-    /* Use get_component_data callback to enable report generation as well */
-    let result = await props.get_component_data(url,
-        /* Note: passing query params (not required) to be used by check_diff_params() */
-        { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end },
-        post_params, props.epoch_begin);
+    /* retrieve_basic_info() fetches metric schema metadata (consts.lua for all interfaces).
+     On first load -> HTTP call
+     On refresh -> cache
+      */
+    const [_, result] = await Promise.all([
+        retrieve_basic_info(),
+        /* Use get_component_data callback to enable report generation as well */
+        props.get_component_data(url,
+            /* Note: passing query params (not required) to be used by check_diff_params() */
+            { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end },
+            post_params, props.epoch_begin),
+    ]);
     if (generation !== refresh_generation) return null;
 
-    /* Format the result for Dygraph chart compatibility */
-    result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
-    if (result[0]) {
-        result[0].height = height.value;
-        result[0].connectSeparatedPoints = true;  // Connect points even with gaps in data
+    /* Format the result for Dygraph chart */
+    let formatted = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
+    if (formatted[0]) {
+        formatted[0].height = height.value;
+        formatted[0].connectSeparatedPoints = true;  // Connect points even with gaps in data
     }
-    return result?.[0];
+    return formatted?.[0];
 }
 
 /* *************************************************** */

@@ -5,6 +5,7 @@
 		{
 			"component" : "badge",
 			"id" : "critical_alert_count",
+			"datasource_id" : "interface_summary",
 			"i18n_name" : "",
 			"color" : "danger",
 			"inactive_color" : "secondary",
@@ -30,6 +31,7 @@
 		{
 			"component" : "badge",
 			"id" : "active_host_count",
+			"datasource_id" : "interface_summary",
 			"i18n_name" : "",
 			"color" : "success",
 			"inactive_color" : "secondary",
@@ -55,6 +57,7 @@
 		{
 			"component" : "badge",
 			"id" : "active_flow_count",
+			"datasource_id" : "interface_summary",
 			"i18n_name" : "",
 			"color" : "info",
 			"inactive_color" : "secondary",
