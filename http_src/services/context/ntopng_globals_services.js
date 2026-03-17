@@ -214,8 +214,18 @@ export const ntopng_utility = function () {
             }
             return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) }, throw_exception, not_unwrap);
         },
-        http_request: async function (url, options, throw_exception, not_unwrap) {
+
+        // Performs an HTTP request to the given URL and returns the parsed JSON response.
+        // - url: the endpoint to call
+        // - options: fetch options (method, body, headers, ...); defaults to {} if null
+        // - throw_exception: if true, exceptions are rethrown instead of being silently caught
+        // - not_unwrap: if true, returns the full JSON response instead of just the `rsp` field
+        // - error_return: if provided, the function proceeds and returns the JSON body even on HTTP errors
+        //                 (useful to retrieve error details from the response); if omitted, returns null on error
+
+        http_request: async function (url, options, throw_exception, not_unwrap, error_return) {
             try {
+                // Ensure options and headers are initialized
                 if (options == null) {
                     options = {};
                 }
@@ -232,8 +242,12 @@ export const ntopng_utility = function () {
                 if (res.ok === false) {
                     console.error(`http_request ${url}\n ok == false`);
                     console.error(res);
-                    return null;
+                    // If error_return is not provided, return null
+                    if(!error_return)
+                        return null;
+                    // Otherwise, fall through to parse and return the error response body
                 }
+                // Return the full response or just the `rsp` field depending on not_unwrap
                 let json_res = await res.json();
                 if (not_unwrap === true) { return json_res; }
                 return json_res.rsp;
