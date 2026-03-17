@@ -224,6 +224,7 @@ prefs = ntop.getPrefs()
 local iface_names = interface.getIfNames()
 local current_ifid = interface.getId()
 
+
 num_ifaces = 0
 for k, v in pairs(iface_names) do num_ifaces = num_ifaces + 1 end
 
@@ -232,6 +233,7 @@ local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
 local is_db_view_interface = interface.isDatabaseViewInterface()
 local is_viewed = ifs.isViewed
+
 local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") ==
                                 "influxdb"
 local is_clickhouse_enabled = hasClickHouseSupport()
@@ -262,7 +264,7 @@ else
             }, {
                 entry = page_utils.menu_entries.traffic_report,
                 hidden = not (ntop.isEnterprise() and is_clickhouse_enabled) or
-                    infrastructure_view,
+                    infrastructure_view or is_viewed, -- disable if interface is viewed
                 url = "/lua/pro/report.lua"
             }
         }

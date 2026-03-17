@@ -2,7 +2,7 @@
   (C) 2026 - ntop.org
 -->
 <template>
-  <div ref="container" class="pie-container" :class="`legend-${legend_position}`">
+  <div ref="container" class="pie-container" :class="{ 'layout-column': legend_below }">
     <!-- Title -->
     <div v-if="chart.title" class="pie-title"><strong>{{ chart.title }}</strong></div>
 
@@ -25,7 +25,6 @@
             @click="it.url && (window.location.href = it.url)">
             <span class="legend-dot" :style="{ background: it.color }"></span>
             <span class="legend-name form-control-sm" :title="it.name">{{ it.name }}</span>
-            <span class="legend-percentage form-control-sm">{{ it.percentage }}%</span>
           </div>
         </div>
 
@@ -57,10 +56,10 @@ const _i18n = (t) => (typeof i18n === "function" ? i18n(t) : t);
 const props = defineProps({ chart: { type: Object, required: true } });
 const { name, update_url, url_params, refresh, unit, label, custom_fetch } = props.chart;
 const formatted_label = label ? (i18n(label) || label) : null;
-const legend_position = props.chart.legend_position || "bottom"; // "bottom" or "left" or "right"
 const container = ref(null);
 const wrapper = ref(null);
 const loading = ref(false);
+const legend_below = ref(false);
 const no_data = ref(false);
 const items = ref([]);
 const has_loaded = ref(false); /* true after the first successful data fetch */
@@ -75,6 +74,7 @@ const tooltip = reactive({
   color: ""
 });
 
+let resizeObs = null;
 let svg = null;
 let g = null;
 let arc = null;
@@ -92,6 +92,11 @@ const _cr = (_R - _r) * 0.18;
 
 onMounted(async () => {
   await nextTick();
+  resizeObs = new ResizeObserver(entries => {
+    legend_below.value = entries[0].contentRect.width < 300;
+  });
+  
+  resizeObs.observe(container.value);
   drawSVG();
   await load();
   if (refresh > 0) refreshTimer = setInterval(load, refresh);
@@ -99,6 +104,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearInterval(refreshTimer);
+  resizeObs?.disconnect();
 });
 
 function drawSVG() {
@@ -161,6 +167,7 @@ async function load() {
 function render(data) {
   const PALETTE = colorUtils.assignRoundRobinColors(data.map(d => d.label));
   const getColor = (d, i) => d.color || PALETTE[i % PALETTE.length];
+
   const total = data.reduce((s, d) => s + d.value, 0);
   /* Filtered data, excludes values too small to be shown in the chart
    * values with a number lesser then 0.0%
@@ -209,7 +216,7 @@ function render(data) {
         y: ev.clientY - rect.top - 12,
         name: d.data.label,
         value: unit ? formatterUtils.getFormatter(unit, null, null, formatted_label)(d.data.value) : d.data.value,
-        percentage: total > 0 ? (d.data.value / total * 100).toFixed(1) : "0",
+        percentage: d.data.percentage,
       });
 
     })
@@ -350,6 +357,49 @@ watch(() => props.chart.url_params, () => {
 
 .tt-percentage {
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* legend below (narrow container) */
+.layout-column {
+  justify-content: center;
+}
+
+.layout-column .pie-body {
+  height: auto;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.layout-column .pie-row {
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.layout-column .pie-wrapper {
+  width: 140px;
+  height: 140px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.layout-column .pie-legend {
+  flex: 0 0 auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  max-height: none;
+  width: 100%;
+  overflow: visible;
+}
+
+.layout-column .legend-item {
+  width: auto;
+  flex: 0 0 auto;
+  padding-right: 8px;
 }
 
 .pie-legend {
