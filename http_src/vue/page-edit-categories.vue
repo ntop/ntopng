@@ -77,15 +77,9 @@ async function on_save(params) {
     `${http_prefix}/lua/rest/v2/edit/category/category.lua`,
     { method: "POST", body }
   );
-  show_message(i18n("changes_applied"));
   categories_table.value.refresh_table();
 }
 
-function show_message(msg) {
-  message = msg;
-  hidden_message.value = false;
-  setTimeout(() => { hidden_message.value = true; }, 4000);
-}
 
 function download_categories() {
   window.location.href = `${http_prefix}/lua/rest/v2/get/ndpi/export/categories.lua?ifid=${props.context.ifid}`;
