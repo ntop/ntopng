@@ -159,7 +159,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 _POST["oidc_issuer_url"] or "")
             ntop.setPref("ntopng.prefs.oidc.oidc_scopes",
                 (not isEmptyString(_POST["oidc_scopes"])) and _POST["oidc_scopes"]
-                or "openid profile email")
+                or "openid profile email roles")
             ntop.setPref("ntopng.prefs.oidc.oidc_group_claim",
                 (not isEmptyString(_POST["oidc_group_claim"])) and _POST["oidc_group_claim"]
                 or "groups")
@@ -1360,7 +1360,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         prefsInputFieldPrefs(subpage_active.entries["oidc_scopes"].title,
             subpage_active.entries["oidc_scopes"].description,
             "ntopng.prefs.oidc", "oidc_scopes",
-            not isEmptyString(oidcPref("oidc_scopes")) and oidcPref("oidc_scopes") or "openid profile email",
+            not isEmptyString(oidcPref("oidc_scopes")) and oidcPref("oidc_scopes") or "openid profile email roles",
             nil, showElements, true, false, {
                 skip_redis = true,
                 attributes = {
