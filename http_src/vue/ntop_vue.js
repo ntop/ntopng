@@ -32,6 +32,9 @@ import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows
 import { default as PageTestTable } from "./page-test-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
+import { default as PageEditCategories } from "./page-edit-categories.vue";
+import { default as ModalEditCategory } from "./modal-edit-category.vue";
+//import { default as PageEditConfigset } from "./page-edit-configset.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
@@ -93,6 +96,12 @@ import { default as PageDHCPLeases } from "./page-DHCP-leases.vue"
 import { default as PageExporterInterfaceOverview } from "./page-exporter-interface-overview.vue"
 import { default as PageExporterMap } from "./page-exporter-map.vue"
 import { default as PageExportersGraph } from "./pages/page-graph.vue"
+import { default as PageAbout } from "./page-about.vue"
+import { default as PageLicense } from "./page-license.vue"
+import { default as PageDirectories } from "./page-directories.vue"
+import { default as PageTsOverview } from "./page-ts-overview.vue"
+import { default as PageDefsOverview } from "./page-defs-overview.vue"
+import { default as PageChecksOverview } from "./page-checks-overview.vue"
 
 /* Testing page */
 import { default as PageTest } from "./page-test.vue";
@@ -231,6 +240,12 @@ let ntopVue = {
     PageExporterMap: PageExporterMap,
 
     PageExportersGraph: PageExportersGraph,
+    PageAbout: PageAbout,
+    PageLicense: PageLicense,
+    PageDirectories: PageDirectories,
+    PageTsOverview: PageTsOverview,
+    PageDefsOverview: PageDefsOverview,
+    PageChecksOverview: PageChecksOverview,
 
     /* Testing page */
     PageTest: PageTest,
@@ -251,6 +266,9 @@ let ntopVue = {
     PageSNMPSimilarity: PageSNMPSimilarity,
 
     PageEditApplications: PageEditApplications,
+    PageEditCategories: PageEditCategories,
+    //PageEditConfigset: PageEditConfigset,
+    ModalEditCategory: ModalEditCategory,
 
     PageVLANPortsSankey: PageVLANPortsSankey,
     PageTestTable: PageTestTable,
