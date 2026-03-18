@@ -368,6 +368,24 @@ local rest_utils = {
                 str = "SNMP_UNSUPPORTED_VERSION"
             },
 
+            add_exporter_site_failed = {
+                http_code = 409,
+                rc = -62,
+                str = "ADD_EXPORTER_SITE_FAILED"
+            },
+
+            edit_exporter_site_failed = {
+                http_code = 409,
+                rc = -63,
+                str = "EDIT_EXPORTER_SITE_FAILED"
+            },
+
+            delete_exporter_site_failed = {
+                http_code = 409,
+                rc = -64,
+                str = "DELETE_EXPORTER_SITE_FAILED"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }

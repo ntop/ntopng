@@ -4,6 +4,7 @@
 -- Required modules for exporter site management
 require "ntop_utils"
 local json = require("dkjson")
+local rest_utils = require "rest_utils"
 
 -- Module definition - this module provides utilities for managing exporter sites
 -- Exporter sites represent physical or logical locations of network flow exporters
@@ -259,12 +260,12 @@ function exporter_site_utils.editExporterSite(id, name, description, latitude, l
    if id and tonumber(id) then
       id = tostring(id)  -- Convert to string for consistency
    else
-      return false, "Invalid ID"
+      return rest_utils.consts.err.edit_exporter_site_failed, "Invalid ID"
    end
 
    -- Ensure the site exists
    if not existing_sites[id] then
-      return false, "Invalid Site"
+      return rest_utils.consts.err.edit_exporter_site_failed, "Invalid Site"
    end
 
    local old_site = existing_sites[id]
@@ -299,11 +300,11 @@ function exporter_site_utils.editExporterSite(id, name, description, latitude, l
       -- Store updated site in Redis
       ntop.setHashCache(REDIS_HASH_NAME, id, json.encode(site_json))
    else
-      return res, msg  -- Return validation error
+      return rest_utils.consts.err.edit_exporter_site_failed, msg  -- Return validation error
    end
 
    local success_msg = "Site edited successfully"
-   return true, success_msg
+   return rest_utils.consts.success.ok, success_msg
 end
 
 -- ##############################################
@@ -316,7 +317,8 @@ function exporter_site_utils.addExporterSite(name, description, latitude, longit
 
    -- Check system limit before proceeding
    if current_count + 1 > MAX_PROFILES_NUM then
-      return false, "Adding a site would exceed maximum limit (" .. MAX_PROFILES_NUM .. "). Current: " .. current_count
+      return rest_utils.consts.err.add_exporter_site_failed, 
+               "Adding a site would exceed maximum limit (" .. MAX_PROFILES_NUM .. "). Current: " .. current_count
    end
 
    -- Get existing sites for validation
@@ -352,11 +354,11 @@ function exporter_site_utils.addExporterSite(name, description, latitude, longit
       -- Increment counter for next site
       ntop.setCache(REDIS_COUNTER_KEY, current_count + 1)
    else
-      return res, msg  -- Return validation error
+      return rest_utils.consts.err.add_exporter_site_failed, msg  -- Return validation error
    end
 
    local success_msg = "Site added successfully"
-   return true, success_msg
+   return rest_utils.consts.success.ok, success_msg
 end
 
 -- ##############################################
@@ -371,7 +373,7 @@ function exporter_site_utils.deleteExporterSite(id)
    if id then
       id = tostring(id)
    else
-      return false, "Invalid ID"
+      return rest_utils.consts.err.delete_exporter_site_failed, "Invalid ID"
    end
 
    -- Check if site exists before deletion
@@ -379,11 +381,11 @@ function exporter_site_utils.deleteExporterSite(id)
       -- Remove site from Redis
       ntop.delHashCache(REDIS_HASH_NAME, id)
    else
-      return false, "Invalid Site"
+      return rest_utils.consts.err.delete_exporter_site_failed, "Invalid Site"
    end
 
    local success_msg = "Site deleted successfully"
-   return true, success_msg
+   return rest_utils.consts.success.ok, success_msg
 end
 
 -- ##############################################

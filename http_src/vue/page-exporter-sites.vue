@@ -220,13 +220,13 @@ const handleEditExporterSite = (data) => {
     // Prepare request payload
     const addParams = {
         csrf: props.context.csrf,
-        exporter_sites: [{
+        exporter_sites: {
             exporter_site_id: editingExporterSiteId.value,
             exporter_site_name,
             exporter_site_description,
             latitude: exporter_site_lat,
             longitude: exporter_site_lng
-        }]
+        }
     };
 
     // Send edit request to server
@@ -234,11 +234,11 @@ const handleEditExporterSite = (data) => {
         method: 'post',
         headers,
         body: JSON.stringify(addParams)
-    })
+    },false, true, true)
         .then(data => {
             // Handle server-side validation errors
-            if (!data || !data.success) {
-                modalErrorMessage.value = rsp.msg || _i18n("error");
+            if (!data || data.rc<0) {
+                modalErrorMessage.value = data.rsp || _i18n("error");
                 return;
             }
             // Success - refresh data and close modal
@@ -259,35 +259,31 @@ const handleAddExporterSite = async (data) => {
     // Prepare request payload for new site
     const addParams = {
         csrf: props.context.csrf,
-        exporter_sites: [{
+        exporter_sites: {
             exporter_site_name: data.exporter_site_name,
             exporter_site_description: data.exporter_site_description,
             latitude: data.exporter_site_lat,
             longitude: data.exporter_site_lng
-        }]
+        }
     };
 
-    try {
-        // Send add request to server
-        const res = await ntopng_utility.http_request(API.add, {
-            method: 'post',
-            headers,
-            body: JSON.stringify(addParams)
-        });
-
-        // Handle server-side validation errors
-        if (!res || res.success === false) {
-            modalErrorMessage.value = res.msg || _i18n("error");
-            return;
-        }
-
-        // Success - refresh data and close modal
-        refresh_sites();
-        exporterSiteModal.value.close();
-
-    } catch (e) {
-        console.error('Error adding exporter site:', e);
-    }
+    // Send add request to server
+    ntopng_utility.http_request(API.add, {
+        method: 'post',
+        headers,
+        body: JSON.stringify(addParams)
+    },false, true, true)
+        .then(data => {
+            // Handle server-side validation errors
+            if (!data || data.rc<0) {
+                modalErrorMessage.value = data.rsp || _i18n("error");
+                return;
+            }
+            // Success - refresh data and close modal
+            refresh_sites();
+            exporterSiteModal.value.close();
+        })
+        .catch(err => console.error('Error during exporter site edit:', err))
 };
 
 /* ************************************** */
@@ -305,20 +301,17 @@ const handleDeleteExporterSite = async (item) => {
 
         const headers = { 'Content-Type': 'application/json' };
 
-        try {
-            // Send delete request to server
-            await ntopng_utility.http_request(API.delete, {
-                method: 'post',
-                headers,
-                body: JSON.stringify(requestParams)
-            });
-
-            // Refresh table after successful delete
-            refresh_sites();
-        } catch (e) {
-            console.error('Error deleting exporter site:', e);
-            // Do not refresh, it's useless, the previous state is okay
-        }
+        // Send edit request to server
+        ntopng_utility.http_request(API.delete, {
+            method: 'post',
+            headers,
+            body: JSON.stringify(requestParams)
+        },false, true, true)
+            .then(data => {
+                // Refresh table after successful delete
+                refresh_sites();
+            })
+            .catch(err => console.error('Error deleting exporter site:', err))
     }
     exporterSiteModalDelete.value.close();
 };
@@ -327,42 +320,39 @@ const handleDeleteExporterSite = async (item) => {
 // Loads site data for the geographic map
 // Fetches all sites and filters out the default site (id=0)
 async function loadSitesMap() {
-    try {
-        const requestParams = {
-            csrf: props.context.csrf
-        };
+    const requestParams = {
+        csrf: props.context.csrf
+    };
 
-        const headers = { 'Content-Type': 'application/json' };
+    const headers = { 'Content-Type': 'application/json' };
 
-        // Fetch sites from server
-        const res = await ntopng_utility.http_request(API.get, {
-            method: 'post',
-            headers,
-            body: JSON.stringify(requestParams)
-        });
 
-        if (!Array.isArray(res)) {
+    // Send add request to server
+    ntopng_utility.http_request(API.get, {
+        method: 'post',
+        headers,
+        body: JSON.stringify(requestParams)
+    }).then(data => {
+        if (!Array.isArray(data)) {
             geomapDataArray.value = [];
             return;
         }
 
         // Transform server response into map-compatible format
         // Exclude default site (id=0) from map display
-        geomapDataArray.value = res
-            .filter(site => {
-                return (site.id != 0);
-            })
-            .map(site => ({
-                id: site.id,
-                name: site.name,
-                description: site.description,
-                lat: Number(site.latitude),   // Convert to number for map library
-                lng: Number(site.longitude)    // Convert to number for map library
-            }));
-    } catch (e) {
-        console.error("Map sites load error:", e);
+        geomapDataArray.value = data.filter(site => {
+            return (site.id != 0);
+        }).map(site => ({
+            id: site.id,
+            name: site.name,
+            description: site.description,
+            lat: Number(site.latitude),   // Convert to number for map library
+            lng: Number(site.longitude)    // Convert to number for map library
+        }));
+    }).catch(err => {
+        console.error('Error during exporter site edit:', err);
         geomapDataArray.value = [];
-    }
+    })
 }
 
 /* ************************************** */
