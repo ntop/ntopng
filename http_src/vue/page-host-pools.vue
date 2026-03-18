@@ -28,7 +28,7 @@
     </div>
 
     <!-- Modals to add and delete host pools -->
-    <ModalAddHostPool ref="modal_add_pool" :context="context" @add="handleAddPool" @edit="handleEditPool">
+    <ModalAddHostPool ref="modal_add_pool" :errorMessage="modalErrorMessage" :context="context" @add="handleAddPool" @edit="handleEditPool">
     </ModalAddHostPool>
 
     <ModalDeleteConfirm ref="modal_delete_pool" :title="title_delete" :body="body_delete" @delete="handleDeletePool">
@@ -62,6 +62,7 @@ const modal_delete_pool = ref(null);
 const add_new_pool = ref(null);
 const title_delete = i18n("host_pools.delete_pool");
 let body_delete_18n = i18n("pools.remove_pool");
+const modalErrorMessage = ref("");
 
 // delete modal variables
 const body_delete = ref('');
@@ -78,6 +79,7 @@ const addNewPool = () => {
 
 /* handles post request to add a new pool from modal */
 const handleAddPool = async (params) => {
+    modalErrorMessage.value = "";
     const url = `${http_prefix}/lua/rest/v2/add/host/pool.lua`;
 
     const requestParams = {
@@ -86,22 +88,22 @@ const handleAddPool = async (params) => {
         pool_members: params.pool_members
     };
 
-    let headers = {
-        'Content-Type': 'application/json'
-    };
-
-    try {
-        await ntopng_utility.http_request(url, {
-            method: 'post',
-            headers,
+    ntopng_utility.http_request(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestParams)
+        }, false, true, true).then((res) => {
+            if (!res || res.rc < 0) {
+                modalErrorMessage.value = res?.rc_str_hr || res?.rc_str || _i18n("error");
+                return;
+            }
+            // Success
+            modal_add_pool.value.close();
+            table_host_pools.value.refresh_table(true);
+        })
+        .catch((e) => {
+            modalErrorMessage.value = _i18n("error");
         });
-
-        // Refresh the table
-        table_host_pools.value.refresh_table(true);
-    } catch (e) {
-        console.error('Network error:', e.message);
-    }
 };
 
 /* called on edit modal close to post the new pool config */

@@ -14,7 +14,10 @@
                     {{ name_error }}
                 </div>
             </div>
-        
+             <!-- Error Message-->
+            <div v-if="errorMessage" class="alert alert-danger mb-3">
+                {{ errorMessage }}
+            </div>
             <!-- modal-body -->
         </template>
         <template v-slot:footer>
@@ -49,6 +52,7 @@ const currentItem = ref(null);
 
 const props = defineProps({
     context: Object,
+    errorMessage: String,
 });
 
 // check if name is valid
@@ -94,9 +98,6 @@ function handleSubmit() {
     } else {
         emit('add', formData);
     }
-
-    // Close the modal
-    close();
 }
 
 // Show modal for adding new item
