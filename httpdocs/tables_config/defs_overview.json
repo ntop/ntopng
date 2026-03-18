@@ -1,0 +1,74 @@
+{
+	"id": "defs_overview",
+	"data_url": "lua/rest/v2/get/ntopng/alert_definitions.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "alert_key",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "alert_key",
+			"title_i18n": "scripts_overview.alert_key",
+			"data_field": "alert_key",
+			"sortable": true,
+			"min-width": "80px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "alert_type",
+			"title_i18n": "scripts_overview.alert_key_string",
+			"data_field": "alert_type",
+			"sortable": true,
+			"min-width": "200px",
+			"class": []
+		},
+		{
+			"id": "name",
+			"title_i18n": "scripts_overview.alert_name",
+			"data_field": "name",
+			"sortable": true,
+			"min-width": "160px",
+			"class": []
+		},
+		{
+			"id": "has_attacker",
+			"title_i18n": "scripts_overview.has_attacker",
+			"data_field": "has_attacker",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "has_victim",
+			"title_i18n": "scripts_overview.has_victim",
+			"data_field": "has_victim",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "status_key",
+			"title_i18n": "scripts_overview.status_key",
+			"data_field": "status_key",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}

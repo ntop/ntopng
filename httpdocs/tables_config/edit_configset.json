@@ -1,0 +1,78 @@
+{
+	"id": "edit_configset",
+	"data_url": "lua/rest/v2/get/checks/list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "title",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "action",
+			"sortable": false,
+			"min-width": "70px",
+			"max-width": "90px",
+			"class": ["text-center"],
+			"render_v_node_type": "button_array",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-pencil-alt",
+					"title_i18n": "edit",
+					"event_id": "edit_check",
+					"class": []
+				}
+			]
+		},
+		{
+			"id": "enabled",
+			"title_i18n": "enabled",
+			"data_field": "is_enabled",
+			"sortable": true,
+			"min-width": "80px",
+			"max-width": "100px",
+			"class": ["text-center"]
+		},
+		{
+			"id": "title",
+			"title_i18n": "name",
+			"data_field": "title",
+			"sortable": true,
+			"min-width": "180px"
+		},
+		{
+			"id": "subdir",
+			"title_i18n": "if_stats_overview.family",
+			"data_field": "subdir",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "category",
+			"title_i18n": "category",
+			"data_field": "category_key",
+			"sortable": true,
+			"min-width": "120px"
+		},
+		{
+			"id": "severity",
+			"title_i18n": "severity",
+			"data_field": "severity_key",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "description",
+			"title_i18n": "description",
+			"data_field": "description",
+			"sortable": false,
+			"min-width": "200px"
+		}
+	]
+}

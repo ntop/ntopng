@@ -36,7 +36,6 @@
                 <span class="tt-dot" :style="{ background: tooltip.color }"></span>
                 <span class="tt-name">{{ tooltip.name }}</span>
                 <span class="tt-val">{{ tooltip.value.toLocaleString() }}</span>
-                <span class="tt-percentage">({{ tooltip.percentage }}%)</span>
             </div>
         </div>
 

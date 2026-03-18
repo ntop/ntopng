@@ -1,0 +1,47 @@
+{
+	"id": "ts_overview",
+	"data_url": "lua/rest/v2/get/ntopng/timeseries.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "schema",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"title_i18n": "scripts_overview.ts_info_schema",
+			"data_field": "schema",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "scripts_overview.ts_info_timeseries",
+			"data_field": "timeseries",
+			"sortable": true,
+			"min-width": "200px",
+			"class": []
+		},
+		{
+			"title_i18n": "scripts_overview.ts_info_measure_unit",
+			"data_field": "measure_unit",
+			"sortable": true,
+			"min-width": "120px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "scripts_overview.ts_info_descr",
+			"data_field": "description",
+			"sortable": false,
+			"min-width": "200px",
+			"class": []
+		}
+	]
+}

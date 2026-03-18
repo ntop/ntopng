@@ -2,12 +2,13 @@
 -- (C) 2013-26 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
 require "lua_utils"
-local ts_info = require("timeseries_info")
-local page_utils = require("page_utils")
-local template = require "template_utils"
+local page_utils     = require "page_utils"
+local json           = require "dkjson"
+local template_utils = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -15,12 +16,19 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.ts_def
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local context = {
-   page_utils = page_utils,
-   ts_info = ts_info,
-}
+page_utils.print_navbar(i18n("about.ts_defines"), ntop.getHttpPrefix() .. "/lua/ts_overview.lua", {
+  {
+    active    = true,
+    page_name = "overview",
+    label     = i18n("overview"),
+  }
+})
 
-print(template.gen("pages/ts_overview.template", context))
+local context = {}
+
+template_utils.render("pages/vue_page.template", {
+  vue_page_name = "PageTsOverview",
+  page_context  = json.encode(context)
+})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-

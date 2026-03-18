@@ -1,53 +1,54 @@
 --
--- (C) 2021 - ntop.org
+-- (C) 2026 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local template = require "template_utils"
-local categories_utils = require "categories_utils"
-local lists_utils = require "lists_utils"
-local page_utils = require("page_utils")
+
+local page_utils     = require "page_utils"
+local json           = require "dkjson"
+local template_utils = require "template_utils"
+local protos_utils   = require "protos_utils"
 
 sendHTTPContentTypeHeader('text/html')
-
-
-local category_filter = _GET["l7proto"]
-local ifId = getInterfaceId(ifname)
 
 if not isAdministratorOrPrintErr() then
   return
 end
 
-local tab = _GET["tab"] or "protocols"
-
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.categories)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_page_title(i18n("custom_categories.apps_and_categories"))
+local page_name = _GET["page"] or "protocols"
 
-print [[
-<div class='card'>
-<div class='card-header'>
-<ul id="n2n-nav" class="nav nav-tabs card-header-tabs" role="tablist">]]
+page_utils.print_navbar(i18n("custom_categories.apps_and_categories"), ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua", {
+  {
+    active    = page_name == "protocols",
+    page_name = "protocols",
+    label     = i18n("applications"),
+  },
+  {
+    active    = page_name == "categories",
+    page_name = "categories",
+    label     = i18n("categories"),
+  },
+})
 
-print('<li class="nav-item '.. ternary(tab == "protocols", "active", "") ..'"><a class="nav-link '.. ternary(tab == "protocols", "active", "") ..'" href="?tab=protocols">'.. i18n("applications") .. "</a>")
-print('<li class="nav-item '.. ternary(tab ~= "protocols", "active", "") ..'"><a class="nav-link '.. ternary(tab ~= "protocols", "active", "") ..'" href="?tab=categories">'.. i18n("categories") .. "</a>")
+local context = {
+  page_csrf       = ntop.getRandomCSRFValue(),
+  ifid            = interface.getId(),
+  has_protos_file = protos_utils.hasProtosFile(),
+  page_name       = page_name,
+}
 
-print[[</ul></div>]]
+local json_context = json.encode(context)
 
-print('<div class="card-body tab-content">')
-
-if tab == "protocols" then
-  dofile(dirs.installdir .. "/scripts/lua/inc/edit_ndpi_applications.lua")
-else
-  dofile(dirs.installdir .. "/scripts/lua/inc/edit_categories.lua")
-end
-
-print('</div>')
-print('</div>')
+template_utils.render("pages/vue_page.template", {
+  vue_page_name = "PageEditCategories",
+  page_context  = json_context
+})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

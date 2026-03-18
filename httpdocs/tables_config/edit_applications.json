@@ -1,0 +1,68 @@
+{
+	"id": "edit_applications",
+	"data_url": "lua/rest/v2/get/ntopng/applications.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "application",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"min-width": "60px",
+			"max-width": "90px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "edit_app"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"event_id": "delete_app"
+				}
+			]
+		},
+		{
+			"id": "application",
+			"title_i18n": "application",
+			"data_field": "application",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "category",
+			"title_i18n": "category",
+			"data_field": "category",
+			"sortable": true,
+			"min-width": "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "custom_rules",
+			"title_i18n": "custom_categories.custom_hosts",
+			"data_field": "custom_rules",
+			"sortable": true,
+			"min-width": "160px"
+		}
+	]
+}

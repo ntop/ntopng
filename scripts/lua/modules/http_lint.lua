@@ -1989,6 +1989,7 @@ local known_parameters = {
    ["discord_sender"] = http_lint.validateUnquoted,
    ["discord_username"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
 
+   ["script_keys"] = validateUnquoted,
    ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
    ["shell_script_execution"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
    ["shell_script_options"] = http_lint.validateEmptyOr(http_lint.validateUnquoted),

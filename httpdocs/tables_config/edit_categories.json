@@ -1,0 +1,67 @@
+{
+	"id": "edit_categories",
+	"data_url": "lua/rest/v2/get/category/list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "category_name",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"min-width": "60px",
+			"max-width": "60px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_edit_category"
+				}
+			]
+		},
+		{
+			"id": "category_name",
+			"title_i18n": "category",
+			"data_field": "column_category_name",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_protos",
+			"title_i18n": "users.num_protocols",
+			"data_field": "column_num_protos",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_hosts",
+			"title_i18n": "custom_categories.custom_hosts",
+			"data_field": "column_num_hosts",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}
