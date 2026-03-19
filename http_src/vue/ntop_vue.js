@@ -34,7 +34,7 @@ import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageEditCategories } from "./page-edit-categories.vue";
 import { default as ModalEditCategory } from "./modal-edit-category.vue";
-//import { default as PageEditConfigset } from "./page-edit-configset.vue";
+import { default as PageEditConfigset } from "./page-edit-configset.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
@@ -133,6 +133,7 @@ import { default as NoteList } from "./note-list.vue";
 import { default as Loading } from "./loading.vue";
 import { default as SearchBox } from "./components/search-box.vue";
 import { default as NoData } from "./components/no-data.vue";
+import { default as NavbarTabs } from "./components/navbar-tabs.vue";
 
 // dashboard
 import { default as Dashboard } from "./dashboard.vue";
@@ -267,7 +268,7 @@ let ntopVue = {
 
     PageEditApplications: PageEditApplications,
     PageEditCategories: PageEditCategories,
-    //PageEditConfigset: PageEditConfigset,
+    PageEditConfigset: PageEditConfigset,
     ModalEditCategory: ModalEditCategory,
 
     PageVLANPortsSankey: PageVLANPortsSankey,
@@ -322,6 +323,7 @@ let ntopVue = {
     NoteList: NoteList,
     Loading: Loading,
     NoData: NoData,
+    NavbarTabs: NavbarTabs,
 
     // dashboard
     Dashboard: Dashboard,

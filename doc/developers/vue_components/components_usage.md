@@ -165,6 +165,76 @@ All pie chart endpoints must return a JSON array:
 
 ---
 
+## NavbarTabs
+
+Segmented tab-selector for filtering or switching views. Supports optional numeric count badges per tab. Active tab is highlighted in orange; inactive tabs show a warm orange tint on hover.
+
+### Props
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `tabs` | Array | Yes | Array of Tab Objects |
+| `active_tab_id` | String | No | ID of the initially active tab (defaults to first tab) |
+
+### Tab Object
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | Yes | Unique tab identifier |
+| `label_i18n` | string | Yes | i18n key for the tab label |
+| `count` | number | No | Badge number shown next to the label. Omit or `null` to hide badge |
+
+### Emits
+
+| Event | Payload | Description |
+|---|---|---|
+| `on_click` | `tab` (Tab Object) | Fired when the user clicks a tab that is not already active |
+
+### Vue — text only
+
+```vue
+import { default as NavbarTabs } from "./components/navbar-tabs.vue";
+
+<NavbarTabs
+  :tabs="[
+    { id: 'protocols', label_i18n: 'protocols' },
+    { id: 'categories', label_i18n: 'categories' },
+  ]"
+  :active_tab_id="activePage"
+  @on_click="(tab) => activePage = tab.id"
+/>
+```
+
+### Vue — with count badges (reactive)
+
+Drive the `count` from a reactive map so badges update automatically when data loads:
+
+```vue
+import { ref, reactive, computed } from "vue";
+import { default as NavbarTabs } from "./components/navbar-tabs.vue";
+
+const active_status = ref("all");
+const counts = reactive({});          // populated by on_rows_loaded or similar
+
+const tabs = computed(() => [
+  { id: "all",      label_i18n: "all",      count: counts.all      ?? null },
+  { id: "enabled",  label_i18n: "enabled",  count: counts.enabled  ?? null },
+  { id: "disabled", label_i18n: "disabled", count: counts.disabled ?? null },
+]);
+
+<NavbarTabs
+  :tabs="tabs"
+  :active_tab_id="active_status"
+  @on_click="(tab) => active_status = tab.id"
+/>
+```
+
+### Notes
+- Pass `count: null` (or omit the field) to render the tab as text only — no badge is shown
+- `active_tab_id` is kept in sync via a `watch`, so external changes to the prop are reflected
+
+---
+
 ## NoData
 
 Simple info banner rendered when there is no data to display. Supports both i18n keys and direct strings.

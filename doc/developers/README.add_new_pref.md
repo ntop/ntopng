@@ -1,148 +1,232 @@
 # Adding a New Preference in ntopng
 
-This document provides a comprehensive guide for adding a new preference to ntopng. The process involves modifying several files across Lua and backend (C++) components.
+This document explains how to add a new preference to ntopng. There are two patterns depending on whether the preference needs to be read by the C++ backend:
 
-## Overview
+- **Lua-only prefs** — stored in Redis, read from Lua. No C++ changes needed. Use this for settings consumed by Lua scripts (REST endpoints, page logic, etc.).
+- **C++-backed prefs** — stored in Redis, loaded into `Prefs.cpp`, exposed back to Lua via `ntop.getPrefs()`. Use this for settings that the C++ core needs at runtime.
 
-Adding a new preference requires modifications to:
-- Internationalization files (i18n)
-- Lua preference menu configuration
-- Frontend component rendering
-- C++ preference handling (header, implementation, and constants)
+Both patterns share the same first three steps.
 
-## Step-by-Step Implementation
+---
 
-### 1. Add Internationalization Strings
+## Common Steps (all pref types)
 
-First, define the title and description for your preference in the i18n configuration:
+### 1. Add i18n Strings
+
+Add title and description strings to `scripts/locales/en.lua` inside the `["prefs"]` table:
 
 ```lua
-["prefs"] = {
-    ["toggle_export_flows_to_archive_description"] = "Save data to the specified archive folder before it's automatically deleted by the retention policy",
-    ["toggle_export_flows_to_archive_title"] = "Archive Flows Before TTL Deletion",
-}
+["my_feature_url_title"] = "API URL",
+["my_feature_url_description"] = "Base URL of the remote API endpoint",
+["my_feature_token_title"] = "API Token",
+["my_feature_token_description"] = "Authentication token for the remote API",
 ```
 
-### 2. Configure Preference Menu
+### 2. Add the Subpage (or Entry) in `prefs_menu.lua`
 
-Add the i18n mapping to `ntopng/scripts/lua/modules/prefs_menu.lua` under the appropriate section:
+`scripts/lua/modules/prefs_menu.lua` drives the tab list and controls access (pro-only, enterprise-only, hidden, etc.).
+
+**Adding a new tab:**
 
 ```lua
-{
-    id = "clickhouse",
-    label = i18n("prefs.clickhouse"),
-    advanced = true,
-    pro_only = true,
-    hidden = not ((ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())),
+},{
+    id = "my_feature",                  -- must match the tab= GET param and the if-block in prefs.lua
+    label = i18n("prefs.my_feature"),
+    advanced = false,
+    pro_only = true,                    -- set true to restrict to Pro/Enterprise
+    hidden = false,
     entries = {
-        -- ... existing entries ...
-        toggle_data_archive_before_ttl_delete = {
-            title = i18n("prefs.toggle_export_flows_to_archive_title"),
-            description = i18n("prefs.toggle_export_flows_to_archive_description")
+        my_feature_url = {
+            title = i18n("prefs.my_feature_url_title"),
+            description = i18n("prefs.my_feature_url_description")
+        },
+        my_feature_token = {
+            title = i18n("prefs.my_feature_token_title"),
+            description = i18n("prefs.my_feature_token_description")
         }
     }
-}
+}}
 ```
 
-### 3. Add Frontend Component
+**Adding entries to an existing tab** — just extend the `entries` table of the relevant subpage.
 
-Specify the UI component for the preference. For a toggle button:
+### 3. Implement the Render Function in `prefs.lua`
 
-- field is the entries element to display
-- pref is the
+`scripts/lua/admin/prefs.lua` contains one render function per tab. Use the helpers at the top of the file:
+
+| Helper | Purpose |
+|--------|---------|
+| `create_table()` | Opens `<form>` + `<table>` |
+| `add_section(title)` | Adds a blue `<thead>` section divider |
+| `end_table()` | Adds Save button, CSRF token, closes form + table |
+| `prefsToggleButton(subpage_active, opts)` | On/off toggle |
+| `prefsInputFieldPrefs(label, desc, prekey, key, default, type, ...)` | Text / number / password input |
+
+**Dispatch block** — near the bottom of `prefs.lua`, add:
 
 ```lua
-prefsToggleButton(subpage_active, {
-    field = "toggle_data_archive_before_ttl_delete",
-    default = "0",
-    pref = "toggle_data_archive_before_ttl_delete",
-    hidden = not showAggregateFlowsPrefs
-})
+if (tab == "my_feature") then
+    printMyFeature()
+end
 ```
 
-**Note:** The `pref` parameter is used in C++ via `ntop->getPrefs()`.
+**Render function skeleton:**
 
-### 4. Define Constants
+```lua
+function printMyFeature()
+    create_table()
+    add_section(i18n("prefs.my_feature"))
 
-In `ntop_defines.h`, add the preference constant:
+    prefsInputFieldPrefs(
+        subpage_active.entries["my_feature_url"].title,
+        subpage_active.entries["my_feature_url"].description,
+        "ntopng.prefs.my_feature", "url",
+        "https://api.example.com",   -- default
+        "text",                      -- input type
+        true,                        -- show
+        true,                        -- disable autocomplete
+        true,                        -- allow URLs
+        { attributes = { spellcheck = "false", maxlength = 255 } }
+    )
+
+    prefsInputFieldPrefs(
+        subpage_active.entries["my_feature_token"].title,
+        subpage_active.entries["my_feature_token"].description,
+        "ntopng.prefs.my_feature", "token",
+        "",
+        "password",                  -- renders as dots
+        true, true, false,
+        { attributes = { spellcheck = "false", maxlength = 255 } }
+    )
+
+    end_table()
+end
+```
+
+**Redis key** is assembled as `prekey .. "." .. key`, so the above produces `ntopng.prefs.my_feature.url` and `ntopng.prefs.my_feature.token`. Read them anywhere in Lua with `ntop.getPref("ntopng.prefs.my_feature.url")`.
+
+**Input types:**
+
+| Value | Renders as |
+|-------|-----------|
+| `"text"` | Plain text box |
+| `"number"` | Numeric input (supports `min`, `max`, `step`) |
+| `"password"` | Masked dots; also sets `autocomplete="new-password"` |
+
+**Multiple sections on one tab** — call `add_section()` multiple times between field groups:
+
+```lua
+add_section(i18n("prefs.section_a"))
+-- fields for section A ...
+
+add_section(i18n("prefs.section_b"))
+-- fields for section B ...
+```
+
+### 4. Register POST Keys in `http_lint.lua`
+
+Every key that can appear in `_POST` must be whitelisted in `scripts/lua/modules/http_lint.lua`. Find the relevant block and add entries:
+
+```lua
+-- MY FEATURE
+["url"]   = validateUnquoted,
+["token"] = {passwordCleanup, validatePassword},
+```
+
+Common validators:
+
+| Validator | Use for |
+|-----------|---------|
+| `validateUnquoted` | Free text, URLs, hostnames |
+| `validateSingleWord` | Tokens without spaces |
+| `validateNumber` | Numeric values |
+| `validatePassword` + `passwordCleanup` | Secret / password fields |
+| `validateIpAddress` | IP addresses |
+
+---
+
+## Extra Steps for C++-backed Prefs
+
+Skip this section if the preference is only consumed from Lua.
+
+### 5. Define a Constant
+
+In `include/ntop_defines.h`:
 
 ```cpp
-#define CONST_PREFS_ENABLE_ARCHIVE_BEFORE_TTL_DELETE \
-    NTOPNG_PREFS_PREFIX ".archive_before_ttl_delete"
+#define CONST_PREFS_MY_FEATURE_TOKEN \
+    NTOPNG_PREFS_PREFIX ".my_feature.token"
 ```
 
-### 5. Update Header File
+### 6. Declare the Variable
 
-In `Prefs.h`, declare the preference variable:
+In `include/Prefs.h`:
 
 ```cpp
 #ifdef NTOPNG_PRO
-bool data_archive_before_ttl_delete;
+bool my_feature_enabled;
 #endif
 ```
 
-**Important:** Use appropriate version guards (e.g., `#ifdef NTOPNG_PRO`) when the feature is version-specific.
+Use `#ifdef NTOPNG_PRO` (or `NTOPNG_ENTERPRISE`) for version-gated features.
 
-### 6. Initialize Default Value
+### 7. Set the Default
 
-In `Prefs::Prefs(Ntop *_ntop)` constructor in `Prefs.cpp`, set the default value:
+In `Prefs::Prefs()` constructor in `src/Prefs.cpp`:
 
 ```cpp
 #ifdef NTOPNG_PRO
-data_archive_before_ttl_delete = false;
+my_feature_enabled = false;
 #endif
 ```
 
-Consider version compatibility when setting defaults.
+### 8. Load from Redis
 
-### 7. Implement Preference Reloading
-
-In `Prefs.cpp`, add the preference loading logic in `void Prefs::reloadPrefsFromRedis()`:
+In `Prefs::reloadPrefsFromRedis()`:
 
 ```cpp
-data_archive_before_ttl_delete = getDefaultBoolPrefsValue(
-    CONST_PREFS_ENABLE_ARCHIVE_BEFORE_TTL_DELETE, 
-    false
+my_feature_enabled = getDefaultBoolPrefsValue(
+    CONST_PREFS_MY_FEATURE_TOKEN, false
 );
 ```
 
-### 8. Expose to Lua Interface
+### 9. Expose to Lua
 
-In `Prefs.cpp`, add the preference to the Lua interface in `void Prefs::lua(lua_State *vm)`:
+In `Prefs::lua()`:
 
 ```cpp
-lua_push_bool_table_entry(vm, "data_archive_before_ttl_delete", data_archive_before_ttl_delete);
+lua_push_bool_table_entry(vm, "my_feature_enabled", my_feature_enabled);
 ```
 
-This makes the preference accessible from Lua scripts.
+The value is then accessible in Lua via `ntop.getPrefs().my_feature_enabled`.
 
-## File Summary
+---
 
-The following files need to be modified:
+## File Checklist
 
-| File | Purpose |
-|------|---------|
-| i18n files | Internationalization strings |
-| `prefs_menu.lua` | Menu configuration |
-| Frontend templates | UI component rendering |
-| `ntop_defines.h` | Constant definitions |
-| `Prefs.h` | Variable declarations |
-| `Prefs.cpp` | Implementation and Lua interface |
+### Lua-only pref
+
+| File | Change |
+|------|--------|
+| `scripts/locales/en.lua` | Add i18n strings |
+| `scripts/lua/modules/prefs_menu.lua` | Add subpage / entries |
+| `scripts/lua/admin/prefs.lua` | Add render function + dispatch block |
+| `scripts/lua/modules/http_lint.lua` | Whitelist POST keys |
+
+### C++-backed pref (all of the above, plus)
+
+| File | Change |
+|------|--------|
+| `include/ntop_defines.h` | Add constant |
+| `include/Prefs.h` | Declare variable |
+| `src/Prefs.cpp` | Initialize, reload, expose to Lua |
+
+---
 
 ## Best Practices
 
-1. **Naming Convention**: Use consistent naming across all components (Lua field names, C++ variables, constants)
-
-2. **Version Guards**: Apply appropriate `#ifdef` guards for enterprise or pro features
-
-3. **Default Values**: Choose sensible defaults and document the rationale
-
-4. **Documentation**: Update relevant documentation and comments
-
-5. **Testing**: Verify the preference works correctly in both UI and backend
-
-## Example Use Case
-
-The example demonstrates adding an archive preference for flows before TTL deletion, showing how data flows from the UI toggle through the Lua interface to the C++ backend where the actual functionality is implemented.
-
-This pattern can be adapted for various preference types including toggles, dropdowns, text inputs, and numeric values by adjusting the frontend component and C++ data types accordingly.
+- **Namespace Redis keys** — use `ntopng.prefs.<feature>.<key>` to avoid collisions.
+- **Use `pro_only = true`** for any feature that should be restricted to Pro/Enterprise builds.
+- **Never skip `http_lint.lua`** — unregistered POST keys are silently dropped, which can cause confusing save failures.
+- **Password fields** — always use `"password"` as the input type and `{passwordCleanup, validatePassword}` in http_lint; never store tokens in plain `"text"` fields.
+- **Defaults** — for URL fields, supply a sensible placeholder default so the user knows the expected format.

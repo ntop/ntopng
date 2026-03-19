@@ -24,19 +24,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page_name = _GET["page"] or "protocols"
 
-page_utils.print_navbar(i18n("custom_categories.apps_and_categories"), ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua", {
-  {
-    active    = page_name == "protocols",
-    page_name = "protocols",
-    label     = i18n("applications"),
-  },
-  {
-    active    = page_name == "categories",
-    page_name = "categories",
-    label     = i18n("categories"),
-  },
-})
-
 local context = {
   page_csrf       = ntop.getRandomCSRFValue(),
   ifid            = interface.getId(),

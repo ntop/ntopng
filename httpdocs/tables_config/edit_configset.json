@@ -4,7 +4,7 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": false,
+	"display_empty_rows": true,
 	"default_sort": {
 		"column_id": "title",
 		"sort": 1
@@ -12,19 +12,23 @@
 	"columns": [
 		{
 			"id": "actions",
-			"title_i18n": "action",
+			"title_i18n": "actions",
 			"sortable": false,
-			"min-width": "70px",
-			"max-width": "90px",
-			"class": ["text-center"],
-			"render_v_node_type": "button_array",
+			"sticky": true,
+			"min-width" : "80px",
+			"max-width" : "80px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
 			"button_def_array": [
 				{
 					"id": "edit",
-					"icon": "fas fa-pencil-alt",
+					"icon": "fas fa-edit",
 					"title_i18n": "edit",
-					"event_id": "edit_check",
-					"class": []
+					"class": [],
+					"event_id": "edit_check"
 				}
 			]
 		},

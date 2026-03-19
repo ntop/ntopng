@@ -16,14 +16,6 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.ts_def
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("about.ts_defines"), ntop.getHttpPrefix() .. "/lua/ts_overview.lua", {
-  {
-    active    = true,
-    page_name = "overview",
-    label     = i18n("overview"),
-  }
-})
-
 local context = {}
 
 template_utils.render("pages/vue_page.template", {

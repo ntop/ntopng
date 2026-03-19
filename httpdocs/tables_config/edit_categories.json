@@ -16,7 +16,7 @@
 			"sortable": false,
 			"sticky": true,
 			"min-width": "60px",
-			"max-width": "60px",
+			"max-width": "70px",
 			"class": [
 				"text-nowrap",
 				"text-center"

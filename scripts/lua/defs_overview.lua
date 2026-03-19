@@ -16,13 +16,6 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.alert_
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("about.alert_defines"), ntop.getHttpPrefix() .. "/lua/defs_overview.lua", {
-  {
-    active    = true,
-    page_name = "overview",
-    label     = i18n("overview"),
-  }
-})
 
 local context = {}
 

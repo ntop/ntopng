@@ -2,15 +2,13 @@
     <div class="geomap-container" ref="mapContainer">
         <Loading :isLoading="isLoading"></Loading>
         <!-- Zoom button group -->
-        <div class="mb-2">
-            <div class="btn-group btn-ontop" role="group">
-                <button type="button" class="btn zoom-btn" @click="zoomChart(0.5)">
-                    <i class="fa-solid fa-magnifying-glass-plus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_in')"></i>
-                </button>
-                <button type="button" class="btn zoom-btn" @click="zoomChart(-0.5)">
-                    <i class="fa-solid fa-magnifying-glass-minus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_out')"></i>
-                </button>
-            </div>
+        <div class="btn-group btn-ontop" role="group">
+            <button type="button" class="btn zoom-btn" @click="zoomChart(0.5)">
+                <i class="fa-solid fa-magnifying-glass-plus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_in')"></i>
+            </button>
+            <button type="button" class="btn zoom-btn" @click="zoomChart(-0.5)">
+                <i class="fa-solid fa-magnifying-glass-minus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_out')"></i>
+            </button>
         </div>
 
         <!-- Tooltip -->
@@ -108,8 +106,7 @@ const initializeMap = async () => {
     g = zoomGroup.append('g');
 
     projection = d3.geoEquirectangular()
-        .scale(width / (2 * Math.PI) * 0.9)
-        .translate([width / 2, height / 2])
+        .fitSize([width, height], worldData)
 
     path = d3.geoPath().projection(projection)
 
@@ -338,16 +335,13 @@ onUnmounted(() => {
     height: 100%;
     min-height: 500px;
     background-color: #0f172a;
-    border-radius: 8px;
     /* overflow: visible so the tooltip is not clipped; the SVG is clipped separately */
     overflow: visible;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 .graph-svg,
 :deep(svg) {
-    border-radius: 8px;
     overflow: hidden;
 }
 
@@ -547,8 +541,8 @@ onUnmounted(() => {
 /* zoom controls */
 .btn-ontop {
     position: absolute;
-    right: 0;
-    top: -0.7rem;
+    right: 10px;
+    top: 10px;
     z-index: 10;
 }
 

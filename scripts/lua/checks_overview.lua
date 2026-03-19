@@ -16,14 +16,6 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.checks
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("about.checks"), ntop.getHttpPrefix() .. "/lua/checks_overview.lua", {
-  {
-    active    = true,
-    page_name = "overview",
-    label     = i18n("overview"),
-  }
-})
-
 local context = {
   ifid = interface.getId(),
 }
