@@ -2234,7 +2234,18 @@ local known_parameters = {
    -- CLASSIFICAION
    ["classification_user_id"] = validateUnquoted,
    ["classification_user_token"] = validateSingleWord,
-   
+
+   -- LLM PROVIDERS
+   ["anthropic_url"] = validateUnquoted,
+   ["anthropic_token"] = {passwordCleanup, validatePassword},
+   ["anthropic_model"] = validateUnquoted,
+   ["openai_url"] = validateUnquoted,
+   ["openai_token"] = {passwordCleanup, validatePassword},
+   ["openai_model"] = validateUnquoted,
+   ["local_llm_url"] = validateUnquoted,
+   ["local_llm_token"] = {passwordCleanup, validatePassword},
+   ["local_llm_model"] = validateUnquoted,
+
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
    ["discovered_host_scan_type"] = validateListOfTypeInline(validateSingleWord),

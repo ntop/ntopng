@@ -339,6 +339,88 @@ if auth.has_capability(auth.capabilities.preferences) then
     end
 
     -- ================================================================================
+    
+    function printLLMProviders()
+
+        create_table()
+
+        -- Anthropic
+        add_section(i18n("prefs.llm_anthropic"))
+        local default_anthropic_url = "https://api.anthropic.com/v1/"
+        local default_anthropic_model = "claude-opus-4-5"
+
+        local default_openai_url = "https://api.openai.com/v1/"
+        local default_openai_model = "gpt-4o"
+
+        local default_local_llm_url = "http://localhost:11434/v1/"
+        local default_local_llm_model = "Qwen3.5-9B"
+
+
+        -- Local LLM
+        add_section(i18n("prefs.llm_local"))
+
+        prefsInputFieldPrefs(subpage_active.entries["local_llm_url"].title,
+            subpage_active.entries["local_llm_url"].description,
+            "ntopng.prefs.llm", "local_llm_url", default_local_llm_url, "text", true, true, true, {
+                attributes = { spellcheck = "false", maxlength = 255 }
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["local_llm_token"].title,
+            subpage_active.entries["local_llm_token"].description,
+            "ntopng.prefs.llm", "local_llm_token", "", "password", true, true, false, {
+                attributes = { spellcheck = "false", maxlength = 255 }
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["local_llm_model"].title,
+            subpage_active.entries["local_llm_model"].description,
+            "ntopng.prefs.llm", "local_llm_model", default_local_llm_model, "text", true, false, false, {
+                attributes = { spellcheck = "false", maxlength = 128 }
+            })
+
+        -- Anthropic
+        prefsInputFieldPrefs(subpage_active.entries["anthropic_url"].title,
+            subpage_active.entries["anthropic_url"].description,
+            "ntopng.prefs.llm", "anthropic_url", default_anthropic_url, "text", true, true, true, {
+                attributes = { spellcheck = "false", maxlength = 255 }
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["anthropic_token"].title,
+            subpage_active.entries["anthropic_token"].description,
+            "ntopng.prefs.llm", "anthropic_token", "", "password", true, true, false, {
+                attributes = { spellcheck = "false", maxlength = 255 }
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["anthropic_model"].title,
+            subpage_active.entries["anthropic_model"].description,
+            "ntopng.prefs.llm", "anthropic_model", default_anthropic_model, "text", true, false, false, {
+                attributes = { spellcheck = "false", maxlength = 128 }
+            })
+
+        -- OpenAI
+        add_section(i18n("prefs.llm_openai"))
+
+        prefsInputFieldPrefs(subpage_active.entries["openai_url"].title,
+            subpage_active.entries["openai_url"].description,
+            "ntopng.prefs.llm", "openai_url", default_openai_url, "text", true, true, true, {
+                attributes = { spellcheck = "false", maxlength = 255 }
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["openai_token"].title,
+            subpage_active.entries["openai_token"].description,
+            "ntopng.prefs.llm", "openai_token", "", "password", true, true, false, {
+                attributes = { spellcheck = "false", maxlength = 255 }
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["openai_model"].title,
+            subpage_active.entries["openai_model"].description,
+            "ntopng.prefs.llm", "openai_model", default_openai_model, "text", true, false, false, {
+                attributes = { spellcheck = "false", maxlength = 128 }
+            })
+
+        end_table()
+    end
+
+    -- ================================================================================
     function printActiveMonitoring()
         print('<form method="post">')
         print('<table class="table">')
@@ -2813,6 +2895,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "asn_settings") then
         printASNModeOptions()
+    end
+
+    if (tab == "llm_providers") then
+        printLLMProviders()
     end
 
     if (tab == "dump_settings") then

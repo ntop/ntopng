@@ -315,7 +315,52 @@ local menu_subpages = {{
             description = i18n("prefs.toggle_asn_mode_description")
         }
     }
-},{
+},
+{
+    id = "llm_providers",
+    label = i18n("prefs.llm_providers"),
+    advanced = false,
+    pro_only = true,
+    hidden = false,
+    entries = {
+        local_llm_url = {
+            title = i18n("prefs.llm_url_title"),
+            description = i18n("prefs.llm_local_url_description")
+        },
+        local_llm_token = {
+            title = i18n("prefs.llm_token_title"),
+            description = i18n("prefs.llm_local_token_description")
+        },
+        local_llm_model = {
+            title = i18n("prefs.llm_model_title"),
+            description = i18n("prefs.llm_local_model_description")
+        },
+        anthropic_url = {
+            title = i18n("prefs.llm_url_title"),
+            description = i18n("prefs.llm_anthropic_url_description")
+        },
+        anthropic_token = {
+            title = i18n("prefs.llm_token_title"),
+            description = i18n("prefs.llm_anthropic_token_description")
+        },
+        anthropic_model = {
+            title = i18n("prefs.llm_model_title"),
+            description = i18n("prefs.llm_anthropic_model_description")
+        },
+        openai_url = {
+            title = i18n("prefs.llm_url_title"),
+            description = i18n("prefs.llm_openai_url_description")
+        },
+        openai_token = {
+            title = i18n("prefs.llm_token_title"),
+            description = i18n("prefs.llm_openai_token_description")
+        },
+        openai_model = {
+            title = i18n("prefs.llm_model_title"),
+            description = i18n("prefs.llm_openai_model_description")
+        }
+    }
+}, {
     id = "logging",
     label = i18n("prefs.logging"),
     advanced = false,
@@ -1052,6 +1097,7 @@ local menu_subpages = {{
             description = i18n("prefs.vs_slow_mode_description")
         }
     }
-}}
+}
+}
 
 return menu_subpages
