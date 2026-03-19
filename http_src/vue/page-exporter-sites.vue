@@ -231,7 +231,7 @@ const handleEditExporterSite = (data) => {
 
     // Send edit request to server
     ntopng_utility.http_request(API.edit, {
-        method: 'post',
+        method: 'POST',
         headers,
         body: JSON.stringify(addParams)
     },false, true, true)
@@ -269,7 +269,7 @@ const handleAddExporterSite = async (data) => {
 
     // Send add request to server
     ntopng_utility.http_request(API.add, {
-        method: 'post',
+        method: 'POST',
         headers,
         body: JSON.stringify(addParams)
     },false, true, true)
@@ -303,7 +303,7 @@ const handleDeleteExporterSite = async (item) => {
 
         // Send edit request to server
         ntopng_utility.http_request(API.delete, {
-            method: 'post',
+            method: 'POST',
             headers,
             body: JSON.stringify(requestParams)
         },false, true, true)
@@ -329,7 +329,7 @@ async function loadSitesMap() {
 
     // Send add request to server
     ntopng_utility.http_request(API.get, {
-        method: 'post',
+        method: 'POST',
         headers,
         body: JSON.stringify(requestParams)
     }).then(data => {
