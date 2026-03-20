@@ -49,24 +49,44 @@
   --navbar-tab-btn: #495057;
   --scrollbar-thumb: rgba(55, 71, 79, 0.38);
   --scrollbar-thumb-hover: rgba(55, 71, 79, 0.62);
+  /* Semantic surface/input/border tokens */
+  --bg-base: #F5F7FA;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F8F9FA;
+  --bg-sunken: #F1F3F5;
+  --border-color: #DEE2E6;
+  --border-subtle: #E9ECEF;
+  --input-bg: #FFFFFF;
+  --input-text: #495057;
+  --input-border: #CED4D9;
 }
 
 /* Dark-Mode */
 :root[data-theme='dark'] {
-  --ntop-text-color: #E2E2E2;
+  --ntop-text-color: #E6EDF3;
   --navbar-tabs-hover-bg: rgba(255, 255, 255, 0.1);
   --navbar-tabs-border: rgba(255, 255, 255, 0.08);
-  --loading-bg: #28242C;
-  --loading-text-color: #E2E8F0;
-  --loading-spinner-border: #334155;
-  --timeseries-legend-bg-color: #212529;
-  --timeseries-legend-border-color: #A7A6A6;
-  --icon-color: #E2E2E2;
-  --ntop-muted-text-color: #A7A6A6;
-  --navbar-tab-container-bg: #182a33;
-  --navbar-tab-btn: #f1f3f5;
-  --scrollbar-thumb: rgba(98, 113, 123, 0.45);
-  --scrollbar-thumb-hover: rgba(98, 113, 123, 0.72);
+  --loading-bg: #0D1117;
+  --loading-text-color: #C9D1D9;
+  --loading-spinner-border: #30363D;
+  --timeseries-legend-bg-color: #161B22;
+  --timeseries-legend-border-color: #30363D;
+  --icon-color: #C9D1D9;
+  --ntop-muted-text-color: #8B949E;
+  --navbar-tab-container-bg: #161B22;
+  --navbar-tab-btn: #C9D1D9;
+  --scrollbar-thumb: rgba(139, 148, 158, 0.4);
+  --scrollbar-thumb-hover: rgba(139, 148, 158, 0.65);
+  /* Semantic surface/input/border tokens */
+  --bg-base: #0D1117;
+  --bg-surface: #161B22;
+  --bg-elevated: #21262D;
+  --bg-sunken: #0D1117;
+  --border-color: #30363D;
+  --border-subtle: #21262D;
+  --input-bg: #0D1117;
+  --input-text: #C9D1D9;
+  --input-border: #30363D;
 }
 
 * {
@@ -341,7 +361,7 @@ path.link {
 }
 
 .dark-gray {
-  color: #363943;
+  color: var(--icon-color);
 }
 
 .ntop-color {
@@ -390,7 +410,7 @@ main#n-container {
 }
 
 .info-stats a {
-  color: rgb(56, 59, 69);
+  color: var(--ntop-blue);
   text-decoration: none;
 }
 
@@ -423,10 +443,10 @@ main#n-container {
   width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
-  color: #495057;
-  background-color: #FFFFFF;
+  color: var(--input-text);
+  background-color: var(--input-bg);
   background-clip: padding-box;
-  border: 1px solid #CED4D9;
+  border: 1px solid var(--input-border);
   border-radius: 0.25rem;
 }
 
@@ -493,7 +513,7 @@ details summary::-webkit-details-marker {
 
 details div.details {
   padding: 1rem;
-  border: 1px solid #CCCCCC;
+  border: 1px solid var(--border-color);
   border-radius: 3px;
 }
 
@@ -511,7 +531,7 @@ details ul li {
   vertical-align: middle;
   white-space: nowrap;
   width: 1%;
-  border-right: 1px solid #CCCCCC;
+  border-right: 1px solid var(--border-color);
 }
 
 details ul li:only-child {
@@ -519,7 +539,7 @@ details ul li:only-child {
 }
 
 details ul li:first-child {
-  border-right: 1px solid #CCCCCC;
+  border-right: 1px solid var(--border-color);
 }
 
 details ul li:last-child {
@@ -534,17 +554,17 @@ details ul li i.dot {
 }
 
 details ul li>span {
-  color: #8E8E8E;
+  color: var(--ntop-muted-text-color);
 }
 
 .switches-list-container {
   width: 100%;
   height: 200px;
   overflow-y: auto;
-  border: 1px solid #CCCCCC;
+  border: 1px solid var(--border-color);
   border-radius: 3px;
   padding: 0.5rem;
-  background-color: #FBFBFB;
+  background-color: var(--bg-elevated);
 }
 
 .switches-list-container>ul {
@@ -669,8 +689,8 @@ footer {
 }
 
 .btn[role='combobox'] {
-  border-color: #CED4D9;
-  background-color: #FFFFFF;
+  border-color: var(--input-border);
+  background-color: var(--input-bg);
 }
 
 .btn-gray {
@@ -727,7 +747,7 @@ footer {
   --tw-shadow: 0 4px 6px -1px #00000003, 0 2px 4px -1px #0000000F;
   --tw-ring-offset-shadow: 0 0 transparent;
   height: auto;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-subtle);
   border-radius: 0.375rem;
   display: flex;
   flex-direction: column;
@@ -1094,7 +1114,7 @@ li.select2-selection__choice {
   border-spacing: 0 !important;
   width: 100% !important;
   margin-bottom: 1rem !important;
-  color: #212529 !important;
+  color: var(--ntop-text-color) !important;
   border-radius: 8px !important;
   overflow: visible !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
@@ -1102,12 +1122,12 @@ li.select2-selection__choice {
 
 
 .ntopng-table thead th {
-  background-color: #F8F9FA !important;
+  background-color: var(--bg-elevated) !important;
   color: bold !important;
   font-weight: 600 !important;
   border: none !important;
   padding: 0.75rem 0.75rem !important;
-  border-bottom: 1px solid #E9ECEF !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
   position: relative !important;
 }
 
@@ -1119,7 +1139,7 @@ li.select2-selection__choice {
   right: 0 !important;
   height: 50% !important;
   width: 2px !important;
-  background: #DEE2E6 !important;
+  background: var(--border-color) !important;
   cursor: col-resize !important;
 }
 
@@ -1143,7 +1163,7 @@ li.select2-selection__choice {
   padding: 0.5rem 0.75rem !important;
   vertical-align: middle !important;
   border: none !important;
-  border-bottom: 1px solid #E9ECEF !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
   height: 2.75rem !important;
   position: relative !important;
   overflow: visible !important;
@@ -1180,7 +1200,7 @@ li.select2-selection__choice {
   white-space: nowrap !important;
   overflow: hidden !important;
   width: 100% !important;
-  color: #212529 !important;
+  color: var(--ntop-text-color) !important;
   line-height: 1.4 !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -1196,21 +1216,21 @@ li.select2-selection__choice {
   opacity: 0.6 !important;
 }
 
-// pagination link button 
+// pagination link button
 .page-link {
   border: none !important;
   border-radius: 4px !important;
   padding: 0.4rem 0.65rem !important;
-  color: #495057 !important;
+  color: var(--input-text) !important;
   font-weight: 500 !important;
   font-size: 0.85rem !important;
   transition: all 0.2s ease !important;
-  background-color: #F8F9FA !important;
+  background-color: var(--bg-elevated) !important;
   line-height: 1.2 !important;
 }
 
 .page-link:hover {
-  background-color: #E9ECEF !important;
+  background-color: var(--border-subtle) !important;
   color: #0D6EFD !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
@@ -1223,7 +1243,7 @@ li.select2-selection__choice {
 }
 
 .page-item.disabled .page-link {
-  background-color: #F1F3F5 !important;
+  background-color: var(--bg-sunken) !important;
   color: #ABD5BD !important;
   cursor: not-allowed !important;
   box-shadow: none !important;
@@ -1261,7 +1281,7 @@ li.select2-selection__choice {
 }
 
 .detail-value {
-  color: #212529;
+  color: var(--ntop-text-color);
   font-weight: 400;
 }
 
