@@ -163,16 +163,11 @@ async function mapColumns(columns) {
     }
     // Actions: disable edit button for non-editable checks
     if (c.id === "actions") {
-      const visible_dict = {
-        edit: (row) => row.is_editable,
-      };
 
       c.button_def_array.forEach((b) => {
         b.f_map_class = (current_class, row) => {
 
-          //if (!visible_dict[b.id]?.(row)) current_class.push("disabled");
           if (!row.is_editable) {
-            console.log(`Disabling: ${row.key}`)
             current_class.push("disabled");
             
           }
@@ -320,7 +315,6 @@ async function disable_all_visible() {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
 async function factory_reset() {
   show_reset_modal.value = false;
   batch_loading.value = true;

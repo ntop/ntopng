@@ -35,6 +35,7 @@ import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageEditCategories } from "./page-edit-categories.vue";
 import { default as ModalEditCategory } from "./modal-edit-category.vue";
 import { default as PageEditConfigset } from "./page-edit-configset.vue";
+import { default as PageEditCheck } from "./page-edit-check.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
@@ -269,6 +270,7 @@ let ntopVue = {
     PageEditApplications: PageEditApplications,
     PageEditCategories: PageEditCategories,
     PageEditConfigset: PageEditConfigset,
+    PageEditCheck: PageEditCheck,
     ModalEditCategory: ModalEditCategory,
 
     PageVLANPortsSankey: PageVLANPortsSankey,
