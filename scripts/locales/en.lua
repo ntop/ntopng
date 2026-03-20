@@ -5750,13 +5750,18 @@ local lang = {
   },
   ["icmp_page"] = {
     ["icmp_code"] = "Code",
+    ["icmp_host"] = "Host",
     ["icmp_message"] = "ICMP Message",
+    ["icmp_packets"] = "Packets",
     ["icmp_port_unreachable_extra"] = "%{unreach_protocol} port %{unreach_port} unreachable on %{unreach_host}",
+    ["icmp_stats"] = "ICMP Stats",
     ["icmp_type"] = "Type",
+    ["icmp_version"] = "ICMP Version",
     ["last_rcvd_peer"] = "Last Rcvd Peer",
     ["last_sent_peer"] = "Last Sent Peer",
     ["packets_received"] = "Packets Received",
     ["packets_sent"] = "Packets Sent",
+    ["top_icmp_hosts"] = "Top ICMP Hosts",
   },
   ["if_stats_config"] = {
     ["add_traffic_title"] = "Add Rule",

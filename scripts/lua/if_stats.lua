@@ -1521,84 +1521,13 @@ elseif (page == "ndpi_categories") then
     local json_context = json.encode(context)
     template.render("pages/vue_page.template", { vue_page_name = "PageTopInterfaceCategories", page_context = json_context })
 elseif (page == "ICMP") then
-    print [[
-  <div class='card'>
-   <div class='card-header'>
-  <ul id="icmp_nav" class="nav nav-tabs card-header-tabs" role="tablist">
-    <li class="nav-item active"><a class="nav-link active" data-bs-toggle="tab" role="tab" href="#icmp" active>]]
-    print(i18n("icmpv4"))
-    print [[</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#icmpv6">]]
-    print(i18n("icmpv6"))
-    print [[</a></li>
-  </ul>
-  </div>
-  <div class="card-body tab-content">
-    <div id="icmp" class="tab-pane in active">
-       <table id="icmp_table_4" class="table table-bordered table-striped tablesorter">
-         <thead><tr><th>]]
-    print(i18n("icmp_page.icmp_message"))
-    print [[</th><th>]]
-    print(i18n("icmp_page.icmp_type"))
-    print [[</th><th>]]
-    print(i18n("icmp_page.icmp_code"))
-    print [[</th><th style='text-align:right;'>]]
-    print(i18n("packets"))
-    print [[</th></tr></thead>
-         <tbody id="iface_details_icmp_tbody_4">
-         </tbody>
-       </table>
-    </div>
-    <div id="icmpv6" class="tab-pane">
-       <table id="icmp_table_6" class="table table-bordered table-striped tablesorter">
-         <thead><tr><th>]]
-    print(i18n("icmp_page.icmp_message"))
-    print [[</th><th>]]
-    print(i18n("icmp_page.icmp_type"))
-    print [[</th><th>]]
-    print(i18n("icmp_page.icmp_code"))
-    print [[</th><th style='text-align:right;'>]]
-    print(i18n("packets"))
-    print [[</th></tr></thead>
-         <tbody id="iface_details_icmp_tbody_6">
-         </tbody>
-       </table>
-    </div>
-    </div>
-    </div>
-
-<script>
-function update_icmp_table(ip_version) {
-  var icmp_table_id = '#icmp_table_' + ip_version;
-  var icmp_table_body_id = '#iface_details_icmp_tbody_' + ip_version;
-
-  $.ajax({
-    type: 'GET',
-    url: ']]
-    print(http_prefix)
-    print [[/lua/get_icmp_data.lua',
-    data: { ifid: "]]
-    print(interface.getId() .. "")
-    print [[", version: ip_version },
-    success: function(content) {
-      if(content) {
-         $(icmp_table_body_id).html(content);
-         $(icmp_table_id).trigger("update");
-      }
+    local context = {
+        ifid = ifid,
+        csrf = ntop.getRandomCSRFValue(),
     }
-  });
-}
 
-function update_icmp_tables() {
-  update_icmp_table(4);
-  update_icmp_table(6);
-}
-
-update_icmp_tables();
-setInterval(update_icmp_tables, 5000);
-</script>
-
-]]
+    local json_context = json.encode(context)
+    template.render("pages/vue_page.template", { vue_page_name = "PageInterfaceICMP", page_context = json_context })
 elseif (page == "ARP") then
     local endpoint = string.format(http_prefix .. "/lua/rest/v2/get/interface/arp.lua?ifid=%s", ifid)
     local context = {

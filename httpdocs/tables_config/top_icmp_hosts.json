@@ -1,0 +1,32 @@
+{
+  "id": "top_icmp_hosts",
+  "data_url": "lua/rest/v2/get/interface/top/icmp_hosts.lua",
+  "use_current_page": false,
+  "enable_search": false,
+  "paging": false,
+  "display_empty_rows": false,
+  "default_sort": {
+    "column_id": "packets",
+    "sort": 1
+  },
+  "columns": [
+    {
+      "title_i18n": "icmp_page.icmp_host",
+      "data_field": "host",
+      "sortable": true,
+      "min-width": "200px",
+      "class": [
+        "text-nowrap"
+      ]
+    },
+    {
+      "title_i18n": "icmp_page.icmp_packets",
+      "data_field": "packets",
+      "sortable": true,
+      "min-width": "110px",
+      "class": [
+        "text-nowrap"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "icmp_list",
+  "data_url": "lua/rest/v2/get/interface/icmp_stats.lua",
+  "use_current_page": false,
+  "enable_search": false,
+  "paging": false,
+  "display_empty_rows": false,
+  "default_sort": {
+    "column_id": "packets",
+    "sort": 1
+  },
+  "columns": [
+    {
+      "title_i18n": "icmp_page.icmp_message",
+      "data_field": "icmp_message",
+      "sortable": true,
+      "min-width": "200px",
+      "class": [
+        "text-nowrap"
+      ]
+    },
+    {
+      "title_i18n": "icmp_page.icmp_type",
+      "data_field": "icmp_type",
+      "sortable": true,
+      "min-width": "100px",
+      "class": [
+        "text-nowrap"
+      ]
+    },
+    {
+      "title_i18n": "icmp_page.icmp_code",
+      "data_field": "icmp_code",
+      "sortable": true,
+      "min-width": "100px",
+      "class": [
+        "text-nowrap"
+      ]
+    },
+    {
+      "title_i18n": "packets",
+      "data_field": "packets",
+      "sortable": true,
+      "min-width": "100px",
+      "class": [
+        "text-nowrap"
+      ]
+    }
+  ]
+}
