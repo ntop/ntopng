@@ -1932,6 +1932,7 @@ local lang = {
     ["user_traffic_breakdown"] = "Customer Breakdown", 
   },
   ["as_stats"] = {
+    ["ts_not_enabled"] = "Autonomous System timeseries are not enabled. Enable them in Preferences.",
     ["all_roles"] = "All Roles",
     ["all_peering"] = "All Peering",
     ["all_transit"] = "All Transit",
@@ -7100,6 +7101,18 @@ local lang = {
     ["note_broader_network"] = "The broader network will not include hosts defined in smaller networks.",
     ["note_overlapping_networks"] = "In case you have defined overlapping networks:",
     ["note_see_both_network_entries"] = "You will see both network entries in the above table.",
+  },
+  ["llm"] = {
+    ["provider"] = "Provider",
+    ["loading_providers"] = "Loading LLM Providers",
+    ["no_providers"] = "No LLM Provider Available",
+    ["timeout"] = "Timeout",
+    ["timeout_warning"] = "Request Timeout",
+    ["empty_state_title"] = "Ask us a question!",
+    ["error_label"] = "Error",
+    ["input_placeholder"] = "Ask a question",
+    ["sending"] = "Generating...",
+    ["send"] = "Generate"
   },
   ["notification_endpoint"] = {
     ["discord"] = {

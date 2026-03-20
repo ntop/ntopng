@@ -48,6 +48,7 @@ if as_info ~= nil then
 end
 
 local breadcrumb = i18n("as_stats.autonomous_systems")
+local as_ts_enabled = areASTimeseriesEnabled(ifid)
 
 page_utils.print_navbar(breadcrumb, ntop.getHttpPrefix() .. "/lua/as_stats.lua", {{
     active = page == "overview" or not page,
@@ -58,7 +59,9 @@ page_utils.print_navbar(breadcrumb, ntop.getHttpPrefix() .. "/lua/as_stats.lua",
     url = ntop.getHttpPrefix() .. "/lua/as_stats.lua?page=historical",
     active = page == "historical",
     page_name = "historical",
-    label = "<i class='fas fa-lg fa-chart-area'></i>"
+    label = "<i class='fas fa-lg fa-chart-area'></i>",
+    disabled = not as_ts_enabled,
+    tooltip = not as_ts_enabled and i18n("as_stats.ts_not_enabled") or nil
 }})
 
 local show_sankey = false
@@ -82,7 +85,7 @@ local context = {
     showSankey = show_sankey,
     csrf = ntop.getRandomCSRFValue(),
     isEnterprise = ntop.isEnterprise(),
-    showTimeseries = areASTimeseriesEnabled(ifid),
+    showTimeseries = as_ts_enabled,
     ASNModeEnabled = is_asn_mode_enabled,
     isClickhouseEnabled = hasClickHouseSupport()
 }

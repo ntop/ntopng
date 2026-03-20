@@ -47,13 +47,19 @@
             end
             %}
 
-            <a href="{{ url }}" class="nav-item nav-link" {% if item.tooltip then %} title="{* item.tooltip *}" {% end %}>
+            {% if item.disabled then %}
+            <span class="nav-item nav-link text-muted" style="cursor:not-allowed; opacity:.65;" data-bs-toggle="tooltip" data-bs-placement="top" title="{* item.tooltip or '' *}">
+                {* item.label *}
+            </span>
+            {% else %}
+            <a href="{{ url }}" class="nav-item nav-link" {% if item.tooltip then %} data-bs-toggle="tooltip" data-bs-placement="top" title="{* item.tooltip *}" {% end %}>
                 {% if tonumber(item.badge_num) and tonumber(item.badge_num) > 0 then %}
                 <span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">{{ item.badge_num
                     }}</span>
                 {% end %}
                 {* item.label *}
             </a>
+            {% end %}
 
             {% end %}
 
