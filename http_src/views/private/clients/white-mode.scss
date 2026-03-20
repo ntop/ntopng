@@ -47,6 +47,8 @@
   --ntop-muted-text-color: #37474F;
   --navbar-tab-container-bg: #f1f3f5;
   --navbar-tab-btn: #495057;
+  --scrollbar-thumb: rgba(55, 71, 79, 0.38);
+  --scrollbar-thumb-hover: rgba(55, 71, 79, 0.62);
 }
 
 /* Dark-Mode */
@@ -63,6 +65,37 @@
   --ntop-muted-text-color: #A7A6A6;
   --navbar-tab-container-bg: #182a33;
   --navbar-tab-btn: #f1f3f5;
+  --scrollbar-thumb: rgba(98, 113, 123, 0.45);
+  --scrollbar-thumb-hover: rgba(98, 113, 123, 0.72);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 a,
