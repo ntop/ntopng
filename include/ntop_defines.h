@@ -1383,7 +1383,7 @@
 
 #define HTTP_MAX_UPLOAD_DATA_LEN \
   25000000 /* ~25 MB (see also upload_pcap.template) */
-#define HTTP_MAX_POST_DATA_LEN 4194304 /*   4 MB */
+#define HTTP_MAX_POST_DATA_LEN 67108864 /*   67MB MB */
 #define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
 #define CONST_HELLO_HOST "hello"
 
