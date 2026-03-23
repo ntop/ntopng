@@ -11,6 +11,7 @@ local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
 
 local all_import_export = require "all_import_export"
+local nedge_import_export = ntop.isnEdge() and require "nedge_import_export" or nil
 
 --
 -- Export all configurations
@@ -28,5 +29,8 @@ end
 
 local instances = {}
 instances["all"] = all_import_export:create()
+if nedge_import_export then
+   instances["system_config"] = nedge_import_export:create()
+end
 import_export_rest_utils.export(instances, not isEmptyString(download))
 

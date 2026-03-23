@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 require "lua_utils"
 
 local all_import_export = require "all_import_export"
+local nedge_import_export = ntop.isnEdge() and require "nedge_import_export" or nil
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
 
@@ -39,6 +40,14 @@ items[#items+1] = {
   conf = modules["all"],
   instance = all_ie
 }
+
+if nedge_import_export and modules["system_config"] then
+  items[#items+1] = {
+    name = "system_config",
+    conf = modules["system_config"],
+    instance = nedge_import_export:create()
+  }
+end
 
 import_export_rest_utils.import(items)
 
