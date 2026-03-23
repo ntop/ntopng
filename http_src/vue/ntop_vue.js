@@ -38,6 +38,7 @@ import { default as PageEditConfigset } from "./page-edit-configset.vue";
 import { default as PageEditCheck } from "./page-edit-check.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
+import { default as PageManageConfigurations } from "./page-manage-configurations.vue";
 import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageServerPorts } from "./page-server-ports.vue";
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
@@ -109,6 +110,7 @@ import { default as PageChecksOverview } from "./page-checks-overview.vue"
 import { default as PageTest } from "./page-test.vue";
 
 /* Flow Details pages */
+//import { default as PageFlowDetails } from "./page-flow-details.vue"
 import { default as PageFlowDetailsModbus } from "./page-flow-details-modbus.vue"
 import { default as PageFlowDetailsS7Comm } from "./page-flow-details-s7comm.vue"
 import { default as PageFlowDetailsProfinet } from "./page-flow-details-profinet.vue"
@@ -207,6 +209,7 @@ let ntopVue = {
     PageAlertAnalysis: PageAlertAnalysis,
     PageHostMap: PageHostMap,
     PageManageConfigurationBackup: PageManageConfigurationBackup,
+    PageManageConfigurations: PageManageConfigurations,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
     PageServerPorts: PageServerPorts,
     PageVulnerabilityScan: PageVulnerabilityScan,
@@ -255,6 +258,7 @@ let ntopVue = {
     PageTest: PageTest,
 
     /* Flow Details pages */
+    //PageFlowDetails: PageFlowDetails,
     PageFlowDetailsModbus: PageFlowDetailsModbus,
     PageFlowDetailsS7Comm: PageFlowDetailsS7Comm,
     PageFlowDetailsProfinet: PageFlowDetailsProfinet,

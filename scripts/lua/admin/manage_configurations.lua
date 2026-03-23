@@ -122,13 +122,15 @@ if (page == "manage_configurations_backup") then
       page_context = json.encode({})
    })
 else
-   template_utils.render("pages/manage_configurations.template", {
-      info = ntop.getInfo(),
-      template_utils = template_utils,
-      manage_configurations = {
-         selected_item = selected_item,
-         configuration_items = configuration_items
-      }
+   local info = ntop.getInfo()
+   template_utils.render("pages/vue_page.template", {
+      vue_page_name = "PageManageConfigurations",
+      page_context = json.encode({
+         selected_item        = selected_item,
+         configuration_items  = configuration_items,
+         product              = info["product"],
+         csrf                 = ntop.getRandomCSRFValue()
+      })
    })
 end
 -- ************************************* ------

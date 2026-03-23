@@ -24,6 +24,9 @@ function import_export_rest_utils.pack(modules)
     -- Add a version to the envelope to track the dump version
     envelope.version = import_export_rest_utils.IMPORT_EXPORT_JSON_VERSION
 
+    -- Add the ntopng product version so backups can be labeled in the UI
+    envelope.ntopng_version = ntop.getInfo()["version"] or ""
+
     -- Add the configuration of all provided module
     envelope.modules = modules
 

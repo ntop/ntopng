@@ -215,9 +215,12 @@ function backup_config.list_backup(user, order)
     local date_format = ntop.getPref("ntopng.user." .. user .. ".date_format")
 
     for epoch, _ in pairsByKeys(saved_backups_keys, rev) do
+        local stored = ntop.getHashCache(backup_hash_key, epoch)
+        local decoded = json.decode(stored) or {}
         epoch_list[#epoch_list + 1] = {
-            epoch = epoch,
-            date_format = date_format
+            epoch          = epoch,
+            date_format    = date_format,
+            ntopng_version = decoded.ntopng_version or ""
         }
     end
 

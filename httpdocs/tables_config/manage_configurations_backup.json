@@ -1,0 +1,54 @@
+{
+	"id": "manage_configurations_backup",
+	"data_url": "lua/rest/v2/get/system/configurations/list_available_backups.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "date",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "80px",
+			"max-width": "80px",
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "download",
+					"icon": "fa-solid fa-download",
+					"title_i18n": "download",
+					"class": [],
+					"event_id": "click_button_download"
+				}
+			]
+		},
+		{
+			"id": "date",
+			"title_i18n": "backup_date",
+			"data_field": "epoch",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "version",
+			"title_i18n": "about.version",
+			"data_field": "ntopng_version",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}
