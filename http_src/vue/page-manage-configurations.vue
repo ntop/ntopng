@@ -29,10 +29,10 @@
           <i class="fas fa-file-import"></i>
           <span>{{ import_button_label }}</span>
         </button>
-        <a :download="export_filename" :href="export_href" class="btn btn-primary">
+        <button type="button" class="btn btn-primary" :disabled="exporting" @click="on_export_click">
           <i class="fas fa-file-export"></i>
           <span>{{ export_button_label }}</span>
-        </a>
+        </button>
         <button type="button" class="btn btn-danger" @click="open_reset_modal">
           <i class="fas fa-undo-alt"></i>
           {{ _i18n('factory_reset') }}
@@ -109,9 +109,11 @@ const import_modal_ref    = ref(null);
 const reset_modal_ref     = ref(null);
 const file_input_ref      = ref(null);
 const import_file_content = ref(null);
+const import_file_name    = ref("");
 const import_error        = ref("");
 const importing           = ref(false);
 const resetting           = ref(false);
+const exporting           = ref(false);
 
 // ── Computed ──────────────────────────────────────────────────────────────────
 const sorted_items = computed(() =>
@@ -179,6 +181,7 @@ const reset_modal_body = computed(() => {
 function open_import_modal() {
   import_file_content.value = null;
   import_error.value = "";
+  import_file_name.value = "";
   if (file_input_ref.value) file_input_ref.value.value = "";
   import_modal_ref.value.show();
 }
@@ -190,6 +193,7 @@ function close_import_modal() {
 function on_import_modal_shown() {
   import_file_content.value = null;
   import_error.value = "";
+  import_file_name.value = "";
 }
 
 function on_file_selected(evt) {
@@ -198,6 +202,7 @@ function on_file_selected(evt) {
   const file = evt.target.files[0];
   if (!file) return;
   const reader = new FileReader();
+  import_file_name.value = file?.name ?? "";
   reader.onload = (e) => { import_file_content.value = e.target.result; };
   reader.onerror = () => { import_error.value = _i18n("invalid_file"); };
   reader.readAsText(file);
@@ -220,8 +225,14 @@ async function do_import() {
         json_str = JSON.stringify(conf);
       }
     } catch (_) { /* CSV pool import — leave content as-is */ }
+    
+    const isCsv = import_file_name.value.toLowerCase().endsWith(".csv");
+    
+    const body = new URLSearchParams({
+      [isCsv ? "pool_CSV" : "JSON"]: json_str,
+      csrf: props.context.csrf
+    });
 
-    const body = new URLSearchParams({ JSON: json_str, csrf: props.context.csrf });
     const resp = await fetch(
       `${http_prefix}/lua/rest/v2/import/${key}/config.lua`,
       { method: "POST", body }
@@ -232,6 +243,15 @@ async function do_import() {
       import_error.value = data.rc_str || _i18n("invalid_file");
       return;
     }
+
+    ToastUtils.showToast({
+      id: "import-configuration-alert",
+      level: "success",
+      title: _i18n("success"),
+      body: _i18n("manage_configurations.messages.import_success"),
+      delay: 2000,
+    });
+
 
     close_import_modal();
   } catch (err) {
@@ -286,4 +306,48 @@ async function do_reset() {
     resetting.value = false;
   }
 }
+
+// ── Export ──────────────────────────────────────────────────────────────
+
+/**
+ * Downloads the resource at the given URL as a file with the specified filename.
+ * Uses fetch instead of a plain <a href> to inherit the current authenticated
+ * browser session, which is required when ntopng is running over HTTPS/TLS.
+ *
+ * @param {string} url      - The endpoint to fetch the file content from
+ * @param {string} filename - The filename to assign to the downloaded file
+ */
+async function downloadAsFile(url, filename) {
+  // Fetch the resource, sending cookies to authenticate the request
+  const response = await fetch(url, { credentials: "same-origin" });
+  if (!response.ok) throw new Error(`Export failed: ${response.status}`);
+
+  // Create a temporary <a> element pointing to an in-memory Blob URL,
+  // then programmatically click it to trigger the browser's file download.
+  // This is the only way to force a specific filename from JavaScript.
+  const a = Object.assign(document.createElement("a"), {
+    href: URL.createObjectURL(await response.blob()),
+    download: filename,
+  });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // Release the Blob URL from memory once the download has been triggered
+  URL.revokeObjectURL(a.href);
+}
+
+async function on_export_click() {
+  const url = new URL(
+    `${http_prefix}/lua/rest/v2/export/${selected_key.value}/config.lua`,
+    location.origin
+  );
+  url.searchParams.set("download", "1");
+
+  exporting.value = true;
+  downloadAsFile(url.toString(), `${selected_key.value}_config.json`)
+    .catch((err) => console.error("Export error:", err))
+    .finally(() => { exporting.value = false; });
+}
+
 </script>
