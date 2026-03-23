@@ -3,8 +3,7 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
-
-local json = require "dkjson"
+package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
 -- ##############################################
 
@@ -34,19 +33,17 @@ end
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
 function nedge_import_export:import(conf)
     local rest_utils = require "rest_utils"
+    local nf_config = require("nf_config"):create(true)
+
     local res = {}
 
-    local system_config_path = dirs.workingdir .. "/system.config"
-    local f = io.open(system_config_path, "w")
-    if not f then
-        res.err = rest_utils.consts.err.internal_error
-        return res
-    end
+    -- Replace the loaded config with the imported one
+    nf_config.config = conf
 
-    f:write(json.encode(conf))
-    f:close()
+    -- Apply changes to generate system configurations (e.g. netplan, dhcp, etc.)
+    nf_config:applyChanges()
+
     res.success = true
-
     return res
 end
 
@@ -55,16 +52,8 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function nedge_import_export:export()
-    local system_config_path = dirs.workingdir .. "/system.config"
-    local f = io.open(system_config_path, "r")
-    if not f then
-        return {}
-    end
-
-    local content = f:read("*a")
-    f:close()
-
-    return json.decode(content) or {}
+    local nf_config = require("nf_config"):create()
+    return nf_config.config or {}
 end
 
 -- ##############################################
