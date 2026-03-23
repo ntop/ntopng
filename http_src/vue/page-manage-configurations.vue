@@ -60,6 +60,12 @@
           accept=".json,.csv"
           @change="on_file_selected"
         />
+        <UploadProgressBar
+          :visible="import_started"
+          :active="importing"
+          :progress="upload_progress"
+          :remaining_time="upload_remaining"
+        />
         <div v-if="import_error" class="alert alert-danger mt-2">{{ import_error }}</div>
       </template>
       <template v-slot:footer>
@@ -98,12 +104,13 @@
 <script setup>
 import { ref, computed } from "vue";
 import { default as modal } from "./modal.vue";
+import { default as UploadProgressBar } from "./upload-progress-bar.vue";
 
 const props = defineProps({ context: Object });
 
 const _i18n = (key) => i18n(key);
 
-// ── State ──────────────────────────────────────────────────────────────────────
+// State
 const selected_key        = ref(props.context.selected_item || "all");
 const import_modal_ref    = ref(null);
 const reset_modal_ref     = ref(null);
@@ -112,10 +119,12 @@ const import_file_content = ref(null);
 const import_file_name    = ref("");
 const import_error        = ref("");
 const importing           = ref(false);
+const import_started      = ref(false);
+const upload_progress     = ref(0);
+const upload_remaining    = ref("");
 const resetting           = ref(false);
 const exporting           = ref(false);
 
-// ── Computed ──────────────────────────────────────────────────────────────────
 const sorted_items = computed(() =>
   Object.values(props.context.configuration_items || {}).sort(
     (a, b) => a.order - b.order
@@ -177,11 +186,14 @@ const reset_modal_body = computed(() => {
   );
 });
 
-// ── Import ─────────────────────────────────────────────────────────────────────
+// Import
 function open_import_modal() {
   import_file_content.value = null;
-  import_error.value = "";
   import_file_name.value = "";
+  import_error.value = "";
+  import_started.value = false;
+  upload_progress.value = 0;
+  upload_remaining.value = "";
   if (file_input_ref.value) file_input_ref.value.value = "";
   import_modal_ref.value.show();
 }
@@ -192,8 +204,8 @@ function close_import_modal() {
 
 function on_import_modal_shown() {
   import_file_content.value = null;
-  import_error.value = "";
   import_file_name.value = "";
+  import_error.value = "";
 }
 
 function on_file_selected(evt) {
@@ -211,33 +223,57 @@ function on_file_selected(evt) {
 async function do_import() {
   if (!import_file_content.value) return;
   importing.value = true;
+  import_started.value = true;
+  upload_progress.value = 0;
+  upload_remaining.value = "";
   import_error.value = "";
   const key = selected_key.value;
 
   try {
     let json_str = import_file_content.value;
 
-    // Strip nightly-backup payload to avoid huge uploads
-    try {
-      const conf = JSON.parse(json_str);
-      if (conf?.modules?.all?.["ntopng.prefs.config_save_backup"]) {
-        delete conf.modules.all["ntopng.prefs.config_save_backup"];
-        json_str = JSON.stringify(conf);
-      }
-    } catch (_) { /* CSV pool import — leave content as-is */ }
-    
     const isCsv = import_file_name.value.toLowerCase().endsWith(".csv");
-    
     const body = new URLSearchParams({
       [isCsv ? "pool_CSV" : "JSON"]: json_str,
-      csrf: props.context.csrf
+      csrf: props.context.csrf,
     });
 
-    const resp = await fetch(
-      `${http_prefix}/lua/rest/v2/import/${key}/config.lua`,
-      { method: "POST", body }
-    );
-    const data = await resp.json();
+    const data = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      let prev_loaded = 0;
+      let prev_time = Date.now();
+
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return;
+        const now = Date.now();
+        const dt = (now - prev_time) / 1000;
+        if (dt > 0) {
+          const bytes_per_sec = (e.loaded - prev_loaded) / dt;
+          const remaining_bytes = e.total - e.loaded;
+          if (bytes_per_sec > 0) {
+            const secs = Math.round(remaining_bytes / bytes_per_sec);
+            upload_remaining.value = secs < 60
+              ? `${secs}s`
+              : secs < 3600
+                ? `${Math.floor(secs / 60)}m ${secs % 60}s`
+                : `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
+          }
+          prev_loaded = e.loaded;
+          prev_time = now;
+        }
+        upload_progress.value = Math.round((e.loaded / e.total) * 100);
+      };
+      xhr.onload = () => {
+        upload_progress.value = 100;
+        upload_remaining.value = "";
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch { reject(new Error("Invalid JSON response")); }
+      };
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.open("POST", `${http_prefix}/lua/rest/v2/import/${key}/config.lua`);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.send(body.toString());
+    });
 
     if (data.rc < 0) {
       import_error.value = data.rc_str || _i18n("invalid_file");
@@ -252,7 +288,6 @@ async function do_import() {
       delay: 2000,
     });
 
-
     close_import_modal();
   } catch (err) {
     import_error.value = _i18n("invalid_file");
@@ -262,7 +297,7 @@ async function do_import() {
   }
 }
 
-// ── Factory Reset ──────────────────────────────────────────────────────────────
+// Factory Reset
 function open_reset_modal() {
   reset_modal_ref.value.show();
 }
@@ -307,24 +342,17 @@ async function do_reset() {
   }
 }
 
-// ── Export ──────────────────────────────────────────────────────────────
+// Export
 
 /**
  * Downloads the resource at the given URL as a file with the specified filename.
  * Uses fetch instead of a plain <a href> to inherit the current authenticated
  * browser session, which is required when ntopng is running over HTTPS/TLS.
- *
- * @param {string} url      - The endpoint to fetch the file content from
- * @param {string} filename - The filename to assign to the downloaded file
  */
 async function downloadAsFile(url, filename) {
-  // Fetch the resource, sending cookies to authenticate the request
   const response = await fetch(url, { credentials: "same-origin" });
   if (!response.ok) throw new Error(`Export failed: ${response.status}`);
 
-  // Create a temporary <a> element pointing to an in-memory Blob URL,
-  // then programmatically click it to trigger the browser's file download.
-  // This is the only way to force a specific filename from JavaScript.
   const a = Object.assign(document.createElement("a"), {
     href: URL.createObjectURL(await response.blob()),
     download: filename,
@@ -332,8 +360,6 @@ async function downloadAsFile(url, filename) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-
-  // Release the Blob URL from memory once the download has been triggered
   URL.revokeObjectURL(a.href);
 }
 
@@ -349,5 +375,4 @@ async function on_export_click() {
     .catch((err) => console.error("Export error:", err))
     .finally(() => { exporting.value = false; });
 }
-
 </script>
