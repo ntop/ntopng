@@ -64,7 +64,6 @@
           :visible="import_started"
           :active="importing"
           :progress="upload_progress"
-          :remaining_time="upload_remaining"
         />
         <div v-if="import_error" class="alert alert-danger mt-2">{{ import_error }}</div>
       </template>
@@ -85,9 +84,13 @@
 
     <!-- Factory Reset Confirm Modal -->
     <modal ref="reset_modal_ref">
-      <template v-slot:title>{{ reset_modal_title }}</template>
+      <template v-slot:title>
+        <span v-html="reset_modal_title" />
+      </template>
       <template v-slot:body>
-        <div class="alert alert-danger">{{ reset_modal_body }}</div>
+        <div class="alert alert-danger">
+          <span v-html="reset_modal_body" />
+        </div>
       </template>
       <template v-slot:footer>
         <button type="button" class="btn btn-secondary" @click="close_reset_modal">
@@ -121,7 +124,6 @@ const import_error        = ref("");
 const importing           = ref(false);
 const import_started      = ref(false);
 const upload_progress     = ref(0);
-const upload_remaining    = ref("");
 const resetting           = ref(false);
 const exporting           = ref(false);
 
@@ -145,17 +147,6 @@ const import_button_label = computed(() =>
 const export_button_label = computed(() =>
   selected_key.value === "all" ? _i18n("backup") : _i18n("export.export")
 );
-
-const export_filename = computed(() => `${selected_key.value}_config.json`);
-
-const export_href = computed(() => {
-  const url = new URL(
-    `${http_prefix}/lua/rest/v2/export/${selected_key.value}/config.lua`,
-    location.origin
-  );
-  url.searchParams.set("download", "1");
-  return url.toString();
-});
 
 const import_modal_title = computed(() => {
   const lbl =
@@ -193,7 +184,6 @@ function open_import_modal() {
   import_error.value = "";
   import_started.value = false;
   upload_progress.value = 0;
-  upload_remaining.value = "";
   if (file_input_ref.value) file_input_ref.value.value = "";
   import_modal_ref.value.show();
 }
@@ -222,7 +212,6 @@ async function do_import() {
   importing.value = true;
   import_started.value = true;
   upload_progress.value = 0;
-  upload_remaining.value = "";
   import_error.value = "";
   const key = selected_key.value;
 
@@ -237,35 +226,21 @@ async function do_import() {
 
     const data = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      let prev_loaded = 0;
-      let prev_time = Date.now();
 
       xhr.upload.onprogress = (e) => {
         if (!e.lengthComputable) return;
-        const now = Date.now();
-        const dt = (now - prev_time) / 1000;
-        if (dt > 0) {
-          const bytes_per_sec = (e.loaded - prev_loaded) / dt;
-          const remaining_bytes = e.total - e.loaded;
-          if (bytes_per_sec > 0) {
-            const secs = Math.round(remaining_bytes / bytes_per_sec);
-            upload_remaining.value = secs < 60
-              ? `${secs}s`
-              : secs < 3600
-                ? `${Math.floor(secs / 60)}m ${secs % 60}s`
-                : `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
-          }
-          prev_loaded = e.loaded;
-          prev_time = now;
-        }
         upload_progress.value = Math.round((e.loaded / e.total) * 100);
       };
+
       xhr.onload = () => {
+        // Transfer completed, set progress to 100
         upload_progress.value = 100;
-        upload_remaining.value = "";
+        importing.value = false;
+
         try { resolve(JSON.parse(xhr.responseText)); }
         catch { reject(new Error("Invalid JSON response")); }
       };
+
       xhr.onerror = () => reject(new Error("Network error"));
       xhr.open("POST", `${http_prefix}/lua/rest/v2/import/${key}/config.lua?${urlParams}`);
       xhr.send(formData);
@@ -339,12 +314,6 @@ async function do_reset() {
 }
 
 // Export
-
-/**
- * Downloads the resource at the given URL as a file with the specified filename.
- * Uses fetch instead of a plain <a href> to inherit the current authenticated
- * browser session, which is required when ntopng is running over HTTPS/TLS.
- */
 async function downloadAsFile(url, filename) {
   const response = await fetch(url, { credentials: "same-origin" });
   if (!response.ok) throw new Error(`Export failed: ${response.status}`);

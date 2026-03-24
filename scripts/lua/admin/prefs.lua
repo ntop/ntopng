@@ -344,8 +344,6 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         create_table()
 
-        -- Anthropic
-        add_section(i18n("prefs.llm_anthropic"))
         local default_anthropic_url = "https://api.anthropic.com/v1/"
         local default_anthropic_model = "claude-opus-4-5"
 
@@ -354,7 +352,6 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local default_local_llm_url = "http://localhost:11434/v1/"
         local default_local_llm_model = "Qwen3.5-9B"
-
 
         -- Local LLM
         add_section(i18n("prefs.llm_local"))
@@ -378,6 +375,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         -- Anthropic
+        add_section(i18n("prefs.llm_anthropic"))
         prefsInputFieldPrefs(subpage_active.entries["anthropic_url"].title,
             subpage_active.entries["anthropic_url"].description,
             "ntopng.prefs.llm", "anthropic_url", default_anthropic_url, "text", true, true, true, {

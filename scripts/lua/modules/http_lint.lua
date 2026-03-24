@@ -2245,6 +2245,10 @@ local known_parameters = {
    ["local_llm_url"] = validateUnquoted,
    ["local_llm_token"] = {passwordCleanup, validatePassword},
    ["local_llm_model"] = validateUnquoted,
+   ["provider"] = validateUnquoted,
+   ["prompt"] = validateUnquoted,
+   ["stream"] = validateBool,
+   ["content"] = validateUnchecked,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
@@ -2942,7 +2946,7 @@ local known_parameters = {
     ["payload"] = {jsonCleanup, validateJSON},
     ["JSON"] = {jsonCleanup, validateJSON},
     ["host_threshold_rules"] = {jsonCleanup, validateJSON},
-    ["content"] = {jsonCleanup, validateJSON},
+    ["content"] = validateUnchecked,
 
     -- POST pcap
     ["pcap"] = validatePcap,
@@ -3063,10 +3067,10 @@ local special_parameters = { --[[Suffix validator]]
 -- #################################################################
 
 local function validateParameter(k, v)
-    local debug = false
+    local verbose = false
     local trace_failures = true
 
-    if (debug) then
+    if (verbose) then
         io.write("[LINT] validateParameter [" .. k .. "] " .. type(v) .. "\n")
     end
 
@@ -3079,7 +3083,7 @@ local function validateParameter(k, v)
                 -- the expected table key
                 if not success then
                     if (trace_failures and table_key ~= 'ifid') then
-		       io.write("[LINT] validateParameter failed for table entry [" .. table_key .. "][" .. table_value .. "]\n")
+		       io.write("[LINT] validateParameter failed for table entry [" .. tostring(table_key) .. "][" .. tostring(table_value) .. "]\n")
 		       tprint(debug.traceback())
                     end
 		    

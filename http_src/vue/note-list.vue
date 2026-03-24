@@ -13,7 +13,8 @@
             <li v-html="note"></li>
           </template>
         </ul>
-      </template>  
+      </template>
+      <slot />
     </ul>
   </div>
 </template>

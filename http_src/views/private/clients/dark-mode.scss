@@ -959,3 +959,20 @@ table.dataTable thead th.sorting::after {
   color: var(--ntop-text-color);
   font-weight: 400;
 }
+
+.fade-alert-enter-active,
+.fade-alert-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.fade-alert-enter-from,
+.fade-alert-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-alert-enter-to,
+.fade-alert-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
