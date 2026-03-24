@@ -8,8 +8,11 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
-local snmp_config = require "snmp_config"
 local rest_utils = require "rest_utils"
+
+if ntop.isPro() or ntop.isnEdge() then 
+   local snmp_config = require "snmp_config"
+end
 
 -- ##############################################
 

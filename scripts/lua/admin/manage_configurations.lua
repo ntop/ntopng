@@ -44,16 +44,6 @@ if not ntop.isnEdge() then
          }),
          order = 0
       },
-      snmp = {
-         key = "snmp",
-         label = i18n("manage_configurations.snmp"),
-         order = 1
-      },
-      snmp_data = {
-         key = "snmp_data",
-         label = i18n("manage_configurations.snmp_data"),
-         order = 2
-      },
       active_monitoring = {
          key = "active_monitoring",
          label = i18n("manage_configurations.active_monitoring_vs"),
@@ -89,6 +79,20 @@ else
          label = i18n("manage_configurations.checks"),
          order = 1
       }
+   }
+end
+
+
+if ntop.isPro() or ntop.isnEdge() then 
+   configuration_items['snmp'] = {
+      key = "snmp",
+      label = i18n("manage_configurations.snmp"),
+      order = 1
+   }
+   configuration_items['snmp_data'] = {
+      key = "snmp_data",
+      label = i18n("manage_configurations.snmp_data"),
+      order = 2
    }
 end
 
