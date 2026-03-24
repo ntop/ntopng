@@ -3,7 +3,7 @@
     <modal @showed="showed()" ref="modal_id">
       <template v-slot:title>{{title_delete}}</template>
       <template v-slot:body>
-        {{body_delete}}
+        <span v-html="body_delete" />
       </template>
       <template v-slot:footer>
         <button type="button" @click="delete_" class="btn btn-danger">{{_i18n('delete')}}</button>

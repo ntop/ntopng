@@ -1,0 +1,44 @@
+{
+	"id": "device_protocols",
+	"data_url": "lua/rest/v2/get/device/protocol_policies.lua",
+	"rsp_records_field": "protocols",
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "name",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "name",
+			"data_field": "name",
+			"title_i18n": "application",
+			"sortable": true,
+			"min-width": "200px"
+		},
+		{
+			"id": "category",
+			"data_field": "category",
+			"title_i18n": "category",
+			"sortable": true,
+			"min-width": "150px"
+		},
+		{
+			"id": "client_policy",
+			"data_field": "client_policy",
+			"title_i18n": "users.client_policy",
+			"sortable": false,
+			"class": ["text-center"],
+			"min-width": "200px"
+		},
+		{
+			"id": "server_policy",
+			"data_field": "server_policy",
+			"title_i18n": "users.server_policy",
+			"sortable": false,
+			"class": ["text-center"],
+			"min-width": "200px"
+		}
+	]
+}

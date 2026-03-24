@@ -105,6 +105,8 @@ import { default as PageDirectories } from "./page-directories.vue"
 import { default as PageTsOverview } from "./page-ts-overview.vue"
 import { default as PageDefsOverview } from "./page-defs-overview.vue"
 import { default as PageChecksOverview } from "./page-checks-overview.vue"
+import { default as PageManageData } from "./page-manage-data.vue"
+import { default as PageEditDeviceProtocols } from "./page-edit-device-protocols.vue"
 
 /* Testing page */
 import { default as PageTest } from "./page-test.vue";
@@ -245,6 +247,8 @@ let ntopVue = {
     PageDHCPLeases: PageDHCPLeases,
     PageExporterInterfaceOverview: PageExporterInterfaceOverview,
     PageExporterMap: PageExporterMap,
+    PageManageData: PageManageData,
+    PageEditDeviceProtocols: PageEditDeviceProtocols,
 
     PageExportersGraph: PageExportersGraph,
     PageAbout: PageAbout,

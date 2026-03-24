@@ -2,7 +2,7 @@
 <template>
   <Transition name="ntop-uprogress-fade">
     <div v-if="visible" class="ntop-uprogress">
-      <!-- Track + percentage + remaining time row -->
+      <!-- Track + percentage + elapsed time row -->
       <div class="ntop-uprogress__row">
         <div class="ntop-uprogress__track">
           <div
@@ -15,32 +15,80 @@
           ></div>
         </div>
         <span class="ntop-uprogress__pct">{{ clampedProgress }}%</span>
-        <span v-if="active && remaining_time" class="ntop-uprogress__remaining">
-          <i class="fas fa-clock"></i> {{ remaining_time }}
+        <span v-if="elapsed_secs > 0" class="ntop-uprogress__elapsed">
+          <i class="fas fa-clock"></i> {{ elapsed_label }}
         </span>
       </div>
 
+      <!-- Status label row -->
+      <div class="ntop-uprogress__status">
+        <Transition name="ntop-uprogress-meta-fade" mode="out-in">
+          <span v-if="processing" key="processing" class="ntop-uprogress__label">
+            <Spinner :show="true" size="1rem" class="me-1"></Spinner> {{ _i18n("processing") }}
+          </span>
+          <span v-else-if="uploading" key="uploading" class="ntop-uprogress__label">
+            <i class="fas fa-upload"></i> {{ _i18n("uploading") }}
+          </span>
+        </Transition>
+      </div>
     </div>
   </Transition>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { ref, computed, watch, onUnmounted } from "vue";
+import { default as Spinner } from "./spinner.vue";
 
 const props = defineProps({
   /** Upload progress value 0–100 */
-  progress: { type: Number, default: 0 },
+  progress:          { type: Number,  default: 0 },
   /** Whether the progress bar is rendered */
-  visible: { type: Boolean, default: false },
-  /** Whether an upload is currently in progress (enables shimmer) */
+  visible:           { type: Boolean, default: false },
+  /** Whether an upload is currently in progress */
   active: { type: Boolean, default: false },
-  /** Formatted remaining time string, e.g. "12s" */
-  remaining_time: { type: String, default: "" },
 });
+
+const _i18n = (t) => i18n(t);
 
 const clampedProgress = computed(() =>
   Math.min(100, Math.max(0, Math.round(props.progress)))
 );
+
+// uploading = transfer in flight
+// processing = transfer done, awaiting server response
+const uploading  = computed(() => clampedProgress.value < 100);
+const processing = computed(() => clampedProgress.value === 100);
+
+// Elapsed time ticker
+const elapsed_secs = ref(0);
+let timer_id = null;
+
+function start_timer() {
+  elapsed_secs.value = 0;
+  timer_id = setInterval(() => { elapsed_secs.value++; }, 1000);
+}
+
+function stop_timer() {
+  if (timer_id !== null) {
+    clearInterval(timer_id);
+    timer_id = null;
+  }
+}
+
+// Start when active flips on, stop when it flips off
+watch(() => props.active, (is_active) => {
+  if (is_active) start_timer();
+  else           stop_timer();
+});
+
+onUnmounted(stop_timer);
+
+const elapsed_label = computed(() => {
+  const s = elapsed_secs.value;
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ${s % 60}s`;
+  return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+});
 </script>
 
 <style scoped>
@@ -48,7 +96,6 @@ const clampedProgress = computed(() =>
   margin-top: 0.75rem;
 }
 
-/* Track + percentage row */
 .ntop-uprogress__row {
   display: flex;
   align-items: center;
@@ -72,7 +119,7 @@ const clampedProgress = computed(() =>
 }
 
 .ntop-uprogress__pct,
-.ntop-uprogress__remaining {
+.ntop-uprogress__elapsed {
   width: 3.5rem;
   text-align: right;
   font-size: 0.78rem;
@@ -83,7 +130,19 @@ const clampedProgress = computed(() =>
   flex-shrink: 0;
 }
 
-/* Transitions */
+.ntop-uprogress__status {
+  margin-top: 0.35rem;
+  min-height: 1.25rem;
+}
+
+.ntop-uprogress__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
 .ntop-uprogress-fade-enter-active,
 .ntop-uprogress-fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;

@@ -1,5 +1,9 @@
 local lang = {
    ["abort"] = "Abort",
+   ["uploading"] = "Uploading",
+   ["processing"] = "Processing",
+   ["saved"] = "Saved",
+   ["request_failed_message"] = "Request Failed",
    ["access_control_list"] = "Access Control List",
    ["acknowledge"] = "Acknowledge",
    ["acknowledge_alerts"] = "Acknowledge Alerts",
@@ -6376,6 +6380,7 @@ local lang = {
     ["purge_asset_inventory_button"] = "Purge Asset Inventory",
     ["remote_hosts"] = "Remote",
     ["single"] = "Single",
+    ["select_export_type"] = "Select Export Type",
     ["specify_ip_mac"] = "Specify Host IP or MAC Address or /24",
     ["specify_vlan"] = "Specify VLAN Host",
     ["system_interface_data"] = "System Interface",

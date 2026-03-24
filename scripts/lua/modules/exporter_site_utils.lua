@@ -49,9 +49,9 @@ local function cache_exporters()
 	 iface_to_exporter = {}
 	 exporter_to_site  = {}
 	 exporter_to_name  = {}
-	 
+
 	 local ifstats = interface.getStats()
-	 
+
 	 for interface_id, probe_list in pairs(ifstats.probes or {}) do
 	    for probe_ip, probe_info in pairsByKeys(probe_list or {}) do
 	       for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}) do
@@ -142,28 +142,35 @@ end
 
 -- ##############################################
 
+local sites_list_cache = nil
+
 -- Retrieves all exporter sites from Redis cache and prepares them for use
 -- This function always includes the default site and merges it with user-defined sites
 local function get_sites_from_cache()
-   local sites_list = {}
+   if(sites_list_cache == nil) then
+      local sites_list = {}
 
-   -- Always include the default site as ID "0"
-   sites_list["0"] = exporter_site_utils.get_default_site()
+      -- Always include the default site as ID "0"
+      sites_list["0"] = exporter_site_utils.get_default_site()
 
-   -- Retrieve all user-defined sites from Redis
-   local current_defined_sites = ntop.getHashAllCache(REDIS_HASH_NAME) or {}
+      -- Retrieve all user-defined sites from Redis
+      local current_defined_sites = ntop.getHashAllCache(REDIS_HASH_NAME) or {}
 
-   -- Process each site JSON string from Redis
-   for _, site in pairs(current_defined_sites) do
-      -- Decode JSON string to Lua table
-      local uncompressed_json = json.decode(site) or nil
-      if uncompressed_json then
-         -- Store site using its string ID as key for easy lookup
-         sites_list[tostring(uncompressed_json.id)] = uncompressed_json
+      -- Process each site JSON string from Redis
+      for _, site in pairs(current_defined_sites) do
+	 -- Decode JSON string to Lua table
+	 local uncompressed_json = json.decode(site) or nil
+	 if uncompressed_json then
+	    -- Store site using its string ID as key for easy lookup
+	    sites_list[tostring(uncompressed_json.id)] = uncompressed_json
+	 end
       end
-   end
 
-   return sites_list
+      sites_list_cache = sites_list
+      return sites_list
+   else
+      return sites_list_cache
+   end
 end
 
 -- ##############################################
@@ -317,7 +324,7 @@ function exporter_site_utils.addExporterSite(name, description, latitude, longit
 
    -- Check system limit before proceeding
    if current_count + 1 > MAX_PROFILES_NUM then
-      return rest_utils.consts.err.add_exporter_site_failed, 
+      return rest_utils.consts.err.add_exporter_site_failed,
                "Adding a site would exceed maximum limit (" .. MAX_PROFILES_NUM .. "). Current: " .. current_count
    end
 
@@ -419,7 +426,7 @@ end
 function exporter_site_utils.map_host_to_exporter_ip(host_ip)
    local site
    local exp_ip
-   
+
    if ntop.isPro() then
       cache_exporters()
 
@@ -428,7 +435,7 @@ function exporter_site_utils.map_host_to_exporter_ip(host_ip)
 
       if(exp_ip ~= nil) then
 	 site = exporter_to_site[exp_ip]
-	 
+
 	 if(site == nil) then
 	    for k,v in pairs(iface_to_exporter) do
 	       if(v == exp_ip) then
