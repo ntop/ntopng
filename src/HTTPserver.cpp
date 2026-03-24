@@ -207,17 +207,69 @@ void HTTPserver::traceLogin(const char *user, const char *method, bool authorize
 
 /* ****************************************** */
 
+#if defined(_WIN32)
+#include <windows.h>
+#include <bcrypt.h>
+#pragma comment(lib, "bcrypt.lib")
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+#include <stdlib.h> // for arc4random_buf
+#else
+#include <sys/random.h> // for getrandom on Linux
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
+/*
+ * Fills 'dest' with 'size' bytes of cryptographically secure random data.
+ * Returns 0 on success, -1 on failure.
+ */
+static int get_secure_random(void *dest, size_t size) {
+#if defined(_WIN32)
+  // Windows: Use BCryptGenRandom
+  if (BCryptGenRandom(NULL, (PUCHAR)dest, (ULONG)size, BCRYPT_USE_SYSTEM_PREFERRED_RNG) >= 0) {
+    return(0);
+  }
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+  // macOS/BSD: Use arc4random (always seeded, doesn't fail)
+  arc4random_buf(dest, size);
+  
+  return(0);
+#else
+  // Linux/POSIX: Try getrandom() syscall first
+  ssize_t res = getrandom(dest, size, 0);
+  if (res == (ssize_t)size)
+    return(0);
+  
+  // Fallback: Read /dev/urandom directly
+  int fd = open("/dev/urandom", O_RDONLY);
+  if (fd != -1) {
+    ssize_t amount = read(fd, dest, size);
+
+    close(fd);
+
+    if (amount == (ssize_t)size)
+      return(0);
+  }
+#endif
+
+  return(-1);
+}
+
+/* ****************************************** */
+
 // Generate session ID. buf must be 33 bytes in size.
 // Note that it is easy to steal session cookies by sniffing traffic.
 // This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *user,
-                                const char *group) {
-  char random[64];
+static void generate_session_id(char* buf, const char* user,
+                                const char* group) {
+  unsigned char random_data[32]; /* 256 bits of entropy */
 
-  srand((int)time(0));
-  snprintf(random, sizeof(random), "%d", rand());
+  if (get_secure_random(random_data, sizeof(random_data)) != 0) {
+    srand((int)time(0));
+    snprintf((char*)random_data, sizeof(random_data), "%d", rand());
+  }
 
-  mg_md5(buf, random, user, group, NULL);
+  mg_md5(buf, (const char*)random_data, user, group, NULL);
 }
 
 /* ****************************************** */
