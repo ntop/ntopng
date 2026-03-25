@@ -1875,6 +1875,7 @@ local known_parameters = {
    ["ndpistats_mode"] = validateNdpiStatsMode, -- A mode for rest/v2/get/interface/l7/stats.lua
    ["l4_proto_id"] = validateProtocolIdOrName, -- get_historical_data.lua
    ["l7_proto_id"] = validateProtocolIdOrName,
+   ["proto"] = validateSingleWord, -- An nDPI application protocol ID or name
    ["proto_id"] = validateProtocolIdOrName,
    ["client_action"] = validateProtocolAction,
    ["server_action"] = validateProtocolAction,
