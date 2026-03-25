@@ -1085,6 +1085,13 @@ local function validateProtocolIdOrName(p)
    end
 end
 
+local function validateProtocolAction(p)
+   if p == "0" or p == "1" then
+      return true
+   end
+   return false
+end
+
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
 local function validateDoubleProtocolIdOrName(p)
@@ -1868,7 +1875,9 @@ local known_parameters = {
    ["ndpistats_mode"] = validateNdpiStatsMode, -- A mode for rest/v2/get/interface/l7/stats.lua
    ["l4_proto_id"] = validateProtocolIdOrName, -- get_historical_data.lua
    ["l7_proto_id"] = validateProtocolIdOrName,
-   ["proto"] = validateSingleWord, -- An nDPI application protocol ID or name
+   ["proto_id"] = validateProtocolIdOrName,
+   ["client_action"] = validateProtocolAction,
+   ["server_action"] = validateProtocolAction,
    -- get_historical_data.lua
    ["l4proto"] = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)), -- An nDPI application protocol ID, layer 4
    ["l7proto"] = validateListOfTypeInline(validateFilters(validateDoubleProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
