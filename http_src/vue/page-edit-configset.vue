@@ -31,7 +31,7 @@
           <i class="fas fa-toggle-off"></i>
           {{ _i18n("checks.disable_all") }}
         </button>
-        <button v-if="props.context.check_subdir === 'all'" type="button" ref="restore_checks" @click="show_reset_modal = true" class="btn btn-primary ms-1">
+        <button type="button" ref="restore_checks" @click="show_reset_modal = true" class="btn btn-primary ms-1">
           <i class="fa-solid fa-eraser"></i>
           {{ _i18n("restore_checks") }}
         </button>
