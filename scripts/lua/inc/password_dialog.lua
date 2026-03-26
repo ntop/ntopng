@@ -605,12 +605,78 @@ mfa_alert.success = function(msg) { $('#mfa_alert_placeholder').html('<div class
 mfa_alert.clear   = function()    { $('#mfa_alert_placeholder').html(''); };
 
 var _mfa_current_user = '';
+var _mfa_enabled = false;
+var _has_passkeys = false;
+/* Enforce mutual exclusion: when MFA is on, disable Passkeys tab; when Passkeys
+   exist, disable MFA tab. Both cannot be active at the same time. */
+function syncAuthTabStates() {
+  var $mfaTab = $('[href="#user-mfa-tab"]');
+  var $passkeysTab = $('[href="#user-webauthn-tab"]');
+  function disableTab($tab, msg) {
+    /* pointer-events:none blocks mouseenter, so we wrap the anchor in a
+       transparent overlay <span> that intercepts hover and shows the tooltip. */
+    $tab.addClass('disabled')
+        .attr('aria-disabled', 'true')
+        .attr('tabindex', '-1')
+        .css('pointer-events', 'none')
+        .css('opacity', '0.5');
+    if (msg) {
+      var $li = $tab.closest('li.nav-item');
+      if (!$li.find('.tab-disabled-overlay').length) {
+        var $overlay = $('<span class="tab-disabled-overlay" style="position:absolute;inset:0;cursor:not-allowed;z-index:1;"></span>');
+        $li.css('position', 'relative').append($overlay);
+      }
+      $li.find('.tab-disabled-overlay')
+         .attr('data-bs-toggle', 'tooltip')
+         .attr('data-bs-placement', 'bottom')
+         .attr('title', msg);
+      var overlayEl = $li.find('.tab-disabled-overlay')[0];
+      if (overlayEl) {
+        if (overlayEl._bsTooltip) { overlayEl._bsTooltip.dispose(); }
+        overlayEl._bsTooltip = new bootstrap.Tooltip(overlayEl, { trigger: 'hover' });
+      }
+    }
+  }
+
+  function enableTab($tab) {
+    $tab.removeClass('disabled')
+        .removeAttr('aria-disabled')
+        .removeAttr('tabindex')
+        .css('pointer-events', '')
+        .css('opacity', '');
+    var $li = $tab.closest('li.nav-item');
+    var overlayEl = $li.find('.tab-disabled-overlay')[0];
+    if (overlayEl) {
+      if (overlayEl._bsTooltip) { overlayEl._bsTooltip.dispose(); }
+      $li.find('.tab-disabled-overlay').remove();
+    }
+  }
+
+  var webauthn_available = window.isSecureContext && !!window.PublicKeyCredential;
+  if (!webauthn_available) {
+    disableTab($passkeysTab, ']] print(i18n("mfa.passkey_disabled_http")) print[[' );
+    enableTab($mfaTab);
+    return;
+  }
+
+  if (_mfa_enabled) {
+    disableTab($passkeysTab, ']] print(i18n("mfa.passkey_disabled")) print[[' );
+    enableTab($mfaTab);
+  } else if (_has_passkeys) {
+    disableTab($mfaTab, ']] print(i18n("mfa.passkey_enabled")) print[[' );
+    enableTab($passkeysTab);
+  } else {
+    enableTab($mfaTab); enableTab($passkeysTab);
+  }
+}
 
 function updateMfaStatus(username, enabled) {
   _mfa_current_user = username;
+  _mfa_enabled = (enabled === true);
   $('#mfa-setup-section').hide();
   $('#mfa-disable-confirm-section').hide();
   mfa_alert.clear();
+  syncAuthTabStates();
   if (enabled) {
     $('#mfa-status-badge').removeClass('bg-secondary').addClass('bg-success').text(']] print(i18n("mfa.status_enabled") or "Enabled") print[[');
     $('#mfa-status-text').text(']] print(i18n("mfa.status_enabled_desc") or "Two-factor authentication is active for this account.") print[[');
@@ -732,10 +798,14 @@ $('#password_reset_submit').click(function() {
         var list = document.getElementById('webauthn-creds-list');
         if (!list) return;
         if (!data.credentials || data.credentials.length === 0) {
+          _has_passkeys = false;
+          syncAuthTabStates();
           list.innerHTML = '<p class="text-muted">]] print(i18n("webauthn.no_creds") or "No passkeys registered.") print[[</p>';
           return;
         }
         var html = '<table class="table table-sm"><thead><tr><th>Name</th><th>Uses</th><th></th></tr></thead><tbody>';
+        _has_passkeys = true;
+        syncAuthTabStates();
         data.credentials.forEach(function(c) {
           html += '<tr><td>' + (c.name || 'Passkey') + '</td><td>' + (c.sign_count || 0) + '</td>' +
                   '<td><button class="btn btn-sm btn-danger btn-del-passkey" data-cred-id="' + c.id + '">]] print(i18n("webauthn.remove_passkey") or "Remove") print[[</button></td></tr>';
