@@ -3251,6 +3251,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
 /* @brief Performs an outbound HTTP POST request.  Lua: ntop.httpPost(url, body[,user,pass,timeout,return_content,content_type]) → string */
 static int ntop_http_post(lua_State* vm) {
   char *username = (char*)"", *password = (char*)"", *url, *form_data;
+  char *bearer = NULL;
   int connection_timeout = 30, lifetime_timeout = 0;
   bool return_content = false;
   bool use_cookie_authentication = false;
@@ -3283,7 +3284,10 @@ static int ntop_http_post(lua_State* vm) {
   if (lua_type(vm, 7) == LUA_TBOOLEAN) /* Optional */
     use_cookie_authentication = lua_toboolean(vm, 7) ? true : false;
 
-  Utils::httpGetPostPutPatch(vm, url, username, password, NULL, /* bearer */
+  if (lua_type(vm, 8) == LUA_TSTRING) /* Optional: Authorization: Bearer <token> */
+    bearer = (char*)lua_tostring(vm, 8);
+
+  Utils::httpGetPostPutPatch(vm, url, username, password, bearer,
 			     NULL /* user_header_token */,
       connection_timeout, lifetime_timeout, return_content,
       use_cookie_authentication, &stats, form_data, NULL, true, 0, method_post);
