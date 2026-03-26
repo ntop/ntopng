@@ -515,7 +515,7 @@ class Historical:
         :rtype: object
         """
 
-        get_data = {  "ts_query": "ifid:" + self.ifid + ",host:" + host, "detail_view": "top_protocols", "epoch_begin": epoch_begin, "epoch_end": epoch_end, "new_charts": "true" }
+        get_data = {  "ts_query": "ifid:" + str(self.ifid) + ",host:" + host, "detail_view": "top_protocols", "epoch_begin": epoch_begin, "epoch_end": epoch_end, "new_charts": "true" }
 
         res = self.ntopng_obj.request(self.rest_pro_v2_url + "/get/host/top/ts_stats.lua", get_data)
         return(res)
