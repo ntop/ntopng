@@ -1509,7 +1509,7 @@ local lang = {
     ["blacklisted_country"] = "Blacklisted Country",
     ["blacklisted_cli"] = "Blacklisted Client",
     ["blacklisted_srv"] = "Blacklisted Server",
-    ["blacklisted_country_descr"] = "Trigger an alert when hosts contact or are contacted by the specified countries",
+    ["blacklisted_country_descr"] = "Trigger an alert when hosts contact or are contacted by the specified countries. Countries must be formatted using an identification code (example: Italy = IT)",
     ["blacklisted_flow"] = "Blacklisted Flow",
     ["blocked_flow"] = "Flow Risk",
     ["broadcast_domain_too_large"] = "Broadcast domain",
