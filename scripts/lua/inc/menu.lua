@@ -374,15 +374,16 @@ else
     })
 
     -- ##############################################
+    -- chatbot, hide if viewed interface or system or not enterprise xl
     --[[
-      page_utils.add_menubar_section({
-      section = page_utils.menu_sections.chatbot,
-      hidden = is_system_interface or is_viewed,
-      entries = {{
-      entry = page_utils.menu_entries.chatbot,
-      url = '/lua/chatbot.lua'
-      }}})
-   ]] --
+        page_utils.add_menubar_section({
+            section = page_utils.menu_sections.nanalyst,
+            hidden = is_system_interface or is_viewed or not ntop.isEnterpriseXL() or not ntop.isClickHouseEnabled(),
+            entries = {{
+                entry = page_utils.menu_entries.nanalyst,
+                url = '/lua/nanalyst.lua'
+            }}})
+            ]]
 
     -- ##############################################
     -- Views menu entry for ASN Mode

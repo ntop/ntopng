@@ -181,17 +181,19 @@ import { default as ModalDeleteAllACLRule } from "./modal-delete-all-acl-rules.v
 /* Charts */
 import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
 import { default as PieChart } from "./charts/pie-chart.vue";
+import { default as LineChart } from "./charts/line-chart.vue";
 import { default as PeityChart } from "./charts/peity.vue";
 
-//import { default as LLMTest } from "./llm_test.vue";
+import { default as Chatbot } from "./chatbot.vue";
 
 let ntopVue = {
-    //LLMTest: LLMTest,
+    Chatbot: Chatbot,
     
     // graphs
     MultiPieChart: MultiPieChart,
     PieChart: PieChart,
     PeityChart: PeityChart,
+    LineChart: LineChart,
     
     // pages
     PageAlertStats: PageAlertStats,

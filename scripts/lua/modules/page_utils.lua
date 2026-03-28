@@ -107,10 +107,12 @@ page_utils.menu_sections = {
         i18n_title = "help",
         icon = "fas fa-life-ring"
     },
-    chatbot = {
-        key = "chatbot",
-        i18n_title = "chatbot",
-        icon = "fa-solid fa-headset"
+    nanalyst = {
+        key = "nanalyst",
+        i18n_title = "nanalyst",
+        -- icon = "fa-solid fa-headset"
+        icon = "fa-solid fa-magnifying-glass-chart"
+        -- icon = "fa-solid fa-brain"
     },
     health = {
         key = "health",
@@ -305,11 +307,11 @@ page_utils.menu_entries = {
         section = "hosts"
     },
 
-    -- Chatbot 
-    chatbot = {
-        key = "chatbot",
-        i18n_title = "chatbot",
-        section = "chatbot"
+    -- Chatbot (nAnalyst)
+    nanalyst = {
+        key = "nanalyst",
+        i18n_title = "nanalyst",
+        section = "nanalyst"
     },
 
     -- Interface

@@ -1128,3 +1128,21 @@ CREATE TABLE IF NOT EXISTS `hourly_asn` (
 COMMENT 'Hourly aggregated traffic statistics per source/destination ASN pair. Used for autonomous-system level traffic analysis and BGP peer analytics. Partitioned by day on FIRST_SEEN.';
 @
 ALTER TABLE `hourly_asn` ADD COLUMN IF NOT EXISTS TOTAL_BYTES UInt64;
+
+@
+
+CREATE TABLE IF NOT EXISTS ai_chat_history (
+    chat_id UUID COMMENT 'Unique identifier for a chat session',
+    sequence UInt32 COMMENT 'Seq number to preserve message order within a chat',
+    created_at DateTime COMMENT 'Message creation timestamp',
+    username String COMMENT 'Identifier of the user who created the chat',
+    message_role UInt8 COMMENT 'Role of message sender (user = 1 or assistant = 2 )',
+    message_content String COMMENT 'Raw message content (user input or assistant response)',
+    provider String COMMENT 'LLM provider used (local llm, anthropic, openAI)',
+    model String COMMENT 'Model name used for generation',
+    completion_time_sec UInt32 COMMENT 'Time taken to generate the assistant response (seconds)',
+    tokens_per_second UInt32 COMMENT 'Generation speed in tokens per second',
+    artifact_json String DEFAULT '' COMMENT 'JSON-encoded artifact spec (chart, ping, etc.) for assistant messages; empty for user messages',
+    evidence_json String DEFAULT '' COMMENT 'JSON audit trail of how the answer was produced: tool calls with inputs and result metadata',
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(created_at) ORDER BY (chat_id, sequence)
+COMMENT 'Chat history table storing user and assistant messages for conversations';

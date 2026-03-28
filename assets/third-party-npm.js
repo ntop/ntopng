@@ -10,7 +10,7 @@ window.$ = $
 //import moment from 'moment'
 import moment from 'moment-timezone'
 import ApexCharts from 'apexcharts'
-
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 window.moment = moment
 window.ApexCharts = ApexCharts

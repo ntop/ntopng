@@ -2259,6 +2259,9 @@ local known_parameters = {
    ["prompt"] = validateUnquoted,
    ["stream"] = validateBool,
    ["content"] = validateUnchecked,
+   ["chatId"] = validateUUID,
+   ["sequence"] = validateNumber,
+   ["title"] = validateUnquoted,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
