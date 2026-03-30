@@ -2368,7 +2368,8 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url,
                                 bool use_cookie_authentication,
                                 HTTPTranferStats* stats, const char* form_data,
                                 char* write_fname, bool follow_redirects,
-                                int ip_version, HttpMethod method) {
+                                int ip_version, HttpMethod method,
+                                char* x_api_key, char* extra_header) {
   CURL* curl = curl_easy_init();
   FILE* out_f = NULL;
   bool ret = true;
@@ -2459,6 +2460,15 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url,
       headers = curl_slist_append(headers, tokenBuffer);
       used_tokenBuffer = true;
     }
+
+    if (x_api_key != NULL && x_api_key[0] != '\0') {
+      char x_api_key_header[512];
+      snprintf(x_api_key_header, sizeof(x_api_key_header), "x-api-key: %s", x_api_key);
+      headers = curl_slist_append(headers, x_api_key_header);
+    }
+
+    if (extra_header != NULL && extra_header[0] != '\0')
+      headers = curl_slist_append(headers, extra_header);
 
     if (headers != NULL) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 

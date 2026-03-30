@@ -3252,6 +3252,8 @@ static int ntop_post_http_json_data(lua_State* vm) {
 static int ntop_http_post(lua_State* vm) {
   char *username = (char*)"", *password = (char*)"", *url, *form_data;
   char *bearer = NULL;
+  char *x_api_key = NULL;
+  char *extra_header = NULL;
   int connection_timeout = 30, lifetime_timeout = 0;
   bool return_content = false;
   bool use_cookie_authentication = false;
@@ -3287,10 +3289,17 @@ static int ntop_http_post(lua_State* vm) {
   if (lua_type(vm, 8) == LUA_TSTRING) /* Optional: Authorization: Bearer <token> */
     bearer = (char*)lua_tostring(vm, 8);
 
+  if (lua_type(vm, 9) == LUA_TSTRING) /* Optional: x-api-key header */
+    x_api_key = (char*)lua_tostring(vm, 9);
+
+  if (lua_type(vm, 10) == LUA_TSTRING) /* Optional: raw extra header (e.g. "anthropic-version: 2023-06-01") */
+    extra_header = (char*)lua_tostring(vm, 10);
+
   Utils::httpGetPostPutPatch(vm, url, username, password, bearer,
 			     NULL /* user_header_token */,
       connection_timeout, lifetime_timeout, return_content,
-      use_cookie_authentication, &stats, form_data, NULL, true, 0, method_post);
+      use_cookie_authentication, &stats, form_data, NULL, true, 0, method_post,
+      x_api_key, extra_header);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
