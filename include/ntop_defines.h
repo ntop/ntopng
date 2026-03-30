@@ -1729,7 +1729,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
   "ntopng.prefs.nw_policy_whitelisted_networks"
 #endif
 
-#define CONST_FLOW_DEV_EXPORTER_SITES_ID "ntopng.flow_dev_exporter_sites"
+#define CONST_FLOW_DEV_EXPORTER_SITES_ID  NTOPNG_PREFS_PREFIX ".flow_dev_exporter_sites"
 
 #define NTOP_QOE_MAX 100
 #define NTOP_QOE_UNKNOWN 255
