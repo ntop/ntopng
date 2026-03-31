@@ -5,15 +5,16 @@
     <div class="ai-filter-card mb-3">
       <div class="ai-filter-row">
 
-        <!-- Time range pills -->
+        <!-- Time range selectors -->
         <div class="ai-filter-group">
           <label class="ai-filter-label">
-            <i class="fas fa-clock me-1"></i>{{ _i18n('llm.time_range') || 'Time Range' }}
+            <i class="fas fa-clock me-1"></i>{{ _i18n('llm.time_range')}}
           </label>
           <div class="d-flex gap-1">
             <button v-for="r in timeRanges" :key="r.value" class="ai-range-pill"
-              :class="{ active: selectedRange === r.value }" @click="selectedRange = r.value; applyFilters()">{{ r.label
-              }}</button>
+              :class="{ active: selectedRange === r.value }" @click="selectedRange = r.value; applyFilters()">
+              {{ _i18n(r.label) }}
+            </button>
           </div>
         </div>
 
@@ -39,7 +40,7 @@
 
         <!-- User (admin only) -->
         <div class="ai-filter-group" v-if="context.is_admin">
-          <label class="ai-filter-label">{{ _i18n('user') }}</label>
+          <label class="ai-filter-label">{{ _i18n('llm.user') }}</label>
           <select class="ai-select" v-model="selectedUser" @change="applyFilters">
             <option value="">{{ _i18n('llm.all_users') }}</option>
             <option v-for="u in availableUsers" :key="u" :value="u">{{ u }}</option>
@@ -49,7 +50,7 @@
         <!-- Back to chat + refresh -->
         <div class="d-flex align-items-end gap-2 ms-auto">
           <a v-if="context.chat_url" :href="context.chat_url" class="ai-back-btn">
-            <i class="fas fa-comment-alt me-1"></i>{{ _i18n('llm.back_to_chat') || 'Chat' }}
+            <i class="fas fa-comment-alt me-1"></i>{{ _i18n('llm.back_to_chat')}}
           </a>
           <button class="ai-refresh-btn" @click="applyFilters" :title="_i18n('refresh')" :disabled="loading">
             <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
@@ -62,7 +63,7 @@
     <!-- Loading -->
     <div v-if="loading && !hasData" class="d-flex justify-content-center align-items-center py-5">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+        <span class="visually-hidden">{{ _i18n('loading')}}</span>
       </div>
     </div>
 
@@ -164,7 +165,7 @@
               <div v-if="byCallType.length === 0" class="text-muted small">—</div>
               <div v-for="ct in byCallType" :key="ct.call_type" class="mb-2">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span :class="callTypeBadgeClass(ct.call_type)" class="badge">{{ _i18n("llm." + ct.call_type) }}</span>
+                  <span :class="callTypeBadgeClass(ct.call_type)" class="badge">{{ _i18n("llm." + ct.call_type) || ct.call_type }}</span>
                   <span class="small text-muted">{{ fmtNumber(ct.calls) }}</span>
                 </div>
                 <div class="progress" style="height:4px;">
@@ -213,9 +214,7 @@ import { default as BadgeComponent } from "./dashboard-badge.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
 
-const _i18n = (t) => {
-  try { return i18n(t); } catch (_) { return t; }
-};
+const _i18n = (t) => i18n(t);
 
 const props = defineProps({
   context: { type: Object, default: () => ({}) },
@@ -223,11 +222,11 @@ const props = defineProps({
 
 // Time ranges
 const timeRanges = [
-  { value: "1h", label: _i18n('presets.1h')},
-  { value: "6h", label: _i18n('presets.6h')},
-  { value: "24h", label: _i18n('presets.24h')},
-  { value: "7d", label: _i18n('presets.7d')},
-  { value: "30d", label: _i18n('presets.30d')},
+  { value: "1h",  label: 'llm.1h'  },
+  { value: "6h",  label: 'llm.6h'  },
+  { value: "24h", label: 'llm.24h' },
+  { value: "7d",  label: 'llm.7d'  },
+  { value: "30d", label: 'llm.30d' },
 ];
 const rangeSeconds = { "1h": 3600, "6h": 21600, "24h": 86400, "7d": 604800, "30d": 2592000 };
 
@@ -263,7 +262,7 @@ const badgeFilters = ref({});
 const modelTableRef = ref(null);
 const userTableRef = ref(null);
 
-// Computed ─────────────────────────────────────────────────────────────────
+// Computed
 const hasData = computed(() => summary.value.total_calls && parseInt(summary.value.total_calls) > 0);
 
 const filteredModels = computed(() =>
@@ -276,7 +275,7 @@ const maxCallTypeCalls = computed(() =>
   Math.max(...byCallType.value.map(c => parseInt(c.calls) || 0), 1)
 );
 
-// Formatters ───────────────────────────────────────────────────────────────
+// Formatters
 function fmtNumber(v) {
   const n = parseInt(v) || 0;
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -298,11 +297,11 @@ function pctOfMax(val, max) {
   return Math.max(2, Math.round(((parseFloat(val) || 0) / (parseFloat(max) || 1)) * 100));
 }
 
-// Provider helpers ─────────────────────────────────────────────────────────
+// Provider helpers
 function providerLabel(p) {
-  if (p === "llm_anthropic") return "Anthropic";
-  if (p === "llm_openai") return "OpenAI";
-  if (p === "llm_local") return "Local";
+  if (p === "llm_anthropic") return _i18n("prefs.llm_anthropic");
+  if (p === "llm_openai") return _i18n("prefs.llm_openai");
+  if (p === "llm_local") return _i18n("prefs.llm_local");
   return p || "—";
 }
 function providerIcon(p) {
@@ -319,8 +318,8 @@ function callTypeBarClass(ct) {
   return map[ct] ?? "bg-secondary";
 }
 
-// Dashboard badge setup ─────────────────────────────────────────────────────
-//
+// Dashboard badge setup
+
 // We provide a custom get_component_data that reads from our already-fetched
 // summary ref. The badge watches the `filters` prop — we bump `badgeFilters`
 // after applyFilters() completes so each badge re-reads the latest data.
@@ -341,16 +340,18 @@ const kpiTokensGetter = async () => ({ tokens: fmtTokens(summary.value.total_tok
 const kpiAvgMsGetter = async () => ({ avgms: fmtMs(summary.value.avg_completion_time_ms) });
 const kpiChatsGetter = async () => ({ chats: fmtNumber(summary.value.unique_chats) });
 
-// Table config mappers ──────────────────────────────────────────────────────
+// Table config mappers
 function mapModelConfig(config) {
   config.get_rows = async () => ({
     totalRowCount: byModel.value.length,
     rows: byModel.value,
   });
+
   const add = (id, fn) => {
     const col = config.columns.find(c => c.id === id);
     if (col) col.render_func = fn;
   };
+
   add('provider', (d) => `<span class="d-flex align-items-center gap-1"><i class="${providerIcon(d)} small opacity-75"></i><span class="text-muted small">${providerLabel(d)}</span></span>`);
   add('model', (d) => `<code class="small">${d ?? ''}</code>`);
   add('calls', (d) => fmtNumber(d));
@@ -385,7 +386,7 @@ function mapUserConfig(config) {
   return config;
 }
 
-// API calls ─────────────────────────────────────────────────────────────────
+// API calls
 async function loadFilters() {
   try {
     const r = await fetch(`${http_prefix}/lua/pro/rest/v2/get/llm/usage_filters.lua`);
@@ -402,10 +403,12 @@ async function loadFilters() {
 async function applyFilters() {
   loading.value = true;
   const wasInit = dataInitialized.value;
+
   try {
     const now = Math.floor(Date.now() / 1000);
     const secs = rangeSeconds[selectedRange.value] || 86400;
     const params = new URLSearchParams({ epoch_begin: now - secs, epoch_end: now });
+
     if (selectedProvider.value) params.set("provider", selectedProvider.value);
     if (selectedModel.value) params.set("model", selectedModel.value);
     if (selectedUser.value) params.set("username", selectedUser.value);
@@ -425,6 +428,7 @@ async function applyFilters() {
     dataInitialized.value = true;
     // Trigger badge refresh now that summary is populated
     badgeFilters.value = { _tick: Date.now() };
+    
     // On subsequent filter changes, tables are already mounted — refresh them
     if (wasInit) {
       await nextTick();
