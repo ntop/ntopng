@@ -1016,10 +1016,7 @@ print [[</td></tr>]]
           tx_ratio = (tx * 100 / tot)
           rx_ratio = (rx * 100 / tot)
         end
-        print('<td colspan=2><div class="progress"><div class="progress-bar bg-warning" style="width: ' ..
-            tx_ratio .. '%;">' .. i18n("sent") .. '</div>')
-        print('<div class="progress-bar bg-success" style="width: ' .. rx_ratio .. '%;">' .. i18n("received") ..
-            '</div></div></td>')
+        print('<td colspan=2>' .. format_utils.createBreakdown(tx_ratio, rx_ratio, i18n("sent"), i18n("received")) .. '</td>')
 
         print("</tr>")
     end
@@ -2310,6 +2307,16 @@ function toggle_mirrored_traffic_function_off(){
       aysHandleForm("#iface_config");
    </script>]]
 elseif (page == "internals") then
+    --[[
+        local context = {
+            ifid = interface.getId(),
+        }
+        template.render("pages/vue_page.template", {
+            vue_page_name = "PageInternals",
+            page_context  = json.encode(context),
+        })
+        ]]
+
     internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]],
         true --[[ queues --]])
     print [[

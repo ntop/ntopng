@@ -1,53 +1,54 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-    <div class="input-group">
-        <div class="form-group">
-            <div class="controls">
-                <div class="btn-group me-auto btn-group-sm flex-wrap d-flex">
-                    <slot name="begin"></slot>
-                    <div>
-                        <select-search :disabled="disabled_date_picker" v-model:selected_option="selected_time_option"
-                            :id="'time_preset_range_picker'" :options="time_preset_list_filtered"
-                            @select_option="change_select_time(null)">
-                        </select-search>
-                    </div>
-                    <div class="btn-group ms-2">
-                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control"
-                            type="text" placeholder="Choose a date.." data-id="datetime" ref="begin-date"
-                            style="width:10rem;">
-                        <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
-                        <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
-                        <span class="input-group-text">
-                            <i class="fas fa-long-arrow-alt-right"></i>
-                        </span>
-                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control"
-                            type="text" placeholder="Choose a date.." data-id="datetime" ref="end-date"
-                            style="width:10rem;">
-                        <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
-                        <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
-                        <span v-show="wrong_date || wrong_min_interval" :title="invalid_date_message"
-                            style="margin-left:0.2rem;color:red;">
-                            <i class="fas fa-exclamation-circle"></i>
-                        </span>
-                    </div>
+    <div class="dtrp-bar d-flex align-items-center flex-wrap gap-2">
+        <slot name="begin"></slot>
 
-                    <div class="d-flex align-items-center ms-2">
-                        <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply"
-                            type="button" class="btn btn-sm btn-primary">{{
-                                i18n('apply') }}</button>
+        <!-- Time preset selector -->
+        <div class="dtrp-preset">
+            <select-search
+                :disabled="disabled_date_picker"
+                v-model:selected_option="selected_time_option"
+                :id="'time_preset_range_picker'"
+                :options="time_preset_list_filtered"
+                @select_option="change_select_time(null)"
+                dropdown_size="small">
+            </select-search>
+        </div>
 
-                        <div class="btn-group">
-                            <button :disabled="select_time_value == 'custom' || disabled_date_picker"
-                                @click="change_select_time()" type="button" class="btn btn-sm btn-link"
-                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                :title="i18n('date_time_range_picker.btn_refresh')">
-                                <i class="fas fa-sync"></i>
-                            </button>
-                            <slot name="extra_buttons"></slot>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Date range inputs -->
+        <div class="dtrp-range d-flex align-items-center gap-1">
+            <input :disabled="disabled_date_picker"
+                class="dtrp-input flatpickr flatpickr-input form-control form-control-sm"
+                type="text" placeholder="Begin date.."
+                data-id="datetime" ref="begin-date">
+            <span class="dtrp-arrow"><i class="fas fa-arrow-right"></i></span>
+            <input :disabled="disabled_date_picker"
+                class="dtrp-input flatpickr flatpickr-input form-control form-control-sm"
+                type="text" placeholder="End date.."
+                data-id="datetime" ref="end-date">
+            <span v-show="wrong_date || wrong_min_interval"
+                :title="invalid_date_message" class="dtrp-error">
+                <i class="fas fa-exclamation-circle"></i>
+            </span>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex align-items-center gap-1">
+            <button
+                :disabled="!enable_apply || wrong_date || wrong_min_interval"
+                @click="apply" type="button"
+                class="dtrp-btn dtrp-btn-primary">
+                {{ i18n('apply') }}
+            </button>
+            <button
+                :disabled="select_time_value == 'custom' || disabled_date_picker"
+                @click="change_select_time()" type="button"
+                class="dtrp-btn dtrp-btn-icon"
+                data-bs-toggle="tooltip" data-bs-placement="top"
+                :title="i18n('date_time_range_picker.btn_refresh')">
+                <i class="fas fa-sync"></i>
+            </button>
+            <slot name="extra_buttons"></slot>
         </div>
     </div>
 </template>
@@ -252,19 +253,6 @@ export default {
             });
         },
         apply: function () {
-            // let date_begin = this.$refs["begin-date"].valueAsDate;
-            // let d_time_begin = this.$refs["begin-time"].valueAsDate;
-            // date_begin.setHours(d_time_begin.getHours());
-            // date_begin.setMinutes(d_time_begin.getMinutes() + d_time_begin.getTimezoneOffset());
-            // date_begin.setSeconds(d_time_begin.getSeconds());
-
-            // let date_end = this.$refs["end-date"].valueAsDate;
-            // let d_time_end = this.$refs["end-time"].valueAsDate;
-            // date_end.setHours(d_time_end.getHours());
-            // date_end.setMinutes(d_time_end.getMinutes() + d_time_end.getTimezoneOffset());
-            // date_end.setSeconds(d_time_end.getSeconds());
-            // let epoch_begin = this.get_utc_seconds(date_begin.valueOf());
-            // let epoch_end = this.get_utc_seconds(date_end.valueOf());
             let now_s = this.get_utc_seconds(Date.now());
             let begin_date = FormatterUtils.server_date_to_date(this.flat_begin_date.selectedDates[0]);
             let epoch_begin = this.get_utc_seconds(begin_date.getTime());
@@ -276,16 +264,6 @@ export default {
             let status = { epoch_begin, epoch_end };
             this.emit_epoch_change(status);
         },
-        // set_date_time: function(ref_name, utc_ts, is_time) {
-        //     utc_ts = this.get_utc_seconds(utc_ts) * 1000;        
-        //     let date_time = new Date(utc_ts);
-        //     date_time.setMinutes(date_time.getMinutes() - date_time.getTimezoneOffset());
-        //     if (is_time) {
-        // 	this.$refs[ref_name].value = date_time.toISOString().substring(11,16);
-        //     } else {
-        // 	this.$refs[ref_name].value = date_time.toISOString().substring(0,10);
-        //     }
-        // },
         change_select_time: function (refresh_data) {
             let epoch_end;
             let epoch_begin;
@@ -433,9 +411,107 @@ export default {
 </script>
 
 <style scoped>
-.date_time_input {
-    width: 10.5rem;
-    max-width: 10.5rem;
-    min-width: 10.5rem;
+/* Toolbar bar container */
+.dtrp-bar {
+    font-size: 0.8rem;
+}
+
+/* Time preset selector */
+.dtrp-preset {
+    min-width: 7rem;
+    max-width: 11rem;
+    flex: 0 1 auto;
+}
+
+/* Flatpickr date inputs */
+.dtrp-input {
+    width: 9rem;
+    min-width: 7rem;
+    max-width: 9.5rem;
+    background-color: var(--input-bg, #fff) !important;
+    border: 1px solid var(--input-border, #ced4da) !important;
+    color: var(--ntop-text-color, #495057) !important;
+    font-size: 0.8rem !important;
+    height: 28px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 7px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dtrp-input:focus {
+    border-color: var(--ntop-orange, #FF8F00) !important;
+    box-shadow: 0 0 0 2px rgba(255, 143, 0, 0.18) !important;
+    outline: none;
+}
+
+.dtrp-input:disabled {
+    background-color: var(--bg-sunken, #f1f3f5) !important;
+    color: var(--ntop-disabled-text-color, rgba(33, 37, 41, 0.5)) !important;
+    cursor: not-allowed;
+}
+
+/* Arrow separator */
+.dtrp-arrow {
+    color: var(--ntop-muted-text-color, #37474F);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+/* Error indicator */
+.dtrp-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-left: 0.1rem;
+    flex-shrink: 0;
+}
+
+/* Shared button base */
+.dtrp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 7px;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.65rem;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ntop-muted-text-color, #37474F);
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+    white-space: nowrap;
+    height: 28px;
+    line-height: 1;
+}
+
+.dtrp-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Apply button */
+.dtrp-btn-primary {
+    background: var(--bs-primary);
+    color: #fff;
+    border-color: var(--bs-primary);
+    font-weight: 500;
+}
+
+.dtrp-btn-primary:not(:disabled):hover {
+    background: var(--bs-primary-text-emphasis);
+    border-color: var(--bs-primary-text-emphasis);
+}
+
+/* Icon-only refresh button */
+.dtrp-btn-icon {
+    width: 28px;
+    padding: 0.2rem;
+}
+
+.dtrp-btn-icon:not(:disabled):hover {
+    border-color: var(--ntop-orange, #FF8F00);
+    color: var(--ntop-orange, #FF8F00);
 }
 </style>

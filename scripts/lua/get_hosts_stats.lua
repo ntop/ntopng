@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 require "lua_utils"
 local json = require "dkjson"
 local custom_column_utils = require "custom_column_utils"
+local format_utils = require "format_utils"
 local vs_utils = require "vs_utils"
 local custom_column = _GET["custom_column"]
 
@@ -127,10 +128,7 @@ local function get_host_data(host)
     if sent2rcvd == nil then
         sent2rcvd = 0
     end
-    res["column_breakdown"] =
-        "<div class='progress'><div class='progress-bar bg-warning' style='width: " .. sent2rcvd ..
-            "%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100 - sent2rcvd) ..
-            "%;'>Rcvd</div></div>"
+    res["column_breakdown"] = format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, "Sent", "Rcvd")
 
     return res
 end

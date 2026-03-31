@@ -107,6 +107,7 @@ import { default as PageDefsOverview } from "./page-defs-overview.vue"
 import { default as PageChecksOverview } from "./page-checks-overview.vue"
 import { default as PageManageData } from "./page-manage-data.vue"
 import { default as PageEditDeviceProtocols } from "./page-edit-device-protocols.vue"
+//import { default as PageInternals } from "./page-internals.vue"
 
 /* Testing page */
 import { default as PageTest } from "./page-test.vue";
@@ -251,6 +252,7 @@ let ntopVue = {
     PageExporterMap: PageExporterMap,
     PageManageData: PageManageData,
     PageEditDeviceProtocols: PageEditDeviceProtocols,
+    //PageInternals: PageInternals,
 
     PageExportersGraph: PageExportersGraph,
     PageAbout: PageAbout,

@@ -6,6 +6,34 @@ local format_utils = {}
 
 local clock_start = os.clock()
 
+function format_utils.createBreakdown(percentage1, percentage2, label1, label2)
+   if percentage1 == 0 and percentage2 == 0 then
+      return '<div style="height:8px;background:var(--border-subtle,#e9ecef);border-radius:100px;" data-bs-toggle="tooltip" title="No data available"></div>'
+   end
+   local bars = ''
+   local r1 = percentage2 > 0 and '100px 0 0 100px' or '100px'
+   local r2 = percentage1 > 0 and '0 100px 100px 0' or '100px'
+
+   if percentage1 > 0 then
+      bars = bars .. '<div style="width:' .. math.floor(percentage1) .. '%;height:100%;background:var(--ntop-orange,#FF8F00);border-radius:' .. r1 .. ';transition:width .3s ease;" data-bs-toggle="tooltip" title="' .. label1 .. ': ' .. math.floor(percentage1) .. '%"></div>'
+   end
+   
+   if percentage2 > 0 then
+      bars = bars .. '<div style="width:' .. math.floor(percentage2) .. '%;height:100%;background:#0d9488;border-radius:' .. r2 .. ';transition:width .3s ease;" data-bs-toggle="tooltip" title="' .. label2 .. ': ' .. math.floor(percentage2) .. '%"></div>'
+   end
+   
+   local dot1 = '<span style="width:6px;height:6px;border-radius:50%;background:var(--ntop-orange,#FF8F00);flex-shrink:0;"></span>'
+   local dot2 = '<span style="width:6px;height:6px;border-radius:50%;background:#0d9488;flex-shrink:0;"></span>'
+   
+   local span = 'style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;color:var(--ntop-muted-text-color,#37474F);"'
+   local leg1 = percentage1 > 0 and ('<span ' .. span .. '>' .. dot1 .. label1 .. '&nbsp;' .. math.floor(percentage1) .. '%</span>') or ''
+   local leg2 = percentage2 > 0 and ('<span ' .. span .. '>' .. dot2 .. label2 .. '&nbsp;' .. math.floor(percentage2) .. '%</span>') or ''
+   return '<div style="display:flex;flex-direction:column;gap:3px;min-width:0;">'
+      .. '<div style="height:8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;display:flex;">' .. bars .. '</div>'
+      .. '<div style="display:flex;gap:8px;flex-wrap:wrap;">' .. leg1 .. leg2 .. '</div>'
+      .. '</div>'
+end
+
 function format_utils.round(num, idp)
    num = tonumber(num)
    local res

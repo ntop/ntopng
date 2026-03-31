@@ -11,6 +11,7 @@ local json = require "dkjson"
 local dscp_consts = require "dscp_consts"
 local flow_risk_utils = require "flow_risk_utils"
 local alert_utils = require "alert_utils"
+local format_utils = require "format_utils"
 
 local historical_flow_details_formatter = {}
 
@@ -181,9 +182,7 @@ function historical_flow_details_formatter.format_historical_bytes_progress_bar(
 
    return {
       name = "",
-      values = {'<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. cli2srv .. '%;">' ..
-         (info.cli_ip.label or '') .. '</div>' .. '<div class="progress-bar bg-success" style="width: ' .. (100 - cli2srv) .. '%;">' ..
-         (info.srv_ip.label or '') .. '</div></div>'}
+      values = {format_utils.createBreakdown(cli2srv, 100 - cli2srv, info.cli_ip.label or '', info.srv_ip.label or '')}
    }
 end
 
@@ -911,10 +910,8 @@ local function format_historical_flow_rtt(client_nw_latency, server_nw_latency)
    local rtt = client_nw_latency_ms + server_nw_latency_ms
    local cli2srv = round(client_nw_latency_ms, 3)
    local srv2cli = round(server_nw_latency_ms, 3)
-   local values =
-      '<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">' .. cli2srv ..
-         ' ms (client)</div>' .. '<div class="progress-bar bg-success" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli ..
-         ' ms (server)</div></div>'
+   local percentage1 = math.floor(cli2srv * 100 / rtt)
+   local values = format_utils.createBreakdown(percentage1, 100 - percentage1, 'client', 'server')
    return {
       name = i18n("flow_details.rtt_breakdown"),
       values = {values}

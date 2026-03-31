@@ -3,6 +3,7 @@
 --
 require "ntop_utils"
 require "check_redis_prefs"
+local format_utils = require "format_utils"
 local discover = require "discover_utils"
 
 -- Get from redis the throughput type bps or pps
@@ -202,9 +203,7 @@ function mac2record(mac)
     local total_bytes = mac["bytes.sent"] + mac["bytes.rcvd"]
     if total_bytes > 0 then
       local sent2rcvd = round((mac["bytes.sent"] * 100) / total_bytes, 0) or 0
-      record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
-                                     sent2rcvd .. "%;'>Sent</div><div class='progress-bar bg-success' style='width: " ..
-                                     (100 - sent2rcvd) .. "%;'>Rcvd</div></div>"
+      record["column_breakdown"] = format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, "Sent", "Rcvd")
     end
 
     if (throughput_type == "pps") then

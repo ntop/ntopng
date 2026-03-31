@@ -92,7 +92,6 @@ const updateSankeyData = async () => {
 /* ************************************** */
 
 const changedOption = (opt) => {
-    debugger
     ntopng_url_manager.set_key_to_url(opt.filter_name, opt.id)
     updateSankeyData();
 }

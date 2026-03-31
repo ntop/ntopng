@@ -1,20 +1,22 @@
 <template>
     <!-- Select2 wrapper component with Vue integration -->
-    <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple"
-        :disabled="disabled">
-        <!-- Render regular options (without groups) -->
-        <option class="no-wrap  p-0" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value"
-            :disabled="item.disabled" :data-icon="item.icon">
-            {{ item.label }}
-        </option>
-        <!-- Render grouped options with optgroup elements -->
-        <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
-            <option v-for="(opt, j) in item.options" :selected="is_selected(opt)" :value="opt.value"
-                :disabled="opt.disabled" :data-icon="item.icon">
-                {{ opt.label }}
+    <div class="ss-root">
+        <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple"
+            :disabled="disabled">
+            <!-- Render regular options (without groups) -->
+            <option class="no-wrap  p-0" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value"
+                :disabled="item.disabled" :data-icon="item.icon">
+                {{ item.label }}
             </option>
-        </optgroup>
-    </select>
+            <!-- Render grouped options with optgroup elements -->
+            <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
+                <option v-for="(opt, j) in item.options" :selected="is_selected(opt)" :value="opt.value"
+                    :disabled="opt.disabled" :data-icon="item.icon">
+                    {{ opt.label }}
+                </option>
+            </optgroup>
+        </select>
+    </div>
 </template>
 
 <script setup>
@@ -123,11 +125,11 @@ function set_input() {
  * 3. Separates options based on the presence of 'group' property
  * 4. Groups options by their group property using a dictionary
  * 5. Converts the groups dictionary to an array format
- * 
+ *
  * The resulting structure:
  * - options_2: Array of options without groups
  * - groups_options_2: Array of grouped options with structure {group: string, options: array}
- * 
+ *
  * @throws Will skip processing if props.options is null
  * @sideeffect Updates options_2, groups_options_2, and increments refresh_options
  */
@@ -165,7 +167,7 @@ function set_options() {
 /**
  * Custom search matcher function for Select2 with hierarchical search support.
  * This function implements case-insensitive searching that works across nested option groups.
- * 
+ *
  * Algorithm:
  * 1. Normalize search term and text to lowercase for case-insensitive comparison
  * 2. If no search term is provided, return all data (no filtering)
@@ -173,21 +175,21 @@ function set_options() {
  * 4. If no match, recursively search through child items (for grouped options)
  * 5. If children match, return the parent with filtered children only
  * 6. Return null if neither parent nor children match
- * 
+ *
  * @param {Object} params - Select2 search parameters
  * @param {string} params.term - The search term entered by the user
  * @param {Object} data - The option data object from Select2
  * @param {string} data.text - Display text of the option
  * @param {Array} [data.children] - Child options for grouped items
  * @returns {Object|null} - Modified data object with filtered children, original data, or null if no match
- * 
+ *
  * @example
  * // Returns data unchanged
  * matchCustom({term: ''}, {text: 'Option 1'})
- * 
+ *
  * // Returns data if text contains 'opt'
  * matchCustom({term: 'opt'}, {text: 'Option 1'})
- * 
+ *
  * // Returns parent with filtered children
  * matchCustom({term: 'child'}, {text: 'Parent', children: [{text: 'Child 1'}, {text: 'Other'}]})
  */
@@ -241,7 +243,7 @@ function matchCustom(params, data) {
 /**
  * Format option display with optional icon.
  * This function enhances option rendering by adding icon support through Font Awesome or similar icon libraries.
- * 
+ *
  * @param {Object} option - Select2 option object
  * @param {string} option.id - Option identifier
  * @param {string} option.text - Option display text
@@ -279,17 +281,17 @@ const formatOption = (option) => {
  * 2. Initializes Select2 with custom configuration
  * 3. Sets up event handlers for selection changes
  * 4. Synchronizes Vue state with Select2 state
- * 
+ *
  * Configuration includes:
  * - Custom matcher for hierarchical search
  * - Theme customization
  * - Tagging support (when enabled)
  * - Size variants via CSS classes
- * 
+ *
  * Event handling:
  * - select2:select: Handles both regular selections and custom tag creation
  * - select2:unselect: Manages removal from multiple selections
- * 
+ *
  * @sideeffect Modifies DOM, sets up jQuery event listeners, updates first_time_render flag
  * @throws May throw if Select2 initialization fails or jQuery is not available
  */
@@ -311,7 +313,7 @@ const render = () => {
             selectionCssClass: props.dropdown_size == "small" ? 'select2--small' : '',  // Size variant
             dropdownCssClass: props.dropdown_size == "small" ? 'select2--small' : ''    // Size variant
         });
-        
+
         // Handle option selection event
         $(select2Div).on('select2:select', function (e) {
             let data = e.params.data;
@@ -325,16 +327,16 @@ const render = () => {
             }
             let value = data.element._value;  // Get actual value from DOM element
             let option = find_option_from_value_or_label(value);  // Find original option object
-            
+
             if (value !== props.selected_option) {
                 emit('update:selected_option', option);
                 emit('select_option', option);
             }
-            
+
             if (!props.multiple) {
                 return;  // Single select - done
             }
-            
+
             // Update selected values for multiple select
             selected_values.value = selected_values.value.filter((v) => v != value);
             selected_values.value.push(value);
@@ -342,7 +344,7 @@ const render = () => {
             emit('update:selected_options', options);
             emit('change_selected_options', options);
         });
-        
+
         // Handle option unselection event (multiple select only)
         $(select2Div).on('select2:unselect', function (e) {
             let data = e.params.data;
@@ -370,15 +372,15 @@ const render = () => {
 /**
  * Synchronize Select2's displayed value with Vue's internal state.
  * This function ensures the Select2 UI reflects the current selection state.
- * 
+ *
  * For single select mode:
  * - Extracts value from selected option object
  * - Sets Select2 value and triggers change event
- * 
+ *
  * For multiple select mode:
  * - Uses the array of selected values
  * - Updates Select2 with all selected values
- * 
+ *
  * @sideeffect Modifies Select2 DOM element value and triggers change events
  */
 function change_select_2_selected_value() {
@@ -400,15 +402,15 @@ function change_select_2_selected_value() {
 /**
  * Determine if an option should be marked as selected in the rendered HTML.
  * This function handles the logic for both single and multiple selection modes.
- * 
+ *
  * Single select logic:
  * 1. Compares option value with selected option value (strict equality)
  * 2. Special handling for zero values: also matches by label if value is 0 or "0"
- * 
+ *
  * Multiple select logic:
  * 1. Checks if value exists in selected_values array
  * 2. Falls back to option's own 'selected' property
- * 
+ *
  * @param {Object} item - The option object to check
  * @param {string|number} item.value - Option value
  * @param {string} item.label - Option display label
@@ -428,7 +430,7 @@ function is_selected(item) {
  * Initialize selected values array from props for multiple select mode.
  * This function converts an array of option objects into an array of values.
  * Each option's value is extracted (with label as fallback) and added to selected_values.
- * 
+ *
  * @sideeffect Updates selected_values reactive array
  * @note Only executes in multiple select mode and when selected_options is provided
  */
@@ -447,7 +449,7 @@ function set_selected_values() {
  * Set the internal selected option state for single select mode.
  * This function handles null/undefined cases by falling back to the first option
  * when no selection is provided and not in multiple select mode.
- * 
+ *
  * @param {Object|null} selected_option - The option to select, or null for default
  * @sideeffect Updates selected_option_2 reactive reference
  */
@@ -461,7 +463,7 @@ function set_selected_option(selected_option) {
 /**
  * Get the selected option from props with safe fallback logic.
  * This function provides a default selection when none is specified.
- * 
+ *
  * @returns {Object} - The selected option from props, or the first option if none selected
  * @throws May return undefined if props.options is empty
  */
@@ -476,7 +478,7 @@ function get_props_selected_option() {
  * Extract the display value from a selected option object.
  * This function handles the optional nature of the 'value' property by using
  * label as a fallback when value is not provided.
- * 
+ *
  * @param {Object|null} selected_option - The option object
  * @param {string|number} [selected_option.value] - Optional value property
  * @param {string} selected_option.label - Display label (used as fallback value)
@@ -503,7 +505,7 @@ function get_value_from_selected_option(selected_option) {
  * Convert an array of string/number values to an array of full option objects.
  * This function maps each value through find_option_from_value_or_label to
  * retrieve the complete option object with all its properties.
- * 
+ *
  * @param {Array<string|number>} values - Array of option values
  * @returns {Array<Object>} - Array of corresponding option objects
  */
@@ -516,11 +518,11 @@ function find_options_from_values(values) {
  * Find the original option object from the props.options array by value or label.
  * This function bridges between the internal processed options and the original
  * props to ensure event emissions contain the original option objects.
- * 
+ *
  * Process:
  * 1. Finds the processed option in options_2 or groups_options_2
  * 2. Uses that option's value or label to locate the original in props.options
- * 
+ *
  * @param {string|number} value - The value to search for
  * @returns {Object} - The original option object from props.options
  */
@@ -534,11 +536,11 @@ function find_option_from_value_or_label(value) {
  * Find an option from the internal processed collections by its value.
  * This function searches through both regular and grouped options using
  * strict equality comparison (===) for accurate matching.
- * 
+ *
  * Search order:
  * 1. Regular options (options_2)
  * 2. Grouped options (groups_options_2)
- * 
+ *
  * @param {string|number} value - The value to search for
  * @returns {Object|null} - The found option object or null if not found
  */
@@ -549,7 +551,7 @@ function find_option_2_from_value(value) {
     // Search regular options first
     let option = options_2.value.find((o) => o.value === value);
     if (option != null) { return option; }
-    
+
     // Search in grouped options if not found in regular options
     for (let i = 0; i < groups_options_2.value.length; i += 1) {
         let g = groups_options_2.value[i];
@@ -569,11 +571,11 @@ function find_option_2_from_value(value) {
  * Clean up Select2 instance and event listeners to prevent memory leaks.
  * This function safely destroys the Select2 plugin and removes all jQuery
  * event handlers attached to the element.
- * 
+ *
  * Error handling:
  * - Wraps destruction in try-catch to prevent unmount errors
  * - Logs errors without throwing to avoid disrupting component lifecycle
- * 
+ *
  * @sideeffect Removes Select2 from DOM, clears event listeners
  */
 function destroy() {
@@ -595,3 +597,153 @@ onBeforeUnmount(() => {
 defineExpose({ render });
 
 </script>
+
+<style scoped>
+.ss-root {
+    width: 100%;
+    position: relative;
+}
+
+:deep(.select2-container) {
+    width: 100% !important;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-selection) {
+    background-color: var(--input-bg, #fff);
+    border: 1px solid var(--input-border, #ced4da);
+    color: var(--input-text, #495057);
+    border-radius: 7px;
+    font-size: 0.8rem;
+    min-height: 30px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:deep(.select2-container--bootstrap-5.select2-container--focus .select2-selection),
+:deep(.select2-container--bootstrap-5.select2-container--open .select2-selection) {
+    border-color: var(--ntop-orange, #FF8F00);
+    box-shadow: 0 0 0 2px rgba(255, 143, 0, 0.18);
+    outline: none;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-selection--single) {
+    display: flex !important;
+    align-items: center !important;
+    height: 30px;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered) {
+    color: var(--input-text, #495057);
+    line-height: 1 !important;
+    padding-left: 0.55rem;
+    padding-right: 1.5rem;
+    font-size: 0.8rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
+    word-break: normal !important;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow) {
+    height: 100% !important;
+    top: 0 !important;
+    right: 6px;
+    display: flex;
+    align-items: center;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-dropdown) {
+    background-color: var(--bg-surface, #fff);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 7px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    font-size: 0.8rem;
+    overflow: hidden;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-search--dropdown) {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--border-subtle, #e9ecef);
+}
+
+:deep(.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field) {
+    background-color: var(--input-bg, #fff);
+    border: 1px solid var(--input-border, #ced4da);
+    border-radius: 5px;
+    color: var(--input-text, #495057);
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-results__option) {
+    color: var(--ntop-text-color, #111);
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8rem;
+    transition: background 0.1s ease;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected]) {
+    background-color: var(--ntop-blue, #37474F);
+    color: #fff;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-results__option[aria-selected=true]) {
+    background-color: var(--bg-elevated, #f8f9fa);
+    color: var(--ntop-text-color, #111);
+}
+
+:deep(.select2-container--bootstrap-5 .select2-results__group) {
+    color: var(--ntop-muted-text-color, #37474F);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.4rem 0.625rem 0.15rem;
+}
+
+/* Small size variant */
+:deep(.select2--small.select2-container--bootstrap-5 .select2-selection--single) {
+    min-height: 26px !important;
+    height: 26px !important;
+    border-radius: 6px;
+}
+
+:deep(.select2--small .select2-selection--single .select2-selection__rendered) {
+    line-height: 1 !important;
+    font-size: 0.78rem;
+}
+
+:deep(.select2--small .select2-results__option) {
+    font-size: 0.78rem;
+    padding: 0.2rem 0.5rem;
+}
+
+/* Multiple selection chips */
+:deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice) {
+    background-color: var(--ntop-blue, #37474F);
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.45rem;
+    margin: 2px;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove) {
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 4px;
+}
+
+:deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover) {
+    color: #fff;
+    background: transparent;
+}
+
+/* Disabled state */
+:deep(.select2-container--bootstrap-5.select2-container--disabled .select2-selection) {
+    background-color: var(--bg-sunken, #f1f3f5);
+    color: var(--ntop-disabled-text-color, rgba(33, 37, 41, 0.5));
+    cursor: not-allowed;
+    border-color: var(--border-subtle, #e9ecef);
+}
+</style>

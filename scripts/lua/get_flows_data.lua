@@ -419,10 +419,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
     if value["bytes"] > 0 then
        local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
-       record["column_breakdown"] =
-            "<div class='progress'><div class='progress-bar bg-warning' style='width: " .. cli2srv ..
-            "%;'>Client</div><div class='progress-bar bg-success' style='width: " .. (100 - cli2srv) ..
-            "%;'>Server</div></div>"
+       record["column_breakdown"] = format_utils.createBreakdown(cli2srv, 100 - cli2srv, "Client", "Server")
     end
 
     local info

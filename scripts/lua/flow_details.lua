@@ -34,6 +34,7 @@ local mitre_utils = require("mitre_utils")
 local auth = require "auth"
 local exporter_site_utils = nil
 
+
 local page = _GET["page"]
 
 -- remove after graph testing
@@ -971,8 +972,7 @@ if isEmptyString(page) or page == "overview" then
             cli_name = cli_name .. ":" .. flow["cli.port"]
             srv_name = srv_name .. ":" .. flow["srv.port"]
          end
-         print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. cli2srv .. '%;">' .. cli_name ..
-	       '</div><div class="progress-bar bg-success" style="width: ' .. (100 - cli2srv) .. '%;">' .. srv_name .. '</div></div>')
+         print(format_utils.createBreakdown(cli2srv, 100 - cli2srv, cli_name, srv_name))
          print("</td></tr>\n")
       end
 
@@ -1055,9 +1055,7 @@ if isEmptyString(page) or page == "overview" then
             pctg = 100 - pctg
          end
 
-         print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. pctg .. '%;">' .. pctg .. '% </div>')
-         pctg = 100 - pctg
-         print('<div class="progress-bar bg-success" style="width: ' .. pctg .. '%;">' .. pctg .. '% </div></div>')
+         print(format_utils.createBreakdown(tonumber(pctg), 100 - tonumber(pctg), 'TX', 'RX'))
          -- print(formatValue(flow.iec104.stats.forward_msgs).." RX / "..formatValue(flow.iec104.stats.reverse_msgs).." TX")
          print("</td></tr>\n")
 
@@ -1096,11 +1094,8 @@ if isEmptyString(page) or page == "overview" then
             local srv2cli = round(flow["tcp.nw_latency.3wh_server_rtt"], 3)
 
             print("<tr><th class='colspan-4'>" .. i18n("flow_details.rtt_breakdown") .. "</th><td colspan=2>")
-            print(
-               '<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">' .. cli2srv ..
-	       ' ms (client)</div>')
-            print('<div class="progress-bar bg-success" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli ..
-		  ' ms (server)</div></div>')
+            local p1 = math.floor(cli2srv * 100 / rtt)
+            print(format_utils.createBreakdown(p1, 100 - p1, 'client', 'server'))
             print("</td></tr>\n")
 
             c = interface.getAddressInfo(flow["cli.ip"])
@@ -1417,11 +1412,8 @@ if isEmptyString(page) or page == "overview" then
 
          score_category_network = (score_category_network * 100) / tot
          score_category_security = 100 - score_category_network
-
-         print('<td><div class="progress"><div class="progress-bar bg-warning" style="width: ' .. score_category_network .. '%;">' ..
-	       i18n("flow_details.score_category_network"))
-         print('</div><div class="progress-bar bg-success" style="width: ' .. score_category_security .. '%;">' ..
-	       i18n("flow_details.score_category_security") .. '</div></div></td>\n')
+         
+         print('<td>' .. format_utils.createBreakdown(score_category_network, score_category_security, i18n("flow_details.score_category_network"), i18n("flow_details.score_category_security")) .. '</td>')
          print("</tr>\n")
       end
 
@@ -2473,7 +2465,7 @@ if isEmptyString(page) or page == "overview" then
                            $('#srv2cli').html(NtopUtils.addCommas(rsp["srv2cli.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["srv2cli.bytes"])));
                            $('#flow-throughput').html(rsp.throughput);
 
-                           if(typeof rsp["c2sOOO"] !== "undefined") {
+                           if(` rsp["c2sOOO"] !== "undefined") {
                               $('#c2sOOO').html(NtopUtils.formatPackets(rsp["c2sOOO"]));
                               $('#s2cOOO').html(NtopUtils.formatPackets(rsp["s2cOOO"]));
                               $('#c2slost').html(NtopUtils.formatPackets(rsp["c2slost"]));

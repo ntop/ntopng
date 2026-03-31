@@ -31,16 +31,11 @@ import sharp from 'sharp';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const isProd = process.argv.includes('--prod');
 
-const terserOptions = {
-    compress: { drop_console: true },
-    output: { ecma: 5 },
-};
-
 /** Shared SCSS / PostCSS options */
 const sharedCSS = {
     preprocessorOptions: {
         scss: {
-            silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'mixed-decls'],
+            silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
         }
     },
     postcss: {
@@ -91,7 +86,7 @@ const imageminPlugin = isProd ? {
 
 /** Asset output path rules */
 const assetFileNames = (assetInfo) => {
-    const name = assetInfo.name || '';
+    const name = assetInfo.names?.[0] || '';
     if (/\.(png|gif|svg|jpg|jpeg|ico)$/i.test(name)) return 'images/[name][extname]';
     if (/\.(woff2?|ttf|eot|otf)$/i.test(name))       return 'assets/[name][extname]';
     return '[name][extname]';
@@ -107,13 +102,29 @@ const handleEvalFiles = {
     }
 };
 
+/* Suppress eval warnings from third-party files as we cannot fix them */
+const onwarnSuppressEval = (warning, defaultHandler) => {
+    if (warning.code === 'EVAL' && warning.id &&
+        (warning.id.includes('store-js/plugins/lib/json2.js') ||
+         warning.id.includes('jquery.tablesorter.js'))) {
+        return;
+    }
+    defaultHandler(warning);
+};
+
 /**
  * The inject plugin adds `import $ from 'jquery'` (and jQuery / moment)
  * to any module that uses those names as free variables without importing them.
  * This covers legacy vendor scripts (bootstrap-datatable, bootstrap-select,
  * jquery.tablesorter, etc.) that assume jQuery is available as a global.
  */
-const injectGlobals = inject({ $: 'jquery', jQuery: 'jquery', moment: 'moment-timezone' });
+const injectGlobals = inject({
+    $: 'jquery',
+    jQuery: 'jquery',
+    moment: 'moment-timezone',
+    include: ['**/*.js', '**/*.ts', '**/*.vue', '**/*.mjs'],
+    exclude: ['**/*.css', '**/*.scss', '**/*.sass'],
+});
 
 // Build 1: third-party.js
 // Self-contained IIFE — bundles jQuery, Bootstrap, DataTables, Leaflet, etc.
@@ -131,11 +142,11 @@ await build({
         emptyOutDir: true,           // wipe dist only on the first build step
         cssCodeSplit: false,         // extract CSS to a file (not inline via __vite_style__)
         sourcemap: !isProd,
-        minify: isProd ? 'terser' : false,
-        terserOptions: isProd ? terserOptions : undefined,
+        minify: isProd ? 'esbuild' : false,
         chunkSizeWarningLimit: 5000,
         rollupOptions: {
             context: 'window',
+            onwarn: onwarnSuppressEval,
             input: { 'third-party': resolve(__dirname, 'assets/third-party.js') },
             output: {
                 format: 'iife',
@@ -163,10 +174,10 @@ await build({
         emptyOutDir: false,
         cssCodeSplit: false,         // extract CSS to a file (not inline via __vite_style__)
         sourcemap: !isProd,
-        minify: isProd ? 'terser' : false,
-        terserOptions: isProd ? terserOptions : undefined,
+        minify: isProd ? 'esbuild' : false,
         chunkSizeWarningLimit: 5000,
         rollupOptions: {
+            onwarn: onwarnSuppressEval,
             input: { ntopng: resolve(__dirname, 'http_src/ntopng.js') },
             external: ['jquery', 'moment', 'moment-timezone'],
             output: {
@@ -205,7 +216,7 @@ for (const { entry, name } of cssEntries) {
             outDir: 'httpdocs/dist',
             emptyOutDir: false,
             cssCodeSplit: false,     // extract CSS to a file (not inline via __vite_style__)
-            minify: isProd ? 'terser' : false,
+            minify: isProd ? 'esbuild' : false,
             rollupOptions: {
                 input: { [name]: resolve(__dirname, entry) },
                 output: {
@@ -249,8 +260,7 @@ await build({
     build: {
         outDir: 'httpdocs/dist',
         emptyOutDir: false,
-        minify: isProd ? 'terser' : false,
-        terserOptions: isProd ? terserOptions : undefined,
+        minify: isProd ? 'esbuild' : false,
         rollupOptions: {
             input: { login: resolve(__dirname, 'assets/scripts/login.js') },
             output: {

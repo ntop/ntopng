@@ -75,7 +75,6 @@ async function get_chart_data() {
 }
 
 function drawChart(data) {
-    debugger;
     const container = chartContainer.value;
 
     // Check that container exists before proceeding
@@ -358,7 +357,6 @@ async function refresh_chart() {
         isLoading.value = (props?.showOnlyFirstLoading === true) ? (firstLoading.value && true) : true;
 
         const data = await get_chart_data();
-        debugger;
         if (!data) {
             chart_data_available.value = false;
             isLoading.value = false

@@ -431,7 +431,6 @@ function click_button_edit(event) {
 
 function click_button_timeseries(event) {
     const row = event.row;
-    debugger;
     window.location.href = `${linksUtils.getSNMPDetailsPageURL(row.column_ip, http_prefix)}&page=historical`
 }
 

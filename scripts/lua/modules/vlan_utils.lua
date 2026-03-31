@@ -31,11 +31,7 @@ function vlan2record(ifId, vlan)
 
     local sent2rcvd = round((vlan["bytes.sent"] * 100) /
                                 (vlan["bytes.sent"] + vlan["bytes.rcvd"]), 0)
-    record["column_breakdown"] =
-        "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
-            sent2rcvd ..
-            "%;'>Sent</div><div class='progress-bar bg-success' style='width: " ..
-            (100 - sent2rcvd) .. "%;'>Rcvd</div></div>"
+    record["column_breakdown"] = format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, "Sent", "Rcvd")
 
     if (throughput_type == "pps") then
         record["column_thpt"] = pktsToSize(vlan["throughput_pps"])

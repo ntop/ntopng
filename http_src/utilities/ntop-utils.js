@@ -1329,38 +1329,43 @@ export default class NtopUtils {
     }
 
     static createProgressBar(percentage) {
-        return `<div class="d-flex flex-row align-items-center">
-              <div class="col-9 progress">
-                <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
-                </div>
-              </div>
-              <div class="col">&nbsp;${percentage} %</div>
-            </div>`
+        const pct = Math.min(100, Math.max(0, Math.floor(percentage)));
+        const color = pct >= 80 ? 'var(--ntop-orange, #FF8F00)' : pct >= 50 ? '#f59e0b' : 'var(--ntop-blue, #37474F)';
+        return `<div class="d-flex align-items-center gap-2" style="min-width:0">
+            <div style="flex:1;height: 8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:${color};border-radius:100px;transition:width .3s ease;"></div>
+            </div>
+            <span style="font-size:0.75rem;font-weight:600;color:var(--ntop-muted-text-color,#37474F);white-space:nowrap;min-width:2.5rem;text-align:right;">${pct}%</span>
+        </div>`;
     }
 
     static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
         if (percentage_1 == 0 && percentage_2 == 0) {
-            return `<div class="d-flex flex-row align-items-center progress">
-            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" 
-                 data-bs-toggle="tooltip" data-bs-placement="top" title="No data available"></div>
-        </div>`
+            return `<div style="height:8px;background:var(--border-subtle,#e9ecef);border-radius:100px;"
+                data-bs-toggle="tooltip" data-bs-placement="top" title="No data available"></div>`;
         }
 
-        let progressBars = '';
-
+        let bars = '';
         if (percentage_1 > 0) {
-            progressBars += `<div class="progress-bar bg-warning" aria-valuenow="${percentage_1}" aria-valuemin="0" aria-valuemax="100" 
-                 style="width: ${percentage_1}%;" 
-                 data-bs-toggle="tooltip" data-bs-placement="top" title="${label_1}: ${Math.floor(percentage_1)}%">${label_1}</div>`;
+            bars += `<div style="width:${percentage_1}%;height:100%;background:var(--ntop-orange,#FF8F00);border-radius:${percentage_2 > 0 ? '100px 0 0 100px' : '100px'};transition:width .3s ease;"
+                data-bs-toggle="tooltip" data-bs-placement="top" title="${label_1}: ${Math.floor(percentage_1)}%"></div>`;
         }
-
         if (percentage_2 > 0) {
-            progressBars += `<div class="progress-bar bg-success" aria-valuenow="${percentage_2}" aria-valuemin="0" aria-valuemax="100" 
-                 style="width: ${percentage_2}%;" 
-                 data-bs-toggle="tooltip" data-bs-placement="top" title="${label_2}: ${Math.floor(percentage_2)}%">${label_2}</div>`;
+            bars += `<div style="width:${percentage_2}%;height:100%;background:#0d9488;border-radius:${percentage_1 > 0 ? '0 100px 100px 0' : '100px'};transition:width .3s ease;"
+                data-bs-toggle="tooltip" data-bs-placement="top" title="${label_2}: ${Math.floor(percentage_2)}%"></div>`;
         }
 
-        return `<div class="d-flex flex-row align-items-center progress">${progressBars}</div>`
+        const legend_1 = percentage_1 > 0
+            ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;color:var(--ntop-muted-text-color,#37474F);">
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--ntop-orange,#FF8F00);flex-shrink:0;"></span>${label_1}&nbsp;${Math.floor(percentage_1)}%</span>` : '';
+        const legend_2 = percentage_2 > 0
+            ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;color:var(--ntop-muted-text-color,#37474F);">
+                <span style="width:6px;height:6px;border-radius:50%;background:#0d9488;flex-shrink:0;"></span>${label_2}&nbsp;${Math.floor(percentage_2)}%</span>` : '';
+
+        return `<div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+            <div style="height:8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;display:flex;">${bars}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">${legend_1}${legend_2}</div>
+        </div>`;
     }
 
     /* Return the number of rows available in a table */

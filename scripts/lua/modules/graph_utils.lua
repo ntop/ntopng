@@ -10,6 +10,7 @@ require "db_utils"
 require "rrd_paths"
 
 local ts_utils = require("ts_utils")
+local format_utils = require "format_utils"
 
 -- ########################################################
 
@@ -155,15 +156,7 @@ function graph_utils.breakdownBar(sent, sentLabel, rcvd, rcvdLabel,
                             rcvdLabel
         end
 
-        print(
-            '<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="' ..
-                sent2rcvd ..
-                '" aria-valuemin="0" aria-valuemax="100" style="width: ' ..
-                sent2rcvd .. '%;">' .. sentLabel)
-        print('</div><div class="progress-bar bg-success" aria-valuenow="' ..
-                  (100 - sent2rcvd) ..
-                  '" aria-valuemin="0" aria-valuemax="100" style="width: ' ..
-                  (100 - sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
+        print(format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, sentLabel, rcvdLabel))
     else
         print('&nbsp;')
     end

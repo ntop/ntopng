@@ -1,0 +1,74 @@
+{
+	"id": "llm_by_user",
+	"paging": false,
+	"display_empty_rows": false,
+	"enable_search": true,
+	"columns": [
+		{
+			"id": "username",
+			"title_i18n": "llm.user",
+			"data_field": "username",
+			"sortable": true
+		},
+		{
+			"id": "calls",
+			"title_i18n": "llm.calls",
+			"data_field": "calls",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "total_tokens",
+			"title_i18n": "llm.total_tokens",
+			"data_field": "total_tokens",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "prompt_tokens",
+			"title_i18n": "llm.prompt_tokens",
+			"data_field": "prompt_tokens",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "completion_tokens",
+			"title_i18n": "llm.completion_tokens",
+			"data_field": "completion_tokens",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "unique_chats",
+			"title_i18n": "llm.unique_chats",
+			"data_field": "unique_chats",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "avg_ms",
+			"title_i18n": "llm.avg_ms",
+			"data_field": "avg_ms",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "token_share",
+			"title_i18n": "llm.token_share",
+			"data_field": "total_tokens",
+			"sortable": false
+		}
+	]
+}

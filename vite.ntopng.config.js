@@ -11,8 +11,8 @@ import autoprefixer from 'autoprefixer';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// This config is used exclusively for watch mode  and for build:ntopngjs
-// Full JS + CSS + images check build.mjs.
+// This config is used exclusively for watch mode and for build:ntopngjs.
+// Full JS + CSS + images: see build.mjs.
 export default defineConfig(({ mode }) => {
     const isProduction = mode === 'production';
 
@@ -24,22 +24,16 @@ export default defineConfig(({ mode }) => {
             emptyOutDir: false,
             cssCodeSplit: false,     // extract CSS to ntopng.css
             sourcemap: !isProduction,
-            minify: isProduction ? 'terser' : false,
-            terserOptions: isProduction ? {
-                compress: {
-                    drop_console: true,
-                },
-                output: {
-                    ecma: 5,
-                },
-            } : undefined,
+            minify: isProduction ? 'esbuild' : false,
             chunkSizeWarningLimit: 5000,
             rollupOptions: {
                 plugins: [
                     inject({
                         $: 'jquery',
                         jQuery: 'jquery',
-                        moment: 'moment-timezone'
+                        moment: 'moment-timezone',
+                        include: ['**/*.js', '**/*.ts', '**/*.vue', '**/*.mjs'],
+                        exclude: ['**/*.css', '**/*.scss', '**/*.sass'],
                     })
                 ],
                 input: { ntopng: resolve(__dirname, 'http_src/ntopng.js') },
@@ -51,7 +45,7 @@ export default defineConfig(({ mode }) => {
                     name: 'ntopVue',
                     entryFileNames: '[name].js',
                     assetFileNames: (assetInfo) => {
-                        const name = assetInfo.name || '';
+                        const name = assetInfo.names?.[0] || '';
                         if (/\.(png|gif|svg|jpg|jpeg|ico)$/i.test(name)) {
                             return 'images/[name][extname]';
                         }
@@ -84,10 +78,14 @@ export default defineConfig(({ mode }) => {
             {
                 name: 'rename-css-to-ntopng',
                 closeBundle() {
-                    renameSync(
-                        resolve(__dirname, 'httpdocs/dist/style.css'),
-                        resolve(__dirname, 'httpdocs/dist/ntopng.css')
-                    );
+                    try {
+                        renameSync(
+                            resolve(__dirname, 'httpdocs/dist/style.css'),
+                            resolve(__dirname, 'httpdocs/dist/ntopng.css')
+                        );
+                    } catch (_) {
+                        // style.css may not exist if only JS changed
+                    }
                 }
             }
         ],
@@ -104,8 +102,7 @@ export default defineConfig(({ mode }) => {
         css: {
             preprocessorOptions: {
                 scss: {
-                    // Bootstrap 5.3.x uses legacy @import. Silence those warnings
-                    silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'mixed-decls'],
+                    silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
                 }
             },
             postcss: {

@@ -7,19 +7,29 @@
             <date-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id"
                 :round_time="round_time">
                 <template v-slot:begin>
-                    <div v-if="is_alert_stats_url" style="margin-right:0.1rem;" class="d-flex align-items-center me-2">
-                        <div class="btn-group" id="statusSwitch" role="group">
-                            <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }"><i
-                                    class="fa-solid fa-fire" title="Engaged"></i></a>
-                            <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'historical' || (page == 'flow' && status_view == 'engaged'), 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"><i
-                                    class="fa-regular fa-eye" title="Require Attention"></i></a>
-                            <!-- <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged' }"><i class="fa-solid fa-check-double" title="Acknowledged"></i></a>-->
-                            <a href="#" @click="update_status_view('any')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'any', 'btn-seconday': status_view != 'any', 'btn-primary': status_view == 'any' }"><i
-                                    class="fa-solid fa-inbox" title="All"></i></a>
+                    <div v-if="is_alert_stats_url" class="d-flex align-items-center me-2">
+                        <div class="rp-status-group" role="group">
+                            <a v-if="page != 'flow'" href="#"
+                                @click="update_status_view('engaged')"
+                                class="rp-status-btn"
+                                :class="{ active: status_view == 'engaged' }"
+                                title="Engaged">
+                                <i class="fa-solid fa-fire"></i>
+                            </a>
+                            <a href="#"
+                                @click="update_status_view('historical')"
+                                class="rp-status-btn"
+                                :class="{ active: status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"
+                                title="Require Attention">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
+                            <a href="#"
+                                @click="update_status_view('any')"
+                                class="rp-status-btn"
+                                :class="{ active: status_view == 'any' }"
+                                title="All">
+                                <i class="fa-solid fa-inbox"></i>
+                            </a>
                         </div>
                     </div>
                     <slot name="begin"></slot>
@@ -30,19 +40,23 @@
             </date-time-range-picker>
         </div>
 
-        <!-- tagify -->
-        <div v-if="page != 'all'" class="d-flex mt-1" style="width:100%">
-            <input class="w-100 form-control h-auto" name="tags" ref="tagify"
+        <!-- tagify filter bar -->
+        <div v-if="page != 'all'" class="rp-filter-bar d-flex mt-1 align-items-center gap-1" style="width:100%">
+            <input class="w-100 form-control form-control-sm rp-tagify-input h-auto" name="tags" ref="tagify"
                 :placeholder="i18n('show_alerts.filters')">
 
-            <button v-show="modal_data && modal_data.length > 0" class="btn btn-link" aria-controls="flow-alerts-table"
-                type="button" id="btn-add-alert-filter" @click="show_modal_filters"><span><i class="fas fa-plus"
-                        data-original-title="" title="Add Filter"></i></span>
+            <button v-show="modal_data && modal_data.length > 0"
+                class="rp-icon-btn" type="button"
+                @click="show_modal_filters"
+                title="Add Filter">
+                <i class="fas fa-plus"></i>
             </button>
 
-            <button v-show="modal_data && modal_data.length > 0" data-bs-toggle="tooltip" data-placement="bottom"
-                :title="i18n('show_alerts.remove_filters')" @click="remove_filters"
-                class="btn ms-1 my-auto btn-sm btn-remove-tags">
+            <button v-show="modal_data && modal_data.length > 0"
+                :title="i18n('show_alerts.remove_filters')"
+                @click="remove_filters"
+                class="rp-icon-btn rp-icon-btn--danger"
+                type="button">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -381,31 +395,133 @@ function create_tagify(range_picker_vue) {
 
 
 <style scoped>
-.tagify__input {
+/* Status view toggle */
+.rp-status-group {
+    display: inline-flex;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    border-radius: 7px;
+    overflow: hidden;
+}
+
+.rp-status-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--ntop-muted-text-color, #37474F);
+    background: transparent;
+    border-right: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: background 0.12s ease, color 0.12s ease;
+    flex-shrink: 0;
+}
+
+.rp-status-btn:last-child {
+    border-right: none;
+}
+
+.rp-status-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--ntop-text-color, #111);
+}
+
+.rp-status-btn.active {
+    background: rgba(255, 143, 0, 0.12);
+    color: var(--ntop-orange, #FF8F00);
+}
+
+:root[data-theme='dark'] .rp-status-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* Tagify filter input */
+.rp-tagify-input {
+    background: var(--input-bg, #fff) !important;
+    border-color: var(--input-border, #ced4da) !important;
+    color: var(--input-text, #495057) !important;
+    font-size: 0.8rem;
+    min-height: 28px;
+    height: auto;
+    border-radius: 7px;
+}
+
+/* Icon action buttons */
+.rp-icon-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ntop-muted-text-color, #37474F);
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.rp-icon-btn:hover {
+    border-color: var(--ntop-orange, #FF8F00);
+    color: var(--ntop-orange, #FF8F00);
+}
+
+.rp-icon-btn--danger:hover {
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.05);
+}
+
+/* Tagify component overrides */
+:deep(.tagify) {
+    background: var(--input-bg, #fff);
+    border-color: var(--input-border, #ced4da);
+    border-radius: 7px;
+}
+
+:deep(.tagify__input) {
     min-width: 175px;
+    color: var(--input-text, #495057);
+    font-size: 0.8rem;
 }
 
-.tagify__tag {
+:deep(.tagify__tag) {
+    background: var(--bg-elevated, #f8f9fa);
+    border-radius: 4px;
     white-space: nowrap;
-    margin: 3px 0px 5px 5px;
+    margin: 2px 0 4px 4px;
 }
 
-.tagify__tag select.operator {
-    margin: 0px 4px;
-    border: 1px solid #c4c4c4;
-    border-radius: 4px;
-}
-
-.tagify__tag b.operator {
-    margin: 0px 4px;
-    background-color: white;
-    border: 1px solid #c4c4c4;
-    border-radius: 4px;
-    padding: 0.05em 0.2em;
-}
-
-.tagify__tag>div {
+:deep(.tagify__tag > div) {
     display: flex;
     align-items: center;
+    padding: 0 0.3rem;
+    font-size: 0.78rem;
+}
+
+:deep(.tagify__tag b.operator) {
+    background: var(--bg-surface, #fff);
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+    border-radius: 3px;
+    padding: 0.05em 0.25em;
+    margin: 0 0.2rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+:deep(.tagify__tag__removeBtn) {
+    color: var(--ntop-muted-text-color, #37474F);
+    opacity: 0.6;
+}
+
+:deep(.tagify__tag__removeBtn:hover) {
+    color: #dc3545;
+    background: transparent;
+    opacity: 1;
 }
 </style>

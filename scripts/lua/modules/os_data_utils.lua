@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local format_utils = require "format_utils"
 
 -- ########################################################
 
@@ -44,8 +45,7 @@ function os_data_utils.os2record(ifId, os)
    record["column_since"] = secondsToTime(now - os["seen.first"] + 1)
    
    local sent2rcvd = round((os["bytes.sent"] * 100) / (os["bytes.sent"] + os["bytes.rcvd"]), 0)
-   record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+   record["column_breakdown"] = format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, "Sent", "Rcvd")
 
    if(throughput_type == "pps") then
       record["column_thpt"] = pktsToSize(os["throughput_pps"])

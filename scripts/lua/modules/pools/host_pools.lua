@@ -460,11 +460,7 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
         sent2rcvd_pctg = 0
         rcvd2sent_pctg = 0
     end
-    record["column_breakdown"] =
-        "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
-            sent2rcvd_pctg ..
-            "%;'>Sent</div><div class='progress-bar bg-success' style='width: " ..
-            rcvd2sent_pctg .. "%;'>Rcvd</div></div>"
+    record["column_breakdown"] = format_utils.createBreakdown(sent2rcvd_pctg, rcvd2sent_pctg, "Sent", "Rcvd")
 
     if (throughput_type == "pps") then
         record["column_thpt"] = format_utils.pktsToSize(pool["throughput_pps"])

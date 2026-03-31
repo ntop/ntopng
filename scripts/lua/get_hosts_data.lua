@@ -394,8 +394,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    local sent2rcvd = 0
    if total_bytes > 0 then
      sent2rcvd = round((value["bytes.sent"] * 100) / total_bytes, 0) or 0
-     record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+     record["column_breakdown"] = format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, "Sent", "Rcvd")
    end
 
    local _, custom_column_key = custom_column_utils.getCustomColumnName()

@@ -27,12 +27,9 @@
   },
   "homepage": "https://github.com/ntop/ntopng#readme",
   "devDependencies": {
-    "@babel/preset-env": "^7.16.11",
-    "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-terser": "^0.4.4",
     "autoprefixer": "^10.4.2",
     "css-minify": "^2.0.0",
     "cubism": "^1.6.0",
@@ -45,13 +42,11 @@
     "postcss": "^8.5.2",
     "postcss-cli": "^9.1.0",
     "postcss-scss": "^4.0.3",
-    "regenerator-runtime": "^0.13.9",
     "sass": "^1.85.0",
     "sharp": "^0.34.5",
     "stylelint": "^14.5.0"
   },
   "dependencies": {
-    "@babel/core": "^7.18.2",
     "@fortawesome/fontawesome-free": "^6.5.1",
     "@popperjs/core": "^2.11.2",
     "@rollup/plugin-inject": "^5.0.5",

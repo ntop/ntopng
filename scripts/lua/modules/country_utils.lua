@@ -1,4 +1,5 @@
 require "lua_utils"
+local format_utils = require "format_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -17,8 +18,7 @@ function country2record(ifId, country)
    record["column_since"] = secondsToTime(now - country["seen.first"] + 1)
 
    local sent2rcvd = round((country["egress"] * 100) / (country["egress"] + country["ingress"]), 0)
-   record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+   record["column_breakdown"] = format_utils.createBreakdown(sent2rcvd, 100 - sent2rcvd, "Sent", "Rcvd")
 
    if(throughput_type == "pps") then
       record["column_thpt"] = pktsToSize(country["throughput_pps"])

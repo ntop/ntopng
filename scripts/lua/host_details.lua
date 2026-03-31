@@ -240,10 +240,7 @@ local function scoreBreakdown(what)
       score_category_network = (score_category_network * 100) / tot
       score_category_security = 100 - score_category_network
 
-      print('<span class="progress w-100 ms-1"><span class="progress-bar bg-warning" style="width: ' .. score_category_network .. '%;">' ..
-               i18n("flow_details.score_category_network"))
-      print('</span><span class="progress-bar bg-success" style="width: ' .. score_category_security .. '%;">' ..
-               i18n("flow_details.score_category_security") .. '</span></span>\n')
+      print(format_utils.createBreakdown(score_category_network, score_category_security, i18n("flow_details.score_category_network"), i18n("flow_details.score_category_security")))
    else
       print("&nbsp;")
    end

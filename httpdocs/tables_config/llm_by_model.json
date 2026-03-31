@@ -1,0 +1,74 @@
+{
+	"id": "llm_by_model",
+	"paging": false,
+	"display_empty_rows": false,
+	"enable_search": true,
+	"columns": [
+		{
+			"id": "provider",
+			"title_i18n": "llm.provider",
+			"data_field": "provider",
+			"sortable": true
+		},
+		{
+			"id": "model",
+			"title_i18n": "llm.model",
+			"data_field": "model",
+			"sortable": true
+		},
+		{
+			"id": "calls",
+			"title_i18n": "llm.calls",
+			"data_field": "calls",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "prompt_tokens",
+			"title_i18n": "llm.prompt_tokens",
+			"data_field": "prompt_tokens",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "completion_tokens",
+			"title_i18n": "llm.completion_tokens",
+			"data_field": "completion_tokens",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "total_tokens",
+			"title_i18n": "llm.total_tokens",
+			"data_field": "total_tokens",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "avg_ms",
+			"title_i18n": "llm.avg_ms",
+			"data_field": "avg_ms",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "max_ms",
+			"title_i18n": "llm.max_ms",
+			"data_field": "max_ms",
+			"sortable": false,
+			"class": [
+				"text-end"
+			]
+		}
+	]
+}
