@@ -106,6 +106,15 @@
           <i class="fas fa-gear"></i>
         </a>
 
+        <!-- Usage stats link -->
+        <a
+          class="sidebar-toggle-btn flex-shrink-0"
+          :href="statsUrl"
+          title="LLM Usage Stats"
+        >
+          <i class="fas fa-chart-bar"></i>
+        </a>
+
         <!-- Provider / model selector -->
         <div v-if="loadingProviders" class="d-flex align-items-center gap-2 small chat-muted-text ms-1">
           <span class="spinner-border spinner-border-sm" role="status"></span>
@@ -461,6 +470,7 @@ const providerDropdownOpen = ref(false);
 const providerSelectorRef  = ref(null);
 
 const settingsUrl = ref(`${http_prefix}/lua/admin/prefs.lua?tab=llm_providers`);
+const statsUrl    = ref(`${http_prefix}/lua/pro/ai_stats.lua`);
 
 const MAX_HISTORY = 40;
 const timeoutSec  = 120;
@@ -499,13 +509,22 @@ function getProviderIcon(provider) {
 // Add messagem when it arrives or user writes a new message
 function pushMessage(role, content, error = false, stats = null, artifact = null, queries = null) {
   messages.value.push({ role, content, time: nowTime(), error, stats, artifact, queries });
-  nextTick(scrollBottom);
+  nextTick(role === 'assistant' ? scrollToLastMessage : scrollBottom);
 }
 
 // scroll view to bottom
 function scrollBottom() {
   if (messageList.value) {
     messageList.value.scrollTop = messageList.value.scrollHeight;
+  }
+}
+
+function scrollToLastMessage() {
+  if (!messageList.value) return;
+  const bubbles = messageList.value.querySelectorAll('.chat-bubble');
+  const last = bubbles[bubbles.length - 1];
+  if (last) {
+    last.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 }
 
@@ -767,12 +786,12 @@ async function send() {
       headers: { "Content-Type": "application/json" },
       body,
       signal:  controller.signal,
-    }, /* throw_exception */ true);
+    }, /* throw_exception */ true, /* not_unwrap */ false, /* return_error */ true);
 
     clearTimeout(timer);
 
     const reply = rsp?.reply ?? null;
-    if (!reply) throw new Error(_i18n("llm.empty_response_error"));
+    if (!reply) throw new Error(rsp?.error_message ?? _i18n("llm.generic_error"));
 
     // Append assistant message to history so next request includes it
     history.value.push({ role: "assistant", content: reply });
@@ -788,7 +807,7 @@ async function send() {
     if (err.name === "AbortError") {
       pushMessage("assistant", _i18n("llm.timeout_error_message"), true);
     } else {
-      pushMessage("assistant", `${_i18n("llm.request_error")}: ${err.message}`, true);
+      pushMessage("assistant", err.message || _i18n("llm.generic_error"), true);
     }
   } finally {
     sending.value = false;
@@ -798,9 +817,21 @@ async function send() {
 
 // On component mount load providers and chat history
 onMounted(() => {
+  // if a chatId is selected in the url, pass it to retrieve the selected chat
+  const selected_chatId = ntopng_url_manager.get_url_entry("chatId");
+
+  if (selected_chatId) {
+    chat_UUID.value = selected_chatId; 
+    loadChat(chat_UUID.value);
+  } else {
+    // at page load always leave historical chat sidebar open if no chat ID is selected
+    sidebarOpen.value = true;
+  }
+
   loadProviders();
   loadChatHistory();
   document.addEventListener('click', onDocumentClick);
+
 });
 
 onBeforeUnmount(() => {
