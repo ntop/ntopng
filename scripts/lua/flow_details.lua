@@ -1076,7 +1076,7 @@ if isEmptyString(page) or page == "overview" then
          print("<tr><th>" .. i18n("download") .. "&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td><A HREF=\"" .. url ..
 	       "\" download=\"iec104-" .. flow_key .. ".json\">JSON</A></td></tr>")
       end
-
+      
       -- qoe_utils is defined only if ntop is Enterprise L
       if (qoe_utils and (flow.qoe ~= nil) and (flow.qoe.score ~= nil) and
 	  (qoe_utils.validQoE(flow.qoe.score.cli_to_srv) or qoe_utils.validQoE(flow.qoe.score.srv_to_cli))) then
@@ -1470,7 +1470,6 @@ if isEmptyString(page) or page == "overview" then
       end
 
       -- ######################################
-
       -- Print flow alerts (ordered by score and then alphabetically)
       if num_statuses > 0 then
          -- Prepare a mapping between alert id and check
