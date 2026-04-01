@@ -19,11 +19,16 @@ interface.select(ifid)
 
 local ifstats = interface.getFlowsStatus()
 
-local data = {
-  { label = i18n('enstablished'), value = ifstats["Established"] },
-  { label = i18n('syn'),          value = ifstats["SYN"]         },
-  { label = i18n('rst'),          value = ifstats["RST"]         },
-  { label = i18n('fin'),          value = ifstats["FIN"]         },
-}
+local function add_entry(t, label_key, val)
+  if val ~= 0 then
+    table.insert(t, { label = i18n(label_key), value = val })
+  end
+end
+
+local data = {}
+add_entry(data, 'enstablished', ifstats["Established"])
+add_entry(data, 'syn',          ifstats["SYN"])
+add_entry(data, 'rst',          ifstats["RST"])
+add_entry(data, 'fin',          ifstats["FIN"])
 
 rest_utils.answer(rest_utils.consts.success.ok, data)

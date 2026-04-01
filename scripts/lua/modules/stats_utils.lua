@@ -78,13 +78,6 @@ function stats_utils.collapse_top_stats(stats, threshold)
             value = other_total,
         }
    end
-
-   if #top_res == 0 then
-        top_res[#top_res + 1] = {
-            label = i18n("no_flows"),
-            value = 0,
-        }
-    end
     
     return top_res
 end

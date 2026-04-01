@@ -6,6 +6,107 @@ local format_utils = {}
 
 local clock_start = os.clock()
 
+function format_utils.formatBgpBmpInfo(bgp_data)
+   for prefix, peers in pairs(bgp_data) do
+
+      local peer_list = {}
+      for bgp_id, info in pairs(peers) do
+         peer_list[#peer_list + 1] = { id = bgp_id, info = info }
+      end
+
+      print("</table>\n")
+
+      print("<table class='table table-bordered table-striped' width='100%'>")
+
+      -- Prefix
+      print("<tr><th colspan=" .. (#peer_list + 1) .. ">" ..
+            i18n("flow_details.bgp_prefix") .. ":&nbsp;" .. prefix .. "</th></tr>\n")
+
+      -- Peer ID
+      print("<tr><th>" .. i18n("flow_details.bgp_peer_id") .."</th>")
+      for _, peer in ipairs(peer_list) do
+         print("<th>" .. peer.id .. "</th>")
+      end
+      print("</tr>\n")
+
+      -- BGP Origin
+      print("<tr><th>" .. i18n("flow_details.bgp_origin") .. "</th>")
+      for _, peer in ipairs(peer_list) do
+         print("<td>" .. (peer.info["origin"] or "") .. "</td>")
+      end
+
+      print("</tr>\n")
+
+      -- AS Path
+      print("<tr><th>" .. i18n("flow_details.bgp_as_path") .. "</th>")
+      for _, peer in ipairs(peer_list) do
+         local as_path_string = ""
+         
+         if peer.info["as_path"] and #peer.info["as_path"] > 0 then
+            local parts = {}
+
+            for _, asn in ipairs(peer.info["as_path"]) do
+               parts[#parts + 1] = tostring(asn)
+            end
+
+            as_path_string = table.concat(parts, ' ')
+         end
+
+         print("<td>" .. as_path_string .. "</td>")
+      end
+
+      print("</tr>\n")
+
+      -- Next Hop
+      print("<tr><th>" .. i18n("flow_details.bgp_next_hop") .. "</th>")
+      for _, peer in ipairs(peer_list) do
+         print("<td>" .. (peer.info["next_hop"] or "") .. "</td>")
+      end
+      
+      print("</tr>\n")
+
+      -- MED
+      print("<tr><th>" .. i18n("flow_details.bgp_med") .. "</th>")
+      for _, peer in ipairs(peer_list) do
+         local med_string = (peer.info["med"] ~= nil) and tostring(peer.info["med"]) or ""
+         print("<td>" .. med_string .. "</td>")
+      end
+      
+      print("</tr>\n")
+
+      -- Local Preference
+      print("<tr><th>" .. i18n("flow_details.bgp_local_pref") .. "</th>")
+      for _, peer in ipairs(peer_list) do
+         local lp_string = (peer.info["local_pref"] ~= nil) and tostring(peer.info["local_pref"]) or ""
+         print("<td>" .. lp_string .. "</td>")
+      end
+      
+      print("</tr>\n")
+
+      -- Communities
+      print("<tr><th>" .. i18n("flow_details.bgp_communities") .. "</th>")
+      for _, peer in ipairs(peer_list) do
+         local communities_string = ""
+
+         if peer.info["communities"] and #peer.info["communities"] > 0 then
+            local badges = {}
+         
+            for _, c in ipairs(peer.info["communities"]) do
+               badges[#badges + 1] = "<span class='badge bg-secondary'>" .. c .. "</span>"
+            end
+            communities_string = table.concat(badges, " ")
+         end
+         print("<td>" .. communities_string .. "</td>")
+      
+      end
+      print("</tr>\n")
+
+      print("</table>\n")
+      print("<table class='table table-bordered table-striped'>\n")
+
+   end
+end
+
 function format_utils.createBreakdown(percentage1, percentage2, label1, label2)
    if percentage1 == 0 and percentage2 == 0 then
       return '<div style="height:8px;background:var(--border-subtle,#e9ecef);border-radius:100px;" data-bs-toggle="tooltip" title="No data available"></div>'
@@ -80,19 +181,19 @@ function format_utils.timeToSeconds(time)
 
    local index = 1 -- represents which time we are analyzing, seconds, minutes, ecc.
    -- Split by : to get days, hours, minutes and seconds
-   for _, time_in_string in pairsByKeys(time_splitted:split(":") or {}, rev) do
+   for _, time_in_stringing in pairsByKeys(time_splitted:split(":") or {}, rev) do
       if index == 1 then
          -- Seconds
-         seconds = seconds + tonumber(time_in_string)
+         seconds = seconds + tonumber(time_in_stringing)
       elseif index == 2 then
          -- Minutes
-         seconds = seconds + tonumber(time_in_string) * 60
+         seconds = seconds + tonumber(time_in_stringing) * 60
       elseif index == 3 then
          -- Hours
-         seconds = seconds + tonumber(time_in_string) * 3600
+         seconds = seconds + tonumber(time_in_stringing) * 3600
       elseif index == 4 then
          -- Days
-         seconds = seconds + tonumber(time_in_string) * 86400
+         seconds = seconds + tonumber(time_in_stringing) * 86400
       end
 
       index = index + 1
@@ -788,9 +889,9 @@ local _asn_cache = {}
 --          asn name formatted consistently
 -- @params  asn: ASN Id
 --          short_version: Boolean, true if short version is needed (only name)
---          shorten_string: Boolean, true if 64 char must be used
+--          shorten_stringing: Boolean, true if 64 char must be used
 -- @returns The formatted ASN name
-function format_utils.formatASN(asn, short_version, shorten_string)
+function format_utils.formatASN(asn, short_version, shorten_stringing)
    local name = ""
 
    if asn then
@@ -813,7 +914,7 @@ function format_utils.formatASN(asn, short_version, shorten_string)
 	    -- if no asn info is present, curl to get ASN name
 	    name = ntop.getASNameFromASN(asn)
 	 end
-	 if (shorten_string) then
+	 if (shorten_stringing) then
 	    name = shortenString(name)
 	 end
       end

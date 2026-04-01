@@ -29,10 +29,12 @@ end
 local data = {}
 
 for key, value in pairsByField(stats.qoe, "num", rev) do
-  data[#data + 1] = {
-    label = i18n("flow_details.qoe_" .. key .. "_label") or "",
-    value = value.num
-  }
+  if value.num > 0 then
+    data[#data + 1] = {
+      label = i18n("flow_details.qoe_" .. key .. "_label") or "",
+      value = value.num
+    }
+  end
 end
 
 if collapse_stats then

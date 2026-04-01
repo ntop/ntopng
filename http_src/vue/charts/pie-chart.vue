@@ -176,11 +176,17 @@ function render(data) {
     /* Filtered data, excludes values too small to be shown in the chart
      * values with a number lesser then 0.0%
      */
-    const filtered_data = data.map((d, i) => ({
+     const filtered_data = data
+    .filter((d) => d.value > 0)  // only exclude actual zeros
+    .map((d) => ({
         label: d.label,
         value: d.value,
-        percentage: total > 0 ? (d.value / total * 100).toFixed(1) : "0"
-    })).filter((el) => el.percentage > 0.0);
+        percentage: total > 0 ? (d.value / total * 100).toFixed(2) : "0"
+    }));
+    // there is no data to show
+    if (filtered_data.length === 0) {
+        no_data.value = true;
+    }
 
     items.value = filtered_data.map((d, i) => ({
         name: d.label,

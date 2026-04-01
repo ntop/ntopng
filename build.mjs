@@ -261,6 +261,7 @@ await build({
         outDir: 'httpdocs/dist',
         emptyOutDir: false,
         minify: isProd ? 'esbuild' : false,
+        reportCompressedSize: false,
         rollupOptions: {
             input: { login: resolve(__dirname, 'assets/scripts/login.js') },
             output: {
