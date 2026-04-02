@@ -310,6 +310,7 @@ local url = http_prefix .. '/lua/if_stats.lua?ifid=' .. ifid
 --  of historical interface
 print('\n<script>var refresh = ' .. interface.getStatsUpdateFreq(ifstats.id) .. ' * 1000; /* ms */;</script>\n')
 
+local internals_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid="..interface.getId() .. "&page=internals&tab=hash_tables"
 local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. shortenCollapse(short_name)
 
@@ -395,6 +396,7 @@ page_utils.print_navbar(title, url, { {
     label = "<i class='fas fa-lg fa-cog' title='" .. i18n("settings") .. "'></i>"
 }, {
     active = page == "internals",
+    url = internals_url,
     page_name = "internals",
     label = "<i class='fas fa-lg fa-wrench' title='" .. i18n("status") .. "'></i>"
 }, {
@@ -2307,21 +2309,20 @@ function toggle_mirrored_traffic_function_off(){
       aysHandleForm("#iface_config");
    </script>]]
 elseif (page == "internals") then
-    --[[
-        local context = {
-            ifid = interface.getId(),
-        }
-        template.render("pages/vue_page.template", {
-            vue_page_name = "PageInternals",
-            page_context  = json.encode(context),
-        })
-        ]]
+    local context = {
+        is_sys_iface             = false,
+        ifid                     = ifid,
+        show_hash_tables         = true,
+        show_periodic_activities = true,
+        show_checks              = true,
+        show_queues              = true,
+    }
 
-    internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]],
-        true --[[ queues --]])
-    print [[
-   </table>
-]]
+    template.render("pages/vue_page.template", {
+        vue_page_name = "PageInternals",
+        page_context  = json.encode(context),
+    })
+
 elseif (page == "snmp_bind") then
     if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then
         return

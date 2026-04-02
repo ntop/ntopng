@@ -1,0 +1,67 @@
+{
+	"id": "internals_checks",
+	"data_url": "lua/rest/v2/get/internals/checks.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"show_autorefresh": 5,
+	"columns": [
+		{
+			"id": "name",
+			"title_i18n": "scripts_overview.script",
+			"data_field": "name",
+			"sortable": true,
+			"min-width": "180px",
+			"class": []
+		},
+		{
+			"id": "type",
+			"title_i18n": "scripts_overview.type",
+			"data_field": "type",
+			"sortable": true,
+			"min-width": "120px",
+			"class": []
+		},
+		{
+			"id": "availability",
+			"title_i18n": "availability",
+			"data_field": "availability",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "hooks",
+			"title_i18n": "scripts_overview.hooks",
+			"data_field": "hooks",
+			"sortable": false,
+			"min-width": "160px",
+			"class": []
+		},
+		{
+			"id": "filters",
+			"title_i18n": "scripts_overview.filters",
+			"data_field": "filters",
+			"sortable": false,
+			"min-width": "160px",
+			"class": []
+		},
+		{
+			"id": "num_filtered",
+			"title_i18n": "scripts_overview.filtered",
+			"data_field": "num_filtered",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "exec_time_ms",
+			"title_i18n": "scripts_overview.total_elapsed_time",
+			"data_field": "exec_time_ms",
+			"sortable": true,
+			"min-width": "130px",
+			"class": ["text-end", "text-nowrap"]
+		}
+	]
+}

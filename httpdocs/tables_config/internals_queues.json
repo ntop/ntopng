@@ -1,0 +1,35 @@
+{
+	"id": "internals_queues",
+	"data_url": "lua/rest/v2/get/internals/queues.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"show_autorefresh": 5,
+	"columns": [
+		{
+			"id": "queue",
+			"title_i18n": "internals.queue",
+			"data_field": "queue",
+			"sortable": true,
+			"min-width": "200px",
+			"class": []
+		},
+		{
+			"id": "iface_name",
+			"title_i18n": "interface_name",
+			"data_field": "iface_name",
+			"sortable": true,
+			"min-width": "200px",
+			"class": []
+		},
+		{
+			"id": "num_failed_enqueues",
+			"title_i18n": "internals.num_failed_enqueues",
+			"data_field": "num_failed_enqueues",
+			"sortable": true,
+			"min-width": "160px",
+			"class": ["text-end", "text-nowrap"]
+		}
+	]
+}

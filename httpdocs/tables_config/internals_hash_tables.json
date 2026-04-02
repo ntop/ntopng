@@ -1,0 +1,51 @@
+{
+	"id": "internals_hash_tables",
+	"data_url": "lua/rest/v2/get/internals/hash_tables.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"show_autorefresh": 5,
+	"columns": [
+		{
+			"id": "iface_name",
+			"title_i18n": "interface",
+			"data_field": "iface_name",
+			"sortable": true,
+			"min-width": "150px",
+			"class": []
+		},
+		{
+			"id": "hash_table",
+			"title_i18n": "internals.hash_table",
+			"data_field": "hash_table",
+			"sortable": true,
+			"min-width": "180px",
+			"class": []
+		},
+		{
+			"id": "active",
+			"title_i18n": "internals.state_active",
+			"data_field": "active",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "idle",
+			"title_i18n": "internals.state_idle",
+			"data_field": "idle",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "utilization",
+			"title_i18n": "internals.hash_table_utilization",
+			"data_field": "active_pct",
+			"sortable": true,
+			"min-width": "160px",
+			"class": ["text-center"]
+		}
+	]
+}

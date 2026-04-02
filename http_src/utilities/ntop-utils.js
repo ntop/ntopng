@@ -1330,7 +1330,7 @@ export default class NtopUtils {
 
     static createProgressBar(percentage) {
         const pct = Math.min(100, Math.max(0, Math.floor(percentage)));
-        const color = pct >= 80 ? 'var(--ntop-orange, #FF8F00)' : pct >= 50 ? '#f59e0b' : 'var(--ntop-blue, #37474F)';
+        const color = 'var(--ntop-orange, #FF8F00)';
         return `<div class="d-flex align-items-center gap-2" style="min-width:0">
             <div style="flex:1;height: 8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;">
                 <div style="width:${pct}%;height:100%;background:${color};border-radius:100px;transition:width .3s ease;"></div>
@@ -1365,6 +1365,53 @@ export default class NtopUtils {
         return `<div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
             <div style="height:8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;display:flex;">${bars}</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">${legend_1}${legend_2}</div>
+        </div>`;
+    }
+
+    static createBreakdown_multi_elem(percentages, labels, colors = null) {
+        const defaultColors = [
+            'var(--ntop-orange, #FF8F00)',
+            '#0d9488',
+            '#3b82f6',
+            '#a855f7',
+            '#ef4444',
+            '#f59e0b',
+        ];
+    
+        // Normalize inputs: filter out zero-percentage entries
+        const items = percentages
+            .map((pct, i) => ({
+                pct,
+                label: labels[i],
+                color: (colors?.[i]) ?? defaultColors[i % defaultColors.length],
+            }))
+            .filter(item => item.pct > 0);
+    
+        if (items.length === 0) {
+            return `<div style="height:8px;background:var(--border-subtle,#e9ecef);border-radius:100px;"
+                data-bs-toggle="tooltip" data-bs-placement="top" title="No data available"></div>`;
+        }
+    
+        const bars = items.map((item, i) => {
+            const isFirst = i === 0;
+            const isLast  = i === items.length - 1;
+            const radius  = isFirst && isLast ? '100px'
+                          : isFirst           ? '100px 0 0 100px'
+                          : isLast            ? '0 100px 100px 0'
+                          :                     '0';
+    
+            return `<div style="width:${item.pct}%;height:100%;background:${item.color};border-radius:${radius};transition:width .3s ease;"
+                data-bs-toggle="tooltip" data-bs-placement="top" title="${item.label}: ${Math.floor(item.pct)}%"></div>`;
+        }).join('');
+    
+        const legend = items.map(item =>
+            `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;color:var(--ntop-muted-text-color,#37474F);">
+                <span style="width:6px;height:6px;border-radius:50%;background:${item.color};flex-shrink:0;"></span>${item.label}&nbsp;${Math.floor(item.pct)}%</span>`
+        ).join('');
+    
+        return `<div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+            <div style="height:8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;display:flex;">${bars}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">${legend}</div>
         </div>`;
     }
 

@@ -11,7 +11,7 @@ require "lua_utils"
 local page_utils = require("page_utils")
 local internals_utils = require "internals_utils"
 local template = require "template_utils"
-
+local json = require "dkjson"
 
 if not isAllowedSystemInterface() then
    return
@@ -26,6 +26,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 
+local internals_url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?ifid="..interface.getId() .. "&page=internals&tab=hash_tables"
 local url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?ifid="..interface.getId()
 local info = ntop.getInfo()
 local title = i18n("system_interfaces_status")
@@ -67,6 +68,7 @@ page_utils.print_navbar(title, url,
 			   {
 			      active = page == "internals",
 			      page_name = "internals",
+            url = internals_url,
 			      label = "<i class=\"fas fa-wrench fa-lg\"></i>",
 			   },
 			}
@@ -230,7 +232,18 @@ var resetInterfaceCounters = function(drops_only) {
  ]]
 
 elseif(page == "internals") then
-   internals_utils.printInternals(nil, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]])
+   local context = {
+      is_sys_iface             = true,
+      ifid                     = nil,
+      show_hash_tables         = true,
+      show_periodic_activities = true,
+      show_checks              = true,
+      show_queues              = false,
+   }
+   template.render("pages/vue_page.template", {
+      vue_page_name = "PageInternals",
+      page_context  = json.encode(context),
+   })
 end
 
 

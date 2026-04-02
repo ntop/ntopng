@@ -1,0 +1,131 @@
+{
+	"id": "internals_periodic_activities_all",
+	"data_url": "lua/get_internals_periodic_activities_stats.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"show_autorefresh": 5,
+	"columns": [
+		{
+			"id": "iface_name",
+			"title_i18n": "interface",
+			"data_field": "iface_name",
+			"sortable": true,
+			"min-width": "140px",
+			"class": []
+		},
+		{
+			"id": "script",
+			"title_i18n": "internals.periodic_activity",
+			"data_field": "script",
+			"sortable": true,
+			"min-width": "200px",
+			"class": []
+		},
+		{
+			"id": "periodicity_label",
+			"title_i18n": "frequency",
+			"data_field": "periodicity_label",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "max_duration_label",
+			"title_i18n": "internals.max_duration_secs",
+			"data_field": "max_duration_label",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "time_usage",
+			"title_i18n": "internals.time_usage",
+			"data_field": "busy_pct",
+			"sortable": true,
+			"min-width": "140px",
+			"class": ["text-center"]
+		},
+		{
+			"id": "state",
+			"title_i18n": "status",
+			"data_field": "state",
+			"sortable": true,
+			"min-width": "90px",
+			"class": ["text-center"]
+		},
+		{
+			"id": "last_start_ago",
+			"title_i18n": "internals.last_start_time",
+			"data_field": "last_start_ago",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "last_duration_label",
+			"title_i18n": "internals.last_duration_ms",
+			"data_field": "last_duration_label",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "progress",
+			"title_i18n": "internals.work_completion",
+			"data_field": "progress",
+			"sortable": true,
+			"min-width": "90px",
+			"class": ["text-center", "text-nowrap"]
+		},
+		{
+			"id": "tot_not_executed",
+			"title_i18n": "internals.tot_not_executed",
+			"data_field": "tot_not_executed",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "tot_running_slow",
+			"title_i18n": "internals.tot_running_slow",
+			"data_field": "tot_running_slow",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "ts_writes",
+			"title_i18n": "internals.timeseries_writes",
+			"data_field": "ts_writes",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "ts_drops",
+			"title_i18n": "internals.rrd_drops",
+			"data_field": "ts_drops",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "snmp_fat_mibs",
+			"title_i18n": "internals.snmp_fat_mibs",
+			"data_field": "snmp_fat_mibs",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "snmp_other_mibs",
+			"title_i18n": "internals.snmp_other_mibs",
+			"data_field": "snmp_other_mibs",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		}
+	]
+}

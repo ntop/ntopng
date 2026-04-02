@@ -6,7 +6,7 @@
             :handleLoadedColumns="handleLoadedColumns" @custom_event="on_table_custom_event"
             @rows_loaded="change_filter_labels">
             <template v-slot:custom_header>
-                <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
+                <div class="dropdown d-inline-block" v-for="item in filter_table_array">
                     <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
                             }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
@@ -14,8 +14,9 @@
                         @select_option="add_table_filter">
                     </SelectSearch>
                 </div>
-                <div class="d-flex justify-content-center align-items-center">
-                    <div class="btn btn-sm btn-primary mt-2 me-3" type="button" @click="reset_filters">
+                <div class="d-inline-block">
+                    <span class="no-wrap d-flex align-items-center filters-label">&nbsp</span>
+                    <div class="btn btn-sm btn-primary" type="button" @click="reset_filters">
                         {{ _i18n('reset') }}
                     </div>
                     <Spinner :show="loading" size="1rem" class="me-1"></Spinner>

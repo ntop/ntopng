@@ -14,6 +14,8 @@ local cpu_utils = require("cpu_utils")
 local ts_utils = require "ts_utils"
 local graph_utils = require("graph_utils")
 local format_utils = require("format_utils")
+local template = require "template_utils"
+local json = require "dkjson"
 
 local ts_creation = script_manager.systemTimeseriesEnabled()
 
@@ -28,6 +30,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid="..interface.getId()
+local internals_url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid="..interface.getId() .. "&page=internals&tab=queues"
 local title = i18n("system")
 local info = ntop.getInfo()
 
@@ -47,6 +50,7 @@ page_utils.print_navbar(title, url,
 			   {
 			      active = page == "internals",
 			      page_name = "internals",
+               url = internals_url,
 			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			   },
 			   {
@@ -190,7 +194,21 @@ print [[/lua/system_stats_data.lua',
 elseif(page == "historical" and ts_creation) then
    graph_utils.drawNewGraphs({ ifid = interface.getId()})
 elseif page == "internals" then
-   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
+
+   local context = {
+      is_sys_iface             = true,
+      ifid                     = getSystemInterfaceId(),
+      show_hash_tables         = false,
+      show_periodic_activities = true,
+      show_checks              = true,
+      show_queues              = true,
+  }
+
+  template.render("pages/vue_page.template", {
+      vue_page_name = "PageInternals",
+      page_context  = json.encode(context),
+  })
+
 elseif page == "ntopcloud" then
    local cloud = info.ntopcloud
 
