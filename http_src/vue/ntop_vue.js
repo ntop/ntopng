@@ -108,6 +108,7 @@ import { default as PageChecksOverview } from "./page-checks-overview.vue"
 import { default as PageManageData } from "./page-manage-data.vue"
 import { default as PageEditDeviceProtocols } from "./page-edit-device-protocols.vue"
 import { default as PageAiStats } from "./page-ai-stats.vue"
+import { default as PageAlertExclusions } from "./page-alert-exclusions.vue"
 //import { default as PageInternals } from "./page-internals.vue"
 
 /* Testing page */
@@ -254,6 +255,7 @@ let ntopVue = {
     PageManageData: PageManageData,
     PageEditDeviceProtocols: PageEditDeviceProtocols,
     PageAiStats: PageAiStats,
+    PageAlertExclusions: PageAlertExclusions,
     //PageInternals: PageInternals,
 
     PageExportersGraph: PageExportersGraph,

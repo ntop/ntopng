@@ -1506,3 +1506,54 @@ span.flatpickr-weekday {
 .flatpickr-rContainer {
   padding: 0.25rem 0 !important;
 }
+
+/* Bootstrap form controls — unified style matching select-search.vue */
+.form-control,
+.form-select {
+  background-color: var(--input-bg, #fff) !important;
+  border: 1px solid var(--input-border, #ced4da) !important;
+  color: var(--input-text, #495057) !important;
+  border-radius: 7px !important;
+  font-size: 0.8rem !important;
+  min-height: 30px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ntop-orange, #FF8F00) !important;
+  box-shadow: 0 0 0 2px rgba(255, 143, 0, 0.18) !important;
+  outline: none !important;
+  background-color: var(--input-bg, #fff) !important;
+  color: var(--input-text, #495057) !important;
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+  background-color: var(--bg-sunken, #f1f3f5) !important;
+  color: var(--ntop-disabled-text-color, rgba(33, 37, 41, 0.5)) !important;
+  cursor: not-allowed !important;
+  border-color: var(--border-subtle, #e9ecef) !important;
+}
+
+/* Restore input-group border-radius joining */
+.input-group > .form-control:not(:first-child),
+.input-group > .form-select:not(:first-child) {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.input-group > .form-control:not(:last-child),
+.input-group > .form-select:not(:last-child) {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.form-control-sm,
+.form-select-sm {
+  min-height: 26px !important;
+  height: 26px !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+}

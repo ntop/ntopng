@@ -1,0 +1,107 @@
+{
+  "id": "alert_exclusions_hosts",
+  "data_url": "lua/pro/rest/v2/get/alert/exclusions.lua",
+  "use_current_page": false,
+  "enable_search": true,
+  "paging": false,
+  "display_empty_rows": true,
+  "show_autorefresh": 0,
+  "columns": [
+    {
+      "id": "actions",
+      "title_i18n": "action",
+      "sortable": false,
+      "sticky": true,
+      "class": [
+        "text-nowrap",
+        "text-center"
+      ],
+      "render_v_node_type": "button_list",
+      "button_def_array": [
+        {
+          "id": "edit",
+          "icon": "fas fa-edit",
+          "title_i18n": "config_scripts.actions.edit",
+          "event_id": "click_button_edit"
+        },
+        {
+          "id": "delete",
+          "icon": "fas fa-trash",
+          "title_i18n": "delete",
+          "event_id": "click_button_delete"
+        }
+      ]
+    },
+    {
+      "id": "title",
+      "title_i18n": "show_alerts.alert_type",
+      "data_field": "title",
+      "sortable": true,
+      "min-width": "160px",
+      "class": []
+    },
+    {
+      "id": "subdir",
+      "title_i18n": "show_alerts.alert_family",
+      "data_field": "subdir",
+      "sortable": true,
+      "min-width": "120px",
+      "class": [
+        "text-center",
+        "text-nowrap"
+      ]
+    },
+    {
+      "id": "category_icon",
+      "title_i18n": "category",
+      "data_field": "category_icon",
+      "sortable": false,
+      "min-width": "80px",
+      "class": [
+        "text-center",
+        "text-nowrap"
+      ]
+    },
+    {
+      "id": "excluded_host",
+      "title_i18n": "edit_check.excluded_host",
+      "data_field": "excluded_host",
+      "sortable": true,
+      "min-width": "140px",
+      "class": [
+        "text-nowrap"
+      ],
+      "hidden": true
+    },
+    {
+      "id": "excluded_host_label",
+      "title_i18n": "edit_check.excluded_host",
+      "data_field": "excluded_host_label",
+      "sortable": true,
+      "min-width": "140px",
+      "class": [
+        "text-nowrap"
+      ]
+    },
+    {
+      "id": "excluded_host_name",
+      "title_i18n": "edit_check.excluded_host_name",
+      "data_field": "excluded_host_name",
+      "sortable": true,
+      "min-width": "140px",
+      "class": [
+        "text-nowrap"
+      ]
+    },
+    {
+      "id": "comment",
+      "title_i18n": "edit_check.comment",
+      "data_field": "comment",
+      "sortable": false,
+      "min-width": "160px",
+      "class": [
+        "text-nowrap"
+      ]
+    }
+  ]
+}
