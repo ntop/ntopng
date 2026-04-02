@@ -4,38 +4,43 @@
     <div class="card card-shadow">
 
       <div class="card-body">
-        <!-- Single TableWithConfig instance; :key forces re-mount on tab switch -->
-        <TableWithConfig ref="tableRef" :key="activeTab" :table_config_id="currentTableConfigId"
-          :get_extra_params_obj="getExtraParams" :f_map_columns="currentMapColumns" :f_sort_rows="columnsSorting"
-          @rows_loaded="onRowsLoaded">
-          <template v-slot:custom_header>
-            <NavbarTabs :tabs="visibleTabs" :active_tab_id="activeTab" @on_click="(tab) => switch_tab(tab.id)" />
- 
-            <!-- Periodic Activities filters -->
-            <template v-if="activeTab === 'periodic_activities'">
-              <div class="d-flex align-items-center gap-1" v-if="paScriptOptions.length > 1">
-                  {{ _i18n("internals.script") }}:
-                <SelectSearch v-model:selected_option="paScriptFilter" theme="bootstrap-5" dropdown_size="small"
-                  :options="paScriptOptions" @select_option="onPaFilter" />
-              </div>
-              
-              <div class="d-flex align-items-center gap-1">
-                  {{ _i18n("internals.issue") }}:
-                <SelectSearch v-model:selected_option="paIssueFilter" theme="bootstrap-5" dropdown_size="small"
-                  :options="paIssueOptions" @select_option="onPaFilter" />
-              </div>
-            </template>
+        <div v-for="tab in visibleTabs" :key="tab.id" v-show="activeTab === tab.id">
+          <TableWithConfig
+            :ref="el => tableRefs[tab.id] = el"
+            :table_config_id="TABLE_CONFIG_IDS[tab.id]"
+            :get_extra_params_obj="() => getExtraParamsForTab(tab.id)"
+            :f_map_columns="mapColumnsForTab(tab.id)"
+            :f_sort_rows="columnsSorting"
+            @rows_loaded="(res) => onRowsLoaded(res, tab.id)"
+          >
+            <template v-slot:custom_header>
+              <NavbarTabs :tabs="visibleTabs" :active_tab_id="activeTab" @on_click="(tab) => switch_tab(tab.id)" />
 
-            <!-- Checks filter -->
-            <template v-if="activeTab === 'checks'">
-              <div class="d-flex align-items-center gap-1" v-if="checkTargetOptions.length > 1">
+              <!-- Periodic Activities filters -->
+              <template v-if="tab.id === 'periodic_activities'">
+                <div class="d-flex align-items-center gap-1" v-if="paScriptOptions.length > 1">
+                  {{ _i18n("internals.script") }}:
+                  <SelectSearch v-model:selected_option="paScriptFilter" theme="bootstrap-5" dropdown_size="small"
+                    :options="paScriptOptions" @select_option="onPaFilter" />
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  {{ _i18n("internals.issue") }}:
+                  <SelectSearch v-model:selected_option="paIssueFilter" theme="bootstrap-5" dropdown_size="small"
+                    :options="paIssueOptions" @select_option="onPaFilter" />
+                </div>
+              </template>
+
+              <!-- Checks filter -->
+              <template v-if="tab.id === 'checks'">
+                <div class="d-flex align-items-center gap-1" v-if="checkTargetOptions.length > 1">
                   {{ _i18n("internals.check_target") }}:
-                <SelectSearch v-model:selected_option="checkTargetFilter" theme="bootstrap-5" dropdown_size="small"
-                  :options="checkTargetOptions" @select_option="onCheckTargetFilter" />
-              </div>
+                  <SelectSearch v-model:selected_option="checkTargetFilter" theme="bootstrap-5" dropdown_size="small"
+                    :options="checkTargetOptions" @select_option="onCheckTargetFilter" />
+                </div>
+              </template>
             </template>
-          </template>
-        </TableWithConfig>
+          </TableWithConfig>
+        </div>
       </div>
 
       <!-- Notes footer — only for Periodic Activities tab -->
@@ -71,27 +76,6 @@ const ALL_TABS = [
   { id: "checks", label_i18n: "internals.checks", flag: "show_checks" },
 ];
 
-const visibleTabs = computed(() =>
-  ALL_TABS.filter((t) => props.context?.[t.flag] !== false)
-);
-
-const activeTab = ref(visibleTabs.value[0]?.id ?? ntopng_url_manager.get_url_entry("tab"));
-
-function switch_tab(tab_name) {
-  activeTab.value = tab_name;
-  hashTablesFilter.value = htOptions.value[0];
-  paScriptFilter.value = paScriptOptions.value[0];
-  paIssueFilter.value = paIssueOptions.value[0];
-  checkTargetFilter.value = checkTargetOptions.value[0];
-  ntopng_url_manager.set_key_to_url("tab", tab_name);
-
-  // Let Vue update the props first, then refresh
-  nextTick(() => tableRef.value?.refresh_table());
-}
-
-const tableRef = ref(null);
-
-// current table config, managed by active tab
 const TABLE_CONFIG_IDS = {
   hash_tables: "internals_hash_tables",
   queues: "internals_queues",
@@ -99,28 +83,45 @@ const TABLE_CONFIG_IDS = {
   checks: "internals_checks",
 };
 
-const currentTableConfigId = computed(() => TABLE_CONFIG_IDS[activeTab.value]);
+const visibleTabs = computed(() =>
+  ALL_TABS.filter((t) => props.context?.[t.flag] !== false)
+);
 
-const currentMapColumns = computed(() => {
-  const map = {
+const activeTab = ref(visibleTabs.value[0]?.id ?? ntopng_url_manager.get_url_entry("tab"));
+
+const tableRefs = ref({});
+const activeTableRef = computed(() => tableRefs.value[activeTab.value]);
+
+function switch_tab(tab_name) {
+  activeTab.value = tab_name;
+  // reset filters on tab switch
+  htFilter.value = htOptions.value[0];
+  paScriptFilter.value = paScriptOptions.value[0];
+  paIssueFilter.value = paIssueOptions.value[0];
+  checkTargetFilter.value = checkTargetOptions.value[0];
+  ntopng_url_manager.set_key_to_url("tab", tab_name);
+  nextTick(() => activeTableRef.value?.refresh_table());
+}
+
+function mapColumnsForTab(tabId) {
+  return {
     hash_tables: mapHashTableColumns,
     queues: mapQueueColumns,
     periodic_activities: mapPeriodicActivitiesColumns,
     checks: mapChecksColumns,
-  };
-  return map[activeTab.value];
-});
+  }[tabId];
+}
 
-function getExtraParams() {
+function getExtraParamsForTab(tabId) {
   const p = { ifid: props.context?.ifid };
-  if (activeTab.value === "hash_tables" && hashTablesFilter.value?.value) {
-    p.hash_table = hashTablesFilter.value.value;
+  if (tabId === "hash_tables" && htFilter.value?.value) {
+    p.hash_table = htFilter.value.value;
   }
-  if (activeTab.value === "periodic_activities") {
+  if (tabId === "periodic_activities") {
     if (paScriptFilter.value?.value) p.periodic_script = paScriptFilter.value.value;
     if (paIssueFilter.value?.value) p.periodic_script_issue = paIssueFilter.value.value;
   }
-  if (activeTab.value === "checks" && checkTargetFilter.value?.value) {
+  if (tabId === "checks" && checkTargetFilter.value?.value) {
     p.check_target = checkTargetFilter.value.value;
   }
   return p;
@@ -130,7 +131,7 @@ const ALL_OPTION = { id: "", value: "", label: _i18n("all") };
 
 // Hash Tables
 const htOptions = ref([ALL_OPTION]);
-const hashTablesFilter = ref(ALL_OPTION);
+const htFilter = ref(ALL_OPTION);
 
 // Periodic Activities
 const paScriptOptions = ref([ALL_OPTION]);
@@ -149,23 +150,26 @@ const paIssueFilter = ref(ALL_OPTION);
 const checkTargetOptions = ref([ALL_OPTION]);
 const checkTargetFilter = ref(ALL_OPTION);
 
-function onRowsLoaded(res) {
+function onRowsLoaded(res, tabId) {
   const rows = res?.rows ?? [];
 
-  // hash_tables and periodic_activities: one row per unique entity
-  if (activeTab.value === "hash_tables" && htOptions.value.length === 1) {
-    htOptions.value = [ALL_OPTION, ...rows.filter((r) => r.hash_table).map((r) => ({ id: r.hash_table, value: r.hash_table, label: r.hash_table }))];
+  if (tabId === "hash_tables" && htOptions.value.length === 1) {
+    htOptions.value = [ALL_OPTION, ...rows
+      .filter((r) => r.hash_table)
+      .map((r) => ({ id: r.hash_table, value: r.hash_table, label: r.hash_table }))
+    ];
   }
 
-  if (activeTab.value === "periodic_activities" && paScriptOptions.value.length === 1) {
-    paScriptOptions.value = [ALL_OPTION, ...rows.filter((r) => r.script).map((r) => ({ id: r.script, value: r.script, label: r.script }))];
+  if (tabId === "periodic_activities" && paScriptOptions.value.length === 1) {
+    paScriptOptions.value = [ALL_OPTION, ...rows
+      .filter((r) => r.script)
+      .map((r) => ({ id: r.script, value: r.script, label: r.script }))
+    ];
   }
 
-  // checks: multiple scripts share the same type — deduplicate with Set
-  if (activeTab.value === "checks" && checkTargetOptions.value.length === 1) {
+  if (tabId === "checks" && checkTargetOptions.value.length === 1) {
     const seen = new Set();
     const opts = [ALL_OPTION];
-
     rows.forEach((r) => {
       if (r.type && !seen.has(r.type)) {
         seen.add(r.type);
@@ -176,18 +180,18 @@ function onRowsLoaded(res) {
   }
 }
 
-function onhashTablesFilter(opt) {
-  hashTablesFilter.value = opt;
-  tableRef.value?.refresh_table();
+function onHtFilter(opt) {
+  htFilter.value = opt;
+  activeTableRef.value?.refresh_table();
 }
 
 function onPaFilter(_opt) {
-  tableRef.value?.refresh_table();
+  activeTableRef.value?.refresh_table();
 }
 
 function onCheckTargetFilter(opt) {
   checkTargetFilter.value = opt;
-  tableRef.value?.refresh_table();
+  activeTableRef.value?.refresh_table();
 }
 
 function columnsSorting(col, r0, r1) {
@@ -195,7 +199,6 @@ function columnsSorting(col, r0, r1) {
   const id = col.id;
   const s = col.sort;
 
-  // numeric columns
   if (["active", "idle", "active_pct", "idle_pct", "free_pct",
     "num_failed_enqueues",
     "periodicity", "max_duration_secs", "last_duration_ms", "busy_pct",
@@ -205,7 +208,6 @@ function columnsSorting(col, r0, r1) {
     return sortingFunctions.sortByNumber(r0[id] ?? 0, r1[id] ?? 0, s);
   }
 
-  // string columns
   if (["iface_name", "hash_table", "queue", "script", "state", "name", "type", "hook",
     "availability", "periodicity_label", "max_duration_label", "last_start_ago",
     "last_duration_label"].includes(id)) {
@@ -215,7 +217,6 @@ function columnsSorting(col, r0, r1) {
   return 0;
 }
 
-// Periodic Activities notes
 const periodicNotes = computed(() => [
   _i18n("internals.status_description"),
   _i18n("internals.periodic_activities_periodicity_descr"),
@@ -226,11 +227,9 @@ const periodicNotes = computed(() => [
   _i18n("internals.periodic_activities_not_shown"),
 ]);
 
-// map hash table columns
 function mapHashTableColumns(columns) {
   const isSystemIface = props.context?.is_sys_iface;
 
-  // Filter out iface_name when not on system interface
   if (!isSystemIface) {
     columns = columns.filter((c) => c.data_field !== "iface_name");
   }
@@ -240,11 +239,9 @@ function mapHashTableColumns(columns) {
       c.render_func = (_value, row) =>
         `<a href="${http_prefix}/lua/if_stats.lua?ifid=${row.iface_id}">${row.iface_name}</a>`;
     }
-
     if (c.data_field === "active" || c.data_field === "idle") {
       c.render_func = (value) => (value > 0 ? value.toLocaleString() : "—");
     }
-
     if (c.data_field === "hash_table") {
       c.render_func = (value, row) => {
         const warn = row.high_idle
@@ -253,14 +250,12 @@ function mapHashTableColumns(columns) {
         return warn + value;
       };
     }
-
     if (c.data_field === "active_pct") {
       c.render_func = (_value, row) => {
         if (!row.active && !row.idle) return "—";
-        let percentages = [row.active_pct, row.idle_pct, row.free_pct]
-        let labels = [_i18n("if_stats_overview.active"), _i18n("flow_checks.idle"), _i18n("flow_checks.free")]
-
-        return NtopUtils.createBreakdown_multi_elem(percentages, labels)
+        const percentages = [row.active_pct, row.idle_pct, row.free_pct];
+        const labels = [_i18n("if_stats_overview.active"), _i18n("flow_checks.idle"), _i18n("flow_checks.free")];
+        return NtopUtils.createBreakdown_multi_elem(percentages, labels);
       };
     }
   });
@@ -290,7 +285,6 @@ function mapPeriodicActivitiesColumns(columns) {
         return warn + value;
       };
     }
-
     if (c.data_field === "busy_pct") {
       c.render_func = (_value, row) =>
         NtopUtils.createBreakdown(
@@ -300,7 +294,6 @@ function mapPeriodicActivitiesColumns(columns) {
           `${_i18n("available")} ${row.available_pct}%`
         );
     }
-
     if (c.data_field === "state") {
       c.render_func = (value) => {
         if (value === "running")
@@ -310,23 +303,19 @@ function mapPeriodicActivitiesColumns(columns) {
         return `<span class="badge bg-secondary">${_i18n("internals.sleeping")}</span>`;
       };
     }
-
     if (c.data_field === "progress") {
       c.render_func = (value) => (value != null ? value + " %" : "—");
     }
-
     if (c.data_field === "tot_not_executed" || c.data_field === "tot_running_slow") {
       c.render_func = (value) =>
         value > 0
           ? `<span class="text-warning">${value.toLocaleString()}</span>`
           : "0";
     }
-
     if (["ts_writes", "ts_drops", "snmp_fat_mibs", "snmp_other_mibs"].includes(c.data_field)) {
       c.render_func = (value) =>
         value != null && value > 0 ? value.toLocaleString() : "—";
     }
-
     if (["last_start_ago", "last_duration_label", "periodicity_label", "max_duration_label"].includes(c.data_field)) {
       c.render_func = (value) => value || "—";
     }
@@ -335,25 +324,18 @@ function mapPeriodicActivitiesColumns(columns) {
 }
 
 function mapChecksColumns(columns) {
-  const formatMs     = formatterUtils.getFormatter("ms");
+  const formatMs = formatterUtils.getFormatter("ms");
   const formatNumber = formatterUtils.getFormatter("number");
-
   columns.forEach((c) => {
     if (c.data_field === "name") {
-      // Try i18n key "flow_checks_config.<name>", fall back to raw name
-      c.render_func = (value) => {
-        return _i18n(`flow_checks_config.${value}`) || value;
-      };
+      c.render_func = (value) => _i18n(`flow_checks_config.${value}`) || value;
     }
-
     if (c.data_field === "num_filtered") {
       c.render_func = (value) => formatNumber(value ?? 0);
     }
-
     if (c.data_field === "exec_time_ms") {
       c.render_func = (value) => (value != null ? formatMs(value) : "");
     }
-
     if (c.data_field === "availability") {
       c.render_func = (value) => {
         if (!value || value === "Community") return value || "Community";
@@ -366,10 +348,10 @@ function mapChecksColumns(columns) {
 
 onMounted(() => {
   const selected_tab = ntopng_url_manager.get_url_entry("tab");
-  console.log(selected_tab)
-  switch_tab(selected_tab);
-})
-
+  if (selected_tab && visibleTabs.value.some(t => t.id === selected_tab)) {
+    activeTab.value = selected_tab;
+  }
+});
 </script>
 
 <style scoped>
