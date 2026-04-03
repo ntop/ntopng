@@ -2262,6 +2262,7 @@ local known_parameters = {
    ["chatId"] = validateUUID,
    ["sequence"] = validateNumber,
    ["title"] = validateUnquoted,
+   ["concise"] = validateBool,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,

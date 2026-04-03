@@ -7169,6 +7169,7 @@ local lang = {
     ["hide_evidence"] = "Hide Evidence",
     ["time_range"] = "Time Range",
     ["back_to_chat"] = "Back To Chat",
+    ["concise_mode"] = "Concise Mode",
     ["no_usage_data"] = "No Usage Data Yet",
     ["token_breakdown"] = "Token Breakdown",
     ["prompt_tokens"] = "Prompt Tokens",

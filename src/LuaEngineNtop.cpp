@@ -3370,7 +3370,8 @@ static int ntop_http_multi_auth_token(lua_State* vm, HttpMethod method) {
 
   HttpGetPostOptions opts;
   memset(&opts, 0, sizeof(opts));
-  opts.user_header_token    = auth_token;
+  //opts.user_header_token    = auth_token;
+  opts.bearer    = auth_token;
   opts.connect_timeout      = connection_timeout;
   opts.max_duration_timeout = lifetime_timeout;
   opts.return_content       = return_content;

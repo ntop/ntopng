@@ -48,10 +48,11 @@
         </div>
 
         <!-- Back to chat + refresh -->
-        <div class="d-flex align-items-end gap-2 ms-auto">
-          <a v-if="context.chat_url" :href="context.chat_url" class="ai-back-btn">
+        <div class="d-flex gap-2">
+          <a v-if="chatUrl" :href="chatUrl" class="ai-back-btn">
             <i class="fas fa-comment-alt me-1"></i>{{ _i18n('llm.back_to_chat')}}
           </a>
+          
           <button class="ai-refresh-btn" @click="applyFilters" :title="_i18n('refresh')" :disabled="loading">
             <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
           </button>
@@ -257,6 +258,7 @@ const byUser = ref([]);
 
 // Triggers badge refresh after data is loaded
 const badgeFilters = ref({});
+const chatUrl = ref(`${http_prefix}/lua/pro/nanalyst.lua`);
 
 // Table refs for manual refresh on filter changes
 const modelTableRef = ref(null);
