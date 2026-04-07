@@ -188,9 +188,11 @@ import { default as LineChart } from "./charts/line-chart.vue";
 import { default as PeityChart } from "./charts/peity.vue";
 
 import { default as Chatbot } from "./chatbot.vue";
+import { default as PageChatbot } from "./page-chatbot.vue";
 
 let ntopVue = {
     Chatbot: Chatbot,
+    PageChatbot: PageChatbot,
     
     // graphs
     MultiPieChart: MultiPieChart,

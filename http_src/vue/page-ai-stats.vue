@@ -47,12 +47,17 @@
           </select>
         </div>
 
-        <!-- Back to chat + refresh -->
-        <div class="d-flex gap-2">
+        <!-- Back to chat + Register Model + refresh -->
+        <div class="d-flex gap-2 ms-auto align-items-end">
           <a v-if="chatUrl" :href="chatUrl" class="ai-back-btn">
             <i class="fas fa-comment-alt me-1"></i>{{ _i18n('llm.back_to_chat')}}
           </a>
-          
+
+          <button v-if="context.is_admin" class="ai-back-btn"
+            @click="modalPriceRef.show(null)">
+            <i class="fas fa-tag me-1"></i>{{ _i18n('llm.register_model') }}
+          </button>
+
           <button class="ai-refresh-btn" @click="applyFilters" :title="_i18n('refresh')" :disabled="loading">
             <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
           </button>
@@ -77,7 +82,7 @@
     <!-- Content -->
     <template v-else>
 
-      <!-- KPI badges -->
+      <!-- KPI badges row 1: usage -->
       <div class="row g-3 mb-3">
 
         <div class="col-6 col-xl-3">
@@ -104,6 +109,39 @@
         <div class="col-6 col-xl-3">
           <div class="ai-kpi-purple rounded-3 p-3">
             <BadgeComponent id="kpi-chats" :params="kpiChatsParams" :get_component_data="kpiChatsGetter"
+              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KPI badges row 2: cost breakdown -->
+      <div class="row g-3 mb-3">
+
+        <div class="col-6 col-xl-3">
+          <div class="ai-kpi-green rounded-3 p-3">
+            <BadgeComponent id="kpi-total-cost" :params="kpiTotalCostParams" :get_component_data="kpiTotalCostGetter"
+              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
+          </div>
+        </div>
+
+        <div class="col-6 col-xl-3">
+          <div class="ai-kpi-cyan rounded-3 p-3">
+            <BadgeComponent id="kpi-input-cost" :params="kpiInputCostParams" :get_component_data="kpiInputCostGetter"
+              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
+          </div>
+        </div>
+
+        <div class="col-6 col-xl-3">
+          <div class="ai-kpi-fuchsia rounded-3 p-3">
+            <BadgeComponent id="kpi-gen-cost" :params="kpiGenCostParams" :get_component_data="kpiGenCostGetter"
+              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
+          </div>
+        </div>
+
+        <div class="col-6 col-xl-3">
+          <div class="ai-kpi-amber rounded-3 p-3">
+            <BadgeComponent id="kpi-tool-cost" :params="kpiToolCostParams" :get_component_data="kpiToolCostGetter"
               :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
           </div>
         </div>
@@ -180,10 +218,10 @@
 
       </div>
 
-      <!-- Tables showing models used and user usage -->
+      <!-- Tables: model usage, user usage, model prices -->
       <div class="ai-section-card mb-3">
 
-        <!-- Model table -->
+        <!-- Model usage table -->
         <div v-show="activePage === 'model'">
           <TableWithConfig ref="modelTableRef" table_config_id="llm_by_model" :f_map_config="mapModelConfig"
             :csrf="context.csrf">
@@ -193,7 +231,7 @@
           </TableWithConfig>
         </div>
 
-        <!-- User table -->
+        <!-- User usage table -->
         <div v-show="activePage === 'user'">
           <TableWithConfig ref="userTableRef" table_config_id="llm_by_user" :f_map_config="mapUserConfig"
             :csrf="context.csrf">
@@ -203,17 +241,38 @@
           </TableWithConfig>
         </div>
 
+        <!-- Model prices management -->
+        <div v-show="activePage === 'prices'">
+          <TableWithConfig ref="pricesTableRef" table_config_id="llm_model_prices"
+            :f_map_config="mapPricesConfig" :csrf="context.csrf"
+            @custom_event="onPricesTableEvent">
+            <template v-slot:custom_header>
+              <NavbarTabs :tabs="tabs" :active_tab_id="activePage" @on_click="(tab) => (activePage = tab.id)" />
+            </template>
+          </TableWithConfig>
+        </div>
+
       </div>
 
     </template>
+
+    <!-- Model price add/edit modal -->
+    <ModalLlmModelPrice ref="modalPriceRef" @save="handlePriceSave" />
+
+    <!-- Delete confirmation modal -->
+    <ModalDeleteConfirm ref="modalDeleteRef" @delete="handlePriceDelete" />
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import { default as BadgeComponent } from "./dashboard-badge.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
+import { default as ModalLlmModelPrice } from "./modal-llm-model-price.vue";
+import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -231,12 +290,12 @@ const timeRanges = [
 ];
 const rangeSeconds = { "1h": 3600, "6h": 21600, "24h": 86400, "7d": 604800, "30d": 2592000 };
 
-// Navbar Tabs
+// Navbar tabs
 const activePage = ref("model");
-
 const tabs = [
-  { id: "model", label_i18n: "llm.usage_by_model" },
-  { id: "user", label_i18n: "llm.usage_by_user" },
+  { id: "model",  label_i18n: "llm.usage_by_model" },
+  { id: "user",   label_i18n: "llm.usage_by_user" },
+  { id: "prices", label_i18n: "llm.model_prices" },
 ];
 
 // State
@@ -256,13 +315,24 @@ const byModel = ref([]);
 const byCallType = ref([]);
 const byUser = ref([]);
 
-// Triggers badge refresh after data is loaded
+// Model prices (from ClickHouse)
+const modelPrices = ref([]);
+
+// Modal refs
+const modalPriceRef  = ref(null);
+const modalDeleteRef = ref(null);
+
+// Prices table ref
+const pricesTableRef = ref(null);
+const pendingDeleteRow = ref(null);
+
+// Badge triggers
 const badgeFilters = ref({});
 const chatUrl = ref(`${http_prefix}/lua/pro/nanalyst.lua`);
 
-// Table refs for manual refresh on filter changes
+// Table refs
 const modelTableRef = ref(null);
-const userTableRef = ref(null);
+const userTableRef  = ref(null);
 
 // Computed
 const hasData = computed(() => summary.value.total_calls && parseInt(summary.value.total_calls) > 0);
@@ -276,6 +346,45 @@ const filteredModels = computed(() =>
 const maxCallTypeCalls = computed(() =>
   Math.max(...byCallType.value.map(c => parseInt(c.calls) || 0), 1)
 );
+
+const priceMap = computed(() => {
+  const m = {};
+  for (const p of modelPrices.value) {
+    m[`${p.provider}::${p.model}`] = p;
+  }
+  return m;
+});
+
+function getPriceFor(provider, model) {
+  return priceMap.value[`${provider}::${model}`] || { input_price_usd: 0, output_price_usd: 0 };
+}
+
+const toolCallTokens = computed(() => {
+  const row = byCallType.value.find(c => c.call_type === 'tool_followup');
+  return {
+    prompt:     parseInt(row?.prompt_tokens)     || 0,
+    completion: parseInt(row?.completion_tokens) || 0,
+  };
+});
+
+const costBreakdown = computed(() => {
+  let inputCost = 0, outputCost = 0;
+  for (const row of byModel.value) {
+    const p = getPriceFor(row.provider, row.model);
+    inputCost  += (parseInt(row.prompt_tokens)     || 0) / 1_000_000 * (parseFloat(p.input_price_usd)  || 0);
+    outputCost += (parseInt(row.completion_tokens) || 0) / 1_000_000 * (parseFloat(p.output_price_usd) || 0);
+  }
+  const total = inputCost + outputCost;
+
+  const avgInputPrice  = (parseInt(summary.value.total_prompt_tokens)     || 0) > 0
+    ? inputCost  / parseInt(summary.value.total_prompt_tokens)     * 1_000_000 : 0;
+  const avgOutputPrice = (parseInt(summary.value.total_completion_tokens) || 0) > 0
+    ? outputCost / parseInt(summary.value.total_completion_tokens) * 1_000_000 : 0;
+  const toolCallCost = toolCallTokens.value.prompt     / 1_000_000 * avgInputPrice
+                     + toolCallTokens.value.completion / 1_000_000 * avgOutputPrice;
+
+  return { total, inputCost, outputCost, toolCallCost };
+});
 
 // Formatters
 function fmtNumber(v) {
@@ -291,6 +400,19 @@ function fmtMs(v) {
   if (ms >= 1000) return (ms / 1000).toFixed(1) + "s";
   return Math.round(ms) + "ms";
 }
+function fmtCost(v) {
+  const n = parseFloat(v) || 0;
+  if (n === 0) return '$0.00';
+  if (n < 0.0001) return '<$0.0001';
+  if (n >= 1000) return '$' + n.toLocaleString('en', { maximumFractionDigits: 2 });
+  if (n >= 1) return '$' + n.toFixed(2);
+  return '$' + n.toFixed(4);
+}
+function fmtPrice(v) {
+  const n = parseFloat(v) || 0;
+  if (n === 0) return '0.00';
+  return n.toFixed(n < 1 ? 4 : 2);
+}
 function pctOf(part, total) {
   const p = parseFloat(part) || 0, t = parseFloat(total) || 0;
   return t === 0 ? 0 : Math.round((p / t) * 100);
@@ -300,14 +422,15 @@ function pctOfMax(val, max) {
 }
 
 // Provider helpers
+
 function providerLabel(p) {
   if (p === "llm_anthropic") return _i18n("prefs.llm_anthropic");
-  if (p === "llm_openai") return _i18n("prefs.llm_openai");
-  if (p === "llm_local") return _i18n("prefs.llm_local");
+  if (p === "llm_openai")    return _i18n("prefs.llm_openai");
+  if (p === "llm_local")     return _i18n("prefs.llm_local");
   return p || "—";
 }
 function providerIcon(p) {
-  if (p === "llm_openai") return "bi bi-openai";
+  if (p === "llm_openai")    return "bi bi-openai";
   if (p === "llm_anthropic") return "bi bi-anthropic";
   return "fa-solid fa-microchip";
 }
@@ -320,34 +443,47 @@ function callTypeBarClass(ct) {
   return map[ct] ?? "bg-secondary";
 }
 
-// Dashboard badge setup
+// Badge setup
 
-// We provide a custom get_component_data that reads from our already-fetched
-// summary ref. The badge watches the `filters` prop — we bump `badgeFilters`
-// after applyFilters() completes so each badge re-reads the latest data.
-//
 const noopSetAttr = () => { };
 
 function makeBadgeParams(field, i18nKey, icon) {
   return { url: '/', counter_path: field, counter_formatter: 'no_formatting', i18n_name: i18nKey, icon };
 }
 
-const kpiCallsParams = makeBadgeParams('calls', 'llm.stat_total_calls', 'fas fa-bolt');
+const kpiCallsParams  = makeBadgeParams('calls',  'llm.stat_total_calls',  'fas fa-bolt');
 const kpiTokensParams = makeBadgeParams('tokens', 'llm.stat_total_tokens', 'fas fa-coins');
-const kpiAvgMsParams = makeBadgeParams('avgms', 'llm.stat_avg_response', 'fas fa-stopwatch');
-const kpiChatsParams = makeBadgeParams('chats', 'llm.stat_unique_chats', 'fas fa-comments');
+const kpiAvgMsParams  = makeBadgeParams('avgms',  'llm.stat_avg_response', 'fas fa-stopwatch');
+const kpiChatsParams  = makeBadgeParams('chats',  'llm.stat_unique_chats', 'fas fa-comments');
 
-const kpiCallsGetter = async () => ({ calls: fmtNumber(summary.value.total_calls) });
+const kpiCallsGetter  = async () => ({ calls:  fmtNumber(summary.value.total_calls) });
 const kpiTokensGetter = async () => ({ tokens: fmtTokens(summary.value.total_tokens) });
-const kpiAvgMsGetter = async () => ({ avgms: fmtMs(summary.value.avg_completion_time_ms) });
-const kpiChatsGetter = async () => ({ chats: fmtNumber(summary.value.unique_chats) });
+const kpiAvgMsGetter  = async () => ({ avgms:  fmtMs(summary.value.avg_completion_time_ms) });
+const kpiChatsGetter  = async () => ({ chats:  fmtNumber(summary.value.unique_chats) });
+
+// Cost KPI badges (row 2) — values derived from costBreakdown computed
+const kpiTotalCostParams = makeBadgeParams('total_cost', 'llm.total_cost',      'fas fa-dollar-sign');
+const kpiInputCostParams = makeBadgeParams('input_cost', 'llm.input_cost',      'fas fa-arrow-right');
+const kpiGenCostParams   = makeBadgeParams('gen_cost',   'llm.generation_cost', 'fas fa-arrow-left');
+const kpiToolCostParams  = makeBadgeParams('tool_cost',  'llm.tool_call_cost',  'fas fa-tools');
+
+const kpiTotalCostGetter = async () => ({ total_cost: fmtCost(costBreakdown.value.total) });
+const kpiInputCostGetter = async () => ({ input_cost: fmtCost(costBreakdown.value.inputCost) });
+const kpiGenCostGetter   = async () => ({ gen_cost:   fmtCost(costBreakdown.value.outputCost) });
+const kpiToolCostGetter  = async () => ({ tool_cost:  fmtCost(costBreakdown.value.toolCallCost) });
 
 // Table config mappers
+
 function mapModelConfig(config) {
-  config.get_rows = async () => ({
-    totalRowCount: byModel.value.length,
-    rows: byModel.value,
-  });
+  config.get_rows = async () => {
+    const rows = byModel.value.map(row => {
+      const p = getPriceFor(row.provider, row.model);
+      const inputCost  = (parseInt(row.prompt_tokens)     || 0) / 1_000_000 * (parseFloat(p.input_price_usd)  || 0);
+      const outputCost = (parseInt(row.completion_tokens) || 0) / 1_000_000 * (parseFloat(p.output_price_usd) || 0);
+      return { ...row, _input_cost: inputCost, _output_cost: outputCost, _total_cost: inputCost + outputCost };
+    });
+    return { totalRowCount: rows.length, rows };
+  };
 
   const add = (id, fn) => {
     const col = config.columns.find(c => c.id === id);
@@ -355,13 +491,22 @@ function mapModelConfig(config) {
   };
 
   add('provider', (d) => `<span class="d-flex align-items-center gap-1"><i class="${providerIcon(d)} small opacity-75"></i><span class="text-muted small">${providerLabel(d)}</span></span>`);
-  add('model', (d) => `<code class="small">${d ?? ''}</code>`);
-  add('calls', (d) => fmtNumber(d));
-  add('prompt_tokens', (d) => fmtTokens(d));
+  add('model',    (d) => `<code class="small">${d ?? ''}</code>`);
+  add('calls',    (d) => fmtNumber(d));
+  add('prompt_tokens',     (d) => fmtTokens(d));
   add('completion_tokens', (d) => fmtTokens(d));
-  add('total_tokens', (d) => `<strong>${fmtTokens(d)}</strong>`);
-  add('avg_ms', (d) => fmtMs(d));
-  add('max_ms', (d) => `<span class="text-muted">${fmtMs(d)}</span>`);
+  add('total_tokens',      (d) => `<strong>${fmtTokens(d)}</strong>`);
+  add('avg_ms',  (d) => fmtMs(d));
+  add('max_ms',  (d) => `<span class="text-muted">${fmtMs(d)}</span>`);
+
+  if (!config.columns.find(c => c.id === '_input_cost')) {
+    config.columns.push(
+      { id: '_input_cost',  title: _i18n('llm.input_cost'),      sortable: true, render_func: (d) => fmtCost(d) },
+      { id: '_output_cost', title: _i18n('llm.generation_cost'), sortable: true, render_func: (d) => fmtCost(d) },
+      { id: '_total_cost',  title: _i18n('llm.total_cost'),      sortable: true, render_func: (d) => fmtCost(d) },
+    );
+  }
+
   return config;
 }
 
@@ -374,13 +519,13 @@ function mapUserConfig(config) {
     const col = config.columns.find(c => c.id === id);
     if (col) col.render_func = fn;
   };
-  add('username', (d) => `<span><i class="fas fa-user-circle me-1 opacity-50"></i>${d}</span>`);
-  add('calls', (d) => fmtNumber(d));
-  add('total_tokens', (d) => `<strong>${fmtTokens(d)}</strong>`);
-  add('prompt_tokens', (d) => fmtTokens(d));
+  add('username',          (d) => `<span><i class="fas fa-user-circle me-1 opacity-50"></i>${d}</span>`);
+  add('calls',             (d) => fmtNumber(d));
+  add('total_tokens',      (d) => `<strong>${fmtTokens(d)}</strong>`);
+  add('prompt_tokens',     (d) => fmtTokens(d));
   add('completion_tokens', (d) => fmtTokens(d));
-  add('unique_chats', (d) => fmtNumber(d));
-  add('avg_ms', (d) => fmtMs(d));
+  add('unique_chats',      (d) => fmtNumber(d));
+  add('avg_ms',            (d) => fmtMs(d));
   add('token_share', (d) => {
     const pct = pctOf(d, summary.value.total_tokens);
     return `<div class="progress mb-1" style="height:5px;"><div class="progress-bar bg-primary" style="width:${pct}%"></div></div><span class="text-muted" style="font-size:0.7rem;">${pct}%</span>`;
@@ -388,12 +533,106 @@ function mapUserConfig(config) {
   return config;
 }
 
+function mapPricesConfig(config) {
+  config.get_rows = async () => ({
+    totalRowCount: modelPrices.value.length,
+    rows: modelPrices.value,
+  });
+
+  const add = (id, fn) => {
+    const col = config.columns.find(c => c.id === id);
+    if (col) col.render_func = fn;
+  };
+
+  add('provider',         (d) => `<span class="d-flex align-items-center gap-1"><i class="${providerIcon(d)} small opacity-75"></i><span class="text-muted small">${providerLabel(d)}</span></span>`);
+  add('model',            (d) => `<code class="small">${d ?? ''}</code>`);
+  add('input_price_usd',  (d) => `$${fmtPrice(d)}`);
+  add('output_price_usd', (d) => `$${fmtPrice(d)}`);
+  add('updated_at',       (d) => `${d ? d.split(' ')[0] : '—'}`);
+
+  return config;
+}
+
+function onPricesTableEvent(event) {
+  if (event.event_id === 'click_button_edit')   modalPriceRef.value.show(event.row);
+  if (event.event_id === 'click_button_delete') confirmDeletePrice(event.row);
+}
+
+// Model price updates
+
+async function handlePriceSave(formData) {
+  if (!formData._is_edit) {
+    const exists = modelPrices.value.some(
+      p => p.provider === formData.provider && p.model === formData.model
+    );
+
+    if (exists) {
+      ToastUtils.showToast({ id: 'price-duplicate', level: 'error',
+        title: _i18n('error'), body: _i18n('llm.model_already_registered'), delay: 3000 });
+      return;
+    }
+  }
+
+  try {
+    const body = new URLSearchParams({
+      provider:         formData.provider,
+      model:            formData.model,
+      input_price_usd:  formData.input_price_usd  ?? 0,
+      output_price_usd: formData.output_price_usd ?? 0,
+      csrf:             props.context?.csrf ?? "",
+      ...(formData._is_edit && { edit: "true" }),
+    });
+
+    await ntopng_utility.http_request(
+      `${http_prefix}/lua/pro/rest/v2/post/llm/upsert_model_price.lua`,
+      { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() }
+    );
+
+    await loadModelPrices();
+    modelTableRef.value?.refresh_table(true);
+    ToastUtils.showToast({ id: 'price-saved-' + Date.now(), level: 'success',
+      title: _i18n('success'), body: _i18n('llm.model_price_saved'), delay: 2000 });
+  } catch (e) {
+    console.error("Failed to save model price", e);
+    ToastUtils.showToast({ id: 'price-save-err-' + Date.now(), level: 'error',
+      title: _i18n('error'), body: e?.message || _i18n('request_failed_message'), delay: 3000 });
+  }
+}
+
+function confirmDeletePrice(row) {
+  pendingDeleteRow.value = row;
+  const title = _i18n('llm.delete_model_price');
+  const body  = _i18n('llm.confirm_delete_price_body').replace('{model}', row.model);
+  modalDeleteRef.value.show(body, title);
+}
+
+async function handlePriceDelete() {
+  const row = pendingDeleteRow.value;
+  if (!row) return;
+  try {
+    const body = new URLSearchParams({ provider: row.provider, model: row.model, csrf: props.context?.csrf ?? "" });
+    await ntopng_utility.http_request(
+      `${http_prefix}/lua/pro/rest/v2/post/llm/delete_model_price.lua`,
+      { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() }
+    );
+    await loadModelPrices();
+    modelTableRef.value?.refresh_table(true);
+    ToastUtils.showToast({ id: 'price-deleted-' + Date.now(), level: 'success',
+      title: _i18n('success'), body: _i18n('llm.model_price_deleted'), delay: 2000 });
+  } catch (e) {
+    console.error("Failed to delete model price", e);
+    ToastUtils.showToast({ id: 'price-del-err-' + Date.now(), level: 'error',
+      title: _i18n('error'), body: e?.message || _i18n('request_failed_message'), delay: 3000 });
+  } finally {
+    pendingDeleteRow.value = null;
+  }
+}
+
 // API calls
+
 async function loadFilters() {
   try {
-    const r = await fetch(`${http_prefix}/lua/pro/rest/v2/get/llm/usage_filters.lua`);
-    const json = await r.json();
-    const data = json.rsp || {};
+    const data = (await ntopng_utility.http_request(`${http_prefix}/lua/pro/rest/v2/get/llm/usage_filters.lua`)) || {};
     availableModels.value = Array.isArray(data.models) ? data.models : [];
     availableUsers.value = (Array.isArray(data.users) ? data.users : []).map(u => u.username).filter(Boolean);
     availableProviders.value = [...new Set(availableModels.value.map(m => m.provider).filter(Boolean))];
@@ -402,48 +641,81 @@ async function loadFilters() {
   }
 }
 
+async function loadModelPrices() {
+  try {
+    const rsp = (await ntopng_utility.http_request(`${http_prefix}/lua/pro/rest/v2/get/llm/model_prices.lua`)) || {};
+    modelPrices.value = Array.isArray(rsp.prices) ? rsp.prices : [];
+  } catch (e) {
+    console.error("Failed to load model prices", e);
+  } finally {
+    // Refresh cost badges, prices table, and model table (costs depend on prices)
+    badgeFilters.value = { _tick: Date.now() };
+    await nextTick();
+    pricesTableRef.value?.refresh_table(true);
+    modelTableRef.value?.refresh_table(true);
+  }
+}
+
 async function applyFilters() {
   loading.value = true;
-  const wasInit = dataInitialized.value;
-
   try {
     const now = Math.floor(Date.now() / 1000);
     const secs = rangeSeconds[selectedRange.value] || 86400;
     const params = new URLSearchParams({ epoch_begin: now - secs, epoch_end: now });
 
     if (selectedProvider.value) params.set("provider", selectedProvider.value);
-    if (selectedModel.value) params.set("model", selectedModel.value);
-    if (selectedUser.value) params.set("username", selectedUser.value);
+    if (selectedModel.value)    params.set("model",    selectedModel.value);
+    if (selectedUser.value)     params.set("username", selectedUser.value);
 
-    const r = await fetch(`${http_prefix}/lua/pro/rest/v2/get/llm/token_usage.lua?${params.toString()}`);
-    const json = await r.json();
-    const data = json.rsp || {};
+    const data = (await ntopng_utility.http_request(`${http_prefix}/lua/pro/rest/v2/get/llm/token_usage.lua?${params.toString()}`)) || {};
 
-    summary.value = data.summary || {};
-    byModel.value = Array.isArray(data.by_model) ? data.by_model : [];
+    summary.value    = data.summary      || {};
+    byModel.value    = Array.isArray(data.by_model)     ? data.by_model     : [];
     byCallType.value = Array.isArray(data.by_call_type) ? data.by_call_type : [];
-    byUser.value = Array.isArray(data.by_user) ? data.by_user : [];
+    byUser.value     = Array.isArray(data.by_user)      ? data.by_user      : [];
   } catch (e) {
     console.error("Failed to load AI usage stats", e);
   } finally {
     loading.value = false;
     dataInitialized.value = true;
-    // Trigger badge refresh now that summary is populated
     badgeFilters.value = { _tick: Date.now() };
-    
-    // On subsequent filter changes, tables are already mounted — refresh them
-    if (wasInit) {
-      await nextTick();
-      modelTableRef.value?.refresh_table(true);
-      userTableRef.value?.refresh_table(true);
-    }
+
+    await nextTick();
+    modelTableRef.value?.refresh_table(true);
+    userTableRef.value?.refresh_table(true);
   }
 }
 
+// set active tab
+watch(activePage, (newActivePage, oldActivePage) => {
+  ntopng_url_manager.set_key_to_url("tab", newActivePage);
+})
+
+// set selected range timestmap
+watch(selectedRange, (newselectedRange, oldselectedRange) => {
+  ntopng_url_manager.set_key_to_url("range", newselectedRange);
+})
+
 onMounted(async () => {
-  await loadFilters();
+  // selected navbar tab
+  const selected_tab = ntopng_url_manager.get_url_entry("tab");
+
+  if (selected_tab) {
+    activePage.value = selected_tab;
+  }
+
+  // selected time range
+  const selected_range = ntopng_url_manager.get_url_entry("range");
+
+  if (selected_range) {
+    selectedRange.value = selected_range;
+  }
+
+  // load selected filters
+  await Promise.all([loadFilters(), loadModelPrices()]);
   await applyFilters();
-});
+})
+
 </script>
 
 <style scoped>
@@ -511,9 +783,7 @@ onMounted(async () => {
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
-.ai-range-pill:hover {
-  background: rgba(0, 0, 0, .05);
-}
+.ai-range-pill:hover { background: rgba(0, 0, 0, .05); }
 
 .ai-range-pill.active {
   background: rgba(255, 143, 0, .12);
@@ -580,27 +850,19 @@ onMounted(async () => {
   color: var(--ai-orange);
 }
 
-.ai-refresh-btn:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
+.ai-refresh-btn:disabled { opacity: 0.45; cursor: default; }
 
 /* KPI badge wrappers */
-.ai-kpi-orange {
-  background: var(--ntop-orange, #FF8F00);
-}
+.ai-kpi-orange  { background: var(--ntop-orange, #FF8F00); }
+.ai-kpi-teal    { background: #0d9488; }
+.ai-kpi-blue    { background: #2563eb; }
+.ai-kpi-purple  { background: #7c3aed; }
 
-.ai-kpi-teal {
-  background: #0d9488;
-}
-
-.ai-kpi-blue {
-  background: #2563eb;
-}
-
-.ai-kpi-purple {
-  background: #7c3aed;
-}
+/* Cost KPI wrappers */
+.ai-kpi-green   { background: #059669; }
+.ai-kpi-cyan    { background: #0891b2; }
+.ai-kpi-fuchsia { background: #c026d3; }
+.ai-kpi-amber   { background: #d97706; }
 
 /* Section cards */
 .ai-section-card {
@@ -634,20 +896,10 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.ai-dot-orange {
-  background: var(--ai-orange);
-}
-
-.ai-dot-teal {
-  background: #0d9488;
-}
+.ai-dot-orange { background: var(--ai-orange); }
+.ai-dot-teal   { background: #0d9488; }
 
 /* Progress bar colors */
-.ai-bar-orange {
-  background: var(--ai-orange) !important;
-}
-
-.ai-bar-teal {
-  background: #0d9488 !important;
-}
+.ai-bar-orange { background: var(--ai-orange) !important; }
+.ai-bar-teal   { background: #0d9488 !important; }
 </style>

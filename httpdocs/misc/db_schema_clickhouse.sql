@@ -1152,6 +1152,7 @@ COMMENT 'Chat history table storing user and assistant messages for conversation
 CREATE TABLE IF NOT EXISTS ai_token_usage (
     chat_id           UUID                   COMMENT 'Links to ai_chat_history session',
     call_seq          UInt32                 COMMENT 'Iteration index within the agentic loop (1-based)',
+    chat_title        String DEFAULT ''      COMMENT 'Title of the chat (first user message, populated only on call_seq=1 of sequence=1)',
     created_at        DateTime               COMMENT 'Timestamp of this LLM API call',
     username          String                 COMMENT 'User who owns the chat',
     call_type         LowCardinality(String) COMMENT 'initial_call | tool_followup | final_response | retry',
@@ -1166,3 +1167,15 @@ CREATE TABLE IF NOT EXISTS ai_token_usage (
   PARTITION BY toYYYYMMDD(created_at)
   ORDER BY (username, chat_id, call_seq)
 COMMENT 'Per-LLM-call token accounting for cost and usage analysis';
+
+@
+
+CREATE TABLE IF NOT EXISTS ai_model_prices (
+    provider          LowCardinality(String) COMMENT 'LLM provider (llm_local, llm_anthropic, llm_openai)',
+    model             LowCardinality(String) COMMENT 'Model name',
+    input_price_usd   Float64 DEFAULT 0     COMMENT 'Cost per million input/prompt tokens in USD',
+    output_price_usd  Float64 DEFAULT 0     COMMENT 'Cost per million output/completion tokens in USD',
+    updated_at        DateTime DEFAULT now() COMMENT 'Last update timestamp'
+) ENGINE = ReplacingMergeTree(updated_at)
+  ORDER BY (provider, model)
+COMMENT 'Model pricing configuration for LLM cost calculation';

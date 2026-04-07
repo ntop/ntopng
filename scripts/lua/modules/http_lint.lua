@@ -2240,6 +2240,7 @@ local known_parameters = {
    ["view"] = validateSingleWord,
    ["enabled"] = validateBool,
    ["showGraph"] = validateBool,
+   ["range"] = validateUnquoted,
 
    -- CLASSIFICAION
    ["classification_user_id"] = validateUnquoted,
@@ -2263,6 +2264,10 @@ local known_parameters = {
    ["sequence"] = validateNumber,
    ["title"] = validateUnquoted,
    ["concise"] = validateBool,
+   ["output_price_usd"] = validateFloat,
+   ["input_price_usd"] = validateFloat,
+   ["model"] = validateUnquoted,
+   ["edit"] = validateBool,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
