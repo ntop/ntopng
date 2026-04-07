@@ -1,7 +1,7 @@
 <template>
     <!-- Select2 wrapper component with Vue integration -->
     <div class="ss-root">
-        <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple"
+        <select class="select2 form-select ss-control" ref="select2" required name="filter_type" :multiple="multiple"
             :disabled="disabled">
             <!-- Render regular options (without groups) -->
             <option class="no-wrap  p-0" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value"
@@ -604,34 +604,34 @@ defineExpose({ render });
     position: relative;
 }
 
-:deep(.select2-container) {
+.ss-root :deep(.select2-container) {
     width: 100% !important;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-selection) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection) {
     background-color: var(--input-bg, #fff);
     border: 1px solid var(--input-border, #ced4da);
     color: var(--input-text, #495057);
     border-radius: 7px;
     font-size: 0.8rem;
-    min-height: 30px;
+    min-height: 34px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-:deep(.select2-container--bootstrap-5.select2-container--focus .select2-selection),
-:deep(.select2-container--bootstrap-5.select2-container--open .select2-selection) {
+.ss-root :deep(.select2-container--bootstrap-5.select2-container--focus .select2-selection),
+.ss-root :deep(.select2-container--bootstrap-5.select2-container--open .select2-selection) {
     border-color: var(--ntop-orange, #FF8F00);
     box-shadow: 0 0 0 2px rgba(255, 143, 0, 0.18);
     outline: none;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-selection--single) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single) {
     display: flex !important;
     align-items: center !important;
-    height: 30px;
+    height: 34px;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered) {
     color: var(--input-text, #495057);
     line-height: 1 !important;
     padding-left: 0.55rem;
@@ -644,7 +644,7 @@ defineExpose({ render });
     word-break: normal !important;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow) {
     height: 100% !important;
     top: 0 !important;
     right: 6px;
@@ -652,7 +652,7 @@ defineExpose({ render });
     align-items: center;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-dropdown) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-dropdown) {
     background-color: var(--bg-surface, #fff);
     border: 1px solid var(--border-color, #dee2e6);
     border-radius: 7px;
@@ -661,12 +661,12 @@ defineExpose({ render });
     overflow: hidden;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-search--dropdown) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-search--dropdown) {
     padding: 0.4rem 0.5rem;
     border-bottom: 1px solid var(--border-subtle, #e9ecef);
 }
 
-:deep(.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field) {
     background-color: var(--input-bg, #fff);
     border: 1px solid var(--input-border, #ced4da);
     border-radius: 5px;
@@ -675,24 +675,24 @@ defineExpose({ render });
     padding: 0.2rem 0.5rem;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-results__option) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-results__option) {
     color: var(--ntop-text-color, #111);
     padding: 0.25rem 0.625rem;
     font-size: 0.8rem;
     transition: background 0.1s ease;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected]) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected]) {
     background-color: var(--ntop-blue, #37474F);
     color: #fff;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-results__option[aria-selected=true]) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-results__option[aria-selected=true]) {
     background-color: var(--bg-elevated, #f8f9fa);
     color: var(--ntop-text-color, #111);
 }
 
-:deep(.select2-container--bootstrap-5 .select2-results__group) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-results__group) {
     color: var(--ntop-muted-text-color, #37474F);
     font-size: 0.68rem;
     font-weight: 700;
@@ -702,24 +702,24 @@ defineExpose({ render });
 }
 
 /* Small size variant */
-:deep(.select2--small.select2-container--bootstrap-5 .select2-selection--single) {
+.ss-root :deep(.select2--small.select2-container--bootstrap-5 .select2-selection--single) {
     min-height: 26px !important;
     height: 26px !important;
     border-radius: 6px;
 }
 
-:deep(.select2--small .select2-selection--single .select2-selection__rendered) {
+.ss-root :deep(.select2--small .select2-selection--single .select2-selection__rendered) {
     line-height: 1 !important;
     font-size: 0.78rem;
 }
 
-:deep(.select2--small .select2-results__option) {
+.ss-root :deep(.select2--small .select2-results__option) {
     font-size: 0.78rem;
     padding: 0.2rem 0.5rem;
 }
 
 /* Multiple selection chips */
-:deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice) {
     background-color: var(--ntop-blue, #37474F);
     border: none;
     color: #fff;
@@ -729,21 +729,28 @@ defineExpose({ render });
     margin: 2px;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove) {
     color: rgba(255, 255, 255, 0.7);
     margin-right: 4px;
 }
 
-:deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover) {
+.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover) {
     color: #fff;
     background: transparent;
 }
 
 /* Disabled state */
-:deep(.select2-container--bootstrap-5.select2-container--disabled .select2-selection) {
+.ss-root :deep(.select2-container--bootstrap-5.select2-container--disabled .select2-selection) {
     background-color: var(--bg-sunken, #f1f3f5);
     color: var(--ntop-disabled-text-color, rgba(33, 37, 41, 0.5));
     cursor: not-allowed;
     border-color: var(--border-subtle, #e9ecef);
+}
+
+/* Isolate the native <select> from global .form-select overrides */
+select.ss-control {
+    font-size: 0.8rem !important;
+    min-height: 34px !important;
+    height: 34px !important;
 }
 </style>

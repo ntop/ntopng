@@ -4496,6 +4496,7 @@ local lang = {
     ["select_cols_to_export"] = "Select Columns to Export",
     ["select_all"] = "Select All",
     ["select_none"] = "Deselect All",
+    ["select_default"] = "Default",
     ["selected_cols"] = "Selected Columns",
     ["download"] = "Download",
     ["about_to_download"] = "You are about to export the following number of columns: ",

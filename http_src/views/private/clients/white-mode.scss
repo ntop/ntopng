@@ -1507,15 +1507,13 @@ span.flatpickr-weekday {
   padding: 0.25rem 0 !important;
 }
 
-/* Bootstrap form controls — unified style matching select-search.vue */
+/* Bootstrap form controls */
 .form-control,
 .form-select {
   background-color: var(--input-bg, #fff) !important;
   border: 1px solid var(--input-border, #ced4da) !important;
   color: var(--input-text, #495057) !important;
   border-radius: 7px !important;
-  font-size: 0.8rem !important;
-  min-height: 30px !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
