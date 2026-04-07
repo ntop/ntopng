@@ -273,7 +273,10 @@ int SQLiteStoreManager::execSQLQuery(lua_State* vm, const char* sql,
   if (rc != SQLITE_OK) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s\n%s", zErrMsg,
                                  sql);
+    lua_pushstring(vm, zErrMsg ? zErrMsg : "unknown error");
     sqlite3_free(zErrMsg);
+  } else {
+    lua_pushnil(vm); /* no error */
   }
 
   m.unlock(__FILE__, __LINE__);

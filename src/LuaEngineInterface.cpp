@@ -1052,10 +1052,13 @@ static int ntop_interface_exec_sql_query(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   }
 
-  if (curr_iface->execSQLQuery(vm, sql, limit_rows, wait_for_db_created) < 0)
-    lua_pushnil(vm);
-
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  if (curr_iface->execSQLQuery(vm, sql, limit_rows, wait_for_db_created) < 0) {
+    /* stack top: [empty_table, error_string] — replace empty_table with nil */
+    lua_pushnil(vm);     /* [empty_table, error_string, nil] */
+    lua_replace(vm, -3); /* [nil, error_string] */
+  }
+  /* stack top: [result_table_or_nil, error_or_nil] */
+  return 2;
 }
 
 /* ****************************************** */
