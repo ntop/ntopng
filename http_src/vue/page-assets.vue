@@ -442,7 +442,7 @@ const exec_merge_wazuh = async function () {
                     modal_merge_wazuh_info.value.show_error(err);
                     return;
                 }
-                if (!data || data.rc<0) {
+                if (data.rc<0) {
                     let err = data.rsp || _i18n("error");
                     modal_merge_wazuh_info.value.show_error(err);
                     return;
