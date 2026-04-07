@@ -11,11 +11,9 @@ local rest_utils = require("rest_utils")
 
 -- #####################################
 
-local redis_base_key = "ntopng.columns_config.%s.%s"
+local redis_base_key = "ntopng.prefs.columns_config.%s.%s"
 
 -- #####################################
-
-
 -- @brief Retrieves columns configurations
 local function get_column_config()
    require "lua_utils"
@@ -28,6 +26,7 @@ local function get_column_config()
    end
    
    local redis_key = string.format(redis_base_key, table_id, user_id)   
+
    local visible_columns = ntop.getCache(redis_key) or {}
    if visible_columns == nil or visible_columns == "" then
       visible_columns = {}
