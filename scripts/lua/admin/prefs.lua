@@ -989,6 +989,29 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["flow_table_probe_order"].description, h_labels, h_values, "0", "primary",
             "flow_table_probe_order", "ntopng.prefs.flow_table_probe_order")
 
+        -- Wazuh: Remove comments when Wazuh is fully implemented
+        --add_section(i18n("prefs.wazuh"))
+
+        --prefsInputFieldPrefs(subpage_active.entries["wazuh_url"].title,
+        --    subpage_active.entries["wazuh_url"].description,
+        --    "ntopng.prefs.wazuh", "wazuh_url", "", "text", true, true, true, {
+        --        attributes = { spellcheck = "false", maxlength = 255 },
+        --        pattern = getURLPattern(),
+        --        required = false
+        --    })
+
+        --prefsInputFieldPrefs(subpage_active.entries["wazuh_username"].title,
+        --    subpage_active.entries["wazuh_username"].description,
+        --    "ntopng.prefs.wazuh", "wazuh_username", "", "text", true, true, false, {
+        --        attributes = { spellcheck = "false", maxlength = 128 },
+        --    })
+
+        --prefsInputFieldPrefs(subpage_active.entries["wazuh_password"].title,
+        --    subpage_active.entries["wazuh_password"].description,
+        --    "ntopng.prefs.wazuh", "wazuh_password", "", "password", true, true, false, {
+        --        attributes = { spellcheck = "false", maxlength = 255 },
+        --    })
+
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
             i18n("save") .. '</button></th></tr>')

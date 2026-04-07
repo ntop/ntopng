@@ -180,6 +180,7 @@ import { default as ModalAddACLRule } from "./modal-add-acl-rule.vue";
 import { default as ModalEditACLRule } from "./modal-edit-acl-rule.vue";
 import { default as ModalDeleteACLRule } from "./modal-delete-acl-rule.vue";
 import { default as ModalDeleteAllACLRule } from "./modal-delete-all-acl-rules.vue";
+import { default as ModalMergeWazuhInfo } from "./modal-merge-wazuh-info.vue";
 
 /* Charts */
 import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
@@ -381,6 +382,7 @@ let ntopVue = {
     ModalEditACLRule: ModalEditACLRule,
     ModalDeleteACLRule: ModalDeleteACLRule,
     ModalDeleteAllACLRule: ModalDeleteAllACLRule,
+    ModalMergeWazuhInfo: ModalMergeWazuhInfo,
 
     Vue: Vue,
 };

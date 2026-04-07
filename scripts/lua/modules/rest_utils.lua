@@ -386,6 +386,12 @@ local rest_utils = {
                 str = "DELETE_EXPORTER_SITE_FAILED"
             },
 
+            merge_wazuh_info_failed = {
+                http_code = 409,
+                rc = -65,
+                str = "MERGE_WAZUH_INFO_FAILED"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }

@@ -43,6 +43,11 @@
                     <i class="fas fa fa-trash"></i>
                     {{ _i18n("asset_details.delete_asset_older_title") }}
                 </button>
+                <button v-if="props.context.wazuh_available" type="button" @click="open_merge_wazuh_modal"
+                    class="btn btn-warning ms-1">
+                    <i class="fas fa-heartbeat"></i>
+                    {{ _i18n("asset_details.merge_wazuh_info") }}
+                </button>
             </div>
         </div>
     </div>
@@ -53,6 +58,9 @@
     </ModalDeleteAssets>
     <ModalDeleteAssetsEpoch ref="modal_delete_assets_epoch" :context="context" @delete="refresh_table">
     </ModalDeleteAssetsEpoch>
+    <ModalMergeWazuhInfo ref="modal_merge_wazuh_info" @merge="exec_merge_wazuh"> 
+    </ModalMergeWazuhInfo>
+
 </template>
 
 <script setup>
@@ -64,6 +72,7 @@ import { default as osUtils } from "../utilities/map/os-utils.js";
 import { default as ModalDeleteAssets } from "./modal-delete-assets.vue";
 import { default as ModalDeleteAssetsEpoch } from "./modal-delete-assets-epoch.vue";
 import { default as ModalImportAssets } from "./modal-import-assets.vue"
+import { default as ModalMergeWazuhInfo } from "./modal-merge-wazuh-info.vue"
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import FormatterUtils from "../utilities/formatter-utils.js";
 
@@ -78,9 +87,11 @@ const _i18n = (t) => i18n(t);
 /* ************************************** */
 
 const import_assets_url = `${http_prefix}/lua/pro/rest/v2/add/assets/assets.lua`;
+const merge_wazuh_info_url = `${http_prefix}/lua/pro/rest/v2/set/assets/wazuh_info.lua`;
 // For the export, it’s necessary to know if the page is the SNMP page
 const export_assets_url = `${http_prefix}/lua/pro/rest/v2/export/assets/assets.lua?is_snmp=${props.context.is_system_interface}`
 const modal_import_assets = ref();
+const modal_merge_wazuh_info = ref();
 
 const host_filters_key = ref(0);
 const table_id = ref(props.context.is_system_interface ? 'assets_snmp' : 'assets');
@@ -406,6 +417,39 @@ function click_button_historical_flows(event) {
 function click_button_host_details(event) {
     const row = event.row;
     window.open(create_button_host_details(row));
+}
+
+/* ************************************** */
+
+function open_merge_wazuh_modal() { modal_merge_wazuh_info.value.show(); }
+
+const exec_merge_wazuh = async function () {
+    const requestParams = {
+        csrf: props.context.csrf,
+        ifid: props.context.ifid,
+    };
+
+    const headers = { 'Content-Type': 'application/json' };
+
+    ntopng_utility.http_request(merge_wazuh_info_url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestParams)
+    },false, true, true)
+            .then(data => {
+                if (!data) {
+                    let err =_i18n("error");
+                    modal_merge_wazuh_info.value.show_error(err);
+                    return;
+                }
+                if (!data || data.rc<0) {
+                    let err = data.rsp || _i18n("error");
+                    modal_merge_wazuh_info.value.show_error(err);
+                    return;
+                }
+                modal_merge_wazuh_info.value.show_success();
+            })
+            .catch(err => console.error('Error during wazuh info merge:', err))
 }
 
 /* ************************************** */

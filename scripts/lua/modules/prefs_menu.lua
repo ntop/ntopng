@@ -482,6 +482,19 @@ local menu_subpages = {{
         flow_table_probe_order = {
             title = i18n("prefs.flow_table_probe_order_title"),
             description = i18n("prefs.flow_table_probe_order_description")
+        -- Remove comments when Wazuh is fully implemented
+        --},
+        --wazuh_url = {
+        --    title = i18n("prefs.wazuh_url_title"),
+        --    description = i18n("prefs.wazuh_url_description")
+        --},
+        --wazuh_username = {
+        --    title = i18n("prefs.wazuh_username_title"),
+        --    description = i18n("prefs.wazuh_username_description")
+        --},
+        --wazuh_password = {
+        --    title = i18n("prefs.wazuh_password_title"),
+        --    description = i18n("prefs.wazuh_password_description")
         }
     }
 }, {

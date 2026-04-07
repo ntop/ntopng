@@ -2264,6 +2264,11 @@ local known_parameters = {
    ["title"] = validateUnquoted,
    ["concise"] = validateBool,
 
+   -- WAZUH
+   ["wazuh_url"] = validateUnquoted,
+   ["wazuh_password"] = {passwordCleanup, validatePassword},
+   ["wazuh_username"] = validateUnquoted,
+
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
    ["discovered_host_scan_type"] = validateListOfTypeInline(validateSingleWord),
