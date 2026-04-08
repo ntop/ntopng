@@ -502,8 +502,7 @@ ul.navbar-nav li.nav-item.active> a.active {
   border: 1px solid var(--input-border) !important;
 }
 
-.form-control:disabled,
-.form-control[readonly] {
+.form-control:disabled {
   background-color: #696969;
 }
 

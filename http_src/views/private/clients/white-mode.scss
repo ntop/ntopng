@@ -1527,7 +1527,6 @@ span.flatpickr-weekday {
 }
 
 .form-control:disabled,
-.form-control[readonly],
 .form-select:disabled {
   background-color: var(--bg-sunken, #f1f3f5) !important;
   color: var(--ntop-disabled-text-color, rgba(33, 37, 41, 0.5)) !important;
@@ -1550,8 +1549,6 @@ span.flatpickr-weekday {
 
 .form-control-sm,
 .form-select-sm {
-  min-height: 26px !important;
-  height: 26px !important;
   border-radius: 6px !important;
   font-size: 0.9rem !important;
 }
