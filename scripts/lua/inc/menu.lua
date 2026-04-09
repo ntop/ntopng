@@ -1000,11 +1000,18 @@ local action_urls = {}
 
 for v, k in pairs(iface_names) do
     interface.select(k)
+    
+    local ifid_stats = interface.getStats()
+    local is_pcap_dump = interface.isPcapDumpInterface()
+    local is_sub_interface = interface.isSubInterface()
+    local is_packet_interface = interface.isPacketInterface()
+    local is_zmq_interface = interface.isZMQInterface()
+
     ifnames[ifid_stats.id] = k
     action_urls[ifid_stats.id] = page_utils.switch_interface_form_action_url(ifId,
                                                                            ifid_stats.id,
                                                                            ifid_stats.type)
-    -- io.write("["..k.."/"..v.."]["..ifid_stats.id.."] "..ifnames[ifid_stats.id].."="..ifid_stats.id.."\n")
+
     if is_pcap_dump then pcapdump[ifid_stats.id] = true end
     if (ifid_stats.isView == true) then views[ifid_stats.id] = true end
     if (is_sub_interface) then dynamic[ifid_stats.id] = true end
@@ -1015,6 +1022,7 @@ for v, k in pairs(iface_names) do
         packetinterfaces[ifid_stats.id] = true
     end
     if (is_zmq_interface) then zmqinterfaces[ifid_stats.id] = true end
+    
     if (ifid_stats.stats_since_reset.drops * 100 >
         ifid_stats.stats_since_reset.packets) then drops[ifid_stats.id] = true end
 
@@ -1022,9 +1030,11 @@ for v, k in pairs(iface_names) do
 
     local descr = getHumanReadableInterfaceName(v)
 
-    if is_windows and string.contains(descr, "{") then -- Windows
+    -- Note: Ensure is_windows and is_enterprise_M are defined globally 
+    -- or check them here using ntop.isWindows(), etc.
+    if ntop.isWindows() and string.contains(descr, "{") then 
         descr = ifid_stats.description
-    elseif is_enterprise_M and is_sub_interface and
+    elseif ntop.isEnterpriseM() and is_sub_interface and
         ifid_stats.dynamic_interface_probe_ip then
         -- Attempt at printing SNMP information rather than plain disaggregated IPs
         local snmp_utils = require "snmp_utils"
@@ -1084,13 +1094,12 @@ for v, k in pairs(iface_names) do
             end
         end
     end
-
     --   tprint({k, dynamic[k], ifid_stats.dynamic_interface_probe_ip, ifid_stats.dynamic_interface_inifidx})
 
     ifHdescr[ifid_stats.id] = descr
 
-    if (ifid_stats.id == ifid_stats.id) then
-        observationPoints = obs_points
+    if (current_ifid == ifid_stats.id) then
+        observationPoints = interface.getObsPointsInfo()["ObsPoints"] or {}
     end
 end
 
@@ -1125,11 +1134,12 @@ local context = {
     ifCustom = ifCustom,
     action_urls = action_urls,
     is_system_interface = is_system_interface,
-    currentIfaceId = ifid_stats.id,
+    currentIfaceId = current_ifid,
     observationPoints = observationPoints,
     observationPointId = observationPointId
 }
 
+tprint(context)
 print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 
 -- ##############################################

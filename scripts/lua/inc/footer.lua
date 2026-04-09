@@ -16,8 +16,11 @@ local maxSpeed
 
 local ifid = interface.getId()
 local _ifstats = interface.getStats()
+local http_prefix = ntop.getHttpPrefix()
+local random_csrf = ntop.getRandomCSRFValue()
+local is_pcap_dump_iface = interface.isPcapDumpInterface()
 
-if not interface.isPcapDumpInterface() and not have_nedge then
+if not is_pcap_dump_iface and not have_nedge then
     -- if the speed in not custom we try to read the speed from the interface
     -- and, as a final resort, we use 1Gbps
     if tonumber(_ifstats.speed) ~= nil then
@@ -25,7 +28,7 @@ if not interface.isPcapDumpInterface() and not have_nedge then
     else
         maxSpeed = 1000000000 -- 1 Gbit
     end
-end -- closes interface.isPcapDumpInterface() == false
+end -- closes is_pcap_dump_iface == false
 
 if not info.oem then
 
@@ -87,18 +90,18 @@ print([[
 			$(`.notification button.dismiss`).click(function() {
 				const $toast = $(this).parents('.notification');
 				const id = $toast.data("toastId");
-				ToastUtils.dismissToast(id, "]] .. ntop.getRandomCSRFValue() ..
+				ToastUtils.dismissToast(id, "]] .. random_csrf ..
           [[", (data) =>{
 					if (data.success) $toast.toast('hide');
 				});
 			});
 
 			$(`.toggle-dark-theme`).click(function() {
-				const request = $.post(`]] .. ntop.getHttpPrefix() ..
+				const request = $.post(`]] .. http_prefix ..
           [[/lua/update_prefs.lua`, {
 					action: 'toggle_theme', toggle_dark_theme: ]] ..
           tostring(not page_utils.is_dark_mode_enabled()) .. [[,
-					csrf: "]] .. ntop.getRandomCSRFValue() .. [["
+					csrf: "]] .. random_csrf .. [["
 				});
 				request.done(function(res) {
 					if (res.success) location.reload();
@@ -127,13 +130,13 @@ if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 		<script type="text/javascript">
 
 		 const restartCSRF = ']]
-    print(ntop.getRandomCSRFValue())
+    print(random_csrf)
     print [[';
 		 const restartService = function() {
 			 $.ajax({
 			   type: 'POST',
 			   url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/admin/service_restart.lua',
 			   data: {
 				 csrf: restartCSRF
@@ -231,7 +234,7 @@ const footerRefresh = function() {
 	$.ajax({
 		type: 'GET',
 		url: ']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/rest/v2/get/interface/data.lua',
 		data: { ifid: ]]
 print(tostring(ifid))
@@ -273,7 +276,7 @@ ntopng_events_manager.emit_custom_event(ntopng_custom_events.GET_INTERFACE_DATA,
         updatingChart_totals[1].text(values.join(",")).change();
   ]]
 
-if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
+if (is_pcap_dump_iface == false) and (not have_nedge) then
     print [[
         const v = Math.round(Math.min((rsp.throughput_bps * 8 *100)/]]
     print(string.format("%u", maxSpeed))
@@ -297,7 +300,7 @@ print [[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
 
 				if(rsp.degraded_performance) {
 				   	msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue'>"
 					msg += "<span class='badge bg-warning'><i class='fas fa-exclamation-triangle data-bs-toggle='tooltip' data-bs-placement='bottom' title=']]
 print(i18n("internals.degraded_performance"))
@@ -317,7 +320,7 @@ print [[) {
                                                 else if(rsp.engaged_alerts_warning > 0) alerts_badge = "bg-warning";
 
 						msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/alert_stats.lua?ifid=]]
 print(tostring(ifid))
 print [[&status=engaged'>"
@@ -326,7 +329,7 @@ print [[&status=engaged'>"
 
 					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/flows_stats.lua?status=warning'>"
 						msg += "<span class=\"badge bg-warning\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=']]
 print(i18n("flow_details.alerted_flows"))
@@ -336,7 +339,7 @@ print [[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 
 					if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/flows_stats.lua?status=error'>"
 						msg += "<span class=\"badge bg-danger\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=']]
 print(i18n("flow_details.dangerous_flows"))
@@ -346,7 +349,7 @@ print [[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 
 					if(rsp.active_discovery_active === true) {
 						msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/discover.lua'>"
 						msg += "<span class=\"badge bg-warning\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=']]
 print(i18n("prefs.network_discovery_running"))
@@ -360,7 +363,7 @@ print [['><i class=\"fas fa-project-diagram\"></i></span></a>";
 
 				if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!systemInterfaceEnabled)) {
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/monitor/influxdb_monitor.lua?ifid=]]
 print(tostring(ifid))
 print [[&page=alerts#tab-table-engaged-alerts'>"
@@ -373,7 +376,7 @@ print [[&page=alerts#tab-table-engaged-alerts'>"
 
 				if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/hosts_stats.lua?mode=local'>";
 					msg += "<span data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]]
 print(i18n("local_hosts"))
@@ -386,7 +389,7 @@ print [[\" class=\"badge bg-success\">";
 				const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
 				if(num_remote_hosts > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/hosts_stats.lua?mode=remote'>";
 					var remote_hosts_label = "]]
 print(i18n("remote_hosts"))
@@ -413,7 +416,7 @@ print [[";
 print(i18n("mac_stats.layer_2_source_devices", {device_type = ""}))
 print [[";
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/macs_stats.lua?devices_mode=source_macs_only'>";
 
 					if (rsp.macs_pctg < alarm_threshold_low) {
@@ -431,7 +434,7 @@ print [[/lua/macs_stats.lua?devices_mode=source_macs_only'>";
                     
 				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
           msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/flows_stats.lua'>";
           const flows_label = "]]
 print(i18n("live_flows"))
@@ -457,7 +460,7 @@ print [[) {
 print(stats_utils.UPPER_BOUND_WARNING_EXPORTS)
 print [[) ? 'warning' : 'danger';
 							msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/if_stats.lua'><span class=\"badge bg-"+badge_class+"\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]] print(i18n('flow_export_drops')) print[[\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.formatValue(rsp.db.flow_export_drops, 1)+" DB Export drop";
 							if(rsp.db.flow_export_drops > 1) msg += "s";
 							msg += "</span></a>";
@@ -465,19 +468,19 @@ print [[/lua/if_stats.lua'><span class=\"badge bg-"+badge_class+"\" data-bs-togg
 					}
 					if (rsp.dropped_zmq_msg > 0) {
 						msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/if_stats.lua'><span class=\"badge bg-warning\"><i class=\"fas fa-tint\" style=\"color: #FFFFFF;\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]] print(i18n('dropping_zmq_msg')) print[[\"></i> "+NtopUtils.formatValue(rsp.dropped_zmq_msg, 1)+" ZMQ Drops</span></a>";
 					}
 					if (rsp.dropped_flows > 0) {
 						msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/if_stats.lua'><span class=\"badge bg-warning\"><i class=\"fas fa-tint\" style=\"color: #FFFFFF;\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]] print(i18n('dropping_flows')) print[[\"></i> "+NtopUtils.formatValue(rsp.dropped_flows, 1)+" Flows Drops</span></a>";
 					}
 				}
 
 				if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!systemInterfaceEnabled)) {
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/live_capture_stats.lua'>";
 					msg += "<span class=\"badge bg-primary\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]] print(i18n('live_capture.active_live_captures')) print[[\">";
 					msg += NtopUtils.addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
@@ -497,7 +500,7 @@ print [[";
 					}
 
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/if_stats.lua?ifid=]]
 print(tostring(ifid))
 print [[&page=traffic_recording&tab=status'>";
@@ -514,7 +517,7 @@ print [[";
 					if (rsp.traffic_extraction == "ready") status_label="primary";
 
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/if_stats.lua?ifid=]]
 print(tostring(ifid))
 print [[&page=traffic_recording&tab=jobs'>";
@@ -524,7 +527,7 @@ print [[&page=traffic_recording&tab=jobs'>";
 
 				if (rsp.vs_in_progress != undefined && rsp.vs_in_progress > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/vulnerability_scan.lua'>";
 					msg += "<span class=\"badge bg-primary\" data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]] print(i18n('vulnerability_scan.vulnerability_scan_in_progress')) print[[\">";
 					msg += NtopUtils.addCommas(rsp.vs_in_progress) +" <i class=\"fas fa-satellite-dish\"></i></span></a>";
@@ -532,7 +535,7 @@ print [[/lua/vulnerability_scan.lua'>";
 
                                 if(rsp.ntopcloud == true) {
                                        msg += "<a href=']]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/system_stats.lua?ifid=-1&page=ntopcloud'>"; 
                                        msg += "<blink><span data-bs-toggle='tooltip' data-bs-placement='bottom' title=\"]] print(i18n('connected_to_the_cloud')) print[[\" class=\"badge bg-success\">ntop <i class=\"fas fa-cloud\"></i></span></blink></a>";
                                 } else  {
@@ -571,7 +574,7 @@ print [[
 			} catch(e) {
 				console.warn(e);
 				/* alert("JSON Error (session expired?): logging out"); window.location.replace("]]
-print(ntop.getHttpPrefix())
+print(http_prefix)
 print [[/lua/logout.lua");  */
 			}
 		},
@@ -584,7 +587,7 @@ print [[/lua/logout.lua");  */
 $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 	if((response.status == 403) && (response.responseText == "Login Required"))
 		window.location.href = "]]
-print(ntop.getHttpPrefix() .. "/lua/login.lua")
+print(http_prefix .. "/lua/login.lua")
 print [[";
 });
 
@@ -639,13 +642,13 @@ print([[
 if have_nedge then
     print [[<form id="powerOffForm" method="post">
     <input name="csrf" value="]]
-    print(ntop.getRandomCSRFValue())
+    print(random_csrf)
     print [[" type="hidden" />
     <input name="poweroff" value="" type="hidden" />
   </form>
   <form id="rebootForm" method="post">
     <input name="csrf" value="]]
-    print(ntop.getRandomCSRFValue())
+    print(random_csrf)
     print [[" type="hidden" />
     <input name="reboot" value="" type="hidden" />
   </form>]]
@@ -709,7 +712,7 @@ if hasSoftwareUpdatesSupport() then
   $('#updates-install-li').hide();
 
   const updates_csrf = ']]
-    print(ntop.getRandomCSRFValue())
+    print(random_csrf)
     print [[';
 
   /* Updates status */
@@ -729,7 +732,7 @@ if hasSoftwareUpdatesSupport() then
       $.ajax({
         type: 'POST',
         url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/install_update.lua',
         data: {
           csrf: updates_csrf
@@ -752,7 +755,7 @@ if hasSoftwareUpdatesSupport() then
     $.ajax({
       type: 'POST',
       url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/check_update.lua',
       data: {
         csrf: updates_csrf,
@@ -789,7 +792,7 @@ if hasSoftwareUpdatesSupport() then
     $.ajax({
       type: 'GET',
         url: ']]
-    print(ntop.getHttpPrefix())
+    print(http_prefix)
     print [[/lua/check_update.lua',
         data: {},
         success: function(rsp) {
