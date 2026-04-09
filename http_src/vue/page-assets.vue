@@ -103,6 +103,7 @@ const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' ari
 const system_host_icon = "<i class='fas fa-flag' title='" + i18n("system_host") + "'></i>"
 const hidden_from_top_icon = "<i class='fas fa-eye-slash' title='" + i18n("hidden_from_top_talkers") + "'></i>"
 const dhcp_host_icon = '<i class="fa-solid fa-bolt" title="DHCP Host"></i>'
+const wazuh_host_icon = '<i class="fa-solid fa-w" title="Wazuh Assets Info Available"></i>'
 const blacklisted_icon = "<i class='fas fa-ban fa-sm' title='" + i18n("hosts_stats.blacklisted") + "'></i>"
 const crawler_bot_scanner_host_icon = "<i class='fas fa-spider fa-sm' title='" + i18n("hosts_stats.crawler_bot_scanner") + "'></i>"
 const multicast_icon = "<abbr title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr>"
@@ -146,6 +147,9 @@ const map_table_def_columns = (columns) => {
             }
             if (!dataUtils.isEmptyOrNull(host.dhcp_host)) {
                 icons = `${icons} ${dhcp_host_icon}`
+            }
+            if (!dataUtils.isEmptyOrNull(host.wazuh_host)) {
+                icons = `${icons} ${wazuh_host_icon}`
             }
             if (!dataUtils.isEmptyOrNull(host.blocking_traffic_policy)) {
                 icons = `${icons} ${blocking_quota_icon}`
@@ -447,7 +451,7 @@ const exec_merge_wazuh = async function () {
                     modal_merge_wazuh_info.value.show_error(err);
                     return;
                 }
-                modal_merge_wazuh_info.value.show_success();
+                modal_merge_wazuh_info.value.show_success(data.rsp);
             })
             .catch(err => console.error('Error during wazuh info merge:', err))
 }

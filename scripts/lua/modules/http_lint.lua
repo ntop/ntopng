@@ -2273,6 +2273,7 @@ local known_parameters = {
    ["wazuh_url"] = validateUnquoted,
    ["wazuh_password"] = {passwordCleanup, validatePassword},
    ["wazuh_username"] = validateUnquoted,
+   ["wazuh_available"] = validateNumber,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,

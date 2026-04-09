@@ -18,8 +18,25 @@
 
             <!-- Success state: displayed when the merge operation completes successfully -->
             <div v-if="state == 'success'" class="alert alert-success text-start">
-                <i class="fas fa-check-circle me-1"></i>
-                {{ _i18n("asset_details.merge_wazuh_info_success") }}
+                <div class="mb-2">
+                    <i class="fas fa-check-circle me-1"></i>
+                    {{ _i18n("asset_details.merge_wazuh_info_success") }}
+                </div>
+                <hr class="my-2">
+                <div class="d-flex gap-4">
+                    <div class="text-center">
+                        <div class="fw-bold fs-5">{{ merge_stats.updated }}</div>
+                        <small>{{ _i18n("asset_details.merge_wazuh_info_updated") }}</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold fs-5">{{ merge_stats.not_found }}</div>
+                        <small>{{ _i18n("asset_details.merge_wazuh_info_not_found") }}</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold fs-5">{{ merge_stats.errors }}</div>
+                        <small>{{ _i18n("asset_details.merge_wazuh_info_errors") }}</small>
+                    </div>
+                </div>
             </div>
 
             <!-- Error state: displayed when the merge operation fails; shows the error message -->
@@ -82,6 +99,7 @@ const state = ref('confirm');
 /** Holds the error message to display when the merge operation fails. */
 const error_message = ref('');
 
+const merge_stats = ref({ updated: 0, not_found: 0, errors: 0 });
 /** Template ref for the underlying <modal> component instance. */
 const modal_id = ref(null);
 
@@ -112,9 +130,15 @@ const on_confirm = () => {
  * Transitions the modal to the "success" state.
  * Should be called by the parent after a successful merge operation.
  */
-const show_success = () => {
+const show_success = (stats = {}) => {
+    merge_stats.value = {
+        updated: stats.updated ?? 0,
+        not_found: stats.not_found ?? 0,
+        errors: stats.errors ?? 0,
+    };
     state.value = 'success';
 };
+
 
 /**
  * Transitions the modal to the "error" state and sets the error message.
