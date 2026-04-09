@@ -2268,6 +2268,7 @@ local known_parameters = {
    ["input_price_usd"] = validateFloat,
    ["model"] = validateUnquoted,
    ["edit"] = validateBool,
+   ["page_context"] = validateUnquoted,
 
    -- WAZUH
    ["wazuh_url"] = validateUnquoted,
