@@ -1139,7 +1139,6 @@ local context = {
     observationPointId = observationPointId
 }
 
-tprint(context)
 print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 
 -- ##############################################
