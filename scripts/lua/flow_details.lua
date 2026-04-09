@@ -33,6 +33,7 @@ local alert_consts = require("alert_consts")
 local mitre_utils = require("mitre_utils")
 local auth = require "auth"
 local exporter_site_utils = nil
+local live_flow_info = nil
 
 
 local page = _GET["page"]
@@ -2540,6 +2541,32 @@ if isEmptyString(page) or page == "overview" then
    print [[
    </script>
    ]]
+
+   -- Add chatbot button if enabled
+   --[[
+      if ntop.isPro() then
+         package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
+         live_flow_info = require "live_flow_info"
+         
+         local flow_data = live_flow_info.get_flow(tostring(ifid), tostring(flow_key), tostring(flow_hash_id))
+         
+         local flow_chatbot_context = json.encode({
+            csrf         = ntop.getRandomCSRFValue(),
+            ifid         = ifid,
+            flow_key     = flow_key,
+            flow_hash_id = flow_hash_id,
+            page         = "flow_details",
+            flow_data    = flow_data
+         })
+         
+         
+         template.render("pages/vue_page.template", {
+		      vue_page_name = "FlowChatbotSidebar",
+		      page_context = flow_chatbot_context
+         })
+      end
+      ]]
+
 elseif page == "modbus" then
    local json = require "dkjson"
    local json_context = json.encode({

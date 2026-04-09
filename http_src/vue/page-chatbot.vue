@@ -303,10 +303,20 @@ function formatTimestamp(ts) {
 }
 
 setOnFirstMessage((text) => {
+  const title = text.length > 48 ? text.slice(0, 45) + "…" : text;
   const entry = chatHistory.value.find(c => c.chat_id === chat_UUID.value);
   if (entry) {
-    entry.title = text.length > 48 ? text.slice(0, 45) + "…" : text;
-    entry.isNew  = false;
+    entry.title = title;
+    entry.isNew = false;
+  } else {
+    // User started chatting without clicking "New Chat" — insert the entry now
+    chatHistory.value.unshift({
+      chat_id:  chat_UUID.value,
+      title,
+      provider: selectedProvider.value ?? "",
+      isNew:    false,
+    });
+    activeChatId.value = chat_UUID.value;
   }
 });
 

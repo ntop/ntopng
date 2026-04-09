@@ -64,7 +64,7 @@
           {{ _i18n('llm.ask_a_question') }}
         </p>
         <div class="preset-grid-inline">
-          <button v-for="q in PRESET_QUESTIONS" :key="q" class="preset-chip"
+          <button v-for="q in activePresetQuestions" :key="q" class="preset-chip"
             :disabled="sending || providers.length === 0"
             @click="sendPreset(q)">
             {{ q }}
@@ -185,7 +185,7 @@ import { onMounted, onBeforeUnmount, ref } from "vue";
 import PieChart from "./charts/pie-chart.vue";
 import LineChart from "./charts/line-chart.vue";
 import {
-  useLlmChat, renderMarkdown, highlightSql, getProviderIcon, PRESET_QUESTIONS
+  useLlmChat, renderMarkdown, highlightSql, getProviderIcon
 } from "./composables/useLlmChat.js";
 
 const _i18n = (t) => i18n(t);
@@ -200,6 +200,7 @@ const {
   providers, selectedProvider, loadingProviders,
   openSqlPanels, debugStatus,
   currentSendingLabel, canSendMsg, selectedProviderInfo,
+  activePresetQuestions,
   loadProviders, selectProvider, send, sendPreset, sendDebug,
   scrollBottom, scrollToLastMessage, autoResize, toggleSqlPanel,
 } = useLlmChat(props);

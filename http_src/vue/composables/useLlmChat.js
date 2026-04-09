@@ -172,6 +172,25 @@ export function useLlmChat(props) {
     nextTick(role === "assistant" ? scrollToLastMessage : scrollBottom);
   }
 
+  // Preset questions: prefer context-provided ones, fall back to defaults
+  const activePresetQuestions = computed(() => {
+    const custom = props?.context?.presetQuestions;
+    return Array.isArray(custom) && custom.length > 0 ? custom : PRESET_QUESTIONS;
+  });
+
+  // Inject context as a protected header pair (user message + assistant ack).
+  // The first two messages are never trimmed — see history.lua trim() function.
+  // This is the right place for any per-session context: flow details, host info, etc.
+  function injectInitialMessage() {
+    const msg = props?.context?.initialMessage;
+    if (msg && typeof msg === "string" && msg.trim()) {
+      history.value = [
+        { role: "user",      content: msg },
+        { role: "assistant", content: "Context loaded. Ask me anything." },
+      ];
+    }
+  }
+
   // Provider loading
   async function loadProviders() {
     loadingProviders.value = true;
@@ -181,6 +200,7 @@ export function useLlmChat(props) {
 
       providers.value = Array.isArray(list) ? list : [];
       if (providers.value.length > 0) selectedProvider.value = providers.value[0].provider;
+      injectInitialMessage();
     } catch (err) {
       console.error("llm providers fetch failed:", err);
       providers.value = [];
@@ -238,6 +258,8 @@ export function useLlmChat(props) {
         sequence: history.value.length,
         concise: conciseMode.value,
         csrf,
+        // Storage-only: tags every DB row with the UI page/entity that originated this chat
+        ...(props?.context?.page_context && { page_context: props.context.page_context }),
       });
 
       const rsp = await ntopng_utility.http_request(
@@ -325,6 +347,8 @@ export function useLlmChat(props) {
     autoResize, resetTextarea,
     startSendingAnimation, stopSendingAnimation,
     toggleSqlPanel,
+    // Preset questions (default or context-provided)
+    activePresetQuestions,
     // Utils (stateless, exported also as named exports above)
     renderMarkdown, highlightSql, getProviderIcon,
     nowTime, formatTimestamp,

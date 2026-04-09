@@ -190,10 +190,12 @@ import { default as PeityChart } from "./charts/peity.vue";
 
 import { default as Chatbot } from "./chatbot.vue";
 import { default as PageChatbot } from "./page-chatbot.vue";
+import { default as FlowChatbotSidebar } from "./flow-chatbot-sidebar.vue";
 
 let ntopVue = {
     Chatbot: Chatbot,
     PageChatbot: PageChatbot,
+    FlowChatbotSidebar: FlowChatbotSidebar,
     
     // graphs
     MultiPieChart: MultiPieChart,

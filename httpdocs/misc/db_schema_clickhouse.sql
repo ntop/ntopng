@@ -1139,7 +1139,7 @@ CREATE TABLE IF NOT EXISTS ai_chat_history (
     sequence UInt32 COMMENT 'Seq number to preserve message order within a chat',
     created_at DateTime COMMENT 'Message creation timestamp',
     username String COMMENT 'Identifier of the user who created the chat',
-    message_role UInt8 COMMENT 'Role of message sender (user = 1 or assistant = 2 )',
+    message_role UInt8 COMMENT 'Role of message sender (user = 1, assistant = 2, summary = 3)',
     message_content String COMMENT 'Raw message content (user input or assistant response)',
     provider String COMMENT 'LLM provider used (local llm, anthropic, openAI)',
     model String COMMENT 'Model name used for generation',
@@ -1147,8 +1147,18 @@ CREATE TABLE IF NOT EXISTS ai_chat_history (
     tokens_per_second UInt32 COMMENT 'Generation speed in tokens per second',
     artifact_json String DEFAULT '' COMMENT 'JSON-encoded artifact spec (chart, ping, etc.) for assistant messages; empty for user messages',
     evidence_json String DEFAULT '' COMMENT 'JSON audit trail of how the answer was produced: tool calls with inputs and result metadata',
+    context_summary String DEFAULT '' COMMENT 'Rolling incremental summary of the conversation up to this point (set only on summary rows where message_role = 3)',
+    page_context String DEFAULT '' COMMENT 'JSON describing the UI page/entity where the chat originated (e.g. {"page":"flow_details","ifid":0,"flow_key":123,"flow_hash_id":456})',
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(created_at) ORDER BY (chat_id, sequence)
 COMMENT 'Chat history table storing user and assistant messages for conversations';
+
+@
+
+ALTER TABLE `ai_chat_history` ADD COLUMN IF NOT EXISTS context_summary String DEFAULT '';
+
+@
+
+ALTER TABLE `ai_chat_history` ADD COLUMN IF NOT EXISTS page_context String DEFAULT '';
 
 @
 
