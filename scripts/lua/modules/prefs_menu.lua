@@ -16,6 +16,22 @@ local hasLdap = ntop.hasLdapSupport()
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {{
+    id = "vulnerability_scan",
+    label = i18n("prefs.vulnerability_scan"),
+    advanced = false,
+    pro_only = true,
+    hidden =  not ntop.isEnterprise(),
+    entries = {
+        vs_concurrently_scan_number = {
+            title = i18n("prefs.vs_concurrently_scan_number_title"),
+            description = i18n("prefs.vs_concurrently_scan_number_descr")
+        },
+        toggle_slow_mode = {
+            title = i18n("prefs.vs_slow_mode_title"),
+            description = i18n("prefs.vs_slow_mode_description")
+        }
+    }
+},{
     id = "active_monitoring",
     label = i18n("active_monitoring_stats.active_monitoring"),
     advanced = false,
@@ -1095,22 +1111,6 @@ local menu_subpages = {{
         toggle_search_in_all_interfaces = {
             title = i18n("prefs.toggle_search_in_all_interfaces_title"),
             description = i18n("prefs.toggle_search_in_all_interfaces_description")
-        }
-    }
-}, {
-    id = "vulnerability_scan",
-    label = i18n("prefs.vulnerability_scan"),
-    advanced = false,
-    pro_only = true,
-    hidden =  not ntop.isEnterprise(),
-    entries = {
-        vs_concurrently_scan_number = {
-            title = i18n("prefs.vs_concurrently_scan_number_title"),
-            description = i18n("prefs.vs_concurrently_scan_number_descr")
-        },
-        toggle_slow_mode = {
-            title = i18n("prefs.vs_slow_mode_title"),
-            description = i18n("prefs.vs_slow_mode_description")
         }
     }
 }
