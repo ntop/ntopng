@@ -102,6 +102,26 @@ local menu_subpages = {{
         }
     }
 }, {
+	id = "assets",
+	label = i18n("prefs.assets"),
+	advanced = false,
+	pro_only = true,
+	hidden = false,
+	entries = {
+	    wazuh_url = {
+	        title = i18n("prefs.wazuh_url_title"),
+            description = i18n("prefs.wazuh_url_description")
+	    },
+	    wazuh_username = {
+            title = i18n("prefs.wazuh_username_title"),
+	        description = i18n("prefs.wazuh_username_description")
+	    },
+        wazuh_password = {
+	        title = i18n("prefs.wazuh_password_title"),
+	        description = i18n("prefs.wazuh_password_description")
+	    }
+    }
+}, {
     id = "assets_inventory",
     label = i18n("prefs.assets_inventory"),
     advanced = false,
@@ -498,19 +518,7 @@ local menu_subpages = {{
         flow_table_probe_order = {
             title = i18n("prefs.flow_table_probe_order_title"),
             description = i18n("prefs.flow_table_probe_order_description")
-	},
-        wazuh_url = {
-            title = i18n("prefs.wazuh_url_title"),
-            description = i18n("prefs.wazuh_url_description")
-        },
-        wazuh_username = {
-            title = i18n("prefs.wazuh_username_title"),
-            description = i18n("prefs.wazuh_username_description")
-        },
-        wazuh_password = {
-            title = i18n("prefs.wazuh_password_title"),
-            description = i18n("prefs.wazuh_password_description")
-        }
+	    }
     }
 }, {
     id = "names",

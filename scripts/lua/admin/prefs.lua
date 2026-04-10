@@ -989,6 +989,22 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["flow_table_probe_order"].description, h_labels, h_values, "0", "primary",
             "flow_table_probe_order", "ntopng.prefs.flow_table_probe_order")
 
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+            i18n("save") .. '</button></th></tr>')
+        print('</table>')
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+    </form>]]
+    end
+
+    -- ================================================================================
+
+    function printAssets()
+	    print('<form method="post">')
+	    print('<table class="table">')
+        
         add_section(i18n("prefs.wazuh"))
 
         prefsInputFieldPrefs(subpage_active.entries["wazuh_url"].title,
@@ -1019,9 +1035,9 @@ if auth.has_capability(auth.capabilities.preferences) then
         print(ntop.getRandomCSRFValue())
         print [[" />
     </form>]]
-    end
-
-    -- ================================================================================
+	end
+    
+        -- ================================================================================
 
     function printUpdates()
         print('<form method="post">')
@@ -2982,6 +2998,10 @@ if auth.has_capability(auth.capabilities.preferences) then
     if (tab == "misc") then
         printMisc()
     end
+
+    if (tab == "assets") then
+	    printAssets()
+	end
 
     if (tab == "gui") then
         printGUI()

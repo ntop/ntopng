@@ -7689,6 +7689,7 @@ local lang = {
     ["server_ports"] = "Server Ports",
   },
   ["prefs"] = {
+    ["assets"] = "Assets",
     ["domain_classification"] = "Domain Classification",
     ["domain_classification_user_id_title"] = "User Id Authenticator",
     ["domain_classification_user_id_description"] = "Insert the user id to authenticate to the classification service",
