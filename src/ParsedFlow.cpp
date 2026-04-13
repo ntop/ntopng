@@ -461,6 +461,7 @@ void ParsedFlow::freeMemory() {
 /* *************************************** */
 
 void ParsedFlow::swap() {
+  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
   u_int8_t tmp_qoe_c2s, tmp_qoe_s2c;
 
   ParsedFlowCore::swap();
