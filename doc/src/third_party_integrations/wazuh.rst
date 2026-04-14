@@ -43,7 +43,7 @@ Before triggering a merge, you must provide ntopng with the connection details f
 1. Open ntopng and navigate to **Settings → Preferences → Assets → Wazuh**
 2. Fill in the following fields:
 
-   - **Wazuh URL**: The base URL of the Wazuh Manager API, including the protocol and port (e.g. ``https://wazuh-manager.example.com:55000``). Note that if your Wazuh server is accessed over https without a valid certificate (e.g. a self-signed certificate), you need to start ntopng using --insecure.
+   - **Wazuh URL**: The base URL of the Wazuh Manager API, including the protocol and port (e.g. ``https://WAZUH_HOST:55000``). Note that if your Wazuh server is accessed over https without a valid certificate (e.g. a self-signed certificate), you need to start ntopng using --insecure.
    - **Username**: The Wazuh user account that ntopng will use to authenticate against the API (Usually wazuh-wui)
    - **Password**: The password for the above account
 
