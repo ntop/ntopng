@@ -148,12 +148,23 @@ const saveConfig = async () => {
                 ...data
             }
         }
-
+        const isCustomerAsnModified = modifiedInputs.value.includes('customer_asn');
         await ntopng_utility.http_post_request(set_config_url, data)
         modifiedInputs.value = [];
         loading.value = true;
         // Show success when saved
         saveSuccess.value = true;
+
+        if (isCustomerAsnModified) {
+            ToastUtils.showToast({
+                id: "customer-asn-warning-alert",
+                level: "warning",
+                title: _i18n('warning'),
+                body: _i18n("asn_configuration.costumer_asn_message"),
+                delay: 6000,
+            });
+        }
+
         setTimeout(() => {
             getConfig();
             saveSuccess.value = false;

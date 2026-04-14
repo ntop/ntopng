@@ -7099,9 +7099,10 @@ local lang = {
     ["notes"] = "Comma separated list of ASNs. Example: 10,2404,4044",
     ["other_asn"] = "Other ASNs",
     ["remote_asn_title"] = "Relevant Remote ASNs",
+    ["remote_asn_description"] = "Comma separated list of Remote ASNs that are relevant for the monitoring standpoint.",
     ["sub_customer_asn_description"] = "Comma separated list of Customer ASNs, interconnected to the Internet via my ASNs.",
     ["sub_customer_asn_title"] = "My Customers ASNs",
-    ["remote_asn_description"] = "Comma separated list of Remote ASNs that are relevant for the monitoring standpoint.",
+    ["costumer_asn_message"] = "My ASNs don't set local ASNs. These can be configured with the -m parameter.",
   },
   ["exporters_interfaces_configuration"] = {
     ["exporters_interfaces_overview"] = "Exporters/Interfaces Stats",
