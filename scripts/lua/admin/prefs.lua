@@ -2731,6 +2731,20 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "toggle_asn_mode"
         })
 
+        add_section(i18n("prefs.bgp_server"))
+
+        prefsInputFieldPrefs(subpage_active.entries["bgp_server_address"].title,
+            subpage_active.entries["bgp_server_address"].description,
+            "ntopng.prefs.bgp_server", "bgp_server_address", "", "text", true, true, false, {
+                attributes = { spellcheck = "false", maxlength = 128 },
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["bgp_server_port"].title,
+            subpage_active.entries["bgp_server_port"].description,
+            "ntopng.prefs.bgp_server", "bgp_server_port", "", "text", true, true, false, {
+                attributes = { spellcheck = "false", maxlength = 128 },
+            })
+
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
             i18n("save") .. '</button></th></tr>')

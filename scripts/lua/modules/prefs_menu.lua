@@ -349,7 +349,15 @@ local menu_subpages = {{
         asn_mode_enabled = {
             title = i18n("prefs.toggle_asn_mode_title"),
             description = i18n("prefs.toggle_asn_mode_description")
-        }
+        },
+        bgp_server_address = {
+	        title = i18n("prefs.bgp_server_address_title"),
+            description = i18n("prefs.bgp_server_address_description")
+	    },
+	    bgp_server_port = {
+            title = i18n("prefs.bgp_server_port_title"),
+	        description = i18n("prefs.bgp_server_port_description")
+	    }
     }
 },
 {

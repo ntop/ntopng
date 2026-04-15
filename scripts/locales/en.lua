@@ -7695,6 +7695,11 @@ local lang = {
   },
   ["prefs"] = {
     ["assets"] = "Assets",
+    ["bgp_server"] = "BGP Server Configuration",
+    ["bgp_server_address_title"] = "Server Address",
+    ["bgp_server_address_description"] = "Network address of the BGP server",
+    ["bgp_server_port_title"] = "Server Port",
+    ["bgp_server_port_description"] = "BGP server port",
     ["domain_classification"] = "Domain Classification",
     ["domain_classification_user_id_title"] = "User Id Authenticator",
     ["domain_classification_user_id_description"] = "Insert the user id to authenticate to the classification service",
