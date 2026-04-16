@@ -13,8 +13,73 @@ local bgp_utils = {}
 
 -- ######################################
 
-function bgp_utils.formatBgpBmpInfo(bgp_info)
+function bgp_utils.formatBgpBmpInfo(rib)
+    local result = {}
+
+    for prefix, peers in pairs(rib) do
+        for peer_ip, peer_data in pairs(peers) do
+
+            -- ASN number and name
+            local asn_num = tonumber(peer_data.asn)
+            local asn_entry = {
+                raw  = peer_data.asn,
+                name = string.format("%s (%s)", peer_data.asn, ntop.getASNameFromASN(asn_num))
+            }
+
+            -- AS path as value and name
+            local as_path = {}
+            for _, asn in ipairs(peer_data.as_path or {}) do
+                local n = tonumber(asn)
+                as_path[#as_path + 1] = {
+                    raw  = asn,
+                    name = string.format("%d (%s)", n, ntop.getASNameFromASN(n))
+                }
+            end
+
+            -- communities is array of names 
+            local communities = {}
+            for _, community in ipairs(peer_data.communities or {}) do
+                local left, right = community:match("^(%d+):(%d+)$")
+                if left and right then
+                    communities[#communities + 1] = {
+                        raw   = community,
+                        left  = {
+                            raw  = left,
+                            name = string.format("%s (%s)", left, ntop.getASNameFromASN(tonumber(left))),
+                            url  = string.format("%s/lua/hosts_stats.lua?asn=%s", ntop.getHttpPrefix(), left)
+                        },
+                        right = {
+                            raw  = right,
+                            name = string.format("%s (%s)", right, ntop.getASNameFromASN(tonumber(right))),
+                            url  = string.format("%s/lua/hosts_stats.lua?asn=%s", ntop.getHttpPrefix(), right)
+                        },
+                    }
+                else
+                    communities[#communities + 1] = { raw = community }
+                end
+            end
+
+            local entry = {
+                peer_ip     = peer_ip,
+                asn         = asn_entry,
+                origin      = string.upper(peer_data.origin or ""),
+                as_path     = as_path,
+                next_hop    = peer_data.next_hop,
+                med         = peer_data.med,
+                local_pref  = peer_data.local_pref,
+                communities = communities,
+            }
+
+            result[#result + 1] = entry
+        end
+    end
+
+    return result
+end
+ 
+function bgp_utils.formatBgpBmpInfo_old(bgp_info)
     local rsp = {}
+
     for prefix, peers in pairs(bgp_info or {}) do
         local peer_list = {}
         local peer_id = {}

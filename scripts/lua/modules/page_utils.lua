@@ -282,9 +282,9 @@ page_utils.menu_entries = {
         section = "flows",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html"
     },
-    looking_glass = {
-        key = "looking_glass",
-        i18n_title = "looking_glass",
+    bgp_looking_glass = {
+        key = "bgp_looking_glass",
+        i18n_title = "bgp_looking_glass",
         section = "flows",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html"
     },

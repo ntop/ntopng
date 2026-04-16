@@ -402,10 +402,11 @@ else
         }, {
             entry = page_utils.menu_entries.divider
         }, {
-            entry = page_utils.menu_entries.looking_glass,
-            url = '/lua/looking_glass.lua',
+            entry = page_utils.menu_entries.bgp_looking_glass,
+            url = '/lua/bgp_looking_glass.lua',
             hidden = isEmptyString(ntop.getPref("ntopng.prefs.bgp_server.ip_address")) or
                 isEmptyString(ntop.getPref('ntopng.prefs.bgp_server.port'))
+                
         }}
     })
 

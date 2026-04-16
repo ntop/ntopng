@@ -1348,19 +1348,19 @@ export default class NtopUtils {
         let bars = '';
         if (percentage_1 > 0) {
             bars += `<div style="width:${percentage_1}%;height:100%;background:var(--ntop-orange,#FF8F00);border-radius:${percentage_2 > 0 ? '100px 0 0 100px' : '100px'};transition:width .3s ease;"
-                data-bs-toggle="tooltip" data-bs-placement="top" title="${label_1}: ${Math.floor(percentage_1)}%"></div>`;
+                data-bs-toggle="tooltip" data-bs-placement="top" title="${label_1}: ${Math.floor(percentage_1 + 0.5)}%"></div>`;
         }
         if (percentage_2 > 0) {
             bars += `<div style="width:${percentage_2}%;height:100%;background:#0d9488;border-radius:${percentage_1 > 0 ? '0 100px 100px 0' : '100px'};transition:width .3s ease;"
-                data-bs-toggle="tooltip" data-bs-placement="top" title="${label_2}: ${Math.floor(percentage_2)}%"></div>`;
+                data-bs-toggle="tooltip" data-bs-placement="top" title="${label_2}: ${Math.floor(percentage_2 + 0.5)}%"></div>`;
         }
 
         const legend_1 = percentage_1 > 0
             ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;color:var(--ntop-muted-text-color,#37474F);">
-                <span style="width:6px;height:6px;border-radius:50%;background:var(--ntop-orange,#FF8F00);flex-shrink:0;"></span>${label_1}&nbsp;${Math.floor(percentage_1)}%</span>` : '';
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--ntop-orange,#FF8F00);flex-shrink:0;"></span>${label_1}&nbsp;${Math.floor(percentage_1 + 0.5)}%</span>` : '';
         const legend_2 = percentage_2 > 0
             ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.7rem;color:var(--ntop-muted-text-color,#37474F);">
-                <span style="width:6px;height:6px;border-radius:50%;background:#0d9488;flex-shrink:0;"></span>${label_2}&nbsp;${Math.floor(percentage_2)}%</span>` : '';
+                <span style="width:6px;height:6px;border-radius:50%;background:#0d9488;flex-shrink:0;"></span>${label_2}&nbsp;${Math.floor(percentage_2 + 0.5)}%</span>` : '';
 
         return `<div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
             <div style="height:8px;background:var(--border-color,#dee2e6);border-radius:100px;overflow:hidden;display:flex;">${bars}</div>

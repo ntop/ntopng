@@ -18,7 +18,16 @@ local ts_utils = require "ts_utils_core"
 local vs_utils = require "vs_utils"
 local cve_utils = require "cve_utils"
 
-if (ntop.isPro()) then
+local is_pro = ntop.isPro()
+local random_csrf = ntop.getRandomCSRFValue()
+
+local have_nedge = ntop.isnEdge()
+local is_admin = isAdministrator()
+local http_prefix = ntop.getHttpPrefix()
+local is_enterprise_L = ntop.isEnterpriseL()
+local is_enterprise_M = ntop.isEnterpriseM()
+
+if (is_pro) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
    snmp_location = require "snmp_location"
@@ -37,16 +46,16 @@ local am_utils = require "am_utils"
 local behavior_utils = require "behavior_utils"
 
 local host_pools_nedge
-if ntop.isnEdge() then
+
+if have_nedge then
    host_pools_nedge = require "host_pools_nedge"
 end
+
 local host_pools = require "host_pools"
 -- Instantiate host pools
 local host_pools_instance = host_pools:create()
 
 local info = ntop.getInfo()
-
-local have_nedge = ntop.isnEdge()
 
 local debug_hosts = false
 
@@ -80,7 +89,6 @@ local prefs = ntop.getPrefs()
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]] )
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 
-local http_prefix = ntop.getHttpPrefix()
 if not host_ip then
    sendHTTPContentTypeHeader('text/html')
 
@@ -119,7 +127,7 @@ local restoreInProgress = false
 -- #####################################################
 
 if (ifstats.inline) then
-   if (host_ip and isAdministrator()) then
+   if (host_ip and is_admin) then
       if (_POST["drop_host_active_flows_policy"] == "true") then
          interface.dropHostTraffic(host_ip)
       else
@@ -171,12 +179,12 @@ local function printPort(port, proto, is_server_port)
          print('<li><A HREF="' .. historical_base_url .. '"><span class="badge bg-secondary">' .. port .. " (" .. proto .. ")" ..
                   "</span></A></li>\n")
       else
-         print('<li><A HREF="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' ..
+         print('<li><A HREF="' .. http_prefix .. '/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' ..
                   port .. " (" .. proto .. ")" .. "</span></A></li>\n")
       end
    else
       print(
-         '<li><A HREF="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' .. port ..
+         '<li><A HREF="' .. http_prefix .. '/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' .. port ..
             " (" .. proto .. ")" .. "</span></A></li>\n")
    end
 end
@@ -306,7 +314,7 @@ if (host == nil) and (not only_historical) then
       $.ajax({
         type: 'GET',
         url: ']]
-      print(ntop.getHttpPrefix())
+      print(http_prefix)
       print [[/lua/host_stats.lua',
         data: { ifid: "]]
       print(ifId .. "")
@@ -363,7 +371,7 @@ else
    --  of historical interface
    print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
-   if _POST["action"] == "reset_stats" and isAdministrator() then
+   if _POST["action"] == "reset_stats" and is_admin then
       if _POST["resetstats_mode"] == "reset_blacklisted" then
          interface.resetHostStats(hostkey, true)
       elseif interface.resetHostStats(hostkey) then
@@ -399,7 +407,7 @@ else
       tskey = _GET["tskey"]
    })
 
-   if (ntop.isPro()) then
+   if (is_pro) then
       sites_granularities = host_sites_update.getGranularitySites(host_ip, host_vlan, ifId, false)
    end
 
@@ -411,11 +419,11 @@ else
    local service_map_available = false
    local num_periodicity = 0
 
-   local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map&ifid=" .. ifId .. "&host=" ..
+   local service_map_link = http_prefix .. "/lua/pro/enterprise/network_maps.lua?map=service_map&ifid=" .. ifId .. "&host=" ..
                                host_ip
    local periodicity_map_link =
-      ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map&ifid=" .. ifId .. "&host=" .. host_ip
-   local historical_flow_link = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?ifid=" .. ifId .. "&ip=" .. host_ip .. ";eq"
+      http_prefix .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map&ifid=" .. ifId .. "&host=" .. host_ip
+   local historical_flow_link = http_prefix .. "/lua/pro/db_search.lua?ifid=" .. ifId .. "&ip=" .. host_ip .. ";eq"
 
    service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
@@ -540,7 +548,7 @@ else
       page_name = "flows",
       label = '<i class="fas fa-stream" title="' .. i18n("active_flows") .. '"></i>'
    }, {
-      hidden = only_historical or not ntop.isEnterpriseL(),
+      hidden = only_historical or not is_enterprise_L,
       active = page == "flows_sankey",
       page_name = "flows_sankey",
       label = '<i class="fas fa-draw-polygon" title="' .. i18n("host_flows") .. '"></i>'
@@ -573,7 +581,7 @@ else
       page_name = "traffic_report",
       label = "<i class='fas fa-lg fa-file-alt report-icon' title='" .. i18n("report.traffic_report") .. "'></i>"
    }, {
-      hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
+      hidden = only_historical or not is_enterprise_M or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
       active = page == "quotas",
       page_name = "quotas",
       label = i18n("quotas")
@@ -597,7 +605,7 @@ else
       label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",
       url = historical_flow_link
    }, {
-      hidden = not isAdministrator() or interface.isPcapDumpInterface(),
+      hidden = not is_admin or is_pcap_dump,
       active = page == "config",
       page_name = "config",
       label = "<i class='fas fa-lg fa-cog' title='" .. i18n("settings") .. "'></i></a></li>"
@@ -653,7 +661,7 @@ else
                else
                   print(i18n("host_details.unknown_device_type") .. " ")
                end
-               print('<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?' .. hostinfo2url(macinfo) ..
+               print('<a href="' .. http_prefix .. '/lua/mac_details.lua?' .. hostinfo2url(macinfo) ..
                         '&page=config"><i class="fas fa-cog"></i></a>\n')
             else
                print("&nbsp;")
@@ -694,7 +702,7 @@ else
                network_name = " (" .. network_name .. ")"
             end
 
-            print(" [&nbsp;<A HREF='" .. ntop.getHttpPrefix() .. "/lua/network_details.lua?network=" .. host["local_network_id"] ..
+            print(" [&nbsp;<A HREF='" .. http_prefix .. "/lua/network_details.lua?network=" .. host["local_network_id"] ..
                      "&page=historical'>" .. host["local_network_name"] .. "</A> " .. network_name .. " &nbsp;]")
          end
 
@@ -705,7 +713,7 @@ else
          print [[</td><td><span>]]
          print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool")) .. ": ")
          print [[<a href="]]
-         print(ntop.getHttpPrefix())
+         print(http_prefix)
          print [[/lua/hosts_stats.lua?pool=]]
          print(host_pool_id)
          print [[">]]
@@ -748,7 +756,7 @@ else
       if host["vlan"] and host["vlan"] > 0 then
          print("<tr><th>")
          print(i18n("details.vlan_id"))
-         print("</th><td colspan=2><A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?vlan=" .. host["vlan"] .. ">" ..
+         print("</th><td colspan=2><A HREF=" .. http_prefix .. "/lua/hosts_stats.lua?vlan=" .. host["vlan"] .. ">" ..
                   getFullVlanName(host["vlan"]) .. "</A></td></tr>\n")
       end
 
@@ -762,7 +770,7 @@ else
             end
 
             print(
-               "<th>" .. i18n("os") .. "</th><td> <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?os=" .. host["os"] .. "'>" ..
+               "<th>" .. i18n("os") .. "</th><td> <A HREF='" .. http_prefix .. "/lua/hosts_stats.lua?os=" .. host["os"] .. "'>" ..
                   discover.getOsAndIcon(host["os"]) .. "</A>" .. os_detail)
 
             print("</td><td></td>\n")
@@ -775,8 +783,8 @@ else
       if ((host["asn"] ~= nil) and (host["asn"] > 0)) then
          print("<tr><th>" .. i18n("asn") .. "</th><td>")
 
-         print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. host.asn .. "'>" .. host.asname .. "</A> [ " ..
-                  i18n("asn") .. " <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. host.asn .. "'>" .. host.asn ..
+         print("<A HREF='" .. http_prefix .. "/lua/hosts_stats.lua?asn=" .. host.asn .. "'>" .. host.asname .. "</A> [ " ..
+                  i18n("asn") .. " <A HREF='" .. http_prefix .. "/lua/hosts_stats.lua?asn=" .. host.asn .. "'>" .. host.asn ..
                   "</A> ]</td>")
          print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q=' .. host["ip"] ..
                   '&submit=Look+up">' .. i18n("details.whois_lookup") ..
@@ -793,7 +801,7 @@ else
       if (host["ip"] ~= nil) then
          print("<tr><th>" .. i18n("name") .. "</th>")
 
-         if (isAdministrator()) then
+         if (is_admin) then
             local n = hostinfo2label(host, true)
             print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. n .. "\"> <span id=name>")
          else
@@ -861,7 +869,7 @@ else
          end
          if (host["is_blacklisted"] == true) then
             print(
-               " <a href='" .. ntop.getHttpPrefix() .. "/lua/admin/blacklists.lua?enabled_status=enabled'><span class='badge bg-danger'>" ..
+               " <a href='" .. http_prefix .. "/lua/admin/blacklists.lua?enabled_status=enabled'><span class='badge bg-danger'>" ..
                   i18n("details.label_blacklisted_host"))
 
             if (host.blacklist_name ~= nil) then
@@ -891,14 +899,14 @@ else
                print('btn-success btn-sm"><i class="fas fa-ban"></i> ' .. i18n("host_details.drop_host_traffic_btn") .. '</button>')
             end
 
-            print('<input id="csrf" name="csrf" type="hidden" value="' .. ntop.getRandomCSRFValue() .. '" />\n')
+            print('<input id="csrf" name="csrf" type="hidden" value="' .. random_csrf .. '" />\n')
             print('</form>')
 
             print(' <form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
             print('<input type="hidden" name="drop_host_active_flows_policy" value="true">')
             print('<button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-ban"></i> ' ..
                      i18n("host_details.drop_host_flows_btn") .. '</button>')
-            print('<input id="csrf" name="csrf" type="hidden" value="' .. ntop.getRandomCSRFValue() .. '" />\n')
+            print('<input id="csrf" name="csrf" type="hidden" value="' .. random_csrf .. '" />\n')
             print('</form>')
          end
 
@@ -946,7 +954,7 @@ else
             <script type='text/javascript'>
                $(document).ready(function() {
 
-                  let am_csrf = "]] .. ntop.getRandomCSRFValue() .. [[";
+                  let am_csrf = "]] .. random_csrf .. [[";
                   $('#btn-add-am-host').click(function(e) {
 
                      e.preventDefault();
@@ -1004,7 +1012,7 @@ else
 
             print([[
             <td colspan="2">
-               <a href=']] .. ntop.getHttpPrefix() .. [[/lua/active_monitoring.lua?host=]] .. host['ip'] .. [[&measurement=]] .. icmp ..
+               <a href=']] .. http_prefix .. [[/lua/active_monitoring.lua?host=]] .. host['ip'] .. [[&measurement=]] .. icmp ..
                      [['>]] .. last_rtt .. [[</a>
             </td>
             ]])
@@ -1033,7 +1041,7 @@ else
                   formatValue(host.score_behaviour.tot_num_anomalies) .. "</span><span id=beh_anomalies_trend></span></td></tr>\n")
       end
 
-      if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
+      if is_pro and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
 
          local msg = ""
          local target = ""
@@ -1055,7 +1063,7 @@ else
             target = policies_page
          end
 
-         print("<tr><th><i class=\"fas fa-ban fa-lg\"></i> <a href=\"" .. ntop.getHttpPrefix() .. target .. "\">" ..
+         print("<tr><th><i class=\"fas fa-ban fa-lg\"></i> <a href=\"" .. http_prefix .. target .. "\">" ..
                   i18n("host_details.blocked_traffic") .. "</a></th><td colspan=2>" .. msg)
          print(".")
          print("</td></tr>")
@@ -1089,7 +1097,7 @@ else
                host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)
             end
 
-            print('<tr><th><a href="' .. ntop.getHttpPrefix() .. '/lua/vulnerability_scan.lua?page=show_result&scan_date=' ..
+            print('<tr><th><a href="' .. http_prefix .. '/lua/vulnerability_scan.lua?page=show_result&scan_date=' ..
                      host_vulnerabilities.last_scan.time .. '&host=' .. host_vulnerabilities.host .. '&scan_type=' ..
                      host_vulnerabilities.scan_type .. '">' .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. '</a></th>')
             print("<td colspan=2>")
@@ -1104,7 +1112,7 @@ else
          elseif (host_vulnerabilities == nil) then
             print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
             print("<td colspan=2>")
-            print('<a href="' .. ntop.getHttpPrefix() .. '/lua/vulnerability_scan.lua?page=scan_hosts&host=' .. host["ip"] .. '&ifid=' ..
+            print('<a href="' .. http_prefix .. '/lua/vulnerability_scan.lua?page=scan_hosts&host=' .. host["ip"] .. '&ifid=' ..
                      ifId .. '">' .. i18n("hosts_stats.page_scan_hosts.add_to_scan_list") .. '</a> ')
          end
       end
@@ -1185,11 +1193,11 @@ else
       if (host.num_unidirectional_tcp_flows ~= nil) then
          print("<tr><th>" .. i18n("details.unidirectional_tcp_flows") .. "</th>")
          print("<td><span id=num_unidirectional_egress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_egress) ..
-                  "</span> <span id=trend_num_unidirectional_egress_flows></span>  <a href='" .. ntop.getHttpPrefix() ..
+                  "</span> <span id=trend_num_unidirectional_egress_flows></span>  <a href='" .. http_prefix ..
                   "/lua/host_details.lua?host=" .. host_ip ..
                   "&page=historical&ts_schema=host:host_tcp_unidirectional_flows' data-bs-toggle='tooltip' title=''><i class='fas fa-chart-area'></i></a> \n")
          print("<td><span id=num_unidirectional_ingress_flows>" .. formatValue(host.num_unidirectional_tcp_flows.num_ingress) ..
-                  "</span> <span id=trend_num_unidirectional_ingress_flows></span>  <a href='" .. ntop.getHttpPrefix() ..
+                  "</span> <span id=trend_num_unidirectional_ingress_flows></span>  <a href='" .. http_prefix ..
                   "/lua/host_details.lua?host=" .. host_ip ..
                   "&page=historical&ts_schema=host:host_tcp_unidirectional_flows' data-bs-toggle='tooltip' title=''><i class='fas fa-chart-area'></i></a> \n")
          print("</tr>")
@@ -1201,7 +1209,7 @@ else
       print("<td><span id=active_peers_as_server>" .. formatValue(host["contacts.as_server"]) ..
                "</span>  <span id=peers_trend_as_active_server></span> \n")
 
-      if ntop.isnEdge() then
+      if have_nedge then
          print("<tr id=bridge_dropped_flows_tr ")
          if not host["flows.dropped"] then
             print("style='display:none;'")
@@ -1236,7 +1244,7 @@ else
          print("<tr><th>")
 
          if (has_assets) then
-            print("<a href=\"" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. host_ip .. "&page=assets\">" ..
+            print("<a href=\"" .. http_prefix .. "/lua/host_details.lua?host=" .. host_ip .. "&page=assets\">" ..
                      i18n("details.server_contacts") .. "</A>")
          else
             print(i18n("details.server_contacts"))
@@ -1310,14 +1318,14 @@ else
       print(i18n("host_details.reset_host_stats"))
       print [[</th><td colspan=2><form id='reset_host_stats_form' method="POST">
       <input name="csrf" type="hidden" value="]]
-      print(ntop.getRandomCSRFValue())
+      print(random_csrf)
       print [[" />
       <input name="action" type="hidden" value="reset_stats" />
       <input name="resetstats_mode" type="hidden" value="reset_all" />
    </form>
    <form id='reset_blacklisted_stats_form' method="POST">
       <input name="csrf" type="hidden" value="]]
-      print(ntop.getRandomCSRFValue())
+      print(random_csrf)
       print [[" />
       <input name="action" type="hidden" value="reset_stats" />
       <input name="resetstats_mode" type="hidden" value="reset_blacklisted" />
@@ -1387,7 +1395,7 @@ else
       if (not show_live_capture) then
          print(" colspan=2")
       end
-      print("><A HREF='" .. ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/data.lua?ifid=" .. ifId .. "&" .. hostinfo2url(host_info) ..
+      print("><A HREF='" .. http_prefix .. "/lua/rest/v2/get/host/data.lua?ifid=" .. ifId .. "&" .. hostinfo2url(host_info) ..
                "' download='host-" .. host_ip .. ".json'>JSON</A></td>")
       print [[<td>]]
       if (show_live_capture and ifstats.isView == false and not interface.isSubInterface() and interface.isPacketInterface()) then
@@ -1415,7 +1423,7 @@ else
 
    elseif ((page == "packets")) then
       local context = {
-         page_csrf = ntop.getRandomCSRFValue(),
+         page_csrf = random_csrf,
          url_params = {
             host_ip = host_ip,
             vlan = host_vlan,
@@ -1496,8 +1504,8 @@ else
          processes_endpoint = "/lua/rest/v2/get/host/processes/listening_ports.lua",
          host = host_ip,
          vlan = host_vlan,
-         http_prefix = ntop.getHttpPrefix(),
-         csrf = ntop.getRandomCSRFValue()
+         http_prefix = http_prefix,
+         csrf = random_csrf
       })
 
    elseif ((page == "ICMP")) then
@@ -1532,7 +1540,7 @@ function update_icmp_table() {
   $.ajax({
     type: 'GET',
     url: ']]
-      print(ntop.getHttpPrefix())
+      print(http_prefix)
       print [[/lua/get_icmp_data.lua',
     data: { ifid: "]]
       print(ifId .. "")
@@ -1570,7 +1578,7 @@ setInterval(update_icmp_table, 5000);
       local timeseries_cat_enabled = areHostTimeseriesEnabled(ifId) and areHostCategoriesTimeseriesEnabled(ifId) and is_cat_series_present
 
       local context = {
-         page_csrf = ntop.getRandomCSRFValue(),
+         page_csrf = random_csrf,
          url_params = {
             view = "applications",
             host = host_ip,
@@ -1590,7 +1598,7 @@ setInterval(update_icmp_table, 5000);
          page_context = json_context
       })
    elseif (page == "assets") then
-      if (ntop.isEnterpriseL()) then
+      if (is_enterprise_L) then
          local asset_map_utils = require "asset_map_utils"
 
          asset_map_utils.printHostAssets(host.asset_key)
@@ -1842,12 +1850,12 @@ setInterval(update_icmp_table, 5000);
    elseif (page == "sites") then
       if not prefs.are_top_talkers_enabled then
          local msg = i18n("sites_page.top_sites_not_enabled_message", {
-            url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=protocols"
+            url = http_prefix .. "/lua/admin/prefs.lua?tab=protocols"
          })
          print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> " .. msg .. "</div>")
 
       elseif table.len(sites_granularities) > 0 then
-         local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/host/top/local/sites.lua?ifid=%s&host=%s&vlan=%s",
+         local endpoint = string.format(http_prefix .. "/lua/pro/rest/v2/get/host/top/local/sites.lua?ifid=%s&host=%s&vlan=%s",
             ifId, host_ip, host_vlan)
          local context = {
             json = json,
@@ -1926,15 +1934,15 @@ setInterval(update_icmp_table, 5000);
             ifid = ifId,
             host = host_ip,
             vlans = json.encode(vlans),
-            http_prefix = ntop.getHttpPrefix(),
-            is_ntop_enterprise_m = ntop.isEnterpriseM(),
+            http_prefix = http_prefix,
+            is_ntop_enterprise_m = is_enterprise_M,
             aggregation_criteria = "application_protocol",
             draw = 0,
             sort = "flows",
             order = "desc",
             start = 0,
             length = 10,
-            csrf = ntop.getRandomCSRFValue()
+            csrf = random_csrf
          }
 
          local json_context = json.encode(context)
@@ -1944,7 +1952,7 @@ setInterval(update_icmp_table, 5000);
          })
       else
          local has_exporters = false
-         if ntop.isPro() and interface.isPacketInterface() == false then
+         if is_pro and interface.isPacketInterface() == false then
             local flowdevs = interface.getFlowDevices() or {}
             if table.len(flowdevs) > 0 then
                has_exporters = true
@@ -1956,10 +1964,10 @@ setInterval(update_icmp_table, 5000);
             has_exporters = has_exporters,
             is_viewed = interface.isViewed(),
             is_clickhouse_enabled = hasClickHouseSupport(),
-            is_enterprise_l = ntop.isEnterpriseL(),
-            is_pcap = interface.isPcapDumpInterface(),
+            is_enterprise_l = is_enterprise_L,
+            is_pcap = is_pcap_dump,
             isNedge = have_nedge,
-            csrf = ntop.getRandomCSRFValue()
+            csrf = random_csrf
          })
          template.render("pages/vue_page.template", {
             vue_page_name = "PageFlowsList",
@@ -1981,7 +1989,7 @@ setInterval(update_icmp_table, 5000);
          vue_page_name = "PageHostDetailsFlowSankey",
          page_context = json_context
       })
-   elseif (page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
+   elseif (page == "snmp" and is_enterprise_M and isAllowedSystemInterface()) then
       local snmp_config = require "snmp_config"
       local snmp_devices = snmp_config.get_all_configured_devices()
 
@@ -1991,7 +1999,7 @@ setInterval(update_icmp_table, 5000);
                host_ip = host_ip
             })
             msg = msg .. " " .. i18n("snmp_page.guide_snmp_page_message", {
-               url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmpdevices_stats.lua"
+               url = http_prefix .. "/lua/pro/enterprise/snmpdevices_stats.lua"
             })
 
             print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> " .. msg .. "</div>")
@@ -2126,7 +2134,7 @@ setInterval(update_icmp_table, 5000);
          print(i18n("contacts_page.no_contacts_message"))
       end
 
-   elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and
+   elseif (page == "quotas" and have_nedge and is_enterprise_M and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and
       ifstats.inline) then
       local page_params = {
          ifid = ifId,
@@ -2142,7 +2150,7 @@ setInterval(update_icmp_table, 5000);
    elseif (page == "config") then
       local context = {
          ifid = tonumber(getSystemInterfaceId()),
-         csrf = ntop.getRandomCSRFValue()
+         csrf = random_csrf
       }
       local json_context = json.encode(context)
       template.render("pages/vue_page.template", {
@@ -2204,7 +2212,7 @@ if (not only_historical) and (host ~= nil) and (page ~= "traffic") and (page ~= 
    print("var last_rcvd_tcp_lost = " .. host["tcpPacketStats.rcvd"]["lost"] .. ";\n")
    print("var last_rcvd_tcp_keep_alive = " .. host["tcpPacketStats.rcvd"]["keep_alive"] .. ";\n")
 
-   if ntop.isnEdge() then
+   if have_nedge then
       print("var last_dropped_flows = " .. (host["flows.dropped"] or 0) .. ";\n")
    end
 
@@ -2235,7 +2243,7 @@ if (not only_historical) and (host ~= nil) and (page ~= "traffic") and (page ~= 
              $.ajax({
                        type: 'GET',
                        url: ']]
-   print(ntop.getHttpPrefix())
+   print(http_prefix)
    print [[/lua/host_stats.lua',
                        data: { ifid: "]]
    print(ifId .. "")
@@ -2306,7 +2314,7 @@ if (not only_historical) and (host ~= nil) and (page ~= "traffic") and (page ~= 
                         $('#num_unidirectional_egress_flows').html(NtopUtils.addCommas(host.num_unidirectional_tcp_flows.num_egress)+ " ("+val.toFixed(1)+" %)");
                      }]]
 
-   if ntop.isnEdge() then
+   if have_nedge then
       print [[
                         if(host["flows.dropped"] > 0) {
                           if(host["flows.dropped"] == last_dropped_flows) {

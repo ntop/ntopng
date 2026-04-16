@@ -117,6 +117,19 @@ const sortByNumberWithNormalizationValue = function (val_1, val_2, sort, lower_v
 
 /* ******************************************************************** */
 
+/* Sort by Array Length */
+const sortByArrayLength = function (val_1, val_2, sort) {
+    const len1 = Array.isArray(val_1) ? val_1.length : 0;
+    const len2 = Array.isArray(val_2) ? val_2.length : 0;
+
+    if (sort == 1) {
+        return len1 - len2;
+    }
+    return len2 - len1;
+}
+
+/* ******************************************************************** */
+
 const sortingFunctions = function () {
     return {
         sortByIP,
@@ -124,6 +137,7 @@ const sortingFunctions = function () {
         sortByNumber,
         sortByMacAddress,
         sortByNumberWithNormalizationValue,
+        sortByArrayLength,
     };
 }();
 

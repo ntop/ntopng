@@ -1422,6 +1422,16 @@ local function validateUUID(uuid)
    return is_uuid or validateNumber(tonumber(uuid))
 end
 
+local function validatePolicyUUID(uuid)
+   tprint(uuid)
+   tprint(string.format("[DEBUG] uuid bytes: %d [%s]", #uuid, uuid))
+   local trimmed = uuid:match("^%s*(.-)%s*$")  -- strip leading/trailing whitespace
+   local is_uuid = string.match(trimmed,
+      "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$"
+   ) ~= nil
+   return is_uuid or validateNumber(tonumber(trimmed))
+end
+
 local function validateGatewayName(m)
    -- NOTE: no space allowed right now
    return validateSingleWord(m)
@@ -2269,6 +2279,14 @@ local known_parameters = {
    ["model"] = validateUnquoted,
    ["edit"] = validateBool,
    ["page_context"] = validateUnquoted,
+   ["is_active"] = validateBool,
+   ["sql_query"] = {jsonCleanup, validatePcap},          -- SQL may contain <>/operators; bypass httpPurifyParam
+   ["explanation"] = {jsonCleanup, validatePcap},        -- free-text explanation, no lint restriction needed
+   ["policy_description"] = {jsonCleanup, validatePcap}, -- ai policy description, may contain special chars
+   ["periodicity"] = validateUnquoted,
+   ["ai_policy_name"] = {jsonCleanup, validatePcap},
+   ["ai_policy_id"] = validateUUID,
+   ["active"] = validateBool,
 
    -- WAZUH
    ["wazuh_url"] = validateUnquoted,

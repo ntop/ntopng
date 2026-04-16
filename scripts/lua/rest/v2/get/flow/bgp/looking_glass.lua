@@ -28,7 +28,6 @@ local rib = '{"1.1.1.0\\24": {"212.74.82.15": {"asn":8220,"origin":"igp","as_pat
 --rib = json.encode(rib)
 if not isEmptyString(rib) then
    rib = json.decode(rib)
-   tprint(rib)
    rsp = bgp_utils.formatBgpBmpInfo(rib)
 end
 
