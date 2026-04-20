@@ -12,7 +12,7 @@ discover.debug = false
 
 discover.progress_string = "discovery.progess"
 
--- NOTE: keep in sync with ndpi_os_hint
+-- NOTE: keep in sync with ndpi_os_hint and wazuh_utils.wazuh_os_to_ntopng_os
 discover.osinfo = {
     [0] = {"Unknown", ''},
     [1] = {"Windows", '<i class=\'fab fa-windows fa-lg\'></i>'},

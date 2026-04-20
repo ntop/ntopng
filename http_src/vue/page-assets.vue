@@ -451,6 +451,7 @@ const exec_merge_wazuh = async function () {
                     modal_merge_wazuh_info.value.show_error(err);
                     return;
                 }
+                refresh_table()
                 modal_merge_wazuh_info.value.show_success(data.rsp);
             })
             .catch(err => console.error('Error during wazuh info merge:', err))

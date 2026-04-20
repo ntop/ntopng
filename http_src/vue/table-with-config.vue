@@ -39,6 +39,7 @@ const props = defineProps({
     display_message: Boolean,
     message_to_display: String,
     showLoading: Boolean,
+    rows_data: Array,
 });
 
 const table_config = ref({});
@@ -67,7 +68,7 @@ async function load_table() {
     if (table_config_id_2 == null) {
         table_config_id_2 = props.table_id;
     }
-    table_config.value = await TableUtils.build_table(http_prefix, table_config_id_2, props.f_map_columns, props.get_extra_params_obj);
+    table_config.value = await TableUtils.build_table(http_prefix, table_config_id_2, props.f_map_columns, props.get_extra_params_obj, null, props.rows_data);
     if (props.f_map_config != null) {
         table_config.value = props.f_map_config(table_config.value);
     }

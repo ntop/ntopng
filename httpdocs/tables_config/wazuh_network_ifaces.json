@@ -1,0 +1,48 @@
+{
+    "id": "wazuh_network_ifaces",
+    "data_url": "",
+    "enable_search": true,
+    "paging": false,
+    "display_empty_rows": false,
+    "columns": [
+        {
+            "title_i18n": "asset_details.wazuh_iface_name",
+            "data_field": "name",
+            "sortable": true,
+            "min-width": "120px"
+        },
+        {
+            "title_i18n": "asset_details.wazuh_iface_mac",
+            "data_field": "mac",
+            "sortable": true,
+            "min-width": "150px"
+        },
+        {
+            "title_i18n": "asset_details.wazuh_iface_state",
+            "data_field": "state",
+            "sortable": true,
+            "min-width": "80px",
+            "class": [
+                "text-center"
+            ]
+        },
+        {
+            "title_i18n": "asset_details.wazuh_iface_tx",
+            "data_field": "sent",
+            "sortable": true,
+            "min-width": "100px",
+            "class": [
+                "text-end"
+            ]
+        },
+        {
+            "title_i18n": "asset_details.wazuh_iface_rx",
+            "data_field": "rcvd",
+            "sortable": true,
+            "min-width": "100px",
+            "class": [
+                "text-end"
+            ]
+        }
+    ]
+}

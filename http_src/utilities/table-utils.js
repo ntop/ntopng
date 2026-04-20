@@ -9,7 +9,7 @@ import FormatterUtils from "./formatter-utils.js";
 
 const _i18n = (t) => i18n(t);
 
-async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_params_obj, f_on_get_rows) {
+async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_params_obj, f_on_get_rows, rows_data = null) {
 	let epoch_end = Number.parseInt(Date.now() / 1000);
 	let table_def_url = `${http_prefix}/tables_config/${table_id}.json?epoch_end=${epoch_end}`;
 	let table_def = await ntopng_utility.http_request(table_def_url, null, null, true);
@@ -39,7 +39,7 @@ async function build_table(http_prefix, table_id, f_map_columns, f_get_extra_par
 	const table_config = {
 		id: table_id,
 		columns: table_def.columns,
-		get_rows: get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows),
+		get_rows: get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows, rows_data),
 		get_column_id: get_column_id_func(table_def),
 		print_column_name: get_f_print_column_name(table_def),
 		print_html_row: get_f_print_html_row(table_def),
@@ -181,7 +181,7 @@ function get_f_print_v_node_buttons(list_or_array) {
 	};
 }
 
-function get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows) {
+function get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows, rows_data = null) {
 	let f_get_column_id = get_column_id_func(table_def);
 	return async (active_page, per_page, columns_wrap, map_search, first_get_rows) => {
 		let sort_column = columns_wrap.find((c) => c.sort != 0);
@@ -201,26 +201,35 @@ function get_rows_func(table_def, f_get_extra_params_obj, f_on_get_rows) {
 			let extra_params = f_get_extra_params_obj();
 			params = { ...params, ...extra_params, };
 		}
-		const url_params = ntopng_url_manager.obj_to_url_params(params);
-		const url = `${http_prefix}/${table_def.data_url}?${url_params}`;
-		let res = await ntopng_utility.http_request(url, null, null, true);
-		if (f_on_get_rows != null) {
-			f_on_get_rows(params);
+		let rows, query_info, total_rows;
+		if (rows_data == null) {
+			const url_params = ntopng_url_manager.obj_to_url_params(params);
+			const url = `${http_prefix}/${table_def.data_url}?${url_params}`;
+			let res = await ntopng_utility.http_request(url, null, null, true);
+			if (f_on_get_rows != null) {
+				f_on_get_rows(params);
+			}
+			rows = res.rsp;
+			
+			if (table_def.rsp_records_field != null) {
+				rows = res.rsp[table_def.rsp_records_field];
+			}
+			query_info = res.query_info;
+			if (table_def.rsp_query_info_field != null) {
+				query_info = res.rsp[table_def.rsp_query_info_field];
+			}
+			// fix server rest bug
+			if (res.recordsFiltered > res.recordsTotal) {
+				res.recordsTotal = res.recordsFiltered;
+			}
+			total_rows = res.recordsTotal;
 		}
-		let rows = res.rsp;
-		if (table_def.rsp_records_field != null) {
-			rows = res.rsp[table_def.rsp_records_field];
-		}
-		let query_info = res.query_info;
-		if (table_def.rsp_query_info_field != null) {
-			query_info = res.rsp[table_def.rsp_query_info_field];
-		}
-		// fix server rest bug
-		if (res.recordsFiltered > res.recordsTotal) {
-			res.recordsTotal = res.recordsFiltered;
-		}
-		return { total_rows: res.recordsTotal, rows, query_info };
-		// return { total_rows: 1, rows: [rows[0]], query_info };
+		else {
+		    rows = rows_data;
+     		query_info = null;
+     		total_rows = rows_data.length;
+ 		}
+		return { total_rows, rows, query_info };
 	}
 }
 
