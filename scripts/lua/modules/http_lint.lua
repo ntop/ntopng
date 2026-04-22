@@ -2287,6 +2287,7 @@ local known_parameters = {
    ["ai_policy_name"] = {jsonCleanup, validatePcap},
    ["ai_policy_id"] = validateUUID,
    ["active"] = validateBool,
+   ["page_filter"] = validateUnquoted,
 
    -- WAZUH
    ["wazuh_url"] = validateUnquoted,

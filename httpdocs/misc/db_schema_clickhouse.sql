@@ -1192,3 +1192,19 @@ CREATE TABLE IF NOT EXISTS ai_model_prices (
 ) ENGINE = ReplacingMergeTree(updated_at)
   ORDER BY (provider, model)
 COMMENT 'Model pricing configuration for LLM cost calculation';
+
+@
+
+CREATE TABLE IF NOT EXISTS ai_policy_config (
+    policy_id         UUID                   DEFAULT generateUUIDv4() COMMENT 'Unique identifier for the policy',
+    name              String                 COMMENT 'Short human-readable name for this policy',
+    description       String                 COMMENT 'Natural language description of what this policy monitors',
+    sql_query         String                 COMMENT 'ClickHouse SQL SELECT query; non-empty result = violation',
+    periodicity       LowCardinality(String) COMMENT 'Suggested execution interval: min, 5min, hourly, daily',
+    is_active         UInt8  DEFAULT 1       COMMENT '1 = enabled, 0 = disabled',
+    created_by        String                 COMMENT 'Username who created this policy',
+    created_at        DateTime DEFAULT now() COMMENT 'Creation timestamp',
+    explanation       String DEFAULT ''      COMMENT 'LLM-generated plain-language explanation of what the SQL query checks'
+) ENGINE = MergeTree()
+  ORDER BY (policy_id)
+COMMENT 'AI-defined network security policy definitions';

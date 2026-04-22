@@ -10,17 +10,21 @@
       <div ref="wrapper" class="line-wrapper" v-show="!loading && !no_data"></div>
       <div v-if="!loading && tooltip.visible" class="line-tooltip"
         :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
-        <span v-if="tooltip.series" class="tt-series">{{ tooltip.series }}</span>
-        <span v-if="tooltip.series" class="tt-sep">·</span>
-        <span class="tt-val">{{ tooltip.value }}</span>
+        <div v-if="tooltip.xLabel" class="tt-time">{{ tooltip.xLabel }}</div>
+        <div v-for="(row, i) in tooltip.rows" :key="i" class="tt-row">
+          <span class="tt-dot" :style="{ background: row.color }"></span>
+          <span class="tt-series">{{ row.label }}</span>
+          <span class="tt-sep">·</span>
+          <span class="tt-val">{{ row.value }}</span>
+        </div>
       </div>
     </div>
     <div v-if="!loading && series.length && !no_data" class="line-legend">
-      <div v-for="(s, i) in series" :key="i" class="legend-item"
-        :class="{ dimmed: hiddenSeries.has(s.label) }" @click="toggleSeries(s.label)">
+      <div v-for="(s, i) in series" :key="i" class="legend-item" :class="{ dimmed: hiddenSeries.has(s.label) }"
+        @click="toggleSeries(s.label)">
         <svg class="legend-line-icon" viewBox="0 0 24 12">
-          <line x1="0" y1="6" x2="24" y2="6" :stroke="s.color" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="12" cy="6" r="3" :fill="s.color"/>
+          <line x1="0" y1="6" x2="24" y2="6" :stroke="s.color" stroke-width="2.5" stroke-linecap="round" />
+          <circle cx="12" cy="6" r="3" :fill="s.color" />
         </svg>
         <span class="legend-name form-control-sm" :title="s.label">{{ s.label }}</span>
       </div>
@@ -41,36 +45,37 @@ const props = defineProps({ chart: { type: Object, required: true }, hideLoading
 const { refresh, unit, label, custom_fetch } = props.chart;
 const formatted_label = label ? (i18n(label) || label) : null;
 
-const container  = ref(null);
-const wrapper    = ref(null);
-const loading    = ref(false);
-const no_data    = ref(false);
-const series     = ref([]);
+const container = ref(null);
+const wrapper = ref(null);
+const loading = ref(false);
+const no_data = ref(false);
+const series = ref([]);
 const has_loaded = ref(false);
 const hiddenSeries = ref(new Set());
 const emit = defineEmits(["chart-updated", "update-requested"]);
-const tooltip = reactive({ visible: false, x: 0, y: 0, series: "", value: "" });
+const tooltip = reactive({ visible: false, x: 0, y: 0, xLabel: "", rows: [] });
 
-const M = { top: 16, right: 20, bottom: 52, left: 56 };
 
-let svgEl       = null;
-let gChart      = null;
-let xScale      = null;
-let yScale      = null;
-let clipId      = null;
+const M = { top: 16, right: 20, bottom: 36, left: 64 };
+
+
+let svgEl = null;
+let gChart = null;
+let xScale = null;
+let yScale = null;
+let clipId = null;
 let currentData = null;
 let refreshTimer = null;
-let isUnixTs    = false;
-let isDateAxis  = false;
-let parseX      = null;
-let iW_last     = 0;
-let iH_last     = 0;
+let isUnixTs = false;
+let isDateAxis = false;
+let parseX = null;
+let iW_last = 0;
 let fmtDate_last = null;
 
-let hoverLine   = null;
-let hoverDots   = [];
+let hoverLine = null;
+let hoverDots = [];
 let hoverXLabel = null;
-let resizeObs   = null;
+let resizeObs = null;
 
 /* ── Lifecycle ── */
 onMounted(async () => {
@@ -131,9 +136,9 @@ async function load() {
     }
     const norm = normaliseData(data);
     if (!norm.length) { if (!has_loaded.value) no_data.value = true; return; }
-    no_data.value    = false;
+    no_data.value = false;
     has_loaded.value = true;
-    currentData      = norm;
+    currentData = norm;
     renderChart(norm);
   } catch (e) {
     console.error(`lineChart-${props.chart.name}:`, e);
@@ -155,47 +160,48 @@ function renderChart(data) {
   if (!wrapper.value || !svgEl) return;
 
   const W  = wrapper.value.clientWidth  || 400;
-  const H  = wrapper.value.clientHeight || 220;
+  const H  = wrapper.value.clientHeight || Math.round((wrapper.value.clientWidth || 400) * 5 / 16);
+
   const iW = W - M.left - M.right;
-  const iH = H - M.top  - M.bottom;
+  const iH = H - M.top - M.bottom;
   if (iW <= 0 || iH <= 0) return;
   iW_last = iW;
-  iH_last = iH;
 
   /* Colours */
   const PALETTE = colorUtils.assignRoundRobinColors(data.map(s => s.label));
-  series.value  = data.map((s, i) => ({
+  series.value = data.map((s, i) => ({
     label: s.label, color: s.color || PALETTE[i % PALETTE.length], url: s.url || null,
   }));
   const getColor = (s, i) => series.value[i]?.color || PALETTE[i % PALETTE.length];
 
-  const vis  = data.filter(s => !hiddenSeries.value.has(s.label));
+  const vis = data.filter(s => !hiddenSeries.value.has(s.label));
   const allX = vis.flatMap(s => s.data.map(d => d.x));
   const allY = vis.flatMap(s => s.data.map(d => d.y));
   if (!allX.length) return;
 
   /* X type detection */
-  isUnixTs   = typeof allX[0] === "number" && allX[0] > 1_000_000_000;
+  isUnixTs = typeof allX[0] === "number" && allX[0] > 1_000_000_000;
   isDateAxis = isUnixTs || allX[0] instanceof Date
     || (typeof allX[0] === "string" && !isNaN(Date.parse(allX[0])));
   const isOrd = !isDateAxis && typeof allX[0] === "string";
 
-  parseX = isUnixTs    ? v => new Date(+v * 1000)
-         : isDateAxis  ? v => (v instanceof Date ? v : new Date(v))
-         : isOrd       ? v => v
-         :               v => +v;
+  parseX = isUnixTs ? v => new Date(+v * 1000)
+    : isDateAxis ? v => (v instanceof Date ? v : new Date(String(v).replace(' ', 'T')))
+      : isOrd ? v => v
+        : v => +v;
 
   const xVals = allX.map(parseX);
-  xScale = isOrd       ? d3.scalePoint().domain([...new Set(xVals)]).range([0, iW]).padding(0.5)
-         : isDateAxis  ? d3.scaleTime().domain(d3.extent(xVals)).range([0, iW]).nice()
-         :               d3.scaleLinear().domain(d3.extent(xVals)).range([0, iW]).nice();
+  xScale = isOrd ? d3.scalePoint().domain([...new Set(xVals)]).range([0, iW]).padding(0.5)
+    : isDateAxis ? d3.scaleTime().domain(d3.extent(xVals)).range([0, iW]).nice()
+      : d3.scaleLinear().domain(d3.extent(xVals)).range([0, iW]).nice();
 
-  const yMin = Math.min(0, d3.min(allY));
+  const yMin = d3.min(allY);
   const yMax = d3.max(allY);
-  yScale = d3.scaleLinear().domain([yMin, yMax]).range([iH, 0]).nice();
+  yScale = d3.scaleLinear().domain([0, yMax]).range([iH, 0]).nice();
 
-  /* SVG size */
-  svgEl.attr("viewBox", `0 0 ${W} ${H}`);
+
+  /* SVG size — set explicit height so the chart renders even when parent has no CSS height */
+  svgEl.attr("viewBox", `0 0 ${W} ${H}`).attr("height", H);
   svgEl.select(`#${clipId} rect`).attr("width", iW).attr("height", iH + 4);
 
   /* All groups share the same (M.left, M.top) offset */
@@ -212,10 +218,14 @@ function renderChart(data) {
     .attr("x", M.left).attr("y", M.top)
     .attr("width", iW).attr("height", iH);
 
-  /* Date formatter — expects ms */
+  /* Date formatter using D3 time format — choose granularity based on data span */
+  const spanMs = d3.extent(xVals)[1] - d3.extent(xVals)[0];
+  const timeFmt = spanMs <= 2 * 3600e3 ? d3.timeFormat("%H:%M")
+    : spanMs <= 4 * 86400e3 ? d3.timeFormat("%b %d %H:%M")
+      : d3.timeFormat("%b %d");
   fmtDate_last = v => {
-    const ms = v instanceof Date ? v.getTime() : (isUnixTs ? +v * 1000 : +v);
-    return formatterUtils.getFormatter('date')(ms);
+    const d = v instanceof Date ? v : new Date(isUnixTs ? +v * 1000 : +v);
+    return timeFmt(d);
   };
 
   /* ── X Axis ── */
@@ -230,19 +240,19 @@ function renderChart(data) {
   axX.call(xAxisFn);
   /* Remove D3 default stroke:none on domain by forcing attr (not style) */
   axX.select("path.domain")
-    .attr("stroke", "var(--color-border-secondary)")
-    .attr("stroke-width", "1")
-    .attr("fill", "none");
-  axX.selectAll(".tick line")
-    .attr("stroke", "var(--color-border-secondary)")
-    .attr("stroke-width", "1");
-  axX.selectAll(".tick text")
-    .attr("fill", "var(--color-text-secondary)")
-    .attr("font-size", "11px");
+  .style("stroke", "var(--color-border-secondary)")
+  .style("stroke-width", "1")
+  .style("fill", "none");
+axX.selectAll(".tick line")
+  .style("stroke", "var(--color-border-secondary)")
+  .style("stroke-width", "1");
+axX.selectAll(".tick text")
+  .style("fill", "var(--color-text-secondary)")
+  .style("font-size", "11px");
 
   /* ── Y Axis ── */
   const nYTicks = Math.max(2, Math.min(5, Math.floor(iH / 40)));
-  const valFmt  = unit ? formatterUtils.getFormatter(unit, null, null, formatted_label) : d3.format("~s");
+  const valFmt = unit ? formatterUtils.getFormatter(unit, null, null, formatted_label) : d3.format("~s");
   const yAxisFn = d3.axisLeft(yScale).ticks(nYTicks).tickFormat(valFmt).tickSizeOuter(0).tickSize(5);
 
   const axY = svgEl.select(".axis-y");
@@ -260,7 +270,7 @@ function renderChart(data) {
 
   /* ── Grid lines ── */
   const gridData = yScale.ticks(nYTicks);
-  const gridSel  = svgEl.select(".grid-y").selectAll("line.gl").data(gridData);
+  const gridSel = svgEl.select(".grid-y").selectAll("line.gl").data(gridData);
   gridSel.enter().append("line").attr("class", "gl").merge(gridSel)
     .attr("x1", 0).attr("x2", iW)
     .attr("y1", d => yScale(d)).attr("y2", d => yScale(d))
@@ -273,7 +283,7 @@ function renderChart(data) {
     .x(d => xScale(parseX(d.x))).y(d => yScale(d.y))
     .defined(d => d.y != null && !isNaN(d.y)).curve(d3.curveMonotoneX);
   const areaGen = d3.area()
-    .x(d => xScale(parseX(d.x))).y0(yScale(Math.max(yMin, 0))).y1(d => yScale(d.y))
+    .x(d => xScale(parseX(d.x))).y0(yScale(yMin)).y1(d => yScale(d.y))
     .defined(d => d.y != null && !isNaN(d.y)).curve(d3.curveMonotoneX);
 
   /* Areas */
@@ -299,15 +309,15 @@ function renderChart(data) {
   /* Static dots */
   const DOT_THRESH = 30;
   const dg = gChart.selectAll("g.dg").data(data, d => d.label);
-  dg.enter().append("g").attr("class", "dg").merge(dg).each(function(s, si) {
-    const g      = d3.select(this);
-    const color  = getColor(s, si);
+  dg.enter().append("g").attr("class", "dg").merge(dg).each(function (s, si) {
+    const g = d3.select(this);
+    const color = getColor(s, si);
     const hidden = hiddenSeries.value.has(s.label);
-    const valid  = s.data.filter(d => d.y != null && !isNaN(d.y));
-    const pts    = valid.length <= DOT_THRESH ? valid : (valid.length ? [valid[valid.length - 1]] : []);
+    const valid = s.data.filter(d => d.y != null && !isNaN(d.y));
+    const pts = valid.length <= DOT_THRESH ? valid : (valid.length ? [valid[valid.length - 1]] : []);
     const c = g.selectAll("circle.sd").data(pts, d => d.x);
     c.enter().append("circle").attr("class", "sd").merge(c)
-      .attr("r",  valid.length <= DOT_THRESH ? 3.5 : 4)
+      .attr("r", valid.length <= DOT_THRESH ? 3.5 : 4)
       .attr("cx", d => xScale(parseX(d.x)))
       .attr("cy", d => yScale(d.y))
       .attr("fill", color)
@@ -320,13 +330,13 @@ function renderChart(data) {
 
   /* Mouse handler */
   svgEl.select(".mouse-overlay")
-    .on("mousemove", function(ev) { onMove(ev, data, iH); })
+    .on("mousemove", function (ev) { onMove(ev, data, iH); })
     .on("mouseleave", onLeave);
 }
 
 /* ── Mouse ── */
 function clearHover() {
-  hoverLine?.remove();   hoverLine   = null;
+  hoverLine?.remove(); hoverLine = null;
   hoverXLabel?.remove(); hoverXLabel = null;
   hoverDots.forEach(d => d.remove()); hoverDots = [];
 }
@@ -409,14 +419,26 @@ function onMove(ev, data, iH) {
   if (!closePt) return;
 
   const valFmt = unit ? formatterUtils.getFormatter(unit, null, null, formatted_label) : v => v;
-  const rect   = container.value.getBoundingClientRect();
+  const rect = container.value.getBoundingClientRect();
+  const xLblTxt = isDateAxis ? fmtDate_last(parseX(snapRaw)) : String(snapRaw);
+
+  const rows = [];
+  vis.forEach(s => {
+    const pt = s.data.find(d => String(d.x) === String(snapRaw));
+    if (!pt || pt.y == null || isNaN(pt.y)) return;
+    const color = series.value.find(sv => sv.label === s.label)?.color || "#888";
+    rows.push({ label: s.label, value: valFmt(pt.y), color });
+  });
+  if (!rows.length) return;
+
   Object.assign(tooltip, {
     visible: true,
     x: ev.clientX - rect.left + 14,
-    y: ev.clientY - rect.top  - 12,
-    series: closeS.label,
-    value:  valFmt(closePt.y),
+    y: ev.clientY - rect.top - 12,
+    xLabel: xLblTxt,
+    rows,
   });
+
 }
 
 /* ── Toggle / expose / watch ── */
@@ -433,37 +455,123 @@ watch(() => props.chart.url_params, () => { load(); }, { deep: true });
 
 <style scoped>
 .line-container {
-  position: relative; display: flex; flex-direction: column;
-  align-items: stretch; width: 100%; height: 100%;
-  min-width: 0; box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
+
 .line-title {
-  flex-shrink: 0; margin-bottom: 4px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .line-body {
-  display: flex; flex-direction: column; align-items: stretch;
-  flex: 1 1 auto; min-height: 0; width: 100%; height: 100%; position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
-.line-wrapper { flex: 1 1 auto; min-height: 0; width: 100%; height: 100%; overflow: hidden; }
+
+.line-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .line-legend {
-  flex-shrink: 0; display: flex; flex-direction: row; flex-wrap: wrap;
-  align-items: center; gap: 4px 12px; padding: 6px 0 2px; overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 6px 0 2px;
+  overflow: hidden;
 }
+
 .legend-item {
-  display: flex; align-items: center; gap: 5px; min-width: 0;
-  cursor: pointer; user-select: none; transition: opacity 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.25s ease;
 }
-.legend-item.dimmed { opacity: 0.35; }
-.legend-line-icon   { width: 24px; height: 12px; flex-shrink: 0; }
-.legend-name        { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.legend-item.dimmed {
+  opacity: 0.35;
+}
+
+.legend-line-icon {
+  width: 24px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .line-tooltip {
-  position: absolute; pointer-events: none; display: flex; align-items: center; gap: 6px;
-  background: rgba(10,10,10,0.85); color: #fff; padding: 5px 10px 5px 8px;
-  border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-  z-index: 100; backdrop-filter: blur(4px);
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(10, 10, 10, 0.88);
+  color: #fff;
+  padding: 7px 12px 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  backdrop-filter: blur(6px);
 }
-.tt-series { font-weight: 500; }
-.tt-sep    { opacity: 0.45; }
-.tt-val    { font-weight: 700; }
+
+.tt-time {
+  font-size: 11px;
+  opacity: 0.65;
+  letter-spacing: 0.3px;
+}
+
+.tt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tt-series {
+  font-weight: 500;
+}
+
+.tt-sep {
+  opacity: 0.35;
+}
+
+.tt-val {
+  font-weight: 700;
+}
+
+.tt-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
 </style>

@@ -2571,7 +2571,7 @@ if isEmptyString(page) or page == "overview" then
             ifid         = ifid,
             flow_key     = flow_key,
             flow_hash_id = flow_hash_id,
-            page         = "flow_details",
+            page         = "live_flow_details",
             flow_data    = flow_data
          })
          

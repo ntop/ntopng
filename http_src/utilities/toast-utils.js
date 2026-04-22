@@ -119,6 +119,7 @@ export default class ToastUtils {
         };
 
         option.style = styles[option.level] || styles.warning;
+        option.delay = option.delay ?? 2000; 
 
         if (option.id === undefined) throw 'A toast must have an in id!';
         if (option.id in globalToasts) return;

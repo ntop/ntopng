@@ -12,13 +12,22 @@
 
   <!-- Side panel -->
   <transition name="slide-right">
-    <div v-if="open" class="flow-chat-panel d-flex flex-column">
+    <div v-if="open" class="flow-chat-panel d-flex flex-column" :class="{ 'flow-chat-panel-expanded': expanded }">
 
       <!-- Panel header -->
       <div class="flow-chat-panel-header d-flex align-items-center px-3 py-2 flex-shrink-0">
         <i class="fas fa-robot me-2" style="color: var(--ntop-orange, #FF8F00);"></i>
         <span class="fw-semibold small">{{ _i18n('llm.nAnalyst') }}</span>
-        <button class="btn-close ms-auto" style="font-size:0.7rem;" @click="closePanel"></button>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <button
+            class="mac-btn mac-btn-green"
+            :title="expanded ? 'Restore' : 'Expand'"
+            @click="toggleExpand"
+          >
+            <span class="mac-btn-icon">{{ expanded ? '⊖' : '+' }}</span>
+          </button>
+          <button class="btn-close" style="font-size:0.7rem;" @click="closePanel"></button>
+        </div>
       </div>
 
       <!-- Chatbot widget -->
@@ -43,6 +52,7 @@ const props = defineProps({
 
 const open       = ref(false);
 const showButton = ref(false);
+const expanded   = ref(false);
 
 // Derive client label from flow_data for preset questions
 const cli = computed(() => {
@@ -80,12 +90,7 @@ const chatContext = computed(() => ({
   csrf:            props.context?.csrf,
   presetQuestions: activePresets.value,
   initialMessage:  buildInitialMessage(),
-  page_context: JSON.stringify({
-    page:         "flow_details",
-    ifid:         props.context?.ifid,
-    flow_key:     props.context?.flow_key,
-    flow_hash_id: props.context?.flow_hash_id,
-  }),
+  page_context: props.context?.page || "flow_details"
 }));
 
 function buildInitialMessage() {
@@ -164,7 +169,17 @@ function openPanel() {
 
 function closePanel() {
   open.value = false;
+  expanded.value = false;
   document.body.classList.remove("flow-chat-sidebar-open");
+}
+
+function toggleExpand() {
+  expanded.value = !expanded.value;
+  if (expanded.value) {
+    document.body.classList.remove("flow-chat-sidebar-open");
+  } else {
+    document.body.classList.add("flow-chat-sidebar-open");
+  }
 }
 
 onMounted(() => {
@@ -217,12 +232,59 @@ body.flow-chat-sidebar-open .main-content {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 20vw;
+  width: 28vw;
   min-width: 280px;
   z-index: 1040;
   background: var(--content-bg, #ffffff);
   border-left: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.10);
+  transition: all 0.25s ease;
+}
+
+/* Expanded (80vw × 80vh centered) */
+.flow-chat-panel-expanded {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: 80vw;
+  height: 80vh;
+  transform: translate(-50%, -50%);
+  border-left: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.22);
+}
+
+/* macOS traffic-light button */
+.mac-btn {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  position: relative;
+}
+.mac-btn-green {
+  background: #28C840;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.15);
+}
+.mac-btn-green:hover {
+  background: #1EA832;
+}
+.mac-btn-icon {
+  font-size: 9px;
+  color: rgba(0,0,0,0.55);
+  opacity: 0;
+  user-select: none;
+  line-height: 1;
+}
+.mac-btn:hover .mac-btn-icon {
+  opacity: 1;
 }
 
 .flow-chat-panel-header {

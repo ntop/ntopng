@@ -21,6 +21,18 @@
           </button>
         </div>
 
+        <div class="px-2 pb-2 flex-shrink-0">
+          <div class="history-filter-row d-flex gap-1 flex-wrap">
+            <button v-for="f in HISTORY_FILTERS" :key="f.value"
+              class="history-filter-btn"
+              :class="{ active: historyFilter === f.value }"
+              @click="setHistoryFilter(f.value)"
+              :title="f.label">
+              <i :class="f.icon + ' me-1'"></i>{{ f.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="sidebar-chat-list flex-grow-1 overflow-auto px-2 pb-2" style="position: relative;">
           <div v-if="loadingHistory"
             class="d-flex align-items-center justify-content-center py-4 chat-muted-text small gap-2">
@@ -118,9 +130,14 @@
               </span>
               <i v-if="p.provider === selectedProvider" class="fas fa-check provider-option-check"></i>
             </div>
+
           </div>
         </div>
+        <button class="sidebar-toggle-btn ms-auto flex-shrink-0" title="Share" @click="shareConversation">
+          <i class="fas fa-share-alt"></i>
+        </button>
       </div>
+      
 
       <!-- Message list -->
       <div ref="messageList" class="chat-messages flex-grow-1 overflow-auto d-flex flex-column">
@@ -191,6 +208,28 @@
                   </div>
                 </div>
               </template>
+
+              <template v-if="msg.steps && msg.steps.length">
+                <div class="mt-1">
+                  <button class="btn btn-link p-0 sql-toggle-btn" @click="toggleStepsPanel(idx)">
+                    <i :class="openStepsPanels.has(idx) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
+                      class="me-1" style="font-size:0.65rem;"></i>
+                    {{ openStepsPanels.has(idx) ? 'Hide steps' : `Show ${msg.steps.length} steps` }}
+                  </button>
+                  <div v-if="openStepsPanels.has(idx)" class="steps-panel mt-1">
+                    <div v-for="(step, si) in msg.steps" :key="si" class="step-entry">
+                      <template v-if="step.type === 'tool'">
+                        <i class="fas fa-bolt step-icon tool-icon"></i>
+                        <span class="step-label">{{ step.tool }}</span>
+                      </template>
+                      <template v-else>
+                        <i class="fas fa-brain step-icon thinking-icon"></i>
+                        <span class="step-label thinking-text">{{ (step.thinking || step.content || '').slice(0, 120) }}{{ (step.thinking || step.content || '').length > 120 ? '…' : '' }}</span>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
 
             <div v-if="msg.role === 'user'" class="flex-shrink-0 ms-2 mt-1">
@@ -254,7 +293,6 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import formatterUtils from "../utilities/formatter-utils.js";
-import { v4 as uuidv4 } from "uuid";
 import PieChart from "./charts/pie-chart.vue";
 import LineChart from "./charts/line-chart.vue";
 import {
@@ -271,10 +309,10 @@ const {
   messageList, promptInput,
   messages, history, sending, timedOut, prompt, conciseMode, chat_UUID,
   providers, selectedProvider, loadingProviders,
-  openSqlPanels, debugStatus,
+  openSqlPanels, openStepsPanels, debugStatus, thinkingSteps, stepsOpen,
   currentSendingLabel, canSendMsg, selectedProviderInfo,
   loadProviders, selectProvider, clearChat, send, sendPreset, sendDebug,
-  scrollBottom, scrollToLastMessage, autoResize, toggleSqlPanel,
+  scrollBottom, scrollToLastMessage, autoResize, toggleSqlPanel, toggleStepsPanel,
   setOnFirstMessage,
 } = useLlmChat(props);
 
@@ -282,10 +320,19 @@ const {
 const settingsUrl = ref(`${http_prefix}/lua/admin/prefs.lua?tab=llm_providers`);
 const statsUrl    = ref(`${http_prefix}/lua/pro/ai_stats.lua`);
 
+const HISTORY_FILTERS = [
+  { value: "all",               label: _i18n("all"),              icon: "fas fa-list" },
+  { value: "live_flows",        label: _i18n("llm.live_flows"),   icon: "fas fa-bolt" },
+  { value: "hist_flow_details", label: _i18n("llm.historical"),   icon: "fas fa-database" },
+  { value: "nanalyst",          label: _i18n("llm.nAnalyst"),     icon: "fas fa-robot" },
+];
+
 const chatHistory    = ref([]);
 const loadingHistory = ref(false);
 const sidebarOpen    = ref(false);
+const historyFilter  = ref("all");
 const activeChatId   = ref(null);
+
 
 const renamingChatId = ref(null);
 const renameValue    = ref("");
@@ -299,6 +346,25 @@ function formatTimestamp(ts) {
     return formatterUtils.getFormatter("date")(parseInt(ts));
   } catch (_) {
     return new Date(parseInt(ts) * 1000).toLocaleString();
+  }
+}
+
+function shareConversation() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    ToastUtils.showToast({ id: 'chat-link-copied-' + Date.now(), level: 'success', title: _i18n('success'), body: _i18n('llm.chatid_copied_to_clipboard'), delay: 60 });
+  } else {
+    // Fallback for non-HTTPS contexts
+    const el = document.createElement("textarea");
+    el.value = url;
+    el.style.position = "fixed";
+    el.style.opacity = "0";
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    ToastUtils.showToast({ id: 'chat-link-copied-' + Date.now(), level: 'success', title: _i18n('success'), body: _i18n('llm.chatid_copied_to_clipboard'), delay: 60 });
   }
 }
 
@@ -327,11 +393,17 @@ function onDocumentClick(e) {
   }
 }
 
+function setHistoryFilter(value) {
+  historyFilter.value = value;
+  loadChatHistory();
+}
+
 // Load chat history
 async function loadChatHistory() {
   loadingHistory.value = true;
   try {
-    const url = `${http_prefix}/lua/pro/rest/v2/get/llm/chats_list.lua`;
+    const filter = historyFilter.value !== "all" ? `?page_filter=${encodeURIComponent(historyFilter.value)}` : "";
+    const url = `${http_prefix}/lua/pro/rest/v2/get/llm/chats_list.lua${filter}`;
     const list = (await ntopng_utility.http_request(url)) ?? [];
     chatHistory.value = Array.isArray(list) ? list : [];
   } catch (err) {
@@ -385,11 +457,9 @@ async function loadChat(chatId) {
 }
 
 function startNewChat() {
-  const newId = uuidv4();
-  chat_UUID.value  = newId;
+  clearChat();
+  const newId = chat_UUID.value;
   activeChatId.value = newId;
-  messages.value = [];
-  history.value  = [];
   chatHistory.value.unshift({
     chat_id: newId, title: "New Chat",
     provider: selectedProvider.value ?? "", isNew: true,
@@ -612,6 +682,15 @@ onBeforeUnmount(() => {
   transition:background 0.15s,border-color 0.15s,color 0.15s; white-space:nowrap;
 }
 .btn-new-chat:hover { background:var(--sidebar-item-hover); border-color:var(--ntop-orange, #FF8F00); color:var(--ntop-orange, #FF8F00); }
+.history-filter-row { gap:4px; }
+.history-filter-btn {
+  flex:1 1 auto; min-width:0; padding:3px 6px; font-size:0.7rem; border-radius:6px;
+  border:1px solid var(--chat-border); background:transparent; color:var(--chat-muted);
+  cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:background 0.15s,border-color 0.15s,color 0.15s;
+}
+.history-filter-btn:hover { background:var(--sidebar-item-hover); color:var(--chat-text); }
+.history-filter-btn.active { background:var(--sidebar-item-active); border-color:var(--ntop-orange, #FF8F00); color:var(--ntop-orange, #FF8F00); font-weight:600; }
 .chat-history-item {
   display:flex; align-items:center; gap:0.5rem; padding:0.45rem 0.6rem; border-radius:8px;
   cursor:pointer; transition:background 0.12s; margin-bottom:2px; border-left:2px solid transparent;
@@ -762,6 +841,29 @@ onBeforeUnmount(() => {
 .typing-dot:nth-child(3) { animation-delay:0.4s; }
 @keyframes typingPulse { 0%,80%,100%{transform:scale(1);opacity:0.5;} 40%{transform:scale(1.25);opacity:1;} }
 
+/* Thinking steps */
+.steps-bubble { padding: 0.5rem 0.85rem; }
+.steps-toggle-btn {
+  background: none; border: none; padding: 0 0.3rem; cursor: pointer;
+  font-size: 0.68rem; color: var(--chat-muted);
+  transition: color 0.15s;
+}
+.steps-toggle-btn:hover { color: var(--ntop-orange, #FF8F00); }
+.steps-toggle-btn .fas { font-size: 0.6rem; }
+.steps-panel {
+  border-top: 1px solid var(--chat-border); padding-top: 0.4rem;
+  display: flex; flex-direction: column; gap: 0.25rem;
+}
+.step-entry {
+  display: flex; align-items: flex-start; gap: 0.4rem;
+  font-size: 0.72rem; color: var(--chat-muted);
+}
+.step-icon { font-size: 0.65rem; margin-top: 0.15rem; flex-shrink: 0; }
+.tool-icon  { color: var(--ntop-orange, #FF8F00); }
+.thinking-icon { color: var(--chat-muted); }
+.step-label { line-height: 1.4; word-break: break-word; }
+.thinking-text { font-style: italic; opacity: 0.8; }
+
 /* SQL panel */
 .sql-toggle-btn { font-size:0.72rem; color:var(--chat-muted) !important; text-decoration:none !important; }
 .sql-toggle-btn:hover { color:var(--ntop-orange, #FF8F00) !important; }
@@ -810,4 +912,5 @@ onBeforeUnmount(() => {
 .sidebar-chat-list::-webkit-scrollbar { width:4px; }
 .sidebar-chat-list::-webkit-scrollbar-track { background:transparent; }
 .sidebar-chat-list::-webkit-scrollbar-thumb { background:var(--scrollbar-thumb); border-radius:4px; }
+
 </style>

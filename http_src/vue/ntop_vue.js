@@ -108,7 +108,7 @@ import { default as PageChecksOverview } from "./page-checks-overview.vue"
 import { default as PageManageData } from "./page-manage-data.vue"
 import { default as PageEditDeviceProtocols } from "./page-edit-device-protocols.vue"
 import { default as PageAiStats } from "./page-ai-stats.vue"
-//import { default as PageAiPolicy } from "./page-ai-policy.vue"
+import { default as PageAiPolicy } from "./page-ai-policy.vue"
 import { default as PageAlertExclusions } from "./page-alert-exclusions.vue"
 import { default as PageInternals } from "./page-internals.vue"
 import { default as PageBGPLookingGlass } from "./page-bgp-looking-glass.vue"
@@ -263,7 +263,7 @@ let ntopVue = {
     PageManageData: PageManageData,
     PageEditDeviceProtocols: PageEditDeviceProtocols,
     PageAiStats: PageAiStats,
-    //PageAiPolicy: PageAiPolicy,
+    PageAiPolicy: PageAiPolicy,
     PageAlertExclusions: PageAlertExclusions,
     PageInternals: PageInternals,
     PageBGPLookingGlass: PageBGPLookingGlass,
