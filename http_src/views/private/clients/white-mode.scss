@@ -1061,51 +1061,6 @@ table.dataTable thead th.sorting_asc::after {
   text-decoration: none;
 }
 
-.select2-selection {
-  overflow: hidden;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-  border-color: rgb(118, 118, 118) transparent transparent;
-}
-
-.select2-selection__rendered {
-  color: var(--bs-body-color) !important;
-  white-space: normal;
-  word-break: break-all;
-}
-
-//select2: fixes word text wrap issues on long select values
-li.select2-selection__choice {
-  overflow: hidden;
-  text-overflow: ellipsis; //use this if you want to shorten
-}
-
-.select2-results__option {
-  overflow: hidden;
-  text-overflow: ellipsis; //use this if you want to shorten  
-  color: var(--bs-body-color) !important;
-  white-space: nowrap;
-  word-break: break-all;
-}
-
-.select2-dropdown {
-  display: inline-block !important;
-}
-
-.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--disabled,
-.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option[aria-disabled=true] {
-  color: var(--bs-secondary-color, #6c757d) !important;
-  opacity: 0.45;
-  cursor: not-allowed !important;
-  pointer-events: none;
-  background: repeating-linear-gradient(135deg,
-      transparent,
-      transparent 4px,
-      rgba(128, 128, 128, 0.05) 4px,
-      rgba(128, 128, 128, 0.05) 5px);
-}
-
 .invalid {
   border: 1px solid #FF0000;
 }

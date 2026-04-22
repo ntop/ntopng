@@ -672,6 +672,10 @@ defineExpose({ render });
     width: 100% !important;
 }
 
+/* =======================
+   SELECT FIELD
+======================= */
+
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection) {
     background-color: var(--input-bg, #fff);
     border: 1px solid var(--input-border, #ced4da);
@@ -689,6 +693,10 @@ defineExpose({ render });
     outline: none;
 }
 
+/* =======================
+   SINGLE SELECT
+======================= */
+
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single) {
     display: flex !important;
     align-items: center !important;
@@ -696,7 +704,6 @@ defineExpose({ render });
 }
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered) {
-    color: var(--input-text, #495057);
     line-height: 1 !important;
     padding-left: 0.55rem;
     padding-right: 1.5rem;
@@ -705,7 +712,6 @@ defineExpose({ render });
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap !important;
-    word-break: normal !important;
 }
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow) {
@@ -716,75 +722,128 @@ defineExpose({ render });
     align-items: center;
 }
 
+/* =======================
+   DROPDOWN (flush + subtle)
+======================= */
+
 .ss-root :deep(.select2-container--bootstrap-5 .select2-dropdown) {
     background-color: var(--bg-surface, #fff);
-    border: 1px solid var(--border-color, #dee2e6);
+    border: 1px solid rgba(0, 0, 0, 0.03);
     border-radius: 7px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     font-size: 0.8rem;
     overflow: hidden;
+    padding: 0; /* 🔥 removes gap */
 }
 
+/* search */
 .ss-root :deep(.select2-container--bootstrap-5 .select2-search--dropdown) {
     padding: 0.4rem 0.5rem;
     border-bottom: 1px solid var(--border-subtle, #e9ecef);
 }
 
-.ss-root :deep(.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field) {
-    background-color: var(--input-bg, #fff);
-    border: 1px solid var(--input-border, #ced4da);
+.ss-root :deep(.select2-container--bootstrap-5 .select2-search__field) {
     border-radius: 5px;
-    color: var(--input-text, #495057);
     font-size: 0.8rem;
     padding: 0.2rem 0.5rem;
 }
 
+/* =======================
+   OPTIONS LIST (flush)
+======================= */
+
+.ss-root :deep(.select2-container--bootstrap-5 .select2-results__options) {
+    padding: 0 !important; /* 🔥 critical */
+}
+
+/* =======================
+   OPTION ITEM
+======================= */
+
 .ss-root :deep(.select2-container--bootstrap-5 .select2-results__option) {
-    color: var(--ntop-text-color, #111);
-    padding: 0.25rem 0.625rem;
+    position: relative;
+    border-radius: 6px;
+    margin: 0; /* 🔥 remove vertical gaps */
+    padding: 0.27rem 0.6rem 0.27rem 0.75rem;
     font-size: 0.8rem;
-    transition: background 0.1s ease;
+    background: transparent !important;
+    color: var(--ntop-text-color, #111) !important;
 }
 
-.ss-root :deep(.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected]) {
-    background-color: var(--ntop-blue, #37474F);
-    color: #fff;
+/* =======================
+   LEFT PILL (base)
+======================= */
+
+.ss-root :deep(.select2-container--bootstrap-5 .select2-results__option::after) {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    border-radius: 2px;
+    background-color: transparent;
 }
 
-.ss-root :deep(.select2-container--bootstrap-5 .select2-results__option[aria-selected=true]) {
-    background-color: var(--bg-elevated, #f8f9fa);
-    color: var(--ntop-text-color, #111);
+/* =======================
+   HOVER (NO orange)
+======================= */
+
+.ss-root :deep(.select2-container--bootstrap-5
+.select2-results__option--highlighted) {
+    background: rgba(175, 184, 193, 0.20) !important;
 }
 
-.ss-root :deep(.select2-container--bootstrap-5 .select2-results__group) {
-    color: var(--ntop-muted-text-color, #37474F);
+/* kill pill on every hover — restore below for selected+hover */
+.ss-root :deep(.select2-container--bootstrap-5
+.select2-results__option--highlighted::after) {
+    background-color: transparent !important;
+}
+
+/* =======================
+   SELECTED (pill + grey)
+======================= */
+
+.ss-root :deep(.select2-container--bootstrap-5
+.select2-results__option--selected) {
+    background: rgba(175, 184, 193, 0.20) !important;
+}
+
+.ss-root :deep(.select2-container--bootstrap-5
+.select2-results__option--selected::after) {
+    background-color: var(--ntop-orange, #FF8F00) !important;
+}
+
+/* =======================
+   SELECTED + HOVER: keep pill
+======================= */
+
+.ss-root :deep(.select2-container--bootstrap-5
+.select2-results__option--highlighted.select2-results__option--selected) {
+    background: rgba(175, 184, 193, 0.20) !important;
+}
+
+.ss-root :deep(.select2-container--bootstrap-5
+.select2-results__option--highlighted.select2-results__option--selected::after) {
+    background-color: var(--ntop-orange, #FF8F00) !important;
+}
+
+/* =======================
+   GROUP LABEL
+======================= */
+
+.ss-root :deep(.select2-results__group) {
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
     padding: 0.4rem 0.625rem 0.15rem;
 }
 
-/* Small size variant */
-.ss-root :deep(.select2--small.select2-container--bootstrap-5 .select2-selection--single) {
-    min-height: 26px !important;
-    height: 26px !important;
-    border-radius: 6px;
-}
+/* =======================
+   MULTI SELECT CHIPS
+======================= */
 
-.ss-root :deep(.select2--small .select2-selection--single .select2-selection__rendered) {
-    line-height: 1 !important;
-    font-size: 0.78rem;
-}
-
-.ss-root :deep(.select2--small .select2-results__option) {
-    font-size: 0.78rem;
-    padding: 0.2rem 0.5rem;
-}
-
-/* Multiple selection chips */
-.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice) {
-    background-color: var(--ntop-blue, #37474F);
+.ss-root :deep(.select2-selection--multiple .select2-selection__choice) {
     border: none;
     color: #fff;
     border-radius: 4px;
@@ -793,33 +852,40 @@ defineExpose({ render });
     margin: 2px;
 }
 
-.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove) {
+.ss-root :deep(.select2-selection__choice__remove) {
     color: rgba(255, 255, 255, 0.7);
-    margin-right: 4px;
 }
 
-.ss-root :deep(.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover) {
+.ss-root :deep(.select2-selection__choice__remove:hover) {
     color: #fff;
-    background: transparent;
 }
 
-/* Disabled state */
-.ss-root :deep(.select2-container--bootstrap-5.select2-container--disabled .select2-selection) {
+/* =======================
+   SMALL VARIANT
+======================= */
+
+.ss-root :deep(.select2--small .select2-selection--single) {
+    height: 26px !important;
+    min-height: 26px !important;
+}
+
+.ss-root :deep(.select2--small .select2-results__option) {
+    font-size: 0.78rem;
+    padding: 0.2rem 0.5rem;
+}
+
+/* =======================
+   DISABLED
+======================= */
+
+.ss-root :deep(.select2-container--disabled .select2-selection) {
     background-color: var(--bg-sunken, #f1f3f5);
-    color: var(--ntop-disabled-text-color, rgba(33, 37, 41, 0.5));
-    cursor: not-allowed;
-    border-color: var(--border-subtle, #e9ecef);
-}
-
-.ss-root :deep(.select2-results__option[aria-disabled=true]) {
-    pointer-events: all !important;
     cursor: not-allowed;
 }
 
-/* Isolate the native <select> from global .form-select overrides */
+/* isolate native select */
 select.ss-control {
     font-size: 0.8rem !important;
-    min-height: 34px !important;
     height: 34px !important;
 }
 </style>
