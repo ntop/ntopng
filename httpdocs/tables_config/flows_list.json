@@ -47,6 +47,16 @@
 			]
 		},
 		{
+			"title_i18n": "first_seen",
+			"data_field": "first_seen",
+			"sortable": true,
+			"min-width" : "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
 			"title_i18n": "last_seen",
 			"data_field": "last_seen",
 			"sortable": true,
