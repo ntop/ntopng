@@ -1,6 +1,6 @@
 <!-- (C) 2026 - ntop.org     -->
 <template>
-    <modal ref="modal_id">
+    <modal @showed="showed()" @hidden="on_hidden()" ref="modal_id">
         <!-- Modal title: displays the localized "Merge Wazuh Info" label -->
         <template v-slot:title>{{ _i18n("asset_details.merge_wazuh_info") }}</template>
 
@@ -105,13 +105,18 @@ const modal_id = ref(null);
 
 /* ****************************************************** */
 
-/**
- * Opens the modal and resets it to its initial confirmation state,
- * clearing any previous error messages.
- */
+const showed = () => { };
+
+const on_hidden = () => {
+    state.value = 'confirm';
+    error_message.value = '';
+    merge_stats.value = { updated: 0, not_found: 0, errors: 0 };
+};
+
 const show = () => {
     state.value = 'confirm';
     error_message.value = '';
+    merge_stats.value = { updated: 0, not_found: 0, errors: 0 };
     modal_id.value.show();
 };
 
