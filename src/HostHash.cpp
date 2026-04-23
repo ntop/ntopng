@@ -37,8 +37,10 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key, Mac *mac,
                     bool is_inline_call, u_int16_t observation_point_id) {
   u_int32_t hash = key->key();
 
+#ifndef HAVE_NEDGE
   /* Check if MAC address needs to be used in host key */
   if (ntop->getPrefs()->useMacAddressInFlowKey() == false)
+#endif
     mac = NULL;
 
 #ifdef USE_MAC_IN_KEY_WITH_DHCP

@@ -2866,7 +2866,9 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
                  bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
   const Mac *src_mac, *dst_mac;
+#ifndef HAVE_NEDGE
   bool useMacAddressInFlowKey = ntop->getPrefs()->useMacAddressInFlowKey();
+#endif
 
 #if 0
   if(ntohs(_cli_port) == 17446) {
@@ -2910,21 +2912,12 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
   } else
     return (false);
 
+#ifndef HAVE_NEDGE
 #ifdef USE_MAC_IN_KEY_WITH_DHCP
   /* Check if MAC address needs to be used in flow key */
   if((cli_ip->key() == 0) && (srv_ip->key() == 0xFFFFFFFF)) {
     useMacAddressInFlowKey = true;
   }
-#endif
-
-#ifdef HAVE_NEDGE
-  /*
-    As with Netfilter we do not have MAC visibility
-    they should not be used here to avoid invalid
-    flow search as with Netfilter we see only the
-    sender MAC
-  */
-  useMacAddressInFlowKey = false;
 #endif
 
   if(useMacAddressInFlowKey) {
@@ -2953,6 +2946,7 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
       if(srv_mac != dst_mac) return (false);
     }
   }
+#endif
 
   return (true);
 }

@@ -91,7 +91,9 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
+#ifndef HAVE_NEDGE
   use_mac_in_flow_key = false;
+#endif
   fingerprint_stats = false;
   ciphers_list = NULL;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
@@ -952,7 +954,9 @@ void Prefs::reloadPrefsFromRedis() {
   enable_access_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_assets_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ASSETS_LOG, false);
   enable_sql_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
+#ifndef HAVE_NEDGE
   use_mac_in_flow_key = getDefaultPrefsValue(CONST_PREFS_USE_MAC_IN_FLOW_KEY, false);
+#endif
   fingerprint_stats = getDefaultPrefsValue(CONST_PREFS_FINGERPRINT_STATS, false);
   // vulnerability scan preferences
   vs_max_num_scans = getDefaultPrefsValue(CONST_VS_MAX_NUM_SCANS, 4);
@@ -2844,8 +2848,10 @@ void Prefs::lua(lua_State *vm) {
 
   lua_push_bool_table_entry(vm, "fingerprint_stats",
                             areFingerprintStatsEnabled());
+#ifndef HAVE_NEDGE
   lua_push_uint64_table_entry(vm, "use_mac_in_flow_key",
                               useMacAddressInFlowKey());
+#endif
   lua_push_uint64_table_entry(vm, "housekeeping_frequency",
                               housekeeping_frequency);
   lua_push_uint64_table_entry(vm, "local_host_cache_duration",

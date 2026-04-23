@@ -408,7 +408,8 @@ local menu_subpages = {{
         }, 
         toggle_use_mac_in_flow_key = {
             title = i18n("prefs.toggle_use_mac_in_flow_key_title"),
-            description = i18n("prefs.toggle_use_mac_in_flow_key_description")
+            description = i18n("prefs.toggle_use_mac_in_flow_key_description"),
+            hidden = (have_nedge)
         },
         topk_heuristic_precision = {
             title = i18n("prefs.topk_heuristic_precision_title"),
