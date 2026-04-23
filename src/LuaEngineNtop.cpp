@@ -2497,9 +2497,9 @@ static int ntop_http_redirect(lua_State* vm) {
 /* ****************************************** */
 
 // *** API ***
-/* @brief Performs an outbound HTTP GET request and optionally returns the response body.  Lua: ntop.httpGet(url[,user,pass,timeout,return_content,...]) → string */
+/* @brief Performs an outbound HTTP GET request and optionally returns the response body.  Lua: ntop.httpGet(url[,user,pass,timeout,return_content,use_cookie,follow_redirects,ip_version,bearer,x_api_key]) → string */
 static int ntop_http_get(lua_State* vm) {
-  char *url, *username = NULL, *pwd = NULL, *bearer = NULL;
+  char *url, *username = NULL, *pwd = NULL, *bearer = NULL, *x_api_key = NULL;
   int connection_timeout = 30, lifetime_timeout = 0;
   bool return_content = true, use_cookie_authentication = false;
   bool follow_redirects = true;
@@ -2550,11 +2550,15 @@ static int ntop_http_get(lua_State* vm) {
   if (lua_type(vm, 9) == LUA_TSTRING)
     bearer = (char*)lua_tostring(vm, 9);
 
+  if (lua_type(vm, 10) == LUA_TSTRING)
+    x_api_key = (char*)lua_tostring(vm, 10);
+
   HttpGetPostOptions opts;
   memset(&opts, 0, sizeof(opts));
   opts.username          = username;
   opts.password          = pwd;
   opts.bearer            = bearer;
+  opts.x_api_key         = x_api_key;
   opts.connect_timeout   = connection_timeout;
   opts.max_duration_timeout = lifetime_timeout;
   opts.return_content    = return_content;
