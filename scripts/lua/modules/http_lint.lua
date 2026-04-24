@@ -2289,6 +2289,7 @@ local known_parameters = {
    ["ai_policy_id"] = validateUUID,
    ["active"] = validateBool,
    ["page_filter"] = validateUnquoted,
+   ["alert_description"] = validateUnquoted,
 
    -- WAZUH
    ["wazuh_url"] = validateUnquoted,

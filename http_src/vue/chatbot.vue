@@ -5,36 +5,13 @@
     <div class="chat-header d-flex align-items-center gap-2 px-3 py-2 flex-shrink-0">
 
       <!-- Provider selector -->
-      <div v-if="loadingProviders" class="d-flex align-items-center gap-2 small chat-muted-text">
-        <span class="spinner-border spinner-border-sm" role="status"></span>
-        {{ _i18n('llm.loading_providers') }}
-      </div>
-      <div v-else-if="providers.length === 0" class="text-warning small d-flex align-items-center gap-1">
-        <i class="fas fa-exclamation-triangle"></i>
-        {{ _i18n('llm.no_providers') }}
-      </div>
-      <div v-else class="provider-selector-wrapper flex-shrink-0" ref="providerSelectorRef">
-        <div class="provider-pill" :class="{ open: providerDropdownOpen, disabled: sending }"
-          @click.stop="!sending && (providerDropdownOpen = !providerDropdownOpen)">
-          <span class="provider-pill-icon"><i :class="getProviderIcon(selectedProvider)"></i></span>
-          <span class="provider-pill-info">
-            <span class="provider-pill-name">{{ _i18n('prefs.' + selectedProvider) }}</span>
-            <span class="provider-pill-model">{{ selectedProviderInfo?.model }}</span>
-          </span>
-          <i class="fas fa-chevron-down provider-pill-chevron"></i>
-        </div>
-        <div v-if="providerDropdownOpen" class="provider-dropdown">
-          <div v-for="p in providers" :key="p.provider" class="provider-option"
-            :class="{ active: p.provider === selectedProvider }" @click.stop="selectProvider(p.provider)">
-            <span class="provider-option-icon"><i :class="getProviderIcon(p.provider)"></i></span>
-            <span class="provider-option-info">
-              <span class="provider-option-name">{{ _i18n('prefs.' + p.provider) }}</span>
-              <span class="provider-option-model">{{ p.model }}</span>
-            </span>
-            <i v-if="p.provider === selectedProvider" class="fas fa-check provider-option-check"></i>
-          </div>
-        </div>
-      </div>
+      <LlmProviderSelector
+        :providers="providers"
+        :selected_provider="selectedProvider"
+        :loading="loadingProviders"
+        :disabled="sending"
+        @select="selectProvider"
+      />
 
       <div class="ms-auto d-flex align-items-center gap-1">
         <!-- Concise mode -->
@@ -203,11 +180,12 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
+import { onMounted, onBeforeUnmount } from "vue";
 import PieChart from "./charts/pie-chart.vue";
 import LineChart from "./charts/line-chart.vue";
+import { default as LlmProviderSelector } from "./llm-provider-selector.vue";
 import {
-  useLlmChat, renderMarkdown, highlightSql, getProviderIcon
+  useLlmChat, renderMarkdown, highlightSql
 } from "./composables/useLlmChat.js";
 
 const _i18n = (t) => i18n(t);
@@ -221,30 +199,14 @@ const {
   messages, sending, timedOut, prompt, conciseMode,
   providers, selectedProvider, loadingProviders,
   openSqlPanels, openStepsPanels, debugStatus, thinkingSteps, stepsOpen,
-  currentSendingLabel, canSendMsg, selectedProviderInfo,
+  currentSendingLabel, canSendMsg,
   activePresetQuestions,
   loadProviders, selectProvider, send, sendPreset, sendDebug,
   scrollBottom, scrollToLastMessage, autoResize, toggleSqlPanel, toggleStepsPanel
 } = useLlmChat(props);
 
-// Provider dropdown state
-const providerDropdownOpen = ref(false);
-const providerSelectorRef = ref(null);
-
-function onDocumentClick(e) {
-  if (providerSelectorRef.value && !providerSelectorRef.value.contains(e.target)) {
-    providerDropdownOpen.value = false;
-  }
-}
-
-onMounted(() => {
-  loadProviders();
-  document.addEventListener("click", onDocumentClick);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener("click", onDocumentClick);
-});
+onMounted(() => loadProviders());
+onBeforeUnmount(() => {});
 </script>
 
 <style>
@@ -466,155 +428,6 @@ onBeforeUnmount(() => {
 .sidebar-toggle-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-}
-
-/* Provider pill / dropdown */
-.provider-selector-wrapper {
-  position: relative;
-}
-
-.provider-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: var(--provider-pill-bg);
-  border: 1px solid var(--provider-pill-border);
-  border-radius: 10px;
-  padding: 0.28rem 0.65rem 0.28rem 0.5rem;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.provider-pill:hover:not(.disabled),
-.provider-pill.open:not(.disabled) {
-  border-color: var(--provider-pill-hover-border);
-  box-shadow: 0 0 0 3px var(--input-focus-shadow);
-}
-
-.provider-pill.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.provider-pill-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 143, 0, 0.12);
-  color: var(--ntop-orange, #FF8F00);
-  font-size: 0.82rem;
-  flex-shrink: 0;
-}
-
-.provider-pill-info {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.provider-pill-name {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--provider-name-color);
-}
-
-.provider-pill-model {
-  font-size: 0.65rem;
-  color: var(--provider-model-color);
-}
-
-.provider-pill-chevron {
-  font-size: 0.6rem;
-  color: var(--chat-muted);
-  transition: transform 0.15s;
-}
-
-.provider-pill.open .provider-pill-chevron {
-  transform: rotate(180deg);
-}
-
-.provider-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 220px;
-  background: var(--provider-dropdown-bg);
-  border: 1px solid var(--chat-border);
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  z-index: 1050;
-  padding: 4px;
-  overflow: hidden;
-  animation: dropdownFadeIn 0.12s ease-out;
-}
-
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.provider-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.12s;
-}
-
-.provider-option:hover {
-  background: var(--provider-option-hover);
-}
-
-.provider-option.active {
-  background: var(--provider-option-active);
-}
-
-.provider-option-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 143, 0, 0.10);
-  color: var(--ntop-orange, #FF8F00);
-  font-size: 0.82rem;
-  flex-shrink: 0;
-}
-
-.provider-option-info {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  line-height: 1.2;
-}
-
-.provider-option-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--provider-name-color);
-}
-
-.provider-option-model {
-  font-size: 0.65rem;
-  color: var(--provider-model-color);
-}
-
-.provider-option-check {
-  font-size: 0.7rem;
-  color: var(--provider-check-color);
 }
 
 /* Message area */

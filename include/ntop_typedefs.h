@@ -593,7 +593,7 @@ typedef enum {
   host_alert_dns_flood = 22,
   host_alert_snmp_flood = 23,
   host_alert_custom_lua_script = 24,
-  host_alert_notused_6 = 25,
+  host_alert_ai_policy = 25,
   host_alert_traffic_volume = 26,
   host_alert_external_script =
       27, /* Triggered from Lua (see rest/v2/trigger/host/alert.lua) */

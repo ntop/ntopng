@@ -1,0 +1,69 @@
+{
+  "id": "ai_policies_list",
+  "data_url": "lua/pro/rest/v2/get/ai_policy/list.lua",
+  "use_current_page": false,
+  "enable_search": true,
+  "paging": false,
+  "display_empty_rows": true,
+  "default_sort": {
+    "column_id": "created_at",
+    "sort": 1
+  },
+  "columns": [
+    {
+      "id": "actions",
+      "title_i18n": "actions",
+      "sortable": false,
+      "sticky": true,
+      "class": ["text-nowrap", "text-center"],
+      "render_v_node_type": "button_list",
+      "button_def_array": [
+        {
+          "id": "edit_policy",
+          "icon": "fas fa-edit",
+          "title_i18n": "edit",
+          "class": ["btn-info"],
+          "event_id": "click_button_edit_policy"
+        },
+        {
+          "id": "delete_policy",
+          "icon": "fas fa-trash",
+          "title_i18n": "delete",
+          "class": ["btn-danger"],
+          "event_id": "click_button_delete_policy"
+        }
+      ]
+    },
+    {
+      "id": "periodicity",
+      "title_i18n": "periodicity",
+      "data_field": "periodicity_string",
+      "sortable": true,
+      "min-width": "100px",
+      "class": ["text-nowrap", "text-center"]
+    },
+    {
+      "id": "is_active",
+      "title_i18n": "status",
+      "data_field": "is_active",
+      "sortable": true,
+      "min-width": "80px",
+      "class": ["text-nowrap", "text-center"]
+    },
+    {
+      "id": "name",
+      "title_i18n": "name",
+      "data_field": "name",
+      "sortable": true,
+      "min-width": "160px",
+      "class": ["text-nowrap"]
+    },
+    {
+      "id": "description",
+      "title_i18n": "description",
+      "data_field": "description",
+      "sortable": false,
+      "min-width": "220px"
+    }
+  ]
+}

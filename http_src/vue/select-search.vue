@@ -67,17 +67,9 @@ onMounted(() => {
     if (!props.disable_change || !first_time_render) {
         set_input();  // Setup options and selection state
     }
-    $(select2.value).on('select2:open', function () {
-        setTimeout(() => {
-            // Enable the tooltip only in the dropdown option
-            document.querySelectorAll('.select2-dropdown [data-bs-toggle="tooltip"]').forEach(el => {
-                if (!bootstrap.Tooltip.getInstance(el)) {
-                    new bootstrap.Tooltip(el, { container: 'body' });
-                }
-            });
-        }, 50); // Small delay, enough to render the dropdown
-    });
+
 });
+
 
 /* *************************************************** */
 /* Watchers for reactive prop changes */
@@ -663,6 +655,22 @@ defineExpose({ render });
 </script>
 
 <style scoped>
+/* Let options expand naturally */
+.select2-results__options {
+    width: max-content !important;
+}
+
+/* Let dropdown grow to fit content */
+.select2-dropdown {
+    width: auto !important;
+    min-width: 100% !important;
+}
+
+/* Prevent wrapping so width reflects longest item */
+.select2-results__option {
+    white-space: nowrap;
+}
+
 .ss-root {
     width: 100%;
     position: relative;
@@ -672,9 +680,6 @@ defineExpose({ render });
     width: 100% !important;
 }
 
-/* =======================
-   SELECT FIELD
-======================= */
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection) {
     background-color: var(--input-bg, #fff);
@@ -692,10 +697,6 @@ defineExpose({ render });
     box-shadow: 0 0 0 2px rgba(255, 143, 0, 0.18);
     outline: none;
 }
-
-/* =======================
-   SINGLE SELECT
-======================= */
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single) {
     display: flex !important;
@@ -722,10 +723,6 @@ defineExpose({ render });
     align-items: center;
 }
 
-/* =======================
-   DROPDOWN (flush + subtle)
-======================= */
-
 .ss-root :deep(.select2-container--bootstrap-5 .select2-dropdown) {
     background-color: var(--bg-surface, #fff);
     border: 1px solid rgba(0, 0, 0, 0.03);
@@ -733,7 +730,7 @@ defineExpose({ render });
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     font-size: 0.8rem;
     overflow: hidden;
-    padding: 0; /* 🔥 removes gap */
+    padding: 0;
 }
 
 /* search */
@@ -748,31 +745,19 @@ defineExpose({ render });
     padding: 0.2rem 0.5rem;
 }
 
-/* =======================
-   OPTIONS LIST (flush)
-======================= */
-
 .ss-root :deep(.select2-container--bootstrap-5 .select2-results__options) {
-    padding: 0 !important; /* 🔥 critical */
+    padding: 0 !important;
 }
-
-/* =======================
-   OPTION ITEM
-======================= */
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-results__option) {
     position: relative;
     border-radius: 6px;
-    margin: 0; /* 🔥 remove vertical gaps */
+    margin: 0;
     padding: 0.27rem 0.6rem 0.27rem 0.75rem;
     font-size: 0.8rem;
     background: transparent !important;
     color: var(--ntop-text-color, #111) !important;
 }
-
-/* =======================
-   LEFT PILL (base)
-======================= */
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-results__option::after) {
     content: '';
@@ -785,9 +770,6 @@ defineExpose({ render });
     background-color: transparent;
 }
 
-/* =======================
-   HOVER (NO orange)
-======================= */
 
 .ss-root :deep(.select2-container--bootstrap-5
 .select2-results__option--highlighted) {
@@ -800,10 +782,6 @@ defineExpose({ render });
     background-color: transparent !important;
 }
 
-/* =======================
-   SELECTED (pill + grey)
-======================= */
-
 .ss-root :deep(.select2-container--bootstrap-5
 .select2-results__option--selected) {
     background: rgba(175, 184, 193, 0.20) !important;
@@ -813,10 +791,6 @@ defineExpose({ render });
 .select2-results__option--selected::after) {
     background-color: var(--ntop-orange, #FF8F00) !important;
 }
-
-/* =======================
-   SELECTED + HOVER: keep pill
-======================= */
 
 .ss-root :deep(.select2-container--bootstrap-5
 .select2-results__option--highlighted.select2-results__option--selected) {
@@ -828,20 +802,12 @@ defineExpose({ render });
     background-color: var(--ntop-orange, #FF8F00) !important;
 }
 
-/* =======================
-   GROUP LABEL
-======================= */
-
 .ss-root :deep(.select2-results__group) {
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
     padding: 0.4rem 0.625rem 0.15rem;
 }
-
-/* =======================
-   MULTI SELECT CHIPS
-======================= */
 
 .ss-root :deep(.select2-selection--multiple .select2-selection__choice) {
     border: none;
@@ -860,10 +826,6 @@ defineExpose({ render });
     color: #fff;
 }
 
-/* =======================
-   SMALL VARIANT
-======================= */
-
 .ss-root :deep(.select2--small .select2-selection--single) {
     height: 26px !important;
     min-height: 26px !important;
@@ -873,10 +835,6 @@ defineExpose({ render });
     font-size: 0.78rem;
     padding: 0.2rem 0.5rem;
 }
-
-/* =======================
-   DISABLED
-======================= */
 
 .ss-root :deep(.select2-container--disabled .select2-selection) {
     background-color: var(--bg-sunken, #f1f3f5);

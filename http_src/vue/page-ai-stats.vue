@@ -823,11 +823,16 @@ onMounted(async () => {
   padding: 0.25rem 0.7rem;
   white-space: nowrap;
   transition: border-color 0.15s, color 0.15s;
+  background: transparent; 
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
 }
 
 .ai-back-btn:hover {
   border-color: var(--ai-orange);
   color: var(--ai-orange);
+  background: transparent; 
 }
 
 .ai-refresh-btn {

@@ -4,7 +4,8 @@
 node_modules/
 .history/
 package-lock.json
-
+.claude/
+.agents/
 python/setup.py
 python/__init__.py
 packages/OPNsense/package/+POST_INSTALL
