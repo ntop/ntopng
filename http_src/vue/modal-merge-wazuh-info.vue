@@ -1,6 +1,6 @@
 <!-- (C) 2026 - ntop.org     -->
 <template>
-    <modal @showed="showed()" @hidden="on_hidden()" ref="modal_id">
+    <modal @showed="showed()" ref="modal_id">
         <!-- Modal title: displays the localized "Merge Wazuh Info" label -->
         <template v-slot:title>{{ _i18n("asset_details.merge_wazuh_info") }}</template>
 
@@ -107,16 +107,14 @@ const modal_id = ref(null);
 
 const showed = () => { };
 
-const on_hidden = () => {
+const reset_state = () => {
     state.value = 'confirm';
     error_message.value = '';
     merge_stats.value = { updated: 0, not_found: 0, errors: 0 };
 };
 
 const show = () => {
-    state.value = 'confirm';
-    error_message.value = '';
-    merge_stats.value = { updated: 0, not_found: 0, errors: 0 };
+    reset_state();
     modal_id.value.show();
 };
 

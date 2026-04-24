@@ -92,6 +92,7 @@ const merge_wazuh_info_url = `${http_prefix}/lua/pro/rest/v2/set/assets/wazuh_in
 const export_assets_url = `${http_prefix}/lua/pro/rest/v2/export/assets/assets.lua?is_snmp=${props.context.is_system_interface}`
 const modal_import_assets = ref();
 const modal_merge_wazuh_info = ref();
+const is_merging_wazuh = ref(false);
 
 const host_filters_key = ref(0);
 const table_id = ref(props.context.is_system_interface ? 'assets_snmp' : 'assets');
@@ -397,6 +398,9 @@ function click_button_host_details(event) {
 function open_merge_wazuh_modal() { modal_merge_wazuh_info.value.show(); }
 
 const exec_merge_wazuh = async function () {
+    if (is_merging_wazuh.value) return;
+    is_merging_wazuh.value = true;
+
     const requestParams = {
         csrf: props.context.csrf,
         ifid: props.context.ifid,
@@ -410,6 +414,7 @@ const exec_merge_wazuh = async function () {
         body: JSON.stringify(requestParams)
     },false, true, true)
             .then(data => {
+                is_merging_wazuh.value = false;
                 if (!data) {
                     let err =_i18n("error");
                     modal_merge_wazuh_info.value.show_error(err);
@@ -423,7 +428,10 @@ const exec_merge_wazuh = async function () {
                 refresh_table()
                 modal_merge_wazuh_info.value.show_success(data.rsp);
             })
-            .catch(err => console.error('Error during wazuh info merge:', err))
+            .catch(err => {
+                is_merging_wazuh.value = false;
+                console.error('Error during wazuh info merge:', err);
+            })
 }
 
 /* ************************************** */
