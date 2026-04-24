@@ -62,6 +62,38 @@ end
 
 -- ###########################################
 
+-- Wazuh connection test: attempts to authenticate against the Wazuh API
+-- and returns (true, nil) on success or (false, error_message) on failure.
+local function wazuh_test_connection(url, username, password)
+	if not ntop.isPro() then
+		return false, nil
+	end
+
+	if isEmptyString(url) then
+		return false, i18n("prefs.wazuh_missing_url")
+	end
+
+	local auth_url = url .. "/security/user/authenticate?raw=true"
+	local rc = ntop.httpGet(auth_url, username, password)
+
+	if rc == nil or rc.RESPONSE_CODE == 0 then
+		return false, i18n("prefs.wazuh_unreachable")
+	end
+
+	if rc.RESPONSE_CODE ~= 200 then
+		return false, i18n("prefs.wazuh_auth_failed")
+	end
+
+	-- rc.CONTENT holds the raw token; a non-empty string means auth succeeded
+	if isEmptyString(rc.CONTENT) then
+		return false, i18n("prefs.wazuh_connection_failed")
+	end
+
+   return true, nil
+end
+
+-- ###########################################
+
 -- NOTE: all the auth methods should be listed below
 local auth_toggles = {
    ["local"] = "toggle_local_auth",
@@ -234,6 +266,33 @@ if auth.has_capability(auth.capabilities.preferences) then
    elseif (_POST["n2disk_license"] ~= nil) then
       recording_utils.setLicense(_POST["n2disk_license"])
    end
+
+	if _GET["tab"] == "assets" and not table.empty(_POST) then
+		local wazuh_url = _POST["wazuh_url"]      or ""
+		local wazuh_username = _POST["wazuh_username"] or ""
+		local wazuh_password = _POST["wazuh_password"] or ""
+
+		-- Only run the test when the URL is provided and at least one field changed
+		if not isEmptyString(wazuh_url) and (
+			wazuh_url ~= (ntop.getPref("ntopng.prefs.wazuh.wazuh_url")      or "") or
+			wazuh_username ~= (ntop.getPref("ntopng.prefs.wazuh.wazuh_username") or "") or
+			wazuh_password ~= (ntop.getPref("ntopng.prefs.wazuh.wazuh_password") or "")
+		) then
+			local ok, err = wazuh_test_connection(wazuh_url, wazuh_username, wazuh_password)
+			if not ok then
+				message_info = err or i18n("prefs.wazuh_connection_failed")
+				message_severity = "alert-danger"
+				-- Restore the previously saved values so the bad credentials are NOT persisted
+				_POST["wazuh_url"] = ntop.getPref("ntopng.prefs.wazuh.wazuh_url") or ""
+				_POST["wazuh_username"] = ntop.getPref("ntopng.prefs.wazuh.wazuh_username") or ""
+				_POST["wazuh_password"] = ntop.getPref("ntopng.prefs.wazuh.wazuh_password") or ""
+			else
+				message_info = i18n("prefs.wazuh_connection_ok")
+				message_severity = "alert-success"
+			end
+		end
+   end
+
 
    if _POST["timeseries_driver"] or _POST["ts_and_stats_data_retention_days"] then
       if ntop.getPref("ntopng.prefs.timeseries_driver") == 'influxdb' then
