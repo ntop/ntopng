@@ -65,7 +65,7 @@ end
 -- Wazuh connection test: attempts to authenticate against the Wazuh API
 -- and returns (true, nil) on success or (false, error_message) on failure.
 local function wazuh_test_connection(url, username, password)
-	if not ntop.isPro() then
+	if not ntop.isEnterpriseM() then
 		return false, nil
 	end
 
@@ -1070,7 +1070,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       prefsInputFieldPrefs(subpage_active.entries["wazuh_url"].title,
 			   subpage_active.entries["wazuh_url"].description,
-			   "ntopng.prefs.wazuh", "wazuh_url", "", "text", true, true, true, {
+			   "ntopng.prefs.wazuh", "wazuh_url", "", "text", ntop.isEnterpriseM(), true, true, {
 			      attributes = { spellcheck = "false", maxlength = 255 },
 			      pattern = getURLPattern(),
 			      required = false
@@ -1078,13 +1078,13 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       prefsInputFieldPrefs(subpage_active.entries["wazuh_username"].title,
 			   subpage_active.entries["wazuh_username"].description,
-			   "ntopng.prefs.wazuh", "wazuh_username", "", "text", true, true, false, {
+			   "ntopng.prefs.wazuh", "wazuh_username", "", "text", ntop.isEnterpriseM(), true, false, {
 			      attributes = { spellcheck = "false", maxlength = 128 },
       })
 
       prefsInputFieldPrefs(subpage_active.entries["wazuh_password"].title,
 			   subpage_active.entries["wazuh_password"].description,
-			   "ntopng.prefs.wazuh", "wazuh_password", "", "password", true, true, false, {
+			   "ntopng.prefs.wazuh", "wazuh_password", "", "password", ntop.isEnterpriseM(), true, false, {
 			      attributes = { spellcheck = "false", maxlength = 255 },
       })
 
