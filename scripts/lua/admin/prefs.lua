@@ -1088,6 +1088,14 @@ if auth.has_capability(auth.capabilities.preferences) then
 			      attributes = { spellcheck = "false", maxlength = 255 },
       })
 
+	  prefsToggleButton(subpage_active, {
+			   field = "toggle_wazuh_automerge",
+			   default = "0",
+			   pref = "wazuh_automerge_enabled",
+			   -- Replace with: hidden = not ntop.isEnterpriseM()
+			   hidden = true
+      })
+
       print(
 	 '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
 	 i18n("save") .. '</button></th></tr>')

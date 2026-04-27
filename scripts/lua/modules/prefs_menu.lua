@@ -119,7 +119,11 @@ local menu_subpages = {{
 	 wazuh_password = {
 	    title = i18n("prefs.wazuh_password_title"),
 	    description = i18n("prefs.wazuh_password_description")
-	 }
+	 },
+    toggle_wazuh_automerge = {
+            title = i18n("prefs.toggle_wazuh_automerge_title"),
+            description = i18n("prefs.toggle_wazuh_automerge_description")
+	 },
       }
 				 }, {
       id = "assets_inventory",

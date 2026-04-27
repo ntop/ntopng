@@ -2296,6 +2296,7 @@ local known_parameters = {
    ["wazuh_password"] = {passwordCleanup, validatePassword},
    ["wazuh_username"] = validateUnquoted,
    ["wazuh_available"] = validateNumber,
+   ["toggle_wazuh_automerge"] = validateBool,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
