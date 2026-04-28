@@ -1533,6 +1533,15 @@ http_lint.validateSNMPversion = validateSNMPversion
 
 -- #################################################################
 
+local function validateSNMPInterfaceFormat(m)
+   -- 0 = Alias
+   -- 1 = Name
+   return validateChoice({"0", "1"}, m)
+end
+http_lint.validateSNMPInterfaceFormat = validateSNMPInterfaceFormat
+
+-- #################################################################
+
 local function validateSNMPstatus(m)
    return validateChoice({"up", "down"}, m) or validateNumber(m)
 end
@@ -2177,6 +2186,7 @@ local known_parameters = {
    ["default_snmp_community"] = validateSingleWord, -- Default SNMP community for non-SNMP-configured local hosts
    ["snmp_host"] = validateServer, -- Either an IPv4/v6 or a hostname
    ["default_snmp_version"] = validateSNMPversion, -- Default SNMP protocol version
+   ["snmp_interface_format"] = validateSNMPInterfaceFormat, -- SNMP interface label format
    ["snmp_version"] = validateSNMPversion, -- 0:v1 1:v2c 2:v3
    ["snmp_username"] = validateSingleWord, -- SNMP Username
    ["cidr"] = validateCIDR, -- /32 or /24

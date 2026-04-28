@@ -670,6 +670,10 @@ local menu_subpages = {{
             title = i18n("prefs.default_snmp_proto_version_title"),
             description = i18n("prefs.default_snmp_proto_version_description")
 	 },
+    snmp_interface_format = {
+            title = i18n("prefs.snmp_interface_format_title"),
+            description = i18n("prefs.snmp_interface_format_description")
+	 },
 	 default_snmp_timeout = {
             title = i18n("prefs.default_snmp_timeout_title"),
             description = i18n("prefs.default_snmp_timeout_description")

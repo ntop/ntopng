@@ -2538,6 +2538,14 @@ if auth.has_capability(auth.capabilities.preferences) then
 			      disabled = disabled
       })
 
+	  local if_format_labels = { "Alias", "Name" }
+      local if_format_values = { "0", "1" }
+
+	  multipleTableButtonPrefs(subpage_active.entries["snmp_interface_format"].title,
+			       subpage_active.entries["snmp_interface_format"].description, if_format_labels, if_format_values, "0", 
+				   "primary", "snmp_interface_format", "ntopng.prefs.snmp_interface_format", disabled)
+
+
       prefsInputFieldPrefs(subpage_active.entries["default_snmp_timeout"].title,
 			   subpage_active.entries["default_snmp_timeout"].description, "ntopng.prefs.", "snmp_timeout_sec", 3, -- default 3 sec
 			   "number", nil, nil, nil, {
