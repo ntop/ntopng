@@ -2104,6 +2104,19 @@ static int ntop_rename_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Flushes the HTTP response buffer to the socket immediately, enabling
+ * per-chunk streaming from Lua scripts.  Lua: ntop.flushResponse() → true */
+static int ntop_flush_http_response(lua_State* vm) {
+  Utils::flushHTTPBuffer(vm);
+
+  /* After flushing, ensure subsequent print() calls go straight to mg_write
+   * by keeping buffer_http_response = false (flushHTTPBuffer already does this). */
+  lua_pushboolean(vm, true);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Flushes ALL Redis data — destructive operation, admin only.  Lua: ntop.flushCache() → boolean */
 static int ntop_flush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -9255,6 +9268,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getCacheStats", ntop_get_redis_stats},
     {"delCache", ntop_delete_redis_key},
     {"renameCache", ntop_rename_redis_key},
+    {"flushResponse", ntop_flush_http_response},
     {"flushCache", ntop_flush_redis},
     {"listIndexCache", ntop_list_index_redis},
     {"lpushCache", ntop_lpush_redis},

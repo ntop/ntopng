@@ -208,7 +208,6 @@ function renderChart(data) {
   const tx = `translate(${M.left},${M.top})`;
   gChart.attr("transform", tx);
   svgEl.select(".grid-y").attr("transform", tx);
-
   /* Axes are shifted: x-axis goes to bottom of chart area */
   svgEl.select(".axis-x").attr("transform", `translate(${M.left},${M.top + iH})`);
   svgEl.select(".axis-y").attr("transform", `translate(${M.left},${M.top})`);
@@ -240,14 +239,14 @@ function renderChart(data) {
   axX.call(xAxisFn);
   /* Remove D3 default stroke:none on domain by forcing attr (not style) */
   axX.select("path.domain")
-  .style("stroke", "var(--color-border-secondary)")
+  .style("stroke", "var(--loading-text-color)")
   .style("stroke-width", "1")
   .style("fill", "none");
 axX.selectAll(".tick line")
-  .style("stroke", "var(--color-border-secondary)")
+  .style("stroke", "var(--loading-text-color)")
   .style("stroke-width", "1");
 axX.selectAll(".tick text")
-  .style("fill", "var(--color-text-secondary)")
+  .style("fill", "var(--loading-text-color)")
   .style("font-size", "11px");
 
   /* ── Y Axis ── */
@@ -258,15 +257,15 @@ axX.selectAll(".tick text")
   const axY = svgEl.select(".axis-y");
   axY.call(yAxisFn);
   axY.select("path.domain")
-    .attr("stroke", "var(--color-border-secondary)")
-    .attr("stroke-width", "1")
-    .attr("fill", "none");
+    .style("stroke", "var(--loading-text-color)")
+    .style("stroke-width", "1")
+    .style("fill", "none");
   axY.selectAll(".tick line")
-    .attr("stroke", "var(--color-border-secondary)")
-    .attr("stroke-width", "1");
+    .style("stroke", "var(--loading-text-color)")
+    .style("stroke-width", "1");
   axY.selectAll(".tick text")
-    .attr("fill", "var(--color-text-secondary)")
-    .attr("font-size", "11px");
+    .style("fill", "var(--loading-text-color)")
+    .style("font-size", "11px");
 
   /* ── Grid lines ── */
   const gridData = yScale.ticks(nYTicks);

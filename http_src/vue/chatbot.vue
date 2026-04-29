@@ -102,28 +102,6 @@
             </div>
           </template>
 
-          <template v-if="msg.steps && msg.steps.length">
-            <div class="mt-1">
-              <button class="btn btn-link p-0 sql-toggle-btn" @click="toggleStepsPanel(idx)">
-                <i :class="openStepsPanels.has(idx) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="me-1"
-                  style="font-size:0.65rem;"></i>
-                {{ openStepsPanels.has(idx) ? 'Hide steps' : `Show ${msg.steps.length} steps` }}
-              </button>
-              <div v-if="openStepsPanels.has(idx)" class="steps-panel mt-1">
-                <div v-for="(step, si) in msg.steps" :key="si" class="step-entry">
-                  <template v-if="step.type === 'tool'">
-                    <i class="fas fa-bolt step-icon tool-icon"></i>
-                    <span class="step-label">{{ step.tool }}</span>
-                  </template>
-                  <template v-else>
-                    <i class="fas fa-brain step-icon thinking-icon"></i>
-                    <span class="step-label thinking-text">{{ (step.thinking || step.content || '').slice(0, 120) }}{{
-                      (step.thinking || step.content || '').length > 120 ? '…' : '' }}</span>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </template>
         </div>
 
         <div v-if="msg.role === 'user'" class="flex-shrink-0 ms-2 mt-1">
@@ -432,7 +410,7 @@ onBeforeUnmount(() => {});
 
 /* Message area */
 .chat-messages {
-  background: var(--ntop-bg-color, #f8f9fa);
+
 }
 
 /* Empty state */

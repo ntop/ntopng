@@ -75,8 +75,10 @@ export function useLlmChat(props) {
   const loadingProviders = ref(true);
 
   // UI helpers
-  const openSqlPanels = ref(new Set());
-  const showPresets   = ref(false);
+  const openSqlPanels   = ref(new Set());
+  const openStepsPanels = ref(new Set());
+  const showPresets     = ref(false);
+  const liveSteps       = ref([]);  // steps streamed during the current request
 
   // Debug helper
   const debugStatus = ref("");
@@ -119,11 +121,17 @@ export function useLlmChat(props) {
     }
   }
 
-  // SQL panel toggle
+  // SQL / steps panel toggle
   function toggleSqlPanel(idx) {
     const s = new Set(openSqlPanels.value);
     s.has(idx) ? s.delete(idx) : s.add(idx);
     openSqlPanels.value = s;
+  }
+
+  function toggleStepsPanel(idx) {
+    const s = new Set(openStepsPanels.value);
+    s.has(idx) ? s.delete(idx) : s.add(idx);
+    openStepsPanels.value = s;
   }
 
   // Scroll helpers
@@ -167,8 +175,8 @@ export function useLlmChat(props) {
   }
 
   // Push a message into the UI list
-  function pushMessage(role, content, error = false, stats = null, artifact = null, queries = null) {
-    messages.value.push({ role, content, time: nowTime(), error, stats, artifact, queries });
+  function pushMessage(role, content, error = false, stats = null, artifact = null, queries = null, steps = null) {
+    messages.value.push({ role, content, time: nowTime(), error, stats, artifact, queries, steps });
     nextTick(role === "assistant" ? scrollToLastMessage : scrollBottom);
   }
 
@@ -218,6 +226,9 @@ export function useLlmChat(props) {
   function clearChat() {
     messages.value = [];
     history.value = [];
+    openSqlPanels.value   = new Set();
+    openStepsPanels.value = new Set();
+    liveSteps.value = [];
     chat_UUID.value = uuidv4();
     ntopng_url_manager.set_key_to_url("chatId", null);
   }
@@ -237,6 +248,7 @@ export function useLlmChat(props) {
     history.value.push({ role: "user", content: text });
     while (history.value.length > MAX_HISTORY) history.value.splice(0, 2);
 
+    liveSteps.value = [];
     sending.value = true;
     startSendingAnimation();
 
@@ -258,24 +270,76 @@ export function useLlmChat(props) {
         sequence: history.value.length,
         concise: conciseMode.value,
         csrf,
-        // Storage-only: tags every DB row with the UI page/entity that originated this chat
         ...(props?.context?.page_context && { page_context: props.context.page_context }),
       });
 
-      const rsp = await ntopng_utility.http_request(
-        url,
-        { method: "POST", headers: { "Content-Type": "application/json" }, body, signal: controller.signal },
-        true, false, true
-      );
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const fallback = await response.json().catch(() => ({}));
+        throw new Error(fallback?.rsp?.error_message ?? fallback?.error_message ?? `HTTP ${response.status}`);
+      }
+
+      const reader  = response.body.getReader();
+      const decoder = new TextDecoder();
+      let   buf        = "";
+      let   finalChunk = null;
+      let   streamDone = false;
+      let   streamError = null;
+
+      const processLine = (line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        let chunk;
+        try { chunk = JSON.parse(trimmed); } catch (_) { return; }
+
+        if (chunk.type === "step") {
+          liveSteps.value = [...liveSteps.value, chunk];
+          nextTick(scrollBottom);
+        } else if (chunk.type === "final") {
+          finalChunk = chunk;
+          streamDone = true;   // stop reading — don't wait for connection close
+        } else if (chunk.type === "error") {
+          streamError = new Error(chunk.error_message ?? "Agent error");
+          streamDone = true;
+        }
+      };
+
+      outer: while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop();
+        for (const line of lines) {
+          processLine(line);
+          if (streamDone) break outer;
+        }
+      }
+      // flush any partial line not terminated by \n
+      if (!streamDone && buf.trim()) processLine(buf);
+
+      // always release the reader so the connection is not held open
+      await reader.cancel().catch(() => {});
 
       clearTimeout(timer);
 
+      if (streamError) throw streamError;
+
       const errMsg = typeof i18n === "function" ? i18n("llm.generic_error") : "An error occurred";
-      const reply = rsp?.reply ?? null;
-      if (!reply) throw new Error(rsp?.error_message ?? errMsg);
+      const reply = finalChunk?.reply ?? null;
+      if (!reply) throw new Error(finalChunk?.error_message ?? errMsg);
 
       history.value.push({ role: "assistant", content: reply });
-      pushMessage("assistant", reply, false, rsp?.stats ?? null, rsp?.artifact ?? null, rsp?.queries ?? null);
+      // evidence is the authoritative audit trail; pass as queries (rich panel), no separate steps
+      const evidence = Array.isArray(finalChunk?.evidence) ? finalChunk.evidence : null;
+      const queries  = evidence ?? finalChunk?.queries ?? null;
+      pushMessage("assistant", reply, false, finalChunk?.stats ?? null, finalChunk?.artifact ?? null, queries, null);
 
       // Let the full-page component know the first message title
       if (isFirstMessage) onFirstMessage?.(text);
@@ -337,7 +401,7 @@ export function useLlmChat(props) {
     // State
     messages, history, sending, timedOut, prompt, conciseMode, chat_UUID,
     providers, selectedProvider, loadingProviders,
-    openSqlPanels, showPresets, debugStatus,
+    openSqlPanels, openStepsPanels, showPresets, debugStatus, liveSteps,
     sendingLabelIndex, currentSendingLabel,
     canSendMsg, selectedProviderInfo,
     // Methods
@@ -346,7 +410,7 @@ export function useLlmChat(props) {
     scrollBottom, scrollToLastMessage,
     autoResize, resetTextarea,
     startSendingAnimation, stopSendingAnimation,
-    toggleSqlPanel,
+    toggleSqlPanel, toggleStepsPanel,
     // Preset questions (default or context-provided)
     activePresetQuestions,
     // Utils (stateless, exported also as named exports above)
