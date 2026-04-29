@@ -66,6 +66,7 @@ Redis::Redis(const char* _redis_host, const char* _redis_password,
   memset(&stats, 0, sizeof(stats));
 
   redis = NULL, operational = false;
+  redis_version = NULL;
   initializationCompleted = false;
   localToResolve = new (std::nothrow) StringFifoQueue(MAX_NUM_QUEUED_ADDRS);
   remoteToResolve = new (std::nothrow) StringFifoQueue(MAX_NUM_QUEUED_ADDRS);

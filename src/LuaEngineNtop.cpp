@@ -9183,9 +9183,15 @@ static int ntop_rib_find(lua_State* vm) {
     ip_address = (char*)lua_tostring(vm, 1);
 
   try {
-    Redis *r = new Redis(ip_address_s, NULL, atoi(port_s));
+    Redis *r = new Redis(ip_address_s, NULL, atoi(port_s), 0, true /* giveup_on_failure */);
 
     if(r != NULL) {
+      if(!r->isOperational()) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
+          "BGP/RIB server %s:%s is not reachable, connection failed", ip_address_s, port_s);
+        delete r;
+        return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+      }
       char *rsp = r->findAllWithAlloc(ip_address);
 
       if(rsp != NULL) {
