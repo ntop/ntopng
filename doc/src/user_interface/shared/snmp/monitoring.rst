@@ -36,6 +36,19 @@ Clicking on an interface id a drill-down page is shown
   :align: center
   :alt: SNMP Network Interface Overview
 
+Interface Label Format
+~~~~~~~~~~~~~~~~~~~~~~
+
+From the preferences page it is possible to change the label format displayed
+for SNMP interfaces. By default, ntopng shows the interface alias, but it is
+also possible to display the interface name instead.
+
+To change this setting, navigate to **Preferences → SNMP → SNMP Interface Label Format**.
+
+.. figure:: ../../../img/SNMP_Interface_label.png
+  :align: center
+  :alt: SNMP Interface Label Format
+
 
 Binding MAC Address to Interface
 --------------------------------
