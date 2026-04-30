@@ -1435,19 +1435,19 @@ if auth.has_capability(auth.capabilities.preferences) then
 			      }
       })
 
-      local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.log_positive_event_enabled") == "1")
+       local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.log_positive_event_enabled") == "1")
 
-      prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
-			   subpage_active.entries["http_auth_server"].description,
-			   "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url", "", nil, showElements, true,
-			   true --[[ allowUrls ]], {
-			      attributes = {
-				 spellcheck = "false",
-				 maxlength = 255,
-				 required = "required",
-				 pattern = getURLPattern()
-			      }
-      })
+      -- prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
+			   -- subpage_active.entries["http_auth_server"].description,
+			   -- "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url", "", nil, showElements, true,
+			   -- true --[[ allowUrls ]], {
+			    --  attributes = {
+				-- spellcheck = "false",
+				-- maxlength = 255,
+				-- required = "required",
+				-- pattern = getURLPattern()
+			     -- }
+      -- })
    end
 
    -- #####################
@@ -1653,6 +1653,10 @@ if auth.has_capability(auth.capabilities.preferences) then
       printAuthDuration()
 
       printOIDCAuth()
+
+	  -- printOIDCAuth() ends with skip_redis=true (all OIDC fields use it).
+      -- Reset here so every subsequent toggle/pref reads from Redis correctly.
+	  prefsSkipRedis(false)
 
       -- Note: order must correspond to evaluation order in Ntop.cpp
       print('<thead class="table-primary"><tr><th class="info" colspan="2">' .. i18n("prefs.client_x509_auth") ..
