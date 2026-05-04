@@ -110,16 +110,6 @@
 			]
 		},
 		{
-			"title_i18n": "graphs.num_cve",
-			"data_field": "num_cves",
-			"min-width" : "90px",
-			"sortable": true,
-			"class": [
-				"text-center",
-				"text-nowrap"
-			]
-		},
-		{
 			"title_i18n": "seen_since",
 			"data_field": "first_seen",
 			"sortable": true,

@@ -1049,34 +1049,34 @@ else
 
       print("<tr><th colspan=4></th></tr>\n")
 
-      if (vs_utils.is_available()) then
-         local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
+      --if (vs_utils.is_available()) then
+      --   local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
 
-         if host_vulnerabilities ~= nil and host_vulnerabilities.scan_type and host_vulnerabilities.num_vulnerabilities_found and
-            host_vulnerabilities.num_vulnerabilities_found > 0 then
-            if (host_vulnerabilities.last_scan.time == nil) then
-               host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)
-            end
+      --   if host_vulnerabilities ~= nil and host_vulnerabilities.scan_type and host_vulnerabilities.num_vulnerabilities_found and
+      --      host_vulnerabilities.num_vulnerabilities_found > 0 then
+      --      if (host_vulnerabilities.last_scan.time == nil) then
+      --         host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)
+      --      end
 
-            print('<tr><th><a href="' .. http_prefix .. '/lua/vulnerability_scan.lua?page=show_result&scan_date=' ..
-                     host_vulnerabilities.last_scan.time .. '&host=' .. host_vulnerabilities.host .. '&scan_type=' ..
-                     host_vulnerabilities.scan_type .. '">' .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. '</a></th>')
-            print("<td colspan=2>")
-            cve_utils.getFirst5(host_vulnerabilities.cve, host_vulnerabilities.scan_type, true)
+      --      print('<tr><th><a href="' .. http_prefix .. '/lua/vulnerability_scan.lua?page=show_result&scan_date=' ..
+      --               host_vulnerabilities.last_scan.time .. '&host=' .. host_vulnerabilities.host .. '&scan_type=' ..
+      --               host_vulnerabilities.scan_type .. '">' .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. '</a></th>')
+      --      print("<td colspan=2>")
+      --      cve_utils.getFirst5(host_vulnerabilities.cve, host_vulnerabilities.scan_type, true)
 
-         elseif (host_vulnerabilities ~= nil and
-            (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
-            print("<td colspan=2>")
-            print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
+      --   elseif (host_vulnerabilities ~= nil and
+      --      (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
+      --      print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
+      --      print("<td colspan=2>")
+      --      print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
 
-         elseif (host_vulnerabilities == nil) then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
-            print("<td colspan=2>")
-            print('<a href="' .. http_prefix .. '/lua/vulnerability_scan.lua?page=scan_hosts&host=' .. host["ip"] .. '&ifid=' ..
-                     ifId .. '">' .. i18n("hosts_stats.page_scan_hosts.add_to_scan_list") .. '</a> ')
-         end
-      end
+      --   elseif (host_vulnerabilities == nil) then
+      --      print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
+      --      print("<td colspan=2>")
+      --      print('<a href="' .. http_prefix .. '/lua/vulnerability_scan.lua?page=scan_hosts&host=' .. host["ip"] .. '&ifid=' ..
+      --               ifId .. '">' .. i18n("hosts_stats.page_scan_hosts.add_to_scan_list") .. '</a> ')
+      --   end
+      --end
 
       -- ###########################################################
 
