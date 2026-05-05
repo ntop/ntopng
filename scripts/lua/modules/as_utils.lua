@@ -17,6 +17,10 @@ local HISTORICAL_DST_ASN = "DST_ASN"
 
 local ASN_PROFILING_KEY = "ntopng.profiling.asn"
 
+local INTERFACE_ROLE_OTHER = 0
+local INTERFACE_ROLE_TRANSIT = 1
+local INTERFACE_ROLE_PEERING = 2
+
 --- ASN utilities module
 local as_utils = {}
 
@@ -404,10 +408,10 @@ function as_utils.retrieveASHistoricalTraffic(options)
     -- Complex SQL query to aggregate ASN statistics from flows table
     -- Combines both source and destination ASNs
     local query = string.format(
-        "SELECT asn, min(FIRST_SEEN) as \"seen.first\", max(LAST_SEEN) as \"seen.last\", sum(SCORE) as score, sum(total_bytes) AS traffic, sum(bytes_sent) as \"bytes.sent\", sum(bytes_rcvd) as \"bytes.rcvd\", sum(total_bytes) / sum(dateDiff('second', FIRST_SEEN, LAST_SEEN) + 1) AS throughput_bps " ..
-            "FROM (SELECT SRC_ASN AS asn, FLOW_ID, TOTAL_BYTES as total_bytes, SRC2DST_BYTES as bytes_sent, DST2SRC_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s UNION ALL " ..
-            "SELECT DST_ASN AS asn, FLOW_ID, TOTAL_BYTES as total_bytes, DST2SRC_BYTES as bytes_sent, SRC2DST_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s AND DST_ASN != SRC_ASN " ..
-            ") GROUP BY asn", where, ternary(isEmptyString(src_asn_filters), "", " AND " .. src_asn_filters), where,
+        "SELECT asn, INTERFACE_ROLE, min(FIRST_SEEN) as \"seen.first\", max(LAST_SEEN) as \"seen.last\", sum(SCORE) as score, sum(total_bytes) AS traffic, sum(bytes_sent) as \"bytes.sent\", sum(bytes_rcvd) as \"bytes.rcvd\", sum(total_bytes) / sum(dateDiff('second', FIRST_SEEN, LAST_SEEN) + 1) AS throughput_bps " ..
+            "FROM (SELECT SRC_ASN AS asn, INTERFACE_ROLE, FLOW_ID, TOTAL_BYTES as total_bytes, SRC2DST_BYTES as bytes_sent, DST2SRC_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s UNION ALL " ..
+            "SELECT DST_ASN AS asn, INTERFACE_ROLE, FLOW_ID, TOTAL_BYTES as total_bytes, DST2SRC_BYTES as bytes_sent, SRC2DST_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s AND DST_ASN != SRC_ASN " ..
+            ") GROUP BY asn, INTERFACE_ROLE", where, ternary(isEmptyString(src_asn_filters), "", " AND " .. src_asn_filters), where,
         ternary(isEmptyString(dst_asn_filters), "", " AND " .. dst_asn_filters))
 
     local historical_asn_stats,err = interface.execSQLQuery(query)
@@ -425,14 +429,82 @@ function as_utils.retrieveASHistoricalTraffic(options)
             string.format("[ASN Profiling][Time: %s] Start data formatting (Historical)\n", os.time()))
     end
 
-    -- Process historical data
+    -- Process historical data.
+    -- The query groups by (asn, INTERFACE_ROLE), so the same ASN can appear in multiple
+    -- rows. We aggregate all rows into a single entry per ASN, and additionally track
+    -- bytes for the three roles of interest (other/transit/peering).
     for _, as_info in pairs(historical_asn_stats) do
-        local asn = as_info["asn"]
-        as_info["bytes.sent"] = tonumber(as_info["bytes.sent"])
-        as_info["bytes.rcvd"] = tonumber(as_info["bytes.rcvd"])
-        as_info["traffic"] = tonumber(as_info["traffic"])
-        asn_stats[tostring(asn)] = as_info
+        local asn = tostring(as_info["asn"])
+        local role = tonumber(as_info["INTERFACE_ROLE"])
+        local b_sent = tonumber(as_info["bytes.sent"]) or 0
+        local b_rcvd = tonumber(as_info["bytes.rcvd"]) or 0
+        local traffic = tonumber(as_info["traffic"]) or 0
+        local score = tonumber(as_info["score"]) or 0
+        local t_bps = tonumber(as_info["throughput_bps"]) or 0
+        local first = tonumber(as_info["seen.first"]) or 0
+        local last = tonumber(as_info["seen.last"]) or 0
+
+        if not asn_stats[asn] then            
+            asn_stats[tostring(asn)] = as_info
+            asn_stats[asn] = {
+                asn = as_info["asn"],
+                asname = as_info["asname"],
+                ["bytes.sent"] = b_sent,
+                ["bytes.rcvd"] = b_rcvd,
+                traffic = traffic,
+                score = score,
+                throughput_bps = t_bps,
+                ["seen.first"] = first,
+                ["seen.last"] = last,
+                -- Per-role breakdown (roles outside 0/1/2 contribute to totals only)
+                bytes_sent_other = 0,
+                bytes_rcvd_other = 0,
+                bytes_sent_transit = 0,
+                bytes_rcvd_transit = 0,
+                bytes_sent_peering = 0,
+                bytes_rcvd_peering = 0,
+            }
+        else
+            -- Subsequent row for same ASN: aggregate into the existing entry.
+            local existing = asn_stats[asn]
+            local prev_traffic = existing["traffic"]
+            local new_traffic = prev_traffic + traffic
+
+            -- Weighted-average throughput (weight = traffic share of each role)
+            if new_traffic > 0 then
+                existing["throughput_bps"] = (existing["throughput_bps"] * prev_traffic + t_bps * traffic) / new_traffic
+            end
+
+            existing["bytes.sent"] = existing["bytes.sent"] + b_sent
+            existing["bytes.rcvd"] = existing["bytes.rcvd"] + b_rcvd
+            existing["traffic"] = new_traffic
+            existing["score"] = existing["score"] + score
+
+            -- Keep the widest possible time window
+            if first < existing["seen.first"] then 
+                existing["seen.first"] = first
+            end
+            if last > existing["seen.last"] then 
+                existing["seen.last"]  = last  
+            end
+        end
+
+        -- Accumulate per-role byte counters (roles 0, 1, 2 only;
+        -- other roles are already reflected in the totals above)
+        local existing = asn_stats[asn]
+        if role == INTERFACE_ROLE_OTHER then
+            existing.bytes_sent_other = existing.bytes_sent_other + b_sent
+            existing.bytes_rcvd_other = existing.bytes_rcvd_other + b_rcvd
+        elseif role == INTERFACE_ROLE_TRANSIT then
+            existing.bytes_sent_transit = existing.bytes_sent_transit + b_sent
+            existing.bytes_rcvd_transit = existing.bytes_rcvd_transit + b_rcvd
+        elseif role == INTERFACE_ROLE_PEERING then
+            existing.bytes_sent_peering = existing.bytes_sent_peering + b_sent
+            existing.bytes_rcvd_peering = existing.bytes_rcvd_peering + b_rcvd
+        end
+
     end
+
 
     if (perform_profiling) then
         traceError(TRACE_NORMAL, TRACE_CONSOLE,

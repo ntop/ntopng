@@ -120,6 +120,16 @@
 			]
         },
 		{
+            "id": "breakdown_role",
+            "title_i18n": "breakdown_role",
+            "data_field": "breakdown_role",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+        },
+		{
             "id": "throughput",
 			"title_i18n": "throughput",
 			"data_field": "throughput",

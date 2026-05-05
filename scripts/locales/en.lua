@@ -142,6 +142,7 @@ local lang = {
    ["bind"] = "Bind",
    ["blacklisted_category"] = "Application category Malware detected %{config_href}",
    ["breakdown"] = "Breakdown",
+   ["breakdown_role"] = "Role Breakdown",
    ["breed_title"] = "Breed",
    ["bridge"] = "Bridge",
    ["broadcast"] = "Broadcast",

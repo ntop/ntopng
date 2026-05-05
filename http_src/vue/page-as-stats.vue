@@ -572,6 +572,48 @@ const map_table_def_columns = (columns) => {
         },
 
         /**
+         * Creates per-role traffic breakdown visualization (Other / Transit / Peering)
+         */
+        "breakdown_role": (value, row) => {
+            const total_bytes = (value.bytes_other || 0) + (value.bytes_transit || 0) + (value.bytes_peering || 0);
+            if (!total_bytes) return NtopUtils.createBreakdown_multi_elem([0], [_i18n("no_data")]);
+            const raw = [
+                (value.bytes_other / total_bytes) * 100,
+                (value.bytes_transit / total_bytes) * 100,
+                (value.bytes_peering / total_bytes) * 100,
+            ];
+
+            const floored = raw.map(Math.floor);
+
+            // How many integer points are still missing to reach exactly 100
+            const remainder = 100 - floored.reduce((a, b) => a + b, 0);
+            
+            /* 
+            * Largest remainder method: award the missing points one by one
+            * to the entries with the highest fractional part (those that lost
+            * the most precision during floor), so the total is always exactly 100
+            */
+            // pair each value with its fractional part
+            raw.map((v, i) => ({ i,f: v - floored[i] }))
+                // sort descending by fractional part
+               .sort((a, b) => b.f - a.f)
+               // take only as many as needed
+               .slice(0, remainder)
+               // bump each winner by 1
+               .forEach(({i}) => floored[i]++);
+            const [pct_other, pct_transit, pct_peering] = floored;
+
+            return NtopUtils.createBreakdown_multi_elem(
+                [pct_other, pct_transit, pct_peering],
+                [
+                    _i18n("asn_configuration.other_asn"),
+                    _i18n("prefs.snmp_interface_role_list.transit"),
+                    _i18n("prefs.snmp_interface_role_list.peering"),
+                ]
+            );
+        },
+
+        /**
          * Formats throughput in bps
          */
         "throughput": (value, row) => FormatterUtils.getFormatter("bps")(value),
