@@ -40,11 +40,14 @@
             {{ _i18n("llm.no_conversations_yet") }}
           </div>
           <div v-for="chat in chatHistory" :key="chat.chat_id" class="chat-history-item"
-            :class="{ active: activeChatId === chat.chat_id }" @click="chat.isNew ? null : loadChat(chat.chat_id)"
+            :class="{ active: activeChatId === chat.chat_id, pinned: isPinned(chat) }" @click="chat.isNew ? null : loadChat(chat.chat_id)"
             :title="chat.title">
             <span class="chat-history-icon flex-shrink-0"><i :class="getProviderIcon(chat.provider)"></i></span>
             <span class="chat-history-title">{{ chat.title }}</span>
             <span class="chat-history-actions flex-shrink-0 ms-auto" @click.stop>
+              <button class="chat-item-action-btn" :class="{ 'chat-item-pin-active': isPinned(chat) }"
+                :title="isPinned(chat) ? 'Unpin' : 'Pin'" @click.stop="togglePinChat(chat)">
+                <i class="fas fa-thumbtack"></i></button>
               <button class="chat-item-action-btn" title="Rename" @click.stop="startRenameChat(chat)">
                 <i class="fas fa-pen"></i></button>
               <button class="chat-item-action-btn chat-item-delete-btn" title="Delete"
@@ -153,7 +156,30 @@
               </div>
               <div v-else class="chat-content markdown-body"
                 style="word-break:break-word;font-size:0.9rem;line-height:1.55;"
-                v-html="renderMarkdown(stripNextSteps(msg.content))"></div>
+                v-html="renderMarkdown(stripNextSteps(stripActionableSteps(msg.content)))"></div>
+
+              <template v-if="msg.role === 'assistant' && parseActionableSteps(msg.content).length">
+                <div class="actionable-steps-row mt-2">
+                  <span class="actionable-steps-label">
+                    <i class="fas fa-bolt me-1"></i>{{ _i18n('llm.actionable_steps') }}
+                  </span>
+                  <button v-for="(step, si) in parseActionableSteps(msg.content)" :key="si" class="actionable-step-chip"
+                    :disabled="sending" :title="step.full" @click="fillNextStep(step.full)">
+                    <i class="fas fa-chevron-right me-1 flex-shrink-0"></i>
+                    <span class="actionable-step-title">{{ step.label }}</span>
+                    <span v-if="step.desc" class="actionable-step-desc">{{ step.desc }}</span>
+                  </button>
+                </div>
+              </template>
+
+              <template v-if="msg.role === 'assistant' && /policy|ai.polic/i.test(msg.content)">
+                <div class="mt-2">
+                  <a :href="aiPolicyUrl" target="_blank" rel="noopener" class="ai-policy-link-btn">
+                    <i class="fas fa-shield-alt me-1"></i>{{ _i18n('llm.open_ai_policies') }}
+                    <i class="fas fa-external-link-alt ms-1" style="font-size:0.6rem;opacity:0.7;"></i>
+                  </a>
+                </div>
+              </template>
 
               <template v-if="msg.role === 'assistant' && parseNextSteps(msg.content).length">
                 <div class="next-steps-row mt-2">
@@ -212,15 +238,15 @@
             <span class="chat-avatar assistant-avatar me-2 mt-1 flex-shrink-0"><i class="fas fa-robot"></i></span>
             <div class="assistant-bubble chat-bubble" style="padding:0.4rem 0.75rem;min-width:160px;">
 
-              <!-- Toggle row: triangle + "Thinking" label + dots when collapsed -->
+              <!-- Toggle row: triangle + "Thinking" label + dots always visible -->
               <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-link p-0 sql-toggle-btn" style="font-size:0.75rem;"
                   @click.stop="stepsExpanded = !stepsExpanded">
                   <i :class="stepsExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="me-1"
                     style="font-size:0.6rem;"></i>{{ _i18n('llm.thinking') }}
                 </button>
-                <!-- Dots shown inline only when collapsed -->
-                <span v-if="!stepsExpanded" class="d-flex align-items-center gap-1">
+                <!-- Dots always visible while sending -->
+                <span class="d-flex align-items-center gap-1">
                   <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
                 </span>
               </div>
@@ -361,6 +387,7 @@ watch(sending, (val) => {
 // Page state (sidebar, history, rename)
 const settingsUrl = ref(`${http_prefix}/lua/admin/prefs.lua?tab=llm_providers`);
 const statsUrl = ref(`${http_prefix}/lua/pro/ai_stats.lua`);
+const aiPolicyUrl = ref(`${http_prefix}/lua/pro/ai_policy.lua`);
 
 const HISTORY_FILTERS = [
   { value: "all", label: _i18n("all"), icon: "fas fa-list" },
@@ -405,6 +432,36 @@ function shareConversation() {
     document.body.removeChild(el);
     ToastUtils.showToast({ id: 'chat-link-copied-' + Date.now(), level: 'success', title: _i18n('success'), body: _i18n('llm.chatid_copied_to_clipboard'), delay: 60 });
   }
+}
+
+// Returns content with the ### Actionable Steps block removed for markdown rendering
+function stripActionableSteps(content) {
+  if (!content) return content;
+  return content.replace(/\n?###\s*Actionable Steps\s*\n[\s\S]*?(?=\n###|\n##|$)/i, '').trimEnd();
+}
+
+// Returns [{label, desc, full}] from the ### Actionable Steps block (bullet list)
+function parseActionableSteps(content) {
+  if (!content) return [];
+  const match = content.match(/###\s*Actionable Steps\s*\n([\s\S]*?)(?=\n###|\n##|$)/i);
+  if (!match) return [];
+  const steps = [];
+  for (const line of match[1].split('\n')) {
+    const m = line.match(/^\s*[-*]\s+(.+)/);
+    if (m) {
+      const raw = m[1].trim();
+      const boldMatch = raw.match(/^\*\*([^*]+)\*\*\s*[—–-]?\s*(.*)/);
+      if (boldMatch) {
+        const label = boldMatch[1].trim();
+        const desc = boldMatch[2].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+        steps.push({ label, desc, full: raw.replace(/\*\*([^*]+)\*\*/g, '$1').trim() });
+      } else {
+        const parts = raw.replace(/\*\*/g, '').split(/[—–-]/);
+        steps.push({ label: parts[0].trim(), desc: parts.slice(1).join('—').trim(), full: raw.replace(/\*\*/g, '').trim() });
+      }
+    }
+  }
+  return steps;
 }
 
 // Returns content with the ### Next Steps block removed for markdown rendering
@@ -459,6 +516,7 @@ setOnFirstMessage((text) => {
       isNew: false,
     });
     activeChatId.value = chat_UUID.value;
+    ntopng_url_manager.set_key_to_url("chatId", chat_UUID.value);
   }
 });
 
@@ -564,6 +622,24 @@ async function confirmRename() {
         body: JSON.stringify({ chatId: id, title, csrf: props.context.csrf })
       }, true);
   } catch (err) { console.error("[llm] renameChatApi failed:", err); }
+}
+
+// ClickHouse returns numeric columns as strings ("0"/"1") — coerce to boolean
+function isPinned(chat) { return parseInt(chat.pinned) === 1; }
+
+// Pin / unpin
+async function togglePinChat(chat) {
+  const newPinned = isPinned(chat) ? 0 : 1;
+  chat.pinned = newPinned;
+  chatHistory.value = [...chatHistory.value].sort((a, b) => (isPinned(b) ? 1 : 0) - (isPinned(a) ? 1 : 0));
+  try {
+    await ntopng_utility.http_request(
+      `${http_prefix}/lua/pro/rest/v2/post/llm/pin_chat.lua`,
+      {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId: chat.chat_id, pinned: newPinned, csrf: props.context.csrf })
+      }, true);
+  } catch (err) { console.error("[llm] togglePinChat failed:", err); }
 }
 
 // Delete
@@ -1029,6 +1105,33 @@ onBeforeUnmount(() => { });
   color: #dc3545;
 }
 
+.chat-item-pin-active {
+  color: var(--ntop-orange, #FF8F00) !important;
+}
+
+.chat-history-item.pinned {
+  border-left-color: var(--ntop-orange, #FF8F00);
+}
+
+/* Always show the pin button (first action) for pinned chats */
+.chat-history-item.pinned .chat-history-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* But keep rename and delete hidden until hover on pinned items */
+.chat-history-item.pinned .chat-history-actions .chat-item-action-btn:not(:first-child) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+
+.chat-history-item.pinned:hover .chat-history-actions .chat-item-action-btn:not(:first-child) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
 .rename-overlay {
   position: absolute;
   inset: 0;
@@ -1380,6 +1483,70 @@ onBeforeUnmount(() => { });
   line-height: 1.4;
 }
 
+/* Actionable step chips — more prominent than next steps */
+.actionable-steps-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem 0.4rem;
+  border-top: 2px solid var(--ntop-orange, #FF8F00);
+  border-radius: 0 0 8px 8px;
+  background: rgba(255, 143, 0, 0.05);
+  margin-top: 0.5rem;
+}
+
+.actionable-steps-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ntop-orange, #FF8F00);
+  margin-bottom: 0.1rem;
+}
+
+.actionable-step-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  background: rgba(255, 143, 0, 0.10);
+  border: 1px solid rgba(255, 143, 0, 0.35);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.actionable-step-chip:hover:not(:disabled) {
+  background: rgba(255, 143, 0, 0.22);
+  border-color: var(--ntop-orange, #FF8F00);
+}
+
+.actionable-step-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionable-step-chip .fas {
+  font-size: 0.65rem;
+  color: var(--ntop-orange, #FF8F00);
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.actionable-step-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ntop-orange-dark, #C56000);
+  line-height: 1.4;
+}
+
+.actionable-step-desc {
+  font-size: 0.75rem;
+  color: var(--chat-muted);
+  line-height: 1.4;
+}
+
 /* Next step chips */
 .next-steps-row {
   display: flex;
@@ -1443,6 +1610,27 @@ onBeforeUnmount(() => { });
   font-size: 0.75rem;
   color: var(--chat-muted);
   line-height: 1.4;
+}
+
+.ai-policy-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--ntop-orange, #FF8F00);
+  background: transparent;
+  color: var(--ntop-orange, #FF8F00);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ai-policy-link-btn:hover {
+  background: rgba(255, 143, 0, 0.10);
+  color: var(--ntop-orange-dark, #C56000);
+  text-decoration: none;
 }
 
 /* SQL panel */

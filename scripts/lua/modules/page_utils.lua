@@ -319,6 +319,21 @@ page_utils.menu_entries = {
         i18n_title = "nanalyst",
         section = "nanalyst"
     },
+    ai_usage_stats = {
+        key = "ai_usage_stats",
+        i18n_title = "ai_usage_stats",
+        section = "nanalyst"
+    },
+    ai_policy = {
+        key = "ai_policy",
+        i18n_title = "ai_policy",
+        section = "nanalyst"
+    },
+    ai_audit = {
+        key = "ai_audit",
+        i18n_title = "ai_audit",
+        section = "nanalyst"
+    },
 
     -- Interface
     interface = {

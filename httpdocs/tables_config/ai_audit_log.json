@@ -1,0 +1,60 @@
+{
+  "id": "ai_audit_log",
+  "data_url": "lua/pro/rest/v2/get/llm/audit_log.lua",
+  "use_current_page": false,
+  "enable_search": true,
+  "paging": false,
+  "display_empty_rows": true,
+  "default_sort": {
+    "column_id": "timestamp",
+    "sort": 2
+  },
+  "columns": [
+    {
+      "id": "timestamp",
+      "title_i18n": "timestamp",
+      "data_field": "timestamp",
+      "sortable": true,
+      "class": ["text-nowrap"],
+      "min-width": "140px"
+    },
+    {
+      "id": "username",
+      "title_i18n": "llm.user",
+      "data_field": "username",
+      "sortable": true,
+      "class": ["text-nowrap"],
+      "min-width": "100px"
+    },
+    {
+      "id": "triggered_by",
+      "title_i18n": "triggered_by",
+      "data_field": "triggered_by",
+      "sortable": true,
+      "class": ["text-center", "text-nowrap"],
+      "min-width": "110px"
+    },
+    {
+      "id": "tool_name",
+      "title_i18n": "llm.tool_name",
+      "data_field": "tool_name",
+      "sortable": true,
+      "class": ["text-nowrap"],
+      "min-width": "160px"
+    },
+    {
+      "id": "action_label",
+      "title_i18n": "llm.action_label",
+      "data_field": "action_label",
+      "sortable": true,
+      "min-width": "200px"
+    },
+    {
+      "id": "content",
+      "title_i18n": "llm.content",
+      "data_field": "content",
+      "sortable": false,
+      "min-width": "180px"
+    }
+  ]
+}

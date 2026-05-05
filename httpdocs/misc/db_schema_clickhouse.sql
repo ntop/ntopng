@@ -1175,6 +1175,10 @@ ALTER TABLE `ai_chat_history` ADD COLUMN IF NOT EXISTS page_context String DEFAU
 
 @
 
+ALTER TABLE ai_chat_history ADD COLUMN IF NOT EXISTS pinned UInt8 DEFAULT 0;
+
+@
+
 CREATE TABLE IF NOT EXISTS ai_token_usage (
     chat_id           UUID                   COMMENT 'Links to ai_chat_history session',
     call_seq          UInt32                 COMMENT 'Iteration index within the agentic loop (1-based)',
@@ -1196,6 +1200,23 @@ COMMENT 'Per-LLM-call token accounting for cost and usage analysis';
 
 @
 
+CREATE TABLE IF NOT EXISTS ai_audit_log (
+    timestamp      DateTime               COMMENT 'When the action was performed',
+    username       String                 COMMENT 'ntopng user who triggered or approved the action',
+    triggered_by   LowCardinality(String) COMMENT 'llm = autonomous agent action inside chatbot | user = direct UI action without chatbot',
+    tool_name      LowCardinality(String) COMMENT 'Logical action key: create_ai_policy | add_host_alert_exclusion | add_domain_alert_exclusion | add_certificate_alert_exclusion | add_active_monitoring_script',
+    action_label   String                 COMMENT 'Human-readable one-line description of what was done (e.g. "Created policy: 192.168.2.38 >10 DNS/hr")',
+    content        String                 COMMENT 'JSON-encoded input parameters passed to the action',
+    result         String                 COMMENT 'JSON-encoded result or error returned by the action',
+    success        UInt8                  COMMENT '1 if the action succeeded, 0 if it failed',
+    chat_id        String DEFAULT ''      COMMENT 'Chat session that triggered the action (empty for direct user actions)'
+) ENGINE = MergeTree()
+  PARTITION BY toYYYYMMDD(timestamp)
+  ORDER BY (timestamp, username, tool_name)
+COMMENT 'Append-only audit log of mutating LLM-agent or user actions for accountability, RCA, and alert investigation';
+
+@
+
 CREATE TABLE IF NOT EXISTS ai_model_prices (
     provider          LowCardinality(String) COMMENT 'LLM provider (llm_local, llm_anthropic, llm_openai)',
     model             LowCardinality(String) COMMENT 'Model name',
@@ -1208,16 +1229,12 @@ COMMENT 'Model pricing configuration for LLM cost calculation';
 
 @
 
-CREATE TABLE IF NOT EXISTS ai_policy_config (
-    policy_id         UUID                   DEFAULT generateUUIDv4() COMMENT 'Unique identifier for the policy',
-    name              String                 COMMENT 'Short human-readable name for this policy',
-    description       String                 COMMENT 'Natural language description of what this policy monitors',
-    sql_query         String                 COMMENT 'ClickHouse SQL SELECT query; non-empty result = violation',
-    periodicity       LowCardinality(String) COMMENT 'Suggested execution interval: min, 5min, hourly, daily',
-    is_active         UInt8  DEFAULT 1       COMMENT '1 = enabled, 0 = disabled',
-    created_by        String                 COMMENT 'Username who created this policy',
-    created_at        DateTime DEFAULT now() COMMENT 'Creation timestamp',
-    explanation       String DEFAULT ''      COMMENT 'LLM-generated plain-language explanation of what the SQL query checks'
-) ENGINE = MergeTree()
-  ORDER BY (policy_id)
-COMMENT 'AI-defined network security policy definitions';
+CREATE TABLE IF NOT EXISTS ntopng_docs (
+   source     LowCardinality(String)  COMMENT 'Relative file path or cli:ntopng / cli:nprobe',
+   title      String                  COMMENT 'Section heading',
+   chunk      String                  COMMENT 'Text content (~900 chars)',
+   indexed_at DateTime DEFAULT now(),
+   INDEX chunk_idx chunk TYPE tokenbf_v1(32768, 3, 0) GRANULARITY 1
+)
+ENGINE = MergeTree()
+ORDER BY (source, title)

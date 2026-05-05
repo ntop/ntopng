@@ -17,14 +17,13 @@
                 <div ref="wrapper" class="pie-wrapper" v-show="!loading && !no_data"></div>
 
                 <!-- Legend -->
-                <!--
-          <div v-if="!loading && items.length" class="pie-legend">
-        -->
-                <div v-if="!loading && items.length && !no_data" class="pie-legend">
-                    <div v-for="(it, i) in items" :key="i" class="legend-item" :class="{ clickable: !!it.url }"
-                        @click="it.url && (window.location.href = it.url)">
-                        <span class="legend-dot" :style="{ background: it.color }"></span>
-                        <span class="legend-name form-control-sm" :title="it.name">{{ it.name }}</span>
+                <div v-if="!loading && items.length && !no_data" class="pie-legend-wrap">
+                    <div class="pie-legend">
+                        <div v-for="(it, i) in items" :key="i" class="legend-item" :class="{ clickable: !!it.url }"
+                            @click="it.url && (window.location.href = it.url)">
+                            <span class="legend-dot" :style="{ background: it.color }"></span>
+                            <span class="legend-name form-control-sm" :title="it.name">{{ it.name }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -302,23 +301,36 @@ watch(() => props.chart.url_params, () => {
     min-height: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 
 .pie-row {
     flex: 1 1 auto;
     min-height: 0;
-    align-items: stretch;
+    overflow: hidden;
+    /* flex-start: row height = wrapper height only, not legend height */
+    align-items: flex-start;
     gap: 12px;
     padding: 4px 0;
 }
 
 .pie-wrapper {
     flex: 0 0 auto;
-    height: 100%;
-    min-height: 0;
+    /* width drives height via aspect-ratio — no height: 100% which caused circular sizing */
+    width: clamp(100px, 45%, 200px);
     aspect-ratio: 1 / 1;
-    max-width: 60%;
     overflow: hidden;
+}
+
+/* Constrains legend to wrapper height; does not contribute to row height */
+.pie-legend-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    align-self: stretch;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .no-data {
@@ -395,15 +407,21 @@ watch(() => props.chart.url_params, () => {
     flex-shrink: 0;
 }
 
-.layout-column .pie-legend {
+.layout-column .pie-legend-wrap {
+    align-self: auto;
+    overflow: visible;
+    height: auto;
     flex: 0 0 auto;
+    width: 100%;
+}
+
+.layout-column .pie-legend {
+    height: auto;
+    overflow-y: visible;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: center;
-    max-height: none;
-    width: 100%;
-    overflow: visible;
 }
 
 .layout-column .legend-item {
@@ -415,15 +433,15 @@ watch(() => props.chart.url_params, () => {
 .pie-legend {
     flex: 1 1 0;
     min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
     gap: 4px 0;
     overflow-y: auto;
     overflow-x: hidden;
-    max-height: 100%;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }

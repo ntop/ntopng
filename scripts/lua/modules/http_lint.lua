@@ -2301,6 +2301,10 @@ local known_parameters = {
    ["active"] = validateBool,
    ["page_filter"] = validateUnquoted,
    ["alert_description"] = validateUnquoted,
+   ["pinned"] = validateNumber,
+   ["custom_score"] = validateNumber,
+   ["message_variables"] = {jsonCleanup, validateJSON}, -- used for policy template formatting of custom alert
+   ["message_template"] = validateUnchecked, -- free-text template string for custom alert messages
 
    -- WAZUH
    ["wazuh_url"] = validateUnquoted,

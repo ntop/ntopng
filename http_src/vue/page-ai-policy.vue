@@ -36,7 +36,8 @@
           </div>
 
           <textarea v-model="nlInput" class="form-control form-control-sm" rows="4" :disabled="generating"
-            placeholder="e.g. Alert if any traffic other than SSH (port 22) or PostgreSQL (port 5432) reaches our database server at 10.0.0.5…">
+            placeholder="e.g. Alert if any traffic other than SSH (port 22) or PostgreSQL (port 5432) reaches our database server at 10.0.0.5…"
+            @keydown.enter.exact.prevent="generatePolicy">
           </textarea>
 
           <div class="mt-3 d-flex align-items-end gap-3 flex-wrap">
@@ -80,10 +81,15 @@
               <label class="ap-field-label">{{ _i18n('llm.policy_name') }}</label>
               <input type="text" class="form-control form-control-sm" v-model="proposedPolicy.ai_policy_name" maxlength="60" />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
               <label class="ap-field-label">{{ _i18n('llm.policy_frequency') }}</label>
               <SelectSearch :options="periodicityOptions" :selected_option="selectedPeriodicity"
                 theme="bootstrap-5" @select_option="onPeriodicitySelect" />
+            </div>
+            <div class="col-md-2">
+              <label class="ap-field-label">{{ _i18n('llm.alert_score') }}</label>
+              <SelectSearch :options="scoreOptions" :selected_option="selectedScore"
+                theme="bootstrap-5" @select_option="onScoreSelect" />
             </div>
             <div class="col-12">
               <label class="ap-field-label">{{ _i18n('description') }}</label>
@@ -186,12 +192,25 @@ const saveError        = ref("");
 const saveSuccess      = ref(false);
 
 const periodicityOptions = [
-  { label: "Every minute",   value: "min"    },
-  { label: "Every 5 minutes", value: "5min"  },
-  { label: "Hourly",         value: "hourly" },
-  { label: "Daily",          value: "daily"  },
+  { label: "Every minute",    value: "min"    },
+  { label: "Every 5 minutes", value: "5min"   },
+  { label: "Hourly",          value: "hourly" },
+  { label: "Daily",           value: "daily"  },
 ];
 const selectedPeriodicity = ref(periodicityOptions[2]);
+
+// Score levels matching ntopng SCORE_LEVEL_* defines
+const scoreOptions = [
+  { label: "Info (1)",        value: 1   },
+  { label: "Notice (10)",     value: 10  },
+  { label: "Warning (50)",    value: 50  },
+  { label: "Error (100)",     value: 100 },
+  { label: "Severe (150)",    value: 150 },
+  { label: "Critical (200)",  value: 200 },
+  { label: "Emergency (250)", value: 250 },
+];
+const CRITICALITY_TO_SCORE = { low: 10, medium: 50, high: 200 };
+const selectedScore = ref(scoreOptions[2]); // default: Warning 50
 
 const settingsUrl = `${http_prefix}/lua/admin/prefs.lua?tab=ai`;
 
@@ -301,9 +320,12 @@ async function on_edit_policy(data) {
       ai_policy_name:     data.name,
       policy_description: data.description,
       alert_description:  data.alert_description_gui || "",
+      message_template:   data.message_template      || "",
+      message_variables:  JSON.stringify(data.message_variables ?? []),
       sql_query:          data.sql_query,
       periodicity:        data.periodicity,
       explanation:        data.explanation || "",
+      custom_score:       data.custom_score ?? null,
       csrf:               props.context?.csrf,
     });
 
@@ -333,6 +355,10 @@ function onPeriodicitySelect(opt) {
   selectedPeriodicity.value = opt;
 }
 
+function onScoreSelect(opt) {
+  selectedScore.value = opt;
+}
+
 function criticalityBadgeClass(level) {
   return {
     low:    "ap-badge ap-badge-crit-low",
@@ -353,6 +379,13 @@ async function loadProviders() {
     console.error("providers fetch failed", e);
   } finally {
     loadingProviders.value = false;
+  }
+}
+
+function onTextareaEnter() {
+  const words = nlInput.value.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2 && !generating.value && selectedProvider.value) {
+    generatePolicy();
   }
 }
 
@@ -381,6 +414,8 @@ async function generatePolicy() {
     else if (rsp?.sql_query) {
       proposedPolicy.value = { ...rsp };
       selectedPeriodicity.value = periodicityOptions.find(o => o.value === rsp.periodicity) ?? periodicityOptions[2];
+      const suggestedScore = rsp.custom_score ?? (rsp.criticality ? CRITICALITY_TO_SCORE[rsp.criticality] : null);
+      selectedScore.value = scoreOptions.find(o => o.value === suggestedScore) ?? scoreOptions[2];
       creatorStep.value    = "result";
     } else if (rsp?.error) {
       generationError.value = rsp.error;
@@ -405,10 +440,13 @@ async function savePolicy() {
     const body = JSON.stringify({
       ai_policy_name:     pol.ai_policy_name,
       policy_description: pol.policy_description,
-      alert_description:  pol.alert_description  || "",
+      alert_description:  pol.alert_description   || "",
+      message_template:   pol.message_template    || "",
+      message_variables:  JSON.stringify(pol.message_variables ?? []),
       sql_query:          pol.sql_query,
-      periodicity:        selectedPeriodicity.value.value, //selectedPeriodicity.value = {label: "Daily", value: "daily"}
+      periodicity:        selectedPeriodicity.value.value,
       explanation:        pol.explanation || "",
+      custom_score:       selectedScore.value.value,
       csrf:               props.context?.csrf,
     });
 

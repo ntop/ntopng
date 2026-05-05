@@ -243,6 +243,7 @@ export function useLlmChat(props) {
     timedOut.value = false;
 
     const isFirstMessage = messages.value.length === 0;
+    if (isFirstMessage) ntopng_url_manager.set_key_to_url("chatId", chat_UUID.value);
     pushMessage("user", text);
 
     history.value.push({ role: "user", content: text });
