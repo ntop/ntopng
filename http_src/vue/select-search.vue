@@ -355,13 +355,12 @@ const render = () => {
     }
     if (!$(select2Div).hasClass("select2-hidden-accessible")) {
         $(select2Div).select2({
-            //dropdownParent: $('body'),
+            dropdownParent: $('body'),
             templateResult: formatResult,      // Custom rendering with icons/swatches in dropdown
             templateSelection: formatSelection, // Custom rendering for selected chip
             matcher: matchCustom,               // Hierarchical search matcher
             width: '100%',                       // Full width
             theme: props.theme ? props.theme : 'bootstrap-5',  // Theme (default to bootstrap-5)
-            dropdownParent: $(select2Div).parent(),  // Parent container for dropdown
             dropdownAutoWidth: true,                   // Auto-adjust dropdown width
             tags: props.add_tag && !props.multiple,   // Enable tagging only in single mode
             selectionCssClass: props.dropdown_size == "small" ? 'select2--small' : '',  // Size variant
@@ -656,6 +655,15 @@ defineExpose({ render });
 </script>
 
 <style scoped>
+.card, .card-body {
+    overflow: visible !important;
+}
+
+/* Ensure the wrapper doesn't restrict height */
+.ss-root {
+    position: relative;
+    z-index: 1050; /* Higher than other card elements */
+}
 /* Let options expand naturally */
 .select2-results__options {
     width: max-content !important;
