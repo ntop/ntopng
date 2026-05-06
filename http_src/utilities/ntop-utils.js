@@ -1339,6 +1339,29 @@ export default class NtopUtils {
         </div>`;
     }
 
+    /**
+     * Rounds an array of raw percentage values to integers that always sum to exactly 100,
+     * using the Largest Remainder Method: each value is floored first, then the missing
+     * points are awarded one by one to the entries with the largest fractional part.
+     *
+     * @param {number[]} values - Raw percentage values
+     * @returns {number[]} Integer percentages in the same order, summing to exactly 100
+     */
+    static largestRemainderRound(values) {
+        const floored = values.map(Math.floor);
+        // How many integer points are still missing to reach exactly 100
+        const remainder = 100 - floored.reduce((a, b) => a + b, 0);
+        // pair each value with its fractional part
+        values.map((v, i) => ({ i, f: v - floored[i] }))
+            // sort descending by fractional part
+            .sort((a, b) => b.f - a.f)
+            // take only as many as needed
+            .slice(0, remainder)
+            // bump each winner by 1
+            .forEach(({ i }) => floored[i]++);
+        return floored;
+    }
+
     static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
         if (percentage_1 == 0 && percentage_2 == 0) {
             return `<div style="height:8px;background:var(--border-subtle,#e9ecef);border-radius:100px;"
