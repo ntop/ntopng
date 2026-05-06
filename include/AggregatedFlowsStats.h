@@ -42,7 +42,7 @@ class AggregatedFlowsStats {
   u_int64_t key;
   u_int64_t proto_key;
   bool is_not_guessed;
-  u_int32_t flow_device_ip;
+  struct ndpi_in6_addr flow_device_ip;
   u_int32_t src_as, dst_as, transit_as;
   Bitmap128 alerts_status;
 
@@ -114,8 +114,8 @@ class AggregatedFlowsStats {
     return (host ? host->getIPHex(buf, len) : (char*)"");
   };
   inline const char* getFlowDeviceIP(char* buf, u_int len) {
-    return (flow_device_ip != 0 ? Utils::intoaV4(flow_device_ip, buf, len)
-                                : (char*)"");
+    return ((!Utils::isNullAddress(&flow_device_ip)) ? Utils::intoaV6(flow_device_ip, buf, len)
+	    : (char*)"");
   };
   inline bool isNotGuessed() { return (is_not_guessed); };
   inline u_int32_t getSrcAS() { return src_as; };
@@ -149,8 +149,8 @@ class AggregatedFlowsStats {
     }
   };
   inline void setSrvPort(u_int16_t _srv_port) { srv_port = _srv_port; };
-  inline void setFlowDeviceIP(u_int32_t _flow_device_ip) {
-    flow_device_ip = _flow_device_ip;
+  inline void setFlowDeviceIP(struct ndpi_in6_addr *_flow_device_ip) {
+    memcpy(&flow_device_ip, _flow_device_ip, sizeof(struct ndpi_in6_addr));
   };
   inline void setSrcAS(u_int32_t as) { src_as = as; };
   inline void setDstAS(u_int32_t as) { dst_as = as; };
@@ -180,7 +180,7 @@ struct aggregated_stats {
   std::unordered_map<string, AggregatedFlowsStats*> info_count;
   IpAddress* ip_addr;
   u_int16_t vlan_id;
-  u_int32_t flow_device_ip;
+  struct ndpi_in6_addr flow_device_ip;
   u_int32_t in_if_index;
   u_int32_t out_if_index;
   u_int32_t if_index;

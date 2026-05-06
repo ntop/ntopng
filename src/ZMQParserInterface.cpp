@@ -219,8 +219,6 @@ ZMQParserInterface::ZMQParserInterface(const char* endpoint,
   addCounterMapping("ifOutErrors", SFLOW_IF_OUT_ERRORS);
   addCounterMapping("ifPromiscuousMode", SFLOW_IF_PROMISCUOUS_MODE);
 
-  if (ntop->getPrefs()->is_edr_mode()) loadVLANMappings();
-
   addMappingFromRedis();
 }
 
@@ -656,10 +654,12 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
       if (json_object_object_get_ex(w, "exporters", &z)) {
         json_object_object_foreach(z, key, val) {
           // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exporter: %s", key);
-          u_int32_t exporter_device_ip = ntohl(inet_addr(key));
+          struct ndpi_in6_addr exporter_device_ip;
           ExporterStats exp_stats;
           json_object* x;
 
+	  Utils::setIPv4Address(&exporter_device_ip, inet_addr(key));
+	  
           memset(&exp_stats, 0, sizeof(exp_stats));
 
           if (json_object_object_get_ex(val, "time_last_flow", &x))
@@ -974,34 +974,16 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow* const flow,
       ip = value->int_num;
     else if (value->string != NULL) {
       /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-      ip = ntohl(inet_addr(value->string));
+      ip = inet_addr(value->string);
     } else
       ip = 0;
 
-    if (ip) {
-      flow->exporter_device_ipv4 = ip;
-
-      if (ntop->getPrefs()->is_edr_mode()) {
-	char buf[32], ipb[24];
-	std::unordered_map<u_int32_t, bool>::iterator it =
-	  cloud_flow_exporters.find(ip);
-
-	if (it == cloud_flow_exporters.end()) {
-	  cloud_flow_exporters[ip] = true;
-	  snprintf(buf, sizeof(buf), "%s",
-		   Utils::intoaV4(ip, ipb, sizeof(ipb)));
-	  ntop->addLocalCloudAddress(buf);
-
-	  /* Re-evaluate IPVx_SRC_ADDR/IPVx_DST_ADDR */
-	  flow->src_ip.checkIP();
-	  flow->dst_ip.checkIP();
-	}
-      }
-    }
+    if(ip != 0)
+      Utils::setIPv4Address(&flow->exporter_device_ip, ip);    
   } break;
   case EXPORTER_IPV6_ADDRESS:
     if (value->string != NULL && strlen(value->string) > 0)
-      inet_pton(AF_INET6, value->string, &flow->exporter_device_ipv6);
+      inet_pton(AF_INET6, value->string, &flow->exporter_device_ip);
     break;
   case FLOW_END_REASON:
     if (value->string) flow->setEndReason(value->string);
@@ -1174,27 +1156,22 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow* const flow,
     break;
 
   case NPROBE_INSTANCE_NAME:
-    if (ntop->getPrefs()->is_edr_mode() &&
-	ntop->getPrefs()->addVLANCloudToExporters()) {
-      u_int16_t vlan_id = findVLANMapping((char*)value->string);
-
-      flow->vlan_id = vlan_id;
-    }
+    /* TODO */
     break;
-      
+
   case SRC_BGP_INFO:
     if (value->string && (value->string[0] != '\0')) {
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "** %s", value->string);
       flow->setClientBGPInfo(value->string);
     }
-    break;    
-      
+    break;
+
   case DST_BGP_INFO:
     if (value->string && (value->string[0] != '\0')) {
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "** %s", value->string);
       flow->setServerBGPInfo(value->string);
     }
-    break;    
+    break;
 
   case L7_PROTO_NAME:
     break;
@@ -1382,10 +1359,14 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow* const flow,
 
   case NPROBE_IPV4_ADDRESS:
     if (value->string) {
-      flow->nprobe_ip = ntohl(inet_addr(value->string));
-      if (flow->exporter_device_ipv4 == 0 &&
-	  (flow->exporter_device_ipv4 = ntohl(inet_addr(value->string))))
-	return false;
+      Utils::setIPv4Address(&flow->nprobe_ip, inet_addr(value->string));
+
+      if (Utils::isNullAddress(&flow->exporter_device_ip)) {
+	memcpy(&flow->exporter_device_ip, &flow->nprobe_ip, sizeof(struct ndpi_in6_addr));
+
+	if (Utils::isNullAddress(&flow->exporter_device_ip))
+	  return(false);
+      }
     }
     break;
 
@@ -1677,15 +1658,16 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow* const flow,
       }
 
     case EXPORTER_IPV4_ADDRESS:
-      return (flow->exporter_device_ipv4 == ntohl(inet_addr(value->string)));
+      Utils::setIPv4Address(&flow->exporter_device_ip, inet_addr(value->string));
+      return(Utils::isNullAddress(&flow->exporter_device_ip) ? false : true);
 
     case EXPORTER_IPV6_ADDRESS:
       if (value->string != NULL && strlen(value->string) > 0) {
         struct ndpi_in6_addr ipv6;
 
         if (inet_pton(AF_INET6, value->string, &ipv6) <= 0) return false;
-        return (memcmp(&flow->exporter_device_ipv6, &ipv6,
-                       sizeof(flow->exporter_device_ipv6)) == 0);
+        return (memcmp(&flow->exporter_device_ip, &ipv6,
+                       sizeof(flow->exporter_device_ip)) == 0);
       }
 
     case INPUT_SNMP:
@@ -1845,7 +1827,8 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow* const flow,
         return false;
 
     case NPROBE_IPV4_ADDRESS:
-      return (flow->nprobe_ip == ntohl(inet_addr(value->string)));
+      Utils::setIPv4Address(&flow->nprobe_ip, inet_addr(value->string));
+      return(Utils::isNullAddress(&flow->nprobe_ip) ? false : true);
 
     case UNIQUE_SOURCE_ID:
       return (flow->unique_source_id == value->int_num);
@@ -2160,14 +2143,14 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
 
     if (flow->pkt_sampling_rate == 0) flow->pkt_sampling_rate = 1;
 
-    if (flow->nprobe_ip == 0) flow->nprobe_ip = flow->exporter_device_ipv4;
+    if (Utils::isNullAddress(&flow->nprobe_ip))
+      memcpy(&flow->nprobe_ip, &flow->exporter_device_ip, sizeof(struct ndpi_in6_addr));
 
     if (flow->unique_source_id == 0) {
       if (flow->nprobe_source_id) /* use nProbe ID */
         flow->unique_source_id = flow->nprobe_source_id;
       else /* Last resort: use exporter and nProbe IPs */
-        flow->unique_source_id = getExporterUniqueSourceID(
-            flow->exporter_device_ipv4, flow->nprobe_ip);
+        flow->unique_source_id = getExporterUniqueSourceID(&flow->exporter_device_ip, &flow->nprobe_ip);
     }
 
     if (flow->nprobe_source_id == 0)
@@ -3238,12 +3221,6 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char* payload,
     json_object* z;
     ListeningPorts pinfo;
     u_int16_t vlan_id = 0;
-
-    if (ntop->getPrefs()->is_edr_mode() &&
-        ntop->getPrefs()->addVLANCloudToExporters()) {
-      if (json_object_object_get_ex(o, "instance-name", &z))
-        vlan_id = findVLANMapping(json_object_get_string(z));
-    }
 
     /* Parse port information */
     if (json_object_object_get_ex(o, "listening-ports", &z)) {

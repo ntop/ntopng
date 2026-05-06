@@ -30,6 +30,18 @@
 
 class NtopPro;
 
+struct InterfaceKeyCompare {
+  bool operator()(const std::tuple<struct ndpi_in6_addr, u_int32_t>& lhs,
+		  const std::tuple<struct ndpi_in6_addr, u_int32_t>& rhs) const {
+    // Compare the first element (ndpi_in6_addr) using memcmp
+    int cmp = std::memcmp(&std::get<0>(lhs), &std::get<0>(rhs), sizeof(struct ndpi_in6_addr));
+    if (cmp != 0) return cmp < 0;
+    
+    // If IPs are equal, compare the second element (u_int32_t)
+    return std::get<1>(lhs) < std::get<1>(rhs);
+  }
+};
+
 /** @class Ntop
  *  @brief Main class of ntopng.
  *
@@ -67,8 +79,7 @@ class Ntop {
   u_int num_cpus;       /**< Number of physical CPU cores. */
   Redis* redis;         /**< Pointer to the Redis server. */
   Mutex m, users_m, speedtest_m, pools_lock;
-  std::map<std::string, u_int8_t>
-      cachedCustomLists;                       /* Cache of lists filenames */
+  std::map<std::string, u_int8_t> cachedCustomLists; /* Cache of lists filenames */
   std::map<std::string, std::string> luaCache; /* Cache used by Lua */
   RwLock luaCacheLock;
   u_int32_t current_time; /* Updated by current_time */
@@ -160,8 +171,8 @@ class Ntop {
 #ifdef NTOPNG_PRO
   bool alertExclusionsReloadInProgress;
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
-  std::map<std::tuple<u_int32_t /* exporter IP (network base address) */,
-                      u_int32_t /* interface_id */>, SNMPInterfaceRole> *ifRoles, *ifRoles_shadow;
+  std::map<std::tuple<struct ndpi_in6_addr /* exporter IP */,
+                      u_int32_t /* interface_id */>, SNMPInterfaceRole, InterfaceKeyCompare> *ifRoles, *ifRoles_shadow;
 #endif
 
   bool assignUserId(u_int8_t* new_user_id);
@@ -908,9 +919,10 @@ class Ntop {
   MessageBroker* getMessageBroker() { return (message_broker); };
   void initSnmpInterfaceRole();
   void activateSnmpInterfaceRoles();
-  void snmpSetInterfaceRole(u_int32_t exporter_ip_v4, u_int32_t interface_id,
+  void snmpSetInterfaceRole(struct ndpi_in6_addr *exporter_device_ip,
+			    u_int32_t interface_id,
                             SNMPInterfaceRole interface_role);
-  SNMPInterfaceRole snmpGetInterfaceRole(u_int32_t exporter_ip_v4,
+  SNMPInterfaceRole snmpGetInterfaceRole(struct ndpi_in6_addr *exporter_device_ip,
                                          u_int32_t interface_id);
 #endif
 

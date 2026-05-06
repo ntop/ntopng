@@ -318,8 +318,9 @@ async function get_chart_options() {
         retrieve_basic_info(),
         /* Use get_component_data callback to enable report generation as well */
         props.get_component_data(url,
-            /* Note: passing query params (not required) to be used by check_diff_params() */
-            { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end },
+            /* Note: passing query params (even when not required) to be used by check_diff_params() */
+            /* Note: filters are also passed here (as GET params) for timeseries computed from raw flows supporting them */
+            { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end, ...props.filters },
             post_params, props.epoch_begin),
     ]);
     if (generation !== refresh_generation) return null;

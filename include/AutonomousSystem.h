@@ -26,6 +26,18 @@
 
 #include "ntop_includes.h"
 
+struct ExporterMapCmp {
+  bool operator()(const std::pair<struct ndpi_in6_addr, u_int16_t>& a,
+		  const std::pair<struct ndpi_in6_addr, u_int16_t>& b) const {
+    // Compare IP addresses first
+    int cmp = memcmp(&a.first, &b.first, sizeof(struct ndpi_in6_addr));
+    if (cmp != 0) return(cmp < 0);
+
+    // If IPs are the same, compare the other entry (u_int16_t)
+    return(a.second < b.second);
+  }
+};
+
 class AutonomousSystem : public GenericHashEntry,
                          public GenericTrafficElement,
                          public Score {
@@ -35,7 +47,7 @@ class AutonomousSystem : public GenericHashEntry,
   u_int32_t round_trip_time;
   u_int32_t alerted_flows_as_client, alerted_flows_as_server;
   bool save_exporters_stats; /* Core ASN for which stats need to be saved */
-  std::map<std::pair<u_int32_t, u_int16_t>, TrafficCounter> exporters_map;
+  std::map<std::pair<struct ndpi_in6_addr, u_int16_t>, TrafficCounter, ExporterMapCmp> exporters_map;
 #ifdef NTOPNG_PRO
   QoEStats qoe_stats;
 #endif
@@ -45,7 +57,7 @@ class AutonomousSystem : public GenericHashEntry,
 #endif
 
   void incExportersStats(u_int64_t bytes_sent, u_int64_t bytes_rcvd,
-                         u_int32_t exporter_ip, u_int32_t in_index,
+                         struct ndpi_in6_addr *exporter_ip, u_int32_t in_index,
                          u_int32_t out_index);
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
@@ -76,7 +88,7 @@ class AutonomousSystem : public GenericHashEntry,
 
   inline void incStats(time_t when, u_int16_t proto_id, u_int64_t sent_packets,
                        u_int64_t sent_bytes, u_int64_t rcvd_packets,
-                       u_int64_t rcvd_bytes, u_int32_t exporter_ip,
+                       u_int64_t rcvd_bytes, struct ndpi_in6_addr *exporter_ip,
                        u_int32_t in_index, u_int32_t out_index) {
     if (ndpiStats || (ndpiStats = new nDPIStats()))
       ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes,
@@ -115,7 +127,7 @@ class AutonomousSystem : public GenericHashEntry,
       exporters_map.clear(); /* Empty the map in case it's present */
   }
   void findExportersStats(u_int64_t bytes_sent, u_int64_t bytes_rcvd,
-                          std::pair<u_int32_t, u_int16_t>* key);
+                          std::pair<struct ndpi_in6_addr, u_int16_t>* key);
 #ifdef NTOPNG_PRO
   void incQoEStats(QoEType qoe_type) { qoe_stats.incQoEStats(qoe_type); };
 #endif

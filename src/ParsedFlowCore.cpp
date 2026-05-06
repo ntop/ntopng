@@ -30,11 +30,10 @@ ParsedFlowCore::ParsedFlowCore() {
   src_ip.reset(), dst_ip.reset();
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));
-  exporter_device_ipv4 = 0;
-  memset(&exporter_device_ipv6, 0, sizeof(exporter_device_ipv6));
+  memset(&exporter_device_ip, 0, sizeof(exporter_device_ip));
   src_tos = dst_tos = 0;
   version = 0;
-  nprobe_ip = 0;
+  memset(&nprobe_ip, 0, sizeof(nprobe_ip));
   unique_source_id = 0;
   nprobe_source_id = 0;
   src_port = dst_port = 0;
@@ -59,11 +58,10 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore& pfc) {
   src_ip.set(&pfc.src_ip), dst_ip.set(&pfc.dst_ip);
   memcpy(&src_mac, &pfc.src_mac, sizeof(src_mac));
   memcpy(&dst_mac, &pfc.dst_mac, sizeof(dst_mac));
-  exporter_device_ipv4 = pfc.exporter_device_ipv4;
-  memcpy(&exporter_device_ipv6, &pfc.exporter_device_ipv6,
-         sizeof(exporter_device_ipv6));
+  memcpy(&exporter_device_ip, &pfc.exporter_device_ip,
+         sizeof(exporter_device_ip));
   version = pfc.version;
-  nprobe_ip = pfc.nprobe_ip;
+  memcpy(&nprobe_ip, &pfc.nprobe_ip, sizeof(struct ndpi_in6_addr));
   unique_source_id = pfc.unique_source_id;
   nprobe_source_id = pfc.nprobe_source_id;
   src_port = pfc.src_port, dst_port = pfc.dst_port;

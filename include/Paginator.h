@@ -44,7 +44,7 @@ class Paginator {
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows,
       periodic_flows;
   u_int32_t asn_filter, asn_src_filter, asn_dst_filter;
-  u_int32_t deviceIP;
+  struct ndpi_in6_addr deviceIP;
   u_int32_t inIndex, outIndex, ifaceIndex;
   int32_t iface_index_filter;
   u_int16_t pool_filter, alert_type_filter;
@@ -231,9 +231,10 @@ class Paginator {
     return false;
   }
 
-  inline bool deviceIpFilter(u_int32_t* f) const {
-    if (deviceIP) {
-      (*f) = deviceIP;
+  inline bool deviceIPFilter(struct ndpi_in6_addr *f) const {
+    /* Not empty address */
+    if (deviceIP.u6_addr.u6_addr64[0] || deviceIP.u6_addr.u6_addr64[1]) {
+      memcpy(f, &deviceIP, sizeof(struct ndpi_in6_addr));
       return true;
     }
     return false;

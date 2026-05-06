@@ -801,12 +801,7 @@ bool Ntop::isLocalAddress(int family, void* addr, int32_t* network_id,
 
   if ((*network_id != -1) && network_mask_bits)
     *network_mask_bits = nmask_bits;
-  else {
-    if (getPrefs()->is_edr_mode()) {
-      *network_id = cloudNetworkLookup(family, addr, &nmask_bits);
-    }
-  }
-
+  
   return (((*network_id) == -1) ? false : true);
 };
 
@@ -5688,14 +5683,14 @@ void Ntop::initSnmpInterfaceRole() {
     ifRoles_shadow = NULL;
   }
   
-  ifRoles_shadow = new (std::nothrow) std::map<std::tuple<u_int32_t, u_int32_t>, SNMPInterfaceRole>;
+  ifRoles_shadow = new (std::nothrow) std::map<std::tuple<struct ndpi_in6_addr, u_int32_t>, SNMPInterfaceRole, InterfaceKeyCompare>;
 }
 
 /* ******************************************* */
 
 void Ntop::activateSnmpInterfaceRoles() {
   if(ifRoles_shadow != NULL) {
-    std::map<std::tuple<u_int32_t, u_int32_t>, SNMPInterfaceRole> *tmp = ifRoles;
+    std::map<std::tuple<struct ndpi_in6_addr, u_int32_t>, SNMPInterfaceRole, InterfaceKeyCompare> *tmp = ifRoles;
 
     ifRoles = ifRoles_shadow;
     ifRoles_shadow = tmp;
@@ -5705,23 +5700,23 @@ void Ntop::activateSnmpInterfaceRoles() {
 
 /* ******************************************* */
 
-void Ntop::snmpSetInterfaceRole(u_int32_t exporter_ip_v4,
+void Ntop::snmpSetInterfaceRole(struct ndpi_in6_addr *exporter_device_ip,
                                 u_int32_t interface_id,
                                 SNMPInterfaceRole interface_role) {
   if(ifRoles_shadow == NULL) initSnmpInterfaceRole();
 
   if(ifRoles_shadow)
-    ifRoles_shadow->emplace(std::make_tuple(exporter_ip_v4, interface_id), interface_role);
+    ifRoles_shadow->emplace(std::make_tuple(*exporter_device_ip, interface_id), interface_role);
 }
 
 /* ******************************************* */
 
 /* NOTE: add a mutex or another trick if dynamic interface reload is implemented */
-SNMPInterfaceRole Ntop::snmpGetInterfaceRole(u_int32_t exporter_ip_v4,
+SNMPInterfaceRole Ntop::snmpGetInterfaceRole(struct ndpi_in6_addr *exporter_device_ip,
                                              u_int32_t interface_id) {
   if(ifRoles != NULL) {
-    std::tuple<u_int32_t, u_int32_t> searchKey = {exporter_ip_v4, interface_id};
-    std::map<std::tuple<u_int32_t, u_int32_t>, SNMPInterfaceRole>::iterator it =
+    std::tuple<struct ndpi_in6_addr, u_int32_t> searchKey = {*exporter_device_ip, interface_id};
+    std::map<std::tuple<struct ndpi_in6_addr, u_int32_t>, SNMPInterfaceRole, InterfaceKeyCompare>::iterator it =
       ifRoles->find(searchKey);
 
     if (it != ifRoles->end())

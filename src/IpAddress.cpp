@@ -441,8 +441,18 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) const {
 
     return (Utils::intoaV4(a, buf, bufLen));
   } else {
+    struct ndpi_in6_addr ipv6;
+    
     bitmask = bitmask <= 128 ? bitmask : 128;
-    return (Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
+
+    memcpy(&ipv6, &addr.ipType.ipv6, sizeof(struct ndpi_in6_addr));
+    
+    if(bitmask != 128) {
+      for (int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
+	ipv6.u6_addr.u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)((0xffU << (8 - i)) & 0xffU);      
+    }
+    
+    return (Utils::intoaV6(ipv6, buf, bufLen));
   }
 }
 

@@ -1871,7 +1871,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
   TrafficType traffic_type_filter = traffic_type_all;
   int proto_filter = -1;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
-  u_int32_t device_ip = 0;
+  struct ndpi_in6_addr device_ip;
   u_int32_t begin_slot = 0;
   u_int8_t location_filter = (u_int8_t)-1;
   bool walk_all = true;
@@ -1885,6 +1885,8 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  memset(&device_ip, 0, sizeof(struct ndpi_in6_addr));
+  
   if (lua_type(vm, 1) == LUA_TBOOLEAN)
     show_details = lua_toboolean(vm, 1) ? true : false;
   if (lua_type(vm, 2) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 2);
@@ -1915,8 +1917,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
   if (lua_type(vm, 19) == LUA_TBOOLEAN) dhcpOnly = lua_toboolean(vm, 19);
   if (lua_type(vm, 20) == LUA_TSTRING)
     cidr_filter.addAddress(lua_tostring(vm, 20)), cidr_filter_enabled = true;
-  if (lua_type(vm, 21) == LUA_TSTRING)
-    device_ip = ntohl(inet_addr(lua_tostring(vm, 21)));
+  if (lua_type(vm, 21) == LUA_TSTRING) Utils::parseIPv4v6Address(lua_tostring(vm, 21), &device_ip);								
   if (lua_type(vm, 22) == LUA_TBOOLEAN) arrayFormat = (lua_toboolean(vm, 22));
   if (lua_type(vm, 23) == LUA_TBOOLEAN) alertedHost = lua_toboolean(vm, 23);
   if (lua_type(vm, 24) == LUA_TSTRING)
@@ -1932,7 +1933,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
           get_allowed_nets(vm), show_details, location, country, mac_filter,
           vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
           filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
+          traffic_type_filter, &device_ip, false /* host->lua */, anomalousOnly,
           dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, alertedHost,
           sortColumn, maxHits, toSkip, a2zSortOrder, arrayFormat, false,
           location_filter, map_search, label_filter) < 0)
@@ -3477,9 +3478,11 @@ static int ntop_get_flow_device_info_by_ip(lua_State* vm) {
   if (!curr_iface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   else {
-    in_addr_t addr = inet_addr(device_ip);
+    struct ndpi_in6_addr addr;
 
-    curr_iface->getFlowDeviceInfoByIP(vm, ntohl(addr), showAllStats);
+    Utils::setIPv4Address(&addr, inet_addr(device_ip));
+
+    curr_iface->getFlowDeviceInfoByIP(vm, &addr, showAllStats);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
   }
 }
@@ -3503,9 +3506,10 @@ static int ntop_refresh_flow_device_site_id(lua_State* vm) {
 
   flow_devices_stats = curr_iface->getFlowInterfacesStats();
   if (flow_devices_stats) {
-    in_addr_t addr = inet_addr(device_ip);
-
-    flow_devices_stats->refreshExporterSiteIdFromRedis(ntohl(addr));
+    struct ndpi_in6_addr addr;
+    
+    Utils::parseIPv4v6Address(device_ip, &addr);
+    flow_devices_stats->refreshExporterSiteIdFromRedis(&addr);
   }
 
   lua_pushnil(vm);

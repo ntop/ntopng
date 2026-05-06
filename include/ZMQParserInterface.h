@@ -24,6 +24,12 @@
 
 #include "ntop_includes.h"
 
+struct In6AddrCompare {
+  bool operator()(const struct in6_addr& lhs, const struct in6_addr& rhs) const {
+    return std::memcmp(&lhs, &rhs, sizeof(struct in6_addr)) < 0;
+  }
+};
+
 class ZMQParserInterface : public ParserInterface {
  private:
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
@@ -32,7 +38,6 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::map<string, pen_value_t> labels_map_t;
   typedef std::map<pen_value_t, description_value_t> descriptions_map_t;
   typedef std::map<string, u_int32_t> counters_map_t;
-  std::unordered_map<u_int32_t, bool> cloud_flow_exporters;
   u_int16_t top_vlan_id;
   u_int32_t next_msg_time;
   std::unordered_map<std::string, u_int16_t> name_to_vlan;

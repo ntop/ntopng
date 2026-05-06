@@ -573,7 +573,7 @@ typedef enum {
   host_alert_dns_server_contacts = 2,
   host_alert_ntp_server_contacts = 3,
   host_alert_flow_flood = 4,
-  host_alert_notused_1 = 5,
+  host_alert_wazuh_info_changed = 5,
   host_alert_syn_flood = 6,
   host_alert_domain_names_contacts = 7,
   host_alert_unexpected_gateway = 8,

@@ -139,13 +139,13 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level,
 #endif
     if (!exporters_map.empty()) {
       lua_newtable(vm);
-      for (auto it = exporters_map.begin(); it != exporters_map.end(); ++it) {
+      for (std::map<std::pair<struct ndpi_in6_addr, u_int16_t>, TrafficCounter>::iterator it = exporters_map.begin(); it != exporters_map.end(); ++it) {
         lua_newtable(vm);
         char buf[32], buf2[64];
         IpAddress exporter;
         TrafficCounter& stats = it->second;
 
-        exporter.set(htonl(it->first.first));
+        exporter.set((struct ndpi_in6_addr*)&it->first.first);
 
         lua_push_uint64_table_entry(vm, "bytes_sent", stats.getSent());
         lua_push_uint64_table_entry(vm, "bytes_rcvd", stats.getRcvd());
@@ -208,11 +208,13 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval* tv) {}
 
 /* ***************************************** */
 
-void AutonomousSystem::findExportersStats(
-    u_int64_t bytes_sent, u_int64_t bytes_rcvd,
-    std::pair<u_int32_t, u_int16_t>* key) {
-  std::map<std::pair<u_int32_t, u_int16_t>, TrafficCounter>::iterator it =
-      exporters_map.find(*key);
+void AutonomousSystem::findExportersStats(u_int64_t bytes_sent, u_int64_t bytes_rcvd,
+					  std::pair<struct ndpi_in6_addr, u_int16_t>* key) {
+  std::map<std::pair<struct ndpi_in6_addr, u_int16_t>, TrafficCounter>::iterator it;
+  std::pair<struct ndpi_in6_addr, u_int16_t> a;
+  
+  // it = exporters_map.find(*key);
+  it = exporters_map.find(a);
 
   if (it != exporters_map.end()) {
     it->second.incStats(bytes_sent, bytes_rcvd);  // Update if exists already
@@ -226,20 +228,20 @@ void AutonomousSystem::findExportersStats(
 
 void AutonomousSystem::incExportersStats(u_int64_t bytes_sent,
                                          u_int64_t bytes_rcvd,
-                                         u_int32_t exporter_ip,
+                                         struct ndpi_in6_addr *exporter_ip,
                                          u_int32_t in_index,
                                          u_int32_t out_index) {
   if (save_exporters_stats && exporter_ip) {
-    std::pair<u_int32_t, u_int16_t> key;
+    std::pair<struct ndpi_in6_addr, u_int16_t> key;
 
     /* Increase the stats just one time, same interface */
     /* Out interface, so Sent Bytes and Rcvd Bytes are okay this way */
-    key = std::make_pair(exporter_ip, out_index);
+    key = std::make_pair(*exporter_ip, out_index);
 
     findExportersStats(bytes_sent, bytes_rcvd, &key);
 
     if (in_index != out_index) {
-      key = std::make_pair(exporter_ip, in_index);
+      key = std::make_pair(*exporter_ip, in_index);
       /* In interface, so Sent Bytes and Rcvd Bytes are inverted (Sent Bytes is
        * Rcvd Bytes and viceversa) */
 

@@ -1441,7 +1441,7 @@ bool NetworkInterface::walker(u_int32_t* begin_slot, bool walk_all,
 Flow* NetworkInterface::getFlow(
     int32_t if_index, Mac* src_mac, Mac* dst_mac, u_int16_t vlan_id,
     u_int16_t observation_domain_id, u_int32_t private_flow_id,
-    u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
+    u_int32_t inIndex, u_int32_t outIndex,
     const ICMPinfo* const icmp_info, IpAddress* src_ip, IpAddress* dst_ip,
     u_int16_t src_port, u_int16_t dst_port, u_int8_t l4_proto,
     bool* src2dst_direction, time_t first_seen, time_t last_seen,
@@ -2203,7 +2203,7 @@ pre_get_flow:
   /* Updating Flow */
   flow = getFlow(
       if_index, srcMac, dstMac, vlan_id, 0 /* observationPointId */,
-      private_flow_id, 0, 0, 0, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
+      private_flow_id, 0, 0, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
       &src_ip, &dst_ip, src_port, dst_port, l4_proto, &src2dst_direction,
       last_pkt_rcvd, last_pkt_rcvd, len_on_wire, new_flow,
       create_flow_if_missing, eth->h_source,
@@ -3736,11 +3736,11 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
     while (dequeueFlowFromCompanion(&dequeued)) {
       Flow* flow = NULL;
       bool src2dst_direction, new_flow;
-
+      
       flow =
           getFlow(UNKNOWN_PKT_IFACE_IDX, NULL /* srcMac */, NULL /* dstMac */,
                   dequeued->vlan_id, 0 /* observationPointId */,
-                  dequeued->get_private_flow_id(), 0 /* deviceIP */,
+                  dequeued->get_private_flow_id(),
                   0 /* inIndex */, 1 /* outIndex */, NULL /* ICMPinfo */,
                   &dequeued->src_ip, &dequeued->dst_ip, dequeued->src_port,
                   dequeued->dst_port, dequeued->l4_proto, &src2dst_direction, 0,
@@ -3981,7 +3981,9 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
       the scan periodicity (~1 min) and capped to the flow timeout
     */
 
-    if (clickhouse_flows_db
+    bool ch_dump_enabled = clickhouse_flows_db &&
+                           ntop->getPrefs()->do_dump_flows_on_clickhouse();
+    if (ch_dump_enabled
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
         || kafka_exporter
 #endif
@@ -3998,7 +4000,7 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
       if (ntop->get_export_interface()) generate_json = true;
 #endif
 
-      if (clickhouse_flows_db) rc = clickhouse_flows_db->dumpFlow(now, f, NULL);
+      if (ch_dump_enabled) rc = clickhouse_flows_db->dumpFlow(now, f, NULL);
 
       if (generate_json) {
         json = f->serialize(export_format_GENERIC);
@@ -5299,6 +5301,7 @@ struct flowHostRetrieveList {
   Country* countryVal;
   u_int64_t numericValue;
   const char* stringValue;
+  struct ndpi_in6_addr ipAddress;
   IpAddress* ipValue;
 };
 
@@ -5335,7 +5338,7 @@ struct flowHostRetriever {
   bool alerted;
   u_int16_t vlan_id;
   ndpi_os osFilter;
-  u_int32_t device_ip;
+  struct ndpi_in6_addr device_ip;
   u_int32_t asnFilter;
   u_int32_t uidFilter;
   u_int32_t pidFilter;
@@ -5510,7 +5513,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   char* username_filter;
   char* pidname_filter;
   char* wlan_ssid_filter;
-  u_int32_t deviceIP = 0;
+  struct ndpi_in6_addr deviceIP;
   int32_t iface_index = -1;
   u_int32_t inIndex, outIndex, ifaceIndex;
   u_int8_t icmp_type, icmp_code, dscp_filter;
@@ -5525,6 +5528,8 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   bool filtered_flows;
 #endif
 
+  memset(&deviceIP, 0, sizeof(deviceIP));
+  
   if (f && (!f->idle())) {
     if (f->get_observation_point_id() != retriever->observationPointId) {
 #if 0
@@ -5716,15 +5721,15 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
         l4_protocol && l4_protocol != f->get_protocol())
       return (false);
 
-    if (retriever->pag && retriever->pag->deviceIpFilter(&deviceIP)) {
-      if ((f->getFlowDeviceIP() != deviceIP) ||
+    if (retriever->pag && retriever->pag->deviceIPFilter(&deviceIP)) {
+      if (memcmp(f->getFlowDeviceIP(), &deviceIP, sizeof(deviceIP)) ||
           (retriever->pag->inIndexFilter(&inIndex) &&
            f->getFlowDeviceInIndex() != inIndex) ||
           (retriever->pag->outIndexFilter(&outIndex) &&
            f->getFlowDeviceOutIndex() != outIndex))
         return (false);
       // Just in or out interface needs to match
-      if ((f->getFlowDeviceIP() != deviceIP) ||
+      if (memcmp(f->getFlowDeviceIP(), &deviceIP, sizeof(deviceIP)) ||
           ((retriever->pag->ifaceIndexFilter(&ifaceIndex) &&
             f->getFlowDeviceInIndex() != ifaceIndex) &&
            (retriever->pag->ifaceIndexFilter(&ifaceIndex) &&
@@ -6144,8 +6149,8 @@ static bool flow_search_walker(GenericHashEntry* h, void* user_data,
             f->get_hash_entry_id();
         break;
       case column_device_ip:
-        retriever->elems[retriever->actNumEntries++].numericValue =
-            f->getFlowDeviceIP();
+        memcpy(&retriever->elems[retriever->actNumEntries++].ipAddress,
+	       f->getFlowDeviceIP(), sizeof(struct ndpi_in6_addr));
         break;
       case column_in_index:
         retriever->elems[retriever->actNumEntries++].numericValue =
@@ -6247,8 +6252,8 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
        !h->isUnidirectionalTraffic()) ||
       (r->traffic_type == traffic_type_bidirectional &&
        !h->isBidirectionalTraffic()) ||
-      (r->device_ip && h->getLastDeviceIp() &&
-       (r->device_ip != h->getLastDeviceIp())) ||
+      ((!Utils::isNullAddress(&r->device_ip)) && h->getLastDeviceIp() &&
+       (memcmp(&r->device_ip, h->getLastDeviceIp(), sizeof(struct ndpi_in6_addr)))) ||
       (r->dhcpHostsOnly && (!h->isDHCPHost())) ||
 #ifdef HAVE_NEDGE
       ((r->locationFilter != u_int8_t(-1)) &&
@@ -6828,6 +6833,13 @@ int ipSorter(const void* _a, const void* _b) {
   return (a->ipValue->compare(b->ipValue));
 }
 
+int deviceIPSorter(const void* _a, const void* _b) {
+  struct flowHostRetrieveList* a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList* b = (struct flowHostRetrieveList*)_b;
+
+  return (memcmp(&a->ipAddress, &b->ipAddress, sizeof(struct ndpi_in6_addr)));
+}
+
 int numericSorter(const void* _a, const void* _b) {
   struct flowHostRetrieveList* a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList* b = (struct flowHostRetrieveList*)_b;
@@ -6950,7 +6962,7 @@ int NetworkInterface::sortFlows(u_int32_t* begin_slot, bool walk_all,
   else if (!strcmp(sortColumn, "column_info"))
     retriever->sorter = column_info, sorter = stringSorter;
   else if (!strcmp(sortColumn, "column_device_ip"))
-    retriever->sorter = column_device_ip, sorter = numericSorter;
+    retriever->sorter = column_device_ip, sorter = deviceIPSorter;
   else if (!strcmp(sortColumn, "column_in_index"))
     retriever->sorter = column_in_index, sorter = numericSorter;
   else if (!strcmp(sortColumn, "column_out_index"))
@@ -7368,7 +7380,8 @@ int NetworkInterface::sortHosts(
     int32_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
     bool blacklisted_hosts, bool anomalousOnly, bool dhcpOnly,
     const AddressTree* const cidr_filter, u_int8_t ipver_filter,
-    int proto_filter, TrafficType traffic_type_filter, u_int32_t device_ip,
+    int proto_filter, TrafficType traffic_type_filter,
+    struct ndpi_in6_addr *device_ip,
     bool alertedHost, u_int8_t mac_location_filter, char* sortColumn,
     char* map_search, u_int64_t label_filter) {
   u_int8_t macAddr[6];
@@ -7397,11 +7410,14 @@ int NetworkInterface::sortHosts(
   retriever->cidr_filter = cidr_filter, retriever->labelFilter = label_filter,
   retriever->ndpi_proto = proto_filter,
   retriever->traffic_type = traffic_type_filter,
-  retriever->device_ip = device_ip,
   retriever->maxNumEntries = getHostsHashSize(),
   retriever->alerted = alertedHost,
   retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE,
   retriever->map_search = map_search;
+
+  if(device_ip != NULL)
+    memcpy(&retriever->device_ip, device_ip, sizeof(struct ndpi_in6_addr));
+  
   retriever->elems = (struct flowHostRetrieveList*)calloc(
       sizeof(struct flowHostRetrieveList), retriever->currentSize);
 
@@ -7768,7 +7784,8 @@ int NetworkInterface::getActiveHostsList(
     u_int16_t vlan_id, ndpi_os osFilter, u_int32_t asnFilter,
     int32_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
     bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
-    TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
+    TrafficType traffic_type_filter,
+    struct ndpi_in6_addr *device_ip, bool tsLua,
     bool anomalousOnly, bool dhcpOnly, const AddressTree* const cidr_filter,
     bool alertedHost, char* sortColumn, u_int32_t maxHits, u_int32_t toSkip,
     bool a2zSortOrder, bool useArrayFormat, bool getCheckpointOnly,
@@ -9437,7 +9454,9 @@ static bool virtual_http_hosts_walker(GenericHashEntry* node, void* data,
 
 bool NetworkInterface::alert_store_query(lua_State* vm, const char* sql,
                                          bool limit_rows) {
-  DB* alerts_db = db ? db : clickhouse_flows_db;
+  DB* alerts_db = db ? db : (ntop->getPrefs()->do_dump_flows_on_clickhouse()
+                                  ? clickhouse_flows_db
+                                  : NULL);
 
   if (!alerts_db) {
     lua_newtable(vm);
@@ -9453,7 +9472,9 @@ bool NetworkInterface::alert_store_query(lua_State* vm, const char* sql,
 /* **************************************** */
 
 bool NetworkInterface::alert_store_write(const char* sql) {
-  DB* alerts_db = db ? db : clickhouse_flows_db;
+  DB* alerts_db = db ? db : (ntop->getPrefs()->do_dump_flows_on_clickhouse()
+                                  ? clickhouse_flows_db
+                                  : NULL);
 
   if (!alerts_db) return false;
 
@@ -12459,8 +12480,8 @@ bool NetworkInterface::matchAggregatedFlow(Flow* flow,
     if (!flow->matchFlowVLAN(stats->vlan_id)) return (false);
   }
 
-  if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
-    if (!flow->matchFlowDeviceIP(stats->flow_device_ip)) return (false);
+  if (!Utils::isNullAddress(&stats->flow_device_ip) /* any Flow Device IP */) {
+    if (!flow->matchFlowDeviceIP(&stats->flow_device_ip)) return (false);
   }
 
   // Filter for interfaces indexes, in or out are okay
@@ -13342,6 +13363,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   u_int32_t alert_status = NO_ALERTS_STATUS /* Any Alert Status */;
   /* NOTE: parsing of additional Lua parameters in
    * NetworkInterface::sort_and_filter_flow_stats() */
+
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char*)lua_tostring(vm, 8);
   if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm, 9);
   if (lua_type(vm, 10) == LUA_TSTRING)
@@ -13351,14 +13373,18 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   if (lua_type(vm, 13) == LUA_TNUMBER) if_idx = lua_tonumber(vm, 13);
   if (lua_type(vm, 14) == LUA_TNUMBER) alert_status = lua_tonumber(vm, 14);
   stats.vlan_id = vlan_id;
-  stats.ip_addr =
-      host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
-  stats.flow_device_ip = flow_device_ip ? ntohl(inet_addr(flow_device_ip))
-                                        : /* Any flow device */ (u_int32_t)-1;
+  stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
+
+  if(flow_device_ip != NULL)
+    Utils::parseIPv4v6Address(flow_device_ip, &stats.flow_device_ip);
+  else
+    memset(&stats.flow_device_ip, 0, sizeof(stats.flow_device_ip));
+  
   stats.in_if_index = in_if_idx;
   stats.out_if_index = out_if_idx;
   stats.if_index = if_idx;
   stats.alert_status = alert_status;
+  
   switch (filter_type) {
     case AnalysisCriteria::application_criteria:
       /* application protocol criteria flows stats case */
@@ -14259,18 +14285,19 @@ class AggregatedASNFlowKey {
  public:
   u_int8_t ip_protocol_version;
   u_int32_t src_asn, dst_asn, src_peer_asn, dst_peer_asn;
-  u_int32_t probe_ip, input_snmp, output_snmp, key_val;
+  struct ndpi_in6_addr probe_ip;
+  u_int32_t input_snmp, output_snmp, key_val;
 
   AggregatedASNFlowKey(u_int8_t _ip_protocol_version, u_int32_t _src_asn,
                        u_int32_t _dst_asn, u_int32_t _src_peer_asn,
-                       u_int32_t _dst_peer_asn, u_int32_t _probe_ip,
+                       u_int32_t _dst_peer_asn, struct ndpi_in6_addr _probe_ip,
                        u_int32_t _input_snmp, u_int32_t _output_snmp) {
     ip_protocol_version = _ip_protocol_version;
     src_asn = _src_asn;
     dst_asn = _dst_asn;
     src_peer_asn = _src_peer_asn;
     dst_peer_asn = _dst_peer_asn;
-    probe_ip = _probe_ip;
+    memcpy(&probe_ip, &_probe_ip, sizeof(struct ndpi_in6_addr));
     input_snmp = _input_snmp;
     output_snmp = _output_snmp;
   }
@@ -14287,20 +14314,22 @@ class AggregatedASNFlowKey {
     dst_asn = _dst_asn;
     src_peer_asn = f->getSrcPeerAS();
     dst_peer_asn = f->getDstPeerAS();
-    probe_ip = f->getFlowDeviceIP();
+    memcpy(&probe_ip, f->getFlowDeviceIP(), sizeof(probe_ip));
     input_snmp = f->getFlowDeviceInIndex();
     output_snmp = f->getFlowDeviceOutIndex();
 
-    key_val = ip_protocol_version + probe_ip + src_asn * 2 + dst_asn * 3 +
-              src_peer_asn * 4 + dst_peer_asn * 5 + input_snmp * 6 +
-              output_snmp * 7;
+    key_val = ip_protocol_version
+      + (probe_ip.u6_addr.u6_addr64[0] + probe_ip.u6_addr.u6_addr64[1])
+      + src_asn * 2 + dst_asn * 3 +
+      src_peer_asn * 4 + dst_peer_asn * 5 + input_snmp * 6 +
+      output_snmp * 7;
   }
 
   inline u_int32_t get_val() const { return (key_val); }
 
   bool equal(const AggregatedASNFlowKey* k) const {
     if (((ip_protocol_version == k->ip_protocol_version) &&
-         (probe_ip == k->probe_ip)) &&
+         (!memcmp(&probe_ip, &k->probe_ip, sizeof(struct ndpi_in6_addr)))) &&
         (((src_asn == k->src_asn) && (dst_asn == k->dst_asn) &&
           (src_peer_asn == k->src_peer_asn) &&
           (dst_peer_asn == k->dst_peer_asn) && (input_snmp == k->input_snmp) &&
@@ -14433,20 +14462,21 @@ bool NetworkInterface::aggregateASNModeFlows(lua_State* vm) {
     const AggregatedASNFlowValue* v = &(it->second);
 
     std::string sql =
-        "INSERT INTO hourly_asn VALUES (" + std::to_string(get_id()) + "," +
-        std::to_string(k->ip_protocol_version) + "," +
-        std::to_string(v->first_seen) + "," + std::to_string(v->last_seen) +
-        "," + std::to_string(v->src2dst_bytes) + "," +
-        std::to_string(v->dst2src_bytes) + "," +
-        std::to_string(v->src2dst_bytes + v->dst2src_bytes) + "," +
-        std::to_string(v->src2dst_packets) + "," +
-        std::to_string(v->dst2src_packets) + "," + std::to_string(k->src_asn) +
-        "," + std::to_string(k->dst_asn) + "," +
-        std::to_string(k->src_peer_asn) + "," +
-        std::to_string(k->dst_peer_asn) + "," + std::to_string(k->probe_ip) +
-        "," + std::to_string(k->input_snmp) + "," +
-        std::to_string(k->output_snmp) + ")";
-
+      "INSERT INTO hourly_asn VALUES (" + std::to_string(get_id()) + "," +
+      std::to_string(k->ip_protocol_version) + "," +
+      std::to_string(v->first_seen) + "," + std::to_string(v->last_seen) +
+      "," + std::to_string(v->src2dst_bytes) + "," +
+      std::to_string(v->dst2src_bytes) + "," +
+      std::to_string(v->src2dst_bytes + v->dst2src_bytes) + "," +
+      std::to_string(v->src2dst_packets) + "," +
+      std::to_string(v->dst2src_packets) + "," + std::to_string(k->src_asn) +
+      "," + std::to_string(k->dst_asn) + "," +
+      std::to_string(k->src_peer_asn) + "," +
+      std::to_string(k->dst_peer_asn) + "," +
+      std::to_string(k->probe_ip.u6_addr.u6_addr32[3]) // TODO Add IPv6 support
+      + "," + std::to_string(k->input_snmp) + "," +
+      std::to_string(k->output_snmp) + ")";
+    
     // if(k->src_asn == 12912 || k->dst_asn == 12912))
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql.c_str());
 

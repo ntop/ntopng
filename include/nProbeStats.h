@@ -55,6 +55,12 @@ typedef struct {
   u_int64_t num_flow_exports;
 } CumulativenProbeStats;
 
+struct NdpiIn6AddrCompare {
+  bool operator()(const struct ndpi_in6_addr& lhs, const struct ndpi_in6_addr& rhs) const {
+    return memcmp(&lhs, &rhs, sizeof(struct ndpi_in6_addr)) < 0;
+  }
+};
+
 class nProbeStats {
  public:
   char remote_ifname[32];
@@ -91,7 +97,7 @@ class nProbeStats {
   u_int32_t flow_collection_udp_socket_drops;
   FlowCollection flow_collection;
 
-  std::map<u_int32_t, ExporterStats> exportersStats;
+  std::map<struct ndpi_in6_addr, ExporterStats, NdpiIn6AddrCompare> exportersStats;
 
  public:
   nProbeStats();

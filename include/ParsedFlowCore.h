@@ -33,9 +33,14 @@ class ParsedFlowCore {
   u_int16_t observationPointId, icmp_type_code;
   u_int8_t version; /* 0 so far */
   u_int8_t l4_proto;
-  u_int32_t exporter_device_ipv4;
-  struct ndpi_in6_addr exporter_device_ipv6;
-  u_int32_t nprobe_ip;
+
+  /*
+    IPv4 (low 4 bytes - u6_addr.u6_addr32[3])
+    stored as IPv4-mapped IPv6
+  */  
+  struct ndpi_in6_addr exporter_device_ip; 
+  
+  struct ndpi_in6_addr nprobe_ip;
   u_int32_t unique_source_id; /* identifies nProbe + exporter */
   u_int32_t nprobe_source_id; /* identifies a nProbe instance */
   u_int16_t src_port, dst_port;

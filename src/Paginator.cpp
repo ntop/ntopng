@@ -70,7 +70,7 @@ Paginator::Paginator() {
   alert_type_filter = ((u_int16_t)-1);
   alert_type_severity_filter = alert_level_group_none;
   iface_index_filter = -1;
-  deviceIP = 0;
+  memset(&deviceIP, 0, sizeof(deviceIP));
   inIndex = outIndex = ifaceIndex = (u_int32_t)-1;
   asn_filter = (u_int32_t)-1;
   asn_src_filter = (u_int32_t)-1;
@@ -129,7 +129,7 @@ void Paginator::readOptions(lua_State* L, int index) {
           if (sort_column) free(sort_column);
           sort_column = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "deviceIpFilter")) {
-          deviceIP = ntohl(inet_addr(lua_tostring(L, -1)));
+	  Utils::parseIPv4v6Address(lua_tostring(L, -1), &deviceIP);
         } else if (!strcmp(key, "wlanSSIDFilter")) {
           wlan_ssid_filter = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "countryFilter")) {

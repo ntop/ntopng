@@ -29,8 +29,8 @@ AggregatedFlowsStats::AggregatedFlowsStats(
     Bitmap128 flow_alerts) {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  num_flows = tot_sent = tot_rcvd = tot_score = key = vlan_id = flow_device_ip =
-      proto_key = 0;
+  num_flows = tot_sent = tot_rcvd = tot_score = key = vlan_id = proto_key = 0;
+  memset(&flow_device_ip, 0, sizeof(struct ndpi_in6_addr));
   l4_proto = _l4_proto;
   proto_name = info_key = NULL;
   server = client = host = NULL;

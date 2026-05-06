@@ -388,7 +388,7 @@ void Ping::handleICMPResponse(unsigned char* buf, u_int buf_len,
       h = Utils::intoaV4(ntohl(ip->s_addr), buf, sizeof(buf));
       results_v4[std::string(h)] = rtt;
     } else {
-      h = Utils::intoaV6(*((struct ndpi_in6_addr*)ip6), 128, buf, sizeof(buf));
+      h = Utils::intoaV6(*((struct ndpi_in6_addr*)ip6), buf, sizeof(buf));
       results_v6[std::string(h)] = rtt;
     }
 

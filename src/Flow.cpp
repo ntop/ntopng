@@ -136,7 +136,9 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   last_db_dump.is_first_dump = true;
     
   memset(&protos, 0, sizeof(protos));
-  flow_device.device_ip = flow_device.in_index = flow_device.out_index =
+  memset(&flow_device.device_ip, 0, sizeof(struct ndpi_in6_addr));
+  
+  flow_device.in_index = flow_device.out_index =
       flow_device.observation_point_id = flow_device.site_id = 0;
 
   flow_score = 0;
@@ -1129,7 +1131,7 @@ void Flow::processExtraDissectedInformation() {
                 /* This is not the right IPv6 host: let's cache it for later
                  */
                 ntop->getRedis()->setResolvedAddress(
-                    Utils::intoaV6(ipv6_addr, 128, buf, sizeof(buf)),
+                    Utils::intoaV6(ipv6_addr, buf, sizeof(buf)),
                     (char*)ndpiFlow->protos.dns.ptr_domain_name);
               }
             }
@@ -1971,7 +1973,7 @@ char* Flow::printTCPState(char* const buf, u_int buf_len) const {
 
 char* Flow::print(char* buf, u_int buf_len, bool full_report) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
-  char c_buf[32], s_buf[32];
+  char c_buf[32], s_buf[32], device_ip_buf[64];
 
   buf[0] = '\0';
 
@@ -2044,7 +2046,7 @@ char* Flow::print(char* buf, u_int buf_len, bool full_report) const {
   snprintf(
       buf, buf_len,
       "[%s/%s] %s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: "
-      "%u/%s][device: %u in: %u out:%u]"
+      "%u/%s][device: %s in: %u out:%u]"
       "[%u/%u pkts][%llu/%llu bytes][flags src2dst: %s][flags dst2stc: "
       "%s][state: %s]"
       "%s%s%s"
@@ -2062,7 +2064,9 @@ char* Flow::print(char* buf, u_int buf_len, bool full_report) const {
       ndpiDetectedProtocol.proto.master_protocol,
       ndpiDetectedProtocol.proto.app_protocol,
       get_detected_protocol_name(pbuf, sizeof(pbuf)), get_protocol_category(),
-      get_protocol_category_name(), flow_device.device_ip, flow_device.in_index,
+      get_protocol_category_name(),
+      Utils::intoaV6((struct ndpi_in6_addr)flow_device.device_ip, device_ip_buf, sizeof(device_ip_buf)),
+      flow_device.in_index,
       flow_device.out_index, get_packets_cli2srv(), get_packets_srv2cli(),
       (long long unsigned)get_bytes_cli2srv(),
       (long long unsigned)get_bytes_srv2cli(),
@@ -3639,10 +3643,10 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
       for (it = exporterStats.begin(); it != exporterStats.end(); it++) {
         char b1[32], b2[32];
 
-        if (it->exporter_ipv4 != 0) {
+        if (!Utils::isNullAddress(&it->exporter_ip)) {
           lua_newtable(vm);
           lua_push_str_table_entry(vm, "exporter_ip",
-				   Utils::intoaV4(it->exporter_ipv4, b1, sizeof(b1)));
+				   Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "next_hop",
                                    it->next_hop.print(b2, sizeof(b2)));
           lua_push_bool_table_entry(vm, "return_path", it->return_path);
@@ -4175,10 +4179,9 @@ void Flow::formatECSNetwork(json_object* my_object, const IpAddress* addr) {
                            sizeof(jsonbuf)),
           json_object_new_string(addr->isIPv4() ? "ipv4" : "ipv6"));
 
-    if (flow_device.device_ip)
+    if (!Utils::isNullAddress(&flow_device.device_ip))
       json_object_object_add(network_object, "exporter",
-                             json_object_new_string(intoaV4(
-                                 flow_device.device_ip, buf, sizeof(buf))));
+                             json_object_new_string(Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf))));
 
     if (!flow_device.next_hop.isEmpty())
       json_object_object_add(
@@ -4824,13 +4827,11 @@ void Flow::formatGenericFlow(json_object* my_object) {
         json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
   }
 
-  if (flow_device.device_ip)
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(EXPORTER_IPV4_ADDRESS, "EXPORTER_IPV4_ADDRESS",
-                         jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(
-            intoaV4(flow_device.device_ip, buf, sizeof(buf))));
+  if (!Utils::isNullAddress(&flow_device.device_ip))
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(EXPORTER_IPV4_ADDRESS, "EXPORTER_IPV6_ADDRESS",
+					    jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf))));
 
   if (!flow_device.next_hop.isEmpty())
     json_object_object_add(
@@ -5104,7 +5105,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
   }
 
   ndpi_serialize_string_string(
-      s, "probe_ip", Utils::intoaV4(getFlowDeviceIP(), buf, sizeof(buf)));
+			       s, "probe_ip", Utils::intoaV6(*getFlowDeviceIP(), buf, sizeof(buf)));
   ndpi_serialize_string_int32(s, "input_snmp", getFlowDeviceInIndex());
   ndpi_serialize_string_int32(s, "output_snmp", getFlowDeviceOutIndex());
 
@@ -7949,15 +7950,14 @@ void Flow::lua_duration_info(lua_State* vm) {
 /* ***************************************************** */
 
 void Flow::lua_snmp_info(lua_State* vm) {
-  char str[32];
-  u_int32_t device_ip = htonl(flow_device.device_ip);
+  char buf[64];
 
-  inet_ntop(AF_INET, &(device_ip), str, INET_ADDRSTRLEN);
-  lua_push_str_table_entry(vm, "device_ip", str);
+  lua_push_str_table_entry(vm, "device_ip",
+			   Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf)));
 
   if (!flow_device.next_hop.isEmpty())
     lua_push_str_table_entry(vm, "next_hop",
-                             flow_device.next_hop.print(str, sizeof(str)));
+                             flow_device.next_hop.print(buf, sizeof(buf)));
 
   lua_push_uint64_table_entry(vm, "in_index", flow_device.in_index);
   lua_push_uint64_table_entry(vm, "out_index", flow_device.out_index);
@@ -8135,7 +8135,7 @@ void Flow::serializeExporters(ndpi_serializer* serializer) {
   // Iterate over all stored duplicated flow records
   for (std::vector<ExporterFlowInfo>::iterator it = exporterStats.begin();
        it != exporterStats.end(); ++it) {
-    if (it->exporter_ipv4 == 0) break;
+    if (Utils::isNullAddress(&it->exporter_ip)) break;
 
     char key[16];
     char b1[32], b2[32];
@@ -8148,7 +8148,7 @@ void Flow::serializeExporters(ndpi_serializer* serializer) {
     // Serialize exporter IP as string
     ndpi_serialize_string_string(
         serializer, "exporter_ip",
-        Utils::intoaV4(it->exporter_ipv4, b1, sizeof(b1)));
+        Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
 
     // Serialize next hop address
     ndpi_serialize_string_string(serializer, "next_hop",
@@ -9530,8 +9530,8 @@ bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
 
 /* **************************************************** */
 
-bool Flow::matchFlowDeviceIP(u_int32_t flow_device_ip) {
-  return (getFlowDeviceIP() == flow_device_ip ? true : false);
+bool Flow::matchFlowDeviceIP(struct ndpi_in6_addr *flow_device_ip) {
+  return(memcmp(getFlowDeviceIP(), flow_device_ip, sizeof(struct ndpi_in6_addr)) ? false: true);
 }
 
 /* **************************************************** */
@@ -10211,22 +10211,24 @@ void Flow::setnDPIFingerprint(char* fp) {
 
 /* *************************************** */
 
-void Flow::addExporterInfo(u_int32_t exporter_ipv4, IpAddress* next_hop,
+void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip, IpAddress* next_hop,
                            u_int32_t in_index, u_int32_t out_index,
                            FlowSource source, bool src2dst_direction) {
   std::vector<ExporterFlowInfo>::iterator it;
   ExporterFlowInfo d;
 
-  if (exporter_ipv4 == 0) return;
+  if(Utils::isNullAddress(exporter_ip))
+    return;
 
   /* Check for duplicates first */
   for (it = exporterStats.begin(); it != exporterStats.end(); it++) {
-    if ((it->exporter_ipv4 == exporter_ipv4) && it->next_hop.equal(next_hop)) {
+    if((memcmp(&it->exporter_ip, exporter_ip, sizeof(struct ndpi_in6_addr)) == 0) && it->next_hop.equal(next_hop)) {
       return; /* Duplicated */
     }
   }
 
-  d.exporter_ipv4 = exporter_ipv4, d.next_hop.set(next_hop),
+  memcpy(&d.exporter_ip, exporter_ip, sizeof(struct ndpi_in6_addr));
+  d.next_hop.set(next_hop),
   d.return_path = !src2dst_direction, d.in_index = in_index,
   d.out_index = out_index, d.source = source;
 

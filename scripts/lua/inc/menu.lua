@@ -418,9 +418,21 @@ else
             hidden = is_system_interface or is_viewed or not is_enterprise_XL or not has_ch_support,
             entries = {{
                 entry = page_utils.menu_entries.nanalyst,
-                url = '/lua/nanalyst.lua'
-            }}})
-            ]]
+                url = '/lua/pro/nanalyst.lua'
+            },{
+                entry = page_utils.menu_entries.ai_policy,
+                url = '/lua/pro/ai_policy.lua'
+            }, {
+                entry = page_utils.menu_entries.ai_usage_stats,
+                url = '/lua/pro/ai_stats.lua'
+            },{
+                entry = page_utils.menu_entries.ai_audit,
+                url = '/lua/pro/ai_audit.lua'
+            },
+            
+            
+        }})
+    ]]
 
     -- ##############################################
     -- Views menu entry for ASN Mode

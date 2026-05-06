@@ -70,7 +70,7 @@ typedef struct {
 } FlowUDP;
 
 typedef struct {
-  u_int32_t exporter_ipv4;
+  struct ndpi_in6_addr exporter_ip; /* IPv4 stored as IPv4-mapped IPv6 */
   IpAddress next_hop;
   u_int32_t in_index, out_index;
   FlowSource source; /* sFlow / NetFlow */
@@ -342,7 +342,7 @@ class Flow : public GenericHashEntry {
   } protos;
 
   struct {
-    u_int32_t device_ip;
+    struct ndpi_in6_addr device_ip; /* IPv4 stored as IPv4-mapped IPv6 */
     IpAddress next_hop;
     u_int32_t in_index, out_index;
     u_int16_t observation_point_id;
@@ -1139,7 +1139,7 @@ class Flow : public GenericHashEntry {
   bool match(AddressTree* ptree);
   bool matchFlowIP(IpAddress* ip, u_int16_t vlan_id);
   bool matchFlowVLAN(u_int16_t vlan_id);
-  bool matchFlowDeviceIP(u_int32_t flow_device_ip);
+  bool matchFlowDeviceIP(struct ndpi_in6_addr *flow_device_ip);
   bool matchInIfIdx(u_int32_t in_if_idx);
   bool matchOutIfIdx(u_int32_t out_if_idx);
   bool matchAlertsStatus(u_int32_t out_if_idx);
@@ -1438,11 +1438,11 @@ class Flow : public GenericHashEntry {
   inline void setFlowApplLatency(float latency_msecs) {
     applLatencyMsec = latency_msecs;
   }
-  inline void setFlowDevice(u_int32_t device_ip, u_int16_t observation_point_id,
+  inline void setFlowDevice(struct ndpi_in6_addr *device_ip, u_int16_t observation_point_id,
                             u_int32_t inidx, u_int32_t outidx) {
     ObservationPoint* obs_point;
-
-    flow_device.device_ip = device_ip,
+    
+    memcpy(&flow_device.device_ip, device_ip, sizeof(struct ndpi_in6_addr));
     flow_device.observation_point_id = observation_point_id;
     flow_device.in_index = inidx, flow_device.out_index = outidx;
     if (cli_host) cli_host->setLastDeviceIp(device_ip);
@@ -1452,7 +1452,7 @@ class Flow : public GenericHashEntry {
         NULL)
       obs_point->addProbeIp(device_ip);
   }
-  inline u_int32_t getFlowDeviceIP() { return flow_device.device_ip; };
+  inline struct ndpi_in6_addr* getFlowDeviceIP() { return(&flow_device.device_ip); };
   inline u_int16_t getFlowObservationPointId() {
     return flow_device.observation_point_id;
   };
@@ -1757,7 +1757,7 @@ class Flow : public GenericHashEntry {
   void setCliService(int service_enum);
   void setSrvService(int service_enum);
   inline void setIGMPType(u_int8_t t) { protos.igmp.igmp_type = t; }
-  void addExporterInfo(u_int32_t exporter_ipv4, IpAddress* next_hop,
+  void addExporterInfo(struct ndpi_in6_addr *exporter_ip, IpAddress* next_hop,
                        u_int32_t in_index, u_int32_t out_index,
                        FlowSource source, bool src2dst_direction);
 

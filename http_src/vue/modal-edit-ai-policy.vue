@@ -10,13 +10,22 @@
                     <input type="text" class="form-control form-control-sm"
                            v-model="form.name" maxlength="60" />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-2">
                     <label class="form-label fw-bold mb-1">{{ _i18n('llm.run_every') }}</label>
                     <SelectSearch
                         :options="periodicity_options"
                         :selected_option="selected_periodicity"
                         theme="bootstrap-5"
                         @select_option="(opt) => selected_periodicity = opt"
+                    />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold mb-1">{{ _i18n('llm.alert_score') }}</label>
+                    <SelectSearch
+                        :options="score_options"
+                        :selected_option="selected_score"
+                        theme="bootstrap-5"
+                        @select_option="(opt) => selected_score = opt"
                     />
                 </div>
                 <div class="col-12">
@@ -69,6 +78,16 @@ const periodicity_options = [
     { label: _i18n('llm.daily'),  value: "daily"  },
 ];
 
+const score_options = [
+    { label: "Info (1)",        value: 1   },
+    { label: "Notice (10)",     value: 10  },
+    { label: "Warning (50)",    value: 50  },
+    { label: "Error (100)",     value: 100 },
+    { label: "Severe (150)",    value: 150 },
+    { label: "Critical (200)",  value: 200 },
+    { label: "Emergency (250)", value: 250 },
+];
+
 const form = ref({
     id:                   null,
     name:                 "",
@@ -78,27 +97,34 @@ const form = ref({
     explanation:          "",
 });
 const selected_periodicity = ref(periodicity_options[2]);
+const selected_score       = ref(score_options[2]); // default: Warning 50
 
 const is_valid = computed(() => form.value.name.trim().length > 0 && form.value.sql_query.trim().length > 0);
 
 const show_edit = async (policy) => {
     form.value = {
         id:                   policy.id,
-        name:                 policy.name                 || "",
-        description:          policy.description          || "",
+        name:                 policy.name                  || "",
+        description:          policy.description           || "",
         alert_description_gui: policy.alert_description_gui || "",
-        sql_query:            policy.sql_query            || "",
-        explanation:          policy.explanation          || "",
+        sql_query:            policy.sql_query             || "",
+        explanation:          policy.explanation           || "",
     };
     selected_periodicity.value =
         periodicity_options.find(o => o.value === policy.periodicity_string) ?? periodicity_options[2];
+    selected_score.value =
+        score_options.find(o => o.value === Number(policy.custom_score)) ?? score_options[2];
     await nextTick();
     modal_id.value.show();
 };
 
 const handle_submit = () => {
     if (!is_valid.value) return;
-    emit('edit', { ...form.value, periodicity: selected_periodicity.value.value });
+    emit('edit', {
+        ...form.value,
+        periodicity:  selected_periodicity.value.value,
+        custom_score: selected_score.value.value,
+    });
     modal_id.value.close();
 };
 

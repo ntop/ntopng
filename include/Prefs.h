@@ -274,10 +274,6 @@ class Prefs {
   bool is_enterprise_xxl_edition();
   bool is_enterprise_xxxl_edition();
 
-  bool is_edr_mode() {
-    return false; /* TODO (used to be private Cloud mode) */
-  };
-
   bool is_nedge_pro_edition();
   bool is_nedge_enterprise_edition();
 

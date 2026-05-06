@@ -148,7 +148,7 @@ class Host : public GenericHashEntry,
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
-  u_int32_t device_ip;
+  struct ndpi_in6_addr device_ip; /* IPv4 stored as IPv4-mapped IPv6 */
 
 #ifdef NTOPNG_PRO
   TrafficShaper** host_traffic_shapers;
@@ -214,13 +214,13 @@ class Host : public GenericHashEntry,
   inline void setCrawlerBotScannerHost() { is_crawler_bot_scanner = 1; };
   inline void setBroadcastDomainHost() { is_in_broadcast_domain = 1; };
 
-  inline void setLastDeviceIp(u_int32_t ip) {
-    if (ip && ip != device_ip) {
-      if (device_ip) more_then_one_device = true;
-      device_ip = ip;
+  inline void setLastDeviceIp(struct ndpi_in6_addr *ip) {
+    if (ip && memcmp(ip, &device_ip, sizeof(struct ndpi_in6_addr))) {
+      if (!Utils::isNullAddress(&device_ip)) more_then_one_device = true;
+      memcpy(&device_ip, ip, sizeof(struct ndpi_in6_addr));
     }
   };
-  inline u_int32_t getLastDeviceIp() { return (device_ip); };
+  inline struct ndpi_in6_addr* getLastDeviceIp() { return (&device_ip); };
   void blacklistedStatsResetRequested();
   inline u_int32_t getCheckpointBlacklistedAsCli() const {
     return (num_blacklisted_flows.checkpoint_as_client);

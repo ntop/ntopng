@@ -350,7 +350,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);
   Flow* getFlow(int32_t if_index, Mac* srcMac, Mac* dstMac, u_int16_t vlan_id,
                 u_int16_t observation_domain_id, u_int32_t private_flow_id,
-                u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
+		u_int32_t inIndex, u_int32_t outIndex,
                 const ICMPinfo* const icmp_info, IpAddress* src_ip,
                 IpAddress* dst_ip, u_int16_t src_port, u_int16_t dst_port,
                 u_int8_t l4_proto, bool* src2dst_direction, time_t first_seen,
@@ -366,7 +366,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                 bool filtered_hosts, bool blacklisted_hosts, bool anomalousOnly,
                 bool dhcpOnly, const AddressTree* const cidr_filter,
                 u_int8_t ipver_filter, int proto_filter,
-                TrafficType traffic_type_filter, u_int32_t device_ip,
+                TrafficType traffic_type_filter, struct ndpi_in6_addr *device_ip,
                 bool alertedHost, u_int8_t mac_location_filter,
                 char* sortColumn, char* map_search,
                 u_int64_t label_filter = (u_int64_t)-1);
@@ -835,7 +835,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
       u_int16_t vlan_id, ndpi_os osFilter, u_int32_t asnFilter,
       int32_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
       bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
-      TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
+      TrafficType traffic_type_filter, struct ndpi_in6_addr *device_ip, bool tsLua,
       bool anomalousOnly, bool dhcpOnly, const AddressTree* const cidr_filter,
       bool alertedHost, char* sortColumn, u_int32_t maxHits, u_int32_t toSkip,
       bool a2zSortOrder, bool useArrayFormat, bool getCheckpointOnly = false,
@@ -1100,7 +1100,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
       lua_settable(vm, -3);
     }
   };
-  virtual void getFlowDeviceInfoByIP(lua_State* vm, u_int32_t deviceIP,
+  virtual void getFlowDeviceInfoByIP(lua_State* vm,
+				     struct ndpi_in6_addr *deviceIP,
                                      bool showAllStats = true) {
     if (flow_devices_stats) {
       lua_newtable(vm);

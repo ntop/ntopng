@@ -154,8 +154,7 @@ class Utils {
   static char* tokenizer(char* arg, int c, char** data);
   static in_addr_t inet_addr(const char* cp);
   static char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  static char* intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf,
-                       u_short bufLen);
+  static char* intoaV6(struct ndpi_in6_addr ipv6, char* buf, u_short bufLen);
   static u_int64_t timeval2usec(const struct timeval* tv);
   static void xor_encdec(u_char* data, int data_len, u_char* key);
   static bool isPrintableChar(u_char c);
@@ -367,6 +366,11 @@ class Utils {
     if (*v < 0xFF) (*v)++;
   }
   static void flushHTTPBuffer(lua_State *vm);
+  static void convertIPv4ToIPv6(u_int32_t ipv4_addr /* in */,
+				struct ndpi_in6_addr *ipv6_addr /* out */);
+  static void setIPv4Address(struct ndpi_in6_addr *out_addr, u_int32_t ipv4);
+  static bool parseIPv4v6Address(const char *ip_str, struct ndpi_in6_addr *out_addr);
+  static bool isNullAddress(struct ndpi_in6_addr *ip);
 };
 
 #endif /* _UTILS_H_ */

@@ -26,6 +26,12 @@
 
 class Score;
 
+struct ndpi_in6_addr_less {
+  bool operator()(const struct ndpi_in6_addr& a, const struct ndpi_in6_addr& b) const {
+    return memcmp(&a, &b, sizeof(struct ndpi_in6_addr)) < 0;
+  }
+};
+
 class ObservationPoint : public GenericHashEntry,
                          public GenericTrafficElement,
                          public Score {
@@ -36,7 +42,7 @@ class ObservationPoint : public GenericHashEntry,
   u_int16_t obs_point;
   NetworkStats dirstats;
   u_int64_t num_flows;
-  ndpi_bitmap* exporter_list;
+  std::set<struct ndpi_in6_addr, ndpi_in6_addr_less> exporter_list;
   std::atomic<bool> delete_requested;
   bool remove_entry;
 
@@ -61,8 +67,8 @@ class ObservationPoint : public GenericHashEntry,
   inline u_int32_t getNumHosts() { return getUses(); }
   inline u_int32_t key() { return obs_point; }
   inline u_int32_t getObsPoint() { return obs_point; }
-  inline void addProbeIp(u_int32_t probe_ip) {
-    ndpi_bitmap_set(exporter_list, probe_ip);
+  inline void addProbeIp(struct ndpi_in6_addr* probe_ip) {
+    exporter_list.insert(*probe_ip);
   }
 
   bool equal(u_int16_t _obs_point) { return (obs_point == _obs_point); }

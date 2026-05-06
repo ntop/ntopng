@@ -5578,7 +5578,7 @@ static int ntop_activate_snmp_interface_roles(lua_State* vm) {
 
 /* @brief Sets the LAN/WAN role for an SNMP-managed interface (Pro only).  Lua: ntop.snmpSetInterfaceRole(host, ifidx, role) → nil */
 static int ntop_snmp_set_interface_role(lua_State* vm) {
-  u_int32_t exporter_ip_v4;
+  struct ndpi_in6_addr exporter_ip;
   u_int32_t interface_id;
   SNMPInterfaceRole interface_role;
 
@@ -5589,14 +5589,16 @@ static int ntop_snmp_set_interface_role(lua_State* vm) {
       (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  exporter_ip_v4 = ntohl((u_int32_t)inet_addr((char*)lua_tostring(vm, 1)));
+  if(Utils::parseIPv4v6Address((char*)lua_tostring(vm, 1), &exporter_ip) == false)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE)); /* Parsing error */
+     
   interface_id = (u_int32_t)lua_tonumber(vm, 2);
   interface_role = (SNMPInterfaceRole)lua_tonumber(vm, 3);
 
   if (interface_role < role_max_value) {
     /* Set data */
 
-    ntop->snmpSetInterfaceRole(exporter_ip_v4, interface_id, interface_role);
+    ntop->snmpSetInterfaceRole(&exporter_ip, interface_id, interface_role);
 
     lua_pushnil(vm);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));

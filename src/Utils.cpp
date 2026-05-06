@@ -3454,13 +3454,8 @@ char* Utils::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 
 /* ****************************************************** */
 
-char* Utils::intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf,
-                     u_short bufLen) {
+char* Utils::intoaV6(struct ndpi_in6_addr ipv6, char* buf, u_short bufLen) {
   char* ret;
-
-  for (int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
-    ipv6.u6_addr.u6_addr8[j] &=
-        i >= 8 ? 0xff : (u_int32_t)((0xffU << (8 - i)) & 0xffU);
 
   ret = (char*)inet_ntop(AF_INET6, &ipv6, buf, bufLen);
 
@@ -3468,8 +3463,12 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf,
     /* Internal error (buffer too short) */
     buf[0] = '\0';
     return (buf);
-  } else
-    return (ret);
+  } else {
+    if(strncmp(ret, "::ffff:", 7) == 0)
+      return (&ret[7]); /* IPv4 address */
+    else
+      return (ret);
+  }
 }
 
 /* ****************************************************** */
@@ -3807,8 +3806,7 @@ bool Utils::ptree_prefix_print(ndpi_prefix_t* prefix, char* buffer,
       return (true);
 
     case AF_INET6:
-      a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6),
-                         prefix->bitlen, ipbuf, sizeof(ipbuf));
+      a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), ipbuf, sizeof(ipbuf));
       snprintf(buffer, bufsize, "%s/%d", a, prefix->bitlen);
       return (true);
   }
@@ -4700,7 +4698,7 @@ void Utils::listInterfaces(lua_State* vm) {
       sin6.sin6_family = AF_INET6;
       if (Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
         struct ndpi_in6_addr* ip6 = (struct ndpi_in6_addr*)&sin6.sin6_addr;
-        char* ip = Utils::intoaV6(*ip6, 128, buf, sizeof(buf));
+        char* ip = Utils::intoaV6(*ip6, buf, sizeof(buf));
 
         lua_push_str_table_entry(vm, "ipv6", ip);
       }
@@ -5613,7 +5611,7 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
 char* Utils::getCountry(char* buf, u_int buf_len, IpAddress* ip) {
   char *continent = NULL, *country_name = NULL, *city = NULL;
   float latitude = 0, longitude = 0;
-  
+
   if (!ntop->getGeolocation()) {
     buf[0] = '\0';
     return (buf);
@@ -8119,5 +8117,77 @@ void Utils::flushHTTPBuffer(lua_State *vm) {
     mg_write(conn, ctx->http_response_buffer.data(), ctx->http_response_buffer.size());
     ctx->buffer_http_response = false;
     ctx->http_response_buffer.clear();
-  }	
+  }
+}
+
+/* ******************************************* */
+
+/*
+  Set an IPv4 address on an IPv6 "struct ndpi_in6_addr" datastructure
+
+  To store an IPv4 address inside an in6_addr struct, you typically use the
+  IPv4-mapped IPv6 address format. This format is defined as ::ffff:a.b.c.d.
+*/
+void Utils::convertIPv4ToIPv6(u_int32_t ipv4_addr /* in */,
+			      struct ndpi_in6_addr *ipv6_addr /* out */) {
+  memset(ipv6_addr, 0, sizeof(struct ndpi_in6_addr));
+
+  // IPv4-mapped IPv6 address format: ::ffff:a.b.c.d
+  // The first 10 bytes are 0x00 (already done by memset)
+  // The next 2 bytes (index 10 and 11) are 0xff
+  ipv6_addr->u6_addr.u6_addr8[10] = 0xff;
+  ipv6_addr->u6_addr.u6_addr8[11] = 0xff;
+
+  // The last 4 bytes are the IPv4 address
+  memcpy(&ipv6_addr->u6_addr.u6_addr8[12], &ipv4_addr, 4);
+}
+
+/* ******************************************* */
+
+void Utils::setIPv4Address(struct ndpi_in6_addr *out_addr,
+			   u_int32_t ipv4) {
+  // Map IPv4 to IPv6: ::ffff:a.b.c.d
+  memset(out_addr, 0, sizeof(struct in6_addr));
+
+  // Set the 10th and 11th bytes to 0xff
+  out_addr->u6_addr.u6_addr8[10] = 0xff;
+  out_addr->u6_addr.u6_addr8[11] = 0xff;
+
+  // Copy the 4 bytes of IPv4 into the last 4 bytes of IPv6
+  memcpy(&out_addr->u6_addr.u6_addr8[12], &ipv4, 4);
+}
+
+/* ******************************************* */
+
+/*
+  Parses a string containing either an IPv4 or IPv6 address.
+  If IPv4, it maps it to an IPv6 address (::ffff:a.b.c.d).
+
+  True is returned if everything goes well, false otherwise.
+*/
+bool Utils::parseIPv4v6Address(const char *ip_str,
+			       struct ndpi_in6_addr *out_addr) {
+  // 1. Try to parse as a native IPv6 address
+  if (inet_pton(AF_INET6, ip_str, out_addr) == 1) {
+    return(true);
+  }
+
+  // 2. Try to parse as an IPv4 address
+  struct in_addr ipv4_addr;
+  if (inet_pton(AF_INET, ip_str, &ipv4_addr) == 1) {
+    Utils::setIPv4Address(out_addr, ipv4_addr.s_addr);
+    return(true);
+  }
+
+  // String is not a valid IPv4 or IPv6 address
+  return(false);
+}
+
+/* ******************************************* */
+
+bool Utils::isNullAddress(struct ndpi_in6_addr *ip) {
+  if((ip->u6_addr.u6_addr64[0] == 0) && (ip->u6_addr.u6_addr64[1] == 0))
+    return(true);
+  else
+    return(false);
 }

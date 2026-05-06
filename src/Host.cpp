@@ -286,7 +286,8 @@ void Host::initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlanId,
   active_alerted_flows = 0;
 
   is_dhcp_host = 0, is_crawler_bot_scanner = 0, is_in_broadcast_domain = 0,
-  more_then_one_device = 0, device_ip = 0;
+    more_then_one_device = 0;
+  memset(&device_ip, 0, sizeof(device_ip));
 
   is_rx_only = false;
 
@@ -958,9 +959,9 @@ void Host::lua(lua_State* vm, AddressTree* ptree, bool host_details,
         vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
         getNumContactsFromPeersAsServerTCPUDPNoTX());
 
-    if (device_ip)
+    if (!Utils::isNullAddress(&device_ip))
       lua_push_str_table_entry(vm, "device_ip",
-                               Utils::intoaV4(device_ip, buf, sizeof(buf)));
+                               Utils::intoaV6(device_ip, buf, sizeof(buf)));
 
     if (blacklist_name != NULL)
       lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);
