@@ -278,7 +278,12 @@ function columns_sorting(col, r0, r1) {
     } else if (col.id == "arp") {
       return sortingFunctions.sortByNumber(r0.arp, r1.arp, col.sort);
     } else if (col.id == "seen_since") {
-      return sortingFunctions.sortByNumber(r0.seen_since, r1.seen_since, col.sort);
+    /** 
+     * R1 and R0 are inverted because we display the distance from seen_since to now rather
+     * than the timestamp. Consequently, in ascending order, the first element will
+     * be the one closest to the current time, which has the highest timestamp.
+     */  
+      return sortingFunctions.sortByNumber(r1.seen_since, r0.seen_since, col.sort);
     } else if (col.id == "throughput") {
       return sortingFunctions.sortByNumber(r0.throughput, r1.throughput, col.sort);
     } else if (col.id == "traffic") {
