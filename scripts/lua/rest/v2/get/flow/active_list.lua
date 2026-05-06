@@ -86,10 +86,17 @@ end
 if not isEmptyString(_GET["sort"]) then
    flows_filter.sortColumn = mapping_column_lua_c[_GET["sort"]]
    local order = _GET["order"]
-   if order == "asc" then
-      flows_filter.a2zSortOrder = true
+   local asc = (order == "asc")
+ 
+   -- first_seen and last_seen are displayed in the UI as a delta from now
+   -- so the user expects ascending to mean "most recent first".
+   -- Since the underlying sort is by raw Unix timestamp, ascending
+   -- and descending are visually swapped for these two columns
+   local invert = (_GET["sort"] == "first_seen" or _GET["sort"] == "last_seen")
+   if invert then
+      flows_filter.a2zSortOrder = not asc
    else
-      flows_filter.a2zSortOrder = false
+      flows_filter.a2zSortOrder = asc
    end
 end
 
