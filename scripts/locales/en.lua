@@ -7332,6 +7332,7 @@ local lang = {
     ["unexpected_response"] = "Unexpected response from LLM. Please try again",
     ["alert_score"] = "Alert Score",
     ["open_ai_policies"] = "Open AI Policies",
+    ["open_active_monitoring"] = "Open Active Monitoring",
     ["actionable_steps"] = "Actionable Steps",
     ["tool_list_ai_policies"] = "List AI Policies",
     ["tool_create_ai_policy"] = "Create AI Policy",

@@ -412,27 +412,25 @@ else
 
     -- ##############################################
     -- chatbot, hide if viewed interface or system or not enterprise xl
-    --[[
-        page_utils.add_menubar_section({
-            section = page_utils.menu_sections.nanalyst,
-            hidden = is_system_interface or is_viewed or not is_enterprise_XL or not has_ch_support,
-            entries = {{
-                entry = page_utils.menu_entries.nanalyst,
-                url = '/lua/pro/nanalyst.lua'
-            },{
-                entry = page_utils.menu_entries.ai_policy,
-                url = '/lua/pro/ai_policy.lua'
-            }, {
-                entry = page_utils.menu_entries.ai_usage_stats,
-                url = '/lua/pro/ai_stats.lua'
-            },{
-                entry = page_utils.menu_entries.ai_audit,
-                url = '/lua/pro/ai_audit.lua'
-            },
-            
-            
-        }})
-    ]]
+    page_utils.add_menubar_section({
+        section = page_utils.menu_sections.nanalyst,
+        hidden = not ntop.hasnAnalyst() or is_system_interface or not has_ch_support,
+        entries = {{
+            entry = page_utils.menu_entries.nanalyst,
+            url = '/lua/pro/nanalyst.lua'
+        },{
+            entry = page_utils.menu_entries.ai_policy,
+            url = '/lua/pro/ai_policy.lua'
+        }, {
+            entry = page_utils.menu_entries.ai_usage_stats,
+            url = '/lua/pro/ai_stats.lua'
+        },{
+            entry = page_utils.menu_entries.ai_audit,
+            url = '/lua/pro/ai_audit.lua'
+        },
+        
+        
+    }})
 
     -- ##############################################
     -- Views menu entry for ASN Mode

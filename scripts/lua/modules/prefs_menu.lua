@@ -14,6 +14,11 @@ local info = ntop.getInfo(false)
 local hasRadius = ntop.hasRadiusSupport()
 local hasLdap = ntop.hasLdapSupport()
 
+local page_utils = require("page_utils")
+local has_ch_support = hasClickHouseSupport()
+local is_system_interface = toboolean(page_utils.is_system_view())
+local has_nAnalyst =  ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
+
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {{
       id = "vulnerability_scan",
@@ -369,7 +374,7 @@ local menu_subpages = {{
       label = i18n("prefs.llm_providers"),
       advanced = false,
       pro_only = true,
-      hidden = false,
+      hidden = not has_nAnalyst,
       entries = {
 	 local_llm_url = {
             title = i18n("prefs.llm_url_title"),

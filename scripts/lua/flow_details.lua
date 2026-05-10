@@ -2558,30 +2558,33 @@ if isEmptyString(page) or page == "overview" then
    </script>
    ]]
 
-   -- Add chatbot button if enabled
-   --[[
-      if ntop.isPro() then
-         package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
-         live_flow_info = require "live_flow_info"
-         
-         local flow_data = live_flow_info.get_flow(tostring(ifid), tostring(flow_key), tostring(flow_hash_id))
-         
-         local flow_chatbot_context = json.encode({
-            csrf         = ntop.getRandomCSRFValue(),
-            ifid         = ifid,
-            flow_key     = flow_key,
-            flow_hash_id = flow_hash_id,
-            page         = "live_flow_details",
-            flow_data    = flow_data
-         })
-         
-         
-         template.render("pages/vue_page.template", {
-		      vue_page_name = "FlowChatbotSidebar",
-		      page_context = flow_chatbot_context
-         })
-      end
-      ]]
+   -- Add chatbot button if nAnalyst is enabled
+   local has_ch_support = hasClickHouseSupport()
+   local is_system_interface = toboolean(page_utils.is_system_view())
+   local has_nAnalyst =  ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
+
+   if has_nAnalyst then
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
+      live_flow_info = require "live_flow_info"
+      
+      local flow_data = live_flow_info.get_flow(tostring(ifid), tostring(flow_key), tostring(flow_hash_id))
+      
+      local flow_chatbot_context = json.encode({
+         csrf         = ntop.getRandomCSRFValue(),
+         ifid         = ifid,
+         flow_key     = flow_key,
+         flow_hash_id = flow_hash_id,
+         page         = "live_flow_details",
+         flow_data    = flow_data
+      })
+      
+      
+      template.render("pages/vue_page.template", {
+         vue_page_name = "FlowChatbotSidebar",
+         page_context = flow_chatbot_context
+      })
+   end
+
 
 elseif page == "modbus" then
    local json = require "dkjson"
