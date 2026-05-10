@@ -271,11 +271,11 @@ function columns_sorting(col, r0, r1) {
         } else if (col.id == "first_seen") {
             r0_col = r0["first_seen"]["timestamp"] == 0 ? 0 : r0["first_seen"]["timestamp"];
             r1_col = r1["first_seen"]["timestamp"] == 0 ? 0 : r1["first_seen"]["timestamp"];
-            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort)
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort);
         } else if (col.id == "last_seen") {
             r0_col = r0["last_seen"]["timestamp"] == 0 ? 0 : r0["last_seen"]["timestamp"];
             r1_col = r1["last_seen"]["timestamp"] == 0 ? 0 : r1["last_seen"]["timestamp"];
-            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort)
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort);
         } else if (col.id == "status") {
             if (col.sort == 1) {
                 return r0_col.localeCompare(r1_col);
@@ -300,20 +300,12 @@ function take_ip(r_col) {
 }
 
 function format_bool(r_col) {
-    if (r_col) {
+    if (r_col || (r_col === 'true')) {
         return 'true';
     }
 
-    if (!r_col) {
+    if ((!r_col) || (r_col === 'false')) {
         return 'false';
-    }
-
-    if (r_col == 'true') {
-        return r_col;
-    }
-
-    if (r_col == 'false') {
-        return r_col;
     }
 }
 

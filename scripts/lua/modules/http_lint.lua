@@ -2305,7 +2305,12 @@ local known_parameters = {
    ["custom_score"] = validateNumber,
    ["message_variables"] = {jsonCleanup, validateJSON}, -- used for policy template formatting of custom alert
    ["message_template"] = validateUnchecked, -- free-text template string for custom alert messages
-
+   
+   -- MCP
+   ["jsonrpc"] = validateUnquoted,
+   ["id"] = validateNumber,
+   ["method"] = validateUnquoted,
+   
    -- WAZUH
    ["wazuh_url"] = validateUnquoted,
    ["wazuh_password"] = {passwordCleanup, validatePassword},

@@ -499,7 +499,7 @@ const add_table_row_filter = (e, a) => {
         operator: operator,
     };
     add_filter(filter);
-}
+};
 
 function add_top_table_filter(opt, event) {
     event.stopPropagation();

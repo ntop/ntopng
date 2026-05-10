@@ -334,7 +334,7 @@ const set_row_to_edit = (row) => {
         snmp_write_community.value = row.write_community;
     } else {
         enable_v3_options.value = true;
-        snmp_context.value = row.context
+        snmp_context.value = row.context;
         snmp_auth_passphrase.value = row.auth_passphrase;
         selected_auth_protocol.value = snmp_auth_protocols.value.find((item) => item.id == row.auth_protocol);
         selected_snmp_level.value = snmp_levels.value.find((item) => item.id == row.level);

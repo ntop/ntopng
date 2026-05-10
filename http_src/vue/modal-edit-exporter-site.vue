@@ -284,7 +284,7 @@ const open = (item = null) => {
 
     // Show the modal
     modal_id.value.show();
-}
+};
 
 /**
  * Closes the modal
@@ -300,7 +300,7 @@ const redrawGeomap = () => {
     nextTick(() => {
         geomap.value?.redraw(); // ridisegna mappa con altezza corretta
     });
-}
+};
 
 // Expose methods to parent components
 defineExpose({ open, close });

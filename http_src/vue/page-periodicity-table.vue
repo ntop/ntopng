@@ -177,7 +177,8 @@ function historical_flow(row) {
     srv_ip: `${server};eq`,
     cli_ip: `${client};eq`,
     srv_port: `${port};eq`,
-  }
+  };
+  
   const url_params = ntopng_url_manager.obj_to_url_params(params);
   const url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
   ntopng_url_manager.go_to_url(url);

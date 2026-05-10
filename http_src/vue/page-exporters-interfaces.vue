@@ -105,7 +105,7 @@ function create_18n_str(i18n_name) {
 async function get_notes(snmp_port_idx) {
    let url = exporter_notes_url + `ip=${get_ip_from_url()}`;
 
-   if (snmp_port_idx) exporter_notes_url += `&snmp_port_idx=${snmp_port_idx}`;
+   if (snmp_port_idx) url += `&snmp_port_idx=${snmp_port_idx}`;
 
    const rsp = await ntopng_utility.http_request(url);
 
@@ -284,7 +284,7 @@ function get_component_data_func(component) {
       if (info.data) {
          await info.data;
       }
-      const params = ntopng_url_manager.obj_to_url_params(url_params)
+      const params = ntopng_url_manager.obj_to_url_params(url_params);
 
       const data_url = `${component.url}${params ? '?' + params : ''}`;
 

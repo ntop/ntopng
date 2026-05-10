@@ -501,9 +501,9 @@ function mapModelConfig(config) {
 
   if (!config.columns.find(c => c.id === '_input_cost')) {
     config.columns.push(
-      { id: '_input_cost',  title: _i18n('llm.input_cost'),      sortable: true, render_func: (d) => fmtCost(d) },
-      { id: '_output_cost', title: _i18n('llm.generation_cost'), sortable: true, render_func: (d) => fmtCost(d) },
-      { id: '_total_cost',  title: _i18n('llm.total_cost'),      sortable: true, render_func: (d) => fmtCost(d) },
+      { id: '_input_cost',  data_field: '_input_cost',  title: _i18n('llm.input_cost'),      sortable: true, render_func: (d) => fmtCost(d) },
+      { id: '_output_cost', data_field: '_output_cost', title: _i18n('llm.generation_cost'), sortable: true, render_func: (d) => fmtCost(d) },
+      { id: '_total_cost',  data_field: '_total_cost',  title: _i18n('llm.total_cost'),      sortable: true, render_func: (d) => `<strong>${fmtCost(d)}</strong>` },
     );
   }
 
@@ -689,12 +689,12 @@ async function applyFilters() {
 // set active tab
 watch(activePage, (newActivePage, oldActivePage) => {
   ntopng_url_manager.set_key_to_url("tab", newActivePage);
-})
+});
 
 // set selected range timestmap
 watch(selectedRange, (newselectedRange, oldselectedRange) => {
   ntopng_url_manager.set_key_to_url("range", newselectedRange);
-})
+});
 
 onMounted(async () => {
   // selected navbar tab
@@ -714,7 +714,7 @@ onMounted(async () => {
   // load selected filters
   await Promise.all([loadFilters(), loadModelPrices()]);
   await applyFilters();
-})
+});
 
 </script>
 

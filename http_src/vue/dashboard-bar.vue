@@ -56,7 +56,7 @@ const get_url_params = () => {
         ...props.params.url_params,
         ...props.filters
     }
-}
+};
 
 async function checkDataAvailability() {
     try {
@@ -137,7 +137,7 @@ function get_chart_options() {
             labels: {
                 show: true
             }
-        }
+        };
 
         if (response.urls) {
             url_list.value = response.urls;

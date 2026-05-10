@@ -224,7 +224,7 @@ export default {
                     option = this.option_selected;
                 }
                 if (!this.$refs["operator"]) {
-                    value = ""
+                    value = "";
                 } else {
                     value = option.value;
                     value_label = option.value_label || option.label;

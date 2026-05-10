@@ -71,7 +71,7 @@ const _i18n = (t) => i18n(t);
 const device_status_list = ref([
   { id: "allowed", value: "allowed", label: _i18n('edit_check.authorized') },
   { id: "denied", value: "denied", label: _i18n('edit_check.unauthorized') },
-])
+]);
 
 const edit_all = ref(false);
 

@@ -148,7 +148,7 @@ function calculate_gradient(value, max_value) {
     return gradient_color[0]
   } else if (value > (max_value / 3 * 2)) {
     return gradient_color[3]
-  } else if (value > (max_value / 3 * 2)) {
+  } else if (value > (max_value / 3)) {
     return gradient_color[2]
   } else {
     return gradient_color[1]
@@ -267,7 +267,7 @@ onBeforeMount(async () => {
       selected_option = item.options[0];
     }
     item.current_option = selected_option;
-  })
+  });
   date_format.value = await ntopng_utility.get_date_format(false, props.context.csrf, http_prefix);
 })
 

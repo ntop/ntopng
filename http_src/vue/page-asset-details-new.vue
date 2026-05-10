@@ -430,7 +430,7 @@ const fetchData = async () => {
         if (response) {
             // Take the first host from the array (assuming single host lookup)
             deviceData.value = response[0];
-            console.log(deviceData.value)
+
             // Update navbar title if needed
             if (typeof $ !== 'undefined') {
                 $('#navbar_title').html("<i class='fas fa-laptop'></i> Asset Details: " + deviceData.value.host_name);

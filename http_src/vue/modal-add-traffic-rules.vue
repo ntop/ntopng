@@ -508,7 +508,7 @@ const reset_modal_form = async function () {
     metric_type.value = metric_type_list.value[0];
     selected_exporter_device.value = flow_exporter_devices.value[1];
     if (selected_exporter_device.value != null) {
-        update_exporter_interfaces()
+        update_exporter_interfaces();
     }
 
     // reset metric_type_list
@@ -982,7 +982,7 @@ const add_ = (is_edit) => {
         });
     } else if (rule_type.value == 'interface') {
         tmp_extra_metric = ((selected_interface_metric.value.extra_metric) ? selected_interface_metric.value.extra_metric : null)
-        tmp_metric = selected_interface_metric.value.id
+
         tmp_metric_label = selected_interface_metric.value.label;
         const tmp_interface_metric = selected_interface_metric.value.id;
         const tmp_interface = selected_ifid.value.id;
@@ -1009,7 +1009,7 @@ const add_ = (is_edit) => {
         let metric_exp;
 
         if (!selected_flow_device_metric.value.id) {
-            metric_exp = flow_device_metric_list.value.find((item) => item.id === null);
+            
             /* In case no metric id is found, it means it's the traffic one */
             if (flow_device_ifindex != null && flow_device_ifindex != '*') {
                 metric_exp = selected_flow_device_metric.value;
@@ -1219,7 +1219,7 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
 
     selected_exporter_device.value = flow_exporter_devices.value[1];
     if (selected_exporter_device.value != null) {
-        update_exporter_interfaces()
+        update_exporter_interfaces();
     }
     if (props.has_vlans) {
         vlan_list.value = format_vlan_list(_vlan_list);

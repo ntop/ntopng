@@ -72,7 +72,7 @@ async function get_result(host, scan_type, date, epoch) {
 
 onBeforeMount(async () => {
   await get_result(props.context.host, props.context.scan_type, props.context.date, props.context.epoch);
-})
+});
 
 
 </script>

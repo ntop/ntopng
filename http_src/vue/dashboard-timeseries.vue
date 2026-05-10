@@ -308,7 +308,7 @@ async function get_chart_options() {
         ...{
             ts_requests: ts_request.value
         }
-    }
+    };
 
     /* retrieve_basic_info() fetches metric schema metadata (consts.lua for all interfaces).
      On first load -> HTTP call

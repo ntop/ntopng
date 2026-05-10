@@ -225,7 +225,7 @@ const handleLoadedColumns = (columns) => {
         modified_columns = modified_columns.filter(element => element.id !== "qoe_score")
     }
     return modified_columns
-}
+};
 
 /*******************************************************/
 
@@ -267,7 +267,7 @@ const any_interface = ref(false);
 const any_interface_label = ref(_i18n("db_search.any_interface"));
 const min_time_interval_id = ref(null);
 const round_time = ref(false);
-const count_page_components_reloaded = ref(0)
+const count_page_components_reloaded = ref(0);
 
 onBeforeMount(async () => {
     init_params();
@@ -315,7 +315,7 @@ async function init_url_params() {
         ntopng_url_manager.set_key_to_url("ifid", default_ifid);
     }
     for (const key in url_params_obj) {
-        const value = url_params_obj[key]
+        const value = url_params_obj[key];
         const result = value.split(";"); /* Do not add the values like ;eq, it causes problems with linting */
 /*        if (dataUtils.isEmptyOrNull(result[0])) {
             ntopng_url_manager.delete_key_from_url(key)
@@ -543,7 +543,7 @@ const map_table_def_columns = async (columns) => {
         if (state == null || state == 0) { return ""; }
         return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${state.value}' href='javascript:void(0)'>${state.title}</a>`;
 
-    }
+    };
     let map_columns = {
         "first_seen": (first_seen, row) => {
             if (first_seen !== undefined)
@@ -660,7 +660,7 @@ const add_table_row_filter = (e, a) => {
         operator: operator,
     };
     add_filter(filter);
-}
+};
 
 function add_top_table_filter(opt, event) {
     event.stopPropagation();

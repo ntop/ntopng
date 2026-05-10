@@ -79,7 +79,7 @@ const wazuh_info_rows = ref([]);
 
 const print_html_title = function (name) {
     return (name || "");
-}
+};
 
 const print_stats_row = function (value) {
     let label = value.name || '';

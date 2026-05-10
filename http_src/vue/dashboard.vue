@@ -417,7 +417,7 @@ async function set_template(report_template) {
         // ntopng_sync.ready("print_report");
     }
 
-    components_loaded.value = true
+    components_loaded.value = true;
 }
 
 onBeforeMount(async () => {
@@ -936,7 +936,7 @@ function get_component_data_func(component) {
         } else {
             /* datasource_id is an optimization for components getting live data
              * from the same endpoint (e.g. multiple badges in the infrastructure dashboard) */
-            let datasource_id = component.datasource_id ? component.datasource_id : component.component_id
+            let datasource_id = component.datasource_id ? component.datasource_id : component.component_id;
 
             /* Check if there is already a promise for the same request */
             let pending = false;
@@ -973,7 +973,7 @@ function get_component_data_func(component) {
 
 
                 if (post_params) {
-                    info.data = ntopng_utility.http_post_request(data_url, post_params)
+                    info.data = ntopng_utility.http_post_request(data_url, post_params);
                 } else {
                     info.data = ntopng_utility.http_request(data_url);
                 }

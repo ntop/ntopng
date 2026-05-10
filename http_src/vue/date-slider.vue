@@ -56,7 +56,6 @@ onMounted(() => {
     if (epoch_begin != null && epoch_end != null) {
         // update the status
         epoch_begin = Number.parseInt(epoch_begin);
-        epoch_end = Number.parseInt(epoch_end);
         epoch_begin = FormatterUtils.getMidnightEpoch(epoch_begin); /* align to midnight */
         epoch_end = epoch_begin + timelineStep.value;
 

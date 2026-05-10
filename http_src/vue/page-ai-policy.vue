@@ -77,16 +77,16 @@
           </div>
 
           <div class="row g-3">
-            <div class="col-md-8">
+            <div class="col-12">
               <label class="ap-field-label">{{ _i18n('llm.policy_name') }}</label>
               <input type="text" class="form-control form-control-sm" v-model="proposedPolicy.ai_policy_name" maxlength="60" />
             </div>
-            <div class="col-md-2">
+            <div class="col-md-6">
               <label class="ap-field-label">{{ _i18n('llm.policy_frequency') }}</label>
               <SelectSearch :options="periodicityOptions" :selected_option="selectedPeriodicity"
                 theme="bootstrap-5" @select_option="onPeriodicitySelect" />
             </div>
-            <div class="col-md-2">
+            <div class="col-md-6">
               <label class="ap-field-label">{{ _i18n('llm.alert_score') }}</label>
               <SelectSearch :options="scoreOptions" :selected_option="selectedScore"
                 theme="bootstrap-5" @select_option="onScoreSelect" />
@@ -275,9 +275,23 @@ function on_table_event(event) {
 const PERIODICITY_LABELS = { min: "1 min", "5min": "5 min", hourly: "Hourly", daily: "Daily" };
 const PERIODICITY_COLORS = { min: "info",  "5min": "primary", hourly: "warning", daily: "secondary" };
 
+function score_badge(v) {
+  if (v == null || v === "" || v === 0) return "—";
+  const n = Number(v);
+  let cls, label;
+  if      (n >= 250) { cls = "bg-dark text-white";    label = `Emergency (${n})`; }
+  else if (n >= 200) { cls = "bg-danger text-white";   label = `Critical (${n})`;  }
+  else if (n >= 150) { cls = "bg-danger text-white";   label = `Severe (${n})`;    }
+  else if (n >= 100) { cls = "bg-warning text-dark";   label = `Error (${n})`;     }
+  else if (n >= 50)  { cls = "bg-warning text-dark";   label = `Warning (${n})`;   }
+  else if (n >= 10)  { cls = "bg-primary text-white";  label = `Notice (${n})`;    }
+  else               { cls = "bg-info text-white";     label = `Info (${n})`;      }
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
 function map_table_columns(columns) {
   const renders = {
-    periodicity: (v) => {
+    periodicity_string: (v) => {
       const label = PERIODICITY_LABELS[v] || v || "—";
       const color = PERIODICITY_COLORS[v] || "secondary";
       return `<span class="badge bg-${color} text-dark">${label}</span>`;
@@ -286,6 +300,7 @@ function map_table_columns(columns) {
       ? `<span class="badge bg-success">Active</span>`
       : `<span class="badge bg-secondary">Inactive</span>`,
     created_at: (v) => v ? new Date(v * 1000).toLocaleString() : "—",
+    custom_score: (v) => score_badge(v),
   };
   columns.forEach(c => {
     if (renders[c.data_field]) {

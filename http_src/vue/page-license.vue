@@ -137,11 +137,11 @@ function _i18n(key, params) {
   return str;
 }
 
-const isAdmin = props.context?.is_admin ?? false;
-
 const props = defineProps({
   context: Object,
 });
+
+const isAdmin = props.context?.is_admin ?? false;
 
 const isLoading  = ref(true);
 const license    = ref({});

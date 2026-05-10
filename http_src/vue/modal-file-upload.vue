@@ -75,7 +75,7 @@ function on_file_picked (event) {
 const select_file = () => {
     close();
     props.upload_file(file_content.value);
-}
+};
 
 const close = () => {
     modal_id.value.close();

@@ -76,7 +76,7 @@ const reset_modal_form = function () {
     is_data_not_ok.value = false;
     is_not_empty_file.value = false;
     import_input.value.value = null;
-}
+};
 
 const show = (row) => {
     reset_modal_form();
@@ -96,7 +96,7 @@ const handleFileUpload = (event) => {
         is_data_not_ok.value = false;
         message = "";
     }
-}
+};
 
 const _import = (is_edit) => {
     activate_import_spinner.value = true;

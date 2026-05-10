@@ -592,7 +592,7 @@ async function set_rows(do_not_reload) {
     if (showLoading.value) {
         isLoading.value = true;
     }
-    let res = null
+    let res = null;
     if (props.paging !== true && do_not_reload === true) {
         // If no reload is requested and the paging is false,
         // simply use the old rows

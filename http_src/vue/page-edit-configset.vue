@@ -122,7 +122,7 @@ const error_msg = ref(null);
 const success_msg = ref(null);
 const show_disable_modal = ref(false);
 const show_reset_modal = ref(false);
-const is_first_load = ref(true)
+const is_first_load = ref(true);
 
 // Check status
 const STATUS_TABS = [

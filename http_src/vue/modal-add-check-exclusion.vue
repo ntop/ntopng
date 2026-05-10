@@ -272,7 +272,7 @@ const close = () => {
 const normalize_alert_key_value = (alert_key) => {
   if (alert_key == "") return -1;
   return alert_key;
-} 
+};
 
 const add = () => {
     let params;

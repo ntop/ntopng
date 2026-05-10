@@ -91,7 +91,7 @@ const loading = ref(true);
 const loading_chart = ref(true);
 const filters = ref([]);
 const is_qos_polled = ref(false);
-const qos_not_polled_yet = _i18n('snmp.snmp_qos_info_not_polled')
+const qos_not_polled_yet = _i18n('snmp.snmp_qos_info_not_polled');
 const note_list = [
   _i18n("snmp.snmp_note_periodic_interfaces_polling"),
   _i18n("snmp.snmp_note_thpt_calc"),
@@ -119,7 +119,7 @@ const stats_columns = [
 ];
 
 /* Height and width of the charts */
-const height_per_row = 62.5
+const height_per_row = 62.5;
 const height = ref(null);
 
 /* Consts */

@@ -61,7 +61,7 @@ const get_url_params = () => {
         ...props.filters
     }
     return url_params;
-}
+};
 
 async function get_chart_data() {
     const url = base_url.value;
@@ -359,7 +359,7 @@ async function refresh_chart() {
         const data = await get_chart_data();
         if (!data) {
             chart_data_available.value = false;
-            isLoading.value = false
+            isLoading.value = false;
             return;
         }
 

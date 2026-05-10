@@ -268,27 +268,28 @@ function reset_filters() {
 function columns_sorting(col, r0, r1) {
     if (col != null) {
       if (col.id == "manufacturer") {
-      return sortingFunctions.sortByName(r0.manufacturer, r1.manufacturer, col.sort);
-    } else if (col.id == "mac") {
-      return sortingFunctions.sortByMacAddress(r0.mac, r1.mac, col.sort);
-    } else if (col.id == "location") {
-      return sortingFunctions.sortByName(r0.location, r1.location, col.sort);
-    } else if (col.id == "hosts") {
-      return sortingFunctions.sortByNumber(r0.hosts, r1.hosts, col.sort);
-    } else if (col.id == "arp") {
-      return sortingFunctions.sortByNumber(r0.arp, r1.arp, col.sort);
-    } else if (col.id == "seen_since") {
-    /** 
-     * R1 and R0 are inverted because we display the distance from seen_since to now rather
-     * than the timestamp. Consequently, in ascending order, the first element will
-     * be the one closest to the current time, which has the highest timestamp.
-     */  
-      return sortingFunctions.sortByNumber(r1.seen_since, r0.seen_since, col.sort);
-    } else if (col.id == "throughput") {
-      return sortingFunctions.sortByNumber(r0.throughput, r1.throughput, col.sort);
-    } else if (col.id == "traffic") {
-      return sortingFunctions.sortByNumber(r0.traffic, r1.traffic, col.sort);
-    }}
+            return sortingFunctions.sortByName(r0.manufacturer, r1.manufacturer, col.sort);
+        } else if (col.id == "mac") {
+            return sortingFunctions.sortByMacAddress(r0.mac, r1.mac, col.sort);
+        } else if (col.id == "location") {
+            return sortingFunctions.sortByName(r0.location, r1.location, col.sort);
+        } else if (col.id == "hosts") {
+            return sortingFunctions.sortByNumber(r0.hosts, r1.hosts, col.sort);
+        } else if (col.id == "arp") {
+            return sortingFunctions.sortByNumber(r0.arp, r1.arp, col.sort);
+        } else if (col.id == "seen_since") {
+            /** 
+             * R1 and R0 are inverted because we display the distance from seen_since to now rather
+             * than the timestamp. Consequently, in ascending order, the first element will
+             * be the one closest to the current time, which has the highest timestamp.
+             */  
+            return sortingFunctions.sortByNumber(r1.seen_since, r0.seen_since, col.sort);
+        } else if (col.id == "throughput") {
+            return sortingFunctions.sortByNumber(r0.throughput, r1.throughput, col.sort);
+        } else if (col.id == "traffic") {
+            return sortingFunctions.sortByNumber(r0.traffic, r1.traffic, col.sort);
+        }
+    }
  }
 
 /* ************************************** */

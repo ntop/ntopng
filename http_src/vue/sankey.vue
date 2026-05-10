@@ -31,7 +31,7 @@ import { sankey, sankeyLinkHorizontal } from "d3-sankey";
 import NoData from './components/no-data.vue'
 
 const d3 = d3v7;
-const emit = defineEmits(['node_click', 'update_width', 'update_height', 'autorefresh_toggle', 'drawn'])
+const emit = defineEmits(['node_click', 'update_width', 'update_height', 'autorefresh_toggle', 'drawn']);
 const _i18n = (t) => i18n(t);
 let eventsAttached = false;
 let resizeTimeout = null;
@@ -391,7 +391,7 @@ async function draw_sankey() {
         .style("fill", "none");
 
     zoomGroup.append("g")
-        .attr("class", "nodes")
+        .attr("class", "nodes");
 
     // Helper function to find all nodes in the backward path (left side)
     function findBackwardPath(targetNode, links) {
@@ -534,7 +534,7 @@ async function draw_sankey() {
         .attr("fill-opacity", 0.9)
         .attr("class", "sankey-node")
         .attr("style", "cursor:move;")
-        .style("stroke", "none")
+        .style("stroke", "none");
 
 
     d3.selectAll("rect").append("title").text((d) => `${d?.label}`);

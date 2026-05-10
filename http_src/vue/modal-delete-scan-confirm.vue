@@ -44,7 +44,7 @@ const note_list = [
 
 const show = (type, value) => {
   show_note_list.value = false;
-  delete_type.value = type
+  delete_type.value = type;
 
     if(type == "delete_all") {
       title.value = i18n("delete_all_entries");

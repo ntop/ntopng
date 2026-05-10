@@ -7,7 +7,7 @@
 # PREREQUISITES
 # pip install deep-translator
 #
- USAGE
+# USAGE
 # python3 translation.py --input_file ../../scripts/locales/en.lua --output_file ../../scripts/locales/es.lua --input_language en --output_language es
 #
 from deep_translator import GoogleTranslator

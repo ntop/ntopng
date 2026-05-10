@@ -245,12 +245,12 @@ const renderDotsByCoordinates = () => {
 
         nodeGroup.on('click', function (event) {
             if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
-            showTooltip(event, alert, this);
+            showTooltip(event, alert);
         });
         nodeGroup.on('mouseover', function (event) {
             if (hide_timer) { clearTimeout(hide_timer); hide_timer = null; }
             if (props.showTooltipOnHover) {
-                showTooltip(event, alert, this);
+                showTooltip(event, alert);
             }
         });
         nodeGroup.on('mouseout', function (event) {

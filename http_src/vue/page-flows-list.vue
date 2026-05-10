@@ -128,7 +128,7 @@ const handleLoadedColumns = (columns) => {
 
 const format_host = function (value) {
     let icons = ''
-    let port_name = ` : ${value.port}`
+    let port_name
     let process = ''
     let container = ''
     const url = `${host_details_url}?host=${value.ip}&vlan=${value.vlan || ''}`
@@ -346,7 +346,6 @@ const map_table_def_columns = (columns) => {
                 let ifid_name = ''
                 let tag_filter2 = ''
                 if (value.seen_on_interface) {
-                    ifid = `&ifid=${value.seen_on_interface.id}`
                     ifid_name = ` [${value.seen_on_interface.name}]`
                     tag_filter2 = ` tag-filter2="interface_filter" tag-value2="${value.seen_on_interface.id}" `
                 }

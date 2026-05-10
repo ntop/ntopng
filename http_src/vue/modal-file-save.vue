@@ -57,10 +57,10 @@ async function init() {
 }
 
 const store_file = async () => {
-    props.store_file(file_name.value)
-    emit('file_stored', file_name.value);
-    close();
-}
+  props.store_file(file_name.value);
+  emit('file_stored', file_name.value);
+  close();
+};
 
 const close = () => {
     modal_id.value.close();

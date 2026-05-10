@@ -31,7 +31,7 @@ const _i18n = (t) => i18n(t);
 const note_list = [
   _i18n("snmp.snmp_similarity_note"),
   _i18n("snmp.snmp_similarity_time_note")
-]
+];
 
 const timestamp = Math.floor(Date.now() / 1000);
 const device_href = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=%host`;

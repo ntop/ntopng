@@ -226,7 +226,7 @@ export default {
             const tolerance = 60;
             let now = this.get_utc_seconds(Date.now());
             if (this.round_time == true && this.min_time_interval_id != null) {
-                now = this.round_time_by_min_interval(now)
+                now = this.round_time_by_min_interval(now);
             }
             const end_utc_s = this.get_utc_seconds(end_utc);
             const begin_utc_s = this.get_utc_seconds(begin_utc);

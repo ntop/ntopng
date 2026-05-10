@@ -796,10 +796,6 @@ async function draw_graph(redraw = false, centerIP = null) {
             }).on("dblclick", async function (event, clicked_node) {
                 event.preventDefault();
 
-                if (clickTimer) {
-                    clearTimeout(clickTimer);
-                    clickTimer = null;
-                }
                 lastClickedNode = null;
 
                 selectedNode.value = clicked_node.id;
@@ -1054,7 +1050,7 @@ const get_host_info = async function () {
 
         if (rsp) {
             no_data.value = false;
-            selectedNodeData.value = rsp
+            selectedNodeData.value = rsp;
         }
         hostDataLoading.value = false;
 

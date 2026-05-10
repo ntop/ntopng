@@ -312,7 +312,7 @@ const reset_modal_form = async function () {
   change_interfaces();
 
   selected_snmp_device_metric.value = snmp_metric_list.value[0];
-  change_active_threshold()
+  change_active_threshold();
 
   selected_frequency.value = frequency_list.value[0];
   metric_type.value = metric_type_list.value[0];
@@ -546,7 +546,6 @@ function change_active_threshold() {
 const add_ = (is_edit) => {
   let tmp_host = ''
   rule_type.value = 'snmp';
-  tmp_host = host.value;
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_snmp_device_metric.value.id;

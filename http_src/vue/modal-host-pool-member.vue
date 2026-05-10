@@ -248,7 +248,7 @@ const validateNetworkAddress = () => {
 const validateCidr = () => {
     const maxCidr = isIPv6Network.value ? 128 : 32;
     if (!cidr.value || cidr.value < 1 || cidr.value > maxCidr) {
-        cidrError.value = _i18n("host_pools.invalid_cidr_range", { max: maxCidr });
+        cidrError.value = _i18n("host_pools.invalid_cidr_range") + ` Max: ${maxCidr}`;
     } else {
         cidrError.value = "";
     }

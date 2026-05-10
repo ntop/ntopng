@@ -215,7 +215,7 @@ const set_row_to_edit = (row) => {
     discovered_scan_type_ids_array.forEach((setted_scan_type) => {
       tmp_found_scan_type = discovered_scan_type_list.value.find((item) => item.id == setted_scan_type);
       tmp_selected_scan_types.push(tmp_found_scan_type);
-    })
+    });
     selected_discovered_scan_types.value = tmp_selected_scan_types;
   }
 
@@ -265,14 +265,14 @@ const show = (row, _host) => {
 const update_selected_discovered_scan_types = (items) => {
   selected_discovered_scan_types.value = items;
   isNetscanValid.value = selected_discovered_scan_types.value.length > 0;
-}
+};
 
 /* Function called when is removed a selected discovered scan type
 */
 const remove_selected_discovered_scan_types = (item_to_delete) => {
   selected_discovered_scan_types.value = selected_discovered_scan_types.value.filter((item) => item.id != item_to_delete.id);
-  isNetscanValid.value = selected_discovered_scan_types.value.length > 0; 
-}
+  isNetscanValid.value = selected_discovered_scan_types.value.length > 0;
+};
 
 /* ****************************************************** */
 
@@ -294,7 +294,7 @@ const set_is_ipv4_netscan = () => {
     isNetscanValid.value = true;
   }
 
-}
+};
 
 /* ****************************************************** */
 const check_is_network_address = (address) => {
@@ -302,7 +302,7 @@ const check_is_network_address = (address) => {
   if (addr_parts.length > 3) {
     return addr_parts[3] == 0;
   }
-}
+};
 
 /* ****************************************************** */
 
@@ -341,7 +341,7 @@ const check_host_regex = () => {
       isHostValid.value = true;
       isCIDRValid.value = true;
       /* In case the CIDR is wrong */
-      selected_cidr.value = CIDR_128
+      selected_cidr.value = CIDR_128;
       /* IPv6 */
 
     } else if (is_host_name) {
@@ -358,14 +358,14 @@ const check_host_regex = () => {
 };
 
 const check_cidr = () => {
-  if (( selected_cidr.value >= CIDR_24 && selected_cidr.value <= CIDR_30) || 
-        selected_cidr.value == CIDR_32 || selected_cidr.value == CIDR_128) {
+  if ((selected_cidr.value >= CIDR_24 && selected_cidr.value <= CIDR_30) ||
+    selected_cidr.value == CIDR_32 || selected_cidr.value == CIDR_128) {
     isCIDRValid.value = true;
     return true;
-  } 
+  }
   isCIDRValid.value = false;
   return false;
-}
+};
 
 /* ****************************************************** */
 

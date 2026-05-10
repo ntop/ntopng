@@ -193,7 +193,7 @@ function render(data) {
         color: getColor(d, i),
         url: d.url || null,
         percentage: total > 0 ? (d.value / total * 100).toFixed(1) : "0",
-    })).sort((a, b) => b.percentage - a.percentage) // sort percentage descending to display the legend descending
+    })).sort((a, b) => b.percentage - a.percentage); // sort percentage descending to display the legend descending
 
     const newpie = pie(filtered_data);
 

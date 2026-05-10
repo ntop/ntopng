@@ -135,10 +135,11 @@ const extract_domain_name_from_info = (info) => {
 
   // remove path
   domain_name = domain_name.split("/")[0];
-  
+
   return domain_name;
 
-}
+};
+
 const check_disable_apply = () => {
     if (radio_selected.value == "domain") {
 	let regex_domain = new RegExp(pattern_domain);

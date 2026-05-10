@@ -20,7 +20,7 @@ import colorUtils from "../utilities/color-utils.js";
 import NoData from './components/no-data.vue'
 
 const d3 = d3v7;
-const emit = defineEmits(['update_width', 'update_height', 'autorefresh_toggle'])
+const emit = defineEmits(['update_width', 'update_height', 'autorefresh_toggle']);
 
 const _i18n = (t) => i18n(t);
 let eventsAttached = false;
@@ -125,13 +125,13 @@ function attach_events() {
 function get_size() {
     emit('update_width');
     let width = props.width
-    if (width == undefined || width == null) {
+    if (width == undefined) {
         width = $(chord_div.value).width()
     }
 
     emit('update_height');
     let height = props.height
-    if (height == undefined || height == null) {
+    if (height == undefined) {
         height = $(chord_div.value).height()
     }
 

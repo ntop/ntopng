@@ -45,7 +45,7 @@ const props = defineProps({
  * ====================================================== */
 
 // REST endpoint used for searching hosts
-const searchRestAPI = `${http_prefix}/lua/rest/v2/get/host/find.lua`
+const searchRestAPI = `${http_prefix}/lua/rest/v2/get/host/find.lua`;
 
 // Debounce timer reference
 const debouncerTimer = ref(null);

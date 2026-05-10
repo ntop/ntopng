@@ -214,8 +214,8 @@ const destroy = () => {
 };
 
 onMounted(async () => {
-  await checkNetworkDiscoveryEnabled()
-})
+  await checkNetworkDiscoveryEnabled();
+});
 
 onUnmounted(async () => {
   destroy();

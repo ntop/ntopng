@@ -163,7 +163,7 @@ function check_host(value) {
 /* Reset the values to defualt */
 function reset_modal_form() {
     disable_add.value = true;
-    update_lists(measurements_list.value[0]);
+    update_lists();
     host.value.value = ''
     selected_interface.value = interfaces_list.value[0] || [];
     threshold.value.value = '99'

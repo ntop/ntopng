@@ -100,7 +100,7 @@ const check_file = function () {
 const upload_pcap = async function () {
     try {
         /* Check the file, if it's selected */
-        if (!pcap_file.value?.files?.length > 0) {
+        if (!(pcap_file.value?.files?.length > 0)) {
             error.value = _i18n('please_select_a_file');
             return;
         }

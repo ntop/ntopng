@@ -60,7 +60,7 @@ const body_delete = ref('');
 const current_pool_to_delete = ref(null);
 
 // table footer buttons urls
-const pool_configuration_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=pool`
+const pool_configuration_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=pool`;
 
 
 // add new pool

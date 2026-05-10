@@ -5,12 +5,12 @@
 
         <template v-slot:body>
             <div class="row g-3">
-                <div class="col-md-8">
+                <div class="col-12">
                     <label class="form-label fw-bold mb-1">{{ _i18n('name') }}</label>
                     <input type="text" class="form-control form-control-sm"
                            v-model="form.name" maxlength="60" />
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-6">
                     <label class="form-label fw-bold mb-1">{{ _i18n('llm.run_every') }}</label>
                     <SelectSearch
                         :options="periodicity_options"
@@ -19,7 +19,7 @@
                         @select_option="(opt) => selected_periodicity = opt"
                     />
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-6">
                     <label class="form-label fw-bold mb-1">{{ _i18n('llm.alert_score') }}</label>
                     <SelectSearch
                         :options="score_options"

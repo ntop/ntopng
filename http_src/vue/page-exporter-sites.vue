@@ -62,7 +62,7 @@ const API = {
     add: `${http_prefix}/lua/pro/rest/v2/add/exporter_site/exporter_site.lua`,
     delete: `${http_prefix}/lua/pro/rest/v2/delete/exporter_site/exporter_site.lua`,
     get: `${http_prefix}/lua/pro/rest/v2/get/exporter_site/exporter_sites_list.lua`
-}
+};
 
 
 // Geographic data for map visualization
@@ -375,7 +375,7 @@ function formatTooltipData(site) {
 const refresh_sites = async (item) => {
     exporter_sites_list.value?.refresh_table(true);  // Force table refresh
     loadSitesMap();  // Reload map data
-}
+};
 
 /* ************************************** */
 // Lifecycle hook: Load map data when component is mounted

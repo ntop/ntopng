@@ -238,5 +238,5 @@ onMounted(() => {
   if (subdir_tab && TABLE_CONFIG_MAP[subdir_tab]) {
     switch_tab(subdir_tab);
   }
-})
+});
 </script>

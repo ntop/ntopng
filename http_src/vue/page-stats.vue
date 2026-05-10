@@ -443,7 +443,7 @@ let ts_charts_options;
 async function load_page_stats_data(timeseries_groups, reload_charts_data, reload_top_table_options, refreshed_time_interval) {
     /* Get the information necessary for the request, like epoch ecc. */
     loading.value = true;
-    const status = retrieveGlobalStatus()
+    const status = retrieveGlobalStatus();
     let ts_compare = get_ts_compare(status);
     if (reload_charts_data) {
         /* Do the request to the backend; the answer is formatted as
@@ -472,7 +472,7 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
     } else {
         set_charts_options_items(charts_options);
     }
-    set_stats_rows(ts_charts_options, timeseries_groups, status);
+    set_stats_rows(ts_charts_options, timeseries_groups);
     if (reload_top_table_options) {
         set_top_table_options(timeseries_groups, status);
     }
@@ -700,7 +700,7 @@ function set_top_table_options(timeseries_groups, status) {
             selected_top_table.value = top_table_options.value[0];
             // Also, being that no available options where found, it means that all of them are disabled in the preferences
             // so handle this case with the disabled section for the top table 
-            disable_top_stats.value = true
+            disable_top_stats.value = true;
         }
     }
 }

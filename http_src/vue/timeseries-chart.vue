@@ -240,7 +240,7 @@ const getChartOptions = async function (url_request) {
 
     let chart_options = chart_options_raw || {};
     if (!chart_options) {
-        chart_options = {}
+        chart_options = {};
     }
     const xAxis = ensurePath(chart_options, ["axes", "x"]);
     /* Set the date formatting depending on the server date format */
@@ -279,7 +279,7 @@ const retrieveOptionsAndDraw = async function (url_request) {
  * @sideeffect Updates legend element position and visibility
  */
 const followLegend = async function (event) {
-    const targetDiv = drawOnSecondDiv.value ? second_chart.value : first_chart.value
+    const targetDiv = drawOnSecondDiv.value ? second_chart.value : first_chart.value;
     const containerRect = targetDiv.getBoundingClientRect();
     const mouseX = event.clientX - containerRect.left;
     const mouseY = event.clientY - containerRect.top;

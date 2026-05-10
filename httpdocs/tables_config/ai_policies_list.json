@@ -43,6 +43,14 @@
       "class": ["text-nowrap", "text-center"]
     },
     {
+      "id": "score",
+      "title_i18n": "score",
+      "data_field": "custom_score",
+      "sortable": true,
+      "min-width": "120px",
+      "class": ["text-nowrap", "text-center"]
+    },
+    {
       "id": "is_active",
       "title_i18n": "status",
       "data_field": "is_active",
@@ -55,8 +63,7 @@
       "title_i18n": "name",
       "data_field": "name",
       "sortable": true,
-      "min-width": "160px",
-      "class": ["text-nowrap"]
+      "min-width": "160px"
     },
     {
       "id": "description",

@@ -434,10 +434,10 @@ const get_profiles_metric_list = async function () {
   const url = NtopUtils.buildURL(metric_profiles_url, rest_params)
 
   let tmp_profiles_metric_list = await ntopng_utility.http_request(url);
-  
+
   profiles_metric_list = tmp_profiles_metric_list;
   isLoading.value = false;
-}
+};
 
 const get_asn_metric_list = async function () {
   isLoading.value = true;
@@ -445,7 +445,7 @@ const get_asn_metric_list = async function () {
   let tmp_asn_metric_list = await ntopng_utility.http_request(url);
   asn_metric_list = tmp_asn_metric_list;
   isLoading.value = false;
-}
+};
 
 const get_flow_exporter_devices_metric_list = async function () {
   isLoading.value = true;
@@ -489,14 +489,14 @@ const get_profiles = async function () {
   const url = NtopUtils.buildURL(profiles_url, rest_params)
   profiles_list = await ntopng_utility.http_request(url);
   isLoading.value = false;
-}
+};
 
 const get_asn = async function () {
   isLoading.value = true;
   const url = NtopUtils.buildURL(asn_url, rest_params)
   asn_list = await ntopng_utility.http_request(url);
   isLoading.value = false;
-}
+};
 
 const start_datatable = function () {
   const datatableButton = [];

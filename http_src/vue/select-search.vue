@@ -83,7 +83,7 @@ watch(() => props.selected_option, (cur_value, old_value) => {
 
 // Watch for changes in selected_options prop (multiple select mode)
 watch(() => props.selected_options, (cur_value, old_value) => {
-    set_selected_values(cur_value);
+    set_selected_values();
     change_select_2_selected_value();  // Sync Select2 UI with new selections
 }, { flush: 'pre' });
 
@@ -655,15 +655,7 @@ defineExpose({ render });
 </script>
 
 <style scoped>
-.card, .card-body {
-    overflow: visible !important;
-}
 
-/* Ensure the wrapper doesn't restrict height */
-.ss-root {
-    position: relative;
-    z-index: 1050; /* Higher than other card elements */
-}
 /* Let options expand naturally */
 .select2-results__options {
     width: max-content !important;
