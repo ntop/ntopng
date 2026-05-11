@@ -2872,8 +2872,7 @@ function MultiDragPlugin() {
     },
     hideClone: function hideClone(_ref5) {
       var _this = this;
-      var sortable = _ref5.sortable,
-        cloneNowHidden = _ref5.cloneNowHidden,
+      var cloneNowHidden = _ref5.cloneNowHidden,
         cancel = _ref5.cancel;
       if (!this.isMultiDrag) return;
       multiDragClones.forEach(function (clone) {
@@ -2887,7 +2886,6 @@ function MultiDragPlugin() {
       cancel();
     },
     dragStartGlobal: function dragStartGlobal(_ref6) {
-      var sortable = _ref6.sortable;
       if (!this.isMultiDrag && multiDragSortable) {
         multiDragSortable.multiDrag._deselectMultiDrag();
       }

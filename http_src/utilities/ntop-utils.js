@@ -803,7 +803,7 @@ export default class NtopUtils {
 
                 if (!isCsv) {
                     // Client-side configuration file format check
-                    let jsonConfiguration = null
+                    let jsonConfiguration = null;
                     try {
                         jsonConfiguration = JSON.parse(reader.result);
                     } catch (e) {
@@ -1147,7 +1147,6 @@ export default class NtopUtils {
     /* Format an object with label and value from a column row */
     static formatGenericObj(obj, row) {
         let label = obj.label ? obj.label : obj.value;
-        let key = obj.value;
         return label;
     }
 

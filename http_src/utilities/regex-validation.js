@@ -173,6 +173,7 @@ const regexValidation = function () {
         validateMAC,
         validateNumber,
         validateUInt32,
+        validateNetwork
     };
 }();
 

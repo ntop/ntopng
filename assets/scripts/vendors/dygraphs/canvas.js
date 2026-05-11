@@ -374,7 +374,7 @@ Dygraph.Export.drawLegend = function (canvas, dygraph, options) {
       //     of this file (UTF-8).
       var txt = "- " + labels[i];
       ctx.fillStyle = colors[usedColorCount];
-      usedColorCount++
+      usedColorCount++;
       ctx.fillText(txt, labelsX, labelsY);
       labelsX = labelsX + ctx.measureText(txt).width + labelMargin;
     }
@@ -394,4 +394,4 @@ Dygraph.Export.getPlugin = function (dygraph, name) {
     }
   }
   return null;
-}
+};

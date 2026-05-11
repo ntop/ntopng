@@ -163,7 +163,6 @@ function compactSerie(config, ts_info, extra_timeseries, serie, past_serie, scal
 
 /* This function format the Bound type serie in the correct format */
 function splitBoundSerie(series, timeserie_info) {
-    let serie = [];
     let color = {};
     let formatter = null;
     let serie_name = null;

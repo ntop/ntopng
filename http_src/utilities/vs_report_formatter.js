@@ -108,9 +108,8 @@ export const scan_type_f = (scan_type, from_report, row) => {
     return '';
   }
   if (scan_type !== undefined) {
-    let label = scan_type
     const i18n_name = "hosts_stats.page_scan_hosts.scan_type_list."+scan_type;
-    label = i18n(i18n_name);
+    let label = i18n(i18n_name);
     return label;
   }
 }
@@ -152,7 +151,7 @@ export const scan_frequency_f = (scan_frequency) => {
 }
 
 export const is_ok_last_scan_f = (is_ok_last_scan) => {
-  let label = ""
+  let label = "";
   if (is_ok_last_scan == 2) {
     // scheduled
     label = i18n("hosts_stats.page_scan_hosts.scheduled");

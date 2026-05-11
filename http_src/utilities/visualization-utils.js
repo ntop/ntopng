@@ -27,7 +27,7 @@ const createHeatmap = (data) => {
     }        
     svg = `${svg}${$rect[0].outerHTML}`;
   }
-  svg = `${svg}</svg>`
+  svg = `${svg}</svg>`;
   return svg;
 }
 

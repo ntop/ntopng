@@ -157,7 +157,7 @@ function get_table_columns_config() {
   columns.push(
     {
       columnName: _i18n("backup_date"), orderable: false, targets: 0, name: 'epoch', data: 'epoch', className: 'text-left', responsivePriority: 1, render: (data, _, rowData) => {
-        return format_flows_icon(data, rowData)
+        return format_flows_icon(data)
       }
     }, {
     columnName: _i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) }

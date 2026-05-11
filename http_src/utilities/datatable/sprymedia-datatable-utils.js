@@ -746,10 +746,6 @@ export class DataTableRenders {
 
     static formatQoE(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
-        let cell = obj.label;
-        if (zero_is_null == true && obj.value == 0) {
-            cell = "";
-        }
         return `<a class='tag-filter' data-tag-key='qoe_score' title='${obj.label}' data-tag-value='${QoEUtils.GetQoEID(obj.value)}' data-tag-label='${obj.label}' href='javascript:void(0)'>${QoEUtils.QoEQualityIcon(obj.value)}</a>`;
     }
 

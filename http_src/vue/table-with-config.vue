@@ -10,7 +10,8 @@
         :handleLoadedColumns="handleLoadedColumns" :enable_search="table_config.enable_search"
         :default_sort="table_config.default_sort" :show_autorefresh="table_config.show_autorefresh"
         :paging="table_config.paging" :csrf="csrf" :showLoading="showLoading" :display_message="display_message"
-        :message_to_display="message_to_display" @loaded="on_loaded" @rows_loaded="rows_loaded"
+        :message_to_display="message_to_display" :expand_row_content="expand_row_content"
+        @loaded="on_loaded" @rows_loaded="rows_loaded"
         @custom_event="on_custom_event">
         <template v-slot:custom_header>
             <slot name="custom_header"></slot>
@@ -40,6 +41,7 @@ const props = defineProps({
     message_to_display: String,
     showLoading: Boolean,
     rows_data: Array,
+    expand_row_content: Function,
 });
 
 const table_config = ref({});

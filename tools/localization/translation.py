@@ -25,8 +25,9 @@ parser.add_argument('--output_language', type=str, help='Output language code (e
 
 args = parser.parse_args()
 
-input_file = args.input_file
-output_file = args.output_file
+# TODO, update when ready for production
+#input_file = args.input_file
+#output_file = args.output_file
 
 # pattern to retrieve i18n string content
 pattern = r'\s*\[\s*\"[^\"]+\"\s*\]\s*=\s*\"((?:\\.|[^\"])*)\"\s*,'

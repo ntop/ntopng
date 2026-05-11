@@ -2,7 +2,6 @@
 	(C) 2022 - ntop.org
 */
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
-import NtopUtils from "./ntop-utils.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import { default as Dropdown } from "../vue//dropdown.vue";
 import FormatterUtils from "./formatter-utils.js";
@@ -278,18 +277,5 @@ const table_utils = {
 	get_columns_from_datatable_columns,
 	build_table,
 };
-
-const render_functions = function () {
-	//     formatValueLabel(obj, type, row, zero_is_null) {
-	//     if (type !== "display") return obj.value;
-	//     let cell = obj.label;
-	// 	if (zero_is_null == true && obj.value == 0) {
-	// 	    cell = "";
-	// 	}
-	//     if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
-	//     return cell;
-	// }
-
-}();
 
 export default table_utils;

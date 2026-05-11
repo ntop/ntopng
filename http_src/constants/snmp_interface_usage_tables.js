@@ -35,7 +35,6 @@ const top_snmp_interface = {
 		columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpToDetails,
 		render_if: function (context) { return context.is_history_enabled },
 		render: function (data, type, service) {
-			let context = this;
 			const jump_to_interface_page = {
 				handlerId: handlerIdJumpToDetails,
 				onClick: function () {

@@ -48,7 +48,7 @@ const get_ts_group = (source_type, source_array, metric, customized_ts) => {
         past: true, /* By default enable the past serie */
         avg: false,
         perc_95: false,
-    }
+    };
 
     if (customized_ts && customized_ts.raw != null) ts_config.raw = customized_ts.raw;
     if (customized_ts && customized_ts.past != null) ts_config.past = customized_ts.past;
@@ -323,7 +323,7 @@ const get_current_page_source_type = () => {
 };
 
 const get_metric_from_schema = async (http_prefix, source_type, source_array, metric_schema, metric_query, status, only_basic_ts) => {
-    let metrics = await get_metrics(http_prefix, source_type, source_array, status, only_basic_ts);
+    let metrics = await get_metrics(http_prefix, source_type, source_array, status);
     if (metric_schema === 'top:iface:ndpi') {
         return metrics.find((m) => m.schema == metric_schema && m.query == metric_query) ||
             metrics.find((m) => m.schema == 'top:iface:ndpi_full' && m.query == metric_query)

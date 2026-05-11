@@ -132,7 +132,7 @@ function buildChartOptions(options) {
     config.disableTsList = options.disable_ts_list;
     config.yRangePad = options.yRangePad || 1;
     config.legendFormatter = legendFormatter;
-    config.blockStacked = options.block_stacked
+    config.blockStacked = options.block_stacked;
 
     /* Change the plotter */
     if (options.plotter) {

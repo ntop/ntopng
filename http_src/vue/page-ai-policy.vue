@@ -424,7 +424,7 @@ async function generatePolicy() {
 
     // there already is a similar policy, skip creation
     if (!rsp?.created) {
-      generationError.value = rsp.duplicate_policy
+      generationError.value = rsp.duplicate_policy;
     }
     else if (rsp?.sql_query) {
       proposedPolicy.value = { ...rsp };

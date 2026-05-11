@@ -62,7 +62,7 @@ const top_flow_interface = {
 			const jump_to_live = {
 				handlerId: handlerIdJumpLive,
 				onClick: function () {
-					let live_flows_url = `${http_prefix}/lua/flows_stats.lua?page=flows`
+					let live_flows_url = `${http_prefix}/lua/flows_stats.lua?page=flows`;
 					let params = "";
 					let params_array = [];
 					for (let key in service.tags) {

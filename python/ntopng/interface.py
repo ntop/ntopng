@@ -100,7 +100,7 @@ class Interface:
         """
         return Host(self.ntopng_obj, self.ifid, ip, vlan)
 
-    def get_active_hosts(self):
+    def get_all_active_hosts(self):
         """
         Retrieve the list of active hosts for the specified interface
 
@@ -280,7 +280,7 @@ class Interface:
             print("DSCP Stats ----------------------------")
             print(self.get_dscp_stats())
             print("Active Hosts ----------------------------")
-            print(self.get_active_hosts())
+            print(self.get_all_active_hosts())
             print("Active Hosts (100) ----------------------------")
             print(self.get_active_hosts_paginated(1, 100))
             print("Top Local Talkers ----------------------------")

@@ -565,7 +565,6 @@ const add_ = (is_edit) => {
   if (visible.value === false) {
     tmp_metric_type = ''
     tmp_extra_metric = ''
-    tmp_threshold = threshold.value.value;
   }
   if (tmp_metric_type == 'throughput') {
 
