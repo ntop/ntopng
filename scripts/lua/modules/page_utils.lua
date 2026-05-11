@@ -1792,6 +1792,35 @@ function page_utils.switch_interface_form_action_url(active_ifid, switch_ifid, s
 end
 
 -- ##############################################
+-- returns if nanalyst is enabled
+
+function page_utils.has_nanalyst()
+    local has_ch_support = hasClickHouseSupport()
+    local is_system_interface = toboolean(page_utils.is_system_view())
+    local has_nAnalyst =  ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
+
+    --return has_nAnalyst
+    return false
+end
+
+-- ##############################################
+function page_utils.page_not_enabled(i18n_key)
+    print([[
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="text-center" style="max-width: 480px;">
+        <div class="mb-4">
+        <i class="fas fa-lock fa-4x text-muted"></i>
+        </div>
+        <h3 class="fw-semibold mb-2">]] .. i18n("feature_not_available") .. [[</h3>
+        <p class="text-muted mb-4">]] .. i18n(i18n_key) .. [[</p>
+    </div>
+    </div>
+    ]])
+    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+    return
+end
+
+-- ##############################################
 
 return page_utils
 

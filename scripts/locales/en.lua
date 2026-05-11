@@ -25,6 +25,8 @@ local lang = {
    ["active_inactive"] = "Active/Inactive Hosts",
    ["active_monitoring"] = "Active Monitoring",
    ["current_hosts"] = "Current Hosts",
+   ["nanalyst_not_available"] = "nAnalyst not available, please <a href='https://shop.ntop.org/'>buy a license</a>",
+   ["feature_not_available"] = "Feature Not Available",
    ["error_messages"] = {
       ["name_cannot_be_empty"] = "Name Cannot Be Empty",
       ["name_must_be_longer_than_1_character"] = "Name Must Be Longer Than 1 Char",

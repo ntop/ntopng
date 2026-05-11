@@ -2559,11 +2559,7 @@ if isEmptyString(page) or page == "overview" then
    ]]
 
    -- Add chatbot button if nAnalyst is enabled
-   local has_ch_support = hasClickHouseSupport()
-   local is_system_interface = toboolean(page_utils.is_system_view())
-   local has_nAnalyst =  ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
-
-   if has_nAnalyst then
+   if page_utils.has_nanalyst() then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
       live_flow_info = require "live_flow_info"
       
