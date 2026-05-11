@@ -61,22 +61,16 @@
             </div>
           </template>
 
-          <template v-if="msg.role === 'assistant' && /policy|ai.polic/i.test(msg.content)">
-            <div class="mt-2">
-              <a :href="aiPolicyUrl" target="_blank" rel="noopener" class="ai-policy-link-btn">
-                <i class="fas fa-shield-alt me-1"></i>{{ _i18n('llm.open_ai_policies') }}
-                <i class="fas fa-external-link-alt ms-1" style="font-size:0.6rem;opacity:0.7;"></i>
-              </a>
-            </div>
-          </template>
-
-          <template v-if="msg.role === 'assistant' && /active.monitoring|add_active_monitoring/i.test(msg.content)">
-            <div class="mt-2">
-              <a :href="activeMonitoringUrl" target="_blank" rel="noopener" class="ai-policy-link-btn">
-                <i class="fas fa-heartbeat me-1"></i>{{ _i18n('llm.open_active_monitoring') }}
-                <i class="fas fa-external-link-alt ms-1" style="font-size:0.6rem;opacity:0.7;"></i>
-              </a>
-            </div>
+          <!-- Render href button to go to the called tool page, for now: active monitoring and policies -->
+          <template v-if="msg.role === 'assistant'">
+            <template v-for="(link, toolName) in toolActionLinks" :key="toolName">
+              <div v-if="msg.steps?.some(s => s.tool === toolName)" class="mt-2">
+                <a :href="link.href" target="_blank" rel="noopener" class="ai-policy-link-btn">
+                  <i :class="link.icon + ' me-1'"></i>{{ _i18n(link.i18nKey) }}
+                  <i class="fas fa-external-link-alt ms-1" style="font-size:0.6rem;opacity:0.7;"></i>
+                </a>
+              </div>
+            </template>
           </template>
 
           <template v-if="msg.role === 'assistant' && parseNextSteps(msg.content).length">
@@ -173,9 +167,6 @@
 
     <!-- Scroll overlay buttons -->
     <div class="scroll-overlay-btns" v-if="messages.length > 0">
-      <button class="scroll-overlay-btn" title="Scroll to start of last message" @click="scrollToLastMessage">
-        <i class="fas fa-chevron-up"></i>
-      </button>
       <button class="scroll-overlay-btn" title="Scroll to bottom" @click="scrollBottom">
         <i class="fas fa-chevron-down"></i>
       </button>
@@ -184,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from "vue";
+import { ref, watch, nextTick, computed } from "vue";
 import PieChart from "./charts/pie-chart.vue";
 import LineChart from "./charts/line-chart.vue";
 import { renderMarkdown, highlightSql } from "./composables/useLlmChat.js";
@@ -203,6 +194,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["toggle-sql-panel", "fill-step"]);
+
+// used to map tool name to page href and i18n key, this is used to render a button for ai policy or active monitoring script created
+const toolActionLinks = computed(() => ({
+  create_ai_policy:              { i18nKey: "llm.open_ai_policies",        href: props.aiPolicyUrl,          icon: "fas fa-shield-alt" },
+  add_active_monitoring_script:  { i18nKey: "llm.open_active_monitoring",   href: props.activeMonitoringUrl,  icon: "fas fa-heartbeat"  },
+}));
 
 const messageList = ref(null);
 

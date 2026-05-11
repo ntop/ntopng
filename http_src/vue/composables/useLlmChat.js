@@ -340,7 +340,7 @@ export function useLlmChat(props) {
       // evidence is the authoritative audit trail; pass as queries (rich panel), no separate steps
       const evidence = Array.isArray(finalChunk?.evidence) ? finalChunk.evidence : null;
       const queries  = evidence ?? finalChunk?.queries ?? null;
-      pushMessage("assistant", reply, false, finalChunk?.stats ?? null, finalChunk?.artifact ?? null, queries, null);
+      pushMessage("assistant", reply, false, finalChunk?.stats ?? null, finalChunk?.artifact ?? null, queries, queries);
 
       // Let the full-page component know the first message title
       if (isFirstMessage) onFirstMessage?.(text);

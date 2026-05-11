@@ -245,7 +245,7 @@ setOnFirstMessage((text) => {
     entry.isNew = false;
   } else {
     // User started chatting without clicking "New Chat" — insert the entry now
-    chatHistory.value.unshift({
+    insertAfterPinned({
       chat_id: chat_UUID.value,
       title,
       provider: selectedProvider.value ?? "",
@@ -307,7 +307,11 @@ async function loadChat(chatId) {
       let steps = null;
       if (role === "assistant" && msg.evidence_json) {
         let ev = msg.evidence_json;
-        if (typeof ev === "string") { try { ev = JSON.parse(ev); } catch (_) { } }
+        if (typeof ev === "string") {
+          // Strip malformed legacy data
+          const sanitized = ev.replace(/,\s*"input"\s*:[\s\S]*?(?=,\s*"(?:tool|thinking)"\s*:|}\s*(?:,|\]))/g, "");
+          try { ev = JSON.parse(sanitized); } catch (_) { }
+        }
         if (typeof ev === "object" && ev) {
           const tools = (ev.tools || []).filter(t => t.tool || t.thinking || t.sql);
           if (tools.length) { queries = tools; steps = tools; }
@@ -324,12 +328,18 @@ async function loadChat(chatId) {
   }
 }
 
+// used to insert chat in chat list below pinned
+function insertAfterPinned(entry) {
+  const lastPinnedIdx = chatHistory.value.reduce((acc, c, i) => isPinned(c) ? i : acc, -1);
+  chatHistory.value.splice(lastPinnedIdx + 1, 0, entry);
+}
+
 function startNewChat() {
   clearChat();
   const newId = chat_UUID.value;
   activeChatId.value = newId;
   ntopng_url_manager.set_key_to_url("chatId", newId);
-  chatHistory.value.unshift({
+  insertAfterPinned({
     chat_id: newId, title: "New Chat",
     provider: selectedProvider.value ?? "", isNew: true,
   });
