@@ -45,6 +45,7 @@
 #include "host_alerts/HostScannerAlert.h"
 #include "host_alerts/NATDetectedAlert.h"
 #include "host_alerts/ScanRealtimeAlert.h"
+#include "host_alerts/VPNDetectionAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 

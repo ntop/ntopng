@@ -88,6 +88,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new ServerPortsContacts())) registerCheck(fcb);
   if ((fcb = new NATDetected())) registerCheck(fcb);
   if ((fcb = new ScanRealtime())) registerCheck(fcb);
+  if ((fcb = new VPNDetection())) registerCheck(fcb);
 #endif
 
   // printChecks();

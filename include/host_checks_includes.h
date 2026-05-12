@@ -51,6 +51,7 @@
 #include "host_checks/ServerPortsContacts.h"
 #include "host_checks/NATDetected.h"
 #include "host_checks/ScanRealtime.h"
+#include "host_checks/VPNDetection.h"
 #endif
 
 #endif /* _HOST_CHECKS_INCLUDES_H_ */
