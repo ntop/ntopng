@@ -978,6 +978,7 @@ local lang = {
   ["total_score_host_page"] = "Total Score",
   ["total_src2dst_bytes"] = "Total Sent Bytes",
   ["total_traffic"] = "Total Traffic",
+  ["track_flow"] = "Track Flow",
   ["traffic"] = "Traffic",
   ["transit"] = "Transit",
   ["transit_as"] = "Transit AS",

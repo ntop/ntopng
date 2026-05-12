@@ -181,6 +181,7 @@ const modal_alerts_filter = ref(null);
 const modal_acknowledge = ref(null);
 const modal_delete = ref(null);
 const show_pcap_download = ref(false);
+const show_track_flow = ref(false);
 const columns_tags_values = ref(null);
 
 const current_alert = ref(null);
@@ -618,6 +619,7 @@ const map_table_def_columns = async (columns) => {
                 info: props.context.actions.show_info,
                 historical_data: props.context.actions.show_historical,
                 flow_alerts: props.context.actions.show_alerts,
+                track_flow: props.context.actions.show_track_flow,
                 pcap_download: props.context.actions.show_pcap_download,
                 row_data: props.context.is_enterprise_xl && flows_aggregated.value,
             };
@@ -756,6 +758,7 @@ function on_table_custom_event(event) {
         "click_button_flow_alerts": click_button_flow_alerts,
         "click_button_historical_flows": click_button_historical_flows,
         "click_button_pcap_download": click_button_pcap_download,
+        "click_button_track_flow": click_button_track_flow,
         "click_button_flows": click_button_flows,
     };
     if (events_managed[event.event_id] == null) {
@@ -774,6 +777,47 @@ function click_button_pcap_download(event) {
     const flow = event.row;
     const epoch_interval = { epoch_begin: flow?.filter?.epoch_begin, epoch_end: flow?.filter?.epoch_end };
     modal_traffic_extraction.value.show(flow?.filter?.bpf, epoch_interval);
+}
+
+function click_button_track_flow(event) {
+    const flow = event.row;
+    const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+    const epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+    const instance_name = flow?.NTOPNG_INSTANCE_NAME;
+ 
+    const cli_ip = flow?.flow?.cli_ip?.value;
+    const srv_ip = flow?.flow?.srv_ip?.value;
+    const cli_port = flow?.cli_port?.value;
+    const srv_port = flow?.srv_port?.value;
+    const l4proto = flow?.l4proto?.value;
+    const vlan_id = flow?.vlan_id?.value;
+ 
+    let url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${epoch_begin}&epoch_end=${epoch_end}`;
+ 
+    if (instance_name) {
+        url += `&instance_name=${instance_name}`;
+    }
+    if (cli_ip) {
+        url += `&cli_ip=${cli_ip};eq`;
+    }
+    if (srv_ip) {
+        url += `&srv_ip=${srv_ip};eq`;
+    }
+    if (cli_port) {
+        url += `&cli_port=${cli_port};eq`;
+    }
+    if (srv_port) {
+        url += `&srv_port=${srv_port};eq`;
+    }
+    if (l4proto) {
+        url += `&l4proto=${l4proto};eq`;
+    }
+
+    if (vlan_id && vlan_id != 0) {
+        url += `&vlan_id=${vlan_id};eq`;
+    }
+    
+    ntopng_url_manager.go_to_url(url);
 }
 
 function click_button_historical_flows(event) {
