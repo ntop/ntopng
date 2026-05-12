@@ -90,16 +90,6 @@
 			]
 		},
 		{
-            "id": "seen_since",
-			"title_i18n": "seen_since",
-			"data_field": "seen_since",
-			"sortable": true,
-			"class": [
-                "text-center",
-				"text-nowrap"
-			]
-		},
-		{
             "id": "alerted_flows",
 			"title_i18n": "flow_details.alerted_flows",
 			"data_field": "alerted_flows",

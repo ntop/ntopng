@@ -113,12 +113,9 @@ local function aggregateHistoricalASNRows(historical_asn_stats)
                 ["seen.first"] = first,
                 ["seen.last"] = last,
                 -- Per-role breakdown (roles outside 0/1/2 contribute to totals only)
-                bytes_sent_other = 0,
-                bytes_rcvd_other = 0,
-                bytes_sent_transit = 0,
-                bytes_rcvd_transit = 0,
-                bytes_sent_peering = 0,
-                bytes_rcvd_peering = 0,
+                bytes_other = 0, 
+                bytes_transit = 0, 
+                bytes_peering = 0,
             }
         else
             -- Subsequent row for same ASN: aggregate into the existing entry.
@@ -149,14 +146,11 @@ local function aggregateHistoricalASNRows(historical_asn_stats)
         -- other roles are already reflected in the totals above)
         local existing = asn_stats[asn]
         if role == INTERFACE_ROLE_OTHER then
-            existing.bytes_sent_other = existing.bytes_sent_other + b_sent
-            existing.bytes_rcvd_other = existing.bytes_rcvd_other + b_rcvd
+            existing.bytes_other = existing.bytes_other + b_sent + b_rcvd
         elseif role == INTERFACE_ROLE_TRANSIT then
-            existing.bytes_sent_transit = existing.bytes_sent_transit + b_sent
-            existing.bytes_rcvd_transit = existing.bytes_rcvd_transit + b_rcvd
+            existing.bytes_transit = existing.bytes_transit + b_sent + b_rcvd
         elseif role == INTERFACE_ROLE_PEERING then
-            existing.bytes_sent_peering = existing.bytes_sent_peering + b_sent
-            existing.bytes_rcvd_peering = existing.bytes_rcvd_peering + b_rcvd
+            existing.bytes_peering = existing.bytes_peering + b_sent + b_rcvd
         end
 
     end
@@ -370,40 +364,62 @@ function as_utils.retrieveASLiveTraffic(options)
     -- Process source ASN statistics
     for asn, bytes_stats in pairs(live_src_asn) do
         asn = tostring(asn)
+        
+        local b_transit = bytes_stats.transit_bytes or 0
+        local b_peering = bytes_stats.peering_bytes or 0
+        local b_total = bytes_stats.total_bytes or 0
+        
         if not asn_stats[asn] then
             -- New ASN: get info and initialize
             local as_info = interface.getASInfo(tonumber(asn), true)
             if (as_info) then
                 as_info["bytes.sent"] = bytes_stats.bytes_sent
                 as_info["bytes.rcvd"] = bytes_stats.bytes_rcvd
-                as_info["traffic"] = bytes_stats.total_bytes
+                as_info["traffic"] = b_total
+                as_info["bytes_transit"] = b_transit
+                as_info["bytes_peering"] = b_peering
+                as_info["bytes_other"] = b_total - b_transit - b_peering
                 asn_stats[asn] = as_info
             end
         else
             -- Existing ASN: aggregate statistics
             asn_stats[asn]["bytes.sent"] = asn_stats[asn]["bytes.sent"] + bytes_stats.bytes_sent
             asn_stats[asn]["bytes.rcvd"] = asn_stats[asn]["bytes.rcvd"] + bytes_stats.bytes_rcvd
-            asn_stats[asn]["traffic"] = asn_stats[asn]["bytes.total"] + bytes_stats.total_bytes
+            asn_stats[asn]["traffic"] = asn_stats[asn]["traffic"] + b_total
+            asn_stats[asn]["bytes_transit"] = asn_stats[asn]["bytes_transit"] + b_transit
+            asn_stats[asn]["bytes_peering"] = asn_stats[asn]["bytes_peering"] + b_peering
+            asn_stats[asn]["bytes_other"] = asn_stats[asn]["bytes_other"] + b_total - b_transit - b_peering
         end
     end
 
     -- Process destination ASN statistics
     for asn, bytes_stats in pairs(live_dst_asn) do
         asn = tostring(asn)
+        
+        local b_transit = bytes_stats.transit_bytes or 0
+        local b_peering = bytes_stats.peering_bytes or 0
+        local b_total   = bytes_stats.total_bytes or 0
+        
         if not asn_stats[asn] then
             -- New ASN: get info and initialize
             local as_info = interface.getASInfo(tonumber(asn))
             if (as_info) then
                 as_info["bytes.sent"] = bytes_stats.bytes_sent
-                as_info["bytes.rcvd"] = bytes_stats.bytes_rcvd
-                as_info["traffic"] = bytes_stats.total_bytes
+                as_info["bytes.rcvd"] = bytes_stats.bytes_rcvd                
+                as_info["traffic"] = b_total
+                as_info["bytes_transit"] = b_transit
+                as_info["bytes_peering"] = b_peering
+                as_info["bytes_other"] = b_total - b_transit - b_peering
                 asn_stats[asn] = as_info
             end
         else
             -- Existing ASN: aggregate statistics
             asn_stats[asn]["bytes.sent"] = asn_stats[asn]["bytes.sent"] + bytes_stats.bytes_sent
             asn_stats[asn]["bytes.rcvd"] = asn_stats[asn]["bytes.rcvd"] + bytes_stats.bytes_rcvd
-            asn_stats[asn]["traffic"] = asn_stats[asn]["traffic"] + bytes_stats.total_bytes
+            asn_stats[asn]["traffic"] = asn_stats[asn]["traffic"] + b_total
+            asn_stats[asn]["bytes_transit"] = asn_stats[asn]["bytes_transit"] + b_transit
+            asn_stats[asn]["bytes_peering"] = asn_stats[asn]["bytes_peering"] + b_peering
+            asn_stats[asn]["bytes_other"] = asn_stats[asn]["bytes_other"] + b_total - b_transit - b_peering
         end
     end
 
