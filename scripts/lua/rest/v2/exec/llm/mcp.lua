@@ -12,13 +12,19 @@
 -- Optional query param: ?ifid=<interface_id>   (default: 0)
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"         .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;"     .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
 
 local json        = require("dkjson")
 local rest_utils  = require("rest_utils")
+
+-- Pro paths: only add if nAnalyst is available
 local page_utils  = require("page_utils")
+
+if page_utils.has_nanalyst() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;"     .. package.path
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
+end
 
 -- Helpers
 local function send_json(body, status_code)
@@ -67,9 +73,11 @@ local function get_tools()
 
    -- nAnalyst tools: pro/scripts/lua/modules/llm/pro_tools.lua
    if page_utils.has_nanalyst() then
-      local ok2, err2 = pcall(function() return require("pro_tools") end)
-      if not ok2 then
-         tprint("[mcp] pro_tools load failed (using community tools): " .. tostring(err2))
+      local ok2, pro_tools = pcall(function() return require("pro_tools") end)
+      if ok2 and pro_tools then
+         mod = pro_tools
+      else
+         tprint("[mcp] pro_tools load failed (using community tools): " .. tostring(pro_tools))
       end
    end
 
@@ -82,14 +90,20 @@ local _system_prompt = nil
 
 local function get_system_prompt()
    if _system_prompt then return _system_prompt end
-   local ok, prompts = pcall(function() return require("prompts") end)
-   if ok and prompts and prompts.system_prompt then
-      _system_prompt = prompts.system_prompt(false)
-   else
-      _system_prompt = "You are connected to an ntopng network monitoring instance. "
-         .. "Use the available tools to query network traffic, flows, alerts, assets, "
-         .. "SNMP devices, and manage active monitoring and AI policies."
+
+   -- Community tools: scripts/lua/modules/llm/tools.lua
+   package.path = dirs.installdir .. "/scripts/lua/modules/llm/?.lua;" .. package.path
+   local tools = require("tools")
+   _system_prompt = tools.IDENTITY
+
+   -- If nAnalyst available, load pro system prompt (extends community with SQL rules)
+   if page_utils.has_nanalyst() then
+      local ok, prompts = pcall(function() return require("prompts") end)
+      if ok and prompts and prompts.system_prompt then
+         _system_prompt = prompts.system_prompt(false)
+      end
    end
+   
    return _system_prompt
 end
 

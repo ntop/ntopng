@@ -1,4 +1,3 @@
-local active_monitoring = require("active_monitoring")
 local json = require("dkjson")
 
 return {
@@ -16,11 +15,22 @@ return {
       if type(params) ~= "table" then
          return json.encode({ success = false, error = "invalid parameters: expected JSON object" })
       end
+
+      local pcall_ok, active_monitoring = pcall(function() return require("active_monitoring") end)
+      if not pcall_ok then
+         return json.encode({ success = false, error = "Could not load active_monitoring module" })
+      end
+
       local host        = params.host
       local measurement = params.measurement
       local ifid        = params.ifid
       local threshold   = params.threshold
       local granularity = params.granularity
+
+      if not host or not measurement or not ifid or not threshold or not granularity then
+         return json.encode({ success = false, error = "Missing required parameters: host, measurement, ifid, threshold, granularity" })
+      end
+
       local success, err = active_monitoring.add_am_script(host, measurement, ifid, threshold, granularity)
       return json.encode({ success = success, error = err })
    end,
