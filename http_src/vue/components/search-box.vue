@@ -4,8 +4,12 @@
 
 <template>
     <!-- Search container (expandable input + button + spinner) -->
-    <div class="ms-auto expandable-search align-items-center position-relative d-flex">
-
+    <div
+        :class="[
+            'ms-auto expandable-search align-items-center position-relative d-flex',
+            { expanded: expanded }
+        ]">
+        
         <!-- Search input -->
         <input name="search" type="text" ref="searchInput" class="form-control rounded-pill ps-4-5" autocomplete="off"
             autocorrect="off" :placeholder="_i18n('search')">
@@ -15,7 +19,10 @@
         </Spinner>
 
         <!-- Search icon button -->
-        <button class="btn btn-link search-btn">
+        <button 
+            class="btn btn-link search-btn"
+            @click="expanded = true">
+            <!-- set expanded to true on click to expand the search box -->
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
     </div>
@@ -39,6 +46,11 @@ import { ntopng_utility, ntopng_url_manager } from "../../services/context/ntopn
 const props = defineProps({
     context: Object,
 });
+
+/* ======================================================
+ * expanded search box with autocomplete suggestions for hosts
+ * ====================================================== */
+const expanded = ref(false);
 
 /* ======================================================
  * Reactive state & constants
@@ -320,6 +332,7 @@ const handleKeys = function (e) {
 
     if (e.key === "Escape") {
         searchList.value.classList.add("d-none");
+        expanded.value = false;
     }
 };
 
@@ -335,7 +348,10 @@ onMounted(() => {
     searchInput.value.addEventListener("keydown", handleKeys);
     searchInput.value.addEventListener(
         "blur",
-        () => setTimeout(() => searchList.value.classList.add("d-none"), 200)
+            () => setTimeout(() => {
+                searchList.value.classList.add("d-none");
+                expanded.value = false;
+            }, 200)
     );
 });
 </script>
@@ -388,14 +404,12 @@ onMounted(() => {
     z-index: 2;
 }
 
-.expandable-search:hover,
-.expandable-search:focus-within {
+.expandable-search.expanded {
     width: 250px;
     /* expanded */
 }
 
-.expandable-search:hover input,
-.expandable-search:focus-within input {
+.expandable-search.expanded input {
     outline: none;
     box-shadow: none;
     opacity: 1;
