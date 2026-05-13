@@ -4729,6 +4729,7 @@ local lang = {
     ["commands"] = "Commands",
     ["custom"] = "Custom",
     ["deduplicated_flows"] = "Deduplicated Flows",
+    ["role_traffic"] = "Role Traffic",
     ["discarded_probing_bytes"] = "Discarded Probing Traffic",
     ["discarded_probing_packets"] = "Discarded Probing Packets",
     ["dns_qry_rcvd_rsp_sent"] = "DNS Rcvd Queries / Sent Repls",

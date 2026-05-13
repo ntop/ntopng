@@ -241,6 +241,18 @@ end
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:role_traffic", {
+   step = 60,
+   metrics_type = ts_utils.metrics.counter
+})
+schema:addTag("ifid")
+schema:addMetric("peering")
+schema:addMetric("transit")
+schema:addMetric("other")
+
+-- ##############################################
+
+
 if ntop.isEnterpriseL() then
    schema = ts_utils.newSchema("subnet:qoe_stats", {
       step = 300,

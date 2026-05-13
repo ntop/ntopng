@@ -1,4 +1,4 @@
-safe_id = (id or ""):gsub("%s+", "_")
+{% local safe_id = (id or ""):gsub("%s+", "_") %}
 <div class="form-group mb-3">
   <label class="{* label_class or "" *}" for="{* safe_id *}">{* label or "" *}</label> {* icon or "" *}
   <select id="{* safe_id *}" name="{* safe_id *}" class="form-select">

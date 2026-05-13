@@ -523,6 +523,30 @@ local timeseries_list = {{
             color = ts_gui_utils.get_timeseries_color('default')
         }
     }
+}, {
+    schema = "iface:role_traffic",
+    id = timeseries_id,
+    label = i18n("graphs.role_traffic"),
+    priority = 0,
+    measure_unit = "bps",
+    scale = i18n("graphs.metric_labels.traffic"),
+    draw_stacked = true,
+    timeseries = {
+        peering = {
+            label = i18n("prefs.snmp_interface_role_list.peering"),
+            color = ts_gui_utils.get_timeseries_color('bytes')
+        },
+        transit = {
+            label = i18n("prefs.snmp_interface_role_list.transit"),
+            color = ts_gui_utils.get_timeseries_color('bytes')
+        },
+        other = {
+            label = i18n("prefs.snmp_interface_role_list.other"),
+            color = ts_gui_utils.get_timeseries_color('bytes')
+        }
+    },
+    nedge_exclude = true
+
 }}
 
 local function addTopTimeseries(tags, emptyEpoch, tsOptions)

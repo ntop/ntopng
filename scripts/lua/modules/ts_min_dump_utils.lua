@@ -240,6 +240,17 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
                         {ifid = ifstats.id, num_flows = ifstats.stats.num_deduplicated_flows}, when)
         end
     end
+
+    if ifstats.iface_role_traffic ~= nil then
+        ts_utils.append("iface:role_traffic", {
+            ifid = ifstats.id,
+            peering = ifstats.iface_role_traffic.peering or 0,
+            transit = ifstats.iface_role_traffic.transit or 0,
+            other = ifstats.iface_role_traffic.other or 0
+        }, when)
+    end
+
+
     -- QoE Stats
     if ntop.isEnterpriseL() then
         local qoe_list = {}
