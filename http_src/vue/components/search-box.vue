@@ -22,7 +22,7 @@
         <button 
             class="btn btn-link search-btn"
             @click="expanded = true">
-            <!-- set expanded to true on click to expand the search box -->
+            
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
     </div>
@@ -47,9 +47,7 @@ const props = defineProps({
     context: Object,
 });
 
-/* ======================================================
- * expanded search box with autocomplete suggestions for hosts
- * ====================================================== */
+
 const expanded = ref(false);
 
 /* ======================================================
