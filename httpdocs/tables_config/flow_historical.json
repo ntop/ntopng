@@ -47,7 +47,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.ntopng_interface",
+			"title_i18n": "db_search.flowfilters.ntopng_interface",
 			"data_field": "ntopng_interface",
 			"min-width": "100px",
 			"sortable": true,
@@ -113,7 +113,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.qoe",
+			"title_i18n": "db_search.flowfilters.qoe",
 			"data_field": "qoe_score",
 			"render_type": "formatQoE",
 			"min-width": "70px",
@@ -215,7 +215,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.src_peer_asn",
+			"title_i18n": "db_search.flowfilters.src_peer_asn",
 			"data_field": "src_peer_as",
 			"min-width": "100px",
 			"sortable": true,
@@ -233,7 +233,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.dst_peer_asn",
+			"title_i18n": "db_search.flowfilters.dst_peer_asn",
 			"data_field": "dst_peer_as",
 			"min-width": "100px",
 			"sortable": true,
@@ -261,7 +261,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.domain_name",
+			"title_i18n": "db_search.flowfilters.domain_name",
 			"data_field": "domain_name",
 			"min-width": "100px",
 			"sortable": true,
@@ -373,7 +373,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.exporter_site",
+			"title_i18n": "db_search.flowfilters.exporter_site",
 			"data_field": "exporter_site",
 			"sortable": true,
 			"min-width": "120px",
@@ -383,7 +383,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_network",
+			"title_i18n": "db_search.flowfilters.cli_network",
 			"data_field": "cli_network",
 			"sortable": false,
 			"min-width": "140px",
@@ -393,7 +393,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.srv_network",
+			"title_i18n": "db_search.flowfilters.srv_network",
 			"data_field": "srv_network",
 			"sortable": true,
 			"min-width": "140px",
@@ -423,7 +423,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.input_snmp",
+			"title_i18n": "db_search.flowfilters.input_snmp",
 			"data_field": "input_snmp",
 			"sortable": false,
 			"min-width": "100px",
@@ -434,7 +434,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.output_snmp",
+			"title_i18n": "db_search.flowfilters.output_snmp",
 			"data_field": "output_snmp",
 			"sortable": false,
 			"min-width": "100px",
@@ -445,7 +445,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_country",
+			"title_i18n": "db_search.flowfilters.cli_country",
 			"data_field": "cli_country",
 			"sortable": false,
 			"min-width": "100px",
@@ -455,7 +455,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.srv_country",
+			"title_i18n": "db_search.flowfilters.srv_country",
 			"data_field": "srv_country",
 			"sortable": false,
 			"min-width": "100px",
@@ -465,7 +465,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_fingerprint",
+			"title_i18n": "db_search.flowfilters.cli_fingerprint",
 			"data_field": "cli_fingerprint",
 			"sortable": false,
 			"min-width": "100px",
@@ -475,7 +475,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_proc_name",
+			"title_i18n": "db_search.flowfilters.cli_proc_name",
 			"data_field": "cli_proc_name",
 			"sortable": true,
 			"min-width": "100px",
@@ -484,7 +484,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.srv_proc_name",
+			"title_i18n": "db_search.flowfilters.srv_proc_name",
 			"data_field": "srv_proc_name",
 			"sortable": true,
 			"min-width": "100px",
@@ -493,7 +493,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_user_name",
+			"title_i18n": "db_search.flowfilters.cli_user_name",
 			"data_field": "cli_user_name",
 			"min-width": "100px",
 			"sortable": true,
@@ -502,7 +502,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.srv_user_name",
+			"title_i18n": "db_search.flowfilters.srv_user_name",
 			"data_field": "srv_user_name",
 			"sortable": true,
 			"min-width": "100px",
@@ -511,7 +511,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.major_connection_state",
+			"title_i18n": "db_search.flowfilters.major_connection_state",
 			"data_field": "major_connection_state",
 			"sortable": true,
 			"min-width": "100px",
@@ -520,7 +520,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.minor_connection_state",
+			"title_i18n": "db_search.flowfilters.minor_connection_state",
 			"data_field": "minor_connection_state",
 			"sortable": true,
 			"min-width": "100px",
@@ -529,7 +529,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.apn_mac",
+			"title_i18n": "db_search.flowfilters.apn_mac",
 			"data_field": "apn_mac",
 			"min-width": "100px",
 			"sortable": true,
