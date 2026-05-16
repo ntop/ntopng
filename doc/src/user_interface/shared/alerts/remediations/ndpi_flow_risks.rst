@@ -474,59 +474,139 @@ PERIODIC FLOW
 #. **Remediation**: To secure the network when NDPI PERIODIC FLOW is detected, consider implementing rate limiting strategies on the relevant applications and reviewing their configurations for any potential vulnerabilities. Additionally, ensure that intrusion detection/prevention systems (IDS/IPS) are configured to recognize and respond appropriately to DoS attacks or synchronization attacks targeting periodic flows. Finally, monitor these applications closely for abnormal behavior and tune deep packet inspection rules as necessary.
 
 .. _Risk 049:
-  
+
 MINOR ISSUES
 ============
 
+#. **Description**: Detection of minor protocol issues or anomalies in the monitored flow that do not represent a critical threat but deviate from expected protocol behavior.
+#. **Possible attacks**: Minor issues can be indicators of misconfigured clients or servers, protocol implementation bugs, or early-stage reconnaissance activity. While individually low-risk, aggregated minor issues may point to a compromised endpoint or an attacker probing for weaknesses.
+#. **Remediation**: When this risk is detected, it is recommended to:
+  1. Review the affected flow endpoints for signs of misconfiguration or software bugs.
+  2. Correlate minor issue alerts with other risk signals from the same host to detect patterns.
+  3. Keep client and server software up-to-date to minimize protocol implementation defects.
+  4. Monitor over time — a spike in minor issues from a single host warrants deeper investigation.
 
 .. _Risk 050:
-  
+
 TCP ISSUES
 ==========
 
+#. **Description**: Detection of TCP-level anomalies such as out-of-order segments, retransmissions, duplicate ACKs, or unexpected RST/FIN sequences that deviate from normal TCP behavior.
+#. **Possible attacks**: TCP issues can be leveraged by attackers to perform TCP session hijacking, denial-of-service attacks through SYN flooding or RST injection, or to evade deep packet inspection by sending fragmented or reordered segments.
+#. **Remediation**: Upon detection of TCP issues, it is recommended to:
+  1. Investigate whether the anomalies are caused by network congestion or faulty hardware versus deliberate manipulation.
+  2. Enable and tune TCP state tracking on firewalls and IDS/IPS to detect injection and hijacking attempts.
+  3. Apply rate limiting on TCP connections from sources generating excessive retransmissions or RST storms.
+  4. Review network device firmware and operating system TCP stack configurations for known vulnerabilities.
 
 .. _Risk 051:
-  
+
 FULLY ENCRYPTED
 ===============
 
+#. **Description**: The entire flow payload is encrypted using a non-standard or unrecognized encryption scheme, making it impossible to identify the application protocol via deep packet inspection.
+#. **Possible attacks**: Full payload encryption is a common technique used by malware, ransomware command-and-control (C2) channels, and data exfiltration tools to evade network inspection and bypass security controls.
+#. **Remediation**: When fully encrypted traffic is detected, it is recommended to:
+  1. Correlate the flow with known malicious IP addresses or domains using threat intelligence feeds.
+  2. Inspect the endpoints involved for signs of compromise, unusual processes, or outbound connection patterns.
+  3. Implement network segmentation to restrict which hosts are permitted to initiate fully encrypted sessions to external destinations.
+  4. Consider deploying SSL/TLS inspection where policy permits, to maintain visibility into encrypted traffic.
+  5. Monitor for unusual data volumes or connection durations associated with fully encrypted flows.
 
 .. _Risk 052:
-  
+
 TLS ALPN SNI MISMATCH
 =====================
 
+#. **Description**: A mismatch between the Application-Layer Protocol Negotiation (ALPN) extension and the Server Name Indication (SNI) extension in the TLS handshake. The protocol advertised via ALPN does not match what is expected for the declared server name.
+#. **Possible attacks**: This mismatch can indicate a man-in-the-middle (MitM) attack where an intercepting proxy mis-advertises protocol capabilities, or it can signal malware using TLS to tunnel non-standard protocols while disguising the connection as legitimate HTTPS traffic.
+#. **Remediation**: When a TLS ALPN/SNI mismatch is detected, it is recommended to:
+  1. Investigate the server name and destination to determine if the ALPN mismatch is caused by a misconfigured server or a deliberate evasion attempt.
+  2. Verify that the server at the declared SNI hostname supports the negotiated ALPN protocol.
+  3. Block or quarantine connections where the mismatch cannot be explained by a known application.
+  4. Enforce strict TLS inspection policies that flag or terminate sessions with inconsistent handshake parameters.
 
 .. _Risk 053:
-  
+
 MALWARE HOST CONTACTED
 ======================
 
+#. **Description**: A client or server in the monitored network has established a connection to a host identified as a known malware distribution point, botnet C2 server, or other malicious infrastructure.
+#. **Possible attacks**: Contacting a malware host can indicate an active infection on the endpoint, ongoing botnet communication, malware downloading a second-stage payload, or data exfiltration to attacker-controlled infrastructure.
+#. **Remediation**: Upon detection of this risk, it is strongly recommended to:
+  1. Immediately isolate the endpoint that initiated the connection to prevent further spread or data loss.
+  2. Perform a full forensic investigation of the affected host, including memory and disk analysis.
+  3. Block the malicious IP address or domain at the firewall and DNS level.
+  4. Check other hosts on the network for similar connections to identify lateral movement.
+  5. Report the incident to the appropriate security team and update threat intelligence feeds.
+  6. Restore the affected system from a clean backup after confirming the infection vector is remediated.
 
 .. _Risk 054:
-  
+
 BINARY DATA TRANSFER
 ====================
 
+#. **Description**: Detection of binary data being transferred over a protocol that is expected to carry only text-based or structured content, such as HTTP or DNS.
+#. **Possible attacks**: Binary data transfers over unexpected protocols can indicate data exfiltration, malware payload delivery, or the use of covert channels to bypass security controls. Attackers may encode executables or configuration data as binary blobs to avoid signature-based detection.
+#. **Remediation**: When binary data transfer is detected, it is recommended to:
+  1. Inspect the content of the transfer to determine whether it contains executables, archives, or other suspicious payloads.
+  2. Block binary transfers on protocols where they are not expected (e.g., restrict binary content in DNS responses).
+  3. Implement data loss prevention (DLP) policies to detect and prevent unauthorized binary file transfers.
+  4. Investigate the source and destination endpoints for signs of compromise or unauthorized software.
 
 .. _Risk 055:
-  
+
 PROBING ATTEMPT
 ===============
 
+#. **Description**: Detection of network activity consistent with active reconnaissance or port scanning. The observed traffic pattern suggests an entity is systematically probing hosts or services to discover open ports, running services, or potential vulnerabilities.
+#. **Possible attacks**: Probing attempts are typically the first phase of an attack lifecycle. They are used by threat actors to map the network topology, identify vulnerable services, and select targets for exploitation. Common techniques include TCP SYN scans, UDP probes, and ICMP sweeps.
+#. **Remediation**: When a probing attempt is detected, it is recommended to:
+  1. Block or rate-limit traffic from the probing source at the firewall or IPS level.
+  2. Investigate whether the probing originates from inside or outside the network — internal probing may indicate a compromised host.
+  3. Ensure that all exposed services are running up-to-date software and are hardened against known vulnerabilities.
+  4. Review firewall rules to minimize the attack surface by closing unnecessary ports and services.
+  5. Enable and monitor IDS/IPS alerts for follow-up exploitation attempts from the same source.
+
 .. _Risk 056:
-  
+
 OBFUSCATED_TRAFFIC
-=================
+==================
+
+#. **Description**: Detection of network traffic where the payload or protocol headers have been deliberately obfuscated to hinder analysis and evade deep packet inspection. The obfuscation may involve encoding, encryption layering, or protocol mimicry.
+#. **Possible attacks**: Traffic obfuscation is a common technique used by malware, remote access tools (RATs), and advanced persistent threat (APT) actors to blend malicious communications into normal network activity and bypass security monitoring. It is also used by anonymization tools and some legitimate privacy applications.
+#. **Remediation**: When obfuscated traffic is detected, it is recommended to:
+  1. Correlate the source and destination of the obfuscated flow with known threat intelligence indicators.
+  2. Analyze the endpoints involved for signs of unauthorized software or unusual process behavior.
+  3. Implement behavioral analytics to detect anomalous communication patterns regardless of content visibility.
+  4. Enforce network egress policies that require identifiable, approved protocols on all outbound connections.
+  5. Consider deploying application-layer gateways that can identify protocol mimicry and obfuscated tunneling.
 
 .. _Risk 057:
-  
+
 NDPI_SLOW_DOS
 =============
 
+#. **Description**: Detection of a slow denial-of-service (DoS) attack pattern, where an attacker deliberately maintains connections using minimal bandwidth to exhaust server resources such as connection tables, threads, or memory without triggering traditional volumetric DoS thresholds.
+#. **Possible attacks**: Slow DoS techniques include Slowloris (holding HTTP connections open by sending incomplete headers), Slow POST attacks (sending request bodies at extremely low rates), and slow read attacks (consuming server buffers by not reading responses). These attacks can render services unavailable while consuming very little attacker bandwidth.
+#. **Remediation**: When a slow DoS pattern is detected, it is recommended to:
+  1. Configure connection timeout policies on web servers and load balancers to terminate idle or abnormally slow connections.
+  2. Implement rate limiting on new connection establishment from individual source IPs.
+  3. Deploy a Web Application Firewall (WAF) capable of detecting and mitigating slow HTTP attack patterns.
+  4. Monitor server resource utilization (thread pools, connection tables) alongside network traffic to detect resource exhaustion early.
+  5. Consider using reverse proxies or CDNs with built-in slow DoS protection in front of critical services.
 
 .. _Risk 058:
-  
+
 NDPI_NON_PQC
 ============
+
+#. **Description**: Detection of cryptographic algorithms that are not resistant to attacks by quantum computers. The flow is using classical public-key cryptography (e.g., RSA, Diffie-Hellman, or elliptic-curve variants) that will become vulnerable once sufficiently powerful quantum computers are available. This alert detects: SSH, TLS, QUIC and IPSEC flows with obsolete encryption/key exchange algorithms
+#. **Possible attacks**: While quantum computers capable of breaking current encryption are not yet widely available, adversaries may be conducting "harvest now, decrypt later" attacks — capturing encrypted traffic today with the intention of decrypting it once quantum computing capabilities mature. Sensitive long-lived data is particularly at risk.
+#. **Remediation**: When non-PQC traffic is detected, it is recommended to:
+  1. Identify all services and applications using classical public-key cryptography and prioritize migration to Post-Quantum Cryptography (PQC) algorithms standardized by NIST (e.g., ML-KEM, ML-DSA, SLH-DSA).
+  2. Enable hybrid key exchange mechanisms (combining classical and PQC algorithms) as an interim step during migration.
+  3. Update TLS libraries (e.g., OpenSSL, BoringSSL) to versions that support PQC cipher suites.
+  4. Prioritize migration for flows carrying highly sensitive or long-lived data such as authentication credentials, encryption keys, or confidential communications.
+  5. Monitor vendor roadmaps for PQC support in network appliances, VPN gateways, and application servers.
 
