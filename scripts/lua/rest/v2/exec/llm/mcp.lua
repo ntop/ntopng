@@ -11,6 +11,12 @@
 -- GET  /lua/rest/v2/exec/llm/mcp.lua          (server health / discovery)
 -- Optional query param: ?ifid=<interface_id>   (default: 0)
 
+-- Must be set before http_lint runs (parsePOSTpayload checks this flag).
+-- If set too late, http_lint decodes _POST["payload"] into a table and
+-- json.decode(payload) receives a table instead of a string.
+ignore_post_payload_parse = true  -- luacheck: ignore
+pragma_once_http_lint      = true  -- luacheck: ignore
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -60,10 +66,6 @@ local _tools_mod = nil
 local function get_tools()
    if _tools_mod then return _tools_mod, nil end
    
-   -- httplint does not parse jsonrpc format yet
-   ignore_post_payload_parse = true  -- luacheck: ignore
-   pragma_once_http_lint      = true  -- luacheck: ignore
-
    -- Community tools: scripts/lua/modules/llm/tools.lua
    package.path = dirs.installdir .. "/scripts/lua/modules/llm/?.lua;" .. package.path
    local ok, mod = pcall(function() return require("tools") end)
