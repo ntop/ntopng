@@ -178,18 +178,18 @@ function site_utils.editSite(site)
    local existing_sites = get_sites_from_cache()
 
    -- Validate and normalize the site ID
-   if site.id and tonumber(site.id) then
-      site.id = tostring(site.id) -- Convert to string for consistency
+   if site.site_id and tonumber(site.site_id) then
+      site.site_id = tostring(site.site_id) -- Convert to string for consistency
    else
       return rest_utils.consts.err.edit_site_failed, "Invalid ID"
    end
 
    -- Ensure the site exists
-   if not existing_sites[site.id] then
+   if not existing_sites[site.site_id] then
       return rest_utils.consts.err.edit_site_failed, "Invalid Site"
    end
 
-   local old_site = existing_sites[site.id]
+   local old_site = existing_sites[site.site_id]
 
    -- Handle empty coordinate values (default to 0)
    if isEmptyString(site.latitude) then
@@ -207,11 +207,11 @@ function site_utils.editSite(site)
 
    if res then
       -- Delete old entry first to ensure clean update
-      ntop.delHashCache(REDIS_HASH_NAME, site.id)
+      ntop.delHashCache(REDIS_HASH_NAME, site.site_id)
 
       -- Create updated site object
       local site_json = {
-	 id = tostring(site.id),
+	 id = tostring(site.site_id),
 	 name = site.site_name,
 	 description = site.site_description,
          latitude = site.latitude,
@@ -219,7 +219,7 @@ function site_utils.editSite(site)
       }
 
       -- Store updated site in Redis
-      ntop.setHashCache(REDIS_HASH_NAME, id, json.encode(site_json))
+      ntop.setHashCache(REDIS_HASH_NAME, site.site_id, json.encode(site_json))
    else
       return rest_utils.consts.err.edit_site_failed, msg -- Return validation error
    end
