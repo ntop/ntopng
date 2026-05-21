@@ -527,16 +527,6 @@
 			"class": [
 				"no-wrap"
 			]
-		},
-		{
-			"title_i18n": "db_search.flowfilters.apn_mac",
-			"data_field": "apn_mac",
-			"min-width": "100px",
-			"sortable": true,
-			"render_generic": "apn_mac",
-			"class": [
-				"no-wrap"
-			]
 		}
 	]
 }

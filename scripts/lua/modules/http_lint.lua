@@ -2159,6 +2159,7 @@ local known_parameters = {
    ["cli_fingerprint"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["ndpi_fingerprint"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
+   ["tcp_fingerprint"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["issuer_dn"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["last_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["retransmissions"] = validateListOfTypeInline(validateFilters(validateNumber)),

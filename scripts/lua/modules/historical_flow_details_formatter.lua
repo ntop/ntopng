@@ -271,19 +271,35 @@ end
 
 -- ###############################################
 
-local function format_historical_wlan_ssid(flow, info)
+local function format_historical_wlan_ssid(flow, info, wlan_ssid)
+   local label
+   if info.wlan_ssid then 
+      label = info.wlan_ssid.label
+   else 
+      label = wlan_ssid
+   end
    return {
       name = i18n("flow_fields_description.wlan_ssid"),
-      values = {info.wlan_ssid.label}
+      values = {label}
    }
 end
 
 -- ###############################################
 
-local function format_historical_wtp_mac_address(flow, info)
+local function format_historical_wtp_mac_address(flow, info, wtp_mac_address)
+   local label
+   if info.apn_mac then 
+      label = info.apn_mac.label
+   else 
+      if type(wtp_mac_address) == "number" then
+         label = ntop.decodeMac64(wtp_mac_address)
+      else
+         label = wtp_mac_address
+      end
+   end
    return {
       name = i18n("flow_fields_description.wtp_mac_address"),
-      values = {info.apn_mac.label}
+      values = {label}
    }
 end
 
@@ -301,10 +317,16 @@ end
 
 -- ###############################################
 
-local function format_historical_tcp_fingerprint(flow)
+local function format_historical_tcp_fingerprint(flow, tcp_ft)
+   local label
+   if flow["TCP_FINGERPRINT"] then 
+      label = flow["TCP_FINGERPRINT"]
+   else 
+      label = tcp_ft
+   end
    return {
       name = i18n("details.tcp_fingerprint"),
-      values = {{flow["TCP_FINGERPRINT"]}}
+      values = {{label}}
    }
 end
 
@@ -554,11 +576,13 @@ end
 
 -- ###############################################
 
-local function format_historical_community_id(flow)
+local function format_historical_community_id(flow, community_id)
+   local cid = flow["COMMUNITY_ID"]
+   if not isEmptyString(community_id) then cid = community_id end
    return {
       name = "<A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">" .. i18n("db_explorer.community_id") ..
          " <i class=\"fas fa-external-link-alt\"></i></A>",
-      values = {flow["COMMUNITY_ID"] .. "<button style=\"\" class=\"btn btn-sm border ms-1\" data=\"" .. flow["COMMUNITY_ID"] ..
+      values = {cid .. "<button style=\"\" class=\"btn btn-sm border ms-1\" data=\"" .. cid ..
          "\" onclick=\"NtopUtils.copyToClipboard(this.getAttribute('data'), '" .. i18n('copied') .. "', '" .. i18n('request_failed_message') ..
          "', this)\">" .. "<i class=\"fas fa-copy\"></i></button>"}
    }
@@ -1049,7 +1073,9 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
       end
 
       if (info["l4proto"]) and (info["l4proto"]["label"] == 'TCP') then
-         flow_details[#flow_details + 1] = format_historical_tcp_fingerprint(flow, info)
+         if (not isEmptyString(flow["TCP_FINGERPRINT"]) or not isEmptyString(protocol_info_json["tcp_fingerprint"])) then
+            flow_details[#flow_details + 1] = format_historical_tcp_fingerprint(flow, protocol_info_json["tcp_fingerprint"])
+         end
          flow_details[#flow_details + 1] = format_historical_tcp_flags(flow, info)
 
          if (info["major_connection_state"] ~= 0 and info["minor_connection_state"] ~= 0) then
@@ -1071,9 +1097,9 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
       if (info["score"]) and (info["score"]["value"] ~= 0) then
          flow_details = historical_flow_details_formatter.format_historical_issues(flow_details, flow)
       end
-
-      if (info['community_id']) and (not isEmptyString(info['community_id'])) then
-         flow_details[#flow_details + 1] = format_historical_community_id(flow)
+      if ((info['community_id']) and (not isEmptyString(info['community_id']))) 
+            or not isEmptyString(protocol_info_json["community_id"]) then
+         flow_details[#flow_details + 1] = format_historical_community_id(flow, protocol_info_json["community_id"])
       end
 
       if (info['info']) and (not isEmptyString(info['info']["title"])) then
@@ -1128,12 +1154,13 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 
       flow_details = format_historical_sites(flow_details, flow)
 
-      if not isEmptyString(info.wlan_ssid) then
-         flow_details[#flow_details + 1] = format_historical_wlan_ssid(flow, info)
+      if (not isEmptyString(info.wlan_ssid)) or (not isEmptyString(protocol_info_json["wlan_ssid"])) then
+         flow_details[#flow_details + 1] = format_historical_wlan_ssid(flow, info, protocol_info_json["wlan_ssid"])
       end
 
-      if info.apn_mac and not isEmptyString(info.apn_mac.value) then
-         flow_details[#flow_details + 1] = format_historical_wtp_mac_address(flow, info)
+      if (info.apn_mac and not isEmptyString(info.apn_mac.value)) 
+            or (not isEmptyString(protocol_info_json["wtp_mac_address"])) then
+         flow_details[#flow_details + 1] = format_historical_wtp_mac_address(flow, info, protocol_info_json["wtp_mac_address"])
       end
 
       if table.len(protocol_info_json["proto"]) > 0 then

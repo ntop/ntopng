@@ -8637,6 +8637,8 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
   if (serializer == NULL) return;
 
   u_int16_t l7proto = getLowerProtocol();
+  char buf[64];
+  char* comm_id = (char*)getCommunityId((u_char*)buf, sizeof(buf));
 
   ndpi_serialize_start_of_block(serializer, "proto"); /* proto block */
 
@@ -8793,6 +8795,28 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
       ndpi_serialize_string_uint32(serializer, "srv2cli_lost",
                                    getTrafficStats()->get_srv2cli_tcp_lost());
     ndpi_serialize_end_of_block(serializer); /* traffic_stats block */
+  }
+  
+  // WLAN_SSID
+  if (getWLANSSID()) {
+    ndpi_serialize_string_string(serializer, "wlan_ssid", getWLANSSID());
+
+  }
+
+  // WTP_MAC_ADDRESS
+  if (getWTPMACAddress()) {
+    ndpi_serialize_string_uint64(serializer, "wtp_mac_address",
+                                  Utils::encodeMacTo64(getWTPMACAddress()));
+  }
+
+  // TCP_FINGERPRINT
+  if (getTCPFingerprint()) {
+    ndpi_serialize_string_string(serializer, "tcp_fingerprint", getTCPFingerprint());
+  }
+  
+  // COMMUNITY_ID
+  if (comm_id){
+    ndpi_serialize_string_string(serializer, "community_id", comm_id);
   }
 
   if (protocol == IPPROTO_TCP && applLatencyMsec > 0)

@@ -40,7 +40,6 @@ CREATE TABLE IF NOT EXISTS `flows` (
 `DST_LABEL` String COMMENT 'Resolved hostname or user-defined label for the destination host',
 `SRC_MAC` UInt64 COMMENT 'Source MAC address encoded as a 64-bit integer',
 `DST_MAC` UInt64 COMMENT 'Destination MAC address encoded as a 64-bit integer',
-`COMMUNITY_ID` String COMMENT 'Community ID v1 flow hash for cross-tool correlation',
 `SRC_ASN` UInt32 COMMENT 'Autonomous System Number of the source IP',
 `DST_ASN` UInt32 COMMENT 'Autonomous System Number of the destination IP',
 `PROBE_IP` IPv6 COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter (probe); IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)',
@@ -60,7 +59,6 @@ CREATE TABLE IF NOT EXISTS `flows` (
 `SRC_SITE_ID` UInt16 COMMENT 'ntopng site ID associated with the source network (0 if none)',
 `DST_SITE_ID` UInt16 COMMENT 'ntopng site ID associated with the destination network (0 if none)',
 `CLIENT_FINGERPRINT` String COMMENT 'TLS/QUIC client fingerprint (JA3 or similar)',
-`TCP_FINGERPRINT` String COMMENT 'TCP stack fingerprint used for passive OS detection',
 `INPUT_SNMP` UInt32 COMMENT 'SNMP input interface index exported via NetFlow/IPFIX',
 `OUTPUT_SNMP` UInt32 COMMENT 'SNMP output interface index exported via NetFlow/IPFIX',
 `SRC_HOST_POOL_ID` UInt16 COMMENT 'ntopng host-pool ID of the source host',
@@ -95,8 +93,6 @@ CREATE TABLE IF NOT EXISTS `flows` (
 `POST_NAT_SRC_PORT` UInt32 COMMENT 'Source port after NAT translation',
 `POST_NAT_IPV4_DST_ADDR` UInt32 COMMENT 'Destination IPv4 address after NAT translation',
 `POST_NAT_DST_PORT` UInt32 COMMENT 'Destination port after NAT translation',
-`WLAN_SSID` String COMMENT 'Wireless LAN SSID associated with this flow',
-`WTP_MAC_ADDRESS` UInt64 COMMENT 'MAC address of the Wireless Termination Point (access point) as a 64-bit integer',
 `DOMAIN_NAME` String COMMENT 'Domain name contacted extracted from the flow (from SNI, DNS, or HTTP Host header)',
 `SRC_PEER_ASN` UInt32 COMMENT 'BGP peer ASN upstream of the source IP',
 `DST_PEER_ASN` UInt32 COMMENT 'BGP peer ASN upstream of the destination IP',
@@ -123,8 +119,6 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `SRC_NETWORK_ID` UInt32;
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `DST_NETWORK_ID` UInt32;
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `CLIENT_FINGERPRINT` String;
-@
-ALTER TABLE flows ADD COLUMN IF NOT EXISTS `TCP_FINGERPRINT` String;
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `INPUT_SNMP` UInt32;
 @
@@ -189,10 +183,6 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `POST_NAT_SRC_PORT` UInt32;
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `POST_NAT_IPV4_DST_ADDR` UInt32;
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `POST_NAT_DST_PORT` UInt32;
-@
-ALTER TABLE flows ADD COLUMN IF NOT EXISTS `WLAN_SSID` String;
-@
-ALTER TABLE flows ADD COLUMN IF NOT EXISTS `WTP_MAC_ADDRESS` UInt64;
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `DOMAIN_NAME` String;
 @
@@ -802,8 +792,6 @@ CREATE TABLE IF NOT EXISTS `hourly_flows` (
 `SRC_LABEL` String COMMENT 'Resolved hostname or user-defined label for the source host',
 `DST_LABEL` String COMMENT 'Resolved hostname or user-defined label for the destination host',
 `INTERFACE_ID` UInt16 COMMENT 'ntopng internal interface identifier',
-`WLAN_SSID` String COMMENT 'Wireless LAN SSID associated with this flow',
-`WTP_MAC_ADDRESS` UInt64 COMMENT 'MAC address of the Wireless Termination Point (access point) as a 64-bit integer',
 `CLIENT_LOCATION` UInt8 COMMENT 'Client host location type (local LAN, remote, etc.)',
 `SERVER_LOCATION` UInt8 COMMENT 'Server host location type (local LAN, remote, etc.)'
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, IPV4_SRC_ADDR, IPV4_DST_ADDR)
@@ -814,10 +802,6 @@ ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS SRC_LABEL String;
 ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS DST_LABEL String;
 @
 ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS INTERFACE_ID UInt16;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS WLAN_SSID String;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS WTP_MAC_ADDRESS UInt64;
 @
 ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS CLIENT_LOCATION UInt8;
 @
@@ -1080,7 +1064,7 @@ SELECT
     f.DST_LABEL AS srv_name,
     f.SRC_ASN AS src_asn,
     f.DST_ASN AS dst_asn,
-    f.COMMUNITY_ID AS community_id,
+    --f.COMMUNITY_ID AS community_id,
     f.SCORE AS score,
     f.SRC_HOST_POOL_ID AS cli_host_pool_id,
     f.DST_HOST_POOL_ID AS srv_host_pool_id,

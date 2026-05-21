@@ -1275,9 +1275,9 @@ local flow_columns = {
    ['DST_LABEL'] =            { flowfilter = "srv_name", db_type = "String", db_raw_type = "String" },
    ['SRC_MAC'] =              { flowfilter = "cli_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['DST_MAC'] =              { flowfilter = "srv_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
-   ['COMMUNITY_ID'] =         { flowfilter = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10, db_type = "String", db_raw_type = "String" },
+   -- ['COMMUNITY_ID'] =         { flowfilter = "community_id", format_func = format_flow_info, i18n = i18n("flow_fields_description.community_id"), order = 10, db_type = "String", db_raw_type = "String" },
    ['CLIENT_FINGERPRINT'] =   { flowfilter = "cli_fingerprint", dt_func = dt_format_generic, order = 11, db_type = "String", db_raw_type = "String" },
-   ['TCP_FINGERPRINT'] =      { flowfilter = "tcp_fingerprint", dt_func = dt_format_generic, order = 11, db_type = "String", db_raw_type = "String" },
+   -- ['TCP_FINGERPRINT'] =      { flowfilter = "tcp_fingerprint", dt_func = dt_format_generic, order = 11, db_type = "String", db_raw_type = "String" },
 
    -- ['TCP_STATS_SRC_TO_DST'] = { flowfilter = "tcp_stats_src_to_dst", dt_func = dt_format_tcp_stats, order = 11, db_type = "String", db_raw_type = "String" },
    -- ['TCP_STATS_SRC_TO_DST'] = { flowfilter = "tcp_stats_src_to_dst", dt_func = dt_format_tcp_stats, order = 11, db_type = "String", db_raw_type = "String" },
@@ -1328,8 +1328,8 @@ local flow_columns = {
    ['POST_NAT_SRC_PORT']      = { flowfilter = "post_nat_src_port", dt_func = dt_format_port, db_type = "Number", db_raw_type = "Uint16" },
    ['POST_NAT_IPV4_DST_ADDR'] = { flowfilter = "post_nat_ipv4_dst_addr", dt_func = dt_format_nat_ip, select_func = "IPv4NumToString", db_type = "Number", db_raw_type = "Uint32"  },
    ['POST_NAT_DST_PORT']      = { flowfilter = "post_nat_dst_port", dt_func = dt_format_port, db_type = "Number", db_raw_type = "Uint16" },
-   ['WLAN_SSID']              = { flowfilter = "wlan_ssid", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
-   ['WTP_MAC_ADDRESS']        = { flowfilter = "apn_mac", dt_func = dt_format_mac_obj, db_type = "Number", db_raw_type = "Uint64" },
+   --['WLAN_SSID']              = { flowfilter = "wlan_ssid", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
+   --['WTP_MAC_ADDRESS']        = { flowfilter = "apn_mac", dt_func = dt_format_mac_obj, db_type = "Number", db_raw_type = "Uint64" },
    ['DOMAIN_NAME']            = { flowfilter = "domain_name", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
    ['IS_FIRST_DUMP']          = { flowfilter = "first_flow_dump", dt_func = dt_format_first_flow_dump, db_type = "Boolean", db_raw_type = "Boolean" },
    
@@ -1384,8 +1384,8 @@ local aggregated_flow_columns = {
    ['OUTPUT_SNMP'] =          { flowfilter = "output_snmp", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['SRC_NETWORK_ID'] =       { flowfilter = "cli_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint32" },
    ['DST_NETWORK_ID'] =       { flowfilter = "srv_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint32" },
-   ['WLAN_SSID'] =            { flowfilter = "wlan_ssid", db_type = "String", db_raw_type = "String" },
-   ['WTP_MAC_ADDRESS'] =      { flowfilter = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
+   --['WLAN_SSID'] =            { flowfilter = "wlan_ssid", db_type = "String", db_raw_type = "String" },
+   --['WTP_MAC_ADDRESS'] =      { flowfilter = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['INTERFACE_ID'] =         { flowfilter = "ntopng_interface", dt_func = dt_format_interface, db_type = "Number", db_raw_type = "Uint16" },
 }
 -- Extra columns (e.g. result of SQL functions)
@@ -1420,7 +1420,7 @@ historical_flow_utils.min_db_columns = {
    "DST_LABEL",
    "CLIENT_LOCATION",
    "SERVER_LOCATION",
-   "COMMUNITY_ID",
+   --"COMMUNITY_ID",
    "TAGS_MAP",
    "SRC_TAGS_MAP",
    "DST_TAGS_MAP",
@@ -1494,9 +1494,9 @@ historical_flow_utils.extra_where_flowfilters = {
    ["cli_country"] = "SRC_COUNTRY_CODE",
    ["srv_country"] = "DST_COUNTRY_CODE",
    ["vlan_id"] = "VLAN_ID",
-   ["community_id"] = "COMMUNITY_ID",
+   --["community_id"] = "COMMUNITY_ID",
    ["cli_fingerprint"] = "CLIENT_FINGERPRINT",
-   ["tcp_fingerprint"] = "TCP_FINGERPRINT",
+   --["tcp_fingerprint"] = "TCP_FINGERPRINT",
    ["duration"] = "DURATION",
    ["site"] = "EXPORTER_SITE", -- required?
    ["cli_site"] = "SRC_SITE_ID",
@@ -1677,6 +1677,10 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["post_nat_dst_port"] = flowfilter_utils.defined_filters["post_nat_dst_port"]
    flow_defined_filters["verdict"] = flowfilter_utils.defined_filters["verdict"]
    flow_defined_filters["ndpi_fingerprint"] = flowfilter_utils.defined_filters["ndpi_fingerprint"]
+   flow_defined_filters["community_id"] = flowfilter_utils.defined_filters["community_id"]
+   flow_defined_filters["tcp_fingerprint"] = flowfilter_utils.defined_filters["tcp_fingerprint"]
+   flow_defined_filters["apn_mac"] = flowfilter_utils.defined_filters["apn_mac"]
+   flow_defined_filters["wlan_ssid"] = flowfilter_utils.defined_filters["wlan_ssid"]
    flow_defined_filters["site"] = flowfilter_utils.defined_filters["site"] -- required?
    flow_defined_filters["cli_site"] = flowfilter_utils.defined_filters["cli_site"]
    flow_defined_filters["srv_site"] = flowfilter_utils.defined_filters["srv_site"]
@@ -2219,9 +2223,9 @@ function historical_flow_utils.convertFlowToAlert(flow)
          srv_ip = srv_ip,
          ip_version = flow.IP_PROTOCOL_VERSION,
          severity = flow.SEVERITY,
-         community_id = flow.COMMUNITY_ID,
+         --community_id = flow.COMMUNITY_ID,
          cli_fingerprint = flow.CLIENT_FINGERPRINT,
-         tcp_fingerprint = flow.TCP_FINGERPRINT,
+         --tcp_fingerprint = flow.TCP_FINGERPRINT,
          srv_network = flow.DST_NETWORK_ID,
          is_cli_victim = flow.IS_CLI_VICTIM,
          l7_cat = flow.L7_CATEGORY,
