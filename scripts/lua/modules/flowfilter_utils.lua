@@ -345,6 +345,13 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq'},
         hourly_available = true
     },
+    network_site = {
+        type = flowfilter_utils.input_types.select,
+        value_type = 'site',
+        i18n_label = i18n('db_search.flowfilters.network_site'),
+        operators = {'eq', 'neq'},
+        hourly_available = true
+    },
     cli_site = {
         type = flowfilter_utils.input_types.select,
         value_type = 'site',

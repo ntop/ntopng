@@ -1729,6 +1729,8 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
 #define OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME \
   "ntopng.assets_hosts_macs.queue.ifid_%d"
 
+#define BGP_PREFIX_UPDATE_QUEUE_NAME "ntopng.bgp.queue.updates"
+
 #define EXPORTERS_EXCEEDED_LIMITS_KEY "ntopng.limits.exporters"
 
 #define MAX_NUM_PCAP_INTERFACES 8

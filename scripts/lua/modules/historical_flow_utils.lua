@@ -1386,6 +1386,10 @@ local aggregated_flow_columns = {
    ['DST_NETWORK_ID'] =       { flowfilter = "srv_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint32" },
    --['WLAN_SSID'] =            { flowfilter = "wlan_ssid", db_type = "String", db_raw_type = "String" },
    --['WTP_MAC_ADDRESS'] =      { flowfilter = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
+   ['SRC_SITE_ID'] =          { flowfilter = "cli_site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
+   ['DST_SITE_ID'] =          { flowfilter = "srv_site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
+   ['WLAN_SSID'] =            { flowfilter = "wlan_ssid", db_type = "String", db_raw_type = "String" },
+   ['WTP_MAC_ADDRESS'] =      { flowfilter = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['INTERFACE_ID'] =         { flowfilter = "ntopng_interface", dt_func = dt_format_interface, db_type = "Number", db_raw_type = "Uint16" },
 }
 -- Extra columns (e.g. result of SQL functions)
@@ -1682,6 +1686,7 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["apn_mac"] = flowfilter_utils.defined_filters["apn_mac"]
    flow_defined_filters["wlan_ssid"] = flowfilter_utils.defined_filters["wlan_ssid"]
    flow_defined_filters["site"] = flowfilter_utils.defined_filters["site"] -- required?
+   flow_defined_filters["network_site"] = flowfilter_utils.defined_filters["network_site"]
    flow_defined_filters["cli_site"] = flowfilter_utils.defined_filters["cli_site"]
    flow_defined_filters["srv_site"] = flowfilter_utils.defined_filters["srv_site"]
    flow_defined_filters["asn"] = flowfilter_utils.defined_filters["asn"]

@@ -1811,6 +1811,7 @@ local known_parameters = {
    ["srv_network_cidr"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNetworkWithVLAN))), -- An IPv4 or IPv6 subnet in CIDR format
    ["cli_network"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A network ID
    ["srv_network"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A network ID
+   ["network_site"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A site ID (client or server)
    ["cli_site"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A site ID
    ["srv_site"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A site ID
    ["ip"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname

@@ -36,6 +36,9 @@
 		},
 		{
 			"name": "site"
+		},
+		{
+			"name": "network_site"
 		}
 	],
 	"components": [

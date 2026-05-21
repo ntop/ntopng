@@ -319,6 +319,7 @@ using namespace std;
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
+#include "BGPPrefixListener.h"
 #include "Prefs.h"
 #include "DnsStats.h"
 #include "SNMPSession.h"
