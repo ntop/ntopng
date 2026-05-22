@@ -871,6 +871,24 @@ local function validateServer(v)
    return validateIpAddress(v) or validateSingleWord(v)
 end
 
+-- Validates a ZMQ TCP endpoint string.
+--   tcp://  <host|ip|*>:<port>   e.g. tcp://127.0.0.1:11060  tcp://*:5555
+local function validateZMQEndpoint(v)
+   if isEmptyString(v) then
+      return false
+   end
+
+   local tcp_host, tcp_port = v:match("^tcp://([%w%.%-%*]+):(%d+)$")
+   if tcp_host and tcp_port then
+      local port = tonumber(tcp_port)
+      if port and port >= 1 and port <= 65535 then
+         return true
+      end
+   end
+
+   return false
+end
+
 local function validateHostName(v)
    if (isEmptyString(v)) then
       return false
@@ -2982,6 +3000,9 @@ local known_parameters = {
     ["tag_name"] = validateUnquoted,
     ["color"] = validateSingleWord,
     ["host_tags_bitmap"] = validateNumber, -- 64-bit host tag bitmap
+
+    --BGP 
+    ["prefix_changes_endpoint"] = validateZMQEndpoint,
 
     -- exporter sites
     ["latitude"] = validateSingleWord,

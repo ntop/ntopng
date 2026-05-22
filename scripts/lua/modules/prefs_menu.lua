@@ -366,7 +366,11 @@ local menu_subpages = {{
 	 bgp_server_port = {
 	    title = i18n("prefs.bgp_server_port_title"),
 	    description = i18n("prefs.bgp_server_port_description")
-	 }
+	 },
+	 bgp_prefix_changes_endpoint = {
+	    title = i18n("prefs.bgp_prefix_changes_endpoint_title"),
+	    description = i18n("prefs.bgp_prefix_changes_endpoint_description")
+	 } 
       }
 	       },
    {

@@ -299,6 +299,7 @@ if auth.has_capability(auth.capabilities.preferences) then
    if _GET["tab"] == "asn_settings" and not table.empty(_POST) then
       local bgp_address = _POST["ip_address"] or ""
       local bgp_port = _POST["port"] or ""
+      local bgp_pce = _POST["prefix_changes_endpoint"] or ""
       -- Only run the test when an address is provided and at least one field changed.
       -- NOTE: the connection check is intentionally performed AFTER the new values have
       -- been accepted into _POST (i.e. they will be persisted regardless of the outcome).
@@ -317,6 +318,9 @@ if auth.has_capability(auth.capabilities.preferences) then
 	    message_info = i18n("prefs.bgp_server_connection_ok")
 	    message_severity = "alert-success"
 	 end
+      end
+      if not isEmptyString(bgp_pce) then
+         --Insert here the function call passing the bgp_pce as argument
       end
    end
 
@@ -2850,6 +2854,12 @@ if auth.has_capability(auth.capabilities.preferences) then
       prefsInputFieldPrefs(subpage_active.entries["bgp_server_port"].title,
 			   subpage_active.entries["bgp_server_port"].description,
 			   "ntopng.prefs.bgp_server", "port", "", "text", true, true, false, {
+			      attributes = { spellcheck = "false", maxlength = 128 },
+      })
+
+      prefsInputFieldPrefs(subpage_active.entries["bgp_prefix_changes_endpoint"].title,
+			   subpage_active.entries["bgp_prefix_changes_endpoint"].description,
+			   "ntopng.prefs.bgp_server", "prefix_changes_endpoint", "", "text", true, true, false, {
 			      attributes = { spellcheck = "false", maxlength = 128 },
       })
 

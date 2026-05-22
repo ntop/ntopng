@@ -7830,6 +7830,8 @@ local lang = {
   },
   ["prefs"] = {
     ["assets"] = "Assets",
+    ["bgp_prefix_changes_endpoint_description"] = "ZMQ TCP endpoint to receive BGP prefix change notifications (e.g. tcp://127.0.0.1:11060)",
+    ["bgp_prefix_changes_endpoint_title"] = "Prefix Changes Endpoint",
     ["bgp_server"] = "BGP Server (bgp_server) Configuration",
     ["bgp_server_address_title"] = "Server Address",
     ["bgp_server_address_description"] = "IP address of the host running the bgp_server (e.g. 127.0.0.1).",
