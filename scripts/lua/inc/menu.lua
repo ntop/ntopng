@@ -771,6 +771,11 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
+local scripts_config_url = "/lua/admin/edit_configset.lua?subdir=all"
+if tonumber(system_ifid) == tonumber(current_ifid) then
+    scripts_config_url = "/lua/admin/edit_configset.lua?subdir=system"
+end
+
 -- Rules & Policies
 page_utils.add_menubar_section({
     section = page_utils.menu_sections.policies,
@@ -803,9 +808,9 @@ page_utils.add_menubar_section({
     }, {
         entry = page_utils.menu_entries.scripts_config,
         section = page_utils.menu_sections.checks,
-        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or
-            (tonumber(system_ifid) == tonumber(current_ifid)), -- disable checks for the system interface
-        url = '/lua/admin/edit_configset.lua?subdir=all'
+        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
+            --or (tonumber(system_ifid) == tonumber(current_ifid)), -- disable checks for the system interface
+        url = scripts_config_url
     }, {
         entry = page_utils.menu_entries.alert_exclusions,
         section = page_utils.menu_sections.admin,

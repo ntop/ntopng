@@ -14,6 +14,8 @@ local rest_utils     = require "rest_utils"
 local auth           = require "auth"
 local checks_utils   = require "checks_utils"
 
+local current_ifid = interface.getId()
+
 if not auth.has_capability(auth.capabilities.checks) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
@@ -39,6 +41,13 @@ local sub_menu_entries = {
   ['syslog']           = { order = 8, entry = page_utils.menu_entries.scripts_config_syslog },
   ['as']               = { order = 9, entry = page_utils.menu_entries.scripts_config_as },
 }
+
+if tonumber(getSystemInterfaceId()) == tonumber(current_ifid) then
+   sub_menu_entries = {
+     ['system']           = { order = 0, entry = page_utils.menu_entries.scripts_config_system },
+   }
+   check_subdir = "system"
+end
 
 local active_entry = (sub_menu_entries[check_subdir] and sub_menu_entries[check_subdir].entry)
                      or page_utils.menu_entries.scripts_config
