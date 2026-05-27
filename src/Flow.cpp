@@ -975,6 +975,22 @@ void Flow::processDetectedProtocolData() {
 
         setHTTPMethod(ndpiFlow->http.method);
       }
+      
+      // ndpiFlow->host_server_name is guaranteed to be populated here,
+      // since nDPI has fully completed protocol detection at this point
+      if (protos.http.last_url && protos.http.last_url[0] == '/' &&
+          ndpiFlow->host_server_name[0] != '\0') {
+        size_t host_len = strlen((const char*)ndpiFlow->host_server_name);
+        size_t url_len  = strlen(protos.http.last_url);
+        //* allocate enough room for "<host><path>\0" */
+        char*  full_url = (char*)malloc(host_len + url_len + 1);
+        if (full_url) {
+          memcpy(full_url, ndpiFlow->host_server_name, host_len);
+          memcpy(full_url + host_len, protos.http.last_url, url_len + 1);
+          free(protos.http.last_url);
+          protos.http.last_url = full_url;
+        }
+      }
 
       break;
   } /* switch */
@@ -6883,10 +6899,18 @@ void Flow::setHTTPMethod(const char* method, ssize_t method_len) {
 
 void Flow::dissectHTTP(bool src2dst_direction, char* payload,
                        u_int16_t payload_len) {
-  ssize_t host_server_name_len =
-      host_server_name && (host_server_name[0] != '\0')
-          ? strlen(host_server_name)
-          : 0;
+  /*
+   * Prefer this->host_server_name if already set; otherwise fall back to
+   * ndpiFlow->host_server_name.http.last_url gets set to just "/" with
+   * no hostname prepended.
+  */
+  const char* effective_host =
+      (host_server_name && host_server_name[0] != '\0')
+          ? host_server_name
+          : (ndpiFlow && ndpiFlow->host_server_name[0] != '\0'
+             ? (const char*)ndpiFlow->host_server_name
+             : nullptr);
+  ssize_t host_server_name_len = effective_host ? strlen(effective_host) : 0;
 
   if ((payload == NULL) || (payload_len == 0)) return;
 
@@ -6959,7 +6983,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char* payload,
             protos.http.last_url[0] = '\0';
 
             if (host_server_name_len > 0) {
-              strncat(protos.http.last_url, host_server_name,
+              strncat(protos.http.last_url, effective_host,
                       host_server_name_len);
             }
 
