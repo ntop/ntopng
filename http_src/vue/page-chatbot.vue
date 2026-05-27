@@ -178,7 +178,7 @@ const {
   currentSendingLabel, canSendMsg,
   loadProviders, selectProvider, clearChat, send, sendDebug,
   autoResize, toggleSqlPanel,
-  setOnFirstMessage,
+  setOnFirstMessage, scrollBottom,
 } = useLlmChat(props);
 
 // Page state (sidebar, history, rename)

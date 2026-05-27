@@ -415,6 +415,18 @@ local menu_subpages = {{
 	 openai_model = {
             title = i18n("prefs.llm_model_title"),
             description = i18n("prefs.llm_openai_model_description")
+	 },
+	 qwen_url = {
+            title = i18n("prefs.llm_url_title"),
+            description = i18n("prefs.llm_qwen_url_description")
+	 },
+	 qwen_token = {
+            title = i18n("prefs.llm_token_title"),
+            description = i18n("prefs.llm_qwen_token_description")
+	 },
+	 qwen_model = {
+            title = i18n("prefs.llm_model_title"),
+            description = i18n("prefs.llm_qwen_model_description")
 	 }
       }
    }, {

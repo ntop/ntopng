@@ -267,6 +267,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { getProviderIconHtml, getProviderLabel as _providerLabel } from "./composables/useLlmChat.js";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import { default as BadgeComponent } from "./dashboard-badge.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
@@ -423,17 +424,7 @@ function pctOfMax(val, max) {
 
 // Provider helpers
 
-function providerLabel(p) {
-  if (p === "llm_anthropic") return _i18n("prefs.llm_anthropic");
-  if (p === "llm_openai")    return _i18n("prefs.llm_openai");
-  if (p === "llm_local")     return _i18n("prefs.llm_local");
-  return p || "—";
-}
-function providerIcon(p) {
-  if (p === "llm_openai")    return "bi bi-openai";
-  if (p === "llm_anthropic") return "bi bi-anthropic";
-  return "fa-solid fa-microchip";
-}
+function providerLabel(p) { return _providerLabel(p) || p || "—"; }
 function callTypeBadgeClass(ct) {
   const map = { initial_call: "bg-primary-subtle text-primary", tool_followup: "bg-warning-subtle text-warning", final_response: "bg-success-subtle text-success", retry: "bg-danger-subtle text-danger" };
   return map[ct] ?? "bg-secondary-subtle text-secondary";
@@ -490,7 +481,7 @@ function mapModelConfig(config) {
     if (col) col.render_func = fn;
   };
 
-  add('provider', (d) => `<span class="d-flex align-items-center gap-1"><i class="${providerIcon(d)} small opacity-75"></i><span class="text-muted small">${providerLabel(d)}</span></span>`);
+  add('provider', (d) => `<span class="d-flex align-items-center gap-1"><span class="opacity-75 small">${getProviderIconHtml(d)}</span><span class="text-muted small">${providerLabel(d)}</span></span>`);
   add('model',    (d) => `<code class="small">${d ?? ''}</code>`);
   add('calls',    (d) => fmtNumber(d));
   add('prompt_tokens',     (d) => fmtTokens(d));

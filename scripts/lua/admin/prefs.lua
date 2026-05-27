@@ -450,7 +450,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       local default_local_llm_model = "Qwen3.5-9B"
 
       -- Local LLM
-      add_section(i18n("prefs.llm_local"))
+      add_section('<i class="fa-solid fa-microchip me-1"></i>' .. i18n("prefs.llm_local"))
 
       prefsInputFieldPrefs(subpage_active.entries["local_llm_url"].title,
 			   subpage_active.entries["local_llm_url"].description,
@@ -471,7 +471,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       })
 
       -- Anthropic
-      add_section(i18n("prefs.llm_anthropic"))
+      add_section('<i class="bi bi-anthropic me-1"></i>' .. i18n("prefs.llm_anthropic"))
       prefsInputFieldPrefs(subpage_active.entries["anthropic_url"].title,
 			   subpage_active.entries["anthropic_url"].description,
 			   "ntopng.prefs.llm", "anthropic_url", default_anthropic_url, "text", true, true, true, {
@@ -491,7 +491,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       })
 
       -- OpenAI
-      add_section(i18n("prefs.llm_openai"))
+      add_section('<i class="bi bi-openai me-1"></i>' .. i18n("prefs.llm_openai"))
 
       prefsInputFieldPrefs(subpage_active.entries["openai_url"].title,
 			   subpage_active.entries["openai_url"].description,
@@ -508,6 +508,27 @@ if auth.has_capability(auth.capabilities.preferences) then
       prefsInputFieldPrefs(subpage_active.entries["openai_model"].title,
 			   subpage_active.entries["openai_model"].description,
 			   "ntopng.prefs.llm", "openai_model", default_openai_model, "text", true, false, false, {
+			      attributes = { spellcheck = "false", maxlength = 128 }
+      })
+
+      -- Qwen
+      add_section('<img src="/img/qwen.svg" class="me-1" style="width:1em;height:1em;vertical-align:text-bottom;" />' .. i18n("prefs.llm_qwen"))
+
+      prefsInputFieldPrefs(subpage_active.entries["qwen_url"].title,
+			   subpage_active.entries["qwen_url"].description,
+			   "ntopng.prefs.llm", "qwen_url", "https://dashscope.aliyuncs.com/compatible-mode/v1/", "text", true, true, true, {
+			      attributes = { spellcheck = "false", maxlength = 255 }
+      })
+
+      prefsInputFieldPrefs(subpage_active.entries["qwen_token"].title,
+			   subpage_active.entries["qwen_token"].description,
+			   "ntopng.prefs.llm", "qwen_token", "", "password", true, true, false, {
+			      attributes = { spellcheck = "false", maxlength = 255 }
+      })
+
+      prefsInputFieldPrefs(subpage_active.entries["qwen_model"].title,
+			   subpage_active.entries["qwen_model"].description,
+			   "ntopng.prefs.llm", "qwen_model", "qwen-plus", "text", true, false, false, {
 			      attributes = { spellcheck = "false", maxlength = 128 }
       })
 

@@ -421,14 +421,16 @@ else
         },{
             entry = page_utils.menu_entries.ai_policy,
             url = '/lua/pro/ai_policy.lua'
-        }, {
+        }, --[[{
+            entry = page_utils.menu_entries.analyst_pipeline,
+            url = '/lua/pro/analyst_pipeline.lua'
+        },]] {
             entry = page_utils.menu_entries.ai_usage_stats,
             url = '/lua/pro/ai_stats.lua'
         },{
             entry = page_utils.menu_entries.ai_audit,
             url = '/lua/pro/ai_audit.lua'
         },
-        
         
     }})
 

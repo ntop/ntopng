@@ -42,7 +42,27 @@ export function highlightSql(sql) {
 export function getProviderIcon(provider) {
   if (provider === "llm_openai") return "bi bi-openai";
   if (provider === "llm_anthropic") return "bi bi-anthropic";
+  if (provider === "llm_local") return "fa-solid fa-microchip";
+  if (provider === "llm_qwen") return null; // use getProviderIconHtml for Qwen
   return "fa-solid fa-microchip";
+}
+
+export function getProviderIconHtml(provider) {
+  if (provider === "llm_openai") return '<i class="bi bi-openai"></i>';
+  if (provider === "llm_anthropic") return '<i class="bi bi-anthropic"></i>';
+  if (provider === "llm_local") return '<i class="fa-solid fa-microchip"></i>';
+  if (provider === "llm_qwen") {
+    return '<img src="/img/qwen.svg" style="width:1em;height:1em;vertical-align:middle;" />';
+  }
+  return '<i class="fa-solid fa-microchip"></i>';
+}
+
+export function getProviderLabel(provider) {
+  if (provider === "llm_openai") return "OpenAI";
+  if (provider === "llm_anthropic") return "Anthropic";
+  if (provider === "llm_qwen") return "Qwen";
+  if (provider === "llm_local") return "Local LLM";
+  return provider || "";
 }
 
 // Premade questions

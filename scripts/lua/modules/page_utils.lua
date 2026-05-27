@@ -334,6 +334,11 @@ page_utils.menu_entries = {
         i18n_title = "ai_audit",
         section = "nanalyst"
     },
+    analyst_pipeline = {
+        key = "analyst_pipeline",
+        i18n_title = "analyst_pipeline",
+        section = "nanalyst"
+    },
 
     -- Interface
     interface = {

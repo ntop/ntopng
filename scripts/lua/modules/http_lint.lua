@@ -2302,6 +2302,9 @@ local known_parameters = {
    ["local_llm_url"] = validateUnquoted,
    ["local_llm_token"] = {passwordCleanup, validatePassword},
    ["local_llm_model"] = validateUnquoted,
+   ["qwen_url"] = validateUnquoted,
+   ["qwen_token"] = {passwordCleanup, validatePassword},
+   ["qwen_model"] = validateUnquoted,
    ["provider"] = validateUnquoted,
    ["prompt"] = validateUnquoted,
    ["stream"] = validateBool,
@@ -2329,6 +2332,18 @@ local known_parameters = {
    ["custom_score"] = validateNumber,
    ["message_variables"] = {jsonCleanup, validateJSON}, -- used for policy template formatting of custom alert
    ["message_template"] = validateUnchecked, -- free-text template string for custom alert messages
+   ["sql_template"] = validateUnchecked, -- free-text template string for custom alert messages
+   ["column"] = validateUnquoted, -- free-text template string for custom alert messages
+
+   -- Analyst Pipeline
+   ["definition"]            = {jsonCleanup, validateJSON},
+   ["stages"]                = {jsonCleanup, validateJSON},
+   ["params"]                = {jsonCleanup, validateJSON},
+   ["columns"]               = {jsonCleanup, validateJSON},
+   ["post_hook"]             = {jsonCleanup, validateJSON},
+   ["pipeline_id"]           = validateUnquoted,
+   ["pipeline_name"]         = validateUnquoted,             -- pipeline human-readable name (may contain spaces)
+   ["pipeline_description"]  = {jsonCleanup, validatePcap}, -- pipeline description, may contain special chars / UTF-8
    
    -- MCP
    ["jsonrpc"] = validateUnquoted,
@@ -2934,7 +2949,7 @@ local known_parameters = {
    ["operating_system"] = validateNumber,
    ["action"] = validateSingleWord, -- generic
    ["table"] = validateSingleWord,
-   ["columns"] = validateListOfTypeInline(validateNumber),
+   ["columns"] = validateUnchecked,
    ["devices"] = {jsonCleanup, validateJSON},
    ["devices_csv"] = validateUnquoted,
    ["ts_schema"] = validateSingleWord,

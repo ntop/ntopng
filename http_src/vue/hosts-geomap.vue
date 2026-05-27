@@ -22,7 +22,10 @@
 
                             <Geomap :tooltipFormatter="formatTooltipData"
                                 :geomapDataArray="geomapDataArray" :getGeomapData="getGeomapData"
-                                :style="[(is_host_details) ? 'height: 65vh;' : 'height: 75vh']" :glowDots="false"/>
+                                :style="[(is_host_details) ? 'height: 65vh;' : 'height: 75vh']"
+                                :glowDots="false"
+                                :countryHeatmap="countryHeatmap"
+                                :heatmapUnit="heatmapUnit" />
                         </div>
                     </div>
                 </div>
@@ -42,6 +45,8 @@ const props = defineProps({
 });
 
 const ifid = props.context.ifid;
+const countryHeatmap = props.context.country_heatmap || null;
+const heatmapUnit = props.context.heatmap_unit || 'number';
 const is_host_details = ref(false);
 const geomapDataArray = ref([]);
 

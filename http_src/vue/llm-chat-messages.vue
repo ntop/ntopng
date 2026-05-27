@@ -38,6 +38,24 @@
               title: msg.artifact.spec.title, unit: msg.artifact.spec.unit,
               custom_fetch: () => msg.artifact.spec.data
             }" :hideLoading="true" />
+            <Sankey v-if="msg.artifact.tool === 'sankey'"
+              :sankey_data="msg.artifact.spec.data"
+              :autorefresh="null"
+              style="height:420px;" />
+            <ChordChart v-if="msg.artifact.tool === 'chord'"
+              :chord_data="msg.artifact.spec.data"
+              style="height:480px;" />
+            <div v-if="msg.artifact.tool === 'geomap'" style="height:400px;position:relative;">
+              <Geomap v-if="msg.artifact.spec?.type === 'heatmap'"
+                :countryHeatmap="msg.artifact.spec.data"
+                :heatmapUnit="msg.artifact.spec.unit || 'number'"
+                :geomapDataArray="[]"
+                style="height:400px;" />
+              <Geomap v-else-if="msg.artifact.spec?.type === 'dots'"
+                :geomapDataArray="msg.artifact.spec.data"
+                :countryHeatmap="null"
+                style="height:400px;" />
+            </div>
           </div>
 
           <div v-if="msg.role === 'user'" class="chat-content"
@@ -178,6 +196,9 @@
 import { ref, watch, nextTick, computed } from "vue";
 import PieChart from "./charts/pie-chart.vue";
 import LineChart from "./charts/line-chart.vue";
+import Geomap from "./geomap.vue";
+import Sankey from "./sankey.vue";
+import ChordChart from "./chord-chart.vue";
 import { renderMarkdown, highlightSql } from "./composables/useLlmChat.js";
 
 const _i18n = (t) => i18n(t);
@@ -517,6 +538,13 @@ function parseNextSteps(content) {
 /* Artifact block */
 .chat-artifact-block {
   margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+/* Widen the assistant bubble when it contains a geomap so the map has room */
+.assistant-bubble:has(.chat-artifact-block > div[style*="height"]) {
+  max-width: min(98vw, 900px);
+  width: min(98vw, 900px);
 }
 
 /* Markdown */
