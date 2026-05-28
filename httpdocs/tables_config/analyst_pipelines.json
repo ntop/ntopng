@@ -1,0 +1,73 @@
+{
+  "id": "analyst_pipelines",
+  "data_url": "lua/pro/rest/v2/get/analyst_pipeline/list.lua",
+  "use_current_page": false,
+  "enable_search": true,
+  "paging": false,
+  "display_empty_rows": true,
+  "default_sort": {
+    "column_id": "created_at",
+    "sort": 1
+  },
+  "columns": [
+    {
+      "id": "actions",
+      "title_i18n": "actions",
+      "sortable": false,
+      "sticky": true,
+      "class": ["text-nowrap", "text-center"],
+      "render_v_node_type": "button_list",
+      "button_def_array": [
+        {
+          "id": "open_pipeline",
+          "icon": "fas fa-play",
+          "title_i18n": "llm.analyst_pipeline.run_playbook",
+          "class": ["btn-primary"],
+          "event_id": "open_pipeline"
+        },
+        {
+          "id": "view_definition",
+          "icon": "fas fa-code",
+          "title_i18n": "llm.analyst_pipeline.view_definition",
+          "class": ["btn-secondary"],
+          "event_id": "view_definition"
+        },
+        {
+          "id": "delete_pipeline",
+          "icon": "fas fa-trash",
+          "title_i18n": "delete",
+          "class": ["btn-danger"],
+          "event_id": "delete_pipeline"
+        }
+      ]
+    },
+    {
+      "id": "name",
+      "title_i18n": "name",
+      "data_field": "name",
+      "sortable": true,
+      "min-width": "160px"
+    },
+    {
+      "id": "description",
+      "title_i18n": "description",
+      "data_field": "description",
+      "sortable": false,
+      "min-width": "220px"
+    },
+    {
+      "id": "provider",
+      "title_i18n": "llm.analyst_pipeline.provider",
+      "data_field": "provider_display",
+      "sortable": true,
+      "min-width": "140px"
+    },
+    {
+      "id": "created_at",
+      "title_i18n": "date",
+      "data_field": "created_at",
+      "sortable": true,
+      "min-width": "140px"
+    }
+  ]
+}
