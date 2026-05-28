@@ -1383,8 +1383,6 @@ local aggregated_flow_columns = {
    --['WTP_MAC_ADDRESS'] =      { flowfilter = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['SRC_SITE_ID'] =          { flowfilter = "cli_site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
    ['DST_SITE_ID'] =          { flowfilter = "srv_site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
-   ['WLAN_SSID'] =            { flowfilter = "wlan_ssid", db_type = "String", db_raw_type = "String" },
-   ['WTP_MAC_ADDRESS'] =      { flowfilter = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['INTERFACE_ID'] =         { flowfilter = "ntopng_interface", dt_func = dt_format_interface, db_type = "Number", db_raw_type = "Uint16" },
 }
 -- Extra columns (e.g. result of SQL functions)
