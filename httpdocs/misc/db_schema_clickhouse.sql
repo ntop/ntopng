@@ -1260,3 +1260,57 @@ CREATE TABLE IF NOT EXISTS ntopng_docs (
 )
 ENGINE = MergeTree()
 ORDER BY (source, title)
+
+@
+
+CREATE TABLE IF NOT EXISTS `analyst_pipelines` (
+`pipeline_id` UUID DEFAULT generateUUIDv4() COMMENT 'Unique identifier for this playbook',
+`ifid`        UInt16  NOT NULL DEFAULT 0     COMMENT 'Interface scope',
+`name`        String  NOT NULL               COMMENT 'User-defined playbook name',
+`description` String  NOT NULL DEFAULT ''    COMMENT 'Human-readable description of the investigation',
+`definition`  String  NOT NULL               COMMENT 'Full JSON blob: {params, stages, explanation}',
+`created_by`  String  NOT NULL DEFAULT ''    COMMENT 'Username who created the playbook',
+`provider`    String  DEFAULT ''             COMMENT 'LLM provider used to generate the playbook (e.g. llm_anthropic, llm_openai, llm_qwen)',
+`llm_model`   String  DEFAULT ''             COMMENT 'Specific LLM model used (e.g. claude-opus-4-6, gpt-4o)',
+`created_at`  DateTime NOT NULL DEFAULT now() COMMENT 'Creation timestamp',
+`updated_at`  DateTime NOT NULL DEFAULT now() COMMENT 'Last update timestamp (used by ReplacingMergeTree)',
+`is_active`   UInt8   NOT NULL DEFAULT 1     COMMENT '1 = active playbook, 0 = soft-deleted'
+) ENGINE = ReplacingMergeTree(updated_at)
+  ORDER BY (pipeline_id)
+  PARTITION BY toYYYYMM(created_at)
+COMMENT 'Analyst investigation playbooks: parameterized multi-stage ClickHouse SQL pipelines generated from natural language. Each row is a reusable playbook. Soft-deleted via is_active=0.'
+
+@
+
+ALTER TABLE analyst_pipelines ADD COLUMN IF NOT EXISTS `provider`  String DEFAULT '';
+
+@
+
+ALTER TABLE analyst_pipelines ADD COLUMN IF NOT EXISTS `llm_model` String DEFAULT '';
+
+@
+
+CREATE TABLE IF NOT EXISTS `alert_id_info` (
+  `ALERT_ID`    UInt32                 COMMENT 'ntopng alert type identifier (maps to alert_id column in all alert tables)',
+  `ENTITY_ID`   UInt8                  COMMENT 'ntopng entity type: 0=interface 1=host 2=network 3=snmp 4=flow 5=mac 7=user 8=am_host 9=system 10=as',
+  `NAME`        LowCardinality(String) COMMENT 'Internal Lua module name of the alert definition (e.g. flow_alert_type_blacklisted)',
+  `LABEL`       String                 COMMENT 'Human-readable i18n alert label (e.g. "Blacklisted Flow")',
+  `DESCRIPTION` String                 COMMENT 'Human-readable i18n alert description (e.g. "Flow matching a known-bad threat-intel list")'
+) ENGINE = ReplacingMergeTree()
+  PRIMARY KEY (ALERT_ID, ENTITY_ID)
+  ORDER BY (ALERT_ID, ENTITY_ID)
+COMMENT 'Startup-populated lookup: maps (ALERT_ID, ENTITY_ID) to human-readable alert name, label and description. JOIN with flows.STATUS or alert tables on ALERT_ID.';
+
+@
+ALTER TABLE `alert_id_info` ADD COLUMN IF NOT EXISTS `DESCRIPTION` String DEFAULT '';
+
+@
+
+/* L4 / IP transport protocol lookup: flows.PROTOCOL -> protocol name */
+CREATE TABLE IF NOT EXISTS `flow_l4_map` (
+  `PROTOCOL`    UInt8                  COMMENT 'IANA IP protocol number (matches flows.PROTOCOL, e.g. 6=TCP 17=UDP 1=ICMP)',
+  `NAME`        LowCardinality(String) COMMENT 'Protocol name (e.g. "TCP", "UDP", "ICMP")'
+) ENGINE = ReplacingMergeTree()
+  PRIMARY KEY (PROTOCOL)
+  ORDER BY (PROTOCOL)
+COMMENT 'Startup-populated lookup: flows.PROTOCOL → L4 protocol name. JOIN: LEFT JOIN flow_l4_map ON flow_l4_map.PROTOCOL = flows.PROTOCOL';
