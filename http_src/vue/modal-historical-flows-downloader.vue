@@ -5,10 +5,26 @@
             <!-- Description -->
             <div class="alert alert-info py-2 mb-2 small" v-html="description"></div>
 
+            <!-- Search box (local filter on columns) -->
+            <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text">
+                    <i class="fas fa-magnifying-glass"></i>
+                </span>
+                <input v-model="searchTerm" type="text" class="form-control" autocomplete="off"
+                    :placeholder="_i18n('search')" />
+                <button v-if="searchTerm" type="button" class="btn btn-outline-secondary"
+                    @click="searchTerm = ''" :title="_i18n('clear')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
             <!-- Column toggles -->
             <div class="columns-scroll">
-                <div class="columns-grid">
-                    <div v-for="column in availableColumns" :key="column.id">
+                <div v-if="filteredColumns.length === 0" class="text-muted small text-center py-3">
+                    {{ _i18n('no_results_found') }}
+                </div>
+                <div v-else class="columns-grid">
+                    <div v-for="column in filteredColumns" :key="column.id">
                         <div class="form-check form-switch mb-0">
                             <input :id="`column_${column.id}`" v-model="selectedColumns" :value="column.id"
                                 type="checkbox" class="form-check-input" />
@@ -73,7 +89,21 @@ const modal = ref(null);
 const availableColumns = ref([]);
 const selectedColumns = ref([]);
 const description = ref("");
+const searchTerm = ref("");
 const id_modal = computed(() => `${props.id}_modal`);
+
+// Columns shown in the list, filtered by the search term.
+// Filtering only changes what is displayed: selectedColumns is untouched,
+// so toggling works correctly even while a filter is active.
+const filteredColumns = computed(() => {
+    const term = searchTerm.value.trim().toLowerCase();
+    if (!term) return availableColumns.value;
+
+    return availableColumns.value.filter(col => {
+        const label = (col.name || col.id).toLowerCase();
+        return label.includes(term) || col.id.toLowerCase().includes(term);
+    });
+});
 
 const downloadUrl = computed(() => {
     if (selectedColumns.value.length === 0) return '#';
@@ -136,6 +166,9 @@ const show = (columns = null) => {
 
     columns.sort((a, b) => (a.name || a.id).toLowerCase().localeCompare((b.name || b.id).toLowerCase()));
     availableColumns.value = columns;
+
+    // Reset the search filter every time the modal opens
+    searchTerm.value = "";
 
     // Select default columns on open
     selectDefaultCols();
