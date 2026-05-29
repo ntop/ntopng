@@ -27,16 +27,16 @@
 					"event_id": "click_button_info"
 				},
 				{
-					"id": "track_flow",
-					"icon": "fas fa-sm fa-stream",
-					"title_i18n": "track_flow",
-					"event_id": "click_button_track_flow"
-				},
-				{
 					"id": "pcap_download",
 					"icon": "fas fa-sm fa-download",
 					"title_i18n": "traffic_recording.pcap_download",
 					"event_id": "click_button_pcap_download"
+				},
+				{
+					"id": "track_flow",
+					"icon": "fas fa-sm fa-stream",
+					"title_i18n": "track_flow",
+					"event_id": "click_button_track_flow"
 				},
 				{
 					"id": "flow_historical",

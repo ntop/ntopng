@@ -622,6 +622,7 @@ const map_table_def_columns = async (columns) => {
                 track_flow: props.context.actions.show_track_flow,
                 pcap_download: props.context.actions.show_pcap_download,
                 row_data: props.context.is_enterprise_xl && flows_aggregated.value,
+                flow_historical: props.context.actions.show_historical,
             };
             c.button_def_array.forEach((b) => {
                 b.f_map_class = (current_class, row) => {
