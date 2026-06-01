@@ -7949,6 +7949,7 @@ local lang = {
     ["behaviour_analysis_status_during_learning_title"] = "Status During Learning Period",
     ["behaviour_analysis_status_post_learning_description"] = "The default status of a newly discovered service at the end of the Service Map's learning period.<br> With <b>Unauthorized</b> status selected, when a new service is discovered, an alert will be triggered.",
     ["behaviour_analysis_status_post_learning_title"] = "Status Post Learning Period",
+    ["bgp_server_address_port_mismatch"] = "Please configure both the BGP server address and port, or leave both empty to disable it.",
     ["bind_dn_description"] = "Bind Distinguished Name of LDAP server. Example:",
     ["bind_dn_title"] = "LDAP Bind DN",
     ["bind_pwd_description"] = "Bind password used for authenticating with the LDAP server.",

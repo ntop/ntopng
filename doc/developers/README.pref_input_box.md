@@ -53,6 +53,9 @@ The `extra` parameter accepts a table with the following optional fields:
 - `append` - HTML to append after the input
 - `disabled` - Disable the input field
 
+#### Field Naming Options
+- `input_name` - Overrides the HTML `name=` / `_POST` field name without changing the Redis key (defaults to `key`)
+
 #### Special Options
 - `skip_redis` - Skip Redis operations (for testing)
 - `tformat` - Time format for resolution buttons

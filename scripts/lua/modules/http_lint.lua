@@ -3016,8 +3016,10 @@ local known_parameters = {
     ["color"] = validateSingleWord,
     ["host_tags_bitmap"] = validateNumber, -- 64-bit host tag bitmap
 
-    --BGP 
-    ["prefix_changes_endpoint"] = validateZMQEndpoint,
+    -- BGP
+    ["bgp_ip_address"] = validateEmptyOr(validateIpAddress),
+    ["bgp_port"] = validateEmptyOr(validatePort),
+    ["prefix_changes_endpoint"] = validateEmptyOr(validateZMQEndpoint),
 
     -- exporter sites
     ["latitude"] = validateSingleWord,

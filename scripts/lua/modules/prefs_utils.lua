@@ -163,6 +163,13 @@ end
 
 function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
    extra = extra or {}
+   
+   -- "form_key" is the HTTP-facing field name (HTML name= and _POST lookup),
+   -- while the redis key below is always built from "key". They are kept separate
+   -- so a field can be validated by http_lint under a dedicated name (via
+   -- extra.input_name) without changing its redis storage key.
+   local form_key = extra.input_name or key
+   
    if(string.ends(prekey, ".")) then
       k = prekey..key
    else
@@ -170,8 +177,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
    end
    skip_redis = extra.skip_redis or false
    if not skip_redis then
-      if(_POST[key] ~= nil) then
-	 v_s = _POST[key]
+      if(_POST[form_key] ~= nil) then
+	 v_s = _POST[form_key]
 	 v = tonumber(v_s)
 
 	 v_cache = ntop.getPref(k)
@@ -274,7 +281,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
    local input_type = "text"
    if _input_type ~= nil then input_type = _input_type end
-   print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..(label or "")..'</strong>')
+   print('<tr id="'..form_key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..(label or "")..'</strong>')
    if(comment ~= nil) then print('<p><small>'..comment..'</small></td>') end
 
    local style = {}
@@ -318,12 +325,12 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
           </td>
           <td style="vertical-align:top; padding-left: 2em; white-space: nowrap;">
 
-           <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
+           <input id="id_input_]] print(form_key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(form_key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
 	   if disableAutocomplete then print(" autocomplete=\"off\"") end
 	   print [[/>]] print(extra.append or "") print[[
-            <span id="input_error_]] print(key) print[[" class="text-danger" hidden>!</span>
+            <span id="input_error_]] print(form_key) print[[" class="text-danger" hidden>!</span>
             <script>
-            $("#]] print("id_input_" .. key) print[[").on( "focusout", function(tmp) {
+            $("#]] print("id_input_" .. form_key) print[[").on( "focusout", function(tmp) {
               const min_value = Number(this.getAttribute('min'));
               const max_value = Number(this.getAttribute('max'));
               const value = Number(this.value);
@@ -332,17 +339,17 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
               if(value < min_value || (max_value != 0  && value > max_value)) {
                 this.classList.add('text-danger');
                 this.classList.add('ntopng-input-error');
-                $("#]] print("input_error_" .. key) print[[").removeAttr('hidden');
+                $("#]] print("input_error_" .. form_key) print[[").removeAttr('hidden');
               } else {
                 this.classList.remove('text-danger');
                 this.classList.remove('ntopng-input-error');
-                $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
+                $("#]] print("input_error_" .. form_key) print[[").attr('hidden', true);
               }
             });
-            $("#]] print("id_input_" .. key) print[[").on( "focusin", function(tmp) {
+            $("#]] print("id_input_" .. form_key) print[[").on( "focusin", function(tmp) {
               this.classList.remove('text-danger');
               this.classList.remove('ntopng-input-error');
-              $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
+              $("#]] print("input_error_" .. form_key) print[[").attr('hidden', true);
             });
             </script>
           </td>

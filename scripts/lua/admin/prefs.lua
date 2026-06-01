@@ -297,33 +297,44 @@ if auth.has_capability(auth.capabilities.preferences) then
    end
 
    if _GET["tab"] == "asn_settings" and not table.empty(_POST) then
-      local bgp_address = _POST["ip_address"] or ""
-      local bgp_port = _POST["port"] or ""
+      local bgp_address = _POST["bgp_ip_address"] or ""
+      local bgp_port = _POST["bgp_port"] or ""
       local bgp_pce = _POST["prefix_changes_endpoint"] or ""
-      
-      -- Only run the test when an address is provided and at least one field changed.
-      -- NOTE: the connection check is intentionally performed AFTER the new values have
-      -- been accepted into _POST (i.e. they will be persisted regardless of the outcome).
-      -- On failure we only warn the user; we do NOT restore the old values.
 
-      if not isEmptyString(bgp_address) and (
-	 bgp_address ~= (ntop.getPref("ntopng.prefs.bgp_server.ip_address") or "") or
-	 bgp_port ~= (ntop.getPref("ntopng.prefs.bgp_server.port") or "")
-      ) then
-	 ntop.setPref("ntopng.prefs.bgp_server.ip_address", bgp_address)
-	 ntop.setPref("ntopng.prefs.bgp_server.port", bgp_port)
+      -- ip_address and port must be either BOTH configured or BOTH empty.
+      if isEmptyString(bgp_address) ~= isEmptyString(bgp_port) then
+	 message_info = i18n("prefs.bgp_server_address_port_mismatch")
+	 message_severity = "alert-danger"
 
-	 local ok = ntop.ribFind("1.1.1.1")
+	 -- Reject the half-configuration: restore the previously saved values so
+	 -- that prefsInputFieldPrefs persists the consistent (old) state instead.
+	 bgp_address = ntop.getPref("ntopng.prefs.bgp_server.ip_address") or ""
+	 bgp_port = ntop.getPref("ntopng.prefs.bgp_server.port") or ""
+	 _POST["bgp_ip_address"] = bgp_address
+	 _POST["bgp_port"] = bgp_port
+      else
+	 local prev_address = ntop.getPref("ntopng.prefs.bgp_server.ip_address") or ""
+	 local prev_port = ntop.getPref("ntopng.prefs.bgp_server.port") or ""
+	
+	 if not isEmptyString(bgp_address) and (
+	    bgp_address ~= prev_address or
+	    bgp_port ~= prev_port
+	 ) then
+	    ntop.setPref("ntopng.prefs.bgp_server.ip_address", bgp_address)
+	    ntop.setPref("ntopng.prefs.bgp_server.port", bgp_port)
 
-	 if not ok then
-	    message_info = i18n("prefs.bgp_server_connection_failed")
-	    message_severity = "alert-danger"
-	 else
-	    message_info = i18n("prefs.bgp_server_connection_ok")
-	    message_severity = "alert-success"
+	    local ok = ntop.ribFind("1.1.1.1")
+
+	    if not ok then
+	       message_info = i18n("prefs.bgp_server_connection_failed")
+	       message_severity = "alert-danger"
+	    else
+	       message_info = i18n("prefs.bgp_server_connection_ok")
+	       message_severity = "alert-success"
+	    end
 	 end
       end
-      
+
       if not isEmptyString(bgp_pce) then
          ntop.startPollingBGPPrefixChanges(bgp_pce)
       end
@@ -2873,12 +2884,14 @@ if auth.has_capability(auth.capabilities.preferences) then
       prefsInputFieldPrefs(subpage_active.entries["bgp_server_address"].title,
 			   subpage_active.entries["bgp_server_address"].description,
 			   "ntopng.prefs.bgp_server", "ip_address", "", "text", true, true, false, {
+			      input_name = "bgp_ip_address",
 			      attributes = { spellcheck = "false", maxlength = 128 },
       })
 
       prefsInputFieldPrefs(subpage_active.entries["bgp_server_port"].title,
 			   subpage_active.entries["bgp_server_port"].description,
 			   "ntopng.prefs.bgp_server", "port", "", "text", true, true, false, {
+			      input_name = "bgp_port",
 			      attributes = { spellcheck = "false", maxlength = 128 },
       })
 
