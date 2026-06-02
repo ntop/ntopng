@@ -33,12 +33,16 @@ page_utils.print_navbar(title, ntop.getHttpPrefix() .. "/lua/pool_stats_vue.lua"
         i18n("pools.host_pools") .. "\"></i>"
 }})
 
+local graph_utils = require "graph_utils"
+local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
 local context = {
     csrf = ntop.getRandomCSRFValue(),
     ifid = ifid,
     isnEdge = ntop.isnEdge(),
     isPro = ntop.isPro(),
-    timeseriesEnabled = areHostPoolsTimeseriesEnabled(ifid)
+    timeseriesEnabled = areHostPoolsTimeseriesEnabled(ifid),
+    date_format = date_fmt,
+    date_format_range_picker = date_fmt_picker,
 }
 
 local json_context = json.encode(context)

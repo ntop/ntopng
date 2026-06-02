@@ -511,4 +511,83 @@ end
 
 -- #################################
 
+-- Returns a catalog table keyed by entity name.
+-- Each value is a list of simplified schema descriptors for the catalog endpoint.
+-- entity_filter (optional): only return schemas for this entity prefix (e.g. "host")
+function timeseries_info.getCatalog(entity_filter)
+    local ts_utils = require "ts_utils"
+
+    local entity_map = {
+        iface            = "iface",
+        host             = "host",
+        mac              = "mac",
+        network          = "subnet",
+        asn              = "asn",
+        country          = "country",
+        os               = "os",
+        vlan             = "vlan",
+        host_pool        = "host_pool",
+        pod              = "pod",
+        container        = "container",
+        system           = "system",
+        active_monitoring = "am",
+        snmp_interface   = "snmp_interface",
+        flow             = "flow",
+        flow_aggr        = "flow_aggr",
+    }
+
+    local function get_tags(schema_name)
+        local s = ts_utils.getSchema(schema_name)
+        if not s then return {} end
+        local t = {}
+        for _, tag in ipairs(s._tags or {}) do t[#t + 1] = tag end
+        return t
+    end
+
+    local function get_metrics(entry_metrics)
+        if not entry_metrics then return {} end
+        local out = {}
+        for id, info in pairs(entry_metrics) do
+            local m = { id = id, label = info.label or id }
+            if info.invert_direction then m.invert = true end
+            out[#out + 1] = m
+        end
+        return out
+    end
+
+    local catalog = {}
+    local tags = {}
+
+    for entity_key, prefix in pairs(entity_map) do
+        if entity_filter and entity_key ~= entity_filter then
+            goto skip_entity
+        end
+
+        local ok, ts_list = pcall(timeseries_info.getTimeseries, tags, prefix)
+        if ok and ts_list then
+            local entries = {}
+            for _, entry in ipairs(ts_list) do
+                local schema_name = entry.schema or ""
+                entries[#entries + 1] = {
+                    schema          = schema_name,
+                    label           = entry.label or schema_name,
+                    description     = entry.description or "",
+                    unit            = entry.measure_unit or "",
+                    tags_required   = get_tags(schema_name),
+                    metrics         = get_metrics(entry.timeseries),
+                    default_visible = entry.default_visible or false,
+                }
+            end
+            if #entries > 0 then
+                catalog[entity_key] = entries
+            end
+        end
+        ::skip_entity::
+    end
+
+    return catalog
+end
+
+-- #################################
+
 return timeseries_info

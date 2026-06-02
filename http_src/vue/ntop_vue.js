@@ -134,6 +134,7 @@ import { default as PageTrafficRules } from "./page-traffic-rules.vue"
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
 import { default as TimeseriesChart } from "./timeseries-chart.vue";
+import { default as TsChart } from "./ts-chart.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
@@ -345,6 +346,7 @@ let ntopVue = {
     AlertInfo: AlertInfo,
     Chart: Chart,
     TimeseriesChart: TimeseriesChart,
+    TsChart: TsChart,
     SearchBox: SearchBox,
     Datatable: Datatable,
     DateTimeRangePicker: DateTimeRangePicker,

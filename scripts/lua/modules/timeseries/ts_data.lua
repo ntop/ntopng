@@ -1,4 +1,3 @@
--- Sets up Lua module paths to include ntopng's installation directory
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 

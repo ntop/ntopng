@@ -2957,6 +2957,8 @@ local known_parameters = {
    ["metric"] = validateSingleWord,
    ["ts_query"] = validateListOfTypeInline(validateUnquoted),
    ["ts_compare"] = validateZoom,
+   -- batch.lua POST body: queries array and per-query fields
+   ["queries"]   = validateUnchecked,   -- array of {id, ts_schema, ts_query, ...}
    ["no_fill"] = validateBool,
    ["detail_view"] = validateSingleWord,
    ["initial_point"] = validateBool,

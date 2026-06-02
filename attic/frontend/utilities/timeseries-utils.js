@@ -152,7 +152,7 @@ function getTsQuery(tsGroup, not_metric_query, enable_source_def_value_dict) {
         }
     }
 
-    if (!not_metric_query && tsGroup.metric?.query != null) {
+    if (!not_metric_query && tsGroup.metric.query != null) {
         tsQuery = `${tsQuery},${tsGroup.metric.query}`
     }
     return tsQuery;
@@ -231,42 +231,6 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
     return tsChartsOptions;
 }
 
-/**
- * Replacement for getTsChartsOptions that uses batch.lua instead of ts.lua / ts_multi.lua.
- * Returns an array of {series, metadata} objects compatible with tsArrayToOptionsArray.
- */
-async function getTsChartsOptionsViaBatch(httpPrefix, epochStatus, tsCompare, timeseriesGroups, csrf) {
-    const batch_url = `${httpPrefix}/lua/rest/v2/get/timeseries/batch.lua`;
-
-    const queries = timeseriesGroups.filter((tsGroup) => tsGroup.metric != null).map((tsGroup, i) => {
-        const main_source_index = getMainSourceDefIndex(tsGroup);
-        const tsQuery = getTsQuery(tsGroup);
-        const q = {
-            id:        `ts_chart_${i}`,
-            ts_schema: `${tsGroup.metric.schema}`,
-            ts_query:  tsQuery,
-            compare:   tsCompare,
-            zoom:      tsCompare,
-            limit:     180,
-        };
-        if (!tsGroup.source_type.source_def_array[main_source_index].disable_tskey) {
-            q.tskey = tsGroup.source_array[main_source_index].value;
-        }
-        return q;
-    });
-
-    const batchResp = await ntopng_utility.http_post_request(batch_url, {
-        csrf,
-        epoch_begin: epochStatus.epoch_begin,
-        epoch_end:   epochStatus.epoch_end,
-        queries,
-    });
-
-    if (!batchResp || !batchResp.results) return [];
-    if (batchResp.meta?.date_format) ntopng_utility.set_cached_date_format(batchResp.meta.date_format);
-    return queries.map(q => batchResp.results[q.id] || { series: [], metadata: {} });
-}
-
 const timeseriesUtils = function () {
     return {
         groupsOptionsModesEnum,
@@ -277,7 +241,6 @@ const timeseriesUtils = function () {
         getSerieId,
         getSerieName,
         getTsChartsOptions,
-        getTsChartsOptionsViaBatch,
         getTsChartsDataUrl,
         getTsQuery,
         getMainSourceDefIndex,

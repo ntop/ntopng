@@ -38,8 +38,7 @@ const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups
         return null;
     }
     let groups = url_timeseries_groups.split(";;");
-    let timeseries_groups = Promise.all(groups.map((g) => get_url_param_from_ts_group(g)))
-        .then((arr) => arr.filter((g) => g != null));
+    let timeseries_groups = Promise.all(groups.map((g) => get_url_param_from_ts_group(g)));
     return timeseries_groups;
 };
 
@@ -94,7 +93,6 @@ async function get_url_param_from_ts_group(ts_group_url_param) {
     let source_type = get_source_type_from_id(source_type_id);
     let source_array = await get_source_array_from_value_array(http_prefix, source_type, source_value_array);
     let metric = await get_metric_from_schema(http_prefix, source_type, source_array, metric_schema_query_array[0], metric_schema_query_array[1]);
-    if (metric == null) { return null; }
     let timeseries = get_timeseries(timeseries_url, metric);
     return {
         id: get_ts_group_id(source_type, source_array, metric),
@@ -132,7 +130,7 @@ function get_timeseries(timeseries_url, metric) {
     let timeseries = [];
     ts_url_array.forEach((ts_url) => {
         let values = r.exec(ts_url);
-        if (values && values.length > 0) {
+        if (values.length > 0) {
             let id = values[1];
             let label = metric.timeseries[id].label;
             let raw = JSON.parse(values[2]);
@@ -288,26 +286,56 @@ function get_metrics_url(http_prefix, source_type, source_array, epoch) {
         if (extra.length > 0) filter_params = "&" + extra.join("&");
     }
 
+    /* When only_basic_ts is set, all metrics are returned regardless of data availability,
+     * so the epoch has no effect on the response — omit it to maximise cache hits. */
     const epoch_string = (epoch != null) ? `epoch_end=${epoch.epoch_end}&epoch_begin=${epoch.epoch_begin}` : ``;
     const url = `${http_prefix}/lua/rest/v2/get/timeseries/type/consts.lua?query=${source_type.query}&${params}${filter_params}&${epoch_string}`;
     return url;
 }
 
-let cache_metrics = {};
+function get_metric_key(source_type, source_array) {
+    let source_array_key = source_array.map((source) => source.value).join("_");
+    let key = `${source_type.id}_${source_array_key}`;
+    return key;
+}
 
-const get_metrics = async (http_prefix, source_type, source_array) => {
+/* Permanent cache for empty epoch calls (metric definitions, epoch-independent) */
+let cache_metrics_static = {};
+/* Epoch-dependent cache, cleared on time interval change */
+let cache_metrics = {};
+let last_metrics_time_interval = null;
+const get_metrics = async (http_prefix, source_type, source_array, status) => {
     if (source_type == null) {
         source_type = get_current_page_source_type();
     }
     if (source_array == null) {
         source_array = await get_default_source_array(http_prefix, source_type);
     }
-    let epoch = ntopng_utility.get_url_epoch_interval();
-    let url = get_metrics_url(http_prefix, source_type, source_array, epoch);
-    if (cache_metrics[url] == null) {
-        cache_metrics[url] = ntopng_utility.http_request(url);
+    const key = get_metric_key(source_type, source_array);
+    let epoch_begin = status?.epoch_begin;
+    let epoch_end = status?.epoch_end;
+    // Get the epoch only if null or undefined
+    if (epoch_begin == null) {
+        epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
     }
-    const metrics = await cache_metrics[url];
+    if (epoch_end == null) {
+        epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+    }
+    const empty_epoch = (!epoch_begin || !epoch_end) ? true : false;
+
+    const cache = (empty_epoch) ? cache_metrics_static : cache_metrics;
+    if (!empty_epoch) {
+        const current_last_metrics_time_interval = `${epoch_begin}_${epoch_end}`;
+        if (current_last_metrics_time_interval != last_metrics_time_interval) {
+            cache[key] = null;
+            last_metrics_time_interval = current_last_metrics_time_interval;
+        }
+    }
+    if (!cache[key]) {
+        let url = get_metrics_url(http_prefix, source_type, source_array, empty_epoch ? null : { epoch_begin, epoch_end });
+        cache[key] = ntopng_utility.http_request(url);
+    }
+    const metrics = await cache[key];
     if (metrics == null || metrics.length == 0) { return [{}]; }
     if (metrics.some((m) => m.default_visible == true) == false) {
         metrics[0].default_visible = true;
@@ -325,8 +353,8 @@ const get_current_page_source_type = () => {
     throw `source_type not found for ${pathname}`;
 };
 
-const get_metric_from_schema = async (http_prefix, source_type, source_array, metric_schema, metric_query) => {
-    let metrics = await get_metrics(http_prefix, source_type, source_array);
+const get_metric_from_schema = async (http_prefix, source_type, source_array, metric_schema, metric_query, status, only_basic_ts) => {
+    let metrics = await get_metrics(http_prefix, source_type, source_array, status);
     if (metric_schema === 'top:iface:ndpi') {
         return metrics.find((m) => m.schema == metric_schema && m.query == metric_query) ||
             metrics.find((m) => m.schema == 'top:iface:ndpi_full' && m.query == metric_query)

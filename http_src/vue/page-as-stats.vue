@@ -438,21 +438,16 @@ const get_component_data = async (url, query_params, post_params) => {
     const top_url = `${http_prefix}/lua/rest/v2/get/asn/get_top_asn.lua?${url_params}`;
     const top_data = await ntopng_utility.http_request(top_url);
 
-    // Build time series requests for each ASN
-    const ts_requests = [];
-    top_data?.forEach((el) => {
-        const tmp_query = { ...ts_query };
-        tmp_query.ts_query = tmp_query.ts_query.replace('$IFID$', props.context.ifid);
-        tmp_query.ts_query = tmp_query.ts_query.replace('$ASN$', el.asn);
-        tmp_query.tskey = `${el.asn}`;
-        tmp_query.ts_unify = true;
-        ts_requests.push(tmp_query);
-    });
-
-    post_params.ts_requests = ts_requests;
-    const data_url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua?${url_params}`;
-    const data = await ntopng_utility.http_post_request(data_url, post_params);
-    return data;
+    const queries = (top_data || []).map((el, i) => ({
+        id:       `top_asn_${i}`,
+        ts_schema: `asn:traffic`,
+        ts_query:  `ifid:${props.context.ifid},asn:${el.asn}`,
+        ts_unify:  true,
+        limit:     post_params.limit || 180,
+    }));
+    post_params.queries = queries;
+    delete post_params.ts_requests;
+    return ntopng_utility.http_post_request(url, post_params);
 };
 
 /**

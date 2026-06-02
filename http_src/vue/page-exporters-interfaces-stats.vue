@@ -131,27 +131,28 @@ const add_filter = async (value) => {
 
 /* *************************************************** */
 
-/* Callback to request REST data from components */
+/* Callback to request REST data from components — now calls batch.lua directly */
 const get_component_data = async (url, query_params, post_params) => {
     loading.value = true;
-    query_params.csrf = props.context.csrf
-    query_params.interface_role = current_selected_option.value.value;
-    const url_params = ntopng_url_manager.obj_to_url_params(query_params);
-    const top_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/get_top_exporters_interfaces.lua?${url_params}`;
-    const top_data = await ntopng_utility.http_request(top_url)
-    const ts_requests = [];
-    top_data?.forEach((el) => {
-        const tmp_query = { ...ts_query };
-        tmp_query.ts_query = tmp_query.ts_query.replace('$IFID$', el.ifid); /* SNMP timeseries are in the system interface */
-        tmp_query.ts_query = tmp_query.ts_query.replace('$DEVICE$', el.exporter_ip);
-        tmp_query.ts_query = tmp_query.ts_query.replace('$PORT$', el.interface_id);
-        tmp_query.tskey = `${el.interface_id}`;
-        tmp_query.ts_unify = true
-        ts_requests.push(tmp_query);
-    })
-    post_params.ts_requests = ts_requests;
-    const data_url = `${http_prefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua?${url_params}`;
-    const data = await ntopng_utility.http_post_request(data_url, post_params)
+    const top_query = {
+        csrf: props.context.csrf,
+        ifid: query_params.ifid,
+        epoch_begin: query_params.epoch_begin,
+        epoch_end: query_params.epoch_end,
+        interface_role: current_selected_option.value.value,
+    };
+    const top_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/get_top_exporters_interfaces.lua?${ntopng_url_manager.obj_to_url_params(top_query)}`;
+    const top_data = await ntopng_utility.http_request(top_url);
+    const queries = (top_data || []).map((el, i) => ({
+        id:        `top_iface_${i}`,
+        ts_schema: `flowdev_port:traffic`,
+        ts_query:  `ifid:${el.ifid},device:${el.exporter_ip},port:${el.interface_id}`,
+        ts_unify:  true,
+        limit:     post_params.limit || 180,
+    }));
+    post_params.queries = queries;
+    delete post_params.ts_requests;
+    const data = await ntopng_utility.http_post_request(url, post_params);
     loading.value = false;
     return data;
 };

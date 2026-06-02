@@ -31,9 +31,7 @@
         </DateTimeRangePicker>
 
         <div class="mt-3">
-          <TimeseriesChart ref="all_qos_chart" :id="all_qos_id" :chart_type="chart_type" :base_url_request="base_url"
-            :get_custom_chart_options="get_chart_options" :register_on_status_change="false" :key="all_qos_id">
-          </TimeseriesChart>
+          <TsChart :id="all_qos_id" :result="chartResult" :meta="chartMeta" :height="height" />
         </div>
 
         <div class="m-3 card card-shadow">
@@ -61,16 +59,14 @@
 /* Imports */
 import { ref, onMounted, onBeforeMount, computed } from "vue";
 import { default as NoteList } from "./note-list.vue";
-import { default as TimeseriesChart } from "./timeseries-chart.vue";
+import { default as TsChart } from "./ts-chart.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
-import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import { ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as Loading } from "./loading.vue";
 import { default as Spinner } from "./spinner.vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
 import formatterUtils from "../utilities/formatter-utils";
-import metricsManager from "../utilities/metrics-manager.js";
-import timeseriesUtils from "../utilities/timeseries-utils.js";
 
 /* ******************************************************************** */
 
@@ -81,16 +77,15 @@ const props = defineProps({
 
 /* Consts */
 const id_date_time_picker = "date_time_picker";
-const chart_type = ntopChartApex.typeChart.TS_LINE;
 const min_time_interval_id = "10_min";
 const all_qos_id = ref("chart_qos_all");
-const basic_source_type = "snmp_qos";
-const group_option_mode = timeseriesUtils.getGroupOptionMode('1_chart_x_metric');
 const filter_table_array = ref([]);
 const loading = ref(true);
 const loading_chart = ref(true);
 const filters = ref([]);
 const is_qos_polled = ref(false);
+const chartResult = ref(null);
+const chartMeta = ref(null);
 const qos_not_polled_yet = _i18n('snmp.snmp_qos_info_not_polled');
 const note_list = [
   _i18n("snmp.snmp_note_periodic_interfaces_polling"),
@@ -120,62 +115,25 @@ const stats_columns = [
 
 /* Height and width of the charts */
 const height_per_row = 62.5;
-const height = ref(null);
+const height = ref(4 * height_per_row);
 
-/* Consts */
-
-/* *************************************************** */
-
-/* Return the base url of the REST API */
-const base_url = computed(() => {
-  return `${http_prefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua`;
-});
-
-/* Refs */
-const all_qos_chart = ref(null);
-const timeseries_groups = ref([]);
-const ts_request = ref([{
-  ts_query: "ifid:-1,device:%host,if_index:%interface_id,qos_class_id:%qos_class",
-  ts_schema: "snmp_if:cbqos",
-  tskey: "%interface_id",
-  source_def: [
-    "-1", /* System Interface */
-    "%host",
-    "%interface_id",
-    "%qos_class"
-  ]
-}]);;
+const batch_url = `${http_prefix}/lua/rest/v2/get/timeseries/batch.lua`;
 
 const stats_rows = ref([]);
+const formatter = formatterUtils.getFormatter("bps");
 
 function set_stats_rows(result) {
-  const f_get_total_formatter_type = (type) => {
-    let map_type = {
-      "bps": "bytes",
-      "fps": "flows",
-      "alertps": "alerts",
-      "hitss": "hits",
-      "pps": "packets",
-    };
-    if (map_type[type] != null) {
-      return map_type[type];
-    }
-    return type;
-  };
   stats_rows.value = [];
-  result.forEach((options, i) => {
-    options.series?.forEach((s, j) => {
-      const ts_stats = s.statistics;
-      const name = timeseries_groups.value[0].metric.timeseries[s.id].label;
-      const formatter = formatterUtils.getFormatter(timeseries_groups.value[0].metric.measure_unit);
-      const row = {
-        metric: name,
-        perc_95: formatter(ts_stats["95th_percentile"]),
-        avg: formatter(ts_stats.average),
-        max: formatter(ts_stats.max_val),
-        min: formatter(ts_stats.min_val),
-      };
-      stats_rows.value.push(row);
+  if (!result?.series) return;
+  result.series.forEach((s) => {
+    const ts_stats = s.statistics;
+    if (!ts_stats) return;
+    stats_rows.value.push({
+      metric: s.name || s.id,
+      perc_95: formatter(ts_stats["95th_percentile"]),
+      avg:     formatter(ts_stats.average),
+      max:     formatter(ts_stats.max_val),
+      min:     formatter(ts_stats.min_val),
     });
   });
 }
@@ -196,10 +154,7 @@ function print_stats_row(col, row) {
 /* *************************************************** */
 
 function search_timeseries() {
-  /* This is a trick to reload the entire timeseries component
-   * if not reloaded there could be some issues with parameters
-   */
-  all_qos_id.value = ntopng_url_manager.get_url_entry("qos_class_id");
+  refresh_chart();
 }
 
 /* *************************************************** */
@@ -286,32 +241,6 @@ function set_filters_list(res, opt) {
 
 /* ************************************** */
 
-function substitute_params(params) {
-  let res = {}
-  const host = ntopng_url_manager.get_url_entry("host");
-  const interface_id = ntopng_url_manager.get_url_entry("snmp_port_idx") || "0"; /* Default value */
-  const qos_class = ntopng_url_manager.get_url_entry("qos_class_id") || "0"; /* Default value */
-  if (!(host && interface_id)) {
-    /* Safe check */
-    return params
-  }
-  for (const value of params) {
-    res.ts_query = value.ts_query.replace('%host', host).replace('%interface_id', interface_id).replace('%qos_class', qos_class);
-    res.tskey = value.tskey.replace('%interface_id', interface_id);
-    res.ts_schema = value.ts_schema
-    res.source_def = [];
-    value.source_def.forEach((source, index) => {
-      let tmp = source.replace('%host', host);
-      tmp = tmp.replace('%interface_id', interface_id);
-      tmp = tmp.replace('%qos_class', qos_class);
-      res.source_def[index] = tmp;
-    });
-  }
-  return res
-}
-
-/* ************************************** */
-
 async function load_table_filters_array(opt) {
   loading.value = true;
   let extra_params = get_extra_params_obj();
@@ -320,62 +249,6 @@ async function load_table_filters_array(opt) {
   const res = await ntopng_utility.http_request(url);
   set_filters_list(res, opt)
   loading.value = false;
-}
-
-/* *************************************************** */
-
-/* The source_type can be found in the json and the source_array is automatically generated
- * by using the source_type
- */
-async function get_timeseries_groups_from_metric(metric_schema, source_def) {
-  const status = {
-    epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-    epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
-  };
-  const source_type = metricsManager.get_source_type_from_id(basic_source_type);
-  const source_array = await metricsManager.get_source_array_from_value_array(http_prefix, source_type, source_def);
-  const metric = await metricsManager.get_metric_from_schema(http_prefix, source_type, source_array, metric_schema, null, status);
-  const ts_group = metricsManager.get_ts_group(source_type, source_array, metric, { past: false });
-  return ts_group;
-}
-
-/* *************************************************** */
-
-async function retrieve_basic_info() {
-  const tmp = substitute_params(ts_request.value);
-  const metric_schema = tmp?.ts_schema;
-  const source_def = tmp.source_def;
-  if (source_def && metric_schema) {
-    delete tmp.source_def /* Remove the property otherwise it's going to be added to the REST */
-    /* Return the timeseries group, info found in the json */
-    if (timeseries_groups.value.length == 0) {
-      const group = await get_timeseries_groups_from_metric(metric_schema, source_def);
-      timeseries_groups.value.push(group);
-    }
-    return [tmp];
-  }
-  return null;
-}
-
-/* *************************************************** */
-
-/* Remove the property otherwise it's going to be added to the REST */
-function remove_extra_params(tmp) {
-  for (const value of tmp) {
-    if (value.source_def) {
-      delete value.source_def
-    }
-  }
-}
-
-/* *************************************************** */
-
-async function get_component_data(url, url_params, post_params) {
-  let info = null;
-  const data_url = `${url}?${url_params}`;
-  info = ntopng_utility.http_post_request(data_url, post_params)
-
-  return info;
 }
 
 /* *************************************************** */
@@ -389,61 +262,55 @@ async function check_params() {
 
 /* *************************************************** */
 
-/* This function run the REST API with the data */
-async function get_chart_options() {
-  loading_chart.value = true;
-  await check_params();
-  const tmp = await retrieve_basic_info();
-  let result = [];
-  if (tmp) {
-    remove_extra_params(tmp);
-    const url = base_url.value;
-    const post_params = {
-      csrf: props.context.csrf,
-      ifid: props.context.ifid,
-      epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-      epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
-      ts_requests: tmp
-    }
-    /* Have to be used this get_component_data, in order to create report too */
-    result = await get_component_data(url, '', post_params);
-  }
-  set_stats_rows(result)
-  /* Format the result in the format needed by Dygraph */
-  result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
-  if (result[0]) {
-    result[0].height = height.value;
-  }
-  loading_chart.value = false;
-  return result?.[0];
+function build_ts_query() {
+  const host         = ntopng_url_manager.get_url_entry("host") || "";
+  const interface_id = ntopng_url_manager.get_url_entry("snmp_port_idx") || "0";
+  const qos_class    = ntopng_url_manager.get_url_entry("qos_class_id") || "0";
+  return `ifid:-1,device:${host},if_index:${interface_id},qos_class_id:${qos_class}`;
 }
 
 /* *************************************************** */
 
-/* Run the init here */
+async function refresh_chart() {
+  loading_chart.value = true;
+  await check_params();
+
+  const ts_query = build_ts_query();
+  if (!ts_query) { loading_chart.value = false; return; }
+
+  const post_body = {
+    csrf:        props.context.csrf,
+    ifid:        props.context.ifid,
+    epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+    epoch_end:   ntopng_url_manager.get_url_entry("epoch_end"),
+    queries: [{
+      id:        "qos_cbqos",
+      ts_schema: "snmp_if:cbqos",
+      ts_query:  ts_query,
+      limit:     180,
+    }],
+  };
+
+  const resp = await ntopng_utility.http_post_request(batch_url, post_body);
+  const result = resp?.results?.["qos_cbqos"] || null;
+  chartMeta.value = resp?.meta || {};
+  chartResult.value = result;
+  set_stats_rows(result);
+  loading_chart.value = false;
+}
+
+/* *************************************************** */
+
 onBeforeMount(async () => {
-  load_table_filters_array();
-  height.value = 4 * height_per_row;
+  await load_table_filters_array();
 });
 
-/* *************************************************** */
-
-onMounted(async () => { });
-
-/* *************************************************** */
+onMounted(async () => {
+  refresh_chart();
+});
 
 function epoch_change() {
   refresh_chart();
-}
-
-/* *************************************************** */
-
-/* Refresh function */
-async function refresh_chart() {
-  if (all_qos_chart.value) {
-    const result = await get_chart_options();
-    all_qos_chart.value.updateChartSeries(result);
-  }
 }
 
 </script>

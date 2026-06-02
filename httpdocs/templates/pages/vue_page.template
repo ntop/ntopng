@@ -52,6 +52,11 @@
   // they execute after HTML parsing but before DOMContentLoaded. Using native
   // DOMContentLoaded avoids a dependency on $ being available synchronously.
   document.addEventListener('DOMContentLoaded', function () {
-    start_vue("{* vue_page_name *}", ntopVue["{* vue_page_name *}"], {* page_context *});
+    const _ctx = {* page_context *};
+    /* Seed the date_format cache from server context so JS never needs date_format.lua */
+    if (_ctx.date_format && ntopVue.ntopng_utility) {
+      ntopVue.ntopng_utility.set_cached_date_format(_ctx.date_format);
+    }
+    start_vue("{* vue_page_name *}", ntopVue["{* vue_page_name *}"], _ctx);
   });
 </script>

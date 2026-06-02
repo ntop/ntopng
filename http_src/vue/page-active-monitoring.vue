@@ -356,7 +356,7 @@ onMounted(async () => {
 onBeforeMount(async () => {
     measurements_list.value = await ntopng_utility.http_request(measurements_url.value);
     interfaces_list.value = await ntopng_utility.http_request(interfaces_url.value);
-    date_format.value = await ntopng_utility.get_date_format(false, props.context.csrf, http_prefix);
+    date_format.value = props.context.date_format || await ntopng_utility.get_date_format(false, props.context.csrf, http_prefix);
 })
 
 /* ************************************** */

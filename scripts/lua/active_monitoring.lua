@@ -80,12 +80,16 @@ page_utils.print_navbar(title, base_url, {{
 -- #######################################################
 
 if (page == "overview") then
+    local graph_utils = require "graph_utils"
+    local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
     local json_context = json.encode({
         ifid = ifid,
         csrf = ntop.getRandomCSRFValue(),
         is_admin = isAdministrator(),
         is_am_active = prefs.active_monitoring,
-        timeseries_enabled = areSystemTimeseriesEnabled()
+        timeseries_enabled = areSystemTimeseriesEnabled(),
+        date_format = date_fmt,
+        date_format_range_picker = date_fmt_picker,
     })
     template_utils.render("pages/vue_page.template", {
         vue_page_name = "PageActiveMonitoring",
@@ -100,6 +104,7 @@ elseif ((page == "historical") and (not isEmptyString(host))) then
         host_tag = host .. ",metric:infrastructure"
     end
     graph_utils.drawNewGraphs({
+        --ifid = interface.getId(),
         ifid = -1,
         host = host_tag
     })

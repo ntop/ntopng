@@ -26,9 +26,13 @@ page_utils.print_navbar(i18n("countries"), ntop.getHttpPrefix() .. "/lua/country
         i18n("countries") .. "\"></i>"
 }})
 
+local graph_utils = require "graph_utils"
+local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
 local context = {
     ifid = interface.getId(),
-    show_historical = areCountryTimeseriesEnabled(interface.getId())
+    show_historical = areCountryTimeseriesEnabled(interface.getId()),
+    date_format = date_fmt,
+    date_format_range_picker = date_fmt_picker,
 }
 
 local json_context = json.encode(context)

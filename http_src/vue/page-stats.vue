@@ -465,7 +465,7 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
             console.warn("Empty timeseries_groups request");
             return;
         }
-        ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.context.is_ntop_pro);
+        ts_charts_options = await timeseriesUtils.getTsChartsOptionsViaBatch(http_prefix, status, ts_compare, timeseries_groups, props.context.csrf);
     }
 
     /* Update timeseries label to display */

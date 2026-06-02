@@ -80,6 +80,7 @@ elseif interface.isZMQInterface() then
     show_sankey = true
 end
 
+local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
 local context = {
     ifid = ifid,
     showSankey = show_sankey,
@@ -87,7 +88,9 @@ local context = {
     isEnterprise = ntop.isEnterprise(),
     showTimeseries = as_ts_enabled,
     ASNModeEnabled = is_asn_mode_enabled,
-    isClickhouseEnabled = hasClickHouseSupport()
+    isClickhouseEnabled = hasClickHouseSupport(),
+    date_format = date_fmt,
+    date_format_range_picker = date_fmt_picker,
 }
 
 local json_context = json.encode(context)

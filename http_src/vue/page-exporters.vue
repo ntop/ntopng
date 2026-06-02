@@ -313,7 +313,6 @@ function click_button_live_hosts(event) {
 
 function click_button_timeseries(event) {
     const row = event.row;
-    debugger;
     const url = linksUtils.getExporterTimeseriesPageURL({ ip: row.ip, ifid: row.ifid, probe_source_id: row.probe_source_id }, http_prefix)
     window.location.href = url;
 }

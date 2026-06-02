@@ -293,6 +293,24 @@ end
 
 -- #################################################
 
+-- Returns both date format strings (chart axis + range-picker) from user prefs.
+-- Embed in every Vue page context so JS never needs to call date_format.lua.
+function graph_utils.get_date_formats()
+    local key
+    if _SESSION then
+        key = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".date_format")
+    end
+    if key == "big_endian" then
+        return "YYYY/MM/DD HH:mm:ss", "Y/m/d H:i"
+    elseif key == "middle_endian" then
+        return "MM/DD/YYYY HH:mm:ss", "m/d/Y H:i"
+    else
+        return "DD/MM/YYYY HH:mm:ss", "d/m/Y H:i"
+    end
+end
+
+-- #################################################
+
 function graph_utils.drawNewGraphs(source_value_object)
     -- Import modules
     local json = require("dkjson")
@@ -405,6 +423,7 @@ function graph_utils.drawNewGraphs(source_value_object)
         flowdevice = {top_flowdev_ifaces = true}
     }
 
+    local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
     local context = {
         csrf = ntop.getRandomCSRFValue(),
         enable_snapshots = (source_value_object.enable_snapshots ~= false) and ntop.isEnterpriseM(),
@@ -414,6 +433,8 @@ function graph_utils.drawNewGraphs(source_value_object)
         sources_types_top_enabled = sources_types_top_enabled,
         is_ntop_pro = ntop.isPro(),
         is_history_enabled = hasClickHouseSupport(),
+        date_format = date_fmt,
+        date_format_range_picker = date_fmt_picker,
     }
     local json_context = json.encode(context)
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageStats", page_context = json_context })
