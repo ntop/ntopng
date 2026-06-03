@@ -603,36 +603,25 @@ local function addTopTimeseries(tags, emptyEpoch, tsOptions)
     if interface_ts_enabled then
         -- Adding L4 protocols timeseries
         local series = ts_utils.listSeries("iface:l4protos", table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
 
         if not table.empty(series) then
             for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.l4proto = serie.l4proto
-                local tot_serie = ts_utils.queryTotal("iface:l4protos", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
-
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:iface:l4protos",
-                        disable_perc_95_ts = true,
-                        group = i18n("graphs.l4_proto"),
-                        priority = 2,
-                        query = "l4proto:" .. serie.l4proto,
-                        label = i18n(serie.l4proto) or serie.l4proto,
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        timeseries = {
-                            bytes = {
-                                label = serie.l4proto,
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
+                timeseries[#timeseries + 1] = {
+                    schema = "top:iface:l4protos",
+                    disable_perc_95_ts = true,
+                    group = i18n("graphs.l4_proto"),
+                    priority = 2,
+                    query = "l4proto:" .. serie.l4proto,
+                    label = i18n(serie.l4proto) or serie.l4proto,
+                    measure_unit = "bps",
+                    scale = i18n('graphs.metric_labels.traffic'),
+                    timeseries = {
+                        bytes = {
+                            label = serie.l4proto,
+                            color = ts_gui_utils.get_timeseries_color('bytes')
                         }
                     }
-                end
+                }
             end
         end
 
@@ -787,10 +776,7 @@ end
 
 function ts_interface.getTimeseries(tags, tsOptions)
     local timeseries = {}
-    local emptyEpoch = false
-    if (not tags.epoch_begin) or (not tags.epoch_end) then
-        emptyEpoch = true
-    end
+    local emptyEpoch = (not tags.epoch_begin) or (not tags.epoch_end) or (tsOptions and tsOptions.emptyEpoch == true)
 
     timeseries = timeseries_list
 
@@ -826,7 +812,6 @@ function ts_interface.getTimeseries(tags, tsOptions)
     end
 
     if not emptyEpoch then
-        -- Remove empty timeseries
         timeseries = ts_gui_utils.removeEmptyTimeseries(timeseries, tags)
     end
     local top_timeseries = addTopTimeseries(tags, emptyEpoch, tsOptions)

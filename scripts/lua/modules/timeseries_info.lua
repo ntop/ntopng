@@ -162,7 +162,10 @@ function timeseries_info.getTimeseries(tags, prefix)
 
     local timeseries_options = {
         is_asn_mode_enabled = isASNModeEnabled(),
-        emptyEpoch = (not tags.epoch_begin or not tags.epoch_end),
+        -- Always skip per-protocol queryTotal filtering: consts only needs the schema
+        -- list, not data presence. Handlers that require epoch for their own logic
+        -- (e.g. ts_active_monitoring) still read tags.epoch_begin directly.
+        emptyEpoch = true,
         include_empty_ts = true
     }
     local timeseries_list = getTimeseriesFromModules(tags, prefix, timeseries_options)

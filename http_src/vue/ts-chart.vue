@@ -42,7 +42,7 @@
         <div v-else class="position-relative">
             <div ref="divA" class="w-100" :style="chartStyle"></div>
             <div ref="divB" class="w-100 d-none" :style="chartStyle"></div>
-            <div ref="legendDiv" class="dygraph-legend" style="display:none; position:absolute; top:0; right:0; z-index:10; background:rgba(255,255,255,0.9); border:1px solid #ccc; padding:4px 8px; pointer-events:none;"></div>
+            <div ref="legendDiv" class="dygraph-legend" style="display:none; position:absolute; z-index:10; background:rgba(255,255,255,0.9); border:1px solid #ccc; padding:4px 8px; pointer-events:none;"></div>
         </div>
     </div>
 </template>
@@ -217,11 +217,28 @@ function drawChart(options, animate) {
 function showLegend(event) {
     if (!legendDiv.value) return;
     legendDiv.value.style.display = "block";
-    const rect   = legendDiv.value.getBoundingClientRect();
-    const margin = 10;
-    if (rect.top < margin) {
-        legendDiv.value.style.top = margin + "px";
+
+    const container = activeDiv();
+    if (!container || !event) return;
+    const cRect  = container.getBoundingClientRect();
+    const lRect  = legendDiv.value.getBoundingClientRect();
+    const margin = 12;
+    const offset = 16;
+
+    let x = event.clientX - cRect.left + offset;
+    let y = event.clientY - cRect.top  + offset;
+
+    // flip left if overflowing right edge
+    if (x + lRect.width + margin > cRect.width) {
+        x = event.clientX - cRect.left - lRect.width - offset;
     }
+    // flip up if overflowing bottom edge
+    if (y + lRect.height + margin > cRect.height) {
+        y = event.clientY - cRect.top - lRect.height - offset;
+    }
+
+    legendDiv.value.style.left = `${Math.max(0, x)}px`;
+    legendDiv.value.style.top  = `${Math.max(0, y)}px`;
 }
 
 function hideLegend() {
