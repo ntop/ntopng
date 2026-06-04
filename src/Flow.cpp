@@ -976,8 +976,8 @@ void Flow::processDetectedProtocolData() {
         setHTTPMethod(ndpiFlow->http.method);
       }
       
-      // ndpiFlow->host_server_name is guaranteed to be populated here,
-      // since nDPI has fully completed protocol detection at this point
+      // ndpiFlow->host_server_name is typically available once protocol detection
+      // has completed, but keep the guards below for cases where it's missing/empty
       if (protos.http.last_url && protos.http.last_url[0] == '/' &&
           ndpiFlow->host_server_name[0] != '\0') {
         size_t host_len = strlen((const char*)ndpiFlow->host_server_name);
