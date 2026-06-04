@@ -114,6 +114,9 @@ class Ntop {
   Recipients recipients; /* Handle notification recipients */
   std::atomic<u_int32_t> num_flow_exporters;
   std::atomic<u_int32_t> num_flow_interfaces;
+  Mutex flow_exporters_lock;
+  std::map<u_int32_t, u_int32_t> flow_exporters_count;
+  std::map<std::pair<u_int32_t, u_int32_t>, u_int32_t> flow_interfaces_count;
 #ifdef NTOPNG_PRO
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
@@ -599,12 +602,12 @@ class Ntop {
   u_int32_t getMaxNumFlowExporters();
   u_int32_t getMaxNumFlowExportersInterfaces();
 #endif
-  u_int32_t getNumFlowExporters()              { return num_flow_exporters;  }
-  u_int32_t getNumFlowExportersInterfaces()    { return num_flow_interfaces; }
-  bool incNumFlowExporters();
-  bool incNumFlowExportersInterfaces();
-  void decNumFlowExporters();
-  void decNumFlowExportersInterfaces();
+  u_int32_t getNumFlowExporters() { return num_flow_exporters; }
+  u_int32_t getNumFlowExportersInterfaces() { return num_flow_interfaces; }
+  bool incNumFlowExporters(u_int32_t unique_source_id);
+  bool incNumFlowExportersInterfaces(u_int32_t unique_source_id, u_int32_t ifIndex);
+  void decNumFlowExporters(u_int32_t unique_source_id);
+  void decNumFlowExportersInterfaces(u_int32_t unique_source_id, u_int32_t ifIndex);
 
   inline u_int getNumCPUs() { return (num_cpus); }
   inline void setNumCPUs(u_int num) { num_cpus = num; }

@@ -4351,31 +4351,88 @@ void Ntop::reloadMessageBroker() {
 
 /* ******************************************* */
 
-bool Ntop::incNumFlowExporters() {
-  bool ok = (num_flow_exporters < get_max_num_flow_exporters());
+bool Ntop::incNumFlowExporters(u_int32_t unique_source_id) {
+  std::map<u_int32_t, u_int32_t>::iterator it;
+  bool success = false;
 
-  if (ok) num_flow_exporters++;
-  return ok;
+  flow_exporters_lock.lock(__FILE__, __LINE__);
+
+  it = flow_exporters_count.find(unique_source_id);
+  if (it != flow_exporters_count.end()) {
+    it->second++; /* Already present, increase the count only */
+    success = true;
+  } else if (num_flow_exporters < get_max_num_flow_exporters()) {
+    flow_exporters_count[unique_source_id] = 1; /* First occurrence */
+    num_flow_exporters++;
+    success = true;
+  }
+
+  flow_exporters_lock.unlock(__FILE__, __LINE__);
+
+  return success;
 }
 
 /* ******************************************* */
 
-bool Ntop::incNumFlowExportersInterfaces() {
-  bool ok = (num_flow_interfaces < get_max_num_flow_exporters_interfaces());
-  if (ok) num_flow_interfaces++;
-  return ok;
+bool Ntop::incNumFlowExportersInterfaces(u_int32_t unique_source_id, u_int32_t ifIndex) {
+  std::pair<u_int32_t, u_int32_t> key(unique_source_id, ifIndex);
+  std::map<std::pair<u_int32_t, u_int32_t>, u_int32_t>::iterator it;
+  bool success = false;
+
+  flow_exporters_lock.lock(__FILE__, __LINE__);
+
+  it = flow_interfaces_count.find(key);
+  if (it != flow_interfaces_count.end()) {
+    it->second++; /* Already present, increase the count only */
+    success = true;
+  } else if (num_flow_interfaces < get_max_num_flow_exporters_interfaces()) {
+    flow_interfaces_count[key] = 1; /* First occurrence */
+    num_flow_interfaces++;
+    success = true;
+  }
+
+  flow_exporters_lock.unlock(__FILE__, __LINE__);
+
+  return success;
 }
 
 /* ******************************************* */
 
-void Ntop::decNumFlowExporters() {
-  if (num_flow_exporters > 0) num_flow_exporters--;
+void Ntop::decNumFlowExporters(u_int32_t unique_source_id) {
+  std::map<u_int32_t, u_int32_t>::iterator it;
+
+  flow_exporters_lock.lock(__FILE__, __LINE__);
+
+  it = flow_exporters_count.find(unique_source_id);
+  if (it != flow_exporters_count.end()) {
+    it->second--;
+    if (it->second == 0) {
+      flow_exporters_count.erase(it);
+      if (num_flow_exporters > 0) num_flow_exporters--;
+    }
+  }
+
+  flow_exporters_lock.unlock(__FILE__, __LINE__);
 }
 
 /* ******************************************* */
 
-void Ntop::decNumFlowExportersInterfaces() {
-  if (num_flow_interfaces > 0) num_flow_interfaces--;
+void Ntop::decNumFlowExportersInterfaces(u_int32_t unique_source_id, u_int32_t ifIndex) {
+  std::pair<u_int32_t, u_int32_t> key(unique_source_id, ifIndex);
+  std::map<std::pair<u_int32_t, u_int32_t>, u_int32_t>::iterator it;
+
+  flow_exporters_lock.lock(__FILE__, __LINE__);
+
+  it = flow_interfaces_count.find(key);
+  if (it != flow_interfaces_count.end()) {
+    it->second--;
+    if (it->second == 0) {
+      flow_interfaces_count.erase(it);
+      if (num_flow_interfaces > 0) num_flow_interfaces--;
+    }
+  }
+
+  flow_exporters_lock.unlock(__FILE__, __LINE__);
 }
 
 /* ******************************************* */
