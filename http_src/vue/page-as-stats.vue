@@ -504,6 +504,10 @@ const handleLoadedColumns = (columns) => {
                 && (element.id !== "alerted_flows")
                 && (element.id !== "score"));
         });
+    } else {
+        modified_columns = modified_columns.filter((element) => {
+            return (element.id !== "breakdown_role");
+        });
     }
     return modified_columns;
 };
