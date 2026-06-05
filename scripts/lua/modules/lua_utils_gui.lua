@@ -1403,6 +1403,30 @@ end
 
 -- ##############################################
 
+function format_url_safe_host(url)
+   if isEmptyString(url) then
+      return url
+   end
+
+   -- Already a full URL with a path/query: leave it to the caller
+   if url:find("[/%?]") then
+      return url
+   end
+
+   -- Drop the "@vlan" suffix (e.g. fe80::1@10 -> fe80::1): it must never
+   -- be part of an URL, regardless of the address family
+   local host = url:gsub("@%d+$", "")
+
+   -- Wrap IPv6 addresses in square brackets
+   if isIPv6(host) then
+      return "[" .. host .. "]"
+   end
+
+   return host
+end
+
+-- ##############################################
+
 -- @brief  This function format the info field used in tables
 -- @params info: A string containing the info field
 --         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format),
@@ -1414,6 +1438,10 @@ function format_external_link(url, name, no_html, proto, i18n_key)
       -- Let's return it as it
       return (url)
    else
+      -- Sanitize only the value that ends up in the href, so the visible
+      -- label (name/url_name) keeps showing the original host (incl. @vlan)
+      url = format_url_safe_host(url)
+
       local external_field = url
       proto = ternary(((proto) and (proto == 'http' or proto == 'HTTP')),
 	 'http', 'https')

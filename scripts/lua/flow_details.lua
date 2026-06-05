@@ -1931,8 +1931,9 @@ if isEmptyString(page) or page == "overview" then
 
 	 local base_url = flow["protos.http.last_url"]
 
-	 if(starts(base_url, '/') and (svr_name ~= nil)) then
-	    local p
+	 if(starts(base_url, '/') and (svr_name ~= nil)) then 
+       local host = format_url_safe_host(svr_name)
+       local p
 	    
 	    if(flow["srv.port"] ~= 80) then
 	       p = ":" .. flow["srv.port"]
@@ -1940,7 +1941,7 @@ if isEmptyString(page) or page == "overview" then
 	       p = ""
 	    end
 	    
-	    base_url = svr_name ..p .. base_url
+	    base_url = host ..p .. base_url
 	 end
 	 
          local last_url = page_utils.safe_html(base_url)
