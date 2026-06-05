@@ -2589,6 +2589,7 @@ local known_parameters = {
 
    ["show_as"] = validateImportantASN,
    ["interface_role"] = validateInterfaceRole,
+   ["interface_name_filter"] = validateUnquoted,
    ["iface_role"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
    ["interface_filter"] = validateSingleWord,
 

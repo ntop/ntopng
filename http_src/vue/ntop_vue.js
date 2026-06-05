@@ -55,6 +55,7 @@ import { default as PageMacsList } from "./page-macs-list.vue"
 import { default as PageInterfaceICMP } from "./page-interface-icmp.vue"
 import { default as PageTags } from "./page-tags.vue"
 import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
+import { default as PageSNMPInterfacesAutoRole } from "./page-snmp-interfaces-auto-role.vue"
 import { default as PageSNMPTopology } from "./page-snmp-topology.vue"
 import { default as PageSNMPTopologyMap } from "./page-snmp-topology-map.vue"
 import { default as PageSNMPSimilarity } from "./page-snmp-similarity.vue"
@@ -187,6 +188,7 @@ import { default as ModalEditACLRule } from "./modal-edit-acl-rule.vue";
 import { default as ModalDeleteACLRule } from "./modal-delete-acl-rule.vue";
 import { default as ModalDeleteAllACLRule } from "./modal-delete-all-acl-rules.vue";
 import { default as ModalMergeWazuhInfo } from "./modal-merge-wazuh-info.vue";
+import { default as ModalSNMPInterfacesAutoRole } from "./modal-snmp-interfaces-auto-role.vue";
 
 /* Charts */
 import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
@@ -296,6 +298,7 @@ let ntopVue = {
     PageSNMPConfig: PageSNMPConfig,
     PageSNMPUsage: PageSNMPUsage,
     PageSNMPInterfaces: PageSNMPInterfaces,
+    PageSNMPInterfacesAutoRole: PageSNMPInterfacesAutoRole,
     PageSNMPTopology: PageSNMPTopology,
     PageSNMPTopologyMap: PageSNMPTopologyMap,
     PageSNMPSimilarity: PageSNMPSimilarity,
@@ -399,6 +402,7 @@ let ntopVue = {
     ModalDeleteACLRule: ModalDeleteACLRule,
     ModalDeleteAllACLRule: ModalDeleteAllACLRule,
     ModalMergeWazuhInfo: ModalMergeWazuhInfo,
+    ModalSNMPInterfacesAutoRole: ModalSNMPInterfacesAutoRole,
 
     Vue: Vue,
 };
