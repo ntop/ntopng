@@ -1078,7 +1078,8 @@ table.dataTable thead th.sorting_asc::after {
   pointer-events: none;
 }
 
-.ntopng-table {
+.ntopng-table,
+table.dataTable {
   table-layout: auto;
   white-space: nowrap;
   border: none !important;
@@ -1093,7 +1094,8 @@ table.dataTable thead th.sorting_asc::after {
 }
 
 
-.ntopng-table thead th {
+.ntopng-table thead th,
+table.dataTable thead th {
   background-color: var(--bg-elevated) !important;
   color: bold !important;
   font-weight: 600 !important;
@@ -1104,7 +1106,8 @@ table.dataTable thead th.sorting_asc::after {
 }
 
 
-.ntopng-table th:not(:last-child)::after {
+.ntopng-table th:not(:last-child)::after,
+table.dataTable th:not(:last-child)::after {
   content: '' !important;
   position: absolute !important;
   top: 25% !important;
@@ -1115,23 +1118,27 @@ table.dataTable thead th.sorting_asc::after {
   cursor: col-resize !important;
 }
 
-.ntopng-table th:not(:last-child):hover::after {
+.ntopng-table th:not(:last-child):hover::after,
+table.dataTable th:not(:last-child):hover::after {
   background: #ADB5BD !important;
 }
 
-.ntopng-table th.resizing::after {
+.ntopng-table th.resizing::after,
+table.dataTable th.resizing::after {
   background: #0D6EFD !important;
   width: 3px !important;
 }
 
 
-.ntopng-table tbody tr {
+.ntopng-table tbody tr,
+table.dataTable tbody tr {
   border: none !important;
   transition: background-color 0.2s ease !important;
   height: 2.75rem !important;
 }
 
-.ntopng-table tbody tr td {
+.ntopng-table tbody tr td,
+table.dataTable tbody tr td {
   padding: 0.5rem 0.75rem !important;
   vertical-align: middle !important;
   border: none !important;
@@ -1142,23 +1149,27 @@ table.dataTable thead th.sorting_asc::after {
 }
 
 
-.ntopng-table tbody tr:empty {
+.ntopng-table tbody tr:empty,
+table.dataTable tbody tr:empty {
   height: 2.75rem !important;
 }
 
 
-.ntopng-table tbody tr:last-child td {
+.ntopng-table tbody tr:last-child td,
+table.dataTable tbody tr:last-child td {
   border-bottom: none !important;
   position: relative !important;
   overflow: visible !important;
 }
 
 
-.ntopng-table tbody tr:hover {
+.ntopng-table tbody tr:hover,
+table.dataTable tbody tr:hover {
   background-color: rgba(0, 123, 255, 0.08) !important;
 }
 
-.ntopng-table tbody tr:nth-of-type(odd) {
+.ntopng-table tbody tr:nth-of-type(odd),
+table.dataTable tbody tr:nth-of-type(odd) {
   background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -1269,7 +1280,8 @@ table th.sticky-column-th {
   box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.2) !important;
 }
 
-.ntopng-table tbody tr td.sticky-column-td {
+.ntopng-table tbody tr td.sticky-column-td,
+table.dataTable tbody tr td.sticky-column-td {
   position: sticky !important;
   left: 0 !important;
   z-index: 2 !important;

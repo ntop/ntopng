@@ -3,7 +3,7 @@
 -->
 <template>
   <!-- Normal table -->
-  <table v-if="!(horizontal) || (horizontal == false)" class="table table-bordered table-striped" style="table-layout: fixed">
+  <table v-if="!(horizontal) || (horizontal == false)" class="table table-bordered table-striped ntopng-table" style="table-layout: fixed">
     <thead v-if="!hide_head">
       <tr>
         <th v-for="col in columns" scope="col" :class="col.class" v-html="print_html_column(col)"></th>
@@ -20,7 +20,7 @@
       </tr>
     </tbody>
   </table>
-  <table v-else class="table table-bordered table-striped">
+  <table v-else class="table table-bordered table-striped ntopng-table">
     <tbody>
       <tr v-for="row in rows">
         <!-- Row containing an Exporter Graph -->
