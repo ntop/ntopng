@@ -1,29 +1,28 @@
 <!--
   (C) 2013-26 - ntop.org
   Uses batch.lua — zero consts.lua / ts_multi.lua calls.
-  One POST per refresh, data passed straight to ts-chart.vue for rendering.
+  Fetches data then drives TimeseriesChart via get_custom_chart_options + retrieveOptionsAndDraw.
 -->
 <template>
     <div>
         <Loading v-if="!props.hideLoading" :isLoading="isLoading"></Loading>
-        <TsChart
+        <TimeseriesChart
+            ref="chartRef"
             :id="id"
-            :result="chartResult"
-            :meta="chartMeta"
-            :height="height"
+            :get_custom_chart_options="getChartOptions"
+            :disable_fixed_height="true"
             @zoom="onZoom"
             @chart-updated="chartUpdatedCallback"
+            @update-requested="onUpdateRequested"
         />
     </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeMount, computed } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as Loading } from "./loading.vue";
-import { default as TsChart } from "./ts-chart.vue";
-
-const height_per_row = 62; /* px per grid row */
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 
 const props = defineProps({
     id:          { type: String },
@@ -33,7 +32,7 @@ const props = defineProps({
     epoch_end:   { type: Number },
     max_width:   { type: Number },
     max_height:  { type: Number },
-    params:      { type: Object },   /* dashboard JSON component params */
+    params:      { type: Object },
     get_component_data: { type: Function },
     csrf:        { type: String },
     filters:     { type: Object },
@@ -43,17 +42,16 @@ const props = defineProps({
 
 const emit = defineEmits(['chart-updated', 'update-requested']);
 
-const isLoading   = ref(true);
-const firstLoad   = ref(true);
-const height      = ref(180);
-const chartResult = ref(null);
-const chartMeta   = ref(null);
-let   generation  = 0;   /* stale-request guard */
+const height_per_row = 62;
 
-/**
- * Resolve $IFID$ / $ANY_IFID$ placeholders.
- * Returns an array of concrete ts_request objects.
- */
+const isLoading = ref(true);
+const firstLoad = ref(true);
+const chartRef  = ref(null);
+let   generation = 0;
+
+/* Holds the fetched result; getChartOptions returns it so TimeseriesChart can format it */
+let pendingOptions = null;
+
 async function resolveRequests() {
     const raw = props.params?.post_params?.ts_requests;
     if (!raw) return [];
@@ -65,7 +63,6 @@ async function resolveRequests() {
         const tpl = raw[key];
 
         if (key === '$ANY_IFID$') {
-            /* Fan-out: one request per interface */
             const ifid_list = await ntopng_utility.http_request(
                 `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`
             ) || [];
@@ -89,7 +86,6 @@ async function resolveRequests() {
                 resolved.push(substituteStr(r, '$NETWORK$', net.id));
             });
         } else {
-            /* Regular entry — just substitute $IFID$ */
             resolved.push(substituteIfid({ ...tpl }, ifid));
         }
     }
@@ -113,23 +109,32 @@ function substituteStr(obj, placeholder, value) {
     return out;
 }
 
+function mergeResults(results) {
+    const entries = Object.values(results);
+    if (entries.length === 0) return { series: [], metadata: {} };
+    return entries.find(r => r.series && r.series.length > 0) || entries[0];
+}
+
+/* Returned to TimeseriesChart as get_custom_chart_options; called by retrieveOptionsAndDraw */
+async function getChartOptions(_url) {
+    return pendingOptions;
+}
+
 async function fetchChart() {
     const gen = ++generation;
 
     if (!props.epoch_begin || !props.epoch_end) return;
 
     isLoading.value = firstLoad.value || !props.showOnlyFirstLoading;
-    emit('update-requested', { firstLoad: firstLoad.value });
 
     const requests = await resolveRequests();
-    if (gen !== generation) return;  /* superseded */
+    if (gen !== generation) return;
 
     if (requests.length === 0) {
         isLoading.value = false;
         return;
     }
 
-    /* Build batch queries: one entry per resolved ts_request */
     const queries = requests.map((r, i) => ({
         id:        `${props.id}_${i}`,
         ts_schema: r.ts_schema,
@@ -151,7 +156,6 @@ async function fetchChart() {
 
     let batchResp;
     if (props.get_component_data) {
-        /* Use dashboard callback so report snapshots work */
         batchResp = await props.get_component_data(
             batch_url,
             { ifid: props.ifid, epoch_begin: props.epoch_begin, epoch_end: props.epoch_end },
@@ -162,33 +166,34 @@ async function fetchChart() {
     }
 
     if (gen !== generation) return;
-
     if (!batchResp) { isLoading.value = false; return; }
 
-    chartMeta.value = batchResp.meta || {};
-    if (batchResp.meta?.date_format) ntopng_utility.set_cached_date_format(batchResp.meta.date_format);
-
-    /* If multiple queries (ANY expansion), merge series into first result */
     const resultKeys = Object.keys(batchResp.results || {});
+    let result;
     if (resultKeys.length === 0) {
-        chartResult.value = { series: [], metadata: {}, error: null };
+        result = { series: [], metadata: {} };
     } else if (resultKeys.length === 1) {
-        chartResult.value = batchResp.results[resultKeys[0]];
+        result = batchResp.results[resultKeys[0]];
     } else {
-        /* Merge all results into the first one (ts_unify behaviour) */
-        chartResult.value = mergeResults(batchResp.results);
+        result = mergeResults(batchResp.results);
+    }
+
+    /* Attach meta so timeseries-chart picks up date_format/timezone */
+    result._meta   = batchResp.meta || {};
+    result._height = (props.max_height || 4) * height_per_row;
+    pendingOptions = result;
+
+    /* Trigger (re)draw now that data is ready */
+    if (chartRef.value) {
+        chartRef.value.retrieveOptionsAndDraw('');
     }
 
     isLoading.value = false;
     firstLoad.value = false;
 }
 
-function mergeResults(results) {
-    const entries = Object.values(results);
-    if (entries.length === 0) return { series: [], metadata: {} };
-    /* Use the first non-empty result as base */
-    const base = entries.find(r => r.series && r.series.length > 0) || entries[0];
-    return base;
+function onUpdateRequested(epoch) {
+    emit('update-requested', epoch);
 }
 
 function onZoom(epoch) {
@@ -198,10 +203,6 @@ function onZoom(epoch) {
 function chartUpdatedCallback(options) {
     emit('chart-updated', options);
 }
-
-onBeforeMount(() => {
-    height.value = (props.max_height || 4) * height_per_row;
-});
 
 onMounted(() => {
     fetchChart();

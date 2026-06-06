@@ -4,11 +4,11 @@
 <template>
     <div>
         <Loading v-if="!props.hideLoading" :isLoading="isLoading"></Loading>
-        <TsChart
+        <TimeseriesChart
+            ref="chartRef"
             :id="id"
-            :result="chartResult"
-            :meta="chartMeta"
-            :height="height"
+            :get_custom_chart_options="getChartOptions"
+            :disable_fixed_height="true"
             @zoom="onZoom"
             @chart-updated="chartUpdatedCallback"
         />
@@ -16,12 +16,10 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeMount, computed } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Loading } from "./loading.vue";
-import { default as TsChart } from "./ts-chart.vue";
-
-const height_per_row = 62;
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 
 const props = defineProps({
     id:          { type: String },
@@ -39,16 +37,15 @@ const props = defineProps({
 
 const emit = defineEmits(['chart-updated', 'update-requested']);
 
-const isLoading   = ref(true);
-const height      = ref(180);
-const chartResult = ref(null);
-const chartMeta   = ref(null);
-let   generation  = 0;
+const height_per_row = 62;
 
-/* cache top-N: only fetched once per mount (epoch-independent list) */
+const isLoading = ref(true);
+const chartRef  = ref(null);
+let   generation = 0;
+
 let cachedTopData = null;
+let pendingOptions = null;
 
-/* top-N fetch */
 async function fetchTopData() {
     if (cachedTopData !== null) return cachedTopData;
 
@@ -65,13 +62,10 @@ async function fetchTopData() {
     return cachedTopData;
 }
 
-/* build batch queries from top-N */
-
 function buildQueries(topData) {
     const post = props.params?.post_params || {};
     const ts_requests_tpl = post.ts_requests || {};
 
-    /* Find the first concrete ts_request template (not a $ANY$ key) */
     const tpl_key = Object.keys(ts_requests_tpl).find(k => !k.startsWith('$')) ||
                     Object.keys(ts_requests_tpl)[0];
     const tpl = ts_requests_tpl[tpl_key] || {};
@@ -90,7 +84,6 @@ function buildQueries(topData) {
             ts_schema = 'asn:traffic';
             ts_query  = `ifid:${props.ifid},asn:${el.asn}`;
         } else {
-            /* Generic: substitute known placeholders */
             ts_query = (tpl.ts_query || '')
                 .replace(/\$IFID\$/g, props.ifid)
                 .replace(/\$ASN\$/g, el.asn || '')
@@ -110,6 +103,10 @@ function buildQueries(topData) {
     return queries;
 }
 
+async function getChartOptions(_url) {
+    return pendingOptions;
+}
+
 async function fetchChart() {
     const gen = ++generation;
 
@@ -121,7 +118,7 @@ async function fetchChart() {
     if (gen !== generation) return;
 
     if (!topData || topData.length === 0) {
-        chartResult.value = { series: [], metadata: {} };
+        pendingOptions = { series: [], metadata: {} };
         isLoading.value = false;
         return;
     }
@@ -152,28 +149,21 @@ async function fetchChart() {
     if (gen !== generation) return;
     if (!batchResp) { isLoading.value = false; return; }
 
-    chartMeta.value = batchResp.meta || {};
-
-    /* Merge all top-N results into one unified series (equivalent to ts_unify) */
     const entries = Object.values(batchResp.results || {});
-    chartResult.value = mergeTopResults(entries);
+    const result = entries.find(r => r.series && r.series.length > 0) || entries[0] || { series: [], metadata: {} };
+    result._meta   = batchResp.meta || {};
+    result._height = (props.max_height || 4) * height_per_row;
+    pendingOptions = result;
+
+    if (chartRef.value) {
+        chartRef.value.retrieveOptionsAndDraw('');
+    }
 
     isLoading.value = false;
 }
 
-function mergeTopResults(entries) {
-    if (entries.length === 0) return { series: [], metadata: {} };
-    /* The backend handles ts_unify per-query in batch.lua -> ts_data.
-     * Here we pick the first non-empty result as the unified series. */
-    return entries.find(r => r.series && r.series.length > 0) || entries[0];
-}
-
 function onZoom(epoch) { emit('update-requested', epoch); }
 function chartUpdatedCallback(options) { emit('chart-updated', options); }
-
-onBeforeMount(() => {
-    height.value = (props.max_height || 4) * height_per_row;
-});
 
 onMounted(() => {
     fetchChart();
@@ -182,7 +172,7 @@ onMounted(() => {
 watch(
     () => [props.epoch_begin, props.epoch_end, props.filters],
     () => {
-        cachedTopData = null; /* re-fetch top-N on time range change */
+        cachedTopData = null;
         fetchChart();
     },
     { deep: true }

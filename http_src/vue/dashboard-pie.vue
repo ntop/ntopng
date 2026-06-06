@@ -51,7 +51,12 @@ const get_url_params = () => {
 // Override the fetch function so the dashboard loading lifecycle works
 const custom_fetch = async (url, url_params) => {
     const res = await props.get_component_data(url, url_params, undefined, props.epoch_begin);
-    return res;
+    const raw = res?.rsp ?? res;
+    if (!Array.isArray(raw)) return raw;
+    const lk = props.params.label_key;
+    const vk = props.params.value_key;
+    if (!lk || !vk) return raw;
+    return raw.map(item => ({ label: item[lk], value: item[vk], url: item.url }));
 };
 
 /* *************************************************** */

@@ -51,6 +51,9 @@
 import { ref, onMounted, nextTick } from "vue";
 import { ntopng_utility, ntopng_status_manager, ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import { Dygraph } from '../utilities/graph/dygraph';
+import formatterUtils from '../utilities/formatter-utils';
+import dygraphFormat from '../utilities/graph/dygraph-format';
+import colorsInterpolation from '../utilities/colors/colors-interpolation';
 
 // Component event definitions for parent communication
 const emit = defineEmits(["chart_reloaded", "zoom", "chart-updated", "update-requested"]);
@@ -219,10 +222,108 @@ const updateStackedOption = function (chart_options) {
 
 /* *************************************************** */
 
+/* First two entries of the canonical palette: blue=sent, green=received */
+const RXTX_COLORS = { bytes_sent: dygraphFormat.defaultColors[0], bytes_rcvd: dygraphFormat.defaultColors[1] };
+
+/**
+ * Converts a raw batch result {series:[{id,name,data}], metadata:{epoch_begin,epoch_step,...}}
+ * into a dygraph-ready options object {data, labels, colors, series, axes, ...}.
+ * If the result already has .data it is returned as-is (already formatted by dygraph-config.js).
+ *
+ * For rxtx schemas (bytes_sent / bytes_rcvd), bytes_rcvd is negated so it plots below zero.
+ */
+const convertBatchResult = function (result) {
+    if (!result || result.data) return result;   // already formatted or null
+
+    const seriesArr = result.series || [];
+    if (!seriesArr.length) return null;
+
+    const metadata    = result.metadata || {};
+    const epochBegin  = metadata.epoch_begin || 0;
+    const step        = metadata.epoch_step  || 300;
+    const n           = seriesArr[0]?.data?.length || 0;
+    const measureUnit = result.measure_unit || "number";
+
+    /* Detect rxtx pattern: series ids are bytes_sent and bytes_rcvd */
+    const isRxtx = seriesArr.length === 2 &&
+        seriesArr.some(s => s.id === 'bytes_sent') &&
+        seriesArr.some(s => s.id === 'bytes_rcvd');
+
+    const labels = ["Time", ...seriesArr.map(s => String(s.name || s.id || ""))];
+    const palette = dygraphFormat.defaultColors;
+    const baseColors = isRxtx
+        ? seriesArr.map(s => RXTX_COLORS[s.id] || palette[0])
+        : seriesArr.map((_, i) => palette[i % palette.length]);
+    const colors = colorsInterpolation.transformColors(baseColors);
+
+    const seriesConfig = {};
+    labels.slice(1).forEach(name => {
+        seriesConfig[name] = { fillGraph: true, strokeWidth: 1.0, pointSize: 1.5, fillAlpha: 0.5 };
+    });
+
+    const rows = [];
+    for (let i = 0; i < n; i++) {
+        const t = new Date((epochBegin + i * step) * 1000);
+        const row = [t];
+        seriesArr.forEach(s => {
+            let v = s.data?.[i];
+            if (v === null || v === undefined || v !== v) { row.push(NaN); return; }
+            /* Negate received bytes so they plot below zero */
+            if (isRxtx && s.id === 'bytes_rcvd') v = -v;
+            row.push(v);
+        });
+        rows.push(row);
+    }
+
+    const formatter = formatterUtils.getFormatter(measureUnit);
+    /* For rxtx, show absolute value in axis labels and tooltip */
+    const axisFormatter  = isRxtx ? (v) => formatter(Math.abs(v)) : formatter;
+    const valueFormatter = isRxtx ? (v) => formatter(Math.abs(v)) : (v) => formatter(v);
+
+    /* Build legendFormatter using the same style as dygraph-config.js */
+    const legendFormatter = function (data) {
+        if (!data.x) return "";
+        const timeBadge = `<h6><span class="badge bg-light mb-1 text-dark">${data.xHTML}</span></h6>`;
+        const seriesHTML = data.series
+            .filter(s => s.isVisible && s.yHTML)
+            .map(s => {
+                const colorDot = `<span class="badge rounded-pill me-1" style="background-color:${s.color}"> </span>`;
+                return `<div class="mt-1 d-flex"><div class="me-4">${colorDot}${s.labelHTML}</div><div class="ms-auto">${s.yHTML}</div></div>`;
+            }).join("");
+        return `<div style="font-size:13px; line-height:1.4;">${timeBadge}${seriesHTML}</div>`;
+    };
+
+    const opts = {
+        data:            rows,
+        labels,
+        colors,
+        series:          seriesConfig,
+        stackedGraph:    false,
+        legendFormatter,
+        axes: {
+            y: {
+                axisLabelFormatter: axisFormatter,
+                valueFormatter:     valueFormatter,
+                axisLabelWidth:     80,
+            },
+        },
+        yRangePad:   1,
+        includeZero: true,
+    };
+    if (isRxtx) {
+        opts.includeZero = true;
+        opts.blockStacked = true;
+    }
+    if (result._height) opts.height = result._height;
+    return opts;
+}
+
+/* *************************************************** */
+
 /**
  * Fetches and processes chart configuration options from server or custom provider.
  * Applies date formatting, stacked option updates, and emits chart_reloaded event.
- * 
+ *
  * @param {string} url_request - Complete URL for fetching chart options
  * @returns {Promise<Object>} Processed chart configuration object
  * @throws May throw if HTTP request fails
@@ -233,15 +334,22 @@ const getChartOptions = async function (url_request) {
         ? props.get_custom_chart_options(url_request)
         : ntopng_utility.http_request(url_request);
 
-    const [date_format, chart_options_raw] = await Promise.all([
+    /* When the custom provider already embeds date_format/timezone in the options
+     * (batch API responses), skip the extra server round-trip. */
+    const chart_options_raw = await chart_options_promise;
+    const meta_date_format = chart_options_raw?._meta?.date_format;
+    if (meta_date_format) {
+        ntopng_utility.set_cached_date_format(meta_date_format);
+    }
+    const [date_format] = await Promise.all([
         ntopng_utility.get_date_format(false, props.csrf, http_prefix),
-        chart_options_promise,
     ]);
 
-    let chart_options = chart_options_raw || {};
-    if (!chart_options) {
-        chart_options = {};
-    }
+    /* If the provider returned a raw batch result, convert it to dygraph format */
+    let chart_options = (chart_options_raw?.series && !chart_options_raw?.data)
+        ? (convertBatchResult(chart_options_raw) || {})
+        : (chart_options_raw || {});
+
     const xAxis = ensurePath(chart_options, ["axes", "x"]);
     /* Set the date formatting depending on the server date format */
     xAxis.axisLabelFormatter ??= function (date) {
@@ -266,6 +374,7 @@ const getChartOptions = async function (url_request) {
  */
 const retrieveOptionsAndDraw = async function (url_request) {
     const chart_options = await getChartOptions(url_request);
+    if (!chart_options || !chart_options.data) return;
     drawChart(chart_options)
 }
 
@@ -278,20 +387,23 @@ const retrieveOptionsAndDraw = async function (url_request) {
  * @param {MouseEvent} event - Mouse event containing cursor coordinates
  * @sideeffect Updates legend element position and visibility
  */
-const followLegend = async function (event) {
-    const targetDiv = drawOnSecondDiv.value ? second_chart.value : first_chart.value;
-    const containerRect = targetDiv.getBoundingClientRect();
-    const mouseX = event.clientX - containerRect.left;
-    const mouseY = event.clientY - containerRect.top;
+let _containerRect = null;
+
+const followLegend = function (event) {
+    if (!_containerRect) {
+        const targetDiv = drawOnSecondDiv.value ? second_chart.value : first_chart.value;
+        _containerRect = targetDiv.getBoundingClientRect();
+    }
+    const mouseX = event.clientX - _containerRect.left;
+    const mouseY = event.clientY - _containerRect.top;
 
     const offset = 50;
 
     let left = mouseX + offset;
     let top = mouseY - offset;
 
-    // Clamp position to keep legend within container bounds
-    left = Math.min(left, containerRect.width - legend.value.offsetWidth - 2);
-    top = Math.min(top, containerRect.height - legend.value.offsetHeight - 2);
+    left = Math.min(left, _containerRect.width - legend.value.offsetWidth - 2);
+    top = Math.min(top, _containerRect.height - legend.value.offsetHeight - 2);
 
     legend.value.style.left = `${left}px`;
     legend.value.style.top = `${top}px`;
@@ -305,7 +417,7 @@ const followLegend = async function (event) {
  * 
  * @sideeffect Sets legend display to 'none'
  */
-const hideLegend = async function () {
+const hideLegend = function () {
     legend.value.style.display = 'none';
 }
 
@@ -335,10 +447,14 @@ const drawChart = async function (options, drawOnHidden) {
     const data = options.data || [];
     options.data = null;
     options.zoomCallback = onZoomed;
-    options.labelsDiv = legend.value
-    options.highlightCallback = followLegend
-    options.unhighlightCallback = hideLegend
-    options.drawCallback = chartUpdated
+    options.drawCallback = chartUpdated;
+    /* When legend:'follow' is set (batch-converted charts), Dygraph's own plugin
+     * handles positioning — don't override with manual labelsDiv/highlightCallback */
+    if (!options.legend) {
+        options.labelsDiv = legend.value;
+        options.highlightCallback = followLegend;
+        options.unhighlightCallback = hideLegend;
+    }
     if (options.blockStacked) {
         block_stacked.value = true
     }
@@ -359,6 +475,8 @@ const drawChart = async function (options, drawOnHidden) {
     if (drawOnHidden) {
         drawOnSecondDiv.value = !drawOnSecondDiv.value
     }
+
+    _containerRect = null; // invalidate cached rect on each draw
 
     const targetDiv = drawOnSecondDiv.value ? second_chart.value : first_chart.value
     const newChart = new Dygraph(targetDiv, data, options);
@@ -532,7 +650,7 @@ onMounted(async () => {
 /* *************************************************** */
 
 // Expose public methods for parent component access
-defineExpose({ updateChartSeries, getImage });
+defineExpose({ updateChartSeries, getImage, retrieveOptionsAndDraw });
 
 /* *************************************************** */
 </script>

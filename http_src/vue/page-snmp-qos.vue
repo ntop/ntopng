@@ -31,7 +31,7 @@
         </DateTimeRangePicker>
 
         <div class="mt-3">
-          <TsChart :id="all_qos_id" :result="chartResult" :meta="chartMeta" :height="height" />
+          <TimeseriesChart ref="chartRef" :id="all_qos_id" :get_custom_chart_options="getChartOptions" :disable_fixed_height="true" />
         </div>
 
         <div class="m-3 card card-shadow">
@@ -59,7 +59,7 @@
 /* Imports */
 import { ref, onMounted, onBeforeMount, computed } from "vue";
 import { default as NoteList } from "./note-list.vue";
-import { default as TsChart } from "./ts-chart.vue";
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services.js";
@@ -84,8 +84,12 @@ const loading = ref(true);
 const loading_chart = ref(true);
 const filters = ref([]);
 const is_qos_polled = ref(false);
-const chartResult = ref(null);
-const chartMeta = ref(null);
+const chartRef = ref(null);
+let pendingOptions = null;
+
+async function getChartOptions(_url) {
+  return pendingOptions;
+}
 const qos_not_polled_yet = _i18n('snmp.snmp_qos_info_not_polled');
 const note_list = [
   _i18n("snmp.snmp_note_periodic_interfaces_polling"),
@@ -293,9 +297,10 @@ async function refresh_chart() {
 
   const resp = await ntopng_utility.http_post_request(batch_url, post_body);
   const result = resp?.results?.["qos_cbqos"] || null;
-  chartMeta.value = resp?.meta || {};
-  chartResult.value = result;
+  if (result) result._meta = resp?.meta || {};
+  pendingOptions = result;
   set_stats_rows(result);
+  if (chartRef.value) chartRef.value.retrieveOptionsAndDraw('');
   loading_chart.value = false;
 }
 

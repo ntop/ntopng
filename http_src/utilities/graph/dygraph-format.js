@@ -460,6 +460,7 @@ const dygraphFormat = function () {
         getSerieId,
         getSerieName,
         getDefaultConfig,
+        defaultColors,
     };
 }();
 
