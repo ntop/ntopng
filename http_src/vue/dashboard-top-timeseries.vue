@@ -126,6 +126,7 @@ let pendingOptions = null;
  * @returns {Promise<Array>} Array of top-entity objects (ASNs, ports, …).
  */
 async function fetchTopData() {
+    debugger;
     if (cachedTopData !== null) return cachedTopData;
 
     const topUrl = `${http_prefix}${props.params.url}`;

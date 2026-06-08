@@ -247,8 +247,12 @@ const convertBatchResult = function (result) {
         seriesArr.some(s => s.id === 'bytes_rcvd');
 
     const labels = ["Time", ...seriesArr.map(s => String(s.name || s.label || s.id || ""))];
-    const palette = dygraphFormat.defaultColors;
-    const baseColors = seriesArr.map((_, i) => palette[i % palette.length]);
+    const paletteList = seriesArr.map(s => ({
+        name: String(s.name || s.label || s.id || ""),
+        palette: 0,
+    }));
+    dygraphFormat.formatSerieColors(paletteList);
+    const baseColors = paletteList;
     const colors = colorsInterpolation.transformColors(baseColors);
 
     const seriesConfig = {};

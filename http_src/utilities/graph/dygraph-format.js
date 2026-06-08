@@ -39,18 +39,23 @@ function getSerieId(serie) {
 
 /* ***************************************** */
 
+function hash_string(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) { 
+        h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+}
+
 function formatSerieColors(palette_list) {
-    let colors_list = palette_list;
-    let count0 = 0, count1 = 0;
     let colors0 = defaultColors;
     let colors1 = d3v7.schemeCategory10;
-    colors_list.forEach((s, index) => {
+    palette_list.forEach((s, index) => {
+        const key = s.name || '';
         if (s.palette == 0) {
-            palette_list[index] = colors0[count0 % colors0.length];
-            count0 += 1;
+            palette_list[index] = colors0[hash_string(key) % colors0.length];
         } else if (s.palette == 1) {
-            palette_list[index] = colors1[count1 % colors1.length];
-            count1 += 1;
+            palette_list[index] = colors1[hash_string(key) % colors1.length];
         }
     });
 }
@@ -117,7 +122,7 @@ function addNewSerie(serie_name, chart_type, color, config) {
         config.properties = {}
     config.properties[serie_name] = {}
     config.properties[serie_name] = dygraphConfig.formatSerieProperties(chart_type);
-    config.colors.push(color);
+    config.colors.push({ ...color, name: serie_name });
 }
 
 /* *********************************************** */
@@ -457,6 +462,7 @@ const dygraphFormat = function () {
     return {
         formatSerie,
         formatSimpleSerie,
+        formatSerieColors,
         getSerieId,
         getSerieName,
         getDefaultConfig,
