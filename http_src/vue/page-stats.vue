@@ -211,6 +211,8 @@ function set_default_source_object_in_url() {
 function retrieveGlobalStatus() {
     // Retrieve the status
     let status = ntopng_status_manager.get_status();
+    console.log("-----------------")
+    console.log(status)
     let update_status = false;
     // In case it is empty or missing something, update it
     if (!status) {
@@ -230,6 +232,8 @@ function retrieveGlobalStatus() {
         ntopng_status_manager.replace_status(status);
     }
 
+    console.log(status)
+    console.log("******")
     return status;
 }
 
@@ -753,17 +757,15 @@ function set_stats_rows(ts_charts_options, timeseries_groups) {
             if (s_metadata.use_serie_name == true) {
                 name = s.name;
             }
-            if (s?.data.length > j) {
-                ts_stats = s.statistics;
-            }
+            ts_stats = s.statistics ?? null;
             if (ts_stats == null) {
                 return;
             }
-            if (s.ext_label) {
-                name = s.ext_label
-            }
             if (s.label) {
                 name = s.label
+            }
+            if (s.ext_label) {
+                name = s.ext_label
             }
             name = timeseriesUtils.getSerieName(name, ts_id, ts_group, extend_serie_name);
             let total_formatter_type = f_get_total_formatter_type(ts_group.metric.measure_unit);
