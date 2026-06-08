@@ -38,15 +38,7 @@ import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle'
 
 window.bootstrap = bootstrap
 
-
-import * as dc from 'dc'
-import * as cubism from 'cubism'
-
 import 'jquery.are-you-sure'
-
-
-window.dc = dc
-window.cubism = cubism
 
 import * as vis from 'vis-network/dist/vis-network.esm'
 

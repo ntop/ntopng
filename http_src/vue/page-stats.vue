@@ -211,8 +211,7 @@ function set_default_source_object_in_url() {
 function retrieveGlobalStatus() {
     // Retrieve the status
     let status = ntopng_status_manager.get_status();
-    console.log("-----------------")
-    console.log(status)
+
     let update_status = false;
     // In case it is empty or missing something, update it
     if (!status) {
@@ -232,8 +231,6 @@ function retrieveGlobalStatus() {
         ntopng_status_manager.replace_status(status);
     }
 
-    console.log(status)
-    console.log("******")
     return status;
 }
 
