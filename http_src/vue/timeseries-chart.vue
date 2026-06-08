@@ -222,9 +222,6 @@ const updateStackedOption = function (chart_options) {
 
 /* *************************************************** */
 
-/* First two entries of the canonical palette: blue=sent, green=received */
-const RXTX_COLORS = { bytes_sent: dygraphFormat.defaultColors[0], bytes_rcvd: dygraphFormat.defaultColors[1] };
-
 /**
  * Converts a raw batch result {series:[{id,name,data}], metadata:{epoch_begin,epoch_step,...}}
  * into a dygraph-ready options object {data, labels, colors, series, axes, ...}.
@@ -249,11 +246,9 @@ const convertBatchResult = function (result) {
         seriesArr.some(s => s.id === 'bytes_sent') &&
         seriesArr.some(s => s.id === 'bytes_rcvd');
 
-    const labels = ["Time", ...seriesArr.map(s => String(s.name || s.id || ""))];
+    const labels = ["Time", ...seriesArr.map(s => String(s.name || s.label || s.id || ""))];
     const palette = dygraphFormat.defaultColors;
-    const baseColors = isRxtx
-        ? seriesArr.map(s => RXTX_COLORS[s.id] || palette[0])
-        : seriesArr.map((_, i) => palette[i % palette.length]);
+    const baseColors = seriesArr.map((_, i) => palette[i % palette.length]);
     const colors = colorsInterpolation.transformColors(baseColors);
 
     const seriesConfig = {};

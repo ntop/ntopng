@@ -438,16 +438,23 @@ const get_component_data = async (url, query_params, post_params) => {
     const top_url = `${http_prefix}/lua/rest/v2/get/asn/get_top_asn.lua?${url_params}`;
     const top_data = await ntopng_utility.http_request(top_url);
 
-    const queries = (top_data || []).map((el, i) => ({
-        id:       `top_asn_${i}`,
-        ts_schema: `asn:traffic`,
-        ts_query:  `ifid:${props.context.ifid},asn:${el.asn}`,
-        ts_unify:  true,
-        limit:     post_params.limit || 180,
-    }));
+    const queryLabels = {};
+    const queries = (top_data || []).map((el, i) => {
+        const qid = `top_asn_${i}`;
+        queryLabels[qid] = el.asname || `ASN ${el.asn}`;
+        return {
+            id:        qid,
+            ts_schema: `asn:traffic`,
+            ts_query:  `ifid:${props.context.ifid},asn:${el.asn}`,
+            ts_unify:  true,
+            limit:     post_params.limit || 180,
+        };
+    });
     post_params.queries = queries;
     delete post_params.ts_requests;
-    return ntopng_utility.http_post_request(url, post_params);
+    const resp = await ntopng_utility.http_post_request(url, post_params);
+    if (resp) resp._queryLabels = queryLabels;
+    return resp;
 };
 
 /**

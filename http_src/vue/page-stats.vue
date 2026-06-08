@@ -470,7 +470,6 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
 
     /* Update timeseries label to display */
     set_timeseries_groups_source_label(timeseries_groups, ts_charts_options);
-
     /* Format the options for the timeseries library */
     let charts_options = timeseriesUtils.tsArrayToOptionsArray(ts_charts_options, timeseries_groups, current_groups_options_mode.value, ts_compare);
     if (refreshed_time_interval) {

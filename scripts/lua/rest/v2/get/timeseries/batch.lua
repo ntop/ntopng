@@ -93,16 +93,16 @@ local function get_handler_module(prefix)
     return _handler_cache[prefix]
 end
 
-local function get_measure_unit(schema_name)
-    if _unit_cache[schema_name] ~= nil then return _unit_cache[schema_name] end
+-- Cache for schema -> { measure_unit, series_meta }
+local _schema_cache = {}
 
-    -- Strip leading "top:" to get the base schema (e.g. "top:iface:ndpi" -> "iface:ndpi")
+local function get_schema_info(schema_name)
+    if _schema_cache[schema_name] ~= nil then return _schema_cache[schema_name] end
+
     local base_schema = schema_name:gsub("^top:", "")
-
-    -- Extract entity prefix (first segment before ":"), e.g. "iface", "host", "asn"
     local prefix = base_schema:match("^([^:]+):")
 
-    local unit = "number"  -- safe default
+    local info = { measure_unit = "number", series_meta = {} }
 
     if prefix then
         local mod = get_handler_module(prefix)
@@ -111,7 +111,16 @@ local function get_measure_unit(schema_name)
             if ok and ts_list then
                 for _, entry in ipairs(ts_list) do
                     if entry.schema == schema_name or entry.schema == base_schema then
-                        unit = entry.measure_unit or "number"
+                        info.measure_unit = entry.measure_unit or "number"
+                        -- Build per-series label + invert_direction map
+                        if type(entry.timeseries) == "table" then
+                            for series_id, smeta in pairs(entry.timeseries) do
+                                info.series_meta[series_id] = {
+                                    label            = smeta.label or series_id,
+                                    invert_direction = smeta.invert_direction or false,
+                                }
+                            end
+                        end
                         break
                     end
                 end
@@ -119,8 +128,12 @@ local function get_measure_unit(schema_name)
         end
     end
 
-    _unit_cache[schema_name] = unit
-    return unit
+    _schema_cache[schema_name] = info
+    return info
+end
+
+local function get_measure_unit(schema_name)
+    return get_schema_info(schema_name).measure_unit
 end
 
 -- Parse the raw JSON payload directly to recover the queries array and any
@@ -188,7 +201,18 @@ if queries and type(queries) == "table" then
         local ok, res = pcall(ts_data.get_timeseries, http_context)
         if ok then
             res.error = nil
-            res.measure_unit = get_measure_unit(schema_name)
+            local schema_info = get_schema_info(schema_name)
+            res.measure_unit = schema_info.measure_unit
+            -- Annotate each series with label + invert_direction from handler definition
+            if type(res.series) == "table" then
+                for _, serie in ipairs(res.series) do
+                    local smeta = schema_info.series_meta[serie.id]
+                    if smeta then
+                        serie.label            = smeta.label
+                        serie.invert_direction = smeta.invert_direction
+                    end
+                end
+            end
             results[qid] = res
         else
             results[qid] = {
