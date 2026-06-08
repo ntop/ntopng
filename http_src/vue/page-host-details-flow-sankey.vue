@@ -65,6 +65,7 @@ onMounted(() => {
 
 function on_node_click(node) {
     if (node.is_link_node == true) { return; }
+    if (node.info == null || node.info.ip == null) { return; }
     let url_obj = {
         host: node.info.ip,
         vlan: node.info.vlan,
