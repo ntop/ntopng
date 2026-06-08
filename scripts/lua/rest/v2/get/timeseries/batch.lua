@@ -110,7 +110,7 @@ local function get_schema_info(schema_name)
             local ok, ts_list = pcall(mod.getTimeseries, {}, {})
             if ok and ts_list then
                 for _, entry in ipairs(ts_list) do
-                    if entry.schema == schema_name or entry.schema == base_schema then
+                    if entry.schema == schema_name then
                         info.measure_unit = entry.measure_unit or "number"
                         -- Build per-series label + invert_direction map
                         if type(entry.timeseries) == "table" then
@@ -201,7 +201,18 @@ if queries and type(queries) == "table" then
         local ok, res = pcall(ts_data.get_timeseries, http_context)
         if ok then
             res.error = nil
-            local schema_info = get_schema_info(schema_name)
+            -- ts_data may resolve schema aliases (e.g. top:iface:ndpi -> top:iface:ndpi_full).
+            -- Re-attach the top: prefix so the handler lookup finds the right entry.
+            local resolved_schema = schema_name
+            if res.metadata and res.metadata.schema then
+                local ms = res.metadata.schema
+                if schema_name:sub(1, 4) == "top:" and ms:sub(1, 4) ~= "top:" then
+                    resolved_schema = "top:" .. ms
+                else
+                    resolved_schema = ms
+                end
+            end
+            local schema_info = get_schema_info(resolved_schema)
             res.measure_unit = schema_info.measure_unit
             -- Annotate each series with label + invert_direction from handler definition
             if type(res.series) == "table" then
