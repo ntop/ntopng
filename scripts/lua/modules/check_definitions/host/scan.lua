@@ -72,7 +72,9 @@ local function report_alert(params, attacker, vlan, victim, num_victims, is_vict
    alert:set_score(score)
    alert:set_require_attention()
    if (alert_type_params) and table.len(alert_type_params) > 0 then
-      alert:set_alert_type_params(alert_type_params)
+      if alert_type_params.alert_generation then
+        alert.alert_type_params.alert_generation = alert_type_params.alert_generation
+      end
    end
    alert:set_subtype(host_key)
    alert:set_category(checks.check_categories.security)
