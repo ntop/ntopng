@@ -188,7 +188,8 @@ char* MDNS::decodePTRResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
   *resolved_ip = 0;
 
   /* Skip queries */
-  for (i = 0, idx = 0; (i < to_skip) && (offset < (u_int)mdnsbuf_len);) {
+  for (i = 0, idx = 0;
+       (i < to_skip) && (offset < (u_int)mdnsbuf_len) && (idx < buf_len);) {
     if (queries[offset] != 0) {
       if (queries[offset] < 32)
         buf[idx] = '.';
@@ -217,7 +218,8 @@ char* MDNS::decodePTRResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
   offset += 14;
 
   for (idx = 0;
-       (offset < mdnsbuf_len) && (queries[offset] != '\0') && (idx < buf_len);
+       (offset < mdnsbuf_len) && (queries[offset] != '\0') &&
+       (idx < buf_len - 1);
        offset++, idx++) {
     if (queries[offset] < 32)
       buf[idx] = '.';
@@ -226,7 +228,7 @@ char* MDNS::decodePTRResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
   }
 
   /* As the response ends in ".local" let's cut it */
-  if ((idx > 6) && (strncmp(&buf[idx], ".local", 6) == 0)) idx -= 6;
+  if ((idx > 6) && (strncmp(&buf[idx - 6], ".local", 6) == 0)) idx -= 6;
 
   buf[idx] = '\0';
 
@@ -288,7 +290,9 @@ char* MDNS::decodeAnyResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
     if (qtype == 0x10) {
       int j;
 
-      for (j = 0; (j < len) && (offset < (u_int)mdnsbuf_len); j++) {
+      for (j = 0;
+           (j < len) && (offset < (u_int)mdnsbuf_len) && (idx < buf_len - 1);
+           j++) {
         if (queries[offset + j] < 32) {
           if (idx > 0) buf[idx++] = ';';
         } else
