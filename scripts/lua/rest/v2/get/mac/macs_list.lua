@@ -9,6 +9,7 @@ require "label_utils"
 require "ntop_utils"
 require "http_lint"
 require "mac_utils"
+require "lua_utils_gui" 
 local discover = require "discover_utils"
 
 local rest_utils = require "rest_utils"
@@ -24,21 +25,33 @@ local device_type   = tonumber(_GET["device_type"])
 
 -- ########################################
 
-function macHosts(mac)
-   require "lua_utils_gui"
-   local mac_hosts = interface.getMacHosts(mac)
-   local num_hosts = table.len(mac_hosts)
-   if num_hosts > 0 then
-      local first_host
+-- Set used to map a device_type string id to the boolean flag consumed by the
+-- Vue frontend. Replaces the long if/elseif ladder (one table lookup per row).
+local known_device_types = {
+   printer = true, video = true, workstation = true, laptop = true,
+   tablet = true, phone = true, tv = true, networking = true,
+   wifi = true, nas = true, multimedia = true, iot = true,
+}
 
-      for _, h in pairsByKeys(mac_hosts, asc) do
-	 first_host = h
-	 break
+-- ########################################
+
+-- Picks the IP to display in the "name" column for a MAC without a symbolic
+-- name. ip_tbl is the subtable filled by interface.addMacsIpAddresses(): its
+-- keys are host IPs, its values the IP version (4 or 6).
+local function pick_representative_ip(ip_tbl)
+   local best_local_v4, best_v4, best_any
+   for ip, ipver in pairs(ip_tbl) do
+      if (best_any == nil) or (ip < best_any) then best_any = ip end
+      if ipver == 4 then
+         if (best_v4 == nil) or (ip < best_v4) then best_v4 = ip end
+         -- vlan
+         local addr = ip:match("^([^@]+)") or ip   
+         if isLocal(addr) and ((best_local_v4 == nil) or (ip < best_local_v4)) then
+            best_local_v4 = ip
+         end
       end
-      local host_label = first_host["ip"]
-      return {host_label = host_label, num_hosts = num_hosts, has_name = false}
    end
-   return {host_label='', num_hosts, has_name = false}
+   return best_local_v4 or best_v4 or best_any
 end
 
 -- ########################################
@@ -68,66 +81,74 @@ local macs_stats = interface.getMacsInfo(false, nil, 0, c_order,
 					 source_macs_only, manufacturer, nil, device_type, location, nil)
 local total_rows = #macs_stats["macs"]
 
-local record = {}
 local rsp = {}
 
+-- MACs that have no symbolic name but do have hosts: we need a representative
+-- host IP for the name column. Instead of walking the whole hosts hash table
+-- once per MAC (interface.getMacHosts -> getActiveMacHosts,
+-- we collect them here and resolve all IPs with a single hosts-table walk
+-- via interface.addMacsIpAddresses().
+local macs_needing_ip = {}
+local pending_name = {}
+
 if macs_stats.macs then
-   for key, value in pairs(macs_stats["macs"]) do
-      record = {}
+   for _, value in pairs(macs_stats["macs"]) do
+      local record = {}
       record["mac"] = value["mac"]
 
-      local manufacturer = value["manufacturer"]
-      if (manufacturer == nil) then
-	 manufacturer = ""
+      local mac_manufacturer = value["manufacturer"]
+      if (mac_manufacturer == nil) then
+	      mac_manufacturer = ""
       end
       if ntop.isnEdge() then
-	 record["location"] = value.location
+	      record["location"] = value.location
       end
       if (value["model"] ~= nil) then
-	 local _model = discover.apple_products[value["model"]] or value["model"]
-	 manufacturer = manufacturer .. " [ " .. shortenString(_model) .. " ]"
+	      local _model = discover.apple_products[value["model"]] or value["model"]
+	      mac_manufacturer = mac_manufacturer .. " [ " .. shortenString(_model) .. " ]"
       end
-      record["manufacturer"] = manufacturer
+      record["manufacturer"] = mac_manufacturer
 
       local device_type_string = discover.devtype2stringId(value["devtype"])
       local device_type_label = discover.devtype2string(value["devtype"])
       local device_type = {
-	 device_type_label = device_type_label
+	      device_type_label = device_type_label
       }
-      if device_type_string == "printer" then device_type.printer = true end
-      if device_type_string == "video" then device_type.video = true end
-      if device_type_string == "workstation" then device_type.workstation = true end
-      if device_type_string == "laptop" then device_type.laptop = true end
-      if device_type_string == "tablet" then device_type.tablet = true end
-      if device_type_string == "phone" then device_type.phone = true end
-      if device_type_string == "tv" then device_type.tv = true end
-      if device_type_string == "networking" then device_type.networking = true end
-      if device_type_string == "wifi" then device_type.wifi = true end
-      if device_type_string == "nas" then device_type.nas = true end
-      if device_type_string == "multimedia" then device_type.multimedia = true end
-      if device_type_string == "iot" then device_type.iot = true end
+      if known_device_types[device_type_string] then
+	      device_type[device_type_string] = true
+      end
       record["device_type"] = device_type
 
+      -- Name resolution.
+      -- Fast path: a symbolic device name is available -> no host lookup needed.
+      -- Slow path (no name): defer to the bulk IP resolution below, and only
+      -- when the MAC actually has associated hosts (num_hosts > 0).
       local name_device = {name = getDeviceName(value["mac"], true), has_name = true}
       if (isEmptyString(name_device.name)) then
-	 name_device = macHosts(value.mac)
+	      local num_hosts = value["num_hosts"] or 0
+	      name_device = {has_name = false, num_hosts = num_hosts, host_label = ""}
+
+	      if num_hosts > 0 then
+	         macs_needing_ip[value["mac"]] = {}
+	         pending_name[#pending_name + 1] = { mac = value["mac"], name_device = name_device }
+	      end
       end
       record["name"] = name_device
 
       record["hosts"] = value["num_hosts"]
 
       if (value["arp_requests.sent"] == None) then
-	 record["arp"] = 0
+	      record["arp"] = 0
       else
-	 record["arp"] = formatValue(value["arp_requests.sent"] + value["arp_replies.sent"] +
+	      record["arp"] = formatValue(value["arp_requests.sent"] + value["arp_replies.sent"] +
 				     value["arp_requests.rcvd"] + value["arp_replies.rcvd"])
       end
 
       record["seen_since"] = value["seen.first"]
       if ((value["bytes.sent"] == None) and (value.sent ~= None)) then
-	 value["bytes.sent"] = value.sent.bytes
-	 value["bytes.rcvd"] = value.rcvd.bytes
-	 value["throughput_bps"] = 0
+	      value["bytes.sent"] = value.sent.bytes
+	      value["bytes.rcvd"] = value.rcvd.bytes
+	      value["throughput_bps"] = 0
       end
 
       record["breakdown"] = ""
@@ -136,15 +157,35 @@ if macs_stats.macs then
       record["bytes_rcvd"] = value["bytes.rcvd"]
 
       if (throughput_type == "pps") then
-	 record["throughput"] = value["throughput_pps"]
-	 record["throughput_type"] = "pps"
+	      record["throughput"] = value["throughput_pps"]
+	      record["throughput_type"] = "pps"
       else
-	 record["throughput"] = value["throughput_bps"]
-	 record["throughput_type"] = "bps"
+	      record["throughput"] = value["throughput_bps"]
+	      record["throughput_type"] = "bps"
       end
       record["traffic"] = value["bytes.sent"] + value["bytes.rcvd"]
       rsp[#rsp + 1] = record
    end
 end
+
+-- ########################################
+-- Single bulk resolution of MAC -> host IP addresses.
+-- One walk over the hosts hash table fills the "ip" subtable of every MAC
+-- present in macs_needing_ip. This replaces the previous per-row full walks.
+if next(macs_needing_ip) ~= nil then
+   interface.addMacsIpAddresses(macs_needing_ip)
+   for _, p in ipairs(pending_name) do
+      local entry = macs_needing_ip[p.mac]
+      local ip = entry and entry.ip and pick_representative_ip(entry.ip)
+       
+      if ip ~= nil then
+	      p.name_device.host_label = ip
+      else
+	      p.name_device.num_hosts = 0
+      end
+   end
+end
+
+-- ########################################
 
 rest_utils.extended_answer(rest_utils.consts.success.ok, rsp, {["recordsTotal"] = total_rows})
