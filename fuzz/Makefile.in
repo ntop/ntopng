@@ -1,4 +1,4 @@
-FUZZ_TARGETS := fuzz/fuzz_dissect_packet
+FUZZ_TARGETS := fuzz/fuzz_dissect_packet fuzz/fuzz_zmq_flow
 FUZZ_CORPUS := $(addsuffix _seed_corpus.zip,$(FUZZ_TARGETS))
 
 FUZZ_LOCAL_TEST := @FUZZ_LOCAL_TEST@
