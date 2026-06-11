@@ -1,3 +1,2 @@
 [libfuzzer]
-detect_leaks=0
 max_len=65536
