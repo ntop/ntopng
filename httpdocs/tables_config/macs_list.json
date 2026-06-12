@@ -3,7 +3,7 @@
 	"data_url": "lua/rest/v2/get/mac/macs_list.lua",
 	"use_current_page": false,
 	"enable_search": true,
-	"paging": false,
+	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {
 		"column_id": "mac",

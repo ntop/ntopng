@@ -2018,6 +2018,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   u_int32_t begin_slot = 0;
   time_t min_first_seen = 0;
   bool walk_all = true;
+  const char* map_search = NULL;
 
   if (lua_type(vm, 1) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 1);
   if (lua_type(vm, 2) == LUA_TNUMBER) maxHits = (u_int16_t)lua_tonumber(vm, 2);
@@ -2032,6 +2033,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   if (lua_type(vm, 9) == LUA_TSTRING)
     location_filter = str_2_location(lua_tostring(vm, 9));
   if (lua_type(vm, 10) == LUA_TNUMBER) min_first_seen = lua_tonumber(vm, 10);
+  if (lua_type(vm, 11) == LUA_TSTRING) map_search = lua_tostring(vm, 11);
 
   if (!curr_iface ||
       curr_iface->getActiveMacList(
@@ -2039,7 +2041,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
           0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
           sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
           a2zSortOrder, pool_filter, devtype_filter, location_filter,
-          min_first_seen) < 0)
+          min_first_seen, map_search) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));

@@ -6484,6 +6484,23 @@ static bool mac_search_walker(GenericHashEntry* he, void* user_data,
        strcmp(r->manufacturer,
               m->get_manufacturer() ? m->get_manufacturer() : "") != 0))
     return (false); /* false = keep on walking */
+  if (r->map_search && r->map_search[0]) {
+    char macbuf[24], manbuf[128];
+    const char *manuf = m->get_manufacturer();
+
+    m->print(macbuf, sizeof(macbuf));
+    Utils::stringtolower(macbuf);
+
+    manbuf[0] = '\0';
+    if (manuf) {
+      snprintf(manbuf, sizeof(manbuf), "%s", manuf);
+      Utils::stringtolower(manbuf);
+    }
+
+    if ((strstr(macbuf, r->map_search) == NULL) &&
+        (strstr(manbuf, r->map_search) == NULL))
+      return (false); /* no match: keep on walking */
+  }
 
   if (r->currentSize == r->actNumEntries) {
     /* Not enough space: we need to grow a bit */
@@ -7528,9 +7545,10 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
                                const char* manufacturer, char* sortColumn,
                                u_int16_t pool_filter, u_int8_t devtype_filter,
                                u_int8_t location_filter,
-                               time_t min_first_seen) {
+                               time_t min_first_seen,
+                               const char* map_search) {
   int (*sorter)(const void* _a, const void* _b);
-
+  char map_search_lc[128];
   if (retriever == NULL) return (-1);
 
   retriever->sourceMacsOnly = sourceMacsOnly, retriever->actNumEntries = 0,
@@ -7541,6 +7559,14 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
   retriever->locationFilter = location_filter,
   retriever->min_first_seen = min_first_seen, retriever->ndpi_proto = -1,
   retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE;
+  
+  if (map_search && map_search[0]) {
+    snprintf(map_search_lc, sizeof(map_search_lc), "%s", map_search);
+    Utils::stringtolower(map_search_lc);
+    retriever->map_search = map_search_lc;
+  } else {
+    retriever->map_search = NULL;
+  }
 
   retriever->elems = (struct flowHostRetrieveList*)calloc(
       sizeof(struct flowHostRetrieveList), retriever->currentSize);
@@ -9925,7 +9951,7 @@ int NetworkInterface::getActiveMacList(
     u_int8_t bridge_iface_idx, bool sourceMacsOnly, const char* manufacturer,
     char* sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder,
     u_int16_t pool_filter, u_int8_t devtype_filter, u_int8_t location_filter,
-    time_t min_first_seen) {
+    time_t min_first_seen, const char* map_search) {
   struct flowHostRetriever retriever;
   bool show_details = true;
 
@@ -9933,7 +9959,7 @@ int NetworkInterface::getActiveMacList(
 
   if (sortMacs(begin_slot, walk_all, &retriever, bridge_iface_idx,
                sourceMacsOnly, manufacturer, sortColumn, pool_filter,
-               devtype_filter, location_filter, min_first_seen) < 0) {
+               devtype_filter, location_filter, min_first_seen, map_search) < 0) {
     return (-1);
   }
 

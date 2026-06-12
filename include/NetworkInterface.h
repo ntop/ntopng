@@ -378,7 +378,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                struct flowHostRetriever* retriever, u_int8_t bridge_iface_idx,
                bool sourceMacsOnly, const char* manufacturer, char* sortColumn,
                u_int16_t pool_filter, u_int8_t devtype_filter,
-               u_int8_t location_filter, time_t min_first_seen);
+               u_int8_t location_filter, time_t min_first_seen, const char* map_search = NULL);
   int sortFlows(u_int32_t* begin_slot, bool walk_all,
                 struct flowHostRetriever* retriever, AddressTree* allowed_nets,
                 Host* host, Host* client, Host* server, char* flow_info,
@@ -856,7 +856,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                        const char* manufacturer, char* sortColumn,
                        u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder,
                        u_int16_t pool_filter, u_int8_t devtype_filter,
-                       u_int8_t location_filter, time_t min_first_seen);
+                       u_int8_t location_filter, time_t min_first_seen,
+                       const char* map_search = NULL);
   int getActiveMacManufacturers(lua_State* vm, u_int8_t bridge_iface_idx,
                                 bool sourceMacsOnly, u_int32_t maxHits,
                                 u_int8_t devtype_filter,

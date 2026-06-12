@@ -4,7 +4,6 @@
     <TableWithConfig ref="table_macs_list" :table_id="table_id" :csrf="csrf" :showLoading="true"
       :f_map_columns="map_table_def_columns"
       :get_extra_params_obj="get_extra_params_obj"
-      :f_sort_rows="columns_sorting"
       @rows_loaded="change_filter_labels">
       
       <template v-slot:custom_header>
