@@ -623,14 +623,16 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
           rspbuf[idx] = '.', dissected_ptr = false;
         } else {
           if (buf[offset] == 0xc0) {
-            u_int8_t new_offset = buf[offset + 1];
+            u_int8_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
 
             offset++, dissected_ptr = true;
 
-            while ((idx < (sizeof(rspbuf) - 1)) && (buf[new_offset] != 0)) {
+            while ((idx < (sizeof(rspbuf) - 1)) && (new_offset < buf_len) &&
+                   (buf[new_offset] != 0)) {
               if (buf[new_offset] < 32)
                 rspbuf[idx] = '.';
               else if (buf[new_offset] == 0xc0) {
+                if (new_offset + 1 >= buf_len) break;
                 new_offset = buf[new_offset + 1];
                 continue;
               } else
@@ -668,14 +670,16 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
         rspbuf[idx] = '.', dissected_ptr = false;
       } else {
         if (buf[offset] == 0xc0) {
-          u_int8_t new_offset = buf[offset + 1];
+          u_int8_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
 
           offset++, dissected_ptr = true;
 
-          while ((idx < (sizeof(rspbuf) - 1)) && (buf[new_offset] != 0)) {
+          while ((idx < (sizeof(rspbuf) - 1)) && (new_offset < buf_len) &&
+                 (buf[new_offset] != 0)) {
             if (buf[new_offset] < 32)
               rspbuf[idx] = '.';
             else if (buf[new_offset] == 0xc0) {
+              if (new_offset + 1 >= buf_len) break;
               new_offset = buf[new_offset + 1];
               continue;
             } else
@@ -733,14 +737,16 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
             rspbuf[idx] = '.', dissected_ptr = false;
           } else {
             if (buf[offset] == 0xc0) {
-              u_int8_t new_offset = buf[offset + 1];
+              u_int8_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
 
               offset++, dissected_ptr = true;
 
-              while ((idx < sizeof(rspbuf)) && (buf[new_offset] != 0)) {
+              while ((idx < sizeof(rspbuf)) && (new_offset < buf_len) &&
+                     (buf[new_offset] != 0)) {
                 if (buf[new_offset] < 32)
                   rspbuf[idx] = '.';
                 else if (buf[new_offset] == 0xc0) {
+                  if (new_offset + 1 >= buf_len) break;
                   new_offset = buf[new_offset + 1];
                   continue;
                 } else
