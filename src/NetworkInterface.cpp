@@ -4580,6 +4580,10 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if (clickhouse_flows_db) clickhouse_flows_db->updateStats(&tv);
 
+#ifndef HAVE_NEDGE
+  if (es_exporter) es_exporter->updateStats(&tv);
+#endif
+
   checkReloadHostsBroadcastDomain();
 
   if (!checkPeriodicStatsUpdateTime(&tv))
