@@ -346,10 +346,8 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name,
 
 #if defined(NTOPNG_PRO) && defined(TRACE_SCRIPTS)
   ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "Running %s [is_pro: %s][demo_end_in: %d]", script_name,
-      ntop->getPrefs()->is_pro_edition() ? "YES" : "NO",
-      (ntop->getPro()->demo_ends_at() == 0)
-          ? 0 : (ntop->getPro()->demo_ends_at() - time(NULL)));
+      TRACE_NORMAL, "Running %s [is_pro: %s]", script_name,
+      ntop->getPrefs()->is_pro_edition() ? "YES" : "NO");
 #endif
 
   try {
@@ -467,12 +465,6 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
   else {
     num_loops = 2;
 
-    if (ntop->getPro()->demo_ends_at() != 0 /* demo mode */) {
-      int remaining_time = ntop->getPro()->demo_ends_at() - (u_int32_t)time(NULL);
-
-      if (remaining_time < 60 /* 1 min */)
-        num_loops = 1; /* Demo is ending: stop running pro scripts */
-    }
   }
 #else
   num_loops = 1;

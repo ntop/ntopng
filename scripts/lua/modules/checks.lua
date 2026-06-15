@@ -462,7 +462,7 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type,
                                   hook_filter)
     local setup_ok = true
 
-    -- Recheck the edition as the demo mode may expire
+    -- Recheck the edition as a time-limited license may have expired
     if script then
         if (script.setup and script.setup() == false) then return (nil) end
         if (script.edition == "pro" and not ntop.isPro()) or

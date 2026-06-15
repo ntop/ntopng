@@ -3023,13 +3023,6 @@ void Ntop::checkReloadAlertExclusions() {
 /* ******************************************* */
 
 void Ntop::checkReloadFlowChecks() {
-  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ &&
-      flow_checks_loader &&
-      flow_checks_loader->getChecksEdition() != ntopng_edition_community) {
-    /* Force a reload when switching to community (demo mode) */
-    reloadFlowChecks();
-  }
-
   if(flowChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
     FlowChecksLoader *old,
         *tmp_flow_checks_loader = new (std::nothrow) FlowChecksLoader();
@@ -3063,13 +3056,6 @@ void Ntop::checkReloadFlowChecks() {
 /* ******************************************* */
 
 void Ntop::checkReloadHostChecks() {
-  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ &&
-      host_checks_loader &&
-      host_checks_loader->getChecksEdition() != ntopng_edition_community) {
-    /* Force a reload when switching to community (demo mode) */
-    reloadHostChecks();
-  }
-
   if(hostChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
     HostChecksLoader *old,
         *tmp_host_checks_loader = new (std::nothrow) HostChecksLoader();
