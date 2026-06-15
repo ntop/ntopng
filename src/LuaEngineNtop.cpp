@@ -8252,20 +8252,33 @@ static int ntop_dump_lua_cache(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_alloc_mem(lua_State* vm) {
-  u_int32_t new_size, size = 1024 * 1024;
-  void *p;
+  u_int32_t size = 0;
+  char *p, ret[32];
   
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR)); 
-  new_size = lua_tonumber(vm, 1);
+  else
+    size = lua_tonumber(vm, 1);
 
-  if(new_size > size) size = new_size;
+  if(size == 0)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  p = malloc(new_size);
-  if(p == NULL)
-    ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: allocatin failure");
+  p = (char*)malloc(size);
+  if(p != NULL) {
+    for(u_int32_t i=0; i<size; i++) p[i] = 0xFF;
+  }
 
-  lua_pushnil(vm);
+  snprintf(ret, sizeof(ret), "%p", p);
+  lua_pushstring(vm, ret);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_revision(lua_State *vm) {
+  int revision = atoi(PACKAGE_REVISION);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+  lua_pushnumber(vm, revision);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -8744,7 +8757,8 @@ static luaL_Reg _ntop_reg[] = {
     { "dumpLuaCache", ntop_dump_lua_cache },
 
     {"allocMem", ntop_alloc_mem},
-    
+    {"revision", ntop_revision},
+
     {NULL, NULL}
 };
 
