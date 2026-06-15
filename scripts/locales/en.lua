@@ -8503,7 +8503,7 @@ local lang = {
     ["toggle_search_in_all_interfaces_title"] = "Search In All Interfaces",
     ["toggle_shaping_directions_description"] = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",
     ["toggle_shaping_directions_title"] = "Split Shaping Directions",
-    ["toggle_sites_collection_description"] = "Create s database of visited domains for classification purposes (stored on redis ntopng.domains)",
+    ["toggle_sites_collection_description"] = "Create a database of visited domains for classification purposes (stored on redis ntopng.domains)",
     ["toggle_sites_collection_title"] = "Sites Collection",
     ["toggle_slack_notification_description"] = "Toggle alerts notifications via slack. See integration instructions <a href='%{url}'>here</a>.",
     ["toggle_slack_notification_title"] = "Toggle <a href=\"%{url}\">Slack</a> Notification",
