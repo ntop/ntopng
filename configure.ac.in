@@ -945,6 +945,10 @@ AC_CONFIG_FILES(packages/etc/systemd/system/ntopng@.service)
 AC_CONFIG_FILES(python/setup.py)
 AC_CONFIG_FILES(python/__init__.py)
 
+if test -d "pro"; then :
+AC_CONFIG_FILES(pro/scripts/lua/modules/build_info.lua)
+fi
+
 AC_OUTPUT
 
 if test -f "httpdocs/misc/ntopng-utils-manage-config"; then
