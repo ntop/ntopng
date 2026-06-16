@@ -8284,6 +8284,19 @@ static int ntop_revision(lua_State *vm) {
 
 /* **************************************************************** */
 
+static int ntop_self_check(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO)
+  ntop->getPro()->selfCheck();
+#endif
+
+  lua_pushnil(vm);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static luaL_Reg _ntop_reg[] = {
     { "getDirs", ntop_get_dirs },
     { "getInfo", ntop_get_info },
@@ -8758,6 +8771,7 @@ static luaL_Reg _ntop_reg[] = {
 
     {"allocMem", ntop_alloc_mem},
     {"revision", ntop_revision},
+    {"selfCheck", ntop_self_check},
 
     {NULL, NULL}
 };
