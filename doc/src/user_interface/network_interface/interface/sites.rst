@@ -88,3 +88,11 @@ Networks are not assigned to a site from the site form. Instead, the assignment 
 **Networks** tab: edit a network and choose the desired site from the list. The **Site** column in
 the networks list shows the site each network currently belongs to. Networks left unassigned remain
 part of the Default site.
+
+.. figure:: ../../../img/web_gui_networks_edit_modal.png
+
+  :align: center
+  :alt: Edit the Network Site
+
+  The Network edit form
+
