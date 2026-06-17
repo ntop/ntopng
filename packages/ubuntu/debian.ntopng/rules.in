@@ -60,6 +60,11 @@ binary-arch: build install
 		cp ../../pro/nedge/tools/nedge_pinger.service  ./debian/@APP@/etc/systemd/system; \
 		mv ./debian/@APP@/usr/bin/ntopng ./debian/@APP@/usr/bin/nedge; \
 	fi
+
+	mkdir ./debian/ntopng/usr/share/ntop
+	strip --strip-all ./debian/ntopng/usr/bin/ntopng
+	~/scripts/signature.sh ./debian/ntopng/usr/bin/ntopng ./debian/ntopng/usr/share/ntop/ntopng.sig
+
 	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/mibs
