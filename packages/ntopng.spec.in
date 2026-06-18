@@ -110,7 +110,7 @@ SRC=$RPM_BUILD_DIR/%{name}-%{version}
 %clean
 rm -fr $RPM_BUILD_ROOT
 
-strip --strip-al $RPM_BUILD_ROOT/usr/bin/ntopng
+strip --strip-all $RPM_BUILD_ROOT/usr/bin/ntopng
 mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
 ~/scripts/signature.sh $RPM_BUILD_ROOT/usr/bin/ntopng $RPM_BUILD_ROOT/usr/share/ntop/ntopng.sig
 
