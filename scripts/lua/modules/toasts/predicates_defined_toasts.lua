@@ -99,15 +99,6 @@ end
 
 -- ###############################################################
 
-local function create_forced_community_toast(toast)
-    local title = i18n("about.licence")
-    local description = i18n("about.forced_community_notification")
-
-    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil --[[ no action --]] , toast.dismissable)
-end
-
--- ###############################################################
-
 local function create_tempdir_toast_ui(toast)
     local title = i18n("warning")
     local description = i18n("about.datadir_warning")
@@ -804,17 +795,6 @@ function predicates.exporters_SNMP_ratio_column(toast, container)
         table.insert(container, toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable))
     end
 
-end
-
--- ###############################################
-
---- Create an instance for forced community toast
---- @param toast table The toast is the logic model defined in defined_toasts
---- @param container table Is the table where to put the new toast ui
-function predicates.forced_community(toast, container)
-    if (ntop.getInfo()["pro.forced_community"] and ntop.exists("/etc/ntopng.license")) then
-        table.insert(container, create_forced_community_toast(toast))
-    end
 end
 
 -- ###############################################

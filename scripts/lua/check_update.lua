@@ -87,11 +87,8 @@ else
     -- Check for failures
     local update_failure = ntop.getCache(update_failure_key)
 
-    -- Allow updates with no license in forced Community mode
     if not isEmptyString(update_failure) then
-      if update_failure == "no-license" and ntop.isForcedCommunity() then
-        update_failure = nil
-      elseif update_failure == "upgrade-failure" and isEmptyString(new_version) then
+      if update_failure == "upgrade-failure" and isEmptyString(new_version) then
         update_failure = nil -- Manual update after a failure?
       end
     end

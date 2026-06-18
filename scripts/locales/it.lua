@@ -605,8 +605,6 @@ local lang = {
     ["directories"] = "Cartelle",
     ["dropped_store_queries_alerts"] = "Allarmi Queries/Salvate/Perse",
     ["flow_checks_directory"] = "Flusso",
-    ["forced_community_notification"] = "Edizione Community forzata con --community con una licenza installata. Rimuovere questa opzione per utilizzare la licenza installata",
-    ["forced_community_notification_short"] = "Edizione Community edition forzata con --community",
     ["host_checks_directory"] = "Host",
     ["host_identifier_warning"] = "Questa interfaccia monitora host DHCP. Cambiare la preferenza <a href='%{url}'>%{name}</a> a \"Indirizzo MAC\".",
     ["idle"] = "idle",

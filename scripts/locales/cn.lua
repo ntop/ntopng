@@ -463,8 +463,6 @@ local lang = {
     ["directories"] = "目录",
     ["dropped_store_queries_alerts"] = "查询/存储/丢弃警告",
     ["flow_callbacks_directory"] = "流",
-    ["forced_community_notification"] = "Community版使用<code>-community </code>强制安装了ntop许可证。 请删除此选项以启用已安装的许可证。",
-    ["forced_community_notification_short"] = "Community版强制使用--Community",
     ["host_callbacks_directory"] = "主机",
     ["host_identifier_warning"] = "此接口正在监控DHCP主机。 请考虑将<a href='%{url}'>%{name} </a>首选项更改为\" MAC地址\"。",
     ["idle"] = "空闲",

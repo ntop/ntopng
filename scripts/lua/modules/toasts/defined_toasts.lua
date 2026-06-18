@@ -177,16 +177,6 @@ local defined_toats = {
         excluded_subpages = EMPTY_PAGES
     },
     {
-        id = 14,
-        dismissable = false,
-        has_priority = true,
-        predicate = predicates.forced_community,
-        pages = {},
-        subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES,
-        excluded_subpages = EMPTY_PAGES
-    },
-    {
         -- Hint to invite the user to create endpoints to send alert
         id = 15,
         dismissable = true,

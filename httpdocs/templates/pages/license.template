@@ -22,16 +22,14 @@
 <script>$('#btn-copy-system-id').click(function(e) { NtopUtils.copyToClipboard($(this).attr('data'), '{* i18n("copied") *}', '{* i18n("request_failed_message") *}', $(this));});</script>
 
                     <br>
-                    {% if not(info["pro.forced_community"]) then %}
                     <small>
-                        {* 
+                        {*
                             i18n("about.licence_generation", {
                                 purchase_url='https://shop.ntop.org/',
                                 universities_url='https://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
                             })
                         *}
                     </small>
-                    {% end %}
                 </td>
             </tr>
             <tr>

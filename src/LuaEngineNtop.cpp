@@ -3615,18 +3615,6 @@ static int ntop_is_package(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_is_forced_community(lua_State *vm) {
-  bool is_forced_community = true;
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-#ifdef NTOPNG_PRO
-  is_forced_community = ntop->getPro()->forced_community_edition();
-#endif
-  lua_pushboolean(vm, is_forced_community);
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 static int ntop_is_pro(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_pro_edition());
@@ -4283,8 +4271,6 @@ static int ntop_get_info(lua_State *vm) {
     lua_push_str_table_entry(
         vm, "pro.license_type",
         ntop->getPro()->get_license_type(buf, sizeof(buf)));
-    lua_push_bool_table_entry(vm, "pro.forced_community",
-                              ntop->getPro()->is_forced_community());
     lua_push_bool_table_entry(vm, "pro.out_of_maintenance",
                               ntop->getPro()->is_out_of_maintenance());
     lua_push_bool_table_entry(vm, "pro.use_redis_license",
@@ -8409,7 +8395,6 @@ static luaL_Reg _ntop_reg[] = {
     { "checkFilterSyntax", ntop_check_filter_syntax },
 #endif
 
-    { "isForcedCommunity", ntop_is_forced_community },
     { "isPro", ntop_is_pro },
     { "isEnterprise", ntop_is_enterprise_m },
     { "isEnterpriseM", ntop_is_enterprise_m },

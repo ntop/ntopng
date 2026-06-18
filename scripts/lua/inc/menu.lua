@@ -888,7 +888,6 @@ if not ntop.isEnterpriseM() or has_help_enabled then
         entries = {
             {entry = page_utils.menu_entries.about, url = '/lua/about.lua'}, {
                 entry = page_utils.menu_entries.license,
-                hidden = info["pro.forced_community"],
                 url = '/lua/license.lua'
             },
             {entry = page_utils.menu_entries.limits, url = '/lua/limits.lua'},
@@ -1120,13 +1119,11 @@ if (_POST["ntopng_license"] == nil) and
         end
 
     else
-        if (not (ntop.getInfo()["pro.forced_community"])) then
-            print(
-                '<li class="nav-item nav-link"><a class="ntopng-external-link" href="https://shop.ntop.org" class="badge bg-warning text-decoration-none">')
-            print(i18n("about.upgrade_to_professional") ..
-                      ' <i class="fas fa-external-link-alt"></i>')
-            print('</a></li>')
-        end
+        print(
+            '<li class="nav-item nav-link"><a class="ntopng-external-link" href="https://shop.ntop.org" class="badge bg-warning text-decoration-none">')
+        print(i18n("about.upgrade_to_professional") ..
+                  ' <i class="fas fa-external-link-alt"></i>')
+        print('</a></li>')
     end
 end
 

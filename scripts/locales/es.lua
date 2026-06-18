@@ -786,8 +786,6 @@ local lang = {
     ["directories"] = "Directorios",
     ["dropped_store_queries_alerts"] = "Consultas/alertas almacenadas/eliminadas",
     ["flow_checks_directory"] = "Fluir",
-    ["forced_community_notification"] = "Edición comunitaria forzada con <code>--community</code> con una licencia ntop instalada. Elimine esta opción para habilitar la licencia instalada.",
-    ["forced_community_notification_short"] = "Edición comunitaria forzada con --community",
     ["host_checks_directory"] = "Anfitrión",
     ["host_identifier_warning"] = "Esta interfaz monitorea los hosts DHCP. Considere cambiar la preferencia <a href='%{url}'>%{name}</a> a \"Dirección MAC\".",
     ["hw_model"] = "Modelo de hardware",

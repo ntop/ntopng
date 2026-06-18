@@ -785,8 +785,6 @@ local lang = {
     ["directories"] = "디렉토리",
     ["dropped_store_queries_alerts"] = "쿼리/저장/삭제된 경고",
     ["flow_checks_directory"] = "흐름",
-    ["forced_community_notification"] = "ntop 라이센스가 설치된 <code>--community</code>로 강제되는 커뮤니티 에디션입니다. 설치된 라이센스를 활성화하려면 이 옵션을 제거하십시오.",
-    ["forced_community_notification_short"] = "--community로 강제되는 커뮤니티 에디션",
     ["host_checks_directory"] = "주인",
     ["host_identifier_warning"] = "이 인터페이스는 DHCP 호스트를 모니터링하고 있습니다. <a href='%{url}'>%{name}</a> 기본 설정을 \"MAC 주소\"로 변경하는 것을 고려해 보십시오.",
     ["hw_model"] = "하드웨어 모델",

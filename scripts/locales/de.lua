@@ -786,8 +786,6 @@ local lang = {
     ["directories"] = "Verzeichnisse",
     ["dropped_store_queries_alerts"] = "Abfragen/gespeicherte/abgebrochene Warnungen",
     ["flow_checks_directory"] = "Fließen",
-    ["forced_community_notification"] = "Community Edition erzwungen mit <code>--community</code> mit installierter ntop-Lizenz. Bitte entfernen Sie diese Option, um die installierte Lizenz zu aktivieren.",
-    ["forced_community_notification_short"] = "Community Edition erzwungen mit --community",
     ["host_checks_directory"] = "Gastgeber",
     ["host_identifier_warning"] = "Diese Schnittstelle überwacht DHCP-Hosts. Bitte ändern Sie die Einstellung <a href='%{url}'>%{name}</a> in \"MAC-Adresse\".",
     ["hw_model"] = "Hardwaremodell",

@@ -574,7 +574,7 @@ void Ntop::start() {
   snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);
 
 #ifdef NTOPNG_PRO
-  if (!pro->forced_community_edition()) pro->printLicenseInfo();
+  pro->printLicenseInfo();
 #endif
 
   FlowRiskAlerts::checkUndefinedRisks();
