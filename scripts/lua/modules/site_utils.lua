@@ -456,54 +456,72 @@ end
 
 -- ##############################################
 
--- Restores a Sites configuration previously produced by site_utils.export().
--- Uses replace semantics (the current configuration is wiped first) and
--- preserves the original Site IDs so that the network->site associations stay
--- consistent.
+-- Imports a Sites configuration previously produced by site_utils.export()
+-- using *additive* (merge) semantics, exactly like the CSV import.
+-- The original Site IDs in the file are NOT preserved. Since network ->
+-- site associations are machine-local and not part of import/export, this is
+-- safe: existing Sites (and their associations) keep their IDs untouched, and
+-- only brand new Sites - which have no associations yet - receive a new ID.
 function site_utils.restore(conf)
 	if type(conf) ~= "table" then
 		return rest_utils.consts.err.add_site_failed
 	end
-	
-	-- REDIS_NETWORKS_SITES_KEY is intentionally not cleared here, as
-	-- network -> site associations are machine-local and not part of import/export.
-	ntop.delCache(REDIS_HASH_NAME)
-	ntop.delCache(REDIS_COUNTER_KEY)
-	sites_list_cache = nil
 
+	local added = 0
+	local duplicates = 0
+	local skipped = 0
 
-	local max_id = 0
+	-- Names already present (case-insensitive). Updated as new Sites are added
+	-- so that duplicates *within* the same file are skipped too.
+	local existing_names = {}
+	for _, s in ipairs(site_utils.getSites()) do
+		existing_names[tostring(s.name):lower()] = true
+	end
 
-	-- Restore the Site definitions, preserving their original IDs
 	for _, site in ipairs(conf.sites or {}) do
-		-- Never restore the reserved Default site (id 0)
-		if site.id and tostring(site.id) ~= tostring(DEFAULT_SITE.id) then
-			local site_id = tostring(site.id)
+		-- Never import the reserved Default site (id 0)
+		if tostring(site.id or "") ~= tostring(DEFAULT_SITE.id) then
+			local name = trimSpace(tostring(site.name or ""))
 
-			local site_json = {
-				id = site_id,
-				name = site.name,
-				description = site.description or "",
-				latitude = tonumber(site.latitude) or 0,
-				longitude = tonumber(site.longitude) or 0,
-			}
+			-- Silently ignore entries without a name
+			if not isEmptyString(name) then
+				local name_key = name:lower()
 
-			ntop.setHashCache(REDIS_HASH_NAME, site_id, json.encode(site_json))
+				if existing_names[name_key] then
+					-- Site already present (in Redis or added earlier in this
+					-- batch): not an error, just skip it silently
+					duplicates = duplicates + 1
+				else
+					local rc = site_utils.addSite({
+						site_name = name,
+						site_description = site.description or "",
+						latitude = site.latitude or 0,
+						longitude = site.longitude or 0,
+					})
 
-			local nid = tonumber(site.id)
-			if nid and nid > max_id then
-				max_id = nid
+					if rc == rest_utils.consts.success.ok then
+						added = added + 1
+						existing_names[name_key] = true
+					else
+						-- Real validation error (invalid coordinates,
+						-- illegal name, limit reached, ...): skip it
+						skipped = skipped + 1
+					end
+				end
 			end
 		end
 	end
 
-	-- Make sure new Sites get fresh, non-colliding IDs
-	ntop.setCache(REDIS_COUNTER_KEY, max_id + 1)
+	-- Re-importing an already-present configuration (all duplicates) is a
+	-- no-op, not a failure. Treat the import as a failure only if nothing was
+	-- added AND there was nothing to skip as a duplicate, i.e. the file had no
+	-- usable Site at all.
+	if added == 0 and duplicates == 0 then
+		return rest_utils.consts.err.add_site_failed
+	end
 
-	sites_list_cache = nil
-	
 	-- success
-	return nil 
+	return nil
 end
 
 -- ##############################################
