@@ -2955,6 +2955,7 @@ local known_parameters = {
    ["columns"] = validateUnchecked,
    ["devices"] = {jsonCleanup, validateJSON},
    ["devices_csv"] = validateUnquoted,
+   ["sites_csv"] = validateUnquoted,
    ["ts_schema"] = validateSingleWord,
    ["ts_filter"] = validateSingleWord,
    ["metric"] = validateSingleWord,

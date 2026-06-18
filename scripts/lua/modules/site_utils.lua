@@ -220,6 +220,9 @@ function site_utils.editSite(site)
 
 		-- Store updated site in Redis
 		ntop.setHashCache(REDIS_HASH_NAME, site.site_id, json.encode(site_json))
+
+		-- Invalidate the in-memory cache so subsequent reads see the update
+		sites_list_cache = nil
 	else
 		return rest_utils.consts.err.edit_site_failed, msg -- Return validation error
 	end
@@ -274,6 +277,10 @@ function site_utils.addSite(site)
 
 		-- Increment counter for next site
 		ntop.setCache(REDIS_COUNTER_KEY, current_count + 1)
+
+		-- Invalidate the in-memory cache so subsequent reads (and the
+		-- duplicate check of the next addSite in a batch) see this site
+		sites_list_cache = nil
 	else
 		return rest_utils.consts.err.add_site_failed, msg -- Return validation error
 	end
@@ -301,6 +308,9 @@ function site_utils.deleteSite(id)
 	if existing_sites[id] then
 		-- Remove site from Redis
 		ntop.delHashCache(REDIS_HASH_NAME, id)
+
+		-- Invalidate the in-memory cache so subsequent reads see the removal
+		sites_list_cache = nil
 	else
 		return rest_utils.consts.err.delete_site_failed, "Invalid Site"
 	end
@@ -403,6 +413,97 @@ function site_utils.getAllNetworksToSite()
 	end
 
 	return list
+end
+
+-- ##############################################
+-- Configuration backup/restore support
+-- Returns the full Sites configuration as a Lua table:
+--   { sites = { <user-defined sites> } }
+-- The system-reserved Default site is intentionally excluded.
+function site_utils.export()
+	local conf = {
+		sites = {}	
+	}
+
+	local sites = get_sites_from_cache()
+	for _, site in pairsByKeys(sites, asc) do
+		if not site.reserved then
+			conf.sites[#conf.sites + 1] = {
+				id = tostring(site.id),
+				name = site.name,
+				description = site.description,
+				latitude = site.latitude,
+				longitude = site.longitude,
+			}
+		end
+	end
+
+	return conf
+end
+
+-- ##############################################
+
+-- Removes every user-defined Site and the network->site associations,
+-- resetting the auto-increment counter. The Default site is virtual and
+-- is therefore not affected.
+function site_utils.remove_all_sites()
+	ntop.delCache(REDIS_HASH_NAME)
+	ntop.delCache(REDIS_NETWORKS_SITES_KEY)
+	ntop.delCache(REDIS_COUNTER_KEY)
+
+	sites_list_cache = nil
+end
+
+-- ##############################################
+
+-- Restores a Sites configuration previously produced by site_utils.export().
+-- Uses replace semantics (the current configuration is wiped first) and
+-- preserves the original Site IDs so that the network->site associations stay
+-- consistent.
+function site_utils.restore(conf)
+	if type(conf) ~= "table" then
+		return rest_utils.consts.err.add_site_failed
+	end
+	
+	-- REDIS_NETWORKS_SITES_KEY is intentionally not cleared here, as
+	-- network -> site associations are machine-local and not part of import/export.
+	ntop.delCache(REDIS_HASH_NAME)
+	ntop.delCache(REDIS_COUNTER_KEY)
+	sites_list_cache = nil
+
+
+	local max_id = 0
+
+	-- Restore the Site definitions, preserving their original IDs
+	for _, site in ipairs(conf.sites or {}) do
+		-- Never restore the reserved Default site (id 0)
+		if site.id and tostring(site.id) ~= tostring(DEFAULT_SITE.id) then
+			local site_id = tostring(site.id)
+
+			local site_json = {
+				id = site_id,
+				name = site.name,
+				description = site.description or "",
+				latitude = tonumber(site.latitude) or 0,
+				longitude = tonumber(site.longitude) or 0,
+			}
+
+			ntop.setHashCache(REDIS_HASH_NAME, site_id, json.encode(site_json))
+
+			local nid = tonumber(site.id)
+			if nid and nid > max_id then
+				max_id = nid
+			end
+		end
+	end
+
+	-- Make sure new Sites get fresh, non-colliding IDs
+	ntop.setCache(REDIS_COUNTER_KEY, max_id + 1)
+
+	sites_list_cache = nil
+	
+	-- success
+	return nil 
 end
 
 -- ##############################################

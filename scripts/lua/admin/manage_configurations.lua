@@ -94,6 +94,11 @@ if ntop.isPro() or ntop.isnEdge() then
       label = i18n("manage_configurations.snmp_data"),
       order = 2
    }
+   configuration_items['sites'] = {
+      key = "sites",
+      label = i18n("manage_configurations.sites"),
+      order = 7
+   }
 end
 
 -- the infrastructure dashboard is available only in the Enterprise L

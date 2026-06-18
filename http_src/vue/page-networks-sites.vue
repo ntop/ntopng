@@ -19,6 +19,14 @@
         </TableWithConfig>
     </div>
     <div v-show="activePage !== 'networks'" class="m-2 mb-3">
+        <!-- Import feedback banners -->
+        <div v-if="importWithSuccess" class="alert alert-success alert-dismissable">
+            <span>{{ importOkText }}</span>
+        </div>
+        <div v-if="importWithError" class="alert alert-danger alert-dismissable">
+            <span>{{ importErrorText }}</span>
+        </div>
+
         <TableWithConfig ref="table_sites_stats" :table_id="site_table" :csrf="csrf" :showLoading="true"
             @custom_event="on_table_custom_event" :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting">
 
@@ -27,12 +35,23 @@
                 <NavbarTabs :tabs="tabs" :active_tab_id="activePage" @on_click="switchActivePage" />
             </template>
 
-            <!-- Custom button slot for adding new sites -->
+            <!-- Custom button slot for adding/importing/exporting sites -->
             <template v-slot:custom_buttons>
                 <button class="btn btn-link" type="button" @click="openAddSiteModal">
                     <i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top"
                         :title="_i18n('sites_page.add_site')"></i>
                 </button>
+                <button class="btn btn-link" type="button" @click="importSites">
+                    <i class="fa-solid fa-file-arrow-down" data-bs-toggle="tooltip" data-bs-placement="top"
+                        :title="_i18n('sites_page.import_sites')"></i>
+                </button>
+                <a class="btn btn-link" download="sites.csv" :href="sites_export_url">
+                    <i class="fa-solid fa-file-arrow-up" data-bs-toggle="tooltip" data-bs-placement="top"
+                        :title="_i18n('sites_page.export_sites')"></i>
+                </a>
+                <!-- Hidden file input used by the Import button -->
+                <input ref="importFileInput" type="file" accept=".csv,text/csv" class="d-none"
+                    @change="onImportFileSelected" />
             </template>
         </TableWithConfig>
     </div>
@@ -89,8 +108,12 @@ const API = {
     add: `${http_prefix}/lua/pro/rest/v2/add/sites/add.lua`,
     delete: `${http_prefix}/lua/pro/rest/v2/delete/sites/delete.lua`,
     get: `${http_prefix}/lua/pro/rest/v2/get/sites/list.lua`,
+    import: `${http_prefix}/lua/pro/rest/v2/import/sites/sites.lua`,
     net_edit: `${http_prefix}/lua/rest/v2/edit/network/edit.lua`
 };
+
+// Export endpoint used directly by the download anchor (CSV attachment)
+const sites_export_url = `${http_prefix}/lua/pro/rest/v2/export/sites/sites.lua?download=1`;
 
 const areNetworksTsEnabled = props.context.areNetworksTsEnabled;
 const csrf = props.context.csrf;
@@ -112,6 +135,13 @@ const modalNetworkErrorMessage = ref("");     // Error message for modals
 const siteModal = ref(null);                  // Reference to edit/add modal
 const networkModal = ref(null);                  // Reference to edit/add modal
 const siteModalDelete = ref(null);            // Reference to delete modal
+
+// Import (CSV) state
+const importFileInput = ref(null);
+const importWithSuccess = ref(false);
+const importWithError = ref(false);
+const importOkText = ref("");
+const importErrorText = ref("");
 
 /* ************************************** */
 
@@ -377,6 +407,79 @@ async function click_button_delete_site(event) {
 function openAddSiteModal() {
     siteModal.value.open();
 }
+
+/* ************************************** */
+
+// Resets the import feedback banners
+function refreshImportFeedback() {
+    importWithSuccess.value = false;
+    importWithError.value = false;
+    importOkText.value = "";
+    importErrorText.value = "";
+}
+
+// Triggers the hidden file input (opens the OS file picker)
+function importSites() {
+    refreshImportFeedback();
+    importFileInput.value.click();
+}
+
+// Reads the selected CSV file and uploads it to the import endpoint.
+const onImportFileSelected = (event) => {
+    const file = event.target.files && event.target.files[0];
+    // Reset the input so selecting the same file again still fires @change
+    event.target.value = "";
+    if (!file) return;
+
+    refreshImportFeedback();
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        const requestParams = {
+            csrf: props.context.csrf,
+            sites_csv: reader.result,
+        };
+
+        const headers = { 'Content-Type': 'application/json' };
+
+        ntopng_utility.http_request(API.import, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(requestParams)
+        }, false, true, true)
+            .then(data => {
+                if (!data || data.rc < 0) {
+                    importErrorText.value = (data && data.rsp && data.rsp.feedback)
+                        ? data.rsp.feedback
+                        : _i18n("sites_page.import_sites_error");
+                    importWithError.value = true;
+                } else {
+                    importOkText.value = (data.rsp && data.rsp.feedback)
+                        ? data.rsp.feedback
+                        : _i18n("sites_page.import_sites_ok");
+                    importWithSuccess.value = true;
+                }
+            })
+            .catch(err => {
+                console.error("Error during Sites CSV import:", err);
+                importErrorText.value = _i18n("sites_page.import_sites_error");
+                importWithError.value = true;
+            })
+            .finally(() => {
+                setTimeout(refreshImportFeedback, 10000);
+                // A failed import may still have added some rows: refresh anyway
+                refreshActiveTable();
+            });
+    };
+
+    reader.onerror = () => {
+        importErrorText.value = _i18n("sites_page.import_sites_error");
+        importWithError.value = true;
+    };
+
+    reader.readAsText(file);
+};
 
 /* ************************************** */
 // Shows the delete confirmation modal
