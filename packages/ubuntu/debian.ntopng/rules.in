@@ -61,9 +61,11 @@ binary-arch: build install
 		mv ./debian/@APP@/usr/bin/ntopng ./debian/@APP@/usr/bin/nedge; \
 	fi
 
-	mkdir ./debian/ntopng/usr/share/ntop
-	strip --strip-all ./debian/ntopng/usr/bin/ntopng
-	~/scripts/signature.sh ./debian/ntopng/usr/bin/ntopng ./debian/ntopng/usr/share/ntop/ntopng.sig
+	if test "@APP@" = "nedge"; then \
+	  mkdir -p ./debian/nedge/usr/share/ntop ; strip --strip-all ./debian/nedge/usr/bin/nedge; ~/scripts/signature.sh ./debian/nedge/usr/bin/nedge ./debian/nedge/usr/share/ntop/nedge.sig; \
+	else \
+	  mkdir -p ./debian/ntopng/usr/share/ntopl strip --strip-all ./debian/ntopng/usr/bin/ntopng; ~/scripts/signature.sh ./debian/ntopng/usr/bin/ntopng ./debian/ntopng/usr/share/ntop/ntopng.sig; \
+	fi
 
 	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
