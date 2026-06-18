@@ -43,15 +43,15 @@ if [ -d $RPM_BUILD_ROOT ]; then
 	\rm -rf $RPM_BUILD_ROOT
 fi
 
-mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
+mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8
 mkdir -p $RPM_BUILD_ROOT/var/lib/ntopng
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/etc/sudoers.d/
 mkdir -p $RPM_BUILD_ROOT/etc/rsyslog.d/
 mkdir -p $RPM_BUILD_ROOT/etc/cron.d/
 cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
-strip $RPM_BUILD_ROOT/usr/bin/ntopng
-cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
+strip --strip-all $RPM_BUILD_ROOT/usr/bin/ntopng
+cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/
 cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng  # L to dereference symlinks
 cp $HOME/ntopng/packages/wizard/ntopng-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
@@ -83,7 +83,7 @@ fi
 %if 0%{?centos_ver} > 8
 #find $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua -name "*.lua" -type f -exec $HOME/ntopng/tools/luac.sh {} ';'
 %endif
- 
+
 if hash systemctl 2>/dev/null; then
    mkdir -p $RPM_BUILD_ROOT/usr/lib/systemd/system/
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng*.service $RPM_BUILD_ROOT/usr/lib/systemd/system/
@@ -110,7 +110,7 @@ SRC=$RPM_BUILD_DIR/%{name}-%{version}
 %clean
 rm -fr $RPM_BUILD_ROOT
 
-strip --strip-all $RPM_BUILD_ROOT/usr/bin/ntopng
+# Already stripped
 mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
 ~/scripts/signature.sh $RPM_BUILD_ROOT/usr/bin/ntopng $RPM_BUILD_ROOT/usr/share/ntop/ntopng.sig
 
@@ -128,7 +128,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
 /etc/logrotate.d/ntopng
 /etc/sudoers.d/ntopng
 /etc/rsyslog.d/20-ntopng.conf
-/etc/cron.d/ntopng
+%config(noreplace) /etc/cron.d/ntopng
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
 %config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
@@ -137,7 +137,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
 /usr/share/nmap/scripts/vulscan/vulscan.nse
 /usr/share/nmap/scripts/vulscan/cve.csv
 
-%dir %attr(700, ntopng, ntopng) /var/lib/ntopng
+%dir %attr(700, ntopng, ntop) /var/lib/ntopng
 
 # Set the default attributes of all of the files specified to have an
 # owner and group of root and to inherit the permissions of the file
@@ -159,7 +159,7 @@ if ! grep -q 'ntop:' /etc/group; then
     echo 'Creating ntop group'
     /usr/sbin/groupadd -r ntop
 fi
-if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
+if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then
     echo "Creating ntopng user..."
     /usr/sbin/useradd -M -N -g ntop -r -s /bin/false ntopng
 fi
@@ -184,11 +184,11 @@ fi
 
 %post
 
-/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chown ntopng:ntop /usr/bin/ntopng-config
 /bin/chmod gou+s /usr/bin/ntopng-config
-/bin/chown -R ntopng:ntopng /etc/ntopng
+/bin/chown -R ntopng:ntop /etc/ntopng
 
-CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
 if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 /bin/systemctl daemon-reload
 %systemd_post ntopng.service
@@ -202,6 +202,32 @@ if [ ! -f "$TLS_CERT_PATH" ]; then
     cat $TLS_DIR/cert.pem >> $TLS_CERT_PATH
     rm $TLS_DIR/cert.pem
 fi
+
+##############
+
+CONFIG_FILE=/etc/ntopng/ntopng.conf
+CH_CLIENT="/usr/bin/clickhouse-client"
+
+CH_CONFIGURED=`grep -e '\-F\=clickhouse' -e '\-F="clickhouse' $CONFIG_FILE | wc -l`
+
+if test $CH_CONFIGURED -eq 0; then
+    if test -x $CH_CLIENT; then
+	OUT=`/usr/bin/clickhouse-client "SHOW DATABASES" > /dev/null 2>&1`
+	STATUS="$?"
+	if test $STATUS -eq 0; then
+	    echo "-F=clickhouse" >> $CONFIG_FILE
+	    echo "ClickHouse detected and configured in $CONFIG_FILE"
+	else
+	    echo "You seem to have ClickHouse installed with a non default"
+	    echo "setup that prevents automatic ntopng configuration."
+	    echo "We invite you to configure manually /etc/ntopng/ntopng.conf"
+	    echo "# ClickHouse" >> $CONFIG_FILE
+	    echo "-F=\"clickhouse;127.0.0.1@9000,9004;ntopng;default;\"" >> $CONFIG_FILE
+	fi
+    fi
+fi
+
+#############
 
 case "$1" in
   1)
@@ -218,18 +244,18 @@ case "$1" in
     echo 'the versionlock plugin with "yum install yum-plugin-versionlock" and lock the ntopng'
     echo 'version with "yum versionlock ntopng" (it can be unlocked with "yum versionlock clear")'
     echo ''
-  ;;
+    ;;
 esac
 
 %preun
 
-CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
 if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
   %systemd_preun ntopng.service
 fi
 
 %postun
-CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
 if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
   %systemd_postun_with_restart ntopng.service
 fi
