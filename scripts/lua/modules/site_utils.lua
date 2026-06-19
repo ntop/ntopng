@@ -18,17 +18,25 @@ local REDIS_COUNTER_KEY = "ntopng.prefs.sites_counter" -- Auto-increment counter
 local MAX_DESCRIPTION_SIZE = 256 -- Maximum character length for site descriptions
 local MAX_PROFILES_NUM = 1024 -- Maximum number of sites allowed in the system
 
--- Default site configuration - system reserved site used when no site is assigned
--- This site cannot be modified or deleted and serves as a fallback
-local DEFAULT_SITE = {
-	id = "0", -- System reserved ID (always string "0")
-   name = "Default", -- Display name
-   parent = nil, -- No parent for the Default Site
-	description = "", -- Optional description
-	longitude = 0, -- Geographic coordinates (0,0 by default)
-	latitude = 0,
-	reserved = true, -- Flag indicating this is a system-reserved site
+-- ##############################################
+-- Site field schema
+local SITE_SCHEMA = {
+	{ key = "id", default = "0", exported = false },
+	{ key = "name", input_key = "site_name", default = "", exported = true },
+	{ key = "description", input_key = "site_description", default = "", exported = true },
+	{ key = "latitude", default = 0, exported = true },
+	{ key = "longitude", default = 0, exported = true },
+	{ key = "parent", input_key = "site_parent", default = nil, exported = false },
+	{ key = "reserved", default = false, exported = false },
 }
+
+-- Default site configuration - system reserved site used when no site is assigned.
+local DEFAULT_SITE = {}
+for _, f in ipairs(SITE_SCHEMA) do
+	DEFAULT_SITE[f.key] = f.default
+end
+DEFAULT_SITE.name = "Default"
+DEFAULT_SITE.reserved = true 
 
 -- ##############################################
 -- Private Helper Functions
@@ -153,6 +161,28 @@ local function get_sites_from_cache()
 end
 
 -- ##############################################
+
+-- Builds the persisted (Redis) representation of a Site from an input table
+-- (as accepted by addSite()/editSite()) using SITE_SCHEMA. The id is supplied
+-- explicitly by the caller, since it is generated/looked-up separately. Any
+-- new attribute added to SITE_SCHEMA is persisted here automatically.
+local function build_site_record(input, id)
+	local record = { id = tostring(id) }
+
+	for _, f in ipairs(SITE_SCHEMA) do
+		if f.key ~= "id" then
+			local v = input[f.input_key or f.key]
+			if v == nil then
+				v = f.default
+			end
+			record[f.key] = v
+		end
+	end
+
+	return record
+end
+
+-- ##############################################
 -- Public API Functions
 -- ##############################################
 
@@ -160,6 +190,41 @@ end
 -- Used as fallback when no site is assigned to a flow device
 function site_utils.get_default_site()
 	return DEFAULT_SITE
+end
+
+-- ##############################################
+
+-- Returns the ordered list of attribute *keys* that take part in import/export
+-- (i.e. the SITE_SCHEMA entries flagged as exported). Used to drive the CSV
+-- header/column order and the backup export.
+function site_utils.get_exported_fields()
+	local fields = {}
+	for _, f in ipairs(SITE_SCHEMA) do
+		if f.exported then
+			fields[#fields + 1] = f.key
+		end
+	end
+	return fields
+end
+
+-- ##############################################
+
+-- Returns the ordered list of exported attributes as descriptors:
+--   { key = <stored name>, input_key = <addSite/editSite input name>, default = <fallback> }
+-- Import code uses this to map CSV/backup columns onto addSite() inputs
+-- generically, with no hardcoded field names.
+function site_utils.get_exported_schema()
+	local schema = {}
+	for _, f in ipairs(SITE_SCHEMA) do
+		if f.exported then
+			schema[#schema + 1] = {
+				key = f.key,
+				input_key = f.input_key or f.key,
+				default = f.default,
+			}
+		end
+	end
+	return schema
 end
 
 -- ##############################################
@@ -173,14 +238,13 @@ function site_utils.getSites()
 
 	-- Iterate through sites sorted by ID (ascending order)
 	for id, site in pairsByKeys(sites, asc) do
+		-- Build the record generically from SITE_SCHEMA so that any attribute
+		-- added to the schema is automatically returned here as well.
 		local record = {}
-		record["id"] = tostring(site.id) -- Ensure ID is string
-		record["name"] = site.name -- Site display name
-		record["description"] = site.description -- Optional description
-		record["latitude"] = site.latitude -- Geographic coordinates
-		record["longitude"] = site.longitude
-		record["reserved"] = site.reserved -- System-reserved flag
-      record["parent"] = site.parent -- Parent site, could be nil
+		for _, f in ipairs(SITE_SCHEMA) do
+			record[f.key] = site[f.key]
+		end
+		record["id"] = tostring(site.id) -- Ensure ID is always a string
 
 		-- Add to result array
 		result[#result + 1] = record
@@ -234,15 +298,8 @@ function site_utils.editSite(site)
 		-- Delete old entry first to ensure clean update
 		ntop.delHashCache(REDIS_HASH_NAME, site.site_id)
 
-		-- Create updated site object
-		local site_json = {
-			id = tostring(site.site_id),
-			name = site.site_name,
-			description = site.site_description,
-			latitude = site.latitude,
-			longitude = site.longitude,
-         parent = site.site_parent
-		}
+		-- Create the updated site object generically from SITE_SCHEMA
+		local site_json = build_site_record(site, site.site_id)
 
 		-- Store updated site in Redis
 		ntop.setHashCache(REDIS_HASH_NAME, site.site_id, json.encode(site_json))
@@ -289,15 +346,8 @@ function site_utils.addSite(site)
 		-- Generate new site ID (use current counter value)
 		local site_id = tostring(current_count)
 
-		-- Create site object
-		local site_json = {
-			id = site_id,
-			name = site.site_name,
-			description = site.site_description,
-			latitude = site.latitude,
-			longitude = site.longitude,
-         parent = site.site_parent
-		}
+		-- Create the site object generically from SITE_SCHEMA
+		local site_json = build_site_record(site, site_id)
 
 		-- Store new site in Redis
 		ntop.setHashCache(REDIS_HASH_NAME, site_id, json.encode(site_json))
@@ -449,19 +499,22 @@ end
 -- The system-reserved Default site is intentionally excluded.
 function site_utils.export()
 	local conf = {
-		sites = {}	
+		sites = {}
 	}
+
+	local exported_fields = site_utils.get_exported_fields()
 
 	local sites = get_sites_from_cache()
 	for _, site in pairsByKeys(sites, asc) do
 		if not site.reserved then
-			conf.sites[#conf.sites + 1] = {
-				id = tostring(site.id),
-				name = site.nme,
-				description = site.description,
-				latitude = site.latitude,
-				longitude = site.longitude,
-			}
+			-- The id is kept for reference even though it is not a schema-driven
+			-- exported field; everything else is built generically so a new
+			-- exported attribute is included here with no change.
+			local entry = { id = tostring(site.id) }
+			for _, key in ipairs(exported_fields) do
+				entry[key] = site[key]
+			end
+			conf.sites[#conf.sites + 1] = entry
 		end
 	end
 
@@ -519,12 +572,20 @@ function site_utils.restore(conf)
 					-- batch): not an error, just skip it silently
 					duplicates = duplicates + 1
 				else
-					local rc = site_utils.addSite({
-						site_name = name,
-						site_description = site.description or "",
-						latitude = site.latitude or 0,
-						longitude = site.longitude or 0,
-					})
+					-- Build the addSite() input generically from SITE_SCHEMA so any
+					-- new exported attribute is forwarded automatically.
+					local input = {}
+					for _, f in ipairs(site_utils.get_exported_schema()) do
+						local v = site[f.key]
+						if v == nil then
+							v = f.default
+						end
+						input[f.input_key] = v
+					end
+					-- `name` was already extracted and trimmed above.
+					input.site_name = name
+
+					local rc = site_utils.addSite(input)
 
 					if rc == rest_utils.consts.success.ok then
 						added = added + 1

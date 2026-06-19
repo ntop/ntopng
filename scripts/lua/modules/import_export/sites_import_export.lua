@@ -14,8 +14,10 @@ local site_utils = require "site_utils"
 
 local sites_import_export = {}
 
--- CSV header (also the canonical column order when no header is present)
-local CSV_HEADER = "name,description,latitude,longitude"
+-- CSV header (also the canonical column order when no header is present).
+-- Derived from the Site schema (site_utils) so that adding a new exported
+-- attribute there automatically updates the header and the column order here.
+local CSV_HEADER = table.concat(site_utils.get_exported_fields(), ",")
 
 -- ##############################################
 -- Private CSV helpers
@@ -136,16 +138,22 @@ end
 -- if present (see import_csv), so externally edited files keep working.
 function sites_import_export.export_csv()
 	local sites = site_utils.getSites()
+	local schema = site_utils.get_exported_schema()
+	tprint(schema)
 	local lines = {}
 
 	for _, site in ipairs(sites) do
 		if not site.reserved then
-			lines[#lines + 1] = table.concat({
-				csv_escape(site.name),
-				csv_escape(site.description),
-				csv_escape(site.latitude or 0),
-				csv_escape(site.longitude or 0),
-			}, ",")
+			-- Emit one column per exported attribute, in schema order.
+			local row = {}
+			for _, f in ipairs(schema) do
+				local v = site[f.key]
+				if v == nil then
+					v = f.default
+				end
+				row[#row + 1] = csv_escape(v)
+			end
+			lines[#lines + 1] = table.concat(row, ",")
 		end
 	end
 
@@ -178,12 +186,19 @@ function sites_import_export.import_csv(csv_string)
 		return rest_utils.consts.err.add_site_failed, { feedback = "Empty CSV" }
 	end
 
+	-- Schema-driven column metadata (ordered list of exported attributes).
+	local schema = site_utils.get_exported_schema()
+	local valid_keys = {}
+	for _, f in ipairs(schema) do
+		valid_keys[f.key] = true
+	end
+
 	-- Detect an (optional) header row and build the column -> index map
 	local col = {}
 	local has_header = false
 	for idx, name in ipairs(rows[1]) do
 		local key = trimSpace(tostring(name)):lower()
-		if key == "name" or key == "description" or key == "latitude" or key == "longitude" then
+		if valid_keys[key] then
 			col[key] = idx
 			has_header = true
 		end
@@ -193,8 +208,11 @@ function sites_import_export.import_csv(csv_string)
 	if has_header then
 		start_row = 2 -- skip the header
 	else
-		-- No header: assume the canonical fixed order
-		col = { name = 1, description = 2, latitude = 3, longitude = 4 }
+		-- No header: assume the canonical fixed order (schema order)
+		col = {}
+		for idx, f in ipairs(schema) do
+			col[f.key] = idx
+		end
 	end
 
 	local added = 0
@@ -213,13 +231,19 @@ function sites_import_export.import_csv(csv_string)
 	for r = start_row, #rows do
 		local fields = rows[r]
 
-		local site = {
-			site_name = trimSpace(fields[col.name] or ""),
-			site_description = trimSpace(fields[col.description] or ""),
-			latitude = fields[col.latitude] or 0,
-			longitude = fields[col.longitude] or 0,
-		}
-
+		-- Build the site input generically from the schema, mapping each column
+		-- onto its addSite() input key. New exported attributes flow through
+		-- automatically.
+		local site = {}
+		for _, f in ipairs(schema) do
+			local idx = col[f.key]
+			local raw = idx and fields[idx] or nil
+			if raw == nil then
+				site[f.input_key] = f.default
+			else
+				site[f.input_key] = raw
+			end
+		end
 		-- Silently ignore completely empty rows
 		if not isEmptyString(site.site_name) then
 			local name_key = site.site_name:lower()
