@@ -9100,6 +9100,7 @@ local lang = {
     ["import_sites"] = "Import Sites from CSV",
     ["import_sites_ok"] = "Sites imported successfully",
     ["import_sites_error"] = "Error importing Sites",
+    ["no_parent_site"] = "No Parent",
     ["sites"] = "Sites",
     ["sites_map_notes"] = "The chart depicts sites traffic volume. For site A with an arc towards site B, the percentage on A is the amount of traffic A sent to B, and the same arc on B reports the amount of traffic B sent to A.",
     ["edit_site"] = "Edit Site",

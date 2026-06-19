@@ -88,11 +88,22 @@ local function validate_site(site, existing_sites, ignore_name_duplication)
 		return false, "Invalid longitude"
 	end
 
-   if site.site_parent and tonumber(site.site_parent) then
+   -- A parent of 0 (or empty) is the "no parent" sentinel: normalize it to nil.
+   if isEmptyString(site.site_parent) or tostring(site.site_parent) == "0" then
+      site.site_parent = nil
+   elseif tonumber(site.site_parent) then
+      -- A real parent must reference an existing, non-default site.
+      -- getSiteInfo() falls back to the Default site (id "0") when the id is
+      -- unknown, so a "0" result here means the parent does not exist.
       local parent = site_utils.getSiteInfo(site.site_parent)
       if parent.id == "0" then
          return false, "Invalid Parent Site selected"
       end
+      -- Store the parent in the same canonical (string) form as the site ids,
+      -- so lookups by id stay consistent (e.g. in the table parent column).
+      site.site_parent = parent.id
+   else
+      return false, "Invalid Parent Site selected"
    end
 
 	-- Step 5: Check for duplicate site names (unless explicitly disabled for edits)
@@ -199,6 +210,11 @@ function site_utils.editSite(site)
 	end
 
 	local old_site = existing_sites[site.site_id]
+
+	-- A site cannot be its own parent
+	if site.site_parent and tostring(site.site_parent) == tostring(site.site_id) then
+		return rest_utils.consts.err.edit_site_failed, "A site cannot be its own parent"
+	end
 
 	-- Handle empty coordinate values (default to 0)
 	if isEmptyString(site.latitude) then
@@ -441,7 +457,7 @@ function site_utils.export()
 		if not site.reserved then
 			conf.sites[#conf.sites + 1] = {
 				id = tostring(site.id),
-				name = site.name,
+				name = site.nme,
 				description = site.description,
 				latitude = site.latitude,
 				longitude = site.longitude,

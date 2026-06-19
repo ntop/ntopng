@@ -129,8 +129,10 @@ const site_name = ref("");             // Site name
 const site_description = ref("");      // Site description
 const site_lat = ref(0);               // Latitude coordinate
 const site_lng = ref(0);                // Longitude coordinate
-const _sitesList = ref([]);
-const selectedSite = ref([]);
+// Explicit "no parent" entry: lets the parent field be left empty.
+const NO_PARENT_OPTION = { id: 0, label: _i18n("sites_page.no_parent_site"), title: _i18n("sites_page.no_parent_site") };
+const currentSiteId = ref(null);            // id of the site being edited (null in add mode)
+const selectedSite = ref(NO_PARENT_OPTION); // currently selected parent (defaults to "no parent")
 
 // Form state management
 const name_error = ref("");                      // Validation error message for name field
@@ -160,15 +162,16 @@ const is_form_valid = computed(() => {
     return site_name.value.trim().length > 1 && !name_error.value;
 });
 
-watch(() => [props.sitesList], (cur_value, old_value) => {
-    _sitesList.value = cur_value[0].map((t) => {
-        return {
-            id: t.id,
-            label: t.name,
-            title: t.name,
-        }
-    })
-}, { flush: 'pre', deep: true });
+// Build the parent options from the sites list. The site currently being
+// edited is excluded (a site cannot be its own parent) and an explicit
+// "no parent" entry is prepended so the field can be left empty.
+const _sitesList = computed(() => {
+    const list = Array.isArray(props.sitesList) ? props.sitesList : [];
+    const options = list
+        .filter((t) => !(isEditMode.value && currentSiteId.value != null && String(t.id) === currentSiteId.value))
+        .map((t) => ({ id: t.id, label: t.name, title: t.name }));
+    return [NO_PARENT_OPTION, ...options];
+});
 
 /* ************************************** */
 
@@ -280,6 +283,16 @@ const handleSubmit = () => {
     validateName();
     if (!is_form_valid.value) return;
 
+    // The parent is optional: 0 means "no parent"
+    let parent_id = Number(selectedSite.value?.id ?? 0);
+    if (!Number.isFinite(parent_id)) parent_id = 0;
+
+    // A site can never be its own parent (self is already excluded
+    // from the options list, this just covers any edge case).
+    if (isEditMode.value && currentSiteId.value != null && String(parent_id) === currentSiteId.value) {
+        parent_id = 0;
+    }
+
     // Prepare form data object
     const formData = {
         site_name: site_name.value.trim(),
@@ -287,7 +300,7 @@ const handleSubmit = () => {
         site_lat: site_lat.value,
         site_lng: site_lng.value,
         item: currentItem.value,
-        site_parent: selectedSite.value.id
+        site_parent: parent_id
     };
 
     // Emit appropriate event based on mode
@@ -314,21 +327,31 @@ const open = (item = null) => {
         site_description: edited_site_description = "",
         site_lat: edited_site_lat = 0,
         site_lng: edited_site_lng = 0,
-        site_parent: edited_site_id = 0, // default site is 0
+        // 0 means no parent
+        site_parent: edited_parent_id = 0, 
+        site_id: edited_site_id = null,
     } = item || {}
+
+    // Set mode/identity first so the computed options list (which excludes the
+    // site itself) is already correct before we resolve the selected parent.
+    currentItem.value = item;
+    // Determine mode: !!item converts to boolean (true if item exists)
+    isEditMode.value = !!item;
+    currentSiteId.value = (edited_site_id != null) ? String(edited_site_id) : null;
 
     // Populate form fields
     site_name.value = edited_site_name;
     site_description.value = edited_site_description;
     site_lat.value = edited_site_lat;
     site_lng.value = edited_site_lng;
-    selectedSite.value = _sitesList.value.find(el => el.id === edited_site_id);
+
+    // Resolve the parent selection. Falls back to the explicit "no parent"
+    // option when the site has no parent or the parent no longer exists.
+    const parent_key = (edited_parent_id != null) ? String(edited_parent_id) : "";
+    selectedSite.value = _sitesList.value.find((el) => String(el.id) === parent_key) || NO_PARENT_OPTION;
 
     // Reset state
     name_error.value = "";
-    currentItem.value = item;
-    // Determine mode: !!item converts to boolean (true if item exists)
-    isEditMode.value = !!item;
 
     // Show the modal
     modal_id.value.show();

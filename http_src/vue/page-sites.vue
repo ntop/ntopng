@@ -278,7 +278,7 @@ const map_table_def_columns = (columns) => {
         "parent": (value, row) => {
             if (!value)
                 return ''
-            const netSite = sitesList.value.find((el) => el.id === value)
+            const netSite = sitesList.value.find((el) => String(el.id) === String(value))
             if (!netSite)
                 return ''
             return netSite.name
@@ -393,13 +393,14 @@ const click_button_edit_site = (event) => {
 
     // Prepare site data for the edit modal
     const site_data = {
+        site_id: row.id, 
         site_name: row.name,
         site_description: row.description,
         site_networks: row.networks,
         site_lat: row.latitude,
         site_lng: row.longitude,
         site_reserved: row.reserved,
-        site_parent: row.site_parent
+        site_parent: row.parent
     };
 
     // Open the Edit modal with pre-filled data
