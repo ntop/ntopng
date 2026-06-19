@@ -274,9 +274,11 @@ void NetworkDiscovery::sendArpNetwork(void *data, u_int32_t netp,
         reply = NULL;
 
       if (reply) {
+        m.lock(__FILE__, __LINE__);
         lua_push_str_table_entry(
             vm, Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
             Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+        m.unlock(__FILE__, __LINE__);
 
         if (debug_mode) {
           ntop->getTrace()->traceEvent(
@@ -433,9 +435,11 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
   memset(arp.arph.arp_tha, 0, sizeof(arp.arph.arp_tha));
 
   /* Let's add myself */
+  m.lock(__FILE__, __LINE__);
   lua_push_str_table_entry(
       vm, Utils::formatMac(arp.arph.arp_sha, macbuf, sizeof(macbuf)),
       Utils::intoaV4(ntohl(arp.arph.arp_spa), ipbuf, sizeof(ipbuf)));
+  m.unlock(__FILE__, __LINE__);
 
   mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
 
@@ -476,9 +480,11 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
     if (reply == NULL)
       break;
 
+    m.lock(__FILE__, __LINE__);
     lua_push_str_table_entry(
         vm, Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
         Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+    m.unlock(__FILE__, __LINE__);
 
     if (debug_mode) {
       ntop->getTrace()->traceEvent(
