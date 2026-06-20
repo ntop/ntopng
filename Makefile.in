@@ -99,10 +99,22 @@ endif
 ######
 TARGET = ntopng
 LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUA_LIB) $(CLICKHOUSE_LIB) $(CLICKHOUSE_DEP_LIBS) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SNMP_LIB) @MAXMINDDB_LIBS@ $(SODIUM_LIB) @NTOPCLOUD_LIB@ @HIREDIS_LIB@ @SQLITE_LIB@ @RADCLI_LIB@ @EXPAT_LIB@ @SSL_LIB@ @ZMQ_LIBS@ @LINK_OPTS@ @LDFLAGS@ @PRO_LIBS@ @LIBS@ $(ZSTD_LIB) @JE@  -lm -lpthread
-CC := @CC@
-CXX := @CXX@
+
+#
+# https://www.redhat.com/en/blog/hardening-elf-binaries-using-relocation-read-only-relro
+# Maximum protection. The entire GOT (Global Offset Table) is hardened and cannot be overwritten at runtime.
+# Only apply RELRO on Linux
+#
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+   LIBS += -Wl,-z,relro,-z,now
+endif
+
+
+CC := @CC@ -fPIE -fPIC
+CXX := @CXX@ -fPIE -fPIC
 CPPFLAGS := @CPPFLAGS@
-CFLAGS := @CFLAGS@ -fPIE
+CFLAGS := @CFLAGS@
 CXXFLAGS = $(CFLAGS) -std=c++17 @HIREDIS_INC@ @MAXMINDDB_CFLAGS@ $(MONGOOSE_INC) $(JSON_INC) $(SNMP_INC) $(SODIUM_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @ZMQ_CFLAGS@ @CXXFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INCS@ -DDATA_DIR='"$(datadir)"' # -D_GLIBCPP_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
