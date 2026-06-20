@@ -28,7 +28,7 @@ return {
       local out = {
          ip              = info.ip,
          name            = info.name,
-         mac             = info["mac.address"],
+         mac             = info["mac"],
          vlan            = info.vlan,
          bytes_sent      = info["bytes.sent"],
          bytes_rcvd      = info["bytes.rcvd"],

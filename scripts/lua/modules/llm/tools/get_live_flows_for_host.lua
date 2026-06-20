@@ -45,7 +45,7 @@ return {
 					 f["cli.ip"] or "", f["cli.port"] or 0, f["cli.country"] or "",
 					 f["srv.ip"] or "", f["srv.port"] or 0, f["srv.country"] or "",
 					 f["proto.l4"] or "", f["proto.ndpi"] or f["application"] or "",
-					 f["bytes.cli2srv"] or 0, f["bytes.srv2cli"] or 0,
+					 f["cli2srv.bytes"] or 0, f["srv2cli.bytes"] or 0,
 					 f["packets"] or 0, f["duration"] or 0,
 					 (f["flow_score"] or (f.score and f.score.flow_score) or 0),
 					 (f["flow.alerted"] and "yes" or "no"))

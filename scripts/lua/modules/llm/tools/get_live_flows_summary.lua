@@ -45,7 +45,7 @@ return {
       local total = { flows = 0, alerted = 0, bytes = 0, score = 0 }
 
       for _, f in ipairs(flows_data.flows) do
-         local bytes      = (f["bytes.cli2srv"] or 0) + (f["bytes.srv2cli"] or 0)
+         local bytes      = (f["cli2srv.bytes"] or 0) + (f["srv2cli.bytes"] or 0)
          local pkts       = f["packets"] or 0
          local score      = f["flow_score"] or (f.score and f.score.flow_score) or 0
          local is_alerted = f["flow.alerted"] and 1 or 0
