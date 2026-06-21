@@ -7105,6 +7105,13 @@ void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
       } else if (payload[i] < 32) {
         if (j > 0) _name[j++] = '.';
       } else if (payload[i] == 0x22) {
+        /*
+          The loop guard only checks 'j' once per iteration, but this branch
+          writes 4 bytes: make sure they (and the reserved trailing '\0' at
+          _name[sizeof(_name)-1]) fit, otherwise stop to avoid a stack
+          buffer overflow (CWE-787).
+        */
+        if (j + 4 > sizeof(_name) - 1) break;
         _name[j++] = 'a';
         _name[j++] = 'r';
         _name[j++] = 'p';
