@@ -1,0 +1,774 @@
+{
+  "sections": [
+    {
+      "key": "dashboard",
+      "i18n": "index_page.dashboard",
+      "icon": "fas fa-tachometer-alt",
+      "entries": [
+        {
+          "key": "traffic_dashboard",
+          "i18n": "dashboard.traffic_dashboard",
+          "icon": "fas fa-chart-area",
+          "url": "/lua/index.lua"
+        },
+        {
+          "key": "assets_dashboard",
+          "i18n": "assets",
+          "icon": "fas fa-boxes",
+          "url": "/lua/pro/assets_dashboard.lua"
+        },
+        {
+          "key": "gateways_users",
+          "i18n": "dashboard.gateways_users",
+          "icon": "fas fa-users",
+          "url": "/lua/pro/nedge/dashboard.lua"
+        },
+        {
+          "key": "traffic_report",
+          "i18n": "report.traffic_report",
+          "icon": "fas fa-file-alt",
+          "url": "/lua/pro/report.lua"
+        },
+        {
+          "key": "hr_chart",
+          "i18n": "hr_chart.title",
+          "icon": "fas fa-clock",
+          "url": "/lua/pro/hr_chart.lua"
+        }
+      ]
+    },
+    {
+      "key": "monitoring",
+      "i18n": "monitoring",
+      "icon": "fas fa-eye",
+      "entries": [
+        {
+          "key": "active_monitoring",
+          "i18n": "active_monitoring_stats.active_monitoring",
+          "icon": "fas fa-heartbeat",
+          "url": "/lua/active_monitoring.lua"
+        },
+        {
+          "key": "network_discovery",
+          "i18n": "discover.network_discovery",
+          "icon": "fas fa-search",
+          "url": "/lua/discover.lua"
+        },
+        {
+          "key": "infrastructure_dashboard",
+          "i18n": "infrastructure_dashboard.infrastructure_dashboard",
+          "icon": "fas fa-project-diagram",
+          "url": "/lua/pro/enterprise/infrastructure_config.lua"
+        },
+        {
+          "key": "snmp_monitoring",
+          "i18n": "prefs.snmp",
+          "icon": "fas fa-network-wired",
+          "url": "/lua/pro/enterprise/snmpdevices_stats.lua"
+        },
+        {
+          "key": "vulnerability_scan",
+          "i18n": "scan_hosts",
+          "icon": "fas fa-shield-alt",
+          "url": "/lua/vulnerability_scan.lua"
+        }
+      ]
+    },
+    {
+      "key": "alerts",
+      "i18n": "details.alerts",
+      "icon": "fas fa-exclamation-triangle",
+      "entries": [
+        {
+          "key": "alerts_list",
+          "i18n": "details.alerts_list",
+          "icon": "fas fa-list",
+          "url": "/lua/alert_stats.lua"
+        },
+        {
+          "key": "alerts_graph",
+          "i18n": "details.alerts_graph",
+          "icon": "fas fa-chart-bar",
+          "url": "/lua/pro/alerts_graph.lua"
+        },
+        {
+          "key": "alerts_geomap",
+          "i18n": "details.alerts_geomap",
+          "icon": "fas fa-map-marked-alt",
+          "url": "/lua/pro/alerts_geomap.lua"
+        },
+        {
+          "key": "alerts_analysis",
+          "i18n": "details.alerts_analysis",
+          "icon": "fas fa-microscope",
+          "url": "/lua/pro/enterprise/alerts_analysis.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.notifications"
+        },
+        {
+          "key": "notifications",
+          "i18n": "endpoint_notifications.notifications",
+          "icon": "fas fa-bell",
+          "url": "/lua/admin/endpoint_notifications_list.lua"
+        }
+      ]
+    },
+    {
+      "key": "flows",
+      "i18n": "flows",
+      "icon": "fas fa-stream",
+      "entries": [
+        {
+          "key": "active_flows",
+          "i18n": "active_flows",
+          "icon": "fas fa-water",
+          "url": "/lua/flows_stats.lua"
+        },
+        {
+          "key": "db_explorer",
+          "i18n": "historical_flows",
+          "icon": "fas fa-history",
+          "url": "/lua/pro/db_search.lua"
+        },
+        {
+          "key": "server_ports",
+          "i18n": "server_ports.server_ports",
+          "icon": "fas fa-plug",
+          "url": "/lua/server_ports.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.routing"
+        },
+        {
+          "key": "bgp_looking_glass",
+          "i18n": "bgp_looking_glass",
+          "icon": "fas fa-route",
+          "url": "/lua/bgp_looking_glass.lua"
+        }
+      ]
+    },
+    {
+      "key": "nanalyst",
+      "i18n": "nanalyst",
+      "icon": "fas fa-robot",
+      "entries": [
+        {
+          "key": "nanalyst",
+          "i18n": "nanalyst",
+          "icon": "fas fa-brain",
+          "url": "/lua/pro/nanalyst.lua"
+        },
+        {
+          "key": "ai_policy",
+          "i18n": "ai_policy",
+          "icon": "fas fa-file-contract",
+          "url": "/lua/pro/ai_policy.lua"
+        },
+        {
+          "key": "analyst_pipeline",
+          "i18n": "analyst_pipeline",
+          "icon": "fas fa-sitemap",
+          "url": "/lua/pro/analyst_pipeline.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.stats"
+        },
+        {
+          "key": "ai_usage_stats",
+          "i18n": "ai_usage_stats",
+          "icon": "fas fa-chart-pie",
+          "url": "/lua/pro/ai_stats.lua"
+        },
+        {
+          "key": "ai_audit",
+          "i18n": "ai_audit",
+          "icon": "fas fa-clipboard-list",
+          "url": "/lua/pro/ai_audit.lua"
+        }
+      ]
+    },
+    {
+      "key": "views",
+      "i18n": "views",
+      "icon": "fas fa-bars",
+      "entries": [
+        {
+          "key": "nedge_flows",
+          "i18n": "flows",
+          "icon": "fas fa-stream",
+          "url": "/lua/flows_stats.lua"
+        },
+        {
+          "key": "nedge_hosts",
+          "i18n": "hosts",
+          "icon": "fas fa-laptop",
+          "url": "/lua/hosts_stats.lua"
+        },
+        {
+          "key": "nedge_devices",
+          "i18n": "mac_stats.devices",
+          "icon": "fas fa-hdd",
+          "url": "/lua/macs_stats.lua?devices_mode=source_macs_only"
+        },
+        {
+          "key": "nedge_db_explorer",
+          "i18n": "historical_flows",
+          "icon": "fas fa-history",
+          "url": "/lua/pro/db_search.lua"
+        },
+        {
+          "key": "nedge_users",
+          "i18n": "users",
+          "icon": "fas fa-users",
+          "url": "/lua/pool_stats.lua"
+        },
+        {
+          "key": "nedge_vlans",
+          "i18n": "vlan_stats.vlan_list",
+          "icon": "fas fa-network-wired",
+          "url": "/lua/vlan_stats.lua"
+        },
+        {
+          "key": "nedge_geo_map",
+          "i18n": "geo_map",
+          "icon": "fas fa-map",
+          "url": "/lua/hosts_geomap.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.asn_mode"
+        },
+        {
+          "key": "hosts_asn_mode",
+          "i18n": "hosts",
+          "icon": "fas fa-laptop",
+          "url": "/lua/hosts_stats.lua"
+        },
+        {
+          "key": "active_flows_asn_mode",
+          "i18n": "active_flows",
+          "icon": "fas fa-water",
+          "url": "/lua/flows_stats.lua"
+        },
+        {
+          "key": "db_explorer_asn_mode",
+          "i18n": "historical_flows",
+          "icon": "fas fa-history",
+          "url": "/lua/pro/db_search.lua"
+        },
+        {
+          "key": "server_ports_asn_mode",
+          "i18n": "server_ports.server_ports",
+          "icon": "fas fa-plug",
+          "url": "/lua/server_ports.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.routing"
+        },
+        {
+          "key": "bgp_looking_glass_asn",
+          "i18n": "bgp_looking_glass",
+          "icon": "fas fa-route",
+          "url": "/lua/bgp_looking_glass.lua"
+        }
+      ]
+    },
+    {
+      "key": "hosts",
+      "i18n": "hosts",
+      "icon": "fas fa-laptop",
+      "entries": [
+        {
+          "key": "hosts",
+          "i18n": "hosts",
+          "icon": "fas fa-laptop",
+          "url": "/lua/hosts_stats.lua"
+        },
+        {
+          "key": "devices",
+          "i18n": "layer_2",
+          "icon": "fas fa-hdd",
+          "url": "/lua/macs_stats.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.inventory"
+        },
+        {
+          "key": "assets",
+          "i18n": "assets",
+          "icon": "fas fa-boxes",
+          "url": "/lua/pro/assets.lua"
+        }
+      ]
+    },
+    {
+      "key": "collection",
+      "i18n": "flow_devices.exporters",
+      "icon": "fas fa-sitemap",
+      "entries": [
+        {
+          "key": "sflow_exporters",
+          "i18n": "flows_page.sflow_devices",
+          "icon": "fas fa-server",
+          "url": "/lua/pro/enterprise/sflowdevices_stats.lua"
+        },
+        {
+          "key": "nprobe",
+          "i18n": "flow_devices.nprobe_instances",
+          "icon": "fas fa-satellite-dish",
+          "url": "/lua/pro/enterprise/nprobe.lua"
+        },
+        {
+          "key": "exporters_interfaces_stats",
+          "i18n": "flow_devices.exporters_interfaces_stats",
+          "icon": "fas fa-chart-line",
+          "url": "/lua/pro/exporters_interfaces_stats.lua"
+        },
+        {
+          "key": "observation_points",
+          "i18n": "flow_devices.observation_points",
+          "icon": "fas fa-eye",
+          "url": "/lua/pro/enterprise/observation_points.lua"
+        }
+      ]
+    },
+    {
+      "key": "maps",
+      "i18n": "maps",
+      "icon": "fas fa-map",
+      "entries": [
+        {
+          "key": "analysis_map",
+          "i18n": "analysis",
+          "icon": "fas fa-project-diagram",
+          "url": "/lua/pro/enterprise/network_maps.lua?map=service_map"
+        },
+        {
+          "key": "geo_map",
+          "i18n": "geo_map.geo_map",
+          "icon": "fas fa-globe",
+          "url": "/lua/hosts_geomap.lua"
+        },
+        {
+          "key": "hosts_map",
+          "i18n": "flows_page.hosts",
+          "icon": "fas fa-map-marked-alt",
+          "url": "/lua/pro/enterprise/hosts_map.lua"
+        }
+      ]
+    },
+    {
+      "key": "if_stats",
+      "i18n": "interface",
+      "icon": "fas fa-ethernet",
+      "entries": [
+        {
+          "key": "interface",
+          "i18n": "interface_details",
+          "icon": "fas fa-info-circle",
+          "url": "/lua/if_stats.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.segments"
+        },
+        {
+          "key": "networks",
+          "i18n": "networks",
+          "icon": "fas fa-network-wired",
+          "url": "/lua/network_stats.lua"
+        },
+        {
+          "key": "host_pools",
+          "i18n": "host_pools.host_pools",
+          "icon": "fas fa-layer-group",
+          "url": "/lua/pool_stats.lua"
+        },
+        {
+          "key": "autonomous_systems",
+          "i18n": "as_stats.autonomous_systems",
+          "icon": "fas fa-globe",
+          "url": "/lua/as_stats.lua"
+        },
+        {
+          "key": "countries",
+          "i18n": "countries",
+          "icon": "fas fa-flag",
+          "url": "/lua/country_stats.lua"
+        },
+        {
+          "key": "vlans",
+          "i18n": "vlan_stats.vlans",
+          "icon": "fas fa-tags",
+          "url": "/lua/vlan_stats.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.containers"
+        },
+        {
+          "key": "pods",
+          "i18n": "pods",
+          "icon": "fab fa-docker",
+          "url": "/lua/pods_stats.lua"
+        },
+        {
+          "key": "containers",
+          "i18n": "containers",
+          "icon": "fas fa-cube",
+          "url": "/lua/containers_stats.lua"
+        }
+      ]
+    },
+    {
+      "key": "health",
+      "i18n": "health",
+      "icon": "fas fa-heartbeat",
+      "entries": [
+        {
+          "key": "system_status",
+          "i18n": "system_status",
+          "icon": "fas fa-server",
+          "url": "/lua/system_stats.lua"
+        },
+        {
+          "key": "interfaces_status",
+          "i18n": "system_interfaces_status",
+          "icon": "fas fa-ethernet",
+          "url": "/lua/system_interfaces_stats.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.storage"
+        },
+        {
+          "key": "influxdb_status",
+          "i18n": "InfluxDB",
+          "icon": "fas fa-database",
+          "url": "/lua/monitor/influxdb_monitor.lua"
+        },
+        {
+          "key": "redis_status",
+          "i18n": "Redis",
+          "icon": "fas fa-memory",
+          "url": "/lua/monitor/redis_monitor.lua"
+        },
+        {
+          "key": "clickhouse_status",
+          "i18n": "ClickHouse",
+          "icon": "fas fa-table",
+          "url": "/lua/pro/enterprise/monitor/clickhouse_monitor.lua"
+        }
+      ]
+    },
+    {
+      "key": "pollers",
+      "i18n": "pollers",
+      "icon": "fas fa-satellite-dish",
+      "entries": [
+        {
+          "key": "assets_snmp",
+          "i18n": "assets_snmp",
+          "icon": "fas fa-boxes",
+          "url": "/lua/pro/assets.lua"
+        },
+        {
+          "key": "snmp",
+          "i18n": "prefs.snmp",
+          "icon": "fas fa-network-wired",
+          "url": "/lua/pro/enterprise/snmpdevices_stats.lua"
+        },
+        {
+          "key": "active_monitoring_system",
+          "i18n": "active_monitoring_stats.active_monitoring",
+          "icon": "fas fa-heartbeat",
+          "url": "/lua/active_monitoring.lua"
+        },
+        {
+          "key": "infrastructure_dashboard_system",
+          "i18n": "infrastructure_dashboard.infrastructure_dashboard",
+          "icon": "fas fa-project-diagram",
+          "url": "/lua/pro/enterprise/infrastructure_config.lua"
+        }
+      ]
+    },
+    {
+      "key": "notifications",
+      "i18n": "endpoint_notifications.notifications",
+      "icon": "fas fa-bell",
+      "url": "/lua/admin/endpoint_notifications_list.lua"
+    },
+    {
+      "key": "policies",
+      "i18n": "policies",
+      "icon": "fas fa-shield-alt",
+      "entries": [
+        {
+          "key": "divider",
+          "i18n": "menu_group.access"
+        },
+        {
+          "key": "access_control_list",
+          "i18n": "access_control_list",
+          "icon": "fas fa-list-ul",
+          "url": "/lua/pro/admin/access_control_list.lua"
+        },
+        {
+          "key": "device_protocols",
+          "i18n": "device_protocols.device_protocols",
+          "icon": "fas fa-sliders-h",
+          "url": "/lua/admin/edit_device_protocols.lua"
+        },
+        {
+          "key": "device_exclusions",
+          "i18n": "edit_check.device_exclusion",
+          "icon": "fas fa-ban",
+          "url": "/lua/pro/admin/edit_device_exclusions.lua"
+        },
+        {
+          "key": "network_config",
+          "i18n": "checks.network_configuration",
+          "icon": "fas fa-network-wired",
+          "url": "/lua/admin/network_configuration.lua"
+        },
+        {
+          "key": "traffic_rules",
+          "i18n": "if_stats_config.traffic_rules",
+          "icon": "fas fa-traffic-light",
+          "url": "/lua/pro/traffic_rules.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.checks"
+        },
+        {
+          "key": "scripts_config",
+          "i18n": "about.checks",
+          "icon": "fas fa-check-double",
+          "url_dynamic": "scripts_config_url"
+        },
+        {
+          "key": "alert_exclusions",
+          "i18n": "edit_check.exclusion_list",
+          "icon": "fas fa-filter",
+          "url": "/lua/pro/admin/edit_alert_exclusions.lua?subdir=host"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.profiles"
+        },
+        {
+          "key": "profiles",
+          "i18n": "traffic_profiles.traffic_profiles",
+          "icon": "fas fa-tags",
+          "url": "/lua/pro/admin/edit_profiles.lua"
+        }
+      ]
+    },
+    {
+      "key": "admin",
+      "i18n": "settings",
+      "icon": "fas fa-cog",
+      "entries": [
+        {
+          "key": "divider",
+          "i18n": "menu_group.users"
+        },
+        {
+          "key": "nedge_users",
+          "i18n": "nedge.users",
+          "icon": "fas fa-users",
+          "url": "/lua/pro/nedge/admin/nf_list_users.lua"
+        },
+        {
+          "key": "manage_users",
+          "i18n": "manage_users.manage_users",
+          "icon": "fas fa-user-cog",
+          "url": "/lua/admin/users.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.configuration"
+        },
+        {
+          "key": "preferences",
+          "i18n": "prefs.preferences",
+          "icon": "fas fa-sliders-h",
+          "url": "/lua/admin/prefs.lua"
+        },
+        {
+          "key": "tags",
+          "i18n": "tags_page.tags",
+          "icon": "fas fa-tag",
+          "url": "/lua/tags.lua"
+        },
+        {
+          "key": "category_lists",
+          "i18n": "category_lists.category_lists",
+          "icon": "fas fa-list",
+          "url": "/lua/admin/blacklists.lua?enabled_status=enabled"
+        },
+        {
+          "key": "manage_configurations",
+          "i18n": "manage_configurations.manage_configurations",
+          "icon": "fas fa-file-export",
+          "url": "/lua/admin/manage_configurations.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.customization"
+        },
+        {
+          "key": "categories",
+          "i18n": "custom_categories.apps_and_categories",
+          "icon": "fas fa-th-large",
+          "url": "/lua/admin/edit_categories.lua"
+        }
+      ]
+    },
+    {
+      "key": "dev",
+      "i18n": "developer",
+      "icon": "fas fa-code",
+      "entries": [
+        {
+          "key": "rest_api",
+          "i18n": "swagger_api",
+          "icon": "fas fa-plug",
+          "url": "/lua/swagger.lua"
+        },
+        {
+          "key": "analyze_pcap",
+          "i18n": "upload_pcap",
+          "icon": "fas fa-file-upload",
+          "url": "/lua/upload_pcap.lua"
+        },
+        {
+          "key": "manage_data",
+          "i18n": "manage_data.manage_data",
+          "icon": "fas fa-database",
+          "url": "/lua/manage_data.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.internals"
+        },
+        {
+          "key": "checks_dev",
+          "i18n": "about.checks",
+          "icon": "fas fa-check-square",
+          "url": "/lua/checks_overview.lua"
+        },
+        {
+          "key": "alert_definitions",
+          "i18n": "about.alert_defines",
+          "icon": "fas fa-exclamation-circle",
+          "url": "/lua/defs_overview.lua"
+        },
+        {
+          "key": "ts_definitions",
+          "i18n": "about.ts_definitions",
+          "icon": "fas fa-chart-line",
+          "url": "/lua/ts_overview.lua"
+        },
+        {
+          "key": "directories",
+          "i18n": "about.directories",
+          "icon": "fas fa-folder-open",
+          "url": "/lua/directories.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.documentation"
+        },
+        {
+          "key": "api",
+          "i18n": "about.api_reference",
+          "icon": "fas fa-book-open",
+          "url": "https://www.ntop.org/guides/ntopng/api/",
+          "is_external": true
+        }
+      ]
+    },
+    {
+      "key": "system_stats",
+      "i18n": "system",
+      "icon": "fas fa-server",
+      "entries": []
+    },
+    {
+      "key": "about",
+      "i18n": "help",
+      "icon": "fas fa-info-circle",
+      "entries": [
+        {
+          "key": "about",
+          "i18n": "about.about",
+          "icon": "fas fa-info",
+          "url": "/lua/about.lua"
+        },
+        {
+          "key": "license",
+          "i18n": "license_page.license",
+          "icon": "fas fa-id-card",
+          "url": "/lua/license.lua"
+        },
+        {
+          "key": "limits",
+          "i18n": "limits_page.limits",
+          "icon": "fas fa-tachometer-alt",
+          "url": "/lua/limits.lua"
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.community"
+        },
+        {
+          "key": "blog",
+          "i18n": "about.ntop_blog",
+          "icon": "fas fa-rss",
+          "url": "http://blog.ntop.org/",
+          "is_external": true
+        },
+        {
+          "key": "telegram",
+          "i18n": "about.telegram",
+          "icon": "fab fa-telegram-plane",
+          "url": "https://t.me/ntop_community",
+          "is_external": true
+        },
+        {
+          "key": "manual",
+          "i18n": "about.user_manual",
+          "icon": "fas fa-book",
+          "url": "https://www.ntop.org/guides/ntopng/",
+          "is_external": true
+        },
+        {
+          "key": "divider",
+          "i18n": "menu_group.support"
+        },
+        {
+          "key": "report_issue",
+          "i18n": "about.report_issue",
+          "icon": "fas fa-bug",
+          "url": "https://github.com/ntop/ntopng/issues",
+          "is_external": true
+        },
+        {
+          "key": "suggest_feature",
+          "i18n": "about.suggest_feature",
+          "icon": "fas fa-lightbulb",
+          "url": "https://www.ntop.org/support/need-help-2/contact-us/",
+          "is_external": true
+        }
+      ]
+    }
+  ]
+}

@@ -46,16 +46,17 @@
     "stylelint": "^14.5.0"
   },
   "dependencies": {
+    "@cyclonedx/cyclonedx-npm": "^5.0.0",
     "@fortawesome/fontawesome-free": "^6.5.1",
     "@popperjs/core": "^2.11.2",
     "@rollup/plugin-inject": "^5.0.5",
     "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/compiler-sfc": "^3.5.35",
     "@vueform/slider": "^2.1.10",
     "@yaireo/tagify": "^4.35.3",
     "apexcharts": "^3.33.1",
     "bootstrap": "^5.3.0",
     "bootstrap-icons": "^1.13.1",
-    "d3": "^3.5.17",
     "d3-array": "^3.1.1",
     "d3-chord": "^3.0.1",
     "d3-collection": "^1.0.7",
@@ -88,7 +89,7 @@
     "uuid": "^11.1.0",
     "vis-network": "^9.1.6",
     "vite": "^6.3.5",
-    "vue": "3.2.37",
+    "vue": "^3.5.35",
     "world-atlas": "^2.0.2"
   }
 }

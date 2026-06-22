@@ -195,22 +195,29 @@ import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
 import { default as PieChart } from "./charts/pie-chart.vue";
 import { default as LineChart } from "./charts/line-chart.vue";
 import { default as PeityChart } from "./charts/peity.vue";
-
 import { default as Chatbot } from "./chatbot.vue";
 import { default as PageChatbot } from "./page-chatbot.vue";
 import { default as FlowChatbotSidebar } from "./flow-chatbot-sidebar.vue";
+
+// app shell
+import { default as AppShell }   from "./app-shell.vue";
+import { default as AppFooter }  from "./app-footer.vue";
 
 let ntopVue = {
     Chatbot: Chatbot,
     PageChatbot: PageChatbot,
     FlowChatbotSidebar: FlowChatbotSidebar,
+
+    // app shell
+    AppShell:  AppShell,
+    AppFooter: AppFooter,
     
     // graphs
     MultiPieChart: MultiPieChart,
     PieChart: PieChart,
     PeityChart: PeityChart,
     LineChart: LineChart,
-    
+
     // pages
     PageAlertStats: PageAlertStats,
     PageFlowHistorical: PageFlowHistorical,
@@ -405,5 +412,6 @@ let ntopVue = {
     ModalSNMPInterfacesAutoRole: ModalSNMPInterfacesAutoRole,
 
     Vue: Vue,
+    createApp: (options) => Vue.createApp(options).use(window.vuetify),
 };
 window.ntopVue = ntopVue;

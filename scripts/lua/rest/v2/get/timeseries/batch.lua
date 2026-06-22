@@ -121,6 +121,7 @@ local function get_schema_info(schema_name)
                                 info.series_meta[series_id] = {
                                     label            = smeta.label or series_id,
                                     invert_direction = smeta.invert_direction or false,
+                                    color            = smeta.color,
                                 }
                             end
                         end
@@ -224,6 +225,9 @@ if queries and type(queries) == "table" then
                     if smeta then
                         serie.label            = smeta.label
                         serie.invert_direction = smeta.invert_direction
+                        if smeta.color then
+                            serie.color = smeta.color
+                        end
                     end
                 end
             end

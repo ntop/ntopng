@@ -3,30 +3,32 @@
 -->
 
 <template>
-    <!-- Search container (expandable input + button + spinner) -->
-    <div ref="searchContainer" :class="[
-        'ms-auto expandable-search align-items-center position-relative d-flex',
-        { expanded: expanded }
-    ]">
+    <!-- Search wrapper: position:relative so dropdown is anchored here -->
+    <div class="search-box-wrapper" @mouseenter="onSearchEnter" @mouseleave="onSearchLeave">
+      <!-- Search container (expandable input + button + spinner) -->
+      <div ref="searchContainer" :class="[
+          'expandable-search align-items-center position-relative d-flex',
+          { expanded: expanded }
+      ]">
 
-        <!-- Search input -->
-        <input name="search" type="text" ref="searchInput" class="form-control rounded-pill ps-4-5" autocomplete="off"
-            autocorrect="off" :placeholder="_i18n('search')">
+          <!-- Search input -->
+          <input name="search" type="text" ref="searchInput" class="form-control rounded-pill ps-4-5" autocomplete="off"
+              autocorrect="off" :placeholder="_i18n('search')">
 
-        <!-- Loading spinner shown during async search -->
-        <Spinner :show="loading" size="1rem" class="spinner-inside">
-        </Spinner>
+          <!-- Loading spinner shown during async search -->
+          <Spinner :show="loading" size="1rem" class="spinner-inside">
+          </Spinner>
 
-        <!-- Search icon button -->
-        <button class="btn btn-link search-btn" @click="expanded = true">
+          <!-- Search icon button -->
+          <button class="btn btn-link search-btn">
+              <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+      </div>
 
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
+      <!-- Autocomplete dropdown list -->
+      <ul ref="searchList" class="autocomplete-dropdown dropdown-menu dropdown-menu-right d-none" role="listbox">
+      </ul>
     </div>
-
-    <!-- Autocomplete dropdown list -->
-    <ul ref="searchList" class="autocomplete-dropdown dropdown-menu dropdown-menu-right d-none" role="listbox">
-    </ul>
 </template>
 
 <script setup>
@@ -46,6 +48,7 @@ const props = defineProps({
 
 
 const expanded = ref(false);
+let searchLeaveTimer = null;
 
 /* ======================================================
  * Reactive state & constants
@@ -336,6 +339,20 @@ const handleKeys = function (e) {
  * Lifecycle
  * ====================================================== */
 
+function onSearchEnter() {
+    clearTimeout(searchLeaveTimer);
+    expanded.value = true;
+}
+
+function onSearchLeave() {
+    searchLeaveTimer = setTimeout(() => {
+        if (!searchInput.value?.value) {
+            expanded.value = false;
+        }
+        searchList.value?.classList.add("d-none");
+    }, 250);
+}
+
 const outsideClickHandler = function (e) {
     const isOutside =
         !searchContainer.value?.contains(e.target) &&
@@ -365,6 +382,12 @@ onBeforeUnmount(() => {
 });
 </script>
 <style>
+.search-box-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
 .ps-4-5 {
     padding-left: 2rem !important;
 }
@@ -378,22 +401,29 @@ onBeforeUnmount(() => {
 
 .autocomplete-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     right: 0;
     display: inline-block;
     width: auto;
-    min-width: 100%;
+    min-width: 240px;
+    max-width: min(400px, 40vw);
     white-space: nowrap;
-    z-index: 10;
+    z-index: 1060;
     max-height: 60vh;
     scrollbar-gutter: stable;
     overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.autocomplete-dropdown .dropdown-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .expandable-search {
-    width: 40px;
-    /* collapsed */
-    transition: width 0.3s ease;
+    width: 36px;
+    transition: width 0.25s ease;
     overflow: hidden;
 }
 
@@ -408,14 +438,14 @@ onBeforeUnmount(() => {
 
 .expandable-search .search-btn {
     position: absolute;
-    right: 8px;
+    right: 0;
     color: var(--icon-color);
     z-index: 2;
+    padding: 0.375rem 0.5rem;
 }
 
 .expandable-search.expanded {
-    width: 250px;
-    /* expanded */
+    width: 220px;
 }
 
 .expandable-search.expanded input {

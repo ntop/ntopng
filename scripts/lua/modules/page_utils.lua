@@ -929,7 +929,7 @@ end
 
 -- NOTE: this function must be called after page_utils.print_header_and_set_active_menu_entry
 function page_utils.print_page_title(title, mini_title)
-    local help_link = page_utils.menu_entries[active_entry].help_link or ""
+    local help_link = (page_utils.menu_entries[active_entry] or {}).help_link or ""
     print("<header class='mb-3 d-flex align-items-center'>")
     print("<h2 class='d-inline-block'>" .. title .. "</h2>")
     if (not isEmptyString(help_link)) then
@@ -958,7 +958,8 @@ function page_utils.print_header_and_set_active_menu_entry(entry, i18n_params, a
         active_sub_entry = entry.subkey
     end
 
-    page_utils.print_header(alt_title or i18n(entry.i18n_title, i18n_params) or entry.i18n_title)
+    local _title_key = entry.i18n_title
+    page_utils.print_header(alt_title or (_title_key and i18n(_title_key, i18n_params)) or _title_key or entry.key or "")
 end
 
 -- #################################
@@ -1063,15 +1064,14 @@ function page_utils.print_header(title, addLoginJS)
     print(http_prefix)
     print [[/dist/white-mode.css?]]
     print(static_file_epoch)
-    print [[" rel="stylesheet">]]
-
-    if (dark_mode) then
-        print [[<link href="]]
-        print(http_prefix)
-        print [[/dist/dark-mode.css?]]
-        print(static_file_epoch)
-        print [[" rel="stylesheet">]]
-    end
+    print [[" rel="stylesheet">
+    <link id="dark-mode-css" href="]]
+    print(http_prefix)
+    print [[/dist/dark-mode.css?]]
+    print(static_file_epoch)
+    print [["]]
+    if not dark_mode then print [[ disabled]] end
+    print [[ rel="stylesheet">]]
 
     if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
         favicon_path = http_prefix .. "/img/custom_favicon.ico"
@@ -1241,8 +1241,8 @@ end
 -- #################################
 
 function page_utils.get_navbar_context(title, base_url, items_table, label_url, back_url)
-    local help_link = page_utils.menu_entries[active_entry].help_link or nil
-    local icon = page_utils.menu_sections[active_section].icon or ""
+    local help_link = (page_utils.menu_entries[active_entry] or {}).help_link or nil
+    local icon = (page_utils.menu_sections[active_section] or {}).icon or ""
 
     local navbar = {
         main_icon = icon,
@@ -1259,8 +1259,8 @@ end
 -- #################################
 
 function page_utils.get_new_navbar_context(title, base_url, items_table, label_url, back_url)
-    local help_link = page_utils.menu_entries[active_entry].help_link or nil
-    local icon = page_utils.menu_sections[active_section].icon or ""
+    local help_link = (page_utils.menu_entries[active_entry] or {}).help_link or nil
+    local icon = (page_utils.menu_sections[active_section] or {}).icon or ""
 
     local navbar = {
         main_title = {
@@ -1278,8 +1278,8 @@ end
 -- #################################
 
 function page_utils.print_navbar(title, base_url, items_table, label_url, back_url, end_items)
-    local help_link = page_utils.menu_entries[active_entry].help_link or nil
-    local icon = page_utils.menu_sections[active_section].icon or ""
+    local help_link = (page_utils.menu_entries[active_entry] or {}).help_link or nil
+    local icon = (page_utils.menu_sections[active_section] or {}).icon or ""
 
     local context = {
         navbar = {
@@ -1293,272 +1293,6 @@ function page_utils.print_navbar(title, base_url, items_table, label_url, back_u
         }
     }
     print(template_utils.gen("pages/components/page-navbar.template", context))
-end
-
--- #################################
-local menubar_structure = {}
-
-function page_utils.init_menubar()
-    menubar_structure = {}
-end
-
--- #################################
-
-function page_utils.add_menubar_section(section)
-    menubar_structure[#menubar_structure + 1] = section
-end
-
--- #################################
-
-local function print_submenu(section, container_list_name)
-    local active_subpage = page_utils.get_active_entry()
-    local active_subsubpage = page_utils.get_active_sub_entry()
-    local section_key = section.section.key
-    local section_id = section_key .. "-submenu"
-    local list_name = section_id .. "-list"
-
-    print [[<div data-parent='#]]
-    print(container_list_name)
-    print [[' class='collapse side-collapse' id=']]
-    print(section_id)
-    print [['>
-          <ul class='nav flex-column' id=']]
-    print(list_name)
-    print [['>
-            ]]
-
-    for _, section_entry in ipairs(section.entries) do
-        if not section_entry.hidden then
-            if section_entry.custom then
-                print(section_entry.custom)
-            elseif section_entry.entry.key == "divider" then
-                print [[
-           <li class="dropdown-divider"></li>
-                  ]]
-            else
-                local external_link = false
-                local section_has_submenu = section_entry.entries
-                local active = false
-
-                if section_entry.entry and (section_entry.entry.key == active_subpage and
-                    (not section_entry.entry.subkey or section_entry.entry.subkey == active_subsubpage)) then
-                    active = true
-                end
-
-                if section_entry.url:starts("http") then
-                    -- Absolute (external) url
-
-                    external_link = true
-                end
-                print [[
-         <li class=']]
-                if active then
-                    print("active")
-                end
-                print [['>
-
-             <a class="]]
-                if section_has_submenu then
-                    print [[submenu ]]
-                end
-                if active then
-                    print [[active ]]
-                end
-                if external_link == true then
-                    print [[ntopng-external-link ]]
-                end
-                print [["]]
-
-                if section_has_submenu then
-                    print [[ data-bs-toggle="collapse" ]]
-                end
-                print [[href="]]
-                if section_has_submenu then
-                    local submenu_section_key = section_entry.section.key
-                    local submenu_section_id = submenu_section_key .. "-submenu"
-                    print("#" .. submenu_section_id)
-                else
-                    if external_link then
-                        print(section_entry.url)
-                    else
-                        print(ntop.getHttpPrefix() .. section_entry.url)
-                    end
-                end
-                print [["]]
-
-                if section_entry.entry.is_modal then
-                    print(' data-bs-toggle="modal"')
-                end
-
-                if external_link then
-                    -- Open in a new page
-                    print(' target="_blank"')
-                end
-
-                print [[>]]
-                print(i18n(section_entry.entry.i18n_title) or section_entry.entry.i18n_title)
-                if section_entry.suffix then
-                    print(section_entry.suffix)
-                end
-                if external_link then
-                    print(" <i class='fas fa-external-link-alt'></i>")
-                end
-
-                print [[</a>]]
-
-                if section_has_submenu then
-                    print_submenu(section_entry, list_name)
-                end
-
-                print [[</li>
-   ]]
-            end
-        end
-    end
-
-    print [[
-          </ul>
-        </div>
-   ]]
-end
-
--- #################################
-
-local function print_section(section, list_name)
-    local active_page = page_utils.get_active_section()
-    local show_section = false
-    local section_has_submenu = (section.entries and #section.entries > 0)
-
-    if (not section.hidden) then
-        if not section_has_submenu then
-            show_section = true
-        else
-            -- The section is shown only if at least one of its sub entries
-            -- is shown
-            for _, section_entry in pairs(section.entries or {}) do
-                if not section_entry.hidden then
-                    show_section = true
-                    break
-                end
-            end
-        end
-    end
-
-    if show_section then
-        local section_key = section.section.key
-        local section_id = section_key .. "-submenu"
-
-        print [[
-      <li class="nav-item ]]
-        print(active_page == section_key and 'active' or '')
-        print [[">
-    <a class="]]
-
-        if section_has_submenu then
-            print [[submenu ]]
-        end
-
-        if active_page == section_key then
-            print [[active ]]
-        end
-
-        print [[" ]]
-
-        if section_has_submenu then
-            print [[ data-bs-toggle="collapse" ]]
-        end
-
-        print [[href="]]
-
-        if section.url then
-            print(ntop.getHttpPrefix() .. section.url)
-        else
-            print("#" .. section_id)
-        end
-
-        print [[">
-      <span class="]]
-        print(section.section.icon)
-        print [["></span> ]]
-        print(i18n(section.section.i18n_title))
-        print [[
-    </a>]]
-
-        if section_has_submenu then
-            print_submenu(section, list_name)
-        end
-    end
-end
-
--- #################################
-
-function page_utils.print_menubar()
-    local is_system_interface = page_utils.is_system_view()
-    local logo_path = nil
-    local list_name = "sidebar"
-
-    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
-        logo_path = ntop.getHttpPrefix() .. "/img/custom_logo.png"
-    end
-
-    local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.user." .. _SESSION["user"] .. ".theme")
-
-    if ((navbar_style == nil) or (navbar_style == "white") or (navbar_style == "")) then
-        navbar_style = "default"
-    end
-
-    if (navbar_style == "default") then
-        navbar_style = "dark"
-    end
-
-    print('<nav id="n-sidebar" class="bg-' .. navbar_style .. ' py-0 px-2">')
-    print([[
-      <div class="mobile-menu-button d-flex">
-            <form class='w-100' method='post' action="/?">
-               <input hidden name='switch_interface' value='1' />
-               <input hidden name='csrf' value=']] .. ntop.getRandomCSRFValue() .. [[' />
-               ]] .. template_utils.gen("pages/components/ifaces-select.template", {
-        ifaces = page_utils.get_interface_list(),
-        is_sys_iface = is_system_interface
-    }) .. [[
-            </form>
-            <button data-bs-toggle="]] .. list_name .. [[" class='ms-5 my-auto btn btn-close'></button>
-      </div>
-      <div class="mobile-menu-stats">
-      ]])
-
-    -- the network load will not be displayed in system view mode
-    if not is_system_interface then
-        print([[<div class="network-load mb-2 w-100"></div>]])
-    end
-
-    print([[
-         <div class="info-stats w-100">]] .. page_utils.generate_info_stats() .. [[</div>
-      </div>
-   ]])
-    print("<h3 class='muted'><a href='" .. ntop.getHttpPrefix() .. "/'>")
-
-    if (logo_path ~= nil) then
-        print("<img class=\"logo-brand\" height=\"52px\" src=\"" .. logo_path .. "\" alt='Custom Logo' />")
-    else
-        print(addLogoSvg())
-    end
-
-    print([[
-           </a>
-     </h3>
-
-     <ul class="nav-side mb-4" id=']] .. list_name .. [['>
-]])
-
-    for _, section in ipairs(menubar_structure) do
-        print_section(section, list_name)
-    end
-
-    print([[
-     </ul>
-   </nav>
-]])
 end
 
 -- ##############################################

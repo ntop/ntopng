@@ -1,6 +1,6 @@
 :root {
   font-weight: 500;
-  --sidebar-width: 4.5rem;
+  --sidebar-width: 0px; /* AppShell Vue sidebar: overridden by --sb-rail-w */
   --footer-height: 4rem;
   --padding-md-four: 1.5rem;
   --scrollable-dropdown-height: 20rem;

@@ -71,4 +71,3 @@ import * as d3v7 from "d3v7";
 window.d3v7 = {
   ...d3v7
 };
-
