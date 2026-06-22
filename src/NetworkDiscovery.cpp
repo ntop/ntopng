@@ -734,7 +734,8 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
       if (record_type == 12 /* PTR */) {
         offset += 1;
 
-        for (idx = 0, dissected_ptr = false; offset < buf_len;
+        for (idx = 0, dissected_ptr = false;
+             (offset < buf_len) && (idx < sizeof(rspbuf) - 1);
              idx++, offset++) {
           if (buf[offset] == 0) {
             if (dissected_ptr) offset--;
@@ -747,7 +748,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
 
               offset++, dissected_ptr = true;
 
-              while ((idx < sizeof(rspbuf)) && (new_offset < buf_len) &&
+              while ((idx < sizeof(rspbuf) - 1) && (new_offset < buf_len) &&
                      (buf[new_offset] != 0)) {
                 if (buf[new_offset] < 32)
                   rspbuf[idx] = '.';
@@ -765,6 +766,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
           }
         }
 
+        if (idx >= sizeof(rspbuf)) idx = sizeof(rspbuf) - 1;
         rspbuf[idx] = '\0';
       } else {
         /* TXT */
