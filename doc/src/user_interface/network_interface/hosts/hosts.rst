@@ -298,7 +298,7 @@ Geomap
 ^^^^^^
 
 Geomap page provides an interactive map that shows the selected hosts, its flows, and its
-peers.
+peers. The map is zoomable, both using the mouse rotor or the buttons at the top right corner. Each dot on the map is a host, by hovering the mouse on a dot a tooltip opens and information about the given host are presented.
 
 .. figure:: ../../../img/web_gui_host_details_geo.png
   :align: center
