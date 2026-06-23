@@ -988,7 +988,7 @@ function buildNetworkLoad(r) {
   const ALARM_LO = 60;
   const ALARM_HI = 90;
   const fmt      = (v) => window.NtopUtils ? NtopUtils.formatValue(v, 1) : String(v);
-  const tip      = (text) => `data-bs-toggle="tooltip" data-bs-placement="bottom" title="${text}"`;
+  const tooltip  = (text) => `data-bs-toggle="tooltip" data-bs-placement="bottom" title="${text}"`;
 
   let msg = `<div class='d-flex gap-1 navbar-main-badges flex-nowrap'>`;
 
