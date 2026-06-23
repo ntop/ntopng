@@ -168,6 +168,9 @@ local lang = {
    ["broadcast_traffic_tx"] = "Broadcast Traffic TX",
    ["browse_config"] = "Browse a configuration file to import",
    ["browse_snmp_devices"] = "Browse a CSV or JSON file with a list of SNMP devices",
+   ["blog"] = {
+      ["latest_posts"] = "Latest Posts",
+   },
    ["busy"] = "Busy",
    ["bytes"] = "Bytes",
    ["cancel"] = "Cancel",

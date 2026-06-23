@@ -185,6 +185,18 @@
           </div>
         </button>
 
+        <!-- Updates -->
+        <template v-if="menu.has_updates_support">
+          <div class="sb-popup-divider"></div>
+          <div class="sb-popup-item sb-popup-item--text">
+            <i class="fas fa-sync sb-popup-icon"></i>
+            <span id="updates-info-li">{{ _i18n("updates.checking") }}</span>
+            <span id="admin-badge" class="badge bg-danger ms-auto" style="display:none"></span>
+          </div>
+          <div id="updates-install-li" style="display:none">
+          </div>
+        </template>
+
         <!-- Restart -->
         <template v-if="menu.is_admin && menu.is_package && !menu.is_windows">
           <div class="sb-popup-divider"></div>
@@ -196,11 +208,11 @@
 
         <div class="sb-popup-divider"></div>
 
-        <a v-if="!menu.is_no_login_user" class="sb-popup-item sb-popup-item--danger"
-           href="#" @click.prevent="confirmLogout">
+        <button v-if="!menu.is_no_login_user" class="sb-popup-item sb-popup-item--danger"
+           @click="confirmLogout">
           <i class="fas fa-sign-out-alt sb-popup-icon"></i>
           <span>{{ _i18n("login.logout") }}</span>
-        </a>
+        </button>
 
       </div>
     </Transition>
@@ -339,7 +351,7 @@
               <template v-if="menu.infrastructure_instances?.length">
                 <div class="sb-iface-menu__divider"></div>
                 <div class="sb-iface-menu__section">
-                  <div class="sb-iface-menu__label">{{ _i18n("infrastructure.infrastructure") }}</div>
+                  <div class="sb-iface-menu__label">{{ _i18n("infrastructure_dashboard.infrastructure") }}</div>
                   <a v-for="inst in menu.infrastructure_instances" :key="inst.id"
                      class="sb-iface-item"
                      :href="`${pfx}/lua/pro/enterprise/infrastructure_config.lua`">
@@ -421,10 +433,27 @@
           <h5 class="modal-title">{{ _i18n("restart.restart") }}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">{{ _i18n("restart.confirm_restart") }}</div>
+        <div class="modal-body">{{ _i18n("restart.confirm").replace(/%\{product\}/g, menu.product || "ntopng") }}</div>
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
           <button class="btn btn-danger btn-sm" @click="doRestart">{{ _i18n("restart.restart") }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout modal -->
+  <div class="modal fade" id="logout-modal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _i18n("login.logout") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">{{ _i18n("login.logout_message") }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
+          <button class="btn btn-danger btn-sm" @click="doLogout">{{ _i18n("login.logout") }}</button>
         </div>
       </div>
     </div>
@@ -1128,9 +1157,19 @@ async function doRestart() {
 }
 
 // Logout
+let logoutModal = null;
+
 function confirmLogout() {
-  const msg = (typeof i18n === "function" && i18n("login.logout_message")) || "Logout?";
-  if (confirm(msg)) window.location.href = `${pfx.value}/lua/ntopng_logout.lua`;
+  if (!logoutModal) {
+    const el = document.getElementById("logout-modal");
+    if (el && window.bootstrap) logoutModal = new bootstrap.Modal(el);
+  }
+  logoutModal?.show();
+}
+
+function doLogout() {
+  logoutModal?.hide();
+  window.location.href = `${pfx.value}/lua/ntopng_logout.lua`;
 }
 
 function triggerPasswordDialog(username) {

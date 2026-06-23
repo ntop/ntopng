@@ -140,8 +140,8 @@ function applyUpdatesStatus(data) {
       const icon = data.status === "update-avail"
         ? '<i class="fas fa-download me-1"></i>'
         : '<i class="fas fa-exclamation-triangle text-danger me-1"></i>';
-      installEl.innerHTML = `<a class="dropdown-item" href="#">${icon}${_i18n("updates.install")}</a>`;
-      installEl.querySelector("a")?.addEventListener("click", e => {
+      installEl.innerHTML = `<button class="sb-popup-item" style="width:100%">${icon}${_i18n("updates.install")}</button>`;
+      installEl.querySelector("button")?.addEventListener("click", e => {
         e.preventDefault();
         doInstallUpdate();
       });
