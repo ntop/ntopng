@@ -464,6 +464,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as SearchBox } from "./components/search-box.vue";
+import NtopUtils from "../utilities/ntop-utils";
 const d3 = d3v7;
 
 const props = defineProps({ context: Object });
@@ -871,14 +872,6 @@ const sparkLabels  = ref({ up: "", dn: "" });
 let spark  = null;
 let seeded = false;
 
-function formatBits(bps) {
-  if (bps == null || bps === 0) return "";
-  if (bps >= 1e9) return (bps / 1e9).toFixed(1) + " Gbps";
-  if (bps >= 1e6) return (bps / 1e6).toFixed(1) + " Mbps";
-  if (bps >= 1e3) return (bps / 1e3).toFixed(0) + " Kbps";
-  return bps.toFixed(0) + " bps";
-}
-
 function buildCombinedSparkline(svgEl) {
   if (!svgEl || !window.d3v7) return null;
   const d3 = d3v7;
@@ -966,8 +959,8 @@ async function pollIface() {
     const dnBps = r.throughput?.download?.bps ?? r.bytes_download;
     if (upBps != null && dnBps != null) {
       spark?.pushBoth(upBps, dnBps);
-      sparkLabels.value.up = formatBits(upBps);
-      sparkLabels.value.dn = formatBits(dnBps);
+      sparkLabels.value.up = NtopUtils.bitsToSize(upBps, 1000);
+      sparkLabels.value.dn = NtopUtils.bitsToSize(dnBps, 1000);
     }
 
     if (window.ntopng_events_manager && window.ntopng_custom_events)
@@ -994,7 +987,7 @@ function buildNetworkLoad(r) {
 
   if (r.out_of_maintenance) {
     msg += `<a href='https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/' target='_blank'>
-      <span class='badge bg-warning'>${t("about.maintenance_expired")} <i class="fas fa-external-link-alt"></i></span></a>`;
+      <span class='badge bg-warning'>${_i18n("about.maintenance_expired")} <i class="fas fa-external-link-alt"></i></span></a>`;
   }
 
   if (r.degraded_performance) {
@@ -1090,7 +1083,7 @@ function buildNetworkLoad(r) {
   }
 
   if (r.is_loading === true) {
-    msg += `<span class="badge bg-primary"><i class="fas fa-spinner fa-spin"></i> ${t("loading")}</span>`;
+    msg += `<span class="badge bg-primary"><i class="fas fa-spinner fa-spin"></i> ${_i18n("loading")}</span>`;
   }
 
   msg += `</div>`;
