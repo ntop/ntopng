@@ -102,6 +102,12 @@ cp $HOME/ntopng/packages/etc/ntopng/ntopng.conf.nprobe.sample $RPM_BUILD_ROOT/et
 find $RPM_BUILD_ROOT -name ".git" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f
+
+# Already stripped
+mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
+~/scripts/signature.sh $RPM_BUILD_ROOT/usr/bin/ntopng $RPM_BUILD_ROOT/usr/share/ntop/ntopng.sig
+
+
 #
 DST=$RPM_BUILD_ROOT/usr/ntopng
 SRC=$RPM_BUILD_DIR/%{name}-%{version}
@@ -109,10 +115,6 @@ SRC=$RPM_BUILD_DIR/%{name}-%{version}
 # Clean out our build directory
 %clean
 rm -fr $RPM_BUILD_ROOT
-
-# Already stripped
-mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
-~/scripts/signature.sh $RPM_BUILD_ROOT/usr/bin/ntopng $RPM_BUILD_ROOT/usr/share/ntop/ntopng.sig
 
 %files
 /usr/bin/ntopng
@@ -129,6 +131,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
 /etc/sudoers.d/ntopng
 /etc/rsyslog.d/20-ntopng.conf
 %config(noreplace) /etc/cron.d/ntopng
+/usr/share/ntop/ntopng.sig
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
 %config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
