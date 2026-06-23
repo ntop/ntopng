@@ -84,7 +84,7 @@ function ntopng_menu_visibility.get_flags()
                                     (is_pro and (table.len(flowDevices) > 0))
    local service_map_available, _ = behavior_utils.mapsAvailable()
    local vs_available             = vs_utils.is_available()
-   local has_bgp_server           = not (isEmptyString(ntop.getPref("ntopng.prefs.bgp_server.ip_address")) or
+   local has_bgp_server           = not ((not is_asn_mode) or isEmptyString(ntop.getPref("ntopng.prefs.bgp_server.ip_address")) or
                                          isEmptyString(ntop.getPref("ntopng.prefs.bgp_server.port")))
 
    local devices_exclusion_enabled = false
