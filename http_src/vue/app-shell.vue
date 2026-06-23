@@ -190,11 +190,32 @@
           <div class="sb-popup-divider"></div>
           <div class="sb-popup-item sb-popup-item--text">
             <i class="fas fa-sync sb-popup-icon"></i>
-            <span id="updates-info-li">{{ _i18n("updates.checking") }}</span>
-            <span id="admin-badge" class="badge bg-danger ms-auto" style="display:none"></span>
+            <span v-if="updateStatus === 'update-avail' || updateStatus === 'upgrade-failure'">
+              <span class="badge bg-danger">{{ _i18n("updates.available") }}</span> {{ updateVersion }}
+            </span>
+            <span v-else-if="updateStatus === 'installing'">{{ _i18n("updates.installing") }}</span>
+            <span v-else-if="updateStatus === 'checking'">{{ _i18n("updates.checking") }}</span>
+            <span v-else-if="updateStatus === 'not-avail'">{{ _i18n("updates.no_updates") }}</span>
+            <span v-else-if="updateStatus === 'update-failure'">
+              <i class="fas fa-exclamation-triangle text-danger me-1"></i>{{ _i18n("updates.no_updates") }}
+            </span>
+            <span v-else>{{ _i18n("updates.checking") }}</span>
+            <span v-if="updateStatus === 'update-avail' || updateStatus === 'upgrade-failure'"
+                  class="badge bg-danger ms-auto">{{ updateStatus === 'upgrade-failure' ? '!' : '1' }}</span>
           </div>
-          <div id="updates-install-li" style="display:none">
-          </div>
+          <!-- Install / Check button row -->
+          <template v-if="updateStatus === 'update-avail' || updateStatus === 'upgrade-failure'">
+            <button class="sb-popup-item" style="width:100%" @click="doInstallUpdate"
+                    :title="updateStatus !== 'update-avail' ? _i18n('updates.update_failure_message') + ': ' + updateStatus : ''">
+              <i :class="updateStatus === 'update-avail' ? 'fas fa-download me-1' : 'fas fa-exclamation-triangle text-danger me-1'"></i>
+              {{ _i18n("updates.install") }}
+            </button>
+          </template>
+          <template v-else-if="updateStatus === 'not-avail' || updateStatus === 'update-failure'">
+            <button class="sb-popup-item" style="width:100%" @click="doCheckForUpdates">
+              <i class="fas fa-sync me-1"></i>{{ _i18n("updates.check") }}
+            </button>
+          </template>
         </template>
 
         <!-- Restart -->
@@ -475,6 +496,10 @@ const pfx = computed(() =>
 );
 
 const _i18n = (t) => i18n(t);
+
+// Updates state
+const updateStatus  = ref("");
+const updateVersion = ref("");
 
 // State
 const menu           = ref({});
@@ -1202,7 +1227,47 @@ async function markPostRead(postId) {
   } catch (_) {}
 }
 
+// Package update logic
+function onUpdateStatusEvent(e) {
+  const d = e.detail || {};
+  updateStatus.value  = d.status  || "";
+  updateVersion.value = d.version || "";
+}
+
+async function doInstallUpdate() {
+  if (!confirm(_i18n("updates.install_confirm"))) return;
+  try {
+    await ntopng_utility.http_request(
+      `${pfx.value}/lua/install_update.lua`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ csrf: ctx.value.csrf || window.__CSRF_DATATABLE__ }),
+      }
+    );
+    updateStatus.value = "installing";
+  } catch (_) {}
+}
+
+async function doCheckForUpdates() {
+  updateStatus.value = "checking";
+  try {
+    await ntopng_utility.http_request(
+      `${pfx.value}/lua/check_update.lua`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrf: ctx.value.csrf || window.__CSRF_DATATABLE__,
+          search: "true",
+        }),
+      }
+    );
+  } catch (_) {}
+}
+
 onMounted(async () => {
+  document.addEventListener("ntopng-update-status", onUpdateStatusEvent);
   applyLayout();
   document.addEventListener("click", handleOutsideClick);
   await loadMenu();
@@ -1220,6 +1285,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  document.removeEventListener("ntopng-update-status", onUpdateStatusEvent);
   document.removeEventListener("click", handleOutsideClick);
   clearTimeout(railLeaveTimer);
   clearTimeout(panelLeaveTimer);

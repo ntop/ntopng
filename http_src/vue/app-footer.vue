@@ -86,13 +86,17 @@ const ctx   = computed(() => props.context || {});
 
 function _i18n(key) { return i18n(key) || key; }
 
-// Updates
+// Updates polling — emits "ntopng-update-status" custom events consumed by app-shell
 const UPDATES_POLL_SLOW  = 300; // seconds — when idle
 const UPDATES_POLL_FAST  = 10;  // seconds — when checking/installing
 
-let updatesStatus   = "";
+let updatesStatus    = "";
 let updatesLastCheck = 0;
-let updatesTimer    = null;
+let updatesTimer     = null;
+
+function emitUpdateStatus(status, version) {
+  document.dispatchEvent(new CustomEvent("ntopng-update-status", { detail: { status, version } }));
+}
 
 async function updatesRefresh() {
   if (!ctx.value.has_updates_support) return;
@@ -111,106 +115,17 @@ async function updatesRefresh() {
     );
     if (!data || !data.status) return;
     updatesStatus = data.status;
-    applyUpdatesStatus(data);
-  } catch (_) {}
-}
+    emitUpdateStatus(data.status, data.version || "");
 
-function applyUpdatesStatus(data) {
-  const infoEl    = document.getElementById("updates-info-li");
-  const installEl = document.getElementById("updates-install-li");
-  const badgeEl   = document.getElementById("admin-badge");
-
-  if (!infoEl) return;
-
-  if (data.status === "installing") {
-    infoEl.textContent = _i18n("updates.installing");
-    installEl?.style && (installEl.style.display = "none");
-    badgeEl?.style   && (badgeEl.style.display = "none");
-
-  } else if (data.status === "checking") {
-    infoEl.textContent = _i18n("updates.checking");
-    installEl?.style && (installEl.style.display = "none");
-    badgeEl?.style   && (badgeEl.style.display = "none");
-
-  } else if (data.status === "update-avail" || data.status === "upgrade-failure") {
-    infoEl.innerHTML = `<span class="badge bg-danger">${_i18n("updates.available")}</span> ${data.version || ""}`;
-
-    if (installEl) {
-      installEl.style.display = "";
-      const icon = data.status === "update-avail"
-        ? '<i class="fas fa-download me-1"></i>'
-        : '<i class="fas fa-exclamation-triangle text-danger me-1"></i>';
-      installEl.innerHTML = `<button class="sb-popup-item" style="width:100%">${icon}${_i18n("updates.install")}</button>`;
-      installEl.querySelector("button")?.addEventListener("click", e => {
-        e.preventDefault();
-        doInstallUpdate();
-      });
-    }
-
-    if (badgeEl) badgeEl.style.display = "";
-
-    // Show in major-release alert bar
-    const alertEl = document.getElementById("major-release-alert");
-    const textEl  = document.getElementById("ntopng_update_available");
-    if (alertEl && textEl) {
-      textEl.textContent = `${_i18n("updates.available")}: ${data.version || ""}`;
-      alertEl.style.display = "";
-    }
-
-  } else {
-    infoEl.textContent = _i18n("updates.no_updates") + ".";
-    installEl?.style && (installEl.style.display = "none");
-    badgeEl?.style   && (badgeEl.style.display = "none");
-  }
-}
-
-async function doInstallUpdate() {
-  let msg = _i18n("updates.install_confirm");
-  if (!confirm(msg)) return;
-
-  try {
-    await ntopng_utility.http_request(
-      `${http_prefix}/lua/install_update.lua`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ csrf: ctx.value.csrf || window.__CSRF_DATATABLE__ }),
+    // Show in major-release alert bar when update available
+    if (data.status === "update-avail" || data.status === "upgrade-failure") {
+      const alertEl = document.getElementById("major-release-alert");
+      const textEl  = document.getElementById("ntopng_update_available");
+      if (alertEl && textEl) {
+        textEl.textContent = `${i18n("updates.available")}: ${data.version || ""}`;
+        alertEl.style.display = "";
       }
-    );
-    const infoEl    = document.getElementById("updates-info-li");
-    const installEl = document.getElementById("updates-install-li");
-    const badgeEl   = document.getElementById("admin-badge");
-    if (infoEl) infoEl.textContent = _i18n("updates.installing");
-    installEl?.style && (installEl.style.display = "none");
-    badgeEl?.style   && (badgeEl.style.display = "none");
-    updatesStatus = "installing";
-  } catch (_) {}
-}
-
-function startUpdatesCheck() {
-  const infoEl    = document.getElementById("updates-info-li");
-  const installEl = document.getElementById("updates-install-li");
-  if (infoEl) infoEl.textContent = _i18n("updates.checking");
-  if (installEl) installEl.style.display = "none";
-
-  doManualCheck();
-}
-
-async function doManualCheck() {
-  try {
-    await ntopng_utility.http_request(
-      `${http_prefix}/lua/check_update.lua`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          csrf: ctx.value.csrf || window.__CSRF_DATATABLE__,
-          search: "true",
-        }),
-      }
-    );
-    updatesStatus = "checking";
-    updatesLastCheck = 0; // force a refresh on next tick
+    }
   } catch (_) {}
 }
 
@@ -271,16 +186,6 @@ function fixHistoryState() {
   }
 }
 
-function wireUpdatesInstallButton() {
-  const installEl = document.getElementById("updates-install-li");
-  if (installEl) {
-    installEl.addEventListener("click", e => {
-      e.preventDefault();
-      startUpdatesCheck();
-    });
-  }
-}
-
 onMounted(async () => {
   document.addEventListener("click", onExternalLinkClick);
   document.addEventListener("click", onToastDismiss);
@@ -296,7 +201,6 @@ onMounted(async () => {
   }
 
   fixHistoryState();
-  wireUpdatesInstallButton();
 
   if (ctx.value.has_updates_support) {
     // initial check
