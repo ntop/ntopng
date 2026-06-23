@@ -11,13 +11,20 @@ return {
       "IP, hostname, manufacturer, and device type. " ..
       "First attempts an active scan (ARP + mDNS + SSDP); if no results, falls back to the passive " ..
       "MAC table that ntopng builds from observed traffic. " ..
-      "Returns an error if the interface does not support discovery.",
+      "Returns an error if the interface does not support discovery. " ..
+      "Required arguments: ifid (integer) and ifname (string) — interface id and name as provided in the system prompt.",
    handler = function(args)
+      if not args or not args.ifid then
+         return nil, "Missing required argument: ifid"
+      end
+      interface.select(tostring(args.ifid))
+
       if not interface.isDiscoverableInterface() then
          return nil, "This interface does not support network discovery"
       end
 
-      local ifname = interface.getName()
+      local ifname = args.ifname
+      if not ifname then return nil, "Missing required argument: ifname" end
       local devices = {}
 
       -- Run active scan (populates cache, returns status only)
@@ -37,7 +44,7 @@ return {
                   mac          = dev.mac     or "",
                   hostname     = dev.sym     or dev.name or "",
                   manufacturer = mfr,
-                  device_type  = dev.device_type or "",
+                  device_type  = discover.devtype2string(dev.device_type) or "",
                   os           = dev.os_type     or "",
                   source       = "active",
                }
