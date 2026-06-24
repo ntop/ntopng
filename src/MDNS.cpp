@@ -453,7 +453,7 @@ char* MDNS::decodeNetBIOS(u_char* buf, u_int buf_len, char* out,
   offset = sizeof(struct netbios_header);
   offset += buf[offset] + 2; /* Skip name */
 
-  if (offset > buf_len) return (out);
+  if ((u_int)(offset + 2) > buf_len) return (out);
   i16 = ntohs(*((u_int16_t*)&buf[offset])); /* Type */
   if (i16 != 0x21)                          /* NBSTAT */
     return (out);
@@ -461,7 +461,7 @@ char* MDNS::decodeNetBIOS(u_char* buf, u_int buf_len, char* out,
     offset += 2;
 
   offset += 8; /* Skip class, TTL and data len */
-  if (offset > buf_len) return (out);
+  if ((u_int)(offset + 1) > buf_len) return (out);
 
   if (buf[offset] == 0) /* Number of names */
     return (out);
