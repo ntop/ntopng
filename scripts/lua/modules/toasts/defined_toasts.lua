@@ -249,16 +249,6 @@ local defined_toats = {
         excluded_subpages = EMPTY_PAGES
     },
     {
-        id = 24,
-        dismissable = true,
-        has_priority = false,
-        predicate = predicates.vulnerability_scan,
-        pages = {pages.vulnerability_scan.key},
-        subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES,
-        excluded_subpages = EMPTY_PAGES
-    },
-    {
         id = 25,
         dismissable = false,
         has_priority = false,

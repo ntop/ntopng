@@ -16,7 +16,6 @@ function ntopng_menu_visibility.get_flags()
    local page_utils     = require "page_utils"
    local auth           = require "auth"
    local behavior_utils = require "behavior_utils"
-   local vs_utils       = require "vs_utils"
 
    local prefs        = ntop.getPrefs()
    local info         = ntop.getInfo(true)
@@ -86,7 +85,6 @@ function ntopng_menu_visibility.get_flags()
    local has_exporters            = (ifid_stats.type == "zmq") or (ifid_stats.type == "custom") or
                                     (is_pro and (table.len(flowDevices) > 0))
    local service_map_available, _ = behavior_utils.mapsAvailable()
-   local vs_available             = vs_utils.is_available()
    local has_bgp_server           = not ((not is_asn_mode) or isEmptyString(ntop.getPref("ntopng.prefs.bgp_server.ip_address")) or
                                          isEmptyString(ntop.getPref("ntopng.prefs.bgp_server.port")))
 
@@ -134,7 +132,6 @@ function ntopng_menu_visibility.get_flags()
       no_hr_flows               = not has_hr_flows,
       no_bgp_server             = not has_bgp_server,
       no_service_map            = not service_map_available,
-      no_vs_utils               = not vs_available,
 
       -- user/admin
       is_admin                    = is_admin,

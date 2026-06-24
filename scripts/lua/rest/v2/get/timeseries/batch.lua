@@ -81,7 +81,6 @@ local _prefix_to_module = {
     snmp_device    = "ts_snmp_device",
     snmp_if        = "ts_snmp_interface",
     obs_point      = "ts_observation_point",
-    am_vuln_scan   = "ts_vulnerability_scan",
     nedge          = "ts_nedge",
 }
 

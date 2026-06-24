@@ -10,7 +10,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils"
 require "check_redis_prefs"
@@ -99,7 +98,6 @@ local entry_hidden = {
    network_discovery        = function() return flags.no_discoverable_interface or flags.is_windows or flags.is_loopback_interface or flags.limit_resource_usage or flags.infrastructure_view end,
    infrastructure_dashboard = function() return flags.no_enterprise_l_or_nedge or flags.no_admin end,
    snmp_monitoring          = function() return flags.no_enterprise_m_or_nedge end,
-   vulnerability_scan       = function() return flags.no_vs_utils or flags.is_zmq_interface end,
 
    -- alerts
    alerts_geomap    = function() return true end,  -- always hidden per old code: hidden = true or (not is_enterprise_XL)

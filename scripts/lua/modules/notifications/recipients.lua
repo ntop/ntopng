@@ -61,10 +61,6 @@ function recipients.get_notification_types()
         reports = {
             title = i18n('report.reports'),
             icon = 'fa-regular fa-newspaper'
-        },
-        vulnerability_scans = {
-            title = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
-            icon = 'fa-solid fa-clipboard'
         }
     }
 
@@ -1121,14 +1117,12 @@ end
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
 function recipients.dispatch_notification(notification, current_script, notification_type, recipient_id)
-    local is_vs = (notification_type == 'vulnerability_scans')
-
     if not notification then
         -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
         -- tprint(debug.traceback())
     end
 
-    if debug_vs and is_vs then
+    if debug_vs then
         traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: dispatching notification")
     end
 
@@ -1159,7 +1153,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
         for _, recipient in ipairs(cached_recipients) do
             local recipient_ok = true
 
-            if debug_vs and is_vs then
+            if debug_vs then
                 traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: evaluating recipient")
                 tprint(recipient)
             end
@@ -1178,7 +1172,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
             if recipient_ok and notification_type and notification_type ~= "alerts" then
                 if recipient.notifications_type and recipient.notifications_type ~= "alerts" then
                     if notification_type == recipient.notifications_type then
-                        if debug_vs and is_vs then
+                        if debug_vs then
                             traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: recipient match!")
                         end
                         goto skip_filters
@@ -1325,7 +1319,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
                 -- Enqueue alert
                 --debug_print("Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
 
-                if debug_vs and is_vs then
+                if debug_vs then
                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: enqueueing notification to recipient")
                 end
 

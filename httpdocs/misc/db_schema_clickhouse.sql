@@ -1852,58 +1852,6 @@ ALTER TABLE `hourly_flows` MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packet count
 
 @
 
-/* VS */
-
-CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` (
-`HOST` String,
-`SCAN_TYPE` String,
-`LAST_SCAN` DateTime,
-`JSON_INFO` String,
-`VS_RESULT_FILE` String
-) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
-@
-ALTER TABLE `vulnerability_scan_data` MODIFY COMMENT 'Per-host vulnerability scan results produced by the ntopng Vulnerability Scanner (VS) module. Each row stores the latest scan output for a given host and scan type as a JSON blob.';
-@
-ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `HOST` COMMENT 'IP address or hostname of the scanned target';
-@
-ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `SCAN_TYPE` COMMENT 'Type of vulnerability scan performed (e.g. nmap, openvas)';
-@
-ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `LAST_SCAN` COMMENT 'Timestamp of when this scan was last performed';
-@
-ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `JSON_INFO` COMMENT 'Full scan results as a JSON blob';
-@
-ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `VS_RESULT_FILE` COMMENT 'Path to the raw scan result file on disk';
-
-@
-
-CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` (
-`REPORT_NAME` String,
-`REPORT_DATE` DateTime,
-`REPORT_JSON_INFO` String,
-`NUM_SCANNED_HOSTS` UInt32,
-`NUM_CVES` UInt32,
-`NUM_TCP_PORTS` UInt32,
-`NUM_UDP_PORTS` UInt32
-) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE);
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COMMENT 'Summary reports of completed vulnerability scans. Each row represents one scan report with aggregate counts of scanned hosts, CVEs found, and open TCP/UDP ports.';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `REPORT_NAME` COMMENT 'User-defined name for this vulnerability scan report';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `REPORT_DATE` COMMENT 'Timestamp when the report was generated';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `REPORT_JSON_INFO` COMMENT 'Full report metadata and summary as a JSON blob';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_SCANNED_HOSTS` COMMENT 'Number of hosts scanned in this report';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_CVES` COMMENT 'Total number of CVEs identified across all scanned hosts';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_TCP_PORTS` COMMENT 'Total number of open TCP ports found across all scanned hosts';
-@
-ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_UDP_PORTS` COMMENT 'Total number of open UDP ports found across all scanned hosts';
-
-@
-
 CREATE TABLE IF NOT EXISTS `mitre_table_info` (
 `ALERT_ID` UInt16,
 `ENTITY_ID` UInt16,

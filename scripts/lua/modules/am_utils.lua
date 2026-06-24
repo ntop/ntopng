@@ -626,21 +626,6 @@ local function loadAmScripts()
         ::continue::
     end
 
-    loaded_measurements['vulnerability_scan'] = {
-        measurement = {
-            i18n_label = "active_monitoring_stats.vulnerability_scan"
-        }
-    }
-    loaded_measurements['ports_changes_detected'] = {
-        measurement = {
-            i18n_label = "active_monitoring_stats.ports_changes_detected"
-        }
-    }
-    loaded_measurements['cve_changes_detected'] = {
-        measurement = {
-            i18n_label = "active_monitoring_stats.cve_changes_detected"
-        }
-    }
 end
 
 -- ##############################################
