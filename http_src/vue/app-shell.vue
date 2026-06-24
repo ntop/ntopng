@@ -1076,7 +1076,7 @@ function buildNetworkLoad(r) {
     if (r.num_devices > 0) {
       let cls = r.macs_pctg >= ALARM_HI ? "bg-danger" : r.macs_pctg >= ALARM_LO ? "bg-warning" : "bg-secondary";
       msg += `<a href='${pfxVal}/lua/macs_stats.lua?devices_mode=source_macs_only'>
-        <span class="badge ${cls}" ${tooltip(_i18n("mac_stats.layer_2_source_devices"))}>${fmt(r.num_devices)} <i class="fas fa-ethernet"></i></span></a>`;
+        <span class="badge ${cls}" ${tooltip(_i18n("mac_stats.layer_2_source_devices").replace("%{device_type}", fmt(r.num_devices)))}>${fmt(r.num_devices)} <i class="fas fa-ethernet"></i></span></a>`;
     }
     if (r.num_flows > 0) {
       let cls = r.flows_pctg >= ALARM_HI ? "bg-danger" : r.flows_pctg >= ALARM_LO ? "bg-warning" : "bg-secondary";

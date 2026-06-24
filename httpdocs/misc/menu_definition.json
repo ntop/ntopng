@@ -588,13 +588,13 @@
         },
         {
           "key": "nedge_users",
-          "i18n": "manage_users.manage_users",
+          "i18n": "manage_users.manage_nedge_users",
           "icon": "fas fa-users",
           "url": "/lua/pro/nedge/admin/nf_list_users.lua"
         },
         {
           "key": "manage_users",
-          "i18n": "manage_users.manage_nedge_users",
+          "i18n": "manage_users.manage_users",
           "icon": "fas fa-user-cog",
           "url": "/lua/admin/users.lua"
         },
