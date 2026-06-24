@@ -4221,7 +4221,9 @@ static int ntop_is_enterprise_xxxl(lua_State* vm) {
 /* @brief Returns true if nAnalyst is available.  Lua: ntop.hasnAnalyst() → boolean */
 static int ntop_has_nanalyst(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_nanalyst_available());
+  lua_pushboolean(vm,
+		  ntop->getPrefs()->is_nanalyst_available()
+		  && ntop->getPrefs()->do_dump_flows_on_clickhouse());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
 
