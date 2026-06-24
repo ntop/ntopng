@@ -321,7 +321,7 @@ function click_button_edit(event) {
 
 function click_button_timeseries(event) {
     const row = event.row;
-    window.open(`${http_prefix}/lua/active_monitoring.lua?host=${row.target.host}&measurement=${row.last_measurement.measurement_type}&page=historical`);
+    window.open(`${http_prefix}/lua/active_monitoring.lua?am_host=${row.target.host}&measurement=${row.last_measurement.measurement_type}&page=historical`);
 }
 
 /* ************************************** */

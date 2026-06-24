@@ -65,7 +65,7 @@ async function delete_measurement() {
   let params = {
     csrf: props.context.csrf,
     ifid: props.context.ifid,
-    host: row.value.target.host,
+    am_host: row.value.target.host,
     measurement: row.value.last_measurement.measurement_type,
   };
 

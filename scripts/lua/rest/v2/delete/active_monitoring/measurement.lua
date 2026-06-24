@@ -11,7 +11,7 @@ local active_monitoring = require "active_monitoring"
 
 -- ################################################
 
-local host = _POST["host"]
+local host = _POST["am_host"]
 local measurement = _POST["measurement"]
 
 local res, err_msg = active_monitoring.delete_am_script(host, measurement)

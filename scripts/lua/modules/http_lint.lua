@@ -890,6 +890,48 @@ local function validateZMQEndpoint(v)
    return false
 end
 
+local function validateDomain(p)
+   if type(p) ~= "string" or #p == 0 or #p > 253 then
+      return false
+   end
+
+   -- Remove the . at the end
+   if p:sub(-1) == "." then
+      p = p:sub(1, -2)
+   end
+
+   -- It needs to have a .it/.com/ecc
+   if not p:find("%.") then
+      return false
+   end
+
+   -- Validate each label separated by .
+   for label in p:gmatch("[^%.]+") do
+      -- Max 1–63 characters
+      if #label == 0 or #label > 63 then
+         return false
+      end
+
+      -- Cannot start or end with -
+      if label:sub(1, 1) == "-" or label:sub(-1) == "-" then
+         return false
+      end
+
+      -- Only letters, numbers and - (LDH rule)
+      if not label:match("^[a-zA-Z0-9%-]+$") then
+         return false
+      end
+   end
+
+   -- TLD (last label) cannot only be numeric
+   local tld = p:match("[^%.]+$")
+   if tld:match("^%d+$") then
+      return false
+   end
+
+   return true
+end
+
 local function validateHostName(v)
    if (isEmptyString(v)) then
       return false
@@ -1199,7 +1241,7 @@ local function validateHost(p)
    if (host.host ~= nil) and (host.vlan ~= nil) and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
       return true
    else
-      return validateNetwork(p)
+      return validateNetwork(p) or validateDomain(p)
    end
 end
 http_lint.validateHost = validateHost
@@ -1809,7 +1851,7 @@ local known_parameters = {
    ["aggregated"] = validateBool,
 
    -- HOST SPECIFICATION
-   ["host"] = validateHost, -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["host"] = validateHost, -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address or Domain
    ["versus_host"] = validateHost, -- an host for comparison
    ["filters_to_display"] = validateListOfTypeInline(validateSingleWord),
    ["mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
