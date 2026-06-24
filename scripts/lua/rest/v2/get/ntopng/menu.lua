@@ -1,10 +1,11 @@
 --
 -- (C) 2013-26 - ntop.org
 --
--- Returns the filtered menu for the current user and interface.
--- Visibility logic lives in ntopng_menu_visibility.lua; menu_definition.json
--- carries pure structure (no hide_if fields).
--- Vue receives only visible sections/entries — no client-side filtering 
+-- Returns the filtered menu for the current user and interface
+-- Menu definition lives in menu_definition.lua and pro/scripts/lua/modules/menu_definition_pro.lua (community_sections + pro_sections).
+-- Visibility flags come from ntopng_menu_visibility.get_flags(); each section
+-- and entry carries its own hidden(flags) predicate.
+-- Vue receives only visible sections/entries — no client-side filtering.
 --
 
 local dirs = ntop.getDirs()
@@ -18,196 +19,53 @@ require "check_redis_prefs"
 local rest_utils      = require "rest_utils"
 local page_utils      = require "page_utils"
 local auth            = require "auth"
-local json            = require "dkjson"
 local recording_utils = require "recording_utils"
 local blog_utils      = require "blog_utils"
 local menu_visibility = require "ntopng_menu_visibility"
 
 local ok, err = pcall(function()
 
--- ---------------------------------------------------------------
 local requested_ifid = _GET["ifid"]
 if requested_ifid and tostring(requested_ifid) ~= tostring(interface.getId()) then
    interface.select(tostring(requested_ifid))
 end
 
--- ---------------------------------------------------------------
--- Evaluate viisbility flags
+-- Evaluate menu items visibility flags: community + pro
 local flags = menu_visibility.get_flags()
+
+local pro_visibilityibility_ok, pro_visibility = pcall(require, "ntopng_menu_visibility_pro")
+if pro_visibilityibility_ok and pro_visibility and type(pro_visibility.get_pro_flags) == "function" then
+   for k, v in pairs(pro_visibility.get_pro_flags()) do
+      flags[k] = v
+   end
+end
 
 local prefs        = ntop.getPrefs()
 local info         = ntop.getInfo(true)
 local ifid_stats   = interface.getStats()
 local current_ifid = interface.getId()
 local iface_names  = interface.getIfNames()
-local is_admin     = isAdministrator()
+local is_admin     = flags.is_admin
 local session_user = _SESSION["user"] or ""
 local is_no_login  = isNoLoginUser()
 local http_prefix  = ntop.getHttpPrefix()
 
-local is_system_interface  = toboolean(page_utils.is_system_view())
-local is_allowed_sys_iface = isAllowedSystemInterface()
+local is_system_interface  = flags.is_system_interface
+local is_allowed_sys_iface = flags.is_allowed_sys_iface
 local system_ifid          = getSystemInterfaceId()
-local is_nedge             = ntop.isnEdge()
-local is_pro               = ntop.isPro()
-local is_windows           = ntop.isWindows()
-local is_oem               = (info.oem == true)
+local is_nedge             = flags.is_nedge or false
+local is_pro               = flags.is_pro
+local is_windows           = flags.is_windows
+local is_oem               = flags.is_oem
 
-local infrastructure_view      = false
+local infrastructure_view      = flags.infrastructure_view
 local infrastructure_instances = {}
-infrastructure_view, infrastructure_instances = isInfrastructureView()
+_, infrastructure_instances = isInfrastructureView()
 
 -- dynamic URL for scripts config
 local scripts_config_url = http_prefix .. "/lua/admin/edit_configset.lua?subdir=all"
 if tonumber(system_ifid) == tonumber(current_ifid) then
    scripts_config_url = http_prefix .. "/lua/admin/edit_configset.lua?subdir=system"
-end
-
--- Section visibility: return true to HIDE the section
-local section_hidden = {
-   dashboard     = function() return flags.is_pcap_dump or flags.is_system_interface or flags.is_db_view_interface end,
-   monitoring    = function() return flags.is_system_interface or flags.no_admin end,
-   alerts        = function() return flags.alerts_disabled or flags.no_alerts_cap or flags.is_db_view_interface or flags.infrastructure_view end,
-   flows         = function() return flags.is_asn_mode_enabled or flags.is_system_interface or flags.infrastructure_view or flags.is_nedge end,
-   nanalyst      = function() return flags.no_nanalyst end,
-   views         = function() return (flags.no_asn_mode and not flags.is_nedge) or flags.is_system_interface or flags.is_viewed or flags.infrastructure_view end,
-   hosts         = function() return flags.is_system_interface or flags.is_viewed or flags.infrastructure_view or flags.is_asn_mode_enabled or flags.is_nedge end,
-   collection    = function() return flags.no_exporters or flags.no_enterprise_m or flags.is_system_interface or flags.infrastructure_view end,
-   maps          = function() return flags.is_system_interface or flags.is_viewed or flags.infrastructure_view end,
-   if_stats      = function() return flags.is_system_interface or flags.infrastructure_view end,
-   health        = function() return flags.no_system_interface end,
-   pollers       = function() return flags.no_system_interface end,
-   notifications = function() return flags.no_system_interface or flags.no_admin end,
-   policies      = function() return flags.infrastructure_view or flags.no_admin end,
-   admin         = function() return flags.no_admin end,
-   dev           = function() return flags.is_oem or flags.no_developer_cap or flags.no_developer_menu end,
-   about         = function() return flags.is_oem or flags.no_help_menu end,
-   -- system_stats: only on system interface and only when allowed
-   system_stats  = function() return not flags.is_allowed_sys_iface or flags.no_system_interface end,
-}
-
--- Entry visibility: return true to HIDE the entry
-local entry_hidden = {
-   -- dashboard
-   assets_dashboard = function() return flags.no_ch_support or flags.no_asset_inventory or flags.no_enterprise_l end,
-   gateways_users   = function() return not flags.is_nedge or not flags.is_routing_mode end,
-   traffic_report   = function() return (not flags.is_nedge and flags.no_enterprise_with_ch) or (flags.is_nedge and (not flags.is_nedge_enterprise or flags.no_ch_support)) or flags.infrastructure_view or flags.is_viewed end,
-   hr_chart         = function() return flags.no_enterprise_m or flags.no_ch_support or flags.no_hr_flows end,
-
-   -- monitoring
-   active_monitoring        = function() return flags.is_windows end,
-   network_discovery        = function() return flags.no_discoverable_interface or flags.is_windows or flags.is_loopback_interface or flags.limit_resource_usage or flags.infrastructure_view end,
-   infrastructure_dashboard = function() return flags.no_enterprise_l_or_nedge or flags.no_admin end,
-   snmp_monitoring          = function() return flags.no_enterprise_m_or_nedge end,
-   vulnerability_scan       = function() return flags.no_vs_utils or flags.is_zmq_interface end,
-
-   -- alerts
-   alerts_geomap    = function() return true end,  -- always hidden per old code: hidden = true or (not is_enterprise_XL)
-   alerts_graph     = function() return flags.no_enterprise_l_or_nedge or flags.no_ch_support or flags.is_pcap_dump end,
-   alerts_analysis  = function() return flags.no_enterprise or flags.is_pcap_dump end,
-   notifications    = function() return flags.no_admin or flags.is_pcap_dump end,
-
-   -- flows
-   db_explorer         = function() return flags.no_enterprise_or_nedge_with_ch_hist or flags.is_viewed or flags.is_db_type end,
-   server_ports        = function() return flags.no_enterprise_l end,
-   bgp_looking_glass   = function() return flags.no_bgp_server end,
-
-   -- views (nedge mode — all hidden unless nedge)
-   nedge_flows      = function() return not flags.is_nedge end,
-   nedge_hosts      = function() return not flags.is_nedge end,
-   nedge_devices    = function() return not flags.is_nedge end,
-   nedge_db_explorer = function() return not flags.is_nedge or not flags.is_nedge_enterprise or flags.no_ch_support end,
-   nedge_users      = function() return not flags.is_nedge end,
-   nedge_vlans      = function() return not flags.is_nedge or flags.no_vlans end,
-   nedge_networks   = function() return not flags.is_nedge end,
-   nedge_os         = function() return not flags.is_nedge end,
-   nedge_geo_map    = function() return not flags.is_nedge or flags.is_loopback_interface end,
-
-   -- views (ASN mode — all hidden when nedge)
-   hosts_asn_mode         = function() return flags.is_nedge end,
-   active_flows_asn_mode  = function() return flags.is_nedge end,
-   db_explorer_asn_mode         = function() return flags.is_nedge or flags.no_enterprise_or_nedge_with_ch_hist or flags.is_viewed or flags.is_db_type end,
-   historical_flows_asn_mode    = function() return not flags.is_nedge or flags.no_enterprise_or_nedge_with_ch_hist or flags.is_viewed or flags.is_db_type end,
-   server_ports_asn_mode  = function() return flags.is_nedge or flags.no_enterprise_l end,
-   bgp_looking_glass_asn  = function() return flags.is_nedge or flags.no_bgp_server end,
-
-   -- hosts
-   devices = function() return flags.no_macs end,
-   assets  = function() return flags.no_enterprise_m_no_windows or flags.no_asset_inventory end,
-
-   -- collection
-   sflow_exporters    = function() return flags.no_sflow_devices end,
-   observation_points = function() return flags.no_obs_points end,
-
-   -- maps
-   analysis_map = function() return flags.no_service_map end,
-   geo_map      = function() return flags.is_loopback_interface or flags.no_geoip end,
-   hosts_map    = function() return flags.no_enterprise or flags.is_asn_mode_enabled end,
-
-   -- if_stats
-   networks           = function() return flags.is_viewed_interface end,
-   host_pools         = function() return flags.is_nedge end,
-   autonomous_systems = function() return flags.no_geoip or flags.is_viewed_interface end,
-   countries          = function() return flags.no_geoip or flags.is_viewed_interface end,
-   vlans              = function() return flags.no_vlans or flags.is_viewed_interface end,
-   pods               = function() return flags.no_pods end,
-   containers         = function() return flags.no_containers end,
-
-   -- health
-   influxdb_status   = function() return flags.no_influxdb end,
-   clickhouse_status = function() return flags.no_ch_support end,
-
-   -- pollers
-   -- assets_snmp: hidden if no asset inventory
-   assets_snmp                     = function() return flags.no_asset_inventory end,
-   -- snmp: in system interface, hidden if not enterprise_m/nedge
-   snmp                            = function() return flags.no_enterprise_m_or_nedge end,
-   -- active_monitoring_system: only for system interface (always visible when section is shown)
-   active_monitoring_system        = function() return false end,
-   -- infrastructure_dashboard_system: same condition as monitoring section version
-   infrastructure_dashboard_system = function() return flags.no_enterprise_l_or_nedge or flags.no_admin end,
-
-   -- policies
-   access_control_list = function() return flags.no_enterprise_l or flags.is_asn_mode_enabled end,
-   device_protocols    = function() return flags.is_asn_mode_enabled end,
-   device_exclusions   = function() return flags.no_checks_cap or flags.no_enterprise_m or flags.no_devices_exclusion end,
-   network_config      = function() return flags.no_checks_cap end,
-   traffic_rules       = function() return flags.no_enterprise or flags.no_admin end,
-   scripts_config      = function() return flags.no_checks_cap end,
-   alert_exclusions    = function() return flags.no_checks_cap or flags.no_enterprise_m or flags.is_system_ifid end,
-   profiles            = function() return flags.no_pro or flags.is_nedge or flags.is_asn_mode_enabled end,
-
-   -- admin
-   nedge_users            = function() return not flags.is_nedge end,
-   manage_users           = function() return flags.no_local_auth_or_local_user end,
-   manage_configurations  = function() return flags.no_dump_cache end,
-   divider_nedge_admin    = function() return not flags.is_nedge end,
-   remote_assistance      = function() return true end,  -- page removed (attic), hidden until restored
-   conf_backup            = function() return not flags.is_nedge or flags.no_admin or flags.is_oem end,
-   conf_restore           = function() return not flags.is_nedge or flags.no_admin or flags.is_oem end,
-
-   -- dev
-   manage_data = function() return flags.no_admin end,
-
-   -- about
-   license = function() return flags.pro_forced_community or flags.no_admin end,
-   limits  = function() return flags.no_admin end,
-}
-
--- Load menu definition JSON
-local def_path = dirs.installdir .. "/httpdocs/misc/menu_definition.json"
-local f = io.open(def_path, "r")
-if not f then
-   rest_utils.answer(rest_utils.consts.err.internal_error, { error = "menu_definition.json not found" })
-   return
-end
-local def_raw = f:read("*a")
-f:close()
-
-local def, _, jerr = json.decode(def_raw)
-if jerr then
-   rest_utils.answer(rest_utils.consts.err.internal_error, { error = "menu_definition.json parse error: " .. jerr })
-   return
 end
 
 local dynamic_urls = {
@@ -225,25 +83,71 @@ local function resolve_url(entry)
    return nil
 end
 
+-- ---------------------------------------------------------------
+-- Load section definitions and pro menu definition
+local community_sections = require("menu_definition")(flags)
 
+local pro_raw_ok, pro_def = pcall(require, "menu_definition_pro")
+local pro_sections = (pro_raw_ok and type(pro_def) == "function") and pro_def(flags) or {}
+
+local get_dynamic_entries = (pro_visibilityibility_ok and pro_visibility and type(pro_visibility.get_dynamic_entries) == "function")
+   and pro_visibility.get_dynamic_entries
+   or function() return {} end
+
+local section_map   = {}   -- key -> section (table with mutable entries array)
+local section_order = {}   -- ordered list of keys
+
+for _, section in ipairs(community_sections) do
+   section_map[section.key]         = section
+   section_map[section.key].entries = section.entries or {}
+   section_order[#section_order + 1] = section.key
+end
+
+-- Merge pro sections:
+--   existing key  -> append entries only (no position change)
+--   new key       -> insert right after the section named by ps.after (or append)
+for _, ps in ipairs(pro_sections) do
+   if section_map[ps.key] then
+      for _, e in ipairs(ps.entries or {}) do
+         section_map[ps.key].entries[#section_map[ps.key].entries + 1] = e
+      end
+   else
+      section_map[ps.key]         = ps
+      section_map[ps.key].entries = ps.entries or {}
+      if ps.after then
+         local insert_at = #section_order + 1
+         for i, k in ipairs(section_order) do
+            if k == ps.after then insert_at = i + 1; break end
+         end
+         table.insert(section_order, insert_at, ps.key)
+      else
+         section_order[#section_order + 1] = ps.key
+      end
+   end
+end
+
+-- ---------------------------------------------------------------
 -- Build filtered + translated menu
+-- hidden is a boolean already evaluated by the definition function
 local result = {}
 
-for _, section in ipairs(def.sections) do
-   local sec_check = section_hidden[section.key]
-   if sec_check and sec_check() then
-      -- section hidden: skip entirely
-   else
-      -- Collect static entries from JSON
+local function translate(key_i18n)
+   if not key_i18n then return nil end
+   local v = i18n(key_i18n)
+   return (type(v) == "string") and v or key_i18n
+end
+
+for _, sec_key in ipairs(section_order) do
+   local section = section_map[sec_key]
+   if not section.hidden then
       local entries = nil
       if section.entries ~= nil then
          entries = {}
          for _, entry in ipairs(section.entries) do
-            local entry_check = entry_hidden[entry.key]
-            if not (entry_check and entry_check()) then
+            if not entry.hidden then
                entries[#entries + 1] = {
                   key         = entry.key,
-                  label       = entry.i18n and (function() local v = i18n(entry.i18n); return type(v) == "string" and v or entry.i18n end)() or nil,
+                  label       = translate(entry.i18n),
                   icon        = entry.icon or nil,
                   url         = resolve_url(entry),
                   is_external = (entry.is_external == true),
@@ -252,23 +156,19 @@ for _, section in ipairs(def.sections) do
             end
          end
 
-         -- Append dynamic entries (scripts_menu, nedge, appliance)
-         local dynamic = menu_visibility.get_dynamic_entries(section.key, flags, page_utils, http_prefix)
+         -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only
+         local dynamic = get_dynamic_entries(sec_key, flags, page_utils, http_prefix)
          for _, de in ipairs(dynamic) do
             entries[#entries + 1] = de
          end
       end
 
-      -- Skip sections that end up with no entries (and no direct url)
-      local has_content = (section.url ~= nil) or
-                          (entries ~= nil and #entries > 0)
+      -- Skip sections with no content
+      local has_content = (section.url ~= nil) or (entries ~= nil and #entries > 0)
       if has_content then
-         local sec_label_raw = i18n(section.i18n)
-         local sec_label = (type(sec_label_raw) == "string") and sec_label_raw or section.i18n
-
          result[#result + 1] = {
-            key     = section.key,
-            label   = sec_label,
+            key     = sec_key,
+            label   = translate(section.i18n),
             icon    = section.icon or "",
             url     = section.url and (http_prefix .. section.url) or nil,
             entries = entries,
@@ -486,7 +386,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    -- product info
    product        = info.product or "",
    version        = info.version or "",
-   version_full   = getNtopngRelease(info),
+   version_full   = info.edition or "",
    copyright      = info.copyright or "",
    uptime         = secondsToTime(ntop.getUptime()),
 })

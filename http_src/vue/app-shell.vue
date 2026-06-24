@@ -1459,9 +1459,9 @@ div#n-container {
   display: block !important;
   width: auto !important;
   max-width: none !important;
-  padding-left: 0.75rem !important;
+  padding-left: 0rem !important;
   padding-right: 0.75rem !important;
-  margin-left: var(--sb-rail-w) !important;
+  margin-left: 0rem !important;
   margin-right: 0 !important;
   margin-top: 0 !important;
   padding-top: calc(var(--sb-navbar-h) + 0.5rem) !important;
