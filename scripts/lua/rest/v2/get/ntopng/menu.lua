@@ -389,11 +389,12 @@ if not is_oem then
       local title = p.title or ""
       if #title > 42 then title = title:sub(1, 42) .. "..." end
       blog_posts[#blog_posts + 1] = {
-         id      = p.id,
-         title   = title,
-         url     = p.url,
-         epoch   = p.epoch,
-         is_read = user_has_read,
+         id         = p.id,
+         title      = title,
+         url        = p.link,
+         short_desc = p.shortDesc,
+         epoch      = p.epoch,
+         is_read    = user_has_read,
       }
    end
 end

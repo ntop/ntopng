@@ -71,7 +71,10 @@
         ref="avatarBtn"
       >
         <span class="sb-rail__pill"></span>
-        <div class="sb-rail__avatar-cell"><div class="sb-avatar">{{ userInitials }}</div></div>
+        <div class="sb-rail__avatar-cell">
+          <div class="sb-avatar">{{ userInitials }}</div>
+          <span v-if="hasAdminNotifications" class="sb-avatar-dot"></span>
+        </div>
         <span class="sb-rail__label">{{ _i18n("profile") || "Profile" }}</span>
       </div>
     </div>
@@ -93,7 +96,7 @@
           <!-- About: inline info block -->
           <template v-if="currentPanelSection.key === 'about'">
             <div class="sb-about-block">
-              <div class="sb-about-block__product">{{ menu.product || "ntopng" }}</div>
+              <div class="sb-about-block__product">{{ menu.product }}</div>
               <div v-if="menu.version_full" class="sb-about-block__version" v-html="menu.version_full"></div>
               <div v-else-if="menu.version" class="sb-about-block__version">{{ menu.version }}</div>
               <div class="sb-about-block__divider"></div>
@@ -107,7 +110,7 @@
                 <i class="fas fa-id-card"></i>
                 <a :href="`${pfx}/lua/license.lua`">{{ menu.license_badge.label }}</a>
                 <button class="sb-about-copy-btn" @click.stop="copyLicenseLink"
-                        :title="copiedLicense ? 'Copied!' : 'Copy license link'">
+                        :title="copiedLicense ? 'Copied!' : 'Copy license'">
                   <i :class="copiedLicense ? 'fas fa-check' : 'fas fa-copy'"></i>
                 </button>
               </div>
@@ -238,6 +241,33 @@
             <i class="fas fa-redo sb-popup-icon"></i>
             <span>{{ _i18n("nedge.reboot") }}</span>
           </button>
+        </template>
+
+        <!-- Blog feed -->
+        <template v-if="!menu.is_oem">
+          <div class="sb-popup-divider"></div>
+          <button class="sb-popup-item" @click.stop="blogExpanded = !blogExpanded">
+            <i class="fas fa-bell sb-popup-icon"></i>
+            <span>News from the <b>ntop Blog</b></span>
+            <span v-if="menu.new_posts_counter > 0" class="badge bg-danger ms-auto me-1">{{ menu.new_posts_counter }}</span>
+            <i v-else :class="blogExpanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
+               style="font-size:0.6rem;opacity:0.45;margin-left:auto"></i>
+          </button>
+          <template v-if="blogExpanded">
+            <template v-if="hasBlogPosts">
+              <a v-for="post in menu.blog_posts" :key="post.id"
+                 class="sb-popup-blog-item" :href="post.url" target="_blank" rel="noopener"
+                 @click="markPostRead(post.id)">
+                <i class="fas fa-circle fa-xs" :class="post.is_read ? 'text-muted opacity-25' : 'text-danger'" style="flex-shrink:0;margin-top:0.2rem"></i>
+                <div class="sb-popup-blog-item__body">
+                  <div :class="{ 'fw-semibold': !post.is_read }">{{ post.title }}</div>
+                  <div v-if="post.short_desc" class="sb-popup-blog-item__desc">{{ post.short_desc }}</div>
+                </div>
+                <i class="fas fa-external-link-alt" style="font-size:0.55rem;opacity:0.4;flex-shrink:0;margin-top:0.2rem"></i>
+              </a>
+            </template>
+            <div v-else class="sb-popup-blog-empty">Nothing to show here. Try tomorrow!</div>
+          </template>
         </template>
 
         <div class="sb-popup-divider"></div>
@@ -432,30 +462,6 @@
 
       <SearchBox :context="searchCtx" />
 
-      <!-- Blog bell -->
-      <div v-if="!menu.is_oem && hasBlogPosts" class="sb-topbar__btn-wrap" ref="blogDropRef">
-        <button class="sb-topbar__icon-btn" :class="{ open: blogOpen }"
-                @click.stop="blogOpen = !blogOpen" aria-label="Notifications">
-          <i class="fas fa-bell"></i>
-          <span v-if="menu.new_posts_counter > 0" class="sb-topbar__badge">
-            {{ menu.new_posts_counter }}
-          </span>
-        </button>
-        <Teleport to="body">
-          <Transition name="sb-drop-anim">
-            <div v-if="blogOpen" class="sb-blog-menu" :style="blogMenuStyle" @click.stop>
-              <div class="sb-iface-menu__label px-3 pt-2 pb-1">{{ _i18n("blog.latest_posts") }}</div>
-              <a v-for="post in menu.blog_posts" :key="post.id"
-                 class="sb-blog-item" :href="post.url" target="_blank" rel="noopener"
-                 @click="markPostRead(post.id); blogOpen=false">
-                <i class="fas fa-circle fa-xs" :class="post.is_read ? 'text-muted opacity-25' : 'text-primary'"></i>
-                <span :class="{ 'fw-semibold': !post.is_read }">{{ post.title }}</span>
-              </a>
-            </div>
-          </Transition>
-        </Teleport>
-      </div>
-
     </div>
   </nav>
 
@@ -520,15 +526,14 @@ const hoveredSection = ref(null);  // currently hovered (transient)
 const lockedSection  = ref(null);  // clicked/locked open
 const isPanelOpen    = ref(false);
 const userPopupOpen  = ref(false);
+const blogExpanded   = ref(false);
 const railHovered    = ref(false); // rail hover -> expand all labels
 const avatarBtn      = ref(null);  // ref to avatar button element
 const ifaceDropRef   = ref(null);  // interface selector button
-const blogDropRef    = ref(null);  // blog bell button
 const railNav        = ref(null);  // ref to scrollable nav area
 const navOverflow    = ref(false); // true when items are hidden below visible area
 const navCanScrollUp = ref(false); // true when scrolled down (items hidden above)
 const ifaceOpen      = ref(false);
-const blogOpen       = ref(false);
 let ifaceLeaveTimer  = null;
 let railNavObserver  = null;
 
@@ -562,18 +567,38 @@ const ifaceMenuStyle = computed(() => {
   return { top: (rect.bottom + 4) + "px", left: rect.left + "px" };
 });
 
-// Blog dropdown positioned below the trigger button (right-aligned)
-const blogMenuStyle = computed(() => {
-  if (!blogDropRef.value) return {};
-  const rect = blogDropRef.value.getBoundingClientRect();
-  return { top: (rect.bottom + 4) + "px", right: (window.innerWidth - rect.right) + "px" };
-});
-
 // The panel shows: locked section if any, otherwise hovered
 const currentPanelSection = computed(() => lockedSection.value || hoveredSection.value);
 
-const activeSection = computed(() => ctx.value.active_section || "");
-const activeEntry   = computed(() => ctx.value.active_entry   || "");
+const activeSection = computed(() => {
+  if (ctx.value.active_section) return ctx.value.active_section;
+  const pathname = window.location.pathname;
+  for (const section of (menu.value.sections || [])) {
+    for (const entry of (section.entries || [])) {
+      if (!entry.url || entry.is_divider) continue;
+      try {
+        const ep = new URL(entry.url, window.location.origin).pathname;
+        if (ep === pathname) return section.key;
+      } catch (_) {}
+    }
+  }
+  return "";
+});
+
+const activeEntry = computed(() => {
+  if (ctx.value.active_entry) return ctx.value.active_entry;
+  const pathname = window.location.pathname;
+  for (const section of (menu.value.sections || [])) {
+    for (const entry of (section.entries || [])) {
+      if (!entry.url || entry.is_divider) continue;
+      try {
+        const ep = new URL(entry.url, window.location.origin).pathname;
+        if (ep === pathname) return entry.key;
+      } catch (_) {}
+    }
+  }
+  return "";
+});
 
 // Theme: initialised from DOM (set by page_utils.lua before Vue mounts),
 // then kept in sync by toggleTheme() so the toggle is instant.
@@ -743,6 +768,12 @@ const hasBlogPosts = computed(() =>
   Array.isArray(menu.value.blog_posts) && menu.value.blog_posts.length > 0
 );
 
+const hasAdminNotifications = computed(() =>
+  (menu.value.new_posts_counter > 0) ||
+  updateStatus.value === "update-avail" ||
+  updateStatus.value === "upgrade-failure"
+);
+
 const searchCtx = computed(() => ({
   ifid: ctx.value.ifid || (typeof interfaceID !== "undefined" ? interfaceID : 0),
 }));
@@ -763,7 +794,6 @@ function onRailEnter() {
   clearTimeout(panelLeaveTimer);
   railHovered.value = true;
   ifaceOpen.value = false;
-  blogOpen.value  = false;
 }
 
 function onRailLeave() {
@@ -892,9 +922,6 @@ function handleOutsideClick(e) {
   }
   if (!e.target.closest(".sb-iface-selector") && !e.target.closest(".sb-iface-menu")) {
     ifaceOpen.value = false;
-  }
-  if (!e.target.closest(".sb-topbar__btn-wrap") && !e.target.closest(".sb-blog-menu")) {
-    blogOpen.value = false;
   }
 }
 
@@ -1239,8 +1266,8 @@ function updateClock() {
 }
 
 function copyLicenseLink() {
-  const url = window.location.origin + pfx.value + "/lua/license.lua";
-  navigator.clipboard?.writeText(url).then(() => {
+  const text = menu.value.license_badge?.label || (window.location.origin + pfx.value + "/lua/license.lua");
+  navigator.clipboard?.writeText(text).then(() => {
     copiedLicense.value = true;
     setTimeout(() => { copiedLicense.value = false; }, 1500);
   });
@@ -1263,10 +1290,34 @@ async function markPostRead(postId) {
 }
 
 // Package update logic
+let updatesLastCheck = 0;
+let updatesTimer     = null;
+
 function onUpdateStatusEvent(e) {
   const d = e.detail || {};
   updateStatus.value  = d.status  || "";
   updateVersion.value = d.version || "";
+}
+
+async function updatesRefresh() {
+  const now    = Date.now() / 1000;
+  const status = updateStatus.value;
+
+  // If an update is available or upgrade failed, no need to keep polling
+  if (status === "update-avail" || status === "upgrade-failure") return;
+
+  const checkIntervalSec = (status === "installing" || status === "checking") ? 10 : 300;
+  if (now < updatesLastCheck + checkIntervalSec) return;
+  updatesLastCheck = now;
+
+  try {
+    const rsp = await ntopng_utility.http_request(`${pfx.value}/lua/check_update.lua`);
+    console.log("[updates] GET check_update.lua response:", rsp);
+    if (rsp && rsp.status) {
+      updateStatus.value  = rsp.status;
+      updateVersion.value = rsp.version || "";
+    }
+  } catch (e) { console.error("[updates] GET check_update.lua error:", e); }
 }
 
 async function doInstallUpdate() {
@@ -1280,14 +1331,16 @@ async function doInstallUpdate() {
         body: new URLSearchParams({ csrf: ctx.value.csrf || window.__CSRF_DATATABLE__ }),
       }
     );
-    updateStatus.value = "installing";
+    updateStatus.value  = "installing";
+    updatesLastCheck    = 0;
   } catch (_) {}
 }
 
 async function doCheckForUpdates() {
   updateStatus.value = "checking";
+  updatesLastCheck   = 0;
   try {
-    await ntopng_utility.http_request(
+    const postRsp = await ntopng_utility.http_request(
       `${pfx.value}/lua/check_update.lua`,
       {
         method: "POST",
@@ -1298,6 +1351,10 @@ async function doCheckForUpdates() {
         }),
       }
     );
+    console.log("[updates] POST check_update.lua response:", postRsp);
+    // Immediately fetch updated status
+    updatesLastCheck = 0;
+    await updatesRefresh();
   } catch (_) {}
 }
 
@@ -1317,6 +1374,11 @@ onMounted(async () => {
   pollTimer  = setInterval(pollIface, 7000);
   updateClock();
   clockTimer = setInterval(updateClock, 1000);
+
+  if (menu.value.has_updates_support) {
+    await updatesRefresh();
+    updatesTimer = setInterval(updatesRefresh, 5000);
+  }
 });
 
 onBeforeUnmount(() => {
@@ -1324,8 +1386,9 @@ onBeforeUnmount(() => {
   document.removeEventListener("click", handleOutsideClick);
   clearTimeout(railLeaveTimer);
   clearTimeout(panelLeaveTimer);
-  if (pollTimer)  clearInterval(pollTimer);
-  if (clockTimer) clearInterval(clockTimer);
+  if (pollTimer)    clearInterval(pollTimer);
+  if (clockTimer)   clearInterval(clockTimer);
+  if (updatesTimer) clearInterval(updatesTimer);
   railNavObserver?.disconnect();
 });
 
@@ -1354,6 +1417,11 @@ watch(() => menu.value.theme, (theme) => {
     isDark.value = serverDark;
     applyTheme(serverDark);
   }
+});
+
+// Auto-expand blog section when there are unread posts
+watch(() => menu.value.new_posts_counter, (n) => {
+  if (n > 0) blogExpanded.value = true;
 });
 </script>
 
@@ -1678,6 +1746,16 @@ div.wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+.sb-avatar-dot {
+  position: absolute;
+  top: -0.1rem; right: -0.1rem;
+  width: 0.55rem; height: 0.55rem;
+  border-radius: 50%;
+  background: #dc3545;
+  border: 2px solid var(--sb-rail-bg, #212529);
+  pointer-events: none;
 }
 
 /*
@@ -1875,6 +1953,21 @@ div.wrapper {
 .sb-iface-tag--zmq  { background: rgba(255,163,0,0.12);   color: #e08000; }
 .sb-iface-tag--drop { background: rgba(220,53,69,0.15);   color: #dc3545; }
 
+.sb-popup-blog-header {
+  padding: 0.45rem 1rem 0.2rem;
+  font-size: 0.68rem; color: var(--sb-muted);
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.sb-popup-blog-header b { color: var(--sb-link-color); }
+.sb-popup-blog-item {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  padding: 0.4rem 1rem; font-size: 0.75rem;
+  color: var(--sb-link-color); text-decoration: none; transition: background 0.1s;
+}
+.sb-popup-blog-item:hover { background: var(--sb-link-hover-bg); color: #fff; text-decoration: none; }
+.sb-popup-blog-item__body { flex: 1; min-width: 0; }
+.sb-popup-blog-item__desc { font-size: 0.67rem; color: var(--sb-muted); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-popup-blog-empty { padding: 0.4rem 1rem 0.6rem; font-size: 0.75rem; color: var(--sb-muted); font-style: italic; }
 .sb-blog-menu {
   position: fixed; min-width: 17rem; max-width: 22rem;
   background: #212529; border: 1px solid rgba(255,255,255,0.1);
@@ -1887,6 +1980,11 @@ div.wrapper {
   color: rgba(226,226,226,0.8); text-decoration: none; transition: background 0.1s;
 }
 .sb-blog-item:hover { background: rgba(255,255,255,0.07); color: #fff; text-decoration: none; }
+.sb-blog-empty { padding: 0.6rem 0.85rem; font-size: 0.78rem; color: rgba(226,226,226,0.45); }
+.sb-blog-item__left { flex-shrink: 0; padding-top: 0.2rem; }
+.sb-blog-item__body { flex: 1; min-width: 0; }
+.sb-blog-item__desc { font-size: 0.7rem; color: rgba(226,226,226,0.5); margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-blog-item__ext { font-size: 0.55rem; flex-shrink: 0; opacity: 0.4; margin-top: 0.2rem; }
 
 .sb-about-block { padding: 0.85rem 1rem 0.7rem; user-select: text; }
 .sb-about-block__product {
@@ -2064,7 +2162,7 @@ div.wrapper {
   width: 2.5rem; height: 2.5rem; aspect-ratio: 1;
   font-size: 0.82rem; border: 2px solid rgba(255,117,0,0.3);
 }
-.sb-ext-icon { font-size: 0.55rem; opacity: 0.4; margin-left: auto; }
+.sb-ext-icon { font-size: 0.55rem; margin-left: auto; }
 .iface-type-icon { width: 1rem; text-align: center; flex-shrink: 0; }
 
 .sb-sparklines { display: flex; align-items: center; }

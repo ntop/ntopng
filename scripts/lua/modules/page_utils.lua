@@ -1578,6 +1578,7 @@ function page_utils.has_nanalyst()
     local is_system_interface = toboolean(page_utils.is_system_view())
     local has_nAnalyst =  ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
 
+    tprint(ntop.hasnAnalyst())
     return has_nAnalyst
 end
 
