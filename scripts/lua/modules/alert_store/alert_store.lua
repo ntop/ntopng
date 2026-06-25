@@ -1015,6 +1015,13 @@ end
 
 -- ##############################################
 
+-- Convert a unsigned int to clickhouse UUID
+local function int_to_uuid(num)
+    local hex = string.format("%012x", num) -- 12 hex chars 0-padded
+    local uuid = string.format("00000000-0000-0000-0000-%s", hex)
+    return uuid
+end 
+
 function alert_store:insert_engaged(alert)
     local engaged_write_table = self:get_engaged_write_table_name()
 
@@ -1024,7 +1031,7 @@ function alert_store:insert_engaged(alert)
         local extra_values
         if ntop.isClickHouseEnabled() then
             extra_columns = "rowid, "
-            extra_values = string.format("concat('00000000-0000-0000-0000-', toFixedString(hex(%u), 12)), ", alert.rowid)
+            extra_values = string.format("'%s', ", int_to_uuid(alert.rowid))
         else
             extra_columns = "rowid, "
             extra_values = string.format("%u, ", alert.rowid)
@@ -1057,7 +1064,7 @@ function alert_store:delete_engaged(alert)
         local delete_stmt
 
         if ntop.isClickHouseEnabled() then
-            delete_stmt = string.format("ALTER TABLE %s DELETE WHERE rowid = concat('00000000-0000-0000-0000-', toFixedString(hex(%u), 12))", engaged_write_table, alert.rowid)
+            delete_stmt = string.format("ALTER TABLE %s DELETE WHERE rowid = '%s'", engaged_write_table, int_to_uuid(alert.rowid))
         else
             delete_stmt = string.format("DELETE FROM %s WHERE rowid = %u", engaged_write_table, alert.rowid)
         end
