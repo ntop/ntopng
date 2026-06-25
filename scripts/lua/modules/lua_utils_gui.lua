@@ -28,7 +28,7 @@ local rest_utils = require "rest_utils"
 --local snmp_utils
 local cache_utils = require "cache_utils"
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "flow_exporter_utils"
    -- snmp_utils = require "snmp_utils"
@@ -1014,7 +1014,7 @@ end
 --         port_name: string, interface name
 function get_portidx_by_name(device_ip, port_name)
    -- SNMP is available only with Pro version at least
-   if ntop.isPro() then
+   if ntop.isPro and ntop.isPro() then
       local cached_dev = _snmp_devices[device_ip]
 
       if (cached_dev == nil) then
@@ -1635,7 +1635,7 @@ function formatInterfaceIP(ip, href)
 end
 
 function formatExporter(ip)
-   if ntop.isPro() then      
+   if ntop.isPro and ntop.isPro() then      
       return formatInterfaceIP(ip, "/lua/pro/enterprise/exporter_interfaces.lua?ip="), ip, exporter_name or ip, site
    else
       return ip, ip, ip, nil
@@ -1643,7 +1643,7 @@ function formatExporter(ip)
 end
 
 function formatNextHop(ip)
-   if ntop.isPro() then
+   if ntop.isPro and ntop.isPro() then
       local site_utils = require "site_utils"
       local ret
       local site = site_utils.mapHostToSite(ip).name

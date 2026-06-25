@@ -790,7 +790,7 @@ function getHttpHost()
       local ntopng_protocol = "http://"
       local ntopng_port = ntopng_info.http_port
 
-      if not ntop.isnEdge() and ntopng_info.https_port and
+      if not (ntop.isnEdge and ntop.isnEdge()) and ntopng_info.https_port and
 	 tonumber(ntopng_info.https_port) ~= 0 then
 	 ntopng_protocol = "https://"
 	 ntopng_port = ntopng_info.https_port
@@ -956,7 +956,7 @@ end
 -- ##############################################
 
 function generateExporterLink(ip)
-   if ntop.isPro() then
+   if ntop.isPro and ntop.isPro() then
       -- Fallback SNMP not available, use exporter link
       local exporters_utils = require "exporters_utils"
       local exporter_source_id = nil
@@ -977,7 +977,7 @@ end
 -- ##############################################
 
 function generateExporterInterfaceLink(ip, interface)
-   if ntop.isPro() then
+   if ntop.isPro and ntop.isPro() then
       -- Fallback SNMP not available, use exporter link
       local exporters_utils = require "exporters_utils"
       local exporter_source_id = nil

@@ -110,7 +110,7 @@ local function initLocales()
       return
    end
 
-   local is_nedge = ntop.isnEdge()
+   local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
    -- Provides a fallback for not already localized strings
    locales.loadLocaleFile(default_locale_path, default_locale)

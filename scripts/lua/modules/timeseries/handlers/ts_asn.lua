@@ -283,7 +283,7 @@ function ts_asn.getTimeseries(tags, tsOptions)
 
     timeseries = timeseries_list
 
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local ts_asn_pro = require "ts_asn_pro"
         local timeseries_pro = ts_asn_pro.getTimeseries(tags, emptyEpoch, tsOptions)
         timeseries = table.merge(timeseries, timeseries_pro)

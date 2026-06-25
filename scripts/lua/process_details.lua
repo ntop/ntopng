@@ -24,7 +24,7 @@ local host_info = url2hostinfo(_GET)
 local ifstats = interface.getStats()
 local refresh_rate
 
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 if have_nedge then
    refresh_rate = 5
 else

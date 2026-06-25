@@ -575,7 +575,7 @@ function ts_host.getTimeseries(tags, tsOptions)
 
     timeseries = timeseries_list
     
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local ts_host_pro = require "ts_host_pro"
         local timeseries_pro = ts_host_pro.getTimeseries(tags, emptyEpoch, tsOptions)
         timeseries = table.merge(timeseries, timeseries_pro)
@@ -583,7 +583,7 @@ function ts_host.getTimeseries(tags, tsOptions)
 
     -- HR traffic chart: per-host traffic at 15-second resolution from the
     -- ClickHouse flows table (requires nProbe HR counters + Enterprise M license).
-    if ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
         timeseries[#timeseries + 1] = {
             schema      = "host:hr_traffic",
             id          = timeseries_id,

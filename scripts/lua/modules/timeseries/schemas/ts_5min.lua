@@ -232,7 +232,7 @@ schema:addMetric("packets_rcvd")
 
 -- ##############################################
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
     schema = ts_utils.newSchema("asn:qoe_stats", {
         step = 300,
         metrics_type = ts_utils.metrics.gauge
@@ -882,7 +882,7 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
     schema = ts_utils.newSchema("host:qoe_stats", {
         step = 300,
         metrics_type = ts_utils.metrics.gauge
@@ -1063,7 +1063,7 @@ schema:addMetric("points")
 
 -- ##############################################
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     -------------------------------------------------------
     -- ASN SCHEMAS
     -------------------------------------------------------

@@ -239,7 +239,7 @@ function ts_network.getTimeseries(tags, tsOptions)
     end
     timeseries = timeseries_list
 
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local ts_network_pro = require "ts_network_pro"
         local timeseries_pro = ts_network_pro.getTimeseries(tags, emptyEpoch, tsOptions)
         timeseries = table.merge(timeseries, timeseries_pro)

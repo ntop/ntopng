@@ -5,7 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-if(ntop.isPro()) then
+if(ntop.isPro and ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
     local snmp_utils = require "snmp_utils"
 end

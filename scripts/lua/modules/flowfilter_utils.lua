@@ -19,7 +19,7 @@ local tag_badge_utils = require "tag_badge_utils"
 require "lua_utils_get"
 local qoe_utils
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
     qoe_utils = require "qoe_utils"
 end
@@ -1426,7 +1426,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
             }
         end
     elseif filter_def.value_type == "verdict" then
-        if not ntop.isnEdge() then
+        if not (ntop.isnEdge and ntop.isnEdge()) then
             return nil
         end
         -- nEdge verdict
@@ -1659,7 +1659,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
         if interface.getFlowDevices then -- Pro Only
             for exporter_ip, _ in pairs(getExporterList()) do
                 local group = nil
-                if ntop.isEnterpriseM() then
+                if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                   group = site_utils.mapHostToSite(exporter_ip).name
                 end
                 local probe_name = getProbeName(exporter_ip)
@@ -1676,7 +1676,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
             for interface, device_list in pairs(interface.getSFlowDevices() or {}) do
                 for probe, _ in pairsByValues(device_list or {}, asc) do
                     local group = nil
-                    if ntop.isEnterpriseM() then
+                    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                        group = site_utils.mapHostToSite(exporter_ip).name
                     end
                     local probe_name = getProbeName(probe)
@@ -1786,7 +1786,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
             }
         end
     elseif filter_def.value_type == "snmp_interface" then
-        if ntop.isPro() then
+        if ntop.isPro and ntop.isPro() then
             filter.value_type = 'array'
 
             if snmp_filter_options_cache then
@@ -1854,7 +1854,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                             goto maxEntriesFallback
                         end
 
-                        if ntop.isEnterpriseM() then
+                        if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                             group = site_utils.mapHostToSite(exporter_ip).name
                             group_cache[probe_ip] = group
                         end
@@ -1901,7 +1901,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                         goto maxEntriesFallback
                     end
 
-                    if ntop.isEnterpriseM() then
+                    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                         group = group_cache[exporter_ip] -- use cache first
                         
                         if (group == nil) then

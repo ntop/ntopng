@@ -77,7 +77,7 @@ function alert_traffic_behavior_anomaly.format(ifid, alert, alert_type_params)
    end
 
    -- Generating the href for the timeserie
-   if ntop.isEnterpriseL() then
+   if ntop.isEnterpriseL and ntop.isEnterpriseL() then
       -- Mantaining family_key for supporting past alerts
       if (alert_type_params["family_key"] or alert_type_params["entity_id"]) and alert_type_params["timeseries_id"] then
          -- 10 minutes before and 10 minutes after the alert

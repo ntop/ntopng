@@ -30,7 +30,8 @@ print[[
    <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
 ]]
 
-  if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
+  if ((ntop.isPro and ntop.isPro()) or (ntop.isnEdge and ntop.isnEdge())) 
+     and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
     favicon_path = ntop.getHttpPrefix().."/img/custom_favicon.ico"
   end
   if (favicon_path ~= nil) then

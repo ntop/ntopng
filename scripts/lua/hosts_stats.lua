@@ -11,7 +11,7 @@ require "check_redis_prefs"
 
 local page_utils = require("page_utils")
 local template_utils = require("template_utils")
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 
 local host_ts_available = areHostTimeseriesEnabled()
 local is_asn_mode_enabled = isASNModeEnabled()
@@ -35,7 +35,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     page_name = "active_hosts",
     label = i18n('active_hosts')
 }, {
-    hidden = not host_ts_available or not ntop.isEnterpriseXL() or is_asn_mode_enabled,
+    hidden = not host_ts_available or not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or is_asn_mode_enabled,
     active = page == "local_hosts_report",
     page_name = "local_hosts_report",
     label = i18n("local_hosts_report")

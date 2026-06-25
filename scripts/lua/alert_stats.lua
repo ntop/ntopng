@@ -97,7 +97,7 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "snmp_device"
     }),
-    hidden = not ntop.isPro(),
+    hidden = not (ntop.isPro and ntop.isPro()),
 }, {
     active = page == "flow",
     page_name = "flow",
@@ -165,7 +165,7 @@ local dt_columns_def
 
 local query_preset = _GET["query_preset"] -- Example: &query_preset=contacts
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path 
    local db_query_presets = require "db_query_presets"
    local os_utils = require "os_utils"
@@ -253,7 +253,7 @@ if page == 'snmp_device' then
 end
 
 -- ClickHouse enabled, redirect to the pro details page
-if ((page == 'host') or (page == 'flow') or (page == 'am_host')) and ntop.isEnterpriseM() and hasClickHouseSupport() then
+if ((page == 'host') or (page == 'flow') or (page == 'am_host')) and (ntop.isEnterpriseM and ntop.isEnterpriseM()) and hasClickHouseSupport() then
     alert_details_url = ntop.getHttpPrefix() .. "/lua/pro/db_flow_details.lua"
 end
 
@@ -268,10 +268,10 @@ end
 
 local context = {
     ifid = ifid,
-    is_ntop_enterprise_m = ntop.isEnterpriseM(),
-    is_ntop_enterprise_l = ntop.isEnterpriseL(),
+    is_ntop_enterprise_m = ntop.isEnterpriseM and ntop.isEnterpriseM(),
+    is_ntop_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL(),
     show_chart = true,
-    show_cards = (status ~= "engaged") and ntop.isPro(),
+    show_cards = (status ~= "engaged") and ntop.isPro and ntop.isPro(),
     endpoint_cards = endpoint_cards,
     show_permalink = (page ~= 'all'),
     show_download = (page ~= 'all'),
@@ -285,10 +285,10 @@ local context = {
     actions = {
         show_settings = (page ~= 'system') and isAdministrator(),
         show_flows = (page == 'host'),
-        show_historical = ((page == 'host') or (page == 'flow') or (page == 'am_host')) and ntop.isEnterpriseM() and
+        show_historical = ((page == 'host') or (page == 'flow') or (page == 'am_host')) and ntop.isEnterpriseM and ntop.isEnterpriseM() and
             hasClickHouseSupport(),
         show_pcap_download = traffic_extraction_available and page == 'flow',
-        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator() and ntop.isEnterpriseM(),
+        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator() and ntop.isEnterpriseM and ntop.isEnterpriseM(),
         show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
         show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
         show_info = (page == 'flow' or page == 'as'),

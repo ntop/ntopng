@@ -104,7 +104,7 @@ end
 -- ###############################################
 
 local function format_historical_verdict(flow, protocol_info_json, flow_details)
-   if ntop.isnEdge() and protocol_info_json and protocol_info_json.verdict then
+   if ntop.isnEdge and ntop.isnEdge() and protocol_info_json and protocol_info_json.verdict then
       require "flow_utils"
       local flow_consts = require "flow_consts"
       local shaper_utils = require("shaper_utils")
@@ -161,7 +161,7 @@ function historical_flow_details_formatter.format_qoe(flow)
       json_info = json.decode(flow["PROTOCOL_INFO_JSON"])
    end
 
-   if json_info and json_info.qoe and ntop.isEnterpriseL() and tonumber(flow.QOE_SCORE) <= 100 then
+   if json_info and json_info.qoe and ntop.isEnterpriseL and ntop.isEnterpriseL() and tonumber(flow.QOE_SCORE) <= 100 then
       qoe_utils = require "qoe_utils"
 
       return {

@@ -11,7 +11,7 @@ require "lua_utils_get"
 require "ntop_utils"
 
 local messages = {
-  ntopng = ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user")),
+  ntopng = ternary(ntop.isnEdge and ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user")),
   username = i18n("login.username"),
   full_name = i18n("users.full_name"),
   password = i18n("login.password"),

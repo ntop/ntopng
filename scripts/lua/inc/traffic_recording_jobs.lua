@@ -9,7 +9,7 @@ local template = require "template_utils"
 local recording_utils = require "recording_utils"
 local master_ifid = interface.getMasterInterfaceId()
 
-if((not isAdministrator()) or (not recording_utils.isAvailable()) or (not ntop.isEnterpriseM())) then
+if((not isAdministrator()) or (not recording_utils.isAvailable()) or (not (ntop.isEnterpriseM and ntop.isEnterpriseM()))) then
   return
 end
 

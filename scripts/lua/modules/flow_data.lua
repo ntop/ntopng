@@ -13,7 +13,7 @@ local trace_stats = false
 local flow_data_historical = nil
 local node_key_id_separator = ";"
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" ..
                      package.path
    flow_data_historical = require "flow_data_historical"

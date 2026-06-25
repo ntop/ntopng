@@ -23,7 +23,7 @@ function historical_format_utils.parseInfoJson(info, flow)
         info_field.proto = format_proto_info({}, info.proto)
     end
 
-    if not ntop.isnEdge() then
+    if not (ntop.isnEdge and ntop.isnEdge()) then
         info_field.verdict = nil
     end
     

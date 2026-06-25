@@ -248,7 +248,7 @@ function script_manager.getLoadedAlertEndpoints()
     rv = get_available_notification("/scripts/lua/modules/notifications/endpoints/", rv)
 
     -- Pro, Enterprise M and Enterprise L endpoints
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         rv = get_available_notification("/pro/scripts/lua/notifications/endpoints/", rv)
     end
 

@@ -76,7 +76,7 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
    -- Read rules from configured pools and policies
    -- and push rules to the nProbe listeners
    if (changed) then
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local policy_utils = require "policy_utils"
 
@@ -140,7 +140,7 @@ function drop_host_pool_utils.check_periodic_hosts_list()
    -- Read rules from configured pools and policies
    -- and push rules to the nProbe listeners
    if (changed) then
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local policy_utils = require "policy_utils"
 

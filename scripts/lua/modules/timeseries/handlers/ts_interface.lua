@@ -4,7 +4,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/handlers/?.lua;" .. package.path
 end
 
@@ -735,7 +735,7 @@ local function addTopTimeseries(tags, emptyEpoch, tsOptions)
     end
 
     -- Top Traffic Profiles
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local series = ts_utils.listSeries("profile:traffic", table.clone(tags), tags.epoch_begin) or {}
         local tmp_tags = table.clone(tags)
 
@@ -780,7 +780,7 @@ function ts_interface.getTimeseries(tags, tsOptions)
 
     timeseries = timeseries_list
 
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local ts_interface_pro = require "ts_interface_pro"
         local timeseries_pro = ts_interface_pro.getTimeseries(tags, emptyEpoch, tsOptions)
         timeseries = table.merge(timeseries, timeseries_pro)
@@ -788,7 +788,7 @@ function ts_interface.getTimeseries(tags, tsOptions)
 
     -- HR traffic chart: per-interface traffic at 15-second resolution from the
     -- ClickHouse flows table (requires nProbe HR counters + Enterprise M license).
-    if ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
         timeseries[#timeseries + 1] = {
             schema      = "iface:hr_traffic",
             id          = timeseries_id,

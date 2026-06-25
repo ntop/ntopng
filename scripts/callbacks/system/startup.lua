@@ -37,7 +37,7 @@ local cache_utils = require "cache_utils"
 traceError(TRACE_NORMAL, TRACE_CONSOLE,
            "Processing startup.lua: please hold on...")
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" ..
                        package.path
     require("startup")
@@ -121,12 +121,12 @@ if ntop.isAppliance() then
     ntop.reloadPreferences()
 end
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
     host_pools_nedge.initPools()
     radius_handler.deleteAllKeys()
 end
 
-if (ntop.isPro()) then
+if (ntop.isPro and ntop.isPro()) then
     shaper_utils = require "shaper_utils"
     shaper_utils.initShapers()
 end
@@ -159,7 +159,7 @@ local function cleanupIfname(ifname, ifid)
     -- Check the preference if the interface is mirrored or not
     -- In case it is, force the serialization key to IP
     local is_mirrored_traffic = false
-    if not ntop.isnEdge() and is_packet_interface then
+    if not (ntop.isnEdge and ntop.isnEdge()) and is_packet_interface then
         local is_mirrored_traffic_pref = string.format(
                                              "ntopng.prefs.ifid_%d.is_traffic_mirrored",
                                              interface.getId())
@@ -216,7 +216,7 @@ presets_utils.reloadAllDevicePolicies()
 -- TODO: migrate custom re-arm settings
 
 -- this will retrieve host pools and policers configurtions via HTTP if enabled
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
     local http_bridge_conf_utils = require "http_bridge_conf_utils"
     http_bridge_conf_utils.configureBridge()
 end
@@ -291,7 +291,7 @@ if (ntop.exists(local_startup_file)) then
     dofile(local_startup_file)
 end
 
-if (ntop.isPro()) then
+if (ntop.isPro and ntop.isPro()) then
     if ntop.isClickHouseEnabled() then
 
         -- Check if DB column types are good or need to be fixed
@@ -333,12 +333,12 @@ if (ntop.isPro()) then
 end
 
 -- Fetch latest ntop blog posts
-if not ntop.isnEdge() then
+if not (ntop.isnEdge and ntop.isnEdge()) then
     -- Note: On nEdge they are fetched in a dayly/delayed callback as connectivity
     -- may be not yet up at this stage
     blog_utils.fetchLatestPosts()
 end
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
     interface.select(tostring(interface.getFirstInterfaceId()))
     host_pools_nedge.startupCheckResetPoolsQuotas()
     interface.select(getSystemInterfaceId())

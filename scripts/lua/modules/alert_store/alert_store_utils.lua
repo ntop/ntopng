@@ -22,7 +22,7 @@ function alert_store_utils.all_instances_factory()
     for alert_store_file in pairs(ntop.readdir(alert_store_dir)) do
         -- Load all sub-classes of alert_store
         if alert_store_file:match("_alert_store%.lua$") then
-            if not ntop.isPro() then
+            if not (ntop.isPro and ntop.isPro()) then
                 if string.find(alert_store_file, "snmp") then
                     goto continue
                 end

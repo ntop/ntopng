@@ -12,7 +12,7 @@ require "flow_utils"
 require "lua_utils"
 local page_utils = require("page_utils")
 local template = require "template_utils"
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local is_asn_mode_enabled = isASNModeEnabled()
 
 sendHTTPContentTypeHeader('text/html')
@@ -68,7 +68,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
 
 if (page == "flows" or page == nil) then
     local has_exporters = false
-    if ntop.isPro() and interface.isPacketInterface() == false then
+    if ntop.isPro and ntop.isPro() and interface.isPacketInterface() == false then
         local flowdevs = interface.getFlowDevices() or {}
         if table.len(flowdevs) > 0 then
             has_exporters = true
@@ -84,7 +84,7 @@ if (page == "flows" or page == nil) then
         is_clickhouse_enabled = hasClickHouseSupport(),
         is_pcap = interface.isPcapDumpInterface(),
         csrf = ntop.getRandomCSRFValue(),
-        is_enterprise_l = ntop.isEnterpriseL(),
+        is_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL(),
         ASNModeEnabled = is_asn_mode_enabled,
         isNedge = have_nedge
     })
@@ -141,7 +141,7 @@ else
         ifid = ifstats.id,
         vlans = json.encode(vlans),
         aggregation_criteria = aggregation_criteria,
-        is_ntop_enterprise_m = ntop.isEnterpriseM(),
+        is_ntop_enterprise_m = ntop.isEnterpriseM and ntop.isEnterpriseM(),
         draw = draw,
         sort = sort,
         order = order,

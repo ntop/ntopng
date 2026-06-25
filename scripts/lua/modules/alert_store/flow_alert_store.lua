@@ -6,7 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local db_search_manager
-if ntop.isEnterprise() then
+if ntop.isEnterprise and ntop.isEnterprise() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
    db_search_manager = require "db_search_manager"
 end
@@ -934,7 +934,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
    end
 
    -- add additional flow related info
-   if (verbose and ntop.isEnterprise()) then
+   if (verbose and ntop.isEnterprise and ntop.isEnterprise()) then
 
       -- get alert details page info
       local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
@@ -1316,7 +1316,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
    record[RNAME.TRAFFIC.name] = traffic_stats
 
    -- Add link to historical flow
-   if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
+   if ntop.isEnterpriseM and ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html and tonumber(value["tstamp"]) and tonumber(value["tstamp_end"]) then
       local op_suffix = flowfilter_utils.SEPARATOR .. 'eq'
       local href = string.format(
          '%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',

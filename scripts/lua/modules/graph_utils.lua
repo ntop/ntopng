@@ -363,7 +363,7 @@ function graph_utils.drawNewGraphs(source_value_object)
     local topk_heuristic = ntop.getPref("ntopng.prefs.topk_heuristic_precision")
     local ts_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
 
-    local profile_ts_enabled = ntop.isPro() and ifstats.profiles
+    local profile_ts_enabled = ntop.isPro and ntop.isPro() and ifstats.profiles
     local pod_ts_enabled = ifstats.has_seen_pods
     local container_ts_enabled = ifstats.has_seen_containers
 
@@ -405,7 +405,7 @@ function graph_utils.drawNewGraphs(source_value_object)
         sflow_interface = flow_device_ts_enabled,
         observation_point = obs_point_ts_enabled,
         blacklist = true,
-        nedge = ntop.isnEdge()
+        nedge = ntop.isnEdge and ntop.isnEdge()
     }
 
     local sources_types_top_enabled = {
@@ -426,12 +426,12 @@ function graph_utils.drawNewGraphs(source_value_object)
     local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
     local context = {
         csrf = ntop.getRandomCSRFValue(),
-        enable_snapshots = (source_value_object.enable_snapshots ~= false) and ntop.isEnterpriseM(),
+        enable_snapshots = (source_value_object.enable_snapshots ~= false) and ntop.isEnterpriseM and ntop.isEnterpriseM(),
         traffic_extraction_permitted = traffic_extraction_permitted,
         sources_types_enabled = sources_types_enabled,
         source_value_object = source_value_object,
         sources_types_top_enabled = sources_types_top_enabled,
-        is_ntop_pro = ntop.isPro(),
+        is_ntop_pro = ntop.isPro and ntop.isPro(),
         is_history_enabled = hasClickHouseSupport(),
         date_format = date_fmt,
         date_format_range_picker = date_fmt_picker,
@@ -618,7 +618,7 @@ function graph_utils.poolDropdown(ifId, pool_id, exclude)
 
             local limit_reached = false
 
-            if not ntop.isEnterpriseM() then
+            if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
                 local n_members = table.len(pool["members"])
 
                 if n_members >= host_pools.LIMITED_NUMBER_POOL_MEMBERS then

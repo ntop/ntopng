@@ -8,7 +8,7 @@ local ts_common = require("ts_common")
 local snmp_utils = nil
 local snmp_cached_dev = nil
 
-if ntop.isEnterprise() then
+if ntop.isEnterprise and ntop.isEnterprise() then
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"

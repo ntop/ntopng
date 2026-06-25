@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local snmp_utils
 local snmp_location
-if(ntop.isPro()) then
+if(ntop.isPro and ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
    snmp_location = require "snmp_location"
@@ -22,7 +22,7 @@ require "mac_utils"
 
 local page_utils = require("page_utils")
 
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local http_prefix = ntop.getHttpPrefix()
 
 local info = ntop.getInfo()

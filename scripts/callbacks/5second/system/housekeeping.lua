@@ -42,7 +42,7 @@ for i = 1, num_runs do
         recording_utils.checkExtractionJobs()
     end
 
-    if ntop.isPro() and not ntop.isnEdge() then
+    if ntop.isPro and ntop.isPro() and not (ntop.isnEdge and ntop.isnEdge()) then
         if ntop.timeToRefreshIPSRules() then
             package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
             local policy_utils = require "policy_utils"

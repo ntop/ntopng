@@ -58,7 +58,7 @@ function ts_utils.verifySchema(options)
     local schema = options.schema
     if (endswith(schema, "flowdev_port:traffic")) then
         -- Could be needed to change it to minute, check the preferences
-        if (ntop.isEnterpriseM()) and (highExporterTimeseriesResolution()) then
+        if (ntop.isEnterpriseM and ntop.isEnterpriseM()) and (highExporterTimeseriesResolution()) then
             options.schema = "flowdev_port:traffic" .. suffix
         end
     end
@@ -85,7 +85,7 @@ function ts_utils.getSchema(name)
         end
     end
 
-    if schema and (name == "iface:traffic") and ntop.isnEdge() then
+    if schema and (name == "iface:traffic") and ntop.isnEdge and ntop.isnEdge() then
         schema.options.step = 4
     end
 
@@ -123,7 +123,7 @@ function ts_utils.loadSchemas()
     require("ts_hour")
 
     -- HR schemas require ClickHouse and an Enterprise M (or better) license.
-    if ntop.isClickHouseEnabled() and ntop.isEnterpriseM() then
+    if ntop.isClickHouseEnabled() and ntop.isEnterpriseM and ntop.isEnterpriseM() then
         require("ts_hr")
     end
 
@@ -251,7 +251,7 @@ local function isUserAccessAllowed(tags)
        return true
     end
     
-    if tags.ifid and not ntop.isnEdge()
+    if tags.ifid and not (ntop.isnEdge and ntop.isnEdge())
        and not ntop.isAllowedInterface(tonumber(tags.ifid)) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access interface " .. tags.ifid)
         return false

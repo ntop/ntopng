@@ -39,7 +39,7 @@ function pools_rest_utils.add_pool(pools)
 
    -- Too many pools created for this ntopng version
    if s:get_num_pools() >= s:get_max_num_pools() then
-      if ntop.isEnterpriseM() then
+      if ntop.isEnterpriseM and ntop.isEnterpriseM() then
 	 rest_utils.answer(rest_utils.consts.err.add_pool_failed_too_many_pools_enterprise)
       else
 	 rest_utils.answer(rest_utils.consts.err.add_pool_failed_too_many_pools)
@@ -251,7 +251,7 @@ function pools_rest_utils.edit_member()
       -- Because default pool must always contain all hosts seen on the network
       -- Always bind the member to the default pool id (possibly removing it from any other pool)
       res, err = s:bind_member(member, pool_id)
-      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro and ntop.isPro() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local policy_utils = require "policy_utils"
          policy_utils.broadcast_ips_rules()
@@ -305,7 +305,7 @@ function pools_rest_utils.delete_member()
    -- Always bind the member to the default pool (removing it from any other pool)
    res, err = s:bind_member(member, s.DEFAULT_POOL_ID)
    
-   if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+   if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro and ntop.isPro() then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
       local policy_utils = require "policy_utils"
       policy_utils.broadcast_ips_rules()
@@ -361,7 +361,7 @@ function pools_rest_utils.bind_member(pools)
       -- Because default pool must always contain all hosts seen on the network
       -- Always bind the member to the default pool id (possibly removing it from any other pool)
       res, err = s:bind_member(member, pool_id)
-      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro and ntop.isPro() then
 	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 	 local policy_utils = require "policy_utils"
 

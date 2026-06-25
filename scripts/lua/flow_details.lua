@@ -12,7 +12,7 @@ local shaper_utils
 local qoe_utils
 local checks = require("checks")
 local format_utils = require "format_utils"
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local nf_config = nil
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
@@ -43,13 +43,13 @@ local page = _GET["page"]
 local show_graph = _GET["showGraph"] or false
 
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    shaper_utils = require("shaper_utils")
-   if ntop.isEnterpriseL() then
+   if ntop.isEnterpriseL and ntop.isEnterpriseL() then
       qoe_utils = require "qoe_utils"
    end
 
-   if ntop.isnEdge() then
+   if ntop.isnEdge and ntop.isnEdge() then
       package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/system_config/?.lua;" .. package.path
       nf_config = require("nf_config")
    end
@@ -584,7 +584,7 @@ page_utils.print_navbar(title, url, {{
 			      label = "<i class=\"fas fa-lg fa-home\" data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"" .. i18n("overview") ..
 				 "\"></i>"
 				     }, {
-			      hidden = not flow or not (flow.modbus) or not ntop.isEnterpriseL(),
+			      hidden = not flow or not (flow.modbus) or not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
 			      active = page == "modbus",
 			      page_name = "modbus",
 			      label = i18n("details.label_modbus_server")
@@ -594,12 +594,12 @@ page_utils.print_navbar(title, url, {{
 			      page_name = "bgp",
 			      label = i18n("details.label_bgp")
 					   }, {
-			      hidden = not flow or not (flow.s7comm) or not ntop.isEnterpriseL(),
+			      hidden = not flow or not (flow.s7comm) or not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
 			      active = page == "s7comm",
 			      page_name = "s7comm",
 			      label = i18n("details.label_s7comm_server")
 					   }, {
-			      hidden = not flow or not (flow.profinet) or not ntop.isEnterpriseL(),
+			      hidden = not flow or not (flow.profinet) or not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
 			      active = page == "profinet",
 			      page_name = "profinet",
 			      label = i18n("details.label_profinet_server")
@@ -793,7 +793,7 @@ if isEmptyString(page) or page == "overview" then
          print("</tr>")
       end
 
-      if (ntop.isPro() and ifstats.inline and (flow["shaper.cli"] ~= nil)) then
+      if (ntop.isPro and ntop.isPro() and ifstats.inline and (flow["shaper.cli"] ~= nil)) then
          local host_pools_nedge = require("host_pools_nedge")
          print("<tr><th class='colspan-4' rowspan=2>" .. i18n("flow_details.flow_shapers") .. "</th>")
          c = flowinfo2hostname(flow, "cli")
@@ -821,7 +821,7 @@ if isEmptyString(page) or page == "overview" then
          shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli"])
          print(shaper.icon .. shaper.text)
 
-         if ntop.isnEdge() then
+         if ntop.isnEdge and ntop.isnEdge() then
             local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
 
             if (cli_mac.location ~= "lan") then
@@ -853,7 +853,7 @@ if isEmptyString(page) or page == "overview" then
          end
 
          -- ENABLE MARKER DEBUG
-         if ntop.isnEdge() then
+         if ntop.isnEdge and ntop.isnEdge() then
             print("<tr><th class='colspan-4'>" .. i18n("flow_details.flow_marker") .. "</th>")
             print("<td colspan=2>" .. nf_config.formatMarker(flow["marker"]) .. "</td>")
             print("</tr>")
@@ -1152,7 +1152,7 @@ if isEmptyString(page) or page == "overview" then
 	       msToTime(flow["tcp.appl_latency"]) .. "</td></tr>\n")
       end
 
-      if not ntop.isnEdge() then
+      if not (ntop.isnEdge and ntop.isnEdge()) then
          if flow["cli2srv.packets"] > 1 and flow["interarrival.cli2srv"] and flow["interarrival.cli2srv"]["max"] > 0 then
             print("<tr><th class='colspan-4'")
             if (flow["flow.idle"] == true) then
@@ -1609,7 +1609,7 @@ if isEmptyString(page) or page == "overview" then
                      print('<td nowrap>')
 
                      -- Add rules to disable the check
-                     if auth.has_capability(auth.capabilities.checks) and ntop.isEnterpriseM() then
+                     if auth.has_capability(auth.capabilities.checks) and ntop.isEnterpriseM and ntop.isEnterpriseM() then
                         print(string.format(
 				 '<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>',
 				 score_alert.alert_id, score_alert.alert_label))
@@ -2058,7 +2058,7 @@ if isEmptyString(page) or page == "overview" then
          info = syminfo
 
          -- get SIP rows
-         if (ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
+         if (ntop.isPro and ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
             local sip_table_rows = getSIPTableRows(flow, info)
             print(sip_table_rows)
 
@@ -2071,7 +2071,7 @@ if isEmptyString(page) or page == "overview" then
          info = removeProtocolFields("SIP", info)
 
          -- get RTP rows
-         if (ntop.isPro() and (flow["proto.ndpi"] == "RTP")) then
+         if (ntop.isPro and ntop.isPro() and (flow["proto.ndpi"] == "RTP")) then
             local rtp_table_rows = getRTPTableRows(info)
             print(rtp_table_rows)
 
@@ -2083,11 +2083,11 @@ if isEmptyString(page) or page == "overview" then
          local snmpdevice = nil
 	 local next_hop   = nil
 
-         if (ntop.isPro() and not isEmptyString(flow["device_ip"])) then
+         if (ntop.isPro and ntop.isPro() and not isEmptyString(flow["device_ip"])) then
             snmpdevice = flow["device_ip"]
          end
 
-         if (ntop.isPro() and not isEmptyString(flow["next_hop"])) then
+         if (ntop.isPro and ntop.isPro() and not isEmptyString(flow["next_hop"])) then
             next_hop = flow["next_hop"]
          end
 

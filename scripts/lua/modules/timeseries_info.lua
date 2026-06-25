@@ -5,7 +5,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/handlers/?.lua;" .. package.path
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/handlers/?.lua;" .. package.path
 end
 
@@ -130,7 +130,7 @@ function timeseries_info.getTimeseries(tags, prefix)
         return timeseries
     end
     
-    if ntop.isEnterprise() then
+    if ntop.isEnterprise and ntop.isEnterprise() then
         -- Check for the infrastructure active monitoring
         if tags.host then
             if tags.host:find("metric:infrastructure") then
@@ -168,12 +168,12 @@ function timeseries_info.getTimeseries(tags, prefix)
 
     for _, info in pairs(timeseries_list) do
         -- Remove from nEdge the timeseries only for ntopng
-        if (info.nedge_exclude) and (ntop.isnEdge()) then
+        if (info.nedge_exclude) and (ntop.isnEdge and ntop.isnEdge()) then
             goto skip
         end
 
         -- Remove from ntopng the timeseries only for nEdge
-        if (info.nedge_only) and (not ntop.isnEdge()) then
+        if (info.nedge_only) and (not (ntop.isnEdge and ntop.isnEdge())) then
             goto skip
         end
 

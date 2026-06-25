@@ -18,7 +18,7 @@ local host_pools              = require "host_pools"
 
 -- *************** end of requires ***************
 
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
 -- select the default page
 local page = _GET["page"] or 'host'

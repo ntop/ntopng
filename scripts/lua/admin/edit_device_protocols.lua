@@ -18,7 +18,7 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.device
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
 -- Build device types list for the selector
 local device_types = {}

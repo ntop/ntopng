@@ -67,7 +67,7 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       end
    end
 
-   if ntop.isEnterprise() and ntop.isAdministrator() then
+   if ntop.isEnterprise and ntop.isEnterprise() and ntop.isAdministrator() then
       local dirs = ntop.getDirs()
       package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
       local graph_map_utils = require("graph_map_utils")

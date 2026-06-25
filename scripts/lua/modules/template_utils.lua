@@ -34,7 +34,7 @@ function template.gen(template_file, context, is_full_path)
   else
      path = os_utils.fixPath(dirs.installdir.."/httpdocs/templates/"..template_file)
 
-     if not ntop.exists(path) and ntop.isPro() then
+     if not ntop.exists(path) and ntop.isPro and ntop.isPro() then
 	-- Try in the pro dir
 	path = os_utils.fixPath(dirs.installdir.."/pro/httpdocs/templates/"..template_file)
      end

@@ -126,7 +126,7 @@ function recording_utils.checkAvailable()
   local is_available = false
 
   if(not ntop.isWindows())
-    and (not ntop.isnEdge())
+    and (not (ntop.isnEdge and ntop.isnEdge()))
     and os_utils.hasService("n2disk-ntopng", "dummy") then
     is_available = true
   end
@@ -763,7 +763,7 @@ function recording_utils.isEnabled(ifid)
 end
 
 function recording_utils.isSmartEnabled(ifid)
-  if not ntop.isEnterpriseXL() then
+  if not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) then
     return false
   end
 

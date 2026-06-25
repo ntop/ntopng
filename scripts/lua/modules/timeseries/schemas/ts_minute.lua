@@ -116,7 +116,7 @@ schema:addMetric("bytes_nfq")
 -- SUBNETS SCHEMAS
 -------------------------------------------------------
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    schema = ts_utils.newSchema("subnet:intranet_traffic_min", {
       step = 60,
       metrics_type = ts_utils.metrics.counter
@@ -231,7 +231,7 @@ schema:addMetric("scoreAsServer")
 
 -- ##############################################
 
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
    schema = ts_utils.newSchema("iface:deduplicated_flows", {
       step = 60
    })
@@ -254,7 +254,7 @@ schema:addMetric("other")
 -- ##############################################
 
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
    schema = ts_utils.newSchema("subnet:qoe_stats", {
       step = 300,
       metrics_type = ts_utils.metrics.gauge
@@ -275,7 +275,7 @@ end
 -- INTERFACES SCHEMAS
 -------------------------------------------------------
 
-if ntop.isEnterpriseM() then
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then
 
    -- ##############################################
 
@@ -557,7 +557,7 @@ schema:addMetric("num_rem_hosts_anom")
 
 -- ##############################################
 
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
    schema = ts_utils.newSchema("iface:qoe_stats", {
       step = 300,
       metrics_type = ts_utils.metrics.gauge
@@ -784,7 +784,7 @@ schema:addMetric("bytes_rcvd")
 -- FLOW PROBES SCHEMAS
 -------------------------------------------------------
 
-if ntop.isEnterpriseM() then
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then
    schema = ts_utils.newSchema("flowdev:traffic_min", {
       step = 60,
       rrd_fname = "bytes_min"

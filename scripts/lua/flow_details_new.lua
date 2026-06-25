@@ -45,19 +45,19 @@ page_utils.print_navbar(title, url, {
                   i18n("overview") .. "\"></i>"
    },
    {
-      hidden    = not flow or not (flow.modbus) or not ntop.isEnterpriseL(),
+      hidden    = not flow or not (flow.modbus) or not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
       active    = page == "modbus",
       page_name = "modbus",
       label     = i18n("details.label_modbus_server")
    },
    {
-      hidden    = not flow or not (flow.s7comm) or not ntop.isEnterpriseL(),
+      hidden    = not flow or not (flow.s7comm) or not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
       active    = page == "s7comm",
       page_name = "s7comm",
       label     = i18n("details.label_s7comm_server")
    },
    {
-      hidden    = not flow or not (flow.profinet) or not ntop.isEnterpriseL(),
+      hidden    = not flow or not (flow.profinet) or not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
       active    = page == "profinet",
       page_name = "profinet",
       label     = i18n("details.label_profinet_server")
@@ -74,10 +74,10 @@ if isEmptyString(page) or page == "overview" then
       ifid          = tostring(ifid),
 
       -- Feature flags
-      is_pro          = ntop.isPro(),
-      is_enterprise_l = ntop.isEnterpriseL(),
-      is_enterprise_m = ntop.isEnterpriseM(),
-      is_nedge        = ntop.isnEdge(),
+      is_pro          = ntop.isPro and ntop.isPro(),
+      is_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL(),
+      is_enterprise_m = ntop.isEnterpriseM and ntop.isEnterpriseM(),
+      is_nedge        = ntop.isnEdge and ntop.isnEdge(),
       is_inline       = ifstats.inline  or false,
       is_view         = interface.isView(),
       is_viewed       = ifstats.isViewed or false,

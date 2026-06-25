@@ -11,7 +11,7 @@ local template = require "template_utils"
 local json = require "dkjson"
 local page_utils = require("page_utils")
 
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
 local is_iot_bridge = ntop.isIoTBridge()
 

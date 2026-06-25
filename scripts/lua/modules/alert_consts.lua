@@ -37,7 +37,7 @@ alert_consts.alertEntity = alert_entities_utils.alertEntity
 
 -- ###################################
 
-if (ntop.isPro()) then
+if (ntop.isPro and ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    -- NOTE: import snmp_utils below to avoid import cycles
 end
@@ -264,7 +264,7 @@ end
 local function showSnmpUrl(snmp_device)
    local show_url = true
 
-   if ntop.isPro() then
+   if ntop.isPro and ntop.isPro() then
       local snmp_config = require "snmp_config"
       local device_config = snmp_config.get_device_config(snmp_device)
 

@@ -65,7 +65,7 @@ end
 -- Wazuh connection test: attempts to authenticate against the Wazuh API
 -- and returns (true, nil) on success or (false, error_message) on failure.
 local function wazuh_test_connection(url, username, password)
-   if not ntop.isEnterpriseM() then
+   if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
       return false, nil
    end
 
@@ -349,7 +349,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       ts_utils.setupAgain()
    end
 
-   if _POST["toggle_snmp_trap"] and ntop.isEnterpriseXL() then
+   if _POST["toggle_snmp_trap"] and ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
       ntop.snmpToggleTrapCollection(toboolean(_POST["toggle_snmp_trap"]))
    end
 
@@ -819,7 +819,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       print('<table class="table">')
 
 
-      if not ntop.isnEdge() then
+      if not (ntop.isnEdge and ntop.isnEdge()) then
 	 print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.license") ..
 	       '</th></tr></thead>')
 	 local n2disk_info = recording_utils.getN2diskInfo()
@@ -836,7 +836,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 				 min = 50,
 				 max = 64,
 				 pattern = getLicensePattern(),
-				 disabled = ntop.isEnterpriseL()
+				 disabled = ntop.isEnterpriseL and ntop.isEnterpriseL()
 	 })
       end
 
@@ -874,7 +874,7 @@ if auth.has_capability(auth.capabilities.preferences) then
    -- #####################
 
    local function printMenuEntriesPrefs()
-      if ntop.isEnterpriseM() then
+      if ntop.isEnterpriseM and ntop.isEnterpriseM() then
 	 print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_entries") ..
 	       '</th></tr></thead>')
       end
@@ -882,13 +882,13 @@ if auth.has_capability(auth.capabilities.preferences) then
       prefsToggleButton(subpage_active, {
 			   field = auth_toggles["menu_entries"]["help"],
 			   pref = "menu_entries.help",
-			   hidden = not ntop.isEnterpriseM(),
+			   hidden = not (ntop.isEnterpriseM and ntop.isEnterpriseM()),
 			   default = "1"
       })
 
       prefsToggleButton(subpage_active, {
 			   field = auth_toggles["menu_entries"]["developer"],
-			   hidden = not ntop.isEnterpriseM(),
+			   hidden = not (ntop.isEnterpriseM and ntop.isEnterpriseM()),
 
 			   pref = "menu_entries.developer",
 			   default = "1"
@@ -1052,7 +1052,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       -- ######################
 
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
 	 t_labels = { i18n("topk_heuristic.precision.disabled"), i18n("topk_heuristic.precision.more_accurate"),
 		      i18n("topk_heuristic.precision.less_accurate"), i18n("topk_heuristic.precision.aggressive") }
 	 t_values = { "disabled", "more_accurate", "accurate", "aggressive" }
@@ -1075,7 +1075,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 				  subpage_active.entries["toggle_host_mask"].description, h_labels, h_values, "0", "primary",
 				  "toggle_host_mask", "ntopng.prefs.host_mask")
 
-         if not ntop.isnEdge() then
+         if not (ntop.isnEdge and ntop.isnEdge()) then
 	    prefsToggleButton(subpage_active, {
 				 field = "toggle_use_mac_in_flow_key",
 				 default = "0",
@@ -1138,7 +1138,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       prefsInputFieldPrefs(subpage_active.entries["wazuh_url"].title,
 			   subpage_active.entries["wazuh_url"].description,
-			   "ntopng.prefs.wazuh", "wazuh_url", "", "text", ntop.isEnterpriseM(), true, true, {
+			   "ntopng.prefs.wazuh", "wazuh_url", "", "text", ntop.isEnterpriseM and ntop.isEnterpriseM(), true, true, {
 			      attributes = { spellcheck = "false", maxlength = 255 },
 			      pattern = getURLPattern(),
 			      required = false
@@ -1146,13 +1146,13 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       prefsInputFieldPrefs(subpage_active.entries["wazuh_username"].title,
 			   subpage_active.entries["wazuh_username"].description,
-			   "ntopng.prefs.wazuh", "wazuh_username", "", "text", ntop.isEnterpriseM(), true, false, {
+			   "ntopng.prefs.wazuh", "wazuh_username", "", "text", ntop.isEnterpriseM and ntop.isEnterpriseM(), true, false, {
 			      attributes = { spellcheck = "false", maxlength = 128 },
       })
 
       prefsInputFieldPrefs(subpage_active.entries["wazuh_password"].title,
 			   subpage_active.entries["wazuh_password"].description,
-			   "ntopng.prefs.wazuh", "wazuh_password", "", "password", ntop.isEnterpriseM(), true, false, {
+			   "ntopng.prefs.wazuh", "wazuh_password", "", "password", ntop.isEnterpriseM and ntop.isEnterpriseM(), true, false, {
 			      attributes = { spellcheck = "false", maxlength = 255 },
       })
 
@@ -1160,7 +1160,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 			   field = "toggle_wazuh_automerge",
 			   default = "0",
 			   pref = "wazuh_automerge_enabled",
-			   hidden = not ntop.isEnterpriseM()
+			   hidden = not (ntop.isEnterpriseM and ntop.isEnterpriseM())
       })
 
       print(
@@ -1223,7 +1223,7 @@ if auth.has_capability(auth.capabilities.preferences) then
    -- ================================================================================
 
    local function printLdapAuth()
-      if not ntop.isPro() then
+      if not (ntop.isPro and ntop.isPro()) then
 	 return
       end
 
@@ -1749,7 +1749,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 	 printLocalAuth()
       end
 
-      if not ntop.isnEdge() then
+      if not (ntop.isnEdge and ntop.isnEdge()) then
 	 prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
       else
 	 prefsInformativeField(i18n("notes"), i18n("nedge.authentication_gui_and_captive_portal", {
@@ -1843,7 +1843,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             '</th></tr></thead>')
       -- Behavior analysis for asn, network and l7proto (iface)
 
-      local is_behaviour_analysis_enabled = ntop.isEnterpriseL()
+      local is_behaviour_analysis_enabled = ntop.isEnterpriseL and ntop.isEnterpriseL()
 
       prefsInputFieldPrefs(subpage_active.entries["behaviour_analysis_learning_period"].title,
 			   subpage_active.entries["behaviour_analysis_learning_period"].description, "ntopng.prefs.",
@@ -1873,7 +1873,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       -- #####################
 
-      local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
+      local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM and ntop.isEnterpriseM()
 
       if is_device_connection_disconnection_analysis_enabled then
 	 print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
@@ -1912,7 +1912,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
       prefsInputFieldPrefs(subpage_active.entries["host_port_learning_period"].title,
 			   subpage_active.entries["host_port_learning_period"].description, "ntopng.prefs.",
-			   "host_port_learning_period", prefs.host_port_learning_period, "number", ntop.isEnterpriseM(), nil, nil, {
+			   "host_port_learning_period", prefs.host_port_learning_period, "number", ntop.isEnterpriseM and ntop.isEnterpriseM(), nil, nil, {
 			      min = 7200,
 			      tformat = "hd"
       })
@@ -2181,7 +2181,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 			      required = true
       })
 
-      if ntop.isnEdge() and ntop.getPref("ntopng.prefs.influx_dbname") == "ntopng edge" then
+      if ntop.isnEdge and ntop.isnEdge() and ntop.getPref("ntopng.prefs.influx_dbname") == "ntopng edge" then
 	 -- Fixes issue #1939 with wrong deployed nedge db name
 	 ntop.delCache("ntopng.prefs.influx_dbname")
       end
@@ -2337,7 +2337,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 					"primary", "l2_devices_ndpi_timeseries_creation", "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 					elementToSwitch, showElementArray, nil, showElement)
 
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
 	 print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.exporter_timeseries') ..
 	       '</th></tr></thead>')
 
@@ -2385,7 +2385,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.other_timeseries') ..
             '</th></tr></thead>')
 
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
 	 prefsToggleButton(subpage_active, {
 			      field = "toggle_intranet_traffic_rrd_creation",
 			      default = "0",
@@ -2424,7 +2424,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 			   pref = "country_rrd_creation"
       })
 
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
 	 prefsToggleButton(subpage_active, {
 			      field = "toggle_ndpi_flows_rrds",
 			      default = "0",
@@ -2432,7 +2432,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 	 })
       end
 
-      if info["version.enterprise_edition"] or ntop.isnEdge() then
+      if info["version.enterprise_edition"] or (ntop.isnEdge and ntop.isnEdge()) then
 	 prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {
 					       url = "?tab=snmp&show_advanced_prefs=1"
 	 }))
@@ -2533,7 +2533,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 			   pref = "enable_access_log"
       })
 
-      if ntop.isEnterpriseM() then
+      if ntop.isEnterpriseM and ntop.isEnterpriseM() then
 	 if _POST["toggle_asset_log"] then
 	    ntop.enableAssetsLog(tonumber(_POST["toggle_asset_log"]))
 	 end
@@ -2566,7 +2566,7 @@ if auth.has_capability(auth.capabilities.preferences) then
    end
 
    function printSnmp()
-      if not ntop.isEnterprise() and not ntop.isnEdge() then
+      if not (ntop.isEnterprise and ntop.isEnterprise()) and not (ntop.isnEdge and ntop.isnEdge()) then
 	 return
       end
 
@@ -2629,7 +2629,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 			      max = 10
       })
 
-      if (ntop.isEnterpriseL()) then
+      if (ntop.isEnterpriseL and ntop.isEnterpriseL()) then
 	 prefsToggleButton(subpage_active, {
 			      field = "toggle_snmp_excluded_from_usage",
 			      default = "0",
@@ -2637,7 +2637,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 	 })
       end
 
-      if (ntop.isEnterpriseXL()) then
+      if (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) then
 	 prefsToggleButton(subpage_active, {
 			      field = "toggle_snmp_trap",
 			      default = "0",
@@ -2756,7 +2756,7 @@ if auth.has_capability(auth.capabilities.preferences) then
       print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.clickhouse") ..
             '</th></tr></thead>')
 
-      local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
+      local showAggregateFlowsPrefs = ntop.isEnterpriseXL and ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
 
       prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
 			   subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",

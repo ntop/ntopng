@@ -9,12 +9,12 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-if(ntop.isPro()) then
+if(ntop.isPro and ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
 end
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
 end
 
@@ -24,7 +24,7 @@ local host_pools_nedge = require "host_pools_nedge"
 local users_utils = require("users_utils")
 local shaper_utils
 
-if(ntop.isPro()) then
+if(ntop.isPro and ntop.isPro()) then
    shaper_utils = require "shaper_utils"
 end
 

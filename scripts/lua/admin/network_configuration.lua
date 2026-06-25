@@ -29,7 +29,7 @@ page_utils.print_navbar(i18n("checks.network_configuration"),
     }, {
         active = (page == "policy"),
         page_name = "policy",
-        hidden = not ntop.isEnterpriseL(),
+        hidden = not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
         label = i18n("network_configuration.network_policy")
     }, {
         active = (page == "asn_config"),

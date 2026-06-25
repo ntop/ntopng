@@ -342,7 +342,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 	       });
 ]]
 
-   if ntop.isnEdge() then
+   if ntop.isnEdge and ntop.isnEdge() then
       printBlockFlowJs()
    end
 

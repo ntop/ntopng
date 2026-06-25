@@ -14,7 +14,7 @@ local alert_entities = require("alert_entities")
 
 local page_utils = {}
 
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
 -- #################################
 
@@ -1108,7 +1108,7 @@ function page_utils.print_header(title, addLoginJS)
     if not dark_mode then print [[ disabled]] end
     print [[ rel="stylesheet">]]
 
-    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
+    if ((ntop.isPro and ntop.isPro()) or (ntop.isnEdge and ntop.isnEdge())) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
         favicon_path = http_prefix .. "/img/custom_favicon.ico"
     end
     if (favicon_path ~= nil) then
@@ -1143,7 +1143,7 @@ function page_utils.print_header(title, addLoginJS)
         print [["></script>]]
     end
 
-    if (ntop.isPro() and ntop.exists(dirs.installdir .. "/httpdocs/css/custom-theme.css")) then
+    if (ntop.isPro and ntop.isPro() and ntop.exists(dirs.installdir .. "/httpdocs/css/custom-theme.css")) then
         print [[
         <link href="]]
         print(http_prefix)
@@ -1226,7 +1226,7 @@ function page_utils.print_header_minimal(title, addLoginJS)
     print [[" rel="stylesheet">
           ]]
 
-    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
+    if ((ntop.isPro and ntop.isPro()) or (ntop.isnEdge and ntop.isnEdge())) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
         favicon_path = http_prefix .. "/img/custom_favicon.ico"
     end
     if (favicon_path ~= nil) then
@@ -1571,9 +1571,7 @@ end
 function page_utils.has_nanalyst()
     local has_ch_support = hasClickHouseSupport()
     local is_system_interface = toboolean(page_utils.is_system_view())
-    local has_nAnalyst =  ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
-
-    tprint(ntop.hasnAnalyst())
+    local has_nAnalyst = ntop.hasnAnalyst and ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
     return has_nAnalyst
 end
 

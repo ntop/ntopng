@@ -16,7 +16,7 @@ local ts_flow_aggr = {}
 function ts_flow_aggr.getTimeseries(tags, options)
    local timeseries = {}
 
-   if ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
+   if ntop.isEnterpriseM and ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
       timeseries[#timeseries + 1] = {
          schema          = "flow:hr_traffic_aggr",
          id              = "flow_aggr",

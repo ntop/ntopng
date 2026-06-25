@@ -149,7 +149,7 @@ local drop_icon = "exclamation-triangle"
 local allow_icon = "check"
 local drop_text = i18n("device_protocols.alert")
 local allow_text = i18n("device_protocols.ok")
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
 if is_nedge then
    drop_icon = "ban"

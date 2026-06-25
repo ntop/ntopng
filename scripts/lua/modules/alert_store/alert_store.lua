@@ -2018,7 +2018,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
         -- Handle Custom Queries (query_preset)
         local p = _GET["query_preset"] -- Example: &query_preset=contacts
-        if not isEmptyString(p) and ntop.isEnterpriseL() then
+        if not isEmptyString(p) and ntop.isEnterpriseL and ntop.isEnterpriseL() then
             package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
             local db_query_presets = require "db_query_presets"
 

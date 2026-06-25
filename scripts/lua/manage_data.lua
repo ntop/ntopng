@@ -33,7 +33,7 @@ local context = {
    product = info.product,
    csrf    = ntop.getRandomCSRFValue(),
    delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname),
-   is_edge      = ntop.isnEdge(),
+   is_edge      = ntop.isnEdge and ntop.isnEdge(),
    has_clickhouse = interfaceHasClickHouseSupport(),
 }
 

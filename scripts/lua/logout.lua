@@ -11,7 +11,7 @@ require "lua_utils"
 
 local captive_portal_utils = require("captive_portal_utils")
 
-if not ntop.isnEdge() then
+if not (ntop.isnEdge and ntop.isnEdge()) then
    return
 end
 

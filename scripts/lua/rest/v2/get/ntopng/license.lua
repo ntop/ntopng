@@ -22,7 +22,7 @@ local info = ntop.getInfo()
 
 -- Determine edition key for the shop URL
 local edition
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
    if info["version.nedge_enterprise_edition"] == true then
       if info["version.embedded_edition"] == true then
          edition = "nedge_embedded_ent"

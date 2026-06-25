@@ -12,7 +12,7 @@ local icmp_utils = require "icmp_utils"
 local json = require "dkjson"
 local http_utils = require("http_utils")
 
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 
 sendHTTPContentTypeHeader('application/json')
 

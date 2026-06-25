@@ -8,7 +8,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 

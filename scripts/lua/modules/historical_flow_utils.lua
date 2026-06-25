@@ -13,11 +13,11 @@ local network_consts = require "network_consts"
 local historical_format_utils = require "historical_format_utils"
 local qoe_utils
 local historical_ts_definitions
-if ntop.isEnterpriseM() then
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/flow_db/?.lua;" .. package.path
     historical_ts_definitions = require "historical_ts_definitions"
 end
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
     qoe_utils = require "qoe_utils"
 end

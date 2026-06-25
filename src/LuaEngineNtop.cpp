@@ -4164,84 +4164,10 @@ static int ntop_is_package(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Returns true if running Pro edition or higher.  Lua: ntop.isPro() → boolean */
-static int ntop_is_pro(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_pro_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if running Enterprise M edition or higher.  Lua: ntop.isEnterpriseM() / ntop.isEnterprise() → boolean */
-static int ntop_is_enterprise_m(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_m_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if running Enterprise L edition or higher.  Lua: ntop.isEnterpriseL() → boolean */
-static int ntop_is_enterprise_l(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_l_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if running Enterprise XL edition or higher.  Lua: ntop.isEnterpriseXL() → boolean */
-static int ntop_is_enterprise_xl(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_xl_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if running Enterprise XXL edition or higher.  Lua: ntop.isEnterpriseXXL() → boolean */
-static int ntop_is_enterprise_xxl(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_xxl_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
 /* @brief Returns true if running Enterprise XXXL edition or higher.  Lua: ntop.isEnterpriseXXXL() → boolean */
 static int ntop_is_enterprise_xxxl(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_xxxl_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if nAnalyst is available.  Lua: ntop.hasnAnalyst() → boolean */
-static int ntop_has_nanalyst(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm,
-		  ntop->getPrefs()->is_nanalyst_available()
-		  && ntop->getPrefs()->do_dump_flows_on_clickhouse());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if running nEdge Pro edition.  Lua: ntop.isnEdge() → boolean */
-static int ntop_is_nedge(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_nedge_pro_edition());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
-/* @brief Returns true if running nEdge Enterprise edition.  Lua: ntop.isnEdgeEnterprise() → boolean */
-static int ntop_is_nedge_enterprise(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_nedge_enterprise_edition());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
 
@@ -9115,15 +9041,6 @@ static luaL_Reg _ntop_reg[] = {
     {"reloadPreferences", ntop_reload_preferences},
     {"setDefaultFilePermissions", ntop_set_default_file_permissions},
 
-    {"isPro", ntop_is_pro},
-    {"isEnterprise", ntop_is_enterprise_m},
-    {"isEnterpriseM", ntop_is_enterprise_m},
-    {"isEnterpriseL", ntop_is_enterprise_l},
-    {"isEnterpriseXL", ntop_is_enterprise_xl},
-    {"isEnterpriseXXL", ntop_is_enterprise_xxl},
-    {"isnEdge", ntop_is_nedge},
-    {"hasnAnalyst", ntop_has_nanalyst},
-    {"isnEdgeEnterprise", ntop_is_nedge_enterprise},
     {"isPackage", ntop_is_package},
     {"isAppliance", ntop_is_appliance},
     {"isIoTBridge", ntop_is_iot_bridge},

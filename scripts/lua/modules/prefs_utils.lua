@@ -9,7 +9,7 @@ local verbose = false
 local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local skip_redis = false
 
 -- ############################################
@@ -57,7 +57,7 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
    end
    if (subpage.hidden) or
       ((subpage.advanced) and (not show_advanced_prefs)) or
-      ((subpage.pro_only) and (not ntop.isPro())) or
+      ((subpage.pro_only) and (not (ntop.isPro and ntop.isPro()))) or
       (subpage.enterprise_l_only and (not info["version.enterprise_l_edition"]) and (not info["version.nedge_enterprise_edition"])) or
       ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) or
       (subpage.nedge_hidden) and (have_nedge) then
@@ -846,35 +846,35 @@ function prefsSkipRedis(skip)
 end
 
 function isNetBoxEnabled()
-   if not ntop.isEnterpriseXL() then
+   if not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) then
       return false
    end
    return (ntop.getPref("ntopng.prefs.toggle_netbox") == "1")
 end
 
 function isNtopngAssetsInventoryEnabled()
-   if not ntop.isEnterpriseXL() then
+   if not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) then
       return false
    end
    return (ntop.getPref("ntopng.prefs.toggle_ntopng_assets_inventory") == "1")
 end
 
 function getNetBoxURL()
-   if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
+   if not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
       return ""
    end
    return ntop.getPref("ntopng.prefs.netbox_activation_url")
 end
 
 function getNetBoxDefaultSite()
-   if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
+   if not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
       return ""
    end
    return ntop.getPref("ntopng.prefs.netbox_default_site")
 end
 
 function getNetBoxToken()
-   if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
+   if not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
       return ""
    end
    return ntop.getPref("ntopng.prefs.netbox_personal_access_token")

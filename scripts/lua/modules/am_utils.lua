@@ -295,7 +295,7 @@ end
 
 -- @brief Check if this is an infrastructure active monitoring url
 local function is_infrastructure(host)
-    if not ntop.isEnterpriseM() or isEmptyString(host) then
+    if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) or isEmptyString(host) then
         return false, nil
     end
 

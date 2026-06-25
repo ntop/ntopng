@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local if_stats = interface.getStats()
-if not ntop.isEnterpriseL() then
+if not (ntop.isEnterpriseL and ntop.isEnterpriseL()) then
    return
 end
 
@@ -40,7 +40,7 @@ local length = _GET["length"] or 10
 
 local page = _GET["page"]
 
-if isEmptyString(page) and ntop.isEnterpriseL() then
+if isEmptyString(page) and ntop.isEnterpriseL and ntop.isEnterpriseL() then
    page = "flows_sankey"
 elseif isEmptyString(page) then
    page = "live"
@@ -51,7 +51,7 @@ local ifId = interface.getId()
 local base_url = ntop.getHttpPrefix() .. "/lua/server_ports.lua"
 
 page_utils.print_navbar(i18n('server_ports.server_ports'), base_url .. "?", {{
-   hidden = not ntop.isEnterpriseL(),
+   hidden = not (ntop.isEnterpriseL and ntop.isEnterpriseL()),
    active = page == "flows_sankey",
    page_name = "flows_sankey",
    label = i18n("chart")
@@ -67,7 +67,7 @@ if (page == "live" or page == nil) then
       vue_page_name = "PageServerPorts",
       page_context = json.encode({
          ifid = ifId,
-			is_ntop_enterprise_m = ntop.isEnterpriseM(),
+			is_ntop_enterprise_m = ntop.isEnterpriseM and ntop.isEnterpriseM(),
          csrf = ntop.getRandomCSRFValue()
       })
    })

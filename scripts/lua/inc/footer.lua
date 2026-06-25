@@ -17,7 +17,7 @@ local json           = require "dkjson"
 local ts_utils       = require "ts_utils_core"
 
 local is_admin    = isAdministrator()
-local have_nedge  = ntop.isnEdge()
+local have_nedge  = ntop.isnEdge and ntop.isnEdge()
 local info        = ntop.getInfo(true)
 local http_prefix = ntop.getHttpPrefix()
 local random_csrf = ntop.getRandomCSRFValue()

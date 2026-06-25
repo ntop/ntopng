@@ -100,7 +100,7 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
     local subnet_stats = interface.getNetworksStats(false, true)
 
     for subnet, sstats in pairs(subnet_stats or {}) do
-        if ntop.isPro() and
+        if ntop.isPro and ntop.isPro() and
             not isEmptyString(
                 ntop.getPref("ntopng.prefs.intranet_traffic_rrd_creation") or "") then
             for second_subnet, traffic in pairs(sstats["intranet_traffic"]) do
@@ -153,7 +153,7 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
         }, when)
 
         -- QoE Stats
-        if ntop.isEnterpriseL() then
+        if ntop.isEnterpriseL and ntop.isEnterpriseL() then
             local qoe_list = {}
             for id, value in pairs(sstats.qoe or {}) do
                 local delta = delta_val(interface, "subnet_qoe_stats." ..
@@ -233,7 +233,7 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
                     {ifid = ifstats.id, new_flows = ifstats.stats.new_flows},
                     when)
 
-    if ntop.isEnterpriseXL() then
+    if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
         -- Deduplicated Flows
         if ntop.isFlowDedupEnabled() then
             ts_utils.append("iface:deduplicated_flows",
@@ -253,7 +253,7 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 
 
     -- QoE Stats
-    if ntop.isEnterpriseL() then
+    if ntop.isEnterpriseL and ntop.isEnterpriseL() then
         local qoe_list = {}
         -- In case of view interface this ts is emtpy, so get the info from the other interfaces
         if ifstats.isView then
@@ -324,7 +324,7 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
         }, when)
     end
 
-    if ntop.isEnterpriseM() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
         if not ifstats["score_behavior"] or not ifstats["traffic_rx_behavior"] or
             not ifstats["traffic_tx_behavior"] then goto continue end
 
@@ -667,7 +667,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     end
 
     -- Save Profile stats every minute
-    if ntop.isPro() and ifstats.profiles then -- profiles are only available in the Pro version
+    if ntop.isPro and ntop.isPro() and ifstats.profiles then -- profiles are only available in the Pro version
         ts_dump.profiles_update_stats(when, ifstats, verbose)
     end
 
@@ -680,7 +680,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     end
 
     -- Create RRDs for flow and sFlow probes
-    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM() and
+    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM and ntop.isEnterpriseM() and
         highExporterTimeseriesResolution()) then
         package.path = dirs.installdir ..
                            "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" ..
@@ -689,7 +689,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
         exporters_timeseries.update_timeseries(when, ifstats, verbose, true)
     end
 
-    if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
+    if ntop.isnEdge and ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
         local st = ifstats.netfilter.nfq or {}
 
         ts_utils.append("iface:nfq_pct",

@@ -14,7 +14,7 @@ local ifid = interface.getId()
 sendHTTPContentTypeHeader('text/html')
 
 -- If it's not enterprise or it's not authorized, return
-if (not ntop.isEnterpriseL() and not ntop.isnEdgeEnterprise()) then
+if (not (ntop.isEnterpriseL and ntop.isEnterpriseL()) and not (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise())) then
     return
 end
 

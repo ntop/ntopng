@@ -397,7 +397,7 @@ end
 local function delete_interfaces_from_list(interfaces_list, preserve_interface_ids, preserve_redis_keys)
    local if_dt = delete_interfaces_data(interfaces_list)
    local if_db = delete_interfaces_db_flows(interfaces_list)
-   local preserve_prefs = ternary(ntop.isnEdge(), true, false)
+   local preserve_prefs = ternary(ntop.isnEdge and ntop.isnEdge(), true, false)
 
    local if_rk
    if not preserve_redis_keys then
@@ -440,7 +440,7 @@ function delete_data_utils.delete_all_interfaces_data()
    -- Currently we are using this only in boot.lua (that is, before interfaces registration)
    -- and only in nEdge. Use it carefully.
 
-   if not ntop.isnEdge() then
+   if not (ntop.isnEdge and ntop.isnEdge()) then
       return
    end
 

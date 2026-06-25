@@ -10,7 +10,7 @@ end
 local top_sites_update
 local snmp_utils
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
     package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
     snmp_utils = require "snmp_utils"
@@ -34,13 +34,13 @@ local graph_utils = require "graph_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local sites_granularities = nil
 local show_zmq_encryption_public_key = false
 local http_prefix = ntop.getHttpPrefix()
 local prefs = ntop.getPrefs()
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     shaper_utils = require("shaper_utils")
 end
 
@@ -78,7 +78,7 @@ end
 
 local is_mirrored_traffic = false
 local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", interface.getId())
-if not ntop.isnEdge() and is_packet_interface then
+if not have_nedge and is_packet_interface then
     is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
 end
 
@@ -237,7 +237,7 @@ if (isAdministrator()) then
             end
         end
 
-        if not ntop.isnEdge() and is_packet_interface then
+        if not have_nedge and is_packet_interface then
             if _POST["is_mirrored_traffic"] == "1" then
                 is_mirrored_traffic = true
             else
@@ -322,7 +322,7 @@ local internals_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid="..interfa
 local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. shortenCollapse(short_name)
 
-if (ntop.isPro()) then
+if (ntop.isPro and ntop.isPro()) then
     sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifid, true)
 end
 
@@ -332,17 +332,17 @@ page_utils.print_navbar(title, url, { {
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"></i>"
 }, {
-    hidden = not is_packet_interface or ntop.isnEdge() or interface.isView(),
+    hidden = not is_packet_interface or have_nedge or interface.isView(),
     active = page == "networks",
     page_name = "networks",
     label = i18n("networks")
 }, {
-    hidden = have_nedge or not ifstats or ifstats.stats.packets == 0 or ntop.isnEdge(),
+    hidden = have_nedge or not ifstats or ifstats.stats.packets == 0,
     active = page == "packets",
     page_name = "packets",
     label = i18n("packets")
 }, {
-    hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge() or isASNModeEnabled(),
+    hidden = not ifstats or not ifstats["has_macs"] or have_nedge or isASNModeEnabled(),
     active = page == "DSCP",
     page_name = "DSCP",
     label = i18n("dscp")
@@ -362,7 +362,7 @@ page_utils.print_navbar(title, url, { {
     page_name = "ICMP",
     label = i18n("icmp")
 }, {
-    hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge() or isASNModeEnabled() or interface.isZMQInterface(),
+    hidden = not ifstats or not ifstats["has_macs"] or have_nedge or isASNModeEnabled() or interface.isZMQInterface(),
     active = page == "ARP",
     page_name = "ARP",
     label = i18n("arp")
@@ -408,7 +408,7 @@ page_utils.print_navbar(title, url, { {
     page_name = "internals",
     label = "<i class='fas fa-lg fa-wrench' title='" .. i18n("status") .. "'></i>"
 }, {
-    hidden = have_nedge or not isAdministrator() or not ntop.isEnterpriseM() or is_sub_interface or ifstats.isView,
+    hidden = have_nedge or not isAdministrator() or not (ntop.isEnterpriseM and ntop.isEnterpriseM()) or is_sub_interface or ifstats.isView,
     active = page == "sub_interfaces",
     page_name = "sub_interfaces",
     label = "<i class='fas fa-lg fa-code-branch' title='" .. i18n("sub_interfaces.disaggregation") .. "'></i>"
@@ -502,7 +502,7 @@ if ((page == "overview") or (page == nil)) then
     if tot_num_nprobes > 0 then
         print("<tr><th nowrap>" .. i18n("if_stats_overview.remote_probe") .. "</th>")
         local msg = ""
-        if ntop.isEnterpriseM() then
+        if ntop.isEnterpriseM and ntop.isEnterpriseM() then
             msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices", {
                 num = tot_num_nprobes,
                 url = http_prefix .. "/lua/pro/enterprise/nprobe.lua"
@@ -898,7 +898,7 @@ print [[</div></div></td></tr>]]
         "</span> <span id=remote_hosts_anomalies_trend></span></td>")
     print("</tr>\n")
 
-    if ntop.isFlowDedupEnabled() and ntop.isEnterpriseXL() 
+    if ntop.isFlowDedupEnabled() and ntop.isEnterpriseXL and ntop.isEnterpriseXL() 
              and (ifstats.zmqRecvStats ~= nil and table.len(ifstats.zmqRecvStats) > 0) then
         local tot_flows = (ifstats.zmqRecvStats.flows or 0) + (ifstats.zmqRecvStats.dropped_flows or 0)
         if tot_flows == 0 then
@@ -1640,7 +1640,7 @@ elseif (page == "traffic_recording" and has_traffic_recording_page) then
     if interface.isView() then
         -- View: we cannot enable recording here, but we can extract traffic
         -- from all viewed interfaces (if they have recording enabled)
-        if ntop.isEnterpriseM() then
+        if ntop.isEnterpriseM and ntop.isEnterpriseM() then
             local iface_names = {}
             for _, iface in ipairs(viewed_ifaces_with_recording) do
                 table.insert(iface_names, iface.ifname)
@@ -1728,7 +1728,7 @@ elseif (page == "traffic_recording" and has_traffic_recording_page) then
             ternary(tab == "status", "active", "") .. '" href="?ifid=' .. ifstats.id ..
             '&page=traffic_recording&tab=status">' .. i18n("status") .. '</a></li>')
 
-        if ntop.isEnterpriseM() then
+        if ntop.isEnterpriseM and ntop.isEnterpriseM() then
             print('<li class="nav-item ' .. ternary(tab == "jobs", "active", "") .. '"><a class="nav-link ' ..
                 ternary(tab == "jobs", "active", "") .. '" href="?ifid=' .. ifstats.id ..
                 '&page=traffic_recording&tab=jobs">' .. i18n("traffic_recording.jobs") .. '</a></li>')
@@ -1740,7 +1740,7 @@ elseif (page == "traffic_recording" and has_traffic_recording_page) then
 
     if recording_enabled and tab == "status" then
         dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_status.lua")
-    elseif recording_enabled and ntop.isEnterpriseM() and tab == "jobs" then
+    elseif recording_enabled and ntop.isEnterpriseM and ntop.isEnterpriseM() and tab == "jobs" then
         dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_jobs.lua")
     elseif config_enabled and tab == "config" then -- config, default
         dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_config.lua")
@@ -1912,7 +1912,7 @@ elseif (page == "config") then
         </tr>]]
 
     -- Automatic Reports
-    if isAdministrator() and ntop.isEnterpriseL() then
+    if isAdministrator() and ntop.isEnterpriseL and ntop.isEnterpriseL() then
         package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
         local reports_utils = require "reports_utils"
 
@@ -1993,7 +1993,7 @@ elseif (page == "config") then
     end
 
     -- Mirrored Traffic
-    if not ntop.isnEdge() and is_packet_interface then
+    if not have_nedge and is_packet_interface then
         print [[<tr>
          <th>]]
         print(i18n("if_stats_config.is_mirrored_traffic"))
@@ -2536,7 +2536,7 @@ elseif (page == "snmp_bind") then
    });
 </script>]]
 elseif (page == "sub_interfaces") then
-    if (isAdministrator() and ntop.isEnterpriseM()) then
+    if (isAdministrator() and ntop.isEnterpriseM and ntop.isEnterpriseM()) then
         dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/sub_interfaces.lua")
     end
 elseif (page == "syslog_producers") then

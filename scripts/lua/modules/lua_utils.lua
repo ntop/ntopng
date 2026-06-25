@@ -263,7 +263,7 @@ end
 -- ##############################################
 
 function isScoreEnabled()
-    return (ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())
+    return ((ntop.isEnterpriseM and ntop.isEnterpriseM()) or (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()))
 end
 
 -- ##############################################
@@ -272,7 +272,7 @@ function hasTrafficReport()
     local ts_utils = require("ts_utils_core")
     local is_pcap_dump = interface.isPcapDumpInterface()
 
-    return ((not is_pcap_dump) and (ts_utils.getDriverName() == "rrd") and ntop.isEnterpriseM())
+    return ((not is_pcap_dump) and (ts_utils.getDriverName() == "rrd") and ntop.isEnterpriseM and ntop.isEnterpriseM())
 end
 
 function hasAlertsDisabled()
@@ -937,7 +937,7 @@ end
 -- ##########################################
 
 function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info, vlan, no_print)
-    if ntop.isEnterpriseM() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
         local now = os.time()
         local ago1h = now - 3600
 
@@ -1134,7 +1134,7 @@ function isBridgeInterface(ifstats)
 end
 
 function hasSnmpDevices(ifid)
-    if (not ntop.isEnterpriseM()) or (not isAdministrator()) then
+    if (not (ntop.isEnterpriseM and ntop.isEnterpriseM())) or (not isAdministrator()) then
         return false
     end
 
@@ -1616,7 +1616,7 @@ end
 function format_device_name(device_ip, short_version)
     local device_name = device_ip
 
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         device_name = hostinfo2label(hostkey2hostinfo(device_ip))
 
         if device_name ~= device_ip then

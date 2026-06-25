@@ -7,7 +7,7 @@ if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
     package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path
 end
 
-if ntop.isEnterpriseM() or ntop.isnEdgeEnterprise() then
+if (ntop.isEnterpriseM and ntop.isEnterpriseM()) or (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/flow_db/?.lua;" .. package.path
 end

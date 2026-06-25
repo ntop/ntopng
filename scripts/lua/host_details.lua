@@ -17,14 +17,14 @@ local auth = require "auth"
 local ts_utils = require "ts_utils_core"
 local site_utils = require "site_utils"
 
-local is_pro = ntop.isPro()
+local is_pro = ntop.isPro and ntop.isPro()
 local random_csrf = ntop.getRandomCSRFValue()
 
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local is_admin = isAdministrator()
 local http_prefix = ntop.getHttpPrefix()
-local is_enterprise_L = ntop.isEnterpriseL()
-local is_enterprise_M = ntop.isEnterpriseM()
+local is_enterprise_L = ntop.isEnterpriseL and ntop.isEnterpriseL()
+local is_enterprise_M = ntop.isEnterpriseM and ntop.isEnterpriseM()
 
 if (is_pro) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -426,7 +426,7 @@ else
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
 
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
-   local has_assets = ntop.isEnterpriseXL() and (host.asset_key ~= nil) and (ntop.getHashKeysCache(host.asset_key) ~= nil)
+   local has_assets = ntop.isEnterpriseXL and ntop.isEnterpriseXL() and (host.asset_key ~= nil) and (ntop.getHashKeysCache(host.asset_key) ~= nil)
    local periodicity_map_available = false
    local service_map_available = false
    local num_periodicity = 0

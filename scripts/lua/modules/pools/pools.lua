@@ -17,7 +17,7 @@ local pools = {}
 pools.DEFAULT_POOL_ID = 0           -- Keep in sync with ntop_defines.h NO_HOST_POOL_ID
 pools.DEFAULT_POOL_NAME = "Default" -- Keep in sync with ntop_defines.h DEFAULT_POOL_NAME
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
    pools.DEFAULT_POOL_NAME = "Not Assigned"
 end
 

@@ -179,7 +179,7 @@ for key, value in pairs(hosts_stats["hosts"]) do
         record.hostname.alt_name = alt_name
     end
 
-    if ntop.isnEdge() and value["mac"] then
+    if ntop.isnEdge and ntop.isnEdge() and value["mac"] then
         local mac_info = interface.getMacInfo(value["mac"])
         record["location"] = mac_info.location
     end

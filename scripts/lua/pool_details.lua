@@ -6,7 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" ..
                    package.path
 
-if (ntop.isPro()) then
+if (ntop.isPro and ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" ..
                        package.path
     local snmp_utils = require "snmp_utils"
@@ -19,19 +19,19 @@ local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
 
 local host_pools_nedge
-if ntop.isnEdge() then host_pools_nedge = require "host_pools_nedge" end
+if ntop.isnEdge and ntop.isnEdge() then host_pools_nedge = require "host_pools_nedge" end
 local host_pools = require "host_pools"
 -- Instantiate host pools
 local host_pools_instance = host_pools:create()
 
 local template = require "template_utils"
 
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 
 local pool_id = _GET["pool"]
 local page = _GET["page"] or "historical"
 
-if (not ntop.isPro()) then return end
+if (not (ntop.isPro and ntop.isPro())) then return end
 
 if ifname == "__system__" then
     -- Someone jumped from the users to the quotas in the System interface, redirect to a Network interface (e.g. nf:0)
@@ -44,7 +44,7 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 local pool_name = host_pools_instance:get_pool_name(pool_id)
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
     if _POST["reset_quotas"] ~= nil then
         host_pools_nedge.resetPoolsQuotas(tonumber(pool_id))
     end
@@ -83,7 +83,7 @@ page_utils.print_navbar(title, base_url, {
         page_name = "historical",
         label = "<i class='fas fa-lg fa-chart-area'></i>"
     }, {
-        hidden = not ntop.isEnterpriseM() or not ntop.isnEdge() or not ifstats or
+        hidden = not (ntop.isEnterpriseM and ntop.isEnterpriseM()) or not (ntop.isnEdge and ntop.isnEdge()) or not ifstats or
             pool_id == host_pools_instance.DEFAULT_POOL_ID,
         active = page == "quotas",
         page_name = "quotas",
@@ -94,7 +94,7 @@ page_utils.print_navbar(title, base_url, {
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
-if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~=
+if (ntop.isEnterpriseM and ntop.isEnterpriseM() or ntop.isnEdge and ntop.isnEdge()) and pool_id ~=
     host_pools_instance.DEFAULT_POOL_ID and ifstats.inline and
     (page == "quotas") and (pool_stats ~= nil) then
     print(template.gen("modal_confirm_dialog.html", {
@@ -121,7 +121,7 @@ if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~=
   <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#reset_quotas_dialog" style="float:right;">]]
     print(i18n("host_pools.reset_quotas"))
     print [[</button>]]
-    if ntop.isnEdge() then
+    if ntop.isnEdge and ntop.isnEdge() then
         local username = host_pools_nedge.poolIdToUsername(pool_id)
         print [[<a href="]]
         print(ntop.getHttpPrefix())

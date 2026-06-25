@@ -611,7 +611,7 @@ function driver:timeseries_top(options, top_tags)
          local ext_label = nil
 
          -- Device/interface schemas: resolve SNMP interface label.
-         if ntop.isPro() and options.tags and options.tags.device then
+         if ntop.isPro and ntop.isPro() and options.tags and options.tags.device then
             local snmp_utils      = require "snmp_utils"
             local snmp_cached_dev = require "snmp_cached_dev"
             local cached_device   = snmp_cached_dev:create(options.tags.device)

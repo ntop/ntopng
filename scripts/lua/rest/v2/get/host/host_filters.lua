@@ -181,7 +181,7 @@ if (table.len(pools) > 1) then
     }
 end
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     local flowdevs = interface.getFlowDevices() or {}
     local devips = getProbesName(flowdevs)
     if table.len(devips) > 0 then
@@ -262,7 +262,7 @@ if (not isEmptyString(mac)) then
     }
 end
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
     local location_list = {
         {
             key = "location",

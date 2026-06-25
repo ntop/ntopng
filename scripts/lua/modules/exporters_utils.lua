@@ -18,7 +18,7 @@ require "lua_utils_get"
 
 -- SNMP utilities are only available in the Pro version
 local snmp_utils = nil
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
 end

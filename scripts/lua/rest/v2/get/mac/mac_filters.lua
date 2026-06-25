@@ -60,7 +60,7 @@ if table.len(device_types) > 1 then
     }
 end
 
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
     local location_list = {
         {
             key = "location",

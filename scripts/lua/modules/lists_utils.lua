@@ -39,7 +39,7 @@ local MAX_TOTAL_IP_RULES = 1000000
 -- On average they take ~7.5 KB/domain. 40k rules are loaded in about 7 seconds.
 local MAX_TOTAL_DOMAIN_RULES = 200000
 
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
 -- supported formats: ip, ip_csv, domain, hosts
 --

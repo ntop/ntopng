@@ -53,7 +53,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space', tostring(disk_space))
 
-  if ntop.isEnterpriseXL() then
+  if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
   
     -- Toggle smart recording
     if not isEmptyString(_POST["smart_record_traffic"]) then
@@ -104,7 +104,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     config.snaplen = snaplen
     config.max_disk_space = disk_space
     config.bpf_filter = bpf_filter
-    if ntop.isEnterpriseXL() and smart_record_traffic then
+    if ntop.isEnterpriseXL and ntop.isEnterpriseXL() and smart_record_traffic then
       config.enable_smart_recording = true
       config.max_smart_disk_space = smart_disk_space
     end
@@ -122,7 +122,7 @@ end
 
 if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled') == "1" then
   record_traffic = true
-  if ntop.isEnterpriseXL() and ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled') == "1" then
+  if ntop.isEnterpriseXL and ntop.isEnterpriseXL() and ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled') == "1" then
     smart_record_traffic = true
   end
 end
@@ -142,7 +142,7 @@ local max_space = recording_utils.recommendedSpace(master_ifid, storage_info)
 -- Compute suggested max disk space
 max_space = math.floor(max_space/(1024*1024*1024))*1024
 
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
   -- Compute recommended values for storage and smart storage
   if isEmptyString(disk_space) and isEmptyString(smart_disk_space) then
     disk_space = max_space/2
@@ -257,7 +257,7 @@ print [[
 ]]
 
 -- Smart Recording Configuration
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
 print [[
       <tr id="tr-smart_record_traffic">
         <th width=30%>]] print(i18n("traffic_recording.smart_traffic_recording")) print [[</th>
@@ -343,7 +343,7 @@ function update_record_traffic() {
   if ($("#record_traffic").is(":checked")) {
     toggle_recording_enabled_on();
 ]]
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
 print[[
     $("#tr-smart_record_traffic").css("display","table-row");
 ]]
@@ -352,7 +352,7 @@ print[[
   } else {
     toggle_recording_enabled_off();
 ]]
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
 print[[
     $("#smart_record_traffic").prop('checked', false);
     update_smart_record_traffic();
@@ -378,7 +378,7 @@ function toggle_recording_enabled_off(){
 }
 ]]
 
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
 print [[
 $("#smart_record_traffic").change(function(e) {
   update_smart_record_traffic();
@@ -409,7 +409,7 @@ end
 print[[
 update_record_traffic();
 ]]
-if ntop.isEnterpriseXL() then
+if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
 print [[
 update_smart_record_traffic();
 ]]

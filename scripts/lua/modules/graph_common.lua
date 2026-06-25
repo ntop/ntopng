@@ -6,7 +6,7 @@
 
 local ts_utils = require("ts_utils")
 local dscp_consts = require("dscp_consts")
-local have_nedge = ntop.isnEdge()
+local have_nedge = ntop.isnEdge and ntop.isnEdge()
 
 -- ##############################################
 

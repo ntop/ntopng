@@ -1,6 +1,6 @@
 local page_utils = require("page_utils")
 local get_users_url = ntop.getHttpPrefix().."/lua/admin/get_users.lua"
-local users_type = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.system_users"), i18n("login.web_users"))}
+local users_type = {ntopng=ternary(ntop.isnEdge and ntop.isnEdge(), i18n("nedge.system_users"), i18n("login.web_users"))}
 
 local title = users_type["ntopng"]
 

@@ -318,7 +318,7 @@ function checks.getSubdirectoryPath(script_type, subdir)
     res[#res + 1] = os_utils.fixPath(path)
 
     -- Add pro check_definitions if necessary
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local pro_path = string.format(
                              "%s/pro/scripts/lua/modules/check_definitions/%s",
                              dirs.installdir, subdir)
@@ -465,10 +465,10 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type,
     -- Recheck the edition as a time-limited license may have expired
     if script then
         if (script.setup and script.setup() == false) then return (nil) end
-        if (script.edition == "pro" and not ntop.isPro()) or
+        if (script.edition == "pro" and not (ntop.isPro and ntop.isPro())) or
             ((script.edition == "enterprise_l" or script.edition ==
-                "enterprise_m") and not ntop.isEnterpriseM()) or
-            (script.edition == "enterprise_l" and not ntop.isEnterpriseL()) then
+                "enterprise_m") and not (ntop.isEnterpriseM and ntop.isEnterpriseM())) or
+            (script.edition == "enterprise_l" and not (ntop.isEnterpriseL and ntop.isEnterpriseL())) then
             traceError(TRACE_DEBUG, TRACE_CONSOLE,
                        string.format(
                            "Skipping user script '%s' with '%s' edition",
@@ -495,8 +495,8 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type,
         return (nil)
     end
 
-    if ((check.nedge_exclude and ntop.isnEdge()) or
-        (check.nedge_only and (not ntop.isnEdge()))) then
+    if ((check.nedge_exclude and ntop.isnEdge and ntop.isnEdge()) or
+        (check.nedge_only and (not (ntop.isnEdge and ntop.isnEdge())))) then
         traceError(TRACE_DEBUG, TRACE_CONSOLE,
                    string.format("Skipping module '%s' for nEdge", mod_fname))
         return (nil)
@@ -1971,7 +1971,7 @@ end
 
 -- The function below is called once (#pragma once)
 local function setupSNMPChecks(str_granularity, checks_var, do_trace)
-    if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
+    if not (ntop.isEnterprise and ntop.isEnterprise()) and not (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()) then
         return false
     end
 
@@ -1997,7 +1997,7 @@ end
 
 -- The function below is called once (#pragma once)
 local function setupActiveMonitoringChecks(str_granularity, checks_var, do_trace)
-    if not ntop.isEnterpriseL() then return false end
+    if not (ntop.isEnterpriseL and ntop.isEnterpriseL()) then return false end
 
     if do_trace then
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
@@ -2021,7 +2021,7 @@ end
 
 -- The function below is called once (#pragma once)
 local function setupASChecks(str_granularity, checks_var, do_trace)
-    if not ntop.isEnterpriseL() then return false end
+    if not (ntop.isEnterpriseL and ntop.isEnterpriseL()) then return false end
 
     if do_trace then
         print("alert.lua:setup(" .. str_granularity .. ") called\n")

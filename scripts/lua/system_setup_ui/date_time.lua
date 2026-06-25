@@ -11,12 +11,12 @@ require "prefs_utils"
 local tz_utils = require("tz_utils")
 prefsSkipRedis(true)
 
-if not (ntop.isnEdge() or ntop.isAppliance()) or not isAdministrator() then
+if not ((ntop.isnEdge and ntop.isnEdge()) or ntop.isAppliance()) or not isAdministrator() then
    return
 end
 
 local sys_config
-if ntop.isnEdge() then
+if ntop.isnEdge and ntop.isnEdge() then
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
    sys_config = require("nf_config"):create(true)
 else -- ntop.isAppliance()

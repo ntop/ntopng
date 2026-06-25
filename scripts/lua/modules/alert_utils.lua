@@ -23,7 +23,7 @@ require "check_redis_prefs"
 
 local shaper_utils = nil
 
-if (ntop.isnEdge()) then
+if (ntop.isnEdge and ntop.isnEdge()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
     shaper_utils = require("shaper_utils")
 end
@@ -419,7 +419,7 @@ end
 -- #################################
 
 function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
-    if not ntop.isEnterpriseM() or not hasClickHouseSupport() then
+    if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) or not hasClickHouseSupport() then
         -- nIndex not enabled or enabled but not available for this particular interface
         return
     end

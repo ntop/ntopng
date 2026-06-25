@@ -15,7 +15,7 @@ local rest_utils = require "rest_utils"
 local format_utils = require("format_utils")
 require "lua_utils_get"
 
-if ntop.isEnterpriseM() then require "aggregate_live_flows" end
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then require "aggregate_live_flows" end
 -- ##################################################################
 -- REST params
 
@@ -51,7 +51,7 @@ local function retrieve_aggregation_criteria(criteria)
         criteria_type_id = 3
     elseif criteria == "client_server_srv_port" then
         criteria_type_id = 7
-    elseif ntop.isEnterpriseM() then
+    elseif ntop.isEnterpriseM and ntop.isEnterpriseM() then
         criteria_type_id = get_criteria_type_id(criteria)
     end
     return criteria_type_id
@@ -142,7 +142,7 @@ local function build_response(criteria)
         add_new_filter_item_to_filters_array(data.vlan_id,
                                              formatted_vlan_filters,
                                              filter_types.vlan)
-        if ntop.isEnterpriseM() then
+        if ntop.isEnterpriseM and ntop.isEnterpriseM() then
             if data["status"] then
                 for _, status in pairs(data["status"]) do
                     local name =
@@ -164,7 +164,7 @@ local function build_response(criteria)
                  {key = "vlan_id", label = i18n('all'), value = ""})
 
     local formatted_device_filters = {}
-    if ntop.isEnterpriseM() and interface.isPacketInterface() == false then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() and interface.isPacketInterface() == false then
         local flowdevs = interface.getFlowDevices() or {}
         local devips = getProbesName(flowdevs)
         if table.len(devips) > 0 then
@@ -214,7 +214,7 @@ local function build_response(criteria)
         }
     end
 
-    if ntop.isEnterpriseM() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
         if (#formatted_status_filters > 1) then
             rsp[#rsp + 1] = {
                 action = "status",
@@ -226,7 +226,7 @@ local function build_response(criteria)
         end
     end
 
-    if ntop.isEnterpriseM() and not isEmptyString(_GET["deviceIP"]) then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() and not isEmptyString(_GET["deviceIP"]) then
         local dev_ip = _GET["deviceIP"]
         
         if not isEmptyString(_GET["ifIdx"]) then

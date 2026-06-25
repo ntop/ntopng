@@ -20,7 +20,7 @@ local timeseries_list = {}
 function ts_flow.getTimeseries(tags, options)
     local timeseries = table.clone(timeseries_list)
 
-    if ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() and ntop.isClickHouseEnabled() then
         timeseries[#timeseries + 1] = {
             schema       = "flow:hr_traffic",
             id           = timeseries_id,

@@ -23,7 +23,7 @@ local view = _GET["view"]
 -- ######################################
 
 local infrastructure_view = view and view == 'infrastructure' and
-                                ntop.isEnterpriseL()
+                                ntop.isEnterpriseL and ntop.isEnterpriseL()
 
 local is_system_interface = page_utils.is_system_view()
 if is_system_interface and not infrastructure_view then
@@ -33,11 +33,11 @@ end
 
 -- ######################################
 
-if ntop.isnEdge() or ntop.isAppliance() then
+if (ntop.isnEdge and ntop.isnEdge()) or ntop.isAppliance() then
     local sys_config
     local first_start_page
 
-    if ntop.isnEdge() then
+    if ntop.isnEdge and ntop.isnEdge() then
         package.path = dirs.installdir ..
                            "/pro/scripts/lua/nedge/modules/system_config/?.lua;" ..
                            package.path
@@ -76,19 +76,19 @@ sendHTTPContentTypeHeader('text/html')
 
 local default_template = "community"
 
-if ntop.isnEdge() then
-    if ntop.isnEdgeEnterprise() then
+if ntop.isnEdge and ntop.isnEdge() then
+    if ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise() then
         default_template = "nedge-enterprise"
     else
         default_template = "nedge"
     end
 else
-    if ntop.isEnterprise() then
+    if ntop.isEnterprise and ntop.isEnterprise() then
         default_template = "enterprise"
         if isASNModeEnabled() then
             default_template = "enterprise_as_mode"
         end
-    elseif ntop.isPro() then
+    elseif ntop.isPro and ntop.isPro() then
         default_template = "pro"
     end
 end

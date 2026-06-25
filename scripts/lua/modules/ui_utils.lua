@@ -15,7 +15,7 @@ function ui_utils.render_configuration_footer(item,page)
    local ret = template_utils.gen('pages/components/manage-configuration-link.template', {item = item})
 
    if(((page == "host") or (page == nil))
-      and (item == "pool") and (ntop.isPro() or ntop.isEnterpriseM() or ntop.isEnterpriseL())) then
+      and (item == "pool") and (ntop.isPro and ntop.isPro())) then
       ret = ret .. template_utils.gen('pages/components/export-policy-configuration-link.template')
    end
    

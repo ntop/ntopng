@@ -5,7 +5,7 @@ require "lua_utils_get"
 local checks = require("checks")
 local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
-local description = ternary(ntop.isnEdge(), "flow_checks_config.dev_proto_not_allowed_nedge_description",
+local description = ternary(ntop.isnEdge and ntop.isnEdge(), "flow_checks_config.dev_proto_not_allowed_nedge_description",
     "flow_checks_config.dev_proto_not_allowed_description")
 
 -- #################################################################

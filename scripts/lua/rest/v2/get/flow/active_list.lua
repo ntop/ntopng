@@ -14,7 +14,7 @@ local l4_protocol_list = require "l4_protocol_list"
 local as_utils = require "as_utils"
 local icmp_utils = require("icmp_utils")
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 end
 
@@ -255,7 +255,7 @@ for _, value in ipairs(flows_stats.flows) do
       local out_port_name = ""
       local device_ip = value["device_ip"]
 
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
          local snmp_cached_dev = require "snmp_cached_dev"
          local cached_dev = snmp_cached_dev:get_interfaces(device_ip)
          in_port_name = format_portidx_name(device_ip, value["in_index"], true)

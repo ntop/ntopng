@@ -36,7 +36,7 @@ page_utils.print_navbar(i18n("network_stats.networks"), base_url, {
 
 if page == "networks" then
 	-- render network maps tile chart
-	if ntop.isPro() then
+	if ntop.isPro and ntop.isPro() then
 		local networks_stats = interface.getNetworksStats()
 		local numNetworks = table.len(networks_stats)
 

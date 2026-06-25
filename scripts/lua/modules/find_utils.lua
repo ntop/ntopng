@@ -7,7 +7,7 @@ local flowfilter_utils = require "flowfilter_utils"
 local snmp_utils
 local snmp_location
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
    snmp_location = require "snmp_location"
@@ -327,7 +327,7 @@ local function find_snmp_mac(query, tot_results)
    -- wrong results. We can just check for a dot in the string as if
    -- there's a dot then we're sure it can't be a mac
 
-   if ntop.isEnterpriseM() and snmp_location and not query:find("%.") then
+   if ntop.isEnterpriseM and ntop.isEnterpriseM() and snmp_location and not query:find("%.") then
       local mac = string.upper(query)
       local matches = snmp_location.find_mac_snmp_ports(mac, true)
 
@@ -374,7 +374,7 @@ end
 local function find_snmp_interface(query, tot_results)
    local results = {}
 
-   if ntop.isEnterpriseM() then
+   if ntop.isEnterpriseM and ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = snmp_utils.find_snmp_ports_by_name(name, true)
 
@@ -421,7 +421,7 @@ end
 local function find_snmp_device(query, tot_results)
    local results = {}
 
-   if ntop.isEnterpriseM() then
+   if ntop.isEnterpriseM and ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = snmp_utils.find_snmp_devices(name, true)
 

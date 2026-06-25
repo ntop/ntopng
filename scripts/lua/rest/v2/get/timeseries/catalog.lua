@@ -32,7 +32,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/handlers/?.lua;" .. package.path
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/handlers/?.lua;" .. package.path
 end
 

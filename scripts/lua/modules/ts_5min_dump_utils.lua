@@ -144,7 +144,7 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
         end
 
         -- QoE Stats
-        if ntop.isEnterpriseL() then
+        if ntop.isEnterpriseL and ntop.isEnterpriseL() then
             local qoe_list = {}
             for id, value in pairs(asn_stats.qoe or {}) do
                 local delta = delta_val(interface, "asn_qoe_stats." .. ifstats.id .. "." .. asn .. "." .. id, "5mins",
@@ -457,7 +457,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
         }, when)
     end
 
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         -- Contacted Hosts Behaviour
         if host["contacted_hosts_behaviour"] then
             if (host.contacted_hosts_behaviour.value > 0) then
@@ -557,7 +557,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     end
 
     -- QoE Stats
-    if ntop.isEnterpriseL() then
+    if ntop.isEnterpriseL and ntop.isEnterpriseL() then
         local qoe_list = {}
         for id, value in pairs(host.qoe or {}) do
             local delta = delta_val(interface, "host_qoe_stats." .. ifstats.id .. "." .. hostname .. "." .. id, "5mins",
@@ -918,7 +918,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
     end
 
     -- Create RRDs for flow and sFlow probes
-    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM() and not highExporterTimeseriesResolution()) then
+    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM and ntop.isEnterpriseM() and not highExporterTimeseriesResolution()) then
         package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" .. package.path
         local exporters_timeseries = require "exporters_timeseries"
         exporters_timeseries.update_timeseries(when, ifstats, verbose, false)
@@ -927,7 +927,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
     end
 
     -- Save Host Pools stats every 5 minutes
-    if ((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1")) then
+    if ((ntop.isPro and ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1")) then
         local host_pools = require "host_pools"
         local host_pools_instance = host_pools:create()
 

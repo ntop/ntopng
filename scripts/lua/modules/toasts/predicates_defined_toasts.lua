@@ -688,7 +688,7 @@ end
 --- @param container table Is the table where to put the new toast ui
 function predicates.service_map(toast, container)
     local service_map_status = interface.serviceMapLearningStatus()
-    if ntop.isEnterprise() and service_map_status.service_map_learning_status == true then
+    if ntop.isEnterprise and ntop.isEnterprise() and service_map_status.service_map_learning_status == true then
         local body = i18n("map_page.learning")
         table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
             ToastLevel.INFO, nil, toast.dismissable))       
@@ -698,7 +698,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.enable_exporters_timeseries(toast, container)
-    if ntop.isEnterprise() and not areFlowdevTimeseriesEnabled() then
+    if ntop.isEnterprise and ntop.isEnterprise() and not areFlowdevTimeseriesEnabled() then
         local body = i18n("prefs.enable_exporters_timeseries", {
             link = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts"
         })
@@ -711,7 +711,7 @@ end
 --- @param container table Is the table where to put the new toast ui
 function predicates.configured_exporters_timeseries_resolution(toast, container)
     local service_map_status = interface.serviceMapLearningStatus()
-    if ntop.isEnterprise() and areFlowdevTimeseriesEnabled() and not highExporterTimeseriesResolution() then
+    if ntop.isEnterprise and ntop.isEnterprise() and areFlowdevTimeseriesEnabled() and not highExporterTimeseriesResolution() then
         local body = i18n("prefs.change_exporter_timeseries_resolution", {
             link = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts"
         })
@@ -732,7 +732,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.exporters_SNMP_ratio_column(toast, container)
-    if not IS_ADMIN or not ntop.isPro() then
+    if not IS_ADMIN or not (ntop.isPro and ntop.isPro()) then
         return
     end
 

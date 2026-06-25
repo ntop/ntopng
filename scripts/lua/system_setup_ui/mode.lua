@@ -9,7 +9,7 @@ local system_setup_ui_utils = require "system_setup_ui_utils"
 require "lua_utils"
 require "prefs_utils"
 
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
 
 if not (is_nedge or is_appliance) or not isAdministrator() then
@@ -58,7 +58,7 @@ local print_page_body = function()
   end
 
   local current_mode = sys_config:getOperatingMode()
-  local bridge_only = (is_nedge and not ntop.isnEdgeEnterprise())
+  local bridge_only = (is_nedge and not (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()))
 
   multipleTableButtonPrefs(i18n("nedge.setup_mode"),
 			   i18n("nedge.set_the_device_mode"),

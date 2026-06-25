@@ -31,7 +31,7 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
   else
     f:write("iface " .. iface .. " inet " .. network_conf.mode .. "\n")
 
-    if ntop.isnEdge() and network_conf.mode == "dhcp" then
+    if ntop.isnEdge and ntop.isnEdge() and network_conf.mode == "dhcp" then
       f:write("\tpre-up /bin/rm -f /var/lib/dhcp/dhclient.".. iface ..".leases\n")
     end
   end
@@ -57,7 +57,7 @@ function config.openNetworkInterfacesConfigFile()
   local network_conf_file = "ntop.conf"
   local network_custom_conf_file = "ntop_mgmt.conf"
 
-  if ntop.isnEdge() then
+  if ntop.isnEdge and ntop.isnEdge() then
     network_conf_file = "nedge.conf"
     network_custom_conf_file = "nedge_mgmt.conf"
   end

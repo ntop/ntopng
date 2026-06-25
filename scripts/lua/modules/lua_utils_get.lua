@@ -866,7 +866,7 @@ function getGwMacsSet(ifid) return "ntopng.prefs.iface_" .. ifid .. ".gw_macs" e
 function getDeviceProtocolPoliciesUrl(params_str)
     local url, sep
 
-    if ntop.isnEdge() then
+    if ntop.isnEdge and ntop.isnEdge() then
         url = "/lua/pro/nedge/admin/nf_edit_user.lua?page=device_protocols"
         sep = "&"
     else

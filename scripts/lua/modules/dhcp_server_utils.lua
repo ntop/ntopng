@@ -72,7 +72,7 @@ end
 -- This function is used to check if the DHCP server status is up
 -- and if not, restart it.
 function dhcp_server_utils.checkRestartDHCPService()
-  if ntop.isnEdge() then
+  if ntop.isnEdge and ntop.isnEdge() then
     local dhcp_handler = dhcp_server_utils.getDhcpServerHandler()
     if (ntop.getCache(dhcp_enabled_key) or '0') == '1' then
       if not sys_utils.isActiveService(dhcp_handler.service_name) then
@@ -86,7 +86,7 @@ end
 
 -- This function is used to start the DHCP server
 function dhcp_server_utils.startDHCPService()
-  if ntop.isnEdge() then
+  if ntop.isnEdge and ntop.isnEdge() then
     local dhcp_handler = dhcp_server_utils.getDhcpServerHandler()
     ntop.setCache(dhcp_enabled_key, '1')
     sys_utils.enableService(dhcp_handler.service_name)
@@ -98,7 +98,7 @@ end
 
 -- This function is used to stop the DHCP server
 function dhcp_server_utils.stopDHCPService()
-  if ntop.isnEdge() then
+  if ntop.isnEdge and ntop.isnEdge() then
     local dhcp_handler = dhcp_server_utils.getDhcpServerHandler()
     ntop.setCache(dhcp_enabled_key, '0')
     sys_utils.disableService(dhcp_handler.service_name)

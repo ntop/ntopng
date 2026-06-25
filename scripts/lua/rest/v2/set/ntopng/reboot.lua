@@ -13,7 +13,7 @@ local sys_utils  = require("sys_utils")
 -- Example: curl -u admin:admin -X POST http://localhost:3000/lua/rest/v2/set/ntopng/reboot.lua
 --
 
-if not ntop.isnEdge() then
+if not (ntop.isnEdge and ntop.isnEdge()) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

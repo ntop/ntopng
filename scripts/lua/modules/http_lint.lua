@@ -1538,7 +1538,7 @@ end
 -- #################################################################
 
 local function validateInterfaceRole(m)
-   if ntop.isPro() then
+   if ntop.isPro and ntop.isPro() then
       package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" ..
 	 package.path
       local snmp_utils = require "snmp_utils"
@@ -3435,7 +3435,7 @@ end
 -- #################################################################
 
 local function clearNotAllowedParams()
-    if ntop.isnEdge() then
+    if ntop.isnEdge and ntop.isnEdge() then
         -- Captive portal urls that can be clobbered with unrecognized
         -- and unvalid params as devices could have http requests open that are redirected
         -- to the captive portal.

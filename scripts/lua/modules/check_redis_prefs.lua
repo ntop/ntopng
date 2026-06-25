@@ -82,7 +82,7 @@ end
 -- ###########################################
 
 function areHostPoolsTimeseriesEnabled(ifid)
-    return (ntop.isPro() and
+    return (ntop.isPro and ntop.isPro() and
                (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
 end
 
@@ -207,12 +207,12 @@ function get5MinTSConfig()
     -- ########################################################
     -- Populate some defaults
     if (tostring(config.flow_devices_rrd_creation) == "1" and
-        ntop.isEnterpriseM() == false) then
+        ntop.isEnterpriseM and ntop.isEnterpriseM() == false) then
         config.flow_devices_rrd_creation = "0"
     end
 
     if (tostring(config.snmp_devices_rrd_creation) == "1" and
-        not (ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())) then
+        not ((ntop.isEnterpriseM and ntop.isEnterpriseM()) or (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()))) then
         config.snmp_devices_rrd_creation = "0"
     end
 
@@ -298,7 +298,7 @@ function hasClickHouseSupport()
 
     local auth = require "auth"
 
-    if not (ntop.isPro() or ntop.isnEdgeEnterprise()) or ntop.isWindows() then
+    if not ((ntop.isPro and ntop.isPro()) or (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise())) or ntop.isWindows() then
         return false
     end
 
@@ -351,7 +351,7 @@ function isInfrastructureView()
     local infrastructure_view = false
     local infrastructure_instances = {}
 
-    if ntop.isEnterpriseL() then
+    if ntop.isEnterpriseL and ntop.isEnterpriseL() then
         local infrastructure_utils = require("infrastructure_utils")
         for _, v in pairs(infrastructure_utils.get_all_instances()) do
             infrastructure_instances[v.id] = {name = v.alias, url = v.url}
@@ -371,7 +371,7 @@ end
 -- Enterprise M license, preference enabled and not Windows
 function assetsInventoryEnabled()
     local is_infrastructure = isInfrastructureView()
-    if not (ntop.isEnterpriseM()) then
+    if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
         return false
     end
     if (ntop.isWindows()) then

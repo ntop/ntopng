@@ -177,7 +177,7 @@ for i = 1, num_runs do
     end, true --[[ update direction stats ]] )
 
     -- Save ZMQ stats correctly for view interfaces
-    if (check_view and ntop.isPro()) then
+    if (check_view and ntop.isPro and ntop.isPro()) then
         -- Select the view interface to ensure enqueued data goes into the right
         -- interface's queue for RRD/ClickHouse timeseries
         interface.select(view_id)

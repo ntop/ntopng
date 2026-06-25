@@ -16,7 +16,7 @@ local alert_consts = require "alert_consts"
 local json = require("dkjson")
 local snmp_utils
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
     shaper_utils = require("shaper_utils")
@@ -453,7 +453,7 @@ function handleCustomFlowField(key, value, snmpdevice)
       return (format_utils.formatValue(value))
    elseif key == 'EXPORTER_IPV4_ADDRESS' or key == 'NPROBE_IPV4_ADDRESS' then
 
-      if ntop.isPro() then
+      if ntop.isPro and ntop.isPro() then
 	 return ("<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. value ..
 		 "\">" .. value .. "</A>")
       else
@@ -1886,7 +1886,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx, as_row)
        output_role = snmp_utils.get_snmp_interface_role(snmpdevice, tostring(output_idx))
     end
     
-    if ntop.isEnterprise() then
+    if ntop.isEnterprise and ntop.isEnterprise() then
        url_input = ntop.getHttpPrefix() ..
 	  '/lua/pro/enterprise/snmp_interface_details.lua?host='.. snmpdevice ..
 	  '&snmp_port_idx='.. input_idx
@@ -2203,7 +2203,8 @@ local function getParamFilter(page_params, param_name)
     return ''
 end
 function printTabList(base_url, page_params, active)
-    if (ntop.isEnterpriseM() or (ntop.isnEdge() and ntop.isnEdgeEnterprise())) then
+    if ((ntop.isEnterpriseM and ntop.isEnterpriseM()) or 
+        ((ntop.isnEdge and ntop.isnEdge()) and (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()))) then
         print [[
          <div class="col-md-12 col-lg-12">
          <div class="card">
@@ -2246,7 +2247,7 @@ function printTabList(base_url, page_params, active)
 end
 function printFlowPagesDropdown(base_url, page_params)
     local flowhosts_type_params = table.clone(page_params)
-    if (ntop.isEnterpriseM()) then
+    if (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
 
         print [[
          <div class="btn-group">
@@ -2808,7 +2809,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
         print [[</div>']]
     end
 
-    if ntop.isPro() then
+    if ntop.isPro and ntop.isPro() then
         local hashname = "ntopng.prefs.profiles"
         local profiles = ntop.getHashKeysCache(hashname) or {}
         local profiles_defined = false
@@ -2848,7 +2849,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
         end
     end
 
-    if ntop.isPro() and interface.isPacketInterface() == false then
+    if ntop.isPro and ntop.isPro() and interface.isPacketInterface() == false then
         printFlowDevicesFilterDropdown(base_url, vlan_params)
     end
 end
@@ -3113,7 +3114,7 @@ end
 local snmp_cached_dev
 local cached_devices = {}
 
-if ntop.isPro() then
+if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    snmp_cached_dev = require "snmp_cached_dev"
 end

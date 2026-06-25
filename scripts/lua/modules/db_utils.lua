@@ -166,7 +166,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
    end
 
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,IN_BYTES,OUT_BYTES,idx,L7_PROTO,INFO"
-   if ntop.isPro() then follow = follow..",PROFILE" end
+   if ntop.isPro and ntop.isPro() then follow = follow..",PROFILE" end
 
    follow = follow.." from "..flowsTableName(version, true --[[ force raw flows --]]).." where FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
 

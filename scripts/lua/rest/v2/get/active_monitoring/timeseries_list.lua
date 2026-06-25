@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-if ntop.isEnterprise() then
+if ntop.isEnterprise and ntop.isEnterprise() then
     package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 end
 
@@ -14,7 +14,7 @@ local json = require("dkjson")
 local script_manager = require("script_manager")
 local am_utils = require "am_utils"
 local infrastructure_utils = nil
-if ntop.isEnterprise() then
+if ntop.isEnterprise and ntop.isEnterprise() then
     infrastructure_utils = require("infrastructure_utils")
 end
 --

@@ -145,7 +145,7 @@ for _, value in ipairs(page_macs) do
    if (mac_manufacturer == nil) then
       mac_manufacturer = ""
    end
-   if ntop.isnEdge() then
+   if ntop.isnEdge and ntop.isnEdge() then
       record["location"] = value.location
    end
    if (value["model"] ~= nil) then

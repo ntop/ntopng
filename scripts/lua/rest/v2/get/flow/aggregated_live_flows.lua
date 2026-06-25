@@ -13,7 +13,7 @@ local rest_utils = require("rest_utils")
 local format_utils = require("format_utils")
 require "lua_utils_get"
 
-if ntop.isEnterpriseM() then
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then
     require "aggregate_live_flows"
 end
 
@@ -105,7 +105,7 @@ elseif criteria == "src_as_transit_as_dst_as" then
     criteria_type_id = 10
 elseif criteria == "host" then
     criteria_type_id = 11
-elseif ntop.isEnterpriseM() then
+elseif ntop.isEnterpriseM and ntop.isEnterpriseM() then
     criteria_type_id = get_criteria_type_id(criteria)
 end
 
@@ -168,7 +168,7 @@ for _, data in pairs(aggregated_info or {}) do
         if (data.ip ~= nil) then
             add_host = true
         end
-    elseif ntop.isEnterpriseM() then
+    elseif ntop.isEnterpriseM and ntop.isEnterpriseM() then
         response = get_output_flags(criteria_type_id)
     end
 

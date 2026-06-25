@@ -35,7 +35,7 @@ page_utils.print_navbar(i18n('manage_configurations.manage_configuration'), base
    label = i18n("manage_configurations.manage_configurations_backup")
 }})
 
-if not ntop.isnEdge() then
+if not (ntop.isnEdge and ntop.isnEdge()) then
    configuration_items = {
       all = {
          key = "all",
@@ -83,7 +83,7 @@ else
 end
 
 
-if ntop.isPro() or ntop.isnEdge() then 
+if (ntop.isPro and ntop.isPro()) or (ntop.isnEdge and ntop.isnEdge()) then 
    configuration_items['snmp'] = {
       key = "snmp",
       label = i18n("manage_configurations.snmp"),
@@ -102,7 +102,7 @@ if ntop.isPro() or ntop.isnEdge() then
 end
 
 -- the infrastructure dashboard is available only in the Enterprise L
-if ntop.isEnterpriseL() then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
    configuration_items['infrastructure'] = {
       key = "infrastructure",
       label = i18n("manage_configurations.infrastructure_instances"),
@@ -139,7 +139,7 @@ else
          configuration_items  = configuration_items,
          product              = info["product"],
          csrf                 = ntop.getRandomCSRFValue(),
-         is_nedge             = ntop.isnEdge()
+         is_nedge             = ntop.isnEdge and ntop.isnEdge()
       })
    })
 end

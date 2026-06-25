@@ -95,7 +95,7 @@ function syslog.sendMessage(settings, notif, severity)
       -- so for efficiency, no decoding is done
       msg = notif
    elseif syslog_format and syslog_format == "ecs" then
-     if ntop.isEnterpriseM() then
+     if ntop.isEnterpriseM and ntop.isEnterpriseM() then
         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         local ecs_format = require "ecs_format"
         msg = json.encode(ecs_format.format(json.decode(notif)))
@@ -103,7 +103,7 @@ function syslog.sendMessage(settings, notif, severity)
         return false
      end
    elseif syslog_format and syslog_format == "checkmk" then
-      if ntop.isEnterpriseM() then
+      if ntop.isEnterpriseM and ntop.isEnterpriseM() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local checkmk_format = require "checkmk_format"
          msg = checkmk_format.format(json.decode(notif))

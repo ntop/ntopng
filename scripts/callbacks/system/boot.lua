@@ -33,12 +33,12 @@ prefs_dump_utils.check_restore_prefs_from_disk()
 -- Check and possibly perform a factory reset of preferences
 prefs_dump_utils.check_prefs_factory_reset()
 
-if(ntop.isPro()) then
+if(ntop.isPro and ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
    require("boot")
 end
 
-if not ntop.isnEdge() then -- nEdge data deletion is handled in nf_config.lua
+if not (ntop.isnEdge and ntop.isnEdge()) then -- nEdge data deletion is handled in nf_config.lua
    local delete_data_utils = require "delete_data_utils"
 
    delete_data_utils.delete_pcap_dump_interfaces_data()

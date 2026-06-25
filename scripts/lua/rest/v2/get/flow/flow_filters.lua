@@ -322,7 +322,7 @@ rsp[#rsp + 1] = {
 -- If ASN Mode is enabled remove QOE from filter as it is not present in the live flows table
 local isASNModeEnabled = isASNModeEnabled()
 
-if ntop.isEnterpriseL() and (not isASNModeEnabled) then
+if ntop.isEnterpriseL and ntop.isEnterpriseL() and (not isASNModeEnabled) then
    local qoe_filters = {{
       key = "qoe",
       value = "",
@@ -584,7 +584,7 @@ if table.len(flowstats["wlan_ssid"]) > 0 then
    }
 end
 
-if ntop.isPro() and interface.isPacketInterface() == false then
+if ntop.isPro and ntop.isPro() and interface.isPacketInterface() == false then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    local site_utils = require "site_utils"
    local flowdevs = interface.getFlowDevices() or {}
@@ -626,7 +626,7 @@ if ntop.isPro() and interface.isPacketInterface() == false then
    end
 end
 
-if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
+if ntop.isPro and ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
    local dev_ip = _GET["deviceIP"]
 
    if not isEmptyString(_GET["ifIdx"]) then

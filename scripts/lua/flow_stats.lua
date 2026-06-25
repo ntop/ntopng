@@ -52,7 +52,7 @@ else
 
     local ifstats = interface.getStats()
 
-    if ntop.isPro() and ifstats.inline and (flow["cli.pool_id"] ~= nil) and (flow["srv.pool_id"] ~= nil) then
+    if ntop.isPro and ntop.isPro() and ifstats.inline and (flow["cli.pool_id"] ~= nil) and (flow["srv.pool_id"] ~= nil) then
       print(', "cli2srv_quota":'.. "\"")
       printFlowQuota(ifstats.id, flow, true --[[ client ]])
       print("\"" )

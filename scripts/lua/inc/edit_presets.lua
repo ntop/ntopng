@@ -29,7 +29,7 @@ local policy_filter = _GET["policy_filter"] or ""
 local proto_filter = _GET["l7proto"] or ""
 local device_type = _GET["device_type"] or "0" -- unknown by default
 local category = _GET["category"] or ""
-local is_nedge = ntop.isnEdge()
+local is_nedge = ntop.isnEdge and ntop.isnEdge()
 
 interface.select(ifname)
 

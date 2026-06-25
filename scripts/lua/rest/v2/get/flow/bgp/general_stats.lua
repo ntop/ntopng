@@ -32,7 +32,7 @@ local flow = nil
 if flow_hash_id and flow_key then
     -- Live
     flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id))
-elseif row_id and instance_name and tstamp and ntop.isEnterpriseL() --[[ Required otherwise it crashes ]] then
+elseif row_id and instance_name and tstamp and ntop.isEnterpriseL and ntop.isEnterpriseL() --[[ Required otherwise it crashes ]] then
     local db_search_manager = require "db_search_manager"
     local historical_flow_utils = require "historical_flow_utils"
 

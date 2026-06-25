@@ -54,7 +54,7 @@ function host_pools:create(args)
 	  ntop.setMembersCache(self:_get_pool_ids_key(),
 			       string.format("%d", host_pools.DROP_HOST_POOL_ID))
 
-	  if ntop.isPro() and not ntop.isnEdge() then
+	  if ntop.isPro and ntop.isPro() and not (ntop.isnEdge and ntop.isnEdge()) then
 	     -- Add the default drop policy to the pool
 	     package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
 	     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path

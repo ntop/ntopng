@@ -170,7 +170,7 @@ end
 function as_utils.formatFilters(options, add_to_existing_options)
     local filters = {}
     -- Interface Role available only from enterprise M
-    if ntop.isEnterpriseM() then
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
         local interface_role_filter = options.interface_role
         if interface_role_filter and not tonumber(interface_role_filter) then
             package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
