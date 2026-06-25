@@ -7,9 +7,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
+local rest_utils      = require "rest_utils"
+local auth            = require "auth"
 local info = ntop.getInfo() 
-
-sendHTTPHeader('application/json')
 
 if not isAdministratorOrPrintErr() then
   return
@@ -109,4 +109,4 @@ res = {
   version = new_version,
 }
 
-print(json.encode(res, nil, 1))
+rest_utils.answer(rest_utils.consts.success.ok, res)

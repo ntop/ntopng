@@ -15,10 +15,6 @@
 
       <!-- License status card -->
       <div class="license-card card mb-4">
-        <div class="license-card-header card-header d-flex align-items-center gap-2">
-          <i class="fas fa-key license-accent-icon"></i>
-          <span>{{ _i18n('license_page.license') }}</span>
-        </div>
         <div class="card-body p-0">
           <table class="license-table table table-sm table-striped mb-0">
             <tbody>

@@ -831,7 +831,7 @@ void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os) {
     if (!inconsistent_host_os) {
       inconsistent_host_os = true;
       ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "Found OS inconsistency %s vs %s [%s][%s]",
+          TRACE_NORMAL, "Found OS inconsistency %s vs %s [%s][%s]",
           ndpi_print_os_hint(tcp_fingerprint_host_os), ndpi_print_os_hint(os),
           _tcp_fingerprint ? _tcp_fingerprint : "",
           get_ip()->print(buf, sizeof(buf)));

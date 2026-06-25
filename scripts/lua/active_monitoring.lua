@@ -28,7 +28,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- ###########################################
 
 local page = _GET["page"] or 'overview'
-local host = _GET["host"]
+local host = _GET["am_host"]
 local measurement = _GET["measurement"]
 local is_infrastructure = _GET["is_infrastructure"]
 

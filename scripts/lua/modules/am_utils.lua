@@ -1035,7 +1035,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
         if am_utils.hasExceededThreshold(threshold, operator, host_value) then
             if (do_trace) then
                 print(
-                    "[TRIGGER] Host " .. resolved_host .. "/" .. key .. " [value: " .. host_value .. "][threshold: " ..
+                    "[TRIGGER] Host " .. resolved_host .. " / " .. key .. " [value: " .. host_value .. "][threshold: " ..
                         threshold .. "]\n")
             end
 
@@ -1043,7 +1043,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
             am_utils.incNumExceededChecks(key, when)
         else
             if (do_trace) then
-                print("[OK] Host " .. resolved_host .. "/" .. key .. " [value: " .. host_value .. "][threshold: " ..
+                print("[OK] Host " .. resolved_host .. " / " .. key .. " [value: " .. host_value .. "][threshold: " ..
                           threshold .. "]\n")
             end
 
@@ -1057,7 +1057,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
         local ip = host.host
 
         if (hosts_am[key] == nil) then
-            if (do_trace) then print("[TRIGGER] Host " .. ip .. "/" .. key .. " is unreacheable\n") end
+            if (do_trace) then print("[TRIGGER] Host " .. ip .. " / " .. key .. " is unreacheable\n") end
 
             local resolved_host = resolved_unreachable_hosts[key] or ip
 

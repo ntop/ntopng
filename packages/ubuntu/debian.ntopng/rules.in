@@ -67,7 +67,7 @@ binary-arch: build install
 	~/scripts/sbom/generate-sbom.sh ./debian/@APP@/usr/bin/@APP@
 	mv ./sbom-@APP@.json ./debian/@APP@/usr/share/ntop/sbom/@APP@.json
 	~/scripts/sbom/ntopng-github-sbom.sh
-	mv ./sbom.json ./debian/@APP@/usr/share/ntop/sbom/@APP@-gui,json
+	mv ./sbom.json ./debian/@APP@/usr/share/ntop/sbom/@APP@-gui.json
 
 	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
