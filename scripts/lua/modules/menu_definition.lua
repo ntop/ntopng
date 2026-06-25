@@ -45,13 +45,7 @@ return function(f)
             url = "/lua/discover.lua",
             hidden = f.no_discoverable_interface or f.is_windows or f.is_loopback_interface or f.limit_resource_usage or
                 f.infrastructure_view
-        }, {
-            key = "vulnerability_scan",
-            i18n = "scan_hosts",
-            icon = "fas fa-shield-alt",
-            url = "/lua/vulnerability_scan.lua",
-            hidden = f.no_vs_utils or f.is_zmq_interface
-        } -- pro entries appended by menu_definition_pro: infrastructure_dashboard, snmp_monitoring
+        },  -- pro entries appended by menu_definition_pro: infrastructure_dashboard, snmp_monitoring
         }
     },
     {
