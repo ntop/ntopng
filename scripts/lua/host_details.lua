@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 require "lua_utils"
@@ -16,8 +15,6 @@ local host_sites_update
 local sites_granularities = {}
 local auth = require "auth"
 local ts_utils = require "ts_utils_core"
-local vs_utils = require "vs_utils"
-local cve_utils = require "cve_utils"
 local site_utils = require "site_utils"
 
 local is_pro = ntop.isPro and ntop.isPro()

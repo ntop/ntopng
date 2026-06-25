@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils"
 require "lua_utils_get"
@@ -13,7 +12,6 @@ local rest_utils = require "rest_utils"
 local lua_path_utils = require "lua_path_utils"
 local file_utils = require "file_utils"
 local json = require "dkjson"
-local vs_utils = require "vs_utils"
 local prefs = ntop.getPrefs()
 
 local dashboard_utils = {}
@@ -30,7 +28,6 @@ end
 
 dashboard_utils.module_available = {
    ['historical_flows']   = is_clickhouse_available,
-   ['vulnerability_scan'] = vs_utils.is_available,
    ['l7_timeseries'] = is_l7_timeseries_available,
    ['packet_interface'] = interface.isPacketInterface,
    ['zmq_interface'] = interface.isZMQInterface,

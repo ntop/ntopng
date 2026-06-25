@@ -3,17 +3,17 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "label_utils"
 require "ntop_utils"
 require "http_lint"
 require "mac_utils"
 require "lua_utils_gui"
+require "lua_utils"
 local discover = require "discover_utils"
 
 local rest_utils = require "rest_utils"
-local vs_utils = require "vs_utils"
+local format_utils = require "format_utils"
 
 -- Table parameters
 local all = _GET["all"]
@@ -185,7 +185,7 @@ for _, value in ipairs(page_macs) do
    if (value["arp_requests.sent"] == None) then
       record["arp"] = 0
    else
-      record["arp"] = formatValue(value["arp_requests.sent"] + value["arp_replies.sent"] +
+      record["arp"] = format_utils.formatValue(value["arp_requests.sent"] + value["arp_replies.sent"] +
                        value["arp_requests.rcvd"] + value["arp_replies.rcvd"])
    end
 

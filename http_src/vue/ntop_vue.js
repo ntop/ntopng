@@ -44,10 +44,6 @@ import { default as PageServerPorts } from "./page-server-ports.vue";
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
 import { default as PageExportersConfig } from "./page-flowdevice-config.vue";
 import { default as PageFlowDeviceInterfaceDetails } from "./page-flowdevice-interface-config.vue";
-import { default as PageVulnerabilityScan } from "./page-vulnerability-scan.vue";
-import { default as PageHostVsResult } from "./page-host-vs-result.vue";
-import { default as PageOpenPorts } from "./page-open-ports.vue";
-import { default as PageVulnerabilityScanReport } from "./page-vulnerability-scan-report.vue"
 import { default as PageSNMPUsage } from "./page-snmp-usage.vue"
 import { default as PageHostsList } from "./page-hosts-list.vue"
 import { default as PageFlowsList } from "./page-flows-list.vue"
@@ -178,7 +174,6 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-traffic-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
-import { default as ModalEditReport } from "./modal-edit-vs-report.vue";
 import { default as ModalAddSNMPDevice } from "./modal-add-snmp-device.vue";
 import { default as ModalDeleteSNMPDevice } from "./modal-delete-snmp-device.vue";
 import { default as ModalImportSNMPDevices } from "./modal-import-snmp-devices.vue";
@@ -239,10 +234,6 @@ let ntopVue = {
     PageManageConfigurations: PageManageConfigurations,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
     PageServerPorts: PageServerPorts,
-    PageVulnerabilityScan: PageVulnerabilityScan,
-    PageHostVsResult: PageHostVsResult,
-    PageOpenPorts: PageOpenPorts,
-    PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageFlowsList: PageFlowsList,
     PageMacsList: PageMacsList,
     PageInterfaceICMP: PageInterfaceICMP,
@@ -399,7 +390,6 @@ let ntopVue = {
     ModalAddHostRules: ModalAddHostRules,
     ModalAddApplication: ModalAddApplication,
     ModalDeleteApplication: ModalDeleteApplication,
-    ModalEditReport: ModalEditReport,
     ModalAddSNMPDevice: ModalAddSNMPDevice,
     ModalDeleteSNMPDevice: ModalDeleteSNMPDevice,
     ModalImportSNMPDevices: ModalImportSNMPDevices,

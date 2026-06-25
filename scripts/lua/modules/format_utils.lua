@@ -771,9 +771,6 @@ local function format_notification_subject(notifications)
       if notification.notification_type == "reports" then
          subject = i18n("report.traffic_report")
 
-      elseif notification.notification_type == "vulnerability_scans" then
-         subject = i18n("vulnerability_scan.report")
-
       else
          local subject = i18n("alert_messages.alert")
          if #notifications > 1 then
@@ -798,17 +795,7 @@ local function format_notification(notification, options)
       (not options or not options.nohtml) then
       message = format_report_email(notification)
       handled = true
-
-   elseif (notification.notification_type == "vulnerability_scans") then
-      if(not options or not options.nohtml) then
-	 -- nothing to do
-      else
-         message = format_no_html_vs_report_message(message)
-      end
-      handled = true
-
    end
-
    return handled, message
 end
 

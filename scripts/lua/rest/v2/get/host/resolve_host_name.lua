@@ -4,8 +4,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
-
 
 require "lua_utils"
 local rest_utils = require "rest_utils"

@@ -14166,7 +14166,15 @@ static bool walk_no_tx_hosts(GenericHashEntry* node, void* user_data,
                              bool* matched) {
   Host* h = (Host*)node;
 
-  if (!(h->isBroadcastHost() || h->isMulticastHost())) {
+  /*
+    Only hosts that are actually RX-only (i.e. they have received traffic
+    but never transmitted) must be reported here. This is the same condition
+    used by the GUI 'No TX' filters (see the location_local_only_no_tx /
+    location_remote_only_no_tx cases in flowHostRetriever), which gate on
+    h->isRxOnlyHost().
+  */
+  if (h->isRxOnlyHost() &&
+      !(h->isBroadcastHost() || h->isMulticastHost())) {
     struct walk_no_tx_hosts_info* hosts =
         static_cast<struct walk_no_tx_hosts_info*>(user_data);
     bool good = false;

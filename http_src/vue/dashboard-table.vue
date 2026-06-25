@@ -19,7 +19,6 @@ import { ntopng_custom_events, ntopng_events_manager } from "../services/context
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils";
 import Loading from "./loading.vue";
-import { scan_type_f, last_scan_f, duration_f, scan_frequency_f, is_ok_last_scan_f, tcp_ports_f, tcp_port_f, hosts_f, host_f, cves_f, max_score_cve_f, udp_ports_f, num_vuln_found_f, tcp_udp_ports_list_f, discoverd_hosts_list_f } from "../utilities/vs_report_formatter.js";
 
 const _i18n = (t) => i18n(t);
 
@@ -179,42 +178,6 @@ const row_render_functions = {
         }
     },
 
-    vs_scan_result: function (column, row) {
-        if (column.id == "host") {
-            return host_f(row[column.id], row, props.ifid);
-        } else if (column.id == "last_scan") {
-            return last_scan_f(row[column.id], row);
-        } else if (column.id == "duration") {
-            return duration_f(row[column.id], row);
-        } else if (column.id == "scan_frequency") {
-            return scan_frequency_f(row[column.id]);
-        } else if (column.id == "is_ok_last_scan") {
-            return is_ok_last_scan_f(row[column.id]);
-        } else if (column.id == "tcp_ports") {
-            return tcp_ports_f(row[column.id], row);
-        } else if (column.id == "udp_ports") {
-            return udp_ports_f(row[column.id], row);
-        } else if (column.id == "scan_type") {
-            return scan_type_f(row[column.id], true, row);
-        } else if (column.id == "hosts") {
-            return hosts_f(row[column.id], row);
-        } else if (column.id == "cve" || column.id == "cve_list") {
-            return cves_f(row[column.id], row);
-        } else if (column.id == "port") {
-            return tcp_port_f(row[column.id], row);
-        } else if (column.id == "max_score_cve") {
-            return max_score_cve_f(row[column.id], row);
-        } else if (column.id == "num_vulnerabilities_found") {
-            return num_vuln_found_f(row[column.id], row);
-        } else if (column.id == "tcp_udp_ports_list") {
-            return tcp_udp_ports_list_f(row["tcp_ports_list"], row["udp_ports_list"], row);
-        } else if (column.id == "discovered_hosts") {
-            return discoverd_hosts_list_f(row[column.id]);
-        } else {
-            return row[column.id];
-        }
-    },
-
     /* Render function for 'alert_count' table type */
     alert_count: function (column, row) {
         if (column.id == 'name') {
@@ -290,11 +253,6 @@ async function refresh_table() {
         rows = data.records; /* db_search: read data from data.records */
     } else {
         rows = data; /* default: data is the array of records */
-    }
-
-    if (props.params.table_type != 'vs_scan_result') {
-        const max_rows = props.max_height ? ((props.max_height / 4) * 6) : 6;
-        rows = rows.slice(0, max_rows);
     }
 
     table_rows.value = rows;

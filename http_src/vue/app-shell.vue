@@ -1143,10 +1143,6 @@ function buildNetworkLoad(r) {
       msg += `<a href='${pfxVal}/lua/if_stats.lua?ifid=${ifidVal}&page=traffic_recording&tab=jobs'>
         <span class="badge ${cls}" ${tooltip(_i18n("traffic_recording.traffic_extraction_jobs"))}>${r.traffic_extraction_num_tasks || 0} <i class="fas fa-tasks fa-lg"></i></span></a>`;
     }
-    if (r.vs_in_progress > 0) {
-      msg += `<a href='${pfxVal}/lua/vulnerability_scan.lua'>
-        <span class="badge bg-primary" ${tooltip(_i18n("vulnerability_scan.vulnerability_scan_in_progress"))}>${window.NtopUtils ? NtopUtils.addCommas(r.vs_in_progress) : r.vs_in_progress} <i class="fas fa-satellite-dish"></i></span></a>`;
-    }
   }
 
   if (r.is_loading === true) {

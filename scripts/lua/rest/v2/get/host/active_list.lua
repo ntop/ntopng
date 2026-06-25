@@ -3,14 +3,13 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "label_utils"
 require "ntop_utils"
 require "http_lint"
+require "lua_utils_get"
 local rest_utils = require "rest_utils"
-local vs_utils = require "vs_utils"
-local have_nedge = ntop.isnEdge and ntop.isnEdge()
+local have_nedge = ntop.isnEdge()
 
 -- Table parameters
 local all = _GET["all"]
@@ -198,12 +197,6 @@ for key, value in pairs(hosts_stats["hosts"]) do
     if not isEmptyString(value["vlan"]) then
         column_ip["vlan"]["name"] = getFullVlanName(value["vlan"])
         column_ip["vlan"]["id"] = value["vlan"]
-    end
-
-    local host_vulnerabilities = vs_utils.retrieve_host(value["ip"])
-
-    if (host_vulnerabilities) and not isEmptyString(host_vulnerabilities.num_vulnerabilities_found) then
-        record["num_cves"] = host_vulnerabilities.num_vulnerabilities_found
     end
 
     record["host"] = column_ip

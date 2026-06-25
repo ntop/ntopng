@@ -65,12 +65,6 @@
           "i18n": "prefs.snmp",
           "icon": "fas fa-network-wired",
           "url": "/lua/pro/enterprise/snmpdevices_stats.lua"
-        },
-        {
-          "key": "vulnerability_scan",
-          "i18n": "scan_hosts",
-          "icon": "fas fa-shield-alt",
-          "url": "/lua/vulnerability_scan.lua"
         }
       ]
     },
