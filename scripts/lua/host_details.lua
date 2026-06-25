@@ -1109,8 +1109,8 @@ else
                 print([[
             <td colspan="2">
                <a href=']] .. ntop.getHttpPrefix() ..
-                          [[/lua/active_monitoring.lua?host=]] .. host['ip'] ..
-                          [[&measurement=]] .. icmp .. [['>]] .. last_rtt ..
+                          [[/lua/active_monitoring.lua?am_host=]] .. host['ip'] ..
+                          [[,metric:]] .. icmp .. [['>]] .. last_rtt ..
                           [[</a>
             </td>
             ]])

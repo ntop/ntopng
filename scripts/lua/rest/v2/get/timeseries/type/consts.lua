@@ -11,7 +11,7 @@ require "lua_utils_gui"
 local rc = rest_utils.consts.success.ok
 local ifid = tostring(_GET["ifid"] or interface.getId())
 local query = _GET["query"] or ''
-local host = _GET["host"]
+local host = _GET["host"] or _GET["am_host"]
 local asn = _GET["asn"]
 local pool = _GET["pool"]
 local vlan = _GET["vlan"]

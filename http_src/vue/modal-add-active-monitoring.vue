@@ -206,7 +206,7 @@ const add_ = async () => {
     activate_add_spinner.value = true;
     let params = {
         csrf: props.context.csrf,
-        host: host.value.value,
+        am_host: host.value.value,
         action: (row.value) ? "edit" : "add",
         granularity: selected_granularity.value.id,
         measurement: selected_measurement.value.id,

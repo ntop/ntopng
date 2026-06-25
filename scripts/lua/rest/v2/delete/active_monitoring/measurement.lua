@@ -11,7 +11,7 @@ local rest_utils = require "rest_utils"
 
 -- ################################################
 
-local host = _POST["host"]
+local host = _POST["am_host"]
 local measurement = _POST["measurement"]
 
 local res = {}
