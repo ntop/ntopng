@@ -15,6 +15,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    user_interface/index
    authentication
    using_with_other_tools/index
+   nanalyst/index
    flows/index
    scada/index
    qoe/index
