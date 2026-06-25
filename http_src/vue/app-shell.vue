@@ -13,9 +13,11 @@
     @mouseenter="onRailEnter"
     @mouseleave="onRailLeave"
   >
-    <!-- Logo: ntop "n" lettermark -->
-    <a :href="`${pfx}/lua/index.lua`" class="sb-rail__logo" title="ntopng">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.758333 13.758334"
+    <!-- Logo: OEM custom image or default -->
+    <a :href="`${pfx}/lua/index.lua`" class="sb-rail__logo" :title="menu.product || 'ntopng'">
+      <img v-if="menu.logo_path" :src="menu.logo_path" width="26" height="26"
+           :alt="menu.product || 'ntopng'" class="sb-rail__logo-img" />
+      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.758333 13.758334"
            width="26" height="26" aria-hidden="true">
         <path fill="#ff7500"
           d="M 2.7739989,9.5828812 V 4.216811 q 0,-0.9839173 0.3224603,-1.4552054 0.3307285,-0.4795564 1.008722,-0.4795564 0.4051424,0 0.7193345,0.2149735 Q 5.1387078,2.7037281 5.378486,3.1336751 5.808433,2.662387 6.3706715,2.4474135 6.93291,2.2324399 7.7349267,2.2324399 q 1.5792286,0 2.4143183,0.9012352 0.835089,0.9012352 0.835089,2.6210235 v 3.8281826 q 0,0.9839178 -0.330728,1.4634738 -0.330729,0.479556 -1.0087222,0.479556 -0.6779934,0 -1.0087219,-0.479556 Q 8.3054333,10.566799 8.3054333,9.5828812 V 6.5649835 q 0,-1.1162088 -0.3389967,-1.5874969 -0.3307285,-0.4795563 -1.0996723,-0.4795563 -0.7276027,0 -1.0748677,0.4960927 -0.3472649,0.4878246 -0.3472649,1.5378876 v 3.0509706 q 0,0.9839178 -0.3307285,1.4634738 -0.3307286,0.479556 -1.008722,0.479556 -0.6779935,0 -1.008722,-0.479556 Q 2.7739989,10.566799 2.7739989,9.5828812 Z"
@@ -1642,6 +1644,7 @@ div.wrapper {
   transition: background 0.13s;
 }
 .sb-rail__logo:hover { background: var(--sb-btn-hover-bg); }
+.sb-rail__logo-img { object-fit: contain; }
 
 /* Scrollable nav area wrapper — holds scroll container + fade overlay */
 .sb-rail__nav-wrap {
