@@ -2,7 +2,7 @@
   (C) 2026 - ntop.org
 -->
 <template>
-    <div ref="container" class="pie-container" :class="{ 'layout-column': legend_below }" :style="props.style">
+    <div ref="container" class="pie-container" :style="props.style">
         <!-- Title -->
         <div v-if="chart.title" class="pie-title"><strong>{{ chart.title }}</strong></div>
 
@@ -57,7 +57,6 @@ const formatted_label = label ? (i18n(label) || label) : null;
 const container = ref(null);
 const wrapper = ref(null);
 const loading = ref(false);
-const legend_below = ref(false);
 const no_data = ref(false);
 const items = ref([]);
 const has_loaded = ref(false); /* true after the first successful data fetch */
@@ -75,7 +74,6 @@ const tooltip = reactive({
     color: ""
 });
 
-let resizeObs = null;
 let svg = null;
 let g = null;
 let arc = null;
@@ -93,11 +91,6 @@ const _cr = (_R - _r) * 0.18;
 
 onMounted(async () => {
     await nextTick();
-    resizeObs = new ResizeObserver(entries => {
-        legend_below.value = entries[0].contentRect.width < 300;
-    });
-
-    resizeObs.observe(container.value);
     drawSVG();
     await load();
     if (refresh > 0) refreshTimer = setInterval(load, refresh);
@@ -105,7 +98,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     clearInterval(refreshTimer);
-    resizeObs?.disconnect();
 });
 
 function drawSVG() {
@@ -283,6 +275,7 @@ watch(() => props.chart.url_params, () => {
     height: 100%;
     min-width: 0;
     box-sizing: border-box;
+    container-type: inline-size;
 }
 
 .pie-title {
@@ -293,46 +286,111 @@ watch(() => props.chart.url_params, () => {
     text-overflow: ellipsis;
 }
 
+/* ── narrow (default): legend wraps below pie ── */
+
 .pie-body {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    flex: 1 1 auto;
-    min-height: 0;
+    flex: 0 0 auto;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .pie-row {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    /* flex-start: row height = wrapper height only, not legend height */
-    align-items: flex-start;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
     gap: 12px;
     padding: 4px 0;
+    overflow: visible;
 }
 
 .pie-wrapper {
-    /* width drives height via aspect-ratio — no height: 100% which caused circular sizing */
     flex: 0 0 auto;
-    /* prende il minore tra 45% della larghezza e il 100% dell'altezza disponibile */
-    /*width: min(clamp(100px, 45%, 100%), 100%);*/
-    max-height: 100%;
+    width: clamp(80px, 60%, 140px);
     aspect-ratio: 1 / 1;
     overflow: hidden;
 }
 
-/* Constrains legend to wrapper height; does not contribute to row height */
 .pie-legend-wrap {
-    flex: 1 1 0;
+    flex: 0 0 auto;
     min-width: 0;
-    min-height: 0;
-    align-self: stretch;
-    overflow: hidden;
+    width: 100%;
+    overflow: visible;
     display: flex;
     flex-direction: column;
+    align-items: center;
+}
+
+.pie-legend {
+    flex: 0 0 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    overflow: visible;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    width: 100%;
+    max-width: 200px;
+    flex: 0 0 auto;
+    user-select: none;
+    transition: opacity 0.3s ease;
+}
+
+/* ── wide: pie left, legend right ── */
+
+@container (min-width: 300px) {
+    .pie-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .pie-row {
+        flex: 1 1 auto;
+        min-height: 0;
+        flex-direction: row;
+        align-items: flex-start;
+        overflow: hidden;
+    }
+
+    .pie-wrapper {
+        width: auto;
+        max-height: 100%;
+        max-width: 200px;
+    }
+
+    .pie-legend-wrap {
+        flex: 1 1 0;
+        min-height: 0;
+        align-self: stretch;
+        overflow: hidden;
+        width: auto;
+        justify-content: center;
+    }
+
+    .pie-legend {
+        flex-direction: column;
+        flex-wrap: wrap;
+        overflow-y: auto;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    }
+
+    .legend-item {
+        width: 100%;
+        max-width: 150px;
+    }
 }
 
 .no-data {
@@ -379,97 +437,6 @@ watch(() => props.chart.url_params, () => {
     font-weight: 700;
 }
 
-.tt-percentage {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-/* legend below (narrow container) */
-.layout-column {
-    justify-content: center;
-}
-
-.layout-column .pie-body {
-    height: auto;
-    flex: 0 0 auto;
-    overflow: visible;
-}
-
-.layout-column .pie-row {
-    flex-direction: column;
-    align-items: center;
-    flex: 0 0 auto;
-    height: auto;
-    min-height: 0;
-}
-
-.layout-column .pie-wrapper {
-    width: 140px;
-    height: 140px;
-    max-width: 100%;
-    flex-shrink: 0;
-}
-
-.layout-column .pie-legend-wrap {
-    align-self: auto;
-    overflow: visible;
-    height: auto;
-    flex: 0 0 auto;
-    width: 100%;
-}
-
-.layout-column .pie-legend {
-    height: auto;
-    overflow-y: visible;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.layout-column .legend-item {
-    width: auto;
-    flex: 0 0 auto;
-    padding-right: 8px;
-}
-
-.pie-legend {
-    flex: 1 1 0;
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 4px 4px;
-    overflow-y: auto;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
-}
-
-.pie-legend::-webkit-scrollbar {
-    height: 3px;
-}
-
-.pie-legend::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 2px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    min-width: 0;
-    width: 100%;
-    flex: 0 0 auto;
-    max-width: 150px;
-    user-select: none;
-    transition: opacity 0.3s ease;
-}
-
 .legend-item.clickable {
     cursor: pointer;
 }
@@ -487,12 +454,5 @@ watch(() => props.chart.url_params, () => {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.legend-percentage {
-    flex-shrink: 0;
-    color: color-mix(in srgb, currentColor 60%, transparent);
-    margin-left: 2px;
-    transition: opacity 0.3s ease;
 }
 </style>

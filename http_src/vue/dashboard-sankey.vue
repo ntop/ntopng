@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, watch } from "vue";
+import { ref, onMounted, onBeforeMount, onBeforeUnmount, nextTick, watch } from "vue";
 import { default as Sankey } from "./sankey.vue";
 import Loading from "./loading.vue";
 
@@ -27,6 +27,8 @@ const height = ref(null);
 const height_per_row = 62.5 /* px */
 const isLoading = ref(true);
 const firstLoading = ref(true);
+let resizeObserver = null;
+let resizeTimer = null;
 
 const props = defineProps({
     id: String,          /* Component ID */
@@ -54,8 +56,25 @@ onBeforeMount(() => {
 onMounted(() => {
     update_height();
     update_width();
-
     init();
+
+    resizeObserver = new ResizeObserver(() => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(async () => {
+            update_width();
+            update_height();
+            if (sankey_chart.value && !isLoading.value) {
+                await nextTick();
+                sankey_chart.value.redraw();
+            }
+        }, 200);
+    });
+    resizeObserver.observe(body_div.value);
+});
+
+onBeforeUnmount(() => {
+    resizeObserver?.disconnect();
+    clearTimeout(resizeTimer);
 });
 
 function disableLoading() {
@@ -213,7 +232,16 @@ function on_node_click(node) {
 }
 
 function update_height() {
-    height.value = height_per_row * props.max_height;
+    const widgetBox = body_div.value?.closest('.widget-box');
+    if (widgetBox) {
+        const cs = window.getComputedStyle(widgetBox);
+        const innerH = widgetBox.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        const titleEl = widgetBox.querySelector(':scope > .modal-header');
+        const titleH = titleEl ? titleEl.offsetHeight + 8 : 0;
+        height.value = Math.max(100, innerH - titleH - 24); // 24px footer reserve
+    } else {
+        height.value = height_per_row * props.max_height;
+    }
 }
 
 function update_width() {

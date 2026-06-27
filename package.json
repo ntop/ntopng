@@ -88,7 +88,7 @@
     "topojson-client": "^2.0.1",
     "uuid": "^11.1.0",
     "vis-network": "^9.1.6",
-    "vite": "^6.3.5",
+    "vite": "^6.4.3",
     "vue": "^3.5.35",
     "world-atlas": "^2.0.2"
   }

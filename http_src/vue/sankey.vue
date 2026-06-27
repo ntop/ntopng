@@ -1,9 +1,10 @@
 <template>
     <div ref="sankey_div"
-        class="d-flex align-items-center justify-content-center flex-column flex-grow-1 position-relative">
+        class="d-flex align-items-center justify-content-center flex-column flex-grow-1 position-relative"
+        style="min-width:0;overflow-x:hidden;overflow-y:visible;">
         <!-- Zoom button group -->
-        <div v-if="!no_data" class="mb-2">
-            <div class="btn-group btn-ontop" role="group">
+        <div v-if="!no_data" class="btn-ontop">
+            <div class="btn-group" role="group">
                 <button type="button" class="btn zoom-btn" @click="zoomChart(0.5)">
                     <i class="fa-solid fa-magnifying-glass-plus" data-bs-toggle="tooltip" data-bs-placement="top" :title="_i18n('date_time_range_picker.btn_zoom_in')"></i>
                 </button>
@@ -20,7 +21,7 @@
 
         <!-- no data -->
         <NoData :show="no_data"></NoData>
-        
+
         <div ref="sankey_wrapper"></div>
     </div>
 </template>
@@ -359,6 +360,7 @@ async function draw_sankey() {
         .append("svg")
         .attr("height", sankey_size.value.height)
         .attr("width", sankey_size.value.width)
+        .style("overflow", "visible")
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -608,7 +610,13 @@ async function draw_sankey() {
     emit('drawn');
 }
 
-defineExpose({ draw_sankey, setNoDataFlag });
+async function redraw() {
+    if (sankey_wrapper.value) sankey_wrapper.value.replaceChildren();
+    await draw_sankey();
+    initializeZoom();
+}
+
+defineExpose({ draw_sankey, setNoDataFlag, redraw });
 
 </script>
 
@@ -616,10 +624,9 @@ defineExpose({ draw_sankey, setNoDataFlag });
 .btn-ontop {
     position: absolute;
     right: 0;
-    top: -0.7rem;
+    top: 0.5rem;
     z-index: 10;
 }
-
 
 .zoom-btn {
     background-color: #fd7e14 !important;
