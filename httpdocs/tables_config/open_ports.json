@@ -48,15 +48,6 @@
 			]
 		},
 		{
-			"title_i18n": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
-			"data_field": "cves",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
 			"title_i18n": "hosts_stats.page_scan_hosts.report.count",
 			"data_field": "count_host",
 			"sortable": true,

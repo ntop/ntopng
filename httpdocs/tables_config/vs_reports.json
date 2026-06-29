@@ -54,15 +54,6 @@
 			]
 		},
 		{
-			"title_i18n": "hosts_stats.page_scan_hosts.reports_page.cves",
-			"data_field": "cves",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-center"
-			]
-		},
-		{
 			"title_i18n": "hosts_stats.page_scan_hosts.reports_page.tcp_ports",
 			"data_field": "tcp_ports",
 			"sortable": true,

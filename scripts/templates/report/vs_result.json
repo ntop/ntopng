@@ -56,16 +56,6 @@
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.cves",
-					"id": "num_vulnerabilities_found",
-					"data_type": "count_score"
-				},
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.cves_list",
-					"id": "cve",
-					"data_type": "object"
-				},
-				{
 					"i18n_name": "hosts_stats.page_scan_hosts.report.last_scan",
 					"id": "last_scan",
 					"data_type": "date"
