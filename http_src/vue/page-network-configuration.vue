@@ -16,7 +16,7 @@
                                 </div>
                                 <div class="ms-4 me-4">
                                     <textarea v-model="ipAddresses[key]" class="form-control rounded"
-                                        :placeholder="`Enter ${value.device_type} IPs (Comma Separated)`"
+                                        :placeholder="`Enter ${value.device_type} IPs, comma separated (e.g. 192.168.1.1,10.0.0.1@100)`"
                                         @input="markAsModified(key)" rows="2"></textarea>
                                     <small>{{ _i18n(value.i18n_description) }}</small>
                                     <div v-if="validationErrors[key]" class="text-danger mt-1">
@@ -131,8 +131,8 @@ const validateIpAddresses = () => {
         const ips = ipAddresses[key].split(',').map(ip => ip.trim()).filter(ip => ip !== '');
         if (ips.length === 0) {
             validationErrors[key] = '';
-        } else if (!ips.every(regexValidation.validateIP)) {
-            validationErrors[key] = 'Invalid IP address format';
+        } else if (!ips.every(regexValidation.validateIPWithVLAN)) {
+            validationErrors[key] = 'Invalid format: use IP (e.g. 192.168.1.1) or IP@VLAN (e.g. 192.168.1.1@100)';
             isValid = false;
         } else {
             validationErrors[key] = '';

@@ -23,6 +23,18 @@ const validateIP = (ip) => {
 
 /* ****************************************************** */
 
+const validateIPWithVLAN = (entry) => {
+    const atIdx = entry.lastIndexOf('@');
+    if (atIdx === -1) {
+        return validateIP(entry);
+    }
+    const ip = entry.slice(0, atIdx);
+    const vlan = parseInt(entry.slice(atIdx + 1), 10);
+    return validateIP(ip) && Number.isInteger(vlan) && vlan >= 1 && vlan <= 4095;
+}
+
+/* ****************************************************** */
+
 function validateUInt32(number) {
     const val = Number(number);
     return Number.isInteger(val) && val >= 0 && val <= 0xFFFFFFFF;
@@ -162,6 +174,7 @@ const regexValidation = function () {
     return {
         get_data_pattern,
         validateIP,
+        validateIPWithVLAN,
         validateIPv4,
         validateIPv6,
         validateHostName,

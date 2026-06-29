@@ -812,6 +812,18 @@ local function validateIpAddress(p)
 end
 http_lint.validateIpAddress = validateIpAddress
 
+local function validateIpAddressWithOptionalVlan(p)
+   local ip_part, vlan_part = p:match("^([^@]+)@?(%d*)$")
+   if not ip_part then return false end
+   local ip = ip_part:gsub("%s+", "")
+   if not (isIPv4(ip) or isIPv6(ip)) then return false end
+   if vlan_part and vlan_part ~= "" then
+      local vlan = tonumber(vlan_part)
+      if not vlan or vlan < 1 or vlan > 4095 then return false end
+   end
+   return true
+end
+
 local function validateIpRange(p)
     local range = string.split(p, "%-")
 
@@ -2876,11 +2888,11 @@ local known_parameters = {
     ["visible_columns"] = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
     ["instance_name"] = validateSingleWord, -- used in flow explorer
     ["hide_exporters_name"] = validateBool,
-    ["dns_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddress)),
-    ["ntp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddress)),
-    ["dhcp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddress)),
-    ["smtp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddress)),
-    ["gateway_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddress)),
+    ["dns_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
+    ["ntp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
+    ["dhcp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
+    ["smtp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
+    ["gateway_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["customer_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
     ["sub_customer_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
     ["remote_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
