@@ -96,24 +96,6 @@
 
         <!-- Nav entries -->
         <nav class="sb-panel__nav">
-          <!-- About: inline info block -->
-          <template v-if="currentPanelSection.key === 'about'">
-            <div class="sb-about-block">
-              <div class="sb-about-block__product">{{ menu.product }}</div>
-              <div v-if="menu.version_full" class="sb-about-block__version" v-html="menu.version_full"></div>
-              <div v-else-if="menu.version" class="sb-about-block__version">{{ menu.version }}</div>
-              <div v-if="menu.license_badge" class="sb-about-block__divider"></div>
-              <div v-if="menu.license_badge" class="sb-about-block__line">
-                <i class="fas fa-id-card"></i>
-                <a :href="`${pfx}/lua/license.lua`">{{ menu.license_badge.label }}</a>
-                <button class="sb-about-copy-btn" @click.stop="copyLicenseLink"
-                        :title="copiedLicense ? 'Copied!' : 'Copy license'">
-                  <i :class="copiedLicense ? 'fas fa-check' : 'fas fa-copy'"></i>
-                </button>
-              </div>
-            </div>
-            <div v-if="visibleEntries(currentPanelSection).length" class="sb-panel-divider"></div>
-          </template>
           <template v-for="(entry, idx) in visibleEntries(currentPanelSection)" :key="entry.is_divider ? `divider-${idx}` : entry.key">
             <template v-if="entry.is_divider">
               <div class="sb-panel-divider"></div>
