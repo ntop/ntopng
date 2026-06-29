@@ -1561,6 +1561,10 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,
 
   ntop->initInterface(sub_iface);
 
+  /* Initialize flow/host check executors to compute alerts on sub interfaces as well */
+  sub_iface->reloadFlowChecks(ntop->getFlowChecksLoader());
+  sub_iface->reloadHostChecks(ntop->getHostChecksLoader());
+
   sub_iface->startPacketPolling(); /* Won't actually start a thread, just mark
                                       this interface as running */
 
