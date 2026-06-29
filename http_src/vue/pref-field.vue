@@ -111,20 +111,27 @@
       </div>
 
       <!-- Select -->
-      <select
-        v-else-if="entry.type === 'select'"
-        class="form-select pref-select"
-        :id="'pref-' + entry.key"
-        :value="effectiveValue"
-        :disabled="entry.disabled"
-        @change="$emit('update:modelValue', $event.target.value)"
-      >
-        <option
-          v-for="opt in (entry.options || [])"
-          :key="opt.value"
-          :value="opt.value"
-        >{{ opt.label }}</option>
-      </select>
+      <template v-else-if="entry.type === 'select'">
+        <select
+          class="form-select pref-select"
+          :id="'pref-' + entry.key"
+          :value="effectiveValue"
+          :disabled="entry.disabled"
+          @change="$emit('update:modelValue', $event.target.value)"
+        >
+          <option
+            v-for="opt in (entry.options || [])"
+            :key="opt.value"
+            :value="opt.value"
+          >{{ opt.label }}</option>
+        </select>
+        <a
+          v-if="entry.when_value_download && effectiveValue === entry.when_value_download.value"
+          :href="entry.when_value_download.url"
+          :download="entry.when_value_download.filename || true"
+          class="btn btn-outline-secondary btn-sm mt-2"
+        ><i class="fas fa-download me-1"></i>{{ entry.when_value_download.label }}</a>
+      </template>
 
       <!-- Button group (multi-option selector / resolution) -->
       <div
@@ -151,6 +158,16 @@
       <span v-else-if="entry.type === 'info'" class="text-muted font-monospace small">
         {{ effectiveValue }}
       </span>
+
+      <!-- Download link -->
+      <a
+        v-else-if="entry.type === 'download_link'"
+        :href="entry.download_url"
+        :download="entry.download_filename || true"
+        class="btn btn-secondary btn-sm"
+      >
+        <i class="fas fa-download me-1"></i>{{ _i18n('prefs.clickhouse_ts_grafana_dashboard_btn') }}
+      </a>
 
     </div>
   </div>
@@ -187,46 +204,55 @@ const effectiveValue = computed(() =>
   props.modelValue !== '' ? props.modelValue : (props.entry.default ?? '')
 );
 
-// Time selector (tformat="hd")
-// tformat characters -> multiplier in seconds
+// tformat selector (time: "hd", bytes: "mg")
 const TFORMAT_UNITS = computed(() => ({
-  s: { key: 's', label: _i18n('prefs.vue_prefs.time_secs'),  sec: 1     },
-  m: { key: 'm', label: _i18n('prefs.vue_prefs.time_mins'),  sec: 60    },
-  h: { key: 'h', label: _i18n('prefs.vue_prefs.time_hours'), sec: 3600  },
-  d: { key: 'd', label: _i18n('prefs.vue_prefs.time_days'),  sec: 86400 },
+  // time units (stored as seconds)
+  s: { key: 's', label: _i18n('prefs.vue_prefs.time_secs'),  factor: 1,               kind: 'time' },
+  m: { key: 'm', label: _i18n('prefs.vue_prefs.time_mins'),  factor: 60,              kind: 'time' },
+  h: { key: 'h', label: _i18n('prefs.vue_prefs.time_hours'), factor: 3600,            kind: 'time' },
+  d: { key: 'd', label: _i18n('prefs.vue_prefs.time_days'),  factor: 86400,           kind: 'time' },
+  // byte units (stored as bytes)
+  M: { key: 'M', label: 'MB', factor: 1024 * 1024,           kind: 'bytes' },
+  G: { key: 'G', label: 'GB', factor: 1024 * 1024 * 1024,   kind: 'bytes' },
 }));
+
+// tformat="mg" uses lowercase in schema but we map to M/G internally
+function normalizeTformat(tf) {
+  if (!tf) return '';
+  return tf.replace('m', 'M').replace('g', 'G');
+}
 
 const timeUnits = computed(() => {
   if (!props.entry.tformat) return [];
-  return props.entry.tformat.split('').map(c => TFORMAT_UNITS.value[c]).filter(Boolean);
+  return normalizeTformat(props.entry.tformat).split('').map(c => TFORMAT_UNITS.value[c]).filter(Boolean);
 });
 
 // pick best unit: largest unit that divides the value evenly
-function bestUnit(seconds) {
+function bestUnit(rawVal) {
   const units = [...timeUnits.value].reverse(); // largest first
   for (const u of units) {
-    if (seconds % u.sec === 0) return u.key;
+    if (rawVal % u.factor === 0) return u.key;
   }
   return timeUnits.value[0]?.key ?? 'h';
 }
 
-const _seconds = computed(() => parseInt(effectiveValue.value) || 0);
-const timeUnit = ref(bestUnit(_seconds.value));
+const _rawValue = computed(() => parseInt(effectiveValue.value) || 0);
+const timeUnit = ref(bestUnit(_rawValue.value));
 watch(() => effectiveValue.value, (v) => {
   timeUnit.value = bestUnit(parseInt(v) || 0);
 }, { immediate: true });
 
-const timeUnitSec = computed(() => TFORMAT_UNITS.value[timeUnit.value]?.sec ?? 1);
+const timeUnitSec = computed(() => TFORMAT_UNITS.value[timeUnit.value]?.factor ?? 1);
 const timeDisplayValue = computed(() => {
-  const s = _seconds.value;
+  const s = _rawValue.value;
   return s > 0 ? Math.floor(s / timeUnitSec.value) : s;
 });
 
 function onTimeUnitChange(newUnit) {
   const display = timeDisplayValue.value;
   timeUnit.value = newUnit;
-  const newSec = display * (TFORMAT_UNITS.value[newUnit]?.sec ?? 1);
-  emit('update:modelValue', String(newSec));
+  const newRaw = display * (TFORMAT_UNITS.value[newUnit]?.factor ?? 1);
+  emit('update:modelValue', String(newRaw));
 }
 
 function onTimeInput(displayVal) {
@@ -365,16 +391,17 @@ function onToggleChange(checked) {
 .pref-title {
   display: block;
   font-size: 0.875rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--ntop-text-color, #111);
   line-height: 1.3;
-  margin-bottom: 0;
+  margin-bottom: 0.15rem;
   cursor: default;
 }
 .pref-desc {
-  font-size: 0.78rem;
+  font-size: 0.775rem;
+  font-weight: 400;
   color: var(--ntop-muted-text-color, #6c757d);
-  margin-top: 0.2rem;
+  margin-top: 0;
   line-height: 1.45;
 }
 

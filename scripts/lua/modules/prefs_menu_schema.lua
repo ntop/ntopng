@@ -68,6 +68,7 @@ function M.get_sections(flags)
     local has_cmdl_disable_alerts = prefs.has_cmdl_disable_alerts
     local has_cmdl_trace_lvl = prefs.has_cmdl_trace_lvl
     local is_users_login_enabled = prefs.is_users_login_enabled
+    local active_ts_driver = ntop.getPref("ntopng.prefs.timeseries_driver") or "rrd"
 
     local sections =
         { -- Active Monitoring
@@ -1226,7 +1227,13 @@ function M.get_sections(flags)
                     label = "ClickHouse"
                 }},
                 to_switch = {"influxdb_url", "influxdb_dbname", "toggle_influx_auth", "influxdb_username",
-                             "influxdb_password", "influxdb_query_timeout"}
+                             "influxdb_password", "influxdb_query_timeout"},
+                when_value_download = {
+                    value    = "clickhouse",
+                    url      = ntop.getHttpPrefix() .. "/misc/grafana/ntopng-clickhouse-dashboard.json",
+                    filename = "ntopng-clickhouse-dashboard.json",
+                    label    = i18n("prefs.clickhouse_ts_grafana_dashboard_btn")
+                }
             }, {
                 key = "influxdb_url",
                 title = i18n("prefs.influxdb_url_title"),
@@ -1321,8 +1328,7 @@ function M.get_sections(flags)
                     min = "1",
                     max = tostring(365 * 10)
                 }
-            },
-                -- Interfaces Timeseries
+            }, -- Interfaces Timeseries
                 {
                 key = "toggle_interface_traffic_rrd_creation",
                 title = i18n("prefs.toggle_traffic_rrd_creation_title"),
@@ -1879,6 +1885,7 @@ function M.get_sections(flags)
                 description = i18n("traffic_recording.max_extracted_pcap_bytes_description"),
                 type = "input",
                 input_type = "number",
+                tformat = "mg",
                 redis_key = "ntopng.prefs.max_extracted_pcap_bytes",
                 default = tostring(prefs.max_extracted_pcap_bytes or 104857600),
                 attrs = {
