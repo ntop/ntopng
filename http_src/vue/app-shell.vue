@@ -276,8 +276,8 @@
             <i :class="currentIfaceIcon"></i>
           </span>
           <span class="sb-iface-btn__name">{{ currentIfaceLabel }}</span>
-          <span v-if="currentIsZmq" class="sb-iface-btn__zmq" title="ZMQ interface">ZMQ</span>
-          <span v-if="currentHasDrops" class="sb-iface-btn__warn"
+          <span v-if="currentIsZmq && !isInfraView" class="sb-iface-btn__zmq" title="ZMQ interface">ZMQ</span>
+          <span v-if="currentHasDrops && !isInfraView" class="sb-iface-btn__warn"
                 :title="_i18n('if_stats.drops')" data-bs-toggle="tooltip" data-bs-placement="bottom">
             <i class="fas fa-exclamation-triangle"></i>
           </span>
@@ -291,7 +291,7 @@
                  @mouseleave="onIfaceLeave">
 
               <!-- Regular interfaces: tree when ViewAll present, flat otherwise -->
-              <div class="sb-iface-menu__section">
+              <div v-if="!isInfraView" class="sb-iface-menu__section">
                 <div class="sb-iface-menu__label">Interfaces</div>
 
                 <!-- Tree layout: ViewAll as parent, all non-system ifaces as children -->
@@ -391,15 +391,37 @@
 
               <!-- Infrastructure -->
               <template v-if="menu.infrastructure_instances?.length">
-                <div class="sb-iface-menu__divider"></div>
+                <div v-if="!isInfraView" class="sb-iface-menu__divider"></div>
                 <div class="sb-iface-menu__section">
                   <div class="sb-iface-menu__label">{{ _i18n("infrastructure_dashboard.infrastructure") }}</div>
+                  <!-- Local (current instance) -->
+                  <a class="sb-iface-item"
+                     :class="{ 'sb-iface-item--active': !isInfraView }"
+                     href="#" @click.prevent="selectInfraView(`${pfx}/lua/index.lua`)">
+                    <span class="sb-iface-item__icon"><i class="fas fa-home text-muted"></i></span>
+                    <span class="sb-iface-item__info">
+                      <span class="sb-iface-item__name">{{ _i18n("infrastructure_dashboard.local") }}</span>
+                    </span>
+                    <i v-if="!isInfraView" class="fas fa-check sb-iface-item__check"></i>
+                  </a>
+                  <!-- Infrastructure dashboard -->
+                  <a class="sb-iface-item"
+                     :class="{ 'sb-iface-item--active': isInfraView }"
+                     href="#" @click.prevent="selectInfraView(`${pfx}/lua/index.lua?view=infrastructure`)">
+                    <span class="sb-iface-item__icon"><i class="fas fa-tachometer-alt text-info"></i></span>
+                    <span class="sb-iface-item__info">
+                      <span class="sb-iface-item__name">{{ _i18n("infrastructure_dashboard.infrastructure") }}</span>
+                      <span class="sb-iface-item__tags"><span class="sb-iface-tag sb-iface-tag--view">dashboard</span></span>
+                    </span>
+                    <i v-if="isInfraView" class="fas fa-check sb-iface-item__check"></i>
+                  </a>
+                  <!-- Remote instances -->
                   <a v-for="inst in menu.infrastructure_instances" :key="inst.id"
                      class="sb-iface-item"
-                     :href="`${pfx}/lua/pro/enterprise/infrastructure_config.lua`">
-                    <span class="sb-iface-item__icon"><i class="fas fa-server text-muted"></i></span>
+                     href="#" @click.prevent="selectInfraView(inst.info.url)">
+                    <span class="sb-iface-item__icon"><i class="fas fa-building text-muted"></i></span>
                     <span class="sb-iface-item__info">
-                      <span class="sb-iface-item__name">{{ inst.id }}</span>
+                      <span class="sb-iface-item__name">{{ inst.info.name }}</span>
                     </span>
                   </a>
                 </div>
@@ -411,7 +433,7 @@
       </div>
 
       <!-- Sparklines (d3v7, refs driven) -->
-      <div v-if="!menu.is_system_interface && !menu.infrastructure_view && !menu.is_pcap_dump"
+      <div v-if="!menu.is_system_interface && !isInfraView && !menu.is_pcap_dump"
            class="sb-sparklines d-none d-md-flex">
         <div class="sb-spark-combined" :title="`↑ ${sparkLabels.up}  ↓ ${sparkLabels.dn}`">
           <svg ref="svgCombined" class="sb-spark"></svg>
@@ -432,7 +454,7 @@
         <span class="badge bg-warning text-dark">{{ menu.license_badge.label }}</span>
       </a>
 
-      <div v-if="!menu.infrastructure_view" class="network-load d-none d-lg-flex"></div>
+      <div v-if="!isInfraView" class="network-load d-none d-lg-flex"></div>
     </div>
 
     <!-- Right cluster -->
@@ -551,6 +573,7 @@ const railNav        = ref(null);  // ref to scrollable nav area
 const navOverflow    = ref(false); // true when items are hidden below visible area
 const navCanScrollUp = ref(false); // true when scrolled down (items hidden above)
 const ifaceOpen      = ref(false);
+const locationHref   = ref(window.location.href);
 let ifaceLeaveTimer  = null;
 let railNavObserver  = null;
 
@@ -589,7 +612,7 @@ const currentPanelSection = computed(() => lockedSection.value || hoveredSection
 
 const activeSection = computed(() => {
   if (ctx.value.active_section) return ctx.value.active_section;
-  const pathname = window.location.pathname;
+  const pathname = new URL(locationHref.value).pathname;
   for (const section of (menu.value.sections || [])) {
     for (const entry of (section.entries || [])) {
       if (!entry.url || entry.is_divider) continue;
@@ -604,7 +627,7 @@ const activeSection = computed(() => {
 
 const activeEntry = computed(() => {
   if (ctx.value.active_entry) return ctx.value.active_entry;
-  const pathname = window.location.pathname;
+  const pathname = new URL(locationHref.value).pathname;
   for (const section of (menu.value.sections || [])) {
     for (const entry of (section.entries || [])) {
       if (!entry.url || entry.is_divider) continue;
@@ -640,9 +663,11 @@ const userInitials = computed(() => {
 // Menu data
 async function loadMenu() {
   const ifid = ctx.value.ifid || (typeof interfaceID !== "undefined" ? interfaceID : 0);
+  const view = new URL(locationHref.value).searchParams.get("view") || "";
+  const viewParam = view ? `&view=${encodeURIComponent(view)}` : "";
   try {
     const data = await ntopng_utility.http_request(
-      `${pfx.value}/lua/rest/v2/get/ntopng/menu.lua?ifid=${ifid}`
+      `${pfx.value}/lua/rest/v2/get/ntopng/menu.lua?ifid=${ifid}${viewParam}`
     );
     if (data) {
       menu.value = data;
@@ -688,11 +713,15 @@ function selectIface(targetIfid) {
     actionUrl = `${pfx.value}/lua/index.lua?ifid=${target}`;
   } else {
     // Preserve current page and all its params, only swap ifid
-    const u = new URL(window.location.href);
+    const u = new URL(locationHref.value);
     u.searchParams.set("ifid", target);
     u.searchParams.delete("observationPointId");
     actionUrl = u.toString();
   }
+
+  // Update reactive location ref immediately so dropdown reflects selection before page reloads
+  locationHref.value = actionUrl;
+  ifaceOpen.value = false;
 
   // POST switch_interface=1 + csrf so C++ switchInterface() persists the session
   const csrf = ctx.value.csrf || window.__CSRF_DATATABLE__ || "";
@@ -710,9 +739,17 @@ function selectIface(targetIfid) {
   form.submit();
 }
 
+function selectInfraView(url) {
+  locationHref.value = new URL(url, window.location.origin).href;
+  ifaceOpen.value = false;
+  loadMenu();
+  window.location.href = url;
+}
+
 // Interface helpers
 const hasInterfaces = computed(() =>
-  menu.value.ifnames && Object.keys(menu.value.ifnames).length > 1
+  (menu.value.ifnames && Object.keys(menu.value.ifnames).length > 1) ||
+  !!(menu.value.infrastructure_instances?.length)
 );
 
 // Sorted interface ids: system first, then alphabetically by display name
@@ -731,13 +768,22 @@ const sortedIfaceIds = computed(() => {
 // Ground-truth current ifid: read from URL ifid param so it survives navigation,
 // fall back to menu response, then page boot context. Always a string.
 const currentIfid = computed(() => {
-  const urlIfid = new URL(window.location.href).searchParams.get("ifid");
+  const urlIfid = new URL(locationHref.value).searchParams.get("ifid");
   if (urlIfid) return String(urlIfid);
   if (menu.value.current_ifid) return String(menu.value.current_ifid);
   return String(ctx.value.ifid || (typeof interfaceID !== "undefined" ? interfaceID : 0) || "");
 });
 
+// True when in infrastructure view — check both server flag and reactive URL
+const isInfraView = computed(() => {
+  if (menu.value.infrastructure_view) return true;
+  try {
+    return new URL(locationHref.value).searchParams.get("view") === "infrastructure";
+  } catch (_) { return false; }
+});
+
 const currentIfaceLabel = computed(() => {
+  if (isInfraView.value) return _i18n("infrastructure_dashboard.infrastructure");
   const id = currentIfid.value;
   if (!id) return "";
   return (menu.value.ifHdescr && menu.value.ifHdescr[id])
@@ -755,6 +801,7 @@ const currentIsZmq = computed(() => {
 });
 
 const currentIfaceIcon = computed(() => {
+  if (isInfraView.value) return "fas fa-tachometer-alt";
   const id = currentIfid.value;
   if (!id) return "fas fa-ethernet";
   if (id === menu.value.system_ifid)       return "fas fa-cog";
