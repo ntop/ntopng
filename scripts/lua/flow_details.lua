@@ -2602,7 +2602,7 @@ if isEmptyString(page) or page == "overview" then
    ]]
 
    -- Add chatbot button if nAnalyst is enabled
-   if page_utils.has_nanalyst() then
+   if ntop.hasnAnalyst() then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
       live_flow_info = require "live_flow_info"
       

@@ -247,13 +247,28 @@ const convertBatchResult = function (result) {
         seriesArr.some(s => s.id === 'bytes_rcvd');
 
     const labels = ["Time", ...seriesArr.map(s => String(s.name || s.label || s.id || ""))];
-    const paletteList = seriesArr.map(s => ({
-        name: String(s.name || s.label || s.id || ""),
-        palette: 0,
-    }));
-    dygraphFormat.formatSerieColors(paletteList);
-    const baseColors = paletteList;
-    const colors = colorsInterpolation.transformColors(baseColors);
+
+    /* Color assignment:
+     * When series carry distinct backend colors (e.g. rxtx: sent=blue, rcvd=green),
+     * use those colors directly and let transformColors shade duplicates within each
+     * group (e.g. two interfaces → two shades of blue, two shades of green).
+     *
+     * When all series share the same backend color (top-N: every nDPI app gets
+     * the same 'bytes' color), that color is meaningless for differentiation —
+     * ignore it and assign sequentially from the wide-gamut palette instead so
+     * each series gets a visually distinct hue.
+     *
+     * Series with no backend color always get sequential palette assignment. */
+    const backendColors = seriesArr.map(s => s.color || null);
+    const uniqueBackendColors = new Set(backendColors.filter(Boolean));
+    const useBackendColors = uniqueBackendColors.size >= 2;
+
+    let seqIdx = 0;
+    const rawColors = seriesArr.map(s => {
+        if (useBackendColors && s.color) return s.color;
+        return dygraphFormat.getSequentialColor(seqIdx++);
+    });
+    const colors = colorsInterpolation.transformColors(rawColors);
 
     const seriesConfig = {};
     labels.slice(1).forEach(name => {

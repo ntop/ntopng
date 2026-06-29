@@ -323,9 +323,10 @@ if info["pro.systemid"] and info["pro.systemid"] ~= "" then
 end
 
 -- User menu data
-local theme_selector = ntop.getPref("ntopng.user." .. session_user .. ".theme")
-local theme_label    = i18n("toggle_dark_theme")
+local theme_selector   = ntop.getPref("ntopng.user." .. session_user .. ".theme")
+local theme_label      = i18n("toggle_dark_theme")
 if theme_selector == "dark" then theme_label = i18n("toggle_white_theme") end
+local date_format_pref = ntop.getPref("ntopng.user." .. session_user .. ".date_format")
 
 local logo_path = nil
 if (is_pro or is_nedge) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
@@ -374,6 +375,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    has_updates_support = (hasSoftwareUpdatesSupport() == true),
    theme_label      = theme_label,
    theme            = theme_selector or "light",
+   date_format      = date_format_pref or "middle_endian",
 
    -- topbar: blog
    blog_posts        = blog_posts,

@@ -8,19 +8,29 @@ import dygraphConfig from "./dygraph-config.js";
 
 /* ***************************************** */
 
+/* Vibrant, high-contrast palette — readable on both light and dark backgrounds.
+ * Colors are ordered for maximum perceptual distance between adjacent entries. */
 const defaultColors = [
-    "#C6D9FD",
-    "#90EE90",
-    "#EE8434",
-    "#C95D63",
-    "#AE8799",
-    "#717EC3",
-    "#496DDB",
-    "#5A7ADE",
-    "#6986E1",
-    "#7791E4",
-    "#839BE6",
-    "#8EA4E8",
+    "#3b82f6",   /* blue        */
+    "#f97316",   /* orange      */
+    "#10b981",   /* emerald     */
+    "#ef4444",   /* red         */
+    "#8b5cf6",   /* violet      */
+    "#f59e0b",   /* amber       */
+    "#06b6d4",   /* cyan        */
+    "#ec4899",   /* pink        */
+    "#84cc16",   /* lime        */
+    "#6366f1",   /* indigo      */
+    "#14b8a6",   /* teal        */
+    "#f43f5e",   /* rose        */
+    "#a855f7",   /* purple      */
+    "#eab308",   /* yellow      */
+    "#0ea5e9",   /* sky         */
+    "#22c55e",   /* green       */
+    "#fb923c",   /* light-orange*/
+    "#e879f9",   /* fuchsia     */
+    "#2dd4bf",   /* light-teal  */
+    "#facc15",   /* light-amber */
 ];
 
 /* ***************************************** */
@@ -47,10 +57,19 @@ function hash_string(s) {
     return Math.abs(h);
 }
 
+function getSequentialColor(index) {
+    return defaultColors[index % defaultColors.length];
+}
+
 function formatSerieColors(palette_list) {
     let colors0 = defaultColors;
     let colors1 = d3v7.schemeCategory10;
     palette_list.forEach((s, index) => {
+        /* If an explicit color is provided, use it as-is */
+        if (s.color) {
+            palette_list[index] = s.color;
+            return;
+        }
         const key = s.name || '';
         if (s.palette == 0) {
             palette_list[index] = colors0[hash_string(key) % colors0.length];
@@ -304,8 +323,8 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
         if (!formatter_found)
             config.formatters.push(formatter);
 
-        /* Add the serie */
-        addNewSerie(serie_name, chart_type, { color: metadata?.color, palette: 0 }, config)
+        /* Add the serie — prefer backend color (ts_info.color), fall back to frontend schema color */
+        addNewSerie(serie_name, chart_type, { color: ts_info.color || metadata?.color, palette: 0 }, config)
 
         /* Adding the extra timeseries, 30m ago, avg and 95th */
         if (extra_timeseries?.avg == true) {
@@ -463,6 +482,7 @@ const dygraphFormat = function () {
         formatSerie,
         formatSimpleSerie,
         formatSerieColors,
+        getSequentialColor,
         getSerieId,
         getSerieName,
         getDefaultConfig,

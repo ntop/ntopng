@@ -10,46 +10,46 @@ local ts_utils = require "ts_utils"
 
 local series_extra_info = {
     alerts = {
-        color = '#2d99bd'
+        color = '#f59e0b'
     },
     bytes = {
-        color = '#1f77b4'
+        color = '#3b82f6'
     },
     packets = {
-        color = '#1f77b4'
+        color = '#6366f1'
     },
     bytes_sent = {
-        color = '#c6d9fd'
+        color = '#3b82f6'
     },
     bytes_rcvd = {
-        color = '#90ee90'
+        color = '#10b981'
     },
     devices = {
-        color = '#ac9ddf'
+        color = '#8b5cf6'
     },
     flows = {
-        color = '#8c6f94'
+        color = '#6366f1'
     },
     hosts = {
-        color = '#ff7f0e'
+        color = '#f97316'
     },
     score = {
-        color = '#ff3231'
+        color = '#ef4444'
     },
     cli_score = {
-        color = '#690504'
+        color = '#dc2626'
     },
     srv_score = {
-        color = '#f5a2a2'
+        color = '#fca5a5'
     },
     default = {
-        color = '#c6d9fd'
+        color = '#3b82f6'
     },
     usage_sent = {
-        color = '#b3abd6'
+        color = '#818cf8'
     },
     usage_rcvd = {
-        color = '#2f4241'
+        color = '#34d399'
     }
 }
 

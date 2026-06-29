@@ -1570,15 +1570,6 @@ function page_utils.switch_interface_form_action_url(active_ifid, switch_ifid, s
     return res
 end
 
--- ##############################################
--- returns if nanalyst is enabled
-
-function page_utils.has_nanalyst()
-    local has_ch_support = hasClickHouseSupport()
-    local is_system_interface = toboolean(page_utils.is_system_view())
-    local has_nAnalyst = ntop.hasnAnalyst and ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
-    return has_nAnalyst
-end
 
 -- ##############################################
 function page_utils.page_not_enabled(i18n_key)

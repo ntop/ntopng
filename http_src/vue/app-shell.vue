@@ -1302,7 +1302,20 @@ function updateClock() {
   const elapsed = clockLoadedAt ? Math.floor((Date.now() - clockLoadedAt) / 1000) : 0;
   const d = clockEpochBase ? new Date((clockEpochBase + elapsed) * 1000) : new Date();
   const tz = menu.value?.tzname || undefined;
-  currentTime.value = d.toLocaleString(undefined, tz ? { timeZone: tz } : undefined);
+  const fmt = menu.value?.date_format || 'middle_endian';
+
+  // Map ntopng date_format pref → Intl locale that gives the right day/month/year order
+  // little_endian = d/m/y  → en-GB
+  // middle_endian = m/d/y  → en-US (default)
+  // big_endian    = y/m/d  → sv-SE (ISO 8601 order)
+  const localeMap = { little_endian: 'en-GB', middle_endian: 'en-US', big_endian: 'sv-SE' };
+  const locale = localeMap[fmt] || 'en-US';
+
+  const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit',
+                 year: 'numeric', month: '2-digit', day: '2-digit' };
+  if (tz) opts.timeZone = tz;
+
+  currentTime.value = d.toLocaleString(locale, opts);
   if (uptimeBase) currentUptime.value = formatUptime(uptimeBase + elapsed);
 }
 
@@ -1422,6 +1435,7 @@ async function doCheckForUpdates() {
 
 onMounted(async () => {
   document.addEventListener("ntopng-update-status", onUpdateStatusEvent);
+  document.addEventListener("ntopng-preferences-saved", loadMenu);
   applyLayout();
   document.addEventListener("click", handleOutsideClick);
   await loadMenu();
@@ -1451,6 +1465,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   document.removeEventListener("ntopng-update-status", onUpdateStatusEvent);
+  document.removeEventListener("ntopng-preferences-saved", loadMenu);
   document.removeEventListener("click", handleOutsideClick);
   clearTimeout(railLeaveTimer);
   clearTimeout(panelLeaveTimer);
