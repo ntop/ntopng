@@ -27,7 +27,7 @@ local rest_utils  = require("rest_utils")
 -- Pro paths: only add if nAnalyst is available
 local page_utils  = require("page_utils")
 
-if page_utils.has_nanalyst() then
+if ntop.hasnAnalyst() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;"     .. package.path
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
 end
@@ -74,7 +74,7 @@ local function get_tools()
    end
 
    -- nAnalyst tools: pro/scripts/lua/modules/llm/pro_tools.lua
-   if page_utils.has_nanalyst() then
+   if ntop.hasnAnalyst() then
       local ok2, pro_tools = pcall(function() return require("pro_tools") end)
       if ok2 and pro_tools then
          mod = pro_tools
@@ -99,7 +99,7 @@ local function get_system_prompt()
    _system_prompt = tools.IDENTITY
 
    -- If nAnalyst available, load pro system prompt (extends community with SQL rules)
-   if page_utils.has_nanalyst() then
+   if ntop.hasnAnalyst() then
       local ok, prompts = pcall(function() return require("prompts") end)
       if ok and prompts and prompts.system_prompt then
          _system_prompt = prompts.system_prompt(false)

@@ -418,7 +418,7 @@ else
     -- chatbot, hide if viewed interface or system or not enterprise xl
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.nanalyst,
-        hidden = not page_utils.has_nanalyst(),
+        hidden = not ntop.hasnAnalyst(),
         entries = {{
             entry = page_utils.menu_entries.nanalyst,
             url = '/lua/pro/nanalyst.lua'
