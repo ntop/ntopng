@@ -36,6 +36,12 @@ bool UnexpectedDHCPServer::isAllowedHost(Flow *f) {
         ntop->getPrefs()->isDHCPServer(ip, 0 /* Check VLAN 0 (no vlan) too */))
       return (true);
 
+    if (f->get_srv_ip_addr() &&
+        ntop->getPrefs()->isDHCPServer(f->get_srv_ip_addr(), f->get_vlan_id()))
+      /* DHCP relay? Relay agent (cli port 67) forwards to DHCP server (srv
+       * port 67) */
+      return (true);
+
     return (false);
   }
 }
