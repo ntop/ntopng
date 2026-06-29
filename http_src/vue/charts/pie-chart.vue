@@ -158,26 +158,41 @@ async function load() {
         emit("chart-updated");
     }
 }
+const MAX_PIE_ITEMS = 5;
+
 // assign colors from palette, first element has the same color on all pages
 function render(data) {
-    const PALETTE = colorUtils.assignRoundRobinColors(data.map(d => d.label));
-    const getColor = (d, i) => d.color || PALETTE[i % PALETTE.length];
-
     const total = data.reduce((s, d) => s + d.value, 0);
-    /* Filtered data, excludes values too small to be shown in the chart
-     * values with a number lesser then 0.0%
-     */
-     const filtered_data = data
-    .filter((d) => d.value > 0)  // only exclude actual zeros
-    .map((d) => ({
-        label: d.label,
-        value: d.value,
-        percentage: total > 0 ? (d.value / total * 100).toFixed(2) : "0"
-    }));
-    // there is no data to show
+
+    let filtered_data = data
+        .filter((d) => d.value > 0)
+        .map((d) => ({
+            label: d.label,
+            value: d.value,
+            url: d.url || null,
+            percentage: total > 0 ? (d.value / total * 100).toFixed(2) : "0"
+        }))
+        .sort((a, b) => b.value - a.value);
+
     if (filtered_data.length === 0) {
         no_data.value = true;
+        return;
     }
+
+    // Cap to MAX_PIE_ITEMS, merge the tail into "Other"
+    if (filtered_data.length > MAX_PIE_ITEMS) {
+        const rest = filtered_data.slice(MAX_PIE_ITEMS);
+        const otherValue = rest.reduce((s, d) => s + d.value, 0);
+        filtered_data = [...filtered_data.slice(0, MAX_PIE_ITEMS), {
+            label: "Other",
+            value: otherValue,
+            url: null,
+            percentage: total > 0 ? (otherValue / total * 100).toFixed(2) : "0"
+        }];
+    }
+
+    const PALETTE = colorUtils.assignRoundRobinColors(filtered_data.map(d => d.label));
+    const getColor = (d, i) => d.label === "Other" ? "#9ca3af" : (d.color || PALETTE[i % PALETTE.length]);
 
     items.value = filtered_data.map((d, i) => ({
         name: d.label,
@@ -185,7 +200,7 @@ function render(data) {
         color: getColor(d, i),
         url: d.url || null,
         percentage: total > 0 ? (d.value / total * 100).toFixed(1) : "0",
-    })).sort((a, b) => b.percentage - a.percentage); // sort percentage descending to display the legend descending
+    }));
 
     const newpie = pie(filtered_data);
 

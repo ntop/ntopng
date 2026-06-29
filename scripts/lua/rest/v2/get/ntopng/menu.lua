@@ -386,9 +386,11 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    -- product info
    product        = info.product or "",
    version        = info.version or "",
-   version_full   = info.edition or "",
+   version_full   = getNtopngRelease(info) or "",
    copyright      = info.copyright or "",
-   uptime         = secondsToTime(ntop.getUptime()),
+   uptime_epoch   = ntop.getUptime(),
+   tzname         = info.zoneinfo or info.tzname or "",
+   server_epoch   = os.time(),
 })
 
 end) -- pcall

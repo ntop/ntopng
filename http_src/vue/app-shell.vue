@@ -75,7 +75,8 @@
         <span class="sb-rail__pill"></span>
         <div class="sb-rail__avatar-cell">
           <div class="sb-avatar">{{ userInitials }}</div>
-          <span v-if="hasAdminNotifications" class="sb-avatar-dot"></span>
+          <span v-if="hasAdminNotifications" class="sb-avatar-dot"
+                :class="{ 'sb-avatar-dot--update': updateStatus === 'update-avail' || updateStatus === 'upgrade-failure' }"></span>
         </div>
         <span class="sb-rail__label">{{ _i18n("profile") || "Profile" }}</span>
       </div>
@@ -101,13 +102,7 @@
               <div class="sb-about-block__product">{{ menu.product }}</div>
               <div v-if="menu.version_full" class="sb-about-block__version" v-html="menu.version_full"></div>
               <div v-else-if="menu.version" class="sb-about-block__version">{{ menu.version }}</div>
-              <div class="sb-about-block__divider"></div>
-              <div v-if="menu.uptime" class="sb-about-block__line">
-                <i class="fas fa-clock"></i><span>Uptime: {{ menu.uptime }}</span>
-              </div>
-              <div class="sb-about-block__line">
-                <i class="fas fa-calendar-alt"></i><span>{{ currentTime }}</span>
-              </div>
+              <div v-if="menu.license_badge" class="sb-about-block__divider"></div>
               <div v-if="menu.license_badge" class="sb-about-block__line">
                 <i class="fas fa-id-card"></i>
                 <a :href="`${pfx}/lua/license.lua`">{{ menu.license_badge.label }}</a>
@@ -116,7 +111,6 @@
                   <i :class="copiedLicense ? 'fas fa-check' : 'fas fa-copy'"></i>
                 </button>
               </div>
-              <div v-if="menu.copyright" class="sb-about-block__copy" v-html="menu.copyright"></div>
             </div>
             <div v-if="visibleEntries(currentPanelSection).length" class="sb-panel-divider"></div>
           </template>
@@ -467,6 +461,41 @@
     </div>
   </nav>
 
+  <!-- Update available banner -->
+  <Transition name="sb-banner-anim">
+    <div v-if="(updateStatus === 'update-avail' || updateStatus === 'upgrade-failure') && !updateBannerDismissed"
+         class="sb-update-banner">
+      <i class="fas fa-cloud-download-alt sb-update-banner__icon"></i>
+      <span class="sb-update-banner__text">
+        {{ _i18n("updates.new_update_available_banner") }}<template v-if="updateVersion">: <strong>{{ updateVersion }}</strong></template>
+      </span>
+      <button class="sb-update-banner__action" @click="openUpdatePopup">
+        <i class="fas fa-download me-1"></i>{{ _i18n("updates.install_now_banner") }}
+      </button>
+      <button class="sb-update-banner__close" @click="dismissUpdate" title="Dismiss">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </Transition>
+
+  <!-- Footer: teleported into #n-container so it flows at the bottom of each page -->
+  <Teleport to="#n-container">
+    <footer id="n-footer" class="sb-footer">
+      <div class="sb-footer__col">
+        <a v-if="menu.version_full" href="https://www.ntop.org/products/traffic-analysis/ntop/"
+           target="_blank" rel="noopener" v-html="menu.version_full"></a>
+        <a v-else-if="menu.version" href="https://www.ntop.org/products/traffic-analysis/ntop/"
+           target="_blank" rel="noopener">{{ menu.version }}</a>
+        <span v-else-if="menu.product">{{ menu.product }}</span>
+      </div>
+      <div v-if="menu.copyright" class="sb-footer__col sb-footer__col--center" v-html="menu.copyright"></div>
+      <div class="sb-footer__col sb-footer__col--right">
+        <i class="fas fa-clock"></i> {{ currentTime }}<template v-if="menu.tzname"> &nbsp;{{ menu.tzname }}</template>
+        <template v-if="currentUptime"><span class="sb-footer__sep">|</span>Uptime: {{ currentUptime }}</template>
+      </div>
+    </footer>
+  </Teleport>
+
   <!-- Restart modal -->
   <div class="modal fade" id="restart-modal" tabindex="-1">
     <div class="modal-dialog modal-sm">
@@ -519,8 +548,12 @@ const pfx = computed(() =>
 const _i18n = (t) => i18n(t);
 
 // Updates state
-const updateStatus  = ref("");
-const updateVersion = ref("");
+const updateStatus           = ref("");
+const updateVersion          = ref("");
+const dismissedUpdateVersion = ref("");  // version stored in Redis as dismissed
+const updateBannerDismissed  = computed(() =>
+  dismissedUpdateVersion.value !== "" && dismissedUpdateVersion.value === updateVersion.value
+);
 
 // State
 const menu           = ref({});
@@ -629,7 +662,12 @@ async function loadMenu() {
     const data = await ntopng_utility.http_request(
       `${pfx.value}/lua/rest/v2/get/ntopng/menu.lua?ifid=${ifid}`
     );
-    if (data) menu.value = data;
+    if (data) {
+      menu.value = data;
+      clockLoadedAt  = Date.now();
+      if (data.server_epoch) clockEpochBase = data.server_epoch;
+      if (data.uptime_epoch) uptimeBase     = data.uptime_epoch;
+    }
   } catch (_) {}
 }
 
@@ -1260,11 +1298,30 @@ function triggerPasswordDialog(username) {
 
 // Info tooltip: clock + license copy
 const currentTime   = ref("");
+const currentUptime = ref("");
 const copiedLicense = ref(false);
 let clockTimer      = null;
+let clockEpochBase  = 0;   // server epoch at menu load time
+let clockLoadedAt   = 0;   // client ms when menu was loaded
+let uptimeBase      = 0;   // server uptime seconds at menu load time
+
+function formatUptime(secs) {
+  const d = Math.floor(secs / 86400);
+  const h = Math.floor((secs % 86400) / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
 
 function updateClock() {
-  currentTime.value = new Date().toLocaleString();
+  const elapsed = clockLoadedAt ? Math.floor((Date.now() - clockLoadedAt) / 1000) : 0;
+  const d = clockEpochBase ? new Date((clockEpochBase + elapsed) * 1000) : new Date();
+  const tz = menu.value?.tzname || undefined;
+  currentTime.value = d.toLocaleString(undefined, tz ? { timeZone: tz } : undefined);
+  if (uptimeBase) currentUptime.value = formatUptime(uptimeBase + elapsed);
 }
 
 function copyLicenseLink() {
@@ -1320,6 +1377,27 @@ async function updatesRefresh() {
       updateVersion.value = rsp.version || "";
     }
   } catch (e) { console.error("[updates] GET check_update.lua error:", e); }
+}
+
+async function dismissUpdate() {
+  const ver = updateVersion.value;
+  if (!ver) return;
+  dismissedUpdateVersion.value = ver;
+  try {
+    await ntopng_utility.http_request(
+      `${pfx.value}/lua/rest/v2/set/ntopng/update_dismissed.lua`,
+      { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrf:           ctx.value.csrf,
+          update_version: ver,
+        }) }
+    );
+  } catch (_) {}
+}
+
+function openUpdatePopup() {
+  dismissUpdate();
+  userPopupOpen.value = true;
 }
 
 async function doInstallUpdate() {
@@ -1378,6 +1456,12 @@ onMounted(async () => {
   clockTimer = setInterval(updateClock, 1000);
 
   if (menu.value.has_updates_support) {
+    try {
+      const dismissed = await ntopng_utility.http_request(
+        `${pfx.value}/lua/rest/v2/get/ntopng/update_dismissed.lua`
+      );
+      if (dismissed?.version) dismissedUpdateVersion.value = dismissed.version;
+    } catch (_) {}
     await updatesRefresh();
     updatesTimer = setInterval(updatesRefresh, 5000);
   }
@@ -1757,8 +1841,11 @@ div.wrapper {
   width: 0.55rem; height: 0.55rem;
   border-radius: 50%;
   background: #dc3545;
-  border: 2px solid var(--sb-rail-bg, #212529);
   pointer-events: none;
+}
+.sb-avatar-dot--update {
+  width: 0.65rem; height: 0.65rem;
+  top: -0.15rem; right: -0.15rem;
 }
 
 /*
@@ -1799,12 +1886,12 @@ div.wrapper {
   overflow: visible;    /* parent does NOT scroll — only .network-load does */
 }
 
-/* Fade hint at right edge of badge scroll area */
+/* Fade hint at right edge of badge scroll area — kept narrow so it doesn't hide badges */
 .sb-topbar__left::after {
   content: '';
   position: absolute;
   right: 0; top: 0; height: 100%;
-  width: 2.5rem;
+  width: 1rem;
   background: linear-gradient(to right, transparent, var(--sb-topbar-bg, #fff));
   pointer-events: none;
   z-index: 3;
@@ -2186,8 +2273,8 @@ div.wrapper {
   align-items: center;
   overflow-x: auto;
   scrollbar-width: none;   /* Firefox */
-  flex: 1;                 /* grow to fill remaining .sb-topbar__left width */
-  min-width: 0;
+  flex: 1 1 0;             /* grow to fill remaining .sb-topbar__left width */
+  min-width: 3rem;         /* never collapse fully */
 }
 :deep(.network-load)::-webkit-scrollbar { display: none; }
 :deep(.navbar-main-badges) {
@@ -2196,6 +2283,76 @@ div.wrapper {
   gap: 0.25rem;
   align-items: center;
   white-space: nowrap;
-  padding-right: 2rem;   /* breathing room before the fade covers last badge */
+  padding-right: 0.5rem;
 }
+
+/* ── Update banner ── */
+.sb-update-banner {
+  position: fixed;
+  top: var(--sb-navbar-h);
+  left: var(--sb-rail-w);
+  width: calc(100% - var(--sb-rail-w));
+  z-index: 1028;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 1rem;
+  background: #198754;
+  color: #fff;
+  font-size: 0.82rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.sb-update-banner__icon { font-size: 1rem; flex-shrink: 0; }
+.sb-update-banner__text { flex: 1; }
+.sb-update-banner__action {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sb-update-banner__action:hover { background: rgba(255,255,255,0.28); }
+.sb-update-banner__close {
+  flex-shrink: 0;
+  width: 1.5rem; height: 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 4px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
+  cursor: pointer; font-size: 0.75rem;
+  transition: background 0.12s;
+}
+.sb-update-banner__close:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+.sb-banner-anim-enter-active { transition: opacity 0.2s, transform 0.2s; }
+.sb-banner-anim-leave-active { transition: opacity 0.15s, transform 0.15s; }
+.sb-banner-anim-enter-from,
+.sb-banner-anim-leave-to    { opacity: 0; transform: translateY(-100%); }
+
+/* ── Footer ── */
+#n-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.15));
+  font-size: 0.7rem;
+  color: var(--bs-body-color, #333);
+}
+#n-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+#n-footer a:hover { color: var(--sb-orange, #FF7500); text-decoration: underline; }
+.sb-footer__col { flex: 1; display: flex; align-items: center; gap: 0.35rem; }
+.sb-footer__col--center { justify-content: center; }
+.sb-footer__col--right  { justify-content: flex-end; }
+.sb-footer__sep { opacity: 0.35; }
 </style>

@@ -2279,6 +2279,7 @@ local known_parameters = {
    ["rrd_file"] = validateUnquoted, -- A path or special identifier to read an RRD file
    ["port"] = validatePort, -- An application port
    ["ntopng_license"] = {licenseCleanup, validateLicense}, -- ntopng licence string
+   ["update_version"] = validateSingleWord, -- dismissed update version string
    ["syn_attacker_threshold"] = validateEmptyOr(validateNumber),
    ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
    ["syn_victim_threshold"] = validateEmptyOr(validateNumber),

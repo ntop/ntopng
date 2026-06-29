@@ -802,12 +802,14 @@ function getNtopngRelease(ntopng_info, verbose)
         release = "Enterprise XXL"
     elseif (ntopng_info["version.enterprise_xl_edition"]) then
         release = "Enterprise XL"
+    elseif (ntopng_info["edition"] == "Enterprise L with nAnalyst") then
+        release = "Enterprise L with nAnalyst"
     elseif (ntopng_info["version.enterprise_l_edition"]) then
         release = "Enterprise L"
     elseif (ntopng_info["version.enterprise_m_edition"]) then
         release = "Enterprise M"
     elseif (ntopng_info["version.enterprise_edition"]) or
-        (ntopng_info["version.nedge_enterprise_edition"]) then
+    (ntopng_info["version.nedge_enterprise_edition"]) then
         release = "Enterprise"
     elseif (ntopng_info["pro.release"]) then
         release = "Professional"

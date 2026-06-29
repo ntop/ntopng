@@ -72,7 +72,7 @@ configure.ac
 aclocal.m4
 doc/doxygen.conf
 nDPI
-ntopng
+/ntopng
 packages/*.spec
 packages/etc/systemd/system/ntopng.service
 packages/etc/systemd/system/ntopng@.service
