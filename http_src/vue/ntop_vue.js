@@ -116,6 +116,7 @@ import { default as PageAnalystPipeline } from "./page-analyst-pipeline.vue"
 import { default as PageAlertExclusions } from "./page-alert-exclusions.vue"
 import { default as PageInternals } from "./page-internals.vue"
 import { default as PageBGPLookingGlass } from "./page-bgp-looking-glass.vue"
+import { default as PagePreferences } from "./page-preferences.vue"
 
 /* Testing page */
 import { default as PageTest } from "./page-test.vue";
@@ -280,6 +281,7 @@ let ntopVue = {
     PageAlertExclusions: PageAlertExclusions,
     PageInternals: PageInternals,
     PageBGPLookingGlass: PageBGPLookingGlass,
+    PagePreferences: PagePreferences,
 
     PageExportersGraph: PageExportersGraph,
     PageAbout: PageAbout,
