@@ -621,12 +621,12 @@ async function loadPlaybook(pipelineId) {
 }
 
 function onEpochChange(ev) {
-  epochStart.value = ev.epoch_start;
+  epochStart.value = ev.epoch_begin ?? ev.epoch_start;
   epochEnd.value   = ev.epoch_end;
   const paramDefs = activePlaybook.value?.definition?.params || [];
   paramDefs.forEach(pd => {
-    if (pd.type === "epoch_start") runParams.value[pd.name] = ev.epoch_start;
-    if (pd.type === "epoch_end")   runParams.value[pd.name] = ev.epoch_end;
+    if (pd.type === "epoch_start") runParams.value[pd.name] = epochStart.value;
+    if (pd.type === "epoch_end")   runParams.value[pd.name] = epochEnd.value;
   });
 }
 
@@ -758,8 +758,8 @@ async function runPlaybook() {
 
   const paramDefs = activePlaybook.value?.definition?.params || [];
   paramDefs.forEach(pd => {
-    if (pd.type === "epoch_start" && !runParams.value[pd.name]) runParams.value[pd.name] = epochStart.value;
-    if (pd.type === "epoch_end"   && !runParams.value[pd.name]) runParams.value[pd.name] = epochEnd.value;
+    if (pd.type === "epoch_start") runParams.value[pd.name] = epochStart.value;
+    if (pd.type === "epoch_end")   runParams.value[pd.name] = epochEnd.value;
   });
 
   try {
