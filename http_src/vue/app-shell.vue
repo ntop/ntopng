@@ -404,7 +404,7 @@
                     </span>
                     <i v-if="!isInfraView" class="fas fa-check sb-iface-item__check"></i>
                   </a>
-                  <!-- Infrastructure dashboard -->
+                  <!-- Infrastructure dashboard (parent row) -->
                   <a class="sb-iface-item"
                      :class="{ 'sb-iface-item--active': isInfraView }"
                      href="#" @click.prevent="selectInfraView(`${pfx}/lua/index.lua?view=infrastructure`)">
@@ -415,10 +415,11 @@
                     </span>
                     <i v-if="isInfraView" class="fas fa-check sb-iface-item__check"></i>
                   </a>
-                  <!-- Remote instances -->
+                  <!-- Remote instances indented under Infrastructure dashboard -->
                   <a v-for="inst in menu.infrastructure_instances" :key="inst.id"
-                     class="sb-iface-item"
+                     class="sb-iface-item sb-iface-item--child"
                      href="#" @click.prevent="selectInfraView(inst.info.url)">
+                    <span class="sb-iface-tree-branch" aria-hidden="true"></span>
                     <span class="sb-iface-item__icon"><i class="fas fa-building text-muted"></i></span>
                     <span class="sb-iface-item__info">
                       <span class="sb-iface-item__name">{{ inst.info.name }}</span>
@@ -2062,18 +2063,18 @@ div.wrapper {
 .sb-iface-item__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
 .sb-iface-item__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sb-iface-item__check { font-size: 0.65rem; color: #FF7500; flex-shrink: 0; }
-.sb-iface-item--child { padding-left: 0.5rem; }
+
 .sb-iface-tree-branch {
   display: inline-flex; align-items: center;
-  width: 1rem; flex-shrink: 0; position: relative;
+  width: 1.6rem; flex-shrink: 0; position: relative; align-self: stretch;
 }
 .sb-iface-tree-branch::before {
-  content: ""; position: absolute; left: 4px; top: 50%;
-  width: 8px; height: 1px; background: var(--sb-dropdown-border);
+  content: ""; position: absolute; left: 0.5rem; top: 50%;
+  width: 0.8rem; height: 2px; background: var(--sb-dropdown-icon);
 }
 .sb-iface-tree-branch::after {
-  content: ""; position: absolute; left: 4px; bottom: 50%;
-  width: 1px; height: 14px; background: var(--sb-dropdown-border);
+  content: ""; position: absolute; left: 0.5rem; top: 0;
+  width: 2px; height: calc(50% + 1px); background: var(--sb-dropdown-icon);
 }
 .sb-iface-item__tags { display: flex; gap: 0.2rem; flex-wrap: wrap; }
 .sb-iface-tag {

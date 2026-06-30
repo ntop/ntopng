@@ -53,7 +53,7 @@ const REGEXES = {
     token: String.raw`^[0-9a-f]{32}`,
     score: String.raw`^[0-9]{1,5}`,
     telegram_channel: String.raw`^[0-9\-]{1,15}`,
-    password: String.raw`^[\w\/$!\/()=?^*@_-]{5,31}$`,
+    password: String.raw`^[\w\/\$\!\(\)\=\?\^\*\@_\-]{5,31}$`,
     tls_certificate: String.raw`^[^=,]+=[^=,]+(,\s[^=,]+=[^=,]+)*$`,
     domain_name_not_strict: String.raw`^[a-zA-Z0-9\-_~]+((\.[a-zA-Z0-9\-_~]+)+)$`,
     non_quoted_text: String.raw`^[a-zA-Z0-9.-_]+$`,
