@@ -768,9 +768,10 @@ function hasEntries(section) {
   return !!(section?.entries?.filter(e => !e.hidden).length);
 }
 
-// Switch interface via C++ session,C++ LuaEngine intercepts a POST with switch_interface=1 in the body and
-// ifid=X in the query string -> calls switchInterface() -> persists to Redis -> redirects to the action URL.
-function selectIface(targetIfid) {
+// Switch interface: POST switch_interface=1 via fetch (no page reload) so C++
+// persists the new ifid to the Redis session, then navigate via GET.
+// This avoids the form-submit → redirect double round-trip and the blank flash.
+async function selectIface(targetIfid) {
   if (!targetIfid) return;
   const sysId  = String(menu.value.system_ifid || "");
   const target = String(targetIfid);
@@ -789,24 +790,22 @@ function selectIface(targetIfid) {
     actionUrl = u.toString();
   }
 
-  // Update reactive location ref immediately so dropdown reflects selection before page reloads
   locationHref.value = actionUrl;
   ifaceOpen.value = false;
 
-  // POST switch_interface=1 + csrf so C++ switchInterface() persists the session
+  // POST to persist the session, then navigate — avoids redirect round-trip
   const csrf = ctx.value.csrf || window.__CSRF_DATATABLE__ || "";
-  const form  = document.createElement("form");
-  form.method = "POST";
-  form.action = actionUrl;
-  const addField = (name, value) => {
-    const f = document.createElement("input");
-    f.type = "hidden"; f.name = name; f.value = value;
-    form.appendChild(f);
-  };
-  addField("switch_interface", "1");
-  if (csrf) addField("csrf", csrf);
-  document.body.appendChild(form);
-  form.submit();
+  const body = new URLSearchParams({ switch_interface: "1" });
+  if (csrf) body.set("csrf", csrf);
+  try {
+    await fetch(actionUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+      redirect: "manual",  // don't follow the C++ redirect — we navigate ourselves
+    });
+  } catch (_) {}
+  window.location.href = actionUrl;
 }
 
 function selectInfraView(url) {
@@ -1593,10 +1592,9 @@ onBeforeUnmount(() => {
 
 watch(() => ctx.value.ifid, async (next, prev) => {
   if (next && next !== prev) {
-    menu.value = {};
     spark  = null;
     seeded = false;
-    await loadMenu();
+    await loadMenu();   // keeps old menu.value until response arrives
     await nextTick();
     await pollIface();
   }

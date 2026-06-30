@@ -367,7 +367,10 @@ function clearSearch() {
 function setActive(id) {
   if (active_id.value === id) return;
   active_id.value = id;
-  window.location.hash = id;
+  const url = new URL(window.location.href);
+  url.searchParams.set('tab', id);
+  url.hash = '';
+  window.history.replaceState(null, '', url.toString());
   loadSection();
 }
 
@@ -493,8 +496,11 @@ onMounted(async () => {
     const data = await resp.json();
     sections.value = data?.rsp?.subpages || [];
 
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
     const hash  = window.location.hash?.replace('#', '');
-    const found = hash && sections.value.find(s => s.id === hash);
+    const needle = tabParam || hash;
+    const found = needle && sections.value.find(s => s.id === needle);
 
     const reachable = sections.value.filter(s =>
       (!s.pro_only || context_is_pro.value) && (advanced_open.value || !s.advanced)
