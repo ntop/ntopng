@@ -16,11 +16,6 @@ local host = _GET["host"]
 local scan_type = _GET["scan_type"]
 local delete_all_scan_hosts = _GET["delete_all_scan_hosts"]
 
-tprint(host)
-tprint(scan_type)
-tprint(delete_all_scan_hosts)
-tprint("--------")
-
 if not delete_all_scan_hosts then
 if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
