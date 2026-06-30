@@ -341,7 +341,6 @@ for k, v in pairs(infrastructure_instances or {}) do
    infra_arr[#infra_arr + 1] = { id = k, info = v }
 end
 
-tprint(info)
 rest_utils.answer(rest_utils.consts.success.ok, {
    -- sidebar
    sections    = result,
