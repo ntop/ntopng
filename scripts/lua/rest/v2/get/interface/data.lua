@@ -180,20 +180,10 @@ function dumpInterfaceStats(ifid)
          res["flow_dropped_alerts"] = ifstats["num_flow_dropped_alerts"] or 0
          res["other_dropped_alerts"] = ifstats["num_other_dropped_alerts"] or 0
 
-         local flowstats = interface.getActiveFlowsStats(nil, nil, false, nil, nil, nil, nil)
-         if flowstats then
-            local severity_stats = flowstats["alert_levels"]
-            local alerted_flows = 0
-            -- Active flow alerts: total
-            for _, value in pairs(severity_stats or {}) do
-               alerted_flows = alerted_flows + value
-            end
-            res["alerted_flows"] = alerted_flows
-            -- Active flow alerts: breakdown
-            res["alerted_flows_notice"] = severity_stats["notice_or_lower"] or 0
-            res["alerted_flows_warning"] = severity_stats["warning"] or 0
-            res["alerted_flows_error"] = severity_stats["error"] or 0
-         end
+         res["alerted_flows"] = ifstats["num_alerted_flows"] or 0
+         res["alerted_flows_notice"] = ifstats["num_alerted_flows_notice"] or 0
+         res["alerted_flows_warning"] = ifstats["num_alerted_flows_warning"] or 0
+         res["alerted_flows_error"] = ifstats["num_alerted_flows_error"] or 0
 
          -- Engaged alerts: breakdown
          res["engaged_alerts_notice"] = ifstats["num_alerts_engaged_by_severity"]["notice"]
@@ -405,20 +395,10 @@ function dumpBriefInterfaceStats(ifid)
                                           (ifstats["num_alerts_engaged_by_severity"]["critical"] or 0) +
                                           (ifstats["num_alerts_engaged_by_severity"]["emergency"] or 0) + system_engaged_errors
 
-         local flowstats = interface.getActiveFlowsStats(nil, nil, false, nil, nil, nil, nil)
-         if flowstats then
-            local severity_stats = flowstats["alert_levels"]
-            local alerted_flows = 0
-            -- Active flow alerts: total
-            for _, value in pairs(severity_stats or {}) do
-               alerted_flows = alerted_flows + value
-            end
-            res["alerted_flows"] = alerted_flows
-            -- Active flow alerts: breakdown
-            res["alerted_flows_notice"] = severity_stats["notice_or_lower"] or 0
-            res["alerted_flows_warning"] = severity_stats["warning"] or 0
-            res["alerted_flows_error"] = severity_stats["error"] or 0
-         end
+         res["alerted_flows"] = ifstats["num_alerted_flows"] or 0
+         res["alerted_flows_notice"] = ifstats["num_alerted_flows_notice"] or 0
+         res["alerted_flows_warning"] = ifstats["num_alerted_flows_warning"] or 0
+         res["alerted_flows_error"] = ifstats["num_alerted_flows_error"] or 0
       end
 
       if periodic_activities_utils.have_degraded_performance() then
