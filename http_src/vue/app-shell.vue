@@ -69,7 +69,7 @@
         :class="{ 'sb-rail__btn--open': userPopupOpen }"
         @mouseenter="onAvatarEnter"
         @mouseleave="onAvatarLeave"
-        title="Profile"
+        :title="_i18n('infrastructure_dashboard.profile')"
         ref="avatarBtn"
       >
         <span class="sb-rail__pill"></span>
@@ -128,8 +128,8 @@
         <div class="sb-user-card">
           <div class="sb-avatar sb-avatar--lg">{{ userInitials }}</div>
           <div class="sb-user-card__info">
-            <div class="sb-user-card__name">{{ menu.username || "User" }}</div>
-            <div class="sb-user-card__role">{{ menu.is_admin ? "Admin" : "User" }}</div>
+            <div class="sb-user-card__name">{{ menu.username || _i18n("infrastructure_dashboard.user") }}</div>
+            <div class="sb-user-card__role">{{ menu.is_admin ? _i18n("infrastructure_dashboard.admin") : _i18n("infrastructure_dashboard.user") }}</div>
           </div>
         </div>
 
@@ -226,7 +226,7 @@
           <div class="sb-popup-divider"></div>
           <button class="sb-popup-item" @click.stop="blogExpanded = !blogExpanded">
             <i class="fas fa-bell sb-popup-icon"></i>
-            <span>News from the <b>ntop Blog</b></span>
+            <span v-html="_i18n('infrastructure_dashboard.news_from_blog')"></span>
             <span v-if="menu.new_posts_counter > 0" class="badge bg-danger ms-auto me-1">{{ menu.new_posts_counter }}</span>
             <i v-else :class="blogExpanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
                style="font-size:0.6rem;opacity:0.45;margin-left:auto"></i>
@@ -290,132 +290,122 @@
                  @mouseenter="onIfaceEnter"
                  @mouseleave="onIfaceLeave">
 
-              <!-- Regular interfaces: tree when ViewAll present, flat otherwise -->
-              <div v-if="!isInfraView" class="sb-iface-menu__section">
-                <div class="sb-iface-menu__label">Interfaces</div>
+              <div class="sb-iface-menu__section">
+                <div class="sb-iface-menu__label">{{ _i18n("infrastructure_dashboard.interfaces") }}</div>
 
-                <!-- Tree layout: ViewAll as parent, all non-system ifaces as children -->
-                <template v-if="viewAllId">
-                  <!-- System interface first -->
-                  <a v-if="menu.system_ifid && menu.ifnames?.[menu.system_ifid]"
-                     class="sb-iface-item sb-iface-item--system"
+                <!-- System interface always first, standalone -->
+                <template v-if="menu.system_ifid && menu.ifnames?.[menu.system_ifid]">
+                  <a class="sb-iface-item sb-iface-item--system"
                      :class="{ 'sb-iface-item--active': menu.system_ifid === currentIfid }"
                      href="#" @click.prevent="selectSystemIface()">
                     <span class="sb-iface-item__icon"><i class="fas fa-cog text-muted"></i></span>
                     <span class="sb-iface-item__info">
                       <span class="sb-iface-item__name">{{ menu.ifHdescr?.[menu.system_ifid] || menu.ifnames?.[menu.system_ifid] }}</span>
-                      <span class="sb-iface-item__tags">
-                        <span class="sb-iface-tag sb-iface-tag--sys">system</span>
-                      </span>
+                      <span class="sb-iface-item__tags"><span class="sb-iface-tag sb-iface-tag--sys">{{ _i18n("infrastructure_dashboard.tag_system") }}</span></span>
                     </span>
                     <i v-if="menu.system_ifid === currentIfid" class="fas fa-check sb-iface-item__check"></i>
                   </a>
-                  <div v-if="menu.system_ifid && menu.ifnames?.[menu.system_ifid]" class="sb-iface-menu__divider"></div>
-                  <!-- ViewAll row -->
-                  <a class="sb-iface-item"
-                     :class="{ 'sb-iface-item--active': viewAllId === currentIfid }"
-                     href="#" @click.prevent="selectIface(viewAllId)">
-                    <span class="sb-iface-item__icon">
-                      <i class="fas fa-layer-group text-info"></i>
-                    </span>
-                    <span class="sb-iface-item__info">
-                      <span class="sb-iface-item__name">{{ menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId] || viewAllId }}</span>
-                      <span class="sb-iface-item__tags">
-                        <span class="sb-iface-tag sb-iface-tag--view">view-all</span>
-                        <span v-if="menu.drops?.[viewAllId]" class="sb-iface-tag sb-iface-tag--drop">drops</span>
-                      </span>
-                    </span>
-                    <i v-if="viewAllId === currentIfid" class="fas fa-check sb-iface-item__check"></i>
-                  </a>
-                  <!-- Sub-interfaces indented under ViewAll -->
-                  <template v-for="id in subIfaceIds" :key="id">
-                    <a class="sb-iface-item sb-iface-item--child"
-                       :class="{ 'sb-iface-item--active': id === currentIfid }"
-                       href="#" @click.prevent="selectIface(id)">
-                      <span class="sb-iface-tree-branch" aria-hidden="true"></span>
-                      <span class="sb-iface-item__icon">
-                        <i v-if="menu.pcapdump?.[id]"       class="fas fa-file-archive text-secondary"></i>
-                        <i v-else-if="menu.recording?.[id]" class="fas fa-circle text-danger"></i>
-                        <i v-else-if="menu.zmqifs?.[id]"    class="fas fa-stream text-warning"></i>
-                        <i v-else                           class="fas fa-ethernet text-muted"></i>
-                      </span>
-                      <span class="sb-iface-item__info">
-                        <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
-                        <span class="sb-iface-item__tags">
-                          <span v-if="menu.recording?.[id]" class="sb-iface-tag sb-iface-tag--rec">rec</span>
-                          <span v-if="menu.pcapdump?.[id]"  class="sb-iface-tag sb-iface-tag--pcap">pcap</span>
-                          <span v-if="menu.zmqifs?.[id]"    class="sb-iface-tag sb-iface-tag--zmq">zmq</span>
-                          <span v-if="menu.drops?.[id]"     class="sb-iface-tag sb-iface-tag--drop">drops</span>
-                        </span>
-                      </span>
-                      <i v-if="id === currentIfid" class="fas fa-check sb-iface-item__check"></i>
-                    </a>
-                  </template>
+                  <div class="sb-iface-menu__divider"></div>
                 </template>
 
-                <!-- Flat layout when no ViewAll -->
-                <template v-else>
-                  <template v-for="id in sortedIfaceIds" :key="id">
-                    <a class="sb-iface-item"
-                       :class="{
-                         'sb-iface-item--active': id === currentIfid,
-                         'sb-iface-item--system': id === menu.system_ifid
-                       }"
-                       href="#" @click.prevent="selectIface(id)">
-                      <span class="sb-iface-item__icon">
-                        <i v-if="id === menu.system_ifid"              class="fas fa-cog text-muted"></i>
-                        <i v-else-if="menu.views?.[id]"                class="fas fa-layer-group text-info"></i>
-                        <i v-else-if="menu.pcapdump?.[id]"             class="fas fa-file-archive text-secondary"></i>
-                        <i v-else-if="menu.recording?.[id]"            class="fas fa-circle text-danger"></i>
-                        <i v-else-if="menu.zmqifs?.[id]"               class="fas fa-stream text-warning"></i>
-                        <i v-else                                       class="fas fa-ethernet text-muted"></i>
-                      </span>
-                      <span class="sb-iface-item__info">
-                        <span class="sb-iface-item__name">
-                          {{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}
-                        </span>
-                        <span class="sb-iface-item__tags">
-                          <span v-if="id === menu.system_ifid"   class="sb-iface-tag sb-iface-tag--sys">system</span>
-                          <span v-if="menu.views?.[id]"          class="sb-iface-tag sb-iface-tag--view">view</span>
-                          <span v-if="menu.recording?.[id]"      class="sb-iface-tag sb-iface-tag--rec">rec</span>
-                          <span v-if="menu.pcapdump?.[id]"       class="sb-iface-tag sb-iface-tag--pcap">pcap</span>
-                          <span v-if="menu.zmqifs?.[id]"         class="sb-iface-tag sb-iface-tag--zmq">zmq</span>
-                          <span v-if="menu.drops?.[id]"          class="sb-iface-tag sb-iface-tag--drop">drops</span>
-                        </span>
-                      </span>
-                      <i v-if="id === currentIfid" class="fas fa-check sb-iface-item__check"></i>
-                    </a>
-                  </template>
-                </template>
-              </div>
+                <!-- ── Infrastructure mode: Local Instance as root ── -->
+                <template v-if="menu.infrastructure_instances?.length">
 
-              <!-- Infrastructure -->
-              <template v-if="menu.infrastructure_instances?.length">
-                <div v-if="!isInfraView" class="sb-iface-menu__divider"></div>
-                <div class="sb-iface-menu__section">
-                  <div class="sb-iface-menu__label">{{ _i18n("infrastructure_dashboard.infrastructure") }}</div>
-                  <!-- Local (current instance) -->
+                  <!-- Local Instance row (root) -->
                   <a class="sb-iface-item"
                      :class="{ 'sb-iface-item--active': !isInfraView }"
                      href="#" @click.prevent="selectInfraView(`${pfx}/lua/index.lua`)">
                     <span class="sb-iface-item__icon"><i class="fas fa-home text-muted"></i></span>
                     <span class="sb-iface-item__info">
-                      <span class="sb-iface-item__name">{{ _i18n("infrastructure_dashboard.local") }}</span>
+                      <span class="sb-iface-item__name">{{ _i18n("infrastructure_dashboard.local_interfaces") }}</span>
                     </span>
                     <i v-if="!isInfraView" class="fas fa-check sb-iface-item__check"></i>
                   </a>
-                  <!-- Infrastructure dashboard (parent row) -->
+
+                  <!-- With ViewAll: ViewAll child of Local, sub-ifaces grandchildren -->
+                  <template v-if="viewAllId">
+                    <a class="sb-iface-item sb-iface-item--child"
+                       :class="{ 'sb-iface-item--active': !isInfraView && viewAllId === currentIfid }"
+                       href="#" @click.prevent="selectIface(viewAllId)">
+                      <span class="sb-iface-tree-branch" aria-hidden="true"></span>
+                      <span class="sb-iface-item__icon"><i class="fas fa-layer-group text-info"></i></span>
+                      <span class="sb-iface-item__info">
+                        <span class="sb-iface-item__name">{{ menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId] || viewAllId }}</span>
+                        <span class="sb-iface-item__tags">
+                          <span class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view_all") }}</span>
+                          <span v-if="menu.drops?.[viewAllId]" class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
+                        </span>
+                      </span>
+                      <i v-if="!isInfraView && viewAllId === currentIfid" class="fas fa-check sb-iface-item__check"></i>
+                    </a>
+                    <template v-for="id in subIfaceIds" :key="id">
+                      <a class="sb-iface-item sb-iface-item--grandchild"
+                         :class="{ 'sb-iface-item--active': !isInfraView && id === currentIfid }"
+                         href="#" @click.prevent="selectIface(id)">
+                        <span class="sb-iface-tree-branch sb-iface-tree-branch--spacer" aria-hidden="true"></span>
+                        <span class="sb-iface-tree-branch" aria-hidden="true"></span>
+                        <span class="sb-iface-item__icon">
+                          <i v-if="menu.pcapdump?.[id]"       class="fas fa-file-archive text-secondary"></i>
+                          <i v-else-if="menu.recording?.[id]" class="fas fa-circle text-danger"></i>
+                          <i v-else-if="menu.zmqifs?.[id]"    class="fas fa-stream text-warning"></i>
+                          <i v-else                           class="fas fa-ethernet text-muted"></i>
+                        </span>
+                        <span class="sb-iface-item__info">
+                          <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
+                          <span class="sb-iface-item__tags">
+                            <span v-if="menu.recording?.[id]" class="sb-iface-tag sb-iface-tag--rec">{{ _i18n("infrastructure_dashboard.tag_rec") }}</span>
+                            <span v-if="menu.pcapdump?.[id]"  class="sb-iface-tag sb-iface-tag--pcap">{{ _i18n("infrastructure_dashboard.tag_pcap") }}</span>
+                            <span v-if="menu.zmqifs?.[id]"    class="sb-iface-tag sb-iface-tag--zmq">{{ _i18n("infrastructure_dashboard.tag_zmq") }}</span>
+                            <span v-if="menu.drops?.[id]"     class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
+                          </span>
+                        </span>
+                        <i v-if="!isInfraView && id === currentIfid" class="fas fa-check sb-iface-item__check"></i>
+                      </a>
+                    </template>
+                  </template>
+
+                  <!-- No ViewAll: non-system ifaces as direct children of Local -->
+                  <template v-else>
+                    <template v-for="id in sortedIfaceIds" :key="id">
+                      <a v-if="id !== menu.system_ifid"
+                         class="sb-iface-item sb-iface-item--child"
+                         :class="{ 'sb-iface-item--active': !isInfraView && id === currentIfid }"
+                         href="#" @click.prevent="selectIface(id)">
+                        <span class="sb-iface-tree-branch" aria-hidden="true"></span>
+                        <span class="sb-iface-item__icon">
+                          <i v-if="menu.views?.[id]"      class="fas fa-layer-group text-info"></i>
+                          <i v-else-if="menu.pcapdump?.[id]"  class="fas fa-file-archive text-secondary"></i>
+                          <i v-else-if="menu.recording?.[id]" class="fas fa-circle text-danger"></i>
+                          <i v-else-if="menu.zmqifs?.[id]"    class="fas fa-stream text-warning"></i>
+                          <i v-else                           class="fas fa-ethernet text-muted"></i>
+                        </span>
+                        <span class="sb-iface-item__info">
+                          <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
+                          <span class="sb-iface-item__tags">
+                            <span v-if="menu.views?.[id]"      class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view") }}</span>
+                            <span v-if="menu.recording?.[id]"  class="sb-iface-tag sb-iface-tag--rec">{{ _i18n("infrastructure_dashboard.tag_rec") }}</span>
+                            <span v-if="menu.pcapdump?.[id]"   class="sb-iface-tag sb-iface-tag--pcap">{{ _i18n("infrastructure_dashboard.tag_pcap") }}</span>
+                            <span v-if="menu.zmqifs?.[id]"     class="sb-iface-tag sb-iface-tag--zmq">{{ _i18n("infrastructure_dashboard.tag_zmq") }}</span>
+                            <span v-if="menu.drops?.[id]"      class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
+                          </span>
+                        </span>
+                        <i v-if="!isInfraView && id === currentIfid" class="fas fa-check sb-iface-item__check"></i>
+                      </a>
+                    </template>
+                  </template>
+
+                  <!-- Infrastructure Dashboard + remote instances -->
+                  <div class="sb-iface-menu__divider"></div>
                   <a class="sb-iface-item"
                      :class="{ 'sb-iface-item--active': isInfraView }"
                      href="#" @click.prevent="selectInfraView(`${pfx}/lua/index.lua?view=infrastructure`)">
                     <span class="sb-iface-item__icon"><i class="fas fa-tachometer-alt text-info"></i></span>
                     <span class="sb-iface-item__info">
                       <span class="sb-iface-item__name">{{ _i18n("infrastructure_dashboard.infrastructure") }}</span>
-                      <span class="sb-iface-item__tags"><span class="sb-iface-tag sb-iface-tag--view">dashboard</span></span>
+                      <span class="sb-iface-item__tags"><span class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_dashboard") }}</span></span>
                     </span>
                     <i v-if="isInfraView" class="fas fa-check sb-iface-item__check"></i>
                   </a>
-                  <!-- Remote instances indented under Infrastructure dashboard -->
                   <a v-for="inst in menu.infrastructure_instances" :key="inst.id"
                      class="sb-iface-item sb-iface-item--child"
                      href="#" @click.prevent="selectInfraView(inst.info.url)">
@@ -425,8 +415,87 @@
                       <span class="sb-iface-item__name">{{ inst.info.name }}</span>
                     </span>
                   </a>
-                </div>
-              </template>
+
+                </template>
+
+                <!-- ── No infrastructure: original flat/tree layout ── -->
+                <template v-else>
+
+                  <!-- Tree layout: ViewAll as parent, sub-ifaces as children -->
+                  <template v-if="viewAllId">
+                    <a class="sb-iface-item"
+                       :class="{ 'sb-iface-item--active': viewAllId === currentIfid }"
+                       href="#" @click.prevent="selectIface(viewAllId)">
+                      <span class="sb-iface-item__icon"><i class="fas fa-layer-group text-info"></i></span>
+                      <span class="sb-iface-item__info">
+                        <span class="sb-iface-item__name">{{ menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId] || viewAllId }}</span>
+                        <span class="sb-iface-item__tags">
+                          <span class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view_all") }}</span>
+                          <span v-if="menu.drops?.[viewAllId]" class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
+                        </span>
+                      </span>
+                      <i v-if="viewAllId === currentIfid" class="fas fa-check sb-iface-item__check"></i>
+                    </a>
+                    <template v-for="id in subIfaceIds" :key="id">
+                      <a class="sb-iface-item sb-iface-item--child"
+                         :class="{ 'sb-iface-item--active': id === currentIfid }"
+                         href="#" @click.prevent="selectIface(id)">
+                        <span class="sb-iface-tree-branch" aria-hidden="true"></span>
+                        <span class="sb-iface-item__icon">
+                          <i v-if="menu.pcapdump?.[id]"       class="fas fa-file-archive text-secondary"></i>
+                          <i v-else-if="menu.recording?.[id]" class="fas fa-circle text-danger"></i>
+                          <i v-else-if="menu.zmqifs?.[id]"    class="fas fa-stream text-warning"></i>
+                          <i v-else                           class="fas fa-ethernet text-muted"></i>
+                        </span>
+                        <span class="sb-iface-item__info">
+                          <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
+                          <span class="sb-iface-item__tags">
+                            <span v-if="menu.recording?.[id]" class="sb-iface-tag sb-iface-tag--rec">{{ _i18n("infrastructure_dashboard.tag_rec") }}</span>
+                            <span v-if="menu.pcapdump?.[id]"  class="sb-iface-tag sb-iface-tag--pcap">{{ _i18n("infrastructure_dashboard.tag_pcap") }}</span>
+                            <span v-if="menu.zmqifs?.[id]"    class="sb-iface-tag sb-iface-tag--zmq">{{ _i18n("infrastructure_dashboard.tag_zmq") }}</span>
+                            <span v-if="menu.drops?.[id]"     class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
+                          </span>
+                        </span>
+                        <i v-if="id === currentIfid" class="fas fa-check sb-iface-item__check"></i>
+                      </a>
+                    </template>
+                  </template>
+
+                  <!-- Flat layout when no ViewAll -->
+                  <template v-else>
+                    <template v-for="id in sortedIfaceIds" :key="id">
+                      <a class="sb-iface-item"
+                         :class="{
+                           'sb-iface-item--active': id === currentIfid,
+                           'sb-iface-item--system': id === menu.system_ifid
+                         }"
+                         href="#" @click.prevent="selectIface(id)">
+                        <span class="sb-iface-item__icon">
+                          <i v-if="id === menu.system_ifid"              class="fas fa-cog text-muted"></i>
+                          <i v-else-if="menu.views?.[id]"                class="fas fa-layer-group text-info"></i>
+                          <i v-else-if="menu.pcapdump?.[id]"             class="fas fa-file-archive text-secondary"></i>
+                          <i v-else-if="menu.recording?.[id]"            class="fas fa-circle text-danger"></i>
+                          <i v-else-if="menu.zmqifs?.[id]"               class="fas fa-stream text-warning"></i>
+                          <i v-else                                       class="fas fa-ethernet text-muted"></i>
+                        </span>
+                        <span class="sb-iface-item__info">
+                          <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
+                          <span class="sb-iface-item__tags">
+                            <span v-if="id === menu.system_ifid"   class="sb-iface-tag sb-iface-tag--sys">{{ _i18n("infrastructure_dashboard.tag_system") }}</span>
+                            <span v-if="menu.views?.[id]"          class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view") }}</span>
+                            <span v-if="menu.recording?.[id]"      class="sb-iface-tag sb-iface-tag--rec">{{ _i18n("infrastructure_dashboard.tag_rec") }}</span>
+                            <span v-if="menu.pcapdump?.[id]"       class="sb-iface-tag sb-iface-tag--pcap">{{ _i18n("infrastructure_dashboard.tag_pcap") }}</span>
+                            <span v-if="menu.zmqifs?.[id]"         class="sb-iface-tag sb-iface-tag--zmq">{{ _i18n("infrastructure_dashboard.tag_zmq") }}</span>
+                            <span v-if="menu.drops?.[id]"          class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
+                          </span>
+                        </span>
+                        <i v-if="id === currentIfid" class="fas fa-check sb-iface-item__check"></i>
+                      </a>
+                    </template>
+                  </template>
+
+                </template>
+              </div>
 
             </div>
           </Transition>
@@ -2076,6 +2145,8 @@ div.wrapper {
   content: ""; position: absolute; left: 0.5rem; top: 0;
   width: 2px; height: calc(50% + 1px); background: var(--sb-dropdown-icon);
 }
+.sb-iface-tree-branch--spacer::before,
+.sb-iface-tree-branch--spacer::after { display: none; }
 .sb-iface-item__tags { display: flex; gap: 0.2rem; flex-wrap: wrap; }
 .sb-iface-tag {
   font-size: 0.5rem; font-weight: 600; letter-spacing: 0.05em;
