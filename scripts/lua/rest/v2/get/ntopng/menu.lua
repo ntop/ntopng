@@ -303,13 +303,15 @@ end
 local license_badge = nil
 if info["pro.systemid"] and info["pro.systemid"] ~= "" then
    if info["pro.release"] then
-      if info["pro.demo_ends_at"] then
-         local rest_secs = info["pro.demo_ends_at"] - os.time()
-         if rest_secs > 0 then
+      if info["pro.license_ends_at"] then
+         local rest_secs = tonumber(info["pro.license_ends_at"]) - os.time()
+         local days_left = math.ceil(rest_secs / 86400)
+         if days_left <= 30 then
             license_badge = {
-               type  = "demo_expires",
-               label = i18n("about.licence_expires_in", { time = secondsToTime(rest_secs) }),
-               url   = "https://shop.ntop.org",
+               type      = "license_expires",
+               label     = i18n("about.licence_expires_in", { time = secondsToTime(rest_secs) }),
+               url       = ntop.getHttpPrefix() .. "/lua/license.lua",
+               days_left = days_left,
             }
          end
       end
@@ -339,6 +341,7 @@ for k, v in pairs(infrastructure_instances or {}) do
    infra_arr[#infra_arr + 1] = { id = k, info = v }
 end
 
+tprint(info)
 rest_utils.answer(rest_utils.consts.success.ok, {
    -- sidebar
    sections    = result,

@@ -105,16 +105,6 @@ async function updatesRefresh() {
     if (!data || !data.status) return;
     updatesStatus = data.status;
     emitUpdateStatus(data.status, data.version || "");
-
-    // Show in major-release alert bar when update available
-    if (data.status === "update-avail" || data.status === "upgrade-failure") {
-      const alertEl = document.getElementById("major-release-alert");
-      const textEl  = document.getElementById("ntopng_update_available");
-      if (alertEl && textEl) {
-        textEl.textContent = `${i18n("updates.available")}: ${data.version || ""}`;
-        alertEl.style.display = "";
-      }
-    }
   } catch (_) {}
 }
 

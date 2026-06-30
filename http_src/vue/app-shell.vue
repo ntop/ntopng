@@ -1483,7 +1483,6 @@ async function updatesRefresh() {
 
   try {
     const rsp = await ntopng_utility.http_request(`${pfx.value}/lua/check_update.lua`);
-    console.log("[updates] GET check_update.lua response:", rsp);
     if (rsp && rsp.status) {
       updateStatus.value  = rsp.status;
       updateVersion.value = rsp.version || "";
@@ -1543,7 +1542,7 @@ async function doCheckForUpdates() {
         }),
       }
     );
-    console.log("[updates] POST check_update.lua response:", postRsp);
+
     // Immediately fetch updated status
     updatesLastCheck = 0;
     await updatesRefresh();

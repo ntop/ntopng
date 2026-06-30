@@ -478,7 +478,7 @@ end
 
 function getPasswordInputPattern()
     -- maximum len must be kept in sync with MAX_PASSWORD_LEN
-    return [[^[\w\$\\!\/\(\)= \?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,128}$]]
+    return [[^[\w\$\\!\/\(\)\= \?\^\*\@_\-\u0000-\u0019\u0021-\u00ff]{5,128}$]]
 end
 
 -- ##############################################
