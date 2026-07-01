@@ -464,7 +464,7 @@
                   <!-- Flat layout when no ViewAll -->
                   <template v-else>
                     <template v-for="id in sortedIfaceIds" :key="id">
-                      <a class="sb-iface-item"
+                      <a v-if="id !== menu.system_ifid" class="sb-iface-item"
                          :class="{
                            'sb-iface-item--active': id === currentIfid,
                            'sb-iface-item--system': id === menu.system_ifid
@@ -564,8 +564,8 @@
       </div>
       <div v-if="menu.copyright" class="sb-footer__col sb-footer__col--center" v-html="menu.copyright"></div>
       <div class="sb-footer__col sb-footer__col--right">
-        <i class="fas fa-clock"></i> {{ currentTime }}<template v-if="menu.tzname"> &nbsp;{{ menu.tzname }}</template>
-        <template v-if="currentUptime"><span class="sb-footer__sep">|</span>Uptime: {{ currentUptime }}</template>
+        <span class="sb-footer__time"><i class="fas fa-clock"></i> {{ currentTime }}<template v-if="menu.tzname"> &nbsp;{{ menu.tzname }}</template></span>
+        <span v-if="currentUptime" class="sb-footer__uptime"> | Uptime: {{ currentUptime }}</span>
       </div>
     </footer>
   </Teleport>
@@ -1662,6 +1662,7 @@ div#n-container {
   margin-right: 0 !important;
   margin-top: 0 !important;
   padding-top: calc(var(--sb-navbar-h) + 0.5rem) !important;
+  padding-bottom: 1.6rem !important;
   box-sizing: border-box !important;
 }
 
@@ -2265,7 +2266,7 @@ div.wrapper {
 .sb-nav-link {
   position: relative; display: flex; align-items: center; gap: 0.375rem;
   padding: 0.44rem 1rem 0.44rem 1.25rem;
-  font-size: 0.78rem; font-weight: 400; color: var(--sb-link-color);
+  font-size: 0.875rem; font-weight: 400; color: var(--sb-link-color);
   text-decoration: none; white-space: nowrap; width: 100%;
   transition: background 0.11s, color 0.11s; list-style: none;
 }
@@ -2289,7 +2290,7 @@ div.wrapper {
 }
 .sb-nav-link__icon {
   width: 1rem; text-align: center; flex-shrink: 0;
-  font-size: 0.72rem; opacity: 0.75;
+  font-size: 0.8rem; opacity: 0.75;
 }
 
 .sb-panel-anim-enter-active { transition: opacity 0.15s ease, transform 0.15s cubic-bezier(.4,0,.2,1); }
@@ -2449,23 +2450,49 @@ div.wrapper {
 
 /* ── Footer ── */
 #n-footer {
+  position: fixed;
+  bottom: 0;
+  left: var(--sb-rail-w, 4rem);
+  right: 0;
+  z-index: 100;
+  height: auto !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding: 0.35rem 0;
+  
+  padding: 6px 0.75rem 6px 0.75rem;
+
+  background: var(--bs-body-bg, #fff);
   border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.15));
   font-size: 0.7rem;
+  line-height: 1.4;
   color: var(--bs-body-color, #333);
 }
-#n-footer a {
-  color: inherit;
-  text-decoration: none;
-}
+#n-footer a { color: inherit; text-decoration: none; }
 #n-footer a:hover { color: var(--sb-orange, #FF7500); text-decoration: underline; }
-.sb-footer__col { flex: 1; display: flex; align-items: center; gap: 0.35rem; }
-.sb-footer__col--center { justify-content: center; }
-.sb-footer__col--right  { justify-content: flex-end; }
+/* left: shrinks, truncates */
+.sb-footer__col:first-child { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* center: absolute so it doesn't affect flex layout */
+.sb-footer__col--center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.sb-footer__col--center a { pointer-events: auto; }
+/* right: fixed width so it never overflows — wide enough for "07/01/2026, 03:59:28 PM Europe/Rome | Uptime: 12d 3h 45m" */
+.sb-footer__col--right {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  max-width: 50%;
+}
+.sb-footer__time { white-space: nowrap; }
+.sb-footer__uptime { white-space: nowrap; margin-left: 0.4rem; }
 .sb-footer__sep { opacity: 0.35; }
 </style>
