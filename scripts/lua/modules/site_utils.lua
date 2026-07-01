@@ -623,6 +623,37 @@ function site_utils.formatSite(site_id)
 	return site_info.name
 end
 
+-- ################################################
+-- Per-request cache: network_id -> resolved Site name.
+-- The IP influences the result ONLY through its network_id, so two exporters
+-- on the same network always map to the same Site. Many exporters share a
+-- network, therefore caching by network_id lets us resolve each
+-- distinct network at most once per request instead of once per exporter
+local _site_by_network = {}
+
+function site_utils.resolveExporterSite(exporter_ip)
+	if isEmptyString(exporter_ip) then
+		return site_utils.get_default_site().name
+	end
+
+	-- In-memory lookup
+	local network_id = interface.getIPNetworkId(exporter_ip)
+	if network_id == nil then
+		return site_utils.get_default_site().name
+	end
+
+	local cached = _site_by_network[network_id]
+	if cached ~= nil then
+		return cached
+	end
+
+	-- Cache miss: this is the only branch that performs Redis reads.
+	local site_name = site_utils.getNetworkSite(network_id).name
+	_site_by_network[network_id] = site_name
+
+	return site_name
+end
+
 -- ##############################################
 
 -- Export the module for use in other Lua files
