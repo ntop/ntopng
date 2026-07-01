@@ -666,15 +666,15 @@ static int getAuthorizedUser(struct mg_connection* conn,
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return ntop->checkGuiUserPassword(conn, username, pword_s.c_str(), group,
                                       localuser, &redirect_to_change_pwd);
-  } else if (auth_type == "Token") {
+  } else if (auth_type == "Token" || auth_type == "Bearer") {
     getline(iss, auth_string, ' ');
 
     if ((ntop->getRedis()->hashGet(NTOPNG_API_TOKEN_PREFIX, auth_string.c_str(),
                                    username, username_len) < 0) ||
         (username[0] == '\0')) {
       ntop->getTrace()->traceEvent(TRACE_INFO,
-                                   "[HTTP] Unknown authorization token %s",
-                                   auth_string.c_str());
+                                   "[HTTP] Unknown authorization %s token %s",
+                                   auth_type.c_str(), auth_string.c_str());
       return (0);
     } else {
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] User %s authorized
