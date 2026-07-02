@@ -2459,12 +2459,9 @@ div.wrapper {
   min-height: 0 !important;
   box-sizing: border-box;
   display: flex;
-  align-items: center;
-  
+  align-items: center;  
   padding: 6px 0.75rem 6px 0.75rem;
-
-  background: var(--bs-body-bg, #fff);
-  border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.15));
+  background: var(--ntop-footer);
   font-size: 0.7rem;
   line-height: 1.4;
   color: var(--bs-body-color, #333);
