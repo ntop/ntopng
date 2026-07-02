@@ -72,11 +72,7 @@
                         <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
                             <div class="card overflow-hidden" :style="chart_style">
                                 <!-- <div class="card h-300 overflow-hidden"> -->
-                                <Chart ref="chart" id="chart_0" :chart_type="chart_type"
-                                    :base_url_request="chart_data_url" :map_chart_options="f_map_chart_options"
-                                    :register_on_status_change="false" :min_time_interval_id="min_time_interval_id"
-                                    :round_time="round_time">
-                                </Chart>
+                                <LineChart ref="chart_ref" :chart="chart_cfg" />
                             </div>
                         </div>
                         <TableWithConfig ref="table_flows" :table_id="table_id" :table_config_id="table_config_id"
@@ -148,6 +144,7 @@ import FormatterUtils from "../utilities/formatter-utils.js";
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
+import { default as LineChart } from "./charts/line-chart.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as Dropdown } from "./dropdown.vue";
@@ -171,6 +168,7 @@ const props = defineProps({
 const page_id = "page-flow-historical";
 const alert_info = ref(null);
 const chart = ref(null);
+const chart_ref = ref(null);
 const table_flows = ref(null);
 const modal_traffic_extraction = ref(null);
 const modal_choose_columns_export = ref(null);
@@ -265,6 +263,34 @@ const chart_type = computed(() => {
         return ntopChartApex.typeChart.HEATMAP;
     }
     return ntopChartApex.typeChart.TS_COLUMN;
+});
+
+const chart_cfg = computed(() => {
+    const unit = selected_query_preset.value?.chart_config?.unit_measure ?? "number";
+    const is_stacked = props.context?.chart_type == "topk-timeseries";
+    const is_presence = props.context?.chart_type == "heatmap"
+        || selected_query_preset.value?.chart_config?.unit_measure === "";
+    return {
+        stacked: is_stacked,
+        presence: is_presence,
+        unit,
+        custom_fetch: async () => {
+            const params = ntopng_url_manager.get_url_object();
+            const url = `${chart_data_url}?${ntopng_url_manager.obj_to_url_params(params)}`;
+            const envelope = await ntopng_utility.http_request(url);
+            const rsp = envelope?.rsp ?? envelope;
+            if (!rsp?.series?.length) return [];
+            const stripAlpha = c => c && /^#[0-9a-fA-F]{8}$/.test(c) ? c.slice(0, 7) : c;
+            return rsp.series.map((s, si) => ({
+                label: s.name ?? s.title ?? "",
+                color: stripAlpha(rsp.colors?.[si]),
+                data: (s.data ?? []).map(pt => ({
+                    x: Array.isArray(pt) ? pt[0] : pt.x,
+                    y: Array.isArray(pt) ? (pt[1] ?? 0) : (pt.y ?? 0),
+                })),
+            }));
+        },
+    };
 });
 
 const top_table_array = ref([]);
@@ -525,6 +551,7 @@ async function register_components_on_status_update() {
         table_flows.value.refresh_table();
         load_top_table_array_overview();
         count_page_components_reloaded.value += 1;
+        chart_ref.value?.update();
     }, false);
 }
 

@@ -96,6 +96,7 @@ import { default as PageHRChart } from "./page-hr-chart.vue"
 import { default as PageAlertsGeoMap } from "./page-alerts-geomap.vue"
 import { default as PageTrafficProfiles } from "./page-traffic-profiles.vue"
 import { default as PageNetworks } from "./page-networks.vue"
+import { default as PageTreemapNetworks } from "./page-treemap-networks.vue"
 import { default as PageSites } from "./page-sites.vue"
 import { default as PageDHCPLeases } from "./page-DHCP-leases.vue"
 import { default as PageExporterInterfaceOverview } from "./page-exporter-interface-overview.vue"
@@ -196,6 +197,8 @@ import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
 import { default as PieChart } from "./charts/pie-chart.vue";
 import { default as LineChart } from "./charts/line-chart.vue";
 import { default as PeityChart } from "./charts/peity.vue";
+import { default as HeatmapChart } from "./charts/heatmap-chart.vue";
+import { default as PageHeatmapDemo } from "./page-heatmap-demo.vue";
 import { default as Chatbot } from "./chatbot.vue";
 import { default as PageChatbot } from "./page-chatbot.vue";
 import { default as FlowChatbotSidebar } from "./flow-chatbot-sidebar.vue";
@@ -282,6 +285,8 @@ let ntopVue = {
     PageInternals: PageInternals,
     PageBGPLookingGlass: PageBGPLookingGlass,
     PagePreferences: PagePreferences,
+    HeatmapChart: HeatmapChart,
+    PageHeatmapDemo: PageHeatmapDemo,
 
     PageExportersGraph: PageExportersGraph,
     PageAbout: PageAbout,
@@ -353,6 +358,7 @@ let ntopVue = {
     PageHRChart: PageHRChart,
     PageAlertsGeoMap: PageAlertsGeoMap,
     PageNetworks: PageNetworks,
+    PageTreemapNetworks: PageTreemapNetworks,
     PageSites: PageSites,
     
     // components

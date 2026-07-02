@@ -62,9 +62,7 @@
                     <div v-if="context.show_chart" class="row">
                         <div class="col-12 mb-2" id="chart-vue">
                             <div class="card h-100 overflow-hidden">
-                                <Chart ref="chart" id="chart_alert_stats" :chart_type="chart_type"
-                                    :base_url_request="chart_data_url" :register_on_status_change="false">
-                                </Chart>
+                                <LineChart ref="d3_chart" :chart="d3_chart_cfg" />
                             </div>
                         </div>
                         <div></div>
@@ -140,6 +138,7 @@ import formatterUtils from "../utilities/formatter-utils";
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
+import { default as LineChart } from "./charts/line-chart.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as Dropdown } from "./dropdown.vue";
@@ -162,6 +161,7 @@ const props = defineProps({
 
 const alert_info = ref(null);
 const chart = ref(null);
+const d3_chart = ref(null);
 const table_alerts = ref(null);
 const modal_traffic_extraction = ref(null);
 const modal_snapshot = ref(null);
@@ -183,6 +183,26 @@ const table_config_id = ref("");
 const table_id = ref("");
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = ntopChartApex.typeChart.TS_COLUMN;
+
+const d3_chart_cfg = computed(() => ({
+    stacked: false,
+    custom_fetch: async () => {
+        const params = ntopng_url_manager.get_url_object();
+        const url = `${chart_data_url}?${ntopng_url_manager.obj_to_url_params(params)}`;
+        const envelope = await ntopng_utility.http_request(url);
+        const rsp = envelope?.rsp ?? envelope;
+        if (!rsp?.series?.length) return [];
+        const stripAlpha = c => c && /^#[0-9a-fA-F]{8}$/.test(c) ? c.slice(0, 7) : c;
+        return rsp.series.map((s, si) => ({
+            label: s.name ?? s.title ?? "",
+            color: stripAlpha(rsp.colors?.[si]),
+            data: (s.data ?? []).map(pt => ({
+                x: Array.isArray(pt) ? pt[0] : pt.x,
+                y: Array.isArray(pt) ? (pt[1] ?? 0) : (pt.y ?? 0),
+            })),
+        }));
+    },
+}));
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
 const note_list = ref([_i18n('show_alerts.alerts_info')]);
@@ -364,6 +384,7 @@ async function register_components_on_status_update() {
         let url_params = ntopng_url_manager.get_url_params();
         table_alerts.value.refresh_table();
         load_top_table_array_overview();
+        d3_chart.value?.update();
     }, false);
 }
 

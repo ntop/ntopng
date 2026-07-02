@@ -34,10 +34,38 @@
               title: msg.artifact.spec.title, unit: msg.artifact.spec.unit,
               custom_fetch: () => msg.artifact.spec.data
             }" :hideLoading="true" />
-            <LineChart v-if="msg.artifact.tool === 'chart' && msg.artifact.spec?.type === 'line'" :chart="{
-              title: msg.artifact.spec.title, unit: msg.artifact.spec.unit,
-              custom_fetch: () => msg.artifact.spec.data
-            }" :hideLoading="true" />
+            <div v-if="msg.artifact.tool === 'chart' && msg.artifact.spec?.type === 'line'"
+              style="height:220px; overflow:hidden;">
+              <LineChart :chart="{
+                title: msg.artifact.spec.title, unit: msg.artifact.spec.unit,
+                stacked: msg.artifact.spec.stacked,
+                custom_fetch: () => msg.artifact.spec.data
+              }" :hideLoading="true" />
+            </div>
+            <div v-if="msg.artifact.tool === 'chart' && msg.artifact.spec?.type === 'bar'"
+              style="height:220px; overflow:hidden;">
+              <BarChart :chart="{
+                title: msg.artifact.spec.title, unit: msg.artifact.spec.unit,
+                direction: msg.artifact.spec.direction || 'vertical',
+                custom_fetch: () => msg.artifact.spec.data
+              }" :hideLoading="true" />
+            </div>
+            <div v-if="msg.artifact.tool === 'chart' && msg.artifact.spec?.type === 'bubble'"
+              style="height:280px; overflow:hidden;">
+              <BubbleChart :chart="{
+                title: msg.artifact.spec.title,
+                custom_fetch: () => msg.artifact.spec.data
+              }" :hideLoading="true" />
+            </div>
+            <div v-if="msg.artifact.tool === 'chart' && (msg.artifact.spec?.type === 'heatmap' || msg.artifact.spec?.type === 'presence')"
+              style="overflow:hidden;">
+              <HeatmapChart :chart="{
+                title: msg.artifact.spec.title,
+                unit: msg.artifact.spec.unit || 'number',
+                color_scheme: msg.artifact.spec.color_scheme || 'orange',
+                custom_fetch: () => msg.artifact.spec.data
+              }" :hideLoading="true" />
+            </div>
             <Sankey v-if="msg.artifact.tool === 'sankey'"
               :sankey_data="msg.artifact.spec.data"
               :autorefresh="null"
@@ -196,6 +224,9 @@
 import { ref, watch, nextTick, computed } from "vue";
 import PieChart from "./charts/pie-chart.vue";
 import LineChart from "./charts/line-chart.vue";
+import BarChart from "./charts/bar-chart.vue";
+import BubbleChart from "./charts/bubble-chart.vue";
+import HeatmapChart from "./charts/heatmap-chart.vue";
 import Geomap from "./geomap.vue";
 import Sankey from "./sankey.vue";
 import ChordChart from "./chord-chart.vue";

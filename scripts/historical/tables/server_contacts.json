@@ -2,13 +2,12 @@
 	"name" : "Server Contacts",
 	"i18n_name" : "server_contacts",
 	"data_source" : "flows",
-	"chart" : [],
 	"show_in_page" : "overview",
 	"hourly": true,
 	"chart" : [{
 		"chart_id" : "server_contacts",
 		"chart_type" : "topk-timeseries",
-            "unit_measure": "bytes",
+		"unit_measure": "bytes",
 		"params" : {
 			"count" : "TOTAL_BYTES"
 		}

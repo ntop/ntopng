@@ -43,9 +43,10 @@ if page == "networks" then
 		if numNetworks > 0 then
 			local template_utils = require("template_utils")
 
-			template_utils.render("pages/networks_map.html", {
-				url = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/host/top/network_hosts_score.lua",
-				prefix = ntop.getHttpPrefix(),
+			-- network treemap chart
+			template_utils.render("pages/vue_page.template", {
+				vue_page_name = "PageTreemapNetworks",
+				page_context = "{}",
 			})
 		end
 	end
