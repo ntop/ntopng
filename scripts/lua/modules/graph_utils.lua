@@ -803,36 +803,27 @@ end
 -- #################################################
 
 -- Merge pie data from 2 data sources (compute top of tops)
+-- Note: aggregated_data and data are arrays of {label, value, url}
 function graph_utils.merge_pie_data(aggregated_data, data, max_values)
     -- Merge in temporary table
     -- Note: aggregated_data may be nil
-    local items = {}
-    if aggregated_data then
-        for _, l in ipairs(aggregated_data.labels or {}) do
-            items[l] = aggregated_data.series[_]
-        end
-    end
-    for _, l in ipairs(data.labels or {}) do
-        if items[l] then
-            items[l] = items[l] + data.series[_]
-        else
-            items[l] = data.series[_]
+    local values = {}
+    local urls = {}
+    for _, entries in ipairs({aggregated_data or {}, data or {}}) do
+        for _, item in ipairs(entries) do
+            values[item.label] = (values[item.label] or 0) + item.value
+            urls[item.label] = urls[item.label] or item.url
         end
     end
 
     -- Compute tops
-    data.labels = {}
-    data.series = {}
-    data.colors = {}
-    for l, v in pairsByValues(items or {}, rev) do
-        data.labels[#data.labels + 1] = l
-        data.series[#data.series + 1] = v
-        data.colors[#data.colors + 1] = graph_utils.get_html_color(#data.colors)
-        if #data.labels >= max_values then goto done end
+    local res = {}
+    for label, value in pairsByValues(values, rev) do
+        res[#res + 1] = { label = label, value = value, url = urls[label] }
+        if #res >= max_values then break end
     end
-    ::done::
 
-    return data
+    return res
 end
 
 -- #################################################
