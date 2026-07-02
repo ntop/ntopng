@@ -183,25 +183,29 @@
 			"legend_position": "right"
 		},
 		{
-			"component": "bar",
+			"component": "chart",
 			"id": "devices_distribution",
 			"i18n_name": "asset_details.devices_distribution",
 			"width": 4,
 			"height": 4,
 			"params": {
 				"url": "/lua/pro/rest/v2/get/host/assets_dashboard/devices_distribution.lua",
-				"url_params": {}
+				"url_params": {},
+				"direction": "horizontal",
+				"unit": "number"
 			}
 		},
 		{
-			"component": "bar",
+			"component": "chart",
 			"id": "oses_distribution",
 			"i18n_name": "asset_details.os_distribution",
 			"width": 4,
 			"height": 4,
 			"params": {
 				"url": "/lua/pro/rest/v2/get/host/assets_dashboard/oses_distribution.lua",
-				"url_params": {}
+				"url_params": {},
+				"direction": "horizontal",
+				"unit": "number"
 			}
 		}
 	]

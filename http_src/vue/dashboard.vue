@@ -250,6 +250,7 @@ import { default as TableComponent } from "./dashboard-table.vue";
 import { default as BadgeComponent } from "./dashboard-badge.vue";
 import { default as PieComponent } from "./dashboard-pie.vue";
 import { default as BarComponent } from "./dashboard-bar.vue";
+import { default as BarChartComponent } from "./dashboard-bar-chart.vue";
 import { default as LateralPieComponent } from "./dashboard-lateral-pie.vue";
 import { default as BoxOverview } from "./dashboard-box-overview.vue";
 import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
@@ -275,6 +276,7 @@ const components_dict = {
     "timeseries": TimeseriesComponent,
     "top-timeseries": TopTimeseriesComponent,
     "bar": BarComponent,
+    "chart": BarChartComponent,
     "table": TableComponent,
     "sankey": SankeyComponent,
 }
