@@ -89,6 +89,8 @@ let svgEl = null;
 let resizeObs = null;
 let refreshTimer = null;
 let currentData = null;
+let clipUid = 0;
+let requestSeq = 0;
 /* axis meta kept for tooltip */
 let _xTitle = "", _yTitle = "", _fmtX = null, _fmtY = null;
 
@@ -111,6 +113,9 @@ onBeforeUnmount(() => {
 
 /* Fetch */
 async function load() {
+  /* Tag this call so a slower, now-stale request can't overwrite a newer one
+     that resolves first (e.g. switching filters before the previous fetch lands) */
+  const seq = ++requestSeq;
   if (!has_loaded.value) loading.value = true;
   const { update_url, url_params, custom_fetch } = props.chart;
   emit("update-requested");
@@ -123,6 +128,7 @@ async function load() {
         ? `?${new URLSearchParams(url_params)}` : "";
       raw = await ntopng_utility.http_request(`${update_url}${qs}`, null, null, true);
     }
+    if (seq !== requestSeq) return; /* a newer load() already started, drop this result */
     /* unwrap { rc, rsp } envelope */
     const rsp = raw?.rsp ?? raw;
     const parsed = parse(rsp);
@@ -135,11 +141,14 @@ async function load() {
     currentData = parsed;
     redraw(parsed);
   } catch (e) {
+    if (seq !== requestSeq) return;
     console.error(`bubbleChart:`, e);
     if (!has_loaded.value) no_data.value = true;
   } finally {
-    loading.value = false;
-    emit("chart-updated");
+    if (seq === requestSeq) {
+      loading.value = false;
+      emit("chart-updated");
+    }
   }
 }
 
@@ -198,6 +207,10 @@ function redraw(srs) {
 
   const g = svgEl.append("g").attr("transform", `translate(${M.left},${M.top})`);
 
+  const clipId = `bubble-clip-${++clipUid}`;
+  svgEl.append("defs").append("clipPath").attr("id", clipId)
+    .append("rect").attr("x", 0).attr("y", 0).attr("width", iW).attr("height", iH);
+
   const allPts = srs.flatMap(s => s.data);
   if (!allPts.length) return;
 
@@ -247,8 +260,9 @@ function redraw(srs) {
   }
 
   /* Bubbles */
+  const bubbles = g.append("g").attr("clip-path", `url(#${clipId})`);
   srs.forEach(s => {
-    g.selectAll(null).data(s.data).join("circle")
+    bubbles.selectAll(null).data(s.data).join("circle")
       .attr("cx", d => xScale(d.x))
       .attr("cy", d => yScale(d.y))
       .attr("r",  d => rScale(d.z ?? 1))
