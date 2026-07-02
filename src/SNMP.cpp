@@ -116,11 +116,10 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       }
     }
 
-    if(!table_added) lua_newtable(vm), table_added = true;
-
     switch (vp->type) {
     case ASN_INTEGER:
       /* case ASN_GAUGE: */ /* Alias of ASN_INTEGER */
+      if (!table_added) lua_newtable(vm), table_added = true;
 #ifdef NATIVE_TYPE
       lua_push_int32_table_entry(vm, rsp_oid, (long)*vp->val.integer);
 #else
@@ -132,6 +131,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
     case ASN_UNSIGNED:
     case ASN_TIMETICKS:
     case ASN_COUNTER:
+      if (!table_added) lua_newtable(vm), table_added = true;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %d", rsp_oid,
       // vp->val.integer);
 #ifdef NATIVE_TYPE
@@ -143,6 +143,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       break;
 
     case ASN_COUNTER64: {
+      if (!table_added) lua_newtable(vm), table_added = true;
       u_int64_t v = ((u_int64_t)vp->val.counter64->high << 32) + vp->val.counter64->low;
 
 #ifdef NATIVE_TYPE
@@ -154,6 +155,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
     } break;
 
     case ASN_OCTET_STR: {
+      if (!table_added) lua_newtable(vm), table_added = true;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", rsp_oid, vp->val.string);
       char buf[512];
       bool is_printable = true;
@@ -217,6 +219,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
     } break;
 
     case ASN_OBJECT_ID: {
+      if (!table_added) lua_newtable(vm), table_added = true;
       char response[128];
       int rsp_offset = 0;
 
@@ -236,14 +239,15 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 
     case ASN_APPLICATION:
     case ASN_NULL:
-      lua_push_nil_table_entry(vm, rsp_oid);
+      /* Skip the adding to the table, it should be nil, but that could create problems 
+       * so simply leave it empty, in case, it will be pushed nil at the end of the functioon
+       */
       break;
 
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Missing %d type handler [agent: %s]",
-				   vp->type, agent_ip);
-      lua_push_nil_table_entry(vm, rsp_oid);
+                                    "Missing %d type handler [agent: %s][OID: %s]",
+                                    vp->type, agent_ip, rsp_oid);
       break;
     }
 
