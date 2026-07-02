@@ -554,16 +554,16 @@
 
   <!-- Footer: teleported into #n-container so it flows at the bottom of each page -->
   <Teleport to="#n-container">
-    <footer id="n-footer" class="sb-footer">
-      <div class="sb-footer__col">
+    <footer id="n-footer" class="sb-footer d-flex justify-content-between">
+      <div class="no-wrap">
         <a v-if="menu.version_full" href="https://www.ntop.org/products/traffic-analysis/ntop/"
            target="_blank" rel="noopener" v-html="menu.version_full"></a>
         <a v-else-if="menu.version" href="https://www.ntop.org/products/traffic-analysis/ntop/"
            target="_blank" rel="noopener">{{ menu.version }}</a>
         <span v-else-if="menu.product">{{ menu.product }}</span>
       </div>
-      <div v-if="menu.copyright" class="sb-footer__col sb-footer__col--center" v-html="menu.copyright"></div>
-      <div class="sb-footer__col sb-footer__col--right">
+      <div v-if="menu.copyright" class="no-wrap" v-html="menu.copyright"></div>
+      <div class="no-wrap" style="margin-right: 4rem;">
         <span class="sb-footer__time"><i class="fas fa-clock"></i> {{ currentTime }}<template v-if="menu.tzname"> &nbsp;{{ menu.tzname }}</template></span>
         <span v-if="currentUptime" class="sb-footer__uptime"> | Uptime: {{ currentUptime }}</span>
       </div>
@@ -2454,11 +2454,10 @@ div.wrapper {
   bottom: 0;
   left: var(--sb-rail-w, 4rem);
   right: 0;
-  z-index: 100;
+  z-index: 9999 !important;
   height: auto !important;
   min-height: 0 !important;
   box-sizing: border-box;
-  display: flex;
   align-items: center;  
   padding: 6px 0.75rem 6px 0.75rem;
   background: var(--ntop-footer);
@@ -2469,26 +2468,7 @@ div.wrapper {
 #n-footer a { color: inherit; text-decoration: none; }
 #n-footer a:hover { color: var(--sb-orange, #FF7500); text-decoration: underline; }
 /* left: shrinks, truncates */
-.sb-footer__col:first-child { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* center: absolute so it doesn't affect flex layout */
-.sb-footer__col--center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  pointer-events: none;
-}
-.sb-footer__col--center a { pointer-events: auto; }
-/* right: fixed width so it never overflows — wide enough for "07/01/2026, 03:59:28 PM Europe/Rome | Uptime: 12d 3h 45m" */
-.sb-footer__col--right {
-  margin-left: auto;
-  flex-shrink: 0;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  max-width: 50%;
-}
 .sb-footer__time { white-space: nowrap; }
 .sb-footer__uptime { white-space: nowrap; margin-left: 0.4rem; }
 .sb-footer__sep { opacity: 0.35; }
