@@ -4,8 +4,8 @@
         :help_link="context.navbar.help_link" :items_table="context.navbar.items_table" @click_item="click_navbar_item">
     </Navbar>
 
-    <div class='row'>
-        <div class='col-12'>
+    <div class='row m-2 mb-3'>
+        <div class='col-12 p-0'>
             <div class="mb-2">
                 <div class="w-100">
                     <div clas="range-container d-flex flex-wrap">
@@ -64,52 +64,49 @@
             </div>
         </div>
 
-        <div class='col-12'>
-            <div class="card card-shadow">
-                <div class="card-body">
-
-                    <div class="row">
-                        <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
-                            <div class="card overflow-hidden" :style="chart_style">
-                                <!-- <div class="card h-300 overflow-hidden"> -->
-                                <LineChart ref="chart_ref" :chart="chart_cfg" />
-                            </div>
+        <div class='col-12 p-0'>
+            <div>
+                <div class="row">
+                    <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
+                        <div class="card overflow-hidden" :style="chart_style">
+                            <!-- <div class="card h-300 overflow-hidden"> -->
+                            <LineChart ref="chart_ref" :chart="chart_cfg" />
                         </div>
-                        <TableWithConfig ref="table_flows" :table_id="table_id" :table_config_id="table_config_id"
-                            :csrf="context.csrf" :showLoading="true" :f_map_columns="map_table_def_columns"
-                            :get_extra_params_obj="get_extra_params_obj" :handleLoadedColumns="handleLoadedColumns"
-                            @loaded="on_table_loaded" @custom_event="on_table_custom_event">
-                            <template v-slot:custom_header>
-                                <Dropdown v-for="(t, t_index) in top_table_array"
-                                    :f_on_open="get_open_top_table_dropdown(t, t_index)"
-                                    :ref="el => { top_table_dropdown_array[t_index] = el }"> <!-- Dropdown columns -->
-                                    <template v-slot:title>
-                                        <Spinner :show="t.show_spinner" size="1rem" class="me-1"></Spinner>
-                                        <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
-                                    </template>
-                                    <template v-slot:menu>
-                                        <a v-for="opt in t.options" style="cursor:pointer; display: block;"
-                                            @click="add_top_table_filter(opt, $event)"
-                                            class="ntopng-truncate tag-filter " :title="opt.value">{{ opt.label + " (" +
-                                                opt.count + "%)" }}</a>
-                                    </template>
-                                </Dropdown> <!-- Dropdown columns -->
-                            </template> <!-- custom_header -->
-                        </TableWithConfig>
                     </div>
-                </div> <!-- card body -->
+                    <TableWithConfig ref="table_flows" :table_id="table_id" :table_config_id="table_config_id"
+                        :csrf="context.csrf" :showLoading="true" :f_map_columns="map_table_def_columns"
+                        :get_extra_params_obj="get_extra_params_obj" :handleLoadedColumns="handleLoadedColumns"
+                        @loaded="on_table_loaded" @custom_event="on_table_custom_event">
+                        <template v-slot:custom_header>
+                            <Dropdown v-for="(t, t_index) in top_table_array"
+                                :f_on_open="get_open_top_table_dropdown(t, t_index)"
+                                :ref="el => { top_table_dropdown_array[t_index] = el }"> <!-- Dropdown columns -->
+                                <template v-slot:title>
+                                    <Spinner :show="t.show_spinner" size="1rem" class="me-1"></Spinner>
+                                    <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
+                                </template>
+                                <template v-slot:menu>
+                                    <a v-for="opt in t.options" style="cursor:pointer; display: block;"
+                                        @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter "
+                                        :title="opt.value">{{ opt.label + " (" +
+                                            opt.count + "%)" }}</a>
+                                </template>
+                            </Dropdown> <!-- Dropdown columns -->
+                        </template> <!-- custom_header -->
+                    </TableWithConfig>
+                </div>
+            </div> <!-- card body -->
 
-                <div v-if="props.context.show_acknowledge_all || props.context.show_delete_all" class="card-footer">
-                    <button v-if="props.context.show_acknowledge_all" id="dt-btn-acknowledge" :disabled="true"
-                        data-bs-target="#dt-acknowledge-modal" data-bs-toggle="modal" class="btn btn-primary me-1">
-                        <i class="fas fa fa-user-check"></i> Acknowledge Alerts
-                    </button>
-                    <button v-if="props.context.show_delete_all" id="dt-btn-delete" :disabled="true"
-                        data-bs-target="#dt-delete-modal" data-bs-toggle="modal" class="btn btn-danger">
-                        <i class="fas fa fa-trash"></i> Delete Alerts
-                    </button>
-                </div> <!-- card footer -->
-            </div> <!-- card-shadow -->
+            <div v-if="props.context.show_acknowledge_all || props.context.show_delete_all" class="card-footer">
+                <button v-if="props.context.show_acknowledge_all" id="dt-btn-acknowledge" :disabled="true"
+                    data-bs-target="#dt-acknowledge-modal" data-bs-toggle="modal" class="btn btn-primary me-1">
+                    <i class="fas fa fa-user-check"></i> Acknowledge Alerts
+                </button>
+                <button v-if="props.context.show_delete_all" id="dt-btn-delete" :disabled="true"
+                    data-bs-target="#dt-delete-modal" data-bs-toggle="modal" class="btn btn-danger">
+                    <i class="fas fa fa-trash"></i> Delete Alerts
+                </button>
+            </div> <!-- card footer -->
 
         </div> <!-- div col -->
     </div> <!-- div row -->
@@ -542,9 +539,6 @@ function update_show_download_pcap(new_status) {
 
 async function register_components_on_status_update() {
     await ntopng_sync.on_ready("range_picker");
-    if (props.context.show_chart) {
-        chart.value.register_status();
-    }
     //updateDownloadButton();
     ntopng_status_manager.on_status_change(page.value, (new_status) => {
         let url_params = ntopng_url_manager.get_url_params();
@@ -825,16 +819,16 @@ function click_button_track_flow(event) {
     const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
     const epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
     const instance_name = flow?.NTOPNG_INSTANCE_NAME;
- 
+
     const cli_ip = flow?.flow?.cli_ip?.value;
     const srv_ip = flow?.flow?.srv_ip?.value;
     const cli_port = flow?.cli_port?.value;
     const srv_port = flow?.srv_port?.value;
     const l4proto = flow?.l4proto?.value;
     const vlan_id = flow?.vlan_id?.value;
- 
+
     let url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${epoch_begin}&epoch_end=${epoch_end}`;
- 
+
     if (instance_name) {
         url += `&instance_name=${instance_name}`;
     }
@@ -857,7 +851,7 @@ function click_button_track_flow(event) {
     if (vlan_id && vlan_id != 0) {
         url += `&vlan_id=${vlan_id};eq`;
     }
-    
+
     ntopng_url_manager.go_to_url(url);
 }
 
