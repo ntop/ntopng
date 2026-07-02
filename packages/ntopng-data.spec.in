@@ -8,8 +8,6 @@ URL: http://www.ntop.org/
 Source: ntopng-data-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 BuildArch: noarch
-# Temporary location where the RPM will be built
-BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 
 # Make sure .build-id is not part of the package
 %define _build_id_links none
@@ -25,8 +23,6 @@ cp $HOME/dat_files/as.csv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/as.csv
 cp $HOME/dat_files/dbip-city-lite-*.mmdb $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/dbip-city-lite.mmdb
 cp $HOME/dat_files/dbip-asn-lite-*.mmdb $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/dbip-asn-lite.mmdb
 cp $HOME/dat_files/dbip-country-lite-*.mmdb $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/dbip-country-lite.mmdb
-
-%clean
 
 %files
 /usr/share/ntopng/httpdocs/geoip/as.csv

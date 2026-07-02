@@ -8,7 +8,6 @@ Group: Networking/Utilities
 Source: ntopng-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
-BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 %if 0%{?centos_ver} <= 8
 Requires: pfring = @PFRING_VERSION@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, nmap, cronie, libsodium, @LICENSE_DEP@
 %else
@@ -117,8 +116,7 @@ mv ./sbom.json $RPM_BUILD_ROOT/usr/share/ntop/sbom/ntopng-gui,json
 DST=$RPM_BUILD_ROOT/usr/ntopng
 SRC=$RPM_BUILD_DIR/%{name}-%{version}
 #mkdir -p $DST/conf
-# Clean out our build directory
-%clean
+
 rm -fr $RPM_BUILD_ROOT
 
 %files
