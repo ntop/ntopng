@@ -3594,24 +3594,31 @@ u_int8_t ZMQParserInterface::parseJSONCustomIE(const char* payload,
         json_object* o = json_object_array_get_idx(f, id);
 
         if (o != NULL) {
-          struct json_object_iterator it = json_object_iter_begin(o);
-          struct json_object_iterator itEnd = json_object_iter_end(o);
+	  if (json_object_get_type(o) == json_type_object) {
+	    struct json_object_iterator it = json_object_iter_begin(o);
+	    struct json_object_iterator itEnd = json_object_iter_end(o);
 
-          while (!json_object_iter_equal(&it, &itEnd)) {
-            const char* key = json_object_iter_peek_name(&it);
-            json_object* jvalue = json_object_iter_peek_value(&it);
-            const char* value = json_object_get_string(jvalue);
+	    while (!json_object_iter_equal(&it, &itEnd)) {
+	      const char* key = json_object_iter_peek_name(&it);
+	      json_object* jvalue = json_object_iter_peek_value(&it);
+	      const char* value = json_object_get_string(jvalue);
 
-            if ((key != NULL) && (value != NULL)) {
-              ntop->getTrace()->traceEvent(TRACE_INFO, "%s = %s", key, value);
+	      if ((key != NULL) && (value != NULL)) {
+		ntop->getTrace()->traceEvent(TRACE_INFO, "%s = %s", key, value);
 
-              /* TODO: handle custom IEs */
-            } /* if */
+		/* TODO: handle custom IEs */
+	      } /* if */
 
-            /* Move to the next element */
-            json_object_iter_next(&it);
-          } /* while */
-        }
+	      /* Move to the next element */
+	      json_object_iter_next(&it);
+	    } /* while */
+	  } else {
+	    enum json_type type = json_object_get_type(o);
+	    const char *type_name = json_type_to_name(type);
+	    
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unexpected type %s found", type_name);
+	  }
+	}
       } /* for */
     }
 
