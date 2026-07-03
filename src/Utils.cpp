@@ -3668,13 +3668,37 @@ bool Utils::isMulticastMac(const u_int8_t* mac) {
 /* ****************************************************** */
 
 void Utils::parseMac(u_int8_t* mac, const char* symMac) {
+#if 0
   int _mac[6] = {0};
-
+ 
   if (symMac)
     sscanf(symMac, "%x:%x:%x:%x:%x:%x", &_mac[0], &_mac[1], &_mac[2], &_mac[3],
            &_mac[4], &_mac[5]);
-
+ 
   for (int i = 0; i < 6; i++) mac[i] = (u_int8_t)_mac[i];
+
+#else /* Faster than sscanf */
+  memset(mac, 0, 6);
+
+  if (!symMac) return;
+
+  const char* p = symMac;
+
+  for (int i = 0; i < 6; i++) {
+    char* endptr;
+    unsigned long v = strtoul(p, &endptr, 16);
+
+    if (endptr == p) break; /* no hex digits */
+
+    mac[i] = (u_int8_t) v;
+    p = endptr;
+
+    if (i < 5) {
+      if (*p != ':') break;
+      p++;
+    }
+  }
+#endif
 }
 
 /* *********************************************** */
