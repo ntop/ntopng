@@ -2594,6 +2594,7 @@ local known_parameters = {
    ["toggle_fingerprint_stats"] = validateBool,
    ["toggle_starttls"] = validateBool,
    ["toggle_dump_pcap_to_clickhouse"] = validateBool,
+   ["toggle_dump_duplicated_flows_to_clickhouse"] = validateBool,
    ["toggle_query_performance_log"] = validateBool,
    ["behaviour_analysis_learning_period"] = validateNumber,
    ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
