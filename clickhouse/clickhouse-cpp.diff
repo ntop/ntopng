@@ -55,18 +55,17 @@ index 55ba2d4..96fd2a2 100644
  
  static_assert(sizeof(struct in6_addr) == 16, "sizeof in6_addr should be 16 bytes");
 diff --git a/clickhouse/columns/lowcardinality.cpp b/clickhouse/columns/lowcardinality.cpp
-index e286c86..0f10cd1 100644
+index e286c86..14c869e 100644
 --- a/clickhouse/columns/lowcardinality.cpp
 +++ b/clickhouse/columns/lowcardinality.cpp
-@@ -396,8 +396,8 @@ void ColumnLowCardinality::SavePrefix(OutputStream* output) {
+@@ -396,8 +396,9 @@ void ColumnLowCardinality::SavePrefix(OutputStream* output) {
  }
-
+ 
  void ColumnLowCardinality::SaveBody(OutputStream* output) {
- +  uint64_t iflag = static_cast<uint64_t>(IndexFlag::HasAdditionalKeysBit);
-      const uint64_t index_serialization_type =
-      -        static_cast<uint64_t>(indexTypeFromIndexColumn(*index_column_)) | IndexFlag::HasAdditionalKeysBit;
-      +      static_cast<uint64_t>(indexTypeFromIndexColumn(*index_column_)) | iflag;
-           WireFormat::WriteFixed(*output, index_serialization_type);
-
++    uint64_t iflag = static_cast<uint64_t>(IndexFlag::HasAdditionalKeysBit);
+     const uint64_t index_serialization_type =
+-        static_cast<uint64_t>(indexTypeFromIndexColumn(*index_column_)) | IndexFlag::HasAdditionalKeysBit;
++        static_cast<uint64_t>(indexTypeFromIndexColumn(*index_column_)) | iflag;
+     WireFormat::WriteFixed(*output, index_serialization_type);
+ 
      const uint64_t number_of_keys = dictionary_column_->Size();
-     
