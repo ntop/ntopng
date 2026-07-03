@@ -377,7 +377,6 @@ bool ZMQParserInterface::getKeyId(char* sym, u_int32_t sym_len,
                                   u_int32_t* const pen,
                                   u_int32_t* const key_id) const {
   u_int32_t cur_pen, cur_key_id;
-  string label(sym);
   labels_map_t::const_iterator it;
   bool is_num, is_dotted;
 
@@ -386,15 +385,26 @@ bool ZMQParserInterface::getKeyId(char* sym, u_int32_t sym_len,
   is_num = Utils::isNumber(sym, sym_len, &is_dotted);
 
   if (is_num && is_dotted) {
-    if (sscanf(sym, "%u.%u", &cur_pen, &cur_key_id) != 2) return false;
+    char *endptr = NULL, *num_start;
+
+    cur_pen = (u_int32_t)strtoul(sym, &endptr, 10);
+    if (endptr == sym || *endptr != '.') return false;
+
+    num_start = endptr + 1;
+    cur_key_id = (u_int32_t)strtoul(num_start, &endptr, 10);
+    if (endptr == num_start) return false;
+
     *pen = cur_pen, *key_id = cur_key_id;
   } else if (is_num) {
     cur_key_id = atoi(sym);
     *pen = 0, *key_id = cur_key_id;
-  } else if ((it = labels_map.find(label)) != labels_map.end()) {
-    *pen = it->second.first, *key_id = it->second.second;
   } else {
-    return false;
+    string label(sym);
+
+    if ((it = labels_map.find(label)) != labels_map.end())
+      *pen = it->second.first, *key_id = it->second.second;
+    else
+      return false;
   }
 
   return true;
@@ -2440,7 +2450,6 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
     if (key_is_string) {
       u_int8_t kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
-      snprintf(key_str, sizeof(key_str), "%s", key.str);
       getKeyId(key.str, key.str_len, &pen, &key_id);
       key.str[key.str_len] = kbkp;
     }
@@ -2466,13 +2475,6 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
         break;
     }
 
-    if (!key_is_string) {
-      if (pen)
-        snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
-      else
-        snprintf(key_str, sizeof(key_str), "%u", key_id);
-    }
-
 #if 0
     if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_DEBUG) {
       switch(et) {
@@ -2496,6 +2498,17 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
 #endif
 
     if (!rc) { /* Not handled */
+      if (key_is_string) {
+        u_int8_t kbkp = key.str[key.str_len];
+        key.str[key.str_len] = '\0';
+        snprintf(key_str, sizeof(key_str), "%s", key.str);
+        key.str[key.str_len] = kbkp;
+      } else if (pen) {
+        snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
+      } else {
+        snprintf(key_str, sizeof(key_str), "%u", key_id);
+      }
+
       switch (key_id) {
         case 0:  // json additional object added by Flow::serialize()
           if (strcmp(key_str, "json") == 0 && value_is_string) {
