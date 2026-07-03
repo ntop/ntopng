@@ -2327,7 +2327,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object* o) {
             /* Check if this is a custom application field */
             if (custom_app_maps ||
                 (custom_app_maps = new (std::nothrow) CustomAppMaps()))
-              custom_app_maps->checkCustomApp(key, &value, &flow);
+              custom_app_maps->checkCustomApp(pen, key_id, &value, &flow);
 #endif
             ntop->getTrace()->traceEvent(
                 TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
@@ -2558,7 +2558,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
 #ifdef NTOPNG_PRO
           if (custom_app_maps ||
               (custom_app_maps = new (std::nothrow) CustomAppMaps()))
-            custom_app_maps->checkCustomApp(key_str, &value, &flow);
+            custom_app_maps->checkCustomApp(pen, key_id, &value, &flow);
 #endif
 
           ntop->getTrace()->traceEvent(
