@@ -3444,11 +3444,19 @@ decode_packet_eth:
             */
             u_short eth_type;
             ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
+
+            if ((ip_offset + 1) >= h->caplen) {
+              incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                       NULL /* srcMac */, NULL /* dstMac */);
+              goto dissect_packet_end;
+            }
+
             u_int8_t capwap_header_len =
                 ((*(u_int8_t*)&packet[ip_offset + 1]) >> 3) * 4;
             ip_offset = ip_offset + capwap_header_len + 24 + 8;
 
-            if (ip_offset >= h->len) {
+            if (ip_offset >= h->caplen) {
               incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                        NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
                        NULL /* srcMac */, NULL /* dstMac */);
