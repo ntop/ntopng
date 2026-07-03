@@ -32,7 +32,8 @@ class LuaEngine;
 class ZMQCollectorInterface : public ZMQParserInterface {
  private:
   void* context;
-  std::map<u_int32_t /* source_id */, zmq_probe*> active_probes;
+  std::unordered_map<u_int32_t /* source_id */, zmq_probe*> active_probes;
+  char* zmq_decompress_buf;
   bool is_collector;
   u_int16_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];

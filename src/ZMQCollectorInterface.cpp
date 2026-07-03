@@ -25,8 +25,7 @@
 #ifndef HAVE_NEDGE
 
 // #define DEBUG_ZMQ_MSGID
-
-#define DEBUG_PROBES
+// #define DEBUG_PROBES
 
 /* **************************************************** */
 
@@ -39,6 +38,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char* _endpoint)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   num_subscribers = 0;
+  zmq_decompress_buf = NULL;
   server_secret_key[0] = '\0';
   server_public_key[0] = '\0';
 
@@ -164,7 +164,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char* _endpoint)
 /* **************************************************** */
 
 ZMQCollectorInterface::~ZMQCollectorInterface() {
-  map<u_int32_t, zmq_probe*>::iterator p;
+  std::unordered_map<u_int32_t, zmq_probe*>::iterator p;
 
 #ifdef INTERFACE_PROFILING
   u_int64_t n = recvStats.num_flows;
@@ -183,6 +183,8 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
     }
   }
 #endif
+
+  if (zmq_decompress_buf) free(zmq_decompress_buf);
 
   for (int i = 0; i < num_subscribers; i++) {
     if (subscriber[i].endpoint) free(subscriber[i].endpoint);
@@ -232,7 +234,7 @@ char* ZMQCollectorInterface::findInterfaceEncryptionKeys(char* public_key,
 /* **************************************************** */
 
 void ZMQCollectorInterface::checkIdleProbes(time_t now) {
-  map<u_int32_t, zmq_probe*>::iterator p;
+  std::unordered_map<u_int32_t, zmq_probe*>::iterator p;
 
   /* Loop through active flows to find idle ones to be removed */
   for (p = active_probes.begin(); p != active_probes.end();) {
@@ -268,6 +270,15 @@ void ZMQCollectorInterface::collect_flows() {
                                    1 /* Leave a char for \0 */)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Out of memory");
     return;
+  }
+
+  if (zmq_decompress_buf == NULL) {
+    zmq_decompress_buf = (char*)malloc(MAX_ZMQ_FLOW_BUF + 1);
+    if (zmq_decompress_buf == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Out of memory");
+      free(zmq_payload);
+      return;
+    }
   }
 
   for (int i = 0; i < num_subscribers; i++)
@@ -403,7 +414,7 @@ void ZMQCollectorInterface::collect_flows() {
         // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[size: %u][source_id:
         // %u][topic: %s]", size, source_id, h->url);
 #endif
-        std::map<u_int32_t, zmq_probe*>::iterator it = active_probes.find(source_id);
+	std::unordered_map<u_int32_t, zmq_probe*>::iterator it = active_probes.find(source_id);
         if (it != active_probes.end()) {
           /* Found - read last message ID for the current source ID */
 
@@ -504,9 +515,7 @@ void ZMQCollectorInterface::collect_flows() {
 
             if (received_uncompressed_size ==
                 0) /* Old nProbe: do the best to guess the size */
-              uLen = uncompressed_len =
-                  ndpi_min(ndpi_max(10 * size, MAX_ZMQ_FLOW_BUF),
-                           MAX_ZMQ_FLOW_BUF / 3); /* Compatibility mode */
+              uLen = uncompressed_len = MAX_ZMQ_FLOW_BUF; /* Compatibility mode: use full buffer */
             else {
               /* Guard against integer overflow: a malicious sender could set
                  uncompressed_size to UINT32_MAX causing +16 to wrap to ~15,
@@ -524,7 +533,8 @@ void ZMQCollectorInterface::collect_flows() {
                   16; /* We know already the uncompressed size */
             }
 
-            uncompressed = (char*)malloc(uncompressed_len + 1);
+            /* Reuse pre-allocated decompression buffer (MAX_ZMQ_FLOW_BUF+1 bytes) */
+            uncompressed = zmq_decompress_buf;
 
             if (publisher_version ==
                 ZMQ_MSG_VERSION /* struct zmq_msg_hdr_v4 */)
@@ -671,10 +681,6 @@ void ZMQCollectorInterface::collect_flows() {
             /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
              * uncompressed); */
 
-#ifdef HAVE_ZLIB
-          if (compressed /* only if the traffic was actually compressed */)
-            if (uncompressed) free(uncompressed);
-#endif
         } /* size > 0 */
       }
     } /* for */

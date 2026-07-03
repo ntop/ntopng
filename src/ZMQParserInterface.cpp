@@ -457,7 +457,7 @@ const char* ZMQParserInterface::getKeyDescription(u_int32_t pen,
 /* **************************************************** */
 
 void ZMQParserInterface::luaGetAllKeyDescription(lua_State* vm) {
-  std::map<pen_value_t, description_value_t>::iterator it;
+  descriptions_map_t::iterator it;
 
   lua_newtable(vm);
 
@@ -1921,6 +1921,7 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
                                                json_object* const jvalue) {
   bool ret = false;
   json_object* obj;
+  const size_t key_len = strlen(key);
 
   if (!strncmp(key, "timestamp", 9)) {
     u_int32_t seconds, nanoseconds /* nanoseconds not currently used */;
@@ -1944,11 +1945,11 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
   } else if (!strncmp(key, "L4_REMOTE_PORT", 14)) {
     flow->dst_port = htons((u_int32_t)value->int_num);
     ret = true;
-  } else if (!strncmp(key, "INTERFACE_NAME", 7) && strlen(key) == 14) {
+  } else if (!strncmp(key, "INTERFACE_NAME", 7) && key_len == 14) {
     flow->ifname = (char*)json_object_get_string(jvalue);
     ret = true;
-  } else if (strlen(key) >= 14 &&
-             !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
+  } else if (key_len >= 14 &&
+             !strncmp(&key[key_len - 14], "FATHER_PROCESS", 14)) {
     if (json_object_object_get_ex(jvalue, "PID", &obj))
       flow->src_process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if (json_object_object_get_ex(jvalue, "UID", &obj))
@@ -1976,8 +1977,8 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
     // flow->src_process_info.father_uid,
     // flow->src_process_info.father_gid,
     //				 flow->src_process_info.father_process_name);
-  } else if (strlen(key) >= 7 &&
-             !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
+  } else if (key_len >= 7 &&
+             !strncmp(&key[key_len - 7], "PROCESS", 7)) {
     if (json_object_object_get_ex(jvalue, "PID", &obj))
       flow->src_process_info.pid = (u_int32_t)json_object_get_int64(obj);
     if (json_object_object_get_ex(jvalue, "UID", &obj))
@@ -2005,11 +2006,11 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
     // flow->src_process_info.uid, flow->src_process_info.gid,
     // flow->src_process_info.actual_memory, flow->src_process_info.peak_memory,
     // flow->src_process_info.process_name);
-  } else if (strlen(key) >= 9 &&
-             !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
+  } else if (key_len >= 9 &&
+             !strncmp(&key[key_len - 9], "CONTAINER", 9)) {
     if ((ret = parseContainerInfo(jvalue, &flow->src_container_info)))
       flow->container_info_set = true;
-  } else if (!strncmp(key, "TCP", 3) && strlen(key) == 3) {
+  } else if (!strncmp(key, "TCP", 3) && key_len == 3) {
     if (json_object_object_get_ex(jvalue, "CONN_STATE", &obj))
       flow->src_tcp_info.conn_state =
           Utils::tcpStateStr2State(json_object_get_string(obj));
@@ -2055,8 +2056,9 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
     //				 flow->src_tcp_info.unacked_segs,
     //				 flow->src_tcp_info.rtt,
     //				 flow->src_tcp_info.rtt_var);
-  } else if ((!strncmp(key, "TCP_EVENT_TYPE", 14) && strlen(key) == 14) ||
-             (!strncmp(key, "UDP_EVENT_TYPE", 14) && strlen(key) == 14)) {
+  } else if (key_len == 14 &&
+             (!strncmp(key, "TCP_EVENT_TYPE", 14) ||
+              !strncmp(key, "UDP_EVENT_TYPE", 14))) {
     flow->event_type = Utils::eBPFEventStr2Event(value->string);
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event Type [type: %s]",
@@ -2774,49 +2776,67 @@ u_int8_t ZMQParserInterface::parseJSONCounter(const char* payload,
     while (!json_object_iter_equal(&it, &itEnd)) {
       const char* key = json_object_iter_peek_name(&it);
       json_object* v = json_object_iter_peek_value(&it);
-      const char* value = json_object_get_string(v);
 
-      if ((key != NULL) && (value != NULL)) {
-        if (!strcmp(key, "deviceIP"))
-          stats.deviceIP =
-              (u_int32_t)json_object_get_int64(v);  // ntohl(inet_addr(value));
-        else if (!strcmp(key, "samplesGenerated"))
-          stats.samplesGenerated = (u_int32_t)json_object_get_int64(v);
-        else if (!strcmp(key, "ifIndex"))
-          stats.ifIndex = (u_int32_t)json_object_get_int64(v);
-        else if (!strcmp(key, "ifName"))
-          stats.ifName = (char*)json_object_get_string(v);
-        else if (!strcmp(key, "ifType"))
-          stats.ifType = (u_int32_t)json_object_get_int64(v);
-        else if (!strcmp(key, "ifSpeed"))
-          stats.ifSpeed = (u_int32_t)json_object_get_int64(v);
-        else if (!strcmp(key, "ifDirection"))
-          stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
-        else if (!strcmp(key, "ifAdminStatus"))
-          stats.ifAdminStatus = (!strcmp(value, "Up")) ? true : false;
-        else if (!strcmp(key, "ifOperStatus"))
-          stats.ifOperStatus = (!strcmp(value, "Up")) ? true : false;
-        else if (!strcmp(key, "ifInOctets"))
-          stats.ifInOctets = json_object_get_int64(v);
-        else if (!strcmp(key, "ifInPackets"))
-          stats.ifInPackets = json_object_get_int64(v);
-        else if (!strcmp(key, "ifInErrors"))
-          stats.ifInErrors = json_object_get_int64(v);
-        else if (!strcmp(key, "ifOutOctets"))
-          stats.ifOutOctets = json_object_get_int64(v);
-        else if (!strcmp(key, "ifOutPackets"))
-          stats.ifOutPackets = json_object_get_int64(v);
-        else if (!strcmp(key, "ifOutErrors"))
-          stats.ifOutErrors = json_object_get_int64(v);
-        else if (!strcmp(key, "ifPromiscuousMode"))
-          stats.ifPromiscuousMode =
-              (((u_int32_t)json_object_get_int64(v)) == 1) ? true : false;
-        else if (strlen(key) >= 9 &&
-                 !strncmp(&key[strlen(key) - 9], "CONTAINER", 9)) {
+      if (key != NULL) {
+        u_int32_t counter_id;
+        size_t key_len = strlen(key);
+
+        if (getCounterId((char*)key, (u_int32_t)key_len, &counter_id)) {
+          switch (counter_id) {
+            case SFLOW_DEVICE_IP:
+              stats.deviceIP = (u_int32_t)json_object_get_int64(v);
+              break;
+            case SFLOW_SAMPLES_GENERATED:
+              stats.samplesGenerated = (u_int32_t)json_object_get_int64(v);
+              break;
+            case SFLOW_IF_INDEX:
+              stats.ifIndex = (u_int32_t)json_object_get_int64(v);
+              break;
+            case SFLOW_IF_NAME:
+              stats.ifName = (char*)json_object_get_string(v);
+              break;
+            case SFLOW_IF_TYPE:
+              stats.ifType = (u_int32_t)json_object_get_int64(v);
+              break;
+            case SFLOW_IF_SPEED:
+              stats.ifSpeed = (u_int32_t)json_object_get_int64(v);
+              break;
+            case SFLOW_IF_DIRECTION:
+              stats.ifFullDuplex = !strcmp(json_object_get_string(v), "Full");
+              break;
+            case SFLOW_IF_ADMIN_STATUS:
+              stats.ifAdminStatus = !strcmp(json_object_get_string(v), "Up");
+              break;
+            case SFLOW_IF_OPER_STATUS:
+              stats.ifOperStatus = !strcmp(json_object_get_string(v), "Up");
+              break;
+            case SFLOW_IF_IN_OCTETS:
+              stats.ifInOctets = json_object_get_int64(v);
+              break;
+            case SFLOW_IF_IN_PACKETS:
+              stats.ifInPackets = json_object_get_int64(v);
+              break;
+            case SFLOW_IF_IN_ERRORS:
+              stats.ifInErrors = json_object_get_int64(v);
+              break;
+            case SFLOW_IF_OUT_OCTETS:
+              stats.ifOutOctets = json_object_get_int64(v);
+              break;
+            case SFLOW_IF_OUT_PACKETS:
+              stats.ifOutPackets = json_object_get_int64(v);
+              break;
+            case SFLOW_IF_OUT_ERRORS:
+              stats.ifOutErrors = json_object_get_int64(v);
+              break;
+            case SFLOW_IF_PROMISCUOUS_MODE:
+              stats.ifPromiscuousMode = ((u_int32_t)json_object_get_int64(v) == 1);
+              break;
+          }
+        } else if (key_len >= 9 && !strncmp(&key[key_len - 9], "CONTAINER", 9)) {
           if (parseContainerInfo(v, &stats.container_info))
             stats.container_info_set = true;
         }
-      } /* if */
+      } /* if key != NULL */
 
       /* Move to the next element */
       json_object_iter_next(&it);

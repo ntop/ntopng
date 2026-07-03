@@ -31,14 +31,20 @@ struct In6AddrCompare {
   }
 };
 
+struct PenValueHash {
+  size_t operator()(const std::pair<u_int32_t, u_int32_t>& p) const noexcept {
+    return std::hash<u_int64_t>{}(((u_int64_t)p.first << 32) | p.second);
+  }
+};
+
 class ZMQParserInterface : public ParserInterface {
  private:
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
   typedef std::pair<string, bool>
       description_value_t; /* < Description , Native Value > */
-  typedef std::map<string, pen_value_t> labels_map_t;
-  typedef std::map<pen_value_t, description_value_t> descriptions_map_t;
-  typedef std::map<string, u_int32_t> counters_map_t;
+  typedef std::unordered_map<string, pen_value_t> labels_map_t;
+  typedef std::unordered_map<pen_value_t, description_value_t, PenValueHash> descriptions_map_t;
+  typedef std::unordered_map<string, u_int32_t> counters_map_t;
   u_int16_t top_vlan_id;
   u_int32_t next_msg_time;
   std::unordered_map<std::string, u_int16_t> name_to_vlan;
