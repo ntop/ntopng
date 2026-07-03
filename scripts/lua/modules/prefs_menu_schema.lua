@@ -2324,6 +2324,14 @@ function M.get_sections(flags)
             default = "0",
             hidden = (not ch_enabled)
         }, {
+            key = "toggle_dump_duplicated_flows_to_clickhouse",
+            title = i18n("prefs.toggle_dump_duplicated_flows_to_clickhouse_title"),
+            description = i18n("prefs.toggle_dump_duplicated_flows_to_clickhouse_description"),
+            type = "toggle",
+            redis_key = "ntopng.prefs.dump_duplicated_flows_to_clickhouse",
+            default = "0",
+            hidden = (not ch_enabled) or true
+        }, {
             key = "toggle_query_performance_log",
             title = i18n("prefs.toggle_query_performance_log_title"),
             description = i18n("prefs.toggle_query_performance_log_description"),
