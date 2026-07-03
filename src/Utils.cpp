@@ -7903,11 +7903,12 @@ bool Utils::readEthernetIPDeviceInfo(char* device_ip, u_int8_t timeout_sec,
                 offset += 4;
                 lua_push_uint32_table_entry(vm, "serial_number", u32);
 
-                l = response[offset];
+                u_int8_t name_len = response[offset];
+
                 strncpy(str, (char*)&response[offset + 1],
-                        ndpi_min(sizeof(str) - 1, l));
+                        l = ndpi_min(sizeof(str) - 1, name_len));
                 str[l] = '\0';
-                offset += l + 1;
+                offset += name_len + 1;
                 lua_push_str_table_entry(vm, "product_name", str);
 
                 offset++; /* Skip state */
