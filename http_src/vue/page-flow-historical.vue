@@ -246,7 +246,7 @@ const href_analyse_records = computed(() => {
     return `${analyse_endpoint}?${url_params}`;
 });
 
-let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
+let chart_data_url = `${http_prefix}/lua/rest/v2/get/timeseries/batch.lua`;
 
 const chart_style = computed(() => {
     return `height:${props.context?.chart_height ? props.context.chart_height : "300"}px!important`;
@@ -324,7 +324,7 @@ onMounted(async () => {
 function init_params() {
     page.value = ntopng_url_manager.get_url_entry("page");
     if (page.value == null) { page.value = "overview"; }
-    chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
+    chart_data_url = `${http_prefix}/lua/rest/v2/get/timeseries/batch.lua`;
 
     selected_query_preset.value = {
         value: ntopng_url_manager.get_url_entry("query_preset"),

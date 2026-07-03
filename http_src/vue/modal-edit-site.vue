@@ -85,10 +85,11 @@
                 </div>
             </div>
 
-            <!-- Map visualization of the selected location -->
+            <!-- Cartography visualization of the selected location -->
             <Transition name="fade-scale">
-                <Geomap ref="geomap" :geomapDataArray="geomapDataArray" :tooltipFormatter="formatTooltipData"
-                    :glowDots="true" :style="['height: 25vh']" :onMapClick="handleMapClick" />
+                <GeomapCartography ref="geomap" height="30vh" :sites="otherSitesMarkers"
+                    :currentMarker="currentMarkerData" :tooltipFormatter="formatTooltipData" :enableSearch="true"
+                    :showLabels="false" @map-click="handleMapClick" @marker-placed="handleMarkerPlaced" />
             </Transition>
         </template>
 
@@ -110,18 +111,18 @@
 
 
 <script setup>
-import { ref, computed, nextTick, watch } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { default as modal } from "./modal.vue";
 import regexValidation from "../utilities/regex-validation"
 import SelectSearch from "./select-search.vue";
-import { default as Geomap } from "./geomap.vue";
+import { default as GeomapCartography } from "./geomap-cartography.vue";
+import { default as dataUtils } from "../utilities/data-utils.js";
 
 // Internationalization helper
 const _i18n = (t) => i18n(t);
 
 // ==================== Refs and State ====================
 const modal_id = ref(null);                    // Reference to modal component
-const geomapDataArray = ref([]);                // Data for the map visualization
 const geomap = ref(null);
 
 // Form field bindings
@@ -179,27 +180,31 @@ const updateSelectedOption = (item) => {
     selectedSite.value = item;
 }
 
-// ==================== Watchers ====================
+// ==================== Map markers ====================
 
 /**
- * Watcher for latitude and longitude.
- * This watcher is triggered whenever the user updates the
- * `site_lat` or `site_lng` fields.
- * 
- * Purpose:
- * - Updates `geomapDataArray` with a single point representing
- *   the current site location.
+ * The single marker representing the site being added/edited, kept in sync
+ * with the latitude/longitude form fields.
  */
+const currentMarkerData = computed(() => {
+    if (site_lat.value == null || site_lng.value == null) return null;
+    return {
+        lat: site_lat.value,
+        lng: site_lng.value,
+        label: site_name.value || _i18n("sites_page.add_site"),
+    };
+});
 
-watch([site_lat, site_lng], ([newLat, newLng]) => {
-    if (newLat != null && newLng != null) {
-        geomapDataArray.value = [{
-            name: site_name.value || "",               // Current site name
-            description: site_description.value || "", // Current description
-            lat: newLat,                                        // Updated latitude
-            lng: newLng                                         // Updated longitude
-        }];
-    }
+/**
+ * The rest of the known sites, shown as markers for context so the user can
+ * see where the site being added/edited sits relative to the others.
+ */
+const otherSitesMarkers = computed(() => {
+    const list = Array.isArray(props.sitesList) ? props.sitesList : [];
+    return list
+        .filter((t) => !(isEditMode.value && currentSiteId.value != null && String(t.id) === currentSiteId.value))
+        .filter((t) => !dataUtils.isZeroOrEmptyString(t.latitude) && !dataUtils.isZeroOrEmptyString(t.longitude))
+        .map((t) => ({ lat: Number(t.latitude), lng: Number(t.longitude), label: t.name, type: 'Branch', status: 'Online' }));
 });
 
 // ==================== Validation Methods ====================
@@ -247,7 +252,7 @@ const validateName = () => {
 
 /**
  * Updates latitude and longitude when the user clicks on the map.
- * Called by the <Geomap> component via the onMapClick prop.
+ * Called by the <GeomapCartography> component via the map-click event.
  */
 const handleMapClick = ({ lat, lng }) => {
     site_lat.value = parseFloat(lat.toFixed(6)); // round to 6 decimals
@@ -257,18 +262,29 @@ const handleMapClick = ({ lat, lng }) => {
 /* ************************************** */
 
 /**
+ * Updates latitude and longitude when a marker is placed via the address /
+ * lat,lng search box. Called by the <GeomapCartography> component via the
+ * marker-placed event.
+ */
+const handleMarkerPlaced = ({ lat, lng }) => {
+    site_lat.value = parseFloat(lat.toFixed(6));
+    site_lng.value = parseFloat(lng.toFixed(6));
+};
+
+/* ************************************** */
+
+/**
  * Formats the tooltip content for map markers
- * Creates an HTML structure with site name, description, and coordinates
- * 
- * @param {Object} site - Site data object with name, description, lat, lng
+ * Creates an HTML structure with the site name and its coordinates
+ *
+ * @param {Object} site - Site marker data with label, lat, lng
  * @returns {string} HTML string for tooltip
  */
 function formatTooltipData(site) {
     return `
         <div class="custom-tooltip-content">
-            <h6>${site.name}</h6>
+            <h6>${site.label ?? ''}</h6>
             <hr/>
-            <div>${site.description ?? ''}</div>
             <small>${site.lat}, ${site.lng}</small>
         </div>
     `;

@@ -56,7 +56,6 @@ const map_table_def_columns = (columns) => {
             return formatterUtils.getFormatter("number")(value);
         },
         "breakdown": (value, row) => {
-            console.log(value)
             let traffic = value.bytes_sent + value.bytes_rcvd
             const sent_pctg = value.bytes_sent * 100 / traffic
             const rcvd_pctg = value.bytes_rcvd * 100 / traffic

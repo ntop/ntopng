@@ -422,18 +422,17 @@ async function generatePolicy() {
       true, false, true
     );
 
-    // there already is a similar policy, skip creation
-    if (!rsp?.created) {
-      generationError.value = rsp.duplicate_policy;
-    }
-    else if (rsp?.sql_query) {
+    if (rsp?.error) {
+      generationError.value = rsp.error;
+    } else if (!rsp?.created) {
+      // there already is a similar policy, skip creation
+      generationError.value = rsp?.duplicate_policy || _i18n('llm.unexpected_response');
+    } else if (rsp?.sql_query) {
       proposedPolicy.value = { ...rsp };
       selectedPeriodicity.value = periodicityOptions.find(o => o.value === rsp.periodicity) ?? periodicityOptions[2];
       const suggestedScore = rsp.custom_score ?? (rsp.criticality ? CRITICALITY_TO_SCORE[rsp.criticality] : null);
       selectedScore.value = scoreOptions.find(o => o.value === suggestedScore) ?? scoreOptions[2];
       creatorStep.value    = "result";
-    } else if (rsp?.error) {
-      generationError.value = rsp.error;
     } else {
       generationError.value = _i18n('llm.unexpected_response');
     }
