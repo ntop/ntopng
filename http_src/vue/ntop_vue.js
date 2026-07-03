@@ -196,7 +196,6 @@ import { default as ModalSNMPInterfacesAutoRole } from "./modal-snmp-interfaces-
 import { default as MultiPieChart } from "./charts/multi-pie-chart.vue";
 import { default as PieChart } from "./charts/pie-chart.vue";
 import { default as LineChart } from "./charts/line-chart.vue";
-import { default as PeityChart } from "./charts/peity.vue";
 import { default as HeatmapChart } from "./charts/heatmap-chart.vue";
 import { default as PageHeatmapDemo } from "./page-heatmap-demo.vue";
 import { default as Chatbot } from "./chatbot.vue";
@@ -219,7 +218,6 @@ let ntopVue = {
     // graphs
     MultiPieChart: MultiPieChart,
     PieChart: PieChart,
-    PeityChart: PeityChart,
     LineChart: LineChart,
 
     // pages

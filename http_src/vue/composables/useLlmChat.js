@@ -128,6 +128,18 @@ export function useLlmChat(props) {
     providers.value.find((p) => p.provider === selectedProvider.value)
   );
 
+  const RAW_ERROR_MESSAGES = {
+    empty_response: "llm.error_connection_failed",
+    json_decode_error: "llm.error_invalid_response",
+    unknown_format: "llm.error_invalid_response",
+  };
+
+  function friendlyErrorMessage(msg) {
+    const key = RAW_ERROR_MESSAGES[msg];
+    if (key) return typeof i18n === "function" ? i18n(key) : "Couldn't reach the LLM server. Please check the provider configuration.";
+    return msg;
+  }
+
   // Utilities
   function nowTime() {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -374,7 +386,7 @@ export function useLlmChat(props) {
       if (err.name === "AbortError") {
         pushMessage("assistant", timeoutMsg, true);
       } else {
-        pushMessage("assistant", err.message || genericMsg, true);
+        pushMessage("assistant", friendlyErrorMessage(err.message) || genericMsg, true);
       }
     } finally {
       sending.value = false;

@@ -186,7 +186,7 @@
           </div>
           <!-- Install / Check button row -->
           <template v-if="updateStatus === 'update-avail' || updateStatus === 'upgrade-failure'">
-            <button class="sb-popup-item" style="width:100%" @click="doInstallUpdate"
+            <button class="sb-popup-item" style="width:100%" @click="confirmInstallUpdate"
                     :title="updateStatus !== 'update-avail' ? _i18n('updates.update_failure_message') + ': ' + updateStatus : ''">
               <i :class="updateStatus === 'update-avail' ? 'fas fa-download me-1' : 'fas fa-exclamation-triangle text-danger me-1'"></i>
               {{ _i18n("updates.install") }}
@@ -543,7 +543,7 @@
       <span class="sb-update-banner__text">
         {{ _i18n("updates.new_update_available_banner") }}<template v-if="updateVersion">: <strong>{{ updateVersion }}</strong></template>
       </span>
-      <button class="sb-update-banner__action" @click="openUpdatePopup">
+      <button class="sb-update-banner__action" @click="confirmInstallUpdate">
         <i class="fas fa-download me-1"></i>{{ _i18n("updates.install_now_banner") }}
       </button>
       <button class="sb-update-banner__close" @click="dismissUpdate" title="Dismiss">
@@ -582,6 +582,25 @@
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
           <button class="btn btn-danger btn-sm" @click="doRestart">{{ _i18n("restart.restart") }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install update modal -->
+  <div class="modal fade" id="install-update-modal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _i18n("updates.install") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">{{ _i18n("updates.install_confirm") }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
+          <button class="btn btn-primary btn-sm" @click="doInstallUpdate">
+            <i class="fas fa-download me-1"></i>{{ _i18n("updates.install") }}
+          </button>
         </div>
       </div>
     </div>
@@ -1505,13 +1524,19 @@ async function dismissUpdate() {
   } catch (_) {}
 }
 
-function openUpdatePopup() {
-  dismissUpdate();
-  userPopupOpen.value = true;
+let installUpdateModal = null;
+
+function confirmInstallUpdate() {
+  userPopupOpen.value = false;
+  if (!installUpdateModal) {
+    const el = document.getElementById("install-update-modal");
+    if (el && window.bootstrap) installUpdateModal = new bootstrap.Modal(el);
+  }
+  installUpdateModal?.show();
 }
 
 async function doInstallUpdate() {
-  if (!confirm(_i18n("updates.install_confirm"))) return;
+  installUpdateModal?.hide();
   try {
     await ntopng_utility.http_request(
       `${pfx.value}/lua/install_update.lua`,

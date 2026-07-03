@@ -150,6 +150,46 @@ if payload and payload ~= "" then
     body = json.decode(payload) or {}
 end
 
+-- #####################################
+-- Legacy flow-DB compat: serves what pro/rest/v2/get/db/ts.lua used to serve
+-- (historical flow charts, e.g. query_preset=conversations). Detected via
+-- GET params (ifid/any_interface + count) instead of the POST "queries" payload.
+if isEmptyString(payload) and not isEmptyString(_GET["count"]) then
+    if not ntop.isPro() and not ntop.isnEdgeEnterprise() then
+        rest_utils.answer(rest_utils.consts.err.not_granted)
+        return
+    end
+
+    local auth = require "auth"
+    if not auth.has_capability(auth.capabilities.historical_flows) then
+        rest_utils.answer(rest_utils.consts.err.not_granted)
+        return
+    end
+
+    local ifid           = _GET["ifid"]
+    local any_interface   = toboolean(_GET["any_interface"])
+
+    if isEmptyString(ifid) and not any_interface then
+        rest_utils.answer(rest_utils.consts.err.invalid_interface)
+        return
+    end
+
+    if not isEmptyString(ifid) then
+        interface.select(ifid)
+    end
+
+    if any_interface then
+        ifid = nil
+    end
+
+    package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
+    local db_search_manager = require "db_search_manager"
+
+    local res = db_search_manager.count_by_time(ifid, nil, _GET["count"], nil)
+    rest_utils.answer(rest_utils.consts.success.ok, res)
+    return
+end
+
 local epoch_begin = tonumber(body["epoch_begin"] or _POST["epoch_begin"]) or (os.time() - 3600)
 local epoch_end   = tonumber(body["epoch_end"]   or _POST["epoch_end"])   or  os.time()
 local queries     = body["queries"]    -- JSON array, preserved from raw payload

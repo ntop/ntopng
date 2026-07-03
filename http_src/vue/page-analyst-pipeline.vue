@@ -698,7 +698,6 @@ async function generatePipeline() {
           generationProgress.value.push({ status: "done", message: "Pipeline ready" });
         } else if (ev.status === "error") {
           generationError.value = ev.message || _i18n("error");
-          generationProgress.value.push({ status: "error", message: ev.message });
         } else {
           // generating / validating / fixing / stage_warning
           generationProgress.value.push(ev);
