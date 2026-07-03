@@ -115,9 +115,7 @@ mv ./sbom.json $RPM_BUILD_ROOT/usr/share/ntop/sbom/ntopng-gui,json
 #
 DST=$RPM_BUILD_ROOT/usr/ntopng
 SRC=$RPM_BUILD_DIR/%{name}-%{version}
-#mkdir -p $DST/conf
 
-rm -fr $RPM_BUILD_ROOT
 
 %files
 /usr/bin/ntopng
