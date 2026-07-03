@@ -191,6 +191,37 @@ function exporters_utils.getAllProbesList()
    return list
 end
 
+local function getExportersBasicInfo(exporter_ip, interface_id, probe_id, exporter_id, exporters_list)
+   exporters_list[#exporters_list + 1] = {
+      id = exporter_ip,
+      interface_id = interface_id,
+      name = getProbeName(exporter_ip, true, true, false),
+      probe_source_id = probe_id,
+      exporter_source_id = exporter_id
+   }
+end
+
+-- ################################################
+
+function exporters_utils.getAllExportersList()
+   local exporters_list = {}
+   local ifstats = interface.getStats()
+   if ifstats.probes then
+      for interface_id, probe_list in pairs(ifstats.probes or {}) do
+         for source_id, probe_info in pairsByKeys(probe_list or {}) do
+            if probe_info.exporters and table.len(probe_info.exporters) > 0 then -- Sflow or NetFlow/IPFIX
+               for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}) do
+                  getExportersBasicInfo(exporter_ip, interface_id, probe_info["probe.source_id"], exporter_info.unique_source_id or 0, exporters_list)
+               end
+            elseif probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then -- Packet Probe
+               getExportersBasicInfo(probe_info["probe.ip"], interface_id, probe_info["probe.source_id"], probe_info["probe.source_id"], exporters_list)
+            end
+         end
+      end
+   end
+   return exporters_list
+end
+
 -- ################################################
 -- Exporter UUID resolution (with cache)
 -- ################################################

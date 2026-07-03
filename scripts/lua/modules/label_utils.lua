@@ -498,7 +498,7 @@ function getLocalNetworkLabel(network)
     local alias = getLocalNetworkAlias(network)
 
     if alias ~= network then
-        return string.format("%s  · %s", alias, network)
+        return string.format("%s · %s", alias, network)
     end
 
     return network
@@ -517,7 +517,7 @@ function getFullLocalNetworkName(network)
     end
 
     if alias ~= network then
-        return string.format("%s [%s]", alias, network)
+        return string.format("%s · %s", alias, network)
     end
 
     return network

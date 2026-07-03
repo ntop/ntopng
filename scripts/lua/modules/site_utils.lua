@@ -5,6 +5,7 @@
 require("ntop_utils")
 local json = require("dkjson")
 local rest_utils = require("rest_utils")
+local exporters_utils = require("exporters_utils")
 
 -- Module definition - this module provides utilities for managing sites
 local site_utils = {}
@@ -36,7 +37,7 @@ for _, f in ipairs(SITE_SCHEMA) do
 	DEFAULT_SITE[f.key] = f.default
 end
 DEFAULT_SITE.name = "Default"
-DEFAULT_SITE.reserved = true 
+DEFAULT_SITE.reserved = true
 
 -- ##############################################
 -- Private Helper Functions
@@ -96,23 +97,23 @@ local function validate_site(site, existing_sites, ignore_name_duplication)
 		return false, "Invalid longitude"
 	end
 
-   -- A parent of 0 (or empty) is the "no parent" sentinel: normalize it to nil.
-   if isEmptyString(site.site_parent) or tostring(site.site_parent) == "0" then
-      site.site_parent = nil
-   elseif tonumber(site.site_parent) then
-      -- A real parent must reference an existing, non-default site.
-      -- getSiteInfo() falls back to the Default site (id "0") when the id is
-      -- unknown, so a "0" result here means the parent does not exist.
-      local parent = site_utils.getSiteInfo(site.site_parent)
-      if parent.id == "0" then
-         return false, "Invalid Parent Site selected"
-      end
-      -- Store the parent in the same canonical (string) form as the site ids,
-      -- so lookups by id stay consistent (e.g. in the table parent column).
-      site.site_parent = parent.id
-   else
-      return false, "Invalid Parent Site selected"
-   end
+	-- A parent of 0 (or empty) is the "no parent" sentinel: normalize it to nil.
+	if isEmptyString(site.site_parent) or tostring(site.site_parent) == "0" then
+		site.site_parent = nil
+	elseif tonumber(site.site_parent) then
+		-- A real parent must reference an existing, non-default site.
+		-- getSiteInfo() falls back to the Default site (id "0") when the id is
+		-- unknown, so a "0" result here means the parent does not exist.
+		local parent = site_utils.getSiteInfo(site.site_parent)
+		if parent.id == "0" then
+			return false, "Invalid Parent Site selected"
+		end
+		-- Store the parent in the same canonical (string) form as the site ids,
+		-- so lookups by id stay consistent (e.g. in the table parent column).
+		site.site_parent = parent.id
+	else
+		return false, "Invalid Parent Site selected"
+	end
 
 	-- Step 5: Check for duplicate site names (unless explicitly disabled for edits)
 	if not ignore_name_duplication then
@@ -499,7 +500,7 @@ end
 -- The system-reserved Default site is intentionally excluded.
 function site_utils.export()
 	local conf = {
-		sites = {}
+		sites = {},
 	}
 
 	local exported_fields = site_utils.get_exported_fields()
@@ -633,13 +634,13 @@ local _site_by_network = {}
 
 function site_utils.resolveExporterSite(exporter_ip)
 	if isEmptyString(exporter_ip) then
-		return site_utils.get_default_site().name
+		return site_utils.get_default_site()
 	end
 
 	-- In-memory lookup
 	local network_id = interface.getIPNetworkId(exporter_ip)
 	if network_id == nil then
-		return site_utils.get_default_site().name
+		return site_utils.get_default_site()
 	end
 
 	local cached = _site_by_network[network_id]
@@ -648,10 +649,87 @@ function site_utils.resolveExporterSite(exporter_ip)
 	end
 
 	-- Cache miss: this is the only branch that performs Redis reads.
-	local site_name = site_utils.getNetworkSite(network_id).name
-	_site_by_network[network_id] = site_name
+	local site = site_utils.getNetworkSite(network_id)
+	_site_by_network[network_id] = site
 
-	return site_name
+	return site
+end
+
+-- ##############################################
+
+-- Returns the list of parents sites
+local function getRootSite()
+	local all_sites = site_utils.getSites()
+	local parents_sites = {}
+	local list_of_child_parents = {}
+	for _, info in pairsByField(all_sites, "name", asc) do
+		-- If empty or null, it's the one we are searching for, a parent site
+		if isEmptyString(info.parent) then
+			parents_sites[tostring(info.id)] = info
+		end
+	end
+
+	return { sites = parents_sites }
+end
+
+-- ##############################################
+
+-- Returns the list of parents sites
+local function getSiteLeaves(site_id)
+	local site = tostring(site_id)
+	local all_sites = site_utils.getSites()
+	-- Adding sites
+   local sites_to_add = {}
+	for _, info in pairs(all_sites) do
+		-- If empty or null, it's the one we are searching for, a parent site
+		if (not isEmptyString(info.parent)) and (tostring(info.parent) == site) then
+			sites_to_add[#sites_to_add + 1] = info
+		end
+	end
+
+	-- Adding networks
+	local networks = interface.getSiteNetworks(tonumber(site))
+   local networks_to_add = {}
+	for _, network_id in pairs(networks or {}) do
+		networks_to_add[#networks_to_add + 1] = {
+			id = network_id,
+			name = getLocalNetworkAliasById(network_id),
+		}
+	end
+
+	-- Adding exporters
+	local exporters_list = exporters_utils.getAllExportersList()
+   local exporters_to_add = {}
+	for _, exporter_info in pairs(exporters_list or {}) do
+      local exporter_site = site_utils.resolveExporterSite(exporter_info.id)
+      if tostring(exporter_site.id) == tostring(site_id) then
+         exporters_to_add[#exporters_to_add + 1] = exporter_info
+      end
+	end
+
+   local children_list = {
+      sites = sites_to_add,
+      networks = networks_to_add,
+      exporters = exporters_to_add
+   }
+
+	return children_list
+end
+
+-- ##############################################
+
+function site_utils.getSiteComponents(site_id)
+	-- Empty site id, it means that all "parents" sites need to be returned
+	if isEmptyString(site_id) then
+		local parents_sites = getRootSite()
+      --   tprint(parents_sites)
+      return parents_sites
+	else
+		-- site_id available, returns all the childs of the site_id
+		local children = getSiteLeaves(site_id)
+      --   tprint(children)
+      return children
+	end
 end
 
 -- ##############################################

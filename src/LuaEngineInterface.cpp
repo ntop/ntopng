@@ -3373,6 +3373,28 @@ static int ntop_get_interface_host_country(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Refreshes the cached site ID for a local network. Lua: ntop.refreshNetworkSiteId(network_id) */
+static int ntop_get_site_id_networks(lua_State* vm) {
+  NetworkInterface* curr_iface = getCurrentInterface(vm);
+  u_int16_t site_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  site_id = (u_int16_t)lua_tointeger(vm, 1);
+
+  if (!curr_iface) {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+
+  curr_iface->getSiteNetworks(site_id, vm);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Marks an observation point for deletion (first step of two-step delete).  Lua: interface.prepareDeleteObsPoint(obs_point_id) → nil */
 static int ntop_prepare_delete_interface_observation_point(lua_State* vm) {
   NetworkInterface* curr_iface = getCurrentInterface(vm);
@@ -6375,6 +6397,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getHostInfo", ntop_get_interface_host_info},
     {"getHostMinInfo", ntop_get_interface_get_host_min_info},
     {"getHostCountry", ntop_get_interface_host_country},
+    {"getSiteNetworks", ntop_get_site_id_networks},
     {"addMacsIpAddresses", ntop_add_macs_ip_addresses},
     {"getNetworksStats", ntop_get_interface_networks_stats},
     {"getLocalServerPorts", ntop_get_local_server_ports},

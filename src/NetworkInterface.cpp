@@ -9847,6 +9847,27 @@ AlertsQueue* NetworkInterface::getAlertsQueue() const {
 
 /* **************************************** */
 
+void NetworkInterface::getSiteNetworks(u_int16_t site_id, lua_State* vm) const {
+  u_int32_t num_local_networks = (u_int32_t)(ntop->getMaxLocalNetworksID() + 1);
+
+  lua_newtable(vm);
+  u_int32_t num = 0;
+  for (u_int32_t network_id = 0; network_id < num_local_networks; network_id++) {
+    NetworkStats* network_stats;
+
+    if ((network_stats = getNetworkStats(network_id))) {
+        const char* network_name = ntop->getLocalNetworkName(network_id);
+        if (!network_name) continue; /* stale network_id, name no longer valid */
+        if (network_stats->getSiteId() != site_id) continue;
+        
+        lua_pushinteger(vm, network_id);
+        lua_rawseti(vm, -2, ++num);
+    }
+  }
+}
+
+/* **************************************** */
+
 NetworkStats* NetworkInterface::getNetworkStats(u_int32_t networkId) const {
   if ((networkStats == NULL) || (networkId >= (u_int32_t)(ntop->getMaxLocalNetworksID() + 1)))
     return (NULL);
