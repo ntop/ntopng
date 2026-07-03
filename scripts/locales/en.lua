@@ -8257,6 +8257,8 @@ local lang = {
     ["reports_data_retention_time_descr"] = "Number of days to keep traffic reports on disk. Default: 30 days.",
     ["reports_data_retention_time_title"] = "Reports Data Retention",
     ["restart_needed"] = "Please restart %{product} in order to apply the changes",
+    ["rrd_files_retention_description"] = "Number of days after which RRD files that have not been updated are considered stale and removed from disk. This prevents RRDs from lingering forever (e.g. an AS visited once months ago). Default: 90 days.<br><b>Note:</b> only applies when the RRD timeseries driver is in use.",
+    ["rrd_files_retention_title"] = "RRD Files Retention",
     ["rx_tx"] = "RX/TX",
     ["runtime_prefs"] = "Runtime Preferences",
     ["safe_search_dns_description"] = "The DNS server to be used to perform <a href='%{url}'>Child Safe</a> queries.<br>Child Safe can be enabled for individual host pools from the host pools configuration page. Default: 208.67.222.123.",

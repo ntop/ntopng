@@ -1328,6 +1328,19 @@ function M.get_sections(flags)
                     min = "1",
                     max = tostring(365 * 10)
                 }
+            }, {
+                key = "rrd_files_retention",
+                title = i18n("prefs.rrd_files_retention_title"),
+                description = i18n("prefs.rrd_files_retention_description"),
+                type = "input",
+                input_type = "number",
+                redis_key = "ntopng.prefs.rrd_files_retention_days",
+                default = "90",
+                hidden = (active_ts_driver ~= "rrd") or true,
+                attrs = {
+                    min = "1",
+                    max = tostring(365 * 10)
+                }
             }, -- Interfaces Timeseries
                 {
                 key = "toggle_interface_traffic_rrd_creation",

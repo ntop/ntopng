@@ -2661,6 +2661,7 @@ local known_parameters = {
    ["vs_reports_retention_days"] = validateNumber,
    ["reports_data_retention_days"] = validateNumber,
    ["ts_and_stats_data_retention_days"] = validateNumber,
+   ["rrd_files_retention_days"] = validateNumber,
    ["max_entity_alerts"] = validateNumber,
    ["max_num_secs_before_delete_alert"] = validateNumber,
    ["alert_page_refresh_rate"] = validateNumber,
