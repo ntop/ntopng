@@ -104,9 +104,6 @@ find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f
 #
 DST=$RPM_BUILD_ROOT/usr/ntopng
 SRC=$RPM_BUILD_DIR/%{name}-%{version}
-#mkdir -p $DST/conf
-
-rm -fr $RPM_BUILD_ROOT
 
 # Already stripped
 mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
@@ -128,6 +125,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/ntop/
 /etc/rsyslog.d/20-ntopng.conf
 %config(noreplace) /etc/cron.d/ntopng
 /usr/share/ntopng
+/usr/share/ntop
 # Don't overwrite ntopng-cert.pem is the file is already present
 %config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 #/etc/ntopng/ntopng.conf.sample
