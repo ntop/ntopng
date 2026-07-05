@@ -23,6 +23,9 @@
 
 extern "C" {
 extern char* rrd_strversion(void);
+#if defined(NTOPNG_PRO)
+  extern void ntopinit(int argc, char* argv[]);
+#endif
 };
 
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
@@ -97,6 +100,10 @@ int main(int argc, char* argv[])
 
 #ifdef WIN32
   initWindows();
+#else
+#if defined(NTOPNG_PRO)
+  ntopinit(argc, argv);
+#endif
 #endif
   
   tzset(); /* Init time and timezone */
