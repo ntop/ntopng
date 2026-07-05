@@ -531,6 +531,14 @@ void ZMQCollectorInterface::collect_flows() {
               uLen = uncompressed_len =
                   received_uncompressed_size +
                   16; /* We know already the uncompressed size */
+
+              /* zmq_decompress_buf is a fixed MAX_ZMQ_FLOW_BUF+1 byte buffer
+                 and one byte is reserved for the trailing NUL, so the +16 slack
+                 must not make us tell uncompress() the buffer is larger than it
+                 is: with received_uncompressed_size == MAX_ZMQ_FLOW_BUF this
+                 would otherwise write up to 15 bytes past the buffer. */
+              if (uncompressed_len > MAX_ZMQ_FLOW_BUF)
+                uLen = uncompressed_len = MAX_ZMQ_FLOW_BUF;
             }
 
             /* Reuse pre-allocated decompression buffer (MAX_ZMQ_FLOW_BUF+1 bytes) */
