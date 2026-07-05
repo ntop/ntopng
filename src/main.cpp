@@ -22,7 +22,9 @@
 #include "ntop_includes.h"
 
 extern "C" {
-extern char *rrd_strversion(void);
+#if defined(NTOPNG_PRO)
+  extern void ntopinit(int argc, char* argv[]);
+#endif
 };
 
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
@@ -94,6 +96,10 @@ extern "C" {
 #endif
   FILE *fd;
   ThreadedActivity *boot_activity;
+
+#if defined(NTOPNG_PRO)
+  ntopinit(argc, argv);
+#endif
 
   tzset(); /* Init time and timezone */
   memset((void*)&ndpiUnknownProtocol, 0, sizeof(ndpiUnknownProtocol));
