@@ -8202,6 +8202,11 @@ void Utils::setIPv4Address(struct ndpi_in6_addr *out_addr,
 */
 bool Utils::parseIPv4v6Address(const char *ip_str,
 			       struct ndpi_in6_addr *out_addr) {
+  if(!ip_str) {
+    memset(out_addr, 0, sizeof(struct ndpi_in6_addr));
+    return(false);
+  }
+  
   // 1. Try to parse as a native IPv6 address
   if (inet_pton(AF_INET6, ip_str, out_addr) == 1) {
     return(true);
