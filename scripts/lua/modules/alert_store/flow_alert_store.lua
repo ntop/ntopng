@@ -1403,7 +1403,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
 
    local probe_ip = ''
    local probe_label = ''
-   if value["probe_ip"] and value["probe_ip"] ~= "0.0.0.0" then
+   if value["probe_ip"] and value["probe_ip"] ~= "0.0.0.0" and value["probe_ip"] ~= "::" then
       probe_ip = value["probe_ip"]
       probe_label = getProbeName(probe_ip)
    end
