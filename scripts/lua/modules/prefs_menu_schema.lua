@@ -1347,7 +1347,7 @@ function M.get_sections(flags)
                 default = "90",
                 hidden = (active_ts_driver ~= "rrd"),
                 attrs = {
-                    min = "1",
+                    min = "7",
                     max = tostring(365 * 10)
                 }
             }, -- Interfaces Timeseries
