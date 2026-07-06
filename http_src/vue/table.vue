@@ -644,7 +644,7 @@ function filterRows(rows, searchTerm) {
         return rows;
     }
 
-    searchTerm = searchTerm.toLowerCase();
+    searchTerm = searchTerm.trim().toLowerCase();
 
     return rows.filter(row => {
         // Check each visible column for the search term
