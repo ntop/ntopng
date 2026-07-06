@@ -2441,7 +2441,7 @@ function M.get_sections(flags)
         label = i18n("prefs.llm_providers"),
         advanced = false,
         pro_only = true,
-        hidden = false,
+        hidden = not(ntop.hasnAnalyst()),
         entries = {{
             key = "local_llm_url",
             title = i18n("prefs.llm_url_title"),
