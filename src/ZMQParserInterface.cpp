@@ -376,11 +376,9 @@ void ZMQParserInterface::addMapping(const char* sym, u_int32_t num,
 bool ZMQParserInterface::getKeyId(char* sym, u_int32_t sym_len,
                                   u_int32_t* const pen,
                                   u_int32_t* const key_id) const {
-  u_int32_t cur_pen, cur_key_id;
+  u_int32_t cur_pen = UNKNOWN_PEN, cur_key_id = UNKNOWN_FLOW_ELEMENT;
   labels_map_t::const_iterator it;
-  bool is_num, is_dotted;
-
-  *pen = UNKNOWN_PEN, *key_id = UNKNOWN_FLOW_ELEMENT;
+  bool is_num, is_dotted = false, ret = false;
 
   is_num = Utils::isNumber(sym, sym_len, &is_dotted);
 
@@ -388,26 +386,33 @@ bool ZMQParserInterface::getKeyId(char* sym, u_int32_t sym_len,
     char *endptr = NULL, *num_start;
 
     cur_pen = (u_int32_t)strtoul(sym, &endptr, 10);
-    if (endptr == sym || *endptr != '.') return false;
 
-    num_start = endptr + 1;
-    cur_key_id = (u_int32_t)strtoul(num_start, &endptr, 10);
-    if (endptr == num_start) return false;
-
-    *pen = cur_pen, *key_id = cur_key_id;
+    if (endptr == sym || *endptr != '.') {
+      ret = false;
+    } else {
+      num_start = endptr + 1;
+      cur_key_id = (u_int32_t)strtoul(num_start, &endptr, 10);
+      ret = (endptr != num_start);
+    }
   } else if (is_num) {
-    cur_key_id = atoi(sym);
-    *pen = 0, *key_id = cur_key_id;
+    cur_pen = 0, cur_key_id = atoi(sym);
+    ret = true;
   } else {
-    string label(sym);
+    string label(sym, sym_len);
 
-    if ((it = labels_map.find(label)) != labels_map.end())
-      *pen = it->second.first, *key_id = it->second.second;
-    else
-      return false;
+    if ((it = labels_map.find(label)) != labels_map.end()) {
+      cur_pen = it->second.first, cur_key_id = it->second.second;
+      ret = true;
+    } else {
+      ret = false;
+    }
   }
 
-  return true;
+  if (!ret) cur_pen = UNKNOWN_PEN, cur_key_id = UNKNOWN_FLOW_ELEMENT;
+
+  *pen = cur_pen, *key_id = cur_key_id;
+
+  return ret;
 }
 
 /* **************************************************** */
