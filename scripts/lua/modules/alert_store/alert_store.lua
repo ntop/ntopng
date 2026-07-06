@@ -114,9 +114,11 @@ function alert_store:_escape(str)
         str = tostring(str)
     end
 
-    str = str:gsub("'", "''")
-    if (str == '\\') then
-        str = ''
+    if ntop.isClickHouseEnabled() then
+        -- ClickHouse use backslash escaping, not quote doubling
+        str = str:gsub("\\", "\\\\"):gsub("'", "\\'")
+    else
+        str = str:gsub("'", "''")
     end
 
     return str
