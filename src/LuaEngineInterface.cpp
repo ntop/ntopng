@@ -198,7 +198,7 @@ static int ntop_get_interface_id(lua_State* vm) {
 static int ntop_get_ip_network_id(lua_State* vm) {
   NetworkInterface* iface;
   char *ip_addr;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
@@ -1883,7 +1883,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   memset(&device_ip, 0, sizeof(struct ndpi_in6_addr));
-  
+
   if (lua_type(vm, 1) == LUA_TBOOLEAN)
     show_details = lua_toboolean(vm, 1) ? true : false;
   if (lua_type(vm, 2) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 2);
@@ -1914,7 +1914,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
   if (lua_type(vm, 19) == LUA_TBOOLEAN) dhcpOnly = lua_toboolean(vm, 19);
   if (lua_type(vm, 20) == LUA_TSTRING)
     cidr_filter.addAddress(lua_tostring(vm, 20)), cidr_filter_enabled = true;
-  if (lua_type(vm, 21) == LUA_TSTRING) Utils::parseIPv4v6Address(lua_tostring(vm, 21), &device_ip);								
+  if (lua_type(vm, 21) == LUA_TSTRING) Utils::parseIPv4v6Address(lua_tostring(vm, 21), &device_ip);
   if (lua_type(vm, 22) == LUA_TBOOLEAN) arrayFormat = (lua_toboolean(vm, 22));
   if (lua_type(vm, 23) == LUA_TBOOLEAN) alertedHost = lua_toboolean(vm, 23);
   if (lua_type(vm, 24) == LUA_TSTRING)
@@ -5997,7 +5997,7 @@ static int ntop_dump_host_based_protocol_id(lua_State* vm) {
     Utils::flushHTTPBuffer(vm);
     curr_iface->nDPIDumpHostBasedProtocols(conn);
   }
-  
+
   lua_pushnil(vm);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
@@ -6015,7 +6015,7 @@ static int ntop_dump_host_based_category_id(lua_State* vm) {
     Utils::flushHTTPBuffer(vm);
     curr_iface->nDPIDumpHostBasedCategories(conn);
   }
-  
+
   lua_pushnil(vm);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
@@ -6152,7 +6152,7 @@ static int ntop_exec_in_memory_sql_query(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   db->execSQLQuery(vm, sql, false, false);
-  
+
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_TWO_RETURN_VALUES));
 }
 
@@ -6309,6 +6309,24 @@ static int ntop_update_ranking(lua_State* vm) {
 #endif
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Deletes RRD files not updated since X days.  Lua: ntop.rrd_inc_num_drops(path) → nil */
+static int ntop_rrd_harvest(lua_State* vm) {
+  u_int32_t retention_days = 90;
+  NetworkInterface* curr_iface = getCurrentInterface(vm);
+  char path[MAX_PATH];
+
+  if (lua_type(vm, 1) == LUA_TNUMBER) retention_days = lua_tonumber(vm, 1);
+
+  snprintf(path, sizeof(path), "%s/%d", ntop->get_working_dir(), curr_iface->get_id());
+
+  Utils::harvestOldFIles(path, ".rrd", retention_days * 86400);
+
+  lua_pushnil(vm);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 }
 
 /* ****************************************** */
@@ -6534,6 +6552,8 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"rrd_enqueue", ntop_rrd_queue_push},
     {"rrd_dequeue", ntop_rrd_queue_pop},
     {"rrd_queue_length", ntop_rrd_queue_length},
+
+    {"rrd_harvest", ntop_rrd_harvest},
 
     {"getHostPoolsStats", ntop_get_host_pools_interface_stats},
     {"getHostPoolStats", ntop_get_host_pool_interface_stats},

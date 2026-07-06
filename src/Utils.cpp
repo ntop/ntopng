@@ -8231,3 +8231,63 @@ bool Utils::isNullAddress(struct ndpi_in6_addr *ip) {
   else
     return(false);
 }
+
+/* ******************************************* */
+
+bool Utils::harvestOldFIles(char *dir_path, const char *extn,
+			    u_int retention_sec) {
+  struct dirent *entry;
+  char path[PATH_MAX];
+  DIR *dir = opendir(dir_path);
+  u_int extn_len = strlen(extn);
+  struct stat sb;
+  
+  if (!dir) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error opening directory %s", dir_path);
+    return(false);
+  }
+
+  while ((entry = readdir(dir)) != NULL) {
+    // Skip current (".") and parent ("..") directories
+    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+      continue;
+    }
+
+    // Construct the full path safely
+    int len = snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name);
+    if (len >= sizeof(path)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Path too long: %s/%s\n", dir_path, entry->d_name);
+      continue;
+    }
+
+    // Use lstat to avoid following symlinks (prevents infinite loops)
+    if (lstat(path, &sb) == -1) {
+      continue;
+    }
+
+    if (S_ISDIR(sb.st_mode)) {
+      // Recursively dive into subdirectories
+      Utils::harvestOldFIles(path, extn, retention_sec);
+    } else if (S_ISREG(sb.st_mode)) {
+      size_t name_len = strlen(entry->d_name);
+      
+      if (name_len >= 4 && strcmp(entry->d_name + name_len - extn_len, extn) == 0) {
+	// Calculate file age in seconds
+	double file_age = difftime(time(NULL), sb.st_mtime);
+
+	// Delete if it exceeds the retention threshold
+	if (file_age > retention_sec) {
+	  if (unlink(path) == 0) {
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "Deleted expired file: %s", path);
+	  } else {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error deleting file %s", path);
+	  }
+	}
+      }
+    }
+  }
+
+  closedir(dir);
+  
+  return(true);
+}

@@ -377,6 +377,7 @@ class Utils {
   }
   static bool parseIPv4v6Address(const char *ip_str, struct ndpi_in6_addr *out_addr);
   static bool isNullAddress(struct ndpi_in6_addr *ip);
+  static bool harvestOldFIles(char *path, const char *extn, u_int retention_sec);
 };
 
 #endif /* _UTILS_H_ */
