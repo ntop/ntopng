@@ -310,14 +310,23 @@ function entryMatchesSearch(entry) {
 function buildVisibleKeys(entries, values) {
   const vis = new Set(entries.map(e => e.key));
   for (const entry of entries) {
+    const val = values[entry.key] ?? entry.default ?? '';
+
     if (entry.to_switch && entry.type === 'toggle') {
-      const onVal  = entry.on_value  ?? '1';
+      const onVal = entry.on_value  ?? '1';
       const offVal = entry.off_value ?? '0';
-      const val    = values[entry.key] ?? entry.default ?? offVal;
-      const isOn   = val === onVal;
-      const show   = entry.reverse_switch ? !isOn : isOn;
+      const isOn  = (val || offVal) === onVal;
+      const show  = entry.reverse_switch ? !isOn : isOn;
       if (!show) {
         for (const dep of entry.to_switch) vis.delete(dep);
+      }
+    }
+
+    // Value-keyed visibility for select / button_group entries: entry.show_when
+    // maps each dependent key to the list of entry values for which it is shown.
+    if (entry.show_when) {
+      for (const [dep, shownForValues] of Object.entries(entry.show_when)) {
+        if (!shownForValues.includes(val)) vis.delete(dep);
       }
     }
   }

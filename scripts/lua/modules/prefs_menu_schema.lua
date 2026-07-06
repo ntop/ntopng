@@ -1228,6 +1228,15 @@ function M.get_sections(flags)
                 }},
                 to_switch = {"influxdb_url", "influxdb_dbname", "toggle_influx_auth", "influxdb_username",
                              "influxdb_password", "influxdb_query_timeout"},
+                show_when = {
+                    influxdb_url = {"influxdb"},
+                    influxdb_dbname = {"influxdb"},
+                    toggle_influx_auth = {"influxdb"},
+                    influxdb_username = {"influxdb"},
+                    influxdb_password = {"influxdb"},
+                    influxdb_query_timeout = {"influxdb"},
+                    timeseries_resolution_resolution = {"influxdb", "clickhouse"}
+                },
                 when_value_download = {
                     value    = "clickhouse",
                     url      = ntop.getHttpPrefix() .. "/misc/grafana/ntopng-clickhouse-dashboard.json",
@@ -1336,7 +1345,7 @@ function M.get_sections(flags)
                 input_type = "number",
                 redis_key = "ntopng.prefs.rrd_files_retention_days",
                 default = "90",
-                hidden = (active_ts_driver ~= "rrd") or true,
+                hidden = (active_ts_driver ~= "rrd"),
                 attrs = {
                     min = "1",
                     max = tostring(365 * 10)
@@ -1400,11 +1409,15 @@ function M.get_sections(flags)
                     label = i18n("off")
                 }, {
                     value = "light",
-                    label = i18n("prefs.light")
+                    label = i18n("light")
                 }, {
                     value = "full",
-                    label = i18n("prefs.full")
-                }}
+                    label = i18n("full")
+                }},
+                show_when = {
+                    toggle_local_hosts_one_way_ts = {"light", "full"},
+                    hosts_ndpi_timeseries_creation = {"full"}
+                }
             }, {
                 key = "toggle_local_hosts_one_way_ts",
                 title = i18n("prefs.toggle_local_hosts_one_way_ts_title"),
