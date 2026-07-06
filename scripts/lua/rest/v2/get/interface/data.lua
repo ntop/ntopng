@@ -335,6 +335,10 @@ function dumpInterfaceStats(ifid)
 
       -- Adding a preference if active discovery is enabled
       res["active_discovery_active"] = ntop.getPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId()) == "1"
+      if (vs_utils.is_available()) then
+         local total, total_in_progress = vs_utils.check_in_progress_status()
+         res["vs_in_progress"] = total_in_progress or 0
+      end
    end
 
    return res
