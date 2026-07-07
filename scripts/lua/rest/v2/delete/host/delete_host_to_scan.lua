@@ -15,8 +15,9 @@ local vs_utils = require "vs_utils"
 local host = _GET["host"]
 local scan_type = _GET["scan_type"]
 local delete_all_scan_hosts = _GET["delete_all_scan_hosts"]
+local delete_failed_scan_hosts = _GET["delete_failed_scan_hosts"]
 
-if not delete_all_scan_hosts then
+if not delete_all_scan_hosts and not delete_failed_scan_hosts then
 if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
 end
@@ -27,7 +28,10 @@ local del_result = 0
 if delete_all_scan_hosts then
 -- Delete all hosts to scan
 del_result = vs_utils.delete_host_to_scan(nil, nil, true)
-else 
+elseif delete_failed_scan_hosts then
+-- Only delete hosts whose last scan failed (host down or unreachable)
+del_result = vs_utils.delete_failed_hosts_to_scan()
+else
 -- Only delete a host and a scan type
 del_result = vs_utils.delete_host_to_scan(host, scan_type, false)
 end
