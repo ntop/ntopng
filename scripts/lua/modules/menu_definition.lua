@@ -108,8 +108,20 @@ return function(f)
             hidden = f.no_macs
         } -- pro entries appended by menu_definition_pro: inventory divider + assets
         }
-    },
-    {
+    }, {
+        key = "maps",
+        after = "collection",
+        i18n = "maps",
+        icon = "fas fa-map",
+        hidden = f.is_system_interface or f.is_viewed or f.infrastructure_view,
+        entries = {{
+            key = "geo_map",
+            i18n = "geo_map.geo_map",
+            icon = "fas fa-globe",
+            url = "/lua/hosts_geomap.lua",
+            hidden = f.is_loopback_interface or f.no_geoip
+        }}
+    }, {
         key = "if_stats",
         i18n = "interface",
         icon = "fas fa-ethernet",
