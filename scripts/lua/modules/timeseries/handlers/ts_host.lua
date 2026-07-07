@@ -493,10 +493,12 @@ local function addTopTimeseries(tags, tsOptions)
                 local tot = 0
                 tmp_tags.protocol = serie.protocol
                 local tot_serie = ts_utils.queryTotal("host:ndpi", tags.epoch_begin, tags.epoch_end, tmp_tags)
+
                 -- Remove serie with no data
                 for _, value in pairs(tot_serie or {}) do
                     tot = tot + tonumber(value)
                 end
+
 
                 if (tot > 0) then
                     timeseries[#timeseries + 1] = {
@@ -610,6 +612,7 @@ function ts_host.getTimeseries(tags, tsOptions)
         -- Remove empty timeseries
         timeseries = ts_gui_utils.removeEmptyTimeseries(timeseries, tags)
         local top_timeseries = addTopTimeseries(tags, tsOptions)
+        timeseries = table.merge(timeseries, top_timeseries)
     end
 
 
