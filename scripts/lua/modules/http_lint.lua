@@ -2423,6 +2423,7 @@ local known_parameters = {
    ["scan_params"] = validateUnquoted,
    ["scan_single_host"] = validateBool,
    ["delete_all_scan_hosts"] = validateBool,
+   ["delete_failed_scan_hosts"] = validateBool,
    ["scan_return_result"] = validateBool,
    ["scan_date"] = validateSingleWord,
    ["scan_frequency"] = validateSingleWord,

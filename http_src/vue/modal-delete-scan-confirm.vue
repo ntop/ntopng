@@ -9,7 +9,7 @@
     </NoteList>
   </template>
   <template v-slot:footer>
-    <template v-if="delete_type == 'delete_all' || delete_type == 'delete_single_row' || delete_type == 'delete_single_report'">
+    <template v-if="delete_type == 'delete_all' || delete_type == 'delete_failed' || delete_type == 'delete_single_row' || delete_type == 'delete_single_report'">
       <button type="button" @click="delete_" class="btn btn-danger">{{_i18n('delete')}}</button>
     </template>
     <template v-else>
@@ -26,7 +26,7 @@ import { default as modal } from "./modal.vue";
 import { default as NoteList } from "./note-list.vue";
 
 const modal_id = ref(null);
-const emit = defineEmits(['delete','delete_all']);
+const emit = defineEmits(['delete','delete_all','delete_failed']);
 
 const showed = () => {};
 
@@ -49,6 +49,9 @@ const show = (type, value) => {
     if(type == "delete_all") {
       title.value = i18n("delete_all_entries");
       body.value = value;
+    } else if(type == "delete_failed") {
+      title.value = i18n("hosts_stats.page_scan_hosts.delete_failed_entries_title");
+      body.value = value;
     } else if(type == "delete_single_row") {
       title.value = i18n("delete_vs_host_title");
       body.value = value;
@@ -70,6 +73,8 @@ const show = (type, value) => {
 const delete_ = () => {
     if (delete_type.value == "delete_all") {
       emit('delete_all');
+    } else if (delete_type.value == "delete_failed") {
+      emit('delete_failed');
     } else if ( delete_type.value == "delete_single_row" || delete_type.value == "delete_single_report") {
       emit('delete');
     } else if (delete_type.value == "scan_all_rows") {
