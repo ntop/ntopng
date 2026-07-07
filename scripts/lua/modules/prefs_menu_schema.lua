@@ -1251,6 +1251,7 @@ function M.get_sections(flags)
                 input_type = "text",
                 redis_key = "ntopng.prefs.ts_post_data_url",
                 default = "http://localhost:8086",
+                section = i18n("prefs.timeseries_database"),
                 test_endpoint = "/lua/rest/v2/get/ntopng/test_url_connectivity.lua",
                 attrs = {
                     spellcheck = "false",
@@ -1264,6 +1265,7 @@ function M.get_sections(flags)
                 input_type = "text",
                 redis_key = "ntopng.prefs.influx_dbname",
                 default = "ntopng",
+                section = i18n("prefs.timeseries_database"),
                 attrs = {
                     spellcheck = "false",
                     maxlength = "64"
@@ -1275,6 +1277,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.influx_auth_enabled",
                 default = "0",
+                section = i18n("prefs.timeseries_database"),
                 to_switch = {"influxdb_username", "influxdb_password"}
             }, {
                 key = "influxdb_username",
@@ -1284,6 +1287,7 @@ function M.get_sections(flags)
                 input_type = "text",
                 redis_key = "ntopng.prefs.influx_username",
                 default = "",
+                section = i18n("prefs.timeseries_database"),
                 attrs = {
                     spellcheck = "false",
                     maxlength = "64"
@@ -1297,6 +1301,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.influx_password",
                 default = "",
                 password = true,
+                section = i18n("prefs.timeseries_database"),
                 attrs = {
                     maxlength = "64"
                 }
@@ -1307,6 +1312,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.ts_resolution",
                 default = "300",
+                section = i18n("prefs.timeseries_database"),
                 options = {{
                     value = "60",
                     label = "1m"
@@ -1322,6 +1328,7 @@ function M.get_sections(flags)
                 input_type = "number",
                 redis_key = "ntopng.prefs.influx_query_timeout",
                 default = "10",
+                section = i18n("prefs.timeseries_database"),
                 attrs = {
                     min = "1"
                 }
@@ -1333,6 +1340,7 @@ function M.get_sections(flags)
                 input_type = "number",
                 redis_key = "ntopng.prefs.ts_and_stats_data_retention_days",
                 default = "30",
+                section = i18n("prefs.timeseries_database"),
                 attrs = {
                     min = "1",
                     max = tostring(365 * 10)
@@ -1346,6 +1354,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.rrd_files_retention_days",
                 default = "90",
                 hidden = (active_ts_driver ~= "rrd"),
+                section = i18n("prefs.timeseries_database"),
                 attrs = {
                     min = "7",
                     max = tostring(365 * 10)
@@ -1367,6 +1376,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.interface_ndpi_timeseries_creation",
                 default = "per_protocol",
+                section = i18n("prefs.interfaces_timeseries"),
                 options = {{
                     value = "none",
                     label = i18n("prefs.none")
@@ -1387,6 +1397,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.split_ts_direction",
                 default = "total",
+                section = i18n("prefs.interfaces_timeseries"),
                 options = {{
                     value = "total",
                     label = i18n("total")
@@ -1424,7 +1435,8 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_local_hosts_one_way_ts_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.hosts_one_way_traffic_rrd_creation",
-                default = "0"
+                default = "0",
+                section = i18n("prefs.local_hosts_timeseries")
             }, {
                 key = "hosts_ndpi_timeseries_creation",
                 title = i18n("prefs.toggle_ndpi_timeseries_creation_title"),
@@ -1432,6 +1444,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.host_ndpi_timeseries_creation",
                 default = "none",
+                section = i18n("prefs.local_hosts_timeseries"),
                 options = {{
                     value = "none",
                     label = i18n("prefs.none")
@@ -1449,12 +1462,12 @@ function M.get_sections(flags)
                 -- MAC Addresses Timeseries
                 {
                 key = "toggle_l2_devices_traffic_rrd_creation",
-                title = i18n("prefs.toggle_l2_devices_traffic_rrd_creation_title"),
-                description = i18n("prefs.toggle_l2_devices_traffic_rrd_creation_description"),
+                title = i18n("prefs.toggle_traffic_rrd_creation_title"),
+                description = i18n("prefs.toggle_traffic_rrd_creation_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.l2_device_rrd_creation",
                 default = "0",
-                section = i18n("prefs.mac_addresses_timeseries"),
+                section = i18n("prefs.l2_devices_timeseries"),
                 to_switch = {"l2_device_ndpi_timeseries_creation"}
             }, {
                 key = "l2_device_ndpi_timeseries_creation",
@@ -1463,6 +1476,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.l2_device_ndpi_timeseries_creation",
                 default = "none",
+                section = i18n("prefs.l2_devices_timeseries"),
                 options = {{
                     value = "none",
                     label = i18n("prefs.none")
@@ -1479,7 +1493,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.flow_device_port_rrd_creation",
                 default = "0",
-                section = i18n("prefs.flow_exporter_timeseries")
+                section = i18n("prefs.exporter_timeseries")
             }, {
                 key = "toggle_exporters_ndpi_ts_creation",
                 title = i18n("prefs.toggle_exporters_ndpi_ts_creation_title"),
@@ -1487,6 +1501,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.exporters_ndpi_ts_creation",
                 default = "none",
+                section = i18n("prefs.exporter_timeseries"),
                 options = {{
                     value = "none",
                     label = i18n("prefs.none")
@@ -1501,6 +1516,7 @@ function M.get_sections(flags)
                 type = "button_group",
                 redis_key = "ntopng.prefs.exporters_ts_resolution",
                 default = "300",
+                section = i18n("prefs.exporter_timeseries"),
                 options = {{
                     value = "60",
                     label = "1m"
@@ -1514,7 +1530,8 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_exporter_interface_usage_timeseries_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.interface_usage_probes_timeseries",
-                default = "1"
+                default = "1",
+                section = i18n("prefs.exporter_timeseries")
             },
                 -- System Timeseries
                 {
@@ -1524,7 +1541,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.system_probes_timeseries",
                 default = "1",
-                section = i18n("prefs.system_timeseries")
+                section = i18n("prefs.system_probes_timeseries")
             },
                 -- Other Timeseries
                 {
@@ -1543,6 +1560,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.observation_points_rrd_creation",
                 default = "0",
+                section = i18n("prefs.other_timeseries"),
                 hidden = (not is_pro)
             }, {
                 key = "toggle_pools_rrds",
@@ -1552,6 +1570,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.host_pools_rrd_creation",
                 default = "0",
+                section = i18n("prefs.other_timeseries"),
                 hidden = (not is_pro)
             }, {
                 key = "toggle_vlan_rrds",
@@ -1559,21 +1578,24 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_vlan_rrds_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.vlan_rrd_creation",
-                default = "0"
+                default = "0",
+                section = i18n("prefs.other_timeseries")
             }, {
                 key = "toggle_asn_rrds",
                 title = i18n("prefs.toggle_asn_rrds_title"),
                 description = i18n("prefs.toggle_asn_rrds_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.asn_rrd_creation",
-                default = "0"
+                default = "0",
+                section = i18n("prefs.other_timeseries")
             }, {
                 key = "toggle_country_rrds",
                 title = i18n("prefs.toggle_country_rrds_title"),
                 description = i18n("prefs.toggle_country_rrds_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.country_rrd_creation",
-                default = "0"
+                default = "0",
+                section = i18n("prefs.other_timeseries")
             }, {
                 key = "toggle_ndpi_flows_rrds",
                 title = i18n("prefs.toggle_ndpi_flows_rrds_title"),
@@ -1581,6 +1603,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ndpi_flows_rrd_creation",
                 default = "0",
+                section = i18n("prefs.other_timeseries"),
                 hidden = (not is_pro)
             }, {
                 key = "toggle_internals_rrds",
@@ -1590,14 +1613,16 @@ function M.get_sections(flags)
                 }),
                 type = "toggle",
                 redis_key = "ntopng.prefs.internals_rrd_creation",
-                default = "0"
+                default = "0",
+                section = i18n("prefs.other_timeseries")
             }, {
                 key = "toggle_os_rrds",
                 title = i18n("prefs.toggle_os_rrds_title"),
                 description = i18n("prefs.toggle_os_rrds_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.os_rrd_creation",
-                default = "0"
+                default = "0",
+                section = i18n("prefs.other_timeseries")
             }}
         },
 
