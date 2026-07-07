@@ -67,6 +67,7 @@
     "datatables.net-colreorder-dt": "^1.6.1",
     "datatables.net-dt": "^1.11.5",
     "datatables.net-responsive-dt": "^2.4.0",
+    "deck.gl": "^9.3.6",
     "dompurify": "^3.3.3",
     "dygraphs": "^2.2.1",
     "flatpickr": "^4.6.11",

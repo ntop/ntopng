@@ -470,11 +470,12 @@ local function addTopTimeseries(tags, tsOptions)
                         timeseries = {
                             bytes_sent = {
                                 label = serie.l4proto .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
+                                color = ts_gui_utils.get_timeseries_color('bytes_sent')
                             },
                             bytes_rcvd = {
+                                invert_direction = true,      
                                 label = serie.l4proto .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
+                                color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
                             }
                         }
                     }
@@ -513,11 +514,12 @@ local function addTopTimeseries(tags, tsOptions)
                         timeseries = {
                             bytes_sent = {
                                 label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
+                                color = ts_gui_utils.get_timeseries_color('bytes_sent')
                             },
                             bytes_rcvd = {
+                                invert_direction = true,      
                                 label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
+                                color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
                             }
                         }
                     }

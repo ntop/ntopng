@@ -376,9 +376,6 @@ const get_open_top_table_dropdown = (top, top_index) => {
 
 async function register_components_on_status_update() {
     await ntopng_sync.on_ready("range_picker");
-    //if (show_chart) {      
-    chart.value.register_status();
-    //}
     //updateDownloadButton();
     ntopng_status_manager.on_status_change(page, (new_status) => {
         let url_params = ntopng_url_manager.get_url_params();
