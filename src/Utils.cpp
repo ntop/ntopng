@@ -6531,8 +6531,15 @@ bool Utils::readModbusDeviceInfo(char* device_ip, u_int8_t timeout_sec,
           char buf[128];
 
           while (num_objects > 0) {
-            u_int8_t object_id = response[offset++];
-            u_int8_t l, object_len = response[offset++];
+            u_int8_t object_id, l, object_len;
+
+            /* Object id + length must be within the received data, otherwise
+               a reply with more objects than bytes walks offset past the
+               response buffer */
+            if (offset + 2 > len) break;
+
+            object_id = response[offset++];
+            object_len = response[offset++];
 
             if ((object_len + offset) < len) {
               switch (object_id) {
