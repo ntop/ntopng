@@ -107,10 +107,16 @@ local function check_network_issues(params)
 
     end
 
-    -- to percentage
-    local lost = format_utils.round((100 * tot_lost) / tot_packets, 1)
-    local out_of_orders = format_utils.round((100 * tot_out_of_order) / tot_packets, 1)
-    local retransmissions = format_utils.round((100 * tot_retransmissions) / tot_packets, 1)
+    local lost, out_of_orders, retransmissions = 0, 0, 0
+    
+    -- local network can have zero packets in the granularity window
+    -- (e.g. idle network or freshly created). In that case tot_packets == 0
+    -- and the divisions below would yield 0/0 == NaN
+    if tot_packets > 0 then
+        lost = format_utils.round((100 * tot_lost) / tot_packets, 1)
+        out_of_orders = format_utils.round((100 * tot_out_of_order) / tot_packets, 1)
+        retransmissions = format_utils.round((100 * tot_retransmissions) / tot_packets, 1)
+    end
 
     -- take thresholds
     local retransmissions_threshold = (params.check_config.retransmissions
