@@ -195,6 +195,7 @@ class Prefs {
   char* clickhouse_pw;
   char* clickhouse_ro_user;
   char* clickhouse_ro_pw;
+  char* clickhouse_server_cn;
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
   char* clickhouse_cluster_user; /* In case of ch cloud, 2 users are needed,
                     one for mysql and one for ch */
@@ -553,6 +554,7 @@ class Prefs {
   inline char* get_clickhouse_pw() { return (clickhouse_pw); };
   inline char* get_clickhouse_ro_user() { return (clickhouse_ro_user); };
   inline char* get_clickhouse_ro_pw() { return (clickhouse_ro_pw); };
+  inline char* get_clickhouse_server_cn() { return (clickhouse_server_cn); };
 
 #if !defined(WIN32) && !defined(__APPLE__)
   inline int get_flows_syslog_facility() { return (flows_syslog_facility); };

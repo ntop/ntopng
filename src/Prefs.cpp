@@ -232,6 +232,7 @@ Prefs::Prefs(Ntop* _ntop) {
 
   clickhouse_host = clickhouse_dbname = clickhouse_user = clickhouse_pw = NULL;
   clickhouse_ro_user = clickhouse_ro_pw = NULL;
+  clickhouse_server_cn = NULL;
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
   clickhouse_cluster_user = NULL;
   ntopng_assets_inventory_enabled = true;
@@ -347,6 +348,7 @@ Prefs::~Prefs() {
   if (clickhouse_pw) free(clickhouse_pw);
   if (clickhouse_ro_user) free(clickhouse_ro_user);
   if (clickhouse_ro_pw) free(clickhouse_ro_pw);
+  if (clickhouse_server_cn) free(clickhouse_server_cn);
   if (ls_host) free(ls_host);
   if (ls_port) free(ls_port);
   if (ls_proto) free(ls_proto);
@@ -717,7 +719,6 @@ void usage() {
 #ifndef HAVE_NEDGE
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   printf(
-	 "                                    |\n"
 	 "                                    | kafka   Dump to Kafka (Enterprise "
 	 "M/L/XL/XXL)\n"
 	 "                                    |   Format:\n"
@@ -736,16 +737,13 @@ void usage() {
 #endif
 #endif
 
-#ifdef NTOPNG_PRO
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
   printf(
-	 "[--dump-queue-len] <len>            | Set the in-memory ClickHouse dump "
-	 "queue length (Default: %u)\n"
-	 "[--dump-queue-block-size] <size>    | Set the in-memory ClickHouse data "
-	 "block size (Default: %u)\n"
-	 "[--direct-flows-dump]               | Dump collected flows directly "
-	 "before any additional processing\n"
-	 "[--readonly-flows-dump]             | Keep ClickHouse connected for "
-	 "reading but disable flow dump (writing)\n",
+	 "[--clickhouse-server-cn] <name>     | Server name (CN) to use for TLS certificate verification when connecting to ClickHouse\n"
+	 "[--dump-queue-len] <len>            | Set the in-memory ClickHouse dump queue length (Default: %u)\n"
+	 "[--dump-queue-block-size] <size>    | Set the in-memory ClickHouse data block size (Default: %u)\n"
+	 "[--direct-flows-dump]               | Dump collected flows directly before any additional processing\n"
+	 "[--readonly-flows-dump]             | Keep ClickHouse connected for reading but disable flow dump (writing)\n",
 	 CLICKHOUSE_MAX_DUMP_BLOCKS, CLICKHOUSE_MAX_DUMP_ROWS_PER_BLOCK);
 #endif
   printf(
@@ -1438,6 +1436,9 @@ static const struct option long_options[] = {
   {"redis-tls-skip-verify", no_argument, NULL, 233},
 #endif
 #ifdef NTOPNG_PRO
+#if defined(HAVE_CLICKHOUSE)
+  {"clickhouse-server-cn", required_argument, NULL, 247},
+#endif
   {"dump-queue-len", no_argument, NULL, 248},
   {"dump-queue-block-size", no_argument, NULL, 249},
   {"direct-flows-dump", no_argument, NULL, 250},
@@ -2611,6 +2612,13 @@ int Prefs::setOption(int optkey, char* optarg) {
 #endif
 
 #ifdef NTOPNG_PRO
+#if defined(HAVE_CLICKHOUSE)
+  case 247:
+    if (clickhouse_server_cn) free(clickhouse_server_cn);
+    clickhouse_server_cn = strdup(optarg);
+    break;
+#endif
+
   case 248:
     dump_queue_len = atoi(optarg);
     break;
