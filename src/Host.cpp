@@ -73,7 +73,10 @@ Host::~Host() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u",
                                  getUses());
 
-  if (mac) mac->decUses();
+  if (mac) {
+    mac->decUses();
+    if (!ip.isLocalHost()) mac->decNumRemoteHosts();
+  }
   if (as) as->decUses();
   if (country) country->decUses();
   if (obs_point) obs_point->decUses();
@@ -306,7 +309,12 @@ void Host::initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlanId,
 
   /* Mac MUST be set before toggleRxOnlyHost() */
   mac = _mac;
-  if (mac) mac->incUses();
+  if (mac) {
+    mac->incUses();
+    /* Track remote hosts reachable behind this MAC: this is what marks the
+       MAC as an actual router/gateway (see Mac::isRouterMac()). */
+    if (!ip.isLocalHost()) mac->incNumRemoteHosts();
+  }
 
   toggleRxOnlyHost(true);
 
@@ -475,10 +483,16 @@ void Host::set_mac(Mac* _mac) {
   if (_mac == NULL) return;
   if (mac == _mac) return;
 
-  if (mac) mac->decUses();
+  bool is_remote = !ip.isLocalHost();
+
+  if (mac) {
+    mac->decUses();
+    if (is_remote) mac->decNumRemoteHosts();
+  }
 
   mac = _mac;
   mac->incUses();
+  if (is_remote) mac->incNumRemoteHosts();
 }
 
 /* *************************************** */

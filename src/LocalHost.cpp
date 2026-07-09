@@ -266,12 +266,18 @@ void LocalHost::periodic_stats_update(const struct timeval* tv,
 void LocalHost::checkGatewayInfo() {
   if (mac) {
     // #define DEBUG_GATEWAY 1
-    bool is_gateway = mac->getDeviceType() == device_networking;
+
+    // A local host is a gateway only if its MAC is a networking device AND it
+    // actually routes traffic towards remote networks (i.e. there are remote
+    // hosts reachable behind that MAC).
+    bool is_gateway =
+        (mac->getDeviceType() == device_networking) && mac->isRouterMac();
 #ifdef DEBUG_GATEWAY
     char buf[64];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "Checking device type [IP: %s] [Type: %d]",
-                                 ip.print(buf, sizeof(buf)), device_networking);
+        "Checking device type [IP: %s] [Type: %d] [Remote hosts behind MAC: %u]",
+        ip.print(buf, sizeof(buf)), mac->getDeviceType(),
+        mac->getNumRemoteHosts());
 #endif
     if (is_gateway) {
       ip.setGateway(true);

@@ -30,6 +30,9 @@ class Mac : public GenericHashEntry {
   u_int8_t mac[6];
   u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
+  /* Number of remote (non-local) hosts reachable behind this MAC. A value > 0 means the MAC is
+     actually routing traffic towards remote networks, i.e. it behaves as a gateway/router. */
+  u_int32_t num_remote_hosts; 
   bool special_mac, lockDeviceTypeChanges, broadcast_mac, asset_map_updated,
       empty_mac;
   bool stats_reset_requested, data_delete_requested;
@@ -71,6 +74,17 @@ class Mac : public GenericHashEntry {
   ~Mac();
 
   inline u_int32_t getNumHosts() { return getUses(); }
+  inline void incNumRemoteHosts() { num_remote_hosts++; }
+  inline void decNumRemoteHosts() {
+    if (num_remote_hosts > 0) num_remote_hosts--;
+  }
+  inline u_int32_t getNumRemoteHosts() { return num_remote_hosts; }
+  /* A MAC is a gateway/router only if it actually forwards traffic towards
+     remote networks, i.e. there is at least one remote host reachable behind
+     it. This is what tells a real default gateway apart from a plain
+     networking device (switch/AP) or from a local host that merely shares
+     the gateway MAC because its own MAC was never observed. */
+  inline bool isRouterMac() { return (num_remote_hosts > 0); }
   void setDeviceType(DeviceType devtype);
   inline void incUses() {
     GenericHashEntry::incUses();
