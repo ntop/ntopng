@@ -25,18 +25,14 @@
 					"id": "edit_rule",
 					"icon": "fas fa-edit",
 					"title_i18n": "edit",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_edit_rule"
 				},
 				{
 					"id": "delete_rule",
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
-					"class": [
-						"btn-info"
-					],
+					"class": [],
 					"event_id": "click_button_delete_rule"
 				}
 			]
