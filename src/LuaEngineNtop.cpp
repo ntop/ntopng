@@ -4996,22 +4996,6 @@ static int ntop_resolve_host(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Enables or disables full (fat) MIB polling mode for SNMP.  Lua: ntop.snmpSetFatMibPollingMode(enabled) → nil */
-static int ntop_snmp_set_fat_mib_polling_mode(lua_State* vm) {
-  NtopngLuaContext* ctx = getLuaVMContext(vm);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-
-  if (ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->setFatMIBMode((bool)lua_toboolean(vm, 1));
-
-  lua_pushnil(vm);
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
-}
-
-/* ****************************************** */
-
 /* @brief Returns true if the corresponding SNMP capability is compiled in.  Lua: ntop.snmpv3available()/snmpsetavailable()/snmpgetbulkavailable() → boolean */
 static int ntop_is_libsnmp_available(lua_State* vm) {
   lua_pushboolean(vm,
@@ -9173,7 +9157,6 @@ static luaL_Reg _ntop_reg[] = {
     {"verboseTrace", ntop_verbose_trace},
 
     /* SNMP */
-    {"snmpSetFatMibPollingMode", ntop_snmp_set_fat_mib_polling_mode},
     {"snmpv3available", ntop_is_libsnmp_available},
     {"snmpsetavailable", ntop_is_libsnmp_available},
     {"snmpgetbulkavailable", ntop_is_libsnmp_available},

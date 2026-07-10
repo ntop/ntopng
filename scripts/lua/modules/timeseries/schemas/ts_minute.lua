@@ -94,6 +94,17 @@ schema:addTag("ifid")
 schema:addMetric("devices_polled_ok")
 schema:addMetric("devices_polled_late")
 
+-- ################################################
+
+schema = ts_utils.newSchema("snmp:num_polled_devices", {
+   step = 60,
+   metrics_type = ts_utils.metrics.gauge,
+   is_critical_ts = true
+})
+schema:addTag("ifid")
+schema:addMetric("num_devices_active")
+schema:addMetric("num_devices_down")
+
 -------------------------------------------------------
 -- PROFILES SCHEMAS
 -------------------------------------------------------

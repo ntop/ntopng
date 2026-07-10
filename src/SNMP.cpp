@@ -1234,11 +1234,6 @@ int SNMP::snmpv3_get_fctn(lua_State* vm, snmp_pdu_primitive pduType,
 
 int SNMP::snmp_get_fctn(lua_State* vm, snmp_pdu_primitive pduType,
                         bool skip_first_param, bool _batch_mode) {
-  NtopngLuaContext* ctx = getLuaVMContext(vm);
-
-  if (ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->incSNMPStats(snmp_version);
-
   if (lua_type(vm, skip_first_param ? 5 : 4) != LUA_TNUMBER) {
 #ifdef HAVE_LIBSNMP
     return (snmpv3_get_fctn(vm, pduType, skip_first_param, _batch_mode));

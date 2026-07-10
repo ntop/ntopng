@@ -49,17 +49,6 @@ typedef struct {
 } threaded_activity_timeseries_stats_t;
 
 typedef struct {
-  /*
-    Total number of SNMP calls (get, get-next, get-bulk...) divided per MIB type
-    - fat MIBS are those that require heavy polling as they
-    contain many MOs (e.g. bridge MIB)
-    - "other" MIBs are all the other MIBs
-  */
-  u_long num_calls_fat_mibs_v1_v2c, num_calls_fat_mibs_v3;
-  u_long num_calls_other_mibs_v1_v2c, num_calls_other_mibs_v3;
-} threaded_activity_snmp_stats_t;
-
-typedef struct {
   struct {
     threaded_activity_timeseries_stats_t write;
   } timeseries;
@@ -67,10 +56,6 @@ typedef struct {
   struct {
     bool has_drops;
   } alerts;
-
-  struct {
-    threaded_activity_snmp_stats_t calls;
-  } snmp;
 } threaded_activity_stats_t;
 
 class ThreadedActivityStats {
@@ -81,7 +66,6 @@ class ThreadedActivityStats {
   u_long num_not_executed, num_is_slow;
   u_long max_duration_ms, last_duration_ms;
   int progress;
-  bool snmp_fat_mib_call;
   time_t scheduled_time, deadline;
   static ticks tickspersec;
   bool not_executed, is_slow;
@@ -105,11 +89,6 @@ class ThreadedActivityStats {
   void incTimeseriesWriteDrops(u_long num_drops);
   void sumTimeseriesStats(ThreadedActivityStats* oth_tas);
 
-  /* SNMP calls stats */
-  void sumSNMPStats(ThreadedActivityStats* oth_tas);
-  void incSNMPStats(u_int8_t version);
-  void setFatMIBMode(bool fatMibCall) { snmp_fat_mib_call = fatMibCall; }
-
   void updateStatsQueuedTime(time_t queued_time);
   void updateStatsBegin(struct timeval* begin);
   void updateStatsEnd(u_long duration_ms);
@@ -124,7 +103,6 @@ class ThreadedActivityStats {
   inline void setAlertsDrops() { ta_stats.alerts.has_drops = true; }
 
   void luaTimeseriesStats(lua_State* vm);
-  void luaSNMPStats(lua_State* vm);
   void lua(lua_State* vm, bool includeTimeseriesStats = true);
 
   inline ThreadedActivityState getState() { return (state); }
