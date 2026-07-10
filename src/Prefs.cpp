@@ -3322,13 +3322,10 @@ void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
 /* *************************************** */
 
 void Prefs::reloadServersConfiguration() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "RELOADING servers configurations");
   gateway->reloadServerConfiguration((char *) CONST_GATEWAY_CONFIGURATION_REDIS_KEY);
   dns_servers->reloadServerConfiguration((char *) CONST_DNS_SERVER_CONFIGURATION_REDIS_KEY);
   ntp_servers->reloadServerConfiguration((char *) CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "RELOADING DHCP servers...");
   dhcp_servers->reloadServerConfiguration((char *) CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "RELOADING DHCP servers done");
   smtp_servers->reloadServerConfiguration((char *) CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY);
 }
 
