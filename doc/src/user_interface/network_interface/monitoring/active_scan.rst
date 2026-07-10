@@ -20,7 +20,7 @@ Active Scan Page
 
 On the Active Scan page, it is possible to view the registered hosts that can be scanned, along with various details about the last executed scan, such as:
 
-- Scan Status (can be "Scanning", "Scheduled", "Success", "Not Scanned", "Error");
+- Scan Status (can be "Scanning", "Scheduled", "Success", "Not Scanned", "Failed", "Error");
 - Scan Type;
 - TCP Ports (number of open TCP ports found);
 - UDP Ports (number of open UDP ports found);
@@ -39,9 +39,10 @@ After the ntopng execution of a TCP or UDP Portscan, ntopng compares the open po
 .. |filter| image:: ../../../img/active_scan_filtered_icon.png
   :height: 25px
 
-At the bottom of the page, there are three buttons:
+At the bottom of the page, there are four buttons:
 
 - Delete All (to remove all hosts from the active scan list);
+- Delete Failed (to remove from the active scan list only the hosts whose last scan failed, that is, the hosts that were unreachable or could not be scanned. The button is enabled only when at least one failed host is present);
 - Schedule All Scans (to schedule a scan for all hosts in the active scan list);
 - Batch Edit (to update the periodicity scan for all hosts in the active scan list);
 
