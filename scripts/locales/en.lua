@@ -3327,7 +3327,7 @@ local lang = {
   ["exporters_page"] = {
     ["flow_drops_criteria"] = "Total Drops",
     ["flow_volume_criteria"] = "Total Flows",
-    ["failed_exports_descr"] = "Failed Exports (collector mode): nProbe dropped some collected flows or was unable to deliver all collected flows to ntopng (drops are reported by nProbe).",
+    ["failed_exports_descr"] = "Failed Exports (collector mode): nProbe detected missing sequence numbers in the collected flows. This usually happens for two reasons: packets were lost traveling from the exporter to nProbe, or nProbe was overloaded and dropped them (check nProbe's reported drops to verify).",
     ["dropped_packets_descr"] = "Capture Drops (probe mode): nProbe packet drops hence not accounted in exported flows (drops are reported by nProbe).",
   },
   ["external_stats"] = {
