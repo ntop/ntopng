@@ -233,6 +233,7 @@ Prefs::Prefs(Ntop* _ntop) {
   clickhouse_host = clickhouse_dbname = clickhouse_user = clickhouse_pw = NULL;
   clickhouse_ro_user = clickhouse_ro_pw = NULL;
   clickhouse_server_cn = NULL;
+  clickhouse_client_cert = clickhouse_client_key = NULL;
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
   clickhouse_cluster_user = NULL;
   ntopng_assets_inventory_enabled = true;
@@ -349,6 +350,8 @@ Prefs::~Prefs() {
   if (clickhouse_ro_user) free(clickhouse_ro_user);
   if (clickhouse_ro_pw) free(clickhouse_ro_pw);
   if (clickhouse_server_cn) free(clickhouse_server_cn);
+  if (clickhouse_client_cert) free(clickhouse_client_cert);
+  if (clickhouse_client_key) free(clickhouse_client_key);
   if (ls_host) free(ls_host);
   if (ls_port) free(ls_port);
   if (ls_proto) free(ls_proto);
@@ -740,6 +743,8 @@ void usage() {
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO)
   printf(
 	 "[--clickhouse-server-cn] <name>     | Server name (CN) to use for TLS certificate verification when connecting to ClickHouse\n"
+	 "[--clickhouse-client-cert] <path>   | Client certificate (PEM) for mutual TLS authentication when connecting to ClickHouse\n"
+	 "[--clickhouse-client-key] <path>    | Client private key (PEM, unencrypted) matching --clickhouse-client-cert\n"
 	 "[--dump-queue-len] <len>            | Set the in-memory ClickHouse dump queue length (Default: %u)\n"
 	 "[--dump-queue-block-size] <size>    | Set the in-memory ClickHouse data block size (Default: %u)\n"
 	 "[--direct-flows-dump]               | Dump collected flows directly before any additional processing\n"
@@ -1437,6 +1442,8 @@ static const struct option long_options[] = {
 #endif
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE)
+  {"clickhouse-client-cert", required_argument, NULL, 245},
+  {"clickhouse-client-key", required_argument, NULL, 246},
   {"clickhouse-server-cn", required_argument, NULL, 247},
 #endif
   {"dump-queue-len", no_argument, NULL, 248},
@@ -2613,6 +2620,16 @@ int Prefs::setOption(int optkey, char* optarg) {
 
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE)
+  case 245:
+    if (clickhouse_client_cert) free(clickhouse_client_cert);
+    clickhouse_client_cert = strdup(optarg);
+    break;
+
+  case 246:
+    if (clickhouse_client_key) free(clickhouse_client_key);
+    clickhouse_client_key = strdup(optarg);
+    break;
+
   case 247:
     if (clickhouse_server_cn) free(clickhouse_server_cn);
     clickhouse_server_cn = strdup(optarg);

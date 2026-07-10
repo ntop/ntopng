@@ -109,6 +109,32 @@ For example:
    Securing the connection when using ClickHouse Cloud is highly recommended,
    moreover ClickHouse Cloud by default only accepts secured connections
 
+Server Certificate Verification
+================================
+
+When the host used to connect (see :code:`-F`) does not match the Common Name (CN) of the ClickHouse server certificate, TLS verification fails. Use :code:`--clickhouse-server-cn` to explicitly indicate the name to expect in the certificate:
+
+.. code:: bash
+
+    ntopng -F "clickhouse;clickhouse.host@9000,9440s;ntopng;default;default" --clickhouse-server-cn clickhouse.example.org
+
+Mutual TLS (mTLS)
+==================
+
+ntopng can also authenticate itself to the ClickHouse server using a client certificate, in addition to the usual username/password authentication. This requires setting both :code:`--clickhouse-client-cert` and :code:`--clickhouse-client-key` to PEM-encoded files:
+
+.. code:: bash
+
+    ntopng -F "clickhouse;127.0.0.1@9000,9440s;ntopng;default;default" --clickhouse-client-cert /etc/ntopng/clickhouse-client.crt --clickhouse-client-key /etc/ntopng/clickhouse-client.key
+
+Both options must be set together.
+
+.. note::
+
+   The private key file must be unencrypted (no passphrase).
+
+Note that the ClickHouse server should also be configured (in :code:`config.xml`, under the :code:`<openSSL><server>` section) to request or require a client certificate, and optionally to map the certificate to a user via :code:`<ssl_certificates>`. Otherwise, mTLS is only used for transport security while user/password authentication is still performed as usual.
+
 Strict Startup
 --------------
 

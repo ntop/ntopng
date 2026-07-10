@@ -6,7 +6,7 @@ ClickHouse
 ntopng features ClickHouse to export flows to `ClickHouse <https://clickhouse.com/>`_. Enabling the export into ClickHouse Database is going to make the :doc:`Historical Flow Explorer <../clickhouse/historical_flow_explorer>` page available.
 
 .. note::
-    ClickHouse export is available only with Enterprise license
+    ClickHouse export is available only with Enterprise license. See :doc:`../../../flow_dump/clickhouse/clickhouse` for how to configure ClickHouse support in ntopng.
 
 .. figure:: ../../../img/clickhouse_monitor_home.png
   :align: center
