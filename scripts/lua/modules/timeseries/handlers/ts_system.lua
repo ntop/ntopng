@@ -93,7 +93,6 @@ local timeseries_list = {
 		timeseries = {
 			cpu_utilization_pct = {
 				use_serie_name = true,
-				label = i18n("about.cpu_load"),
 				color = ts_gui_utils.get_timeseries_color("default"),
 			},
 		},
