@@ -23,9 +23,6 @@
 
 extern "C" {
 extern char* rrd_strversion(void);
-#if defined(NTOPNG_PRO)
-  extern void ntopinit(int argc, char* argv[]);
-#endif
 };
 
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
