@@ -4249,8 +4249,6 @@ static int ntop_get_info(lua_State *vm) {
     lua_push_bool_table_entry(vm, "version.embedded_edition",
                               ntop->getPrefs()->is_embedded_edition());
 
-    lua_push_uint64_table_entry(vm, "pro.demo_ends_at",
-                                ntop->getPrefs()->pro_edition_demo_ends_at());
 #ifdef NTOPNG_PRO
 #ifndef FORCE_VALID_LICENSE
     time_t until_then;

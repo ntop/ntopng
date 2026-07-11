@@ -5886,29 +5886,7 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_update_ranking(lua_State *vm) {
-#ifdef NTOPNG_PRO
-  u_int32_t epoch;
-  char *key, *values;
-  NetworkInterface *curr_iface = getCurrentInterface(vm);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  else
-    epoch = (u_int32_t)lua_tonumber(vm, 1);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  else
-    key = (char*)lua_tostring(vm, 2);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  else
-    values = (char*)lua_tostring(vm, 3);
-
-  curr_iface->updateRanking(vm, epoch, key, values);
-#endif
-
+  /* Unused */
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

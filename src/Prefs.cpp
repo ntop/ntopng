@@ -2443,10 +2443,10 @@ int Prefs::checkOptions() {
     printf("Edition:\t%s\n", ntop->getPro()->get_edition());
     printf("License Type:\t%s\n",
            ntop->getPro()->get_license_type(buf, sizeof(buf)));
-
-    if(ntop->getPro()->demo_ends_at())
+    
+    if (ntop->getPro()->license_expires_at())
       printf("Validity:\t%s\n",
-             ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
+	     ntop->getPro()->get_license_expiration(buf, sizeof(buf)));
     else
       printf("Maintenance:\t%s\n",
              ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
@@ -2497,7 +2497,7 @@ int Prefs::checkOptions() {
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
 
-    if((license_until = ntop->getPro()->demo_ends_at()) == 0)
+    if ((license_until = ntop->getPro()->license_expires_at()) == 0)      
       license_until = (time_t)-1;
 
     maintenance_until = ntop->getPro()->maintenance_ends_at();
@@ -3183,18 +3183,6 @@ void Prefs::set_routing_mode(bool enabled) {
 #else
   routing_mode_enabled = false;
 #endif
-}
-
-/* *************************************** */
-
-time_t Prefs::pro_edition_demo_ends_at() {
-  return
-#ifdef NTOPNG_PRO
-    ntop->getPro()->demo_ends_at()
-#else
-    0
-#endif
-    ;
 }
 
 /* *************************************** */
