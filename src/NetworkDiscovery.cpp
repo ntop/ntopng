@@ -905,8 +905,8 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
     struct sockaddr_in from = {0};
     socklen_t s = sizeof(from);
     char ipbuf[32];
-    int len =
-        recvfrom(udp_sock, (char*)msg, sizeof(msg), 0, (sockaddr*)&from, &s);
+    int len = recvfrom(udp_sock, (char*)msg, sizeof(msg) - 1, 0,
+                       (sockaddr*)&from, &s);
 
     if (debug_mode) {
       ntop->getTrace()->traceEvent(
