@@ -107,9 +107,6 @@ extern "C" {
 #ifdef WIN32
   initWinsock32();
 #else
-#if defined(NTOPNG_PRO)
-  ntopinit(argc, argv);
-#endif
   sqlite3_shutdown();
 
   /* Multi-thread.
