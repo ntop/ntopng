@@ -445,6 +445,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     ntop->getTrace()->setRedis(getRedis());
 
 #ifdef NTOPNG_PRO
+  ntop->getPro()->initialize(quick_registration);
+  
   if (!ntop->getPro()->has_unlimited_enterprise_l_license())
     prefs->toggle_dump_flows_direct(false);
 #endif
