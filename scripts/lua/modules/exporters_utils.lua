@@ -191,16 +191,6 @@ function exporters_utils.getAllProbesList()
    return list
 end
 
-local function getExportersBasicInfo(exporter_ip, interface_id, probe_id, exporter_id, exporters_list)
-   exporters_list[#exporters_list + 1] = {
-      id = exporter_ip,
-      interface_id = interface_id,
-      name = getProbeName(exporter_ip, true, true, false),
-      probe_source_id = probe_id,
-      exporter_source_id = exporter_id
-   }
-end
-
 -- ################################################
 
 function exporters_utils.getAllExportersList()
@@ -209,12 +199,37 @@ function exporters_utils.getAllExportersList()
    if ifstats.probes then
       for interface_id, probe_list in pairs(ifstats.probes or {}) do
          for source_id, probe_info in pairsByKeys(probe_list or {}) do
-            if probe_info.exporters and table.len(probe_info.exporters) > 0 then -- Sflow or NetFlow/IPFIX
+            if probe_info.exporters and table.len(probe_info.exporters) > 0 then 
                for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}) do
-                  getExportersBasicInfo(exporter_ip, interface_id, probe_info["probe.source_id"], exporter_info.unique_source_id or 0, exporters_list)
+                  if (probe_info["probe.mode"] == "packet_collection") then
+                     exporter_info.num_drops = (probe_info["drops.elk_flow_drops"] or 0)
+                                 + (probe_info["drops.too_many_flows"] or 0)
+                                 + (probe_info["drops.flow_collection_udp_socket_drops"] or 0)
+                                 + (probe_info["drops.flow_collection_drops"] or 0)
+                                 + (probe_info["drops.sflow_pkt_sample_drops"] or 0)
+                                 + (probe_info["drops.export_queue_full"] or 0)
+					      exporter_info.num_flows = probe_info["zmq.num_flow_exports"]
+                     exporter_info.remote_interface_name = probe_info["remote.name"]
+                     exporter_info.time_last_used = probe_info["probe.last_update"]
+                     exporter_info.exporter_type = "packet_collection"
+                  elseif (probe_info["probe.mode"] == "flow_collection") then
+                     if exporter_info.num_sflow_flows > 0 then
+                        exporter_info.exporter_type = "sflow_collection"
+                     elseif exporter_info.num_netflow_flows > 0 then
+                        exporter_info.exporter_type = "netflow_collection"
+                     end
+                  end
+                  exporter_info.id = exporter_ip
+                  exporter_info.name = getProbeName(exporter_ip, true, true, false)
+                  exporter_info.interface_id = interface_id
+                  exporter_info.exporter_ip = exporter_ip
+                  exporter_info.exporter_source_id = exporter_info.unique_source_id or 0
+                  exporter_info.probe_ip = probe_info["probe.ip"]
+                  exporter_info.probe_source_id = probe_info["probe.source_id"]
+                  exporter_info.collection_port = probe_info["flow_collection.collection_port"]
+
+                  exporters_list[#exporters_list + 1] = exporter_info
                end
-            elseif probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then -- Packet Probe
-               getExportersBasicInfo(probe_info["probe.ip"], interface_id, probe_info["probe.source_id"], probe_info["probe.source_id"], exporters_list)
             end
          end
       end
