@@ -10,18 +10,18 @@
                 <BreadcrumbNav :items="breadcrumbItems" @on_select="handleBreadcrumbSelect" />
                 <div v-if="selectedExporter" class="ms-auto d-flex align-items-center gap-2">
                     <a v-if="isLive && liveFlowsUrl" :href="liveFlowsUrl" target="_blank"
-                        class="btn btn-sm btn-outline-secondary">
+                        class="btn btn-sm btn-primary sites-dashboard-flows-btn">
                         <i class="fas fa-external-link-alt me-1"></i>{{ _i18n('sites_dashboard.live_flows') }}
                     </a>
                     <a v-if="!isLive && historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
-                        class="btn btn-sm btn-outline-secondary">
+                        class="btn btn-sm btn-primary sites-dashboard-flows-btn">
                         <i class="fas fa-external-link-alt me-1"></i>{{ _i18n('sites_dashboard.historical_flows') }}
                     </a>
                     <DateTimeRangePicker :id="DATE_PICKER_ID" class="sites-dashboard-date-picker"
                         ref="date_time_picker" @epoch_change="on_epoch_change"
                         :custom_time_interval_list="time_preset_list" />
-                    <button type="button" class="btn btn-sm btn-outline-secondary" :title="_i18n('refresh')"
-                        @click="refreshCurrentView">
+                    <button type="button" class="btn btn-sm btn-outline-secondary sites-dashboard-refresh-btn"
+                        :title="_i18n('refresh')" @click="refreshCurrentView">
                         <i class="fas fa-sync"></i>
                     </button>
                 </div>
@@ -50,7 +50,7 @@
                                 </div>
                                 <span class="sites-dashboard-kpi-label">{{ _i18n(kpi.labelI18n) }}</span>
                             </div>
-                            <div class="sites-dashboard-kpi-value" :class="{ 'fw-normal': kpi.noBold }">{{ kpi.value }}</div>
+                            <div class="sites-dashboard-kpi-value">{{ kpi.value }}</div>
                             <div v-if="kpi.sub" class="sites-dashboard-kpi-sub">{{ kpi.sub }}</div>
                         </div>
                     </div>
@@ -477,7 +477,6 @@ const kpiCards = computed(() => {
             labelI18n: "sites_dashboard.current_traffic",
             value: `${_i18n("sites_dashboard.in_bytes")}: ${formatBytes(exporterCurrentTraffic.value.in)}`,
             sub: `${_i18n("sites_dashboard.out_bytes")}: ${formatBytes(exporterCurrentTraffic.value.out)}`,
-            noBold: true,
         });
 
         cards.push({ key: "flows", icon: "bi bi-signpost-split", color: "#EA6A2A", labelI18n: "sites_dashboard.flows", value: liveFlowsCount.value ?? "—" });
@@ -925,7 +924,7 @@ async function handleBreadcrumbSelect(item) {
 .sites-dashboard {
     max-width: none;
     align-items: flex-start;
-    margin: -0.5rem -0.75rem 0;
+    margin: -0.5rem -0.75rem 0 -0.75rem;
 }
 
 .min-w-0 {
@@ -980,6 +979,20 @@ async function handleBreadcrumbSelect(item) {
     display: none;
 }
 
+.sites-dashboard-flows-btn i {
+    color: #fff;
+}
+
+.sites-dashboard-refresh-btn {
+    height: 28px;
+    width: 28px;
+    padding: 0.2rem;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .sites-dashboard-mock-chart {
     min-height: 220px;
 }
@@ -990,6 +1003,8 @@ async function handleBreadcrumbSelect(item) {
     border-radius: 10px;
     padding: 16px 18px;
     height: 100%;
+    min-width: 0;
+    container-type: inline-size;
 }
 
 .sites-dashboard-kpi-icon {
@@ -1004,27 +1019,37 @@ async function handleBreadcrumbSelect(item) {
     flex-shrink: 0;
 }
 
+.sites-dashboard-kpi-header {
+    min-width: 0;
+}
+
 .sites-dashboard-kpi-label {
-    font-size: 0.85rem;
-    color: var(--ntop-muted-text-color);
-    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ntop-text-color);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .sites-dashboard-kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: clamp(1.1rem, 8cqw, 1.75rem);
     color: var(--ntop-text-color);
     margin-top: 8px;
-}
-
-.sites-dashboard-kpi-value.fw-normal {
-    font-size: 1.1rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .sites-dashboard-kpi-sub {
     font-size: 0.8rem;
     color: var(--ntop-muted-text-color);
     margin-top: 2px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 @media (max-width: 992px) {

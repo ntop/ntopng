@@ -170,6 +170,27 @@ async function loadRoots() {
     children.forEach((node) => nodesById.value.set(node.id, normalizeNode(node, null)));
     rootIds.value = children.map((n) => n.id);
     isLoading.value = false;
+    prefetchChildCounts(children);
+}
+
+/* Fires one loadChildren call per node to
+   learn how many children each row has. */
+function prefetchChildCounts(nodes) {
+    nodes.forEach(async (node) => {
+        if (node.isEmptyPlaceholder || node.hasChildren === false) return;
+        if (node.children !== null && node.children !== undefined) return;
+        try {
+            const kids = await safeLoadChildren(node);
+            const stored = nodesById.value.get(node.id);
+            if (!stored || stored.children !== null) return; // already expanded/toggled meanwhile
+            stored.badgeValue = kids.length > 0 ? kids.length : null;
+            stored.badgeFormatter = "no_formatting";
+            stored.hasChildren = kids.length > 0;
+            nodesById.value.set(node.id, { ...stored });
+        } catch (_) {
+            // leave the row without a badge
+        }
+    });
 }
 
 /* parentId is recorded on every node as it enters the tree (null for roots).
@@ -223,9 +244,6 @@ async function handleToggle(node) {
 
         let children = await safeLoadChildren(node);
         if (children.length === 0) {
-            /* Synthetic placeholder so an expanded-but-empty branch still shows
-               something instead of collapsing back to nothing. Not selectable
-               and never itself expandable. */
             children = [makeEmptyNode(id)];
         }
         children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
@@ -233,6 +251,7 @@ async function handleToggle(node) {
         /* The chevron always stays visible: a node can always be expanded
            again to re-check for children, regardless of what was found. */
         nodesById.value.set(id, node);
+        prefetchChildCounts(children.filter((c) => !c.isEmptyPlaceholder));
 
         loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
     }
@@ -271,11 +290,11 @@ defineExpose({ reload, ancestorsOf });
     background: #12151a;
     height: 100%;
     border-right: 1px solid #0c0e12;
-    overflow: hidden;
 }
 
 .tree-nav-sidebar--sticky {
     position: sticky;
+    align-self: flex-start;
 }
 
 @media (max-width: 992px) {

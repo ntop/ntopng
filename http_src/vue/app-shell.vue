@@ -1803,7 +1803,7 @@ body.dark #n-navbar,
   border-bottom-color: rgba(255,255,255,0.07) !important;
 }
 div.wrapper {
-  overflow-x: auto;
+  overflow: visible;
 }
 
 /* Sidebar: always fixed to viewport, never moved by layout changes */
