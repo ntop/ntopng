@@ -415,7 +415,6 @@ async function fetchChart() {
         chartRef.value.retrieveOptionsAndDraw('');
     }
 
-    debugger;
     isLoading.value = false;
 }
 

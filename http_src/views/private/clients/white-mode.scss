@@ -1,6 +1,8 @@
 :root {
   font-weight: 500;
   --sidebar-width: 0px; /* AppShell Vue sidebar: overridden by --sb-rail-w */
+  --sb-rail-w: 4rem;
+  --sb-navbar-h: 3rem;
   --footer-height: 4rem;
   --padding-md-four: 1.5rem;
   --scrollable-dropdown-height: 20rem;
@@ -650,7 +652,25 @@ td.dt-body-right {
 }
 
 .body {
-  padding-top: 4.5rem;
+  /* AppShell (app-shell.vue) overrides this to 0 via applyLayout() once mounted;
+     match that value here so first paint doesn't jump before Vue mounts. */
+  padding-top: 0 !important;
+}
+
+/* Mirrors app-shell.vue's applyLayout(), which sets these same properties
+   imperatively on #n-container once Vue mounts. Setting them here too means
+   first paint already matches, so there's no post-mount layout jump/flicker. */
+#n-container {
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+  padding-top: calc(3rem + 0.5rem) !important;
+  margin-left: 4rem !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  display: block !important;
+  box-sizing: border-box !important;
 }
 
 .notes {

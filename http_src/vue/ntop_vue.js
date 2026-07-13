@@ -98,6 +98,7 @@ import { default as PageTrafficProfiles } from "./page-traffic-profiles.vue"
 import { default as PageNetworks } from "./page-networks.vue"
 import { default as PageTreemapNetworks } from "./page-treemap-networks.vue"
 import { default as PageSites } from "./page-sites.vue"
+import { default as PageSitesDashboard } from "./page-sites-dashboard.vue"
 import { default as PageDHCPLeases } from "./page-DHCP-leases.vue"
 import { default as PageExporterInterfaceOverview } from "./page-exporter-interface-overview.vue"
 import { default as PageExporterMap } from "./page-exporter-map.vue"
@@ -115,6 +116,7 @@ import { default as PageAiPolicy } from "./page-ai-policy.vue"
 import { default as PageAiAudit }  from "./page-ai-audit.vue"
 import { default as PageAnalystPipeline } from "./page-analyst-pipeline.vue"
 import { default as PageAlertExclusions } from "./page-alert-exclusions.vue"
+import { default as PageWazuhAlertConfig } from "./page-wazuh-alert-config.vue"
 import { default as PageInternals } from "./page-internals.vue"
 import { default as PageBGPLookingGlass } from "./page-bgp-looking-glass.vue"
 import { default as PagePreferences } from "./page-preferences.vue"
@@ -152,6 +154,10 @@ import { default as Loading } from "./loading.vue";
 import { default as SearchBox } from "./components/search-box.vue";
 import { default as NoData } from "./components/no-data.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
+import { default as SidebarNavItem } from "./components/sidebar-nav-item.vue";
+import { default as TreeNavSidebar } from "./components/tree-nav-sidebar.vue";
+import { default as BreadcrumbNav } from "./components/breadcrumb-nav.vue";
+import { default as DashboardCard } from "./components/dashboard-card.vue";
 
 // dashboard
 import { default as Dashboard } from "./dashboard.vue";
@@ -280,6 +286,7 @@ let ntopVue = {
     PageAiAudit: PageAiAudit,
     PageAnalystPipeline: PageAnalystPipeline,
     PageAlertExclusions: PageAlertExclusions,
+    PageWazuhAlertConfig: PageWazuhAlertConfig,
     PageInternals: PageInternals,
     PageBGPLookingGlass: PageBGPLookingGlass,
     PagePreferences: PagePreferences,
@@ -358,7 +365,8 @@ let ntopVue = {
     PageNetworks: PageNetworks,
     PageTreemapNetworks: PageTreemapNetworks,
     PageSites: PageSites,
-    
+    PageSitesDashboard: PageSitesDashboard,
+
     // components
     AlertInfo: AlertInfo,
     Chart: Chart,
@@ -377,6 +385,10 @@ let ntopVue = {
     Loading: Loading,
     NoData: NoData,
     NavbarTabs: NavbarTabs,
+    SidebarNavItem: SidebarNavItem,
+    TreeNavSidebar: TreeNavSidebar,
+    BreadcrumbNav: BreadcrumbNav,
+    DashboardCard: DashboardCard,
 
     // dashboard
     Dashboard: Dashboard,

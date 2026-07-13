@@ -649,7 +649,21 @@ const updateBannerDismissed  = computed(() =>
 );
 
 // State
-const menu           = ref({});
+const MENU_CACHE_KEY = "ntopng_menu_cache";
+function readCachedMenu() {
+  try {
+    const raw = sessionStorage.getItem(MENU_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (_) {
+    return {};
+  }
+}
+function writeCachedMenu(data) {
+  try {
+    sessionStorage.setItem(MENU_CACHE_KEY, JSON.stringify(data));
+  } catch (_) {}
+}
+const menu           = ref(readCachedMenu());
 const hoveredSection = ref(null);  // currently hovered (transient)
 const lockedSection  = ref(null);  // clicked/locked open
 const isPanelOpen    = ref(false);
@@ -760,6 +774,7 @@ async function loadMenu() {
     );
     if (data) {
       menu.value = data;
+      writeCachedMenu(data);
       clockLoadedAt  = Date.now();
       if (data.server_epoch) clockEpochBase = data.server_epoch;
       if (data.uptime_epoch) uptimeBase     = data.uptime_epoch;
@@ -1787,8 +1802,6 @@ body.dark #n-navbar,
   color: rgba(226,226,226,0.85) !important;
   border-bottom-color: rgba(255,255,255,0.07) !important;
 }
-
-/* Allow horizontal scroll rather than reflowing the grid */
 div.wrapper {
   overflow-x: auto;
 }
@@ -2495,6 +2508,6 @@ div.wrapper {
 /* left: shrinks, truncates */
 /* center: absolute so it doesn't affect flex layout */
 .sb-footer__time { white-space: nowrap; }
-.sb-footer__uptime { white-space: nowrap; margin-left: 0.4rem; }
+.sb-footer__uptime { white-space: nowrap;}
 .sb-footer__sep { opacity: 0.35; }
 </style>

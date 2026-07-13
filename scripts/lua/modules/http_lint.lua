@@ -2416,6 +2416,26 @@ local known_parameters = {
    ["wazuh_available"] = validateNumber,
    ["toggle_wazuh_automerge"] = validateBool,
 
+   -- WAZUH Alert Rules / Alert Exceptions (private config)
+   ["wazuh_rule_id"] = validateSingleWord,
+   ["wazuh_rule_priority"] = validateNumber,
+   ["wazuh_rule_min_level"] = validateNumber,
+   ["wazuh_rule_groups"] = validateUnquoted,
+   ["wazuh_rule_immediate"] = validateBool,
+   ["wazuh_rule_subject"] = validateUnquoted,
+   ["wazuh_rule_enabled"] = validateBool,
+   ["wazuh_rule_comment"] = validateUnquoted,
+   ["wazuh_exception_id"] = validateSingleWord,
+   ["wazuh_exception_rule_id"] = validateNumber,
+   ["wazuh_exception_agent_name"] = validateUnquoted,
+   ["wazuh_exception_src_ip"] = validateUnquoted,
+   ["wazuh_exception_dst_ip"] = validateUnquoted,
+   ["wazuh_exception_username"] = validateUnquoted,
+   ["wazuh_exception_process"] = validateUnquoted,
+   ["wazuh_exception_rule_group"] = validateUnquoted,
+   ["wazuh_exception_enabled"] = validateBool,
+   ["wazuh_exception_comment"] = validateUnquoted,
+
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
    ["discovered_host_scan_type"] = validateListOfTypeInline(validateSingleWord),
