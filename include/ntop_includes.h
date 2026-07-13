@@ -177,10 +177,6 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <sys/capability.h>
 #include <sys/prctl.h>
 #endif
-
-#if defined(HAVE_NATS)
-#include <nats/nats.h>
-#endif
 };
 
 #include <fstream>
@@ -500,8 +496,6 @@ using namespace clickhouse;
 #include "ModbusStats.h"
 #include "S7CommStats.h"
 #include "ProfinetStats.h"
-#include "MessageBroker.h"
-#include "NatsBroker.h"
 #endif
 #include "IEC104Stats.h"
 #include "Flow.h"

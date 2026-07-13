@@ -2773,7 +2773,6 @@ local known_parameters = {
    ["topk_heuristic_precision"] = validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
    ["timeseries_driver"] = validateChoiceInline({"rrd", "influxdb", "clickhouse"}),
    ["split_ts_direction"] = validateChoiceInline({"total", "rx_tx"}),
-   ["message_broker"] = validateChoiceInline({"nats", "mqtt"}),
    ["edition"] = validateEmptyOr(validateChoiceInline(
 				    {"community", "pro", "enterprise", "enterprise_m", "enterprise_l"})),
    ["hosts_ts_creation"] = validateChoiceInline({"off", "light", "full"}),

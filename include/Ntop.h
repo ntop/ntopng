@@ -138,7 +138,6 @@ class Ntop {
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
-  MessageBroker* message_broker;
 #endif
 #ifdef HAVE_NEDGE
   std::vector<PacketForwarder*> multicastForwarders;
@@ -926,7 +925,6 @@ class Ntop {
 
   void speedtest(lua_State* vm);
 #if defined(NTOPNG_PRO)
-  MessageBroker* getMessageBroker() { return (message_broker); };
   void initSnmpInterfaceRole();
   void activateSnmpInterfaceRoles();
   void snmpSetInterfaceRole(struct ndpi_in6_addr *exporter_device_ip,

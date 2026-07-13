@@ -121,9 +121,6 @@ Ntop::Ntop(const char* appName) {
   cpu_load = 0;
   system_interface = NULL;
   interfacesShuttedDown = false;
-#ifdef NTOPNG_PRO
-  message_broker = NULL;
-#endif /* NTOPNG_PRO */
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
   ping_initialized = false;
@@ -375,10 +372,6 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
-  if (message_broker) {
-    delete message_broker;
-    message_broker = NULL;
-  }
 #endif
 
   if (resolvedHostsBloom) delete resolvedHostsBloom;
@@ -726,10 +719,6 @@ void Ntop::start() {
   checkReloadHostPools();
   checkReloadFlowChecks();
   checkReloadHostChecks();
-
-#ifdef NTOPNG_PRO
-  connectMessageBroker();
-#endif /* NTOPNG_PRO */
 
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -5581,31 +5570,6 @@ void Ntop::incBlacklisHits(std::string listname) { blStats.incHits(listname); }
 /* ******************************************* */
 
 #ifdef NTOPNG_PRO
-void Ntop::connectMessageBroker() {
-#ifdef HAVE_NATS
-  if (getPrefs() && getPrefs()->is_message_broker_enabled()) {
-    const char* m_broker_id = prefs->get_message_broker();
-
-    if (!strcmp(m_broker_id, CONST_NATS_M_BROKER_ID)) {
-      message_broker = new (std::nothrow) NatsBroker();
-    }
-  }
-#endif /* HAVE NATS */
-  // TODO: add MQTT
-}
-
-/* ******************************************* */
-
-void Ntop::reloadMessageBroker() {
-  if (message_broker) {
-    delete (message_broker);
-    message_broker = NULL;
-  }
-
-  connectMessageBroker();
-}
-
-/* ******************************************* */
 
 bool Ntop::incNumFlowExporters(u_int32_t unique_source_id) {
   std::map<u_int32_t, u_int32_t>::iterator it;
