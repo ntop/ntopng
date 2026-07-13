@@ -13,6 +13,7 @@ packages/OPNsense/package/+MANIFEST
 third-party/clickhouse-cpp
 httpdocs/dist
 third-party/clickhouse-cpp
+.playwright-mcp
 
 ntopng.sublime-*src/*.o
 src/*.obj
