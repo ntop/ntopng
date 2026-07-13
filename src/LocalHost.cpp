@@ -200,8 +200,12 @@ void LocalHost::initialize() {
 #ifdef NTOPNG_PRO
   loadAssetInfo();
 
-  memset(&flow_stats, 0, sizeof(flow_stats));
-  resetLocalFlowStats();
+  flow_stats.num_new_flows_as_client_toward_local_servers = 0,
+    flow_stats.num_new_flows_as_client_toward_remote_servers = 0,
+    flow_stats.next_flow_stats_reset = 0,
+    flow_stats.num_consec_threshold_cross = 0, 
+
+    resetLocalFlowStats();
 #endif  
 }
 
