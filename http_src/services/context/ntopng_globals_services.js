@@ -283,7 +283,18 @@ export const ntopng_utility = function () {
             x = x % y;
             if (x < 0) { x += y; }
             return x;
-        }
+        },
+        get_flatpickr_date_format: function () {
+            const endian_map = {
+                little_endian: "d/m/Y",
+                middle_endian: "m/d/Y",
+                big_endian: "Y/m/d",
+            };
+
+            const key = (typeof date_format_pref !== "undefined" && date_format_pref) || "little_endian";
+            const base = endian_map[key] || endian_map.little_endian;
+            return `${base} H:i`;
+        },
     }
 }();
 

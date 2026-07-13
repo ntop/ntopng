@@ -15,7 +15,6 @@ local alert_entities = require("alert_entities")
 local page_utils = {}
 
 local is_nedge = ntop.isnEdge and ntop.isnEdge()
-
 -- #################################
 
 local active_section = nil
@@ -1070,6 +1069,7 @@ function page_utils.print_header(title, addLoginJS)
     local favicon_path = nil
 
     local username = _SESSION["user"]
+    local date_format_pref = ntop.getPref("ntopng.user." .. username .. ".date_format")
 
     local user_lang = ntop.getPref("ntopng.user." .. username .. ".language")
     local language = ternary(isEmptyString(user_lang), "en", user_lang)
@@ -1177,6 +1177,9 @@ function page_utils.print_header(title, addLoginJS)
     const ntop_zoneinfo = ]]
     print(zoneinfo)
     print [[;
+    const date_format_pref = "]]
+    print(date_format_pref)
+    print [[";
     const http_prefix = "]]
     print(ntop.getHttpPrefix())
     print [[";
