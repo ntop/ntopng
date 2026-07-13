@@ -35,12 +35,13 @@ function vs_db_utils.save_vs_result(scan_type, host, end_epoch, json_info, scan_
         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Saving on DB HOST: ".. host .. " SCAN_TYPE: " .. scan_type .. " ENDEPOCH: "..end_epoch.." \n")
     end
 
-    local sql = string.format("INSERT INTO %s (HOST, SCAN_TYPE, LAST_SCAN, JSON_INFO, VS_RESULT_FILE) Values",data_table_name)
-    
+    local prefs = ntop.getPrefs()
+    local sql = string.format("INSERT INTO %s (HOST, SCAN_TYPE, LAST_SCAN, JSON_INFO, VS_RESULT_FILE, ntopng_instance_name) Values",data_table_name)
+
     -- it's necessary replace the ' character with a common character like |
     scan_result = scan_result:gsub("%'","|")
-    
-    sql = string.format("%s ('%s', '%s', %s, '%s', '%s');", sql, host, scan_type, end_epoch, json_info, scan_result)
+
+    sql = string.format("%s ('%s', '%s', %s, '%s', '%s', '%s');", sql, host, scan_type, end_epoch, json_info, scan_result, prefs.instance_name)
     
     return(interface.execSQLWrite(sql))
 
@@ -181,8 +182,9 @@ function vs_db_utils.save_report_info(report_info)
     local num_udp_ports = report_info.udp_ports or 0
     local num_tcp_ports = report_info.tcp_ports or 0
 
+    local prefs = ntop.getPrefs()
     local sql = string.format("INSERT INTO %s VALUES",report_table_name)
-    local sql = string.format("%s ('%s', %s, '%s', %u, %u, %u, %u);",sql, report_name, report_date, json_info, num_scanned_host, num_cves, num_tcp_ports, num_udp_ports)
+    local sql = string.format("%s ('%s', %s, '%s', %u, %u, %u, %u, '%s');",sql, report_name, report_date, json_info, num_scanned_host, num_cves, num_tcp_ports, num_udp_ports, prefs.instance_name)
 
     return(interface.execSQLWrite(sql))
 end

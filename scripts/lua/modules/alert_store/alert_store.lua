@@ -1015,8 +1015,9 @@ function alert_store:insert(alert)
         local extra_columns = ""
         local extra_values = ""
         if ntop.isClickHouseEnabled() then
-            extra_columns = "rowid, "
-            extra_values = "generateUUIDv4(), "
+            local prefs = ntop.getPrefs()
+            extra_columns = "rowid, ntopng_instance_name, "
+            extra_values = string.format("generateUUIDv4(), '%s', ", self:_escape(prefs.instance_name))
         end
 
         -- Note: alert.require_attention depends on HostAlert::autoAck() for
@@ -1057,8 +1058,9 @@ function alert_store:insert_engaged(alert)
         local extra_columns
         local extra_values
         if ntop.isClickHouseEnabled() then
-            extra_columns = "rowid, "
-            extra_values = string.format("'%s', ", int_to_uuid(alert.rowid))
+            local prefs = ntop.getPrefs()
+            extra_columns = "rowid, ntopng_instance_name, "
+            extra_values = string.format("'%s', '%s', ", int_to_uuid(alert.rowid), self:_escape(prefs.instance_name))
         else
             extra_columns = "rowid, "
             extra_values = string.format("%u, ", alert.rowid)
