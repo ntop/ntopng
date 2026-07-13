@@ -7,8 +7,8 @@ SYSTEM=`uname -s`
 
 if test "${with_debug+set}" = set || test "${with_sanitizer+set}" = set || test "${with_leak_sanitizer+set}" = set; then
   # Setting debug flags in CFLAGS/CXXFLAGS to avoid AC_PROG_CPP add -O2
-  CFLAGS="-g -O0"
-  CXXFLAGS="-g -O0"
+  CFLAGS="-g -O0 -DDEBUG_NTOPNG"
+  CXXFLAGS="-g -O0 -DDEBUG_NTOPNG"
 fi
 
 AC_PROG_CPP
@@ -18,8 +18,8 @@ PKG_PROG_PKG_CONFIG
 
 AC_ARG_WITH(debug,     [  --with-debug   Build with debug enable])
 AS_IF([test "${with_debug+set}" = set],[
-    CFLAGS="-g -O0"
-    CXXFLAGS="-g -O0"
+    CFLAGS="-g -O0 -DDEBUG_NTOPNG"
+    CXXFLAGS="-g -O0 -DDEBUG_NTOPNG"
 ])
 
 AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
