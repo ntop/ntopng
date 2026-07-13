@@ -2175,7 +2175,7 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
   cur_http_options = 0;
 
   /* HTTP options */
-  addHTTPOption("enable_keep_alive", "yes");
+  addHTTPOption("enable_keep_alive", "no");
   addHTTPOption("listening_ports", ports);
   addHTTPOption("enable_directory_listing", "no");
   addHTTPOption("document_root", _docs_dir);
