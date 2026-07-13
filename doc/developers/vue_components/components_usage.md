@@ -280,6 +280,36 @@ Full-area loading overlay with spinner and translated label. Positions itself as
 - Automatically listens to `resize` events to recompute fixed positioning
 - Respects `data-theme="light"` / `data-theme="dark"` on `:root`
 
+---
+
+## TreeNavSidebar
+
+Generic, depth-unlimited lazy tree sidebar (search + expand/collapse + select).
+Knows nothing about what a node represents — sites, exporters, interfaces,
+folders, anything — all domain logic lives in the `loadChildren` function you
+supply. See [`tree-nav-sidebar.md`](tree-nav-sidebar.md) for the full contract,
+behavior notes, and usage examples (including reuse for an unrelated tree).
+
+### Props
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `loadChildren` | Function | Yes | `async (node) => NodeDescriptor[]`; `node` is `null` for the root level |
+| `title` | String | No | Header label (i18n-resolved by caller) |
+| `searchPlaceholder` | String | No | Placeholder text; pass `null` to hide the search box |
+| `selectedId` | String \| Number | No | Id of the currently active node — controls the highlight |
+
+### Vue
+```vue
+<TreeNavSidebar
+  :title="_i18n('sites_dashboard.sites')"
+  :search-placeholder="_i18n('sites_dashboard.search_placeholder')"
+  :load-children="loadSidebarChildren"
+  :selected-id="selectedNodeId"
+  @on_select="handleSidebarSelect"
+/>
+```
+
 ### Vue
 ```vue
 <div class="position-relative">

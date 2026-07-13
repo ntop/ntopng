@@ -1615,14 +1615,6 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.internals_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries")
-            }, {
-                key = "toggle_os_rrds",
-                title = i18n("prefs.toggle_os_rrds_title"),
-                description = i18n("prefs.toggle_os_rrds_description"),
-                type = "toggle",
-                redis_key = "ntopng.prefs.os_rrd_creation",
-                default = "0",
-                section = i18n("prefs.other_timeseries")
             }}
         },
 

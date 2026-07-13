@@ -5,46 +5,34 @@
 
         <!-- Time preset selector -->
         <div class="dtrp-preset">
-            <select-search
-                :disabled="disabled_date_picker"
-                v-model:selected_option="selected_time_option"
-                :id="'time_preset_range_picker'"
-                :options="time_preset_list_filtered"
-                @select_option="change_select_time(null)"
-                dropdown_size="small">
+            <select-search :disabled="disabled_date_picker" v-model:selected_option="selected_time_option"
+                :id="'time_preset_range_picker'" :options="time_preset_list_filtered"
+                @select_option="change_select_time(null)" dropdown_size="small">
             </select-search>
         </div>
 
         <!-- Date range inputs -->
         <div class="dtrp-range d-flex align-items-center gap-1">
             <input :disabled="disabled_date_picker"
-                class="dtrp-input flatpickr flatpickr-input form-control form-control-sm"
-                type="text" placeholder="Begin date.."
-                data-id="datetime" ref="begin-date">
+                class="dtrp-input flatpickr flatpickr-input form-control form-control-sm" type="text"
+                placeholder="Begin date.." data-id="datetime" ref="begin-date">
             <span class="dtrp-arrow"><i class="fas fa-arrow-right"></i></span>
             <input :disabled="disabled_date_picker"
-                class="dtrp-input flatpickr flatpickr-input form-control form-control-sm"
-                type="text" placeholder="End date.."
-                data-id="datetime" ref="end-date">
-            <span v-show="wrong_date || wrong_min_interval"
-                :title="invalid_date_message" class="dtrp-error">
+                class="dtrp-input flatpickr flatpickr-input form-control form-control-sm" type="text"
+                placeholder="End date.." data-id="datetime" ref="end-date">
+            <span v-show="wrong_date || wrong_min_interval" :title="invalid_date_message" class="dtrp-error">
                 <i class="fas fa-exclamation-circle"></i>
             </span>
         </div>
 
         <!-- Action buttons -->
         <div class="d-flex align-items-center gap-1">
-            <button
-                :disabled="!enable_apply || wrong_date || wrong_min_interval"
-                @click="apply" type="button"
+            <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply" type="button"
                 class="dtrp-btn dtrp-btn-primary">
                 {{ i18n('apply') }}
             </button>
-            <button
-                :disabled="select_time_value == 'custom' || disabled_date_picker"
-                @click="change_select_time()" type="button"
-                class="dtrp-btn dtrp-btn-icon"
-                data-bs-toggle="tooltip" data-bs-placement="top"
+            <button :disabled="select_time_value == 'custom' || disabled_date_picker" @click="change_select_time()"
+                type="button" class="dtrp-btn dtrp-btn-icon" data-bs-toggle="tooltip" data-bs-placement="top"
                 :title="i18n('date_time_range_picker.btn_refresh')">
                 <i class="fas fa-sync"></i>
             </button>
@@ -136,7 +124,7 @@ export default {
         let f_set_picker = (picker, var_name) => {
             return flatpickr($(this.$refs[picker]), {
                 enableTime: true,
-                dateFormat: "d/m/Y H:i",
+                dateFormat: ntopng_utility.get_flatpickr_date_format(),
                 //altInput: true,
                 //dateFormat: "YYYY-MM-DD HH:mm",
                 //altFormat: "d-m-Y H:i",

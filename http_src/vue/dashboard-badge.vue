@@ -5,16 +5,20 @@
 <template>
     <Loading v-if="!props.hideLoading" :isLoading="isLoading"></Loading>
     <div class="d-flex align-items-center justify-content-between">
-        <div>
-            <a :href="link_url">
-                <h4 class="fw-normal text-white"><span :title="counter_title">{{ counter }}</span><span
-                        v-if="secondary_counter" :title="secondary_counter_title"> / {{ secondary_counter }}</span></h4>
-                <p class="subtitle text-white text-sm text mb-0" :class="label_size">{{ name }}</p>
-            </a>
+        <div class="d-flex align-items-center">
+            <div v-if="icon && use_icon_box" class="dashboard-badge-icon-box flex-shrink-0 me-3" :style="icon_box_style">
+                <i :class="icon"></i>
+            </div>
+            <div>
+                <a :href="link_url">
+                    <h4 class="fw-normal text-white"><span :title="counter_title">{{ counter }}</span><span
+                            v-if="secondary_counter" :title="secondary_counter_title"> / {{ secondary_counter }}</span></h4>
+                    <p class="subtitle text-white text-sm text mb-0" :class="label_size">{{ name }}</p>
+                    <p v-if="extra_text" class="subtitle text-white text-xs text mb-0 opacity-75">{{ extra_text }}</p>
+                </a>
+            </div>
         </div>
-        <div class="flex-shrink-0 ms-3">
-            <i class="text-white" :class="icon"></i>
-        </div>
+        <i v-if="icon && !use_icon_box" class="text-white flex-shrink-0 ms-3" :class="icon"></i>
     </div>
 </template>
 
@@ -35,6 +39,9 @@ const link_url = ref('#')
 const label_size = ref('h5')
 const isLoading = ref(true);
 const firstLoading = ref(true);
+const extra_text = ref('');
+const use_icon_box = ref(false);
+const icon_box_style = ref({});
 
 const props = defineProps({
     id: String,          /* Component ID */
@@ -59,6 +66,13 @@ watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old
     refresh_component();
 }, { flush: 'pre', deep: true });
 
+/* Watch - static_value mode: parent recomputed the value locally, no REST call needed */
+watch(() => props.params.static_value, () => {
+    if (props.params.static_value !== undefined) {
+        refresh_component();
+    }
+});
+
 onBeforeMount(() => {
     init();
 });
@@ -72,8 +86,19 @@ function init() {
         name.value = _i18n(props.params.i18n_name);
     }
 
+    if (props.params.i18n_extra_text) {
+        extra_text.value = _i18n(props.params.i18n_extra_text);
+    }
+
     if (props.params.icon) {
         icon.value = props.params.icon + ' fa-2xl';
+    }
+
+    /* When a color is provided, the icon is rendered inside a rounded colored box on the left (dashboard card style), instead of the default top right icon. */
+    if (props.params.color) {
+        use_icon_box.value = true;
+        icon_box_style.value = { background: props.params.color };
+        icon.value = props.params.icon ? props.params.icon : icon.value;
     }
 
     if (props.max_width && props.max_width <= 2) {
@@ -86,6 +111,16 @@ function init() {
 async function refresh_component() {
     isLoading.value = (props?.showOnlyFirstLoading === true) ? (firstLoading.value && true) : true;
     /* Refresh component */
+
+    /* Static mode: the parent already has the value and no REST call is needed. */
+    if (props.params.static_value !== undefined) {
+        const formatter = props.params.counter_formatter === "no_formatting"
+            ? (v) => v
+            : formatterUtils.getFormatter(props.params.counter_formatter || "number");
+        counter.value = formatter(props.params.static_value);
+        isLoading.value = false;
+        return;
+    }
 
     if (props.params.url) {
 
@@ -109,6 +144,10 @@ async function refresh_component() {
         if (props.params.i18n_counter_title_path) {
             name.value = _i18n(data[props.params.i18n_counter_title_path]);
         }
+        if (props.params.extra_text_path && data[props.params.extra_text_path] != null) {
+            extra_text.value = data[props.params.extra_text_path];
+        }
+
         let has_secondary_counter = false;
         let secondary_counter_value = '';
         if (props.params.secondary_counter_path) {
@@ -159,3 +198,15 @@ async function refresh_component() {
     isLoading.value = false // Always false
 }
 </script>
+
+<style scoped>
+.dashboard-badge-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+</style>

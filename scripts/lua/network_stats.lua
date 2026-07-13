@@ -16,22 +16,27 @@ local page = _GET["page"] or "networks"
 
 sendHTTPContentTypeHeader("text/html")
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.networks)
+local menu_entry = ternary(page == "sites_dashboard", page_utils.menu_entries.sites_dashboard, page_utils.menu_entries.networks)
+
+page_utils.print_header_and_set_active_menu_entry(menu_entry)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("network_stats.networks"), base_url, {
-	{
-		active = (page == "networks"),
-		page_name = "networks",
-		label = i18n("network_stats.networks"),
-	},
-	{
-		active = (page == "sites"),
-		page_name = "sites",
-		label = i18n("sites_page.sites"),
-	},
-})
+if page ~= "sites_dashboard" then
+	page_utils.print_navbar(i18n("network_stats.networks"), base_url, {
+		{
+			active = (page == "networks"),
+			page_name = "networks",
+			label = i18n("network_stats.networks"),
+		},
+		{
+			active = (page == "sites"),
+			page_name = "sites",
+			label = i18n("sites_page.sites"),
+		}
+	})
+end
+
 -- ##############################
 
 if page == "networks" then
@@ -79,6 +84,21 @@ elseif page == "sites" then
 
 	template_utils.render("pages/vue_page.template", {
 		vue_page_name = "PageSites",
+		page_context = json_context,
+	})
+elseif page == "sites_dashboard" then
+	-- ##############################
+	-- render vue component
+
+	local context = {
+		ifid = ifid,
+		csrf = ntop.getRandomCSRFValue(),
+	}
+
+	local json_context = json.encode(context)
+
+	template_utils.render("pages/vue_page.template", {
+		vue_page_name = "PageSitesDashboard",
 		page_context = json_context,
 	})
 end
