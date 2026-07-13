@@ -441,8 +441,11 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime DEFAULT toDateTime(0),
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -490,6 +493,9 @@ ALTER TABLE `active_monitoring_alerts` MODIFY COLUMN `alert_category` COMMENT 'A
 @
 ALTER TABLE `active_monitoring_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
+ALTER TABLE `active_monitoring_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
+
+@
 
 DROP TABLE IF EXISTS `engaged_active_monitoring_alerts`;
 @
@@ -513,10 +519,13 @@ CREATE TABLE `engaged_active_monitoring_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime DEFAULT toDateTime(0),
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_active_monitoring_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) active-monitoring alerts. Rows are inserted when an alert fires and removed when resolved. Merged with active_monitoring_alerts in active_monitoring_alerts_view.';
+@
+ALTER TABLE `engaged_active_monitoring_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_active_monitoring_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -588,8 +597,11 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `country` String,
 `alert_category` UInt8,
 `require_attention` Boolean,
-`tags_map` String DEFAULT ''
+`tags_map` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `host_pool_id` UInt16;
 @
@@ -662,6 +674,8 @@ ALTER TABLE `host_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category
 ALTER TABLE `host_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 ALTER TABLE `host_alerts` MODIFY COLUMN `tags_map` COMMENT 'HEX-encoded bitmap of host tags set at the time the alert triggered';
+@
+ALTER TABLE `host_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -695,10 +709,13 @@ CREATE TABLE `engaged_host_alerts` (
 `country` String,
 `alert_category` UInt8,
 `require_attention` Boolean,
-`tags_map` String DEFAULT ''
+`tags_map` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_host_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) host alerts. Rows are inserted when an alert fires and removed when resolved. Merged with host_alerts in host_alerts_view.';
+@
+ALTER TABLE `engaged_host_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_host_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -779,8 +796,11 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -829,6 +849,8 @@ ALTER TABLE `mac_alerts` MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp wh
 ALTER TABLE `mac_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
 @
 ALTER TABLE `mac_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+@
+ALTER TABLE `mac_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -855,10 +877,13 @@ CREATE TABLE `engaged_mac_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_mac_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) MAC/device alerts. Rows are inserted when an alert fires and removed when resolved. Merged with mac_alerts in mac_alerts_view.';
+@
+ALTER TABLE `engaged_mac_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_mac_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -924,8 +949,11 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -974,6 +1002,8 @@ ALTER TABLE `snmp_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
+@
+ALTER TABLE `snmp_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -999,10 +1029,13 @@ CREATE TABLE `engaged_snmp_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_snmp_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) SNMP alerts. Rows are inserted when an alert fires and removed when resolved. Merged with snmp_alerts in snmp_alerts_view.';
+@
+ALTER TABLE `engaged_snmp_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_snmp_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -1065,8 +1098,11 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1111,6 +1147,8 @@ ALTER TABLE `network_alerts` MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestam
 ALTER TABLE `network_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
 @
 ALTER TABLE `network_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+@
+ALTER TABLE `network_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -1135,10 +1173,13 @@ CREATE TABLE `engaged_network_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_network_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) network/subnet alerts. Rows are inserted when an alert fires and removed when resolved. Merged with network_alerts in network_alerts_view.';
+@
+ALTER TABLE `engaged_network_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_network_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -1199,8 +1240,11 @@ CREATE TABLE IF NOT EXISTS `as_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `as_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `as_alerts` MODIFY COMMENT 'Historical alerts associated with Autonomous Systems (identified by ASN). See engaged_as_alerts for currently-firing alerts and as_alerts_view to query both together.';
 @
@@ -1241,6 +1285,8 @@ ALTER TABLE `as_alerts` MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp whe
 ALTER TABLE `as_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
 @
 ALTER TABLE `as_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+@
+ALTER TABLE `as_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -1265,10 +1311,13 @@ CREATE TABLE `engaged_as_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_as_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) Autonomous System alerts. Rows are inserted when an alert fires and removed when resolved. Merged with as_alerts in as_alerts_view.';
+@
+ALTER TABLE `engaged_as_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_as_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -1330,8 +1379,11 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1378,6 +1430,8 @@ ALTER TABLE `interface_alerts` MODIFY COLUMN `user_label_tstamp` COMMENT 'Timest
 ALTER TABLE `interface_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
 @
 ALTER TABLE `interface_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+@
+ALTER TABLE `interface_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -1403,10 +1457,13 @@ CREATE TABLE `engaged_interface_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_interface_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) interface alerts. Rows are inserted when an alert fires and removed when resolved. Merged with interface_alerts in interface_alerts_view.';
+@
+ALTER TABLE `engaged_interface_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_interface_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -1467,8 +1524,11 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1509,6 +1569,8 @@ ALTER TABLE `user_alerts` MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp w
 ALTER TABLE `user_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
 @
 ALTER TABLE `user_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+@
+ALTER TABLE `user_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -1531,10 +1593,13 @@ CREATE TABLE `engaged_user_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_user_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) user alerts. Rows are inserted when an alert fires and removed when resolved. Merged with user_alerts in user_alerts_view.';
+@
+ALTER TABLE `engaged_user_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_user_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -1589,8 +1654,11 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1631,6 +1699,8 @@ ALTER TABLE `system_alerts` MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp
 ALTER TABLE `system_alerts` MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
 @
 ALTER TABLE `system_alerts` MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+@
+ALTER TABLE `system_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 
 @
 
@@ -1653,10 +1723,13 @@ CREATE TABLE `engaged_system_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
 @
 ALTER TABLE `engaged_system_alerts` MODIFY COMMENT 'In-memory table holding currently active (engaged) system alerts. Rows are inserted when an alert fires and removed when resolved. Merged with system_alerts in system_alerts_view.';
+@
+ALTER TABLE `engaged_system_alerts` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_system_alerts` MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
 @
@@ -1859,8 +1932,11 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` (
 `SCAN_TYPE` String,
 `LAST_SCAN` DateTime,
 `JSON_INFO` String,
-`VS_RESULT_FILE` String
+`VS_RESULT_FILE` String,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
+@
+ALTER TABLE `vulnerability_scan_data` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `vulnerability_scan_data` MODIFY COMMENT 'Per-host vulnerability scan results produced by the ntopng Vulnerability Scanner (VS) module. Each row stores the latest scan output for a given host and scan type as a JSON blob.';
 @
@@ -1873,6 +1949,8 @@ ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `LAST_SCAN` COMMENT 'Timesta
 ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `JSON_INFO` COMMENT 'Full scan results as a JSON blob';
 @
 ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `VS_RESULT_FILE` COMMENT 'Path to the raw scan result file on disk';
+@
+ALTER TABLE `vulnerability_scan_data` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that performed this scan';
 
 @
 
@@ -1883,8 +1961,11 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` (
 `NUM_SCANNED_HOSTS` UInt32,
 `NUM_CVES` UInt32,
 `NUM_TCP_PORTS` UInt32,
-`NUM_UDP_PORTS` UInt32
+`NUM_UDP_PORTS` UInt32,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE);
+@
+ALTER TABLE `vulnerability_scan_report` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE `vulnerability_scan_report` MODIFY COMMENT 'Summary reports of completed vulnerability scans. Each row represents one scan report with aggregate counts of scanned hosts, CVEs found, and open TCP/UDP ports.';
 @
@@ -1901,6 +1982,8 @@ ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_CVES` COMMENT 'Total 
 ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_TCP_PORTS` COMMENT 'Total number of open TCP ports found across all scanned hosts';
 @
 ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `NUM_UDP_PORTS` COMMENT 'Total number of open UDP ports found across all scanned hosts';
+@
+ALTER TABLE `vulnerability_scan_report` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this report';
 
 @
 
@@ -1968,8 +2051,11 @@ CREATE TABLE IF NOT EXISTS `assets` (
 `json_info` String DEFAULT '',
 `version` UInt64,
 `os_type` String DEFAULT '',
-`model` String DEFAULT ''
+`model` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplacingMergeTree(version) PRIMARY KEY (`type`, `key`) ORDER BY (`type`, `key`);
+@
+ALTER TABLE `assets` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE assets ADD COLUMN IF NOT EXISTS `os_type` String;
 @
@@ -2010,6 +2096,8 @@ ALTER TABLE `assets` MODIFY COLUMN `version` COMMENT 'Monotonically increasing v
 ALTER TABLE `assets` MODIFY COLUMN `os_type` COMMENT 'Operating system type detected for this asset';
 @
 ALTER TABLE `assets` MODIFY COLUMN `model` COMMENT 'Hardware model string for this asset';
+@
+ALTER TABLE `assets` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that observed this asset';
 @
 
 /* VIEWS */
@@ -2118,6 +2206,7 @@ SELECT
     ha.alert_category,
     ha.require_attention,
     ha.tags_map,
+    ha.ntopng_instance_name,
     mitre.TACTIC AS mitre_tactic,
     mitre.TECHNIQUE AS mitre_technique,
     mitre.SUB_TECHNIQUE AS mitre_subtechnique,
@@ -2221,25 +2310,25 @@ WHERE f.STATUS != 0
 DROP VIEW IF EXISTS `all_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
-SELECT 8 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts_view`
+SELECT 8 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `active_monitoring_alerts_view`
 UNION ALL
-SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, ALERT_STATUS AS alert_status, REQUIRE_ATTENTION AS require_attention, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
+SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, ALERT_STATUS AS alert_status, REQUIRE_ATTENTION AS require_attention, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category, NTOPNG_INSTANCE_NAME AS ntopng_instance_name FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
 UNION ALL
-SELECT 1 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts_view`
+SELECT 1 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `host_alerts_view`
 UNION ALL
-SELECT 5 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `mac_alerts_view`
+SELECT 5 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `mac_alerts_view`
 UNION ALL
-SELECT 3 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `snmp_alerts_view`
+SELECT 3 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `snmp_alerts_view`
 UNION ALL
-SELECT 2 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `network_alerts_view`
+SELECT 2 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `network_alerts_view`
 UNION ALL
-SELECT 0 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `interface_alerts_view`
+SELECT 0 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `interface_alerts_view`
 UNION ALL
-SELECT 7 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `user_alerts_view`
+SELECT 7 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `user_alerts_view`
 UNION ALL
-SELECT 9 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `system_alerts_view`
+SELECT 9 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `system_alerts_view`
 UNION ALL
-SELECT 10 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `as_alerts_view`
+SELECT 10 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `as_alerts_view`
 ;
 
 @
@@ -2572,10 +2661,13 @@ CREATE TABLE IF NOT EXISTS `analyst_pipelines` (
 `llm_model`   String  DEFAULT '',
 `created_at`  DateTime NOT NULL DEFAULT now(),
 `updated_at`  DateTime NOT NULL DEFAULT now(),
-`is_active`   UInt8   NOT NULL DEFAULT 1
+`is_active`   UInt8   NOT NULL DEFAULT 1,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplacingMergeTree(updated_at)
   ORDER BY (pipeline_id)
   PARTITION BY toYYYYMM(created_at)
+@
+ALTER TABLE `analyst_pipelines` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
 @
 ALTER TABLE analyst_pipelines ADD COLUMN IF NOT EXISTS `provider`  String DEFAULT '';
 @
@@ -2604,6 +2696,8 @@ ALTER TABLE `analyst_pipelines` MODIFY COLUMN `created_at` COMMENT 'Creation tim
 ALTER TABLE `analyst_pipelines` MODIFY COLUMN `updated_at` COMMENT 'Last update timestamp (used by ReplacingMergeTree)';
 @
 ALTER TABLE `analyst_pipelines` MODIFY COLUMN `is_active` COMMENT '1 = active playbook, 0 = soft-deleted';
+@
+ALTER TABLE `analyst_pipelines` MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance this playbook is scoped to';
 
 @
 

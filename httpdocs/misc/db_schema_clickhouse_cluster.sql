@@ -449,8 +449,13 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime DEFAULT toDateTime(0),
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -521,8 +526,11 @@ CREATE TABLE `engaged_active_monitoring_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime DEFAULT toDateTime(0),
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) active-monitoring alerts. Rows are inserted when an alert fires and removed when resolved. Merged with active_monitoring_alerts in active_monitoring_alerts_view.';
 @
@@ -596,8 +604,13 @@ CREATE TABLE IF NOT EXISTS `host_alerts` ON CLUSTER '$CLUSTER' (
 `country` String,
 `alert_category` UInt8,
 `require_attention` Boolean,
-`tags_map` String DEFAULT ''
+`tags_map` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
 @
@@ -703,8 +716,11 @@ CREATE TABLE `engaged_host_alerts` (
 `country` String,
 `alert_category` UInt8,
 `require_attention` Boolean,
-`tags_map` String DEFAULT ''
+`tags_map` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) host alerts. Rows are inserted when an alert fires and removed when resolved. Merged with host_alerts in host_alerts_view.';
 @
@@ -787,8 +803,13 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -863,8 +884,11 @@ CREATE TABLE `engaged_mac_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) MAC/device alerts. Rows are inserted when an alert fires and removed when resolved. Merged with mac_alerts in mac_alerts_view.';
 @
@@ -932,8 +956,13 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts from SNMP-polled network devices and their individual ports. See engaged_snmp_alerts for currently-firing alerts and snmp_alerts_view to query both together.';
 @
@@ -1007,8 +1036,11 @@ CREATE TABLE `engaged_snmp_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) SNMP alerts. Rows are inserted when an alert fires and removed when resolved. Merged with snmp_alerts in snmp_alerts_view.';
 @
@@ -1073,8 +1105,13 @@ CREATE TABLE IF NOT EXISTS `network_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1143,8 +1180,11 @@ CREATE TABLE `engaged_network_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) network/subnet alerts. Rows are inserted when an alert fires and removed when resolved. Merged with network_alerts in network_alerts_view.';
 @
@@ -1207,8 +1247,13 @@ CREATE TABLE IF NOT EXISTS `as_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with Autonomous Systems (identified by ASN). See engaged_as_alerts for currently-firing alerts and as_alerts_view to query both together.';
 @
@@ -1273,8 +1318,11 @@ CREATE TABLE `engaged_as_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) Autonomous System alerts. Rows are inserted when an alert fires and removed when resolved. Merged with as_alerts in as_alerts_view.';
 @
@@ -1338,8 +1386,13 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1411,8 +1464,11 @@ CREATE TABLE `engaged_interface_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) interface alerts. Rows are inserted when an alert fires and removed when resolved. Merged with interface_alerts in interface_alerts_view.';
 @
@@ -1475,8 +1531,13 @@ CREATE TABLE IF NOT EXISTS `user_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1539,8 +1600,11 @@ CREATE TABLE `engaged_user_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) user alerts. Rows are inserted when an alert fires and removed when resolved. Merged with user_alerts in user_alerts_view.';
 @
@@ -1597,8 +1661,13 @@ CREATE TABLE IF NOT EXISTS `system_alerts` ON CLUSTER '$CLUSTER' (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+@
+ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 @
@@ -1661,8 +1730,11 @@ CREATE TABLE `engaged_system_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime,
 `alert_category` UInt8,
-`require_attention` Boolean
+`require_attention` Boolean,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = Memory;
+@
+ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this alert';
 @
 ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) system alerts. Rows are inserted when an alert fires and removed when resolved. Merged with system_alerts in system_alerts_view.';
 @
@@ -1865,8 +1937,13 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` ON CLUSTER '$CLUSTER' (
 `SCAN_TYPE` String,
 `LAST_SCAN` DateTime,
 `JSON_INFO` String,
-`VS_RESULT_FILE` String
+`VS_RESULT_FILE` String,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
+@
+ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that performed this scan';
 @
 ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Per-host vulnerability scan results produced by the ntopng Vulnerability Scanner (VS) module. Each row stores the latest scan output for a given host and scan type as a JSON blob.';
 @
@@ -1889,8 +1966,13 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` ON CLUSTER '$CLUSTER' (
 `NUM_SCANNED_HOSTS` UInt32,
 `NUM_CVES` UInt32,
 `NUM_TCP_PORTS` UInt32,
-`NUM_UDP_PORTS` UInt32
+`NUM_UDP_PORTS` UInt32,
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE =  ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE);
+@
+ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that generated this report';
 @
 ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Summary reports of completed vulnerability scans. Each row represents one scan report with aggregate counts of scanned hosts, CVEs found, and open TCP/UDP ports.';
 @
@@ -1980,8 +2062,13 @@ CREATE TABLE IF NOT EXISTS `assets` ON CLUSTER '$CLUSTER' (
 `json_info` String DEFAULT '',
 `version` UInt64,
 `os_type` String DEFAULT '',
-`model` String DEFAULT ''
+`model` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}', version) PRIMARY KEY (`type`, `key`) ORDER BY (`type`, `key`);
+@
+ALTER TABLE `assets` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+@
+ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that observed this asset';
 @
 ALTER TABLE assets ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `os_type` String;
 @
@@ -2131,6 +2218,7 @@ SELECT
     ha.alert_category,
     ha.require_attention,
     ha.tags_map,
+    ha.ntopng_instance_name,
     mitre.TACTIC AS mitre_tactic,
     mitre.TECHNIQUE AS mitre_technique,
     mitre.SUB_TECHNIQUE AS mitre_subtechnique,
@@ -2234,25 +2322,25 @@ WHERE f.STATUS != 0
 DROP VIEW IF EXISTS `all_alerts_view` ON CLUSTER '$CLUSTER';
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` ON CLUSTER '$CLUSTER' AS
-SELECT 8 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts_view`
+SELECT 8 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `active_monitoring_alerts_view`
 UNION ALL
-SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, REQUIRE_ATTENTION AS require_attention, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
+SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, REQUIRE_ATTENTION AS require_attention, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category, NTOPNG_INSTANCE_NAME AS ntopng_instance_name FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
 UNION ALL
-SELECT 1 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts_view`
+SELECT 1 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `host_alerts_view`
 UNION ALL
-SELECT 5 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `mac_alerts_view`
+SELECT 5 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `mac_alerts_view`
 UNION ALL
-SELECT 3 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `snmp_alerts_view`
+SELECT 3 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `snmp_alerts_view`
 UNION ALL
-SELECT 2 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `network_alerts_view`
+SELECT 2 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `network_alerts_view`
 UNION ALL
-SELECT 0 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `interface_alerts_view`
+SELECT 0 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `interface_alerts_view`
 UNION ALL
-SELECT 7 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `user_alerts_view`
+SELECT 7 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `user_alerts_view`
 UNION ALL
-SELECT 9 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `system_alerts_view`
+SELECT 9 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `system_alerts_view`
 UNION ALL
-SELECT 10 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `as_alerts_view`
+SELECT 10 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category, ntopng_instance_name FROM `as_alerts_view`
 ;
 
 @
