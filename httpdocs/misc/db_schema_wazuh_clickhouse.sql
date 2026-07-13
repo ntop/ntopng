@@ -97,3 +97,20 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_rules
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY id;
 @
+CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions                                                                                                                                                                                               
+(                                                                                                                                                                                                                                                       
+    id          String  COMMENT 'Unique exception identifier',                                                                                                                                                                                          
+    rule_id     UInt32  DEFAULT 0  COMMENT 'Wazuh rule_id to match (0 = any)',                                                                                                                                                                          
+    agent_name  String  DEFAULT '' COMMENT 'Glob pattern for agent name (empty = any)',                                                                                                                                                                 
+    src_ip      String  DEFAULT '' COMMENT 'Source IP to match (empty = any)',                                                                                                                                                                          
+    dst_ip      String  DEFAULT '' COMMENT 'Destination IP to match (empty = any)',                                                                                                                                                                     
+    username    String  DEFAULT '' COMMENT 'Glob pattern for username (empty = any)',                                                                                                                                                                   
+    process     String  DEFAULT '' COMMENT 'Glob pattern for process name (empty = any)',                                                                                                                                                               
+    rule_group  String  DEFAULT '' COMMENT 'Glob pattern for rule group (empty = any)',                                                                                                                                                                 
+    enabled     UInt8   DEFAULT 1   COMMENT '0 = disabled',                                                                                                                                                                                             
+    comment     String  DEFAULT ''  COMMENT 'Free-text description',                                                                                                                                                                                    
+    updated_at  DateTime DEFAULT now() COMMENT 'Last modification time'                                                                                                                                                                                 
+)                                                                                                                                                                                                                                                       
+ENGINE = ReplacingMergeTree(updated_at)                                                                                                                                                                                                                 
+ORDER BY id;                                                                                                                                                                                                                                            
+@
