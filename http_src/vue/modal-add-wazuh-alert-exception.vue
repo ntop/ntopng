@@ -91,7 +91,7 @@ const emit = defineEmits(['add']);
 
 const props = defineProps({
     context: Object,
-    url_request: String,
+    url_request: Object,
 });
 
 const rule_id = ref(null);

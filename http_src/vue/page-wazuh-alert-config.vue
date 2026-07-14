@@ -20,7 +20,7 @@
               <NavbarTabs :tabs="tabs" :active_tab_id="active_tab" @on_click="(tab) => switch_tab(tab.id)" />
             </template>
             <template #custom_buttons>
-              <button class="btn btn-link" type="button" @click="show_add_dialog">
+              <button v-if="active_tab !== 'alerts'" class="btn btn-link" type="button" @click="show_add_dialog">
                 <i class="fas fa-plus"></i>
               </button>
             </template>
@@ -50,6 +50,7 @@ const props = defineProps({
 const tabs = [
   { id: "rules", label_i18n: "wazuh_alert_config.alert_rules" },
   { id: "exceptions", label_i18n: "wazuh_alert_config.alert_exceptions" },
+  { id: "alerts", label_i18n: "wazuh_alert_config.alerts" },
 ];
 
 const active_tab = ref("rules");
@@ -66,6 +67,7 @@ const row_to_delete = ref(null);
 const TABLE_CONFIG_MAP = {
   rules: "wazuh_alert_rules",
   exceptions: "wazuh_alert_exceptions",
+  alerts: "wazuh_alerts",
 };
 
 const active_table_config_id = computed(() => TABLE_CONFIG_MAP[active_tab.value]);

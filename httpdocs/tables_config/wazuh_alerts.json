@@ -1,0 +1,98 @@
+{
+	"id": "wazuh_alerts",
+	"data_url": "lua/pro/rest/v2/get/wazuh/alerts.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": true,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "timestamp",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"title_i18n": "wazuh_alert_config.timestamp",
+			"data_field": "timestamp",
+			"sortable": true,
+			"min-width": "150px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.rule_level",
+			"data_field": "rule_level",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.rule_description",
+			"data_field": "rule_description",
+			"sortable": true,
+			"min-width": "220px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.agent_name",
+			"data_field": "agent_name",
+			"sortable": true,
+			"min-width": "140px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.agent_ip",
+			"data_field": "agent_ip",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.src_ip",
+			"data_field": "src_ip",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.src_port",
+			"data_field": "src_port",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.dst_ip",
+			"data_field": "dst_ip",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.dst_port",
+			"data_field": "dst_port",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.username",
+			"data_field": "username",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.domain",
+			"data_field": "domain",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.command",
+			"data_field": "command",
+			"sortable": true,
+			"min-width": "220px",
+			"class": ["text-nowrap"]
+		}
+	]
+}
