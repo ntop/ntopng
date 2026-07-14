@@ -15,7 +15,7 @@
 
           <NavbarTabs :tabs="tabs" :active_tab_id="active_tab" @on_click="(tab) => switch_tab(tab.id)" />
 
-          <DateTimeRangePicker v-show="active_tab === 'alerts'" id="wazuh_alerts_date_range" class="mt-3 mb-2"
+          <DateTimeRangePicker v-if="active_tab === 'alerts'" id="wazuh_alerts_date_range" class="mt-3 mb-2"
             @epoch_change="on_alerts_epoch_change" />
 
           <TableWithConfig v-show="active_tab === 'alerts'" ref="table_ref_alerts" table_config_id="wazuh_alerts"
