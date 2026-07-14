@@ -186,6 +186,8 @@ local function process_notifications_from_c_queue()
 
         budget_used = budget_used + 1
     end
+
+    return budget_used
 end
 
 -- ##############################################
@@ -1354,7 +1356,8 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
     -- Default
     local total_budget = 1000
     local budget_per_iter = 100
-
+    local num_processed = 0
+    
     if periodic_frequency > 0 then -- from a periodic script
         -- Total budget available, which is a multiple of the periodic_frequency
         -- Budget in this case is the maximum number of notifications which can
@@ -1398,7 +1401,7 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
                 if delivered + discarded + failures > 0 then
                     ntop.recipient_inc_stats(recipient.recipient_id, delivered, discarded, failures)
                 end
-
+		
                 -- If the recipient has failed (not rv.success) or
                 -- if it has no more work to do (not rv.more_available)
                 -- it can be removed from the array of ready recipients.
@@ -1415,6 +1418,8 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
                             "Error while sending notifications via " .. recipient.recipient_name .. ": " .. msg)
                     end
                 end
+
+		num_processed = num_processed + 1
             end
         end
 
@@ -1433,6 +1438,8 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
             end
         end
     end
+
+    return num_processed
 end
 
 -- #################################################################
@@ -1458,13 +1465,15 @@ end
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
 function recipients.process_notifications(now, deadline, periodic_frequency, force_export)
-    local endpoints = require "endpoints"
+   local endpoints = require "endpoints"
+   local num = 0
+   
     if not areAlertsEnabled() then
-        return
+       return(num)
     end
 
     -- Dequeue alerts from the internal C queue
-    process_notifications_from_c_queue()
+    num = process_notifications_from_c_queue()
 
     -- Dequeue alerts enqueued into per-recipient queues from checks
     if not cached_recipients then
@@ -1497,7 +1506,9 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
         end
     end
 
-    process_notifications(ready_recipients, now, deadline, periodic_frequency, force_export)
+    num = num + process_notifications(ready_recipients, now, deadline, periodic_frequency, force_export)
+
+    return(num)
 end
 
 -- ##############################################

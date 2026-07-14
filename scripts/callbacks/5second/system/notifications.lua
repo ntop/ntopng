@@ -22,7 +22,10 @@ for i=1,num_runs do
    if(ntop.isShuttingDown()) then break end
    
    -- Do the actual processing
-   recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
+   local num_processed = recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
 
-   ntop.msleep(sleep_duration)
+   if(num_processed == 0) then
+      -- Sleep if thre's nothing to do      
+      ntop.msleep(sleep_duration)
+   end
 end
