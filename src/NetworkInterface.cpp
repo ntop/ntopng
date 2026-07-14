@@ -2665,7 +2665,7 @@ pre_get_flow:
       case NDPI_PROTOCOL_ZOOM:
       case NDPI_PROTOCOL_RTP:
       case NDPI_PROTOCOL_SRTP:
-        if (flow->isZoomRTP()) {
+        if (flow->isZoomRTP() && (trusted_payload_len > 8)) {
           if (payload[0] == 5 /* RTCP/RTP */) {
             u_int8_t encoding_type = payload[8];
 
