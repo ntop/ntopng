@@ -83,7 +83,7 @@ const emit = defineEmits(['add']);
 
 const props = defineProps({
     context: Object,
-    url_request: String,
+    url_request: Object,
 });
 
 const priority = ref(null);

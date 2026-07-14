@@ -70,6 +70,7 @@ defineProps({
     flex: 1 1 auto;
     min-height: 0;
     color: var(--ntop-text-color);
+    position: relative;
 }
 
 .dashboard-card-footer {

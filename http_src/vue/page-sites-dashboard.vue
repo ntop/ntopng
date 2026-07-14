@@ -285,6 +285,14 @@ function onRowClick(event, rows, handler) {
     if (rows[index]) handler(rows[index]);
 }
 
+/* The exporter's own collector interface (interface_id, from getAllExportersList())
+   is not necessarily the page's ambient ifid: an exporter can be collected on an
+   interface other than the one currently selected in the top navbar, and its
+   flowdev/flowdev_port timeseries are only recorded under that collector ifid. */
+const exporterTimeseriesIfid = computed(() => {
+    return String(selectedExporter.value?.interface_id ?? ifid);
+});
+
 const ifaceTimeseriesParams = computed(() => {
     if (selectedInterface.value) {
         return {
@@ -293,7 +301,7 @@ const ifaceTimeseriesParams = computed(() => {
                 version: 4,
                 ts_requests: {
                     "$IFID$": {
-                        ts_query: `ifid:${ifid},device:${selectedExporter.value?.id},port:${selectedInterface.value.ifindex}`,
+                        ts_query: `ifid:${exporterTimeseriesIfid.value},device:${selectedExporter.value?.id},port:${selectedInterface.value.ifindex}`,
                         ts_schema: `flowdev_port:traffic`,
                     },
                 },
@@ -306,7 +314,7 @@ const ifaceTimeseriesParams = computed(() => {
             version: 4,
             ts_requests: {
                 "$IFID$": {
-                    ts_query: `ifid:${ifid},device:${selectedExporter.value?.id}`,
+                    ts_query: `ifid:${exporterTimeseriesIfid.value},device:${selectedExporter.value?.id}`,
                     ts_schema: `flowdev:traffic`,
                 },
             },
@@ -355,16 +363,17 @@ const historicalFlowsUrl = computed(() => {
         aggregated: false,
         count: "traffic_presence",
         query_preset: "",
-        exporter_ip: `${selectedExporter.value.id};eq`,
-        ...(selectedInterface.value ? { ifIdx: selectedInterface.value.ifindex } : {}),
+        ...(selectedInterface.value
+            ? { snmp_interface: `${selectedExporter.value.id}_${selectedInterface.value.ifindex};eq` }
+            : { exporter_ip: `${selectedExporter.value.id};eq` }),
     });
     return `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
 });
 
 /* Builds a db_search.lua URL scoped to the current exporter/interface and
    epoch range for the given query_preset (l7_traffic, top_hosts_by_traffic,
-   top_remote_destinations, ...). Interface scope adds snmp_interface on top
-   of probe_ip, matching db_search.lua's own exporter+interface filtering. */
+   top_remote_destinations, ...). Interface scope filters by snmp_interface
+   alone (exporter_ip is redundant since snmp_interface already encodes it). */
 function buildDbSearchUrl(queryPreset, count = "") {
     if (!selectedExporter.value || !ifaceEpochBegin.value || !ifaceEpochEnd.value) return null;
     const url_params = ntopng_url_manager.obj_to_url_params({
@@ -374,10 +383,9 @@ function buildDbSearchUrl(queryPreset, count = "") {
         aggregated: false,
         count,
         query_preset: queryPreset,
-        probe_ip: `${selectedExporter.value.id};eq`,
         ...(selectedInterface.value
             ? { snmp_interface: `${selectedExporter.value.id}_${selectedInterface.value.ifindex};eq` }
-            : {}),
+            : { exporter_ip: `${selectedExporter.value.id};eq` }),
     });
     return `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
 }
