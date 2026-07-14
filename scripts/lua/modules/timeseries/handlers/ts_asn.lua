@@ -208,7 +208,7 @@ local function addTopTimeseries(tags, tsOptions)
                     priority = 2,
                     query = "device:" .. serie.device .. ",if_index:" .. serie.if_index,
                     label = i18n("exporter_port", {
-                        exporter = getProbeName(serie.device),
+                        exporter = getExporterName(serie.device),
                         port = format_portidx_name(serie.device, serie.if_index, true)
                     }),
                     disable_default_ago_ts = true,

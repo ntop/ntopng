@@ -16,7 +16,7 @@
 			{
 				"name" : "PROBE_IP",
 				"func" : "",
-				"value_type" : "probe_ip"
+				"value_type" : "exporter_ip"
 			},
 			{
 				"name" : "snmp_interface",

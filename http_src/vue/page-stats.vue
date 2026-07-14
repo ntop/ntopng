@@ -825,18 +825,18 @@ function create_historical_params() {
         const source_def = last_timeseries_groups_loaded[0].source_type.source_def_array
         /* Use the first element */
         if (source_array) {
-            let probe = ''
+            let exporter = ''
             source_array.forEach((elem, i) => {
                 if (!dataUtils.isEmptyOrNull(elem.label) && source_def[i]) {
                     const value = source_def[i].value
                     switch (value) {
                         case 'device':
-                            probe = elem.value
-                            params["probe_ip"] = `${elem.value};eq`
+                            exporter = elem.value
+                            params["exporter_ip"] = `${elem.value};eq`
                             break;
                         case 'port':
                         case 'if_index':
-                            params["snmp_interface"] = `${probe}_${elem.value};eq`
+                            params["snmp_interface"] = `${exporter}_${elem.value};eq`
                             break;
                         case 'host':
                             params["ip"] = `${elem.value};eq`

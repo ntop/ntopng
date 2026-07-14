@@ -599,6 +599,8 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByIP(r0.ntopng_interface, r1.ntopng_interface, col.sort);
         } else if (col.id == "probe_ip") {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
+        } else if (col.id == "exporter_ip") {
+            return sortingFunctions.sortByIP(r0.exporter_ip, r1.exporter_ip, col.sort);
         } else if (col.id == "export_type") {
             return sortingFunctions.sortByName(r0.export_type, r1.export_type, col.sort);
         } else if (col.id == "exporter_interfaces") {

@@ -34,5 +34,5 @@
     /* Server Network */
     {responsivePriority: 4, name: 'srv_network', data: 'srv_network',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('srv_network')},
     /* Probe IP */
-    {responsivePriority: 6, name: 'probe_ip', data: 'probe_ip',  orderable: false, className: 'text-nowrap', render: DataTableRenders.formatProbeIP},
+    {responsivePriority: 6, name: 'exporter_ip', data: 'exporter_ip',  orderable: false, className: 'text-nowrap', render: DataTableRenders.formatExporterIP},
 ]

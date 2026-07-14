@@ -399,12 +399,12 @@ local all_datatable_columns_def_by_tag = {
       class = { "no-wrap" },
       render_generic = "observation_point_id",
    },
-   ['probe_ip'] = {
-      title_i18n = "db_search.probe_ip",
-      data_field = "probe_ip",
+   ['exporter_ip'] = {
+      title_i18n = "db_search.exporter_ip",
+      data_field = "exporter_ip",
       sortable = true,
       class = { "no-wrap" },
-      render_type = "formatProbeIP",
+      render_type = "formatExporterIP",
    },
    ['site'] = {
       title_i18n = "db_search.flowfilters.site",

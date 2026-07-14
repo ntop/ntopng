@@ -278,7 +278,7 @@ function flow_alert_store:insert(alert)
       alert.cli2srv_packets, alert.srv2cli_packets, alert.first_seen, alert.community_id, alert.score, alert.flow_risk_bitmap or 0, -- 40
       hex_prefix, alert.alerts_map, tonumber(alert.cli_host_pool_id or pools.DEFAULT_POOL_ID),
       tonumber(alert.srv_host_pool_id or pools.DEFAULT_POOL_ID), tonumber(alert.cli_network or network_consts.UNKNOWN_NETWORK),
-      tonumber(alert.srv_network or network_consts.UNKNOWN_NETWORK), alert.probe_ip, alert.input_snmp, alert.output_snmp,
+      tonumber(alert.srv_network or network_consts.UNKNOWN_NETWORK), alert.exporter_ip, alert.input_snmp, alert.output_snmp,
       string.format("%x", alert.tags_bitmap or 0), -- 50
       self:_escape(alert.json),
       self:_escape(alert.info or ''))
@@ -598,7 +598,7 @@ function flow_alert_store:_add_additional_request_filters()
    local role = _GET["role"]
    local cli_country = _GET["cli_country"]
    local srv_country = _GET["srv_country"]
-   local probe_ip = _GET["probe_ip"]
+   local exporter_ip = _GET["exporter_ip"]
    local input_snmp = _GET["input_snmp"]
    local output_snmp = _GET["output_snmp"]
    local snmp_interface = _GET["snmp_interface"]
@@ -652,7 +652,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('cli_network', cli_network, 'number')
    self:add_filter_condition_list('srv_network', srv_network, 'number')
 
-   self:add_filter_condition_list('probe_ip', probe_ip)
+   self:add_filter_condition_list('exporter_ip', exporter_ip)
    self:add_filter_condition_list('input_snmp', input_snmp)
    self:add_filter_condition_list('output_snmp', output_snmp)
    self:add_filter_condition_list('snmp_interface', snmp_interface)
@@ -707,7 +707,7 @@ function flow_alert_store:_get_additional_available_filters()
       traffic_direction = flowfilter_utils.defined_filters.traffic_direction,
       alert_domain = flowfilter_utils.defined_filters.alert_domain,
 
-      probe_ip = flowfilter_utils.defined_filters.probe_ip,
+      exporter_ip = flowfilter_utils.defined_filters.exporter_ip,
       input_snmp = flowfilter_utils.defined_filters.input_snmp,
       output_snmp = flowfilter_utils.defined_filters.output_snmp,
       snmp_interface = flowfilter_utils.defined_filters.snmp_interface,
@@ -812,8 +812,8 @@ local RNAME = {
       name = "srv_network",
       export = false
    },
-   PROBE_IP = {
-      name = "probe_ip",
+   EXPORTER_IP = {
+      name = "exporter_ip",
       export = true
    },
    INFO = {
@@ -1401,15 +1401,15 @@ function flow_alert_store:format_record(value, no_html, verbose)
    end
    record['filter'].tag_filters = filters
 
-   local probe_ip = ''
-   local probe_label = ''
+   local exporter_ip = ''
+   local exporter_label = ''
    if value["probe_ip"] and value["probe_ip"] ~= "0.0.0.0" and value["probe_ip"] ~= "::" then
-      probe_ip = value["probe_ip"]
-      probe_label = getProbeName(probe_ip)
+      exporter_ip = value["probe_ip"]
+      exporter_label = getExporterName(exporter_ip)
    end
-   record[RNAME.PROBE_IP.name] = {
-      value = probe_ip,
-      label = probe_label
+   record[RNAME.EXPORTER_IP.name] = {
+      value = exporter_ip,
+      label = exporter_label
    }
 
    return record

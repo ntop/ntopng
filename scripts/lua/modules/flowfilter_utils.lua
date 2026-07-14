@@ -331,10 +331,10 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq'},
         hourly_available = false
     },
-    probe_ip = {
+    exporter_ip = {
         type = flowfilter_utils.input_types.select_with_input,
-        value_type = 'probe_ip',
-        i18n_label = i18n('db_search.flowfilters.probe_ip'),
+        value_type = 'exporter_ip',
+        i18n_label = i18n('db_search.flowfilters.exporter_ip'),
         operators = {'eq', 'neq'},
         hourly_available = true
     },
@@ -1650,7 +1650,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                 label = vlan_name
             }
         end
-    elseif filter_def.value_type == "probe_ip" then
+    elseif filter_def.value_type == "exporter_ip" then
         local site_utils = require "site_utils"
         filter.options = {}
         local full_dev_list = {}
@@ -1662,10 +1662,10 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                 if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                   group = site_utils.mapHostToSite(exporter_ip).name
                 end
-                local probe_name = getProbeName(exporter_ip)
+                local exporter_name = getExporterName(exporter_ip)
                 full_dev_list[exporter_ip] = {
                     value = exporter_ip,
-                    label = probe_name,
+                    label = exporter_name,
                     display_more_filters = true,
                     group = group
                 }
@@ -1674,16 +1674,16 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
         -- And sFlow devices
         if interface.getSFlowDevices then -- Pro Only
             for interface, device_list in pairs(interface.getSFlowDevices() or {}) do
-                for probe, _ in pairsByValues(device_list or {}, asc) do
+                for exporter, _ in pairsByValues(device_list or {}, asc) do
                     local group = nil
                     if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                        group = site_utils.mapHostToSite(exporter_ip).name
                     end
-                    local probe_name = getProbeName(probe)
-                    -- local label = format_name_value(probe_name, probe)
-                    full_dev_list[probe] = {
-                        value = probe,
-                        label = probe_name,
+                    local exporter_name = getExporterName(exporter)
+                    -- local label = format_name_value(exporter_name, exporter)
+                    full_dev_list[exporter] = {
+                        value = exporter,
+                        label = exporter_name,
                         display_more_filters = true,
                         group = group
                     }
@@ -1795,11 +1795,11 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                 filter.options = {}
                 local flow_devices = {}
                 local interfaces_list = {}
-                local probe_ip_requested = nil
+                local exporter_ip_requested = nil
                 -- Active flow devices
-                if (restrict_filters and not isEmptyString(_GET["probe_ip"])) then
-                    local tmp = split(_GET["probe_ip"], ";")
-                    probe_ip_requested = tmp[1]
+                if (restrict_filters and not isEmptyString(_GET["exporter_ip"])) then
+                    local tmp = split(_GET["exporter_ip"], ";")
+                    exporter_ip_requested = tmp[1]
                     flow_devices = {
                         [tmp[1]] = 1
                     }
@@ -1821,27 +1821,27 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                 local total = 0
                 local current_total_interfaces = 0
 
-                if isEmptyString(probe_ip_requested) then
+                if isEmptyString(exporter_ip_requested) then
                     devices = snmp_config.get_all_configured_devices()
                 else
                     devices = flow_devices
                 end
 
                 -- use pairsByKeys to impose order
-                for probe_ip, _ in pairsByKeys(devices) do
-                    if flow_devices[probe_ip] then
+                for exporter_ip, _ in pairsByKeys(devices) do
+                    if flow_devices[exporter_ip] then
                         -- Use SNMP info, remove from flow devices list
-                        flow_devices[probe_ip] = nil
+                        flow_devices[exporter_ip] = nil
                     end
-                    local cached_interfaces = snmp_cached_dev:get_interfaces_with_counters(probe_ip)
-                    local probe_label
+                    local cached_interfaces = snmp_cached_dev:get_interfaces_with_counters(exporter_ip)
+                    local exporter_label
 
-                    if not isEmptyString(probe_ip) then
-                        probe_label = getProbeName(probe_ip)
+                    if not isEmptyString(exporter_ip) then
+                        exporter_label = getExporterName(exporter_ip)
                     end
 
-                    if isEmptyString(probe_label) then
-                        probe_label = probe_ip
+                    if isEmptyString(exporter_label) then
+                        exporter_label = exporter_ip
                     end
 
                     if cached_interfaces and cached_interfaces["interfaces"] then
@@ -1856,7 +1856,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
 
                         if ntop.isEnterpriseM and ntop.isEnterpriseM() then
                             group = site_utils.mapHostToSite(exporter_ip).name
-                            group_cache[probe_ip] = group
+                            group_cache[exporter_ip] = group
                         end
 
                         for if_index, if_info in pairs(interfaces) do
@@ -1873,16 +1873,16 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                             -- Skip interfaces down or with no traffic
                             if (good_iface and (tonumber(if_info.admin_status) == 1) and (tonumber(if_info.status) == 1) -- operational status
                             ) then
-                                local label = format_portidx_name(probe_ip, if_index, true)
+                                local label = format_portidx_name(exporter_ip, if_index, true)
 
                                 if not hide_exporters_name then
-                                    label = probe_label .. ' - ' .. label
+                                    label = exporter_label .. ' - ' .. label
                                 end
 
                                 interfaces_list[label] = {
-                                    value = probe_ip .. "_" .. if_index,
+                                    value = exporter_ip .. "_" .. if_index,
                                     label = label,
-                                    show_only_value = probe_ip,
+                                    show_only_value = exporter_ip,
                                     group = group
                                 }
                             end

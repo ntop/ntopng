@@ -42,7 +42,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
         local flow_exporters_num = table.len(probe_info.exporters or {})
         local is_probe_in_memory = false
         local probe_ip = probe_info["probe.ip"] or ""
-        local probe_name = getProbeName(probe_ip, true, true, false)  
+        local probe_name = getExporterName(probe_ip, true, true, false)  
 
         if probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then
             flow_exporters_num = 1 -- Packet exporter

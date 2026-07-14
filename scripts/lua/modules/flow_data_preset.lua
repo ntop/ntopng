@@ -58,7 +58,7 @@ local columns = {
             historical = "IPv6NumToString"
         },
         formatter = {
-            funct = getProbeName,
+            funct = getExporterName,
             generateLink = generateExporterLink
         }
     },
@@ -70,7 +70,7 @@ local columns = {
         },
         filters = "PROBE_IP",
         formatter = {
-            funct = getProbeName,
+            funct = getExporterName,
             generateLink = generateExporterLink
         }
     },
@@ -82,7 +82,7 @@ local columns = {
             historical = "IPv6NumToString"
         },
         formatter = {
-            funct = getProbeName,
+            funct = getExporterName,
             generateLink = generateExporterLink
         }
     },

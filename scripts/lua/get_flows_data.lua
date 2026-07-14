@@ -317,7 +317,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
         })
 
         record["column_device_ip"] = i18n("span_with_title", {
-            shorten_name = getProbeName(value["device_ip"]),
+            shorten_name = getExporterName(value["device_ip"]),
             url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/flowdevice_details.lua?ip=' .. value["device_ip"]
         })
 

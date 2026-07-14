@@ -279,7 +279,7 @@ for _, value in ipairs(flows_stats.flows) do
          device = {
             ip = device_ip,
             name = device_ip,
-            label = getProbeName(device_ip, false, false, false),
+            label = getExporterName(device_ip, false, false, false),
             probe_source_id = probe_source_id
          },
          in_port = {

@@ -819,10 +819,10 @@ export class DataTableRenders {
         return DataTableRenders.filterize('asn', obj, obj, obj, obj, null, false);
     }
 
-    static formatProbeIP(obj, type, row, zero_is_null) {
+    static formatExporterIP(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
 
-        let label = DataTableRenders.filterize('probe_ip', obj.value, obj.label, obj.label, obj.label_long);
+        let label = DataTableRenders.filterize('exporter_ip', obj.value, obj.label, obj.label, obj.label_long);
 
         return label;
     }

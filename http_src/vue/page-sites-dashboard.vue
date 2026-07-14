@@ -366,7 +366,7 @@ const historicalFlowsUrl = computed(() => {
         aggregated: false,
         count: "traffic_presence",
         query_preset: "",
-        probe_ip: `${selectedExporter.value.id};eq`,
+        exporter_ip: `${selectedExporter.value.id};eq`,
         ...(selectedInterface.value ? { ifIdx: selectedInterface.value.ifindex } : {}),
     });
     return `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
@@ -647,7 +647,7 @@ async function loadExporterOverview(exporter, iface) {
         ifid,
         epoch_begin: ifaceEpochBegin.value,
         epoch_end: ifaceEpochEnd.value,
-        probe_ip: `${exporter.id};eq`,
+        exporter_ip: `${exporter.id};eq`,
         ...(iface ? { ifIdx: iface.ifindex } : {}),
     };
 

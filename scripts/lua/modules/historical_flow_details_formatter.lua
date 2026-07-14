@@ -633,17 +633,17 @@ local function format_historical_probe(flow_details, flow, info)
    local historical_flow_utils = require "historical_flow_utils"
    local format_utils = require "format_utils"
 
-   local alias = getFlowDevAlias(info["probe_ip"]["value"], true)
+   local alias = getFlowDevAlias(info["exporter_ip"]["value"], true)
    local name
 
-   if alias == info["probe_ip"]["value"] then
-      name = format_name_value(info["probe_ip"]["value"], info["probe_ip"]["label"], true)
+   if alias == info["exporter_ip"]["value"] then
+      name = format_name_value(info["exporter_ip"]["value"], info["exporter_ip"]["label"], true)
    else
       name = alias
    end
 
    local info_field = {
-      device_ip = historical_flow_utils.get_historical_url(name, "probe_ip", info["probe_ip"]["value"], true, info["probe_ip"]["title"])
+      device_ip = historical_flow_utils.get_historical_url(name, "exporter_ip", info["exporter_ip"]["value"], true, info["exporter_ip"]["title"])
    }
 
    if (flow["INPUT_SNMP"]) and (tonumber(flow["INPUT_SNMP"]) ~= 0) then
@@ -908,7 +908,7 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
       if exp then
          -- Resolve exporter and next hop display info
          local exporter_url, exporter_ip, exporter_name, site = formatExporter(exp.exporter_ip)
-         exporter_url = historical_flow_utils.get_historical_url(exporter_name, "probe_ip", exporter_ip, true, exporter_name)
+         exporter_url = historical_flow_utils.get_historical_url(exporter_name, "exporter_ip", exporter_ip, true, exporter_name)
 
          local next_hop_label, next_hop_ip, next_hop_name, next_hop_site = formatNextHop(exp.next_hop)
 

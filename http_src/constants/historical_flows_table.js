@@ -87,8 +87,8 @@ const historical_flows_table = {
 	    "className": "no-wrap"
 	},
 	{
-	    "name": "probe_ip",
-	    "data": "probe_ip",
+	    "name": "exporter_ip",
+	    "data": "exporter_ip",
 	},
 	{
 	    "name": "site",

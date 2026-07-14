@@ -69,7 +69,7 @@ function getProbesName(flowdevs, show_vlan, shorten_len)
         local device_list = {}
         if table.len(devices or {}) > 0 then
             for id, device_info in pairsByKeys(devices or {}, asc) do
-                device_list[device_info.exporter_ip] = getProbeName(
+                device_list[device_info.exporter_ip] = getExporterName(
                                                            device_info.exporter_ip,
                                                            show_vlan,
                                                            shorten_len)
@@ -83,7 +83,7 @@ end
 
 -- ##############################################
 
-function getProbeName(exporter_ip, show_vlan, shorten_len, show_ip_and_alias)
+function getExporterName(exporter_ip, show_vlan, shorten_len, show_ip_and_alias)
     -- Set default to true if nil to show ip [alias]
     if show_ip_and_alias == nil then show_ip_and_alias = true end
 

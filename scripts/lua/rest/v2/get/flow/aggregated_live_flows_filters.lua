@@ -74,7 +74,7 @@ local function get_filter_item_label(element, filter_type)
         label = ternary(element ~= 0, getFullVlanName(element, false),
                         i18n('no_vlan'))
     elseif (filter_type == filter_types.flow_device) then
-        label = getProbeName(element, false, false)
+        label = getExporterName(element, false, false)
     end
 
     return label

@@ -1620,7 +1620,7 @@ function formatInterfaceIP(ip, href)
    local site_utils = require "site_utils"
    local ret
    local site = site_utils.mapHostToSite(ip).name
-   local exporter_name = getProbeName(ip, true, true, false)
+   local exporter_name = getExporterName(ip, true, true, false)
 
    ret = "<a href=\"" .. ntop.getHttpPrefix() .. href .. ip .. "\">" .. exporter_name
    
@@ -1647,7 +1647,7 @@ function formatNextHop(ip)
       local site_utils = require "site_utils"
       local ret
       local site = site_utils.mapHostToSite(ip).name
-      local exporter_name = getProbeName(ip, true, true, false)
+      local exporter_name = getExporterName(ip, true, true, false)
 
       if(exporter_name ~= ip) then
          ret = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. "\">" .. ip .. "</a>" 

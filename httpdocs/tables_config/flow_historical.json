@@ -363,11 +363,11 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.probe_ip",
-			"data_field": "probe_ip",
+			"title_i18n": "db_search.exporter_ip",
+			"data_field": "exporter_ip",
 			"sortable": true,
 			"min-width": "150px",
-			"render_type": "formatProbeIP",
+			"render_type": "formatExporterIP",
 			"class": [
 				"text-nowrap"
 			]

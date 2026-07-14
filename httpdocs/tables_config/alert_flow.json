@@ -246,11 +246,11 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.probe_ip",
-			"data_field": "probe_ip",
+			"title_i18n": "db_search.tags.exporter_ip",
+			"data_field": "exporter_ip",
 			"min-width": "150px",
 			"sortable": false,
-			"render_type": "formatProbeIP",
+			"render_type": "formatExporterIP",
 			"class": [
 				"text-nowrap"
 			]

@@ -1907,6 +1907,7 @@ local known_parameters = {
    ["observation_point_id"] = validateFilters(validateNumber), -- Observation point ID, used by db queries
    ["interface_id"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- Interface ID, used by db queries
    ["ntopng_interface"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- Interface ID, used by db queries
+   ["exporter_ip"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHost))), -- Exporter IP, used by db queries
    ["probe_ip"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHost))), -- Probe IP, used by db queries
    ["tot_bytes"] = validateFilters(validateNumber), -- Total bytes, used by db queries
    ["src2dst_dscp"] = validateEmptyOr(validateFilters(validateUnquoted)), -- Client DSCP, used by db queries

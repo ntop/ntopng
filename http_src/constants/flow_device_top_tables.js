@@ -50,7 +50,7 @@ const top_flow_interface = {
 						if (key == "ifid") {
 							p_url = ntopng_url_manager.serialize_param(key, value);
 						} else if (key == "device") {
-							p_url = ntopng_url_manager.serialize_param("probe_ip", `${value};eq`);
+							p_url = ntopng_url_manager.serialize_param("exporter_ip", `${value};eq`);
 						}
 						params_array.push(p_url);
 					}

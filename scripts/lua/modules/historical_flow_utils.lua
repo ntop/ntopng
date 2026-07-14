@@ -716,30 +716,30 @@ end
 
 -- #####################################
 
-local function dt_format_probe(probe_ip)
-   local probe_info = {
-      title     = probe_ip or "",
-      label     = probe_ip or "",
-      value     = probe_ip or "",
+local function dt_format_exporter(exporter_ip)
+   local exporter_info = {
+      title     = exporter_ip or "",
+      label     = exporter_ip or "",
+      value     = exporter_ip or "",
    }
 
-   if isEmptyString(probe_ip) or probe_ip == "0.0.0.0" or probe_ip == "0" or probe_ip == "::" then
-      probe_info["title"] = ""
-      probe_info["label"] = ""
-      probe_info["value"] = ""
+   if isEmptyString(exporter_ip) or exporter_ip == "0.0.0.0" or exporter_ip == "0" or exporter_ip == "::" then
+      exporter_info["title"] = ""
+      exporter_info["label"] = ""
+      exporter_info["value"] = ""
    else
-      local display_ip = probe_ip
-      probe_info["title"] = display_ip
-      probe_info["value"] = probe_ip
-      probe_info["label"] = getProbeName(display_ip)
-      if (probe_info["label"]
-            and (probe_info["title"] ~= probe_info["label"])
-            and not isEmptyString(probe_info["label"])) then
-         probe_info["title"] = probe_info["title"] .. " [" .. probe_info["label"] .. "]"
+      local display_ip = exporter_ip
+      exporter_info["title"] = display_ip
+      exporter_info["value"] = exporter_ip
+      exporter_info["label"] = getExporterName(display_ip)
+      if (exporter_info["label"]
+            and (exporter_info["title"] ~= exporter_info["label"])
+            and not isEmptyString(exporter_info["label"])) then
+         exporter_info["title"] = exporter_info["title"] .. " [" .. exporter_info["label"] .. "]"
       end
    end
 
-   return probe_info
+   return exporter_info
 end
 
 -- #####################################
@@ -1279,7 +1279,7 @@ local flow_columns = {
    
    ['SRC_ASN'] =              { flowfilter = "cli_asn", simple_dt_func = simple_format_src_asn, db_type = "Number", db_raw_type = "Uint32" },
    ['DST_ASN'] =              { flowfilter = "srv_asn", simple_dt_func = simple_format_dst_asn, db_type = "Number", db_raw_type = "Uint32" },
-   ['PROBE_IP'] =             { flowfilter = "probe_ip", dt_func = dt_format_probe, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
+   ['PROBE_IP'] =             { flowfilter = "exporter_ip", dt_func = dt_format_exporter, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
    ['EXPORTER_SITE'] =        { flowfilter = "site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
    ['OBSERVATION_POINT_ID'] = { flowfilter = "observation_point_id", dt_func = dt_format_obs_point, format_func = format_flow_observation_point, i18n = i18n("details.observation_point_id"), order = 12 , db_type = "Number", db_raw_type = "Uint16" },
    ['SRC2DST_TCP_FLAGS'] =    { flowfilter = "src2dst_tcp_flags", dt_func = dt_format_tcp_flags, db_type = "Number", db_raw_type = "Uint8" },
@@ -1369,7 +1369,7 @@ local aggregated_flow_columns = {
    ['DST_LABEL'] =            { flowfilter = "srv_name", db_type = "String", db_raw_type = "String" },
    ['SRC_MAC'] =              { flowfilter = "cli_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['DST_MAC'] =              { flowfilter = "srv_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
-   ['PROBE_IP'] =             { flowfilter = "probe_ip", dt_func = dt_format_probe, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
+   ['PROBE_IP'] =             { flowfilter = "exporter_ip", dt_func = dt_format_exporter, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
    ['EXPORTER_SITE'] =        { flowfilter = "site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
    ['SRC_COUNTRY_CODE'] =     { flowfilter = "cli_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
    ['DST_COUNTRY_CODE'] =     { flowfilter = "srv_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
@@ -2199,7 +2199,7 @@ function historical_flow_utils.convertFlowToAlert(flow)
          tstamp_end_epoch = flow.LAST_SEEN,
          src2dst_tcp_flags = flow.SRC2DST_TCP_FLAGS,
          src2dst_dscp = flow.SRC2DST_DSCP,
-         probe_ip = flow.PROBE_IP,
+         exporter_ip = flow.PROBE_IP,
          tstamp_epoch = flow.FIRST_SEEN,
          cli_host_pool_id = flow.SRC_HOST_POOL_ID,
          alerts_map = flow.ALERTS_MAP,

@@ -77,7 +77,7 @@ local function formatRanking(ranking, prev_ranking, verbose, show_icons)
 	 local href
 
 	 if(use_sym_names) then
-	    ex = getProbeName(t.exporter_ip, false) -- lua_utils_get.lua
+	    ex = getExporterName(t.exporter_ip, false) -- lua_utils_get.lua
 	    ifname = format_portidx_name(t.exporter_ip, t.interface_id, true)  -- lua_utils_gui.lua
 	 else
 	    ex = t.exporter_ip

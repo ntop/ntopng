@@ -50,7 +50,7 @@ local function formatInterfaceData(exporter_ip, new_ports_list, res, uuid_list, 
          local interface_name = format_portidx_name(exporter_ip, tonumber(id), true)
 
          -- Resolve exporter display name
-         local exporter_name = getProbeName(exporter_ip, true, true, false)
+         local exporter_name = getExporterName(exporter_ip, true, true, false)
 
          -- Optionally retrieve interface role via SNMP
          if (add_role_to_interfaces) then
@@ -157,7 +157,7 @@ function exporters_utils.getAllProbesList()
          -- Flow-based probes (NetFlow / sFlow)
          if probe_info.exporters and table.len(probe_info.exporters) > 0 then
             for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}, asc) do
-               local name = getProbeName(exporter_ip, true, false, false)
+               local name = getExporterName(exporter_ip, true, false, false)
 
                if ifstats.isView then
                   name = name .. " [ " .. ifnames[tostring(ifid)] .. "]"
@@ -172,7 +172,7 @@ function exporters_utils.getAllProbesList()
             end
          else
             -- Packet probe
-            local name = getProbeName(probe_ip, true, false, false)
+            local name = getExporterName(probe_ip, true, false, false)
 
             if ifstats.isView then
                name = name .. " [ " .. ifnames[tostring(ifid)] .. "]"
@@ -220,7 +220,7 @@ function exporters_utils.getAllExportersList()
                      end
                   end
                   exporter_info.id = exporter_ip
-                  exporter_info.name = getProbeName(exporter_ip, true, true, false)
+                  exporter_info.name = getExporterName(exporter_ip, true, true, false)
                   exporter_info.interface_id = interface_id
                   exporter_info.exporter_ip = exporter_ip
                   exporter_info.exporter_source_id = exporter_info.unique_source_id or 0
@@ -355,7 +355,7 @@ local function build_navbar_title(ip, nprobe_info)
    if nprobe_info then
       local breadcrumb = "<span> | "
       local probe_ip = nprobe_info["probe.ip"]
-      local probe_name = getProbeName(probe_ip, true, true, false)
+      local probe_name = getExporterName(probe_ip, true, true, false)
 
       if not isEmptyString(ip) and ip ~= probe_ip then
          local probe_source_id = tostring(nprobe_info["probe.source_id"])
@@ -365,7 +365,7 @@ local function build_navbar_title(ip, nprobe_info)
          breadcrumb = breadcrumb .. "<a href='".. exporters_url .."'>"
                                  .. i18n("flow_devices.probe") .. " " .. probe_name .. "</a>"
 
-         local exporter_name = getProbeName(ip, true, true, false)
+         local exporter_name = getExporterName(ip, true, true, false)
          breadcrumb = breadcrumb .. " / " .. i18n("flow_devices.exporter") .. " " .. exporter_name
          if exporter_name ~= ip then
             breadcrumb = breadcrumb .. " (" .. ip .. ") "

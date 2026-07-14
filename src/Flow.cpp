@@ -5109,8 +5109,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
                                  (u_int32_t)srv_host->get_local_network_id());
   }
 
-  ndpi_serialize_string_string(
-			       s, "probe_ip", Utils::intoaV6(*getFlowDeviceIP(), buf, sizeof(buf)));
+  ndpi_serialize_string_string(s, "exporter_ip", Utils::intoaV6(*getFlowDeviceIP(), buf, sizeof(buf)));
   ndpi_serialize_string_int32(s, "input_snmp", getFlowDeviceInIndex());
   ndpi_serialize_string_int32(s, "output_snmp", getFlowDeviceOutIndex());
 

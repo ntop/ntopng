@@ -896,7 +896,7 @@ function click_button_flows(event) {
     const cli_ip = row_data?.cli_ip?.value || row_data?.flow?.cli_ip?.value;
     const srv_ip = row_data?.srv_ip?.value || row_data?.flow?.srv_ip?.value;
     const srv_port = row_data?.srv_port?.value;
-    const probe_ip = row_data?.probe_ip?.value;
+    const exporter_ip = row_data?.exporter_ip?.value;
     const instance_name = row_data?.NTOPNG_INSTANCE_NAME;
     const vlan_id = row_data?.vlan_id?.value;
     const output_snmp = row_data?.output_snmp?.value;
@@ -928,8 +928,8 @@ function click_button_flows(event) {
         url = url + `&srv_port=${srv_port};eq`;
     }
 
-    if (probe_ip) {
-        url = url + `&probe_ip=${probe_ip};eq`;
+    if (exporter_ip) {
+        url = url + `&exporter_ip=${exporter_ip};eq`;
     }
 
     if (input_snmp && input_snmp != 0) {

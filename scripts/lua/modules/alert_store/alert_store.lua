@@ -410,10 +410,10 @@ function alert_store:build_sql_cond(cond, is_write)
 
         local sql_val = cond.value
 
-        local probe_ip = nil
+        local exporter_ip = nil
         local snmp_info = string.split(sql_val, "_")
         if #snmp_info == 2 then
-            probe_ip = snmp_info[1]
+            exporter_ip = snmp_info[1]
             sql_val = snmp_info[2]
         end
 
@@ -428,9 +428,9 @@ function alert_store:build_sql_cond(cond, is_write)
 
             sql_cond = self:get_column_name('port', is_write) .. sql_op .. sql_val
 
-            if probe_ip then
+            if exporter_ip then
                 sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
-                               self:get_column_name('ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+                               self:get_column_name('ip', is_write) .. sql_op .. string.format("('%s')", exporter_ip)
             end
 
         else -- flow or other entities
@@ -446,9 +446,9 @@ function alert_store:build_sql_cond(cond, is_write)
                 sql_cond = k .. sql_op .. sql_val
             end
 
-            if probe_ip then
+            if exporter_ip then
                 sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
-                               self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+                               self:get_column_name('probe_ip', is_write) .. sql_op .. string.format("('%s')", exporter_ip)
             end
         end
 

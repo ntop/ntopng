@@ -8,15 +8,15 @@
 	},
 	"filters": [
 		{
-			"name": "probe_ip"
+			"name": "exporter_ip"
 		},
 		{
 			"name": "output_snmp",
-			"show_only_if_selected": "probe_ip"
+			"show_only_if_selected": "exporter_ip"
 		},
 		{
 			"name": "input_snmp",
-			"show_only_if_selected": "probe_ip"
+			"show_only_if_selected": "exporter_ip"
 		},
 		{
 			"name": "network"
