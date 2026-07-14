@@ -1138,7 +1138,7 @@ end
 
 function driver:export()
     -- Run on system interface only
-    if not isSystemInterface() then return end
+   if not isSystemInterface() then return(0) end
 
     local base_dir = dirs.workingdir .. "/tmp/influxdb"
     local files = ntop.readdir(base_dir)
@@ -1172,6 +1172,8 @@ function driver:export()
             end
         end
     end
+
+    return(num_files)
 end
 
 -- ##############################################

@@ -240,15 +240,22 @@ end
 
 -- ########################################################
 
-function callback_utils.uploadTSdata()
+function callback_utils.uploadTSdata(max_duration)
    local ts_utils = require("ts_utils_core")
    local drivers = ts_utils.listActiveDrivers()
+   local deadline = os.time() + max_duration - 1 -- allow 1 sec of tolerance
+   
    ts_utils.setup()
 
-   for _, driver in ipairs(drivers) do
-      driver:export()
-   end
+   repeat
+      local tot = 0
+      
+      for _, driver in ipairs(drivers) do
+	 tot = tot + driver:export()
+      end
+   until((deadline < os.time()) or (tot == 0))
 end
+
 -- ########################################################
 
 if(trace_script_duration ~= nil) then

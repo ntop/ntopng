@@ -701,7 +701,7 @@ function driver:export()
       end
    end
 
-   if #rows == 0 then return end
+   if #rows == 0 then return 0 end
 
    local sql = string.format(
       "INSERT INTO `%s`.`%s` (schema_name, tstamp, tags, metrics) VALUES %s",
@@ -720,6 +720,8 @@ function driver:export()
       traceError(TRACE_ERROR, TRACE_CONSOLE,
          string.format("[ClickHouse TS] INSERT of %d rows failed", #rows))
    end
+
+   return(#rows)
 end
 
 -- ##############################################

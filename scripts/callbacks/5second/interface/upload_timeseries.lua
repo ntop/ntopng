@@ -8,4 +8,5 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local callback_utils = require "callback_utils"
 -- Export/flush timeseries data
-callback_utils.uploadTSdata()
+local max_duration = 5 -- seconds
+callback_utils.uploadTSdata(max_duration)

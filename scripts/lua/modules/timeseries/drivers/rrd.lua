@@ -1496,13 +1496,13 @@ end
 
 function driver:export()
    if (not (use_rrd_queue)) then
-      return -- Nothing to do
+      return(0) -- Nothing to do
    end
 
    local ts_utils = require "ts_utils" -- required to get the schema from the schema name
 
    local rrd_queue_max_dequeues_per_interface = 8192
-
+   local num = 0
    local cur_ifid = tonumber(interface.getId())
 
    for cur_dequeue = 1, rrd_queue_max_dequeues_per_interface do
@@ -1533,8 +1533,11 @@ function driver:export()
          end
 
          update_rrd(schema, rrdfile, timestamp, metrics)
+	 num = num + 1
       end
    end
+
+   return(num)
 end
 
 -- ##############################################
