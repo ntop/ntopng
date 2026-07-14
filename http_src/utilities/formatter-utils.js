@@ -427,6 +427,53 @@ function capitalizeFirstLetters(str) {
         .join(' ');
 }
 
+const WAZUH_LEVEL_LABELS = {
+    0: "Ignored",
+    1: "System Log / Information",
+    2: "System Low Priority Notification",
+    3: "Successful / Authorized Event",
+    4: "System Error",
+    5: "User Generated Error",
+    6: "Low Relevance Attack",
+    7: "Information Contextual Alerts",
+    8: "First-Anomalies",
+    9: "Error from Invalid Source",
+    10: "Multiple User Errors / Misuse",
+    11: "Increased Priority Security",
+    12: "High Importance Event",
+    13: "Unusual Error",
+    14: "High Importance Security Event",
+    15: "Severe Attack",
+    16: "Critical Event",
+};
+
+// Wazuh rule levels (0-16): 0-7 informational, 8-11 suspicious, 12-14 high importance, 15-16 critical
+function getWazuhLevelBadgeClass(level) {
+    if (level >= 15) return "bg-danger";
+    if (level >= 12) return "bg-warning text-dark";
+    if (level >= 8) return "bg-info text-dark";
+    return "bg-secondary";
+}
+
+// Formats a Wazuh rule level (0-16) as a colored badge with its numeric value and label
+function formatWazuhLevel(level) {
+    level = parseInt(level);
+    if (isNaN(level)) { return ''; }
+
+    const label = WAZUH_LEVEL_LABELS[level] || "Unknown";
+    const badge_class = getWazuhLevelBadgeClass(level);
+
+    return `<span class="badge ${badge_class}" title="${label}">${level} - ${label}</span>`;
+}
+
+// Returns the Wazuh rule levels (0-16) as select-search options: [{label, value}]
+function getWazuhLevelOptions() {
+    return Object.keys(WAZUH_LEVEL_LABELS).map((level) => ({
+        label: `${level} - ${WAZUH_LEVEL_LABELS[level]}`,
+        value: parseInt(level),
+    }));
+}
+
 // This function is used to format a standard a tag, with value - name
 function formatHTMLaTagNameValue(value, name, url, short_version) {
     let a_tag = ''
@@ -456,7 +503,9 @@ const formatterUtils = function () {
         formatAsn,
         getMidnightEpoch,
         capitalizeFirstLetters,
-        formatHTMLaTagNameValue
+        formatHTMLaTagNameValue,
+        formatWazuhLevel,
+        getWazuhLevelOptions
     };
 }();
 

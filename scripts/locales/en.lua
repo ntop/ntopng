@@ -75,6 +75,7 @@ local lang = {
       ["delete"] = "Are you sure to remove the selected Measurement? The action is irreversible",
    },
    ["wazuh_alert_config"] = {
+      ["wazuh_alerts"] = "Wazuh Alerts",
       ["alert_rules"] = "Rules",
       ["alert_exceptions"] = "Rules Exceptions",
       ["add_rule"] = "Add Wazuh Alert Rule",
