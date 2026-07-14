@@ -24,21 +24,50 @@
             @add="add_exclusion"
           />
 
+          <NavbarTabs
+            :tabs="tabs"
+            :active_tab_id="active_tab"
+            @on_click="(tab) => switch_tab(tab.id)"
+          />
+
           <TableWithConfig
-            :key="active_tab"
-            ref="table_ref"
-            :table_config_id="TABLE_CONFIG_MAP_id"
+            v-show="active_tab === 'hosts'"
+            ref="table_ref_hosts"
+            table_config_id="alert_exclusions_hosts"
             :get_extra_params_obj="get_extra_params"
             :f_map_columns="map_columns"
             @custom_event="on_table_custom_event"
           >
-            <template #custom_header>
-              <NavbarTabs
-                :tabs="tabs"
-                :active_tab_id="active_tab"
-                @on_click="(tab) => switch_tab(tab.id)"
-              />
+            <template #custom_buttons>
+              <button class="btn btn-link" type="button" @click="show_add_dialog">
+                <i class="fas fa-plus"></i>
+              </button>
             </template>
+          </TableWithConfig>
+
+          <TableWithConfig
+            v-show="active_tab === 'domain_names'"
+            ref="table_ref_domain_names"
+            table_config_id="alert_exclusions_domain_names"
+            :get_extra_params_obj="get_extra_params"
+            :f_map_columns="map_columns"
+            @custom_event="on_table_custom_event"
+          >
+            <template #custom_buttons>
+              <button class="btn btn-link" type="button" @click="show_add_dialog">
+                <i class="fas fa-plus"></i>
+              </button>
+            </template>
+          </TableWithConfig>
+
+          <TableWithConfig
+            v-show="active_tab === 'tls_certificate'"
+            ref="table_ref_tls_certificate"
+            table_config_id="alert_exclusions_tls_certificate"
+            :get_extra_params_obj="get_extra_params"
+            :f_map_columns="map_columns"
+            @custom_event="on_table_custom_event"
+          >
             <template #custom_buttons>
               <button class="btn btn-link" type="button" @click="show_add_dialog">
                 <i class="fas fa-plus"></i>
@@ -59,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as ModalAddCheckExclusion } from "./modal-add-check-exclusion.vue";
@@ -80,7 +109,9 @@ const tabs = [
 ];
 
 const active_tab = ref("hosts");
-const table_ref = ref(null);
+const table_ref_hosts = ref(null);
+const table_ref_domain_names = ref(null);
+const table_ref_tls_certificate = ref(null);
 
 // modal refs
 const modal_delete_confirm = ref(null);
@@ -105,8 +136,15 @@ const TYPE_MAP = {
   tls_certificate: "certificate",
 };
 
-// use selected
-const TABLE_CONFIG_MAP_id = computed(() => TABLE_CONFIG_MAP[active_tab.value]);
+const TABLE_REF_MAP = {
+  hosts:           () => table_ref_hosts,
+  domain_names:    () => table_ref_domain_names,
+  tls_certificate: () => table_ref_tls_certificate,
+};
+
+function active_table_ref() {
+  return TABLE_REF_MAP[active_tab.value]();
+}
 
 function get_extra_params() {
   return { type: TYPE_MAP[active_tab.value] };
@@ -158,7 +196,7 @@ async function add_exclusion(params) {
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify(params),
   });
-  table_ref.value?.refresh_table();
+  active_table_ref().value?.refresh_table();
 }
 
 // delete one exclusion
@@ -191,7 +229,7 @@ async function delete_row() {
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify(params),
   });
-  setTimeout(() => table_ref.value?.refresh_table(), 300);
+  setTimeout(() => active_table_ref().value?.refresh_table(), 300);
 }
 
 // delete all
@@ -203,7 +241,7 @@ async function delete_all() {
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ type: alert_page_to_type(), csrf: props.context.csrf }),
   });
-  table_ref.value?.refresh_table();
+  active_table_ref().value?.refresh_table();
 }
 
 

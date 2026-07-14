@@ -1,9 +1,5 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-    <!-- Permanent root element (even while the table config is still loading and
-         mount_table is false) so that a v-show/v-if applied by a parent to this
-         component (e.g. to toggle visibility between tabs) always has a real DOM
-         node to act on instead of silently doing nothing. -->
     <div class="table-with-config-root">
         <Table v-if="mount_table" ref="table" :id="table_id_2" :columns="table_config.columns"
             :get_rows="table_config.get_rows" :get_column_id="table_config.get_column_id"
@@ -33,6 +29,14 @@ import { ref, onMounted, computed, watch, onBeforeUnmount, nextTick } from "vue"
 import { default as Table } from "./table.vue";
 import TableUtils from "../utilities/table-utils";
 
+// The template root div.table-with-config-root is always rendered, even while
+// the table config is still loading and mount_table is false, so that a
+// v-show/v-if applied by a parent to this component (e.g. to toggle visibility
+// between tabs) always has a single real DOM root to act on. Do NOT add a
+// template-level comment as a sibling of that div: Vue compiles multiple
+// template-root nodes (including comments) into a Fragment, and fallthrough
+// attributes (like v-show's style binding) are only auto-applied when there is
+// exactly one root element -- with a Fragment they are silently dropped.
 const emit = defineEmits(['custom_event', 'loaded', 'rows_loaded'])
 const props = defineProps({
     table_config_id: String, // name of configuration file in httpdocs/tables_config
