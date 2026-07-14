@@ -108,7 +108,7 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
         int rc = snprintf(&rsp_oid[offset], sizeof(rsp_oid) - offset, "%s%d",
                           (offset > 0) ? "." : "", (int)vp->name_loc[i]);
 
-        if (rc > 0)
+        if ((rc > 0) && (rc < (int)(sizeof(rsp_oid) - offset)))
           offset += rc;
         else
           break;
@@ -234,7 +234,7 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
                             sizeof(response) - rsp_offset, "%s%d",
                             (rsp_offset > 0) ? "." : "", (int)vp->val.objid[i]);
 
-          if (rc > 0)
+          if ((rc > 0) && (rc < (int)(sizeof(response) - rsp_offset)))
             rsp_offset += rc;
           else
             break;
