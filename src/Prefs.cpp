@@ -781,6 +781,7 @@ void usage() {
 	 "instance.\n"
 #ifdef NTOPNG_PRO
 	 "[--fail-invalid-license]            | Exit without a valid license.\n"
+	 "[--license-mgr <path>]              | Specify the LM configuration file.\n"
 	 "[--check-license]                   | Check if the license is valid.\n"
 	 "[--check-maintenance]               | Check until maintenance is "
 	 "included\n"
