@@ -14,7 +14,8 @@
                 <div class="form-group mb-3 row">
                     <label class="col-4 col-form-label"><b>{{ _i18n('wazuh_alert_config.min_level') }}</b></label>
                     <div class="col-8">
-                        <input ref="min_level" class="form-control" type="number" min="0" max="16">
+                        <SelectSearch v-model:selected_option="selected_min_level" :options="min_level_options">
+                        </SelectSearch>
                     </div>
                 </div>
                 <div class="form-group mb-3 row">
@@ -74,7 +75,9 @@
 import { ref } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as Spinner } from "./spinner.vue";
+import { default as SelectSearch } from "./select-search.vue";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
+import { default as formatterUtils } from "../utilities/formatter-utils.js";
 import { v4 as uuidv4 } from "uuid";
 
 const _i18n = (t) => i18n(t);
@@ -87,12 +90,14 @@ const props = defineProps({
 });
 
 const priority = ref(null);
-const min_level = ref(null);
 const groups = ref(null);
 const subject = ref(null);
 const immediate = ref(null);
 const enabled = ref(null);
 const comment = ref(null);
+
+const min_level_options = formatterUtils.getWazuhLevelOptions();
+const selected_min_level = ref(min_level_options[0]);
 
 const row = ref(null);
 const title = ref(i18n('wazuh_alert_config.add_rule'));
@@ -109,7 +114,7 @@ function reset_modal_form() {
     add_button_title.value = i18n('add');
     show_feedback.value = false;
     priority.value.value = 100;
-    min_level.value.value = 0;
+    selected_min_level.value = min_level_options[0];
     groups.value.value = '';
     subject.value.value = '[Wazuh] Alert digest';
     immediate.value.checked = false;
@@ -124,7 +129,7 @@ function format_edit() {
     add_button_title.value = i18n('edit');
 
     priority.value.value = row.value.priority ?? 100;
-    min_level.value.value = row.value.min_level ?? 0;
+    selected_min_level.value = min_level_options.find((o) => o.value == (row.value.min_level ?? 0)) ?? min_level_options[0];
     groups.value.value = (row.value.groups || []).join(',');
     subject.value.value = row.value.subject ?? '';
     immediate.value.checked = !!row.value.immediate;
@@ -157,7 +162,7 @@ const add_ = async () => {
     let params = {
         csrf: props.context.csrf,
         wazuh_rule_priority: priority.value.value,
-        wazuh_rule_min_level: min_level.value.value,
+        wazuh_rule_min_level: selected_min_level.value.value,
         wazuh_rule_groups: groups.value.value,
         wazuh_rule_subject: subject.value.value,
         wazuh_rule_immediate: immediate.value.checked ? 1 : 0,
