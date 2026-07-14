@@ -7558,6 +7558,18 @@ local lang = {
         ["invalid_jail"] = "Invalid Fail2Ban jail.",
       },
     },
+    ["flowtriq"] = {
+      ["api_key"] = "API Key",
+      ["flowtriq_send_error"] = "Error sending alerts to Flowtriq. Please check the URL and API key.",
+      ["flowtriq_sent_successfully"] = "Alerts have been successfully sent to Flowtriq.",
+      ["url"] = "Webhook URL",
+      ["validation"] = {
+        ["empty_api_key"] = "API Key cannot be empty.",
+        ["empty_url"] = "Flowtriq URL cannot be empty.",
+        ["invalid_api_key"] = "Invalid API Key.",
+        ["invalid_url"] = "Invalid Flowtriq URL.",
+      },
+    },
     ["mattermost"] = {
       ["api_token"] = "API Token",
       ["id"] = "Id Mattermost Channel",

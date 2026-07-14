@@ -1,0 +1,22 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.flowtriq.url") }}</b>
+    </label>
+    <div class="col-sm-7">
+        <input
+        data-validation-message="{{ i18n('notification_endpoint.flowtriq.validation.invalid_url') }}"
+        data-validation-empty-message="{{ i18n('notification_endpoint.flowtriq.validation.empty_url') }}"
+        data-pattern="https" name="flowtriq_url" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.flowtriq.api_key") }}</b>
+    </label>
+    <div class="col-sm-7">
+        <input
+        data-validation-message="{{ i18n('notification_endpoint.flowtriq.validation.invalid_api_key') }}"
+        data-validation-empty-message="{{ i18n('notification_endpoint.flowtriq.validation.empty_api_key') }}"
+        name="flowtriq_api_key" type="password" autocomplete="off" class="form-control" required />
+    </div>
+</div>
