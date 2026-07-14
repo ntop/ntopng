@@ -413,7 +413,7 @@ export default {
 
 /* Flatpickr date inputs */
 .dtrp-input {
-    height: 100%;
+    height: 28px;
     min-width: 7rem;
     max-width: 9.5rem;
     background-color: var(--input-bg, #fff) !important;
@@ -422,6 +422,7 @@ export default {
     font-size: 0.8rem !important;
     padding: 0.2rem 0.55rem;
     border-radius: 7px !important;
+    box-sizing: border-box;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 

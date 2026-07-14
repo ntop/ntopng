@@ -26,7 +26,8 @@
        calls that function through its get_custom_chart_options prop.
 -->
 <template>
-    <div>
+
+    <div class="dashboard-timeseries-wrap">
         <!-- Optional spinner shown while data is loading -->
         <Loading v-if="!props.hideLoading" :isLoading="isLoading"></Loading>
 
@@ -447,12 +448,25 @@ onMounted(() => {
 });
 
 /*
- * Re-fetch whenever the time window, active filters, or selected interface
- * changes.  deep:true is needed because filters is an object.
+ * Re-fetch whenever the time window, active filters, selected interface, or
+ * query params change. params must be watched too: switching the selected
+ * exporter/entity on pages like the sites dashboard only changes params
+ * (post_params.ts_requests), not epoch_begin/epoch_end/ifid, so without this
+ * the chart would keep showing the previously selected exporter's data.
+ * deep:true is needed because filters/params are objects.
  */
 watch(
-    () => [props.epoch_begin, props.epoch_end, props.filters, props.ifid],
+    () => [props.epoch_begin, props.epoch_end, props.filters, props.ifid, props.params],
     () => fetchChart(),
     { deep: true }
 );
 </script>
+
+<style scoped>
+.dashboard-timeseries-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+</style>

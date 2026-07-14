@@ -86,31 +86,23 @@
       <div class="row g-3 mb-3">
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-orange rounded-3 p-3">
-            <BadgeComponent id="kpi-calls" :params="kpiCallsParams" :get_component_data="kpiCallsGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-calls" :params="kpiCallsParams" :get_component_data="kpiCallsGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-teal rounded-3 p-3">
-            <BadgeComponent id="kpi-tokens" :params="kpiTokensParams" :get_component_data="kpiTokensGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-tokens" :params="kpiTokensParams" :get_component_data="kpiTokensGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-blue rounded-3 p-3">
-            <BadgeComponent id="kpi-avgms" :params="kpiAvgMsParams" :get_component_data="kpiAvgMsGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-avgms" :params="kpiAvgMsParams" :get_component_data="kpiAvgMsGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-purple rounded-3 p-3">
-            <BadgeComponent id="kpi-chats" :params="kpiChatsParams" :get_component_data="kpiChatsGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-chats" :params="kpiChatsParams" :get_component_data="kpiChatsGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
       </div>
@@ -119,31 +111,23 @@
       <div class="row g-3 mb-3">
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-green rounded-3 p-3">
-            <BadgeComponent id="kpi-total-cost" :params="kpiTotalCostParams" :get_component_data="kpiTotalCostGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-total-cost" :params="kpiTotalCostParams" :get_component_data="kpiTotalCostGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-cyan rounded-3 p-3">
-            <BadgeComponent id="kpi-input-cost" :params="kpiInputCostParams" :get_component_data="kpiInputCostGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-input-cost" :params="kpiInputCostParams" :get_component_data="kpiInputCostGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-fuchsia rounded-3 p-3">
-            <BadgeComponent id="kpi-gen-cost" :params="kpiGenCostParams" :get_component_data="kpiGenCostGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-gen-cost" :params="kpiGenCostParams" :get_component_data="kpiGenCostGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
         <div class="col-6 col-xl-3">
-          <div class="ai-kpi-amber rounded-3 p-3">
-            <BadgeComponent id="kpi-tool-cost" :params="kpiToolCostParams" :get_component_data="kpiToolCostGetter"
-              :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
-          </div>
+          <BadgeComponent id="kpi-tool-cost" :params="kpiToolCostParams" :get_component_data="kpiToolCostGetter"
+            :set_component_attr="noopSetAttr" :filters="badgeFilters" :hideLoading="true" />
         </div>
 
       </div>
@@ -269,7 +253,7 @@
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { getProviderIconHtml, getProviderLabel as _providerLabel } from "./composables/useLlmChat.js";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services";
-import { default as BadgeComponent } from "./dashboard-badge.vue";
+import { default as BadgeComponent } from "./badge-card.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
 import { default as ModalLlmModelPrice } from "./modal-llm-model-price.vue";
@@ -438,14 +422,14 @@ function callTypeBarClass(ct) {
 
 const noopSetAttr = () => { };
 
-function makeBadgeParams(field, i18nKey, icon) {
-  return { url: '/', counter_path: field, counter_formatter: 'no_formatting', i18n_name: i18nKey, icon };
+function makeBadgeParams(field, i18nKey, icon, color) {
+  return { url: '/', counter_path: field, counter_formatter: 'no_formatting', i18n_name: i18nKey, icon, color };
 }
 
-const kpiCallsParams  = makeBadgeParams('calls',  'llm.stat_total_calls',  'fas fa-bolt');
-const kpiTokensParams = makeBadgeParams('tokens', 'llm.stat_total_tokens', 'fas fa-coins');
-const kpiAvgMsParams  = makeBadgeParams('avgms',  'llm.stat_avg_response', 'fas fa-stopwatch');
-const kpiChatsParams  = makeBadgeParams('chats',  'llm.stat_unique_chats', 'fas fa-comments');
+const kpiCallsParams  = makeBadgeParams('calls',  'llm.stat_total_calls',  'fas fa-bolt',      'var(--ntop-orange, #FF8F00)');
+const kpiTokensParams = makeBadgeParams('tokens', 'llm.stat_total_tokens', 'fas fa-coins',     '#0d9488');
+const kpiAvgMsParams  = makeBadgeParams('avgms',  'llm.stat_avg_response', 'fas fa-stopwatch', '#2563eb');
+const kpiChatsParams  = makeBadgeParams('chats',  'llm.stat_unique_chats', 'fas fa-comments',  '#7c3aed');
 
 const kpiCallsGetter  = async () => ({ calls:  fmtNumber(summary.value.total_calls) });
 const kpiTokensGetter = async () => ({ tokens: fmtTokens(summary.value.total_tokens) });
@@ -453,10 +437,10 @@ const kpiAvgMsGetter  = async () => ({ avgms:  fmtMs(summary.value.avg_completio
 const kpiChatsGetter  = async () => ({ chats:  fmtNumber(summary.value.unique_chats) });
 
 // Cost KPI badges (row 2) — values derived from costBreakdown computed
-const kpiTotalCostParams = makeBadgeParams('total_cost', 'llm.total_cost',      'fas fa-dollar-sign');
-const kpiInputCostParams = makeBadgeParams('input_cost', 'llm.input_cost',      'fas fa-arrow-right');
-const kpiGenCostParams   = makeBadgeParams('gen_cost',   'llm.generation_cost', 'fas fa-arrow-left');
-const kpiToolCostParams  = makeBadgeParams('tool_cost',  'llm.tool_call_cost',  'fas fa-tools');
+const kpiTotalCostParams = makeBadgeParams('total_cost', 'llm.total_cost',      'fas fa-dollar-sign', '#059669');
+const kpiInputCostParams = makeBadgeParams('input_cost', 'llm.input_cost',      'fas fa-arrow-right', '#0891b2');
+const kpiGenCostParams   = makeBadgeParams('gen_cost',   'llm.generation_cost', 'fas fa-arrow-left',  '#c026d3');
+const kpiToolCostParams  = makeBadgeParams('tool_cost',  'llm.tool_call_cost',  'fas fa-tools',        '#d97706');
 
 const kpiTotalCostGetter = async () => ({ total_cost: fmtCost(costBreakdown.value.total) });
 const kpiInputCostGetter = async () => ({ input_cost: fmtCost(costBreakdown.value.inputCost) });
@@ -847,18 +831,6 @@ onMounted(async () => {
 }
 
 .ai-refresh-btn:disabled { opacity: 0.45; cursor: default; }
-
-/* KPI badge wrappers */
-.ai-kpi-orange  { background: var(--ntop-orange, #FF8F00); }
-.ai-kpi-teal    { background: #0d9488; }
-.ai-kpi-blue    { background: #2563eb; }
-.ai-kpi-purple  { background: #7c3aed; }
-
-/* Cost KPI wrappers */
-.ai-kpi-green   { background: #059669; }
-.ai-kpi-cyan    { background: #0891b2; }
-.ai-kpi-fuchsia { background: #c026d3; }
-.ai-kpi-amber   { background: #d97706; }
 
 /* Section cards */
 .ai-section-card {

@@ -684,7 +684,7 @@ defineExpose({ render });
     color: var(--input-text, #495057);
     border-radius: 7px;
     font-size: 0.8rem;
-    min-height: 34px;
+    min-height: 28px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -698,7 +698,7 @@ defineExpose({ render });
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single) {
     display: flex !important;
     align-items: center !important;
-    height: 34px;
+    height: 28px;
 }
 
 .ss-root :deep(.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered) {
@@ -824,8 +824,8 @@ defineExpose({ render });
 }
 
 .ss-root :deep(.select2--small .select2-selection--single) {
-    height: 26px !important;
-    min-height: 26px !important;
+    height: 28px !important;
+    min-height: 28px !important;
 }
 
 .ss-root :deep(.select2--small .select2-results__option) {
@@ -841,6 +841,6 @@ defineExpose({ render });
 /* isolate native select */
 select.ss-control {
     font-size: 0.8rem !important;
-    height: 34px !important;
+    height: 28px !important;
 }
 </style>

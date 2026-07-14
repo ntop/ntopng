@@ -1,0 +1,46 @@
+{
+	"name" : "Top Hosts by Traffic",
+	"i18n_name" : "top_hosts_by_traffic",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT IPv4NumToString(IPV4_ADDR) IPV4_ADDR_FORMATTED, IPv6NumToString(IPV6_ADDR) IPV6_ADDR_FORMATTED, HOST_LABEL, SUM(BYTES) total_bytes FROM (SELECT IPV4_SRC_ADDR IPV4_ADDR, IPV6_SRC_ADDR IPV6_ADDR, SRC_LABEL HOST_LABEL, TOTAL_BYTES BYTES $FROM$ $WHERE$ UNION ALL SELECT IPV4_DST_ADDR IPV4_ADDR, IPV6_DST_ADDR IPV6_ADDR, DST_LABEL HOST_LABEL, TOTAL_BYTES BYTES $FROM$ $WHERE$) AS f $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "IPV4_ADDR"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "IPV4_ADDR"
+			},
+			{
+				"name" : "IPV6_ADDR"
+			},
+			{
+				"name" : "HOST_LABEL"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}

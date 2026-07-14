@@ -9,11 +9,7 @@
             <div class="sites-dashboard-topbar d-flex align-items-center flex-wrap">
                 <BreadcrumbNav :items="breadcrumbItems" @on_select="handleBreadcrumbSelect" />
                 <div v-if="selectedExporter" class="ms-auto d-flex align-items-center gap-2">
-                    <a v-if="isLive && liveFlowsUrl" :href="liveFlowsUrl" target="_blank"
-                        class="btn btn-sm btn-primary sites-dashboard-flows-btn">
-                        <i class="fas fa-external-link-alt me-1"></i>{{ _i18n('sites_dashboard.live_flows') }}
-                    </a>
-                    <a v-if="!isLive && historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
+                    <a v-if="historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
                         class="btn btn-sm btn-primary sites-dashboard-flows-btn">
                         <i class="fas fa-external-link-alt me-1"></i>{{ _i18n('sites_dashboard.historical_flows') }}
                     </a>
@@ -33,26 +29,18 @@
                 <div class="d-flex align-items-center flex-wrap mb-3">
                     <h4 class="mb-0 d-flex align-items-center flex-wrap">
                         <i class="me-2" :class="titleIcon"></i>
-                        <span v-if="titleLabel" class="sites-dashboard-title-label me-1">{{ titleLabel }}:</span>
+                        <small v-if="titleLabel" class="sites-dashboard-title-label me-1">{{ titleLabel }}:</small>
                         {{ titleName }}
-                        <span v-if="titleSubtitle" class="sites-dashboard-subtitle ms-2">{{ titleSubtitle }}</span>
+                        <small v-if="titleSubtitle" class="sites-dashboard-subtitle ms-2">{{ titleSubtitle }}</small>
                     </h4>
                 </div>
 
-                <!-- KPI row: cards with a small icon square,
-                     label, and value -->
+                <!-- KPI row: badge-card component in "simple" mode,
+                     with a small icon square, label, and value -->
                 <div class="row g-3 mb-3">
                     <div v-for="kpi in kpiCards" :key="kpi.key" class="col-6 col-md-3 col-lg">
-                        <div class="sites-dashboard-kpi-card">
-                            <div class="sites-dashboard-kpi-header d-flex align-items-center gap-2">
-                                <div class="sites-dashboard-kpi-icon" :style="{ background: kpi.color }">
-                                    <i :class="kpi.icon"></i>
-                                </div>
-                                <span class="sites-dashboard-kpi-label">{{ _i18n(kpi.labelI18n) }}</span>
-                            </div>
-                            <div class="sites-dashboard-kpi-value">{{ kpi.value }}</div>
-                            <div v-if="kpi.sub" class="sites-dashboard-kpi-sub">{{ kpi.sub }}</div>
-                        </div>
+                        <BadgeCard simple :icon="kpi.icon" :color="kpi.color"
+                            :label="_i18n(kpi.labelI18n)" :value="kpi.value" :sub="kpi.sub" />
                     </div>
                 </div>
 
@@ -68,7 +56,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-lg-8">
                             <DashboardCard :title="_i18n('sites_dashboard.traffic_time_series')" icon="bi bi-graph-up"
-                                noPadding>
+                                :titleLink="titleLinks.traffic_time_series" noPadding>
                                 <DashboardTimeseries v-if="ifaceEpochBegin && ifaceEpochEnd" ref="ifaceChartRef"
                                     :id="'sites_dashboard_iface_ts'" :ifid="ifid" :epoch_begin="ifaceEpochBegin"
                                     :epoch_end="ifaceEpochEnd" :max_width="12" :max_height="4"
@@ -77,7 +65,7 @@
                         </div>
                         <div class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_l7_proto')" icon="bi bi-app-indicator"
-                                noPadding>
+                                :titleLink="titleLinks.top_l7_proto" noPadding>
                                 <NoData v-if="!loadingL7 && topL7.length === 0" :show="true" />
                                 <BootstrapTable v-else :id="'sites_dashboard_top_l7'" :columns="topProtoColumns"
                                     :rows="topL7" :print_html_column="printProtoColumn"
@@ -88,7 +76,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_l4_proto')" icon="bi bi-diagram-2"
-                                noPadding>
+                                :titleLink="titleLinks.top_l4_proto" noPadding>
                                 <NoData v-if="!loadingL4 && topL4.length === 0" :show="true" />
                                 <BootstrapTable v-else :id="'sites_dashboard_top_l4'" :columns="topProtoColumns"
                                     :rows="topL4" :print_html_column="printProtoColumn"
@@ -97,7 +85,7 @@
                         </div>
                         <div class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_local_talkers')" icon="bi bi-laptop"
-                                noPadding>
+                                :titleLink="titleLinks.top_local_talkers" noPadding>
                                 <NoData v-if="!loadingTalkers && topTalkers.length === 0" :show="true" />
                                 <BootstrapTable v-else :id="'sites_dashboard_top_talkers'" :columns="topHostColumns"
                                     :rows="topTalkers" :print_html_column="printHostColumn"
@@ -106,7 +94,7 @@
                         </div>
                         <div class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_remote_destinations')"
-                                icon="bi bi-globe" noPadding>
+                                icon="bi bi-globe" :titleLink="titleLinks.top_remote_destinations" noPadding>
                                 <NoData v-if="!loadingDestinations && topDestinations.length === 0" :show="true" />
                                 <BootstrapTable v-else :id="'sites_dashboard_top_destinations'"
                                     :columns="topHostColumns" :rows="topDestinations"
@@ -117,7 +105,7 @@
                 </template>
 
                 <DashboardCard v-if="activeTab === 'networks'" :title="_i18n('sites_dashboard.networks')"
-                    icon="bi bi-diagram-3-fill" noPadding>
+                    icon="bi bi-diagram-3-fill" :titleLink="titleLinks.networks" noPadding>
                     <NoData v-if="!loadingHierarchy && networks.length === 0" :show="true" />
                     <BootstrapTable v-else :id="'sites_dashboard_networks'" :columns="networkColumns"
                         :rows="networks" :print_html_column="printNetworkColumn"
@@ -125,7 +113,7 @@
                 </DashboardCard>
 
                 <DashboardCard v-if="activeTab === 'exporters'" :title="_i18n('sites_dashboard.exporters')"
-                    icon="bi bi-hdd-network" noPadding>
+                    icon="bi bi-hdd-network" :titleLink="titleLinks.exporters" noPadding>
                     <NoData v-if="!loadingHierarchy && exporters.length === 0" :show="true" />
                     <div v-else class="sites-dashboard-clickable-table"
                         @click="(ev) => onRowClick(ev, exporters, handleSelectExporter)">
@@ -136,7 +124,8 @@
                 </DashboardCard>
 
                 <DashboardCard v-if="activeTab === 'exporter_interfaces' && selectedExporter"
-                    :title="_i18n('sites_dashboard.interfaces')" icon="bi bi-ethernet" noPadding>
+                    :title="_i18n('sites_dashboard.interfaces')" icon="bi bi-ethernet"
+                    :titleLink="titleLinks.exporter_interfaces" noPadding>
                     <NoData v-if="!loadingInterfaces && exporterInterfaces.length === 0" :show="true" />
                     <div v-else class="sites-dashboard-clickable-table"
                         @click="(ev) => onRowClick(ev, exporterInterfaces, (iface) => handleSelectInterface(iface, selectedExporter))">
@@ -164,6 +153,7 @@ import { default as DashboardCard } from "./components/dashboard-card.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
 import { default as NoData } from "./components/no-data.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
+import { default as BadgeCard } from "./badge-card.vue";
 import { default as DashboardTimeseries } from "./dashboard-timeseries.vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
 import NtopUtils from "../utilities/ntop-utils.js";
@@ -173,9 +163,18 @@ const _i18n = (t) => i18n(t);
 const DEFAULT_SITE_ID = "0";
 const DATE_PICKER_ID = "sites_dashboard_date_picker";
 
+/* Title-link URLs for each card. networks/exporters/exporter_interfaces are
+   still placeholders - fill in with the final destination URLs. */
+const CARD_LINKS = {
+    traffic_time_series: { url: "" },
+    networks: { url: "" },
+    exporters: { live_url: `${http_prefix}/`, historical_url: `${http_prefix}/` },
+    exporter_interfaces: { live_url: `${http_prefix}/`, historical_url: `${http_prefix}/` },
+};
+
+/* "live" is hidden for now - always default to historical (see isLive). */
 const time_preset_list = [
-    { value: "live", label: _i18n("show_alerts.presets.live"), icon: "fa-solid fa-circle fa-2xs text-danger", currently_active: true },
-    { value: "hour", label: _i18n("show_alerts.presets.hour"), currently_active: false },
+    { value: "hour", label: _i18n("show_alerts.presets.hour"), currently_active: true },
     { value: "6_hours", label: _i18n("show_alerts.presets.6_hours"), currently_active: false },
     { value: "day", label: _i18n("show_alerts.presets.day"), currently_active: false },
     { value: "week", label: _i18n("show_alerts.presets.week"), currently_active: false },
@@ -188,6 +187,8 @@ const props = defineProps({
 });
 
 const ifid = String(props.context?.ifid ?? 0);
+
+const sidebar = ref(null);
 
 const selectedSite = ref(null);
 const selectedExporter = ref(null);
@@ -223,9 +224,10 @@ const topDestinations = ref([]);
 const liveFlowsCount = ref(null);
 const liveHostsCount = ref(null);
 
-/* Toggles which  button is shown next to the datetime picker:
-   live flows (current traffic) vs. historical flows for the selected window. */
-const isLive = ref(true);
+/* Toggles which button is shown next to the datetime picker:
+   live flows (current traffic) vs. historical flows for the selected window.
+*/
+const isLive = ref(false);
 
 /* BootstrapTable column definitions + print_html_column/print_html_row
    callbacks for every list rendered on this page (see bootstrap-table.vue). */
@@ -344,19 +346,6 @@ const exporterCurrentTraffic = computed(() => {
     );
 });
 
-/* Exporter scope leaves ifIdx empty (all interfaces of the device); interface
-   scope sets it to the selected SNMP ifIndex — matching flows_stats.lua's own
-   distinction between "filter by exporter only" (ifIdx=) and "filter by
-   exporter+interface" (ifIdx=<ifindex>). */
-const liveFlowsUrl = computed(() => {
-    if (!selectedExporter.value) return null;
-    const url_params = ntopng_url_manager.obj_to_url_params({
-        deviceIP: selectedExporter.value.id,
-        ifIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
-    });
-    return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
-});
-
 const historicalFlowsUrl = computed(() => {
     if (!selectedExporter.value || !ifaceEpochBegin.value || !ifaceEpochEnd.value) return null;
     const url_params = ntopng_url_manager.obj_to_url_params({
@@ -370,6 +359,44 @@ const historicalFlowsUrl = computed(() => {
         ...(selectedInterface.value ? { ifIdx: selectedInterface.value.ifindex } : {}),
     });
     return `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
+});
+
+/* Builds a db_search.lua URL scoped to the current exporter/interface and
+   epoch range for the given query_preset (l7_traffic, top_hosts_by_traffic,
+   top_remote_destinations, ...). Interface scope adds snmp_interface on top
+   of probe_ip, matching db_search.lua's own exporter+interface filtering. */
+function buildDbSearchUrl(queryPreset, count = "") {
+    if (!selectedExporter.value || !ifaceEpochBegin.value || !ifaceEpochEnd.value) return null;
+    const url_params = ntopng_url_manager.obj_to_url_params({
+        ifid,
+        epoch_begin: ifaceEpochBegin.value,
+        epoch_end: ifaceEpochEnd.value,
+        aggregated: false,
+        count,
+        query_preset: queryPreset,
+        probe_ip: `${selectedExporter.value.id};eq`,
+        ...(selectedInterface.value
+            ? { snmp_interface: `${selectedExporter.value.id}_${selectedInterface.value.ifindex};eq` }
+            : {}),
+    });
+    return `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
+}
+
+/* Resolves each card's title-link from CARD_LINKS, switching to the live vs.
+   historical variant for cards with both (see isLive / on_epoch_change). */
+const titleLinks = computed(() => {
+    const asLink = (url) => (url ? { url } : null);
+    const asLiveLink = (entry) => asLink(isLive.value ? entry.live_url : entry.historical_url);
+    return {
+        traffic_time_series: asLink(CARD_LINKS.traffic_time_series.url),
+        top_l7_proto: asLink(buildDbSearchUrl("l7_traffic", "l7_traffic")),
+        top_l4_proto: asLink(buildDbSearchUrl("", "traffic_presence")),
+        top_local_talkers: asLink(buildDbSearchUrl("top_hosts_by_traffic")),
+        top_remote_destinations: asLink(buildDbSearchUrl("top_remote_destinations")),
+        networks: asLink(CARD_LINKS.networks.url),
+        exporters: asLiveLink(CARD_LINKS.exporters),
+        exporter_interfaces: asLiveLink(CARD_LINKS.exporter_interfaces),
+    };
 });
 
 /* Id of whichever node (site/exporter/interface) is currently active, used to
@@ -475,11 +502,11 @@ const kpiCards = computed(() => {
             icon: "bi bi-graph-up-arrow",
             color: "#2fb344",
             labelI18n: "sites_dashboard.current_traffic",
-            value: `${_i18n("sites_dashboard.in_bytes")}: ${formatBytes(exporterCurrentTraffic.value.in)}`,
-            sub: `${_i18n("sites_dashboard.out_bytes")}: ${formatBytes(exporterCurrentTraffic.value.out)}`,
+            value: formatBytes(exporterCurrentTraffic.value.in + exporterCurrentTraffic.value.out),
+            sub: `${_i18n("sites_dashboard.in_bytes")}: ${formatBytes(exporterCurrentTraffic.value.in)} · ${_i18n("sites_dashboard.out_bytes")}: ${formatBytes(exporterCurrentTraffic.value.out)}`,
         });
 
-        cards.push({ key: "flows", icon: "bi bi-signpost-split", color: "#EA6A2A", labelI18n: "sites_dashboard.flows", value: liveFlowsCount.value ?? "—" });
+        cards.push({ key: "flows", icon: "fas fa-stream", color: "#EA6A2A", labelI18n: "sites_dashboard.flows", value: liveFlowsCount.value ?? "—" });
         cards.push({ key: "active_hosts", icon: "bi bi-pc-display", color: "#3b82f6", labelI18n: "sites_dashboard.active_hosts", value: liveHostsCount.value ?? "—" });
         cards.push({
             key: "snmp",
@@ -503,6 +530,13 @@ function formatBytes(v) {
 
 function formatPercentage(pct) {
     return NtopUtils.createProgressBar(pct || 0);
+}
+
+const RECENT_ACTIVITY_WINDOW_SECS = 5 * 60;
+
+function isRecentlyActive(timeLastUsed) {
+    if (!timeLastUsed) return false;
+    return (Date.now() / 1000 - timeLastUsed) <= RECENT_ACTIVITY_WINDOW_SECS;
 }
 
 /* Maps a raw {label, value}[] top-N list into rows carrying each entry's
@@ -584,11 +618,22 @@ async function handleSelectExporter(exporter, ancestors) {
         ifaceEpochEnd.value = Math.floor(Date.now() / 1000);
         ifaceEpochBegin.value = ifaceEpochEnd.value - 24 * 3600;
     }
+    revealInSidebar();
     await Promise.all([
         loadExporterInterfaces(exporter),
         loadExporterOverview(exporter),
         loadExporterCounts(exporter),
     ]);
+}
+
+/* Expands the sidebar tree down to whichever node is now selected (site,
+   exporter or interface), so a selection made from a table row click (not
+   the sidebar itself) still reveals and highlights the matching tree row
+   instead of leaving it hidden under a collapsed branch. */
+function revealInSidebar() {
+    const ancestorIds = selectedAncestors.value.map((a) => a.id);
+    const targetId = selectedNodeId.value;
+    if (targetId) sidebar.value?.expandTo([...ancestorIds, targetId]);
 }
 
 /* Live flows/hosts counts for the "Flows" and "Active Hosts" KPI cards.
@@ -796,6 +841,7 @@ function handleSelectInterface(iface, exporter, ancestors) {
         ifaceEpochEnd.value = Math.floor(Date.now() / 1000);
         ifaceEpochBegin.value = ifaceEpochEnd.value - 24 * 3600;
     }
+    revealInSidebar();
     loadExporterOverview(owningExporter, iface);
     loadExporterCounts(owningExporter, iface);
 }
@@ -840,7 +886,6 @@ async function fetchSiteLevel(siteId) {
                 id: `site:${s.id}`,
                 name: s.name,
                 icon: "bi bi-geo-alt-fill",
-                color: s.reserved ? undefined : "#2fb344",
                 data: { kind: "site", site: s },
             }));
 
@@ -848,6 +893,7 @@ async function fetchSiteLevel(siteId) {
             id: `exporter:${e.id}`,
             name: e.name,
             icon: "fas fa-satellite-dish",
+            color: isRecentlyActive(e.time_last_used) ? "#2fb344" : undefined,
             data: { kind: "exporter", exporter: e },
         }));
 
@@ -950,14 +996,10 @@ async function handleBreadcrumbSelect(item) {
 }
 
 .sites-dashboard-subtitle {
-    font-size: 0.85rem;
-    font-weight: 400;
     color: var(--ntop-muted-text-color);
 }
 
 .sites-dashboard-title-label {
-    font-size: 0.75rem;
-    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     color: var(--ntop-muted-text-color);
@@ -973,6 +1015,11 @@ async function handleBreadcrumbSelect(item) {
 
 .sites-dashboard-clickable-table :deep(tbody tr) {
     cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.sites-dashboard-clickable-table :deep(tbody tr:hover) {
+    background-color: var(--ntop-row-hover-bg, rgba(234, 106, 42, 0.08));
 }
 
 .sites-dashboard-date-picker :deep(.dtrp-btn-icon) {
@@ -995,61 +1042,6 @@ async function handleBreadcrumbSelect(item) {
 
 .sites-dashboard-mock-chart {
     min-height: 220px;
-}
-
-.sites-dashboard-kpi-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 16px 18px;
-    height: 100%;
-    min-width: 0;
-    container-type: inline-size;
-}
-
-.sites-dashboard-kpi-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.sites-dashboard-kpi-header {
-    min-width: 0;
-}
-
-.sites-dashboard-kpi-label {
-    font-size: 1.05rem;
-    color: var(--ntop-text-color);
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sites-dashboard-kpi-value {
-    font-size: clamp(1.1rem, 8cqw, 1.75rem);
-    color: var(--ntop-text-color);
-    margin-top: 8px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.sites-dashboard-kpi-sub {
-    font-size: 0.8rem;
-    color: var(--ntop-muted-text-color);
-    margin-top: 2px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 @media (max-width: 992px) {
