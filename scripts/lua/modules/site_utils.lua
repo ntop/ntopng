@@ -18,6 +18,7 @@ local REDIS_COUNTER_KEY = "ntopng.prefs.sites_counter" -- Auto-increment counter
 -- Configuration limits for sites
 local MAX_DESCRIPTION_SIZE = 256 -- Maximum character length for site descriptions
 local MAX_PROFILES_NUM = 1024 -- Maximum number of sites allowed in the system
+local MAX_HIERARCHY_DEPTH = MAX_PROFILES_NUM -- Safety bound when walking up the parent chain
 
 -- ##############################################
 -- Site field schema
@@ -41,6 +42,53 @@ DEFAULT_SITE.reserved = true
 
 -- ##############################################
 -- Private Helper Functions
+-- ##############################################
+
+-- Checks whether making parent_id the parent of site_id would create a
+-- circular hierarchy. Sites form a tree: a site has one parent and may have
+-- many children, so a site can never be an ancestor of itself
+
+local function creates_parent_loop(site_id, parent_id, sites)
+	if isEmptyString(site_id) or isEmptyString(parent_id) then
+		return false
+	end
+
+	site_id = tostring(site_id)
+
+	local visited = {} 
+	local current = tostring(parent_id)
+
+	for _ = 1, MAX_HIERARCHY_DEPTH do
+		-- Root reached ("0"/empty is the "no parent" sentinel): no loop
+		if isEmptyString(current) or current == "0" then
+			return false
+		end
+
+		-- Walking up from the candidate parent we got back to the site being
+		-- edited: it would become an ancestor of itself
+		if current == site_id then
+			return true
+		end
+
+		-- Pre-existing loop among other sites: not caused by this assignment
+		if visited[current] then
+			return false
+		end
+		visited[current] = true
+
+		local ancestor = sites[current]
+		if not ancestor then
+			-- Unknown ancestor: the chain is broken, nothing else to check
+			return false
+		end
+
+		current = ancestor.parent and tostring(ancestor.parent) or nil
+	end
+
+	-- Depth limit reached: play safe and refuse the assignment
+	return true
+end
+
 -- ##############################################
 
 -- Validates all parameters for a Site before creation or modification
@@ -115,7 +163,22 @@ local function validate_site(site, existing_sites, ignore_name_duplication)
 		return false, "Invalid Parent Site selected"
 	end
 
-	-- Step 5: Check for duplicate site names (unless explicitly disabled for edits)
+	-- Make sure the parent assignment keeps the hierarchy acyclic.
+	-- Only relevant on edit: a brand new site has no children yet, so it cannot
+	-- close a loop (site.site_id is nil in addSite()).
+	if site.site_parent and site.site_id then
+		if tostring(site.site_parent) == tostring(site.site_id) then
+			return false, "A site cannot be its own parent"
+		end
+		if creates_parent_loop(site.site_id, site.site_parent, existing_sites) then
+			local parent_name = site_utils.getSiteInfo(site.site_parent).name
+			return false,
+				"Invalid Parent Site: " ..
+				parent_name .. " is a descendant of " .. site.site_name .. ", this would create a circular hierarchy"
+		end
+	end
+
+	-- Check for duplicate site names (unless explicitly disabled for edits)
 	if not ignore_name_duplication then
 		for _, site in pairs(existing_sites) do
 			if site.name:lower() == name_lower then
