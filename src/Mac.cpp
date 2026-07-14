@@ -33,6 +33,7 @@ Mac::Mac(NetworkInterface* _iface, u_int8_t _mac[6])
   special_mac = Utils::isSpecialMac(mac);
   empty_mac = Utils::isEmptyMac(mac);
   source_mac = false;
+  num_remote_hosts = 0;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;
   memset(&names, 0, sizeof(names));
   device_type = device_unknown, asset_map_updated = true;
