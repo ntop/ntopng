@@ -163,13 +163,58 @@ const is_form_valid = computed(() => {
     return site_name.value.trim().length > 1 && !name_error.value;
 });
 
+/**
+ * Ids of every site descending (directly or indirectly) from the site being
+ * edited. None of them can become its parent: the hierarchy is a tree, so a
+ * site can never be an ancestor of itself.
+ * Empty in add mode: a new site has no children yet.
+ */
+const descendantIds = computed(() => {
+    const ids = new Set();
+    if (!isEditMode.value || currentSiteId.value == null) return ids;
+
+    const list = Array.isArray(props.sitesList) ? props.sitesList : [];
+
+    // Breadth-first visit of the children
+    let frontier = [currentSiteId.value];
+    console.log(list)
+    while (frontier.length > 0) {
+        const next = [];
+
+        for (const parent_id of frontier) {
+            for (const site of list) {
+                const id = String(site.id);
+                const parent = (site.parent != null) ? String(site.parent) : "";
+
+                // Skip the site itself (guards against corrupted self-parenting)
+                // and anything already visited (guards against pre-existing loops)
+                if (parent === parent_id && id !== currentSiteId.value && !ids.has(id)) {
+                    ids.add(id);
+                    next.push(id);
+                }
+            }
+        }
+
+        frontier = next;
+    }
+    return ids;
+});
+
+// A site cannot be its own parent, nor be parented to one of its descendants
+const isInvalidParent = (id) => {
+    if (!isEditMode.value || currentSiteId.value == null) return false;
+    const site_id = String(id);
+    return (site_id === currentSiteId.value) || descendantIds.value.has(site_id);
+};
+
 // Build the parent options from the sites list. The site currently being
-// edited is excluded (a site cannot be its own parent) and an explicit
-// "no parent" entry is prepended so the field can be left empty.
+// edited and all of its descendants are excluded (they would make the
+// hierarchy circular) and an explicit "no parent" entry is prepended so the
+// field can be left empty.
 const _sitesList = computed(() => {
     const list = Array.isArray(props.sitesList) ? props.sitesList : [];
     const options = list
-        .filter((t) => !(isEditMode.value && currentSiteId.value != null && String(t.id) === currentSiteId.value))
+        .filter((t) => !isInvalidParent(t.id))
         .map((t) => ({ id: t.id, label: t.name, title: t.name }));
     return [NO_PARENT_OPTION, ...options];
 });
@@ -303,9 +348,9 @@ const handleSubmit = () => {
     let parent_id = Number(selectedSite.value?.id ?? 0);
     if (!Number.isFinite(parent_id)) parent_id = 0;
 
-    // A site can never be its own parent (self is already excluded
-    // from the options list, this just covers any edge case).
-    if (isEditMode.value && currentSiteId.value != null && String(parent_id) === currentSiteId.value) {
+    // A site can never be its own parent nor a child of one of its descendants
+    // (both are already excluded from the options list
+    if (parent_id !== 0 && isInvalidParent(parent_id)) {
         parent_id = 0;
     }
 
