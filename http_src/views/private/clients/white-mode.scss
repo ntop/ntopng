@@ -905,6 +905,14 @@ li>a>.fa-external-link-alt {
   border-radius: 0.5rem;
 }
 
+/* Flush tiles let their own content (e.g. a KPI badge card) own all the
+   spacing/background/border instead of stacking two layers of chrome. */
+.widget-box--flush {
+  padding: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
 .widget-box-fix {
   padding-bottom: 60px;
 }

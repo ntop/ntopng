@@ -1865,12 +1865,11 @@ div.wrapper {
   overflow-y: hidden;
 }
 
-/* Logo */
 .sb-rail__logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2.75rem;
+  height: var(--sb-navbar-h, 3rem);
   flex-shrink: 0;
   border-bottom: 1px solid var(--sb-rail-border);
   text-decoration: none;

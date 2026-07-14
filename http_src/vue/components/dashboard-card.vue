@@ -6,6 +6,7 @@
     - title: String        — i18n-resolved card title (optional)
     - icon: String          — icon class shown next to the title (optional)
     - noPadding: Boolean     — set true when the slotted content manages its own padding (e.g. charts)
+    - titleLink: Object      — { url, label, icon }, renders a small link button next to the title (optional)
   Slots:
     - header: overrides the default title/icon header entirely
     - default: card body content (any component or chart)
@@ -15,10 +16,15 @@
     <div class="dashboard-card">
         <div v-if="$slots.header || title" class="dashboard-card-header d-flex align-items-center justify-content-between">
             <slot name="header">
-                <span class="dashboard-card-title d-flex align-items-center gap-2">
+                <h6 class="dashboard-card-title d-flex align-items-center gap-2 mb-0 fw-bold">
                     <i v-if="icon" :class="icon"></i>
                     {{ title }}
-                </span>
+                </h6>
+                <a v-if="titleLink" :href="titleLink.url" target="_blank" rel="noopener"
+                    class="dashboard-card-title-link small fw-semibold">
+                    <i :class="titleLink.icon || 'fas fa-external-link-alt'"></i>
+                    <template v-if="titleLink.label">{{ titleLink.label }}</template>
+                </a>
             </slot>
         </div>
         <div class="dashboard-card-body" :class="{ 'p-0': noPadding }">
@@ -35,6 +41,7 @@ defineProps({
     title: String,
     icon: String,
     noPadding: Boolean,
+    titleLink: Object,
 });
 </script>
 
@@ -55,8 +62,6 @@ defineProps({
 }
 
 .dashboard-card-title {
-    font-size: 14px;
-    font-weight: 700;
     color: var(--ntop-text-color);
 }
 
@@ -70,5 +75,19 @@ defineProps({
 .dashboard-card-footer {
     padding: 10px 18px;
     border-top: 1px solid var(--border-subtle);
+}
+
+.dashboard-card-title-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--ntop-muted-text-color);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.12s ease;
+}
+
+.dashboard-card-title-link:hover {
+    color: var(--ntop-orange, #FF8F00);
 }
 </style>

@@ -38,6 +38,10 @@
     - reload(): re-fetches the root level and collapses everything
     - ancestorsOf(nodeId): returns the real ancestor chain of any known node
       id (root-to-parent order), or [] if the id is unknown or a root.
+    - expandTo(ancestorIds): expands each id in order (root-to-parent, lazily
+      loading children as needed) so a node reached from outside the tree
+      (e.g. a table row click) becomes visible/highlighted without the user
+      having manually expanded every level first.
 -->
 <template>
     <div class="tree-nav-sidebar d-flex flex-column"
@@ -232,6 +236,7 @@ async function safeLoadChildren(node) {
 }
 
 async function handleToggle(node) {
+    if (node.hasChildren === false) return;
     const id = node.id;
     if (expandedIds.value.has(id)) {
         expandedIds.value = new Set([...expandedIds.value].filter((x) => x !== id));
@@ -239,25 +244,46 @@ async function handleToggle(node) {
         return;
     }
 
-    if (node.children === null && !loadingIds.value.has(id)) {
-        loadingIds.value = new Set([...loadingIds.value, id]);
-
-        let children = await safeLoadChildren(node);
-        if (children.length === 0) {
-            children = [makeEmptyNode(id)];
-        }
-        children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
-        node.children = children.map((c) => c.id);
-        /* The chevron always stays visible: a node can always be expanded
-           again to re-check for children, regardless of what was found. */
-        nodesById.value.set(id, node);
-        prefetchChildCounts(children.filter((c) => !c.isEmptyPlaceholder));
-
-        loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
-    }
-
+    await ensureChildrenLoaded(node);
     expandedIds.value = new Set([...expandedIds.value, id]);
     emit("on_toggle", node, true);
+}
+
+/* Lazily loads and stores a node's children (once), independent of the
+   expanded/collapsed state — shared by handleToggle and expandTo. */
+async function ensureChildrenLoaded(node) {
+    const id = node.id;
+    if (node.hasChildren === false || node.children !== null || loadingIds.value.has(id)) return;
+
+    loadingIds.value = new Set([...loadingIds.value, id]);
+
+    let children = await safeLoadChildren(node);
+    if (children.length === 0) {
+        children = [makeEmptyNode(id)];
+    }
+    children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
+    node.children = children.map((c) => c.id);
+    /* The chevron always stays visible: a node can always be expanded
+       again to re-check for children, regardless of what was found. */
+    nodesById.value.set(id, node);
+    prefetchChildCounts(children.filter((c) => !c.isEmptyPlaceholder));
+
+    loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
+}
+
+/* Reveals a node reached through a path the caller already knows (e.g. a
+   drill-down triggered from outside the tree, like a table row click),
+   without requiring the user to have manually expanded each level first.
+   ancestorIds must be root-to-parent order, matching on_select's ancestors
+   shape; each is expanded in turn, lazily loading children as needed. */
+async function expandTo(ancestorIds) {
+    for (const id of ancestorIds) {
+        const node = nodesById.value.get(id);
+        if (!node) return;
+        if (node.hasChildren === false) continue;
+        await ensureChildrenLoaded(node);
+        expandedIds.value = new Set([...expandedIds.value, id]);
+    }
 }
 
 function makeEmptyNode(parentId) {
@@ -279,7 +305,7 @@ async function reload() {
     await loadRoots();
 }
 
-defineExpose({ reload, ancestorsOf });
+defineExpose({ reload, ancestorsOf, expandTo });
 </script>
 
 <style scoped>
