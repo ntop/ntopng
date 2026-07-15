@@ -84,6 +84,7 @@ const props = defineProps({
     csrf:        { type: String },
     filters:     { type: Object },
     hideLoading: { type: Boolean },
+    showOnlyFirstLoading: { type: Boolean },
 });
 
 const emit = defineEmits([
@@ -97,6 +98,7 @@ const height_per_row = 62;
 const isLoading = ref(true);
 /** Template ref to the TimeseriesChart child so we can call retrieveOptionsAndDraw. */
 const chartRef  = ref(null);
+const firstLoad = ref(true);
 
 /**
  * Monotonically increasing counter.  Incremented at the start of each
@@ -348,7 +350,8 @@ async function fetchChart() {
     const gen = ++generation;
 
     if (!props.epoch_begin || !props.epoch_end) return;
-    isLoading.value = true;
+    /* Show spinner: always on first load; on refresh only when not suppressed. */
+    isLoading.value = firstLoad.value || !props.showOnlyFirstLoading;
     emit('update-requested', {});
 
     /* Fetch or reuse top-N list. */
@@ -416,6 +419,7 @@ async function fetchChart() {
     }
 
     isLoading.value = false;
+    firstLoad.value = false;
 }
 
 /** Forward zoom callbacks to the parent as update-requested. */
