@@ -134,3 +134,8 @@ tools/tmp.csv
 tests/e2e/rest/logs/*
 httpdocs/img/custom_logo.png
 .dual-graph/
+
+# Playwright E2E
+tests/e2e/.auth/
+tests/e2e/results/
+tests/e2e/report/

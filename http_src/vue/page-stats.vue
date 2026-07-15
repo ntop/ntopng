@@ -132,7 +132,7 @@ const props = defineProps({
 const _i18n = (t) => i18n(t);
 let id_chart = "chart";
 let id_date_time_picker = "date_time_picker";
-let chart_type = ntopChartApex.typeChart.TS_LINE;
+let chart_type = "TS_LINE";
 const config_app_table = ref({});
 const init_config_table = ref(false);
 const charts = ref([]);
