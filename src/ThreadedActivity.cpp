@@ -35,8 +35,8 @@ ThreadedActivity::ThreadedActivity(const char* _path, bool delayed_activity,
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   periodic_script = new (std::nothrow) PeriodicScript(
-      _path, _periodicity_seconds, _max_duration_seconds, _align_to_localtime,
-      _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
+						      _path, _periodicity_seconds, _max_duration_seconds, _align_to_localtime,
+						      _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
   randomDelaySchedule = delayed_activity;
   setDeadlineApproachingSecs();
   force_run = false;
@@ -47,13 +47,13 @@ ThreadedActivity::ThreadedActivity(const char* _path, bool delayed_activity,
 
 ThreadedActivity::~ThreadedActivity() {
   /*
-     NOTE:
-     terminateEnqueueLoop should have already been called by the
-     PeriodicActivities destructor.
+    NOTE:
+    terminateEnqueueLoop should have already been called by the
+    PeriodicActivities destructor.
   */
 
   for (std::map<std::string, ThreadedActivityStats*>::iterator it =
-           threaded_activity_stats.begin();
+	 threaded_activity_stats.begin();
        it != threaded_activity_stats.end(); ++it) {
     delete it->second;
   }
@@ -66,12 +66,12 @@ ThreadedActivity::~ThreadedActivity() {
 void ThreadedActivity::updateNextSchedule(u_int32_t now) {
   if (getPeriodicity()) {
     next_schedule =
-        Utils::roundTime(now, getPeriodicity(),
-                         alignToLocalTime() ? ntop->get_time_offset() : 0);
+      Utils::roundTime(now, getPeriodicity(),
+		       alignToLocalTime() ? ntop->get_time_offset() : 0);
 
     if (randomDelaySchedule) {
       u_int max_randomness =
-          ndpi_min(120 /* 2 mins */, 0.75 /* 75% */ * getPeriodicity());
+	ndpi_min(120 /* 2 mins */, 0.75 /* 75% */ * getPeriodicity());
       u_int randomness = rand() % max_randomness;
       /*
         Add some schedule randomness to avoid all scripts
@@ -108,10 +108,10 @@ bool ThreadedActivity::isTerminating() {
 /* ******************************************* */
 
 ThreadedActivityState ThreadedActivity::getThreadedActivityState(
-    NetworkInterface* iface, char* script_name) {
+								 NetworkInterface* iface, char* script_name) {
   if (iface) {
     ThreadedActivityStats* s =
-        getThreadedActivityStats(iface, script_name, false);
+      getThreadedActivityStats(iface, script_name, false);
 
     if (s) return (s->getState());
   } else
@@ -140,7 +140,7 @@ static bool skipExecution(const char* path) {
 void ThreadedActivity::set_state(NetworkInterface* iface, char* script_name,
                                  ThreadedActivityState ta_state) {
   ThreadedActivityStats* s =
-      getThreadedActivityStats(iface, script_name, false);
+    getThreadedActivityStats(iface, script_name, false);
 
   if (s) s->setState(ta_state);
 }
@@ -150,7 +150,7 @@ void ThreadedActivity::set_state(NetworkInterface* iface, char* script_name,
 ThreadedActivityState ThreadedActivity::get_state(NetworkInterface* iface,
                                                   char* script_name) {
   ThreadedActivityStats* s =
-      getThreadedActivityStats(iface, script_name, false);
+    getThreadedActivityStats(iface, script_name, false);
 
   if (s) return s->getState();
 
@@ -169,7 +169,7 @@ void ThreadedActivity::set_state_sleeping(NetworkInterface* iface,
 void ThreadedActivity::set_state_queued(NetworkInterface* iface,
                                         char* script_name) {
   ThreadedActivityStats* s =
-      getThreadedActivityStats(iface, script_name, false);
+    getThreadedActivityStats(iface, script_name, false);
 
   set_state(iface, script_name, threaded_activity_state_queued);
 
@@ -198,14 +198,14 @@ bool ThreadedActivity::isDeadlineApproaching(time_t deadline) {
 /* ******************************************* */
 
 ThreadedActivityStats* ThreadedActivity::getThreadedActivityStats(
-    NetworkInterface* iface, char* script_name, bool allocate_if_missing) {
+								  NetworkInterface* iface, char* script_name, bool allocate_if_missing) {
   ThreadedActivityStats* ta = NULL;
 
   if (!isTerminating() && iface) {
     std::string key =
-        std::to_string(iface->get_id()) + "/" + std::string(script_name);
+      std::to_string(iface->get_id()) + "/" + std::string(script_name);
     std::map<std::string, ThreadedActivityStats*>::iterator it =
-        threaded_activity_stats.find(key);
+      threaded_activity_stats.find(key);
 
 #ifdef THREAD_DEBUG
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s() [%s]", __FUNCTION__,
@@ -239,7 +239,7 @@ void ThreadedActivity::updateThreadedActivityStatsBegin(NetworkInterface* iface,
                                                         char* script_name,
                                                         struct timeval* begin) {
   ThreadedActivityStats* ta = getThreadedActivityStats(
-      iface, script_name, true /* Allocate if missing */);
+						       iface, script_name, true /* Allocate if missing */);
 
   if (ta) ta->updateStatsBegin(begin);
 }
@@ -250,7 +250,7 @@ void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface* iface,
                                                       char* script_name,
                                                       u_long latest_duration) {
   ThreadedActivityStats* ta = getThreadedActivityStats(
-      iface, script_name, true /* Allocate if missing */);
+						       iface, script_name, true /* Allocate if missing */);
 
   if (ta) ta->updateStatsEnd(latest_duration);
 }
@@ -284,7 +284,7 @@ void ThreadedActivity::runScript(time_t now, char* script_name,
   u_long msec_diff;
   struct timeval begin, end;
   ThreadedActivityStats* thstats =
-      getThreadedActivityStats(iface, script_name, true);
+    getThreadedActivityStats(iface, script_name, true);
 
   if (!iface) return;
 
@@ -292,16 +292,15 @@ void ThreadedActivity::runScript(time_t now, char* script_name,
 
   if (iface->isViewed() && excludeViewedIfaces()) return;
 
-#ifdef THREAD_DEBUG
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this,
-  // activityPath());
-#endif
+  //#ifdef THREAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, activityPath());
+  //#endif
 
   l = loadVM(script_name, iface, now);
   if (!l) {
     ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
-        iface->get_name(), activityPath(), script_name);
+				 TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
+				 iface->get_name(), activityPath(), script_name);
     return;
   }
 
@@ -336,12 +335,17 @@ void ThreadedActivity::runScript(time_t now, char* script_name,
 
   gettimeofday(&end, NULL);
   msec_diff =
-      (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
+    (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
   updateThreadedActivityStatsEnd(iface, script_name, msec_diff);
 
   if (thstats && isDeadlineApproaching(deadline))
     thstats->setSlowPeriodicActivity(true);
 
+#ifdef TRACE_VM_ENGINES
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Completed script [%s][vm: %s][script: %s]",
+			       iface->get_name(), activityPath(), script_name);
+#endif
+  
   delete l;
 }
 
@@ -353,8 +357,8 @@ LuaEngine* ThreadedActivity::loadVM(char* script_name, NetworkInterface* iface,
 
 #if defined(NTOPNG_PRO) && defined(TRACE_SCRIPTS)
   ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "Running %s [is_pro: %s]", script_name,
-      ntop->getPro()->is_pro_edition() ? "YES" : "NO");
+			       TRACE_NORMAL, "Running %s [is_pro: %s]", script_name,
+			       ntop->getPro()->is_pro_edition() ? "YES" : "NO");
 #endif
 
   try {
@@ -380,7 +384,7 @@ bool ThreadedActivity::schedule(PeriodicActivities* pa, u_int32_t now,
 
   if (force_run || (now >= next_schedule)) {
     u_int32_t next_deadline =
-        now + getMaxDuration(); /* deadline is max_duration_secs from now */
+      now + getMaxDuration(); /* deadline is max_duration_secs from now */
 
     if (force_run)
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
