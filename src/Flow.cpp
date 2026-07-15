@@ -7078,7 +7078,7 @@ void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
     u_int16_t data_len;
   } PACK_OFF;
 
-  if (((payload[2] & 0x80) != 0x80) || (payload_len < 12))
+  if ((payload_len < 12) || ((payload[2] & 0x80) != 0x80))
     return; /* This is a not MDNS response */
 
   answers = ntohs(*((u_int16_t*)&payload[6])) +
