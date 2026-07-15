@@ -134,13 +134,11 @@ import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as dataUtils } from "../utilities/data-utils.js";
-import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import FormatterUtils from "../utilities/formatter-utils.js";
 
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
-import { default as Chart } from "./chart.vue";
 import { default as LineChart } from "./charts/line-chart.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
@@ -164,7 +162,6 @@ const props = defineProps({
 
 const page_id = "page-flow-historical";
 const alert_info = ref(null);
-const chart = ref(null);
 const chart_ref = ref(null);
 const table_flows = ref(null);
 const modal_traffic_extraction = ref(null);
@@ -252,16 +249,6 @@ const chart_style = computed(() => {
     return `height:${props.context?.chart_height ? props.context.chart_height : "300"}px!important`;
 
 });
-const chart_type = computed(() => {
-    /* Chart type defined the json template (defaults in db_search.lua) */
-    if (props.context?.chart_type == "topk-timeseries") {
-        return ntopChartApex.typeChart.TS_STACKED;
-    } else if (props.context?.chart_type == "heatmap") {
-        return ntopChartApex.typeChart.HEATMAP;
-    }
-    return ntopChartApex.typeChart.TS_COLUMN;
-});
-
 const chart_cfg = computed(() => {
     const unit = selected_query_preset.value?.chart_config?.unit_measure ?? "number";
     const is_stacked = props.context?.chart_type == "topk-timeseries";
@@ -778,12 +765,11 @@ async function add_exclude(params) {
 
 function refresh_page_components(not_refresh_table) {
     let t = table_flows.value;
-    let c = chart.value;
     setTimeout(() => {
         if (!not_refresh_table) {
             t.refresh_table();
         }
-        c.update_chart();
+        chart_ref.value?.update();
     }, 1 * 1000);
 }
 

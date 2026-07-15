@@ -130,14 +130,12 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
-import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import filtersManager from "../utilities/filters-manager.js";
 import formatterUtils from "../utilities/formatter-utils";
 
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
-import { default as Chart } from "./chart.vue";
 import { default as LineChart } from "./charts/line-chart.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
@@ -160,7 +158,6 @@ const props = defineProps({
 });
 
 const alert_info = ref(null);
-const chart = ref(null);
 const d3_chart = ref(null);
 const table_alerts = ref(null);
 const modal_traffic_extraction = ref(null);
@@ -182,7 +179,6 @@ let page;
 const table_config_id = ref("");
 const table_id = ref("");
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-const chart_type = ntopChartApex.typeChart.TS_COLUMN;
 
 const d3_chart_cfg = computed(() => ({
     stacked: false,
@@ -608,10 +604,9 @@ async function add_exclude(params) {
 
 function refresh_page_components() {
     let t = table_alerts.value;
-    let c = chart.value;
     setTimeout(() => {
         t.refresh_table();
-        c.update_chart();
+        d3_chart.value?.update();
     }, 1 * 1000);
 }
 

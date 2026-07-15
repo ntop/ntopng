@@ -54,7 +54,6 @@
     "@vue/compiler-sfc": "^3.5.35",
     "@vueform/slider": "^2.1.10",
     "@yaireo/tagify": "^4.35.3",
-    "apexcharts": "^3.33.1",
     "bootstrap": "^5.3.0",
     "bootstrap-icons": "^1.13.1",
     "d3-array": "^3.1.1",

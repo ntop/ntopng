@@ -138,7 +138,6 @@ import { default as PageTrafficRules } from "./page-traffic-rules.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
-import { default as Chart } from "./chart.vue";
 import { default as TimeseriesChart } from "./timeseries-chart.vue";
 import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
@@ -369,7 +368,6 @@ let ntopVue = {
 
     // components
     AlertInfo: AlertInfo,
-    Chart: Chart,
     TimeseriesChart: TimeseriesChart,
     SearchBox: SearchBox,
     Datatable: Datatable,
@@ -432,4 +430,19 @@ let ntopVue = {
     Vue: Vue,
     createApp: (options) => Vue.createApp(options).use(window.vuetify),
 };
+
+// Surfaces Vue runtime errors to the browser console with a [VUE_ERROR]
+// prefix so E2E tests (tests/e2e/helpers/page-checker.mjs) can distinguish
+// them from generic console errors. Call once per app instance, before mount.
+export const installVueErrorHandler = (app) => {
+  app.config.errorHandler = (err, instance, info) => {
+    const name = instance?.$options?.name ?? 'unknown';
+    console.error(`[VUE_ERROR] component=${name} info=${info} message=${err?.message}`);
+    console.error(err);
+  };
+};
+
+if (typeof window !== 'undefined') {
+  window.__installVueErrorHandler = installVueErrorHandler;
+}
 window.ntopVue = ntopVue;

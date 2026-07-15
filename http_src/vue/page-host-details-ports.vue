@@ -37,7 +37,6 @@
   
 <script setup>
 import { ref, onUnmounted, onBeforeMount, computed, watch, onMounted } from "vue";
-import { default as Chart } from "./chart.vue";
 import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_events_manager, ntopng_url_manager, ntopng_utility } from '../services/context/ntopng_globals_services';
 import NtopUtils from "../utilities/ntop-utils";

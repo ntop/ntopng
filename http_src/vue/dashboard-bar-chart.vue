@@ -1,9 +1,9 @@
 <!--
   (C) 2026 - ntop.org
 
-  Drop-in D3 replacement for dashboard-bar.vue (which uses ApexCharts).
+  D3 bar chart dashboard component
   Accepts exactly the same props from the dashboard template engine.
-  Renders via charts/bar-chart.vue (pure D3, no ApexCharts dependency).
+  Renders via charts/bar-chart.vue
 
   direction prop (from params.direction in the JSON template):
     "vertical"   (default) — columns pointing up

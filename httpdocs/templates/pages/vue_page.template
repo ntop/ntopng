@@ -38,6 +38,12 @@
       }
     });
 
+    // Surface Vue runtime errors to the console (tagged [VUE_ERROR]) so E2E
+    // smoke tests can detect them without needing a full stack trace parser.
+    if (window.__installVueErrorHandler) {
+      window.__installVueErrorHandler(app);
+    }
+
     // Mount the Vue app on the target DOM element identified by id.
     window.vueApps[id] = app.mount(`#${id}`);
 

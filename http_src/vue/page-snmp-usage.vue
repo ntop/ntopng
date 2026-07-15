@@ -62,7 +62,7 @@ const chart_id = ref('snmp_usage_chart');
 const csrf = props.context.csrf;
 const system_interface_id = -1;
 const chart = ref(null);
-const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
+const chart_type = ref("TS_LINE");
 const base_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/metric/usage_chart.lua`
 let id_date_time_picker = "date_time_picker";
 

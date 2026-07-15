@@ -29,7 +29,7 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.prefer
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 page_utils.print_navbar(i18n("prefs.preferences"),
-   ntop.getHttpPrefix() .. "/lua/prefs_vue.lua", {})
+   ntop.getHttpPrefix() .. "/lua/prefs.lua", {})
 
 local context = {
    csrf       = ntop.getRandomCSRFValue(),

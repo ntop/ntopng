@@ -16,8 +16,8 @@
   }
 
   Server data formats accepted:
-    { series:[{name?,data:[]}], xaxis:{categories:[]}, urls?:[] }   ← ApexCharts
-    [{label, value, url?}]                                            ← pie-style
+    { series:[{name?,data:[]}], xaxis:{categories:[]}, urls?:[] } 
+    [{label, value, url?}]                                        
 -->
 <template>
   <div ref="container" class="bar-container">
@@ -166,7 +166,7 @@ function parse(raw) {
       urls: data.map(d => d.url || null),
     };
   }
-  /* ApexCharts {series:[{name?,data}], xaxis:{categories}, urls?} */
+  /* {series:[{name?,data}], xaxis:{categories}, urls?} */
   if (raw?.series && raw?.xaxis?.categories) {
     const allCats = raw.xaxis.categories;
     const srs     = raw.series.filter(s => s.data?.some(v => v > 0));

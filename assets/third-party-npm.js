@@ -9,11 +9,9 @@ window.$ = $
 
 //import moment from 'moment'
 import moment from 'moment-timezone'
-import ApexCharts from 'apexcharts'
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 window.moment = moment
-window.ApexCharts = ApexCharts
 
 import 'jquery-ui'
 import './scripts/vendors/jquery/jquery.resizableColumns.js';

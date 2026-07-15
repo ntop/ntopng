@@ -616,16 +616,6 @@ g text.tick {
   color: var(--ntop-text-color) !important;
 }
 
-.apexcharts-tooltip .apexcharts-tooltip-title {
-  background-color: var(--bg-surface) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-}
-
-.apexcharts-tooltip.apexcharts-theme-light {
-  background-color: var(--bg-elevated) !important;
-  border: 1px solid var(--border-color) !important;
-}
-
 .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
@@ -662,8 +652,7 @@ g text.tick {
   background-color: var(--ntop-orange);
 }
 
-summary,
-.apexcharts-legend-text {
+summary {
   color: var(--ntop-text-color) !important;
 }
 
