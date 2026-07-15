@@ -39,6 +39,7 @@ static activity_descr ad[] = {
     {HOURLY_SCRIPT_DIR, 3600, 600, false, false, true},
     {DAILY_SCRIPT_DIR, 86400, 3600, true, false, true},
     {MONTHLY_SCRIPT_DIR, 2592000, 3600, true, false, true},
+    {ONESHOT_SCRIPT_DIR, 0, 0, true, false, true}, /* One shot scripts */
 
     {NULL, 0, 0, false, false, false}};
 
@@ -48,11 +49,10 @@ PeriodicActivities::PeriodicActivities() {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  num_sec_min_activities = num_hour_day_activities = 0;
+  num_sec_min_activities = 0, num_hour_day_activities = 0, num_oneshot_activities = 0;
 
   th_pool = new ThreadPool();
   thread_running = false;
-  num_sec_min_activities = 0, num_hour_day_activities = 0;
 }
 
 /* ******************************************* */
@@ -72,6 +72,10 @@ PeriodicActivities::~PeriodicActivities() {
   for (u_int16_t i = 0; i < num_hour_day_activities; i++)
     delete hour_day_activities[i]; /* This line calls
                                       ThreadedActivity::~ThreadedActivity() */
+
+  for (u_int16_t i = 0; i < num_oneshot_activities; i++)
+    delete oneshot_activities[i]; /* This line calls
+				     ThreadedActivity::~ThreadedActivity() */  
 }
 
 /* ******************************************* */
@@ -82,6 +86,9 @@ void PeriodicActivities::lua(NetworkInterface* iface, lua_State* vm) {
 
   for (u_int16_t i = 0; i < num_hour_day_activities; i++)
     hour_day_activities[i]->lua(iface, vm);
+
+  for (u_int16_t i = 0; i < num_oneshot_activities; i++)
+    oneshot_activities[i]->lua(iface, vm);
 }
 
 /* **************************************************** */
@@ -98,6 +105,10 @@ static void* startActivity(void* ptr) {
 
 /* This is the main infinite loop */
 void PeriodicActivities::run() {
+  /* One shot activities aer started once */
+  for (u_int16_t i = 0; i < num_oneshot_activities; i++)
+    oneshot_activities[i]->schedule(this, (u_int32_t)time(NULL), false);
+    
   while (!(ntop->getGlobals()->isShutdownRequested() ||
            ntop->getGlobals()->isShutdown())) {
     u_int32_t now = (u_int32_t)time(NULL);
@@ -105,11 +116,9 @@ void PeriodicActivities::run() {
     for (u_int16_t i = 0; i < num_sec_min_activities; i++)
       sec_min_activities[i]->schedule(this, now, false);
 
-    // if(num_running_hour_day_activities == 0) {
     /* At most only one concurrent activity */
     for (u_int16_t i = 0; i < num_hour_day_activities; i++)
       hour_day_activities[i]->schedule(this, now, true);
-    //}
 
     sleep(1);
   }
@@ -157,21 +166,17 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   for (u_int i = 0; ad[i].path != NULL; i++) {
     ThreadedActivity* ta;
 
-    if (ad[i].periodicity == 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping %s: 0 periodicity",
-                                   ad[i].path);
-      continue;
-    }
-
     ta = new (std::nothrow) ThreadedActivity(
-        ad[i].path, false, /* Exact */
-        ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
-        ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
-        th_pool);
-
+					     ad[i].path, false, /* Exact */
+					     ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
+					     ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
+					     th_pool);
+    
     if (ta) {
-      if ((strncmp(ad[i].path, "hour", 4) == 0) ||
-          (strncmp(ad[i].path, "daily", 5) == 0))
+      if (ad[i].periodicity == 0)
+	oneshot_activities[num_oneshot_activities++] = ta;
+      else if ((strncmp(ad[i].path, "hour", 4) == 0) ||
+	       (strncmp(ad[i].path, "daily", 5) == 0))
         hour_day_activities[num_hour_day_activities++] = ta;
       else
         sec_min_activities[num_sec_min_activities++] = ta;
@@ -209,4 +214,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
         pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
 #endif
   }
+
 }
+
+/* ******************************************* */

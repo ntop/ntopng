@@ -1259,6 +1259,7 @@ typedef enum {
 #define HOURLY_SCRIPT_DIR "hourly"
 #define DAILY_SCRIPT_DIR "daily"
 #define MONTHLY_SCRIPT_DIR "monthly"
+#define ONESHOT_SCRIPT_DIR "oneshot" /* Scripts started once (no periodicity) */
 
 #define MACS_DISCONNECTION                                                \
   "ntopng.cache.checks.ifid_%d.macs_disconnected" /* Sync with checks.lua \

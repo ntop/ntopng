@@ -28,7 +28,8 @@ class PeriodicActivities {
  private:
   ThreadedActivity* sec_min_activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
   ThreadedActivity* hour_day_activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
-  u_int16_t num_sec_min_activities, num_hour_day_activities;
+  ThreadedActivity* oneshot_activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
+  u_int16_t num_sec_min_activities, num_hour_day_activities, num_oneshot_activities;
   ThreadPool* th_pool;
   pthread_t pthreadLoop;
   bool thread_running;

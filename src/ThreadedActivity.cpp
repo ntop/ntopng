@@ -197,8 +197,9 @@ bool ThreadedActivity::isDeadlineApproaching(time_t deadline) {
 
 /* ******************************************* */
 
-ThreadedActivityStats* ThreadedActivity::getThreadedActivityStats(
-								  NetworkInterface* iface, char* script_name, bool allocate_if_missing) {
+ThreadedActivityStats* ThreadedActivity::getThreadedActivityStats(NetworkInterface* iface,
+								  char* script_name,
+								  bool allocate_if_missing) {
   ThreadedActivityStats* ta = NULL;
 
   if (!isTerminating() && iface) {
@@ -292,9 +293,9 @@ void ThreadedActivity::runScript(time_t now, char* script_name,
 
   if (iface->isViewed() && excludeViewedIfaces()) return;
 
-  //#ifdef THREAD_DEBUG
+#ifdef THREAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, activityPath());
-  //#endif
+#endif
 
   l = loadVM(script_name, iface, now);
   if (!l) {
