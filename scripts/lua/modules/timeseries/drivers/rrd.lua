@@ -1527,7 +1527,7 @@ function driver:export()
          if not ntop.notEmptyFile(rrdfile) then
             ntop.mkdir(base)
             if not create_rrd(schema, rrdfile, timestamp) then
-               return false
+               return(num)
             end
          end
 

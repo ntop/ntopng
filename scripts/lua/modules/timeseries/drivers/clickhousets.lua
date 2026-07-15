@@ -681,7 +681,7 @@ end
 --! @brief Flush the in-memory buffer to ClickHouse.
 --! Called periodically by the export script.
 function driver:export()
-   if interface.chTsQueueLen() == 0 then return end
+   if interface.chTsQueueLen() == 0 then return(0) end
 
    -- Drain up to CH_BATCH_SIZE rows per invocation.
    local rows = {}
