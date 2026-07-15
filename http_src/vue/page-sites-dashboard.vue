@@ -9,13 +9,16 @@
             <div class="sites-dashboard-topbar d-flex align-items-center flex-wrap">
                 <BreadcrumbNav :items="breadcrumbItems" @on_select="handleBreadcrumbSelect" />
                 <div v-if="selectedExporter" class="ms-auto d-flex align-items-center gap-2">
-                    <a v-if="historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
+                    <a v-if="showHistoricalWidgets && historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
                         class="btn btn-sm btn-primary sites-dashboard-flows-btn">
                         <i class="fas fa-external-link-alt me-1"></i>{{ _i18n('sites_dashboard.historical_flows') }}
                     </a>
-                    <DateTimeRangePicker :id="DATE_PICKER_ID" class="sites-dashboard-date-picker"
-                        ref="date_time_picker" @epoch_change="on_epoch_change"
-                        :custom_time_interval_list="time_preset_list" />
+                    <DateTimeRangePicker v-if="isClickHouseEnabled" :id="DATE_PICKER_ID"
+                        class="sites-dashboard-date-picker" ref="date_time_picker"
+                        @epoch_change="on_epoch_change" :custom_time_interval_list="time_preset_list" />
+                    <span v-else class="sites-dashboard-live-pill">
+                        <i class="fa-solid fa-circle fa-2xs text-danger me-1"></i>{{ _i18n('show_alerts.presets.live') }}
+                    </span>
                     <button type="button" class="btn btn-sm btn-outline-secondary sites-dashboard-refresh-btn"
                         :title="_i18n('refresh')" @click="refreshCurrentView">
                         <i class="fas fa-sync"></i>
@@ -54,16 +57,18 @@
                      (single ifIndex) — both feed the same refs via loadExporterOverview(). -->
                 <template v-if="(activeTab === 'exporter_interfaces' && selectedExporter && !selectedInterface) || (activeTab === 'traffic_analysis' && selectedInterface)">
                     <div class="row g-3 mb-3">
-                        <div class="col-lg-8">
+                        <div :class="showHistoricalWidgets ? 'col-lg-8' : 'col-lg-12'">
                             <DashboardCard :title="_i18n('sites_dashboard.traffic_time_series')" icon="bi bi-graph-up"
                                 :titleLink="titleLinks.traffic_time_series" noPadding>
-                                <DashboardTimeseries v-if="ifaceEpochBegin && ifaceEpochEnd" ref="ifaceChartRef"
-                                    :id="'sites_dashboard_iface_ts'" :ifid="ifid" :epoch_begin="ifaceEpochBegin"
-                                    :epoch_end="ifaceEpochEnd" :max_width="12" :max_height="4"
-                                    :params="ifaceTimeseriesParams" :csrf="props.context?.csrf" />
+                                <div class="sites-dashboard-ts">
+                                    <DashboardTimeseries v-if="ifaceEpochBegin && ifaceEpochEnd" ref="ifaceChartRef"
+                                        :id="'sites_dashboard_iface_ts'" :ifid="ifid" :epoch_begin="ifaceEpochBegin"
+                                        :epoch_end="ifaceEpochEnd" :max_width="12" :max_height="4"
+                                        :params="ifaceTimeseriesParams" :csrf="props.context?.csrf" />
+                                </div>
                             </DashboardCard>
                         </div>
-                        <div class="col-lg-4">
+                        <div v-if="showHistoricalWidgets" class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_l7_proto')" icon="bi bi-app-indicator"
                                 :titleLink="titleLinks.top_l7_proto" noPadding>
                                 <NoData v-if="!loadingL7 && topL7.length === 0" :show="true" />
@@ -73,7 +78,7 @@
                             </DashboardCard>
                         </div>
                     </div>
-                    <div class="row g-3 mb-3">
+                    <div v-if="showHistoricalWidgets" class="row g-3 mb-3">
                         <div class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_l4_proto')" icon="bi bi-diagram-2"
                                 :titleLink="titleLinks.top_l4_proto" noPadding>
@@ -172,8 +177,21 @@ const CARD_LINKS = {
     exporter_interfaces: { live_url: `${http_prefix}/`, historical_url: `${http_prefix}/` },
 };
 
-/* "live" is hidden for now - always default to historical (see isLive). */
+const props = defineProps({
+    context: Object,
+});
+
+const ifid = String(props.context?.ifid ?? 0);
+
+const isClickHouseEnabled = computed(() => !!props.context?.isClickhouseEnabled);
+
+const SECONDS_ONE_DAY = 24 * 60 * 60;
+const SECONDS_LIVE_TS_WINDOW = 60 * 60;
+
+// Picker presets. Shown only when ClickHouse is enabled; otherwise the page is
+// live-only and renders a static Live badge instead of the picker.
 const time_preset_list = [
+    { value: "live", label: _i18n("show_alerts.presets.live"), icon: "fa-solid fa-circle fa-2xs text-danger", currently_active: false },
     { value: "hour", label: _i18n("show_alerts.presets.hour"), currently_active: true },
     { value: "6_hours", label: _i18n("show_alerts.presets.6_hours"), currently_active: false },
     { value: "day", label: _i18n("show_alerts.presets.day"), currently_active: false },
@@ -182,11 +200,22 @@ const time_preset_list = [
     { value: "custom", label: _i18n("show_alerts.presets.custom"), currently_active: false, disabled: true },
 ];
 
-const props = defineProps({
-    context: Object,
-});
+function setLiveEpochWindow() {
+    const now = Math.floor(Date.now() / 1000);
+    ifaceEpochEnd.value = now;
+    ifaceEpochBegin.value = now - SECONDS_LIVE_TS_WINDOW;
+}
 
-const ifid = String(props.context?.ifid ?? 0);
+function ensureEpochWindow() {
+    if (ifaceEpochBegin.value && ifaceEpochEnd.value) return;
+    if (isLive.value) {
+        setLiveEpochWindow();
+    } else {
+        const now = Math.floor(Date.now() / 1000);
+        ifaceEpochEnd.value = now;
+        ifaceEpochBegin.value = now - SECONDS_ONE_DAY;
+    }
+}
 
 const sidebar = ref(null);
 
@@ -224,10 +253,8 @@ const topDestinations = ref([]);
 const liveFlowsCount = ref(null);
 const liveHostsCount = ref(null);
 
-/* Toggles which button is shown next to the datetime picker:
-   live flows (current traffic) vs. historical flows for the selected window.
-*/
-const isLive = ref(false);
+const isLive = ref(!props.context?.isClickhouseEnabled);
+const showHistoricalWidgets = computed(() => isClickHouseEnabled.value && !isLive.value);
 
 /* BootstrapTable column definitions + print_html_column/print_html_row
    callbacks for every list rendered on this page (see bootstrap-table.vue). */
@@ -564,6 +591,10 @@ onBeforeMount(() => {
 /* Re fetches data in the currently visible panel, without
    changing the current selection/tab/breadcrumb state. */
 async function refreshCurrentView() {
+    // In live mode the refresh button also slides the rolling window up to now,
+    // so the time series advances instead of re-querying the same stale span.
+    if (isLive.value) setLiveEpochWindow();
+
     if (selectedInterface.value) {
         await Promise.all([
             loadExporterOverview(selectedExporter.value, selectedInterface.value),
@@ -622,10 +653,7 @@ async function handleSelectExporter(exporter, ancestors) {
     selectedInterface.value = null;
     selectedAncestors.value = ancestors ?? (parentSiteCrumb ? [...selectedAncestors.value, parentSiteCrumb] : []);
     activeTab.value = "exporter_interfaces";
-    if (!ifaceEpochBegin.value || !ifaceEpochEnd.value) {
-        ifaceEpochEnd.value = Math.floor(Date.now() / 1000);
-        ifaceEpochBegin.value = ifaceEpochEnd.value - 24 * 3600;
-    }
+    ensureEpochWindow();
     revealInSidebar();
     await Promise.all([
         loadExporterInterfaces(exporter),
@@ -695,6 +723,18 @@ async function loadExporterCounts(exporter, iface) {
    and the current [ifaceEpochBegin, ifaceEpochEnd] window. */
 async function loadExporterOverview(exporter, iface) {
     if (!exporter || !ifaceEpochBegin.value || !ifaceEpochEnd.value) return;
+
+    if (!showHistoricalWidgets.value) {
+        topL7.value = [];
+        topL4.value = [];
+        topTalkers.value = [];
+        topDestinations.value = [];
+        loadingL7.value = false;
+        loadingL4.value = false;
+        loadingTalkers.value = false;
+        loadingDestinations.value = false;
+        return;
+    }
 
     const common_params = {
         ifid,
@@ -804,8 +844,14 @@ async function loadExporterOverview(exporter, iface) {
 function on_epoch_change(epoch) {
     isLive.value = epoch?.timeframe_id === "live";
 
-    if (epoch?.epoch_begin) ifaceEpochBegin.value = epoch.epoch_begin;
-    if (epoch?.epoch_end) ifaceEpochEnd.value = epoch.epoch_end;
+    if (isLive.value) {
+        // The picker reports live as a zero-width now() window; the flowdev time
+        // series needs a real span, so use the rolling live window instead.
+        setLiveEpochWindow();
+    } else {
+        if (epoch?.epoch_begin) ifaceEpochBegin.value = epoch.epoch_begin;
+        if (epoch?.epoch_end) ifaceEpochEnd.value = epoch.epoch_end;
+    }
 
     if (selectedExporter.value) loadExporterOverview(selectedExporter.value, selectedInterface.value);
 }
@@ -845,10 +891,7 @@ function handleSelectInterface(iface, exporter, ancestors) {
     selectedInterface.value = iface;
     selectedAncestors.value = ancestors ?? (parentExporterCrumb ? [...selectedAncestors.value, parentExporterCrumb] : []);
     activeTab.value = "traffic_analysis";
-    if (!ifaceEpochBegin.value || !ifaceEpochEnd.value) {
-        ifaceEpochEnd.value = Math.floor(Date.now() / 1000);
-        ifaceEpochBegin.value = ifaceEpochEnd.value - 24 * 3600;
-    }
+    ensureEpochWindow();
     revealInSidebar();
     loadExporterOverview(owningExporter, iface);
     loadExporterCounts(owningExporter, iface);
@@ -1050,6 +1093,28 @@ async function handleBreadcrumbSelect(item) {
 
 .sites-dashboard-mock-chart {
     min-height: 220px;
+}
+
+.sites-dashboard-ts {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 460px;
+}
+
+/* Static "Live" indicator shown in place of the range picker when ClickHouse is
+   disabled and the page is live-only. */
+.sites-dashboard-live-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ntop-text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
 }
 
 @media (max-width: 992px) {

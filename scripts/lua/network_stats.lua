@@ -93,6 +93,7 @@ elseif page == "sites_dashboard" then
 	local context = {
 		ifid = ifid,
 		csrf = ntop.getRandomCSRFValue(),
+		isClickhouseEnabled = ntop.isClickHouseEnabled(),
 	}
 
 	local json_context = json.encode(context)
