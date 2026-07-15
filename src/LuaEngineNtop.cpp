@@ -7746,7 +7746,13 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
   npoints = (end - start) / step;
 
-  lua_pushinteger(vm, (lua_Integer)start);
+  /* rrd_fetch_r, will return (start,end], this means that when asking for a time range
+   * for example 10:30 to 11:00, with a step of 5 minutes, rrd will return data starting from 
+   * 10:25 until 11:00, this means that the first point is missing, that's how rrd_fetch_r is implemented
+   * the starting point is not included, so simply return start+step to have effectively the correct
+   * time range
+   */
+  lua_pushinteger(vm, (lua_Integer)(start + step));
   lua_pushinteger(vm, (lua_Integer)step);
 
   /* create the data series table */

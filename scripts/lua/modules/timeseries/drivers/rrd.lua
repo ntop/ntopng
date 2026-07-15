@@ -533,9 +533,8 @@ function driver:timeseries_query(options)
    end
 
    local epoch_end = options.epoch_end
-   local epoch_begin = options.epoch_begin
+   local epoch_begin = options.epoch_begin -- - options.schema_info.options.step
    -- Query rrd to get the data
-   -- tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
    local consolidation = getConsolidationFunction(options.schema_info)
    local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, consolidation, epoch_begin, epoch_end)
 
