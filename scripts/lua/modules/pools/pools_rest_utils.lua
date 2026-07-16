@@ -472,6 +472,11 @@ end
 
 -- @brief Get all pools of all the available (currently implemented) pool instances
 function pools_rest_utils.delete_all_instances_pools()
+   if not auth.has_capability(auth.capabilities.pools) then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
    local all_instances = pools_lua_utils.all_pool_instances_factory()
 
    for _, instance in pairs(all_instances) do
