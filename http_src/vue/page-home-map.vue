@@ -115,7 +115,7 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       this.page = this.url_params.page
       this.updated_view = this.$props.view
 
-      if(asset_map_filter_list && asset_table_filter_list) {
+      if(this.$props.asset_map_filter_list && this.$props.asset_table_filter_list) {
         this.navbar_context.items_table.push({ active: false, class: "disabled ps-0 pe-0", label: '-' })
         this.navbar_context.items_table.push({ active: false, icon: "fas fa-lg fa-compass", class: "disabled pe-0", title: i18n('asset_map'), label: i18n('asset') + ": " })
         this.navbar_context.items_table.push({ active: false, label: i18n('map_format'), id: "asset_map", page: "graph" })
