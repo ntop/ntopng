@@ -7439,6 +7439,21 @@ static int ntop_rrd_inc_num_drops(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Increments the number of SNMP polled hosts in an interface.  Lua: ntop.snmp_inc_num_polled_hosts(bool) → nil */
+static int ntop_snmp_inc_num_snmp_polled_hosts(lua_State* vm) {
+  NtopngLuaContext* ctx = getLuaVMContext(vm);
+  bool non_qos_poll = true;
+
+  if (lua_type(vm, 1) == LUA_TBOOLEAN) non_qos_poll = (bool)lua_toboolean(vm, 1);
+
+  if (ctx && ctx->threaded_activity_stats)
+    ctx->threaded_activity_stats->incSNMPHostPolls(non_qos_poll);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 /* @brief Returns statistics about the packet drop pool (packets dropped vs configured limit).  Lua: ntop.getDropPoolInfo() → table */
 static int ntop_get_drop_pool_info(lua_State* vm) {
   lua_newtable(vm);
@@ -9188,6 +9203,9 @@ static luaL_Reg _ntop_reg[] = {
     {"snmpGetBatch", ntop_snmp_batch_get}, /* v1/v2c/v3 */
     {"snmpReadResponses", ntop_snmp_read_responses},
 
+    /* SNMP Misc */
+    {"snmp_inc_num_polled_hosts", ntop_snmp_inc_num_snmp_polled_hosts},
+    
     /* Runtime */
     {"hasGeoIP", ntop_has_geoip},
     {"isWindows", ntop_is_windows},

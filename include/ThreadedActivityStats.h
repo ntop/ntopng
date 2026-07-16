@@ -44,8 +44,7 @@ typedef struct {
                                       during the last run */
   bool last_slow; /* True if slow timeseries updates have been detected during
                      the last run */
-  threaded_activity_timeseries_delta_stats_t
-      last; /* Keep stats for the last run */
+  threaded_activity_timeseries_delta_stats_t last; /* Keep stats for the last run */
 } threaded_activity_timeseries_stats_t;
 
 typedef struct {
@@ -56,6 +55,10 @@ typedef struct {
   struct {
     bool has_drops;
   } alerts;
+
+  struct {
+    u_int32_t num_polled_hosts_non_qos, num_polled_hosts_with_qos;
+  } snmp;
 } threaded_activity_stats_t;
 
 class ThreadedActivityStats {
@@ -87,6 +90,7 @@ class ThreadedActivityStats {
   /* Timeseries stats and drops for writes */
   void updateTimeseriesWriteStats(ticks cur_ticks);
   void incTimeseriesWriteDrops(u_long num_drops);
+  void incSNMPHostPolls(bool non_qos_poll);
   void sumTimeseriesStats(ThreadedActivityStats* oth_tas);
 
   void updateStatsQueuedTime(time_t queued_time);

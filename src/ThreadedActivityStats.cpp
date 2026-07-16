@@ -51,6 +51,15 @@ void ThreadedActivityStats::incTimeseriesWriteDrops(u_long num_drops) {
 
 /* ******************************************* */
 
+void ThreadedActivityStats::incSNMPHostPolls(bool non_qos_poll) {
+  if(non_qos_poll)
+    ta_stats.snmp.num_polled_hosts_non_qos++;
+  else
+    ta_stats.snmp.num_polled_hosts_with_qos++;
+}
+
+/* ******************************************* */
+
 void ThreadedActivityStats::updateTimeseriesWriteStats(ticks cur_ticks) {
   threaded_activity_timeseries_delta_stats_t* last_stats =
       &ta_stats.timeseries.write.last;
@@ -106,17 +115,19 @@ void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
 
 void ThreadedActivityStats::sumTimeseriesStats(ThreadedActivityStats* oth_tas) {
   threaded_activity_timeseries_stats_t* cur_stats = &ta_stats.timeseries.write;
-  threaded_activity_timeseries_stats_t* oth_stats =
-      &oth_tas->ta_stats.timeseries.write;
+  threaded_activity_timeseries_stats_t* oth_stats = &oth_tas->ta_stats.timeseries.write;
 
   cur_stats->tot_calls += oth_stats->tot_calls;
   cur_stats->tot_drops += oth_stats->tot_drops;
-  cur_stats->last_max_call_duration_ms =
-      max_val(cur_stats->last_max_call_duration_ms,
-              oth_stats->last_max_call_duration_ms);
+  cur_stats->last_max_call_duration_ms = max_val(cur_stats->last_max_call_duration_ms, oth_stats->last_max_call_duration_ms);
+
   if (cur_stats->last_avg_call_duration_ms == 0)
     cur_stats->last_avg_call_duration_ms = oth_stats->last_avg_call_duration_ms;
+
   if (oth_stats->last_slow) cur_stats->last_slow = true;
+
+  ta_stats.snmp.num_polled_hosts_non_qos += oth_tas->ta_stats.snmp.num_polled_hosts_non_qos;
+  ta_stats.snmp.num_polled_hosts_with_qos += oth_tas->ta_stats.snmp.num_polled_hosts_with_qos;
 }
 
 /* ******************************************* */
@@ -150,6 +161,16 @@ void ThreadedActivityStats::luaTimeseriesStats(lua_State* vm) {
   lua_settable(vm, -3);
 
   lua_pushstring(vm, "timeseries");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  /* ***************** */
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "num_polled_hosts_non_qos", ta_stats.snmp.num_polled_hosts_non_qos);
+  lua_push_uint64_table_entry(vm, "num_polled_hosts_with_qos", ta_stats.snmp.num_polled_hosts_with_qos);
+
+  lua_pushstring(vm, "snmp");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
