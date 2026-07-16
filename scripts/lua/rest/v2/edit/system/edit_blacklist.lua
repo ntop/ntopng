@@ -9,6 +9,16 @@ require "http_lint"
 local rest_utils = require "rest_utils"
 local lists_utils = require "lists_utils"
 
+-- #################################
+
+-- Checking root privileges
+if not isAdministrator() then
+  rest_utils.answer(rest_utils.consts.err.not_granted)
+  return
+end
+
+-- #################################
+
 local enabled = _POST["list_enabled"]
 local list_name = _POST["list_name"]
 local category = tonumber(_POST["category"])
