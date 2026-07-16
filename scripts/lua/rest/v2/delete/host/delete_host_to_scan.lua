@@ -12,6 +12,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 local rest_utils = require "rest_utils"
 local vs_utils = require "vs_utils"
 
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
+
 local host = _GET["host"]
 local scan_type = _GET["scan_type"]
 local delete_all_scan_hosts = _GET["delete_all_scan_hosts"]

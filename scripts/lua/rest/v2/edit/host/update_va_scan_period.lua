@@ -10,6 +10,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 local vs_utils = require "vs_utils"
 local rest_utils = require "rest_utils"
 
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
+
 local scan_frequency = _GET["scan_frequency"]
 if (scan_frequency == "disabled") then
     scan_frequency = nil
