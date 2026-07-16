@@ -57,7 +57,7 @@
                      (single ifIndex) — both feed the same refs via loadExporterOverview(). -->
                 <template v-if="(activeTab === 'exporter_interfaces' && selectedExporter && !selectedInterface) || (activeTab === 'traffic_analysis' && selectedInterface)">
                     <div class="row g-3 mb-3">
-                        <div :class="showHistoricalWidgets ? 'col-lg-8' : 'col-lg-12'">
+                        <div class="col-lg-8">
                             <DashboardCard :title="_i18n('sites_dashboard.traffic_time_series')" icon="bi bi-graph-up"
                                 :titleLink="titleLinks.traffic_time_series" noPadding>
                                 <div class="sites-dashboard-ts">
@@ -68,7 +68,7 @@
                                 </div>
                             </DashboardCard>
                         </div>
-                        <div v-if="showHistoricalWidgets" class="col-lg-4">
+                        <div class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_l7_proto')" icon="bi bi-app-indicator"
                                 :titleLink="titleLinks.top_l7_proto" noPadding>
                                 <NoData v-if="!loadingL7 && topL7.length === 0" :show="true" />
@@ -78,8 +78,8 @@
                             </DashboardCard>
                         </div>
                     </div>
-                    <div v-if="showHistoricalWidgets" class="row g-3 mb-3">
-                        <div class="col-lg-4">
+                    <div class="row g-3 mb-3">
+                        <div v-if="showHistoricalWidgets" class="col-lg-4">
                             <DashboardCard :title="_i18n('sites_dashboard.top_l4_proto')" icon="bi bi-diagram-2"
                                 :titleLink="titleLinks.top_l4_proto" noPadding>
                                 <NoData v-if="!loadingL4 && topL4.length === 0" :show="true" />
@@ -88,7 +88,7 @@
                                     :print_html_row="printProtoRow" />
                             </DashboardCard>
                         </div>
-                        <div class="col-lg-4">
+                        <div :class="overviewTableColClass">
                             <DashboardCard :title="_i18n('sites_dashboard.top_local_talkers')" icon="bi bi-laptop"
                                 :titleLink="titleLinks.top_local_talkers" noPadding>
                                 <NoData v-if="!loadingTalkers && topTalkers.length === 0" :show="true" />
@@ -97,7 +97,7 @@
                                     :print_html_row="printHostRow" />
                             </DashboardCard>
                         </div>
-                        <div class="col-lg-4">
+                        <div :class="overviewTableColClass">
                             <DashboardCard :title="_i18n('sites_dashboard.top_remote_destinations')"
                                 icon="bi bi-globe" :titleLink="titleLinks.top_remote_destinations" noPadding>
                                 <NoData v-if="!loadingDestinations && topDestinations.length === 0" :show="true" />
@@ -255,6 +255,12 @@ const liveHostsCount = ref(null);
 
 const isLive = ref(!props.context?.isClickhouseEnabled);
 const showHistoricalWidgets = computed(() => isClickHouseEnabled.value && !isLive.value);
+
+/* L7/talkers/destinations render in BOTH live and historical mode (fed by
+   aggregated_live_flows in live, ClickHouse in historical). Only Top L4 remains
+   historical-only, so in live the two remaining tables widen to fill the row
+   left empty by the missing L4 card. */
+const overviewTableColClass = computed(() => showHistoricalWidgets.value ? "col-lg-4" : "col-lg-6");
 
 /* BootstrapTable column definitions + print_html_column/print_html_row
    callbacks for every list rendered on this page (see bootstrap-table.vue). */
@@ -417,6 +423,23 @@ function buildDbSearchUrl(queryPreset, count = "") {
     return `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
 }
 
+/* Live counterpart of buildDbSearchUrl: opens the Active Flows > Analysis page
+   (aggregated_live_flows) scoped to this exporter/interface for the given
+   aggregation criteria. Uses the exporter's collector ifid. */
+function buildLiveAggUrl(criteria) {
+    if (!selectedExporter.value) return null;
+    const url_params = ntopng_url_manager.obj_to_url_params({
+        ifid: exporterTimeseriesIfid.value,
+        page: "analysis",
+        aggregation_criteria: criteria,
+        deviceIP: selectedExporter.value.id,
+        ...(selectedInterface.value
+            ? { ifIdx: selectedInterface.value.ifindex }
+            : {}),
+    });
+    return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+}
+
 /* Resolves each card's title-link from CARD_LINKS, switching to the live vs.
    historical variant for cards with both (see isLive / on_epoch_change). */
 const titleLinks = computed(() => {
@@ -424,10 +447,10 @@ const titleLinks = computed(() => {
     const asLiveLink = (entry) => asLink(isLive.value ? entry.live_url : entry.historical_url);
     return {
         traffic_time_series: asLink(CARD_LINKS.traffic_time_series.url),
-        top_l7_proto: asLink(buildDbSearchUrl("l7_traffic", "l7_traffic")),
+        top_l7_proto: asLink(showHistoricalWidgets.value ? buildDbSearchUrl("l7_traffic", "l7_traffic") : buildLiveAggUrl("application_protocol")),
         top_l4_proto: asLink(buildDbSearchUrl("", "traffic_presence")),
-        top_local_talkers: asLink(buildDbSearchUrl("top_hosts_by_traffic")),
-        top_remote_destinations: asLink(buildDbSearchUrl("top_remote_destinations")),
+        top_local_talkers: asLink(showHistoricalWidgets.value ? buildDbSearchUrl("top_hosts_by_traffic") : buildLiveAggUrl("client")),
+        top_remote_destinations: asLink(showHistoricalWidgets.value ? buildDbSearchUrl("top_remote_destinations") : buildLiveAggUrl("server")),
         networks: asLink(CARD_LINKS.networks.url),
         exporters: asLiveLink(CARD_LINKS.exporters),
         exporter_interfaces: asLiveLink(CARD_LINKS.exporter_interfaces),
@@ -673,12 +696,13 @@ function revealInSidebar() {
 }
 
 /* Live flows/hosts counts for the "Flows" and "Active Hosts" KPI cards.
-   Interface scope narrows to the selected ifIndex on both sides,
-   matching flows_stats.lua's inIfIdx/outIfIdx query params. */
+   Flows count is scoped to the exporter and, at interface scope, to flows whose
+   SNMP in OR out index is the selected ifIndex (ifIdx). Note host/active_list.lua
+   only honours deviceIP, so the Active Hosts KPI stays exporter-scoped. */
 async function loadExporterCounts(exporter, iface) {
     if (!exporter) return;
 
-    const iface_filter = iface ? { inIfIdx: iface.ifindex, outIfIdx: iface.ifindex } : {};
+    const iface_filter = iface ? { ifIdx: iface.ifindex } : {};
 
     const flows_params = ntopng_url_manager.obj_to_url_params({
         start: 0,
@@ -722,19 +746,92 @@ async function loadExporterCounts(exporter, iface) {
    local talkers, top remote destinations) for the currently selected exporter
    and the current [ifaceEpochBegin, ifaceEpochEnd] window. */
 async function loadExporterOverview(exporter, iface) {
-    if (!exporter || !ifaceEpochBegin.value || !ifaceEpochEnd.value) return;
-
-    if (!showHistoricalWidgets.value) {
-        topL7.value = [];
-        topL4.value = [];
-        topTalkers.value = [];
-        topDestinations.value = [];
-        loadingL7.value = false;
-        loadingL4.value = false;
-        loadingTalkers.value = false;
-        loadingDestinations.value = false;
-        return;
+    if (!exporter) return;
+    if (showHistoricalWidgets.value) {
+        await loadExporterOverviewHistorical(exporter, iface);
+    } else {
+        await loadExporterOverviewLive(exporter, iface);
     }
+}
+
+// Live overview: aggregates the active in-memory flows exported by this exporter
+// (deviceIP) through aggregated_live_flows.lua, grouped by application protocol,
+// client and server, sorted by traffic.
+async function loadExporterOverviewLive(exporter, iface) {
+    // Top L4: historical-only, cleared in live.
+    topL4.value = [];
+    loadingL4.value = false;
+
+    const base_params = {
+        ifid: exporterTimeseriesIfid.value,
+        deviceIP: exporter.id,
+        sort: "tot_traffic",
+        order: "desc",
+        start: 0,
+        length: 10,
+        // ifIdx matches flows whose SNMP in OR out index is this interface.
+        // Passing inIfIdx+outIfIdx together would AND them (in==idx AND out==idx),
+        // which is almost never true and would leave interface-scoped tables empty.
+        ...(iface ? { ifIdx: iface.ifindex } : {}),
+    };
+
+    const fetchAggregated = async (criteria) => {
+        const url_params = ntopng_url_manager.obj_to_url_params({
+            ...base_params,
+            aggregation_criteria: criteria,
+        });
+        const rows = await ntopng_utility.http_request(
+            `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua?${url_params}`
+        );
+        return Array.isArray(rows) ? rows : [];
+    };
+
+    loadingL7.value = true;
+    loadingTalkers.value = true;
+    loadingDestinations.value = true;
+
+    try {
+        const rows = await fetchAggregated("application_protocol");
+        topL7.value = withPercentages(rows.map((r) => ({
+            label: r.application?.label ?? String(r.application?.id ?? ""),
+            value: Number(r.tot_traffic) || 0,
+        })));
+    } catch (err) {
+        console.error("Error retrieving live top L7 protocols:", err);
+        topL7.value = [];
+    }
+    loadingL7.value = false;
+
+    try {
+        const rows = await fetchAggregated("client");
+        topTalkers.value = rows.map((r) => ({
+            ip: r.client?.ip,
+            label: r.client?.label || r.client?.ip || "",
+            bytes: Number(r.tot_traffic) || 0,
+        }));
+    } catch (err) {
+        console.error("Error retrieving live top local talkers:", err);
+        topTalkers.value = [];
+    }
+    loadingTalkers.value = false;
+
+    try {
+        const rows = await fetchAggregated("server");
+        topDestinations.value = rows.map((r) => ({
+            ip: r.server?.ip,
+            label: r.server?.label || r.server?.ip || "",
+            bytes: Number(r.tot_traffic) || 0,
+        }));
+    } catch (err) {
+        console.error("Error retrieving live top remote destinations:", err);
+        topDestinations.value = [];
+    }
+    loadingDestinations.value = false;
+}
+
+// Historical overview (ClickHouse)
+async function loadExporterOverviewHistorical(exporter, iface) {
+    if (!ifaceEpochBegin.value || !ifaceEpochEnd.value) return;
 
     const common_params = {
         ifid,
