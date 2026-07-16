@@ -261,6 +261,39 @@ end
 http_lint.validatePort = validatePort
 
 -- ##############################################
+
+-- @brief Validates the scan_ports parameter used for nmap.
+-- Allow plain numeric port lists/ranges only ("80,443" or "1-1000")
+local function validateScanPorts(w)
+   if isEmptyString(w) then
+      return true
+   end
+
+   if (#w > 256) or not w:match("^[%d,%-]+$") then
+      return false
+   end
+
+   for token in w:gmatch("[^,]+") do
+      local from, to = token:match("^(%d+)%-(%d+)$")
+
+      if from and to then
+         from, to = tonumber(from), tonumber(to)
+         if not (from and to and from >= 1 and from <= to and to <= 65535) then
+            return false
+         end
+      else
+         local port = token:match("^%d+$") and tonumber(token)
+         if not (port and port >= 1 and port <= 65535) then
+            return false
+         end
+      end
+   end
+
+   return true
+end
+http_lint.validateScanPorts = validateScanPorts
+
+-- ##############################################
 local function validateASN(p)
    -- Unique case in which the asn has 'No ASN' as value
    return (validateNumber(p) or p == "No ASN")
@@ -2440,7 +2473,7 @@ local known_parameters = {
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,
    ["discovered_host_scan_type"] = validateListOfTypeInline(validateSingleWord),
-   ["scan_ports"] = validateSingleWord,
+   ["scan_ports"] = validateScanPorts,
    ["scan_params"] = validateUnquoted,
    ["scan_single_host"] = validateBool,
    ["delete_all_scan_hosts"] = validateBool,
