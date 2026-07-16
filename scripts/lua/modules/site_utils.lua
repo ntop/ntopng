@@ -766,6 +766,9 @@ local function getSiteLeaves(site_id)
 	for _, exporter_info in pairs(exporters_list or {}) do
       local exporter_site = site_utils.resolveExporterSite(exporter_info.id)
       if tostring(exporter_site.id) == tostring(site_id) then
+		 -- Network Id for this exporter
+         local network_id = interface.getIPNetworkId(exporter_info.id)
+         exporter_info.network_id = network_id
          exporters_to_add[#exporters_to_add + 1] = exporter_info
       end
 	end
