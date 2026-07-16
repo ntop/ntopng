@@ -98,6 +98,7 @@ local timeseries_list = {
 		},
 		disable_default_ago_ts = true,
 		draw_stacked = false,
+      disable_stacked = true,
 	},
 }
 

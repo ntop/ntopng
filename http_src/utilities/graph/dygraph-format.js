@@ -51,7 +51,7 @@ function getSerieId(serie) {
 
 function hash_string(s) {
     let h = 0;
-    for (let i = 0; i < s.length; i++) { 
+    for (let i = 0; i < s.length; i++) {
         h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
     }
     return Math.abs(h);
@@ -292,6 +292,9 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
     if (!config.stacked) {
         config.stacked = timeserie_info.metric.draw_stacked || false;
     }
+    if (timeserie_info.metric.disable_stacked) {
+        config.block_stacked = true;
+    }
     if (timeserie_info.metric.disable_default_ago_ts) {
         disable_past_ts = timeserie_info.metric.disable_default_ago_ts || true
     }
@@ -305,7 +308,9 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
         const ts_id = getSerieId(ts_info);
         const metadata = timeserie_info.metric.timeseries[ts_id];
         const scalar = (metadata?.invert_direction === true) ? -1 : 1;
-        config.block_stacked = (metadata?.invert_direction === true) ? (true || config.block_stacked) : (false || config.block_stacked);
+        if (!config.block_stacked) {
+            config.block_stacked = (metadata?.invert_direction === true) ? (true || config.block_stacked) : (false || config.block_stacked);
+        } 
         const { timeserie_name, show_full_name } = getName(ts_info, metadata)
         /* Check if show_full_name is null or undefined */
         const serie_name = getSerieName(timeserie_name, ts_id, timeserie_info, (config.use_full_name && show_full_name))
