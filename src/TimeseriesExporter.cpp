@@ -154,42 +154,55 @@ int TimeseriesExporter::line_protocol_write_line(
   /* measurement name (with a comma if no tags are found) */
   n = snprintf(dst_line, dst_line_len, is_table_empty(vm, 3) ? "%s" : "%s,",
                schema);
-  if (n < 0 || n >= dst_line_len)
+  if (n < 0 || n >= dst_line_len) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure [%s]", dst_line);
     goto line_protocol_write_line_err;
-  else
+  } else
     cur_line_len += n;
 
   /* tags */
   n = line_protocol_concat_table_fields(vm, 3, dst_line + cur_line_len,
                                         dst_line_len - cur_line_len,
                                         escape_fn);  // tags
-  if (n < 0 || n >= dst_line_len - cur_line_len)
+  if (n < 0 || n >= dst_line_len - cur_line_len) {
+#ifdef DEBUG_EXPORTER
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure [%s]", dst_line);
+#endif
     goto line_protocol_write_line_err;
-  else
+  } else
     cur_line_len += n;
 
   /* space to separate tags and metrics */
   n = snprintf(dst_line + cur_line_len, dst_line_len - cur_line_len, " ");
-  if (n < 0 || n >= dst_line_len - cur_line_len)
+  if (n < 0 || n >= dst_line_len - cur_line_len) {
+#ifdef DEBUG_EXPORTER
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure [%s]", dst_line);
+#endif
     goto line_protocol_write_line_err;
-  else
+  } else
     cur_line_len += n;
 
   /* metrics */
   n = line_protocol_concat_table_fields(vm, 4, dst_line + cur_line_len,
                                         dst_line_len - cur_line_len,
                                         escape_fn);  // metrics
-  if (n < 0 || n >= dst_line_len - cur_line_len)
+  if (n < 0 || n >= dst_line_len - cur_line_len) {
+#ifdef DEBUG_EXPORTER
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure [%s]", dst_line);
+#endif
     goto line_protocol_write_line_err;
-  else
+  } else
     cur_line_len += n;
 
   /* timestamp (in seconds, not nanoseconds) and a \n */
   n = snprintf(dst_line + cur_line_len, dst_line_len - cur_line_len, " %lu\n",
                tstamp);
-  if (n < 0 || n >= dst_line_len - cur_line_len)
+  if (n < 0 || n >= dst_line_len - cur_line_len) {
+#ifdef DEBUG_EXPORTER
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure [%s]", dst_line);
+#endif
     goto line_protocol_write_line_err;
-  else
+  } else
     cur_line_len += n;
 
   return cur_line_len;

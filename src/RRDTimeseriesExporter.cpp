@@ -46,6 +46,11 @@ bool RRDTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
 
   rv = ts_queue->enqueue(data);
 
+#ifdef DEBUG_QUEUE
+  if(rv == NULL)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "RRD queue too long: %u", ts_queue->getLength());
+#endif
+  
   return rv;
 }
 
