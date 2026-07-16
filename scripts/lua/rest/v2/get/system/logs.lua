@@ -29,6 +29,25 @@ end
 
 local since = days .. " days ago"
 
-local output = ntop.execCmd("journalctl -u ntopng --since '"..since.."'")
+local output
+
+if ntop.isLinux() then
+   output = ntop.execCmd("journalctl -u ntopng --since '"..since.."' 2>/dev/null")
+end
+
+if isEmptyString(output) then
+   -- Check if ntopng.log is present (log to file configured or daemonized on non-linux platforms)
+   local f = io.open(dirs.workingdir .. "/ntopng.log", "r")
+
+   if f then
+      output = f:read("*all")
+      f:close()
+   end
+end
+
+if isEmptyString(output) then
+   rest_utils.answer(rest_utils.consts.err.not_found)
+   return
+end
 
 rest_utils.vanilla_payload_response(rest_utils.consts.success.ok, output, "text/plain;charset=UTF-8", extra_headers)

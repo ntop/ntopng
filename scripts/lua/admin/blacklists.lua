@@ -16,6 +16,11 @@ sendHTTPContentTypeHeader('text/html')
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.category_lists)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+-- Check permissions
+if not isAdministrator() then
+  return
+end
   
 page_utils.print_navbar(i18n("category_lists.category_lists"), base_url .. "?", {{
     active = page == "overview" or page == nil,
