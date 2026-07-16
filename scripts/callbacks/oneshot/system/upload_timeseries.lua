@@ -10,19 +10,17 @@ local scripts_triggers = require "scripts_triggers"
 
 local ifnames = interface.getIfNames()
 
-local create_rrd = scripts_triggers.isRrdInterfaceCreation()
-
 -- ###########################################
 
-local function interface_rrd_creation_enabled(ifid)
-   return (create_rrd)
+local function interface_creation_enabled(ifid)
+   return (true)
 end
 
 -- ###########################################
 
 while(not(ntop.isShuttingDown())) do
    -- Note: foreachInterface calls interface.select() for each interface
-   callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled,
+   callback_utils.foreachInterface(ifnames, interface_creation_enabled,
 				   function(ifname, ifstats)
 				      -- io.write("Processing " .. ifname .. " ifid: " .. ifstats.id .. "\n")
 
