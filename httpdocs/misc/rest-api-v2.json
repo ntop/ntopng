@@ -4257,7 +4257,7 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/interface/top_ts_stats.lua": {
+    "/lua/pro/rest/v2/get/interface/top/ts_stats.lua": {
       "get": {
         "tags": [
           "Hosts"
@@ -4298,8 +4298,7 @@
             "in": "query",
             "description": "data used to get the timeseries; e.g. format: 'ifid:1,protocol:DNS' , where 'ifid:1' stands for interface ID 1 and 'protocol:DNS' stands for DNS protocol information",
             "required": true,
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           {
             "name": "detail_view",
