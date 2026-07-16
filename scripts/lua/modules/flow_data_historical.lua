@@ -173,7 +173,7 @@ function flow_data_historical.retrieveFlowData(query_info)
    local results = nil
    local error_code = nil
    -- Handle the select first
-   local isHistorical = not query_info.basic_info
+   local isLive = not query_info.basic_info
       or isEmptyString(query_info.basic_info.epoch_begin)
       or isEmptyString(query_info.basic_info.epoch_end)
 
@@ -192,7 +192,7 @@ function flow_data_historical.retrieveFlowData(query_info)
    local query =
       string.format("%s FROM %s %s %s %s %s", select_query, TABLE_NAME, where_query, group_by_query, order_by_query, limit_query)
 
-   if isHistorical and hasClickHouseSupport() then
+   if not isLive and hasClickHouseSupport() then
       results, error_code = interface.execSQLQuery(query)
    else
       results, error_code = interface.execInMemoryQuery(query)

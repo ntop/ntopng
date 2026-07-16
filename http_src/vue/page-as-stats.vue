@@ -63,7 +63,7 @@
         </div>
 
         <!-- ASN Statistics Table Section -->
-        <div class="position-relative">
+        <div class="position-relative mt-4">
             <TableWithConfig ref="table_as_stats" :table_id="table_id" :csrf="props.context.csrf" :showLoading="true"
                 :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting"
                 :handleLoadedColumns="handleLoadedColumns" :get_extra_params_obj="get_extra_params_obj"
@@ -784,10 +784,6 @@ function columns_sorting(col, r0, r1) {
  */
 .add-effect-leave-active {
     position: absolute;
-}
-
-.chart-container {
-    height: 330px;
 }
 
 @media (max-width: 768px) {

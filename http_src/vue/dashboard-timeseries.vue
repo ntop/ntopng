@@ -413,8 +413,6 @@ async function fetchChart() {
     }
 
     /* Attach batch metadata so TimeseriesChart picks up date_format/timezone. */
-
-    result._height = measuredHeight() || (props.max_height || 4) * height_per_row;
     pendingOptions = result;
 
     /* Signal TimeseriesChart to (re)draw using the new pendingOptions. */
