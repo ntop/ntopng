@@ -37,9 +37,5 @@ for i = 1, num_runs do
 
     -- ########################################################
 
-    ts_dump.update_rrd_queue_length(interface.getId(), when)
-
-    -- ########################################################
-
     ntop.msleep(5000) -- 5 seconds frequency
 end
