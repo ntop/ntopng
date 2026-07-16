@@ -117,12 +117,12 @@ export default {
             tab_list: [
                 {
                     title: i18n('map_page.standard_view'),
-                    active: (view == 'standard'),
+                    active: (this.view == 'standard'),
                     id: 'standard'
                 },
                 {
                     title: i18n('map_page.centrality_view'),
-                    active: (view == 'centrality'),
+                    active: (this.view == 'centrality'),
                     id: 'centrality'
                 },
             ]
@@ -212,7 +212,7 @@ function start_datatable(DatatableVue) {
     const datatableButton = [];
     let columns = [];
 
-    DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, url_params)
+    DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, DatatableVue.$props.url_params)
 
     /* Manage the buttons close to the search box */
     datatableButton.push({
@@ -223,7 +223,7 @@ function start_datatable(DatatableVue) {
         }
     });
 
-    let tmp_params = url_params;
+    let tmp_params = { ...DatatableVue.$props.url_params };
     tmp_params['view'] = 'standard'
 
     let defaultDatatableConfig = {

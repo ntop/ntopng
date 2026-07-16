@@ -143,6 +143,7 @@ import { default as Datatable } from "./datatable.vue";
 import { default as NetworkMap } from "./network-map.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as PageNavbar } from "./page-navbar.vue";
+import { default as PageNetworkMaps } from "./page-network-maps.vue";
 import { default as RangePicker } from "./range-picker.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as TabList } from "./tab-list.vue";
@@ -279,6 +280,7 @@ let ntopVue = {
     PageExporterInterfaceOverview: PageExporterInterfaceOverview,
     PageExporterMap: PageExporterMap,
     PageManageData: PageManageData,
+    PageNetworkMaps: PageNetworkMaps,
     PageEditDeviceProtocols: PageEditDeviceProtocols,
     PageAiStats: PageAiStats,
     PageAiPolicy: PageAiPolicy,

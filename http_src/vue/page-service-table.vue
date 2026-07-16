@@ -140,14 +140,14 @@ export default {
       service_table_tab: null,
       notes: [i18n('map_page.table_note_service_map')],
       tab_list: [
-        { 
+        {
           title: i18n('map_page.standard_view'),
-          active: (view == 'standard'),
+          active: (this.view == 'standard'),
           id: 'standard'
         },
-        { 
+        {
           title: i18n('map_page.centrality_view'),
-          active: (view == 'centrality'),
+          active: (this.view == 'centrality'),
           id: 'centrality'
         },
       ]
@@ -248,12 +248,12 @@ export default {
     switch_to_standard: function() {
       let new_url = this.url_params
       new_url['view'] = 'standard'
-      document.location.href = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/network_maps.lua`, url_params)
+      document.location.href = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/network_maps.lua`, new_url)
     },
     switch_to_centrality: function() {
       let new_url = this.url_params
       new_url['view'] = 'centrality'
-      document.location.href = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/network_maps.lua`, url_params)
+      document.location.href = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/network_maps.lua`, new_url)
     },
     show_delete_all_dialog: function() {
       this.$refs["modal_delete_all"].show();
@@ -288,8 +288,8 @@ function start_datatable(DatatableVue) {
   const datatableButton = [];
   let columns = [];
   let default_sorting_columns = 0;
-  DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, url_params)
-  
+  DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, DatatableVue.$props.url_params)
+
   /* Manage the buttons close to the search box */
   datatableButton.push({
     text: '<i class="fas fa-sync"></i>',
@@ -298,8 +298,8 @@ function start_datatable(DatatableVue) {
       DatatableVue.reload_table();
     }
   });
-  
-  let tmp_params = url_params;
+
+  let tmp_params = { ...DatatableVue.$props.url_params };
   tmp_params['view'] = 'standard'
   
   let defaultDatatableConfig = {

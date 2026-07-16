@@ -207,8 +207,8 @@ function start_datatable(DatatableVue) {
   const datatableButton = [];
   let columns = [];
   let default_sorting_columns = 0;
-  DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, url_params)
-  
+  DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, DatatableVue.$props.url_params)
+
   /* Manage the buttons close to the search box */
   datatableButton.push({
     text: '<i class="fas fa-sync"></i>',
@@ -217,8 +217,8 @@ function start_datatable(DatatableVue) {
       DatatableVue.reload_table();
     }
   });
-  
-  let tmp_params = ntopng_utility.clone(url_params)
+
+  let tmp_params = ntopng_utility.clone(DatatableVue.$props.url_params)
   tmp_params['view'] = null
   let defaultDatatableConfig = {
     table_buttons: datatableButton,
