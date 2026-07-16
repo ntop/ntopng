@@ -18,15 +18,20 @@ end
 
 -- ###########################################
 
+local traceme = false
+
 while(not(ntop.isShuttingDown())) do
    -- Note: foreachInterface calls interface.select() for each interface
    callback_utils.foreachInterface(ifnames, interface_creation_enabled,
 				   function(ifname, ifstats)
-				      -- io.write("Processing " .. ifname .. " ifid: " .. ifstats.id .. "\n")
+				      if(traceme) then io.write("Processing " .. ifname .. " ifid: " .. ifstats.id .. "\n") end
 
 				      -- Export/flush timeseries data
 				      callback_utils.uploadTSdata(0) -- 0 = no deadline)
 				   end, true)
+
+
+   if(traceme) then io.write("Processing system interface\n") end
 
    -- Update system interface
    interface.select(-1)
