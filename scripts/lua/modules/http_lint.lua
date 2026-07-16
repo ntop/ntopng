@@ -366,7 +366,7 @@ http_lint.validateScriptFilter = validateScriptFilter
 local function validateMessage(w)
    return true
 end
-http_lint.validateSingleWord = validateMessage
+http_lint.validateMessage = validateMessage
 
 local function validateSingleAlphanumericWord(w)
    if (w:match("%W")) then
