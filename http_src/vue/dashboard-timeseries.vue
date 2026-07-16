@@ -27,7 +27,7 @@
 -->
 <template>
 
-    <div class="dashboard-timeseries-wrap" ref="wrapRef">
+    <div class="dashboard-timeseries-wrap">
         <!-- Optional spinner shown while data is loading -->
         <Loading v-if="!props.hideLoading" :isLoading="isLoading"></Loading>
 
@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as Loading } from "./loading.vue";
 import { default as TimeseriesChart } from "./timeseries-chart.vue";
@@ -99,13 +99,11 @@ const emit = defineEmits([
 
 /** Pixel height contributed by each dashboard grid row; used as a fallback
  *  before the wrapper has been measured (e.g. the very first draw). */
-const height_per_row = 62;
+const height_per_row = 60;
 
 const isLoading = ref(true);
 const firstLoad = ref(true);
 const chartRef = ref(null);
-const wrapRef = ref(null);
-let resizeObserver = null;
 
 /**
  * Monotonically increasing counter.  Incremented at the start of each
@@ -413,6 +411,7 @@ async function fetchChart() {
     }
 
     /* Attach batch metadata so TimeseriesChart picks up date_format/timezone. */
+    result._height = (props.max_height || 4) * height_per_row;
     pendingOptions = result;
 
     /* Signal TimeseriesChart to (re)draw using the new pendingOptions. */
@@ -443,53 +442,8 @@ function chartUpdatedCallback(options) {
     emit('chart-updated', options);
 }
 
-/** Reads the vertical space actually available to the chart plot: the
- *  wrapper's content height minus whatever sits above the chart inside it
- *  (the legend-controls bar rendered by TimeseriesChart, the loading spinner).
- *  Returns 0 before the element has been laid out. */
-function measuredHeight() {
-    if (!wrapRef.value) return 0;
-    const total = wrapRef.value.clientHeight;
-    const chartEl = wrapRef.value.querySelector('.first-chart');
-    const above = chartEl ? chartEl.offsetTop : 0;
-    return Math.max(0, total - above);
-}
-
-let resizeRaf = null;
-
-/** Redraws the chart at the wrapper's new height. Debounced to one
- *  redraw per animation frame so continuous resizes don't thrash Dygraph. */
-function onWrapResize() {
-    if (resizeRaf) return;
-    resizeRaf = requestAnimationFrame(() => {
-        resizeRaf = null;
-        if (!pendingOptions) return;
-        const height = measuredHeight();
-        if (!height || pendingOptions._height === height) return;
-        pendingOptions._height = height;
-        if (chartRef.value) {
-            chartRef.value.retrieveOptionsAndDraw('');
-        }
-    });
-}
-
 onMounted(() => {
     fetchChart();
-    if (wrapRef.value && window.ResizeObserver) {
-        resizeObserver = new ResizeObserver(onWrapResize);
-        resizeObserver.observe(wrapRef.value);
-    }
-});
-
-onBeforeUnmount(() => {
-    if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-    }
-    if (resizeRaf) {
-        cancelAnimationFrame(resizeRaf);
-        resizeRaf = null;
-    }
 });
 
 /*
@@ -512,16 +466,6 @@ watch(
     display: flex;
     flex-direction: column;
     justify-content: center;
-    flex: 1 1 auto;
-    min-height: 0;
     height: 100%;
-    padding: 4px 8px;
-    box-sizing: border-box;
-}
-
-.dashboard-timeseries-wrap :deep(.first-chart),
-.dashboard-timeseries-wrap :deep(.second-chart) {
-    margin-bottom: 0 !important;
-    flex: 1 1 auto;
 }
 </style>
