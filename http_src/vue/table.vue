@@ -151,7 +151,7 @@
         <div v-if="query_info != null" class="mt-2">
             <div class="text-end">
                 <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed
-                }}</span>.</small>
+                        }}</span>.</small>
             </div>
             <div class="text-start">
                 <small id="historical_flows_table-query-time" style="" class="query">Query performed in <span
@@ -244,9 +244,21 @@ const isChangingColumnVisibility = ref(false);       // Flag for column visibili
 const isChangingRows = ref(false);                    // Flag for row data changes
 const isAutoRefreshEnabled = ref(false);               // Auto-refresh state
 
+const localStorageAutoRefreshKey = "ntopng.table." + props.id + ".autorefresh"
+
 onMounted(async () => {
     if (props.columns != null) {
         load_table();
+    }
+    if (props.show_autorefresh) {
+        // Retrieve if the table has the value on the localStorage
+        isAutoRefreshEnabled.value = localStorage.getItem(localStorageAutoRefreshKey);
+        if (isAutoRefreshEnabled.value === null) {
+            isAutoRefreshEnabled.value = false;
+        } else {
+            isAutoRefreshEnabled.value = isAutoRefreshEnabled.value === "true";
+            update_autorefresh();
+        }
     }
 });
 
@@ -302,12 +314,17 @@ async function load_table() {
 // autorefresh interval and enabling
 let refreshInterval;
 function update_autorefresh() {
+    // Save the info in the local storage
+    localStorage.setItem(localStorageAutoRefreshKey, isAutoRefreshEnabled.value);
+
     if (isAutoRefreshEnabled.value == false) {
         clearInterval(refreshInterval);
         return;
     }
-    refreshInterval = setInterval(() => {
-        change_active_page();
+    refreshInterval = setInterval(async () => {
+        shouldForceRefresh = true;
+        await change_active_page();
+        shouldForceRefresh = false;
     }, props.show_autorefresh * 1000);
 }
 
