@@ -551,6 +551,19 @@ local timeseries_list = {{
     },
     nedge_exclude = true
 
+}, {
+    label = i18n("graphs.ts_queue_length"),
+    description = i18n("graphs.ts_queue_length"),
+    id = timeseries_id,
+    schema = "iface:ts_queue_length",
+    priority = 0,
+    measure_unit = "number",
+    timeseries = {
+        num_ts = {
+            label = i18n('graphs.metric_labels.num_ts'),
+            color = ts_gui_utils.get_timeseries_color('default')
+        }
+    }
 }}
 
 local function addTopTimeseries(tags, emptyEpoch, tsOptions)
