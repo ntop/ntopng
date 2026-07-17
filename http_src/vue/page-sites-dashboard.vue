@@ -861,8 +861,7 @@ async function loadExporterOverviewHistorical(exporter, iface) {
         ifid,
         epoch_begin: ifaceEpochBegin.value,
         epoch_end: ifaceEpochEnd.value,
-        exporter_ip: `${exporter.id};eq`,
-        ...(iface ? { ifIdx: iface.ifindex } : {}),
+        ...(iface ? { snmp_interface: `${exporter.id}_${iface.ifindex};eq` } : { exporter_ip: `${exporter.id};eq` }),
     };
 
     loadingL7.value = true;
