@@ -12,6 +12,11 @@ local backup_config = require("backup_config")
 
 -- ##############################################
 
+if not isAdministratorOrPrintErr() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
+
 local download = _GET["download"]
 local epoch = _GET["epoch"]
 

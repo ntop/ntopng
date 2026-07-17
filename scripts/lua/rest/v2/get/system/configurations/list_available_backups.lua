@@ -8,10 +8,16 @@ package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" ..
 
 -- ##############################################
 
+require "lua_utils"
 local backup_config = require("backup_config")
 local rest_utils = require("rest_utils")
 
 -- ##############################################
+
+if not isAdministratorOrPrintErr() then
+  rest_utils.answer(rest_utils.consts.err.not_granted)
+  return
+end
 
 local rc = rest_utils.consts.success.ok
 
