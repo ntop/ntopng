@@ -21,13 +21,17 @@ end
 local traceme = false
 
 while(not(ntop.isShuttingDown())) do
+   local total
+
+   total = 0
+   
    -- Note: foreachInterface calls interface.select() for each interface
    callback_utils.foreachInterface(ifnames, interface_creation_enabled,
 				   function(ifname, ifstats)
 				      if(traceme) then io.write("Processing " .. ifname .. " ifid: " .. ifstats.id .. "\n") end
 
 				      -- Export/flush timeseries data
-				      callback_utils.uploadTSdata(0) -- 0 = no deadline)
+				      total = total + callback_utils.uploadTSdata(0) -- 0 = no deadline)
 				   end, true)
 
 
@@ -35,7 +39,9 @@ while(not(ntop.isShuttingDown())) do
 
    -- Update system interface
    interface.select(-1)
-   callback_utils.uploadTSdata(0) -- 0 = no deadline)
+   total = total + callback_utils.uploadTSdata(0) -- 0 = no deadline)
 
-   ntop.msleep(1000) -- 1 second
+   if(total == 0) then
+      ntop.msleep(1000) -- 1 second
+   end
 end

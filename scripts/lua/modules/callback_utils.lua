@@ -244,6 +244,7 @@ function callback_utils.uploadTSdata(max_duration)
    local ts_utils = require("ts_utils_core")
    local drivers = ts_utils.listActiveDrivers()
    local deadline = os.time() + max_duration - 1 -- allow 1 sec of tolerance
+   local tot_exported = 0
    
    ts_utils.setup()
 
@@ -253,7 +254,11 @@ function callback_utils.uploadTSdata(max_duration)
       for _, driver in ipairs(drivers) do
 	 tot = tot + driver:export()
       end
+
+      tot_exported = tot_exported + tot
    until((deadline < os.time()) or (tot == 0))
+
+   return(tot_exported)
 end
 
 -- ########################################################
