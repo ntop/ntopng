@@ -31,7 +31,7 @@ schema:addMetric("cpu_utilization_pct")
 -- Timeseries write queue length
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("iface:ts_queue_length", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
+schema = ts_utils.newSchema("iface:ts_queue_length", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true, aggregation_function = ts_utils.aggregation.max})
 schema:addTag("ifid")
 schema:addMetric("num_ts") -- Number of timeseries currently in the queue
 
