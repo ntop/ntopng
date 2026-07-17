@@ -169,9 +169,9 @@ const DEFAULT_SITE_ID = "0";
 const DATE_PICKER_ID = "sites_dashboard_date_picker";
 
 /* Title-link URLs for each card. networks/exporters/exporter_interfaces are
-   still placeholders - fill in with the final destination URLs. */
+   still placeholders - fill in with the final destination URLs.
+   traffic_time_series is built dynamically per-scope in buildTimeseriesUrl(). */
 const CARD_LINKS = {
-    traffic_time_series: { url: "" },
     networks: { url: "" },
     exporters: { live_url: `${http_prefix}/`, historical_url: `${http_prefix}/` },
     exporter_interfaces: { live_url: `${http_prefix}/`, historical_url: `${http_prefix}/` },
@@ -440,13 +440,37 @@ function buildLiveAggUrl(criteria) {
     return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
 }
 
+/* Title link of the traffic time-series card: opens the "page=historical"
+   time-series view for the current scope */
+function buildTimeseriesUrl() {
+    if (!selectedExporter.value) return null;
+
+    if (selectedInterface.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({
+            deviceIP: selectedExporter.value.id,
+            ifIdx: selectedInterface.value.ifindex,
+            page: "historical",
+        });
+        return `${http_prefix}/lua/pro/exporter_interface_overview.lua?${url_params}`;
+    }
+
+    const url_params = ntopng_url_manager.obj_to_url_params({
+        ip: selectedExporter.value.id,
+        ifid: exporterTimeseriesIfid.value,
+        ...(selectedExporter.value.probe_source_id != null
+            ? { probe_source_id: selectedExporter.value.probe_source_id }
+            : {}),
+    });
+    return `${http_prefix}/lua/pro/enterprise/exporter_details.lua?${url_params}`;
+}
+
 /* Resolves each card's title-link from CARD_LINKS, switching to the live vs.
    historical variant for cards with both (see isLive / on_epoch_change). */
 const titleLinks = computed(() => {
     const asLink = (url) => (url ? { url } : null);
     const asLiveLink = (entry) => asLink(isLive.value ? entry.live_url : entry.historical_url);
     return {
-        traffic_time_series: asLink(CARD_LINKS.traffic_time_series.url),
+        traffic_time_series: asLink(buildTimeseriesUrl()),
         top_l7_proto: asLink(showHistoricalWidgets.value ? buildDbSearchUrl("l7_traffic", "l7_traffic") : buildLiveAggUrl("application_protocol")),
         top_l4_proto: asLink(buildDbSearchUrl("", "traffic_presence")),
         top_local_talkers: asLink(showHistoricalWidgets.value ? buildDbSearchUrl("top_hosts_by_traffic") : buildLiveAggUrl("client")),
