@@ -3120,21 +3120,23 @@ if ntop.isPro and ntop.isPro() then
 end
 
 function get_snmp_interface_ip(device_ip, port_idx)
-   if(cached_devices[device_ip] == nil) then
-      cached_devices[device_ip] = snmp_cached_dev:get_interfaces(device_ip)
-   end
-
-   port_idx = tostring(port_idx)
-   if(cached_devices[device_ip] ~= nil) then
-      local port = cached_devices[device_ip].interfaces[port_idx..""]
-
-      if((port ~= nil) and (port.ip_addr ~= nil) and (table.len(port.ip_addr) > 0)) then
-	 local ip_addr = port.ip_addr
-
-	 return(ip_addr[1])
+   if ntop.isPro and ntop.isPro() then
+      if(cached_devices[device_ip] == nil) then
+	 cached_devices[device_ip] = snmp_cached_dev:get_interfaces(device_ip)
+      end
+      
+      port_idx = tostring(port_idx)
+      if(cached_devices[device_ip] ~= nil) then
+	 local port = cached_devices[device_ip].interfaces[port_idx..""]
+	 
+	 if((port ~= nil) and (port.ip_addr ~= nil) and (table.len(port.ip_addr) > 0)) then
+	    local ip_addr = port.ip_addr
+	    
+	    return(ip_addr[1])
+	 end
       end
    end
-
+   
    return(nil) -- fallback
 end
 
