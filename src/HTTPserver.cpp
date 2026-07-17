@@ -131,6 +131,45 @@ int send_error(struct mg_connection* conn, int status, const char* reason,
 
 /* ****************************************** */
 
+/*
+ * Send a static "starting up" page to the browser.
+ */
+static int send_starting_up_page(struct mg_connection *conn) {
+  char path[MAX_PATH];
+  FILE *fd;
+
+  snprintf(path, sizeof(path), "%s/startup.html", ntop->get_docs_dir());
+
+  if ((fd = fopen(path, "rb")) != NULL) {
+    char buf[BUFSIZ];
+    size_t len = fread(buf, 1, sizeof(buf), fd);
+    fclose(fd);
+
+    conn->status_code = 503;
+    mg_printf(conn,
+              "HTTP/1.1 503 Service Unavailable\r\n"
+              "Server: ntopng %s (%s)\r\n"
+              "Content-Type: text/html\r\n"
+              "Content-Length: %u\r\n"
+              "Connection: close\r\n"
+              "\r\n",
+              PACKAGE_VERSION, PACKAGE_MACHINE, (unsigned int)len);
+    mg_write(conn, buf, len);
+    return 1;
+  } else {
+    /* Fallback in case startup.html is not found */
+    return (send_error(conn, 503, "Service Unavailable", "%s",
+              "<html><head><meta http-equiv=\"refresh\" "
+              "content=\"3\"></head><body><center><H3>We're almost "
+              "ready...</H3><center>"
+              "<p>ntopng is unable to serve requests at this time "
+              "(possibly starting up or shutting down). Please hold on.\n"
+              "</body></html>"));
+  }
+}
+
+/* ****************************************** */
+
 const char* get_secure_cookie_attributes(
     const struct mg_request_info* request_info) {
   if (request_info->is_ssl)
@@ -1526,16 +1565,7 @@ static int handle_lua_request(struct mg_connection* conn) {
   if ((ntop->getRedis() == NULL /* Starting up... */) ||
       (ntop->get_HTTPserver() == NULL) ||
       (!ntop->get_HTTPserver()->accepts_requests())) {
-    /* return(redirect_to_error_page(conn, request_info, "shut_start", NULL,
-     * NULL)); */
-    return (
-        send_error(conn, 403 /* Forbidden */, request_info->uri,
-                   "<html><head><meta http-equiv=\"refresh\" "
-                   "content=\"3\"></head><body><center><H3>We're almost "
-                   "ready...</H3><center>"
-                   "<p>ntopng is unable to serve requests at this time "
-                   "(possibly starting up or shutting down). Please hold on.\n"
-                   "</body></html>"));
+    return send_starting_up_page(conn);
   }
 
 #ifndef HAVE_NEDGE
