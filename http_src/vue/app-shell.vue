@@ -622,6 +622,65 @@
       </div>
     </div>
   </div>
+
+  <!-- External link confirmation modal (was AppFooter) -->
+  <div class="modal fade" id="ext_link_dialog" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _i18n("external_link") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <span id="url_ext_link_dialog"></span><br/>{{ _i18n("are_you_sure") }}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
+          <a id="btn-confirm-action_ext_link_dialog" class="btn btn-primary btn-sm"
+             href="#" target="_blank" rel="noopener" data-bs-dismiss="modal">
+            {{ _i18n("redirect") }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- nEdge poweroff/reboot modals (was AppFooter) -->
+  <div class="modal fade" id="poweroff_dialog" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _i18n("nedge.power_off") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">{{ _i18n("nedge.power_off_confirm") }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
+          <button class="btn btn-danger btn-sm" @click="doNedgePowerOff">
+            {{ _i18n("nedge.power_off") }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="reboot_dialog" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _i18n("nedge.reboot") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">{{ _i18n("nedge.reboot_corfirm") }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _i18n("cancel") }}</button>
+          <button class="btn btn-primary btn-sm" @click="doNedgeReboot">
+            {{ _i18n("nedge.reboot") }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -644,8 +703,10 @@ const _i18n = (t) => i18n(t);
 const updateStatus           = ref("");
 const updateVersion          = ref("");
 const dismissedUpdateVersion = ref("");  // version stored in Redis as dismissed
+const updatesChecked         = ref(false); // true once we've confirmed status + dismissed-version from the server
 const updateBannerDismissed  = computed(() =>
-  dismissedUpdateVersion.value !== "" && dismissedUpdateVersion.value === updateVersion.value
+  !updatesChecked.value ||
+  (dismissedUpdateVersion.value !== "" && dismissedUpdateVersion.value === updateVersion.value)
 );
 
 // State
@@ -1385,6 +1446,22 @@ function confirmNedgeReboot() {
   nedgeRebootModal?.show();
 }
 
+async function doNedgePowerOff() {
+  await ntopng_utility.http_request(`${pfx.value}/lua/rest/v2/set/ntopng/poweroff.lua`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ csrf: ctx.value.csrf || window.__CSRF_DATATABLE__ || "" }),
+  }).catch(() => {});
+}
+
+async function doNedgeReboot() {
+  await ntopng_utility.http_request(`${pfx.value}/lua/rest/v2/set/ntopng/reboot.lua`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ csrf: ctx.value.csrf || window.__CSRF_DATATABLE__ || "" }),
+  }).catch(() => {});
+}
+
 // Restart
 let restartModal = null;
 
@@ -1501,6 +1578,7 @@ function onUpdateStatusEvent(e) {
   const d = e.detail || {};
   updateStatus.value  = d.status  || "";
   updateVersion.value = d.version || "";
+  updatesChecked.value = true;
 }
 
 async function updatesRefresh() {
@@ -1588,11 +1666,71 @@ async function doCheckForUpdates() {
   } catch (_) {}
 }
 
+// ext_link_dialog — intercept .ntopng-external-link clicks (was AppFooter)
+function onExternalLinkClick(e) {
+  const anchor = e.target.closest("a.ntopng-external-link");
+  if (!anchor) return;
+  e.preventDefault();
+
+  const url = anchor.href;
+  const el  = document.getElementById("url_ext_link_dialog");
+  const btn = document.getElementById("btn-confirm-action_ext_link_dialog");
+  if (el)  el.textContent = url;
+  if (btn) btn.href = url;
+
+  const modalEl = document.getElementById("ext_link_dialog");
+  if (modalEl && window.bootstrap) {
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  }
+}
+
+// Toast dismiss, from ToastUtils (was AppFooter)
+function onToastDismiss(e) {
+  const btn = e.target.closest(".notification button.dismiss");
+  if (!btn) return;
+  const toast = btn.closest(".notification");
+  if (!toast) return;
+  const id = toast.dataset.toastId;
+  if (typeof ToastUtils !== "undefined" && id) {
+    ToastUtils.dismissToast(id, ctx.value.csrf || window.__CSRF_DATATABLE__, data => {
+      if (data?.success) {
+        const bsToast = bootstrap.Toast.getInstance(toast);
+        bsToast?.hide();
+      }
+    });
+  }
+}
+
+// 403 ajaxError -> redirect to login (was AppFooter)
+function onAjaxError(_evt, xhr) {
+  if (xhr?.status === 403 && xhr?.responseText === "Login Required") {
+    window.location.href = `${pfx.value}/lua/login.lua`;
+  }
+}
+
+// history.replaceState (avoid Document Expired on POST pages) (was AppFooter)
+function fixHistoryState() {
+  if (history?.replaceState && window.location.href) {
+    history.replaceState(history.state, "", window.location.href);
+  }
+}
+
 onMounted(async () => {
   document.addEventListener("ntopng-update-status", onUpdateStatusEvent);
   document.addEventListener("ntopng-preferences-saved", loadMenu);
   applyLayout();
   document.addEventListener("click", handleOutsideClick);
+  document.addEventListener("click", onExternalLinkClick);
+  document.addEventListener("click", onToastDismiss);
+  document.addEventListener("ajaxError", onAjaxError);
+  if (window.$) {
+    $(document).ajaxError((err, response) => {
+      if (response?.status === 403 && response?.responseText === "Login Required") {
+        window.location.href = `${pfx.value}/lua/login.lua`;
+      }
+    });
+  }
+  fixHistoryState();
   await loadMenu();
   // Wait for v-if DOM (sparkline SVGs) to appear after menu data loads
   await nextTick();
@@ -1614,6 +1752,7 @@ onMounted(async () => {
       if (dismissed?.version) dismissedUpdateVersion.value = dismissed.version;
     } catch (_) {}
     await updatesRefresh();
+    updatesChecked.value = true;
     updatesTimer = setInterval(updatesRefresh, 5000);
   }
 });
@@ -1622,6 +1761,9 @@ onBeforeUnmount(() => {
   document.removeEventListener("ntopng-update-status", onUpdateStatusEvent);
   document.removeEventListener("ntopng-preferences-saved", loadMenu);
   document.removeEventListener("click", handleOutsideClick);
+  document.removeEventListener("click", onExternalLinkClick);
+  document.removeEventListener("click", onToastDismiss);
+  document.removeEventListener("ajaxError", onAjaxError);
   clearTimeout(railLeaveTimer);
   clearTimeout(panelLeaveTimer);
   if (pollTimer)    clearInterval(pollTimer);
