@@ -231,7 +231,7 @@
   60 /* sec - Generic idle time for hash entries different from hosts and \
         flows (i.e., ASes and Countries) */
 #define MAX_PROBE_IDLE_TIME 1800 /* 30 min (Used in ZMQParserInterface.cpp) */
-#define MAX_RRD_QUEUE_LEN 200000 /* timeseries in the queue */
+#define MAX_RRD_QUEUE_LEN 300000 /* timeseries in the queue */
 #define CH_TS_QUEUE_SIZE 50000   /* ClickHouse timeseries in-memory queue */
 #define MIN_NUM_IDLE_ENTRIES_IF 5000
 #define INTF_RRD_RAW_DAYS 1
