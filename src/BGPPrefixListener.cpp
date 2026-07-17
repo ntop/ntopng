@@ -110,6 +110,12 @@ void BGPPrefixListener::poll() {
       if (bytes_received < 0)
 	break;
 
+      /* zmq_recv() returns the full message size even when the message did
+	 not fit in the buffer, so the copy is truncated at sizeof(buffer)-1
+	 but bytes_received can be larger. Clamp it before terminating. */
+      if (bytes_received > (int)sizeof(buffer) - 1)
+	bytes_received = sizeof(buffer) - 1;
+
       buffer[bytes_received] = '\0';
       message = &buffer[filter_len];
 
