@@ -189,10 +189,11 @@ const SECONDS_ONE_DAY = 24 * 60 * 60;
 const SECONDS_LIVE_TS_WINDOW = 60 * 60;
 
 // Picker presets. Shown only when ClickHouse is enabled; otherwise the page is
-// live-only and renders a static Live badge instead of the picker.
+// live-only and renders a static Live badge instead of the picker. "live" is the
+// fallback the picker resolves to when the URL carries no epoch range.
 const time_preset_list = [
-    { value: "live", label: _i18n("show_alerts.presets.live"), icon: "fa-solid fa-circle fa-2xs text-danger", currently_active: false },
-    { value: "hour", label: _i18n("show_alerts.presets.hour"), currently_active: true },
+    { value: "live", label: _i18n("show_alerts.presets.live"), icon: "fa-solid fa-circle fa-2xs text-danger", currently_active: true },
+    { value: "hour", label: _i18n("show_alerts.presets.hour"), currently_active: false },
     { value: "6_hours", label: _i18n("show_alerts.presets.6_hours"), currently_active: false },
     { value: "day", label: _i18n("show_alerts.presets.day"), currently_active: false },
     { value: "week", label: _i18n("show_alerts.presets.week"), currently_active: false },
@@ -253,8 +254,23 @@ const topDestinations = ref([]);
 const liveFlowsCount = ref(null);
 const liveHostsCount = ref(null);
 
-const isLive = ref(!props.context?.isClickhouseEnabled);
+// In the live case we clear the epoch params up front, before the picker mounts
+// and reads them, so it resolves to the "live" preset instead of "custom".
+const urlEpochBegin = ntopng_url_manager.get_url_entry("epoch_begin");
+const urlEpochEnd = ntopng_url_manager.get_url_entry("epoch_end");
+const hasHistoricalRange = !!props.context?.isClickhouseEnabled
+    && urlEpochBegin != null && urlEpochEnd != null
+    && Number.parseInt(urlEpochBegin) < Number.parseInt(urlEpochEnd);
+
+const isLive = ref(!hasHistoricalRange);
 const showHistoricalWidgets = computed(() => isClickHouseEnabled.value && !isLive.value);
+
+if (hasHistoricalRange) {
+    ifaceEpochBegin.value = Number.parseInt(urlEpochBegin);
+    ifaceEpochEnd.value = Number.parseInt(urlEpochEnd);
+} else {
+    ntopng_url_manager.delete_params(["epoch_begin", "epoch_end"]);
+}
 
 /* L7/talkers/destinations render in BOTH live and historical mode (fed by
    aggregated_live_flows in live, ClickHouse in historical). Only Top L4 remains
@@ -702,6 +718,9 @@ async function handleSelectExporter(exporter, ancestors) {
     activeTab.value = "exporter_interfaces";
     ensureEpochWindow();
     revealInSidebar();
+    // The picker mounts with this selection; in live it writes a zero-width
+    // window to the URL on mount, so clear it once mounted (see stripLiveEpochFromUrl).
+    stripLiveEpochFromUrl();
     await Promise.all([
         loadExporterInterfaces(exporter),
         loadExporterOverview(exporter),
@@ -961,12 +980,17 @@ async function loadExporterOverviewHistorical(exporter, iface) {
     loadingDestinations.value = false;
 }
 
+// in live, the picker still writes a zero-width now() window (epoch_begin == epoch_end), which would
+// be resolved back to "custom" on the next load, so we strip it.
+function stripLiveEpochFromUrl() {
+    if (isLive.value) ntopng_url_manager.delete_params(["epoch_begin", "epoch_end"]);
+}
+
 function on_epoch_change(epoch) {
     isLive.value = epoch?.timeframe_id === "live";
 
     if (isLive.value) {
-        // The picker reports live as a zero-width now() window; the flowdev time
-        // series needs a real span, so use the rolling live window instead.
+        stripLiveEpochFromUrl();
         setLiveEpochWindow();
     } else {
         if (epoch?.epoch_begin) ifaceEpochBegin.value = epoch.epoch_begin;
@@ -1013,6 +1037,7 @@ function handleSelectInterface(iface, exporter, ancestors) {
     activeTab.value = "traffic_analysis";
     ensureEpochWindow();
     revealInSidebar();
+    stripLiveEpochFromUrl();
     loadExporterOverview(owningExporter, iface);
     loadExporterCounts(owningExporter, iface);
 }
