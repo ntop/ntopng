@@ -205,6 +205,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { default as PrefField } from './pref-field.vue';
+import ToastUtils from '../utilities/toast-utils.js';
 
 const props = defineProps({
   context: { type: Object, default: () => ({}) },
@@ -468,10 +469,14 @@ async function saveSection() {
       applyRuntimeEffect(key, form_values.value[key]);
     }
     const sec = sections.value.find(s => s.id === section_id);
+    let restart_needed = false;
     if (sec) {
       for (const entry of (sec.entries || [])) {
         if (entry.key in form_values.value) {
           entry.value = form_values.value[entry.key];
+        }
+        if (entry.requires_restart && changed.includes(entry.key)) {
+          restart_needed = true;
         }
       }
     }
@@ -481,6 +486,17 @@ async function saveSection() {
     save_success.value    = true;
     document.dispatchEvent(new CustomEvent('ntopng-preferences-saved'));
     setTimeout(() => { save_success.value = false; }, 2500);
+
+    // show a toast if there needs to be an ntopng restart for preferences to be working
+    if (restart_needed) {
+      ToastUtils.showToast({
+        id:    'prefs-restart-needed-' + Date.now(),
+        level: 'warning',
+        title: _i18n('prefs.vue_prefs.restart_needed_title'),
+        body:  _i18n('prefs.restart_needed').replace(/%\{product\}/g, props.context?.product || 'ntopng'),
+        delay: 8000,
+      });
+    }
   } catch (err) {
     save_error.value = err.message || _i18n('prefs.vue_prefs.save_failed');
   } finally {

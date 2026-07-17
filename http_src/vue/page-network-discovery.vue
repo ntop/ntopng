@@ -210,7 +210,7 @@ async function checkNetworkDiscoveryEnabled() {
 }
 
 const destroy = () => {
-  network_discovery_table.value.destroy_table();
+  network_discovery_table.value?.destroy_table();
 };
 
 onMounted(async () => {

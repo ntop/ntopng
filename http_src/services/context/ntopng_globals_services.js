@@ -295,6 +295,20 @@ export const ntopng_utility = function () {
             const base = endian_map[key] || endian_map.little_endian;
             return `${base} H:i`;
         },
+        /* Flags/fields that many pages need and that GET /lua/rest/v2/get/ntopng/menu.lua
+         already returns for the sidebar (ifid, product, is_nedge, has_clickhouse, etc).
+         
+         AppShell fetches that response once and mirrors it into sessionStorage
+         (see MENU_CACHE_KEY in app-shell.vue) purely so it survives full page
+         reloads without a network round-trip */
+        get_menu_flags: function () {
+            try {
+                const raw = sessionStorage.getItem("ntopng_menu_cache");
+                return raw ? JSON.parse(raw) : {};
+            } catch (_) {
+                return {};
+            }
+        },
     }
 }();
 

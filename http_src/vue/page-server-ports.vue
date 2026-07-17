@@ -210,7 +210,7 @@ async function load_table_filters(filter, filter_index) {
         filter.options = new_filter_array.find((t) => t.id == filter.id).options;
         await nextTick();
         let dropdown = filter_table_dropdown_array.value[filter_index];
-        dropdown.load_menu();
+        dropdown?.load_menu();
     }
     filter.show_spinner = false;
 }

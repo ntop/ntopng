@@ -68,6 +68,52 @@ if tonumber(system_ifid) == tonumber(current_ifid) then
    scripts_config_url = http_prefix .. "/lua/admin/edit_configset.lua?subdir=system"
 end
 
+local protos_utils_ok, protos_utils = pcall(require, "protos_utils")
+
+local show_sankey_ok, show_sankey = pcall(function()
+   if interface.isView() then
+      for _, name in pairs(interface.getIfNames()) do
+         interface.select(name)
+         if interface.isZMQInterface() and interface.isViewed() then
+            return true
+         end
+      end
+      return false
+   end
+   return interface.isZMQInterface() == true
+end)
+interface.select(tostring(current_ifid))
+if not show_sankey_ok then show_sankey = false end
+
+local checks_flags_ok, checks_flags = pcall(function()
+   local checks = require "checks"
+   local configset = checks.getConfigset()
+   local config = configset and configset["config"]
+   local flow_config = config and config["flow"]
+   local interface_config = config and config["interface"]
+
+   local function flow_check_enabled(key)
+      return flow_config and flow_config[key] and flow_config[key]["all"] and flow_config[key]["all"]["enabled"]
+   end
+
+   local network_config_enabled = flow_check_enabled("unexpected_dns") or flow_check_enabled("unexpected_ntp") or
+      flow_check_enabled("unexpected_smtp") or flow_check_enabled("unexpected_gateway") or
+      flow_check_enabled("unexpected_dhcp")
+
+   local acl_violation_enabled = flow_check_enabled("access_control_list") or
+      (interface_config and interface_config["acl_violation_arp"] and
+       interface_config["acl_violation_arp"]["min"] and interface_config["acl_violation_arp"]["min"]["enabled"])
+
+   return {
+      network_configuration_enabled = network_config_enabled == true,
+      network_policy_enabled        = flow_check_enabled("host_policy") == true,
+      acl_violation_enabled         = acl_violation_enabled == true,
+   }
+end)
+if not checks_flags_ok then
+   checks_flags = { network_configuration_enabled = false, network_policy_enabled = false, acl_violation_enabled = false }
+end
+
 local dynamic_urls = {
    scripts_config_url = scripts_config_url,
 }
@@ -395,6 +441,26 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    uptime_epoch   = ntop.getUptime(),
    tzname         = info.zoneinfo or info.tzname or "",
    server_epoch   = os.time(),
+
+   -- shared flags: fields several pages independently re-fetch/re-derive.
+   -- Read these from ntopng_utility.get_menu_flags() (http_src side) instead
+   -- of adding a page-specific REST call for them.
+   ifname         = ifid_stats.description or "",
+   has_clickhouse = interfaceHasClickHouseSupport(),
+   device_protocols_policing_enabled = (ntop.getPref("ntopng.prefs.device_protocols_policing") == "1"),
+   are_ts_enabled = (areInterfaceTimeseriesEnabled and areInterfaceTimeseriesEnabled(current_ifid)) or false,
+   network_configuration_enabled = checks_flags.network_configuration_enabled,
+   network_policy_enabled        = checks_flags.network_policy_enabled,
+   acl_violation_enabled         = checks_flags.acl_violation_enabled,
+   has_protos_file = (protos_utils_ok and protos_utils.hasProtosFile()) or false,
+   is_pro = is_pro or false,
+   is_enterprise = (ntop.isEnterprise and ntop.isEnterprise()) or false,
+   is_enterprise_xl = (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false,
+   are_host_pools_ts_enabled = (areHostPoolsTimeseriesEnabled and areHostPoolsTimeseriesEnabled(current_ifid)) or false,
+   are_as_ts_enabled = (areASTimeseriesEnabled and areASTimeseriesEnabled(current_ifid)) or false,
+   are_country_ts_enabled = (areCountryTimeseriesEnabled and areCountryTimeseriesEnabled(current_ifid)) or false,
+   is_asn_mode_enabled = (isASNModeEnabled and isASNModeEnabled()) or false,
+   show_sankey = show_sankey,
 })
 
 end) -- pcall

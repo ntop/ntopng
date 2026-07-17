@@ -235,6 +235,7 @@ const delete_button_handlers = (handlerId) => {
 let is_destroyed = false;
 
 const destroy_table = () => {
+    if (!table) return;
     table.clear();
     table.destroy(true);
     is_destroyed = true;

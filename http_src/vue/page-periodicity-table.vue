@@ -150,7 +150,7 @@ export default {
     },
     destroy: function() {
       let table = this.get_active_table();
-      table.destroy_table();
+      table?.destroy_table();
     },
     get_active_table: function() {
       return this.$refs[`table_periodicity`];

@@ -897,6 +897,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.is_client_x509_auth_enabled",
                 default = "0",
+                requires_restart = true,
                 section = i18n("prefs.x509_auth")
             }, -- LDAP auth
             {
@@ -1227,7 +1228,7 @@ function M.get_sections(flags)
                     label = "ClickHouse"
                 }},
                 to_switch = {"influxdb_url", "influxdb_dbname", "toggle_influx_auth", "influxdb_username",
-                             "influxdb_password", "influxdb_query_timeout"},
+                             "influxdb_password", "influxdb_query_timeout", "clickhouse_grafana_dashboard"},
                 show_when = {
                     influxdb_url = {"influxdb"},
                     influxdb_dbname = {"influxdb"},
@@ -1235,14 +1236,17 @@ function M.get_sections(flags)
                     influxdb_username = {"influxdb"},
                     influxdb_password = {"influxdb"},
                     influxdb_query_timeout = {"influxdb"},
-                    timeseries_resolution_resolution = {"influxdb", "clickhouse"}
-                },
-                when_value_download = {
-                    value    = "clickhouse",
-                    url      = ntop.getHttpPrefix() .. "/misc/grafana/ntopng-clickhouse-dashboard.json",
-                    filename = "ntopng-clickhouse-dashboard.json",
-                    label    = i18n("prefs.clickhouse_ts_grafana_dashboard_btn")
+                    timeseries_resolution_resolution = {"influxdb", "clickhouse"},
+                    clickhouse_grafana_dashboard = {"clickhouse"}
                 }
+            }, {
+                key = "clickhouse_grafana_dashboard",
+                title = i18n("prefs.clickhouse_ts_grafana_dashboard"),
+                description = i18n("prefs.clickhouse_ts_grafana_dashboard_description"),
+                type = "download_link",
+                section = i18n("prefs.timeseries_database"),
+                download_url = ntop.getHttpPrefix() .. "/misc/grafana/ntopng-clickhouse-dashboard.json",
+                download_filename = "ntopng-clickhouse-dashboard.json"
             }, {
                 key = "influxdb_url",
                 title = i18n("prefs.influxdb_url_title"),
@@ -1340,6 +1344,7 @@ function M.get_sections(flags)
                 input_type = "number",
                 redis_key = "ntopng.prefs.ts_and_stats_data_retention_days",
                 default = "30",
+                requires_restart = true,
                 section = i18n("prefs.timeseries_database"),
                 attrs = {
                     min = "1",

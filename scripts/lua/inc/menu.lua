@@ -212,3 +212,8 @@ print('<div id="major-release-alert" class="alert alert-info" style="display:non
    '</div>')
 
 print("</div>")
+
+-- SPA (single page application): AppShell puts its <router-view> here for pages that are using the router (see http_src/vue/router.js).
+-- Empty for pages not yet migrated. The page's own template_utils.render
+-- mount below is what renders in that case, unaffected by this div's presence.
+print('<div id="n-spa-outlet"></div>')

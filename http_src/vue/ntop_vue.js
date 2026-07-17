@@ -210,6 +210,7 @@ import { default as FlowChatbotSidebar } from "./flow-chatbot-sidebar.vue";
 
 // app shell
 import { default as AppShell }   from "./app-shell.vue";
+import spaRouter, { spaRoutesByPath } from "./router.js";
 
 let ntopVue = {
     Chatbot: Chatbot,
@@ -429,6 +430,10 @@ let ntopVue = {
 
     Vue: Vue,
     createApp: (options) => Vue.createApp(options).use(window.vuetify),
+
+    // SPA router — see router.js. Only the AppShell app instance installs it.
+    spaRouter: spaRouter,
+    spaRoutesByPath: spaRoutesByPath,
 };
 
 // Surfaces Vue runtime errors to the browser console with a [VUE_ERROR]

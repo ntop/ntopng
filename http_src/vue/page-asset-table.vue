@@ -96,7 +96,7 @@ export default {
         ntopng_events_manager.on_custom_event("change_asset_table_tab", change_asset_table_tab_event, (tab) => {
             let table = this.get_active_table();
             ntopng_url_manager.set_key_to_url('view', tab);
-            table.destroy_table();
+            table?.destroy_table();
             this.asset_table_tab = tab;
         });
 
@@ -131,7 +131,7 @@ export default {
     methods: {
         destroy: function () {
             let table = this.get_active_table();
-            table.destroy_table();
+            table?.destroy_table();
         },
         /* Method used to switch active table tab */
         click_item: function (item) {
