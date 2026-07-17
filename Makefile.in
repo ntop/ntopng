@@ -57,19 +57,19 @@ else ifeq ($(OS), $(filter $(OS), FreeBSD))
 endif
 
 ######
-LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
-HAS_LIBRRDTOOL=$(shell $(PKG_CONFIG) --atleast-version=1.4.8 librrd && echo 0)
-ifeq ($(HAS_LIBRRDTOOL), 0)
+#LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
+#HAS_LIBRRDTOOL=$(shell $(PKG_CONFIG) --atleast-version=1.4.8 librrd && echo 0)
+#ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_INC = $(shell $(PKG_CONFIG) --cflags librrd)
 	LIBRRDTOOL_LIB = @LIBRRD_LD_FLAGS@
-else
-	LIBRRDTOOL_INC=-I$(LIBRRDTOOL_HOME)/src/
-	ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
-		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm
-	else
-		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm
-	endif
-endif
+#else
+#	LIBRRDTOOL_INC=-I$(LIBRRDTOOL_HOME)/src/
+#	ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
+#		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm
+#	else
+#		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm
+#	endif
+#endif
 
 ######
 
