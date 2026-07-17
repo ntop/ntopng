@@ -12,6 +12,11 @@ require "http_lint"
 local rest_utils = require "rest_utils"
 local tag_badge_utils = require "tag_badge_utils"
 
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
+
 local post_data = _POST or {}
 local tags = post_data["tags"]
 
