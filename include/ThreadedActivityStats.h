@@ -57,7 +57,7 @@ typedef struct {
   } alerts;
 
   struct {
-    u_int32_t num_polled_hosts_non_qos, num_polled_hosts_with_qos;
+    u_int32_t num_polled_hosts_counters_only, num_polled_hosts_all_mibs;
   } snmp;
 } threaded_activity_stats_t;
 
@@ -89,6 +89,7 @@ class ThreadedActivityStats {
 
   /* Timeseries stats and drops for writes */
   void updateTimeseriesWriteStats(ticks cur_ticks);
+  void updateTimeseriesWritten(u_int32_t num_ts);
   void incTimeseriesWriteDrops(u_long num_drops);
   void incSNMPHostPolls(bool non_qos_poll);
   void sumTimeseriesStats(ThreadedActivityStats* oth_tas);

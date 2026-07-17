@@ -7424,8 +7424,8 @@ static int ntop_rrd_tune(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Increments the packet drop counter in an interface RRD file.  Lua: ntop.rrd_inc_num_drops(path) → nil */
-static int ntop_rrd_inc_num_drops(lua_State* vm) {
+/* @brief Increments the packet drop counter in an interface RRD file.  Lua: ntop.ts_inc_num_drops(path) → nil */
+static int ntop_ts_inc_num_drops(lua_State* vm) {
   NtopngLuaContext* ctx = getLuaVMContext(vm);
   u_long num_drops = 1;
 
@@ -7439,15 +7439,30 @@ static int ntop_rrd_inc_num_drops(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Increments the number of timeseries writes (eg.g. used by ClickHouse driver).  Lua: ntop.ts_inc_num_writes(duration) → nil */
+static int ntop_ts_inc_num_writes(lua_State* vm) {
+  NtopngLuaContext* ctx = getLuaVMContext(vm);
+  u_int32_t num_ts_written = 0;
+
+  if (lua_type(vm, 1) == LUA_TNUMBER) num_ts_written = lua_tonumber(vm, 1);
+
+  if (ctx && ctx->threaded_activity_stats)
+    ctx->threaded_activity_stats->updateTimeseriesWritten(num_ts_written);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 /* @brief Increments the number of SNMP polled hosts in an interface.  Lua: ntop.snmp_inc_num_polled_hosts(bool) → nil */
 static int ntop_snmp_inc_num_snmp_polled_hosts(lua_State* vm) {
   NtopngLuaContext* ctx = getLuaVMContext(vm);
-  bool non_qos_poll = true;
+  bool counter_poll_only = true; /* counter_poll_only = flow exporters */
 
-  if (lua_type(vm, 1) == LUA_TBOOLEAN) non_qos_poll = (bool)lua_toboolean(vm, 1);
+  if (lua_type(vm, 1) == LUA_TBOOLEAN) counter_poll_only = (bool)lua_toboolean(vm, 1);
 
   if (ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->incSNMPHostPolls(non_qos_poll);
+    ctx->threaded_activity_stats->incSNMPHostPolls(counter_poll_only);
 
   return CONST_LUA_OK;
 }
@@ -9069,7 +9084,8 @@ static luaL_Reg _ntop_reg[] = {
     {"rrd_fetch_columns", ntop_rrd_fetch_columns},
     {"rrd_lastupdate", ntop_rrd_lastupdate},
     {"rrd_tune", ntop_rrd_tune},
-    {"rrd_inc_num_drops", ntop_rrd_inc_num_drops},
+    {"ts_inc_num_drops", ntop_ts_inc_num_drops},
+    {"ts_inc_num_writes", ntop_ts_inc_num_writes},
 
     /* Prefs */
     {"getPrefs", ntop_get_prefs},

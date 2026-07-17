@@ -168,7 +168,13 @@ end
 --! Serialised to line protocol by CHTimeseriesExporter and buffered in the
 --! in-memory C++ queue; flushed to ClickHouse by driver:export().
 function driver:append(schema, timestamp, tags, metrics)
-   return interface.chTsEnqueue(schema.name, timestamp, tags, metrics)
+   local ret = interface.chTsEnqueue(schema.name, timestamp, tags, metrics)
+
+   if ret == false then
+      ntop.ts_inc_num_drops()
+   end
+   
+   return ret
 end
 
 -- ##############################################
@@ -721,6 +727,7 @@ function driver:export()
          string.format("[ClickHouse TS] INSERT of %d rows failed", #rows))
    end
 
+   ntop.ts_inc_num_writes(#rows)
    return(#rows)
 end
 

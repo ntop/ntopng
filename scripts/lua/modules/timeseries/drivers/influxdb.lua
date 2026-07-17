@@ -174,8 +174,9 @@ function driver:append(schema, timestamp, tags, metrics)
     if (self.has_full_export_queue) then
         -- Temporary buffer dropped points into a local counter.
         -- They will be exported to redis once the driver is dismissed in driver:__gc()
-        self.cur_dropped_points = self.cur_dropped_points + 1
-        return (false)
+       self.cur_dropped_points = self.cur_dropped_points + 1
+       ntop.ts_inc_num_drops()       
+       return (false)
     end
 
     local rv = interface.appendInfluxDB(schema.name, timestamp, tags, metrics)

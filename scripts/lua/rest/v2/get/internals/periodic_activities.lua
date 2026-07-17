@@ -67,10 +67,10 @@ for script, stats in pairsByKeys(scripts_stats, asc) do
    end
 
    -- SNMP MIB counters
-   local snmp_num_polled_hosts_non_qos, snmp_num_polled_hosts_with_qos
+   local num_polled_hosts_counters_only, num_polled_hosts_all_mibs
    if stats.snmp then
-      snmp_num_polled_hosts_non_qos  = stats.snmp.num_polled_hosts_non_qos
-      snmp_num_polled_hosts_with_qos = stats.snmp.num_polled_hosts_with_qos
+      num_polled_hosts_counters_only  = stats.snmp.num_polled_hosts_counters_only
+      num_polled_hosts_all_mibs = stats.snmp.num_polled_hosts_all_mibs
    end
 
    -- Last start formatted
@@ -102,8 +102,8 @@ for script, stats in pairsByKeys(scripts_stats, asc) do
       tot_running_slow  = stats.num_is_slow or 0,
       ts_writes         = ts_writes,
       ts_drops          = ts_drops,
-      snmp_fat_mibs     = snmp_num_polled_hosts_non_qos,
-      snmp_other_mibs   = snmp_num_polled_hosts_with_qos,
+      snmp_fat_mibs     = num_polled_hosts_all_mibs,
+      snmp_other_mibs   = num_polled_hosts_counters_only,
       issues            = issues,
    }
 

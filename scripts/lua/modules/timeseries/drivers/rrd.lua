@@ -362,7 +362,7 @@ function driver:append(schema, timestamp, tags, metrics)
          local res = interface.rrd_enqueue(schema.name, timestamp, tags, metrics)
 
          if not res then
-            ntop.rrd_inc_num_drops()
+            ntop.ts_inc_num_drops()
          end
 
          return res
