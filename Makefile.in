@@ -57,20 +57,9 @@ else ifeq ($(OS), $(filter $(OS), FreeBSD))
 endif
 
 ######
-#LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
-HAS_LIBRRDTOOL=0
-#HAS_LIBRRDTOOL=$(shell $(PKG_CONFIG) --atleast-version=1.4.8 librrd && echo 0)
-#ifeq ($(HAS_LIBRRDTOOL), 0)
-	LIBRRDTOOL_INC = $(shell $(PKG_CONFIG) --cflags librrd)
-	LIBRRDTOOL_LIB = @LIBRRD_LD_FLAGS@
-#else
-#	LIBRRDTOOL_INC=-I$(LIBRRDTOOL_HOME)/src/
-#	ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
-#		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm
-#	else
-#		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm
-#	endif
-#endif
+
+LIBRRDTOOL_INC = $(shell $(PKG_CONFIG) --cflags librrd)
+LIBRRDTOOL_LIB = @LIBRRD_LD_FLAGS@
 
 ######
 
@@ -137,10 +126,6 @@ ifneq ($(HAS_ZEROMQ), 0)
 LIB_TARGETS += $(ZEROMQ_LIB)
 endif
 
-ifneq ($(HAS_LIBRRDTOOL), 0)
-LIB_TARGETS += $(LIBRRDTOOL_LIB)
-endif
-
 .PHONY: default all clean docs test
 
 default: hooks/.enabled $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
@@ -190,10 +175,6 @@ endif
 
 $(ZEROMQ_LIB):
 	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; $(MAKE)
-
-# --disable-rrd_graph
-$(LIBRRDTOOL_LIB):
-	cd $(LIBRRDTOOL_HOME); ./configure --disable-libdbi --disable-libwrap --disable-rrdcgi --disable-libtool-lock --disable-nls --disable-rpath --disable-perl --disable-ruby --disable-lua --disable-tcl --disable-python --disable-dependency-tracking --disable-rrd_graph ; cd src; $(MAKE) librrd_th.la
 
 hooks/.enabled:
 	git config core.hooksPath hooks || true
