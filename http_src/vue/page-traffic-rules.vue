@@ -150,7 +150,7 @@ const init_edit = function () {
 };
 
 const destroy_table = function () {
-  table_traffic_rules.value.destroy_table();
+  table_traffic_rules.value?.destroy_table();
 };
 
 const reload_table = function () {

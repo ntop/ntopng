@@ -73,7 +73,7 @@
                 <div class="dropdown me-3 d-inline-block">
                     <label class="ms-1 my-auto me-2 filters-label"><b>{{ _i18n('db_search.' + filter_id) }}</b></label>
                     <SelectSearch v-model:selected_option="selected_filters[filter_id]"
-                        :options="filtered_filters[filter_id]" :disabled="second_load" :style="'width: 50%;'"
+                        :options="filtered_filters[filter_id]" :disabled="second_load"
                         theme="bootstrap-5" dropdown_size="small"
                         @select_option="select_filter(selected_filters[filter_id], filter_id)">
                     </SelectSearch>

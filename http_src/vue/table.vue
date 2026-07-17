@@ -306,7 +306,7 @@ async function load_table() {
     await set_columns_wrap();       // Prepare column definitions
     await set_rows();               // Fetch initial rows
     set_columns_resizable();        // Initialize resizable columns
-    dropdownRef.value.load_menu();     // Initialize dropdown menu
+    dropdownRef.value?.load_menu();     // Initialize dropdown menu
     set_dropdown_listener();
     emit("loaded");                 // Emit loaded event
 }

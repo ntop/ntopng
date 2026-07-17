@@ -552,6 +552,19 @@
     </div>
   </Transition>
 
+  <!-- SPA outlet: renders the current route's page component when the URL
+       matches a migrated route (see router.js). No op otherwise: the legacy
+       per-page Vue app (mounted by vue_page.template) renders normally. -->
+  <Teleport v-if="spaOutletEl" to="#n-spa-outlet">
+    <router-view v-slot="{ route }">
+      <template v-if="!isLegacyOnlyRoute(route)">
+        <PageNavbar v-if="resolveRouteNavbar(route)" v-bind="resolveRouteNavbar(route)" :key="'navbar-' + route.fullPath" />
+        <component :is="resolveExtraComponent(route)" :context="routeContext" :key="'extra-' + route.fullPath" />
+        <component :is="resolveRouteComponent(route)" :context="routeContext" :key="route.fullPath" />
+      </template>
+    </router-view>
+  </Teleport>
+
   <!-- Footer: teleported into #n-container so it flows at the bottom of each page -->
   <Teleport to="#n-container">
     <footer id="n-footer" class="sb-footer d-flex justify-content-between">
@@ -685,13 +698,130 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as SearchBox } from "./components/search-box.vue";
+import { default as PageNavbar } from "./components/page-navbar.vue";
 import NtopUtils from "../utilities/ntop-utils";
+import { spaRoutesByPath } from "./router.js";
 const d3 = d3v7;
 
 const props = defineProps({ context: Object });
 const ctx   = computed(() => props.context || {});
+
+// SPA router
+const spaRouter    = useRouter();
+const spaRoute     = useRoute();
+const spaOutletEl  = ref(null);
+
+const routeContext = computed(() => {
+  // isCheckEnabledFlag is either a static menu.lua field name, or (for
+  // routes whose component itself varies by query param, e.g.
+  // network_configuration.lua) a function(query) -> field name | null.
+  const flagSpec = spaRoute.meta?.isCheckEnabledFlag;
+  const flagName = typeof flagSpec === "function" ? flagSpec(spaRoute.query) : flagSpec;
+
+  return {
+    ...ctx.value,
+    has_clickhouse: menu.value.has_clickhouse,
+    historical_available: menu.value.has_clickhouse,
+    is_check_enabled: flagName ? (menu.value[flagName] ?? false) : true,
+    device_protocols_policing_enabled: menu.value.device_protocols_policing_enabled,
+    areTsEnabled: menu.value.are_ts_enabled,
+    // edit_configset.lua's ?subdir= tab, into props.context.check_subdir
+    check_subdir: spaRoute.query?.subdir || "flow",
+    page_csrf: ctx.value.csrf,
+    has_protos_file: menu.value.has_protos_file,
+    // edit_categories.lua's ?page= tab, defaulting to "protocols" the way
+    // the server-rendered version always did.
+    page_name: spaRoute.query?.page || "protocols",
+    isnEdge: menu.value.is_nedge,
+    isPro: menu.value.is_pro,
+    timeseriesEnabled: menu.value.are_host_pools_ts_enabled,
+    // page-as-stats.vue
+    showSankey: menu.value.show_sankey,
+    isEnterprise: menu.value.is_enterprise,
+    isClickhouseEnabled: menu.value.has_clickhouse,
+    ASNModeEnabled: menu.value.is_asn_mode_enabled,
+    // as_stats.lua's showTimeseries and country_stats.lua's show_historical
+    // both mean "is this entity's timeseries enabled"
+    showTimeseries: spaRoute.meta?.entry === "countries"
+      ? menu.value.are_country_ts_enabled
+      : menu.value.are_as_ts_enabled,
+    show_historical: menu.value.are_country_ts_enabled,
+    // page-sites.vue
+    areNetworksTsEnabled: menu.value.are_ts_enabled,
+    isEnterpriseXL: menu.value.is_enterprise_xl,
+    hasClickHouseSupport: menu.value.has_clickhouse,
+    ...(() => {
+      const staticContext = spaRoute.meta?.staticContext;
+      if (!staticContext) return {};
+      const { _prefixFields, ...rest } = staticContext;
+      for (const field of _prefixFields || []) {
+        if (rest[field] != null) rest[field] = pfx.value + rest[field];
+      }
+      return rest;
+    })(),
+  };
+});
+
+function resolveRouteComponent(route) {
+  const byQuery = route?.meta?.componentByQuery;
+  if (byQuery) {
+    const value = route.query?.[byQuery.param];
+    const name = byQuery.map[value] || byQuery.map.__default__;
+    return name && window.ntopVue ? window.ntopVue[name] : null;
+  }
+  const name = route?.meta?.componentName;
+  return name && window.ntopVue ? window.ntopVue[name] : null;
+}
+
+function resolveExtraComponent(route) {
+  const byQuery = route?.meta?.extraComponentByQuery;
+  if (!byQuery) return null;
+  const value = route.query?.[byQuery.param] ?? "__default__";
+  const name = byQuery.map[value];
+  return name && window.ntopVue ? window.ntopVue[name] : null;
+}
+
+function resolveRouteNavbar(route) {
+  const navbar = route?.meta?.navbar;
+  if (!navbar) return null;
+  return typeof navbar === "function" ? navbar(menu.value) : navbar;
+}
+
+// A navbar tab can mark itself `legacyOnly: true` when its query value isn't
+// actually handled by this route's component/componentByQuery (e.g.
+// blacklists.lua's "charts" tab, drawn server-side by graph_utils.drawNewGraphs
+// into the plain page body). On those query values the SPA outlet must render
+// nothing, otherwise it stacks its own (wrong) component above the
+// server-rendered legacy content -- see router.js's tabs doc comment.
+function isLegacyOnlyRoute(route) {
+  const navbar = resolveRouteNavbar(route);
+  if (!navbar) return false;
+  const queryParam = navbar.queryParam || "page";
+  const current = route.query?.[queryParam] || "overview";
+  const tab = (navbar.tabs || []).find((t) => t.pageName === current);
+  return !!tab?.legacyOnly;
+}
+
+// Any anchor whose pathname matches a registered SPA route is intercepted:
+// client-side navigation via the router instead of a full page reload.
+function onSpaLinkClick(e) {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const anchor = e.target.closest("a[href]");
+  if (!anchor || anchor.target === "_blank") return;
+
+  let url;
+  try { url = new URL(anchor.href, window.location.origin); } catch (_) { return; }
+  if (url.origin !== window.location.origin) return;
+
+  const routeEntry = spaRoutesByPath[url.pathname];
+  if (!routeEntry) return;
+
+  e.preventDefault();
+  spaRouter.push({ path: url.pathname, query: Object.fromEntries(url.searchParams) });
+}
 
 const pfx = computed(() =>
   ctx.value.http_prefix || (typeof http_prefix !== "undefined" ? http_prefix : "")
@@ -775,6 +905,8 @@ const ifaceMenuStyle = computed(() => {
 const currentPanelSection = computed(() => lockedSection.value || hoveredSection.value);
 
 const activeSection = computed(() => {
+  if (spaRoute.matched.length > 0 && spaRoute.meta?.section) return spaRoute.meta.section;
+  
   if (ctx.value.active_section) return ctx.value.active_section;
   const pathname = new URL(locationHref.value).pathname;
   for (const section of (menu.value.sections || [])) {
@@ -790,6 +922,7 @@ const activeSection = computed(() => {
 });
 
 const activeEntry = computed(() => {
+  if (spaRoute.matched.length > 0 && spaRoute.meta?.entry) return spaRoute.meta.entry;
   if (ctx.value.active_entry) return ctx.value.active_entry;
   const pathname = new URL(locationHref.value).pathname;
   for (const section of (menu.value.sections || [])) {
@@ -1722,7 +1855,59 @@ onMounted(async () => {
   document.addEventListener("click", handleOutsideClick);
   document.addEventListener("click", onExternalLinkClick);
   document.addEventListener("click", onToastDismiss);
+  document.addEventListener("click", onSpaLinkClick);
   document.addEventListener("ajaxError", onAjaxError);
+
+  // SPA outlet: present on every page (printed by inc/menu.lua). Once found,
+  // the router-view Teleport activates. Pages registered in spa_routes.lua
+  spaOutletEl.value = document.getElementById("n-spa-outlet");
+
+  // NOTE: afterEach fires on every navigation resolution, including the
+  // router's initial silent resolution of the boot URL even when it matches
+  // no route (to.matched.length === 0). The legacy app cleanup below must
+  // only run the first time we actually land on a *matched* SPA route
+  let legacyBootAppCleaned = false;
+  spaRouter.afterEach((to) => {
+    locationHref.value = window.location.origin + to.fullPath;
+
+    // document.title is only ever set server side (in the <title> tag of
+    // whichever page the document was originally loaded on) -- it never
+    // updates on its own since the SPA router never reloads the document.
+    // Mirror page_utils.print_header's "<product> - <title>" format using
+    // the matched route's translated entry label from menu.lua's response.
+    if (to.matched.length > 0) {
+      const entryKey = to.meta?.entry;
+      let label = null;
+      for (const section of (menu.value.sections || [])) {
+        const found = (section.entries || []).find((e) => e.key === entryKey);
+        if (found) { label = found.label; break; }
+      }
+      if (label) {
+        document.title = menu.value.product ? `${menu.value.product} - ${label}` : label;
+      }
+    }
+
+    if (!legacyBootAppCleaned && to.matched.length > 0) {
+      legacyBootAppCleaned = true;
+      const instances = window.vueAppInstances || {};
+      for (const id of Object.keys(instances)) {
+        if (id === "AppShell") continue;
+        const el = document.getElementById(id);
+        if (el && document.getElementById("n-container")?.contains(el)) {
+          instances[id]?.unmount();
+          instances[id] = null;
+          if (window.vueApps) window.vueApps[id] = null;
+          el.remove();
+        }
+      }
+
+      // The boot page's navbar is plain
+      // server-rendered HTML, not part of any Vue app's DOM -- it's never
+      // touched by the Vue app cleanup above, so it has to be removed
+      // separately or it lingers at the bottom of #n-container forever
+      document.getElementById("n-legacy-page-navbar")?.remove();
+    }
+  });
   if (window.$) {
     $(document).ajaxError((err, response) => {
       if (response?.status === 403 && response?.responseText === "Login Required") {
@@ -1763,6 +1948,7 @@ onBeforeUnmount(() => {
   document.removeEventListener("click", handleOutsideClick);
   document.removeEventListener("click", onExternalLinkClick);
   document.removeEventListener("click", onToastDismiss);
+  document.removeEventListener("click", onSpaLinkClick);
   document.removeEventListener("ajaxError", onAjaxError);
   clearTimeout(railLeaveTimer);
   clearTimeout(panelLeaveTimer);

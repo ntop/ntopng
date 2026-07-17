@@ -125,12 +125,6 @@
             :value="opt.value"
           >{{ opt.label }}</option>
         </select>
-        <a
-          v-if="entry.when_value_download && effectiveValue === entry.when_value_download.value"
-          :href="entry.when_value_download.url"
-          :download="entry.when_value_download.filename || true"
-          class="btn btn-outline-secondary btn-sm mt-2"
-        ><i class="fas fa-download me-1"></i>{{ entry.when_value_download.label }}</a>
       </template>
 
       <!-- Button group (multi-option selector / resolution) -->

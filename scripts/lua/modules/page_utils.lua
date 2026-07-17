@@ -201,6 +201,11 @@ page_utils.menu_entries = {
         section = "dashboard",
         help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/reports.html"
     },
+    sites_dashboard = {
+        key = "sites_dashboard",
+        i18n_title = "sites_dashboard.sites",
+        section = "dashboard"
+    },
     traffic_analysis = {
         key = "traffic_analysis",
         i18n_title = "db_explorer.traffic_analysis",
@@ -448,7 +453,7 @@ page_utils.menu_entries = {
     infrastructure_dashboard = {
         key = "infrastructure_dashboard",
         i18n_title = "infrastructure_dashboard.infrastructure_dashboard",
-        section = "pollers"
+        section = "monitoring"
     },
 
     -- Status (Health)
@@ -725,15 +730,15 @@ page_utils.menu_entries = {
 
     -- Notifications
     endpoint_notifications = {
-        key = "endpoint_notifications",
+        key = "notifications",
         i18n_title = "endpoint_notifications.endpoint_list",
-        section = "notifications",
+        section = "alerts",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
     },
     endpoint_recipients = {
-        key = "endpoint_recipients",
+        key = "notifications",
         i18n_title = "endpoint_notifications.enpoint_recipients_list",
-        section = "notifications",
+        section = "alerts",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
     },
 

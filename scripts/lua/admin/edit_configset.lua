@@ -55,28 +55,5 @@ page_utils.print_header_and_set_active_menu_entry(active_entry)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua"
-local navbar_menu = {}
-for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
-   navbar_menu[#navbar_menu + 1] = {
-      active    = (check_subdir == key),
-      page_name = key,
-      label     = i18n(sub_menu.entry.i18n_title),
-      url       = url .. "?subdir=" .. key,
-   }
-end
-
-page_utils.print_navbar(i18n("internals.checks"), url, navbar_menu)
-
-local context = {
-   check_subdir = check_subdir,
-   page_csrf    = ntop.getRandomCSRFValue(),
-   ifid         = interface.getId(),
-}
-
-template_utils.render("pages/vue_page.template", {
-   vue_page_name = "PageEditConfigset",
-   page_context  = json.encode(context),
-})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -22,11 +22,15 @@
     if (!window.vueApps) {
       window.vueApps = {}
     }
+    if (!window.vueAppInstances) {
+      window.vueAppInstances = {}
+    }
 
     // If an app is already mounted on this container, unmount it first.
     // Vue 3 does not allow two apps to be mounted on the same element.
-    if (window.vueApps[id]) {
-      window.vueApps[id].unmount();
+    if (window.vueAppInstances[id]) {
+      window.vueAppInstances[id].unmount();
+      window.vueAppInstances[id] = null;
       window.vueApps[id] = null;
     }
 
@@ -44,7 +48,16 @@
       window.__installVueErrorHandler(app);
     }
 
+    // AppShell is the only app instance that owns the SPA router: it mounts
+    // once and stays alive across client side navigations. Per page apps are independent instances that only
+    // exist when the page was reached via a full server round-trip, so they
+    // must NOT install the router
+    if (id === "AppShell" && ntopVue.spaRouter) {
+      app.use(ntopVue.spaRouter);
+    }
+
     // Mount the Vue app on the target DOM element identified by id.
+    window.vueAppInstances[id] = app;
     window.vueApps[id] = app.mount(`#${id}`);
 
     // Return the mounted app instance (useful for future interop or cleanup).
@@ -58,11 +71,12 @@
   // they execute after HTML parsing but before DOMContentLoaded. Using native
   // DOMContentLoaded avoids a dependency on $ being available synchronously.
   document.addEventListener('DOMContentLoaded', function () {
+    const _pageId = "{* vue_page_name *}";
     const _ctx = {* page_context *};
     /* Seed the date_format cache from server context so JS never needs date_format.lua */
     if (_ctx.date_format && ntopVue.ntopng_utility) {
       ntopVue.ntopng_utility.set_cached_date_format(_ctx.date_format);
     }
-    start_vue("{* vue_page_name *}", ntopVue["{* vue_page_name *}"], _ctx);
+    start_vue(_pageId, ntopVue[_pageId], _ctx);
   });
 </script>

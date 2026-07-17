@@ -8753,6 +8753,7 @@ local lang = {
       ["pro_enterprise_tooltip"] = "Pro/Enterprise Feature. Buy at shop.ntop.org",
       ["at_least_one_auth_required"] = "At least one authentication method must remain enabled.",
       ["missing_url"] = "URL is missing",
+      ["restart_needed_title"] = "Restart Required",
     },
   },
   ["processes_stats"] = {

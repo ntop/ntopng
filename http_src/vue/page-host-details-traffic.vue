@@ -48,7 +48,7 @@ const props = defineProps({
 
 
 const destroy = () => {
-  traffic_table.value.destroy_table();
+  traffic_table.value?.destroy_table();
 }
 
 const reload_table = () => {

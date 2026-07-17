@@ -90,6 +90,7 @@
     "vis-network": "^9.1.6",
     "vite": "^6.4.3",
     "vue": "^3.5.35",
+    "vue-router": "^4.6.4",
     "world-atlas": "^2.0.2"
   }
 }

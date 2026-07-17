@@ -19,8 +19,8 @@
           <ModalAddCheckExclusion
             ref="modal_add_check"
             :alert_exclusions_page="active_tab"
-            :host_alert_types="props.context.host_alert_types"
-            :flow_alert_types="props.context.flow_alert_types"
+            :host_alert_types="host_alert_types"
+            :flow_alert_types="flow_alert_types"
             @add="add_exclusion"
           />
 
@@ -100,6 +100,24 @@ const props = defineProps({
 });
 
 const _i18n = (key) => i18n(key);
+
+// flow_alert_types/host_alert_types used to be computed server-side and
+// threaded through props.context on every render; now fetched once here so
+// the SPA-routed version of this page (see http_src/vue/router.js) doesn't
+// need them pushed through the router's shared boot context, which is
+// meant for cheap/generic fields, not per-page enum data.
+const flow_alert_types = ref([]);
+const host_alert_types = ref([]);
+
+async function load_alert_exclusion_types() {
+  const rsp = await ntopng_utility.http_request(
+    `${http_prefix}/lua/rest/v2/get/ntopng/alert_exclusion_types.lua`
+  );
+  if (rsp) {
+    flow_alert_types.value = rsp.flow_alert_types || [];
+    host_alert_types.value = rsp.host_alert_types || [];
+  }
+}
 
 // navbar tabs selector to choose which table tab
 const tabs = [
@@ -276,5 +294,6 @@ onMounted(() => {
   if (subdir_tab && TABLE_CONFIG_MAP[subdir_tab]) {
     switch_tab(subdir_tab);
   }
+  load_alert_exclusion_types();
 });
 </script>
