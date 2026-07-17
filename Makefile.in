@@ -58,6 +58,7 @@ endif
 
 ######
 #LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
+HAS_LIBRRDTOOL=0
 #HAS_LIBRRDTOOL=$(shell $(PKG_CONFIG) --atleast-version=1.4.8 librrd && echo 0)
 #ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_INC = $(shell $(PKG_CONFIG) --cflags librrd)
