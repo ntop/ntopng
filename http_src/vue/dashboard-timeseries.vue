@@ -258,7 +258,12 @@ function mergeResults(results, queryLabels) {
     /* All queries share the same schema → same unit; take from first result. */
     const measure_unit = nonEmpty[0].measure_unit || "number";
 
-    for (const qid of Object.keys(results)) {
+    // An ordering is needed, otherwise the array will with random order
+    const orderedKeys = Object.keys(results).sort(
+        (a, b) => a.match(/\d+$/)[0] - b.match(/\d+$/)[0] // 0 -> 9
+    );
+
+    for (const qid of orderedKeys) {
         const entry = results[qid];
         if (!entry?.series?.length) continue;
 
