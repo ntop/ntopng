@@ -210,7 +210,6 @@ import { default as FlowChatbotSidebar } from "./flow-chatbot-sidebar.vue";
 
 // app shell
 import { default as AppShell }   from "./app-shell.vue";
-import { default as AppFooter }  from "./app-footer.vue";
 
 let ntopVue = {
     Chatbot: Chatbot,
@@ -219,8 +218,7 @@ let ntopVue = {
 
     // app shell
     AppShell:  AppShell,
-    AppFooter: AppFooter,
-    
+
     // graphs
     MultiPieChart: MultiPieChart,
     PieChart: PieChart,
