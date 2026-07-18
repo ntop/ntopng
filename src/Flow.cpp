@@ -10270,7 +10270,8 @@ void Flow::setnDPIFingerprint(char* fp) {
 
 /* *************************************** */
 
-void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip, IpAddress* next_hop,
+void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
+			   IpAddress* next_hop,
                            u_int32_t in_index, u_int32_t out_index,
                            FlowSource source, bool src2dst_direction) {
   std::vector<ExporterFlowInfo>::iterator it;

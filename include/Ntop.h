@@ -43,6 +43,27 @@ struct InterfaceKeyCompare {
   }
 };
 
+struct ndpi_in6_addr_hash {
+  size_t operator()(const struct ndpi_in6_addr &a) const noexcept {
+    /* FNV-1a over the 16 raw bytes */
+    uint64_t h = 14695981039346656037ULL;
+    const uint8_t *p = a.u6_addr.u6_addr8;
+    for (int i = 0; i < 16; i++) {
+      h ^= p[i];
+      h *= 1099511628211ULL;
+    }
+    return static_cast<size_t>(h);
+  }
+};
+
+struct ndpi_in6_addr_eq {
+  bool operator()(const struct ndpi_in6_addr &a,
+		  const struct ndpi_in6_addr &b) const noexcept {
+    return memcmp(&a, &b, sizeof(struct ndpi_in6_addr)) == 0;
+  }
+};
+
+
 /** @class Ntop
  *  @brief Main class of ntopng.
  *
@@ -135,10 +156,13 @@ class Ntop {
   std::map<u_int32_t, u_int32_t> flow_exporters_count;
   std::map<std::pair<u_int32_t, u_int32_t>, u_int32_t> flow_interfaces_count;
 #ifdef NTOPNG_PRO
+  std::unordered_map<struct ndpi_in6_addr /* interface IP */, struct ndpi_in6_addr /* exporter IP */,
+		     ndpi_in6_addr_hash, ndpi_in6_addr_eq> snmp_ip_addr_map;
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
 #endif
+  
 #ifdef HAVE_NEDGE
   std::vector<PacketForwarder*> multicastForwarders;
 #endif
@@ -987,6 +1011,12 @@ class Ntop {
   void dumpLuaCache(lua_State* vm);
 
   bool startPollingBGPPrefixChanges(char *url);
+  struct ndpi_in6_addr findExporterIPMgmtAddress(struct ndpi_in6_addr host_ip);
+  void mapHostIPtoExporterIPMgmtAddress(struct ndpi_in6_addr snmp_device_ip, struct ndpi_in6_addr exporter_host_ip) {
+#ifdef NTOPNG_PRO
+    snmp_ip_addr_map[snmp_device_ip] = exporter_host_ip;
+#endif
+  }
 };
 
 extern Ntop* ntop;
@@ -996,3 +1026,4 @@ extern Ntop* ntop;
 #endif
 
 #endif /* _NTOP_CLASS_H_ */
+

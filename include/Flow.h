@@ -70,7 +70,8 @@ typedef struct {
 } FlowUDP;
 
 typedef struct {
-  struct ndpi_in6_addr exporter_ip; /* IPv4 stored as IPv4-mapped IPv6 */
+  struct ndpi_in6_addr exporter_ip; /* IPv4 stored as IPv4-mapped IPv6 (original IP) */
+  struct ndpi_in6_addr exporter_mgmt_ip; /* IPv4 stored as IPv4-mapped IPv6 (after SNMP mapping) */
   IpAddress next_hop;
   u_int32_t in_index, out_index;
   FlowSource source; /* sFlow / NetFlow */

@@ -86,6 +86,12 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
   if (!flow_devices_stats) return false;
 #endif
 
+#if 0
+  /* Let's map exporter IPs */
+  if(!Utils::isNullAddress(&zflow->exporter_device_ip))
+    zflow->mapped_exporter_device_ip = ntop->findExporterIPMgmtAddress(zflow->exporter_device_ip);  
+#endif
+  
   now = time(NULL);
   now_tv.tv_sec = now;
 
@@ -290,7 +296,8 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       if (zflow->inIndex != 0) flow->setFlowDeviceInIndex(zflow->inIndex);
       if (zflow->outIndex != 0) flow->setFlowDeviceOutIndex(zflow->outIndex);
 
-      flow->addExporterInfo(&zflow->exporter_device_ip, zflow->getNextHop(),
+      flow->addExporterInfo(&zflow->exporter_device_ip,
+			    zflow->getNextHop(),
                             zflow->inIndex, zflow->outIndex,
                             zflow->getFlowSource(), src2dst_direction);
 

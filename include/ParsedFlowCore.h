@@ -38,7 +38,8 @@ class ParsedFlowCore {
     IPv4 (low 4 bytes - u6_addr.u6_addr32[3])
     stored as IPv4-mapped IPv6
   */  
-  struct ndpi_in6_addr exporter_device_ip; 
+  struct ndpi_in6_addr exporter_device_ip;
+  struct ndpi_in6_addr mapped_exporter_device_ip;  /* After SNMP mapping */
   
   struct ndpi_in6_addr nprobe_ip;
   u_int32_t unique_source_id; /* identifies nProbe + exporter */

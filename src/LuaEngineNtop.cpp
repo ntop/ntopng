@@ -7469,6 +7469,34 @@ static int ntop_snmp_inc_num_snmp_polled_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Sets a mapping between an exporter IP and its management IP.  Lua: ntop.snmp_map_ip_to_exporter_ip_mgmt_addr(ip, mgmg_ip) → nil */
+static int ntop_snmp_map_ip_to_exporter_ip_mgmt_addr(lua_State* vm) {
+  struct ndpi_in6_addr addr, mgmt_addr;
+  
+  if (lua_type(vm, 1) == LUA_TSTRING) {
+    const char *a = (const char*)lua_tostring(vm, 1);
+
+    if(!Utils::parseIPv4v6Address(a, &addr))
+      return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  } else
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  if (lua_type(vm, 2) == LUA_TSTRING) {
+    const char *a = (const char*)lua_tostring(vm, 2);
+
+    if(!Utils::parseIPv4v6Address(a, &mgmt_addr))
+      return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  } else
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  ntop->mapHostIPtoExporterIPMgmtAddress(addr, mgmt_addr);
+
+  lua_pushnil(vm);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Returns statistics about the packet drop pool (packets dropped vs configured limit).  Lua: ntop.getDropPoolInfo() → table */
 static int ntop_get_drop_pool_info(lua_State* vm) {
   lua_newtable(vm);
@@ -9221,6 +9249,7 @@ static luaL_Reg _ntop_reg[] = {
 
     /* SNMP Misc */
     {"snmp_inc_num_polled_hosts", ntop_snmp_inc_num_snmp_polled_hosts},
+    {"snmp_map_ip_to_exporter_ip_mgmt_addr", ntop_snmp_map_ip_to_exporter_ip_mgmt_addr},
     
     /* Runtime */
     {"hasGeoIP", ntop_has_geoip},
