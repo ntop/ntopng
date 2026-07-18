@@ -1,6 +1,11 @@
 --
 -- (C) 2014-26 - ntop.org
 --
+
+--
+-- This file specified what timeseries are shown under historical of a network interface
+--
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
