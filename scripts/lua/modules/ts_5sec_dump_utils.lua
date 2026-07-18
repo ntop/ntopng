@@ -7,13 +7,23 @@ local ts_dump = {}
 
 -- ########################################################
 
-function ts_dump.update_rrd_queue_length(ifid, when)
-    if ts_utils.getDriverName() == "rrd" then
-        ts_utils.append("iface:ts_queue_length", {
-            ifid = ifid,
-            num_ts = interface.rrd_queue_length(ifid) or 0
-        }, when)
-    end
+function ts_dump.update_ts_queue_stats(ifid, when)
+   local qlen, qdrops
+   
+   if ts_utils.getDriverName() == "rrd" then
+      qlen   = interface.rrd_queue_length() or 0
+      qdrops = interface.ts_queue_drops()
+   else
+      if ts_utils.getDriverName() == "clickhousets" then
+	 qlen   = interface.chTsQueueLen() or 0
+	 qdrops = interface.ts_queue_drops()
+      else
+	 return -- any other timeseries driver
+      end      
+   end
+
+   ts_utils.append("iface:ts_queue_length", { ifid = ifid, num_ts = qlen },   when)
+   ts_utils.append("iface:ts_queue_drops",  { ifid = ifid, num_ts = qdrops }, when)   
 end
 
 -- ########################################################

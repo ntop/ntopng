@@ -33,7 +33,8 @@ class TimeseriesExporter {
 
  protected:
   NetworkInterface* iface;
-
+  u_int32_t qdrops;
+  
   static int escape_spaces(char* buf, int buf_len, const char* unescaped);
 
  public:
@@ -48,6 +49,7 @@ class TimeseriesExporter {
   virtual bool enqueueData(lua_State* vm, bool do_lock = true) = 0;
   virtual char* dequeueData() = 0;
   virtual u_int64_t queueLength() const { return 0; };
+  inline u_int64_t queueDrops() const { return qdrops; };
   virtual void flush() = 0;
 };
 

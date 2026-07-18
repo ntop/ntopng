@@ -45,6 +45,7 @@ bool RRDTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
     return false;
 
   rv = ts_queue->enqueue(data);
+  if(!rv) qdrops++;
 
 #ifdef DEBUG_QUEUE
   if(rv == false)

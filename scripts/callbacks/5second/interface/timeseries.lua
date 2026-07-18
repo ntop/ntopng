@@ -15,4 +15,5 @@ local ts_dump = require "ts_5sec_dump_utils"
 
 require "ts_5sec"
 
-ts_dump.update_rrd_queue_length(interface.getId(), when)
+ts_dump.update_ts_queue_stats(interface.getId(), when)
+

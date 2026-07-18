@@ -26,7 +26,7 @@
 TimeseriesExporter::TimeseriesExporter(NetworkInterface* _if) {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  iface = _if;
+  iface = _if, qdrops = 0;
 }
 
 /* ******************************************************* */

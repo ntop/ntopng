@@ -112,10 +112,12 @@ bool InfluxDBTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
     if (l == exp)
       ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", iface->get_name(),
                                    data);
-    else
+    else {
+      qdrops++;
       ntop->getTrace()->traceEvent(
           TRACE_ERROR, "[%s] Unable to append '%s' [written: %u][expected: %u]",
           iface->get_name(), data, exp, l);
+    }
   }
 
   if (do_lock) m.unlock(__FILE__, __LINE__);

@@ -1231,7 +1231,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   TimeseriesExporter* getInfluxDBTSExporter();
   TimeseriesExporter* getRRDTSExporter();
   TimeseriesExporter* getCHTSExporter();
-
+  TimeseriesExporter* getTSExporter();
+  
   inline uint32_t getMaxSpeed() const { return (ifSpeed); }
   inline bool isLoopback() const { return (is_loopback); }
   inline bool isGwMacConfigured() const {

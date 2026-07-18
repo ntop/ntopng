@@ -31,7 +31,7 @@ local CH_EXPORTED_POINTS_KEY   = CH_TS_KEY_PREFIX .. "exported_points"
 local CH_FAILED_EXPORTS_KEY    = CH_TS_KEY_PREFIX .. "failed_exports"
 
 -- Table and batching settings
-local CH_TS_TABLE_NAME     = "timeseries"
+local CH_TS_TABLE_NAME  = "timeseries"
 local CH_BATCH_SIZE     = 2000    -- maximum rows per INSERT statement
 
 -- ##############################################

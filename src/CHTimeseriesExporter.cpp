@@ -39,9 +39,11 @@ CHTimeseriesExporter::~CHTimeseriesExporter() { delete ts_queue; }
 bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
   char data[LINE_PROTOCOL_MAX_LINE];
 
-  if (line_protocol_write_line(vm, data, sizeof(data), escape_spaces) < 0)
+  if (line_protocol_write_line(vm, data, sizeof(data), escape_spaces) < 0) {
+    qdrops++;
     return false;
-
+  }
+  
   return ts_queue->enqueue(data);
 }
 

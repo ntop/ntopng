@@ -36,6 +36,14 @@ schema:addTag("ifid")
 schema:addMetric("num_ts") -- Number of timeseries currently in the queue
 
 -------------------------------------------------------
+-- Timeseries write queue drops
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("iface:ts_queue_drops", {step = 5, metrics_type = ts_utils.metrics.counter, is_critical_ts = true, aggregation_function = ts_utils.aggregation.max})
+schema:addTag("ifid")
+schema:addMetric("num_ts") -- Number of timeseries unable to be stored in the queue
+
+-------------------------------------------------------
 -- FLOW CHECKS SCHEMAS
 -------------------------------------------------------
 

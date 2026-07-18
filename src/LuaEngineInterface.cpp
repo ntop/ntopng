@@ -4904,18 +4904,13 @@ static int ntop_rrd_queue_push(lua_State* vm) {
 
 /* @brief Dequeues a pending RRD update task.  Lua: interface.rrd_dequeue() → table */
 static int ntop_rrd_queue_pop(lua_State* vm) {
-  int ifid;
   NetworkInterface* iface;
   TimeseriesExporter* ts_exporter;
   char* ts_point;
 
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  iface = getCurrentInterface(vm);
 
-  ifid = lua_tointeger(vm, 1);
-
-  if (!(iface = ntop->getInterfaceById(ifid)) ||
-      !(ts_exporter = iface->getRRDTSExporter()))
+  if ((iface == NULL) || !(ts_exporter = iface->getRRDTSExporter()))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   ts_point = ts_exporter->dequeueData();
@@ -4933,20 +4928,31 @@ static int ntop_rrd_queue_pop(lua_State* vm) {
 
 /* @brief Returns the number of pending items in the RRD update queue.  Lua: interface.rrd_queue_length() → integer */
 static int ntop_rrd_queue_length(lua_State* vm) {
-  int ifid;
   NetworkInterface* iface;
   TimeseriesExporter* ts_exporter;
 
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  iface = ntop->getFirstInterface();
 
-  ifid = lua_tointeger(vm, 1);
-
-  if (!(iface = ntop->getInterfaceById(ifid)) ||
-      !(ts_exporter = iface->getRRDTSExporter()))
+  if((iface == NULL) || ((ts_exporter = iface->getRRDTSExporter()) == NULL))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   lua_pushinteger(vm, ts_exporter->queueLength());
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Returns the number of timeseries queue drops due to lack of room (indepednently of the tiemseries driver).  Lua: interface.ts_queue_drops() → integer */
+static int ntop_ts_queue_drops(lua_State* vm) {
+  NetworkInterface* iface;
+  TimeseriesExporter* ts_exporter;
+
+  if (!(iface = ntop->getFirstInterface()))
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  ts_exporter = iface->getTSExporter();
+  lua_pushinteger(vm, ts_exporter ? ts_exporter->queueDrops() : 0);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -6554,6 +6560,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"rrd_queue_length", ntop_rrd_queue_length},
 
     {"rrd_harvest", ntop_rrd_harvest},
+    {"ts_queue_drops", ntop_ts_queue_drops}, /* All timeseries drivers */
 
     {"getHostPoolsStats", ntop_get_host_pools_interface_stats},
     {"getHostPoolStats", ntop_get_host_pool_interface_stats},

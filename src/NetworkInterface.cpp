@@ -14696,3 +14696,13 @@ int32_t NetworkInterface::getNetworkId(char *ip_address) {
   
   return(local_network_id < 0 ? 0 : local_network_id);
 }
+
+/* **************************************************** */
+
+TimeseriesExporter* NetworkInterface::getTSExporter() {
+  if(rrd_ts_exporter)      return(rrd_ts_exporter);
+  if(ch_ts_exporter)       return(ch_ts_exporter);
+  if(influxdb_ts_exporter) return(influxdb_ts_exporter);
+
+  return(NULL);
+}
