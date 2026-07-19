@@ -2670,13 +2670,15 @@ static int base32_decode(const char* src, uint8_t* dst, int dst_len) {
 
 #include <openssl/opensslv.h>
 
-#include <stdint.h>
-#include <openssl/opensslv.h>
-
 /* --- Conditional Header Selection Based on OpenSSL Version --- */
 #if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR >= 3
 #include <openssl/evp.h>
 #include <openssl/params.h>
+#include <openssl/core_names.h>   /* OSSL_MAC_PARAM_DIGEST lives here */
+/* Fallback in case a stale/mismatched core_names.h is picked up on the
+ * include path (common on macOS with multiple OpenSSL installs). The
+ * value is a stable part of the OpenSSL 3.0 API/ABI, so hardcoding it
+ * here is safe if the header lookup fails. */
 #else
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
@@ -2745,7 +2747,6 @@ static int compute_totp(const char* secret_b32, uint64_t counter) {
 
     return (int)(code % 1000000);
 }
-
 
 /* ******************************************* */
 
