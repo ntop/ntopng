@@ -2662,43 +2662,25 @@ static int base32_decode(const char* src, uint8_t* dst, int dst_len) {
   return written;
 }
 
+/* ********************************************************* */
+
 /* Compute TOTP code for the given secret (Base32) and time counter.
  * Returns a 6-digit code or -1 on error.
  */
 
-#if OLD_CODE
-static int compute_totp(const char* secret_b32, uint64_t counter) {
-  uint8_t secret[64];
-  int secret_len = base32_decode(secret_b32, secret, sizeof(secret));
-  if (secret_len <= 0) return -1;
+#include <openssl/opensslv.h>
 
-  /* Build 8-byte big-endian counter */
-  uint8_t msg[8];
-  for (int i = 7; i >= 0; i--) {
-    msg[i] = counter & 0xFF;
-    counter >>= 8;
-  }
+#include <stdint.h>
+#include <openssl/opensslv.h>
 
-  /* HMAC-SHA1 */
-  unsigned char hmac[20];
-  unsigned int hmac_len = sizeof(hmac);
-  if (!HMAC(EVP_sha1(), secret, secret_len, msg, sizeof(msg), hmac, &hmac_len))
-    return -1;
-
-  /* Dynamic truncation (RFC 4226 §5.3) */
-  int offset = hmac[19] & 0x0F;
-  uint32_t code =
-      ((hmac[offset] & 0x7F) << 24) | ((hmac[offset + 1] & 0xFF) << 16) |
-      ((hmac[offset + 2] & 0xFF) << 8) | ((hmac[offset + 3] & 0xFF));
-
-  return (int)(code % 1000000);
-}
-
+/* --- Conditional Header Selection Based on OpenSSL Version --- */
+#if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR >= 3
+#include <openssl/evp.h>
+#include <openssl/params.h>
 #else
-
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
-#include <openssl/rand.h> 
+#endif
 
 static int compute_totp(const char* secret_b32, uint64_t counter) {
   uint8_t secret[64];
@@ -2712,36 +2694,58 @@ static int compute_totp(const char* secret_b32, uint64_t counter) {
     counter >>= 8;
   }
 
-  /* --- OPENSSL 1.1.x COMPATIBLE HMAC-SHA1 --- */
+  /* --- OPENSSL COMPATIBLE HMAC-SHA1 --- */
   unsigned char hmac[20];
-  unsigned int hmac_len = sizeof(hmac);
   int success = 0;
 
-  // Dynamically allocate the context pointer (Required for OpenSSL 1.1.x)
+#if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR >= 3
+  /* --- OPENSSL 3.x EVP_MAC Architecture --- */
+  size_t hmac_len = sizeof(hmac);
+  EVP_MAC* mac = EVP_MAC_fetch(NULL, "HMAC", NULL);
+  if (mac != NULL) {
+    EVP_MAC_CTX* ctx = EVP_MAC_CTX_new(mac);
+    if (ctx != NULL) {
+      OSSL_PARAM params[2];
+
+      // Corrected parameters configuration
+      params[0] = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, (char *)"SHA1", 0);
+      params[1] = OSSL_PARAM_construct_end();
+
+      if (EVP_MAC_init(ctx, secret, secret_len, params) == 1 &&
+	  EVP_MAC_update(ctx, msg, sizeof(msg)) == 1 &&
+	  EVP_MAC_final(ctx, hmac, &hmac_len, sizeof(hmac)) == 1) {
+	success = 1;
+      }
+      EVP_MAC_CTX_free(ctx);
+    }
+    EVP_MAC_free(mac);
+  }
+  #else
+  /* --- OPENSSL 1.1.x HMAC_CTX Architecture --- */
+  unsigned int hmac_len = sizeof(hmac);
   HMAC_CTX* ctx = HMAC_CTX_new();
   if (ctx != NULL) {
     if (HMAC_Init_ex(ctx, secret, secret_len, EVP_sha1(), NULL) == 1 &&
-        HMAC_Update(ctx, msg, sizeof(msg)) == 1 &&
-        HMAC_Final(ctx, hmac, &hmac_len) == 1) {
+	HMAC_Update(ctx, msg, sizeof(msg)) == 1 &&
+	HMAC_Final(ctx, hmac, &hmac_len) == 1) {
       success = 1;
     }
-    // Safely free the context allocation
     HMAC_CTX_free(ctx);
   }
-
-  if (!success) return -1;
+  #endif
   /* ------------------------------------------- */
 
-  /* Dynamic truncation (RFC 4226 §5.3) */
+  if (!success) return -1;
+
+  /* Dynamic truncation (RFC 4226 B'5.3) */
   int offset = hmac[19] & 0x0F;
-  uint32_t code =
+    uint32_t code =
       ((hmac[offset] & 0x7F) << 24) | ((hmac[offset + 1] & 0xFF) << 16) |
       ((hmac[offset + 2] & 0xFF) << 8) | ((hmac[offset + 3] & 0xFF));
 
-  return (int)(code % 1000000);
+    return (int)(code % 1000000);
 }
 
-#endif
 
 /* ******************************************* */
 
@@ -5887,12 +5891,13 @@ SNMPInterfaceRole Ntop::snmpGetInterfaceRole(struct ndpi_in6_addr *exporter_devi
 /* ******************************************* */
 
 struct ndpi_in6_addr Ntop::findExporterIPMgmtAddress(struct ndpi_in6_addr host_ip) {
-  std::unordered_map<struct ndpi_in6_addr, struct ndpi_in6_addr>::iterator it;
-  struct ndpi_in6_addr empty;
-  
+  struct ndpi_in6_addr empty;  
 #ifdef NTOPNG_PRO
-  it = snmp_ip_addr_map.find(host_ip);
+  std::unordered_map<struct ndpi_in6_addr, struct ndpi_in6_addr,
+		     ndpi_in6_addr_hash, ndpi_in6_addr_eq>::iterator it;
 
+  it = snmp_ip_addr_map.find(host_ip);
+  
   if(it != snmp_ip_addr_map.end())
     return(it->second);
 #endif
