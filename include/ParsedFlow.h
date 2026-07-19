@@ -40,7 +40,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char* external_alert;
   char* l7_json;
   char* ot_info;
-  IpAddress next_hop;
+  struct ndpi_in6_addr next_hop, mapped_next_hop;
   char *smtp_rcp_to, *smtp_mail_from;
   u_int32_t src_ip_addr_pre_nat, dst_ip_addr_pre_nat, src_ip_addr_post_nat,
       dst_ip_addr_post_nat;
@@ -255,7 +255,9 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setPreNATDstPort(u_int16_t v) { dst_port_pre_nat = v; };
   inline void setPostNATSrcPort(u_int16_t v) { src_port_post_nat = v; };
   inline void setPostNATDstPort(u_int16_t v) { dst_port_post_nat = v; };
-  inline void setNextHop(IpAddress* v) { next_hop.set(v); }
+  inline void setNextHop(struct ndpi_in6_addr* v) {
+    memcpy(&next_hop, v, sizeof(struct ndpi_in6_addr));
+  }
   inline void setWLANSSID(const char* str) {
     if (wlan_ssid != NULL) free(wlan_ssid);
     if (str) wlan_ssid = strdup(str); else wlan_ssid = NULL;
@@ -364,7 +366,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
     if (setToNull) sip_call_id = NULL;
     return (r);
   }
-  inline IpAddress* getNextHop() { return (&next_hop); }
+  inline struct ndpi_in6_addr* getNextHop() { return (&next_hop); }
   inline char* getWLANSSID(bool setToNull = false) {
     char* r = wlan_ssid;
     if (setToNull) wlan_ssid = NULL;

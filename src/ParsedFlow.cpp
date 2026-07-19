@@ -36,7 +36,8 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   dns_query = tls_server_name = end_reason = NULL;
   dhcp_client_name = NULL, sip_call_id = NULL;
   ja4c_hash = NULL;
-  next_hop.reset();
+  memset(&next_hop, 0, sizeof(next_hop));
+  memset(&mapped_next_hop, 0, sizeof(mapped_next_hop));
   external_alert = NULL;
   flow_risk_info = NULL;
   ot_info = NULL;

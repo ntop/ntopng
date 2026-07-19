@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
   struct ndpi_in6_addr exporter_ip; /* IPv4 stored as IPv4-mapped IPv6 (original IP) */
   struct ndpi_in6_addr exporter_mgmt_ip; /* IPv4 stored as IPv4-mapped IPv6 (after SNMP mapping) */
-  IpAddress next_hop;
+  struct ndpi_in6_addr next_hop;
   u_int32_t in_index, out_index;
   FlowSource source; /* sFlow / NetFlow */
   bool return_path;
@@ -345,7 +345,7 @@ class Flow : public GenericHashEntry {
 
   struct {
     struct ndpi_in6_addr device_ip; /* IPv4 stored as IPv4-mapped IPv6 */
-    IpAddress next_hop;
+    struct ndpi_in6_addr next_hop;
     u_int32_t in_index, out_index;
     u_int16_t observation_point_id;
   } flow_device;
@@ -1472,10 +1472,12 @@ class Flow : public GenericHashEntry {
     if (idx != 0) flow_device.out_index = idx;
   };
 
-  inline void setFlowDeviceNextHop(IpAddress* nh) {
-    flow_device.next_hop.set(nh);
+  inline void setFlowDeviceNextHop(struct ndpi_in6_addr *nh) {
+    memcpy(&flow_device.next_hop, nh, sizeof(struct ndpi_in6_addr));
   }
-  inline IpAddress* getFlowDeviceNextHop() { return (&flow_device.next_hop); }
+  inline struct ndpi_in6_addr* getFlowDeviceNextHop() {
+    return (&flow_device.next_hop);
+  }
 
   inline void setFlowSiteId(u_int16_t id) { site_id = id; }
   inline u_int16_t getFlowSiteId() { return (site_id); }
@@ -1763,7 +1765,8 @@ class Flow : public GenericHashEntry {
   void setCliService(int service_enum);
   void setSrvService(int service_enum);
   inline void setIGMPType(u_int8_t t) { protos.igmp.igmp_type = t; }
-  void addExporterInfo(struct ndpi_in6_addr *exporter_ip, IpAddress* next_hop,
+  void addExporterInfo(struct ndpi_in6_addr *exporter_ip,
+		       struct ndpi_in6_addr *next_hop,
                        u_int32_t in_index, u_int32_t out_index,
                        FlowSource source, bool src2dst_direction);
 

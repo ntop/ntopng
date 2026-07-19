@@ -8263,7 +8263,9 @@ bool Utils::harvestOldFIles(char *dir_path, const char *extn,
     // Construct the full path safely
     int len = snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name);
     if (len >= sizeof(path)) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Path too long: %s/%s\n", dir_path, entry->d_name);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Path too long: %s/%s\n",
+				   dir_path, entry->d_name);
       continue;
     }
 

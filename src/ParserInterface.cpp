@@ -275,25 +275,9 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     /* Fix interface Id (if zero) */
 
     if (new_flow) {
-      IpAddress *nh = zflow->getNextHop();
-
-      if(!IN6_IS_ADDR_V4MAPPED(
-#ifdef WIN32
-          (const IN6_ADDR *)
-#else
-          (const in6_addr *)
-#endif
-          &zflow->exporter_device_ip)) {
-	/* This is an IPv6 address */
-
-	if(nh->isIPv4() && nh->isEmpty()) {
-	  /* Change 0.0.0.0 -> :: to make them consistent */
-	  nh->setEmptyIPv6();
-	}
-      }
-
-      flow->setFlowDeviceNextHop(nh);
-      if (zflow->inIndex != 0) flow->setFlowDeviceInIndex(zflow->inIndex);
+      flow->setFlowDeviceNextHop(zflow->getNextHop());
+      
+      if (zflow->inIndex != 0)  flow->setFlowDeviceInIndex(zflow->inIndex);
       if (zflow->outIndex != 0) flow->setFlowDeviceOutIndex(zflow->outIndex);
 
       flow->addExporterInfo(&zflow->exporter_device_ip,
@@ -959,66 +943,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
   return (true);
 }
-
-/* **************************************************** */
-
-#if 0
-bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
-  switch (zflow->l4_proto) {
-  case IPPROTO_TCP: {
-    /* zflow->tcp.tcp_flags are, according to the specs, the 'Cumulative of
-       all the TCP flags seen for this flow'. Hence, for bi-directional flows,
-       they are the locigal OR of client and server flags whereas for
-       mono-directional flows they are the logical OR of client-to-server
-       flags. */
-
-    /* A SYN only seen by the client is very likely a scan. Any established
-       TCP connection involves at least an ACK from both parties as this is
-       also part of the initial three-way-handshake. */
-    if ((zflow->tcp.client_tcp_flags & TCP_SCAN_MASK) == TH_SYN ||
-	(zflow->tcp.tcp_flags & TCP_SCAN_MASK) == TH_SYN)
-      return true;
-
-    /* A client SYN+RST can be found when a scan finds the destination port
-       OPEN. For example, using nmap, a scan which finds destination port 22
-       open involves the following 3 packets:
-       1. client sends SYN to server port 22
-       2. server responds with SYN+ACK as its port 22 is open and it is
-       willing to establish the connection
-       3. client immediately closes the connection with RST
-
-       See: https://nmap.org/book/synscan.html */
-    if ((zflow->tcp.client_tcp_flags & TCP_SCAN_MASK) == (TH_SYN | TH_RST) ||
-	(zflow->tcp.tcp_flags & TCP_SCAN_MASK) == (TH_SYN | TH_RST))
-      return true;
-
-    /* A server RST+ACK can be found when a scan finds the destination port
-       CLOSED. For example, using nmap, a scan which finds destination port 22
-       closed involves the following 2 packets:
-       1. client sends SYN to server port 22
-       2. server responds with SYN+RST because either its port is closed or is
-       not willing to establish the connection */
-    if ((zflow->tcp.server_tcp_flags & TCP_SCAN_MASK) == (TH_RST | TH_ACK) ||
-	(zflow->tcp.tcp_flags & TCP_SCAN_MASK) == (TH_RST | TH_ACK))
-      return true;
-
-    /* When only a RST is seen from the server, it means no data has been
-       exchanged and the server is not willing to communicate with the client
-       which is very likely a scanner */
-    if ((zflow->tcp.server_tcp_flags & TCP_SCAN_MASK) == TH_RST ||
-	(zflow->tcp.tcp_flags & TCP_SCAN_MASK) == TH_RST)
-      return true;
-  } break;
-  case IPPROTO_UDP: {
-    if (zflow->in_pkts + zflow->out_pkts <= 1) return true;
-  } break;
-  default:
-    break;
-  }
-
-  return false;
-}
-#endif
 
 /* **************************************************** */
 

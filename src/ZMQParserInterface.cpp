@@ -1102,13 +1102,13 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow* const flow,
     break;
   case IPV4_NEXT_HOP:
   case IPV6_NEXT_HOP:
-    if (flow->getNextHop()->isEmpty()) {
-      IpAddress a;
+    if (Utils::isNullAddress(flow->getNextHop())) {
+	struct ndpi_in6_addr a;
 
       if (value->string)
-	a.set((char*)value->string);
-      else
-	a.set(ntohl(value->int_num));
+	Utils::parseIPv4v6Address((char*)value->string, &a);
+      else /* IPv4 */
+	Utils::setIPv4Address(&a, ntohl(value->int_num));
 
       flow->setNextHop(&a);
     }

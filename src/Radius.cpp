@@ -32,7 +32,8 @@ void Radius::logRadius(const char* event_type, const char* format, ...) {
   char log_path[MAX_PATH];
   FILE* log_fd;
 
-  snprintf(log_path, sizeof(log_path), "%s/%s", ntop->get_working_dir(),
+  snprintf(log_path, sizeof(log_path), "%s/%s",
+	   ntop->get_working_dir(),
            CONST_RADIUS_LOG_FILE);
 
   /* Open/close file for each log entry so logrotate can operate */
