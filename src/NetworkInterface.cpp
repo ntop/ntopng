@@ -5387,7 +5387,7 @@ struct flowHostRetriever {
   u_int16_t poolFilter;
   u_int8_t devtypeFilter;
   u_int8_t locationFilter;
-  int32_t iface_index;
+  u_int32_t iface_index;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries, currentSize;
@@ -5555,7 +5555,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   char* pidname_filter;
   char* wlan_ssid_filter;
   struct ndpi_in6_addr deviceIP;
-  int32_t iface_index = -1;
+  u_int32_t iface_index = (u_int32_t)-1;
   u_int32_t inIndex, outIndex, ifaceIndex;
   u_int8_t icmp_type, icmp_code, dscp_filter;
 #ifdef NTOPNG_PRO
@@ -5817,7 +5817,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
     }
 #endif
 #endif
-    if (retriever->pag && retriever->pag->ifaceIndexFilter(&iface_index)) {
+    if (retriever->pag && retriever->pag->ifaceIndexFilter(&iface_index) && iface_index != (u_int32_t)-1) {
       if (f->getInterface() && f->getInterface()->get_id() != iface_index) {
         return (false);
       }
@@ -6293,6 +6293,9 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
        !h->isUnidirectionalTraffic()) ||
       (r->traffic_type == traffic_type_bidirectional &&
        !h->isBidirectionalTraffic()) ||
+      ((r->iface_index != (u_int32_t)-1) && 
+       (r->iface_index != h->getLastDeviceInInterface() && 
+        r->iface_index != h->getLastDeviceOutInterface())) ||
       ((!Utils::isNullAddress(&r->device_ip)) && h->getLastDeviceIp() &&
        (memcmp(&r->device_ip, h->getLastDeviceIp(), sizeof(struct ndpi_in6_addr)))) ||
       (r->dhcpHostsOnly && (!h->isDHCPHost())) ||
@@ -6965,7 +6968,7 @@ int NetworkInterface::sortFlows(u_int32_t* begin_slot, bool walk_all,
   retriever->client = client;
   retriever->flow_info = flow_info;
   retriever->ndpi_proto = -1;
-  retriever->iface_index = -1;
+  retriever->iface_index = (u_int32_t)-1;
   retriever->actNumEntries = 0;
   retriever->maxNumEntries = getFlowsHashSize();
   retriever->allowed_nets = allowed_nets;
@@ -7439,7 +7442,7 @@ int NetworkInterface::sortHosts(
     bool blacklisted_hosts, bool anomalousOnly, bool dhcpOnly,
     const AddressTree* const cidr_filter, u_int8_t ipver_filter,
     int proto_filter, TrafficType traffic_type_filter,
-    struct ndpi_in6_addr *device_ip,
+    struct ndpi_in6_addr *device_ip, u_int32_t device_interface,
     bool alertedHost, u_int8_t mac_location_filter, char* sortColumn,
     char* map_search, u_int64_t label_filter) {
   u_int8_t macAddr[6];
@@ -7472,6 +7475,7 @@ int NetworkInterface::sortHosts(
   retriever->alerted = alertedHost,
   retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE,
   retriever->map_search = map_search;
+  retriever->iface_index = device_interface;
 
   if(device_ip != NULL)
     memcpy(&retriever->device_ip, device_ip, sizeof(struct ndpi_in6_addr));
@@ -7852,7 +7856,7 @@ int NetworkInterface::getActiveHostsList(
     int32_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
     bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
     TrafficType traffic_type_filter,
-    struct ndpi_in6_addr *device_ip, bool tsLua,
+    struct ndpi_in6_addr *device_ip, int32_t device_interface, bool tsLua,
     bool anomalousOnly, bool dhcpOnly, const AddressTree* const cidr_filter,
     bool alertedHost, char* sortColumn, u_int32_t maxHits, u_int32_t toSkip,
     bool a2zSortOrder, bool useArrayFormat, bool getCheckpointOnly,
@@ -7883,7 +7887,7 @@ int NetworkInterface::getActiveHostsList(
                 vlan_id, osFilter, asnFilter, networkFilter, pool_filter,
                 filtered_hosts, blacklisted_hosts, anomalousOnly, dhcpOnly,
                 cidr_filter, ipver_filter, proto_filter, traffic_type_filter,
-                device_ip, alertedHost, mac_location_filter, sortColumn,
+                device_ip, device_interface, alertedHost, mac_location_filter, sortColumn,
                 map_search, label_filter) < 0) {
     return (-1);
   }

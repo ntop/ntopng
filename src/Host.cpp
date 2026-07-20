@@ -293,6 +293,8 @@ void Host::initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlanId,
     more_then_one_device = 0;
   memset(&device_ip, 0, sizeof(device_ip));
 
+  device_in_idx = device_out_idx = 0;
+
   is_rx_only = false;
 
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
@@ -974,9 +976,16 @@ void Host::lua(lua_State* vm, AddressTree* ptree, bool host_details,
         vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
         getNumContactsFromPeersAsServerTCPUDPNoTX());
 
-    if (!Utils::isNullAddress(&device_ip))
-      lua_push_str_table_entry(vm, "device_ip",
-                               Utils::intoaV6(device_ip, buf, sizeof(buf)));
+    if (!Utils::isNullAddress(&device_ip)) {
+        lua_push_str_table_entry(vm, "device_ip",
+            Utils::intoaV6(device_ip, buf, sizeof(buf)));
+        lua_push_int32_table_entry(
+            vm, "device_in_idx",
+            getLastDeviceInInterface());
+        lua_push_int32_table_entry(
+            vm, "device_out_idx",
+            getLastDeviceOutInterface());
+    }
 
     if (blacklist_name != NULL)
       lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);

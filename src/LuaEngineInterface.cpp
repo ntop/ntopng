@@ -1829,7 +1829,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm,
           get_allowed_nets(vm), show_details, location, country, mac_filter,
           vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
           filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, 0 /* probe ip */,
+          traffic_type_filter, 0 /* probe ip */, -1 /* device interface */, 
           tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
           NULL /* cidr filter */, alertedHost, sortColumn, maxHits, toSkip,
           a2zSortOrder, false, get_checkpoint_only) < 0)
@@ -1870,6 +1870,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   struct ndpi_in6_addr device_ip;
   u_int32_t begin_slot = 0;
+  u_int32_t device_interface = (u_int32_t)-1;
   u_int8_t location_filter = (u_int8_t)-1;
   bool walk_all = true;
   bool anomalousOnly = false;
@@ -1922,6 +1923,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
   if (lua_type(vm, 25) == LUA_TSTRING) map_search = (char*)lua_tostring(vm, 25);
   if (lua_type(vm, 26) == LUA_TNUMBER)
     label_filter = (u_int64_t)1 << (u_int8_t)lua_tointeger(vm, 26);
+  if (lua_type(vm, 27) == LUA_TNUMBER) device_interface = (u_int32_t)lua_tonumber(vm, 27);
 
   if ((!curr_iface) ||
       curr_iface->getActiveHostsList(
@@ -1930,7 +1932,7 @@ static int ntop_get_interface_hosts_criteria(lua_State* vm,
           get_allowed_nets(vm), show_details, location, country, mac_filter,
           vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
           filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, &device_ip, false /* host->lua */, anomalousOnly,
+          traffic_type_filter, &device_ip, device_interface, false /* host->lua */, anomalousOnly,
           dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, alertedHost,
           sortColumn, maxHits, toSkip, a2zSortOrder, arrayFormat, false,
           location_filter, map_search, label_filter) < 0)

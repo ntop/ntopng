@@ -150,6 +150,7 @@ class Host : public GenericHashEntry,
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
   struct ndpi_in6_addr device_ip; /* IPv4 stored as IPv4-mapped IPv6 */
+  u_int32_t device_in_idx, device_out_idx;
 
 #ifdef NTOPNG_PRO
   TrafficShaper** host_traffic_shapers;
@@ -221,7 +222,12 @@ class Host : public GenericHashEntry,
       memcpy(&device_ip, ip, sizeof(struct ndpi_in6_addr));
     }
   };
+  inline void setLastDeviceInterfaces(u_int32_t _in_idx, u_int32_t _out_idx) {
+    device_in_idx = _in_idx, device_out_idx = _out_idx;
+  }
   inline struct ndpi_in6_addr* getLastDeviceIp() { return (&device_ip); };
+  inline u_int32_t getLastDeviceInInterface() { return (device_in_idx); };
+  inline u_int32_t getLastDeviceOutInterface() { return (device_out_idx); };
   void blacklistedStatsResetRequested();
   inline u_int32_t getCheckpointBlacklistedAsCli() const {
     return (num_blacklisted_flows.checkpoint_as_client);

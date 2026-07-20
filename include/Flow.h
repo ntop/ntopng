@@ -1449,8 +1449,14 @@ class Flow : public GenericHashEntry {
     memcpy(&flow_device.device_ip, device_ip, sizeof(struct ndpi_in6_addr));
     flow_device.observation_point_id = observation_point_id;
     flow_device.in_index = inidx, flow_device.out_index = outidx;
-    if (cli_host) cli_host->setLastDeviceIp(device_ip);
-    if (srv_host) srv_host->setLastDeviceIp(device_ip);
+    if (cli_host) {
+        cli_host->setLastDeviceIp(device_ip);
+        cli_host->setLastDeviceInterfaces(inidx, outidx);
+    }
+    if (srv_host) {
+        srv_host->setLastDeviceIp(device_ip);
+        srv_host->setLastDeviceInterfaces(inidx, outidx);
+    }
 
     if ((obs_point = iface->getObsPoint(observation_point_id, true, true)) !=
         NULL)

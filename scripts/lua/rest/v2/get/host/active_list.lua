@@ -40,6 +40,7 @@ local mac = _GET["mac"]
 local mac_location = _GET["location"]
 local map_search = _GET["map_search"] or ""
 local label_filter = tonumber(_GET["label"])
+local ifIdx = _GET["ifIdx"]
 
 local c_order = true
 local lua_order = asc
@@ -112,7 +113,7 @@ local mapping_column_lua_c = {
 local hosts_stats = hosts_retrv_function(false, mapping_column_lua_c[sort_column], length, start, c_order, country, os_, tonumber(vlan),
     tonumber(asn), tonumber(network), mac, tonumber(pool), tonumber(ipversion), tonumber(protocol), traffic_type_filter,
     filtered_hosts, blacklisted_hosts, anomalous, dhcp_hosts, cidr, device_ip, true --[[ Array format ]], false, mac_location, map_search,
-    label_filter)
+    label_filter, ifIdx)
 
 for key, value in pairs(hosts_stats["hosts"]) do
     local record = {}
