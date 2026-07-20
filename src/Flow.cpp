@@ -10289,8 +10289,8 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
   }
 
   memcpy(&d.exporter_ip, exporter_ip, sizeof(struct ndpi_in6_addr));
-  memcpy(&d.next_hop, &next_hop, sizeof(struct ndpi_in6_addr)),
-  d.return_path = !src2dst_direction, d.in_index = in_index,
+  memcpy(&d.next_hop, next_hop, sizeof(struct ndpi_in6_addr)),
+    d.return_path = !src2dst_direction, d.in_index = in_index,
   d.out_index = out_index, d.source = source;
 
   exporterStats.push_back(d);
