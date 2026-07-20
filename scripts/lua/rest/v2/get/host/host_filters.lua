@@ -223,61 +223,63 @@ if ntop.isPro and ntop.isPro() then
 	end
 	local dev_ip = _GET["deviceIP"]
 
-	if not isEmptyString(_GET["ifIdx"]) then
-		local ports = {
-			{
-				key = "ifIdx",
-				value = "",
-				label = i18n("all"),
-			},
-			{
-				key = "ifIdx",
-				value = _GET["ifIdx"],
-				label = format_portidx_name(dev_ip, _GET["ifIdx"], true),
-			},
-		}
+   if not isEmptyString(dev_ip) then
+      if not isEmptyString(_GET["ifIdx"]) then
+         local ports = {
+            {
+               key = "ifIdx",
+               value = "",
+               label = i18n("all"),
+            },
+            {
+               key = "ifIdx",
+               value = _GET["ifIdx"],
+               label = format_portidx_name(dev_ip, _GET["ifIdx"], true),
+            },
+         }
 
-		rsp[#rsp + 1] = {
-			action = "ifIdx",
-			label = i18n("db_search.exporter_interface"),
-			name = "ifIdx",
-			value = ports,
-			show_with_value = dev_ip,
-			show_with_key = "deviceIP",
-		}
-	else
-		-- Flow exporter requested
-		local ports = { {
-			key = "ifIdx",
-			value = "",
-			label = i18n("all"),
-		} }
-		local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false --[[ Show minimal info ]])
+         rsp[#rsp + 1] = {
+            action = "ifIdx",
+            label = i18n("db_search.exporter_interface"),
+            name = "ifIdx",
+            value = ports,
+            show_with_value = dev_ip,
+            show_with_key = "deviceIP",
+         }
+      else
+         -- Flow exporter requested
+         local ports = { {
+            key = "ifIdx",
+            value = "",
+            label = i18n("all"),
+         } }
+         local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false --[[ Show minimal info ]])
 
-		tmp_list = {}
-		for _, ports in pairs(ports_table) do
-			for portidx, _ in pairsByKeys(ports, asc) do
-				local name = format_portidx_name(dev_ip, portidx, true)
-				tmp_list[tostring(name)] = {
-					value = portidx,
-					label = name,
-				}
-			end
-		end
+         tmp_list = {}
+         for _, ports in pairs(ports_table) do
+            for portidx, _ in pairsByKeys(ports, asc) do
+               local name = format_portidx_name(dev_ip, portidx, true)
+               tmp_list[tostring(name)] = {
+                  value = portidx,
+                  label = name,
+               }
+            end
+         end
 
-		for _, value in pairsByKeys(tmp_list, asc) do
-			ports[#ports + 1] = { key = "ifIdx", value = value.value, label = value.label }
-		end
+         for _, value in pairsByKeys(tmp_list, asc) do
+            ports[#ports + 1] = { key = "ifIdx", value = value.value, label = value.label }
+         end
 
-		rsp[#rsp + 1] = {
-			action = "ifIdx",
-			label = i18n("db_search.exporter_interface"),
-			name = "ifIdx",
-			value = ports,
-			show_with_value = dev_ip,
-			show_with_key = "deviceIP",
-		}
-	end
+         rsp[#rsp + 1] = {
+            action = "ifIdx",
+            label = i18n("db_search.exporter_interface"),
+            name = "ifIdx",
+            value = ports,
+            show_with_value = dev_ip,
+            show_with_key = "deviceIP",
+         }
+      end
+   end
 end
 
 local country_filter = {
