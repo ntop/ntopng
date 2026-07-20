@@ -90,14 +90,15 @@ typedef struct {
     char* wlan_ssid;
     u_int8_t wtp_mac_address[6];
   } wifi;
-
-
+  
   struct {
     /* IPv4 only, so a int32 bit is only needed */
     u_int32_t src_ip_addr_post_nat, dst_ip_addr_post_nat;
     u_int16_t src_port_post_nat, dst_port_post_nat;
   } nat;
 } FlowCollectionInfo;
+
+/* ******************************************************** */
 
 class FlowAlert;
 class FlowCheck;

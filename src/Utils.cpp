@@ -3468,16 +3468,20 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, char* buf, u_short bufLen) {
     buf[0] = '\0';
     return (buf);
   } else {
-    if (IN6_IS_ADDR_V4MAPPED(
+    if (ipv6.u6_addr.u6_addr64[0] == 0) {
+      if (ipv6.u6_addr.u6_addr64[1] == 0) {
+	snprintf(buf, bufLen, "0.0.0.0");	
+      } else if(IN6_IS_ADDR_V4MAPPED(
 #ifdef WIN32
-			     (const IN6_ADDR *)
+				     (const IN6_ADDR *)
 #else
-			     (const in6_addr *)
+				     (const in6_addr *)
 #endif
-        & ipv6))
-      return (&ret[7]); /* IPv4 address */
-    else
-      return (ret);
+				     &ipv6))
+	return (&ret[7]); /* IPv4 address */
+    }
+    
+    return (ret);
   }
 }
 
