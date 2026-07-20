@@ -6,21 +6,23 @@
             :f_sort_rows="columns_sorting" :handleLoadedColumns="handleLoadedColumns"
             @custom_event="on_table_custom_event">
             <template v-slot:custom_header>
-                <div class="dropdown d-inline-block" v-for="item in filter_table_array">
-                    <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"]
+                <div class="dropdown d-inline-flex flex-column me-2" v-for="item in filter_table_array">
+                    <span class="no-wrap filters-label"><b>{{ item["basic_label"]
                             }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
-                        dropdown_size="small" :disabled="loading" :options="item['options']"
-                        @select_option="add_table_filter">
+                        dropdown_size="small" :disabled="loading || props.locked_filters.includes(item['id'])"
+                        :options="item['options']" @select_option="add_table_filter">
                     </SelectSearch>
                 </div>
-                <div class="d-flex justify-content-center align-items-center">
+                <div class="d-inline-flex flex-column">
                     <!-- Little trick to have a smooth GUI, empty span so everything is on the same level -->
-                    <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label">&nbsp;</span>
-                    <div class="btn btn-sm btn-primary" type="button" @click="reset_filters">
-                        {{ _i18n('reset') }}
+                    <span class="no-wrap filters-label">&nbsp;</span>
+                    <div class="d-flex align-items-center">
+                        <div class="btn btn-sm btn-primary" type="button" @click="reset_filters">
+                            {{ _i18n('reset') }}
+                        </div>
+                        <Spinner :show="loading" size="1rem"></Spinner>
                     </div>
-                    <Spinner :show="loading" size="1rem"></Spinner>
                 </div>
             </template> <!-- Dropdown filters -->
         </TableWithConfig>
@@ -41,6 +43,13 @@ import NtopUtils from "../utilities/ntop-utils.js";
 const _i18n = (t) => i18n(t);
 const props = defineProps({
     context: Object,
+    // Filter ids (e.g. "deviceIP") whose dropdown is shown but disabled, for
+    // callers that pin those filters externally (e.g. the sites dashboard
+    // embeds this table already scoped to one exporter).
+    locked_filters: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 /* ************************************** */

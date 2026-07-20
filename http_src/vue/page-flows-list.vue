@@ -10,8 +10,8 @@
                     <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
                             }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
-                        dropdown_size="small" :disabled="loading" :options="item['options']"
-                        @select_option="add_table_filter">
+                        dropdown_size="small" :disabled="loading || props.locked_filters.includes(item['id'])"
+                        :options="item['options']" @select_option="add_table_filter">
                     </SelectSearch>
                 </div>
                 <div class="d-inline-block">
@@ -43,6 +43,13 @@ import infoUtils from "../utilities/map/info-utils.js";
 const _i18n = (t) => i18n(t);
 const props = defineProps({
     context: Object,
+    // Filter ids (e.g. "deviceIP", "inIfIdx") whose dropdown is shown but
+    // disabled, for callers that pin those filters externally (e.g. the sites
+    // dashboard embeds this table already scoped to one exporter/interface).
+    locked_filters: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 /* ************************************** */

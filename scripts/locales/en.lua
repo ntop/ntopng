@@ -9279,6 +9279,7 @@ local lang = {
     ["in_bytes"] = "Bytes Received",
     ["out_bytes"] = "Bytes Sent",
     ["traffic_analysis"] = "Traffic Analysis",
+    ["hosts"] = "Hosts",
     ["current_traffic"] = "Current Traffic",
     ["traffic_volume"] = "Traffic Volume",
     ["flows"] = "Flows",

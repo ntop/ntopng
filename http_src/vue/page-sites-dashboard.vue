@@ -69,6 +69,20 @@
                 <ExportersDashboard v-if="activeTab === 'exporters'" :exporters="displayedExporters"
                     :loading="loadingHierarchy" :title-link="titleLinks.exporters" @select="handleSelectExporter" />
 
+                <DashboardCard v-if="activeTab === 'live_flows' && selectedExporter"
+                    :title="_i18n('sites_dashboard.live_flows')" icon="fas fa-stream"
+                    :titleLink="titleLinks.live_flows" noPadding>
+                    <PageFlowsList :key="liveFlowsPageKey" :context="liveFlowsContext"
+                        :locked_filters="liveFlowsLockedFilters" />
+                </DashboardCard>
+
+                <DashboardCard v-if="activeTab === 'hosts' && selectedExporter"
+                    :title="_i18n('sites_dashboard.hosts')" icon="bi bi-pc-display"
+                    :titleLink="titleLinks.hosts" noPadding>
+                    <PageHostsList :key="hostsPageKey" :context="hostsContext"
+                        :locked_filters="hostsLockedFilters" />
+                </DashboardCard>
+
                 <div v-if="!selectedSite && !selectedExporter && !selectedInterface" class="sites-dashboard-empty">
                     <NoData :show="true" />
                 </div>
@@ -90,6 +104,9 @@ import { default as BadgeCard } from "./badge-card.vue";
 import { default as NetworkDashboard } from "./components/sites-dashboard/network-dashboard.vue";
 import { default as ExportersDashboard } from "./components/sites-dashboard/exporters-dashboard.vue";
 import { default as ExporterTrafficDashboard } from "./components/sites-dashboard/exporter-traffic-dashboard.vue";
+import { default as DashboardCard } from "./components/dashboard-card.vue";
+import { default as PageFlowsList } from "./page-flows-list.vue";
+import { default as PageHostsList } from "./page-hosts-list.vue";
 import { isRecentlyActive } from "../utilities/sites-dashboard-utils.js";
 
 const _i18n = (t) => i18n(t);
@@ -104,6 +121,7 @@ const URL_PARAM_SITE_ID = "site_id";
 const URL_PARAM_NETWORK_ID = "network_id";
 const URL_PARAM_EXPORTER_IP = "exporter_ip";
 const URL_PARAM_IF_IDX = "ifIdx";
+const URL_PARAM_TAB = "tab";
 
 /* Title-link URLs for each card. networks/exporters/exporter_interfaces are
    still placeholders - fill in with the final destination URLs.
@@ -330,6 +348,45 @@ function buildTimeseriesUrl() {
     return `${http_prefix}/lua/pro/enterprise/exporter_details.lua?${url_params}`;
 }
 
+/* Title-link of the "Live Flows" card: opens flows_stats.lua pre-filtered to
+   this exporter (and, at interface scope, its SNMP in/out index) */
+function buildLiveFlowsUrl() {
+    if (!selectedExporter.value) return null;
+    const url_params = ntopng_url_manager.obj_to_url_params({
+        interface_filter: "",
+        flowhosts_type: "",
+        l4proto: "",
+        application: "",
+        status: "",
+        qoe: "",
+        traffic_type: "",
+        host_pool_id: "",
+        network: "",
+        dst_asn: "",
+        deviceIP: selectedExporter.value.id,
+        inIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
+        outIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
+    });
+    return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+}
+
+/* Title-link of the "Hosts" card: opens hosts_stats.lua pre-filtered to this
+   exporter, matching hosts_stats.lua?...&deviceIP=.... hosts_stats.lua has no
+   per-interface filter, so this stays exporter-scoped even at interface scope. */
+function buildHostsUrl() {
+    if (!selectedExporter.value) return null;
+    const url_params = ntopng_url_manager.obj_to_url_params({
+        version: "",
+        network: "",
+        traffic_type: "",
+        mode: "",
+        pool: "",
+        deviceIP: selectedExporter.value.id,
+        label: "",
+    });
+    return `${http_prefix}/lua/hosts_stats.lua?${url_params}`;
+}
+
 /* Resolves each card's title-link from CARD_LINKS, switching to the live vs.
    historical variant for cards with both (see isLive / on_epoch_change). */
 const titleLinks = computed(() => {
@@ -344,6 +401,8 @@ const titleLinks = computed(() => {
         networks: asLink(CARD_LINKS.networks.url),
         exporters: asLiveLink(CARD_LINKS.exporters),
         exporter_interfaces: asLiveLink(CARD_LINKS.exporter_interfaces),
+        live_flows: asLink(buildLiveFlowsUrl()),
+        hosts: asLink(buildHostsUrl()),
     };
 });
 
@@ -406,12 +465,18 @@ const titleSubtitle = computed(() => {
 
 const tabs = computed(() => {
     if (selectedInterface.value) {
-        return [{ id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" }];
+        return [
+            { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
+            { id: "live_flows", label_i18n: "sites_dashboard.live_flows" },
+            { id: "hosts", label_i18n: "sites_dashboard.hosts" },
+        ];
     }
     if (selectedExporter.value) {
         return [
             { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
             { id: "exporter_interfaces", label_i18n: "sites_dashboard.interfaces", count: exporterInterfaces.value.length },
+            { id: "live_flows", label_i18n: "sites_dashboard.live_flows" },
+            { id: "hosts", label_i18n: "sites_dashboard.hosts" },
         ];
     }
     if (selectedNetwork.value) {
@@ -517,6 +582,63 @@ const displayedExporters = computed(() => {
     if (!selectedNetwork.value) return exporters.value;
     return exporters.value.filter((e) => String(e.network_id) === String(selectedNetwork.value.id));
 });
+
+const liveFlowsContext = computed(() => ({
+    ifid,
+    has_exporters: true,
+    is_viewed: false,
+    is_clickhouse_enabled: isClickHouseEnabled.value,
+    is_pcap: false,
+    csrf: props.context?.csrf,
+    is_enterprise_l: !!props.context?.is_enterprise_l,
+    ASNModeEnabled: !!props.context?.ASNModeEnabled,
+    isNedge: !!props.context?.isNedge,
+}));
+
+const hostsContext = computed(() => ({
+    ifid,
+    has_vlans: !!props.context?.has_vlans,
+    csrf: props.context?.csrf,
+    isNedge: !!props.context?.isNedge,
+}));
+
+/* deviceIP/ifIdx are pinned to the selected exporter/interface (see the URL
+   watcher below), so their filter dropdowns are shown for visibility/consistency
+   with the rest of the row but disabled rather than editable here. */
+const liveFlowsLockedFilters = computed(() =>
+    selectedInterface.value ? ["deviceIP", "inIfIdx", "outIfIdx"] : ["deviceIP"]
+);
+const hostsLockedFilters = ["deviceIP"];
+
+const liveFlowsPageKey = computed(() => `${selectedExporter.value?.id}:${selectedInterface.value?.ifindex ?? ""}`);
+const hostsPageKey = liveFlowsPageKey;
+
+
+const EMBEDDED_TAB_URL_PARAMS = ["deviceIP", "inIfIdx", "outIfIdx"];
+
+/* Mirrors the current exporter/interface scope into the real URL's deviceIP/
+   inIfIdx/outIfIdx params while a "live_flows"/"hosts" tab is active, so the
+   embedded page-flows-list/page-hosts-list components (which read filters
+   straight off window.location.search) come up pre-filtered to this exporter,
+   matching flows_stats.lua?deviceIP=...&inIfIdx=...&outIfIdx=... /
+   hosts_stats.lua?deviceIP=.... Removed again on tab switch so it doesn't leak
+   into the sites-dashboard's own selection params. */
+watch([activeTab, selectedExporter, selectedInterface], () => {
+    const search_params = ntopng_url_manager.get_url_search_params();
+    EMBEDDED_TAB_URL_PARAMS.forEach((p) => search_params.delete(p));
+
+    if ((activeTab.value === "live_flows" || activeTab.value === "hosts") && selectedExporter.value) {
+        search_params.set("deviceIP", selectedExporter.value.id);
+        // hosts_stats.lua's active_list only filters by deviceIP (no per-interface
+        // scoping), so inIfIdx/outIfIdx only apply to the live_flows tab.
+        if (activeTab.value === "live_flows" && selectedInterface.value) {
+            search_params.set("inIfIdx", selectedInterface.value.ifindex);
+            search_params.set("outIfIdx", selectedInterface.value.ifindex);
+        }
+    }
+
+    ntopng_url_manager.replace_url(search_params.toString());
+}, { immediate: true });
 
 function formatBytes(v) {
     return formatterUtils.getFormatter("bytes")(v);
@@ -641,7 +763,7 @@ function revealInSidebar() {
 /* Single generic sync point for selection -> URL: one watcher over the four
    selection refs, instead of a syncSelectionToUrl() call threaded through
    every handler. */
-watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface], () => {
+watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, activeTab], () => {
     const search_params = ntopng_url_manager.get_url_search_params();
 
     const site_id = selectedSite.value?.id;
@@ -667,6 +789,12 @@ watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface], () =
         search_params.set(URL_PARAM_IF_IDX, selectedInterface.value.ifindex);
     } else {
         search_params.delete(URL_PARAM_IF_IDX);
+    }
+
+    if (activeTab.value) {
+        search_params.set(URL_PARAM_TAB, activeTab.value);
+    } else {
+        search_params.delete(URL_PARAM_TAB);
     }
 
     ntopng_url_manager.replace_url(search_params.toString());
@@ -737,6 +865,14 @@ async function restoreSelectionFromUrl() {
     const urlNetworkId = ntopng_url_manager.get_url_entry(URL_PARAM_NETWORK_ID);
     const urlExporterIp = ntopng_url_manager.get_url_entry(URL_PARAM_EXPORTER_IP);
     const urlIfIdx = ntopng_url_manager.get_url_entry(URL_PARAM_IF_IDX);
+    const urlTab = ntopng_url_manager.get_url_entry(URL_PARAM_TAB);
+
+    // Every handleSelect* call below resets activeTab to its own default tab,
+    // so the saved tab (if still valid for the resulting selection) is applied
+    // last, once, overriding those defaults.
+    const restoreTab = () => {
+        if (urlTab && tabs.value.some((t) => t.id === urlTab)) activeTab.value = urlTab;
+    };
 
     const { site, ancestors: siteAncestors } = await resolveSiteChain(urlSiteId);
     // Loads networks.value/exporters.value for this site
@@ -752,6 +888,7 @@ async function restoreSelectionFromUrl() {
             const iface = exporterInterfaces.value.find((i) => String(i.ifindex) === String(urlIfIdx));
             if (iface) handleSelectInterface(iface, exporter);
         }
+        restoreTab();
         return;
     }
 
@@ -759,6 +896,7 @@ async function restoreSelectionFromUrl() {
         const network = networks.value.find((n) => String(n.id) === String(urlNetworkId));
         if (network) handleSelectNetwork(network);
     }
+    restoreTab();
 }
 
 // in live, the picker still writes a zero-width now() window (epoch_begin == epoch_end), which would
@@ -864,17 +1002,16 @@ async function fetchSiteLevel(siteId) {
             exportersByNetwork.get(key).push(e);
         });
 
-        const networkNodes = networkList
-            .filter((n) => exportersByNetwork.has(String(n.id)))
-            .map((n) => {
-                const netExporters = exportersByNetwork.get(String(n.id));
-                return {
-                    id: `network:${siteId ?? DEFAULT_SITE_ID}:${n.id}`,
-                    name: n.name,
-                    icon: "bi bi-diagram-3-fill",
-                    data: { kind: "network", network: n, exporters: netExporters },
-                };
-            });
+        const networkNodes = networkList.map((n) => {
+            const netExporters = exportersByNetwork.get(String(n.id)) || [];
+            return {
+                id: `network:${siteId ?? DEFAULT_SITE_ID}:${n.id}`,
+                name: n.name,
+                icon: "bi bi-diagram-3-fill",
+                hasChildren: netExporters.length > 0,
+                data: { kind: "network", network: n, exporters: netExporters },
+            };
+        });
 
         const exporterNodes = unassignedExporters.map((e) => makeExporterNode(e));
 
