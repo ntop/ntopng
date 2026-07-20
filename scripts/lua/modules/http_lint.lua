@@ -343,6 +343,8 @@ end
 http_lint.validateAuthProto = validateAuthProto
 
 local function validateSingleWord(w)
+   if(w == nil) then return(false) end
+      
    if (string.find(w, "% ") ~= nil) then
       return false
    else
