@@ -9316,6 +9316,10 @@ local lang = {
     ["role"] = "Role",
     ["description"] = "Description",
     ["uptime"] = "Uptime",
+    ["uplink_speed"] = "Uplink Speed",
+    ["downlink_speed"] = "Downlink Speed",
+    ["snmp_devices"] = "SNMP Devices",
+    ["snmp_device"] = "SNMP Device",
   },
   ["tree_nav_sidebar"] = {
     ["no_data_available"] = "No data available",

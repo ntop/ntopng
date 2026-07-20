@@ -8,8 +8,8 @@
         <div class="sites-dashboard-main flex-grow-1 min-w-0">
             <div class="sites-dashboard-topbar d-flex align-items-center flex-wrap">
                 <BreadcrumbNav :items="breadcrumbItems" @on_select="handleBreadcrumbSelect" />
-                <div v-if="selectedExporter" class="ms-auto d-flex align-items-center gap-2">
-                    <a v-if="showHistoricalWidgets && historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
+                <div v-if="selectedExporter || selectedSnmpDevice" class="ms-auto d-flex align-items-center gap-2">
+                    <a v-if="selectedExporter && showHistoricalWidgets && historicalFlowsUrl" :href="historicalFlowsUrl" target="_blank"
                         class="btn btn-sm btn-primary sites-dashboard-flows-btn">
                         <i class="fas fa-external-link-alt me-1"></i>{{ _i18n('sites_dashboard.historical_flows') }}
                     </a>
@@ -26,7 +26,10 @@
                 </div>
             </div>
 
-            <div class="sites-dashboard-body">
+            <div v-if="!initialSelectionReady" class="sites-dashboard-body">
+                <Loading :isLoading="true" />
+            </div>
+            <div v-else class="sites-dashboard-body">
                 <!-- Title row: current node icon + label + name, with a single
                      subtitle line for whatever secondary context applies -->
                 <div class="d-flex align-items-center flex-wrap mb-3">
@@ -69,23 +72,27 @@
                 <ExportersDashboard v-if="activeTab === 'exporters'" :exporters="displayedExporters"
                     :loading="loadingHierarchy" :title-link="titleLinks.exporters" @select="handleSelectExporter" />
 
-                <SnmpTrafficDashboard v-if="activeTab === 'snmp_analysis' && selectedExporter"
-                    ref="snmpTrafficRef" :ifid="ifid" :device="selectedExporter" :iface="selectedInterface"
+                <SnmpTrafficDashboard v-if="activeTab === 'snmp_analysis' && (selectedExporter || selectedSnmpDevice)"
+                    ref="snmpTrafficRef" :ifid="ifid"
+                    :device="selectedSnmpDevice || selectedExporter"
+                    :iface="selectedSnmpDevice ? selectedSnmpInterface : selectedInterface"
+                    :show-analysis="!!selectedSnmpDevice"
                     :epoch-begin="ifaceEpochBegin" :epoch-end="ifaceEpochEnd"
-                    :title-links="titleLinks" :csrf="props.context?.csrf" />
+                    :title-links="titleLinks" :csrf="props.context?.csrf"
+                    @interfaces-loaded="(list) => snmpDeviceInterfaces = list" />
 
-                <DashboardCard v-if="activeTab === 'live_flows' && selectedExporter"
+                <DashboardCard v-if="activeTab === 'live_flows' && (selectedExporter || selectedNetwork || selectedSite)"
                     :title="_i18n('sites_dashboard.live_flows')" icon="fas fa-stream"
                     :titleLink="titleLinks.live_flows" noPadding>
                     <PageFlowsList :key="liveFlowsPageKey" :context="liveFlowsContext"
-                        :locked_filters="liveFlowsLockedFilters" />
+                        :locked_filters="liveFlowsLockedFilters" @total-loaded="(total) => liveFlowsCount = total" />
                 </DashboardCard>
 
-                <DashboardCard v-if="activeTab === 'hosts' && selectedExporter"
+                <DashboardCard v-if="activeTab === 'hosts' && (selectedExporter || selectedNetwork)"
                     :title="_i18n('sites_dashboard.hosts')" icon="bi bi-pc-display"
                     :titleLink="titleLinks.hosts" noPadding>
                     <PageHostsList :key="hostsPageKey" :context="hostsContext"
-                        :locked_filters="hostsLockedFilters" />
+                        :locked_filters="hostsLockedFilters" @total-loaded="(total) => liveHostsCount = total" />
                 </DashboardCard>
 
                 <div v-if="!selectedSite && !selectedExporter && !selectedInterface" class="sites-dashboard-empty">
@@ -104,6 +111,7 @@ import { default as TreeNavSidebar } from "./components/tree-nav-sidebar.vue";
 import { default as BreadcrumbNav } from "./components/breadcrumb-nav.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
 import { default as NoData } from "./components/no-data.vue";
+import { default as Loading } from "./loading.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as BadgeCard } from "./badge-card.vue";
 import { default as NetworkDashboard } from "./components/sites-dashboard/network-dashboard.vue";
@@ -127,6 +135,8 @@ const URL_PARAM_SITE_ID = "site_id";
 const URL_PARAM_NETWORK_ID = "network_id";
 const URL_PARAM_EXPORTER_IP = "exporter_ip";
 const URL_PARAM_IF_IDX = "ifIdx";
+const URL_PARAM_SNMP_DEVICE_IP = "snmp_device_ip";
+const URL_PARAM_SNMP_IF_IDX = "snmp_if_idx";
 const URL_PARAM_TAB = "tab";
 
 /* Title-link URLs for each card. networks/exporters/exporter_interfaces are
@@ -187,7 +197,20 @@ const selectedSite = ref(null);
 const selectedNetwork = ref(null);
 const selectedExporter = ref(null);
 const selectedInterface = ref(null);
+/* Bare SNMP device (from sites/hierarchy.lua's snmp_devices[]), distinct from
+   selectedExporter: it has no flow/exporter data, so none of the flow-based
+   tabs (Traffic Analysis/Live Flows/Hosts) apply to it. */
+const selectedSnmpDevice = ref(null);
+const selectedSnmpInterface = ref(null);
 const activeTab = ref("networks");
+
+/* Gates the whole body's first render until restoreSelectionFromUrl() (an
+   async chain of site-hierarchy fetches) has resolved, so on page load/
+   navigation the DOM never paints the default "Networks" tab/site before
+   flipping to whatever the URL actually specifies -- onBeforeMount alone
+   doesn't block the initial render on an async callback, so without this the
+   wrong tab would flash briefly before the real one takes over. */
+const initialSelectionReady = ref(false);
 
 /* Ancestor chain (root -> ... -> parent) of whichever site is currently
    selected, i.e. everything the breadcrumb needs above the site crumb itself.
@@ -201,10 +224,16 @@ const loadingHierarchy = ref(false);
 const networks = ref([]);
 const sites = ref([]);
 const exporters = ref([]);
+const siteSnmpDevices = ref([]);
 
 /* Last interfaces list reported by ExporterTrafficDashboard for the selected
    exporter */
 const exporterInterfaces = ref([]);
+
+/* Last interfaces list reported by SnmpTrafficDashboard's Analysis table for
+   the selected bare SNMP device (see selectedSnmpDevice). */
+const snmpDeviceInterfaces = ref([]);
+const snmpDeviceAnalysisCount = computed(() => snmpDeviceInterfaces.value.length);
 
 /* Epoch window driving the exporter/interface traffic panel (ExporterTrafficDashboard),
    set here since it's shared with the top-right date/time range picker. */
@@ -356,10 +385,10 @@ function buildTimeseriesUrl() {
 }
 
 /* Title-link of the "Live Flows" card: opens flows_stats.lua pre-filtered to
-   this exporter (and, at interface scope, its SNMP in/out index) */
+   whichever scope is active -- exporter/interface (SNMP in/out index),
+   network, or (root) site. */
 function buildLiveFlowsUrl() {
-    if (!selectedExporter.value) return null;
-    const url_params = ntopng_url_manager.obj_to_url_params({
+    const base_params = {
         interface_filter: "",
         flowhosts_type: "",
         l4proto: "",
@@ -370,28 +399,50 @@ function buildLiveFlowsUrl() {
         host_pool_id: "",
         network: "",
         dst_asn: "",
-        deviceIP: selectedExporter.value.id,
-        inIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
-        outIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
-    });
-    return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+        deviceIP: "",
+    };
+    if (selectedExporter.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({
+            ...base_params,
+            deviceIP: selectedExporter.value.id,
+            inIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
+            outIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
+        });
+        return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+    }
+    if (selectedNetwork.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({ ...base_params, network: selectedNetwork.value.id });
+        return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+    }
+    if (selectedSite.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({ ...base_params, site_id: selectedSite.value.id });
+        return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+    }
+    return null;
 }
 
-/* Title-link of the "Hosts" card: opens hosts_stats.lua pre-filtered to this
-   exporter, matching hosts_stats.lua?...&deviceIP=.... hosts_stats.lua has no
-   per-interface filter, so this stays exporter-scoped even at interface scope. */
+/* Title-link of the "Hosts" card: opens hosts_stats.lua pre-filtered to
+   whichever scope is active -- exporter (hosts_stats.lua has no per-interface
+   filter, so this stays exporter-scoped even at interface scope) or network. */
 function buildHostsUrl() {
-    if (!selectedExporter.value) return null;
-    const url_params = ntopng_url_manager.obj_to_url_params({
+    const base_params = {
         version: "",
         network: "",
         traffic_type: "",
         mode: "",
         pool: "",
-        deviceIP: selectedExporter.value.id,
+        deviceIP: "",
         label: "",
-    });
-    return `${http_prefix}/lua/hosts_stats.lua?${url_params}`;
+    };
+    if (selectedExporter.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({ ...base_params, deviceIP: selectedExporter.value.id });
+        return `${http_prefix}/lua/hosts_stats.lua?${url_params}`;
+    }
+    if (selectedNetwork.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({ ...base_params, network: selectedNetwork.value.id });
+        return `${http_prefix}/lua/hosts_stats.lua?${url_params}`;
+    }
+    return null;
 }
 
 /* Title link of the SNMP traffic time-series card */
@@ -437,6 +488,8 @@ const titleLinks = computed(() => {
 /* Id of whichever node (site/exporter/interface) is currently active, used to
    keep the sidebar selection highlight in sync with the main panel. */
 const selectedNodeId = computed(() => {
+    if (selectedSnmpInterface.value) return `snmp_interface:${selectedSnmpDevice.value?.id}:${selectedSnmpInterface.value.ifindex}`;
+    if (selectedSnmpDevice.value) return `snmp_device:${selectedSnmpDevice.value.id}`;
     if (selectedInterface.value) return `interface:${selectedExporter.value?.id}:${selectedInterface.value.ifindex}`;
     if (selectedExporter.value) return `exporter:${selectedExporter.value.id}`;
     if (selectedNetwork.value) return selectedNetwork.value.nodeId;
@@ -445,6 +498,8 @@ const selectedNodeId = computed(() => {
 });
 
 const titleIcon = computed(() => {
+    if (selectedSnmpInterface.value) return "bi bi-ethernet";
+    if (selectedSnmpDevice.value) return "fas fa-network-wired";
     if (selectedInterface.value) return "bi bi-ethernet";
     if (selectedExporter.value) return "fas fa-satellite-dish";
     if (selectedNetwork.value) return "bi bi-diagram-3-fill";
@@ -453,6 +508,8 @@ const titleIcon = computed(() => {
 
 /* "Exporter:" / "Interface:" label shown before the name. Sites have marker label */
 const titleLabel = computed(() => {
+    if (selectedSnmpInterface.value) return _i18n("sites_dashboard.interface");
+    if (selectedSnmpDevice.value) return _i18n("sites_dashboard.snmp_device");
     if (selectedInterface.value) return _i18n("sites_dashboard.interface");
     if (selectedExporter.value) return _i18n("sites_dashboard.exporter");
     if (selectedNetwork.value) return _i18n("sites_dashboard.network");
@@ -462,6 +519,14 @@ const titleLabel = computed(() => {
 /* Each fact (exporter name, exporter IP, interface name, ifIndex) is stated
    exactly once across titleName + titleSubtitle  */
 const titleName = computed(() => {
+    if (selectedSnmpInterface.value) {
+        return selectedSnmpInterface.value.snmp_ifname
+            ? selectedSnmpInterface.value.snmp_ifname
+            : `${_i18n("sites_dashboard.if_index_short")} ${selectedSnmpInterface.value.ifindex}`;
+    }
+    if (selectedSnmpDevice.value) {
+        return selectedSnmpDevice.value.name ?? selectedSnmpDevice.value.id;
+    }
     if (selectedInterface.value) {
         return selectedInterface.value.snmp_ifname
             ? selectedInterface.value.snmp_ifname
@@ -477,6 +542,17 @@ const titleName = computed(() => {
 });
 
 const titleSubtitle = computed(() => {
+    if (selectedSnmpInterface.value) {
+        const deviceName = selectedSnmpDevice.value?.name ?? selectedSnmpDevice.value?.id;
+        const deviceIp = selectedSnmpDevice.value?.id;
+        const devicePart = (deviceIp && deviceIp !== deviceName) ? `${deviceName} (${deviceIp})` : deviceName;
+        return `${devicePart} · ${_i18n("sites_dashboard.if_index_short")} ${selectedSnmpInterface.value.ifindex}`;
+    }
+    if (selectedSnmpDevice.value) {
+        return selectedSnmpDevice.value.name && selectedSnmpDevice.value.name !== selectedSnmpDevice.value.id
+            ? selectedSnmpDevice.value.id
+            : "";
+    }
     if (selectedInterface.value) {
         const exporterName = exporterDisplayName.value ?? selectedExporter.value?.name;
         const exporterIp = selectedExporter.value?.id;
@@ -492,11 +568,14 @@ const titleSubtitle = computed(() => {
 });
 
 const tabs = computed(() => {
+    if (selectedSnmpDevice.value) {
+        return [{ id: "snmp_analysis", label_i18n: "sites_dashboard.snmp_analysis" }];
+    }
     if (selectedInterface.value) {
         const t = [
             { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
-            { id: "live_flows", label_i18n: "sites_dashboard.live_flows" },
-            { id: "hosts", label_i18n: "sites_dashboard.hosts" },
+            { id: "live_flows", label_i18n: "sites_dashboard.live_flows", count: liveFlowsCount.value },
+            { id: "hosts", label_i18n: "sites_dashboard.hosts", count: liveHostsCount.value },
         ];
         if (exporterSnmpEnabled.value) t.push({ id: "snmp_analysis", label_i18n: "sites_dashboard.snmp_analysis" });
         return t;
@@ -505,18 +584,23 @@ const tabs = computed(() => {
         const t = [
             { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
             { id: "exporter_interfaces", label_i18n: "sites_dashboard.interfaces", count: exporterInterfaces.value.length },
-            { id: "live_flows", label_i18n: "sites_dashboard.live_flows" },
-            { id: "hosts", label_i18n: "sites_dashboard.hosts" },
+            { id: "live_flows", label_i18n: "sites_dashboard.live_flows", count: liveFlowsCount.value },
+            { id: "hosts", label_i18n: "sites_dashboard.hosts", count: liveHostsCount.value },
         ];
         if (selectedExporter.value) t.push({ id: "snmp_analysis", label_i18n: "sites_dashboard.snmp_analysis" });
         return t;
     }
     if (selectedNetwork.value) {
-        return [{ id: "exporters", label_i18n: "sites_dashboard.exporters", count: displayedExporters.value.length }];
+        return [
+            { id: "exporters", label_i18n: "sites_dashboard.exporters", count: displayedExporters.value.length },
+            { id: "live_flows", label_i18n: "sites_dashboard.live_flows", count: liveFlowsCount.value },
+            { id: "hosts", label_i18n: "sites_dashboard.hosts", count: liveHostsCount.value },
+        ];
     }
     return [
         { id: "networks", label_i18n: "sites_dashboard.networks", count: networks.value.length },
         { id: "exporters", label_i18n: "sites_dashboard.exporters", count: exporters.value.length },
+        { id: "live_flows", label_i18n: "sites_dashboard.live_flows", count: liveFlowsCount.value },
     ];
 });
 
@@ -529,6 +613,9 @@ const BREADCRUMB_KIND_LABELS = {
     network: () => _i18n("sites_dashboard.network"),
     exporter: () => _i18n("sites_dashboard.exporter"),
     interface: () => _i18n("sites_dashboard.interface"),
+    snmp_devices: () => _i18n("sites_dashboard.snmp_devices"),
+    snmp_device: () => _i18n("sites_dashboard.snmp_device"),
+    snmp_interface: () => _i18n("sites_dashboard.interface"),
 };
 
 function breadcrumbTooltip(id) {
@@ -559,11 +646,54 @@ const breadcrumbItems = computed(() => {
             name: selectedInterface.value.snmp_ifname ?? `ifIndex ${selectedInterface.value.ifindex}`,
         });
     }
+    if (selectedSnmpDevice.value) {
+        // Matches the sidebar's snmp_devices group node id exactly (see
+        // makeSnmpDevicesGroupNode), so revealInSidebar's expandTo() can find
+        // it: grouped under the owning network when known, otherwise
+        // top-level under the site (unassigned devices, see fetchSiteLevel).
+        const groupParentId = selectedNetwork.value?.nodeId ?? `site:${selectedSite.value?.id ?? DEFAULT_SITE_ID}`;
+        items.push({
+            id: `snmp_devices:${groupParentId}`,
+            name: _i18n("sites_dashboard.snmp_devices"),
+        });
+        items.push({
+            id: `snmp_device:${selectedSnmpDevice.value.id}`,
+            name: selectedSnmpDevice.value.name ?? selectedSnmpDevice.value.id,
+        });
+    }
+    if (selectedSnmpInterface.value) {
+        items.push({
+            id: `snmp_interface:${selectedSnmpDevice.value?.id}:${selectedSnmpInterface.value.ifindex}`,
+            name: selectedSnmpInterface.value.snmp_ifname ?? `ifIndex ${selectedSnmpInterface.value.ifindex}`,
+        });
+    }
 
     return items.map((item) => ({ ...item, tooltip: breadcrumbTooltip(item.id) }));
 });
 
 const kpiCards = computed(() => {
+
+    if (selectedSnmpDevice.value) {
+        const cards = [];
+        if (selectedSnmpInterface.value) {
+            cards.push({
+                key: "snmp_interface_type",
+                icon: "bi bi-ethernet",
+                color: "#EA6A2A",
+                labelI18n: "sites_dashboard.interface_type",
+                value: selectedSnmpInterface.value.type ?? "—",
+            });
+        } else {
+            cards.push({
+                key: "snmp_interfaces",
+                icon: "fas fa-network-wired",
+                color: "#EA6A2A",
+                labelI18n: "sites_dashboard.snmp_interfaces",
+                value: snmpDeviceAnalysisCount.value,
+            });
+        }
+        return cards;
+    }
 
     if (selectedInterface.value || selectedExporter.value) {
         const cards = [];
@@ -634,32 +764,50 @@ const hostsContext = computed(() => ({
     isNedge: !!props.context?.isNedge,
 }));
 
-/* deviceIP/ifIdx are pinned to the selected exporter/interface (see the URL
-   watcher below), so their filter dropdowns are shown for visibility/consistency
-   with the rest of the row but disabled rather than editable here. */
-const liveFlowsLockedFilters = computed(() =>
-    selectedInterface.value ? ["deviceIP", "inIfIdx", "outIfIdx"] : ["deviceIP"]
+/* deviceIP/ifIdx/network/site_id are pinned to the current selection (see the
+   URL watcher below), so their filter dropdowns are shown for visibility/
+   consistency with the rest of the row but disabled rather than editable here. */
+const liveFlowsLockedFilters = computed(() => {
+    if (selectedInterface.value) return ["deviceIP", "inIfIdx", "outIfIdx"];
+    if (selectedExporter.value) return ["deviceIP"];
+    if (selectedNetwork.value) return ["network"];
+    return ["site_id"];
+});
+const hostsLockedFilters = computed(() =>
+    selectedNetwork.value && !selectedExporter.value ? ["network"] : ["deviceIP"]
 );
-const hostsLockedFilters = ["deviceIP"];
 
-const liveFlowsPageKey = computed(() => `${selectedExporter.value?.id}:${selectedInterface.value?.ifindex ?? ""}`);
+/* Distinguishes every filterable scope (exporter/interface, network, site) so
+   the embedded list remounts (instead of just re-filtering in place) whenever
+   the scope changes. */
+const liveFlowsPageKey = computed(() =>
+    `${selectedExporter.value?.id ?? ""}:${selectedInterface.value?.ifindex ?? ""}:${selectedNetwork.value?.id ?? ""}:${selectedSite.value?.id ?? ""}`
+);
 const hostsPageKey = liveFlowsPageKey;
 
 
-const EMBEDDED_TAB_URL_PARAMS = ["deviceIP", "inIfIdx", "outIfIdx"];
+// "site_id" is deliberately NOT in this list: it is also the persistent
+// site-tree selection param (URL_PARAM_SITE_ID, see the selection->URL watcher
+// below) and must never be blanket-deleted here -- see the dedicated
+// site_id handling after this forEach.
+const EMBEDDED_TAB_URL_PARAMS = ["deviceIP", "inIfIdx", "outIfIdx", "network"];
 
-/* Mirrors the current exporter/interface scope into the real URL's deviceIP/
-   inIfIdx/outIfIdx params while a "live_flows"/"hosts" tab is active, so the
-   embedded page-flows-list/page-hosts-list components (which read filters
-   straight off window.location.search) come up pre-filtered to this exporter,
-   matching flows_stats.lua?deviceIP=...&inIfIdx=...&outIfIdx=... /
-   hosts_stats.lua?deviceIP=.... Removed again on tab switch so it doesn't leak
-   into the sites-dashboard's own selection params. */
-watch([activeTab, selectedExporter, selectedInterface], () => {
+/* Mirrors the current exporter/interface/network/site scope into the real
+   URL's deviceIP/inIfIdx/outIfIdx/network/site_id params while a
+   "live_flows"/"hosts" tab is active, so the embedded page-flows-list/
+   page-hosts-list components (which read filters straight off
+   window.location.search) come up pre-filtered, matching
+   flows_stats.lua?deviceIP=...&inIfIdx=...&outIfIdx=... /
+   flows_stats.lua?network=... / flows_stats.lua?site_id=... /
+   hosts_stats.lua?deviceIP=... / hosts_stats.lua?network=.... Removed again
+   on tab switch so it doesn't leak into the sites-dashboard's own selection
+   params. */
+watch([activeTab, selectedExporter, selectedInterface, selectedNetwork, selectedSite], () => {
     const search_params = ntopng_url_manager.get_url_search_params();
     EMBEDDED_TAB_URL_PARAMS.forEach((p) => search_params.delete(p));
 
-    if ((activeTab.value === "live_flows" || activeTab.value === "hosts") && selectedExporter.value) {
+    const onEmbeddedTab = activeTab.value === "live_flows" || activeTab.value === "hosts";
+    if (onEmbeddedTab && selectedExporter.value) {
         search_params.set("deviceIP", selectedExporter.value.id);
         // hosts_stats.lua's active_list only filters by deviceIP (no per-interface
         // scoping), so inIfIdx/outIfIdx only apply to the live_flows tab.
@@ -667,6 +815,24 @@ watch([activeTab, selectedExporter, selectedInterface], () => {
             search_params.set("inIfIdx", selectedInterface.value.ifindex);
             search_params.set("outIfIdx", selectedInterface.value.ifindex);
         }
+    } else if (onEmbeddedTab && selectedNetwork.value) {
+        search_params.set("network", selectedNetwork.value.id);
+    }
+
+    // site_id: only this watcher (not the blanket forEach above) ever touches
+    // it, and only while at pure site scope with the live_flows tab active
+    // (its only tab, see tabs computed) -- otherwise the persistent
+    // selection->URL watcher below remains the sole owner of this param,
+    // including deleting it for the Default site (site_id="0" case, where
+    // this tab still needs it present, unlike the persisted value).
+    if (activeTab.value === "live_flows" && !selectedExporter.value && !selectedNetwork.value && selectedSite.value) {
+        search_params.set("site_id", selectedSite.value.id);
+    } else if (selectedSite.value && selectedSite.value.id !== DEFAULT_SITE_ID) {
+        // Non-default site selected but not on this tab: restore the
+        // persistent watcher's value instead of leaving it deleted.
+        search_params.set("site_id", selectedSite.value.id);
+    } else if (!selectedSite.value || selectedSite.value.id === DEFAULT_SITE_ID) {
+        search_params.delete("site_id");
     }
 
     ntopng_url_manager.replace_url(search_params.toString());
@@ -676,8 +842,9 @@ function formatBytes(v) {
     return formatterUtils.getFormatter("bytes")(v);
 }
 
-onBeforeMount(() => {
-    restoreSelectionFromUrl();
+onBeforeMount(async () => {
+    await restoreSelectionFromUrl();
+    initialSelectionReady.value = true;
 });
 
 /* Re fetches data in the currently visible panel, without
@@ -687,7 +854,7 @@ async function refreshCurrentView() {
     // so the time series advances instead of re-querying the same stale span.
     if (isLive.value) setLiveEpochWindow();
 
-    if (selectedExporter.value) {
+    if (selectedExporter.value || selectedSnmpDevice.value) {
         // Only one of the two panels is mounted at a time (tab-gated), so the
         // other ref is null and its optional call is a no-op.
         await Promise.all([
@@ -709,6 +876,8 @@ async function handleSelectSite(site, siteAncestors) {
     selectedNetwork.value = null;
     selectedExporter.value = null;
     selectedInterface.value = null;
+    selectedSnmpDevice.value = null;
+    selectedSnmpInterface.value = null;
     activeTab.value = "networks";
 
     if (siteAncestors) {
@@ -746,6 +915,8 @@ function handleSelectNetwork(network) {
     selectedNetwork.value = makeSelectedNetwork(network);
     selectedExporter.value = null;
     selectedInterface.value = null;
+    selectedSnmpDevice.value = null;
+    selectedSnmpInterface.value = null;
     activeTab.value = "exporters";
     revealInSidebar();
 }
@@ -757,11 +928,13 @@ async function loadHierarchy(siteId) {
         networks.value = data?.networks || [];
         sites.value = data?.sites || [];
         exporters.value = data?.exporters || [];
+        siteSnmpDevices.value = data?.snmp_devices || [];
     } catch (err) {
         console.error("Error retrieving site hierarchy:", err);
         networks.value = [];
         sites.value = [];
         exporters.value = [];
+        siteSnmpDevices.value = [];
     }
     loadingHierarchy.value = false;
 }
@@ -771,6 +944,8 @@ async function loadHierarchy(siteId) {
 async function handleSelectExporter(exporter) {
     selectedExporter.value = exporter;
     selectedInterface.value = null;
+    selectedSnmpDevice.value = null;
+    selectedSnmpInterface.value = null;
     selectedNetwork.value = makeSelectedNetwork(findNetworkById(exporter.network_id));
     activeTab.value = "traffic_analysis";
     ensureEpochWindow();
@@ -800,7 +975,7 @@ function revealInSidebar() {
 /* Single generic sync point for selection -> URL: one watcher over the four
    selection refs, instead of a syncSelectionToUrl() call threaded through
    every handler. */
-watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, activeTab], () => {
+watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, selectedSnmpDevice, selectedSnmpInterface, activeTab], () => {
     const search_params = ntopng_url_manager.get_url_search_params();
 
     const site_id = selectedSite.value?.id;
@@ -826,6 +1001,18 @@ watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, activ
         search_params.set(URL_PARAM_IF_IDX, selectedInterface.value.ifindex);
     } else {
         search_params.delete(URL_PARAM_IF_IDX);
+    }
+
+    if (selectedSnmpDevice.value) {
+        search_params.set(URL_PARAM_SNMP_DEVICE_IP, selectedSnmpDevice.value.id);
+    } else {
+        search_params.delete(URL_PARAM_SNMP_DEVICE_IP);
+    }
+
+    if (selectedSnmpInterface.value) {
+        search_params.set(URL_PARAM_SNMP_IF_IDX, selectedSnmpInterface.value.ifindex);
+    } else {
+        search_params.delete(URL_PARAM_SNMP_IF_IDX);
     }
 
     if (activeTab.value) {
@@ -902,6 +1089,8 @@ async function restoreSelectionFromUrl() {
     const urlNetworkId = ntopng_url_manager.get_url_entry(URL_PARAM_NETWORK_ID);
     const urlExporterIp = ntopng_url_manager.get_url_entry(URL_PARAM_EXPORTER_IP);
     const urlIfIdx = ntopng_url_manager.get_url_entry(URL_PARAM_IF_IDX);
+    const urlSnmpDeviceIp = ntopng_url_manager.get_url_entry(URL_PARAM_SNMP_DEVICE_IP);
+    const urlSnmpIfIdx = ntopng_url_manager.get_url_entry(URL_PARAM_SNMP_IF_IDX);
     const urlTab = ntopng_url_manager.get_url_entry(URL_PARAM_TAB);
 
     // Every handleSelect* call below resets activeTab to its own default tab,
@@ -912,7 +1101,7 @@ async function restoreSelectionFromUrl() {
     };
 
     const { site, ancestors: siteAncestors } = await resolveSiteChain(urlSiteId);
-    // Loads networks.value/exporters.value for this site
+    // Loads networks.value/exporters.value/siteSnmpDevices.value for this site
     await handleSelectSite(site, siteAncestors);
 
     if (urlExporterIp) {
@@ -924,6 +1113,21 @@ async function restoreSelectionFromUrl() {
         if (urlIfIdx) {
             const iface = exporterInterfaces.value.find((i) => String(i.ifindex) === String(urlIfIdx));
             if (iface) handleSelectInterface(iface, exporter);
+        }
+        restoreTab();
+        return;
+    }
+
+    if (urlSnmpDeviceIp) {
+        const device = siteSnmpDevices.value.find((d) => String(d.ip) === String(urlSnmpDeviceIp));
+        if (!device) return;
+
+        handleSelectSnmpDevice(device);
+
+        if (urlSnmpIfIdx) {
+            const ifaceNodes = await fetchSnmpDeviceInterfaceNodes(device);
+            const ifaceNode = ifaceNodes.find((n) => String(n.data.iface.ifindex) === String(urlSnmpIfIdx));
+            if (ifaceNode) handleSelectSnmpInterface(ifaceNode.data.iface, device);
         }
         restoreTab();
         return;
@@ -961,6 +1165,64 @@ function onExporterCountsLoaded({ flows, hosts }) {
     liveHostsCount.value = hosts;
 }
 
+/* Initial Live Flows/Hosts tab pill counts for network and site scope
+   (exporter/interface scope gets its initial value from
+   ExporterTrafficDashboard's own counts-loaded emit instead, see
+   onExporterCountsLoaded), scoped the same way the embedded live_flows/hosts
+   tabs are (see the EMBEDDED_TAB_URL_PARAMS watcher). Only a one-shot probe:
+   once the corresponding tab is actually opened, PageFlowsList/PageHostsList's
+   total-loaded emit (see the template) takes over for every subsequent load.
+   hosts_stats.lua's active_list has no site_id filter, so hosts stays null
+   at site scope. */
+async function loadNetworkOrSiteCounts() {
+    if (selectedExporter.value || selectedInterface.value) return; // handled by the child emit instead
+
+    const scopeParams = selectedNetwork.value
+        ? { network: selectedNetwork.value.id }
+        : (selectedSite.value ? { site_id: selectedSite.value.id } : null);
+    if (!scopeParams) {
+        liveFlowsCount.value = null;
+        liveHostsCount.value = null;
+        return;
+    }
+
+    const flows_params = ntopng_url_manager.obj_to_url_params({ start: 0, length: 1, map_search: "", ...scopeParams });
+    try {
+        const data = await ntopng_utility.http_request(
+            `${http_prefix}/lua/rest/v2/get/flow/active_list.lua?${flows_params}`, undefined, undefined, true
+        );
+        liveFlowsCount.value = data?.recordsTotal ?? null;
+    } catch (err) {
+        console.error("Error retrieving live flows count:", err);
+        liveFlowsCount.value = null;
+    }
+
+    if (!selectedNetwork.value) {
+        liveHostsCount.value = null; // no site_id filter on host/active_list.lua
+        return;
+    }
+    const hosts_params = ntopng_url_manager.obj_to_url_params({ start: 0, length: 1, map_search: "", ...scopeParams });
+    try {
+        const data = await ntopng_utility.http_request(
+            `${http_prefix}/lua/rest/v2/get/host/active_list.lua?${hosts_params}`, undefined, undefined, true
+        );
+        liveHostsCount.value = data?.recordsTotal ?? null;
+    } catch (err) {
+        console.error("Error retrieving live hosts count:", err);
+        liveHostsCount.value = null;
+    }
+}
+
+/* One-shot fetch on scope change: this is only the pill's initial value for
+   whichever tab isn't currently open (e.g. showing the Live Flows count while
+   viewing the Exporters tab). Once the live_flows/hosts tab is actually
+   opened, PageFlowsList/PageHostsList's own total-loaded emit (see the
+   template) takes over and keeps the count in lockstep with the table's own
+   recordsTotal on every subsequent load -- no separate polling needed. */
+watch([selectedNetwork, selectedSite, selectedExporter, selectedInterface], () => {
+    loadNetworkOrSiteCounts();
+});
+
 /* Selects an interface. Like handleSelectExporter, the network crumb (if any)
    is derived from the owning exporter's network_id, not from prior selection
    state, so it's correct however this interface was reached. */
@@ -969,12 +1231,44 @@ function handleSelectInterface(iface, exporter) {
 
     selectedExporter.value = owningExporter;
     selectedInterface.value = iface;
+    selectedSnmpDevice.value = null;
+    selectedSnmpInterface.value = null;
     selectedNetwork.value = makeSelectedNetwork(findNetworkById(owningExporter?.network_id));
     activeTab.value = "traffic_analysis";
     ensureEpochWindow();
     revealInSidebar();
     stripLiveEpochFromUrl();
     nextTick(() => exporterTrafficRef.value?.refresh());
+}
+
+/* Selects a bare SNMP device (sites/hierarchy.lua's snmp_devices[]), clearing
+   whatever exporter/interface scope was active -- the two are mutually
+   exclusive selection states (see selectedSnmpDevice). */
+function handleSelectSnmpDevice(device, network) {
+    selectedExporter.value = null;
+    selectedInterface.value = null;
+    selectedSnmpDevice.value = { id: device.ip, name: device.name };
+    selectedSnmpInterface.value = null;
+    selectedNetwork.value = network ? makeSelectedNetwork(network) : makeSelectedNetwork(findNetworkById(device.network_id));
+    activeTab.value = "snmp_analysis";
+    snmpDeviceInterfaces.value = [];
+    ensureEpochWindow();
+    revealInSidebar();
+    stripLiveEpochFromUrl();
+    nextTick(() => snmpTrafficRef.value?.refresh());
+}
+
+/* Drills into one interface of the currently selected bare SNMP device,
+   triggered from the Analysis table's select-interface-equivalent drill-down
+   (via the sidebar or the in-card row link's owning device context). */
+function handleSelectSnmpInterface(iface, device) {
+    if (device) selectedSnmpDevice.value = { id: device.ip, name: device.name };
+    selectedSnmpInterface.value = iface;
+    activeTab.value = "snmp_analysis";
+    ensureEpochWindow();
+    revealInSidebar();
+    stripLiveEpochFromUrl();
+    nextTick(() => snmpTrafficRef.value?.refresh());
 }
 
 function switchTab(tab) {
@@ -989,12 +1283,18 @@ async function loadSidebarChildren(node) {
         return fetchSiteLevel(node.data.site.id);
     }
     if (node.data.kind === "network") {
-        return node.data.exporters.map((e) => makeExporterNode(e));
+        return [
+            ...node.data.exporters.map((e) => makeExporterNode(e)),
+            ...(node.data.snmpDevices.length > 0 ? [makeSnmpDevicesGroupNode(node.id, node.data.snmpDevices)] : []),
+        ];
     }
     if (node.data.kind === "exporter") {
         return fetchExporterInterfaceNodes(node.data.exporter);
     }
-    return []; // interfaces are leaves
+    if (node.data.kind === "snmp_devices_group") {
+        return node.data.devices.map((d) => makeSnmpDeviceNode(d));
+    }
+    return []; // interfaces and snmp_device nodes are leaves
 }
 
 function makeExporterNode(e) {
@@ -1004,6 +1304,27 @@ function makeExporterNode(e) {
         icon: "fas fa-satellite-dish",
         color: isRecentlyActive(e.time_last_used) ? "#2fb344" : undefined,
         data: { kind: "exporter", exporter: e },
+    };
+}
+
+function makeSnmpDevicesGroupNode(networkNodeId, devices) {
+    return {
+        id: `snmp_devices:${networkNodeId}`,
+        name: _i18n("sites_dashboard.snmp_devices"),
+        icon: "fas fa-network-wired",
+        hasChildren: devices.length > 0,
+        data: { kind: "snmp_devices_group", devices },
+    };
+}
+
+function makeSnmpDeviceNode(d) {
+    return {
+        id: `snmp_device:${d.ip}`,
+        name: d.name || d.ip,
+        icon: "bi bi-router",
+        color: d.is_active ? "#2fb344" : undefined,
+        hasChildren: false,
+        data: { kind: "snmp_device", device: d },
     };
 }
 
@@ -1017,6 +1338,7 @@ async function fetchSiteLevel(siteId) {
         const siteList = Array.isArray(rawSites) ? rawSites : Object.values(rawSites);
         const exporterList = Array.isArray(data?.exporters) ? data.exporters : [];
         const networkList = Array.isArray(data?.networks) ? data.networks : [];
+        const snmpDeviceList = Array.isArray(data?.snmp_devices) ? data.snmp_devices : [];
 
         const siteNodes = siteList
             .filter((s) => String(s.id) !== "0" || siteId === null)
@@ -1039,20 +1361,37 @@ async function fetchSiteLevel(siteId) {
             exportersByNetwork.get(key).push(e);
         });
 
+        const snmpDevicesByNetwork = new Map();
+        const unassignedSnmpDevices = [];
+        snmpDeviceList.forEach((d) => {
+            if (d.network_id == null) {
+                unassignedSnmpDevices.push(d);
+                return;
+            }
+            const key = String(d.network_id);
+            if (!snmpDevicesByNetwork.has(key)) snmpDevicesByNetwork.set(key, []);
+            snmpDevicesByNetwork.get(key).push(d);
+        });
+
         const networkNodes = networkList.map((n) => {
             const netExporters = exportersByNetwork.get(String(n.id)) || [];
+            const netSnmpDevices = snmpDevicesByNetwork.get(String(n.id)) || [];
             return {
                 id: `network:${siteId ?? DEFAULT_SITE_ID}:${n.id}`,
                 name: n.name,
                 icon: "bi bi-diagram-3-fill",
-                hasChildren: netExporters.length > 0,
-                data: { kind: "network", network: n, exporters: netExporters },
+                hasChildren: netExporters.length > 0 || netSnmpDevices.length > 0,
+                data: { kind: "network", network: n, exporters: netExporters, snmpDevices: netSnmpDevices },
             };
         });
 
         const exporterNodes = unassignedExporters.map((e) => makeExporterNode(e));
+        const snmpDeviceGroupNodes = unassignedSnmpDevices.length > 0
+            ? [makeSnmpDevicesGroupNode(`site:${siteId ?? DEFAULT_SITE_ID}`, unassignedSnmpDevices)]
+            : [];
 
-        return [...siteNodes, ...networkNodes, ...exporterNodes].sort((a, b) => a.name.localeCompare(b.name));
+        return [...siteNodes, ...networkNodes, ...exporterNodes, ...snmpDeviceGroupNodes]
+            .sort((a, b) => a.name.localeCompare(b.name));
     } catch (err) {
         console.error("Error retrieving sites hierarchy:", err);
         return [];
@@ -1089,6 +1428,35 @@ async function fetchExporterInterfaceNodes(exporter) {
     }
 }
 
+/* Fetches the interfaces of one bare SNMP device (no flow exporter) and maps
+   them to leaf NodeDescriptors, mirroring fetchExporterInterfaceNodes but
+   sourced from snmp/metric/interfaces.lua (same endpoint the Analysis table
+   in snmp-traffic-dashboard.vue uses), since these devices have no
+   exporters_interfaces.lua entry. */
+async function fetchSnmpDeviceInterfaceNodes(device) {
+    try {
+        const url_params = ntopng_url_manager.obj_to_url_params({
+            host: device.ip,
+            start: 0,
+            length: 1000,
+        });
+        const url = `${http_prefix}/lua/pro/rest/v2/get/snmp/metric/interfaces.lua?${url_params}`;
+        const data = await ntopng_utility.http_request(url);
+        const list = Array.isArray(data?.rsp) ? data.rsp : [];
+
+        return list.map((iface) => ({
+            id: `snmp_interface:${device.ip}:${iface.interface_id}`,
+            name: iface.interface_name != null ? String(iface.interface_name) : `ifIndex ${iface.interface_id}`,
+            icon: "bi bi-ethernet",
+            hasChildren: false,
+            data: { kind: "snmp_interface", device, iface: { ...iface, ifindex: iface.interface_id, snmp_ifname: iface.interface_name } },
+        }));
+    } catch (err) {
+        console.error("Error retrieving SNMP device interfaces:", err);
+        return [];
+    }
+}
+
 /* The sidebar tree is the one place that already knows a node's real ancestor
    chain — see handleSelectExporter/handleSelectInterface. */
 async function handleSidebarSelect(node, ancestors) {
@@ -1116,6 +1484,13 @@ async function handleSidebarSelect(node, ancestors) {
         await handleSelectExporter(node.data.exporter);
     } else if (node.data.kind === "interface") {
         handleSelectInterface(node.data.iface, node.data.exporter);
+    } else if (node.data.kind === "snmp_devices_group") {
+        // Non-selectable grouping node with no page of its own: clicking its
+        // label (not just the chevron) also expands it, same as clicking any
+        // other row would normally navigate somewhere.
+        await sidebar.value?.expandTo([node.id]);
+    } else if (node.data.kind === "snmp_device") {
+        handleSelectSnmpDevice(node.data.device);
     }
 }
 
@@ -1138,6 +1513,12 @@ async function handleBreadcrumbSelect(item) {
         handleSelectNetwork(selectedNetwork.value);
     } else if (item.id.startsWith("exporter:") && selectedExporter.value) {
         await handleSelectExporter(selectedExporter.value);
+    } else if (item.id.startsWith("snmp_devices:") && selectedNetwork.value) {
+        // "SNMP Devices" crumb: go back up to the network's grouping view
+        // (there's no dedicated tab for it yet, so fall back to the network).
+        handleSelectNetwork(selectedNetwork.value);
+    } else if (item.id.startsWith("snmp_device:") && selectedSnmpDevice.value) {
+        handleSelectSnmpDevice({ ip: selectedSnmpDevice.value.id, name: selectedSnmpDevice.value.name, network_id: selectedNetwork.value?.id });
     }
 }
 </script>

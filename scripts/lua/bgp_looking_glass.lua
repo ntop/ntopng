@@ -14,7 +14,9 @@ local info = ntop.getInfo()
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.bgp_looking_glass)
+local menu = isASNModeEnabled() and page_utils.menu_entries.bgp_looking_glass_asn or page_utils.menu_entries.bgp_looking_glass
+
+page_utils.print_header_and_set_active_menu_entry(menu)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

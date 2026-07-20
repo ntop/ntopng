@@ -4,7 +4,7 @@
         <TableWithConfig ref="table_flows_list" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
             :showLoading="true" :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
             :handleLoadedColumns="handleLoadedColumns" @custom_event="on_table_custom_event"
-            @rows_loaded="change_filter_labels">
+            @rows_loaded="on_rows_loaded">
             <template v-slot:custom_header>
                 <div class="dropdown d-inline-block" v-for="item in filter_table_array">
                     <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
@@ -51,6 +51,12 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+// total-loaded(total_rows): fired every time the table (re)loads a page, so
+// callers embedding this table (e.g. the sites dashboard's tab pill count)
+// can stay in sync with the exact same recordsTotal the table itself shows,
+// instead of polling active_list.lua separately.
+const emit = defineEmits(["total-loaded"]);
 
 /* ************************************** */
 
@@ -516,6 +522,11 @@ function change_filter_labels() {
     add_filters_to_rows()
 }
 
+function on_rows_loaded(res) {
+    change_filter_labels();
+    emit("total-loaded", res?.total_rows ?? null);
+}
+
 /* ************************************** */
 
 function add_table_filter(opt, opt2, opt3) {
@@ -587,6 +598,10 @@ async function load_table_filters_array() {
 
 function reset_filters() {
     filter_table_array.value.forEach((el, index) => {
+        // Locked filters (e.g. deviceIP/network/site_id, pinned externally by
+        // the sites dashboard) stay untouched -- Reset only clears the
+        // filters the user can actually edit here.
+        if (props.locked_filters.includes(el.id)) return;
         /* Getting the currently selected filter */
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
