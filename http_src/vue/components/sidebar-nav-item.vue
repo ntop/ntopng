@@ -115,6 +115,11 @@ function handleToggle() {
     background: #EA6A2A;
     color: #fff;
     font-weight: 600;
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .sidebar-nav-item-disabled {

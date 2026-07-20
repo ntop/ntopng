@@ -9263,6 +9263,7 @@ local lang = {
   },
   ["sites_dashboard"] = {
     ["sites"] = "Sites",
+    ["site"] = "Site",
     ["default_site"] = "Default",
     ["search_placeholder"] = "Search sites, devices, interfaces…",
     ["networks"] = "Networks",
