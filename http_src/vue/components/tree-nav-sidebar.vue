@@ -116,6 +116,10 @@ const rootIds = ref([]);
 const expandedIds = ref(new Set());
 const loadingIds = ref(new Set());
 
+/* In-flight ensureChildrenLoaded() promises, keyed by node id. Concurrent
+   callers for the same node*/
+const inFlightChildLoads = new Map();
+
 const visibleRows = computed(() => {
     const query = search.value.trim().toLowerCase();
     const rows = [];
@@ -250,25 +254,37 @@ async function handleToggle(node) {
 }
 
 /* Lazily loads and stores a node's children (once), independent of the
-   expanded/collapsed state — shared by handleToggle and expandTo. */
+   expanded/collapsed state — shared by handleToggle and expandTo. Concurrent
+   calls for the same node id (see inFlightChildLoads) await the one fetch
+   already in flight instead of each starting their own. */
 async function ensureChildrenLoaded(node) {
     const id = node.id;
-    if (node.hasChildren === false || node.children !== null || loadingIds.value.has(id)) return;
+    if (node.hasChildren === false || node.children !== null) return;
 
-    loadingIds.value = new Set([...loadingIds.value, id]);
+    const existing = inFlightChildLoads.get(id);
+    if (existing) return existing;
 
-    let children = await safeLoadChildren(node);
-    if (children.length === 0) {
-        children = [makeEmptyNode(id)];
-    }
-    children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
-    node.children = children.map((c) => c.id);
-    /* The chevron always stays visible: a node can always be expanded
-       again to re-check for children, regardless of what was found. */
-    nodesById.value.set(id, node);
-    prefetchChildCounts(children.filter((c) => !c.isEmptyPlaceholder));
+    const promise = (async () => {
+        loadingIds.value = new Set([...loadingIds.value, id]);
+        try {
+            let children = await safeLoadChildren(node);
+            if (children.length === 0) {
+                children = [makeEmptyNode(id)];
+            }
+            children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
+            node.children = children.map((c) => c.id);
+            /* The chevron always stays visible: a node can always be expanded
+               again to re-check for children, regardless of what was found. */
+            nodesById.value.set(id, node);
+            prefetchChildCounts(children.filter((c) => !c.isEmptyPlaceholder));
+        } finally {
+            loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
+            inFlightChildLoads.delete(id);
+        }
+    })();
 
-    loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
+    inFlightChildLoads.set(id, promise);
+    return promise;
 }
 
 /* Reveals a node reached through a path the caller already knows (e.g. a

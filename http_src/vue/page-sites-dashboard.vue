@@ -52,93 +52,22 @@
                     <NavbarTabs :tabs="tabs" :active_tab_id="activeTab" @on_click="switchTab" />
                 </div>
 
-                <!-- Overview: traffic time series + L7/L4 protocol breakdown + top talkers/destinations.
-                     Shared by the exporter view (all interfaces) and the interface drill-down
-                     (single ifIndex) — both feed the same refs via loadExporterOverview(). -->
-                <template v-if="(activeTab === 'exporter_interfaces' && selectedExporter && !selectedInterface) || (activeTab === 'traffic_analysis' && selectedInterface)">
-                    <div class="row g-3 mb-3">
-                        <div class="col-lg-8">
-                            <DashboardCard :title="_i18n('sites_dashboard.traffic_time_series')" icon="bi bi-graph-up"
-                                :titleLink="titleLinks.traffic_time_series" noPadding>
-                                <div class="sites-dashboard-ts">
-                                    <DashboardTimeseries v-if="ifaceEpochBegin && ifaceEpochEnd" ref="ifaceChartRef"
-                                        :id="'sites_dashboard_iface_ts'" :ifid="ifid" :epoch_begin="ifaceEpochBegin"
-                                        :epoch_end="ifaceEpochEnd" :max_width="12" :max_height="4"
-                                        :params="ifaceTimeseriesParams" :csrf="props.context?.csrf" />
-                                </div>
-                            </DashboardCard>
-                        </div>
-                        <div class="col-lg-4">
-                            <DashboardCard :title="_i18n('sites_dashboard.top_l7_proto')" icon="bi bi-app-indicator"
-                                :titleLink="titleLinks.top_l7_proto" noPadding>
-                                <NoData v-if="!loadingL7 && topL7.length === 0" :show="true" />
-                                <BootstrapTable v-else :id="'sites_dashboard_top_l7'" :columns="topProtoColumns"
-                                    :rows="topL7" :print_html_column="printProtoColumn"
-                                    :print_html_row="printProtoRow" />
-                            </DashboardCard>
-                        </div>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div v-if="showHistoricalWidgets" class="col-lg-4">
-                            <DashboardCard :title="_i18n('sites_dashboard.top_l4_proto')" icon="bi bi-diagram-2"
-                                :titleLink="titleLinks.top_l4_proto" noPadding>
-                                <NoData v-if="!loadingL4 && topL4.length === 0" :show="true" />
-                                <BootstrapTable v-else :id="'sites_dashboard_top_l4'" :columns="topProtoColumns"
-                                    :rows="topL4" :print_html_column="printProtoColumn"
-                                    :print_html_row="printProtoRow" />
-                            </DashboardCard>
-                        </div>
-                        <div :class="overviewTableColClass">
-                            <DashboardCard :title="_i18n('sites_dashboard.top_local_talkers')" icon="bi bi-laptop"
-                                :titleLink="titleLinks.top_local_talkers" noPadding>
-                                <NoData v-if="!loadingTalkers && topTalkers.length === 0" :show="true" />
-                                <BootstrapTable v-else :id="'sites_dashboard_top_talkers'" :columns="topHostColumns"
-                                    :rows="topTalkers" :print_html_column="printHostColumn"
-                                    :print_html_row="printHostRow" />
-                            </DashboardCard>
-                        </div>
-                        <div :class="overviewTableColClass">
-                            <DashboardCard :title="_i18n('sites_dashboard.top_remote_destinations')"
-                                icon="bi bi-globe" :titleLink="titleLinks.top_remote_destinations" noPadding>
-                                <NoData v-if="!loadingDestinations && topDestinations.length === 0" :show="true" />
-                                <BootstrapTable v-else :id="'sites_dashboard_top_destinations'"
-                                    :columns="topHostColumns" :rows="topDestinations"
-                                    :print_html_column="printHostColumn" :print_html_row="printHostRow" />
-                            </DashboardCard>
-                        </div>
-                    </div>
-                </template>
+                <ExporterTrafficDashboard
+                    v-if="selectedInterface ? activeTab === 'traffic_analysis' : (selectedExporter && (activeTab === 'traffic_analysis' || activeTab === 'exporter_interfaces'))"
+                    ref="exporterTrafficRef" :ifid="ifid" :exporter="selectedExporter" :iface="selectedInterface"
+                    :show-interfaces="activeTab === 'exporter_interfaces'"
+                    :epoch-begin="ifaceEpochBegin" :epoch-end="ifaceEpochEnd"
+                    :show-historical-widgets="showHistoricalWidgets" :overview-table-col-class="overviewTableColClass"
+                    :title-links="titleLinks" :csrf="props.context?.csrf"
+                    @select-interface="(iface) => handleSelectInterface(iface, selectedExporter)"
+                    @counts-loaded="onExporterCountsLoaded"
+                    @interfaces-loaded="(list) => exporterInterfaces = list" />
 
-                <DashboardCard v-if="activeTab === 'networks'" :title="_i18n('sites_dashboard.networks')"
-                    icon="bi bi-diagram-3-fill" :titleLink="titleLinks.networks" noPadding>
-                    <NoData v-if="!loadingHierarchy && networks.length === 0" :show="true" />
-                    <BootstrapTable v-else :id="'sites_dashboard_networks'" :columns="networkColumns"
-                        :rows="networks" :print_html_column="printNetworkColumn"
-                        :print_html_row="printNetworkRow" />
-                </DashboardCard>
+                <NetworkDashboard v-if="activeTab === 'networks'" :networks="networks" :loading="loadingHierarchy"
+                    :title-link="titleLinks.networks" @select="handleSelectNetwork" />
 
-                <DashboardCard v-if="activeTab === 'exporters'" :title="_i18n('sites_dashboard.exporters')"
-                    icon="bi bi-hdd-network" :titleLink="titleLinks.exporters" noPadding>
-                    <NoData v-if="!loadingHierarchy && exporters.length === 0" :show="true" />
-                    <div v-else class="sites-dashboard-clickable-table"
-                        @click="(ev) => onRowClick(ev, exporters, handleSelectExporter)">
-                        <BootstrapTable :id="'sites_dashboard_exporters'" :columns="exporterColumns"
-                            :rows="exporters" :print_html_column="printExporterColumn"
-                            :print_html_row="printExporterRow" />
-                    </div>
-                </DashboardCard>
-
-                <DashboardCard v-if="activeTab === 'exporter_interfaces' && selectedExporter"
-                    :title="_i18n('sites_dashboard.interfaces')" icon="bi bi-ethernet"
-                    :titleLink="titleLinks.exporter_interfaces" noPadding>
-                    <NoData v-if="!loadingInterfaces && exporterInterfaces.length === 0" :show="true" />
-                    <div v-else class="sites-dashboard-clickable-table"
-                        @click="(ev) => onRowClick(ev, exporterInterfaces, (iface) => handleSelectInterface(iface, selectedExporter))">
-                        <BootstrapTable :id="'sites_dashboard_exporter_interfaces'"
-                            :columns="interfaceColumns" :rows="exporterInterfaces"
-                            :print_html_column="printInterfaceColumn" :print_html_row="printInterfaceRow" />
-                    </div>
-                </DashboardCard>
+                <ExportersDashboard v-if="activeTab === 'exporters'" :exporters="displayedExporters"
+                    :loading="loadingHierarchy" :title-link="titleLinks.exporters" @select="handleSelectExporter" />
 
                 <div v-if="!selectedSite && !selectedExporter && !selectedInterface" class="sites-dashboard-empty">
                     <NoData :show="true" />
@@ -149,24 +78,32 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from "vue";
+import { ref, computed, onBeforeMount, nextTick, watch } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services";
 import formatterUtils from "../utilities/formatter-utils";
 import { default as TreeNavSidebar } from "./components/tree-nav-sidebar.vue";
 import { default as BreadcrumbNav } from "./components/breadcrumb-nav.vue";
-import { default as DashboardCard } from "./components/dashboard-card.vue";
 import { default as NavbarTabs } from "./components/navbar-tabs.vue";
 import { default as NoData } from "./components/no-data.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as BadgeCard } from "./badge-card.vue";
-import { default as DashboardTimeseries } from "./dashboard-timeseries.vue";
-import { default as BootstrapTable } from "./bootstrap-table.vue";
-import NtopUtils from "../utilities/ntop-utils.js";
+import { default as NetworkDashboard } from "./components/sites-dashboard/network-dashboard.vue";
+import { default as ExportersDashboard } from "./components/sites-dashboard/exporters-dashboard.vue";
+import { default as ExporterTrafficDashboard } from "./components/sites-dashboard/exporter-traffic-dashboard.vue";
+import { isRecentlyActive } from "../utilities/sites-dashboard-utils.js";
 
 const _i18n = (t) => i18n(t);
 
 const DEFAULT_SITE_ID = "0";
 const DATE_PICKER_ID = "sites_dashboard_date_picker";
+
+/* URL params that mirror the current selection, so a page refresh restores
+   the same site/network/exporter/interface instead of resetting to the
+   default site (see the selection watcher below / restoreSelectionFromUrl). */
+const URL_PARAM_SITE_ID = "site_id";
+const URL_PARAM_NETWORK_ID = "network_id";
+const URL_PARAM_EXPORTER_IP = "exporter_ip";
+const URL_PARAM_IF_IDX = "ifIdx";
 
 /* Title-link URLs for each card. networks/exporters/exporter_interfaces are
    still placeholders - fill in with the final destination URLs.
@@ -219,37 +156,35 @@ function ensureEpochWindow() {
 }
 
 const sidebar = ref(null);
+const exporterTrafficRef = ref(null);
 
 const selectedSite = ref(null);
+const selectedNetwork = ref(null);
 const selectedExporter = ref(null);
 const selectedInterface = ref(null);
 const activeTab = ref("networks");
 
-const selectedAncestors = ref([]);
+/* Ancestor chain (root -> ... -> parent) of whichever site is currently
+   selected, i.e. everything the breadcrumb needs above the site crumb itself.
+   Resolved once per site change (see handleSelectSite) via the same
+   resolveSiteChain BFS used for URL restore, so the breadcrumb is always
+   built the same way regardless of how the site was reached */
+const selectedSiteAncestors = ref([]);
 
 const loadingHierarchy = ref(false);
-const loadingInterfaces = ref(false);
 
 const networks = ref([]);
 const sites = ref([]);
 const exporters = ref([]);
+
+/* Last interfaces list reported by ExporterTrafficDashboard for the selected
+   exporter */
 const exporterInterfaces = ref([]);
 
-/* Exporter overview state: L7/L4 protocol breakdown, top local talkers/remote
-   destinations and the traffic time series, all scoped to the currently
-   selected exporter and driven by the top-right date/time range picker. */
+/* Epoch window driving the exporter/interface traffic panel (ExporterTrafficDashboard),
+   set here since it's shared with the top-right date/time range picker. */
 const ifaceEpochBegin = ref(null);
 const ifaceEpochEnd = ref(null);
-
-const loadingL7 = ref(false);
-const loadingL4 = ref(false);
-const loadingTalkers = ref(false);
-const loadingDestinations = ref(false);
-
-const topL7 = ref([]);
-const topL4 = ref([]);
-const topTalkers = ref([]);
-const topDestinations = ref([]);
 
 const liveFlowsCount = ref(null);
 const liveHostsCount = ref(null);
@@ -278,97 +213,12 @@ if (hasHistoricalRange) {
    left empty by the missing L4 card. */
 const overviewTableColClass = computed(() => showHistoricalWidgets.value ? "col-lg-4" : "col-lg-6");
 
-/* BootstrapTable column definitions + print_html_column/print_html_row
-   callbacks for every list rendered on this page (see bootstrap-table.vue). */
-const networkColumns = [
-    { id: "name", label: _i18n("sites_dashboard.network") },
-];
-function printNetworkColumn(col) { return col.label; }
-function printNetworkRow(col, row) { return row.name; }
-
-const exporterColumns = [
-    { id: "name", label: _i18n("sites_dashboard.exporter") },
-    { id: "id", label: _i18n("sites_dashboard.ip_address") },
-];
-function printExporterColumn(col) { return col.label; }
-function printExporterRow(col, row) { return row[col.id]; }
-
-const interfaceColumns = [
-    { id: "snmp_ifname", label: _i18n("sites_dashboard.interface") },
-    { id: "in_bytes", label: _i18n("sites_dashboard.in_bytes") },
-    { id: "out_bytes", label: _i18n("sites_dashboard.out_bytes") },
-];
-function printInterfaceColumn(col) { return col.label; }
-function printInterfaceRow(col, row) {
-    if (col.id === "in_bytes" || col.id === "out_bytes") return formatBytes(row[col.id]);
-    return row[col.id];
-}
-
-const topProtoColumns = [
-    { id: "label", label: _i18n("application") },
-    { id: "value", label: _i18n("traffic") },
-    { id: "percentage", label: "" },
-];
-function printProtoColumn(col) { return col.label; }
-function printProtoRow(col, row) {
-    if (col.id === "value") return formatBytes(row.value);
-    if (col.id === "percentage") return formatPercentage(row.percentage);
-    return row.label;
-}
-
-const topHostColumns = [
-    { id: "label", label: _i18n("sites_dashboard.host") },
-    { id: "bytes", label: _i18n("traffic") },
-];
-function printHostColumn(col) { return col.label; }
-function printHostRow(col, row) {
-    if (col.id === "bytes") return formatBytes(row.bytes);
-    return row.label;
-}
-
-/* Resolves a click anywhere inside a BootstrapTable */
-function onRowClick(event, rows, handler) {
-    const tr = event.target.closest("tbody tr");
-    if (!tr) return;
-    const index = Array.from(tr.parentElement.children).indexOf(tr);
-    if (rows[index]) handler(rows[index]);
-}
-
 /* The exporter's own collector interface (interface_id, from getAllExportersList())
    is not necessarily the page's ambient ifid: an exporter can be collected on an
    interface other than the one currently selected in the top navbar, and its
    flowdev/flowdev_port timeseries are only recorded under that collector ifid. */
 const exporterTimeseriesIfid = computed(() => {
     return String(selectedExporter.value?.interface_id ?? ifid);
-});
-
-const ifaceTimeseriesParams = computed(() => {
-    if (selectedInterface.value) {
-        return {
-            post_params: {
-                limit: 180,
-                version: 4,
-                ts_requests: {
-                    "$IFID$": {
-                        ts_query: `ifid:${exporterTimeseriesIfid.value},device:${selectedExporter.value?.id},port:${selectedInterface.value.ifindex}`,
-                        ts_schema: `flowdev_port:traffic`,
-                    },
-                },
-            },
-        };
-    }
-    return {
-        post_params: {
-            limit: 180,
-            version: 4,
-            ts_requests: {
-                "$IFID$": {
-                    ts_query: `ifid:${exporterTimeseriesIfid.value},device:${selectedExporter.value?.id}`,
-                    ts_schema: `flowdev:traffic`,
-                },
-            },
-        },
-    };
 });
 
 /* exporters_interfaces.lua is the only
@@ -502,6 +352,7 @@ const titleLinks = computed(() => {
 const selectedNodeId = computed(() => {
     if (selectedInterface.value) return `interface:${selectedExporter.value?.id}:${selectedInterface.value.ifindex}`;
     if (selectedExporter.value) return `exporter:${selectedExporter.value.id}`;
+    if (selectedNetwork.value) return selectedNetwork.value.nodeId;
     if (selectedSite.value) return `site:${selectedSite.value.id}`;
     return null;
 });
@@ -509,6 +360,7 @@ const selectedNodeId = computed(() => {
 const titleIcon = computed(() => {
     if (selectedInterface.value) return "bi bi-ethernet";
     if (selectedExporter.value) return "fas fa-satellite-dish";
+    if (selectedNetwork.value) return "bi bi-diagram-3-fill";
     return "bi bi-geo-alt-fill";
 });
 
@@ -516,6 +368,7 @@ const titleIcon = computed(() => {
 const titleLabel = computed(() => {
     if (selectedInterface.value) return _i18n("sites_dashboard.interface");
     if (selectedExporter.value) return _i18n("sites_dashboard.exporter");
+    if (selectedNetwork.value) return _i18n("sites_dashboard.network");
     return null;
 });
 
@@ -529,6 +382,9 @@ const titleName = computed(() => {
     }
     if (selectedExporter.value) {
         return exporterDisplayName.value ?? selectedExporter.value.name;
+    }
+    if (selectedNetwork.value) {
+        return selectedNetwork.value.name;
     }
     return selectedSite.value?.name ?? "";
 });
@@ -553,7 +409,13 @@ const tabs = computed(() => {
         return [{ id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" }];
     }
     if (selectedExporter.value) {
-        return [{ id: "exporter_interfaces", label_i18n: "sites_dashboard.interfaces", count: exporterInterfaces.value.length }];
+        return [
+            { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
+            { id: "exporter_interfaces", label_i18n: "sites_dashboard.interfaces", count: exporterInterfaces.value.length },
+        ];
+    }
+    if (selectedNetwork.value) {
+        return [{ id: "exporters", label_i18n: "sites_dashboard.exporters", count: displayedExporters.value.length }];
     }
     return [
         { id: "networks", label_i18n: "sites_dashboard.networks", count: networks.value.length },
@@ -561,21 +423,47 @@ const tabs = computed(() => {
     ];
 });
 
-const breadcrumbItems = computed(() => {
-    const items = selectedAncestors.value.map((n) => ({ id: n.id, name: n.name }));
+/* Every crumb id is prefixed with its kind (site:/network:/exporter:/interface:,
+   see selectedNodeId and the "network:<site>:<id>" scheme in handleSelectNetwork),
+   so the breadcrumb's hover tooltip ("Site", "Network", ...) can be derived
+   generically from the id instead of being threaded through separately. */
+const BREADCRUMB_KIND_LABELS = {
+    site: () => _i18n("sites_dashboard.site"),
+    network: () => _i18n("sites_dashboard.network"),
+    exporter: () => _i18n("sites_dashboard.exporter"),
+    interface: () => _i18n("sites_dashboard.interface"),
+};
 
+function breadcrumbTooltip(id) {
+    if (typeof id !== "string") return null;
+    const kind = id.split(":")[0];
+    return BREADCRUMB_KIND_LABELS[kind]?.() ?? null;
+}
+
+/* Single generic breadcrumb builder: always composes the chain the same way
+   from current selection state, regardless of how that state was reached
+   (sidebar click, table click, breadcrumb click, or URL restore on mount) —
+   no per-handler ancestor bookkeeping. */
+const breadcrumbItems = computed(() => {
+    const items = [...selectedSiteAncestors.value];
+
+    if (selectedSite.value && selectedSite.value.id !== DEFAULT_SITE_ID) {
+        items.push({ id: `site:${selectedSite.value.id}`, name: selectedSite.value.name });
+    }
+    if (selectedNetwork.value) {
+        items.push({ id: selectedNetwork.value.nodeId, name: selectedNetwork.value.name });
+    }
+    if (selectedExporter.value) {
+        items.push({ id: `exporter:${selectedExporter.value.id}`, name: selectedExporter.value.name });
+    }
     if (selectedInterface.value) {
         items.push({
-            id: selectedNodeId.value,
+            id: `interface:${selectedExporter.value?.id}:${selectedInterface.value.ifindex}`,
             name: selectedInterface.value.snmp_ifname ?? `ifIndex ${selectedInterface.value.ifindex}`,
         });
-    } else if (selectedExporter.value) {
-        items.push({ id: selectedNodeId.value, name: selectedExporter.value.name });
-    } else if (selectedSite.value) {
-        items.push({ id: selectedNodeId.value, name: selectedSite.value.name });
     }
 
-    return items;
+    return items.map((item) => ({ ...item, tooltip: breadcrumbTooltip(item.id) }));
 });
 
 const kpiCards = computed(() => {
@@ -622,33 +510,20 @@ const kpiCards = computed(() => {
     ];
 });
 
+/* Exporters shown in the "exporters" tab table: scoped down to the selected
+   network's members when a network node is active, otherwise the full list
+   for the current site. */
+const displayedExporters = computed(() => {
+    if (!selectedNetwork.value) return exporters.value;
+    return exporters.value.filter((e) => String(e.network_id) === String(selectedNetwork.value.id));
+});
+
 function formatBytes(v) {
     return formatterUtils.getFormatter("bytes")(v);
 }
 
-function formatPercentage(pct) {
-    return NtopUtils.createProgressBar(pct || 0);
-}
-
-const RECENT_ACTIVITY_WINDOW_SECS = 5 * 60;
-
-function isRecentlyActive(timeLastUsed) {
-    if (!timeLastUsed) return false;
-    return (Date.now() / 1000 - timeLastUsed) <= RECENT_ACTIVITY_WINDOW_SECS;
-}
-
-/* Maps a raw {label, value}[] top-N list into rows carrying each entry's
-   share of the total, rendered as a progress bar in the table's third column. */
-function withPercentages(list) {
-    const total = list.reduce((sum, e) => sum + (e.value || 0), 0);
-    return list.map((e) => ({
-        ...e,
-        percentage: total > 0 ? (e.value / total) * 100 : 0,
-    }));
-}
-
 onBeforeMount(() => {
-    handleSelectSite({ id: DEFAULT_SITE_ID, name: _i18n("sites_dashboard.default_site") });
+    restoreSelectionFromUrl();
 });
 
 /* Re fetches data in the currently visible panel, without
@@ -658,40 +533,68 @@ async function refreshCurrentView() {
     // so the time series advances instead of re-querying the same stale span.
     if (isLive.value) setLiveEpochWindow();
 
-    if (selectedInterface.value) {
-        await Promise.all([
-            loadExporterOverview(selectedExporter.value, selectedInterface.value),
-            loadExporterCounts(selectedExporter.value, selectedInterface.value),
-        ]);
-    } else if (selectedExporter.value) {
-        await Promise.all([
-            loadExporterInterfaces(selectedExporter.value),
-            loadExporterOverview(selectedExporter.value),
-            loadExporterCounts(selectedExporter.value),
-        ]);
+    if (selectedExporter.value) {
+        await exporterTrafficRef.value?.refresh();
     } else if (selectedSite.value) {
         await loadHierarchy(selectedSite.value.id);
     }
 }
 
-/* ancestors, when provided, is the real chain reported by the
-   sidebar's tree for this exact node. When omitted, it defaults
-   to an empty chain: a top-level selection with no ancestors. */
-async function handleSelectSite(site, ancestors) {
+/* siteAncestors, when provided, is the real chain reported by the sidebar's
+   tree for this exact node (root -> ... -> parent). When omitted (table
+   click, breadcrumb click, URL restore), it's resolved generically via the
+   same resolveSiteChain BFS used everywhere else, so the breadcrumb always
+   ends up identical regardless of how the site was reached. */
+async function handleSelectSite(site, siteAncestors) {
     selectedSite.value = site;
+    selectedNetwork.value = null;
     selectedExporter.value = null;
     selectedInterface.value = null;
-    selectedAncestors.value = ancestors ?? [];
     activeTab.value = "networks";
+
+    if (siteAncestors) {
+        selectedSiteAncestors.value = siteAncestors;
+    } else if (site.id === DEFAULT_SITE_ID) {
+        selectedSiteAncestors.value = [];
+    } else {
+        selectedSiteAncestors.value = (await resolveSiteChain(site.id)).ancestors;
+    }
+
     await loadHierarchy(site.id);
+}
+
+/* Builds the selectedNetwork shape (id/name/nodeId) from a raw {id, name}
+   network object, under the current site. */
+function makeSelectedNetwork(network) {
+    if (!network) return null;
+    return {
+        id: network.id,
+        name: network.name,
+        nodeId: `network:${selectedSite.value?.id ?? DEFAULT_SITE_ID}:${network.id}`,
+    };
+}
+
+/* Looks up the network a given network_id refers to within the current
+   site's loaded networks.value list (populated by loadHierarchy). */
+function findNetworkById(networkId) {
+    if (networkId == null) return null;
+    return networks.value.find((n) => String(n.id) === String(networkId)) ?? null;
+}
+
+/* Selects a "network" grouping node: shows only the exporters that belong to
+   this network_id, reusing the exporters tab/table. */
+function handleSelectNetwork(network) {
+    selectedNetwork.value = makeSelectedNetwork(network);
+    selectedExporter.value = null;
+    selectedInterface.value = null;
+    activeTab.value = "exporters";
+    revealInSidebar();
 }
 
 async function loadHierarchy(siteId) {
     loadingHierarchy.value = true;
     try {
-        const url_params = ntopng_url_manager.obj_to_url_params({ ifid, site_id: siteId });
-        const url = `${http_prefix}/lua/pro/rest/v2/get/sites/hierarchy.lua?${url_params}`;
-        const data = await ntopng_utility.http_request(url);
+        const data = await fetchSiteHierarchy(siteId);
         networks.value = data?.networks || [];
         sites.value = data?.sites || [];
         exporters.value = data?.exporters || [];
@@ -704,28 +607,20 @@ async function loadHierarchy(siteId) {
     loadingHierarchy.value = false;
 }
 
-/* ancestors, when provided, is the authoritative chain from the sidebar's
-   tree. When omitted, the real parent is exactly selectedSite plus everything above it captured before selectedSite
-   itself is overwritten below. */
-async function handleSelectExporter(exporter, ancestors) {
-    const parentSiteCrumb = selectedSite.value
-        ? { id: `site:${selectedSite.value.id}`, name: selectedSite.value.name }
-        : null;
-
+/* Selects an exporter. The breadcrumb's network crumb (if any) is derived
+   generically from the exporter's own network_id */
+async function handleSelectExporter(exporter) {
     selectedExporter.value = exporter;
     selectedInterface.value = null;
-    selectedAncestors.value = ancestors ?? (parentSiteCrumb ? [...selectedAncestors.value, parentSiteCrumb] : []);
-    activeTab.value = "exporter_interfaces";
+    selectedNetwork.value = makeSelectedNetwork(findNetworkById(exporter.network_id));
+    activeTab.value = "traffic_analysis";
     ensureEpochWindow();
     revealInSidebar();
     // The picker mounts with this selection; in live it writes a zero-width
     // window to the URL on mount, so clear it once mounted (see stripLiveEpochFromUrl).
     stripLiveEpochFromUrl();
-    await Promise.all([
-        loadExporterInterfaces(exporter),
-        loadExporterOverview(exporter),
-        loadExporterCounts(exporter),
-    ]);
+    await nextTick();
+    await exporterTrafficRef.value?.refresh();
 }
 
 /* Expands the sidebar tree down to whichever node is now selected (site,
@@ -733,251 +628,137 @@ async function handleSelectExporter(exporter, ancestors) {
    the sidebar itself) still reveals and highlights the matching tree row
    instead of leaving it hidden under a collapsed branch. */
 function revealInSidebar() {
-    const ancestorIds = selectedAncestors.value.map((a) => a.id);
+    // breadcrumbItems always ends with the current node's own crumb (matching
+    // selectedNodeId), so its ancestor ids are exactly everything before that;
+    // the target id itself is included too so an exporter/network selection
+    // also expands to reveal its own children (interfaces/exporters).
     const targetId = selectedNodeId.value;
-    if (targetId) sidebar.value?.expandTo([...ancestorIds, targetId]);
+    if (!targetId) return;
+    const ancestorIds = breadcrumbItems.value.slice(0, -1).map((a) => a.id);
+    sidebar.value?.expandTo([...ancestorIds, targetId]);
 }
 
-/* Live flows/hosts counts for the "Flows" and "Active Hosts" KPI cards.
-   Flows count is scoped to the exporter and, at interface scope, to flows whose
-   SNMP in OR out index is the selected ifIndex (ifIdx). Note host/active_list.lua
-   only honours deviceIP, so the Active Hosts KPI stays exporter-scoped. */
-async function loadExporterCounts(exporter, iface) {
-    if (!exporter) return;
+/* Single generic sync point for selection -> URL: one watcher over the four
+   selection refs, instead of a syncSelectionToUrl() call threaded through
+   every handler. */
+watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface], () => {
+    const search_params = ntopng_url_manager.get_url_search_params();
 
-    const iface_filter = iface ? { ifIdx: iface.ifindex } : {};
-
-    const flows_params = ntopng_url_manager.obj_to_url_params({
-        start: 0,
-        length: 1,
-        map_search: "",
-        visible_columns: "actions,first_seen,last_seen,duration,protocol,score,qoe,flow,cli_asn_asnmode_disabled,srv_asn_asnmode_disabled,throughput,bytes,info,flow_exporter,in_index,out_index",
-        deviceIP: exporter.id,
-        ...iface_filter,
-    });
-    const hosts_params = ntopng_url_manager.obj_to_url_params({
-        start: 0,
-        length: 1,
-        map_search: "",
-        visible_columns: "actions,ip_address,hostname,num_flows,alerts,score,first_seen,traffic_breakdown,throughput,bytes",
-        deviceIP: exporter.id,
-        ...iface_filter,
-    });
-
-    try {
-        const data = await ntopng_utility.http_request(
-            `${http_prefix}/lua/rest/v2/get/flow/active_list.lua?${flows_params}`, undefined, undefined, true
-        );
-        liveFlowsCount.value = data?.recordsTotal ?? null;
-    } catch (err) {
-        console.error("Error retrieving live flows count:", err);
-        liveFlowsCount.value = null;
-    }
-
-    try {
-        const data = await ntopng_utility.http_request(
-            `${http_prefix}/lua/rest/v2/get/host/active_list.lua?${hosts_params}`, undefined, undefined, true
-        );
-        liveHostsCount.value = data?.recordsTotal ?? null;
-    } catch (err) {
-        console.error("Error retrieving live hosts count:", err);
-        liveHostsCount.value = null;
-    }
-}
-
-/* Refetches the exporter overview cards (L7/L4 protocol breakdown, top
-   local talkers, top remote destinations) for the currently selected exporter
-   and the current [ifaceEpochBegin, ifaceEpochEnd] window. */
-async function loadExporterOverview(exporter, iface) {
-    if (!exporter) return;
-    if (showHistoricalWidgets.value) {
-        await loadExporterOverviewHistorical(exporter, iface);
+    const site_id = selectedSite.value?.id;
+    if (site_id != null && site_id !== DEFAULT_SITE_ID) {
+        search_params.set(URL_PARAM_SITE_ID, site_id);
     } else {
-        await loadExporterOverviewLive(exporter, iface);
+        search_params.delete(URL_PARAM_SITE_ID);
     }
+
+    if (selectedNetwork.value) {
+        search_params.set(URL_PARAM_NETWORK_ID, selectedNetwork.value.id);
+    } else {
+        search_params.delete(URL_PARAM_NETWORK_ID);
+    }
+
+    if (selectedExporter.value) {
+        search_params.set(URL_PARAM_EXPORTER_IP, selectedExporter.value.id);
+    } else {
+        search_params.delete(URL_PARAM_EXPORTER_IP);
+    }
+
+    if (selectedInterface.value) {
+        search_params.set(URL_PARAM_IF_IDX, selectedInterface.value.ifindex);
+    } else {
+        search_params.delete(URL_PARAM_IF_IDX);
+    }
+
+    ntopng_url_manager.replace_url(search_params.toString());
+});
+
+/* site_id=0 (Default's own networks/exporters) and "no site_id" (the flat
+   top-level sites list: Default + every other root-level site) are two
+   different, both meaningful queries — site_id is only omitted when siteId
+   is actually null/undefined (the tree's true root), never coerced from "0". */
+async function fetchSiteHierarchy(siteId) {
+    const paramsObj = { ifid };
+    if (siteId !== null && siteId !== undefined) paramsObj.site_id = siteId;
+    const url_params = ntopng_url_manager.obj_to_url_params(paramsObj);
+    const url = `${http_prefix}/lua/pro/rest/v2/get/sites/hierarchy.lua?${url_params}`;
+    return ntopng_utility.http_request(url);
 }
 
-// Live overview: aggregates the active in-memory flows exported by this exporter
-// (deviceIP) through aggregated_live_flows.lua, grouped by application protocol,
-// client and server, sorted by traffic.
-async function loadExporterOverviewLive(exporter, iface) {
-    // Top L4: historical-only, cleared in live.
-    topL4.value = [];
-    loadingL4.value = false;
-
-    const base_params = {
-        ifid: exporterTimeseriesIfid.value,
-        deviceIP: exporter.id,
-        sort: "tot_traffic",
-        order: "desc",
-        start: 0,
-        length: 10,
-        // ifIdx matches flows whose SNMP in OR out index is this interface.
-        // Passing inIfIdx+outIfIdx together would AND them (in==idx AND out==idx),
-        // which is almost never true and would leave interface-scoped tables empty.
-        ...(iface ? { ifIdx: iface.ifindex } : {}),
-    };
-
-    const fetchAggregated = async (criteria) => {
-        const url_params = ntopng_url_manager.obj_to_url_params({
-            ...base_params,
-            aggregation_criteria: criteria,
-        });
-        const rows = await ntopng_utility.http_request(
-            `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows.lua?${url_params}`
-        );
-        return Array.isArray(rows) ? rows : [];
-    };
-
-    loadingL7.value = true;
-    loadingTalkers.value = true;
-    loadingDestinations.value = true;
-
-    try {
-        const rows = await fetchAggregated("application_protocol");
-        topL7.value = withPercentages(rows.map((r) => ({
-            label: r.application?.label ?? String(r.application?.id ?? ""),
-            value: Number(r.tot_traffic) || 0,
-        })));
-    } catch (err) {
-        console.error("Error retrieving live top L7 protocols:", err);
-        topL7.value = [];
-    }
-    loadingL7.value = false;
-
-    try {
-        const rows = await fetchAggregated("client");
-        topTalkers.value = rows.map((r) => ({
-            ip: r.client?.ip,
-            label: r.client?.label || r.client?.ip || "",
-            bytes: Number(r.tot_traffic) || 0,
-        }));
-    } catch (err) {
-        console.error("Error retrieving live top local talkers:", err);
-        topTalkers.value = [];
-    }
-    loadingTalkers.value = false;
-
-    try {
-        const rows = await fetchAggregated("server");
-        topDestinations.value = rows.map((r) => ({
-            ip: r.server?.ip,
-            label: r.server?.label || r.server?.ip || "",
-            bytes: Number(r.tot_traffic) || 0,
-        }));
-    } catch (err) {
-        console.error("Error retrieving live top remote destinations:", err);
-        topDestinations.value = [];
-    }
-    loadingDestinations.value = false;
+function siteListFrom(data) {
+    const rawSites = data?.sites || {};
+    return Array.isArray(rawSites) ? rawSites : Object.values(rawSites);
 }
 
-// Historical overview (ClickHouse)
-async function loadExporterOverviewHistorical(exporter, iface) {
-    if (!ifaceEpochBegin.value || !ifaceEpochEnd.value) return;
+/* Resolves an arbitrary site_id's own name plus its full ancestor chain, by
+   depth-first searching the site tree top-down from the root */
+async function resolveSiteChain(targetSiteId) {
+    const defaultSite = { id: DEFAULT_SITE_ID, name: _i18n("sites_dashboard.default_site") };
+    if (targetSiteId === DEFAULT_SITE_ID) return { site: defaultSite, ancestors: [] };
 
-    const common_params = {
-        ifid,
-        epoch_begin: ifaceEpochBegin.value,
-        epoch_end: ifaceEpochEnd.value,
-        ...(iface ? { snmp_interface: `${exporter.id}_${iface.ifindex};eq` } : { exporter_ip: `${exporter.id};eq` }),
-    };
+    const MAX_DEPTH = 20;
 
-    loadingL7.value = true;
-    loadingL4.value = true;
-    loadingTalkers.value = true;
-    loadingDestinations.value = true;
+    // DFS stack of { id, ancestors } to visit, ancestors being the crumb chain
+    // (root -> ... -> parent) leading to that node, not including it
+    const rootCrumb = { id: `site:${DEFAULT_SITE_ID}`, name: defaultSite.name };
+    let stack = [{ id: null, ancestors: [rootCrumb] }];
 
-    const l7_params = ntopng_url_manager.obj_to_url_params({
-        ...common_params,
-        chart_id: "top_l7_proto",
-        ts_schema: "host:traffic",
-        query_preset: "protos",
-        detail_view: "flows",
-        length: 10,
-        version: 4,
-        ts_query: `ifid:${ifid}`,
-        report_template: "flow_exporters",
-    });
-    const l4_params = ntopng_url_manager.obj_to_url_params({
-        ...common_params,
-        chart_id: "top_l4_proto",
-        ts_schema: "host:traffic",
-        query_preset: "protos",
-        detail_view: "flows",
-        length: 10,
-        version: 4,
-        ts_query: `ifid:${ifid}`,
-        report_template: "flow_exporters",
-    });
-    const talkers_params = ntopng_url_manager.obj_to_url_params({
-        ...common_params,
-        start: 0,
-        length: 10,
-        query_preset: "top_local_talkers",
-        aggregated: true,
-        report_template: "flow_exporters",
-    });
-    const destinations_params = ntopng_url_manager.obj_to_url_params({
-        ...common_params,
-        start: 0,
-        length: 10,
-        query_preset: "top_remote_destinations",
-        aggregated: true,
-        report_template: "flow_exporters",
-    });
+    for (let depth = 0; depth < MAX_DEPTH && stack.length > 0; depth++) {
+        const nextStack = [];
+        for (const node of stack) {
+            let data;
+            try {
+                data = await fetchSiteHierarchy(node.id);
+            } catch (err) {
+                console.error("Error resolving site chain from URL:", err);
+                continue;
+            }
 
-    try {
-        const data = await ntopng_utility.http_request(
-            `${http_prefix}/lua/pro/rest/v2/get/db/charts/top_l7_proto.lua?${l7_params}`
-        );
-        topL7.value = withPercentages((data || []).map((e) => ({ label: e.label, value: e.value })));
-    } catch (err) {
-        console.error("Error retrieving top L7 protocols:", err);
-        topL7.value = [];
+            const children = siteListFrom(data).filter((s) => String(s.id) !== DEFAULT_SITE_ID);
+            const match = children.find((s) => String(s.id) === String(targetSiteId));
+            if (match) return { site: { id: match.id, name: match.name }, ancestors: node.ancestors };
+
+            children.forEach((child) => {
+                nextStack.push({
+                    id: child.id,
+                    ancestors: [...node.ancestors, { id: `site:${child.id}`, name: child.name }],
+                });
+            });
+        }
+        stack = nextStack;
     }
-    loadingL7.value = false;
 
-    try {
-        const data = await ntopng_utility.http_request(
-            `${http_prefix}/lua/pro/rest/v2/get/db/charts/top_l4_proto.lua?${l4_params}`
-        );
-        topL4.value = withPercentages((data || []).map((e) => ({ label: e.label, value: e.value })));
-    } catch (err) {
-        console.error("Error retrieving top L4 protocols:", err);
-        topL4.value = [];
-    }
-    loadingL4.value = false;
+    return { site: defaultSite, ancestors: [] };
+}
 
-    try {
-        const data = await ntopng_utility.http_request(
-            `${http_prefix}/lua/pro/rest/v2/get/db/historical_db_search.lua?${talkers_params}`
-        );
-        topTalkers.value = (data?.records || []).map((r) => ({
-            ip: r.ip?.ip ?? r.ip?.value,
-            label: r.ip?.label || r.ip?.name || r.ip?.ip || r.HOST_LABEL,
-            bytes: Number(r.total_bytes) || 0,
-        }));
-    } catch (err) {
-        console.error("Error retrieving top local talkers:", err);
-        topTalkers.value = [];
-    }
-    loadingTalkers.value = false;
+/* Restores the selection from the URL on mount: resolves the site's own name
+   and ancestor chain (see resolveSiteChain) */
+async function restoreSelectionFromUrl() {
+    const urlSiteId = ntopng_url_manager.get_url_entry(URL_PARAM_SITE_ID) ?? DEFAULT_SITE_ID;
+    const urlNetworkId = ntopng_url_manager.get_url_entry(URL_PARAM_NETWORK_ID);
+    const urlExporterIp = ntopng_url_manager.get_url_entry(URL_PARAM_EXPORTER_IP);
+    const urlIfIdx = ntopng_url_manager.get_url_entry(URL_PARAM_IF_IDX);
 
-    try {
-        const data = await ntopng_utility.http_request(
-            `${http_prefix}/lua/pro/rest/v2/get/db/historical_db_search.lua?${destinations_params}`
-        );
-        topDestinations.value = (data?.records || []).map((r) => ({
-            ip: r.ip?.ip ?? r.ip?.value,
-            label: r.ip?.label || r.ip?.name || r.ip?.ip || r.country?.label,
-            bytes: Number(r.total_bytes) || 0,
-        }));
-    } catch (err) {
-        console.error("Error retrieving top remote destinations:", err);
-        topDestinations.value = [];
+    const { site, ancestors: siteAncestors } = await resolveSiteChain(urlSiteId);
+    // Loads networks.value/exporters.value for this site
+    await handleSelectSite(site, siteAncestors);
+
+    if (urlExporterIp) {
+        const exporter = exporters.value.find((e) => String(e.id) === String(urlExporterIp));
+        if (!exporter) return;
+
+        await handleSelectExporter(exporter);
+
+        if (urlIfIdx) {
+            const iface = exporterInterfaces.value.find((i) => String(i.ifindex) === String(urlIfIdx));
+            if (iface) handleSelectInterface(iface, exporter);
+        }
+        return;
     }
-    loadingDestinations.value = false;
+
+    if (urlNetworkId) {
+        const network = networks.value.find((n) => String(n.id) === String(urlNetworkId));
+        if (network) handleSelectNetwork(network);
+    }
 }
 
 // in live, the picker still writes a zero-width now() window (epoch_begin == epoch_end), which would
@@ -997,49 +778,28 @@ function on_epoch_change(epoch) {
         if (epoch?.epoch_end) ifaceEpochEnd.value = epoch.epoch_end;
     }
 
-    if (selectedExporter.value) loadExporterOverview(selectedExporter.value, selectedInterface.value);
+    if (selectedExporter.value) exporterTrafficRef.value?.refreshOverview();
 }
 
-async function loadExporterInterfaces(exporter) {
-    loadingInterfaces.value = true;
-    try {
-        const url_params = ntopng_url_manager.obj_to_url_params({
-            start: 0,
-            length: 10,
-            map_search: "",
-            visible_columns: "actions,snmp_ifname,in_bytes,out_bytes,ratio",
-            ip: exporter.id,
-            exporter_source_id: exporter.exporter_source_id,
-            probe_source_id: exporter.probe_source_id,
-            probe_ip: exporter.id,
-        });
-        const url = `${http_prefix}/lua/pro/rest/v2/get/exporters/exporters_interfaces.lua?${url_params}`;
-        const data = await ntopng_utility.http_request(url);
-        exporterInterfaces.value = data || [];
-    } catch (err) {
-        console.error("Error retrieving exporter interfaces:", err);
-        exporterInterfaces.value = [];
-    }
-    loadingInterfaces.value = false;
+function onExporterCountsLoaded({ flows, hosts }) {
+    liveFlowsCount.value = flows;
+    liveHostsCount.value = hosts;
 }
 
-function handleSelectInterface(iface, exporter, ancestors) {
+/* Selects an interface. Like handleSelectExporter, the network crumb (if any)
+   is derived from the owning exporter's network_id, not from prior selection
+   state, so it's correct however this interface was reached. */
+function handleSelectInterface(iface, exporter) {
     const owningExporter = exporter ?? selectedExporter.value;
-    const parentExporterCrumb = owningExporter
-        ? { id: `exporter:${owningExporter.id}`, name: owningExporter.name }
-        : null;
 
-    if (exporter) {
-        selectedExporter.value = exporter;
-    }
+    selectedExporter.value = owningExporter;
     selectedInterface.value = iface;
-    selectedAncestors.value = ancestors ?? (parentExporterCrumb ? [...selectedAncestors.value, parentExporterCrumb] : []);
+    selectedNetwork.value = makeSelectedNetwork(findNetworkById(owningExporter?.network_id));
     activeTab.value = "traffic_analysis";
     ensureEpochWindow();
     revealInSidebar();
     stripLiveEpochFromUrl();
-    loadExporterOverview(owningExporter, iface);
-    loadExporterCounts(owningExporter, iface);
+    nextTick(() => exporterTrafficRef.value?.refresh());
 }
 
 function switchTab(tab) {
@@ -1053,28 +813,35 @@ async function loadSidebarChildren(node) {
     if (node.data.kind === "site") {
         return fetchSiteLevel(node.data.site.id);
     }
+    if (node.data.kind === "network") {
+        return node.data.exporters.map((e) => makeExporterNode(e));
+    }
     if (node.data.kind === "exporter") {
         return fetchExporterInterfaceNodes(node.data.exporter);
     }
     return []; // interfaces are leaves
 }
 
-/* Fetches the sub sites + exporters of siteId
-   and maps them to NodeDescriptors. Sites and exporters can appear side by
-   side at the same level, exactly as the hierarchy endpoint returns them. */
+function makeExporterNode(e) {
+    return {
+        id: `exporter:${e.id}`,
+        name: e.name,
+        icon: "fas fa-satellite-dish",
+        color: isRecentlyActive(e.time_last_used) ? "#2fb344" : undefined,
+        data: { kind: "exporter", exporter: e },
+    };
+}
+
+/* Fetches the sub sites + networks + exporters of siteId and maps them to
+   NodeDescriptors */
 async function fetchSiteLevel(siteId) {
     try {
-        const paramsObj = { ifid };
-        if (siteId !== null && siteId !== undefined) {
-            paramsObj.site_id = siteId;
-        }
-        const url_params = ntopng_url_manager.obj_to_url_params(paramsObj);
-        const url = `${http_prefix}/lua/pro/rest/v2/get/sites/hierarchy.lua?${url_params}`;
-        const data = await ntopng_utility.http_request(url);
+        const data = await fetchSiteHierarchy(siteId);
 
         const rawSites = data?.sites || {};
         const siteList = Array.isArray(rawSites) ? rawSites : Object.values(rawSites);
         const exporterList = Array.isArray(data?.exporters) ? data.exporters : [];
+        const networkList = Array.isArray(data?.networks) ? data.networks : [];
 
         const siteNodes = siteList
             .filter((s) => String(s.id) !== "0" || siteId === null)
@@ -1085,15 +852,33 @@ async function fetchSiteLevel(siteId) {
                 data: { kind: "site", site: s },
             }));
 
-        const exporterNodes = exporterList.map((e) => ({
-            id: `exporter:${e.id}`,
-            name: e.name,
-            icon: "fas fa-satellite-dish",
-            color: isRecentlyActive(e.time_last_used) ? "#2fb344" : undefined,
-            data: { kind: "exporter", exporter: e },
-        }));
+        const exportersByNetwork = new Map();
+        const unassignedExporters = [];
+        exporterList.forEach((e) => {
+            if (e.network_id == null) {
+                unassignedExporters.push(e);
+                return;
+            }
+            const key = String(e.network_id);
+            if (!exportersByNetwork.has(key)) exportersByNetwork.set(key, []);
+            exportersByNetwork.get(key).push(e);
+        });
 
-        return [...siteNodes, ...exporterNodes].sort((a, b) => a.name.localeCompare(b.name));
+        const networkNodes = networkList
+            .filter((n) => exportersByNetwork.has(String(n.id)))
+            .map((n) => {
+                const netExporters = exportersByNetwork.get(String(n.id));
+                return {
+                    id: `network:${siteId ?? DEFAULT_SITE_ID}:${n.id}`,
+                    name: n.name,
+                    icon: "bi bi-diagram-3-fill",
+                    data: { kind: "network", network: n, exporters: netExporters },
+                };
+            });
+
+        const exporterNodes = unassignedExporters.map((e) => makeExporterNode(e));
+
+        return [...siteNodes, ...networkNodes, ...exporterNodes].sort((a, b) => a.name.localeCompare(b.name));
     } catch (err) {
         console.error("Error retrieving sites hierarchy:", err);
         return [];
@@ -1130,34 +915,55 @@ async function fetchExporterInterfaceNodes(exporter) {
     }
 }
 
-function handleSidebarSelect(node, ancestors) {
+/* The sidebar tree is the one place that already knows a node's real ancestor
+   chain — see handleSelectExporter/handleSelectInterface. */
+async function handleSidebarSelect(node, ancestors) {
     if (node.data.kind === "site") {
-        handleSelectSite(node.data.site, ancestors);
+        await handleSelectSite(node.data.site, ancestors);
+        return;
+    }
+
+    const siteAncestors = [];
+    let containingSite = { id: DEFAULT_SITE_ID, name: _i18n("sites_dashboard.default_site") };
+    for (const crumb of ancestors) {
+        if (typeof crumb.id === "string" && crumb.id.startsWith("site:")) {
+            if (containingSite.id !== DEFAULT_SITE_ID) siteAncestors.push({ id: `site:${containingSite.id}`, name: containingSite.name });
+            containingSite = { id: crumb.id.slice("site:".length), name: crumb.name };
+        }
+    }
+
+    if (String(selectedSite.value?.id) !== String(containingSite.id)) {
+        await handleSelectSite(containingSite, siteAncestors);
+    }
+
+    if (node.data.kind === "network") {
+        handleSelectNetwork(node.data.network);
     } else if (node.data.kind === "exporter") {
-        handleSelectExporter(node.data.exporter, ancestors);
+        await handleSelectExporter(node.data.exporter);
     } else if (node.data.kind === "interface") {
-        handleSelectInterface(node.data.iface, node.data.exporter, ancestors);
+        handleSelectInterface(node.data.iface, node.data.exporter);
     }
 }
 
-/* Clicking any crumb jumps straight back to that exact node: the ancestor
-   chain is truncated to everything strictly above the clicked crumb, and the node itself
-   becomes the new selection, reloading its own data. This works for a crumb
-   at any depth since it operates purely on breadcrumbItems/selectedAncestors,
-   not on any fixed number of levels. */
+/* Clicking any crumb jumps straight back to that exact node. */
 async function handleBreadcrumbSelect(item) {
-    const clickedIndex = breadcrumbItems.value.findIndex((crumb) => crumb.id === item.id);
-    const newAncestors = clickedIndex > 0 ? breadcrumbItems.value.slice(0, clickedIndex) : [];
+    if (typeof item.id !== "string") return;
 
-    if (typeof item.id === "string" && item.id.startsWith("site:")) {
-        await handleSelectSite({ id: item.id.slice("site:".length), name: item.name }, newAncestors);
-    } else if (typeof item.id === "string" && item.id.startsWith("exporter:")) {
-        selectedAncestors.value = newAncestors;
-        selectedInterface.value = null;
-        activeTab.value = "exporter_interfaces";
-        if (exporterInterfaces.value.length === 0 && selectedExporter.value) {
-            await loadExporterInterfaces(selectedExporter.value);
+    if (item.id.startsWith("site:")) {
+        const siteId = item.id.slice("site:".length);
+        if (String(selectedSite.value?.id) === siteId) {
+            // Already the selected site: clicking it again means "go back up
+            // to the site view", clearing whatever network/exporter/interface
+            // was drilled into below it.
+            await handleSelectSite(selectedSite.value, selectedSiteAncestors.value);
+            return;
         }
+        const { site, ancestors } = await resolveSiteChain(siteId);
+        await handleSelectSite(site, ancestors);
+    } else if (item.id.startsWith("network:") && selectedNetwork.value) {
+        handleSelectNetwork(selectedNetwork.value);
+    } else if (item.id.startsWith("exporter:") && selectedExporter.value) {
+        await handleSelectExporter(selectedExporter.value);
     }
 }
 </script>
@@ -1176,6 +982,7 @@ async function handleBreadcrumbSelect(item) {
 .sites-dashboard-main {
     background: var(--bg-base);
     color: var(--ntop-text-color);
+    min-height: 100vh;
 }
 
 .sites-dashboard-topbar {
@@ -1183,7 +990,7 @@ async function handleBreadcrumbSelect(item) {
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-base);
     position: sticky;
-    top: calc(3rem + 0.5rem);
+    top: 3rem;
     z-index: 20;
 }
 
@@ -1203,19 +1010,6 @@ async function handleBreadcrumbSelect(item) {
 
 .sites-dashboard-empty {
     padding: 60px 0;
-}
-
-.sites-dashboard-clickable-row {
-    cursor: pointer;
-}
-
-.sites-dashboard-clickable-table :deep(tbody tr) {
-    cursor: pointer;
-    transition: background-color 0.12s ease;
-}
-
-.sites-dashboard-clickable-table :deep(tbody tr:hover) {
-    background-color: var(--ntop-row-hover-bg, rgba(234, 106, 42, 0.08));
 }
 
 .sites-dashboard-date-picker :deep(.dtrp-btn-icon) {
@@ -1238,14 +1032,6 @@ async function handleBreadcrumbSelect(item) {
 
 .sites-dashboard-mock-chart {
     min-height: 220px;
-}
-
-.sites-dashboard-ts {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    height: 100%;
-    min-height: 460px;
 }
 
 /* Static "Live" indicator shown in place of the range picker when ClickHouse is
@@ -1274,5 +1060,38 @@ async function handleBreadcrumbSelect(item) {
     .sites-dashboard-body {
         padding: 12px;
     }
+}
+</style>
+
+<!-- shared by every sites-dashboard sub-component's clickable table
+     (network/exporters/exporter-traffic dashboards)-->
+<style>
+.sites-dashboard-clickable-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.sites-dashboard-clickable-table tbody tr:hover {
+    background-color: var(--ntop-row-hover-bg, rgba(234, 106, 42, 0.08));
+}
+
+.sites-dashboard-row-link {
+    color: var(--ntop-orange);
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+    transition: color 0.12s ease;
+}
+
+.sites-dashboard-clickable-table tbody tr:hover .sites-dashboard-row-link {
+    color: var(--ntop-orange-dark, var(--ntop-orange));
+}
+
+.sites-dashboard-ts {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 460px;
 }
 </style>
