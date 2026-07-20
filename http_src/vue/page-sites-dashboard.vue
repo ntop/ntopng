@@ -69,6 +69,11 @@
                 <ExportersDashboard v-if="activeTab === 'exporters'" :exporters="displayedExporters"
                     :loading="loadingHierarchy" :title-link="titleLinks.exporters" @select="handleSelectExporter" />
 
+                <SnmpTrafficDashboard v-if="activeTab === 'snmp_analysis' && selectedExporter"
+                    ref="snmpTrafficRef" :ifid="ifid" :device="selectedExporter" :iface="selectedInterface"
+                    :epoch-begin="ifaceEpochBegin" :epoch-end="ifaceEpochEnd"
+                    :title-links="titleLinks" :csrf="props.context?.csrf" />
+
                 <DashboardCard v-if="activeTab === 'live_flows' && selectedExporter"
                     :title="_i18n('sites_dashboard.live_flows')" icon="fas fa-stream"
                     :titleLink="titleLinks.live_flows" noPadding>
@@ -104,6 +109,7 @@ import { default as BadgeCard } from "./badge-card.vue";
 import { default as NetworkDashboard } from "./components/sites-dashboard/network-dashboard.vue";
 import { default as ExportersDashboard } from "./components/sites-dashboard/exporters-dashboard.vue";
 import { default as ExporterTrafficDashboard } from "./components/sites-dashboard/exporter-traffic-dashboard.vue";
+import { default as SnmpTrafficDashboard } from "./components/sites-dashboard/snmp-traffic-dashboard.vue";
 import { default as DashboardCard } from "./components/dashboard-card.vue";
 import { default as PageFlowsList } from "./page-flows-list.vue";
 import { default as PageHostsList } from "./page-hosts-list.vue";
@@ -175,6 +181,7 @@ function ensureEpochWindow() {
 
 const sidebar = ref(null);
 const exporterTrafficRef = ref(null);
+const snmpTrafficRef = ref(null);
 
 const selectedSite = ref(null);
 const selectedNetwork = ref(null);
@@ -387,6 +394,26 @@ function buildHostsUrl() {
     return `${http_prefix}/lua/hosts_stats.lua?${url_params}`;
 }
 
+/* Title link of the SNMP traffic time-series card */
+function buildSnmpTimeseriesUrl() {
+    if (!selectedExporter.value) return null;
+
+    if (selectedInterface.value) {
+        const url_params = ntopng_url_manager.obj_to_url_params({
+            host: selectedExporter.value.id,
+            snmp_port_idx: selectedInterface.value.ifindex,
+            page: "historical",
+        });
+        return `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?${url_params}`;
+    }
+
+    const url_params = ntopng_url_manager.obj_to_url_params({
+        host: selectedExporter.value.id,
+        page: "historical",
+    });
+    return `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?${url_params}`;
+}
+
 /* Resolves each card's title-link from CARD_LINKS, switching to the live vs.
    historical variant for cards with both (see isLive / on_epoch_change). */
 const titleLinks = computed(() => {
@@ -403,6 +430,7 @@ const titleLinks = computed(() => {
         exporter_interfaces: asLiveLink(CARD_LINKS.exporter_interfaces),
         live_flows: asLink(buildLiveFlowsUrl()),
         hosts: asLink(buildHostsUrl()),
+        snmp_traffic_time_series: asLink(buildSnmpTimeseriesUrl()),
     };
 });
 
@@ -465,19 +493,23 @@ const titleSubtitle = computed(() => {
 
 const tabs = computed(() => {
     if (selectedInterface.value) {
-        return [
+        const t = [
             { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
             { id: "live_flows", label_i18n: "sites_dashboard.live_flows" },
             { id: "hosts", label_i18n: "sites_dashboard.hosts" },
         ];
+        if (exporterSnmpEnabled.value) t.push({ id: "snmp_analysis", label_i18n: "sites_dashboard.snmp_analysis" });
+        return t;
     }
     if (selectedExporter.value) {
-        return [
+        const t = [
             { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
             { id: "exporter_interfaces", label_i18n: "sites_dashboard.interfaces", count: exporterInterfaces.value.length },
             { id: "live_flows", label_i18n: "sites_dashboard.live_flows" },
             { id: "hosts", label_i18n: "sites_dashboard.hosts" },
         ];
+        if (selectedExporter.value) t.push({ id: "snmp_analysis", label_i18n: "sites_dashboard.snmp_analysis" });
+        return t;
     }
     if (selectedNetwork.value) {
         return [{ id: "exporters", label_i18n: "sites_dashboard.exporters", count: displayedExporters.value.length }];
@@ -656,7 +688,12 @@ async function refreshCurrentView() {
     if (isLive.value) setLiveEpochWindow();
 
     if (selectedExporter.value) {
-        await exporterTrafficRef.value?.refresh();
+        // Only one of the two panels is mounted at a time (tab-gated), so the
+        // other ref is null and its optional call is a no-op.
+        await Promise.all([
+            exporterTrafficRef.value?.refresh(),
+            snmpTrafficRef.value?.refresh(),
+        ]);
     } else if (selectedSite.value) {
         await loadHierarchy(selectedSite.value.id);
     }
