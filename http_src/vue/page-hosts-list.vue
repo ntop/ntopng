@@ -4,7 +4,7 @@
         <TableWithConfig ref="table_hosts_list" :table_id="table_id" :csrf="csrf" :showLoading="true"
             :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
             :f_sort_rows="columns_sorting" :handleLoadedColumns="handleLoadedColumns"
-            @custom_event="on_table_custom_event">
+            @custom_event="on_table_custom_event" @rows_loaded="on_rows_loaded">
             <template v-slot:custom_header>
                 <div class="dropdown d-inline-flex flex-column me-2" v-for="item in filter_table_array">
                     <span class="no-wrap filters-label"><b>{{ item["basic_label"]
@@ -51,6 +51,12 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+// total-loaded(total_rows): fired every time the table (re)loads a page, so
+// callers embedding this table (e.g. the sites dashboard's tab pill count)
+// can stay in sync with the exact same recordsTotal the table itself shows,
+// instead of polling active_list.lua separately.
+const emit = defineEmits(["total-loaded"]);
 
 /* ************************************** */
 
@@ -348,6 +354,10 @@ async function load_table_filters_array() {
 
 function reset_filters() {
     filter_table_array.value.forEach((el, index) => {
+        // Locked filters (e.g. deviceIP/network, pinned externally by the
+        // sites dashboard) stay untouched -- Reset only clears the filters
+        // the user can actually edit here.
+        if (props.locked_filters.includes(el.id)) return;
         /* Getting the currently selected filter */
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
@@ -358,6 +368,10 @@ function reset_filters() {
 /* ************************************** */
 
 function columns_sorting(col, r0, r1) { }
+
+function on_rows_loaded(res) {
+    emit("total-loaded", res?.total_rows ?? null);
+}
 
 /* ************************************** */
 

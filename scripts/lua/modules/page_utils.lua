@@ -303,6 +303,12 @@ page_utils.menu_entries = {
         section = "flows",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html"
     },
+    bgp_looking_glass_asn = {
+        key = "bgp_looking_glass_asn",
+        i18n_title = "bgp_looking_glass",
+        section = "views",
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html"
+    },
 
     -- Hosts
     hosts = {
