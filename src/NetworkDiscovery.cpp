@@ -55,6 +55,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface* _iface) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Unable to create pcap socket on %s [%d/%s]",
                                  ifname, errno, strerror(errno));
+    if (pd) pcap_close(pd);
+    pd = NULL;
     udp_sock = -1;
     throw("Unable to start Network Discovery");
   }
@@ -65,9 +67,15 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface* _iface) {
   const char* bpfFilter = "arp && arp[6:2] = 2";
 
   if (pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0) {
-    if (pcap_setfilter(pd, &fcode) != 0)
+    if (pcap_setfilter(pd, &fcode) != 0) {
+      pcap_freecode(&fcode);
+      pcap_close(pd);
+      pd = NULL;
       throw("Unable to set ARP filter for Network Discovery");
+    }
   } else {
+    pcap_close(pd);
+    pd = NULL;
     throw("Failure compiling ARP filter for Network Discovery");
   }
 
@@ -85,8 +93,12 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface* _iface) {
                                    "Unable to bind socket to %s [%d/%s]",
                                    ifname, errno, strerror(errno));
     }
-  } else
+  } else {
+    pcap_freecode(&fcode);
+    pcap_close(pd);
+    pd = NULL;
     throw("Unable to start network discovery");
+  }
 }
 
 /* ******************************* */
