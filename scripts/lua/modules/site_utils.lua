@@ -1,10 +1,16 @@
 --
 -- (C) 2013-26 - ntop.org
 --
+dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" ..
+                   package.path
+
 -- Required modules for site management
 require("ntop_utils")
 local json = require("dkjson")
 local rest_utils = require("rest_utils")
+local snmp_config = require("snmp_config")
 local exporters_utils = require("exporters_utils")
 
 -- Module definition - this module provides utilities for managing sites
@@ -735,6 +741,38 @@ local function getRootSite()
 	return { sites = parents_sites }
 end
 
+local snmp_devices = {}
+local function getSNMPDevicesFromNetwork(network_id)
+   local rsp = {}
+   network_id = tonumber(network_id)
+   if table.len(snmp_devices) == 0 then 
+      snmp_devices = snmp_config.get_all_configured_devices()
+   end
+
+   for ip_device, info in pairs(snmp_devices) do
+      local device_network = interface.getIPNetworkId(ip_device)
+      if not info.network_id then
+         info.network_id = device_network
+      end
+      if (info.network_id == network_id) then
+         local name = ip_device
+         local is_active = false
+         if (info.stats) then
+            name = info.stats.name or ip_device
+            is_active = not(info.stats.is_unreachable)
+         end
+         rsp[#rsp + 1] = {
+            network_id = network_id,
+            name = name,
+            is_active = is_active,
+            ip = ip_device
+         }
+      end
+   end
+
+   return rsp
+end
+
 -- ##############################################
 
 -- Returns the list of parents sites
@@ -750,14 +788,16 @@ local function getSiteLeaves(site_id)
 		end
 	end
 
-	-- Adding networks
+	-- Adding networks and SNMP devices
 	local networks = interface.getSiteNetworks(tonumber(site))
    local networks_to_add = {}
+   local devices = {}
 	for _, network_id in pairs(networks or {}) do
 		networks_to_add[#networks_to_add + 1] = {
 			id = network_id,
 			name = getLocalNetworkAliasById(network_id),
 		}
+      devices = table.merge(devices, getSNMPDevicesFromNetwork(network_id))
 	end
 
 	-- Adding exporters
@@ -776,7 +816,8 @@ local function getSiteLeaves(site_id)
    local children_list = {
       sites = sites_to_add,
       networks = networks_to_add,
-      exporters = exporters_to_add
+      exporters = exporters_to_add,
+      snmp_devices = devices
    }
 
 	return children_list
