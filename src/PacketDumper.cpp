@@ -89,6 +89,7 @@ bool PacketDumper::checkClose() {
 
 bool PacketDumper::openDump() {
   char pcap_path[MAX_PATH];
+  pcap_t *dead_pcap;
 
   if (dumper != NULL) return true;
 
@@ -104,8 +105,9 @@ bool PacketDumper::openDump() {
   Utils::mkdir_tree(out_path);
   snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id + 1);
 
-  dumper =
-      pcap_dump_open(pcap_open_dead(iface_type, 16384 /* MTU */), pcap_path);
+  dead_pcap = pcap_open_dead(iface_type, 16384 /* MTU */);
+  dumper = pcap_dump_open(dead_pcap, pcap_path);
+  if (dead_pcap) pcap_close(dead_pcap);
 
   if (dumper == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s",
