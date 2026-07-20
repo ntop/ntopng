@@ -211,7 +211,7 @@ const props = defineProps({
   context: { type: Object, default: () => ({}) },
 });
 
-const context_is_pro  = computed(() => !!props.context?.is_pro);
+const context_is_pro  = computed(() => !!props.context?.isPro);
 
 function _i18n(key) {
   return (typeof window.i18n === 'function' && window.i18n(key)) || key;
