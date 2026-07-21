@@ -222,7 +222,8 @@ if ntop.isPro and ntop.isPro() then
 		}
 	end
 	local dev_ip = _GET["deviceIP"]
-
+--[[
+   NOTE: not correctly working
    if not isEmptyString(dev_ip) then
       if not isEmptyString(_GET["ifIdx"]) then
          local ports = {
@@ -253,7 +254,7 @@ if ntop.isPro and ntop.isPro() then
             value = "",
             label = i18n("all"),
          } }
-         local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false --[[ Show minimal info ]])
+         local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false)
 
          tmp_list = {}
          for _, ports in pairs(ports_table) do
@@ -279,7 +280,7 @@ if ntop.isPro and ntop.isPro() then
             show_with_key = "deviceIP",
          }
       end
-   end
+   end]]
 end
 
 local country_filter = {

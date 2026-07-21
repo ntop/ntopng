@@ -40,7 +40,7 @@ local mac = _GET["mac"]
 local mac_location = _GET["location"]
 local map_search = _GET["map_search"] or ""
 local label_filter = tonumber(_GET["label"])
-local ifIdx = _GET["ifIdx"]
+--local ifIdx = _GET["ifIdx"]
 
 local c_order = true
 local lua_order = asc

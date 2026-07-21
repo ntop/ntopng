@@ -115,6 +115,10 @@ local function get_schema_info(schema_name)
 
 	local info = { measure_unit = "number", series_meta = {} }
 
+	if schema_name == "top:snmp_if:traffic" then
+		prefix = "snmp_device"
+	end
+
 	if prefix then
 		local mod = get_handler_module(prefix)
 		if mod and mod.getTimeseries then

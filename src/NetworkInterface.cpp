@@ -5537,7 +5537,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   ndpi_patricia_node_t *srv_target_node = NULL, *cli_target_node = NULL;
   IpAddress* cli_ip = (IpAddress*)f->get_srv_ip_addr();
   IpAddress* srv_ip = (IpAddress*)f->get_cli_ip_addr();
-  u_int16_t alert_type_filter;
+  u_int16_t alert_type_filter, site_id;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t* mac_filter;
@@ -5738,6 +5738,10 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
          (tcp_flow_state_filter == tcp_flow_state_closed &&
           !f->isTCPClosed()) ||
          (tcp_flow_state_filter == tcp_flow_state_reset && !f->isTCPReset())))
+      return (false);
+
+    if (retriever->pag && retriever->pag->siteIdFilter(&site_id) &&
+        !(f->getFlowSiteId() == site_id))
       return (false);
 
     if (retriever->pag && retriever->pag->transitASFilter(&transit_as) &&

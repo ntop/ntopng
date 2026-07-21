@@ -46,6 +46,7 @@ class Paginator {
   u_int32_t asn_filter, asn_src_filter, asn_dst_filter;
   struct ndpi_in6_addr deviceIP;
   u_int32_t inIndex, outIndex, ifaceIndex;
+  u_int16_t site_id;
   int32_t iface_index_filter;
   u_int16_t pool_filter, alert_type_filter;
   AlertLevelGroup alert_type_severity_filter;
@@ -235,6 +236,14 @@ class Paginator {
     /* Not empty address */
     if (deviceIP.u6_addr.u6_addr64[0] || deviceIP.u6_addr.u6_addr64[1]) {
       memcpy(f, &deviceIP, sizeof(struct ndpi_in6_addr));
+      return true;
+    }
+    return false;
+  }
+
+  inline bool siteIdFilter(u_int16_t* f) const {
+    if (site_id != (u_int16_t)-1) {
+      (*f) = site_id;
       return true;
     }
     return false;

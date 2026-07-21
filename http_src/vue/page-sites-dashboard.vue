@@ -135,7 +135,7 @@ const URL_PARAM_SITE_ID = "site_id";
 const URL_PARAM_NETWORK_ID = "network_id";
 const URL_PARAM_EXPORTER_IP = "exporter_ip";
 const URL_PARAM_IF_IDX = "ifIdx";
-const URL_PARAM_SNMP_DEVICE_IP = "snmp_device_ip";
+const URL_PARAM_SNMP_DEVICE_IP = "host";
 const URL_PARAM_SNMP_IF_IDX = "snmp_if_idx";
 const URL_PARAM_TAB = "tab";
 
@@ -405,8 +405,7 @@ function buildLiveFlowsUrl() {
         const url_params = ntopng_url_manager.obj_to_url_params({
             ...base_params,
             deviceIP: selectedExporter.value.id,
-            inIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
-            outIfIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
+            ifIdx: selectedInterface.value ? selectedInterface.value.ifindex : "",
         });
         return `${http_prefix}/lua/flows_stats.lua?${url_params}`;
     }
@@ -763,15 +762,16 @@ const hostsContext = computed(() => ({
     csrf: props.context?.csrf,
     isNedge: !!props.context?.isNedge,
 }));
-
 /* deviceIP/ifIdx/network/site_id are pinned to the current selection (see the
    URL watcher below), so their filter dropdowns are shown for visibility/
    consistency with the rest of the row but disabled rather than editable here. */
 const liveFlowsLockedFilters = computed(() => {
-    if (selectedInterface.value) return ["deviceIP", "inIfIdx", "outIfIdx"];
-    if (selectedExporter.value) return ["deviceIP"];
-    if (selectedNetwork.value) return ["network"];
-    return ["site_id"];
+    let lockedFilters = [];
+    if (selectedInterface.value) lockedFilters = lockedFilters.concat(["deviceIP", "ifIdx", "inIfIdx", "outIfIdx"]);
+    if (selectedExporter.value) lockedFilters = lockedFilters.concat(["deviceIP"]);
+    if (selectedNetwork.value) lockedFilters = lockedFilters.concat(["network"]);
+    if (selectedSite.value) lockedFilters = lockedFilters.concat(["site_id"]);
+    return lockedFilters;
 });
 const hostsLockedFilters = computed(() =>
     selectedNetwork.value && !selectedExporter.value ? ["network"] : ["deviceIP"]
@@ -790,14 +790,14 @@ const hostsPageKey = liveFlowsPageKey;
 // site-tree selection param (URL_PARAM_SITE_ID, see the selection->URL watcher
 // below) and must never be blanket-deleted here -- see the dedicated
 // site_id handling after this forEach.
-const EMBEDDED_TAB_URL_PARAMS = ["deviceIP", "inIfIdx", "outIfIdx", "network"];
+const EMBEDDED_TAB_URL_PARAMS = ["deviceIP", "ifIdx", "network"];
 
 /* Mirrors the current exporter/interface/network/site scope into the real
-   URL's deviceIP/inIfIdx/outIfIdx/network/site_id params while a
+   URL's deviceIP/ifIdx/network/site_id params while a
    "live_flows"/"hosts" tab is active, so the embedded page-flows-list/
    page-hosts-list components (which read filters straight off
    window.location.search) come up pre-filtered, matching
-   flows_stats.lua?deviceIP=...&inIfIdx=...&outIfIdx=... /
+   flows_stats.lua?deviceIP=...&ifIdx=... /
    flows_stats.lua?network=... / flows_stats.lua?site_id=... /
    hosts_stats.lua?deviceIP=... / hosts_stats.lua?network=.... Removed again
    on tab switch so it doesn't leak into the sites-dashboard's own selection
@@ -810,10 +810,9 @@ watch([activeTab, selectedExporter, selectedInterface, selectedNetwork, selected
     if (onEmbeddedTab && selectedExporter.value) {
         search_params.set("deviceIP", selectedExporter.value.id);
         // hosts_stats.lua's active_list only filters by deviceIP (no per-interface
-        // scoping), so inIfIdx/outIfIdx only apply to the live_flows tab.
+        // scoping), so ifIdx only apply to the live_flows tab.
         if (activeTab.value === "live_flows" && selectedInterface.value) {
-            search_params.set("inIfIdx", selectedInterface.value.ifindex);
-            search_params.set("outIfIdx", selectedInterface.value.ifindex);
+            search_params.set("ifIdx", selectedInterface.value.ifindex);
         }
     } else if (onEmbeddedTab && selectedNetwork.value) {
         search_params.set("network", selectedNetwork.value.id);

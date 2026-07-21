@@ -50,6 +50,7 @@ Paginator::Paginator() {
   l7proto_filter_master_proto = -1;
   l7proto_filter_app_proto = -1;
   l7category_filter = -1;
+  site_id = (u_int16_t) -1;
   port_filter = 0;
   local_network_filter = CONST_MAX_NUM_NETWORKS + 1;
   vlan_id_filter = (u_int16_t)-1;
@@ -237,6 +238,8 @@ void Paginator::readOptions(lua_State* L, int index) {
           inIndex = lua_tointeger(L, -1);
         else if (!strcmp(key, "outIndexFilter"))
           outIndex = lua_tointeger(L, -1);
+        else if (!strcmp(key, "siteId"))
+          site_id = lua_tointeger(L, -1);
         else if (!strcmp(key, "ipVersion"))
           ip_version = lua_tointeger(L, -1);
         else if (!strcmp(key, "L4Protocol"))

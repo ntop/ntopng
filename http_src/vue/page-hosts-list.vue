@@ -431,13 +431,13 @@ function on_table_custom_event(event) {
 /* ************************************** */
 
 function refresh_table_without_loading() {
-    table_hosts_list.value.refresh_table(false);
+    table_hosts_list.value?.refresh_table(false);
 }
 
 /* ************************************** */
 
 function refresh_table() {
-    table_hosts_list.value.refresh_table(true);
+    table_hosts_list.value?.refresh_table(true);
 }
 
 /* ************************************** */

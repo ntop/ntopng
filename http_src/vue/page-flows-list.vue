@@ -708,13 +708,13 @@ function on_table_custom_event(event) {
 /* ************************************** */
 
 function refresh_table() {
-    table_flows_list.value.refresh_table(false);
+    table_flows_list.value?.refresh_table(false);
 }
 
 /* ************************************** */
 
 function periodicRefresh() {
-    table_flows_list.value.refresh_table(true);
+    table_flows_list.value?.refresh_table(true);
 }
 
 /* ************************************** */
