@@ -766,6 +766,18 @@ const routeContext = computed(() => {
 });
 
 function resolveRouteComponent(route) {
+  // A navbar tab can declare its own `component`, overriding the route's
+  // default component/componentByQuery -- e.g. a tab that renders an
+  // unrelated Vue page instead of switching a view within the same one.
+  const navbar = resolveRouteNavbar(route);
+  if (navbar) {
+    const queryParam = navbar.queryParam || "page";
+    const current = route.query?.[queryParam] || "overview";
+    const tab = (navbar.tabs || []).find((t) => t.pageName === current);
+    if (tab?.component) {
+      return window.ntopVue ? window.ntopVue[tab.component] : null;
+    }
+  }
   const byQuery = route?.meta?.componentByQuery;
   if (byQuery) {
     const value = route.query?.[byQuery.param];

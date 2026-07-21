@@ -3,7 +3,8 @@
     <div class="sites-dashboard d-flex">
         <TreeNavSidebar ref="sidebar" :title="_i18n('sites_dashboard.sites')"
             :search-placeholder="_i18n('sites_dashboard.search_placeholder')" :load-children="loadSidebarChildren"
-            :selected-id="selectedNodeId" :sticky-top="'calc(3rem + 0.5rem)'" @on_select="handleSidebarSelect" />
+            :selected-id="selectedNodeId" :sticky-top="'calc(3rem + 0.5rem)'" :cache-key="`sites_dashboard:${ifid}`"
+            @on_select="handleSidebarSelect" />
 
         <div class="sites-dashboard-main flex-grow-1 min-w-0">
             <div class="sites-dashboard-topbar d-flex align-items-center flex-wrap">
@@ -835,7 +836,7 @@ watch([activeTab, selectedExporter, selectedInterface, selectedNetwork, selected
     }
 
     ntopng_url_manager.replace_url(search_params.toString());
-}, { immediate: true });
+});
 
 function formatBytes(v) {
     return formatterUtils.getFormatter("bytes")(v);
@@ -844,6 +845,14 @@ function formatBytes(v) {
 onBeforeMount(async () => {
     await restoreSelectionFromUrl();
     initialSelectionReady.value = true;
+
+    await nextTick();
+    if (selectedExporter.value || selectedSnmpDevice.value) {
+        await Promise.all([
+            exporterTrafficRef.value?.refresh(),
+            snmpTrafficRef.value?.refresh(),
+        ]);
+    }
 });
 
 /* Re fetches data in the currently visible panel, without
@@ -1027,12 +1036,27 @@ watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, selec
    top-level sites list: Default + every other root-level site) are two
    different, both meaningful queries — site_id is only omitted when siteId
    is actually null/undefined (the tree's true root), never coerced from "0". */
+const hierarchyRequestCache = new Map(); // siteId (as string key) -> Promise
+const HIERARCHY_CACHE_MS = 500;
+
 async function fetchSiteHierarchy(siteId) {
+    const cacheKey = String(siteId);
+    const cached = hierarchyRequestCache.get(cacheKey);
+    if (cached) return cached;
+
     const paramsObj = { ifid };
     if (siteId !== null && siteId !== undefined) paramsObj.site_id = siteId;
     const url_params = ntopng_url_manager.obj_to_url_params(paramsObj);
     const url = `${http_prefix}/lua/pro/rest/v2/get/sites/hierarchy.lua?${url_params}`;
-    return ntopng_utility.http_request(url);
+
+    const promise = ntopng_utility.http_request(url);
+    hierarchyRequestCache.set(cacheKey, promise);
+    promise.finally(() => {
+        setTimeout(() => {
+            if (hierarchyRequestCache.get(cacheKey) === promise) hierarchyRequestCache.delete(cacheKey);
+        }, HIERARCHY_CACHE_MS);
+    });
+    return promise;
 }
 
 function siteListFrom(data) {
@@ -1110,8 +1134,9 @@ async function restoreSelectionFromUrl() {
         await handleSelectExporter(exporter);
 
         if (urlIfIdx) {
-            const iface = exporterInterfaces.value.find((i) => String(i.ifindex) === String(urlIfIdx));
-            if (iface) handleSelectInterface(iface, exporter);
+            const ifaceNodes = await fetchExporterInterfaceNodes(exporter);
+            const ifaceNode = ifaceNodes.find((n) => String(n.data.iface.ifindex) === String(urlIfIdx));
+            if (ifaceNode) handleSelectInterface(ifaceNode.data.iface, exporter);
         }
         restoreTab();
         return;
@@ -1145,7 +1170,7 @@ function stripLiveEpochFromUrl() {
     if (isLive.value) ntopng_url_manager.delete_params(["epoch_begin", "epoch_end"]);
 }
 
-function on_epoch_change(epoch) {
+async function on_epoch_change(epoch) {
     isLive.value = epoch?.timeframe_id === "live";
 
     if (isLive.value) {
@@ -1155,8 +1180,9 @@ function on_epoch_change(epoch) {
         if (epoch?.epoch_begin) ifaceEpochBegin.value = epoch.epoch_begin;
         if (epoch?.epoch_end) ifaceEpochEnd.value = epoch.epoch_end;
     }
-
-    if (selectedExporter.value) exporterTrafficRef.value?.refreshOverview();
+    // fetch data on epoch change event, needs nextTick to correctly fire the event
+    await nextTick();
+    refreshCurrentView();
 }
 
 function onExporterCountsLoaded({ flows, hosts }) {

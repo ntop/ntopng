@@ -44,9 +44,9 @@
       having manually expanded every level first.
 -->
 <template>
-    <div class="tree-nav-sidebar d-flex flex-column"
-        :class="{ 'tree-nav-sidebar--sticky': stickyTop !== null }"
-        :style="stickyTop !== null ? { top: stickyTop, height: `calc(100vh - ${stickyTop})` } : {}">
+    <div class="tree-nav-sidebar d-flex flex-column" ref="sidebarEl"
+        :class="{ 'tree-nav-sidebar--sticky': stickyTop !== null, 'tree-nav-sidebar--resizing': isResizing }"
+        :style="{ ...(stickyTop !== null ? { top: stickyTop, height: `calc(100vh - ${stickyTop})` } : {}), width: width + 'px', flexBasis: width + 'px', maxWidth: width + 'px' }">
         <div v-if="title" class="tree-nav-sidebar-title px-2 pt-3 pb-2">{{ title }}</div>
 
         <div v-if="searchPlaceholder !== null"
@@ -61,7 +61,7 @@
         <div class="tree-nav-sidebar-list flex-grow-1 overflow-auto">
             <template v-for="row in visibleRows" :key="row.node.id">
                 <sidebar-nav-item :id="row.node.id" :name="row.node.name" :icon="row.node.icon" :color="row.node.color"
-                    :depth="row.depth" :selected="String(selectedId) === String(row.node.id)"
+                    :depth="row.depth" :selected="String(selectedId) === String(row.node.id)" :matched="row.matched"
                     :has-children="row.node.hasChildren" :expanded="expandedIds.has(row.node.id)"
                     :badge-value="row.node.badgeValue" :badge-formatter="row.node.badgeFormatter"
                     :loading="loadingIds.has(row.node.id)" :disabled="row.node.isEmptyPlaceholder"
@@ -70,11 +70,17 @@
 
             <NoData v-if="!isLoading && visibleRows.length === 0" :show="true" />
         </div>
+
+        <div class="tree-nav-sidebar-resize-handle" :title="_i18n('tree_nav_sidebar.drag_to_resize')" @mousedown="startResize">
+            <div class="tree-nav-sidebar-resize-grip">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, watch } from "vue";
+import { ref, computed, onBeforeMount, onUnmounted, watch } from "vue";
 import { default as SidebarNavItem } from "./sidebar-nav-item.vue";
 import { default as Loading } from "../loading.vue";
 import { default as NoData } from "./no-data.vue";
@@ -99,12 +105,67 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    /* Namespaces the resize-width and lazy-prefetch caches in localStorage so
+       multiple tree-nav-sidebar instances */
+    cacheKey: {
+        type: String,
+        default: "default",
+    },
 });
 
 const emit = defineEmits(["on_select", "on_toggle"]);
 
 const isLoading = ref(true);
 const search = ref("");
+
+const MIN_WIDTH = 220;
+const MAX_WIDTH = 640;
+const DEFAULT_WIDTH = 280;
+const WIDTH_STORAGE_KEY = `tree_nav_sidebar_width::${props.cacheKey}`;
+
+function loadStoredWidth() {
+    const raw = localStorage.getItem(WIDTH_STORAGE_KEY);
+    const parsed = raw != null ? Number.parseInt(raw, 10) : NaN;
+    if (Number.isNaN(parsed)) return DEFAULT_WIDTH;
+    return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, parsed));
+}
+
+const sidebarEl = ref(null);
+const width = ref(loadStoredWidth());
+const isResizing = ref(false);
+let resizeStartX = 0;
+let resizeStartWidth = 0;
+
+function startResize(evt) {
+    isResizing.value = true;
+    resizeStartX = evt.clientX;
+    resizeStartWidth = width.value;
+    document.addEventListener("mousemove", onResizeMove);
+    document.addEventListener("mouseup", stopResize);
+    // Prevents text selection elsewhere on the page while dragging.
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    evt.preventDefault();
+}
+
+function onResizeMove(evt) {
+    const delta = evt.clientX - resizeStartX;
+    width.value = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, resizeStartWidth + delta));
+}
+
+function stopResize() {
+    isResizing.value = false;
+    document.removeEventListener("mousemove", onResizeMove);
+    document.removeEventListener("mouseup", stopResize);
+    document.body.style.userSelect = "";
+    document.body.style.cursor = "";
+    localStorage.setItem(WIDTH_STORAGE_KEY, String(width.value));
+}
+
+onUnmounted(() => {
+    document.removeEventListener("mousemove", onResizeMove);
+    document.removeEventListener("mouseup", stopResize);
+});
 
 /* Tree state: nodes keyed by their globally-unique id.
    Each stored node is the caller's NodeDescriptor plus two bookkeeping fields:
@@ -148,7 +209,11 @@ const visibleRows = computed(() => {
         const children = node.children || [];
 
         if (!query || selfMatch || hasMatchingDescendant(node)) {
-            rows.push({ node, depth });
+            // Only rows that are themselves a text match get the subtle
+            // search-hit highlight -- an ancestor row shown merely because a
+            // descendant matches (selfMatch === false) stays unhighlighted,
+            // so the highlight always points at the actual hit(s).
+            rows.push({ node, depth, matched: !!query && selfMatch });
             if (isExpanded) {
                 children.forEach((childId) => walk(childId, depth + 1));
             }
@@ -170,35 +235,116 @@ watch(
     }
 );
 
-async function loadRoots() {
-    isLoading.value = true;
-    expandedIds.value = new Set();
-    const children = await safeLoadChildren(null);
-    nodesById.value = new Map();
-    children.forEach((node) => nodesById.value.set(node.id, normalizeNode(node, null)));
-    rootIds.value = children.map((n) => n.id);
-    isLoading.value = false;
-    prefetchChildCounts(children);
+/* Full-tree cache (see prefetchWholeTree): populated in the background after
+   the visible root level has already rendered, so first paint stays fast and
+   search/expand latency is hidden rather than avoided. Cached for
+   CACHE_TTL_MS so a reload within that window can search immediately without
+   waiting on any network round-trip at all. */
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const TREE_STORAGE_KEY = `tree_nav_sidebar_tree::${props.cacheKey}`;
+
+function loadStoredTree() {
+    try {
+        const raw = localStorage.getItem(TREE_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+        if (Date.now() - parsed.savedAt > CACHE_TTL_MS) return null;
+        if (!Array.isArray(parsed.rootIds) || !Array.isArray(parsed.nodes)) return null;
+        return parsed;
+    } catch (_) {
+        return null;
+    }
 }
 
-/* Fires one loadChildren call per node to
-   learn how many children each row has. */
-function prefetchChildCounts(nodes) {
-    nodes.forEach(async (node) => {
-        if (node.isEmptyPlaceholder || node.hasChildren === false) return;
-        if (node.children !== null && node.children !== undefined) return;
-        try {
-            const kids = await safeLoadChildren(node);
-            const stored = nodesById.value.get(node.id);
-            if (!stored || stored.children !== null) return; // already expanded/toggled meanwhile
-            stored.badgeValue = kids.length > 0 ? kids.length : null;
-            stored.badgeFormatter = "no_formatting";
-            stored.hasChildren = kids.length > 0;
-            nodesById.value.set(node.id, { ...stored });
-        } catch (_) {
-            // leave the row without a badge
+function saveTreeCache() {
+    try {
+        const nodes = [...nodesById.value.entries()];
+        localStorage.setItem(TREE_STORAGE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            rootIds: rootIds.value,
+            nodes,
+        }));
+    } catch (_) {
+        // storage full/unavailable (e.g. quota, or a genuinely circular/huge
+        // data payload): caching is a latency optimization, not required for correctness
+    }
+}
+
+async function loadRoots() {
+    const cached = loadStoredTree();
+    expandedIds.value = new Set();
+
+    if (cached) {
+        // Instant hydrate from cache (whole tree, not just the root level) so
+        // the tree -- and search across branches never manually expanded --
+        // is usable immediately; still followed by a live fetch below to
+        // refresh the root level (and, via prefetchWholeTree, everything else).
+        const map = new Map();
+        cached.nodes.forEach(([id, node]) => map.set(id, node));
+        nodesById.value = map;
+        rootIds.value = cached.rootIds;
+        isLoading.value = false;
+    } else {
+        nodesById.value = new Map();
+        isLoading.value = true;
+    }
+
+    const children = await safeLoadChildren(null);
+    // Merge fresh root nodes into whatever cache-hydrated state exists
+    // instead of discarding it -- otherwise every deeper cached node would be
+    // orphaned (still in the map, but unreferenced once the root's children
+    // pointer is reset) and only the root level would survive the refresh.
+    children.forEach((node) => {
+        const existing = nodesById.value.get(node.id);
+        const normalized = normalizeNode(node, null);
+        if (existing && existing.children !== null && existing.children !== undefined) {
+            normalized.children = existing.children;
         }
+        nodesById.value.set(node.id, normalized);
     });
+    rootIds.value = children.map((n) => n.id);
+    isLoading.value = false;
+    // Walk the *normalized* (and possibly cache-restored) root nodes from
+    // nodesById, not the raw `children` array loadChildren returned: raw
+    // NodeDescriptors have children === undefined, which fails
+    // ensureChildrenLoaded's "already loaded" guard (children !== null) and
+    // made every root immediately look "already loaded" without ever having
+    // fetched anything, so the walk never actually descended past the roots.
+    prefetchWholeTree(rootIds.value.map((id) => nodesById.value.get(id)).filter(Boolean));
+}
+
+/* Recursively walks the whole tree in the background (after the root level
+   has already rendered) so every branch's children are fetched and cached up
+   front -- this is what lets search actually find matches under branches the
+   user hasn't manually expanded yet, and lets an actual click on a node the
+   walk already reached resolve instantly instead of re-fetching (see
+   visibleRows/hasMatchingDescendant). Routes every fetch through
+   ensureChildrenLoaded, the same single-flight loader handleToggle/expandTo
+   use, so a node already being (or having been) fetched by a user click is
+   never fetched a second time here, and vice versa. Fire-and-forget: nothing
+   awaits this from the caller, it just populates nodesById/localStorage as it
+   goes; the loading count/spinner is also skipped for background nodes since
+   nothing on screen is waiting on them (see ensureChildrenLoaded's
+   showLoading param). */
+let prefetchGeneration = 0;
+async function prefetchWholeTree(rootNodes) {
+    const generation = ++prefetchGeneration;
+
+    async function walk(node) {
+        if (generation !== prefetchGeneration) return; // a fresh loadRoots() superseded this run
+        if (node.isEmptyPlaceholder || node.hasChildren === false) return;
+
+        await ensureChildrenLoaded(node, /* showLoading */ false);
+        if (generation !== prefetchGeneration) return;
+
+        const stored = nodesById.value.get(node.id);
+        const children = (stored?.children || []).map((id) => nodesById.value.get(id)).filter(Boolean);
+        await Promise.all(children.map((child) => walk(child)));
+    }
+
+    await Promise.all(rootNodes.map((node) => walk(node)));
+    if (generation === prefetchGeneration) saveTreeCache();
 }
 
 /* parentId is recorded on every node as it enters the tree (null for roots).
@@ -254,10 +400,14 @@ async function handleToggle(node) {
 }
 
 /* Lazily loads and stores a node's children (once), independent of the
-   expanded/collapsed state — shared by handleToggle and expandTo. Concurrent
-   calls for the same node id (see inFlightChildLoads) await the one fetch
-   already in flight instead of each starting their own. */
-async function ensureChildrenLoaded(node) {
+   expanded/collapsed state — shared by handleToggle, expandTo, and the
+   background prefetchWholeTree walk. Concurrent callers for the same node id
+   (see inFlightChildLoads) await the one fetch already in flight instead of
+   each starting their own, so a user click on a node the background prefetch
+   is already fetching (or has already fetched) never re-fetches it.
+   showLoading=false (used by the background walk) skips the spinner state
+   since nothing on screen is waiting on that particular fetch. */
+async function ensureChildrenLoaded(node, showLoading = true) {
     const id = node.id;
     if (node.hasChildren === false || node.children !== null) return;
 
@@ -265,20 +415,22 @@ async function ensureChildrenLoaded(node) {
     if (existing) return existing;
 
     const promise = (async () => {
-        loadingIds.value = new Set([...loadingIds.value, id]);
+        if (showLoading) loadingIds.value = new Set([...loadingIds.value, id]);
         try {
             let children = await safeLoadChildren(node);
+            const badgeValue = children.length > 0 ? children.length : null;
             if (children.length === 0) {
                 children = [makeEmptyNode(id)];
             }
             children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
             node.children = children.map((c) => c.id);
+            node.badgeValue = badgeValue;
+            node.badgeFormatter = "no_formatting";
             /* The chevron always stays visible: a node can always be expanded
                again to re-check for children, regardless of what was found. */
-            nodesById.value.set(id, node);
-            prefetchChildCounts(children.filter((c) => !c.isEmptyPlaceholder));
+            nodesById.value.set(id, { ...node });
         } finally {
-            loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
+            if (showLoading) loadingIds.value = new Set([...loadingIds.value].filter((x) => x !== id));
             inFlightChildLoads.delete(id);
         }
     })();
@@ -314,6 +466,18 @@ function makeEmptyNode(parentId) {
 
 function handleSelect(node) {
     if (node.isEmptyPlaceholder) return;
+    // Clicking the label expands/collapses too, same as the chevron, so the
+    // user doesn't have to hit the tiny chevron target to reveal children.
+    // Only toggle here when the node is already selected: for a newly
+    // selected node the caller reacts to on_select by re-navigating and
+    // calling expandTo() itself (see revealInSidebar in page-sites-dashboard),
+    // which always expands -- so toggling here too would just be redundant.
+    // But collapsing an *already selected* node has nothing else forcing it
+    // back open, so that's the one case this needs to handle directly.
+    const alreadySelected = String(props.selectedId) === String(node.id);
+    if (node.hasChildren !== false && (alreadySelected || !expandedIds.value.has(node.id))) {
+        handleToggle(node);
+    }
     emit("on_select", node, ancestorsOf(node.id));
 }
 
@@ -326,12 +490,11 @@ defineExpose({ reload, ancestorsOf, expandTo });
 
 <style scoped>
 .tree-nav-sidebar {
-    width: 280px;
-    flex: 0 0 280px;
-    max-width: 280px;
+    position: relative;
     background: #12151a;
     height: 100%;
     border-right: 1px solid #0c0e12;
+    flex-shrink: 0;
 }
 
 .tree-nav-sidebar--sticky {
@@ -339,10 +502,84 @@ defineExpose({ reload, ancestorsOf, expandTo });
     align-self: flex-start;
 }
 
+.tree-nav-sidebar--resizing {
+    transition: none !important;
+}
+
+.tree-nav-sidebar-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -6px;
+    width: 13px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The draggable edge itself: a hairline, faint at rest so it reads as a
+   normal border rather than a UI element sitting in front of content, and
+   only brightening on hover/drag to confirm it's interactive. The handle's
+   own hitbox (13px wide, see .tree-nav-sidebar-resize-handle) stays generous
+   for an easy grab even though nothing that wide is ever drawn. */
+.tree-nav-sidebar-resize-handle::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 5px;
+    width: 1px;
+    height: 100%;
+    background: rgba(234, 106, 42, 0.25);
+    transition: background-color 0.15s ease, width 0.15s ease;
+}
+
+.tree-nav-sidebar-resize-handle:hover::before,
+.tree-nav-sidebar--resizing .tree-nav-sidebar-resize-handle::before {
+    background: var(--ntop-orange, #EA6A2A);
+    width: 2px;
+}
+
+/* Grip: a small, always-solid orange pill with dots -- stays highlighted at
+   rest (not just on hover) so it constantly signals "this is resizable",
+   growing slightly and gaining a shadow on hover/drag to confirm the drag is
+   live. */
+.tree-nav-sidebar-resize-grip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 8px;
+    height: 18px;
+    border-radius: 3px;
+    justify-content: center;
+    background: var(--ntop-orange, #EA6A2A);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.tree-nav-sidebar-resize-handle:hover .tree-nav-sidebar-resize-grip,
+.tree-nav-sidebar--resizing .tree-nav-sidebar-resize-grip {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    transform: scaleX(1.25);
+}
+
+.tree-nav-sidebar-resize-grip span {
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #12151a;
+}
+
+.tree-nav-sidebar-resize-handle:hover .tree-nav-sidebar-resize-grip span,
+.tree-nav-sidebar--resizing .tree-nav-sidebar-resize-grip span {
+    background: #12151a;
+}
+
 @media (max-width: 992px) {
     .tree-nav-sidebar {
-        width: 100%;
-        max-width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
         flex: 1 1 auto;
         height: 320px;
         border-right: none;
@@ -352,6 +589,10 @@ defineExpose({ reload, ancestorsOf, expandTo });
     .tree-nav-sidebar--sticky {
         position: static;
         height: 320px;
+    }
+
+    .tree-nav-sidebar-resize-handle {
+        display: none;
     }
 }
 
