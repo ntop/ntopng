@@ -3159,6 +3159,9 @@ local known_parameters = {
     ["site_description"] = validateUnquoted,
     ["site_networks"] = validateNetworksList,
 
+    -- sites dashboard
+    ["snmp_device_ip"] = validateIpAddress,
+
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies
     ["policy"] = validatePolicy, -- nedge policies

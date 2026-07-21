@@ -4,7 +4,7 @@
             <DashboardCard :title="_i18n('sites_dashboard.traffic_time_series')" icon="bi bi-graph-up"
                 :titleLink="titleLinks.snmp_traffic_time_series" noPadding>
                 <div class="sites-dashboard-ts">
-                    <DashboardTimeseries v-if="epochBegin && epochEnd" ref="ifaceChartRef"
+                    <DashboardTimeseries v-if="epochBegin && epochEnd"
                         :id="'sites_dashboard_snmp_iface_ts'" :ifid="ifid" :epoch_begin="epochBegin"
                         :epoch_end="epochEnd" :max_width="12" :max_height="4"
                         :params="timeseriesParams" :get_component_data="iface ? undefined : getDeviceTimeseriesData"
@@ -79,7 +79,6 @@ const deviceInfo = ref(null);
 const ifaceInfo = ref(null);
 
 const analysisTableRef = ref(null);
-const ifaceChartRef = ref(null);
 
 /* Interface admin/oper status codes, shared with page-snmp-interfaces.vue. */
 const interface_status = {
@@ -335,7 +334,6 @@ function escapeHtml(v) {
 
 async function refresh() {
     await loadInfo();
-    ifaceChartRef.value?.refresh();
     if (props.showAnalysis && !props.iface) analysisTableRef.value?.refresh_table();
 }
 
