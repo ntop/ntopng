@@ -9,6 +9,8 @@
     - color: String             — CSS color for the leading status dot (optional)
     - depth: Number             — indentation level (nested tree rows)
     - selected: Boolean         — highlight state
+    - matched: Boolean          — subtle highlight for a live search hit,
+                                  distinct from selected (navigation target)
     - hasChildren: Boolean      — show/hide the expand chevron
     - expanded: Boolean         — chevron rotation state
     - loading: Boolean          — show a small orange spinner instead of the chevron
@@ -24,8 +26,8 @@
 -->
 <template>
     <div class="sidebar-nav-item d-flex align-items-center gap-2"
-        :class="{ 'sidebar-nav-item-selected': selected, 'sidebar-nav-item-disabled': disabled }"
-        :style="{ paddingLeft: indentPx + 'px' }" @click="handleClick">
+        :class="{ 'sidebar-nav-item-selected': selected, 'sidebar-nav-item-disabled': disabled, 'sidebar-nav-item-matched': matched && !selected }"
+        :style="{ paddingLeft: (matched && !selected ? matchedIndentPx : indentPx) + 'px' }" @click="handleClick">
         <span v-if="loading" class="sidebar-nav-spinner flex-shrink-0" aria-hidden="true"></span>
         <button v-else type="button" class="sidebar-nav-chevron border-0 bg-transparent p-0"
             :class="{ invisible: !hasChildren }" @click.stop="handleToggle" :aria-label="_i18n('expand')">
@@ -58,6 +60,7 @@ const props = defineProps({
         default: 0,
     },
     selected: Boolean,
+    matched: Boolean,
     hasChildren: Boolean,
     expanded: Boolean,
     loading: Boolean,
@@ -69,6 +72,8 @@ const props = defineProps({
 const emit = defineEmits(["on_click", "on_toggle"]);
 
 const indentPx = computed(() => 8 + props.depth * 16);
+// search match highlight button
+const matchedIndentPx = computed(() => Math.max(0, indentPx.value - 3));
 
 const formattedBadge = computed(() => {
     if (props.badgeValue === null || props.badgeValue === undefined || props.badgeValue === "") {
@@ -120,6 +125,12 @@ function handleToggle() {
     bottom: 0;
     z-index: 2;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-nav-item-matched {
+    background: rgba(255, 143, 0, 0.08);
+    border-left: 3px solid var(--ntop-orange, #FF8F00);
+    transition: background 0.3s, border-left-color 0.3s;
 }
 
 .sidebar-nav-item-disabled {
