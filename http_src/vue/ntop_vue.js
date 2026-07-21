@@ -85,6 +85,7 @@ import { default as PageAssets } from "./page-assets.vue"
 import { default as PageAssetDetails } from "./page-asset-details.vue"
 import { default as PageAssetDetailsNew } from "./page-asset-details-new.vue"
 import { default as PageAccessControlList } from "./page-access-control-list.vue"
+import { default as PageAccessControlScopeFilters } from "./page-access-control-scope-filters.vue"
 import { default as PageTopInterfaceApplications } from "./page-top-interface-applications.vue"
 import { default as PageTopInterfaceCategories } from "./page-top-interface-categories.vue"
 import { default as PageObservationPoints } from "./page-observation-points.vue"
@@ -265,6 +266,7 @@ let ntopVue = {
     PageAssetDetails: PageAssetDetails,
     PageAssetDetailsNew: PageAssetDetailsNew,
     PageAccessControlList: PageAccessControlList,
+    PageAccessControlScopeFilters: PageAccessControlScopeFilters,
     PageTopInterfaceApplications: PageTopInterfaceApplications,
     PageTopInterfaceCategories: PageTopInterfaceCategories,
     PageObservationPoints: PageObservationPoints,

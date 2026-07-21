@@ -1282,6 +1282,10 @@ local function validateNetwork(i)
 end
 http_lint.validateNetwork = validateNetwork
 
+local function validateIpAddressOrNetwork(p)
+   return (validateIpAddress(p) or validateNetwork(p))
+end
+
 local function validateHost(p)
    local host = hostkey2hostinfo(p)
 
@@ -3225,6 +3229,7 @@ local known_parameters = {
     ["dhcp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["smtp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["gateway_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
+    ["scope_filters"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressOrNetwork)),
     ["customer_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
     ["sub_customer_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
     ["remote_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),

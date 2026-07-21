@@ -266,7 +266,7 @@ bool AddressTree::addAddress(const char* _what, const int64_t user_data) {
 
 /* ******************************************* */
 
-/* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0
+/* Format: 131.114.21.0/24,10.0.0.0/25,5.0.0.0
  * Return true if all provided addresses are added successfully, false if none
  * or partial */
 bool AddressTree::addAddresses(const char* rule, const int64_t user_data) {

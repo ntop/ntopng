@@ -823,6 +823,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void getACLInfo(lua_State* vm) {
     if (acl_flow) acl_flow->lua(vm);
   }
+  inline bool setScopeFiltersACL(char *filters) {
+    if (acl_flow) return acl_flow->setScopeFiltersACL(filters);
+    return false;
+  }
 #endif
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);

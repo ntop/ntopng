@@ -2416,6 +2416,27 @@ static int ntop_interface_insert_ip_acl(lua_State* vm) {
 /* ****************************************** */
 
 /* @brief Removes an IP CIDR rule from the interface ACL.  Lua: interface.removeIPACL(cidr) → nil */
+static int ntop_interface_set_scope_filters_acl(lua_State* vm) {
+  bool res = false;
+#ifdef NTOPNG_PRO
+  NetworkInterface* curr_iface = getCurrentInterface(vm);
+  char *filters = NULL;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  filters = (char*)lua_tostring(vm, 1);
+
+  if (curr_iface) {
+    res = curr_iface->setScopeFiltersACL(filters);
+  }
+#endif
+  lua_pushboolean(vm, res);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Removes an IP CIDR rule from the interface ACL.  Lua: interface.removeIPACL(cidr) → nil */
 static int ntop_interface_remove_ip_acl(lua_State* vm) {
   bool res = false;
 
@@ -6492,6 +6513,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"removeIPACL", ntop_interface_remove_ip_acl},
     {"insertMacACL", ntop_interface_insert_mac_acl},
     {"removeMacACL", ntop_interface_remove_mac_acl},
+    {"setScopeFiltersACL", ntop_interface_set_scope_filters_acl},
     {"getACLInfo", ntop_interface_get_acl_info},
     {"getThroughput", ntop_interface_get_throughput},
     {"getProtocolFlowsStats", ntop_get_protocol_flows_stats},

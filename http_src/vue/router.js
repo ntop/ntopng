@@ -155,7 +155,8 @@ export const spaRoutes = [
       title: "Access Control List",
       baseUrl: "/lua/pro/admin/access_control_list.lua",
       tabs: [
-        { pageName: "overview", label: "Overview" }
+        { pageName: "overview", label: "Overview" },
+        { pageName: "scope_filters", label: i18n('acl_page.scope_filters'), component: "PageAccessControlScopeFilters" }
       ],
     },
   },
