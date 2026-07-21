@@ -1918,6 +1918,15 @@ onMounted(async () => {
       // touched by the Vue app cleanup above, so it has to be removed
       // separately or it lingers at the bottom of #n-container forever
       document.getElementById("n-legacy-page-navbar")?.remove();
+
+      const container = document.getElementById("n-container");
+      const keepIds = new Set(["n-spa-outlet", "n-footer", "main-container"]);
+      if (container) {
+        for (const child of Array.from(container.children)) {
+          if (keepIds.has(child.id) || child.classList?.contains("main-alerts")) continue;
+          child.remove();
+        }
+      }
     }
   });
   if (window.$) {

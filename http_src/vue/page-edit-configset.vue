@@ -254,6 +254,8 @@ async function on_table_event(event) {
 function on_check_saved() {
   table_ref.value?.refresh_table?.();
   success_msg.value = _i18n("changes_applied");
+  // this fires a menu reload to persist checks and propagate changes to pages like ACL list
+  document.dispatchEvent(new CustomEvent('ntopng-preferences-saved'));
 }
 
 // Toggle one check
@@ -274,6 +276,8 @@ async function toggle_behavioural_check(row, enable) {
 
     if (result?.success) {
       table_ref.value?.refresh_table?.();
+      // this fires a menu reload to persist checks and propagate changes to pages like ACL list
+      document.dispatchEvent(new CustomEvent('ntopng-preferences-saved'));
     } else {
       error_msg.value = result?.error || _i18n("request_failed_message");
     }
@@ -321,6 +325,8 @@ async function disable_all_visible() {
     error_msg.value = _i18n("request_failed_message");
   } else {
     success_msg.value = _i18n("changes_applied");
+    // this fires a menu reload to persist checks and propagate changes to pages like ACL list
+    document.dispatchEvent(new CustomEvent('ntopng-preferences-saved'));
   }
 }
 
@@ -335,6 +341,8 @@ async function factory_reset() {
     );
     table_ref.value?.refresh_table?.();
     success_msg.value = _i18n("changes_applied");
+    // this fires a menu reload to persist checks and propagate changes to pages like ACL list
+    document.dispatchEvent(new CustomEvent('ntopng-preferences-saved'));
   } catch {
     error_msg.value = _i18n("request_failed_message");
   } finally {
