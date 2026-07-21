@@ -264,8 +264,10 @@ function getAnalysisExtraParams() {
 }
 
 function onAnalysisRowsLoaded(res) {
-    const rows = Array.isArray(res?.rows) ? res.rows : [];
-    emit("interfaces-loaded", rows);
+    const total = Number.isFinite(res?.total_rows)
+        ? res.total_rows
+        : (Array.isArray(res?.rows) ? res.rows.length : 0);
+    emit("interfaces-loaded", total);
 }
 
 // Fetch

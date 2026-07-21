@@ -79,7 +79,7 @@
                     :show-analysis="!!selectedSnmpDevice"
                     :epoch-begin="ifaceEpochBegin" :epoch-end="ifaceEpochEnd"
                     :title-links="titleLinks" :csrf="props.context?.csrf"
-                    @interfaces-loaded="(list) => snmpDeviceInterfaces = list" />
+                    @interfaces-loaded="(count) => snmpDeviceInterfacesCount = count" />
 
                 <DashboardCard v-if="activeTab === 'live_flows' && (selectedExporter || selectedNetwork || selectedSite)"
                     :title="_i18n('sites_dashboard.live_flows')" icon="fas fa-stream"
@@ -230,10 +230,10 @@ const siteSnmpDevices = ref([]);
    exporter */
 const exporterInterfaces = ref([]);
 
-/* Last interfaces list reported by SnmpTrafficDashboard's Analysis table for
-   the selected bare SNMP device (see selectedSnmpDevice). */
-const snmpDeviceInterfaces = ref([]);
-const snmpDeviceAnalysisCount = computed(() => snmpDeviceInterfaces.value.length);
+/* Total interface count for the selected bare SNMP device, reported by
+   SnmpTrafficDashboard's Analysis table */
+const snmpDeviceInterfacesCount = ref(0);
+const snmpDeviceAnalysisCount = computed(() => snmpDeviceInterfacesCount.value);
 
 /* Epoch window driving the exporter/interface traffic panel (ExporterTrafficDashboard),
    set here since it's shared with the top-right date/time range picker. */
@@ -1250,7 +1250,7 @@ function handleSelectSnmpDevice(device, network) {
     selectedSnmpInterface.value = null;
     selectedNetwork.value = network ? makeSelectedNetwork(network) : makeSelectedNetwork(findNetworkById(device.network_id));
     activeTab.value = "snmp_analysis";
-    snmpDeviceInterfaces.value = [];
+    snmpDeviceInterfacesCount.value = null;
     ensureEpochWindow();
     revealInSidebar();
     stripLiveEpochFromUrl();
