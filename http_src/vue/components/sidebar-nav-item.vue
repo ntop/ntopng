@@ -130,6 +130,9 @@ function handleToggle() {
 .sidebar-nav-item-matched {
     background: rgba(255, 143, 0, 0.08);
     border-left: 3px solid var(--ntop-orange, #FF8F00);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding-left: calc(1.25rem - 3px);
     transition: background 0.3s, border-left-color 0.3s;
 }
 
