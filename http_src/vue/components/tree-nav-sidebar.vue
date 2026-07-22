@@ -27,6 +27,10 @@
     - searchPlaceholder: String — placeholder text for the search input
     - selectedId: String|Number (optional) — id of the currently active node,
         controls the highlight; the component never picks a selection itself
+    - topItems: Array<{id, name, icon}> (optional) — static rows pinned above
+        the lazy tree (e.g. fixed "Networks"/"Sites"/"Map" shortcuts). Never
+        fetched via loadChildren, never expandable. A thin divider is drawn
+        between these and the tree below when topItems is non-empty.
   Emits:
     - on_select(node, ancestors): fired when a row's label is clicked.
         `node` is the clicked NodeDescriptor. `ancestors` is the real path
@@ -34,6 +38,7 @@
         derived from the actual tree structure built while lazily expanding,
         never guessed or hardcoded. Root nodes get `ancestors: []`.
     - on_toggle(node, expanded): fired when a row is expanded/collapsed
+    - on_select_top(id): fired when one of the pinned topItems rows is clicked
   Exposes (via ref):
     - reload(): re-fetches the root level and collapses everything
     - ancestorsOf(nodeId): returns the real ancestor chain of any known node
@@ -59,6 +64,13 @@
         <Loading :isLoading="isLoading"></Loading>
 
         <div class="tree-nav-sidebar-list flex-grow-1 overflow-auto">
+            <template v-if="topItems.length > 0">
+                <sidebar-nav-item v-for="item in topItems" :key="item.id" :id="item.id" :name="item.name"
+                    :icon="item.icon" :depth="0" :selected="String(selectedId) === String(item.id)"
+                    @on_click="emit('on_select_top', item.id)" />
+                <div class="tree-nav-sidebar-top-divider"></div>
+            </template>
+
             <template v-for="row in visibleRows" :key="row.node.id">
                 <sidebar-nav-item :id="row.node.id" :name="row.node.name" :icon="row.node.icon" :color="row.node.color"
                     :depth="row.depth" :selected="String(selectedId) === String(row.node.id)" :matched="row.matched"
@@ -101,6 +113,10 @@ const props = defineProps({
         default: null, // null hides the search box entirely
     },
     selectedId: [String, Number],
+    topItems: {
+        type: Array,
+        default: () => [],
+    },
     stickyTop: {
         type: String,
         default: null,
@@ -113,7 +129,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["on_select", "on_toggle"]);
+const emit = defineEmits(["on_select", "on_toggle", "on_select_top"]);
 
 const isLoading = ref(true);
 const search = ref("");
@@ -594,6 +610,12 @@ defineExpose({ reload, ancestorsOf, expandTo });
     .tree-nav-sidebar-resize-handle {
         display: none;
     }
+}
+
+.tree-nav-sidebar-top-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0.35rem 0.75rem 0.35rem;
 }
 
 .tree-nav-sidebar-title {
