@@ -3,7 +3,7 @@
 Access Control List
 -------------------
 
-ntopng is able to define an Access Control List, used to trigger an alert in case one of the defined rules is not respected.
+ntopng is able to define an Access Control List, used to trigger an alert in case one of the defined rules is not respected. It is also possible to restrict the check of these rules only to specified Networks CIDR/Hosts (`Scope Filters`_)
 
 .. note::
 
@@ -106,4 +106,69 @@ After configuring everything, ntopng is going to start checking for flows not re
   :alt: MAC Alert (ARP)
 
   MAC Alert (ARP)
+
+Scope Filters
+^^^^^^^^^^^^^
+
+In order to restrict the evaluation of the ACL rules, it is possible to create a list of Networks CIDR and Hosts.
+
+By jumping to the `Scope Filters` section, a list of Networks CIDR/Hosts can be added.
+
+This list will automatically exclude all the flows with both Client and Server hosts not inside the list (in order to be evaluated, at least one of the two needs to be inside the specified list).
+
+.. figure:: ../../../img/acl_scope_filters.png
+  :align: center
+  :alt: Scope Filters
+
+  Scope Filters
+
+
+
+The list of Networks CIDR and Hosts needs to be a list of comma or newline separated elements (both are accepted and parsed).
+In case of typing errors, a check is done and the incorrect Network/Host will be displayed.
+
+.. figure:: ../../../img/acl_scope_filters_example_error.png
+  :align: center
+  :alt: Scope Filters Input Error
+
+  Scope Filters Input Error
+
+
+.. warning::
+  The Scope Filters is global to ntopng, this means that all the Network Interfaces will have the same Scope Filters
+
+Example
+~~~~~~~
+
+Below an example of ACL Rules set on a test Network, where the Local Network is the 192.168.160.0/24.
+
+Here only ntopng and ZMQ protocols should be seen, for this reason, in the ACL, the ZMQ and ntopng flows are excluded; also the Scope Filters are set
+to only check the flows inside that Network (there are other Networks in this enviroment)
+
+
+.. figure:: ../../../img/acl_example.png
+  :align: center
+  :alt: ACL Rules Example
+
+  ACL Rules Example
+
+
+
+.. figure:: ../../../img/acl_scope_filters_example.png
+  :align: center
+  :alt: Scope Filters Example
+
+  Scope Filters Example
+
+
+
+.. figure:: ../../../img/acl_violation_example.png
+  :align: center
+  :alt: ACL Rules Example
+
+  ACL Rules Example
+
+
+Despite the huge amount of flows in the Enviroment, the ACL Rules are only triggered for the flows inside the specified Networks and with traffic different from ZMQ or ntopng.
+
 
