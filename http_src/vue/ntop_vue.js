@@ -99,6 +99,7 @@ import { default as PageTrafficProfiles } from "./page-traffic-profiles.vue"
 import { default as PageNetworks } from "./page-networks.vue"
 import { default as PageTreemapNetworks } from "./page-treemap-networks.vue"
 import { default as PageSites } from "./page-sites.vue"
+import { default as PageSitesMap } from "./page-sites-map.vue"
 import { default as PageSitesDashboard } from "./page-sites-dashboard.vue"
 import { default as PageDHCPLeases } from "./page-DHCP-leases.vue"
 import { default as PageExporterInterfaceOverview } from "./page-exporter-interface-overview.vue"
@@ -367,6 +368,7 @@ let ntopVue = {
     PageNetworks: PageNetworks,
     PageTreemapNetworks: PageTreemapNetworks,
     PageSites: PageSites,
+    PageSitesMap: PageSitesMap,
     PageSitesDashboard: PageSitesDashboard,
 
     // components

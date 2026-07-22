@@ -9275,6 +9275,7 @@ local lang = {
     ["networks"] = "Networks",
     ["network"] = "Network",
     ["sub_sites"] = "Sub-Sites",
+    ["map"] = "Map",
     ["exporters"] = "Exporters",
     ["exporter"] = "Exporter",
     ["exporter_name"] = "Exporter Name",

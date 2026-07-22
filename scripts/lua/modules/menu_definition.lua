@@ -140,7 +140,7 @@ return function(f)
             i18n = "networks",
             icon = "fas fa-network-wired",
             url = "/lua/network_stats.lua",
-            hidden = f.is_viewed_interface
+            hidden = f.is_viewed_interface or f.is_pro
         }, {
             key = "host_pools",
             i18n = "host_pools.host_pools",

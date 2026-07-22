@@ -3,8 +3,9 @@
     <div class="sites-dashboard d-flex">
         <TreeNavSidebar ref="sidebar" :title="_i18n('sites_dashboard.sites')"
             :search-placeholder="_i18n('sites_dashboard.search_placeholder')" :load-children="loadSidebarChildren"
-            :selected-id="selectedNodeId" :sticky-top="'calc(3rem + 0.5rem)'" :cache-key="`sites_dashboard:${ifid}`"
-            @on_select="handleSidebarSelect" />
+            :selected-id="selectedNodeId" :top-items="topItems" :sticky-top="'calc(3rem + 0.5rem)'"
+            :cache-key="`sites_dashboard:${ifid}`" @on_select="handleSidebarSelect"
+            @on_select_top="handleSelectTopItem" />
 
         <div class="sites-dashboard-main flex-grow-1 min-w-0">
             <div class="sites-dashboard-topbar d-flex align-items-center flex-wrap">
@@ -30,6 +31,17 @@
             <div v-if="!initialSelectionReady" class="sites-dashboard-body">
                 <Loading :isLoading="true" />
             </div>
+
+            <!-- Pinned top items (Networks/Sites/Map) -->
+            <div v-else-if="isTopItemTab" class="sites-dashboard-body">
+                <template v-if="activeTab === 'top:networks'">
+                    <PageTreemapNetworks :context="props.context" />
+                    <PageNetworks :context="props.context" />
+                </template>
+                <PageSites v-else-if="activeTab === 'top:sites'" :context="props.context" />
+                <PageSitesMap v-else-if="activeTab === 'top:map'" :context="props.context" />
+            </div>
+
             <div v-else class="sites-dashboard-body">
                 <!-- Title row: current node icon + label + name, with a single
                      subtitle line for whatever secondary context applies -->
@@ -117,6 +129,10 @@ import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as BadgeCard } from "./badge-card.vue";
 import { default as NetworkDashboard } from "./components/sites-dashboard/network-dashboard.vue";
 import { default as ExportersDashboard } from "./components/sites-dashboard/exporters-dashboard.vue";
+import { default as PageNetworks } from "./page-networks.vue";
+import { default as PageTreemapNetworks } from "./page-treemap-networks.vue";
+import { default as PageSites } from "./page-sites.vue";
+import { default as PageSitesMap } from "./page-sites-map.vue";
 import { default as ExporterTrafficDashboard } from "./components/sites-dashboard/exporter-traffic-dashboard.vue";
 import { default as SnmpTrafficDashboard } from "./components/sites-dashboard/snmp-traffic-dashboard.vue";
 import { default as DashboardCard } from "./components/dashboard-card.vue";
@@ -139,6 +155,8 @@ const URL_PARAM_IF_IDX = "ifIdx";
 const URL_PARAM_SNMP_DEVICE_IP = "host";
 const URL_PARAM_SNMP_IF_IDX = "snmp_if_idx";
 const URL_PARAM_TAB = "tab";
+// Used for sites page and network
+const URL_PARAM_VIEW = "view";
 
 /* Title-link URLs for each card. networks/exporters/exporter_interfaces are
    still placeholders - fill in with the final destination URLs.
@@ -226,6 +244,14 @@ const networks = ref([]);
 const sites = ref([]);
 const exporters = ref([]);
 const siteSnmpDevices = ref([]);
+
+/* Pinned sidebar rows shown above the tree. Render network_stats.lua's own pages
+   plus a new sites  geomap*/
+const topItems = [
+    { id: "top:networks", name: _i18n("network_stats.networks") || "Networks", icon: "bi bi-diagram-3-fill" },
+    { id: "top:sites", name: _i18n("sites_page.sites") || "Sites", icon: "bi bi-geo-alt-fill" },
+    { id: "top:map", name: _i18n("sites_dashboard.map"), icon: "fas fa-map" },
+];
 
 /* Last interfaces list reported by ExporterTrafficDashboard for the selected
    exporter */
@@ -488,6 +514,7 @@ const titleLinks = computed(() => {
 /* Id of whichever node (site/exporter/interface) is currently active, used to
    keep the sidebar selection highlight in sync with the main panel. */
 const selectedNodeId = computed(() => {
+    if (isTopItemTab.value) return activeTab.value;
     if (selectedSnmpInterface.value) return `snmp_interface:${selectedSnmpDevice.value?.id}:${selectedSnmpInterface.value.ifindex}`;
     if (selectedSnmpDevice.value) return `snmp_device:${selectedSnmpDevice.value.id}`;
     if (selectedInterface.value) return `interface:${selectedExporter.value?.id}:${selectedInterface.value.ifindex}`;
@@ -566,6 +593,8 @@ const titleSubtitle = computed(() => {
     }
     return "";
 });
+
+const isTopItemTab = computed(() => activeTab.value.startsWith("top:"));
 
 const tabs = computed(() => {
     if (selectedSnmpDevice.value) {
@@ -929,6 +958,25 @@ function handleSelectNetwork(network) {
     revealInSidebar();
 }
 
+/* Switches the main panel to one of the pinned top items */
+const SITES_TAB_VALUES = ["stats", "config"];
+
+function handleSelectTopItem(id) {
+    activeTab.value = id;
+
+    const search_params = ntopng_url_manager.get_url_search_params();
+    if (id === "top:sites") {
+        const currentTab = search_params.get(URL_PARAM_TAB);
+        if (!SITES_TAB_VALUES.includes(currentTab)) {
+            search_params.set(URL_PARAM_TAB, "stats");
+            ntopng_url_manager.replace_url(search_params.toString());
+        }
+    } else if (search_params.has(URL_PARAM_TAB)) {
+        search_params.delete(URL_PARAM_TAB);
+        ntopng_url_manager.replace_url(search_params.toString());
+    }
+}
+
 async function loadHierarchy(siteId) {
     loadingHierarchy.value = true;
     try {
@@ -1023,10 +1071,16 @@ watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, selec
         search_params.delete(URL_PARAM_SNMP_IF_IDX);
     }
 
-    if (activeTab.value) {
-        search_params.set(URL_PARAM_TAB, activeTab.value);
+    
+    if (isTopItemTab.value) {
+        search_params.set(URL_PARAM_VIEW, activeTab.value);
     } else {
-        search_params.delete(URL_PARAM_TAB);
+        search_params.delete(URL_PARAM_VIEW);
+        if (activeTab.value) {
+            search_params.set(URL_PARAM_TAB, activeTab.value);
+        } else {
+            search_params.delete(URL_PARAM_TAB);
+        }
     }
 
     ntopng_url_manager.replace_url(search_params.toString());
@@ -1115,6 +1169,7 @@ async function restoreSelectionFromUrl() {
     const urlSnmpDeviceIp = ntopng_url_manager.get_url_entry(URL_PARAM_SNMP_DEVICE_IP);
     const urlSnmpIfIdx = ntopng_url_manager.get_url_entry(URL_PARAM_SNMP_IF_IDX);
     const urlTab = ntopng_url_manager.get_url_entry(URL_PARAM_TAB);
+    const urlView = ntopng_url_manager.get_url_entry(URL_PARAM_VIEW);
 
     // Every handleSelect* call below resets activeTab to its own default tab,
     // so the saved tab (if still valid for the resulting selection) is applied
@@ -1126,6 +1181,11 @@ async function restoreSelectionFromUrl() {
     const { site, ancestors: siteAncestors } = await resolveSiteChain(urlSiteId);
     // Loads networks.value/exporters.value/siteSnmpDevices.value for this site
     await handleSelectSite(site, siteAncestors);
+
+    if (urlView && topItems.some((t) => t.id === urlView)) {
+        handleSelectTopItem(urlView);
+        return;
+    }
 
     if (urlExporterIp) {
         const exporter = exporters.value.find((e) => String(e.id) === String(urlExporterIp));
