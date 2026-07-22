@@ -10,7 +10,6 @@ package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" ..
 require("ntop_utils")
 local json = require("dkjson")
 local rest_utils = require("rest_utils")
-local snmp_config = require("snmp_config")
 local exporters_utils = require("exporters_utils")
 
 -- Module definition - this module provides utilities for managing sites
@@ -744,8 +743,12 @@ end
 local snmp_devices = {}
 local function getSNMPDevicesFromNetwork(network_id)
    local rsp = {}
+
+   if not (ntop.isPro and ntop.isPro()) then return rsp end
+
    network_id = tonumber(network_id)
-   if table.len(snmp_devices) == 0 then 
+   if table.len(snmp_devices) == 0 then
+      local snmp_config = require("snmp_config")
       snmp_devices = snmp_config.get_all_configured_devices()
    end
 
