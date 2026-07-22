@@ -311,6 +311,10 @@ function formatLastChange(v) {
 
 /* sysUpTime, reported in seconds by the device info REST. */
 function formatUptime(v) {
+    if (typeof v === "string") {
+       const s = v.trim();
+        return s.length ? s : null;
+    }
     const secs = Number(v);
     if (!Number.isFinite(secs) || secs <= 0) return null;
     return NtopUtils.secondsToTime(secs);
