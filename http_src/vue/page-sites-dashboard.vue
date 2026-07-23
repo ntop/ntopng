@@ -1421,9 +1421,13 @@ async function fetchSiteLevel(siteId) {
 
         const rawSites = data?.sites || {};
         const siteList = Array.isArray(rawSites) ? rawSites : Object.values(rawSites);
-        const exporterList = Array.isArray(data?.exporters) ? data.exporters : [];
-        const networkList = Array.isArray(data?.networks) ? data.networks : [];
-        const snmpDeviceList = Array.isArray(data?.snmp_devices) ? data.snmp_devices : [];
+        // The sidebar tree mirrors real ownership: components inherited from a
+        // descendant site (origin_site_id set) are shown under that descendant
+        // when it is expanded, not duplicated here under the ancestor.
+        const isOwned = (x) => x.origin_site_id == null;
+        const exporterList = (Array.isArray(data?.exporters) ? data.exporters : []).filter(isOwned);
+        const networkList = (Array.isArray(data?.networks) ? data.networks : []).filter(isOwned);
+        const snmpDeviceList = (Array.isArray(data?.snmp_devices) ? data.snmp_devices : []).filter(isOwned);
 
         const siteNodes = siteList
             .filter((s) => String(s.id) !== "0" || siteId === null)
