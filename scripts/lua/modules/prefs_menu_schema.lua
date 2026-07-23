@@ -2618,6 +2618,12 @@ function M.get_sections(flags)
             hidden = (not is_enterprise_l)
         }}
     }
+    
+    local snmp_config = require("snmp_config")
+    local max_num_pollers = 0
+    if snmp_config then
+        max_num_pollers = snmp_config.max_num_configured_devices()
+    end
 
     -- SNMP
     sections[#sections + 1] = {
@@ -2660,6 +2666,19 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.snmp_polling",
             default = "0",
+            hidden = (not (is_enterprise_m or have_nedge))
+        }, {
+            key = "snmp_devices_pollers_num",
+            title = i18n("prefs.snmp_pollers_title"),
+            description = i18n("prefs.snmp_pollers_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.snmp.max_num_poller_coroutines",
+            default = string.format("%s", max_num_pollers), -- By default the maximum number will be used
+            attrs = {
+                min = "1",
+                max = string.format("%s", max_num_pollers)
+            },
             hidden = (not (is_enterprise_m or have_nedge))
         }, {
             key = "default_snmp_proto_version",
