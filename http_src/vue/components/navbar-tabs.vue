@@ -20,15 +20,17 @@
       @click="handleClick(tab)"
     >
       {{ _i18n(tab.label_i18n) }}
-      <span v-if="tab.count != null" class="tab-count">{{ tab.count }}</span>
+      <span v-if="tab.count != null" class="tab-count">{{ formatNumber(tab.count) }}</span>
     </button>
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
+import formatterUtils from "../../utilities/formatter-utils";
 
 const _i18n = (t) => i18n(t);
+const formatNumber = formatterUtils.getFormatter("number");
 
 const props = defineProps({
   tabs: {

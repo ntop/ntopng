@@ -42,6 +42,11 @@ const props = defineProps({
     context: Object,
 });
 
+// Emitted after a network is successfully edited, so an embedding parent
+// (e.g. the sites dashboard's tree sidebar) can invalidate its own cached
+// copy of the site hierarchy instead of going stale.
+const emit = defineEmits(["network_changed"]);
+
 const tabs = [
     { id: "networks", label_i18n: "networks" },
     { id: "sites", label_i18n: "sites_page.sites" },
@@ -263,5 +268,6 @@ const handleEditNetwork = async (data) => {
 
 const refreshActiveTable = function() {
     table_networks_stats.value.refresh_table(true);
+    emit("network_changed");
 }
 </script>

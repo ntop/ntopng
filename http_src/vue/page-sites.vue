@@ -99,6 +99,11 @@ const props = defineProps({
     context: Object,
 });
 
+// Emitted whenever a site is added, edited, deleted or imported, so an
+// embedding parent (e.g. the sites dashboard's tree sidebar) can invalidate
+// its own cached copy of the site hierarchy instead of going stale.
+const emit = defineEmits(["sites_changed"]);
+
 const tabs = [
     { id: "stats", label_i18n: "statistics" },
     { id: "config", label_i18n: "configuration" },
@@ -192,6 +197,7 @@ const switchActiveTab = function (tab) {
 const refreshActiveTable = () => {
     tableSitesStats.value?.refresh_table(true);
     tableSitesConfig.value?.refresh_table(true);
+    emit("sites_changed");
 }
 
 /* ************************************** */

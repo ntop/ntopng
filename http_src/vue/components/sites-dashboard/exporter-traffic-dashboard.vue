@@ -30,6 +30,9 @@
     - load(): initial fetch, same as refresh() (alias for readability at call sites)
     - refreshOverview(): re-fetches only the overview cards (L7/L4/talkers/destinations),
                  for date/time range picker changes where interfaces/counts are unaffected
+    - refreshCounts(): re-fetches only the Flows/Active Hosts KPI counts (alias for
+                 loadExporterCounts), for when just those need a fresh value
+                 (e.g. the parent's Live Flows/Hosts tab being opened)
 -->
 <template>
     <template v-if="!iface && showInterfaces">
@@ -125,6 +128,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["select-interface", "counts-loaded", "interfaces-loaded"]);
+
+let countsRequestGeneration = 0;
 
 const loadingInterfaces = ref(false);
 const exporterInterfaces = ref([]);
@@ -256,9 +261,11 @@ async function loadExporterInterfaces() {
    out index is the selected ifIndex (ifIdx). Note host/active_list.lua only
    honours deviceIP, so the Active Hosts KPI stays exporter-scoped. */
 async function loadExporterCounts() {
+    const generation = ++countsRequestGeneration;
     const iface_filter = props.iface ? { ifIdx: props.iface.ifindex } : {};
 
     const flows_params = ntopng_url_manager.obj_to_url_params({
+        ifid: exporterTimeseriesIfid.value,
         start: 0,
         length: 1,
         map_search: "",
@@ -267,6 +274,7 @@ async function loadExporterCounts() {
         ...iface_filter,
     });
     const hosts_params = ntopng_url_manager.obj_to_url_params({
+        ifid: exporterTimeseriesIfid.value,
         start: 0,
         length: 1,
         map_search: "",
@@ -296,6 +304,9 @@ async function loadExporterCounts() {
         console.error("Error retrieving live hosts count:", err);
     }
 
+    // A newer loadExporterCounts() call (from navigating on) has since
+    // started -- its response, whenever it lands, is the one that should win.
+    if (generation !== countsRequestGeneration) return;
     emit("counts-loaded", { flows, hosts });
 }
 
@@ -505,5 +516,5 @@ async function refresh() {
     await Promise.all(tasks);
 }
 
-defineExpose({ refresh, load: refresh, refreshOverview: loadOverview });
+defineExpose({ refresh, load: refresh, refreshOverview: loadOverview, refreshCounts: loadExporterCounts });
 </script>
