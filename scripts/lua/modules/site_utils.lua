@@ -920,21 +920,50 @@ end
 
 -- ##############################################
 
--- Returns the sub-sites of site_id together with its components, both the ones
--- it owns directly and the ones inherited from its descendant sites.
-local function getSiteLeaves(site_id)
-	local site = tostring(site_id)
+-- How much of a site has to be returned by getSiteComponents()/getSiteLeaves().
+site_utils.components_scope = {
+	-- sub-sites only
+	none = "none",
+	-- sub-sites and components owned directly by the site
+	direct = "direct",
+	-- also components inherited from the descendant sites
+	all = "all",
+}
 
-	-- Expensive lookups: performed once per request.
+-- Normalizes an externally supplied scope, falling back to the default one on
+-- anything unrecognized.
+function site_utils.parseComponentsScope(scope)
+	return site_utils.components_scope[tostring(scope or "")] or site_utils.components_scope.direct
+end
+
+-- Returns the sub-sites of site_id together with its components: the ones it
+-- owns directly and, when the "all" scope is requested, the ones inherited
+-- from its descendant sites.
+local function getSiteLeaves(site_id, scope)
+	local site = tostring(site_id)
+	scope = scope or site_utils.components_scope.direct
+
 	local all_sites = site_utils.getSites()
 	local children_by_parent = buildChildrenIndex(all_sites)
-	local exporters_by_site = getExportersBySite()
-	local devices_by_network = getSNMPDevicesByNetwork()
 
 	-- Direct child sites (shown as sub-sites), resolved with an O(1) lookup on
 	-- the index instead of a full scan. Only DIRECT children are listed here:
 	-- deeper levels of the hierarchy are reached by expanding each child.
 	local sites_to_add = children_by_parent[site] or {}
+
+	if scope == site_utils.components_scope.none then
+		return {
+			sites = sites_to_add,
+			networks = {},
+			exporters = {},
+			snmp_devices = {}
+		}
+	end
+
+	-- Expensive lookups: performed once per request, and only when at least
+	-- the directly owned components have been asked for.
+	local exporters_by_site = getExportersBySite()
+	local devices_by_network = getSNMPDevicesByNetwork()
 
 	-- Components owned DIRECTLY by this site: shown without any origin suffix.
 	local own = getDirectSiteComponents(site_id, exporters_by_site, devices_by_network)
@@ -948,7 +977,12 @@ local function getSiteLeaves(site_id)
 
 	-- Components INHERITED from descendant sites.
 	-- Each inherited item is labelled with the name of the site it belongs to.
-	for _, descendant in ipairs(getDescendantSites(site_id, children_by_parent)) do
+	local descendants = {}
+	if scope == site_utils.components_scope.all then
+		descendants = getDescendantSites(site_id, children_by_parent)
+	end
+
+	for _, descendant in ipairs(descendants) do
 		local origin_id = tostring(descendant.id)
 		local origin_name = descendant.name
 		local sub = getDirectSiteComponents(descendant.id, exporters_by_site, devices_by_network)
@@ -978,7 +1012,7 @@ end
 
 -- ##############################################
 
-function site_utils.getSiteComponents(site_id)
+function site_utils.getSiteComponents(site_id, scope)
 	-- Empty site id, it means that all "parents" sites need to be returned
 	if isEmptyString(site_id) then
 		local parents_sites = getRootSite()
@@ -986,7 +1020,7 @@ function site_utils.getSiteComponents(site_id)
       return parents_sites
 	else
 		-- site_id available, returns all the childs of the site_id
-		local children = getSiteLeaves(site_id)
+		local children = getSiteLeaves(site_id, scope)
       --   tprint(children)
       return children
 	end

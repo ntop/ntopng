@@ -980,7 +980,9 @@ function handleSelectTopItem(id) {
 async function loadHierarchy(siteId) {
     loadingHierarchy.value = true;
     try {
-        const data = await fetchSiteHierarchy(siteId);
+        // The only view that shows the components inherited from the
+        // descendant sites, hence the only caller asking for ALL
+        const data = await fetchSiteHierarchy(siteId, HIERARCHY_SCOPE.ALL);
         networks.value = data?.networks || [];
         sites.value = data?.sites || [];
         exporters.value = data?.exporters || [];
@@ -1090,16 +1092,39 @@ watch([selectedSite, selectedNetwork, selectedExporter, selectedInterface, selec
    top-level sites list: Default + every other root-level site) are two
    different, both meaningful queries — site_id is only omitted when siteId
    is actually null/undefined (the tree's true root), never coerced from "0". */
-const hierarchyRequestCache = new Map(); // siteId (as string key) -> Promise
+const hierarchyRequestCache = new Map(); // "siteId|components" -> Promise
 const HIERARCHY_CACHE_MS = 500;
 
-async function fetchSiteHierarchy(siteId) {
-    const cacheKey = String(siteId);
-    const cached = hierarchyRequestCache.get(cacheKey);
+/* How much of a site the caller needs, mirroring site_utils.components_scope:
+   NONE   sub-sites only (resolveSiteChain never looks at the components),
+   DIRECT sub-sites + components the site owns (the sidebar tree discards the
+          inherited ones anyway, see fetchSiteLevel), the default here as well,
+   ALL    ... + components inherited from the descendant sites (the dashboard).
+   Ranked so that a cached richer response can serve a poorer request. */
+const HIERARCHY_SCOPE = { NONE: "none", DIRECT: "direct", ALL: "all" };
+const HIERARCHY_SCOPE_RANK = { none: 0, direct: 1, all: 2 };
+
+/* Returns an in-flight request whose payload is a superset of `components`,
+   so that selecting and expanding the same site still costs a single call. */
+function cachedHierarchySuperset(siteId, components) {
+    const wanted = HIERARCHY_SCOPE_RANK[components];
+    for (const scope of Object.keys(HIERARCHY_SCOPE_RANK)) {
+        if (HIERARCHY_SCOPE_RANK[scope] < wanted) continue;
+        const hit = hierarchyRequestCache.get(`${siteId}|${scope}`);
+        if (hit) return hit;
+    }
+    return null;
+}
+
+async function fetchSiteHierarchy(siteId, components = HIERARCHY_SCOPE.DIRECT) {
+    const cacheKey = `${siteId}|${components}`;
+    const cached = cachedHierarchySuperset(String(siteId), components);
     if (cached) return cached;
 
     const paramsObj = { ifid };
     if (siteId !== null && siteId !== undefined) paramsObj.site_id = siteId;
+    // Omitted when DIRECT, which is what the endpoint defaults to
+    if (components !== HIERARCHY_SCOPE.DIRECT) paramsObj.components = components;
     const url_params = ntopng_url_manager.obj_to_url_params(paramsObj);
     const url = `${http_prefix}/lua/pro/rest/v2/get/sites/hierarchy.lua?${url_params}`;
 
@@ -1136,7 +1161,8 @@ async function resolveSiteChain(targetSiteId) {
         for (const node of stack) {
             let data;
             try {
-                data = await fetchSiteHierarchy(node.id);
+                // Only data.sites is used below: the components are pure cost here
+                data = await fetchSiteHierarchy(node.id, HIERARCHY_SCOPE.NONE);
             } catch (err) {
                 console.error("Error resolving site chain from URL:", err);
                 continue;
@@ -1417,7 +1443,9 @@ function makeSnmpDeviceNode(d) {
    NodeDescriptors */
 async function fetchSiteLevel(siteId) {
     try {
-        const data = await fetchSiteHierarchy(siteId);
+        // The inherited components are filtered out below (isOwned), so they
+        // are not requested in the first place
+        const data = await fetchSiteHierarchy(siteId, HIERARCHY_SCOPE.DIRECT);
 
         const rawSites = data?.sites || {};
         const siteList = Array.isArray(rawSites) ? rawSites : Object.values(rawSites);
