@@ -740,95 +740,279 @@ local function getRootSite()
 	return { sites = parents_sites }
 end
 
-local snmp_devices = {}
-local function getSNMPDevicesFromNetwork(network_id)
-   local rsp = {}
+-- ################################################
+-- Per-request cache: network_id -> array of SNMP devices.
+local _snmp_devices_by_network = nil
 
-   if not (ntop.isPro and ntop.isPro()) then return rsp end
+local function getSNMPDevicesByNetwork()
+	if _snmp_devices_by_network ~= nil then
+		return _snmp_devices_by_network
+	end
 
-   network_id = tonumber(network_id)
-   if table.len(snmp_devices) == 0 then
-      local snmp_config = require("snmp_config")
-      snmp_devices = snmp_config.get_all_configured_devices()
-   end
+	_snmp_devices_by_network = {}
 
-   for ip_device, info in pairs(snmp_devices) do
-      local device_network = interface.getIPNetworkId(ip_device)
-      if not info.network_id then
-         info.network_id = device_network
-      end
-      if (info.network_id == network_id) then
-         local name = ip_device
-         local is_active = false
-         if (info.stats) then
-            name = info.stats.name or ip_device
-            is_active = not(info.stats.is_unreachable)
-         end
-         rsp[#rsp + 1] = {
-            network_id = network_id,
-            name = name,
-            is_active = is_active,
-            ip = ip_device
-         }
-      end
-   end
+	if not (ntop.isPro and ntop.isPro()) then
+		return _snmp_devices_by_network
+	end
 
-   return rsp
+	local snmp_config = require("snmp_config")
+
+	for ip_device, info in pairs(snmp_config.get_all_configured_devices() or {}) do
+		local network_id = tonumber(info.network_id) or interface.getIPNetworkId(ip_device)
+		local name = ip_device
+		local is_active = false
+
+		if info.stats then
+			name = info.stats.name or ip_device
+			is_active = not (info.stats.is_unreachable)
+		end
+
+		local bucket = _snmp_devices_by_network[network_id]
+		if not bucket then
+			bucket = {}
+			_snmp_devices_by_network[network_id] = bucket
+		end
+
+		bucket[#bucket + 1] = {
+			network_id = network_id,
+			name = name,
+			is_active = is_active,
+			ip = ip_device,
+		}
+	end
+
+	return _snmp_devices_by_network
 end
 
 -- ##############################################
 
--- Returns the list of parents sites
-local function getSiteLeaves(site_id)
-	local site = tostring(site_id)
-	local all_sites = site_utils.getSites()
-	-- Adding sites
-   local sites_to_add = {}
-	for _, info in pairs(all_sites) do
-		-- If empty or null, it's the one we are searching for, a parent site
-		if (not isEmptyString(info.parent)) and (tostring(info.parent) == site) then
-			sites_to_add[#sites_to_add + 1] = info
+-- Shallow-copies a flat table.
+local function shallowCopy(t)
+	local copy = {}
+	for k, v in pairs(t) do
+		copy[k] = v
+	end
+	return copy
+end
+
+-- Appends the owner site name to a component display name, e.g.
+-- "x.x.x.x" + "Roma" -> "x.x.x.x (Roma)".
+local function withOriginSuffix(name, origin_name)
+	return tostring(name) .. " (" .. tostring(origin_name) .. ")"
+end
+
+-- Returns a COPY of an inherited component, labelled with the site it comes
+-- from. The copy is mandatory: the source tables are not allocated here (they
+-- belong to the exporters list, to the SNMP configuration and to the
+-- per-request caches above) and are therefore shared.
+local function withOrigin(component, fallback_name_key, origin_id, origin_name)
+	local copy = shallowCopy(component)
+	copy.name = withOriginSuffix(component.name or component[fallback_name_key], origin_name)
+	copy.origin_site_id = origin_id
+	copy.origin_site_name = origin_name
+	return copy
+end
+
+-- ##############################################
+
+-- Builds a map (site_id -> array of exporters) by resolving each exporter's
+-- owning site exactly once.
+local function getExportersBySite()
+	local exporters_by_site = {}
+	local exporters_list = exporters_utils.getAllExportersList()
+
+	for _, exporter_info in pairs(exporters_list or {}) do
+		local exporter_site = site_utils.resolveExporterSite(exporter_info.id)
+		local sid = tostring(exporter_site.id)
+		exporter_info.network_id = interface.getIPNetworkId(exporter_info.id)
+		local bucket = exporters_by_site[sid]
+		if not bucket then
+			bucket = {}
+			exporters_by_site[sid] = bucket
 		end
+		bucket[#bucket + 1] = exporter_info
 	end
 
-	-- Adding networks and SNMP devices
-	local networks = interface.getSiteNetworks(tonumber(site))
-   local networks_to_add = {}
-   local devices = {}
+	return exporters_by_site
+end
+
+-- ##############################################
+
+-- Returns the components (networks + their SNMP devices, and exporters) that
+-- belong DIRECTLY to site_id, i.e. not inherited from any descendant site.
+-- The precomputed maps are passed in by the caller: this function is invoked
+-- once per site of the subtree and must not rebuild them.
+local function getDirectSiteComponents(site_id, exporters_by_site, devices_by_network)
+	local networks_to_add = {}
+	local devices = {}
+
+	local networks = interface.getSiteNetworks(tonumber(site_id))
 	for _, network_id in pairs(networks or {}) do
 		networks_to_add[#networks_to_add + 1] = {
 			id = network_id,
 			name = getLocalNetworkAliasById(network_id),
 		}
-      devices = table.merge(devices, getSNMPDevicesFromNetwork(network_id))
+
+		-- Linear append: table.merge() allocated a new table and re-copied the
+		-- accumulator on every network, i.e. O(networks^2).
+		for _, dev in ipairs(devices_by_network[tonumber(network_id)] or {}) do
+			devices[#devices + 1] = dev
+		end
 	end
 
-	-- Adding exporters
-	local exporters_list = exporters_utils.getAllExportersList()
-   local exporters_to_add = {}
-	for _, exporter_info in pairs(exporters_list or {}) do
-      local exporter_site = site_utils.resolveExporterSite(exporter_info.id)
-      if tostring(exporter_site.id) == tostring(site_id) then
-		 -- Network Id for this exporter
-         local network_id = interface.getIPNetworkId(exporter_info.id)
-         exporter_info.network_id = network_id
-         exporters_to_add[#exporters_to_add + 1] = exporter_info
-      end
+	return {
+		networks = networks_to_add,
+		-- WARNING: this is an alias of the map bucket, never append to it
+		-- (see getSiteLeaves).
+		exporters = exporters_by_site[tostring(site_id)] or {},
+		snmp_devices = devices,
+	}
+end
+
+-- ##############################################
+
+-- Index parent_id -> { child_site, ... }, built once and reused both for the
+-- direct children and for the BFS over the descendants.
+local function buildChildrenIndex(all_sites)
+	local children_by_parent = {}
+
+	for _, info in ipairs(all_sites) do
+		if not isEmptyString(info.parent) then
+			local pid = tostring(info.parent)
+			local bucket = children_by_parent[pid]
+			if not bucket then
+				bucket = {}
+				children_by_parent[pid] = bucket
+			end
+			bucket[#bucket + 1] = info
+		end
 	end
 
-   local children_list = {
-      sites = sites_to_add,
-      networks = networks_to_add,
-      exporters = exporters_to_add,
-      snmp_devices = devices
-   }
+	return children_by_parent
+end
+
+-- Returns the descendant sites of site_id (children, grandchildren, ...), each
+-- as a site record { id, name, parent, ... }. The visited set already makes a
+-- cycle impossible: the bound is only a safety net on the NUMBER of visited
+-- nodes (at most the number of sites in the system).
+local function getDescendantSites(site_id, children_by_parent)
+	local descendants = {}
+	local visited = { [tostring(site_id)] = true }
+	local queue = { tostring(site_id) }
+	local head = 1
+
+	while queue[head] and #descendants <= MAX_PROFILES_NUM do
+		local current = queue[head]
+		head = head + 1
+
+		for _, child in ipairs(children_by_parent[current] or {}) do
+			local cid = tostring(child.id)
+			if not visited[cid] then
+				visited[cid] = true
+				descendants[#descendants + 1] = child
+				queue[#queue + 1] = cid
+			end
+		end
+	end
+
+	return descendants
+end
+
+-- ##############################################
+
+-- How much of a site has to be returned by getSiteComponents()/getSiteLeaves().
+site_utils.components_scope = {
+	-- sub-sites only
+	none = "none",
+	-- sub-sites and components owned directly by the site
+	direct = "direct",
+	-- also components inherited from the descendant sites
+	all = "all",
+}
+
+-- Normalizes an externally supplied scope, falling back to the default one on
+-- anything unrecognized.
+function site_utils.parseComponentsScope(scope)
+	return site_utils.components_scope[tostring(scope or "")] or site_utils.components_scope.direct
+end
+
+-- Returns the sub-sites of site_id together with its components: the ones it
+-- owns directly and, when the "all" scope is requested, the ones inherited
+-- from its descendant sites.
+local function getSiteLeaves(site_id, scope)
+	local site = tostring(site_id)
+	scope = scope or site_utils.components_scope.direct
+
+	local all_sites = site_utils.getSites()
+	local children_by_parent = buildChildrenIndex(all_sites)
+
+	-- Direct child sites (shown as sub-sites), resolved with an O(1) lookup on
+	-- the index instead of a full scan. Only DIRECT children are listed here:
+	-- deeper levels of the hierarchy are reached by expanding each child.
+	local sites_to_add = children_by_parent[site] or {}
+
+	if scope == site_utils.components_scope.none then
+		return {
+			sites = sites_to_add,
+			networks = {},
+			exporters = {},
+			snmp_devices = {}
+		}
+	end
+
+	-- Expensive lookups: performed once per request, and only when at least
+	-- the directly owned components have been asked for.
+	local exporters_by_site = getExportersBySite()
+	local devices_by_network = getSNMPDevicesByNetwork()
+
+	-- Components owned DIRECTLY by this site: shown without any origin suffix.
+	local own = getDirectSiteComponents(site_id, exporters_by_site, devices_by_network)
+	local networks_to_add = own.networks
+	local devices = own.snmp_devices
+
+	local exporters_to_add = {}
+	for _, exp in ipairs(own.exporters) do
+		exporters_to_add[#exporters_to_add + 1] = exp
+	end
+
+	-- Components INHERITED from descendant sites.
+	-- Each inherited item is labelled with the name of the site it belongs to.
+	local descendants = {}
+	if scope == site_utils.components_scope.all then
+		descendants = getDescendantSites(site_id, children_by_parent)
+	end
+
+	for _, descendant in ipairs(descendants) do
+		local origin_id = tostring(descendant.id)
+		local origin_name = descendant.name
+		local sub = getDirectSiteComponents(descendant.id, exporters_by_site, devices_by_network)
+
+		for _, net in ipairs(sub.networks) do
+			networks_to_add[#networks_to_add + 1] = withOrigin(net, "id", origin_id, origin_name)
+		end
+
+		for _, exp in ipairs(sub.exporters) do
+			exporters_to_add[#exporters_to_add + 1] = withOrigin(exp, "id", origin_id, origin_name)
+		end
+
+		for _, dev in ipairs(sub.snmp_devices) do
+			devices[#devices + 1] = withOrigin(dev, "ip", origin_id, origin_name)
+		end
+	end
+
+	local children_list = {
+		sites = sites_to_add,
+		networks = networks_to_add,
+		exporters = exporters_to_add,
+		snmp_devices = devices
+	}
 
 	return children_list
 end
 
 -- ##############################################
 
-function site_utils.getSiteComponents(site_id)
+function site_utils.getSiteComponents(site_id, scope)
 	-- Empty site id, it means that all "parents" sites need to be returned
 	if isEmptyString(site_id) then
 		local parents_sites = getRootSite()
@@ -836,7 +1020,7 @@ function site_utils.getSiteComponents(site_id)
       return parents_sites
 	else
 		-- site_id available, returns all the childs of the site_id
-		local children = getSiteLeaves(site_id)
+		local children = getSiteLeaves(site_id, scope)
       --   tprint(children)
       return children
 	end
