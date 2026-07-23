@@ -91,7 +91,7 @@
                     :iface="selectedSnmpDevice ? selectedSnmpInterface : selectedInterface"
                     :show-analysis="!!selectedSnmpDevice"
                     :epoch-begin="ifaceEpochBegin" :epoch-end="ifaceEpochEnd"
-                    :title-links="titleLinks" :csrf="props.context?.csrf"
+                    :csrf="props.context?.csrf"
                     @interfaces-loaded="(count) => snmpDeviceInterfacesCount = count" />
 
                 <DashboardCard v-if="activeTab === 'live_flows' && (selectedExporter || selectedNetwork || selectedSite)"
@@ -471,26 +471,6 @@ function buildHostsUrl() {
     return null;
 }
 
-/* Title link of the SNMP traffic time-series card */
-function buildSnmpTimeseriesUrl() {
-    if (!selectedExporter.value) return null;
-
-    if (selectedInterface.value) {
-        const url_params = ntopng_url_manager.obj_to_url_params({
-            host: selectedExporter.value.id,
-            snmp_port_idx: selectedInterface.value.ifindex,
-            page: "historical",
-        });
-        return `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?${url_params}`;
-    }
-
-    const url_params = ntopng_url_manager.obj_to_url_params({
-        host: selectedExporter.value.id,
-        page: "historical",
-    });
-    return `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?${url_params}`;
-}
-
 /* Resolves each card's title-link from CARD_LINKS, switching to the live vs.
    historical variant for cards with both (see isLive / on_epoch_change). */
 const titleLinks = computed(() => {
@@ -507,7 +487,6 @@ const titleLinks = computed(() => {
         exporter_interfaces: asLiveLink(CARD_LINKS.exporter_interfaces),
         live_flows: asLink(buildLiveFlowsUrl()),
         hosts: asLink(buildHostsUrl()),
-        snmp_traffic_time_series: asLink(buildSnmpTimeseriesUrl()),
     };
 });
 
