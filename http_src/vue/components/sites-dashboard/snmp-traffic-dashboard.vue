@@ -2,7 +2,7 @@
     <div class="row g-3 mb-3 mt-0">
         <div class="col-lg-8">
             <DashboardCard :title="_i18n('sites_dashboard.traffic_time_series')" icon="bi bi-graph-up"
-                :titleLink="titleLinks.snmp_traffic_time_series" noPadding>
+                :titleLink="timeseriesLink" noPadding>
                 <div class="sites-dashboard-ts">
                     <DashboardTimeseries v-if="epochBegin && epochEnd"
                         :id="'sites_dashboard_snmp_iface_ts'" :ifid="ifid" :epoch_begin="epochBegin"
@@ -15,7 +15,7 @@
         <div class="col-lg-4">
             <DashboardCard
                 :title="_i18n(iface ? 'sites_dashboard.interface_information_snmp' : 'sites_dashboard.device_information_snmp')"
-                icon="bi bi-info-circle">
+                icon="bi bi-info-circle" :titleLink="informationLink">
                 <NoData v-if="!loadingInfo && infoRows.length === 0" :show="true" />
                 <dl v-else class="snmp-info-list mb-0">
                     <template v-for="row in infoRows" :key="row.label">
@@ -29,7 +29,8 @@
 
     <div v-if="showAnalysis && !iface" class="row g-3 mb-3">
         <div class="col-lg-12">
-            <DashboardCard :title="_i18n('sites_dashboard.snmp_interfaces')" icon="bi bi-diagram-3" noPadding>
+            <DashboardCard :title="_i18n('sites_dashboard.snmp_interfaces')" icon="bi bi-diagram-3"
+                :titleLink="interfacesLink" noPadding>
                 <div class="m-2">
                     <TableWithConfig ref="analysisTableRef" :table_id="'snmp_device_interfaces'" :csrf="csrf"
                         :showLoading="true" :f_map_columns="mapAnalysisColumns" :f_sort_rows="analysisColumnsSorting"
@@ -59,7 +60,6 @@ const props = defineProps({
     iface: { type: Object, default: null },
     epochBegin: { type: Number, default: null },
     epochEnd: { type: Number, default: null },
-    titleLinks: { type: Object, default: () => ({}) },
     csrf: { type: String, default: null },
     /* Shows the per-interface Analysis table below the timeseries/info row.
        Only meaningful at device scope (iface === null): a bare SNMP device
@@ -73,6 +73,9 @@ const SNMP_SYSTEM_IFID = "-1";
 
 const DEVICE_INFO_URL = "/lua/pro/rest/v2/get/snmp/device/info.lua";
 const IFACE_INFO_URL = "/lua/pro/rest/v2/get/snmp/interface/info.lua";
+
+const DEVICE_DETAILS_URL = "/lua/pro/enterprise/snmp_device_details.lua";
+const IFACE_DETAILS_URL = "/lua/pro/enterprise/snmp_interface_details.lua";
 
 const loadingInfo = ref(false);
 const deviceInfo = ref(null);
@@ -91,6 +94,24 @@ const interface_status = {
     ["6"]: _i18n("status_notpresent"),
     ["7"]: `<span class="text-danger">${_i18n("snmp.status_lowerlayerdown")}</span>`,
 };
+
+function detailsLink(page) {
+    const host = props.device?.id;
+    if (!host) return null;
+
+    if (props.iface) {
+        const params = { host, snmp_port_idx: props.iface.ifindex };
+        if (page !== "overview") params.page = page;
+        return { url: `${http_prefix}${IFACE_DETAILS_URL}?${ntopng_url_manager.obj_to_url_params(params)}` };
+    }
+
+    const params = ntopng_url_manager.obj_to_url_params({ host, page });
+    return { url: `${http_prefix}${DEVICE_DETAILS_URL}?${params}` };
+}
+
+const timeseriesLink = computed(() => detailsLink("historical"));
+const informationLink = computed(() => detailsLink("overview"));
+const interfacesLink = computed(() => detailsLink("interfaces"));
 
 // Timeseries
 /* Interface scope uses the per-interface schema. Device scope uses the same
