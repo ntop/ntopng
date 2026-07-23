@@ -3,6 +3,7 @@
 --
 
 local dirs = ntop.getDirs()
+local prefs = ntop.getPrefs()
 
 require "lua_utils"
 local template = require "template_utils"
