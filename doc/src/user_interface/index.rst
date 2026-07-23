@@ -122,6 +122,7 @@ Settings
   shared/settings/blacklists
   shared/settings/configurations
   shared/settings/applications_and_categories
+  shared/settings/tags
 
 
 Developer

@@ -38,6 +38,7 @@ Each recipient can be configured to receive alerts on the basis of a few criteri
 - Severity
 - Alert Category
 - Host Pool
+- Tags
 
 Severity Criteria
 ^^^^^^^^^^^^^^^^^
@@ -87,10 +88,20 @@ Active Monitoring
 ^^^^^^^^^^^^^^^^^
 
 None or multiple alerts regarding active monitored devices can be configured.
- 
+
 .. figure:: ../../../img/alerts_recipient_criteria_active_monitoring_filter.png
   :align: center
   :alt: Host Pool Criteria
+
+
+Tags Criteria
+^^^^^^^^^^^^^
+
+None or multiple :ref:`Tags <Tags>` can be selected to filter Flow and Host
+alerts on the basis of the tags of the hosts they involve (the client and/or
+server host, for Flow alerts). If one or more tags are selected, only alerts
+whose host carries at least one of the selected tags are delivered to the
+recipient. If no tag is selected, alerts are not filtered by tag.
 
 
 Available Endpoints
