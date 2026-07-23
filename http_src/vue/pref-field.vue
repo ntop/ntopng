@@ -105,6 +105,9 @@
           <i :class="test_result.ok ? 'fas fa-check-circle' : 'fas fa-times-circle'" class="me-1"></i>
           {{ test_result.msg }}
         </div>
+        <div v-if="!validation_error && range_hint" class="pref-range-hint">
+          {{ range_hint }}
+        </div>
         <div v-if="validation_error" class="invalid-feedback d-block">
           {{ validation_error }}
         </div>
@@ -267,6 +270,32 @@ function onTimeBlur(displayVal) {
   }
 }
 
+// Constraint hint shown under inputs (min/max for numbers, maxlength/pattern for text)
+const range_hint = computed(() => {
+  const attrs = props.entry.attrs || {};
+  const isNumber = props.entry.input_type === 'number' || attrs.type === 'number';
+
+  if (isNumber) {
+    const { min, max } = attrs;
+    if (min !== undefined && max !== undefined) {
+      return _i18n('prefs.vue_prefs.hint_min_max').replace('%{min}', min).replace('%{max}', max);
+    }
+    if (min !== undefined) return _i18n('prefs.vue_prefs.hint_min').replace('%{min}', min);
+    if (max !== undefined) return _i18n('prefs.vue_prefs.hint_max').replace('%{max}', max);
+    return '';
+  }
+
+  if (attrs.maxlength !== undefined) {
+    return _i18n('prefs.vue_prefs.hint_maxlength').replace('%{max}', attrs.maxlength);
+  }
+  if (props.entry.pattern_hint) {
+    // schema may supply a human-readable description of the expected format
+    return props.entry.pattern_hint;
+  }
+
+  return '';
+});
+
 // Validation
 function validate(value) {
   if (!value && props.entry.attrs?.required === 'true') {
@@ -427,5 +456,11 @@ function onToggleChange(checked) {
   flex: 1 1 0;
   width: 0;         /* let flex size it, not the 100% above */
   min-width: 4rem;
+}
+.pref-range-hint {
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--ntop-muted-text-color, #6c757d);
+  text-align: left;
 }
 </style>

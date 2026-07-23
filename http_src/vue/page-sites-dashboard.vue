@@ -36,9 +36,10 @@
             <div v-else-if="isTopItemTab" class="sites-dashboard-body">
                 <template v-if="activeTab === 'top:networks'">
                     <PageTreemapNetworks :context="props.context" />
-                    <PageNetworks :context="props.context" />
+                    <PageNetworks :context="props.context" @network_changed="handleHierarchyChanged" />
                 </template>
-                <PageSites v-else-if="activeTab === 'top:sites'" :context="props.context" />
+                <PageSites v-else-if="activeTab === 'top:sites'" :context="props.context"
+                    @sites_changed="handleHierarchyChanged" />
                 <PageSitesMap v-else-if="activeTab === 'top:map'" :context="props.context" />
             </div>
 
@@ -58,7 +59,7 @@
                      with a small icon square, label, and value -->
                 <div class="row g-3 mb-3">
                     <div v-for="kpi in kpiCards" :key="kpi.key" class="col-6 col-md-3 col-lg">
-                        <BadgeCard simple :icon="kpi.icon" :color="kpi.color"
+                        <BadgeCard simple :icon="kpi.icon" :color="kpi.color" :loading="kpi.loading"
                             :label="_i18n(kpi.labelI18n)" :value="kpi.value" :sub="kpi.sub" />
                     </div>
                 </div>
@@ -77,7 +78,7 @@
                     :title-links="titleLinks" :csrf="props.context?.csrf"
                     @select-interface="(iface) => handleSelectInterface(iface, selectedExporter)"
                     @counts-loaded="onExporterCountsLoaded"
-                    @interfaces-loaded="(list) => exporterInterfaces = list" />
+                    @interfaces-loaded="(list) => { exporterInterfaces = list; exporterInterfacesLoaded = true; }" />
 
                 <NetworkDashboard v-if="activeTab === 'networks'" :networks="networks" :loading="loadingHierarchy"
                     :title-link="titleLinks.networks" @select="handleSelectNetwork" />
@@ -98,14 +99,14 @@
                     :title="_i18n('sites_dashboard.live_flows')" icon="fas fa-stream"
                     :titleLink="titleLinks.live_flows" noPadding>
                     <PageFlowsList :key="liveFlowsPageKey" :context="liveFlowsContext"
-                        :locked_filters="liveFlowsLockedFilters" @total-loaded="(total) => liveFlowsCount = total" />
+                        :locked_filters="liveFlowsLockedFilters" @total-loaded="onLiveFlowsTotalLoaded" />
                 </DashboardCard>
 
                 <DashboardCard v-if="activeTab === 'hosts' && (selectedExporter || selectedNetwork)"
                     :title="_i18n('sites_dashboard.hosts')" icon="bi bi-pc-display"
                     :titleLink="titleLinks.hosts" noPadding>
                     <PageHostsList :key="hostsPageKey" :context="hostsContext"
-                        :locked_filters="hostsLockedFilters" @total-loaded="(total) => liveHostsCount = total" />
+                        :locked_filters="hostsLockedFilters" @total-loaded="onLiveHostsTotalLoaded" />
                 </DashboardCard>
 
                 <div v-if="!selectedSite && !selectedExporter && !selectedInterface" class="sites-dashboard-empty">
@@ -238,6 +239,18 @@ const initialSelectionReady = ref(false);
    built the same way regardless of how the site was reached */
 const selectedSiteAncestors = ref([]);
 
+/* Extra site crumbs between selectedSite and selectedNetwork, populated only
+   when the selected network is inherited from a descendant site nested two
+   or more levels below selectedSite (loadHierarchy's ALL scope returns those
+   inherited networks flatly alongside selectedSite's own, tagged with
+   origin_site_id -- see componentOwningSiteId). selectedSiteAncestors always
+   stays selectedSite's own chain since selectedSite itself hasn't changed;
+   breadcrumbItems splices this in between selectedSite's crumb and the
+   network's crumb. Reset to [] by handleSelectNetwork whenever the network
+   is directly owned by selectedSite, and by handleSelectSite/handleSelectExporter
+   whenever selection moves away from a network entirely. */
+const inheritedNetworkSiteChain = ref([]);
+
 const loadingHierarchy = ref(false);
 
 const networks = ref([]);
@@ -256,6 +269,13 @@ const topItems = [
 /* Last interfaces list reported by ExporterTrafficDashboard for the selected
    exporter */
 const exporterInterfaces = ref([]);
+/* False until the exporter's interfaces list has actually been fetched at
+   least once for the current selection -- distinguishes "no interfaces
+   reported SNMP support yet" (still loading) from "none of them do" (loaded,
+   genuinely disabled), so the SNMP KPI card doesn't flash "Disabled" and then
+   flip to "Enabled" once the slower interfaces fetch catches up. Reset on
+   every exporter/interface change (see the watcher below). */
+const exporterInterfacesLoaded = ref(false);
 
 /* Total interface count for the selected bare SNMP device, reported by
    SnmpTrafficDashboard's Analysis table */
@@ -269,6 +289,14 @@ const ifaceEpochEnd = ref(null);
 
 const liveFlowsCount = ref(null);
 const liveHostsCount = ref(null);
+/* False until liveFlowsCount/liveHostsCount have actually been (re)fetched for
+   the current selection -- without this, switching to a new exporter/interface/
+   network/site kept showing the *previous* selection's counts (e.g. a stale
+   "0") until the new fetch resolved, since liveFlowsCount/liveHostsCount
+   themselves are only overwritten once real data (or null) comes back. Reset
+   on every scope change (see the watcher below and handleSelectExporter/
+   handleSelectInterface). */
+const flowsHostsCountsLoaded = ref(false);
 
 // In the live case we clear the epoch params up front, before the picker mounts
 // and reads them, so it resolves to the "live" preset instead of "custom".
@@ -314,6 +342,18 @@ const exporterSnmpEnabled = computed(() => {
     if (selectedInterface.value) return !!selectedInterface.value.snmp_interface_available;
     return exporterInterfaces.value.some((iface) => iface.snmp_interface_available);
 });
+
+/* Whether the data backing the Current Traffic/SNMP KPI cards is ready to
+   read: at interface scope everything they need comes synchronously off the
+   selection itself (selectedInterface.in_bytes/out_bytes/
+   snmp_interface_available), but at exporter scope it depends on the async
+   interfaces-loaded emit from ExporterTrafficDashboard (which, notably, only
+   fires at exporter scope -- see loadExporterInterfaces's `if (!props.iface)`
+   guard -- so exporterInterfacesLoaded alone would stay false forever for a
+   selection that went straight to interface scope without it). Without this
+   split, those cards would either flash a false "0"/"Disabled" before the
+   fetch resolves, or stay stuck in the loading state at interface scope. */
+const exporterScopeDataReady = computed(() => !!selectedInterface.value || exporterInterfacesLoaded.value);
 
 /* In/out byte totals for the Current Traffic KPI: at interface scope, just
    that one interface's counters; at exporter scope, summed across every
@@ -643,6 +683,7 @@ const breadcrumbItems = computed(() => {
         items.push({ id: `site:${selectedSite.value.id}`, name: selectedSite.value.name });
     }
     if (selectedNetwork.value) {
+        items.push(...inheritedNetworkSiteChain.value);
         items.push({ id: selectedNetwork.value.nodeId, name: selectedNetwork.value.name });
     }
     if (selectedExporter.value) {
@@ -697,7 +738,8 @@ const kpiCards = computed(() => {
                 icon: "fas fa-network-wired",
                 color: "#EA6A2A",
                 labelI18n: "sites_dashboard.snmp_interfaces",
-                value: snmpDeviceAnalysisCount.value,
+                value: formatNumber(snmpDeviceAnalysisCount.value ?? 0),
+                loading: snmpDeviceInterfacesCount.value == null,
             });
         }
         return cards;
@@ -715,7 +757,11 @@ const kpiCards = computed(() => {
                 sub: selectedInterface.value.probe_name ? `${_i18n("sites_dashboard.probe_name")}: ${selectedInterface.value.probe_name}` : null,
             });
         } else {
-            cards.push({ key: "interfaces", icon: "bi bi-diagram-3", color: "#EA6A2A", labelI18n: "sites_dashboard.interfaces", value: exporterInterfaces.value.length });
+            cards.push({
+                key: "interfaces", icon: "bi bi-diagram-3", color: "#EA6A2A", labelI18n: "sites_dashboard.interfaces",
+                value: formatNumber(exporterInterfaces.value.length),
+                loading: !exporterInterfacesLoaded.value,
+            });
         }
 
         cards.push({
@@ -725,23 +771,33 @@ const kpiCards = computed(() => {
             labelI18n: "sites_dashboard.current_traffic",
             value: formatBytes(exporterCurrentTraffic.value.in + exporterCurrentTraffic.value.out),
             sub: `${_i18n("sites_dashboard.in_bytes")}: ${formatBytes(exporterCurrentTraffic.value.in)} · ${_i18n("sites_dashboard.out_bytes")}: ${formatBytes(exporterCurrentTraffic.value.out)}`,
+            loading: !exporterScopeDataReady.value,
         });
 
-        cards.push({ key: "flows", icon: "fas fa-stream", color: "#EA6A2A", labelI18n: "sites_dashboard.flows", value: liveFlowsCount.value ?? "—" });
-        cards.push({ key: "active_hosts", icon: "bi bi-pc-display", color: "#3b82f6", labelI18n: "sites_dashboard.active_hosts", value: liveHostsCount.value ?? "—" });
+        cards.push({
+            key: "flows", icon: "fas fa-stream", color: "#EA6A2A", labelI18n: "sites_dashboard.flows",
+            value: liveFlowsCount.value != null ? formatNumber(liveFlowsCount.value) : "—",
+            loading: !flowsHostsCountsLoaded.value,
+        });
+        cards.push({
+            key: "active_hosts", icon: "bi bi-pc-display", color: "#3b82f6", labelI18n: "sites_dashboard.active_hosts",
+            value: liveHostsCount.value != null ? formatNumber(liveHostsCount.value) : "—",
+            loading: !flowsHostsCountsLoaded.value,
+        });
         cards.push({
             key: "snmp",
             icon: exporterSnmpEnabled.value ? "bi bi-check-circle" : "bi bi-x-circle",
             color: exporterSnmpEnabled.value ? "#2fb344" : "#94a3b8",
-            labelI18n: "sites_dashboard.snmp",
+            labelI18n: "sites_dashboard.snmp_polling",
             value: exporterSnmpEnabled.value ? _i18n("sites_dashboard.enabled") : _i18n("sites_dashboard.disabled"),
+            loading: !exporterScopeDataReady.value,
         });
         return cards;
     }
     return [
-        { key: "networks", icon: "bi bi-diagram-3-fill", color: "#2fb344", labelI18n: "sites_dashboard.networks", value: networks.value.length },
-        { key: "sub_sites", icon: "bi bi-geo-alt-fill", color: "#EA6A2A", labelI18n: "sites_dashboard.sub_sites", value: sites.value.length },
-        { key: "exporters", icon: "bi bi-hdd-network", color: "#3b82f6", labelI18n: "sites_dashboard.exporters", value: exporters.value.length },
+        { key: "networks", icon: "bi bi-diagram-3-fill", color: "#2fb344", labelI18n: "sites_dashboard.networks", value: formatNumber(networks.value.length), loading: loadingHierarchy.value },
+        { key: "sub_sites", icon: "bi bi-geo-alt-fill", color: "#EA6A2A", labelI18n: "sites_dashboard.sub_sites", value: formatNumber(sites.value.length), loading: loadingHierarchy.value },
+        { key: "exporters", icon: "bi bi-hdd-network", color: "#3b82f6", labelI18n: "sites_dashboard.exporters", value: formatNumber(exporters.value.length), loading: loadingHierarchy.value },
     ];
 });
 
@@ -850,6 +906,8 @@ function formatBytes(v) {
     return formatterUtils.getFormatter("bytes")(v);
 }
 
+const formatNumber = formatterUtils.getFormatter("number");
+
 onBeforeMount(async () => {
     await restoreSelectionFromUrl();
     initialSelectionReady.value = true;
@@ -862,6 +920,23 @@ onBeforeMount(async () => {
         ]);
     }
 });
+
+/* Refetches the whole site hierarchy after a site or network is added/
+   edited/deleted/imported from the embedded "Sites"/"Networks" tabs, so the
+   sidebar and any KPI counts derived from loadHierarchy() don't keep showing
+   stale data until an unrelated navigation happens to refetch it.
+   sidebar.reload() alone only re-walks the root level (see
+   ensureChildrenLoaded's already-loaded guard in tree-nav-sidebar), leaving
+   already-expanded branches stale, so this uses hardReload() to drop the
+   sidebar's cache and re-walk every branch, in addition to re-fetching the
+   currently loaded hierarchy panel/components. */
+async function handleHierarchyChanged() {
+    hierarchyRequestCache.clear();
+    await Promise.all([
+        sidebar.value?.hardReload(),
+        selectedSite.value ? loadHierarchy(selectedSite.value.id) : Promise.resolve(),
+    ]);
+}
 
 /* Re fetches data in the currently visible panel, without
    changing the current selection/tab/breadcrumb state. */
@@ -894,6 +969,7 @@ async function handleSelectSite(site, siteAncestors) {
     selectedInterface.value = null;
     selectedSnmpDevice.value = null;
     selectedSnmpInterface.value = null;
+    inheritedNetworkSiteChain.value = [];
     activeTab.value = "networks";
 
     if (siteAncestors) {
@@ -907,14 +983,31 @@ async function handleSelectSite(site, siteAncestors) {
     await loadHierarchy(site.id);
 }
 
+/* The single source of truth for "which site does this network/exporter/
+   snmp device actually live under in the sidebar tree", used everywhere a
+   node id needs to be built or matched against the tree (makeSelectedNetwork
+   below, and mirrored by makeExporterNode/fetchSiteLevel's own nesting on
+   the sidebar side). hierarchy.lua's ALL scope (loadHierarchy) returns both
+   a site's own components AND ones inherited from its descendant sites in
+   the same flat array, each inherited entry tagged with origin_site_id (see
+   site_utils.lua's withOrigin) -- the currently *viewed* site
+   (selectedSite.value) is only the right owner for a component that lacks
+   that tag. Getting this wrong makes any id built from it not exist
+   anywhere in the DIRECT-scoped sidebar tree (see fetchSiteLevel), which
+   breaks revealInSidebar's expandTo() lookup for that node. */
+function componentOwningSiteId(component) {
+    return component?.origin_site_id ?? selectedSite.value?.id ?? DEFAULT_SITE_ID;
+}
+
 /* Builds the selectedNetwork shape (id/name/nodeId) from a raw {id, name}
-   network object, under the current site. */
+   network object -- see componentOwningSiteId for how its owning site is
+   resolved. */
 function makeSelectedNetwork(network) {
     if (!network) return null;
     return {
         id: network.id,
         name: network.name,
-        nodeId: `network:${selectedSite.value?.id ?? DEFAULT_SITE_ID}:${network.id}`,
+        nodeId: `network:${componentOwningSiteId(network)}:${network.id}`,
     };
 }
 
@@ -926,14 +1019,34 @@ function findNetworkById(networkId) {
 }
 
 /* Selects a "network" grouping node: shows only the exporters that belong to
-   this network_id, reusing the exporters tab/table. */
-function handleSelectNetwork(network) {
+   this network_id, reusing the exporters tab/table.
+
+   inheritedNetworkSiteChain is normally empty; see its declaration for why a
+   network inherited from a descendant site nested two or more levels below
+   selectedSite needs it populated here. */
+async function handleSelectNetwork(network) {
     selectedNetwork.value = makeSelectedNetwork(network);
     selectedExporter.value = null;
     selectedInterface.value = null;
     selectedSnmpDevice.value = null;
     selectedSnmpInterface.value = null;
     activeTab.value = "exporters";
+
+    const owningSiteId = componentOwningSiteId(network);
+    if (selectedSite.value && String(owningSiteId) !== String(selectedSite.value.id)) {
+        const { ancestors } = await resolveSiteChain(owningSiteId);
+        // Drop the leading chain shared with selectedSiteAncestors (everything
+        // up to and including selectedSite itself, which breadcrumbItems
+        // already appends) -- only the sites BETWEEN selectedSite and the
+        // network's real owner are missing from the breadcrumb.
+        inheritedNetworkSiteChain.value = [
+            ...ancestors.slice(selectedSiteAncestors.value.length + 1),
+            { id: `site:${owningSiteId}`, name: network.origin_site_name ?? owningSiteId },
+        ];
+    } else {
+        inheritedNetworkSiteChain.value = [];
+    }
+
     revealInSidebar();
 }
 
@@ -985,6 +1098,8 @@ async function handleSelectExporter(exporter) {
     selectedSnmpInterface.value = null;
     selectedNetwork.value = makeSelectedNetwork(findNetworkById(exporter.network_id));
     activeTab.value = "traffic_analysis";
+    exporterInterfaces.value = [];
+    exporterInterfacesLoaded.value = false;
     ensureEpochWindow();
     revealInSidebar();
     // The picker mounts with this selection; in live it writes a zero-width
@@ -1006,6 +1121,7 @@ function revealInSidebar() {
     const targetId = selectedNodeId.value;
     if (!targetId) return;
     const ancestorIds = breadcrumbItems.value.slice(0, -1).map((a) => a.id);
+    console.debug("[page-sites-dashboard] revealInSidebar", { targetId, ancestorIds, breadcrumbItems: breadcrumbItems.value.map((a) => a.id) });
     sidebar.value?.expandTo([...ancestorIds, targetId]);
 }
 
@@ -1131,9 +1247,14 @@ async function resolveSiteChain(targetSiteId) {
     const MAX_DEPTH = 20;
 
     // DFS stack of { id, ancestors } to visit, ancestors being the crumb chain
-    // (root -> ... -> parent) leading to that node, not including it
-    const rootCrumb = { id: `site:${DEFAULT_SITE_ID}`, name: defaultSite.name };
-    let stack = [{ id: null, ancestors: [rootCrumb] }];
+    // (root -> ... -> parent) leading to that node, not including it. Starts
+    // empty, NOT seeded with a "Default" crumb: hierarchy.lua's true root
+    // call returns Default as one sibling among possibly several genuine
+    // root-level sites (see fetchSiteLevel's siteId === null special case),
+    // not as their common ancestor -- a root-level site that isn't nested
+    // under Default must resolve to an empty ancestor chain, or the
+    // breadcrumb would incorrectly show "Default > <site>" for it.
+    let stack = [{ id: null, ancestors: [] }];
 
     for (let depth = 0; depth < MAX_DEPTH && stack.length > 0; depth++) {
         const nextStack = [];
@@ -1253,19 +1374,24 @@ async function on_epoch_change(epoch) {
 function onExporterCountsLoaded({ flows, hosts }) {
     liveFlowsCount.value = flows;
     liveHostsCount.value = hosts;
+    flowsHostsCountsLoaded.value = true;
 }
 
-/* Initial Live Flows/Hosts tab pill counts for network and site scope
-   (exporter/interface scope gets its initial value from
-   ExporterTrafficDashboard's own counts-loaded emit instead, see
-   onExporterCountsLoaded), scoped the same way the embedded live_flows/hosts
-   tabs are (see the EMBEDDED_TAB_URL_PARAMS watcher). Only a one-shot probe:
-   once the corresponding tab is actually opened, PageFlowsList/PageHostsList's
-   total-loaded emit (see the template) takes over for every subsequent load.
-   hosts_stats.lua's active_list has no site_id filter, so hosts stays null
-   at site scope. */
+
+function onLiveFlowsTotalLoaded(total) {
+    if (activeTab.value !== "live_flows") return;
+    liveFlowsCount.value = total;
+    flowsHostsCountsLoaded.value = true;
+}
+
+function onLiveHostsTotalLoaded(total) {
+    if (activeTab.value !== "hosts") return;
+    liveHostsCount.value = total;
+    flowsHostsCountsLoaded.value = true;
+}
+
 async function loadNetworkOrSiteCounts() {
-    if (selectedExporter.value || selectedInterface.value) return; // handled by the child emit instead
+    if (selectedExporter.value || selectedInterface.value) return; // handled by ExporterTrafficDashboard instead
 
     const scopeParams = selectedNetwork.value
         ? { network: selectedNetwork.value.id }
@@ -1273,6 +1399,7 @@ async function loadNetworkOrSiteCounts() {
     if (!scopeParams) {
         liveFlowsCount.value = null;
         liveHostsCount.value = null;
+        flowsHostsCountsLoaded.value = true;
         return;
     }
 
@@ -1289,6 +1416,7 @@ async function loadNetworkOrSiteCounts() {
 
     if (!selectedNetwork.value) {
         liveHostsCount.value = null; // no site_id filter on host/active_list.lua
+        flowsHostsCountsLoaded.value = true;
         return;
     }
     const hosts_params = ntopng_url_manager.obj_to_url_params({ start: 0, length: 1, map_search: "", ...scopeParams });
@@ -1301,15 +1429,12 @@ async function loadNetworkOrSiteCounts() {
         console.error("Error retrieving live hosts count:", err);
         liveHostsCount.value = null;
     }
+    flowsHostsCountsLoaded.value = true;
 }
 
-/* One-shot fetch on scope change: this is only the pill's initial value for
-   whichever tab isn't currently open (e.g. showing the Live Flows count while
-   viewing the Exporters tab). Once the live_flows/hosts tab is actually
-   opened, PageFlowsList/PageHostsList's own total-loaded emit (see the
-   template) takes over and keeps the count in lockstep with the table's own
-   recordsTotal on every subsequent load -- no separate polling needed. */
+
 watch([selectedNetwork, selectedSite, selectedExporter, selectedInterface], () => {
+    flowsHostsCountsLoaded.value = false;
     loadNetworkOrSiteCounts();
 });
 
@@ -1363,6 +1488,16 @@ function handleSelectSnmpInterface(iface, device) {
 
 function switchTab(tab) {
     activeTab.value = tab.id;
+    // Refresh the Flows/Hosts counts on landing on their tab, so the KPI
+    // cards/tab pill and the table below always agree instead of showing
+    // whatever the last scope-change probe returned.
+    if (tab.id === "live_flows" || tab.id === "hosts") {
+        if (selectedExporter.value || selectedInterface.value) {
+            exporterTrafficRef.value?.refreshCounts();
+        } else {
+            loadNetworkOrSiteCounts();
+        }
+    }
 }
 
 async function loadSidebarChildren(node) {

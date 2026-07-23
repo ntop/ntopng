@@ -4,7 +4,11 @@
 
 <template>
     <!-- static mode: no REST fetch, value is passed directly by the parent. -->
-    <div v-if="props.simple" class="badge-card-kpi-card">
+    <div v-if="props.simple" class="badge-card-kpi-card badge-card-kpi-card-relative">
+
+        <div v-if="props.loading" class="badge-card-kpi-loading-overlay">
+            <div class="badge-card-kpi-loading-spinner"></div>
+        </div>
         <div class="badge-card-kpi-header">
             <div v-if="props.icon" class="badge-card-kpi-icon" :style="{ background: props.activeColor || props.color }">
                 <i :class="props.icon"></i>
@@ -79,6 +83,7 @@ const props = defineProps({
     label: String,        /* Card label (simple mode) */
     value: [String, Number], /* Card value (simple mode) */
     sub: String,          /* Card secondary line (simple mode) */
+    loading: Boolean,     /* Simple mode: shows the Loading overlay instead of the value while true */
     /* Overrides the icon square color regardless of mode — used by callers to signal
        state (e.g. warning/danger when a limit is reached) without tinting the whole tile. */
     activeColor: String,
@@ -231,6 +236,36 @@ async function refresh_component() {
     justify-content: center;
     gap: 6px;
     container-type: inline-size;
+}
+
+.badge-card-kpi-card-relative {
+    position: relative;
+    overflow: hidden;
+}
+
+.badge-card-kpi-loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface, #FFFFFF);
+}
+
+.badge-card-kpi-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color, #DEE2E6);
+    border-top-color: var(--ntop-orange, #FF8F00);
+    border-radius: 50%;
+    animation: badge-card-kpi-spin 0.8s linear infinite;
+}
+
+@keyframes badge-card-kpi-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 :root[data-theme='dark'] .badge-card-kpi-card {

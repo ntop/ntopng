@@ -240,14 +240,20 @@ const visibleRows = computed(() => {
     return rows;
 });
 
+/* Tracks the in-flight/most recent loadRoots() call so expandTo() (driven by
+   selections made outside the tree, e.g. a table row click) can await root
+   readiness instead of silently bailing when called before the initial
+   fetch has resolved -- see expandTo below. */
+let rootsReadyPromise = null;
+
 onBeforeMount(() => {
-    loadRoots();
+    rootsReadyPromise = loadRoots();
 });
 
 watch(
     () => props.loadChildren,
     () => {
-        loadRoots();
+        rootsReadyPromise = loadRoots();
     }
 );
 
@@ -287,6 +293,19 @@ function saveTreeCache() {
     }
 }
 
+/* Coalesces bursts of saveTreeCache() calls (e.g. many sibling nodes in the
+   background walk resolving within the same tick) into a single write per
+   microtask, instead of re-serializing the whole tree on every single node. */
+let saveTreeCacheScheduled = false;
+function scheduleSaveTreeCache() {
+    if (saveTreeCacheScheduled) return;
+    saveTreeCacheScheduled = true;
+    queueMicrotask(() => {
+        saveTreeCacheScheduled = false;
+        saveTreeCache();
+    });
+}
+
 async function loadRoots() {
     const cached = loadStoredTree();
     expandedIds.value = new Set();
@@ -311,11 +330,19 @@ async function loadRoots() {
     // instead of discarding it -- otherwise every deeper cached node would be
     // orphaned (still in the map, but unreferenced once the root's children
     // pointer is reset) and only the root level would survive the refresh.
+    // Same for badgeValue/badgeFormatter: a raw NodeDescriptor from
+    // loadChildren never carries them (they're only computed here, from the
+    // node's own children count, see ensureChildrenLoaded), so without this
+    // every root's badge would flash blank on each loadRoots() call and stay
+    // that way until the background prefetchWholeTree walk below re-fetches
+    // and re-derives it all over again.
     children.forEach((node) => {
         const existing = nodesById.value.get(node.id);
         const normalized = normalizeNode(node, null);
         if (existing && existing.children !== null && existing.children !== undefined) {
             normalized.children = existing.children;
+            normalized.badgeValue = existing.badgeValue;
+            normalized.badgeFormatter = existing.badgeFormatter;
         }
         nodesById.value.set(node.id, normalized);
     });
@@ -353,6 +380,7 @@ async function prefetchWholeTree(rootNodes) {
 
         await ensureChildrenLoaded(node, /* showLoading */ false);
         if (generation !== prefetchGeneration) return;
+        scheduleSaveTreeCache();
 
         const stored = nodesById.value.get(node.id);
         const children = (stored?.children || []).map((id) => nodesById.value.get(id)).filter(Boolean);
@@ -360,7 +388,6 @@ async function prefetchWholeTree(rootNodes) {
     }
 
     await Promise.all(rootNodes.map((node) => walk(node)));
-    if (generation === prefetchGeneration) saveTreeCache();
 }
 
 /* parentId is recorded on every node as it enters the tree (null for roots).
@@ -434,14 +461,15 @@ async function ensureChildrenLoaded(node, showLoading = true) {
         if (showLoading) loadingIds.value = new Set([...loadingIds.value, id]);
         try {
             let children = await safeLoadChildren(node);
-            const badgeValue = children.length > 0 ? children.length : null;
+            
+            const badgeValue = children.length;
             if (children.length === 0) {
                 children = [makeEmptyNode(id)];
             }
             children.forEach((child) => nodesById.value.set(child.id, normalizeNode(child, id)));
             node.children = children.map((c) => c.id);
             node.badgeValue = badgeValue;
-            node.badgeFormatter = "no_formatting";
+            node.badgeFormatter = "number";
             /* The chevron always stays visible: a node can always be expanded
                again to re-check for children, regardless of what was found. */
             nodesById.value.set(id, { ...node });
@@ -459,15 +487,63 @@ async function ensureChildrenLoaded(node, showLoading = true) {
    drill-down triggered from outside the tree, like a table row click),
    without requiring the user to have manually expanded each level first.
    ancestorIds must be root-to-parent order, matching on_select's ancestors
-   shape; each is expanded in turn, lazily loading children as needed. */
+   shape; each is expanded in turn, lazily loading children as needed.
+ */
 async function expandTo(ancestorIds) {
+    
+    if (ancestorIds.length === 0) return;
+    // A selection made from outside the tree (e.g. a table row click) can
+    // fire before the initial loadRoots() has resolved, in which case even
+    // the first id below wouldn't be known yet -- wait for it instead of
+    // silently giving up and leaving the row unrevealed/unhighlighted.
+    if (rootsReadyPromise) await rootsReadyPromise;
+
+    const targetId = ancestorIds[ancestorIds.length - 1];
+
     for (const id of ancestorIds) {
-        const node = nodesById.value.get(id);
-        if (!node) return;
-        if (node.hasChildren === false) continue;
+        let node = nodesById.value.get(id);
+        if (!node) {
+            await Promise.resolve();
+            node = nodesById.value.get(id);
+        }
+        
+        if (!node) {
+            break;
+        }
+
+        if (id === targetId) {
+            expandedIds.value = new Set([...expandedIds.value, id]);
+            return;
+        }
+        if (node.hasChildren === false) {
+            continue;
+        }
         await ensureChildrenLoaded(node);
         expandedIds.value = new Set([...expandedIds.value, id]);
     }
+
+
+    async function findAndExpand(id) {
+        const node = nodesById.value.get(id);
+        if (!node || node.isEmptyPlaceholder) return false;
+        if (node.id === targetId) {
+            expandedIds.value = new Set([...expandedIds.value, id]);
+            return true;
+        }
+        if (node.hasChildren === false) return false;
+        await ensureChildrenLoaded(node);
+        const stored = nodesById.value.get(id);
+        const childIds = stored?.children || [];
+        for (const childId of childIds) {
+            if (await findAndExpand(childId)) {
+                expandedIds.value = new Set([...expandedIds.value, id]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    const results = await Promise.all(rootIds.value.map((id) => findAndExpand(id)));
 }
 
 function makeEmptyNode(parentId) {
@@ -498,10 +574,32 @@ function handleSelect(node) {
 }
 
 async function reload() {
-    await loadRoots();
+    rootsReadyPromise = loadRoots();
+    await rootsReadyPromise;
 }
 
-defineExpose({ reload, ancestorsOf, expandTo });
+/* Unlike reload()/loadRoots(), which only re-fetches the root level and
+   leaves every already-expanded branch's cached children untouched (see
+   ensureChildrenLoaded's `children !== null` guard), this drops the
+   localStorage tree cache and the entire in-memory node map first, so every
+   branch -- not just the root -- is walked and re-fetched from scratch by
+   the subsequent loadRoots()/prefetchWholeTree(). Use when the underlying
+   hierarchy may have changed at any depth (e.g. a site add/edit/delete),
+   not just at the root. */
+async function hardReload() {
+    try {
+        localStorage.removeItem(TREE_STORAGE_KEY);
+    } catch (_) {
+        // storage unavailable: nothing to clear, fall through to the in-memory reset
+    }
+    nodesById.value = new Map();
+    rootIds.value = [];
+    expandedIds.value = new Set();
+    rootsReadyPromise = loadRoots();
+    await rootsReadyPromise;
+}
+
+defineExpose({ reload, hardReload, ancestorsOf, expandTo });
 </script>
 
 <style scoped>
