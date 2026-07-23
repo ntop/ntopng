@@ -1,7 +1,7 @@
 .. _HighResolutionTimeseries:
 
-High-Resolution Timeseries
-##########################
+Observability
+#############
 
 Overview
 --------
@@ -10,10 +10,11 @@ Standard flow records summarise all traffic for the lifetime of a connection int
 and packet counters. This is sufficient for long-term trend analysis, but it hides short-lived
 spikes and makes it impossible to plot throughput at sub-minute granularity.
 
-High-Resolution (HR) timeseries solve this by recording byte counts in **15-second slots** for
-every active flow. Each completed flow stored in ClickHouse therefore carries an embedded timeline
-of its own throughput history, enabling charts at 15-second granularity without a separate
-timeseries database.
+ntopng features an Observability dashboard which is able to chart traffic information with
+High-Resolution (HR) timeseries. HR timeseries are based on metrics (e.g. byte counts) recorded
+by means of **15-second slots** for every active flow. When this is enabled, each completed flow 
+stored in ClickHouse carries an embedded timeline of its own throughput history, enabling charts 
+at 15-second granularity without a separate timeseries database.
 
 .. note::
 
@@ -157,10 +158,10 @@ possible to answer questions such as "was the traffic bursty or flat?", "did the
 throughput drop midway through the connection?", or "which direction dominated?",
 all at a granularity that standard flow records cannot provide.
 
-High-Resolution Timeseries Aggregation Page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Observability Page
+~~~~~~~~~~~~~~~~~~
 
-The **High-Resolution Timeseries** page (*Dashboard → HR Timeseries*) brings
+The **Observability** page (*Dashboard → Observability*) brings
 together filtering and aggregation in a single interactive view.
 
 The page includes a **filter** bar that lets the user narrow the dataset by any flow
@@ -184,7 +185,7 @@ ask highly specific questions directly from the ntopng UI without writing SQL:
 Applying a filter causes the chart to reload immediately with the matching
 dataset. Removing a tag reverts to the broader aggregate.
 
-From an **observability** standpoint, the HR Timeseries page fills a gap that
+From an **observability** standpoint, the Observability page fills a gap that
 neither per-flow details nor minute-resolution interface charts cover. It
 surfaces the temporal shape of traffic for an arbitrary subset of flows without
 requiring the operator to identify individual connections in advance, making it
