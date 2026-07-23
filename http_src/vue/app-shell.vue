@@ -332,7 +332,7 @@
                       <span class="sb-iface-item__info">
                         <span class="sb-iface-item__name">{{ menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId] || viewAllId }}</span>
                         <span class="sb-iface-item__tags">
-                          <span class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view_all") }}</span>
+                          <span class="sb-iface-tag sb-iface-tag--view">{{ isViewAllName(menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId]) ? _i18n("infrastructure_dashboard.tag_view_all") : _i18n("infrastructure_dashboard.tag_view") }}</span>
                           <span v-if="menu.drops?.[viewAllId]" class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
                         </span>
                       </span>
@@ -382,7 +382,7 @@
                         <span class="sb-iface-item__info">
                           <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
                           <span class="sb-iface-item__tags">
-                            <span v-if="menu.views?.[id]"      class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view") }}</span>
+                            <span v-if="menu.views?.[id]"      class="sb-iface-tag sb-iface-tag--view">{{ isViewAllName(menu.ifHdescr?.[id] || menu.ifnames?.[id]) ? _i18n("infrastructure_dashboard.tag_view_all") : _i18n("infrastructure_dashboard.tag_view") }}</span>
                             <span v-if="menu.recording?.[id]"  class="sb-iface-tag sb-iface-tag--rec">{{ _i18n("infrastructure_dashboard.tag_rec") }}</span>
                             <span v-if="menu.pcapdump?.[id]"   class="sb-iface-tag sb-iface-tag--pcap">{{ _i18n("infrastructure_dashboard.tag_pcap") }}</span>
                             <span v-if="menu.zmqifs?.[id]"     class="sb-iface-tag sb-iface-tag--zmq">{{ _i18n("infrastructure_dashboard.tag_zmq") }}</span>
@@ -430,7 +430,7 @@
                       <span class="sb-iface-item__info">
                         <span class="sb-iface-item__name">{{ menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId] || viewAllId }}</span>
                         <span class="sb-iface-item__tags">
-                          <span class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view_all") }}</span>
+                          <span class="sb-iface-tag sb-iface-tag--view">{{ isViewAllName(menu.ifHdescr?.[viewAllId] || menu.ifnames?.[viewAllId]) ? _i18n("infrastructure_dashboard.tag_view_all") : _i18n("infrastructure_dashboard.tag_view") }}</span>
                           <span v-if="menu.drops?.[viewAllId]" class="sb-iface-tag sb-iface-tag--drop">{{ _i18n("infrastructure_dashboard.tag_drops") }}</span>
                         </span>
                       </span>
@@ -482,7 +482,7 @@
                           <span class="sb-iface-item__name">{{ menu.ifHdescr?.[id] || menu.ifnames?.[id] || id }}</span>
                           <span class="sb-iface-item__tags">
                             <span v-if="id === menu.system_ifid"   class="sb-iface-tag sb-iface-tag--sys">{{ _i18n("infrastructure_dashboard.tag_system") }}</span>
-                            <span v-if="menu.views?.[id]"          class="sb-iface-tag sb-iface-tag--view">{{ _i18n("infrastructure_dashboard.tag_view") }}</span>
+                            <span v-if="menu.views?.[id]"          class="sb-iface-tag sb-iface-tag--view">{{ isViewAllName(menu.ifHdescr?.[id] || menu.ifnames?.[id]) ? _i18n("infrastructure_dashboard.tag_view_all") : _i18n("infrastructure_dashboard.tag_view") }}</span>
                             <span v-if="menu.recording?.[id]"      class="sb-iface-tag sb-iface-tag--rec">{{ _i18n("infrastructure_dashboard.tag_rec") }}</span>
                             <span v-if="menu.pcapdump?.[id]"       class="sb-iface-tag sb-iface-tag--pcap">{{ _i18n("infrastructure_dashboard.tag_pcap") }}</span>
                             <span v-if="menu.zmqifs?.[id]"         class="sb-iface-tag sb-iface-tag--zmq">{{ _i18n("infrastructure_dashboard.tag_zmq") }}</span>
@@ -505,7 +505,8 @@
       <!-- Sparklines (d3v7, refs driven) -->
       <div v-if="!menu.is_system_interface && !isInfraView && !menu.is_pcap_dump"
            class="sb-sparklines d-none d-md-flex">
-        <div class="sb-spark-combined" :title="`↑ ${sparkLabels.up}  ↓ ${sparkLabels.dn}`">
+        <div class="sb-spark-combined" role="button" @click="goToIfStats"
+             :title="`↑ ${sparkLabels.up}  ↓ ${sparkLabels.dn}`">
           <svg ref="svgCombined" class="sb-spark"></svg>
           <div class="sb-spark-labels">
             <span class="sb-spark-val">
@@ -1055,6 +1056,10 @@ function selectInfraView(url) {
   window.location.href = url;
 }
 
+function goToIfStats() {
+  window.location.href = `${pfx.value}/lua/if_stats.lua?ifid=${currentIfid.value}`;
+}
+
 // Interface helpers
 const hasInterfaces = computed(() =>
   (menu.value.ifnames && Object.keys(menu.value.ifnames).length > 1) ||
@@ -1098,6 +1103,11 @@ const currentIfaceLabel = computed(() => {
   return (menu.value.ifHdescr && menu.value.ifHdescr[id])
     || (menu.value.ifnames && menu.value.ifnames[id]) || "";
 });
+
+// "view:all" -> View-All badge; "view:iface1,iface2" -> View badge
+function isViewAllName(name) {
+  return typeof name === "string" && /^view:all$/i.test(name);
+}
 
 const currentHasDrops = computed(() => {
   const id = currentIfid.value;
@@ -2756,7 +2766,7 @@ div.wrapper {
 .iface-type-icon { width: 1rem; text-align: center; flex-shrink: 0; }
 
 .sb-sparklines { display: flex; align-items: center; }
-.sb-spark-combined { display: flex; align-items: center; gap: 0.4rem; }
+.sb-spark-combined { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; }
 .sb-spark { display: block; width: 100px; height: 30px; }
 .sb-spark-labels { display: flex; flex-direction: column; gap: 0; }
 .sb-spark-val {
