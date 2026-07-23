@@ -51,6 +51,12 @@ class TimeseriesExporter {
   virtual u_int64_t queueLength() const { return 0; };
   inline u_int64_t queueDrops() const { return qdrops; };
   virtual void flush() = 0;
+
+  /* Dequeue and dump up to max_rows points (used by ClickHouse timeseries)
+   * Returns the number of points exported (0 on empty queue or failure) */
+  virtual u_int32_t exportBatch(u_int32_t max_rows, std::string& err) {
+    return 0;
+  };
 };
 
 #endif /* _TS_EXPORTER_H_ */

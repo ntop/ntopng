@@ -19,27 +19,38 @@
  *
  */
 
-#ifndef _CH_TS_EXPORTER_H_
-#define _CH_TS_EXPORTER_H_
+#ifndef _CH_TS_POINT_FIFO_QUEUE_H
+#define _CH_TS_POINT_FIFO_QUEUE_H
 
 #include "ntop_includes.h"
 
-class CHTimeseriesExporter : public TimeseriesExporter {
- private:
-  CHTSPointFifoQueue* ts_queue;
-
+class CHTSPointFifoQueue : public FifoQueue<CHTSPoint*> {
  public:
-  CHTimeseriesExporter(NetworkInterface* _if);
-  ~CHTimeseriesExporter();
+  CHTSPointFifoQueue(u_int32_t queue_size) : FifoQueue<CHTSPoint*>(queue_size) {}
 
-  bool enqueueData(lua_State* vm, bool do_lock = true);
-  char* dequeueData(); /* not used: exportBatch() is used with ClickHouse timeseries */
-  u_int64_t queueLength() const;
-  void flush();
+  ~CHTSPointFifoQueue() {
+    while (!q.empty()) {
+      delete q.front();
+      q.pop();
+    }
+  }
 
-  /* Dequeue and dump up to max_rows points
-   * Returns the number of points exported (0 on empty queue or failure) */
-  u_int32_t exportBatch(u_int32_t max_rows, std::string& err);
+  /*
+    Dequeue up to max_rows points (in a single lock/unlock)
+  */
+  u_int32_t dequeueBatch(u_int32_t max_rows, std::vector<CHTSPoint*>& out) {
+    m.lock(__FILE__, __LINE__);
+
+    while ((out.size() < max_rows) && !q.empty()) {
+      out.push_back(q.front());
+      q.pop();
+      num_dequeued++;
+    }
+
+    m.unlock(__FILE__, __LINE__);
+
+    return (u_int32_t)out.size();
+  }
 };
 
-#endif /* _CH_TS_EXPORTER_H_ */
+#endif /* _CH_TS_POINT_FIFO_QUEUE_H */

@@ -6121,11 +6121,9 @@ static int ntop_clickhouse_exec_sql_write(lua_State* vm) {
 
 /* ****************************************** */
 
-/* Enqueue a timeseries row into the interface ClickHouse TS queue.
- * Serialises the point to line protocol via CHTimeseriesExporter::enqueueData.
- * Lua signature: interface.chTsEnqueue(schema, timestamp, tags, metrics) ->
- * boolean */
-/* @brief Enqueues a ClickHouse time-series data batch for async insertion.  Lua: interface.chTsEnqueue(json_data) → nil */
+/* Enqueue a timeseries row into the ClickHouse TS queue.
+ * Lua signature: interface.chTsEnqueue(schema, timestamp, tags, metrics) -> boolean */
+/* @brief Enqueues a ClickHouse time-series data point.  Lua: interface.chTsEnqueue(schema, timestamp, tags, metrics) → boolean */
 static int ntop_interface_ch_ts_enqueue(lua_State* vm) {
   bool rv = false;
   NetworkInterface* curr_iface;
@@ -6141,26 +6139,33 @@ static int ntop_interface_ch_ts_enqueue(lua_State* vm) {
 
 /* ****************************************** */
 
-/* Dequeue one line-protocol-encoded timeseries row from the ClickHouse TS
- * queue. Returns the string on success, nil if the queue is empty. Lua
- * signature: interface.chTsDequeue() -> string|nil */
-/* @brief Dequeues a pending ClickHouse time-series data batch.  Lua: interface.chTsDequeue() → string */
-static int ntop_interface_ch_ts_dequeue(lua_State* vm) {
+/* Dequeue up to max_rows points from the ClickHouse TS queue and insert them
+ * via the native ClickHouse columnar protocol (CHTimeseriesExporter::exportBatch).
+ * Lua signature: interface.chTsExportBatch(max_rows) -> exported_count, err|nil */
+/* @brief Flushes a batch of pending ClickHouse time-series points to ClickHouse.  Lua: interface.chTsExportBatch(max_rows) → integer, string|nil */
+static int ntop_interface_ch_ts_export_batch(lua_State* vm) {
   NetworkInterface* curr_iface = getCurrentInterface(vm);
+  u_int32_t max_rows;
 
   if (!curr_iface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  TimeseriesExporter* ts_exporter = curr_iface->getCHTSExporter();
-  char* item = ts_exporter ? ts_exporter->dequeueData() : NULL;
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  max_rows = (u_int32_t)lua_tonumber(vm, 1);
 
-  if (item) {
-    lua_pushstring(vm, item);
-    free(item);
-  } else {
+  TimeseriesExporter* ts_exporter = curr_iface->getCHTSExporter();
+  std::string err;
+  u_int32_t exported = ts_exporter ? ts_exporter->exportBatch(max_rows, err) : 0;
+
+  lua_pushinteger(vm, (lua_Integer)exported);
+
+  if (!err.empty())
+    lua_pushstring(vm, err.c_str());
+  else
     lua_pushnil(vm);
-  }
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_TWO_RETURN_VALUES));
 }
 
 /* ****************************************** */
@@ -6689,7 +6694,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"clickhouseArchiveData", ntop_clickhouse_archive_data},
     {"execSQLWrite", ntop_clickhouse_exec_sql_write},
     {"chTsEnqueue", ntop_interface_ch_ts_enqueue},
-    {"chTsDequeue", ntop_interface_ch_ts_dequeue},
+    {"chTsExportBatch", ntop_interface_ch_ts_export_batch},
     {"chTsQueueLen", ntop_interface_ch_ts_queue_len},
 
     /* DNS Cache */

@@ -63,6 +63,13 @@ class DB {
   /* Execute queries that do not return data (e.g. insert) */
   virtual int execSQLWrite(const char* sql) { return (-1); }
 
+  /* Batch insert (used by ClickHouse timeseries) */
+  virtual bool insertTimeseriesBatch(const char* table,
+                                     const std::vector<CHTSPoint*>& points,
+                                     std::string& err) {
+    return false;
+  }
+
   virtual void archiveData(time_t epoch_begin, time_t epoch_end) {}
 
   inline NetworkInterface* getNetworkInterface() { return iface; };

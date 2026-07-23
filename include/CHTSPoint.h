@@ -19,27 +19,19 @@
  *
  */
 
-#ifndef _CH_TS_EXPORTER_H_
-#define _CH_TS_EXPORTER_H_
+#ifndef _CH_TS_POINT_H_
+#define _CH_TS_POINT_H_
 
 #include "ntop_includes.h"
 
-class CHTimeseriesExporter : public TimeseriesExporter {
- private:
-  CHTSPointFifoQueue* ts_queue;
-
- public:
-  CHTimeseriesExporter(NetworkInterface* _if);
-  ~CHTimeseriesExporter();
-
-  bool enqueueData(lua_State* vm, bool do_lock = true);
-  char* dequeueData(); /* not used: exportBatch() is used with ClickHouse timeseries */
-  u_int64_t queueLength() const;
-  void flush();
-
-  /* Dequeue and dump up to max_rows points
-   * Returns the number of points exported (0 on empty queue or failure) */
-  u_int32_t exportBatch(u_int32_t max_rows, std::string& err);
+/*
+  Represents a (generic) timeseries point, used by ClickHouse timeseries to implement native dump.
+*/
+struct CHTSPoint {
+  std::string schema_name;
+  time_t tstamp;
+  std::vector<std::pair<std::string, std::string>> tags;
+  std::vector<std::pair<std::string, double>> metrics;
 };
 
-#endif /* _CH_TS_EXPORTER_H_ */
+#endif /* _CH_TS_POINT_H_ */

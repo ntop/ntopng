@@ -27,7 +27,7 @@ CHTimeseriesExporter::CHTimeseriesExporter(NetworkInterface* _if)
     : TimeseriesExporter(_if) {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  ts_queue = new (std::nothrow) StringFifoQueue(CH_TS_QUEUE_SIZE);
+  ts_queue = new (std::nothrow) CHTSPointFifoQueue(CH_TS_QUEUE_SIZE);
 }
 
 /* ******************************************************* */
@@ -36,23 +36,82 @@ CHTimeseriesExporter::~CHTimeseriesExporter() { delete ts_queue; }
 
 /* ******************************************************* */
 
-bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
-  char data[LINE_PROTOCOL_MAX_LINE];
+/* Read a Lua table into a vector<pair<std::string,V>>, converting each value with to_val */
+template <typename V>
+static void lua_table_to_vector(lua_State* vm, int index,
+                                std::vector<std::pair<std::string, V>>& out,
+                                V (*to_val)(lua_State*, int)) {
+  lua_pushnil(vm);
 
-  if (line_protocol_write_line(vm, data, sizeof(data), escape_spaces) < 0) {
-    qdrops++;
-    return false;
+  while (lua_next(vm, index) != 0) {
+    const char* k = lua_tostring(vm, -2);
+
+    if (k) out.push_back(std::make_pair(std::string(k), to_val(vm, -1)));
+
+    lua_pop(vm, 1);
   }
-  
-  return ts_queue->enqueue(data);
+}
+
+static std::string lua_val_to_string(lua_State* vm, int index) {
+  const char* s = lua_tostring(vm, index);
+  return s ? std::string(s) : std::string();
+}
+
+static double lua_val_to_double(lua_State* vm, int index) {
+  return (double)lua_tonumber(vm, index);
 }
 
 /* ******************************************************* */
 
-char* CHTimeseriesExporter::dequeueData() {
-  if (ts_queue->empty()) return NULL;
-  return ts_queue->dequeue();
+/* Builds a CHTSPoint from Lua */
+bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
+  /* schema */
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+    qdrops++;
+    return false;
+  }
+
+  /* timestamp */
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) {
+    qdrops++;
+    return false;
+  }
+
+  /* tags */
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK) {
+    qdrops++;
+    return false;
+  }
+
+  /* metrics */
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK) {
+    qdrops++;
+    return false;
+  }
+
+  CHTSPoint* point = new (std::nothrow) CHTSPoint();
+  if (!point) {
+    qdrops++;
+    return false;
+  }
+
+  point->schema_name = lua_tostring(vm, 1);
+  point->tstamp = (time_t)lua_tonumber(vm, 2);
+  lua_table_to_vector<std::string>(vm, 3, point->tags, lua_val_to_string);
+  lua_table_to_vector<double>(vm, 4, point->metrics, lua_val_to_double);
+
+  if (!ts_queue->enqueue(point)) {
+    delete point;
+    return false;
+  }
+
+  return true;
 }
+
+/* ******************************************************* */
+
+/* Not used: exportBatch() is used with ClickHouse timeseries */
+char* CHTimeseriesExporter::dequeueData() { return NULL; }
 
 /* ******************************************************* */
 
@@ -63,3 +122,25 @@ u_int64_t CHTimeseriesExporter::queueLength() const {
 /* ******************************************************* */
 
 void CHTimeseriesExporter::flush() {}
+
+/* ******************************************************* */
+
+u_int32_t CHTimeseriesExporter::exportBatch(u_int32_t max_rows,
+                                            std::string& err) {
+  std::vector<CHTSPoint*> points;
+  u_int32_t num_exported = 0;
+
+  ts_queue->dequeueBatch(max_rows, points);
+
+  if (points.empty()) return 0;
+
+  if (iface->getDB() &&
+      iface->getDB()->insertTimeseriesBatch("timeseries", points, err))
+    num_exported = (u_int32_t)points.size();
+
+  for (std::vector<CHTSPoint*>::iterator it = points.begin();
+       it != points.end(); ++it)
+    delete *it;
+
+  return num_exported;
+}

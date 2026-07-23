@@ -10,8 +10,8 @@
 --   * Map(LowCardinality(String), Float64) for metric key/value pairs
 --   * MergeTree engine partitioned by month for efficient time pruning
 --   * Batch inserts (buffered through CHTimeseriesExporter, implementing
---     an in-memory FIFO queue) to avoid small-part overhead; points 
---     are serialised as line-protocol strings (same as RRD and InfluxDB)
+--     an in-memory FIFO queue of C++ structs); batches are dumped via the 
+--     native clickhouse-cpp lib (Block/Insert)
 --
 
 local dirs = ntop.getDirs()
@@ -32,44 +32,7 @@ local CH_FAILED_EXPORTS_KEY    = CH_TS_KEY_PREFIX .. "failed_exports"
 
 -- Table and batching settings
 local CH_TS_TABLE_NAME  = "timeseries"
-local CH_BATCH_SIZE     = 2000    -- maximum rows per INSERT statement
-
--- ##############################################
-
--- Parse string produced by CHTimeseriesExporter into its
--- component fields.  The format is:
---   schema_name[,tag=val ...] metric=val[,metric=val ...] timestamp\n
-local function line_protocol_parse(line)
-
-   local measurement_and_tags, field_set, timestamp =
-      line:match("(.+)%s(.+)%s(.+)\n")
-   if not measurement_and_tags then return nil end
-
-   local tags    = {}
-   local metrics = {}
-   local items   = measurement_and_tags:split(",")
-   local schema_name
-
-   if not items then
-      schema_name = measurement_and_tags
-   else
-      schema_name = items[1]
-      for i = 2, #items do
-         local k, v = items[i]:match("([^=]+)=(.*)")
-         if k then tags[k] = v end
-      end
-   end
-
-   for _, kv in ipairs(field_set:split(",") or {field_set}) do
-      local k, v = kv:match("([^=]+)=(.*)")
-      if k then metrics[k] = v end
-   end
-
-   local data = { schema_name = schema_name, tags = tags,
-            metrics = metrics, timestamp = tonumber(timestamp) }
-
-   return data
-end
+local CH_BATCH_SIZE     = 10000   -- maximum rows per INSERT statement
 
 -- ##############################################
 
@@ -116,25 +79,6 @@ local function ch_escape(s)
    s = s:gsub("\\", "\\\\")
    s = s:gsub("'",  "\\'")
    return s
-end
-
--- Serialise a Lua table as a ClickHouse map literal {'k': 'v', ...}.
-local function tags_to_ch_map(t)
-   local parts = {}
-   for k, v in pairs(t) do
-      parts[#parts + 1] = string.format("'%s': '%s'", ch_escape(k), ch_escape(v))
-   end
-   return "{" .. table.concat(parts, ", ") .. "}"
-end
-
--- Serialise a Lua table as a ClickHouse map literal {'k': v, ...} for Float64 values.
-local function metrics_to_ch_map(t)
-   local parts = {}
-   for k, v in pairs(t) do
-      local num = tonumber(v) or 0
-      parts[#parts + 1] = string.format("'%s': %.6g", ch_escape(k), num)
-   end
-   return "{" .. table.concat(parts, ", ") .. "}"
 end
 
 -- Build a ClickHouse WHERE fragment for the supplied tags table.
@@ -685,50 +629,31 @@ end
 -- ##############################################
 
 --! @brief Flush the in-memory buffer to ClickHouse.
---! Called periodically by the export script.
+--! Called periodically by the export script. 
+--! Dequeuing and INSERT both happen in C++ via native API;
+--! (see CHTimeseriesExporter::exportBatch())
 function driver:export()
    if interface.chTsQueueLen() == 0 then return(0) end
 
-   -- Drain up to CH_BATCH_SIZE rows per invocation.
-   local rows = {}
+   local exported, err = interface.chTsExportBatch(CH_BATCH_SIZE)
+   exported = exported or 0
 
-   for _ = 1, CH_BATCH_SIZE do
-      local item = interface.chTsDequeue()
-      if item == nil then break end
-
-      local row = line_protocol_parse(item)
-      if row and row.schema_name and row.timestamp and row.tags and row.metrics then
-         rows[#rows + 1] = string.format(
-            "('%s', toDateTime(%d), %s, %s)",
-            ch_escape(row.schema_name),
-            row.timestamp,
-            tags_to_ch_map(row.tags),
-            metrics_to_ch_map(row.metrics))
+   if exported == 0 then
+      if err then
+         ntop.incrCache(CH_FAILED_EXPORTS_KEY, 1)
+         ntop.setCache(CH_LAST_ERROR_KEY,
+            string.format("[ClickHouse] INSERT failed: %s", err))
+         traceError(TRACE_ERROR, TRACE_CONSOLE,
+            string.format("[ClickHouse TS] INSERT failed: %s", err))
       end
+      return 0
    end
 
-   if #rows == 0 then return 0 end
+   ntop.incrCache(CH_EXPORTED_POINTS_KEY, exported)
+   ntop.delCache(CH_LAST_ERROR_KEY)
+   ntop.ts_inc_num_writes(exported)
 
-   local sql = string.format(
-      "INSERT INTO `%s`.`%s` (schema_name, tstamp, tags, metrics) VALUES %s",
-      ch_escape(self.db), CH_TS_TABLE_NAME,
-      table.concat(rows, ","))
-
-   local ok = ch_write(sql)
-
-   if ok then
-      ntop.incrCache(CH_EXPORTED_POINTS_KEY, #rows)
-      ntop.delCache(CH_LAST_ERROR_KEY)
-   else
-      ntop.incrCache(CH_FAILED_EXPORTS_KEY, 1)
-      ntop.setCache(CH_LAST_ERROR_KEY,
-         string.format("[ClickHouse] INSERT failed (%d rows dropped)", #rows))
-      traceError(TRACE_ERROR, TRACE_CONSOLE,
-         string.format("[ClickHouse TS] INSERT of %d rows failed", #rows))
-   end
-
-   ntop.ts_inc_num_writes(#rows)
-   return(#rows)
+   return(exported)
 end
 
 -- ##############################################
