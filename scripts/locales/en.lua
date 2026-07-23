@@ -3670,6 +3670,7 @@ local lang = {
     ["bgp_prefix"]     = "Prefix",
     ["bgp_rpki"]       = "RPKI",
     ["bgp_validation_err"] = "Incorrect IP Address/Network CIDR",
+    ["bgp_no_data"] = "No Data found for ",
     ["bgp_jump_to_routinator"] = "Check on RIPE Routinator",
     ["bgp_best"]  = "Best",
     ["bgp_best_path"]  = "Best Path",
