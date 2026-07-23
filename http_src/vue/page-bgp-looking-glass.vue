@@ -2,13 +2,23 @@
 <template>
     <div class="row px-3 align-items-center justify-content-center">
         <div class="d-flex col-auto align-items-center mt-3 gap-1 mb-2">
-            <div class="input-group me-2">
-                <input ref="searchInput" name="search" type="text" class="form-control" autocomplete="off"
-                    autocorrect="off" :placeholder="_i18n('details.label_bgp_search_ip')"
-                    @keydown.enter="searchPrefix" />
-                <button class="btn btn-primary" type="button" @click="searchPrefix">
-                    <i class="fas fa-search"></i>
-                </button>
+            <div>
+                <div class="d-flex align-items-center">
+                    <div class="input-group">
+                        <input ref="searchInput" name="search" type="text" class="form-control" autocomplete="off"
+                            autocorrect="off" :placeholder="_i18n('details.label_bgp_search_ip')"
+                            @keydown.enter="searchPrefix" />
+                        <button class="btn btn-primary" type="button" @click="searchPrefix">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="ms-2" style="min-width: 24px;">
+                        <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
+                    </div>
+                </div>
+                <div class="text-danger mt-1" style="min-height: 24px;">
+                    <small>{{ validationError }}</small>
+                </div>
             </div>
             <!-- Prefix -->
             <div class="col-auto" v-if="prefix">
@@ -30,13 +40,13 @@
                     <i class="fas fa-external-link-alt text-white"></i>
                 </a>
             </div>
-            <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
         </div>
 
         <div class="col-12">
             <div class="position-relative">
                 <TableWithConfig ref="table_ref" :table_id="table_id" :get_extra_params_obj="get_extra_params_obj"
-                    :show-loading="true" :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting">
+                    :show-loading="true" :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting"
+                    @rows_loaded="disableLoading">
                 </TableWithConfig>
             </div>
         </div>
@@ -50,6 +60,7 @@ import { default as dataUtils } from "../utilities/data-utils.js";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as Spinner } from "./spinner.vue";
+import regexValidation from "../utilities/regex-validation.js";
 
 const props = defineProps({
     context: Object,
@@ -65,6 +76,7 @@ const rpki = ref('')
 const asn = ref(0)
 const active_host = ref(ntopng_url_manager.get_url_entry('host') || '');
 const loading = ref(false);
+const validationError = ref(null);
 const note_list = [
     _i18n("flow_details.bgp_looking_glass_descr")
 ]
@@ -96,9 +108,18 @@ const get_extra_params_obj = () => {
 /* ***************************************************** */
 
 const searchPrefix = () => {
+    enableLoading()
     const host = searchInput.value?.value?.trim();
     active_host.value = host || '';
     ntopng_url_manager.set_key_to_url('host', active_host.value);
+    if (!dataUtils.isEmptyString(host)) {
+        if (!regexValidation.validateIP(host) && !regexValidation.validateCIDR(host)) {
+            validationError.value = _i18n('flow_details.bgp_validation_err');
+            disableLoading();
+            return;
+        }
+    }
+    validationError.value = null;
     refreshTable();
 };
 
@@ -232,8 +253,13 @@ function disableLoading() {
 
 /* ************************************** */
 
-function refreshTable() {
+function enableLoading() {
     loading.value = true
+}
+
+/* ************************************** */
+
+function refreshTable() {
     table_ref.value?.refresh_table();
 }
 
