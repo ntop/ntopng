@@ -1195,6 +1195,7 @@ local lang = {
       ["use_application"] = "Application",
       ["advanced_settings"] = "Advanced Settings",
       ["created_rule_time"] = "Creation Date",
+      ["restart_ntopng"] = "Please restart ntopng, unexpected errors found when deleting Rules:",
       ["show_ip_list"] = "Use IP/Network List",
       ["ip_list_placeholder"] = "Insert here a list of IP or Network CIDR...",
       ["delete_acl_rule"] = "Delete Rule",
