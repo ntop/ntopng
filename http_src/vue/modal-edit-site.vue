@@ -1,7 +1,7 @@
 <!-- (C) 2026 - ntop.org     -->
 <template>
     <!-- Modal component wrapper for add/edit site form -->
-    <modal ref="modal_id">
+    <modal ref="modal_id" @showed="focusMapOnEditedSite">
         <!-- Modal header title - changes based on context (add/edit) -->
         <template v-slot:title>
             {{ _i18n("sites_page.edit_site") }}
@@ -251,6 +251,28 @@ const otherSitesMarkers = computed(() => {
         .filter((t) => !dataUtils.isZeroOrEmptyString(t.latitude) && !dataUtils.isZeroOrEmptyString(t.longitude))
         .map((t) => ({ lat: Number(t.latitude), lng: Number(t.longitude), label: t.name, type: 'Branch', status: 'Online' }));
 });
+
+// Map focus
+// Zoom level used when the map is focused on the site being edited
+const EDIT_SITE_MAP_ZOOM = 11;
+
+// True when the site being edited has a usable location. Sites without
+// coordinates (or sitting at 0,0) are treated as "not placed yet", exactly
+// as in otherSitesMarkers.
+const hasCurrentSiteLocation = computed(() => {
+    return !dataUtils.isZeroOrEmptyString(site_lat.value)
+        && !dataUtils.isZeroOrEmptyString(site_lng.value);
+});
+
+// Centres the map on the site being edited so that it is immediately visible,
+// instead of being lost somewhere in the default world view.
+const focusMapOnEditedSite = () => {
+    if (isEditMode.value && hasCurrentSiteLocation.value) {
+        geomap.value?.centerOn(Number(site_lat.value), Number(site_lng.value), EDIT_SITE_MAP_ZOOM);
+    } else {
+        geomap.value?.resetView();
+    }
+};
 
 // ==================== Validation Methods ====================
 

@@ -403,6 +403,25 @@ function resetView() {
     })
 }
 
+// Recentres the map on the given coordinates, without touching the markers.
+function centerOn(lat, lng, zoom = 11) {
+    const latitude  = Number(lat)
+    const longitude = Number(lng)
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return
+
+    const target = { ...viewState.value, latitude, longitude, zoom }
+
+    // Keep the local view state in sync: when deck has not been created yet
+    // (the map lives inside a modal that may still be hidden) initDeck() will
+    // pick these values up as its initial view state.
+    viewState.value  = target
+    currentZoom.value = Math.round(zoom)
+
+    deck.value?.setProps({
+        initialViewState: { ...target, transitionDuration: 500 },
+    })
+}
+
 function applyZoomDelta(delta) {
     const z = Math.max(2, Math.min(18, (viewState.value.zoom ?? props.initialZoom) + delta))
     deck.value?.setProps({
@@ -506,7 +525,7 @@ function placeMarkerAt(lat, lng, address = null) {
     })
 }
 
-defineExpose({ placeMarkerAt })
+defineExpose({ placeMarkerAt, centerOn, resetView })
 </script>
 
 <style scoped>
