@@ -1,1 +1,0 @@
-import './white-mode.scss'
