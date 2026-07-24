@@ -72,6 +72,7 @@
                 <ExporterTrafficDashboard
                     v-if="selectedInterface ? activeTab === 'traffic_analysis' : (selectedExporter && (activeTab === 'traffic_analysis' || activeTab === 'exporter_interfaces'))"
                     ref="exporterTrafficRef" :ifid="ifid" :exporter="selectedExporter" :iface="selectedInterface"
+                    :site-id="selectedSite?.id"
                     :show-interfaces="activeTab === 'exporter_interfaces'"
                     :epoch-begin="ifaceEpochBegin" :epoch-end="ifaceEpochEnd"
                     :show-historical-widgets="showHistoricalWidgets" :overview-table-col-class="overviewTableColClass"
@@ -1394,7 +1395,10 @@ async function loadNetworkOrSiteCounts() {
     if (selectedExporter.value || selectedInterface.value) return; // handled by ExporterTrafficDashboard instead
 
     const scopeParams = selectedNetwork.value
-        ? { network: selectedNetwork.value.id }
+        ? {
+            network: selectedNetwork.value.id,
+            ...(selectedSite.value ? { site_id: selectedSite.value.id } : {}),
+        }
         : (selectedSite.value ? { site_id: selectedSite.value.id } : null);
     if (!scopeParams) {
         liveFlowsCount.value = null;

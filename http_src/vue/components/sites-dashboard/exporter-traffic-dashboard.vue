@@ -10,6 +10,9 @@
     - ifid: String — ambient interface id (for the timeseries component)
     - exporter: Object (required) — the selected exporter
     - iface: Object|null — the selected interface, or null for exporter scope
+    - siteId: String|Number|null — the selected site, forwarded to the live flows
+        count probe (flow/active_list.lua defaults its site filter to site 0,
+        so it must be passed explicitly for every non-default site)
     - showInterfaces: Boolean — at exporter scope, show the interfaces table instead
         of the overview cards (the "Interfaces" tab vs. the default "Traffic Analysis"
         tab). Ignored at interface scope, which always shows the overview.
@@ -118,6 +121,7 @@ const props = defineProps({
     ifid: { type: String, required: true },
     exporter: { type: Object, required: true },
     iface: { type: Object, default: null },
+    siteId: { type: [String, Number], default: null },
     showInterfaces: Boolean,
     epochBegin: { type: Number, default: null },
     epochEnd: { type: Number, default: null },
@@ -263,6 +267,7 @@ async function loadExporterInterfaces() {
 async function loadExporterCounts() {
     const generation = ++countsRequestGeneration;
     const iface_filter = props.iface ? { ifIdx: props.iface.ifindex } : {};
+    const site_filter = props.siteId != null ? { site_id: props.siteId } : {};
 
     const flows_params = ntopng_url_manager.obj_to_url_params({
         ifid: exporterTimeseriesIfid.value,
@@ -271,6 +276,7 @@ async function loadExporterCounts() {
         map_search: "",
         visible_columns: "actions,first_seen,last_seen,duration,protocol,score,qoe,flow,cli_asn_asnmode_disabled,srv_asn_asnmode_disabled,throughput,bytes,info,flow_exporter,in_index,out_index",
         deviceIP: props.exporter.id,
+        ...site_filter,
         ...iface_filter,
     });
     const hosts_params = ntopng_url_manager.obj_to_url_params({
