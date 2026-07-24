@@ -789,8 +789,8 @@ const kpiCards = computed(() => {
             key: "snmp",
             icon: exporterSnmpEnabled.value ? "bi bi-check-circle" : "bi bi-x-circle",
             color: exporterSnmpEnabled.value ? "#2fb344" : "#94a3b8",
-            labelI18n: "sites_dashboard.snmp_polling",
-            value: exporterSnmpEnabled.value ? _i18n("sites_dashboard.enabled") : _i18n("sites_dashboard.disabled"),
+            labelI18n: "sites_dashboard.snmp",
+            value: exporterSnmpEnabled.value ? _i18n("sites_dashboard.polling") : _i18n("sites_dashboard.not_polling"),
             loading: !exporterScopeDataReady.value,
         });
         return cards;
