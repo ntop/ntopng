@@ -102,7 +102,7 @@
                         :locked_filters="liveFlowsLockedFilters" @total-loaded="onLiveFlowsTotalLoaded" />
                 </DashboardCard>
 
-                <DashboardCard v-if="activeTab === 'hosts' && (selectedExporter || selectedNetwork)"
+                <DashboardCard v-if="activeTab === 'hosts' && !selectedInterface && (selectedExporter || selectedNetwork)"
                     :title="_i18n('sites_dashboard.hosts')" icon="bi bi-pc-display"
                     :titleLink="titleLinks.hosts" noPadding>
                     <PageHostsList :key="hostsPageKey" :context="hostsContext"
@@ -488,8 +488,9 @@ function buildLiveFlowsUrl() {
 }
 
 /* Title-link of the "Hosts" card: opens hosts_stats.lua pre-filtered to
-   whichever scope is active -- exporter (hosts_stats.lua has no per-interface
-   filter, so this stays exporter-scoped even at interface scope) or network. */
+   whichever scope is active -- exporter or network. hosts_stats.lua has no
+   per-interface filter, which is exactly why the card/tab is not offered at
+   interface scope at all. */
 function buildHostsUrl() {
     const base_params = {
         version: "",
@@ -623,7 +624,6 @@ const tabs = computed(() => {
         const t = [
             { id: "traffic_analysis", label_i18n: "sites_dashboard.traffic_analysis" },
             { id: "live_flows", label_i18n: "sites_dashboard.live_flows", count: liveFlowsCount.value },
-            { id: "hosts", label_i18n: "sites_dashboard.hosts", count: liveHostsCount.value },
         ];
         if (exporterSnmpEnabled.value) t.push({ id: "snmp_analysis", label_i18n: "sites_dashboard.snmp_analysis" });
         return t;
