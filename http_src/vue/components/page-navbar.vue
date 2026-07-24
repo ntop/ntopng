@@ -105,7 +105,7 @@ const titleHtml = computed(() => {
 // param is absent entirely (matches the Lua convention:
 // `active = page == "overview" or not page`).
 function isActive(tab) {
-  const current = route.query[props.queryParam] || "overview";
+  const current = route.query[props.queryParam] || props.tabs[0]?.pageName;
   return tab.pageName === current;
 }
 

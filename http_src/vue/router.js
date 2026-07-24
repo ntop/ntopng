@@ -302,22 +302,20 @@ export const spaRoutes = [
         sites: "PageSites",
       },
     },
-    extraComponentByQuery: {
-      param: "page",
-      map: {
-        __default__: "PageTreemapNetworks",
-        networks: "PageTreemapNetworks",
-      },
-    },
     section: "if_stats",
     entry: "networks",
-    navbar: {
-      title: i18n("network_stats.networks") || "Networks",
-      baseUrl: "/lua/network_stats.lua",
-      tabs: [
+    navbar: (menuFlags) => {
+      const tabs = [
         { pageName: "networks", label: i18n("network_stats.networks") || "Networks" },
-        { pageName: "sites", label: i18n("sites_page.sites") || "Sites" },
-      ],
+      ];
+      if (menuFlags.isPro) {
+        tabs.push({ pageName: "sites", label: i18n("sites_page.sites") || "Sites" });
+      }
+      return {
+        title: i18n("network_stats.networks") || "Networks",
+        baseUrl: "/lua/network_stats.lua",
+        tabs: tabs,
+      };
     },
   },
   {
