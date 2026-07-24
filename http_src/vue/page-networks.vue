@@ -2,7 +2,8 @@
 <template>
     <div class="m-2 mb-3">
         <TableWithConfig ref="table_networks_stats" :table_id="networks_table" :csrf="csrf" :showLoading="true"
-            :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
+            :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting"
+            :handleLoadedColumns="handleLoadedColumns" @custom_event="on_table_custom_event">
 
             <!-- add Networks 
             <template v-slot:custom_buttons>
@@ -59,10 +60,7 @@ const note_list = [
 ];
 
 // API endpoint URLs for site management
-const API = {
-    edit: `${http_prefix}/lua/pro/rest/v2/edit/sites/edit.lua`,
-    add: `${http_prefix}/lua/pro/rest/v2/add/sites/add.lua`,
-    delete: `${http_prefix}/lua/pro/rest/v2/delete/sites/delete.lua`,
+const SITE_API = {
     get: `${http_prefix}/lua/pro/rest/v2/get/sites/list.lua`,
     net_edit: `${http_prefix}/lua/rest/v2/edit/network/edit.lua`
 };
@@ -79,6 +77,23 @@ const networks_table = ref('networks_list');
 const table_networks_stats = ref(null);
 const sitesList = ref([]);
 
+/*******************************************************/
+
+/* This function dinamycally modify the columns in order to 
+ * change visibility of the columns based on license and available 
+ * data (e.g. flow exporters)
+ */
+const handleLoadedColumns = (columns) => {
+    let modified_columns = columns
+    if (props.context.isPro === false) {
+        /* Remove the column Exporter IP, In/Out interface in case ntopng has no exporters */
+        modified_columns = modified_columns.filter((element) => {
+            return ((element.id !== "site"))
+        })
+    }
+    return modified_columns
+}
+
 /* ************************************** */
 
 onBeforeMount(() => {
@@ -89,12 +104,14 @@ onBeforeMount(() => {
 
 const retrieveSitesList = function () {
     sitesList.value = [];
-    // Send edit request to server
-    ntopng_utility.http_request(API.get)
-        .then(data => {
-            sitesList.value = data;
-        })
-        .catch(err => console.error('Error retrieving Sites'))
+    if (props.context.isPro) {
+        // Send edit request to server
+        ntopng_utility.http_request(SITE_API.get)
+            .then(data => {
+                sitesList.value = data;
+            })
+            .catch(err => console.error('Error retrieving Sites'))
+    }
 }
 
 /* ************************************** */
@@ -248,7 +265,7 @@ const handleEditNetwork = async (data) => {
     };
 
     // Send add request to server
-    ntopng_utility.http_request(API.net_edit, {
+    ntopng_utility.http_request(SITE_API.net_edit, {
         method: 'POST',
         headers,
         body: JSON.stringify(editParams)
@@ -266,7 +283,7 @@ const handleEditNetwork = async (data) => {
         .catch(err => console.error('Error during Site editing:', err))
 }
 
-const refreshActiveTable = function() {
+const refreshActiveTable = function () {
     table_networks_stats.value.refresh_table(true);
     emit("network_changed");
 }
