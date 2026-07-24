@@ -2619,10 +2619,13 @@ function M.get_sections(flags)
         }}
     }
     
-    local snmp_config = require("snmp_config")
     local max_num_pollers = 0
-    if snmp_config then
-        max_num_pollers = snmp_config.max_num_configured_devices()
+
+    if is_enterprise_m then
+        local snmp_config = require("snmp_config")
+        if snmp_config then
+            max_num_pollers = snmp_config.max_num_configured_devices()
+        end
     end
 
     -- SNMP
