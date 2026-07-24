@@ -10,11 +10,11 @@ git fetch
 git checkout -B "$branch_name" "origin/$branch_name"
 
 echo "-- Compiling dist --"
-cd "$CURR_DIR"
+cd "$CURR_DIR/pro"
 npm run build || exit 1
 
 echo "-- Pushing dist --"
-cd httpdocs/dist
+cd "$CURR_DIR/httpdocs/dist"
 git add -A
 git commit -m 'Update dist' || exit 1
 git push origin "$branch_name" || exit 1

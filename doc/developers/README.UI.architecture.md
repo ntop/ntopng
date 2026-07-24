@@ -7,7 +7,7 @@ ntopng uses a **hybrid rendering model**: Lua handles server-side page rendering
 ## Directory Structure
 
 ```
-http_src/               # Vue 3 source (compiled → httpdocs/dist/)
+pro/http_src/           # Vue 3 source, ntop-developers only (compiled → httpdocs/dist/)
 ├── vue/                # Page-level Vue SFCs (.vue files)
 │   └── ntop_vue.js     # Registry: maps component names → Vue SFC exports
 ├── components/         # Reusable sub-components (charts, widgets, DataTable)

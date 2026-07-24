@@ -1,74 +1,62 @@
-# Frontend Development (Javascript/Vue/CSS)
+# Frontend Build — Quick Reference
 
-The ntopng frontend is compiled with **Vite**. All source lives in `http_src/` and `assets/`;
-the compiled output goes to `httpdocs/dist/` and must be committed alongside code changes.
+## TL;DR
 
----
-
-## 1. Prerequisites
-
-Node.js **≥ 18.15.0** is required.
+- Frontend source (`http_src/`, `assets/`, `package.json`) now lives in `pro/`.
+- `httpdocs/` and `httpdocs/dist/` (compiled output) stay at repo root, unchanged.
+- Still run all `npm` commands from **repo root** — they proxy into `pro/` automatically.
+- Community-only checkouts (no `pro/`) cannot build the frontend — they just ship the prebuilt `httpdocs/dist/`.
 
 ---
 
-## 2. Install dependencies
-
-Run once after cloning (or after `package.json` changes):
+## Commands (run from repo root)
 
 ```bash
-npm install
+npm install        # once, or after package.json changes
+npm run build      # full production build -> httpdocs/dist/
+npm run build:dev  # full dev build (unminified, sourcemaps)
+npm run watch      # rebuilds ntopng.js on save (Vue app only)
+npm run js:lint    # eslint on pro/http_src
+npm run css:lint   # stylelint on pro/http_src
 ```
+
+Requires `pro/` checked out. Node.js ≥ 18.15.0.
 
 ---
 
-## 3. Daily development, watch mode
+## Where things live now
 
-Rebuilds `ntopng.js` automatically on every file save under `http_src/`:
-
-```bash
-npm run watch
-```
-
-Watch mode rebuilds only the Vue app bundle (`ntopng.js` + `ntopng.css`). Run
-`npm run build` once first to produce `third-party.js`, CSS themes, images, and
-`login.js` — watch mode then preserves those files between rebuilds.
-
----
-
-## 4. Build commands
-
-| Command | When to use |
+| Thing | Path |
 |---|---|
-| `npm run build` | Full production build (JS + CSS + assets, minified) |
-| `npm run build:dev` | Full development build (unminified, with sourcemaps) |
-| `npm run build:ntopngjs` | Rebuild `ntopng.js` only (fast, preserves rest of dist) |
-
-All commands output to `httpdocs/dist/`. **Commit the dist output** before opening a pull request.
-
----
-
-## 5. What gets built
-
-`npm run build` / `npm run build:dev` runs `build.mjs` which executes five sequential
-Vite passes, each producing a self-contained IIFE:
-
-| Output file | Source |
-|---|---|
-| `third-party.js` + `third-party.css` | `assets/third-party.js` (jQuery, Bootstrap, DataTables, …) |
-| `ntopng.js` + `ntopng.css` | `http_src/ntopng.js` (Vue app + SCSS) |
-| `dark-mode.css` / `white-mode.css` / `custom-theme.css` | Theme SCSS files |
-| `images/flags.png`, `images/blank.gif`, etc. | `assets/images/images.js` |
-| `login.js` | `assets/scripts/login.js` (particle animation) |
-
-All bundles are plain IIFEs loaded as `type="application/javascript"` (classic blocking
-scripts). `third-party.js` must load first — it sets `window.$`, `window.moment`, and
-other globals that `ntopng.js` depends on.
+| Vue components / JS source | `pro/http_src/` |
+| Images, third-party JS/CSS, login script | `pro/assets/` |
+| `package.json`, lockfile | `pro/` |
+| Build scripts | `pro/build.mjs`, `pro/vite.ntopng.config.js` |
+| Lint configs | `pro/.eslintrc.json`, `pro/.stylelintrc` |
+| Compiled output (commit this) | `httpdocs/dist/` (repo root, unchanged) |
+| Root `package.json` | thin proxy — just `cd pro && npm run <script>` |
 
 ---
 
-## 6. Linting
+## Daily workflow
 
-```bash
-npm run css:lint   # SCSS linting (stylelint)
-npm run js:lint    # JS linting (eslint)
-```
+1. Edit files under `pro/http_src/` or `pro/assets/`
+2. `npm run watch` (from root) — rebuilds `ntopng.js` + `ntopng.css` on save
+3. First time in a session, run `npm run build` once (produces `third-party.js`, themes, images, `login.js` — watch mode preserves these after)
+4. Commit `httpdocs/dist/` changes alongside your source changes
+
+---
+
+## `make dist` / `create_dist.sh`
+
+- `make dist` (root Makefile): builds from `pro/` if present, else prints a message and does nothing.
+- `create_dist.sh`: same — `cd pro && npm run build`, then commits/pushes `httpdocs/dist`.
+- Both **fail silently for community-only devs** — that's intentional, they never had frontend source anyway.
+
+---
+
+## History note
+
+`http_src`/`assets`/`package.json` history was moved out of the community repo into `pro`'s own git history (not just relocated — full commit history preserved on the `pro` side, removed entirely from community).
+
+Next: `git add -A && git commit` in both repos, then push `pro` (community push is on you too).

@@ -282,9 +282,11 @@ changelog:
 	if [ -d pro ]; then cd pro && git log --since={`curl -s https://github.com/ntop/ntopng/releases | grep datetime | head -n1 | egrep -o "[0-9]+\-[0-9]+\-[0-9]+"`} --name-only --pretty=format:" - %s" >> ../Changelog.latest; fi
 
 # Note: use ./create_dist.sh for building and committing the new dist
+# Frontend source (http_src/, assets/, package.json) lives in pro/, which is
+# only available to ntop developers; community-only checkouts ship the
+# prebuilt httpdocs/dist and cannot rebuild the frontend.
 dist:
-	npm install
-	npm run build
+	if [ -d pro ]; then cd pro && npm install && npm run build; else echo "pro/ not found: frontend source is not available in community-only checkouts, httpdocs/dist is prebuilt"; fi
 
 pull-deps:
 	echo "Pulling dependencies.."
