@@ -13,7 +13,8 @@ local ts_host = {}
 
 local timeseries_id = "host"
 
-local timeseries_list = {{
+local timeseries_list = {
+   {
     schema = "host:traffic",
     id = timeseries_id,
     label = i18n("graphs.traffic_rxtx"),
@@ -35,6 +36,27 @@ local timeseries_list = {{
     always_visibile = true,
     default_visible = true
 }, {
+      schema = "host:local_traffic",
+      id = timeseries_id,
+      label = i18n("graphs.local_traffic"),
+      description = i18n("graphs.metric_descr.local_host_traffic"),
+      priority = 0,
+      measure_unit = "bps",
+      scale = i18n('graphs.metric_labels.traffic'),
+      timeseries = {
+	 local_traffic_bytes = {
+            label = i18n('graphs.metric_labels.local_traffic'),
+            color = ts_gui_utils.get_timeseries_color('bytes_sent')
+	 },
+	 non_local_traffic_bytes = {
+            invert_direction = true,
+            label = i18n('graphs.metric_labels.non_local_traffic'),
+            color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
+	 }
+      },
+      always_visibile = true,
+      default_visible = true
+   }, {
     schema = "host:packets",
     id = timeseries_id,
     label = i18n("graphs.packets_rxtx"),

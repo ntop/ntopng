@@ -77,7 +77,8 @@ class HostStats : public GenericTrafficElement {
                         custom_app_t custom_app, u_int64_t sent_packets,
                         u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
                         u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
-                        u_int64_t rcvd_goodput_bytes, bool peer_is_unicast);
+                        u_int64_t rcvd_goodput_bytes, bool peer_is_unicast,
+			bool local_to_local_traffic);
   void checkpoint(lua_State* vm);
   virtual void getJSONObject(json_object* my_object,
                              DetailsLevel details_level);

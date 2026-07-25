@@ -551,7 +551,7 @@ class Host : public GenericHashEntry,
                 u_int64_t sent_packets, u_int64_t sent_bytes,
                 u_int64_t sent_goodput_bytes, u_int64_t rcvd_packets,
                 u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
-                bool peer_is_unicast);
+                bool peer_is_unicast, bool local_to_local_traffic);
   void checkpoint(lua_State* vm);
   void incHitter(Host* peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   virtual void updateHostTrafficPolicy(char* key) {};

@@ -27,6 +27,8 @@
 class GenericTrafficElement {
  protected:
   TrafficStats sent, rcvd;
+  TrafficStats local_traffic /* Exchanged with local hosts or broad/multicast */,
+    non_local_traffic /* Exchanged with non-local hosts */;
   ThroughputStats bytes_thpt, pkts_thpt;
   nDPIStats* ndpiStats;
 #ifdef NTOPNG_PRO

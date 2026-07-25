@@ -316,6 +316,12 @@ void HostStats::luaStats(lua_State* vm, NetworkInterface* iface,
                          bool host_details, bool verbose, bool tsLua) {
   /* NOTE: this class represents a (previously saved) timeseries point. Do not
    * access Host data and push it directly here! */
+
+  lua_push_uint64_table_entry(vm, "local.bytes",
+			      local_traffic.getNumBytes());
+  lua_push_uint64_table_entry(vm, "non_local.bytes",
+			      non_local_traffic.getNumBytes());
+
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
   lua_push_uint64_table_entry(vm, "packets.sent", sent.getNumPkts());
@@ -406,9 +412,15 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
                          custom_app_t custom_app, u_int64_t sent_packets,
                          u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
                          u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
-                         u_int64_t rcvd_goodput_bytes, bool peer_is_unicast) {
+                         u_int64_t rcvd_goodput_bytes, bool peer_is_unicast,
+			 bool local_to_local_traffic) {
   sent.incStats(when, sent_packets, sent_bytes);
   rcvd.incStats(when, rcvd_packets, rcvd_bytes);
+
+  if(local_to_local_traffic)
+    local_traffic.incStats(when, sent_packets+rcvd_packets, sent_bytes+rcvd_bytes);
+  else
+    non_local_traffic.incStats(when, sent_packets+rcvd_packets, sent_bytes+rcvd_bytes);  
 
   if (ndpiStats) {
     ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes,

@@ -2329,7 +2329,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
                        diff_sent_bytes, partial->get_cli2srv_goodput_bytes(),
                        diff_rcvd_packets, diff_rcvd_bytes,
                        partial->get_srv2cli_goodput_bytes(),
-                       srv_host->get_ip()->isNonEmptyUnicastAddress());
+                       srv_host->get_ip()->isNonEmptyUnicastAddress(),
+		       isLocalToLocal());
 
     // update per-subnet byte counters
     if (cli_network_stats) {  // only if the network is known and local
@@ -2343,20 +2344,20 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       } else  // client and server ARE in the same subnet
         // need to update the inner counter (just one time, will intentionally
         // skip this for srv_host)
-        cli_network_stats->incInner(
-            tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
-            diff_sent_bytes + diff_rcvd_bytes,
-            srv_host->get_ip()->isBroadcastAddress() ||
-                cli_host->get_ip()->isBroadcastAddress());
+        cli_network_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
+				    diff_sent_bytes + diff_rcvd_bytes,
+				    srv_host->get_ip()->isBroadcastAddress() ||
+				    cli_host->get_ip()->isBroadcastAddress());
     }
-
+    
     srv_network_stats = srv_host->getNetworkStats(srv_network_id);
     srv_host->incStats(tv->tv_sec, get_protocol(), stats_protocol,
                        get_protocol_category(), custom_app, diff_rcvd_packets,
                        diff_rcvd_bytes, partial->get_srv2cli_goodput_bytes(),
                        diff_sent_packets, diff_sent_bytes,
                        partial->get_cli2srv_goodput_bytes(),
-                       cli_host->get_ip()->isNonEmptyUnicastAddress());
+                       cli_host->get_ip()->isNonEmptyUnicastAddress(),
+		       isLocalToLocal());
 
     if (srv_network_stats) {
       // local and known server network

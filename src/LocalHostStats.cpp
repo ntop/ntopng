@@ -304,11 +304,11 @@ void LocalHostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
                               u_int64_t sent_goodput_bytes,
                               u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
                               u_int64_t rcvd_goodput_bytes,
-                              bool peer_is_unicast) {
+                              bool peer_is_unicast, bool local_to_local_traffic) {
   HostStats::incStats(when, l4_proto, ndpi_proto, ndpi_category, custom_app,
                       sent_packets, sent_bytes, sent_goodput_bytes,
                       rcvd_packets, rcvd_bytes, rcvd_goodput_bytes,
-                      peer_is_unicast);
+                      peer_is_unicast, local_to_local_traffic);
 
   if (l4_proto == IPPROTO_UDP) {
     if (peer_is_unicast)

@@ -344,7 +344,8 @@ end
 -- ########################################################
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
-    local l4_protocol_list = require "l4_protocol_list"
+   local l4_protocol_list = require "l4_protocol_list"
+   
     -- Number of alerted flows
     ts_utils.append("host:alerted_flows", {
         ifid = ifstats.id,
@@ -584,6 +585,15 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     if ts_custom and ts_custom.host_update_stats then
         ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
     end
+    
+    -- Traffic stats
+    ts_utils.append("host:local_traffic", {
+        ifid = ifstats.id,
+        host = hostname,
+        local_bytes = host["local.bytes"],
+	non_local_bytes = host["non_local.bytes"]
+    }, when)
+
 end
 
 function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
