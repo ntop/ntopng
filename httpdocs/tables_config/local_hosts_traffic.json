@@ -11,9 +11,18 @@
     },
     "columns": [
         {
-            "id": "host_name",
-            "title_i18n": "host_name",
+            "id": "ip_address",
+            "title_i18n": "ip_address",
             "data_field": "host",
+            "sortable": true,
+            "class": [
+                "text-nowrap"
+            ]
+        },
+        {
+            "id": "name",
+            "title_i18n": "name",
+            "data_field": "name",
             "sortable": true,
             "class": [
                 "text-nowrap"
@@ -33,6 +42,16 @@
             "id": "remote_traffic",
             "title_i18n": "remote_traffic",
             "data_field": "remote_traffic",
+            "sortable": true,
+            "class": [
+                "text-nowrap",
+                "text-end"
+            ]
+        },
+        {
+            "id": "total_traffic",
+            "title_i18n": "total_traffic",
+            "data_field": "total_traffic",
             "sortable": true,
             "class": [
                 "text-nowrap",
