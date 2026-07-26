@@ -6709,6 +6709,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"updateRanking", ntop_update_ranking},
 #endif
 
-    {NULL, NULL}};
+    {NULL, NULL}
+};
 
 luaL_Reg* ntop_interface_reg = _ntop_interface_reg;

@@ -40,6 +40,11 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     page_name = "local_hosts_report",
     label = i18n("local_hosts_report")
 }, {
+    hidden = not host_ts_available or not ntop.isPro(),
+    active = page == "local_hosts_traffic",
+    page_name = "local_hosts_traffic",
+    label = i18n("local_hosts_traffic")
+}, {
     hidden = not areASTimeseriesEnabled(ifid) or not asn,
     active = page == "exporters_stats",
     page_name = "exporters_stats",
@@ -64,7 +69,14 @@ elseif page == "local_hosts_report" then
         ifid = interface.getId(),
         csrf = ntop.getRandomCSRFValue()
     })
-    template_utils.render("pages/vue_page.template", { vue_page_name = "PageLocalHostsReport", page_context = json_context }) 
+    template_utils.render("pages/vue_page.template", { vue_page_name = "PageLocalHostsReport", page_context = json_context })
+elseif page == "local_hosts_traffic" then
+    local json = require "dkjson"
+    local json_context = json.encode({
+        ifid = interface.getId(),
+        csrf = ntop.getRandomCSRFValue()
+    })
+    template_utils.render("pages/vue_page.template", { vue_page_name = "PageLocalHostsTraffic", page_context = json_context })
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -424,6 +424,7 @@ static luaL_Reg _ntop_host_reg[] = {
     {"getNumContactedTCPUDPServerPortsNoTX",
      ntop_get_num_contacted_tcp_udp_server_ports_notx},
     {"resetHostContacts", ntop_reset_host_contacts},
-    {NULL, NULL}};
+    {NULL, NULL}
+};
 
 luaL_Reg* ntop_host_reg = _ntop_host_reg;

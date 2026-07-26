@@ -116,7 +116,7 @@ if(host == nil) then
 
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-   tprint(_GET['host'])
+   -- tprint(_GET['host'])
    print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
 	 i18n("host_details.host_cannot_be_found_message", { host = _GET['host'] }) .. "</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
@@ -1056,6 +1056,12 @@ else
       if ((host["bytes.sent"] + host["bytes.rcvd"]) > 0) then
          print("<tr><th>" .. i18n("details.sent_vs_received_traffic_breakdown") .. "</th><td colspan=2>")
          graph_utils.breakdownBar(host["bytes.sent"], i18n("sent"), host["bytes.rcvd"], i18n("details.rcvd"), 0, 100)
+         print("</td></tr>\n")
+      end
+
+      if ((host["local.bytes"] + host["non_local.bytes"]) > 0) then
+         print("<tr><th>" .. i18n("details.local_vs_nonlocal_traffic_breakdown") .. "</th><td colspan=2>")
+         graph_utils.breakdownBar(host["local.bytes"], i18n("details.local"), host["non_local.bytes"], i18n("details.non_local"), 0, 100)
          print("</td></tr>\n")
       end
 
