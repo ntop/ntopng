@@ -1,0 +1,43 @@
+{
+    "id": "local_hosts_traffic",
+    "data_url": "lua/pro/rest/v2/get/host/assets_total_traffic.lua",
+    "use_current_page": false,
+    "enable_search": true,
+    "paging": false,
+    "display_empty_rows": true,
+    "default_sort": {
+        "column_id": "local_traffic",
+        "sort": 2
+    },
+    "columns": [
+        {
+            "id": "host_name",
+            "title_i18n": "host_name",
+            "data_field": "host",
+            "sortable": true,
+            "class": [
+                "text-nowrap"
+            ]
+        },
+        {
+            "id": "local_traffic",
+            "title_i18n": "local_traffic",
+            "data_field": "local_traffic",
+            "sortable": true,
+            "class": [
+                "text-nowrap",
+                "text-end"
+            ]
+        },
+        {
+            "id": "remote_traffic",
+            "title_i18n": "remote_traffic",
+            "data_field": "remote_traffic",
+            "sortable": true,
+            "class": [
+                "text-nowrap",
+                "text-end"
+            ]
+        }
+    ]
+}
