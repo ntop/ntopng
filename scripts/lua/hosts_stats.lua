@@ -40,7 +40,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     page_name = "local_hosts_report",
     label = i18n("local_hosts_report")
 }, {
-    hidden = not host_ts_available or not ntop.isPro(),
+    hidden = not host_ts_available or not (ntop.isPro and ntop.isPro()),
     active = page == "local_hosts_traffic",
     page_name = "local_hosts_traffic",
     label = i18n("local_hosts_traffic")
