@@ -35,7 +35,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     page_name = "active_hosts",
     label = i18n('active_hosts')
 }, {
-    hidden = not host_ts_available or not (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or is_asn_mode_enabled,
+    hidden = not host_ts_available or not (ntop.isEnterpriseM and ntop.isEnterpriseM()), -- Enterprise M and Hosts timeseries enabled
     active = page == "local_hosts_report",
     page_name = "local_hosts_report",
     label = i18n("local_hosts_report")
