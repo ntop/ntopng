@@ -43,9 +43,10 @@ interface.select(ifid)
 host_alert_store:add_request_filters()
 local where_clause = host_alert_store:build_where_clause()
 
+-- NOTE: filtering out empty countries is done in Lua below, not in SQL
 local q = string.format(
    "SELECT ip, vlan_id, any(country) AS country, sum(score) AS total_score, count(*) AS alerts_count " ..
-   "FROM %s WHERE %s AND country != '' GROUP BY ip, vlan_id ORDER BY total_score DESC LIMIT 512",
+   "FROM %s WHERE %s GROUP BY ip, vlan_id ORDER BY total_score DESC LIMIT 512",
    host_alert_store._table_name, where_clause)
 
 local q_res = interface.alert_store_query(q) or {}
