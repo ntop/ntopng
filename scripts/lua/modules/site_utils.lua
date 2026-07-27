@@ -49,6 +49,11 @@ DEFAULT_SITE.reserved = true
 -- Private Helper Functions
 -- ##############################################
 
+-- Forward declarations. The sites caches are defined further down, next to
+-- get_sites_from_cache(), but the lookup helpers are already needed by the
+-- validation code above them.
+local get_sites_by_name
+
 -- Checks whether making parent_id the parent of site_id would create a
 -- circular hierarchy. Sites form a tree: a site has one parent and may have
 -- many children, so a site can never be an ancestor of itself
@@ -185,10 +190,9 @@ local function validate_site(site, existing_sites, ignore_name_duplication)
 
 	-- Check for duplicate site names (unless explicitly disabled for edits)
 	if not ignore_name_duplication then
-		for _, site in pairs(existing_sites) do
-			if site.name:lower() == name_lower then
-				return false, "Site " .. site.name .. " already exists"
-			end
+		local duplicate = get_sites_by_name()[name_lower]
+		if duplicate then
+			return false, "Site " .. duplicate.name .. " already exists"
 		end
 	end
 
@@ -199,6 +203,7 @@ end
 -- ##############################################
 
 local sites_list_cache = nil
+local sites_by_name_cache = nil
 
 -- Retrieves all Sites from Redis cache and prepares them for use
 -- This function always includes the default site and merges it with user-defined sites
@@ -226,6 +231,46 @@ local function get_sites_from_cache()
 		return sites_list
 	else
 		return sites_list_cache
+	end
+end
+
+-- ##############################################
+
+-- Lazily builds (and returns) the name -> site index. Assigned to the local
+-- forward-declared at the top of the file.
+get_sites_by_name = function()
+	if sites_by_name_cache == nil then
+		local by_name = {}
+
+		for _, site in pairs(get_sites_from_cache()) do
+			by_name[tostring(site.name):lower()] = site
+		end
+
+		sites_by_name_cache = by_name
+	end
+
+	return sites_by_name_cache
+end
+
+-- ##############################################
+
+-- Drops every in-memory cache: the next read reloads them from Redis
+local function invalidate_sites_cache()
+	sites_list_cache = nil
+	sites_by_name_cache = nil
+end
+
+-- ##############################################
+
+-- Adds an already persisted site to the in-memory caches, when they are
+-- populated.
+local function cache_site_record(site_id, site_record)
+	if sites_list_cache ~= nil then
+		sites_list_cache[tostring(site_id)] = site_record
+	end
+
+	if sites_by_name_cache ~= nil then
+		sites_by_name_cache[tostring(site_record.name):lower()] = site_record
 	end
 end
 
@@ -373,8 +418,10 @@ function site_utils.editSite(site)
 		-- Store updated site in Redis
 		ntop.setHashCache(REDIS_HASH_NAME, site.site_id, json.encode(site_json))
 
-		-- Invalidate the in-memory cache so subsequent reads see the update
-		sites_list_cache = nil
+		-- Invalidate the in-memory caches so subsequent reads see the update.
+		-- A full invalidation is used here because an edit can rename a site, 
+		-- i.e. change its key in the by-name index.
+		invalidate_sites_cache()
 	else
 		return rest_utils.consts.err.edit_site_failed, msg -- Return validation error
 	end
@@ -424,9 +471,10 @@ function site_utils.addSite(site)
 		-- Increment counter for next site
 		ntop.setCache(REDIS_COUNTER_KEY, current_count + 1)
 
-		-- Invalidate the in-memory cache so subsequent reads (and the
+		-- Keep the in-memory caches coherent so that subsequent reads (and the
 		-- duplicate check of the next addSite in a batch) see this site
-		sites_list_cache = nil
+		-- without paying a full reload of the Redis hash
+		cache_site_record(site_id, site_json)
 	else
 		return rest_utils.consts.err.add_site_failed, msg -- Return validation error
 	end
@@ -455,8 +503,8 @@ function site_utils.deleteSite(id)
 		-- Remove site from Redis
 		ntop.delHashCache(REDIS_HASH_NAME, id)
 
-		-- Invalidate the in-memory cache so subsequent reads see the removal
-		sites_list_cache = nil
+		-- Invalidate the in-memory caches so subsequent reads see the removal
+		invalidate_sites_cache()
 	else
 		return rest_utils.consts.err.delete_site_failed, "Invalid Site"
 	end
@@ -478,21 +526,27 @@ end
 -- ##############################################
 
 function site_utils.getSiteInfo(site_id)
-	local sites = site_utils.getSites()
 	local default_site = site_utils.get_default_site()
 
-	if isEmptyString(site_id) or (site_id == default_site.id) then
+	if isEmptyString(site_id) or (tostring(site_id) == tostring(default_site.id)) then
 		return default_site
 	end
 
-	-- Check the existence of the site, otherwise skip it
-	for _, site in pairsByKeys(sites, asc) do
-		if tostring(site_id) == site.id then
-			return site
-		end
+	-- Check the existence of the site, otherwise skip it.
+	local site = get_sites_from_cache()[tostring(site_id)]
+
+	if not site then
+		return default_site
 	end
 
-	return default_site
+	-- Return a schema-driven copy, so that callers cannot alter the cache
+	local record = {}
+	for _, f in ipairs(SITE_SCHEMA) do
+		record[f.key] = site[f.key]
+	end
+	record["id"] = tostring(site.id)
+
+	return record
 end
 
 -- ##############################################
@@ -512,27 +566,145 @@ end
 
 function site_utils.mapNetworkToSite(network_id, site_id)
 	-- Given a network_id, maps the network_id to the site_id
-	local sites = site_utils.getSites()
-	local skip = true
-
 	if not interface.getNetworkStats(tonumber(network_id)) then
 		-- Not a network, return
 		return site_utils.get_default_site()
 	end
 
-	-- Check the existence of the site, otherwise skip it
-	for _, site in pairsByKeys(sites, asc) do
-		if tostring(site_id) == site.id then
-			-- OK, site found
-			skip = false
-			break
+	-- Check the existence of the site, otherwise skip it.
+	if get_sites_from_cache()[tostring(site_id)] then
+		-- Site found, update the network + site key
+		ntop.setHashCache(REDIS_NETWORKS_SITES_KEY, tostring(network_id), tostring(site_id))
+	end
+end
+
+-- ##############################################
+-- Network -> Sites hierarchy mapping
+--
+-- Entries have the "<network CIDR>=<site>/<site>/.../<network name>" form,
+-- e.g. "192.168.1.0/24=Italia/Toscana/Firenze/Home": every component but the last
+-- one is a Site of the hierarchy (Firenze child of Toscana, child of Italia),
+-- while the last one is the name (alias) of the network itself.
+--
+local SITE_PATH_SEPARATOR = "/"
+
+-- Splits an entry into the network CIDR (nil when the "=" is missing, i.e.
+-- when only the path is supplied) and the array of its components.
+-- Note: the split is done on the FIRST "=" only, as the CIDR contains "/"
+-- itself and must not be confused with a path separator.
+local function parseSitePath(entry)
+	if type(entry) ~= "string" then
+		return nil, {}
+	end
+
+	local network_cidr, path = entry:match("^([^=]*)=(.*)$")
+
+	if not path then
+		-- No "=": the whole string is the hierarchy path
+		network_cidr, path = nil, entry
+	else
+		network_cidr = trimSpace(network_cidr)
+
+		if isEmptyString(network_cidr) then
+			network_cidr = nil
 		end
 	end
 
-	-- Site found, update the network + site key
-	if not skip then
-		ntop.setHashCache(REDIS_NETWORKS_SITES_KEY, tostring(network_id), tostring(site_id))
+	local components = {}
+
+	-- Empty components are skipped
+	for component in path:gmatch("[^" .. SITE_PATH_SEPARATOR .. "]+") do
+		component = trimSpace(component)
+
+		if not isEmptyString(component) then
+			components[#components + 1] = component
+		end
 	end
+
+	return network_cidr, components
+end
+
+-- ##############################################
+
+-- Returns the id of the site named site_name, creating it as a child of
+-- parent_id (nil for a root site) when it does not exist yet.
+-- Returns nil plus an error message on failure.
+local function resolveOrCreateSite(site_name, parent_id)
+	local existing = get_sites_by_name()[site_name:lower()]
+
+	if existing then
+		-- Already there: the site is reused as-is and its current parent is
+		-- deliberately NOT modified, so that a hierarchy edited from the GUI
+		-- is not silently rearranged by a reload of the networks file.
+		-- Site names being unique system-wide, this is also what makes the
+		-- import idempotent when the same path is shared by many networks.
+		return tostring(existing.id)
+	end
+
+	local rc, msg = site_utils.addSite({
+		site_name = site_name,
+		site_description = "",
+		site_parent = parent_id,
+		latitude = 0,
+		longitude = 0,
+	})
+
+	if rc ~= rest_utils.consts.success.ok then
+		return nil, msg
+	end
+
+	-- addSite() keeps the caches coherent, hence the site just created is
+	-- already in the index: no Redis round trip to read its id back
+	local created = get_sites_by_name()[site_name:lower()]
+
+	if not created then
+		return nil, "Unable to create site " .. site_name
+	end
+
+	return tostring(created.id)
+end
+
+-- ##############################################
+
+-- Creates the (missing) sites of the hierarchy described by entry and maps
+-- network_id to the innermost one.
+function site_utils.mapNetworkToSitePath(network_id, entry)
+	-- setLocalNetworkAlias() and trimSpace(); required here, and not at the
+	-- top of the file, to keep site_utils loadable on its own
+	require("lua_utils")
+
+	if not tonumber(network_id) then
+		return false, "Invalid network id"
+	end
+
+	local network_cidr, components = parseSitePath(entry)
+
+	if table.len(components) == 0 then
+		return false, "Empty site path"
+	end
+	-- The last component is the name of the network, not a site
+	local network_name = table.remove(components)
+
+	-- Walk the path top-down, creating only what is missing.
+	local site_id = nil
+
+	for _, site_name in ipairs(components) do
+		local id, err = resolveOrCreateSite(site_name, site_id)
+
+		if not id then
+			return false, err
+		end
+
+		site_id = id
+	end
+
+	-- Map the network to the innermost site of the path
+	if site_id then
+		site_utils.mapNetworkToSite(network_id, site_id)
+		ntop.refreshNetworkSiteId(tonumber(network_id))
+	end
+
+	return true, site_id
 end
 
 -- ##############################################
@@ -600,7 +772,7 @@ function site_utils.remove_all_sites()
 	ntop.delCache(REDIS_NETWORKS_SITES_KEY)
 	ntop.delCache(REDIS_COUNTER_KEY)
 
-	sites_list_cache = nil
+	invalidate_sites_cache()
 end
 
 -- ##############################################
