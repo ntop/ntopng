@@ -628,7 +628,7 @@ schema:addMetric("bytes_rcvd")
 -- Traffic exchanged with local/remote peers
 schema = ts_utils.newSchema("host:local_traffic", {
     step = 300,
-    rrd_fname = "bytes"
+    rrd_fname = "local_traffic"
 })
 schema:addTag("ifid")
 schema:addTag("host")
