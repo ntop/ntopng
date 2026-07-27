@@ -501,7 +501,8 @@ class Ntop {
    * @return The network interface instance if exists, NULL otherwise.
    */
   NetworkInterface* getNetworkInterface(const char* name, lua_State* vm = NULL);
-
+  inline char * getNetworkAlias(u_int id) { return((id < CONST_MAX_NUM_NETWORKS) ? local_network_aliases[id] : NULL); };
+  
   inline NetworkInterface* getNetworkInterface(lua_State* vm, int ifid) {
     char ifname[MAX_INTERFACE_NAME_LEN];
 

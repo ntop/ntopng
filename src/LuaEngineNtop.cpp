@@ -7853,7 +7853,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Returns the network CIDR or alias for the given local network id.  Lua: ntop.getNetworkNameById(id) → string */
+/* @brief Returns the network CIDR for the given local network id.  Lua: ntop.getNetworkNameById(id) → string */
 static int ntop_network_name_by_id(lua_State* vm) {
   int id;
   const char* name;
@@ -7867,6 +7867,26 @@ static int ntop_network_name_by_id(lua_State* vm) {
   name = ntop->getLocalNetworkName(id);
 
   lua_pushstring(vm, name ? name : "");
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Returns the network  alias for the given local network id.  Lua: ntop.getNetworkAliasById(id) → string */
+static int ntop_network_alias_by_id(lua_State* vm) {
+  int id;
+  const char* alias;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  id = (u_int32_t)lua_tonumber(vm, 1);
+
+  alias = ntop->getNetworkAlias(id);
+
+  lua_pushstring(vm, alias ? alias : "");
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -9177,6 +9197,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getWebAuthnPendingToken", ntop_get_webauthn_pending_token},
 
     {"getNetworkNameById", ntop_network_name_by_id},
+    {"getNetworkAliasById", ntop_network_alias_by_id},
     {"refreshNetworkSiteId", ntop_refresh_network_site_id},
     {"getNetworkIdByName", ntop_network_id_by_name},
     {"getNetworks", ntop_get_networks},
