@@ -386,6 +386,16 @@ for _, value in ipairs(flows_stats.flows) do
       record["searched_field"] = value["searched_field"]
    end
 
+   if value["risk"] then
+      record["risk"] = {}
+      for _, r in pairs(value["risk"]) do
+         record["risk"][#record["risk"] + 1] = {
+            id = r.id,
+            name = r.name
+         }
+      end
+   end
+
    rsp[#rsp + 1] = record
 end
 

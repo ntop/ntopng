@@ -300,7 +300,8 @@ local context = {
     alert_details_url = alert_details_url,
     navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), ntop.getHttpPrefix() .. "/lua/alert_stats.lua?", pages),
     csrf = ntop.getRandomCSRFValue(),
-    is_va = _GET["is_va"] or false
+    is_va = _GET["is_va"] or false,
+    show_geomap = (page == 'host' or page == 'flow') and (ntop.hasGeoIP and ntop.hasGeoIP()) and hasClickHouseSupport()
 }
 
 local json_context = json.encode(context)

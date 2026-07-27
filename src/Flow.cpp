@@ -3769,6 +3769,24 @@ void Flow::lua_get_risk_info(lua_State* vm) {
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
+
+    /* Full alert risk list */
+    lua_newtable(vm);
+
+    for (u_int i = 0; i < NDPI_MAX_RISK; i++)
+      if (hasRisk((ndpi_risk_enum)i)) {
+        lua_newtable(vm);
+        lua_push_uint32_table_entry(vm, "id", i);
+        lua_push_str_table_entry(vm, "name", ndpi_risk2str((ndpi_risk_enum)i));
+
+        lua_pushnumber(vm, i);
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+      }
+
+    lua_pushstring(vm, "risk");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 }
 

@@ -5538,6 +5538,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   IpAddress* cli_ip = (IpAddress*)f->get_srv_ip_addr();
   IpAddress* srv_ip = (IpAddress*)f->get_cli_ip_addr();
   u_int16_t alert_type_filter, site_id;
+  int32_t risk_filter = -1;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t* mac_filter;
@@ -5949,6 +5950,16 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
         retriever->pag->flowStatusFilter(&alert_type_filter) &&
         !f->getAlertsBitmap().isSetBit(alert_type_filter))
       return (false);
+
+    /* Flow risk filter: 0 means "no risk" (i.e. flow not flagged by nDPI),
+     * not an actual risk bit. */
+    if (retriever->pag && retriever->pag->riskFilter(&risk_filter)) {
+      if (risk_filter == 0) {
+        if (f->hasRisks()) return (false);
+      } else if (!f->hasRisk((ndpi_risk_enum)risk_filter)) {
+        return (false);
+      }
+    }
 
     /* Flow Status severity filter */
     if (retriever->pag &&

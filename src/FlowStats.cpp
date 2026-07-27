@@ -51,6 +51,14 @@ void FlowStats::incStats(Bitmap128 alert_bitmap, u_int8_t l4_protocol,
 
   protocols[l4_protocol]++;
   alert_levels[alert_level]++;
+
+  if (flow) {
+    ndpi_risk risk_bitmap = flow->getRiskBitmap();
+
+    for (i = 0; i < NDPI_MAX_RISK; i++)
+      if (NDPI_ISSET_BIT(risk_bitmap, i)) risks[i]++;
+  }
+
   if (dscp_cli2srv != dscp_srv2cli) {
     dscps[dscp_cli2srv]++;
     dscps[dscp_srv2cli]++;
@@ -227,6 +235,26 @@ void FlowStats::lua(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  /* Flow risks */
+  lua_newtable(vm);
+
+  for (u_int i = 0; i < NDPI_MAX_RISK; i++) {
+    if (unlikely(risks[i] > 0)) {
+      lua_newtable(vm);
+
+      lua_push_uint64_table_entry(vm, "count", risks[i]);
+      lua_push_str_table_entry(vm, "name", ndpi_risk2str((ndpi_risk_enum)i));
+
+      lua_pushinteger(vm, i);
+      lua_insert(vm, -2);
+      lua_rawset(vm, -3);
+    }
+  }
+
+  lua_pushstring(vm, "risk");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   lua_newtable(vm);
 
   std::map<std::string, u_int16_t>::iterator it2;
@@ -283,6 +311,7 @@ void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
   memset(protocols, 0, sizeof(protocols));
   memset(alert_levels, 0, sizeof(alert_levels));
+  memset(risks, 0, sizeof(risks));
   memset(dscps, 0, sizeof(dscps));
   memset(host_pools, 0, sizeof(host_pools));
   talking_hosts.clear();
