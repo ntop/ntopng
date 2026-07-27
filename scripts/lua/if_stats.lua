@@ -805,7 +805,7 @@ if (ifstats.type ~= "zmq") then
 end
 
 print [[ <tr>]]
-print [[<td colspan=6><div class="row"><div class="row-4">]]
+print [[<td colspan=6><div class="row"><div class="row-3">]]
 
 template.render("pages/vue_page.template", {
     vue_page_name = "MultiPieChart",
