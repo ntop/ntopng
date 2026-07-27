@@ -9356,6 +9356,7 @@ local lang = {
   },
   ["tree_nav_sidebar"] = {
     ["no_data_available"] = "No data available",
+    ["still_loading_results"] = "Still loading the full list: search results may be incomplete.",
   },
   ["snapshots"] = {
     ["add"] = "Add Snapshot",
