@@ -164,6 +164,10 @@ function getFlowsFilter()
     local qoe = _GET["qoe"]
     local username = _GET["username"]
     local host = _GET["host"]
+    local ip_filter = _GET["ip"]
+    if not isEmptyString(ip_filter) and isEmptyString(host) then
+        host = split(ip_filter, ";")[1]
+    end
     local pid_name = _GET["pid_name"]
     local container = _GET["container"]
     local pod = _GET["pod"]
@@ -175,6 +179,7 @@ function getFlowsFilter()
     local src_asn = _GET["src_asn"]
     local dst_asn = _GET["dst_asn"]
     local host_pool = _GET["host_pool_id"]
+    local risk = _GET["risk"]
     local flow_status = _GET["flow_status"]
     local flow_status_severity = _GET["flow_status_severity"]
     local status = _GET["status"]
@@ -421,6 +426,10 @@ function getFlowsFilter()
 
     if not isEmptyString(host_pool) then
         pageinfo["poolFilter"] = tonumber(host_pool)
+    end
+
+    if not isEmptyString(risk) then
+        pageinfo["riskFilter"] = tonumber(risk)
     end
 
     if not isEmptyString(client) then

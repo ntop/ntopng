@@ -4679,6 +4679,7 @@ local lang = {
     ["all_proto"] = "All L7 Protocols",
     ["all_vlan_ids"] = "All VLANs",
     ["applications"] = "Applications",
+    ["back_to_table"] = "Back to Table",
     ["blocked"] = "Blocked",
     ["client"] = " [ Client: <a href=\"%{base_url}/lua/host_details.lua?host=%{client}\">%{client_name}</a>  ] ",
     ["client_as"] = "Client AS",
@@ -4729,6 +4730,7 @@ local lang = {
     ["sflow_devices"] = "sFlow Counter Exporters",
     ["source_id"] = "Source Id",
     ["talking_with"] = "Talking With",
+    ["geomap_view"] = "Geo Map View",
     ["tcp_only"] = "TCP Only",
     ["tcp_state"] = "TCP State",
     ["tcp_state_closed"] = "Closed",
@@ -4736,6 +4738,7 @@ local lang = {
     ["tcp_state_established"] = "Established",
     ["tcp_state_reset"] = "Reset",
     ["tcp_state_unknown"] = "Unknown",
+    ["table_view"] = "Table View",
     ["tot_bytes"] = "Total Bytes: ",
     ["tot_throughput"] = "Total Throughput: ",
     ["total_bytes"] = "Total Bytes",
@@ -9353,6 +9356,7 @@ local lang = {
   },
   ["tree_nav_sidebar"] = {
     ["no_data_available"] = "No data available",
+    ["still_loading_results"] = "Still loading the full list: search results may be incomplete.",
   },
   ["snapshots"] = {
     ["add"] = "Add Snapshot",

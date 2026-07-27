@@ -236,6 +236,7 @@ local packetifs   = {}
 local zmqifs      = {}
 local drops       = {}
 local action_urls = {}
+local viewed_by   = {}
 
 for v, k in pairs(iface_names) do
    interface.select(k)
@@ -257,6 +258,8 @@ for v, k in pairs(iface_names) do
    if s.stats_since_reset.drops * 100 > s.stats_since_reset.packets then
       drops[tostring(s.id)] = true
    end
+   local parent_view_id = interface.viewedBy()
+   if parent_view_id then viewed_by[tostring(s.id)] = tostring(parent_view_id) end
    ifCustom[tostring(s.id)] = s.customIftype
 
    local descr = getHumanReadableInterfaceName(v)
@@ -405,6 +408,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    zmqifs       = zmqifs,
    drops        = drops,
    action_urls  = action_urls,
+   viewed_by    = viewed_by,
    current_ifid        = tostring(current_ifid),
    system_ifid         = tostring(system_ifid),
    observation_points  = observation_points,

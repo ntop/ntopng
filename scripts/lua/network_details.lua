@@ -53,11 +53,18 @@ end
 --[[
 Create Menu Bar with buttons
 --]]
-local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network_id)
+local http_prefix = ntop.getHttpPrefix()
+local nav_url = http_prefix .."/lua/network_details.lua?network="..tonumber(network_id)
 local title = i18n("network_details.network") .. ": "..custom_name
 
 page_utils.print_navbar(title, nav_url,
 			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "historical",
+			      label = "<i class=\"fas fa-lg fa-home\"></i>",
+				  url = http_prefix .. "/lua/hosts_stats.lua?network=" .. tostring(network_id) .. "&version=&traffic_type=&mode=&pool=&label="
+			   },
 			   {
 			      active = page == "historical" or not page,
 			      page_name = "historical",
@@ -67,7 +74,7 @@ page_utils.print_navbar(title, nav_url,
 			      hidden = not areAlertsEnabled() or  not auth.has_capability(auth.capabilities.alerts),
 			      active = page == "alerts",
 			      page_name = "alerts",
-			      url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. flowfilter_utils.SEPARATOR .. "eq",
+			      url = http_prefix .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. flowfilter_utils.SEPARATOR .. "eq",
 			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			   {

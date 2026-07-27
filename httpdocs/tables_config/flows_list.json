@@ -189,6 +189,15 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.flowfilters.flow_risk",
+			"data_field": "risk",
+			"sortable": false,
+			"min-width" : "140px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "flow_devices.exporter_ip",
 			"data_field": "flow_exporter",
 			"sortable": true,

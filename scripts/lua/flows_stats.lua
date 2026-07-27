@@ -53,7 +53,9 @@ local page_params = {
     flow_info = flow_info
 }
 
-page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
+local has_geoip = ntop.hasGeoIP and ntop.hasGeoIP()
+
+local navbar_entries = {{
     active = page == "flows" or page == nil,
     url = base_url .. "?page=flows&traffic_type=unicast",
     page_name = "flows",
@@ -64,7 +66,18 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
     active = page == "analysis",
     page_name = "analysis",
     label = i18n("aggregation")
-}})
+}}
+
+if has_geoip then
+    navbar_entries[#navbar_entries + 1] = {
+        url = base_url .. "?page=geomap",
+        active = page == "geomap",
+        page_name = "geomap",
+        label = i18n("flows_page.geomap_view")
+    }
+end
+
+page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", navbar_entries)
 
 if (page == "flows" or page == nil) then
     local has_exporters = false
@@ -86,9 +99,18 @@ if (page == "flows" or page == nil) then
         csrf = ntop.getRandomCSRFValue(),
         is_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL(),
         ASNModeEnabled = is_asn_mode_enabled,
-        isNedge = have_nedge
+        isNedge = have_nedge,
+        has_geoip = ntop.hasGeoIP and ntop.hasGeoIP()
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
+elseif page == "geomap" then
+    local json = require "dkjson"
+
+    local json_context = json.encode({
+        ifid = ifstats.id,
+        csrf = ntop.getRandomCSRFValue()
+    })
+    template.render("pages/vue_page.template", { vue_page_name = "PageFlowsGeomap", page_context = json_context })
 else
     -- Analysis
 

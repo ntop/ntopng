@@ -2226,6 +2226,7 @@ local known_parameters = {
    ["hosts_type"] = validateFlowHostsType, -- A filter for local/remote hosts in each of the two directions
    ["talking_with"] = validateHost, -- A filter for hosts in each of the two directions
    ["status"] = validateUnquoted, -- An alert type to filter
+   ["risk"] = validateNumber, -- An nDPI flow risk id to filter live flows
    ["enabled_status"] = validateSingleWord, -- Can be: All, Enabled, Disabled
    ["hash_table"] = validateSingleWord, -- An internal ntopng hash_table
    ["periodic_script"] = validateSingleWord, -- A script under callbacks/interface executed by ntopng
@@ -2434,6 +2435,7 @@ local known_parameters = {
    ["message_template"] = validateUnchecked, -- free-text template string for custom alert messages
    ["sql_template"] = validateUnchecked, -- free-text template string for custom alert messages
    ["column"] = validateUnquoted, -- free-text template string for custom alert messages
+   ["chart_view"] = validateSingleWord, -- free-text template string for custom alert messages
 
    -- Analyst Pipeline
    ["definition"]            = {jsonCleanup, validateJSON},
