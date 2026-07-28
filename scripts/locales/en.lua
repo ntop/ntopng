@@ -9949,6 +9949,7 @@ local lang = {
     ["delete_job_confirm"] = "Do you really want to delete Job %{job_id} and the related PCAP files?",
     ["disabled"] = "Disabled",
     ["disk_space"] = "Max Disk Space",
+    ["max_space_note"] = "Maximum %{max_space} GB",
     ["disk_space_note"] = "Maximum disk space used for recorded traffic on disk.",
     ["disk_space_note_in_use"] = "%{in_use} GB are already in use by this instance.",
     ["download"] = "Download",
