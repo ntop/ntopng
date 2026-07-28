@@ -767,15 +767,29 @@ function site_utils.export()
 end
 
 -- ##############################################
+-- Drops every network -> Site association, so that all the networks fall
+-- back to the Default Site.
+-- The site id is also cached C-side by NetworkStats, hence every network is
+-- explicitly refreshed: without it the change would only become visible on
+-- the next restart
+function site_utils.unmapAllNetworks()
+   local networks = ntop.getNetworks() or {}
 
+   ntop.delCache(REDIS_NETWORKS_SITES_KEY)
+
+   for _, network_id in pairs(networks) do
+      ntop.refreshNetworkSiteId(tonumber(network_id))
+   end
+end
+
+-- ##############################################
 -- Removes every user-defined Site and the network->site associations,
 -- resetting the auto-increment counter. The Default site is virtual and
 -- is therefore not affected.
 function site_utils.remove_all_sites()
    ntop.delCache(REDIS_HASH_NAME)
-   ntop.delCache(REDIS_NETWORKS_SITES_KEY)
    ntop.delCache(REDIS_COUNTER_KEY)
-
+   site_utils.unmapAllNetworks()
    invalidate_sites_cache()
 end
 
