@@ -500,8 +500,6 @@ function getLocalNetworkLabel(network)
 	local alias = getLocalNetworkAlias(network)
 
 	if alias ~= network then
-      local items = split(alias, "/")
-      alias = items[#items]
 		return string.format("%s", alias)
 	end
 
@@ -510,27 +508,21 @@ end
 
 -- ##############################################
 
-local networks_name_cache = {}
-function getFullLocalNetworkName(network)
+function getFullLocalNetworkName(network, remove_slash)
 	local network_consts = require("network_consts")
 	local network_id = tonumber(network)
-    local alias = ""
-
-    if networks_name_cache[tostring(network_id)] then
-        alias = networks_name_cache[tostring(network_id)]
-    else
-	    alias = getLocalNetworkAlias(network)
-        networks_name_cache[tostring(network_id)] = alias
-    end
+	local alias = getLocalNetworkAlias(network)
 
 	if network_id ~= nil and network_id >= network_consts.UNKNOWN_NETWORK then
 		return ""
 	end
 
 	if alias ~= network then
-      local items = split(alias, "/")
-      alias = items[#items]
-      return string.format("%s · %s", alias, network)
+		if remove_slash then
+			local items = split(alias, "/")
+			alias = items[#items]
+		end
+		return string.format("%s · %s", alias, network)
 	end
 
 	return network
