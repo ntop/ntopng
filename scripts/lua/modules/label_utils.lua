@@ -458,7 +458,7 @@ end
 
 -- ##############################################
 
-function getLocalNetworkAliasById(network, short_version)
+function getLocalNetworkAliasById(network, remove_slash)
 	local network_consts = require("network_consts")
 
 	local networks_stats = interface.getNetworksStats() or {}
@@ -472,7 +472,7 @@ function getLocalNetworkAliasById(network, short_version)
 	local label = ""
 	for n, ns in pairs(networks_stats) do
 		if ns.network_id == network_id then
-			label = getFullLocalNetworkName(ns.network_key, short_version)
+			label = getFullLocalNetworkName(ns.network_key, remove_slash)
 		end
 	end
 	return label
@@ -509,7 +509,7 @@ end
 -- ##############################################
 
 local networks_name_cache = {}
-function getFullLocalNetworkName(network, short_version)
+function getFullLocalNetworkName(network, remove_slash)
 	local network_consts = require("network_consts")
 	local network_id = tonumber(network)
     local alias = ""
@@ -526,9 +526,11 @@ function getFullLocalNetworkName(network, short_version)
 	end
 
 	if alias ~= network then
-		if short_version then
-			return string.format("%s", alias)
-		else
+		if remove_slash then
+         local items = split(alias, "/")
+         alias = items[#items]
+			return string.format("%s · %s", alias, network)
+      else
 			return string.format("%s · %s", alias, network)
 		end
 	end

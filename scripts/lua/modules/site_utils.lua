@@ -1040,7 +1040,7 @@ local function getDirectSiteComponents(site_id, exporters_by_site, devices_by_ne
    for _, network_id in pairs(networks or {}) do
       networks_to_add[#networks_to_add + 1] = {
 	 id = network_id,
-	 name = getLocalNetworkAliasById(network_id),
+	 name = getLocalNetworkAliasById(network_id, true),
     short_name = getLocalNetworkAliasById(network_id, true)
       }
 
