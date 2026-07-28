@@ -1175,6 +1175,12 @@ function page_utils.print_header(title, addLoginJS)
     end
 
     print [[
+    <script>
+    // router.js reads this global at module-eval time to set Vue Router's base path
+    const http_prefix = "]]
+    print(ntop.getHttpPrefix())
+    print [[";
+    </script>
     <script type="application/javascript" src="]]
     print(http_prefix)
     print("/lua/locale.lua?" .. locale_when .. "&user_language=" .. language);
@@ -1195,9 +1201,6 @@ function page_utils.print_header(title, addLoginJS)
     print [[;
     const date_format_pref = "]]
     print(date_format_pref)
-    print [[";
-    const http_prefix = "]]
-    print(ntop.getHttpPrefix())
     print [[";
     const mode = "]]
     print(dark_mode and "dark" or "light")
