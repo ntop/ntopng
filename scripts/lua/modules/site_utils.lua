@@ -1027,6 +1027,7 @@ local function getDirectSiteComponents(site_id, exporters_by_site, devices_by_ne
       networks_to_add[#networks_to_add + 1] = {
 	 id = network_id,
 	 name = getLocalNetworkAliasById(network_id),
+    short_name = getLocalNetworkAliasById(network_id, true)
       }
 
       -- Linear append: table.merge() allocated a new table and re-copied the
