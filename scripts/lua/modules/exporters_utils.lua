@@ -213,10 +213,10 @@ function exporters_utils.getAllExportersList()
                      exporter_info.time_last_used = probe_info["probe.last_update"]
                      exporter_info.exporter_type = "packet_collection"
                   elseif (probe_info["probe.mode"] == "flow_collection") then
-                     if exporter_info.num_sflow_flows > 0 then
-                        exporter_info.exporter_type = "sflow_collection"
-                     elseif exporter_info.num_netflow_flows > 0 then
+                     if exporter_info.num_netflow_flows > 0 then
                         exporter_info.exporter_type = "netflow_collection"
+                     elseif exporter_info.num_sflow_flows > 0 then
+                        exporter_info.exporter_type = "sflow_collection"
                      end
                   end
                   exporter_info.id = exporter_ip
