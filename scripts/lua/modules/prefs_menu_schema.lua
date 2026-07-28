@@ -560,7 +560,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.topk_heuristic_precision",
                 default = "more_accurate",
                 section = i18n("prefs.report"),
-                hidden = (not is_pro),
+                hidden = (not flags.is_pro),
                 options = {{
                     value = "disabled",
                     label = i18n("topk_heuristic.precision.disabled")
@@ -1557,7 +1557,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.intranet_traffic_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not is_pro)
+                hidden = (not flags.is_pro)
             }, {
                 key = "toggle_observation_points_rrd_creation",
                 title = i18n("prefs.toggle_observation_points_rrds_title"),
@@ -1566,7 +1566,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.observation_points_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not is_pro)
+                hidden = (not flags.is_pro)
             }, {
                 key = "toggle_pools_rrds",
                 title = i18n(have_nedge and "prefs.toggle_users_rrds_title" or "prefs.toggle_pools_rrds_title"),
@@ -1576,7 +1576,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.host_pools_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not is_pro)
+                hidden = (not flags.is_pro)
             }, {
                 key = "toggle_vlan_rrds",
                 title = i18n("prefs.toggle_vlan_rrds_title"),
@@ -1609,7 +1609,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ndpi_flows_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not is_pro)
+                hidden = (not flags.is_pro)
             }, {
                 key = "toggle_internals_rrds",
                 title = i18n("prefs.toggle_internals_rrds_title"),
