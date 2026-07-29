@@ -21,6 +21,7 @@ Dashboard
 
     dashboard/dashboard
     ../../flow_dump/clickhouse/reports
+    interface/sites
 
 Monitoring
 ----------
