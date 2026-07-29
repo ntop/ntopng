@@ -309,19 +309,25 @@ static int get_secure_random(void *dest, size_t size) {
 static void generate_session_id(char* buf, const char* user,
                                 const char* group) {
   unsigned char random_data[32]; /* 256 bits of entropy */
-  
-  if (get_secure_random(random_data, sizeof(random_data)) != 0) {
+  char random_str[(sizeof(random_data) * 2) + 1];
+
+  if (get_secure_random(random_data, sizeof(random_data)) == 0) {
+    /* mg_md5() expects NUL-terminated strings: hex encode the raw bytes
+       so that no random byte can be read as a terminator */
+    for (u_int i = 0; i < sizeof(random_data); i++)
+      snprintf(&random_str[i * 2], 3, "%02x", random_data[i]);
+  } else {
     NetworkInterface *i = ntop->getInterfaceAtId(0);
     u_int32_t num_pkts;
-    
+
     srand((int)time(0));
 
     num_pkts = (i != NULL) ? i->getNumPackets() : rand();
-    snprintf((char*)random_data, sizeof(random_data), "%d-%u-%s",
+    snprintf(random_str, sizeof(random_str), "%d-%u-%s",
 	     rand(), num_pkts, user);
   }
 
-  mg_md5(buf, (const char*)random_data, user, group, NULL);
+  mg_md5(buf, random_str, user, group, NULL);
 }
 
 /* ****************************************** */
