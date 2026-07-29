@@ -37,10 +37,7 @@ end
 local flows_filter = getFlowsFilter()
 flows_filter = as_utils.formatFilters(flows_filter, true)
 
--- Need client/server geo-coordinates and country (for the flag in the
--- tooltip), capped tightly since this powers a map view, not a paginated
--- table.
-flows_filter.detailsLevel = "max"
+-- Capped tightly since this powers a map view, not a paginated table.
 flows_filter.maxHits = 512
 flows_filter.perPage = 512
 flows_filter.toSkip = 0
@@ -52,18 +49,36 @@ local nodes = {}
 local nodes_seen = {}
 local edges = {}
 
-local function add_node(ip, lat, lng, country, protocol)
-   if isEmptyString(ip) or (lat == 0 and lng == 0) then
+local geoloc_cache = {}
+
+local function get_geoloc(ip)
+   if geoloc_cache[ip] ~= nil then
+      return geoloc_cache[ip]
+   end
+
+   local info = interface.getHostInfo(ip)
+   local geoloc = false
+   if info and info.latitude and info.longitude and info.latitude ~= 0 and info.longitude ~= 0 then
+      geoloc = { lat = info.latitude, lng = info.longitude, country = info.country }
+   end
+
+   geoloc_cache[ip] = geoloc
+   return geoloc
+end
+
+local function add_node(ip, protocol)
+   local geoloc = get_geoloc(ip)
+   if isEmptyString(ip) or not geoloc then
       return
    end
    if not nodes_seen[ip] then
       nodes_seen[ip] = {
-         lat = lat,
-         lng = lng,
+         lat = geoloc.lat,
+         lng = geoloc.lng,
          label = ip,
          ip = ip,
          status = "Online",
-         country = country,
+         country = geoloc.country,
          protocols = {},
          connectionCount = 0
       }
@@ -79,17 +94,17 @@ if flows_stats and flows_stats.flows then
    for _, value in ipairs(flows_stats.flows) do
       local cli_ip = value["cli.ip"]
       local srv_ip = value["srv.ip"]
-      local cli_lat, cli_lng = value["cli.latitude"], value["cli.longitude"]
-      local srv_lat, srv_lng = value["srv.latitude"], value["srv.longitude"]
       local protocol = value["proto.ndpi"]
 
-      add_node(cli_ip, cli_lat, cli_lng, value["cli.country"], protocol)
-      add_node(srv_ip, srv_lat, srv_lng, value["srv.country"], protocol)
+      add_node(cli_ip, protocol)
+      add_node(srv_ip, protocol)
 
-      if cli_lat and cli_lat ~= 0 and srv_lat and srv_lat ~= 0 then
+      local cli_geoloc = get_geoloc(cli_ip)
+      local srv_geoloc = get_geoloc(srv_ip)
+      if cli_geoloc and srv_geoloc then
          edges[#edges + 1] = {
-            sourcePosition = { cli_lng, cli_lat },
-            targetPosition = { srv_lng, srv_lat },
+            sourcePosition = { cli_geoloc.lng, cli_geoloc.lat },
+            targetPosition = { srv_geoloc.lng, srv_geoloc.lat },
             sourceSiteId = cli_ip,
             targetSiteId = srv_ip,
             protocol = protocol,

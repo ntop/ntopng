@@ -189,7 +189,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.flowfilters.flow_risk",
+			"title_i18n": "flow_alerts_filter",
 			"data_field": "risk",
 			"sortable": false,
 			"min-width" : "140px",
