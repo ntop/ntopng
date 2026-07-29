@@ -481,14 +481,16 @@ end
 -- ##############################################
 
 function getLocalNetworkAlias(network)
-	local alias = ntop.getLocalNetworkAlias(network) or nil
+	local user_alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
 
-	if not alias then
-		alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
+	if not isEmptyString(user_alias) then
+		return user_alias
 	end
 
-	if not isEmptyString(alias) then
-		return alias
+	local config_alias = ntop.getLocalNetworkAlias(network)
+
+	if not isEmptyString(config_alias) then
+		return config_alias
 	end
 
 	return network
