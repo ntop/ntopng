@@ -20,9 +20,14 @@ local REDIS_NETWORKS_SITES_KEY = "ntopng.prefs.networks.sites" -- Stores all sit
 local REDIS_COUNTER_KEY = "ntopng.prefs.sites_counter" -- Auto-increment counter for site IDs
 
 -- Configuration limits for sites
+local MAX_NAME_SIZE = 32 -- Maximum character length for site names
 local MAX_DESCRIPTION_SIZE = 256 -- Maximum character length for site descriptions
 local MAX_PROFILES_NUM = 1024 -- Maximum number of sites allowed in the system
 local MAX_HIERARCHY_DEPTH = MAX_PROFILES_NUM -- Safety bound when walking up the parent chain
+
+-- ##############################################
+-- Site name character policy
+local SITE_NAME_PATTERN = "^[%w _&À-ÖØ-öø-ÿ]+$"
 
 -- ##############################################
 -- Site field schema
@@ -100,6 +105,42 @@ end
 
 -- ##############################################
 
+-- Number of characters (not bytes) of an UTF-8 string: continuation bytes
+-- (10xxxxxx) are not counted, so an accented name such as "Città" is 5
+-- characters long and not 6 as "#" would report.
+local function utf8_len(str)
+	local _, count = str:gsub("[^\128-\191]", "")
+	return count
+end
+
+-- ##############################################
+
+-- Validates a Site name against the character policy defined above.
+-- Returns true on success, false plus an error message otherwise.
+--
+function site_utils.validateSiteName(site_name)
+	if type(site_name) ~= "string" then
+		return false, "Invalid name"
+	end
+
+	if #site_name == 0 then
+		return false, "Invalid name"
+	end
+
+	if utf8_len(site_name) > MAX_NAME_SIZE then
+		return false, "Invalid name, max characters: " .. MAX_NAME_SIZE
+	end
+
+	-- Alphanumeric characters, spaces, "_", "&" and accented letters
+	if not site_name:match(SITE_NAME_PATTERN) then
+		return false, "Invalid name, illegal character"
+	end
+
+	return true
+end
+
+-- ##############################################
+
 -- Validates all parameters for a Site before creation or modification
 -- This comprehensive validation ensures data integrity and prevents duplicates
 local function validate_site(site, existing_sites, ignore_name_duplication)
@@ -107,19 +148,11 @@ local function validate_site(site, existing_sites, ignore_name_duplication)
 		return false, "Invalid data"
 	end
 
-	-- Step 1: Validate site name
-	if type(site.site_name) ~= "string" then
-		return false, "Invalid name"
-	end
+	-- Step 1: Validate site name (length + character policy)
+	local name_ok, name_err = site_utils.validateSiteName(site.site_name)
 
-	-- Check name length constraints (1-16 characters)
-	if #site.site_name == 0 or #site.site_name > 32 then
-		return false, "Invalid name, max characters: 32"
-	end
-
-	-- Validate name format (alphanumeric only)
-	if not site.site_name:match("^[%w À-ÖØ-öø-ÿ]+$") then
-		return false, "Invalid name, illegal character"
+	if not name_ok then
+		return false, name_err
 	end
 
 	-- Convert to lowercase for case-insensitive duplicate checking
@@ -636,6 +669,12 @@ end
 -- parent_id (nil for a root site) when it does not exist yet.
 -- Returns nil plus an error message on failure.
 local function resolveOrCreateSite(site_name, parent_id)
+	local name_ok, name_err = site_utils.validateSiteName(site_name)
+
+	if not name_ok then
+		return nil, name_err .. " (" .. site_name .. ")"
+	end
+
 	local existing = get_sites_by_name()[site_name:lower()]
 
 	if existing then
