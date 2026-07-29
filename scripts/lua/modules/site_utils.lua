@@ -1079,10 +1079,14 @@ local function getDirectSiteComponents(site_id, exporters_by_site, devices_by_ne
 
 	local networks = interface.getSiteNetworks(tonumber(site_id))
 	for _, network_id in pairs(networks or {}) do
+		local network_cidr = ntop.getNetworkNameById(tonumber(network_id))
+
 		networks_to_add[#networks_to_add + 1] = {
 			id = network_id,
 			name = getLocalNetworkAliasById(network_id),
 			short_name = getLocalNetworkAliasById(network_id, true),
+			cidr = network_cidr,
+			alias = network_cidr and getLocalNetworkAlias(network_cidr) or nil,
 		}
 
 		-- Linear append: table.merge() allocated a new table and re-copied the
