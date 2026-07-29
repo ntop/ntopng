@@ -99,9 +99,9 @@ class AutonomousSystem : public GenericHashEntry,
     incExportersStats(sent_bytes, rcvd_bytes, exporter_ip, out_index, in_index);
 
     if(is_ipv4_traffic)
-      ipv4_bytes = sent_bytes + rcvd_bytes;
+      ipv4_bytes += sent_bytes + rcvd_bytes;
     else
-      ipv6_bytes = sent_bytes + rcvd_bytes;;
+      ipv6_bytes += sent_bytes + rcvd_bytes;
   }
 
   inline void incNumAlertedFlows(bool as_client) {
