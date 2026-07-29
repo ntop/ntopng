@@ -197,7 +197,14 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
                 packets_sent = asn_stats["tcpPacketStats.sent"]["keep_alive"],
                 packets_rcvd = asn_stats["tcpPacketStats.rcvd"]["keep_alive"]
             }, when)
-        end
+
+	    ts_utils.append("asn:traffic_ip", {
+                ifid = ifstats.id,
+                asn = asn,
+                bytes_ipv4 = asn_stats["ipv4_bytes"],
+                bytes_ipv6 = asn_stats["ipv6_bytes"]
+            }, when)
+	end
     end
 end
 

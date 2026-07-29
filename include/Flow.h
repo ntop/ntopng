@@ -1502,7 +1502,9 @@ class Flow : public GenericHashEntry {
   bool isNetfilterIdleFlow() const;
 
   void setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
-                       u_int64_t s2d_bytes, u_int64_t d2s_bytes);
+		       u_int64_t s2d_bytes, u_int64_t d2s_bytes,
+		       u_int32_t *delta_pkts /* out */,
+		       u_int64_t *delta_bytes /* out */);
   void getFlowShapers(TrafficShaper** shaper_cli, TrafficShaper** shaper_srv) {
     *shaper_cli = flowShapers.cli;
     *shaper_srv = flowShapers.srv;

@@ -36,6 +36,27 @@ local timeseries_list = {{
     always_visibile = true,
     default_visible = true
 }, {
+    schema = "asn:traffic_ip",
+    id = timeseries_id,
+    label = i18n("graphs.ip_traffic_breakdown"),
+    description = i18n("graphs.metric_descr.asn_traffic_ip"),
+    priority = 0,
+    measure_unit = "bps",
+    scale = i18n('graphs.metric_labels.traffic'),
+    timeseries = {
+        bytes_ipv4 = {
+	   label = i18n('graphs.metric_labels.ipv4'),
+	   color = ts_gui_utils.get_timeseries_color('bytes_sent')
+        },
+        bytes_ipv6 = {
+            invert_direction = true,
+            label = i18n('graphs.metric_labels.ipv6'),
+            color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
+        }
+    },
+    always_visibile = true,
+    default_visible = true
+}, {
     schema = "asn:rtt",
     id = timeseries_id,
     label = i18n("graphs.rtt"),

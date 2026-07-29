@@ -45,6 +45,7 @@ class AutonomousSystem : public GenericHashEntry,
   u_int32_t asn;
   char* asname;
   u_int32_t round_trip_time;
+  u_int64_t ipv4_bytes, ipv6_bytes;
   u_int32_t alerted_flows_as_client, alerted_flows_as_server;
   bool save_exporters_stats; /* Core ASN for which stats need to be saved */
   std::map<std::pair<struct ndpi_in6_addr, u_int16_t>, TrafficCounter, ExporterMapCmp> exporters_map;
@@ -86,7 +87,7 @@ class AutonomousSystem : public GenericHashEntry,
 
   bool equal(u_int32_t asn);
 
-  inline void incStats(time_t when, u_int16_t proto_id, u_int64_t sent_packets,
+  inline void incStats(bool is_ipv4_traffic, time_t when, u_int16_t proto_id, u_int64_t sent_packets,
                        u_int64_t sent_bytes, u_int64_t rcvd_packets,
                        u_int64_t rcvd_bytes, struct ndpi_in6_addr *exporter_ip,
                        u_int32_t in_index, u_int32_t out_index) {
@@ -96,7 +97,13 @@ class AutonomousSystem : public GenericHashEntry,
     incSentStats(when, sent_packets, sent_bytes);
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
     incExportersStats(sent_bytes, rcvd_bytes, exporter_ip, out_index, in_index);
+
+    if(is_ipv4_traffic)
+      ipv4_bytes = sent_bytes + rcvd_bytes;
+    else
+      ipv6_bytes = sent_bytes + rcvd_bytes;;
   }
+
   inline void incNumAlertedFlows(bool as_client) {
     if (as_client)
       alerted_flows_as_client++;

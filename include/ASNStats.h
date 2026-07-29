@@ -36,8 +36,7 @@ class Flow; /* Forward */
  * used to get all the info from the flows)
  */
 typedef struct {
-  u_int64_t bytes_sent;
-  u_int64_t bytes_rcvd;
+  u_int64_t bytes_sent, bytes_rcvd;  
   /* other_bytes = (bytes_sent+bytes_rcvd) - (transit_bytes+peering_bytes) */
   u_int64_t transit_bytes, peering_bytes;
 } ASNTrafficStats;

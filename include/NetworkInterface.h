@@ -259,8 +259,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
       hostAlertsDequeueLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled_by_user, flow_dump_disabled_by_backend;
-  u_int32_t ifSpeed, scalingFactor;
-  u_int32_t numL2Devices;
+  u_int32_t ifSpeed, scalingFactor, numL2Devices;
   std::atomic<u_int64_t> totalNumHosts;
   std::atomic<u_int64_t> numTotalRxOnlyHosts; /* subset of numTotalRxOnlyHosts
                            that have received but never sent any traffic */

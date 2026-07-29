@@ -77,6 +77,7 @@ local timeseries_list = {{
             color = ts_gui_utils.get_timeseries_color('bytes_sent')
 	 },
 	 bytes_ipv6 = {
+	    invert_direction = true,
             label = i18n('graphs.metric_labels.ipv6'),
             color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
 	 }

@@ -33,6 +33,7 @@ AutonomousSystem::AutonomousSystem(NetworkInterface* _iface, IpAddress* ipa)
   asname = NULL;
   save_exporters_stats = false;
   round_trip_time = 0;
+  ipv4_bytes = ipv6_bytes = 0;
   alerted_flows_as_client = alerted_flows_as_server = 0;
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
@@ -119,6 +120,8 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level,
 
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_uint64_table_entry(vm, "ipv4_bytes", ipv4_bytes);
+  lua_push_uint64_table_entry(vm, "ipv6_bytes", ipv6_bytes);    
 
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
   lua_push_uint64_table_entry(vm, "seen.last", last_seen);

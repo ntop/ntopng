@@ -232,6 +232,16 @@ schema:addMetric("packets_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("asn:traffic_ip", {
+    step = 300
+})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("bytes_ipv4")
+schema:addMetric("bytes_ipv6")
+
+-- ##############################################
+
 if ntop.isEnterpriseL and ntop.isEnterpriseL() then
     schema = ts_utils.newSchema("asn:qoe_stats", {
         step = 300,
