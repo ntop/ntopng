@@ -481,19 +481,24 @@ end
 -- ##############################################
 
 function getLocalNetworkAlias(network)
-	local user_alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
+   local alias = ""
+   -- Try with the cache on redis
+	alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
 
-	if not isEmptyString(user_alias) then
-		return user_alias
-	end
+   -- Try with the C++ naming (config file)
+	if isEmptyString(alias) then
+	   alias = ntop.getLocalNetworkAlias(network)
+   end
 
-	local config_alias = ntop.getLocalNetworkAlias(network)
+   -- All fail, return the network
+   if isEmptyString(alias) then
+      return network
+   end
 
-	if not isEmptyString(config_alias) then
-		return config_alias
-	end
-
-	return network
+   -- Alias is not empty, parse for _ and substitute with spaces
+   alias = string.gsub(alias, "_", " ") 
+   
+	return alias
 end
 
 -- ##############################################
