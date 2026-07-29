@@ -50,7 +50,6 @@ class Paginator {
   int32_t iface_index_filter;
   u_int16_t pool_filter, alert_type_filter;
   AlertLevelGroup alert_type_severity_filter;
-  int32_t risk_filter;
   u_int8_t *mac_filter, icmp_type, icmp_code, dscp_filter;
   DetailsLevel details_level;
   bool details_level_set;
@@ -293,14 +292,6 @@ class Paginator {
   inline bool flowStatusFilter(AlertLevelGroup* f) const {
     if (alert_type_severity_filter != alert_level_group_none) {
       (*f) = alert_type_severity_filter;
-      return true;
-    }
-    return false;
-  }
-
-  inline bool riskFilter(int32_t* f) const {
-    if (risk_filter >= 0) {
-      (*f) = risk_filter;
       return true;
     }
     return false;

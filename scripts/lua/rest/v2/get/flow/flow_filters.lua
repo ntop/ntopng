@@ -285,21 +285,6 @@ if table.len(flowstats["transit_asn"]) > 0 then
 	}
 end
 
-local severity_stats = flowstats["alert_levels"]
-for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_group_id", asc) do
-	if severity_stats[s] and severity_stats[s] > 0 then
-		status_filters[#status_filters + 1] = {
-			group = i18n("severity"),
-			key = "status",
-			value = s,
-			label = (i18n(severity_details.i18n_title) or s)
-				.. " ("
-				.. format_utils.formatValue(severity_stats[s])
-				.. ")",
-		}
-	end
-end
-
 for _, entry in pairs({ "connecting", "closed", "established", "reset" }) do
 	status_filters[#status_filters + 1] = {
 		key = "status",
@@ -307,6 +292,36 @@ for _, entry in pairs({ "connecting", "closed", "established", "reset" }) do
 		label = tcp_flow_state_utils.state2i18n(entry),
 		group = i18n("tcp_flow_state"),
 	}
+end
+
+rsp[#rsp + 1] = {
+	action = "status",
+	label = i18n("status"),
+	name = "status",
+	value = status_filters,
+}
+
+-- Flow alerts filters (severity + alert type breakdown)
+local alerts_filters = { {
+	key = "status",
+	value = "",
+	label = i18n("all"),
+} }
+
+local severity_stats = flowstats["alert_levels"]
+for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_group_id", asc) do
+	if severity_stats[s] and severity_stats[s] > 0 then
+		alerts_filters[#alerts_filters + 1] = {
+			group = i18n("severity"),
+			key = "status",
+			value = s,
+			label = (i18n(severity_details.i18n_title) or s)
+				.. " ("
+				.. format_utils.formatValue(severity_stats[s])
+				.. ")",
+			count = severity_stats[s],
+		}
+	end
 end
 
 tmp_list = {}
@@ -318,52 +333,21 @@ for status_key, status in pairs(flowstats["status"]) do
 			key = "status",
 			value = status_key,
 			label = name .. " (" .. format_utils.formatValue(status.count) .. ")",
+			count = status.count,
 		}
 	end
 end
 
 for _, value in pairsByKeys(tmp_list, asc) do
-	status_filters[#status_filters + 1] = value
+	alerts_filters[#alerts_filters + 1] = value
 end
 
-rsp[#rsp + 1] = {
-	action = "status",
-	label = i18n("status"),
-	name = "status",
-	value = status_filters,
-}
-
--- Risk filters
-if flowstats["risk"] and table.len(flowstats["risk"]) > 0 then
-	local risk_filters = { {
-		key = "risk",
-		value = "",
-		label = i18n("all"),
-	} }
-
-	tmp_list = {}
-	for risk_id, risk_details in pairs(flowstats["risk"]) do
-		if risk_id ~= 0 then
-			local name = risk_details.name or tostring(risk_id)
-			tmp_list[name] = {
-				key = "risk",
-				value = risk_id,
-				label = name .. " (" .. format_utils.formatValue(risk_details.count) .. ")",
-				count = risk_details.count,
-				risk_name = name,
-			}
-		end
-	end
-
-	for _, value in pairsByKeys(tmp_list, asc) do
-		risk_filters[#risk_filters + 1] = value
-	end
-
+if #alerts_filters > 1 then
 	rsp[#rsp + 1] = {
-		action = "risk",
-		label = i18n("db_search.flowfilters.flow_risk"),
-		name = "risk",
-		value = risk_filters,
+		action = "flow_alerts",
+		label = i18n("flow_alerts_filter"),
+		name = "flow_alerts",
+		value = alerts_filters,
 	}
 end
 
