@@ -1,11 +1,16 @@
 --
 -- (C) 2013-26 - ntop.org
 --
--- Returns the filtered menu for the current user and interface
+-- Returns the menu (sections/entries) for the current user and interface.
 -- Menu definition lives in menu_definition.lua and pro/scripts/lua/modules/menu_definition_pro.lua (community_sections + pro_sections).
--- Visibility flags come from ntopng_menu_visibility.get_flags(); each section
--- and entry carries its own hidden(flags) predicate.
--- Vue receives only visible sections/entries — no client-side filtering.
+-- Flags come from ntopng_menu_visibility.get_flags(); each section/entry is
+-- a plain Lua table evaluated against `f` (the flags table) at definition
+-- time, exposing ONE condition:
+--   hidden = <lua boolean expr>
+--   reason = {{badge=,reason=,suggestion=}, ...}  -- optional
+-- ntopng_menu_visibility.resolve(item) is the single place that turns
+-- hidden+reason into drop-entirely vs keep-but-dimmed — see its doc comment.
+-- No flag-name indirection: write whatever Lua condition you need.
 --
 
 local dirs = ntop.getDirs()
@@ -173,8 +178,10 @@ for _, ps in ipairs(pro_sections) do
 end
 
 -- ---------------------------------------------------------------
--- Build filtered + translated menu
--- hidden is a boolean already evaluated by the definition function
+-- Build translated menu. Each section/entry carries ONE `hidden` condition
+-- (+ optional `reason`) — menu_visibility.resolve() decides whether that
+-- means "drop entirely" or "keep, but dimmed with a tooltip". See
+-- menu_definition.lua / menu_definition_pro.lua and resolve()'s doc comment.
 local result = {}
 
 local function translate(key_i18n)
@@ -185,42 +192,51 @@ end
 
 for _, sec_key in ipairs(section_order) do
    local section = section_map[sec_key]
-   if not section.hidden then
-      local entries = nil
-      if section.entries ~= nil then
-         entries = {}
-         for _, entry in ipairs(section.entries) do
-            if not entry.hidden then
-               entries[#entries + 1] = {
-                  key         = entry.key,
-                  label       = translate(entry.i18n),
-                  icon        = entry.icon or nil,
-                  url         = resolve_url(entry),
-                  is_external = (entry.is_external == true),
-                  is_divider  = (entry.key == "divider") or (entry.is_divider == true),
-               }
-            end
-         end
+   local sec_drop, sec_disabled = menu_visibility.resolve(section)
 
-         -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only
-         local dynamic = get_dynamic_entries(sec_key, flags, page_utils, http_prefix)
-         for _, de in ipairs(dynamic) do
-            entries[#entries + 1] = de
+   if not sec_drop then
+
+   local entries = nil
+   if section.entries ~= nil then
+      entries = {}
+      for _, entry in ipairs(section.entries) do
+         local entry_drop, entry_disabled = menu_visibility.resolve(entry)
+         if not entry_drop then
+            entries[#entries + 1] = {
+               key              = entry.key,
+               label            = translate(entry.i18n),
+               icon             = entry.icon or nil,
+               url              = resolve_url(entry),
+               is_external      = (entry.is_external == true),
+               is_divider       = (entry.key == "divider") or (entry.is_divider == true),
+               disabled         = entry_disabled,
+               disabled_reasons = entry_disabled and entry.reason or nil,
+            }
          end
       end
 
-      -- Skip sections with no content
-      local has_content = (section.url ~= nil) or (entries ~= nil and #entries > 0)
-      if has_content then
-         result[#result + 1] = {
-            key     = sec_key,
-            label   = translate(section.i18n),
-            icon    = section.icon or "",
-            url     = section.url and (http_prefix .. section.url) or nil,
-            entries = entries,
-         }
+      -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only
+      local dynamic = get_dynamic_entries(sec_key, flags, page_utils, http_prefix)
+      for _, de in ipairs(dynamic) do
+         entries[#entries + 1] = de
       end
    end
+
+   -- Skip sections with no content at all (nothing to show, even disabled)
+   local has_content = (section.url ~= nil) or (entries ~= nil and #entries > 0)
+   if has_content then
+      result[#result + 1] = {
+         key              = sec_key,
+         label            = translate(section.i18n),
+         icon             = section.icon or "",
+         url              = section.url and (http_prefix .. section.url) or nil,
+         entries          = entries,
+         disabled         = sec_disabled,
+         disabled_reasons = sec_disabled and section.reason or nil,
+      }
+   end
+
+   end -- sec_drop
 end
 
 -- ---------------------------------------------------------------

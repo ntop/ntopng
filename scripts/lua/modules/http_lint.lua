@@ -2134,6 +2134,8 @@ local known_parameters = {
    ["endpoint_id"] = validateNumberOrUnquoted,
    ["endpoint_conf_type"] = validateUnquoted,
    ["cc"] = validateEmptyOr(validateSingleWord),
+   ["ioc_ip"] = validateIpAddress,
+   ["ioc_string"] = validateDomain,
 
    -- NOTIFICATIONS ENDPOINT/RECIPIENT
    ["discord_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
