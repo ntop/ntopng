@@ -9787,6 +9787,8 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
   }
 
 #if defined(NTOPNG_PRO)
+  acl_flow = new (std::nothrow) ACLFlow();
+  
   if (ntop->getPrefs() && ntop->getPro()->has_valid_license() &&
       ntop->getPrefs()->isBehavourAnalysisEnabled() &&
       (ntop->getPro()->is_enterprise_l_edition() ||
@@ -9806,7 +9808,6 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
   } else
     pMap = NULL, sMap = NULL;
 
-  acl_flow = new (std::nothrow) ACLFlow();
 
 #ifndef HAVE_NEDGE
   updateFlowProfiles();
