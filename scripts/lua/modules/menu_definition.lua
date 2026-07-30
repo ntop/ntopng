@@ -3,22 +3,39 @@
 --
 -- Community menu definition.
 -- Returns a function(f) where f is the flags table from ntopng_menu_visibility.
--- Conditions are plain Lua booleans: hidden = f.is_pcap_dump or f.no_admin
--- Pro/nEdge entries live in pro/scripts/lua/modules/menu_definition_pro.lu.
+-- Pro/nEdge entries live in pro/scripts/lua/modules/menu_definition_pro.lua.
 --
 -- Sections with matching keys from the pro definition get their entries
 -- appended to the community entries.  New pro-only sections declare
 -- after = "section_key" to control where they are inserted.
 --
+-- NOTE: To add a new flag, update scripts/lua/modules/ntopng_menu_visibility.lua
+--
+-- Each section/entry carries exactly ONE condition:
+--   hidden = <lua boolean expr>
+--   reason = { menu_visibility.reason(badge, reason_key, suggestion_key), ... }  -- optional
+-- menu_visibility.resolve(item) is the single place deciding what `hidden`
+-- means: drop entirely (no reason, or only structural iface/platform
+-- reasons) vs keep-but-dimmed+tooltip (any fixable pro/perm/feature
+-- reason present). Only add a reason() call for the parts of the
+-- condition the user could plausibly act on — leave structural parts
+-- (wrong interface type, wrong product mode) reason-less so they still
+-- hard-drop even when OR'd together with fixable parts.
+--
+local menu_visibility = require "ntopng_menu_visibility"
+local reason = menu_visibility.reason
 
--- NOTE: To add a new flag or check available visibility flags, update scripts/lua/modules/ntopng_menu_visibility.lua
 return function(f)
     return {
     {
         key = "dashboard",
         i18n = "index_page.dashboard",
         icon = "fas fa-tachometer-alt",
-        hidden = f.is_pcap_dump or f.is_system_interface or f.is_db_view_interface,
+        hidden = f.is_system_interface or f.is_pcap_dump or f.is_db_view_interface,
+        reason = {
+            f.is_pcap_dump and reason("iface", "menu.reason.is_pcap_dump", "menu.suggestion.is_pcap_dump") or nil,
+            f.is_db_view_interface and reason("iface", "menu.reason.is_db_view_interface", "menu.suggestion.is_db_view_interface") or nil,
+        },
         entries = {{
             key = "traffic_dashboard",
             i18n = "dashboard.traffic_dashboard",
@@ -32,25 +49,32 @@ return function(f)
         i18n = "monitoring",
         icon = "fas fa-eye",
         hidden = f.is_system_interface or f.no_admin,
+        reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") },
         entries = {{
             key = "active_monitoring",
             i18n = "active_monitoring_stats.active_monitoring",
             icon = "fas fa-heartbeat",
             url = "/lua/active_monitoring.lua",
-            hidden = f.is_windows
+            hidden = f.is_windows,
+            reason = { reason("platform", "menu.reason.is_windows", "menu.suggestion.is_windows") }
         }, {
             key = "network_discovery",
             i18n = "discover.network_discovery",
             icon = "fas fa-search",
             url = "/lua/discover.lua",
-            hidden = f.no_discoverable_interface or f.is_windows or f.is_loopback_interface or f.limit_resource_usage or
-                f.infrastructure_view
+            hidden = f.no_discoverable_interface or f.is_windows or f.is_loopback_interface or
+                f.limit_resource_usage or f.infrastructure_view,
+            reason = {
+                f.limit_resource_usage and reason("feature", "menu.reason.limit_resource_usage", "menu.suggestion.limit_resource_usage") or nil,
+                f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
+            }
         }, {
             key = "vulnerability_scan",
             i18n = "scan_hosts",
             icon = "fas fa-shield-alt",
             url = "/lua/vulnerability_scan.lua",
-            hidden = f.no_vs_utils or f.is_zmq_interface
+            hidden = f.no_vs_utils or f.is_zmq_interface,
+            reason = { f.no_vs_utils and reason("feature", "menu.reason.no_vs_utils", "menu.suggestion.no_vs_utils") or nil }
         } -- pro entries appended by menu_definition_pro: infrastructure_dashboard, snmp_monitoring
         }
     },
@@ -59,6 +83,11 @@ return function(f)
         i18n = "details.alerts",
         icon = "fas fa-exclamation-triangle",
         hidden = f.alerts_disabled or f.no_alerts_cap or f.is_db_view_interface or f.infrastructure_view,
+        reason = {
+            f.alerts_disabled and reason("feature", "menu.reason.alerts_disabled", "menu.suggestion.alerts_disabled") or nil,
+            f.no_alerts_cap and reason("perm", "menu.reason.no_alerts_cap", "menu.suggestion.no_alerts_cap") or nil,
+            f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
+        },
         entries = {{
             key = "alerts_list",
             i18n = "details.alerts_list",
@@ -74,14 +103,16 @@ return function(f)
             i18n = "endpoint_notifications.notifications",
             icon = "fas fa-bell",
             url = "/lua/admin/endpoint_notifications_list.lua",
-            hidden = f.no_admin or f.is_pcap_dump
+            hidden = f.no_admin or f.is_pcap_dump,
+            reason = { f.no_admin and reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") or nil }
         }}
     },
     {
         key = "flows",
         i18n = "flows",
         icon = "fas fa-stream",
-        hidden = f.is_asn_mode_enabled or f.is_system_interface or f.infrastructure_view or f.is_nedge,
+        hidden = f.is_system_interface or f.is_nedge or f.is_asn_mode_enabled or f.infrastructure_view,
+        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "active_flows",
             i18n = "active_flows",
@@ -94,7 +125,8 @@ return function(f)
         key = "hosts",
         i18n = "hosts",
         icon = "fas fa-laptop",
-        hidden = f.is_system_interface or f.is_viewed or f.infrastructure_view or f.is_asn_mode_enabled or f.is_nedge,
+        hidden = f.is_system_interface or f.is_viewed or f.is_nedge or f.is_asn_mode_enabled or f.infrastructure_view,
+        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "hosts",
             i18n = "hosts",
@@ -105,7 +137,8 @@ return function(f)
             i18n = "layer_2",
             icon = "fas fa-hdd",
             url = "/lua/macs_stats.lua",
-            hidden = f.no_macs
+            hidden = f.no_macs,
+            reason = { reason("feature", "menu.reason.no_macs", "menu.suggestion.no_macs") }
         } -- pro entries appended by menu_definition_pro: inventory divider + assets
         }
     }, {
@@ -114,18 +147,21 @@ return function(f)
         i18n = "maps",
         icon = "fas fa-map",
         hidden = f.is_system_interface or f.is_viewed or f.infrastructure_view,
+        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "geo_map",
             i18n = "geo_map.geo_map",
             icon = "fas fa-globe",
             url = "/lua/hosts_geomap.lua",
-            hidden = f.is_loopback_interface or f.no_geoip
+            hidden = f.is_loopback_interface or f.no_geoip,
+            reason = { f.no_geoip and reason("feature", "menu.reason.no_geoip", "menu.suggestion.no_geoip") or nil }
         }}
     }, {
         key = "if_stats",
         i18n = "interface",
         icon = "fas fa-ethernet",
         hidden = f.is_system_interface or f.infrastructure_view,
+        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "interface",
             i18n = "interface_details",
@@ -140,7 +176,10 @@ return function(f)
             i18n = "networks",
             icon = "fas fa-network-wired",
             url = "/lua/network_stats.lua",
-            hidden = f.is_viewed_interface or f.is_pro
+            -- Superseded by Sites Dashboard on Pro+, not a license gate:
+            -- is_pro has no reason() so that part hard-drops, no misleading badge.
+            hidden = f.is_pro or f.is_viewed_interface,
+            reason = { f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil }
         }, {
             key = "host_pools",
             i18n = "host_pools.host_pools",
@@ -152,19 +191,31 @@ return function(f)
             i18n = "as_stats.autonomous_systems",
             icon = "fas fa-globe",
             url = "/lua/as_stats.lua",
-            hidden = f.no_geoip or f.is_viewed_interface
+            hidden = f.no_geoip or f.is_viewed_interface,
+            reason = {
+                f.no_geoip and reason("feature", "menu.reason.no_geoip", "menu.suggestion.no_geoip") or nil,
+                f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil,
+            }
         }, {
             key = "countries",
             i18n = "countries",
             icon = "fas fa-flag",
             url = "/lua/country_stats.lua",
-            hidden = f.no_geoip or f.is_viewed_interface
+            hidden = f.no_geoip or f.is_viewed_interface,
+            reason = {
+                f.no_geoip and reason("feature", "menu.reason.no_geoip", "menu.suggestion.no_geoip") or nil,
+                f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil,
+            }
         }, {
             key = "vlans",
             i18n = "vlan_stats.vlans",
             icon = "fas fa-tags",
             url = "/lua/vlan_stats.lua",
-            hidden = f.no_vlans or f.is_viewed_interface
+            hidden = f.no_vlans or f.is_viewed_interface,
+            reason = {
+                f.no_vlans and reason("feature", "menu.reason.no_vlans", "menu.suggestion.no_vlans") or nil,
+                f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil,
+            }
         }, {
             key = "divider",
             i18n = "menu_group.containers",
@@ -207,7 +258,8 @@ return function(f)
             i18n = "InfluxDB",
             icon = "fas fa-database",
             url = "/lua/monitor/influxdb_monitor.lua",
-            hidden = f.no_influxdb
+            hidden = f.no_influxdb,
+            reason = { reason("feature", "menu.reason.no_influxdb", "menu.suggestion.no_influxdb") }
         }, {
             key = "redis_status",
             i18n = "Redis",
@@ -221,6 +273,7 @@ return function(f)
         i18n = "settings",
         icon = "fas fa-cog",
         hidden = f.no_admin,
+        reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") },
         entries = {{
             key = "divider",
             i18n = "menu_group.users",
@@ -230,7 +283,8 @@ return function(f)
             i18n = "manage_users.manage_users",
             icon = "fas fa-user-cog",
             url = "/lua/admin/users.lua",
-            hidden = f.no_local_auth_or_local_user
+            hidden = f.no_local_auth_or_local_user,
+            reason = { reason("perm", "menu.reason.no_local_auth_or_local_user", "menu.suggestion.no_local_auth_or_local_user") }
         }, {
             key = "divider",
             i18n = "menu_group.configuration",
@@ -255,7 +309,8 @@ return function(f)
             i18n = "manage_configurations.manage_configurations",
             icon = "fas fa-file-export",
             url = "/lua/admin/manage_configurations.lua",
-            hidden = f.no_dump_cache
+            hidden = f.no_dump_cache,
+            reason = { reason("feature", "menu.reason.no_dump_cache", "menu.suggestion.no_dump_cache") }
         }, {
             key = "divider",
             i18n = "menu_group.customization",
@@ -288,7 +343,8 @@ return function(f)
             i18n = "manage_data.manage_data",
             icon = "fas fa-database",
             url = "/lua/manage_data.lua",
-            hidden = f.no_admin
+            hidden = f.no_admin,
+            reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") }
         }, {
             key = "divider",
             i18n = "menu_group.internals",
@@ -340,13 +396,18 @@ return function(f)
             i18n = "license_page.license",
             icon = "fas fa-id-card",
             url = "/lua/license.lua",
-            hidden = f.pro_forced_community or f.no_admin
+            hidden = f.pro_forced_community or f.no_admin,
+            reason = {
+                f.pro_forced_community and reason("pro", "menu.reason.pro_forced_community", "menu.suggestion.pro_forced_community") or nil,
+                f.no_admin and reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") or nil,
+            }
         }, {
             key = "limits",
             i18n = "limits_page.limits",
             icon = "fas fa-tachometer-alt",
             url = "/lua/limits.lua",
-            hidden = f.no_admin
+            hidden = f.no_admin,
+            reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") }
         }, {
             key = "divider",
             i18n = "menu_group.community",

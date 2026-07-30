@@ -16,6 +16,54 @@
 
 local M = {}
 
+-- ---------------------------------------------------------------
+-- reason(badge, reason_key, suggestion_key)
+--   One entry of a menu item's `reason` array. badge decides what
+--   resolve() does when `hidden` is true — see below.
+--   badge: "pro" | "perm" | "feature"  -> fixable, shown dimmed+tooltip
+--          "iface" | "platform"        -> structural, dropped entirely
+function M.reason(badge, reason_key, suggestion_key)
+   return {
+      badge      = badge,
+      reason     = i18n(reason_key),
+      suggestion = suggestion_key and i18n(suggestion_key) or nil,
+   }
+end
+
+-- Badge types whose presence means "still show it, just dimmed" instead of
+-- dropping the item outright — the user can plausibly act on these
+-- (upgrade license, log in as admin, flip a preference).
+local FIXABLE_BADGES = { pro = true, perm = true, feature = true }
+
+-- ---------------------------------------------------------------
+-- resolve(item)
+--   Single source of truth for what a menu section/entry's ONE `hidden`
+--   condition means. Every entry/section is authored with exactly:
+--     hidden = <lua boolean expr>
+--     reason = { M.reason(...), ... }   -- optional, only when hidden can be true
+--   resolve() returns:
+--     drop(bool)     -- true: omit entirely from the REST response
+--     disabled(bool) -- true: keep it, but render dimmed with a tooltip
+--   If hidden is false: drop=false, disabled=false.
+--   If hidden is true and `reason` has at least one fixable-badge entry:
+--     drop=false, disabled=true (dimmed + tooltip from `reason`).
+--   If hidden is true and `reason` is empty/nil, or only has structural
+--     badges (iface/platform): drop=true (nothing to explain, nothing to fix).
+function M.resolve(item)
+   if not item.hidden then
+      return false, false
+   end
+   local reasons = item.reason
+   if reasons then
+      for _, r in ipairs(reasons) do
+         if FIXABLE_BADGES[r.badge] then
+            return false, true
+         end
+      end
+   end
+   return true, false
+end
+
 function M.get_flags()
    local page_utils = require "page_utils"
    local auth       = require "auth"
