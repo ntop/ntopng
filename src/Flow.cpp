@@ -2376,13 +2376,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
                        *srv_as = srv_host ? srv_host->get_as() : NULL;
 
       if (cli_as)
-        cli_as->incStats(get_cli_host()->isIPv4(),
+        cli_as->incStats(get_cli_ip_addr()->isIPv4(),
 			 tv->tv_sec, stats_protocol, diff_sent_packets,
                          diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes,
                          getFlowDeviceIP(), getFlowDeviceInIndex(),
                          getFlowDeviceOutIndex());
       if (srv_as)
-        srv_as->incStats(get_cli_host()->isIPv4(),
+        srv_as->incStats(get_cli_ip_addr()->isIPv4(),
 			 tv->tv_sec, stats_protocol, diff_rcvd_packets,
                          diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes,
                          getFlowDeviceIP(), getFlowDeviceInIndex(),
