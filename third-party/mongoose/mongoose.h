@@ -168,6 +168,13 @@ int mg_write(struct mg_connection *, const void *buf, size_t len);
 
 int mg_write_async(struct mg_connection *, const void *buf, size_t len);
 
+/* NTOP: force this connection to close after the current response, even
+ * when keep-alive is enabled server-wide. Needed when a handler streams a
+ * response of unknown length directly to the socket (no Content-Length),
+ * so the keep-alive loop in process_new_connection() does not attempt to
+ * reuse the connection for a pipelined request. */
+void mg_force_close(struct mg_connection *conn);
+
 int mg_is_client_connected(struct mg_connection *);
 
 union usa *mg_get_client_address(struct mg_connection *);

@@ -1031,6 +1031,7 @@ int redirect_to_error_page(struct mg_connection* conn,
       "HTTP/1.1 302 Found\r\n"
       "Server: ntopng %s (%s)\r\n"
       "Set-Cookie: session=%s; HttpOnly; path=/;%s\r\n"  // Session ID
+      "Connection: close\r\n"
       "Location: %s%s?message=%s%s%s&error_message=%s\r\n\r\n%s\n\r", /* FIX */
       PACKAGE_VERSION, PACKAGE_MACHINE, session_id,
       get_secure_cookie_attributes(request_info),
@@ -2205,7 +2206,7 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
   cur_http_options = 0;
 
   /* HTTP options */
-  addHTTPOption("enable_keep_alive", "no");
+  addHTTPOption("enable_keep_alive", "yes");
   addHTTPOption("listening_ports", ports);
   addHTTPOption("enable_directory_listing", "no");
   addHTTPOption("document_root", _docs_dir);
@@ -2213,7 +2214,17 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
   /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
 
   addHTTPOption("num_threads",
-                ntop->getPrefs()->limitResourcesUsage() ? "3" : "8");
+                ntop->getPrefs()->limitResourcesUsage() ? "8" : "32");
+
+  /* With keep-alive enabled, a thread blocks in getreq() for up to this long
+   * waiting for the next pipelined request on an otherwise-idle connection.
+   * The 30s mongoose default was fine when every request closed its
+   * connection immediately, but under keep-alive it lets a handful of idle
+   * browser connections pin most of the thread pool, starving new requests
+   * (dashboard widgets loading slowly/queuing). Shorten it so idle threads
+   * free up quickly; this also bounds the wait for a slow client to finish
+   * sending a single request. */
+  addHTTPOption("request_timeout_ms", "5000");
 
   /* Randomize data */
   gettimeofday(&tv, NULL);
