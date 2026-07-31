@@ -412,9 +412,8 @@ function host_pools_nedge.printQuotas(pool_id, host, page_params)
   local category_stats = pool_stats.ndpi_categories
   --]]
 
-  -- ifId is a global variable here
-  local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
-  local cross_traffic_quota, cross_time_quota = shaper_utils.getCrossApplicationQuotas(ifId, pool_id)
+  local quota_and_protos = shaper_utils.getPoolProtoShapers(page_params.ifid, pool_id)
+  local cross_traffic_quota, cross_time_quota = shaper_utils.getCrossApplicationQuotas(page_params.ifid, pool_id)
 
   -- Empty check
   local empty = (cross_traffic_quota == shaper_utils.NO_QUOTA) and (cross_time_quota == shaper_utils.NO_QUOTA)
