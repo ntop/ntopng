@@ -8160,6 +8160,10 @@ void Utils::flushHTTPBuffer(lua_State *vm) {
   struct mg_connection* conn = getLuaVMUserdata(vm, conn);
 
   if (ctx && ctx->buffer_http_response && !ctx->http_response_buffer.empty()) {
+    /* From here on the script streams directly to the socket with no known
+     * total length. Force the connection closed so a keep-alive-enabled
+     * server doesn't try to reuse it for a pipelined request afterwards. */
+    mg_force_close(conn);
     mg_write(conn, ctx->http_response_buffer.data(), ctx->http_response_buffer.size());
     ctx->buffer_http_response = false;
     ctx->http_response_buffer.clear();

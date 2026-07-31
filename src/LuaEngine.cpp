@@ -1141,8 +1141,18 @@ static void flushBufferedHTTPResponse(
   size_t boundary = response.find(CRLF2);
 
   if (boundary == std::string::npos) {
-    /* No proper HTTP header block; send the raw buffer as-is. */
-    mg_write(conn, response.data(), response.size());
+    /* Script never emitted an HTTP header block (e.g. forgot to call
+     * sendHTTPHeader). Synthesize minimal headers with a correct
+     * Content-Length: with keep-alive enabled, writing the raw buffer
+     * with no length would leave the client unable to tell where the
+     * response ends, corrupting the next response on the same connection. */
+    std::string final_headers = "HTTP/1.1 200 OK\r\n"
+                                 "Content-Type: text/html; charset=utf-8\r\n"
+                                 "Content-Length: " +
+                                 std::to_string(response.size()) + "\r\n\r\n";
+
+    mg_write(conn, final_headers.data(), final_headers.size());
+    if (!response.empty()) mg_write(conn, response.data(), response.size());
     ctx->buffer_http_response = false;
     ctx->http_response_buffer.clear();
     return;
