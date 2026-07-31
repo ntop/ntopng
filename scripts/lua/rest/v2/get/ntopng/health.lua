@@ -60,6 +60,13 @@ local function getInterfaceHealth(cur_ifid, cur_ifname)
    local ingress_thpt = ifstats["eth"]["ingress"]["throughput"]
    local egress_thpt = ifstats["eth"]["egress"]["throughput"]
 
+   local function bps_or_fallback(thpt, fallback_bytes)
+      if thpt ~= nil and thpt["bps"] ~= nil then
+         return thpt["bps"] * 8
+      end
+      return fallback_bytes or 0
+   end
+
    local res = {
       ifid = tonumber(cur_ifid),
       ifname = getInterfaceName(cur_ifid),
@@ -69,8 +76,8 @@ local function getInterfaceHealth(cur_ifid, cur_ifname)
       num_local_hosts = ifstats.stats.local_hosts,
       num_hosts = ifstats.stats.hosts,
       throughput = {
-         download = { bps = ingress_thpt["bps"] },
-         upload = { bps = egress_thpt["bps"] }
+         download = { bps = bps_or_fallback(ingress_thpt, ifstats["eth"]["ingress"]["bytes"]) },
+         upload = { bps = bps_or_fallback(egress_thpt, ifstats["eth"]["egress"]["bytes"]) }
       },
       -- A view interface (e.g. "view:enp1s0,tcp://*:1234") already
       -- aggregates its underlying member interfaces' flows/hosts/traffic;
