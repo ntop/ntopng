@@ -24,6 +24,7 @@ local timeseries_id = {
     mac = "mac",
     network = "subnet",
     asn = "asn",
+    all_asn = "all_asn",
     country = "country",
     os = "os",
     vlan = "vlan",
@@ -64,6 +65,8 @@ local function getTimeseriesFromModules(tags, prefix, ts_options)
         module_to_use = require "ts_network"
     elseif prefix == timeseries_id.asn then
         module_to_use = require "ts_asn"
+    elseif prefix == timeseries_id.all_asn then
+        module_to_use = require "ts_all_asn"
     elseif prefix == timeseries_id.country then
         module_to_use = require "ts_country"
     elseif prefix == timeseries_id.os then
