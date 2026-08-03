@@ -388,7 +388,7 @@ function start_datatable(DatatableVue) {
         let jump_to_historical_flow = {
           onClick: () => {
             const url = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${rowData.first_seen.timestamp}&epoch_end=${rowData.last_seen.timestamp}&mac=${rowData.mac_address.mac};eq`
-            window.open(url, '_blank');
+            window.location.href = url
           },
         };
 
