@@ -41,6 +41,10 @@ class SyslogParserInterface : public ParserInterface {
   void updateProducersMapping() { producers_reload_requested = true; };
   const char* getProducerName(const char* host);
 
+  static bool isRFC5424Header(const char* log_line);
+  static bool parseRFC5424Header(char* log_line, char** device,
+                                 char** application, char** content);
+
   u_int8_t parseLog(char* log_line, char* client_ip);
 
   u_int32_t getNumDroppedPackets() { return 0; };

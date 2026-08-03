@@ -54,6 +54,113 @@ SyslogParserInterface::~SyslogParserInterface() {
 
 /* **************************************************** */
 
+/*
+ * Check if log line is in RFC 5424 format
+ * <PRIO>VERSION TIMESTAMP HOSTNAME APP-NAME PROCID MSGID [STRUCTURED-DATA] CONTENT
+ * Example:
+ * <13>1 2026-08-03T15:09:00+02:00 suricata suricata - - CONTENT
+ */
+bool SyslogParserInterface::isRFC5424Header(const char* log_line) {
+  const char *v = log_line, *ts, *ts_end;
+
+  if (*v < '0' || *v > '9') return false;
+
+  while (*v >= '0' && *v <= '9') v++;
+  if (v == log_line || *v != ' ') return false;
+
+  ts = v + 1;
+  ts_end = strchr(ts, ' ');
+  if (ts_end == NULL) return false;
+
+  /* Timestamp (either "-" or RFC 3339 time) */
+  if (ts_end == ts + 1 && ts[0] == '-') return true;
+  if (memchr(ts, 'T', ts_end - ts) != NULL) return true;
+
+  return false;
+}
+
+/* **************************************************** */
+
+/*
+ * Parse RFC 5424 header, assuming <PRIO> has already been stripped by the caller.
+ */
+bool SyslogParserInterface::parseRFC5424Header(char* log_line, char** device, char** application, char** content) {
+  char* tmp;
+
+  /* Version */
+  tmp = strchr(log_line, ' ');
+  if (tmp == NULL) return false;
+  log_line = tmp + 1;
+
+  /* Timestamp */
+  tmp = strchr(log_line, ' ');
+  if (tmp == NULL) return false;
+  log_line = tmp + 1;
+
+  /* Hostname */
+  tmp = strchr(log_line, ' ');
+  if (tmp == NULL) return false;
+  tmp[0] = '\0';
+  *device = (strcmp(log_line, "-") == 0) ? NULL : log_line;
+  log_line = tmp + 1;
+
+  /* Application */
+  tmp = strchr(log_line, ' ');
+  if (tmp == NULL) return false;
+  tmp[0] = '\0';
+  *application = (strcmp(log_line, "-") == 0) ? NULL : log_line;
+  log_line = tmp + 1;
+
+  /* Proc ID */
+  tmp = strchr(log_line, ' ');
+  if (tmp == NULL) return false;
+  log_line = tmp + 1;
+
+  /* Msg ID */
+  tmp = strchr(log_line, ' ');
+  if (tmp == NULL) return false;
+  log_line = tmp + 1;
+
+  if (log_line[0] == '-' && (log_line[1] == ' ' || log_line[1] == '\0')) {
+    log_line++;
+
+    if (log_line[0] != ' ') return false;
+    log_line++;
+  } else if (log_line[0] == '[') {
+    bool in_quotes = false;
+
+    tmp = log_line;
+    while (*tmp != '\0') {
+      if (*tmp == '\\' && in_quotes && tmp[1] != '\0') {
+        tmp += 2;
+        continue;
+      } else if (*tmp == '"') {
+        in_quotes = !in_quotes;
+      } else if (*tmp == ']' && !in_quotes) {
+        tmp++;
+        if (*tmp == '[') continue;
+        break;
+      }
+
+      tmp++;
+    }
+
+    if (tmp[0] != ' ') return false;
+    log_line = tmp + 1;
+  }
+
+  /* Skip optional */
+  if ((u_char)log_line[0] == 0xEF && (u_char)log_line[1] == 0xBB &&
+      (u_char)log_line[2] == 0xBF)
+    log_line += 3;
+
+  *content = log_line;
+
+  return true;
+}
+
+/* **************************************************** */
+
 u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
   const char* producer_name = NULL;
   char *prio = NULL, *parsed_client_ip = NULL, *device = NULL,
@@ -82,8 +189,13 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
   }
 
   /*
-   * Supported Log Format ({} are used to indicate optional items)
+   * Supported RFC 3164 format:
    * {TIMESTAMP;HOST; }<PRIO>{TIMESTAMP DEVICE} APPLICATION{[PID]}{: }CONTENT
+   * Example:
+   * <128>Jan 11 09:57:56 dev-box suricata[3282]: [MESSAGE]
+   *
+   * Also supported RFC 5424:
+   * <PRIO>VERSION TIMESTAMP HOSTNAME APP-NAME PROCID MSGID {STRUCTURED-DATA} CONTENT
    */
 
   /* Look for <PRIO> */
@@ -114,11 +226,18 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
   log_line[0] = '\0';
   log_line++;
 
-  if (strncmp(log_line, "date=", 5) == 0) { /* Parse custom Fortinet format */
-    producer_name = "fortinet";             /* fortinet detected */
+  if (isRFC5424Header(log_line)) {
+    /* Parse RFC 5424 format */
+    if (!parseRFC5424Header(log_line, &device, &application, &content)) {
+      num_malformed++;
+      goto exit;
+    }
+  } else if (strncmp(log_line, "date=", 5) == 0) {
+    /* Parse custom Fortinet format */
+    producer_name = "fortinet"; /* fortinet detected */
     content = log_line;
-  } else if ((tmp = strstr(log_line, "]: ")) !=
-             NULL) { /* Parse APPLICATION[PID]: */
+  } else if ((tmp = strstr(log_line, "]: ")) != NULL) {
+    /* Parse APPLICATION[PID]: */
     content = &tmp[3];
     tmp[1] = '\0';
     tmp = strrchr(log_line, '[');
@@ -136,7 +255,8 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
         if (tmp != NULL) device = &tmp[1];
       }
     }
-  } else if ((tmp = strstr(log_line, ": ")) != NULL) { /* Parse APPLICATION: */
+  } else if ((tmp = strstr(log_line, ": ")) != NULL) {
+    /* Parse APPLICATION: */
     content = &tmp[2];
     tmp[0] = '\0';
 
