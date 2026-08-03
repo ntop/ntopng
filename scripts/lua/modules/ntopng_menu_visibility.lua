@@ -16,6 +16,29 @@
 
 local M = {}
 
+--   Returns a dense copy of an array that may contain nil holes.
+function M.compact(t)
+   if type(t) ~= "table" then
+      return {}
+   end
+
+   local max_idx = 0
+   for k in pairs(t) do
+      if type(k) == "number" and k > max_idx then
+         max_idx = k
+      end
+   end
+
+   local out = {}
+   for i = 1, max_idx do
+      if t[i] ~= nil then
+         out[#out + 1] = t[i]
+      end
+   end
+
+   return out
+end
+
 -- ---------------------------------------------------------------
 -- reason(badge, reason_key, suggestion_key)
 --   One entry of a menu item's `reason` array. badge decides what
@@ -37,30 +60,47 @@ local FIXABLE_BADGES = { pro = true, perm = true, feature = true }
 
 -- ---------------------------------------------------------------
 -- resolve(item)
---   Single source of truth for what a menu section/entry's ONE `hidden`
---   condition means. Every entry/section is authored with exactly:
---     hidden = <lua boolean expr>
---     reason = { M.reason(...), ... }   -- optional, only when hidden can be true
+--   Single source of truth for what a menu section/entry's conditions mean.
+--   Every entry/section is authored with:
+--     hard_hidden = <lua boolean expr>  -- optional, structural: always drops
+--     hidden      = <lua boolean expr>
+--     reason      = { M.reason(...), ... }   -- optional, only when hidden can be true
 --   resolve() returns:
 --     drop(bool)     -- true: omit entirely from the REST response
 --     disabled(bool) -- true: keep it, but render dimmed with a tooltip
+--
+--   `hard_hidden` is checked FIRST and wins over everything else. It is for
+--   conditions the user cannot act on and that make the item meaningless
+--   rather than merely unavailable.
+--
+--   Then, for `hidden`:
 --   If hidden is false: drop=false, disabled=false.
 --   If hidden is true and `reason` has at least one fixable-badge entry:
 --     drop=false, disabled=true (dimmed + tooltip from `reason`).
 --   If hidden is true and `reason` is empty/nil, or only has structural
 --     badges (iface/platform): drop=true (nothing to explain, nothing to fix).
+--
+--   Side effect: item.reason is normalised in place to a dense array (see
+--   compact()), so callers can hand it straight to the JSON encoder.
 function M.resolve(item)
+   if item.hard_hidden then
+      return true, false
+   end
+
+   -- Normalise before reading
+   local reasons = M.compact(item.reason)
+   item.reason = reasons
+
    if not item.hidden then
       return false, false
    end
-   local reasons = item.reason
-   if reasons then
-      for _, r in ipairs(reasons) do
-         if FIXABLE_BADGES[r.badge] then
-            return false, true
-         end
+
+   for _, r in ipairs(reasons) do
+      if FIXABLE_BADGES[r.badge] then
+         return false, true
       end
    end
+
    return true, false
 end
 

@@ -5,9 +5,10 @@
 -- Menu definition lives in menu_definition.lua and pro/scripts/lua/modules/menu_definition_pro.lua (community_sections + pro_sections).
 -- Flags come from ntopng_menu_visibility.get_flags(); each section/entry is
 -- a plain Lua table evaluated against `f` (the flags table) at definition
--- time, exposing ONE condition:
---   hidden = <lua boolean expr>
---   reason = {{badge=,reason=,suggestion=}, ...}  -- optional
+-- time, exposing:
+--   hard_hidden = <lua boolean expr> (optional, structural: always dropped)
+--   hidden      = <lua boolean expr>
+--   reason      = {{badge=,reason=,suggestion=}, ...} (optional)
 -- ntopng_menu_visibility.resolve(item) is the single place that turns
 -- hidden+reason into drop-entirely vs keep-but-dimmed — see its doc comment.
 -- No flag-name indirection: write whatever Lua condition you need.
@@ -136,10 +137,26 @@ end
 
 -- ---------------------------------------------------------------
 -- Load section definitions and pro menu definition
-local community_sections = require("menu_definition")(flags)
+-- compact(): definitions are literal tables holding conditional elements
+-- (`cond and {...} or nil`), which leaves nil holes that would make ipairs()
+-- stop early and silently swallow every following section/entry.
+local compact = menu_visibility.compact
 
+local community_sections = compact(require("menu_definition")(flags))
+
+-- A failure while BUILDING the pro definition must not take the whole menu
+-- down with it
+local pro_sections = {}
 local pro_raw_ok, pro_def = pcall(require, "menu_definition_pro")
-local pro_sections = (pro_raw_ok and type(pro_def) == "function") and pro_def(flags) or {}
+if pro_raw_ok and type(pro_def) == "function" then
+   local pro_build_ok, pro_built = pcall(pro_def, flags)
+   if pro_build_ok then
+      pro_sections = compact(pro_built)
+   else
+      traceError(TRACE_ERROR, TRACE_CONSOLE,
+         string.format("menu_definition_pro failed, pro menu entries will be missing: %s", tostring(pro_built)))
+   end
+end
 
 local get_dynamic_entries = (pro_visibilityibility_ok and pro_visibility and type(pro_visibility.get_dynamic_entries) == "function")
    and pro_visibility.get_dynamic_entries
@@ -150,7 +167,7 @@ local section_order = {}   -- ordered list of keys
 
 for _, section in ipairs(community_sections) do
    section_map[section.key]         = section
-   section_map[section.key].entries = section.entries or {}
+   section_map[section.key].entries = compact(section.entries)
    section_order[#section_order + 1] = section.key
 end
 
@@ -159,12 +176,13 @@ end
 --   new key       -> insert right after the section named by ps.after (or append)
 for _, ps in ipairs(pro_sections) do
    if section_map[ps.key] then
-      for _, e in ipairs(ps.entries or {}) do
-         section_map[ps.key].entries[#section_map[ps.key].entries + 1] = e
+      local target = section_map[ps.key].entries
+      for _, e in ipairs(compact(ps.entries)) do
+         target[#target + 1] = e
       end
    else
       section_map[ps.key]         = ps
-      section_map[ps.key].entries = ps.entries or {}
+      section_map[ps.key].entries = compact(ps.entries)
       if ps.after then
          local insert_at = #section_order + 1
          for i, k in ipairs(section_order) do
@@ -216,7 +234,7 @@ for _, sec_key in ipairs(section_order) do
       end
 
       -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only
-      local dynamic = get_dynamic_entries(sec_key, flags, page_utils, http_prefix)
+      local dynamic = compact(get_dynamic_entries(sec_key, flags, page_utils, http_prefix))
       for _, de in ipairs(dynamic) do
          entries[#entries + 1] = de
       end
