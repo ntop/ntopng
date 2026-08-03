@@ -239,194 +239,101 @@ ALTER TABLE `flows` ON CLUSTER '$CLUSTER' DROP COLUMN IF EXISTS `LABELS_MAP`;
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Per-flow telemetry records captured locally or received via NetFlow/sFlow/IPFIX. Each row represents one bidirectional network flow with 5-tuple (src/dst IP, src/dst port, protocol), byte/packet counters, L7 application identification, flow-risk bitmap, DSCP, NAT addresses, process info, and optional alert metadata. Partitioned by day on FIRST_SEEN.';
 @
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FLOW_ID` COMMENT 'Unique flow identifier assigned by ntopng';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IP_PROTOCOL_VERSION` COMMENT 'IP version: 4 for IPv4, 6 for IPv6';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FIRST_SEEN` COMMENT 'Timestamp of the first packet of the flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `LAST_SEEN` COMMENT 'Timestamp of the last packet of the flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `VLAN_ID` COMMENT '802.1Q VLAN tag (0 if untagged)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PACKETS` COMMENT 'Total packet count in both directions';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `TOTAL_BYTES` COMMENT 'Total bytes transferred in both directions';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_BYTES` COMMENT 'Bytes sent from client (source) to server (destination)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_BYTES` COMMENT 'Bytes sent from server (destination) to client (source)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_DSCP` COMMENT 'DSCP value observed in the client-to-server direction';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_DSCP` COMMENT 'DSCP value observed in the server-to-client direction';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROTOCOL` COMMENT 'IP transport protocol number (6=TCP, 17=UDP, 1=ICMP, etc.)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV4_SRC_ADDR` COMMENT 'Source IPv4 address as a 32-bit integer; 0 for IPv6 flows';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV6_SRC_ADDR` COMMENT 'Source IPv6 address; all-zeros for IPv4 flows';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IP_SRC_PORT` COMMENT 'Source (client) port number';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV4_DST_ADDR` COMMENT 'Destination IPv4 address as a 32-bit integer; 0 for IPv6 flows';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV6_DST_ADDR` COMMENT 'Destination IPv6 address; all-zeros for IPv4 flows';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IP_DST_PORT` COMMENT 'Destination (server) port number';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `L7_PROTO` COMMENT 'nDPI layer-7 application protocol identifier';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `L7_PROTO_MASTER` COMMENT 'nDPI master/carrier protocol ID (e.g. TLS when L7_PROTO is HTTPS)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `L7_CATEGORY` COMMENT 'nDPI application category identifier';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FLOW_RISK` COMMENT 'Bitmap of nDPI flow risk flags (each bit represents a distinct risk)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INFO` COMMENT 'Supplementary flow info extracted by nDPI (e.g. HTTP host, DNS query name, TLS SNI)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROFILE` COMMENT 'Traffic policy profile name matched by this flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NTOPNG_INSTANCE_NAME` COMMENT 'Hostname/name of the ntopng instance that captured this flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INTERFACE_ID` COMMENT 'ntopng internal interface identifier';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `STATUS` COMMENT 'Flow alert type ID (0 = normal non-alert flow; non-zero = alert type)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_COUNTRY_CODE` COMMENT 'Source IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_COUNTRY_CODE` COMMENT 'Destination IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_LABEL` COMMENT 'Resolved hostname or user-defined label for the source host';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_LABEL` COMMENT 'Resolved hostname or user-defined label for the destination host';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_MAC` COMMENT 'Source MAC address encoded as a 64-bit integer';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_MAC` COMMENT 'Destination MAC address encoded as a 64-bit integer';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_ASN` COMMENT 'Autonomous System Number of the source IP';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination IP';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter (probe); IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `EXPORTER_SITE` COMMENT 'Site/location identifier of the flow exporter';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INTERFACE_ROLE` COMMENT 'Role of the SMMP interface where 0 = other, 1 = transit, 2 = peering, 3 = internal interface, 4 = internet exchange';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `OBSERVATION_POINT_ID` COMMENT 'IPFIX observation point identifier';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_TCP_FLAGS` COMMENT 'Bitwise OR of TCP flags seen in the client-to-server direction';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_TCP_FLAGS` COMMENT 'Bitwise OR of TCP flags seen in the server-to-client direction';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SCORE` COMMENT 'Composite flow risk/security score';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `QOE_SCORE` COMMENT 'Quality of Experience score (0=best)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `CLIENT_NW_LATENCY_US` COMMENT 'Estimated client-side network RTT in microseconds';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SERVER_NW_LATENCY_US` COMMENT 'Estimated server-side network RTT in microseconds';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `CLIENT_LOCATION` COMMENT 'Client host location type (local LAN, remote, etc.)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SERVER_LOCATION` COMMENT 'Server host location type (local LAN, remote, etc.)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_NETWORK_ID` COMMENT 'ntopng local-network ID for the source IP (0 if not a known local network)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_NETWORK_ID` COMMENT 'ntopng local-network ID for the destination IP (0 if not a known local network)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_SITE_ID` COMMENT 'ntopng site ID associated with the source network (0 if none)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_SITE_ID` COMMENT 'ntopng site ID associated with the destination network (0 if none)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `CLIENT_FINGERPRINT` COMMENT 'TLS/QUIC client fingerprint (JA3 or similar)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INPUT_SNMP` COMMENT 'SNMP input interface index exported via NetFlow/IPFIX';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `OUTPUT_SNMP` COMMENT 'SNMP output interface index exported via NetFlow/IPFIX';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the source host';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the destination host';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_PROC_NAME` COMMENT 'Name of the OS process that originated the flow (from eBPF/sysdig)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_PROC_NAME` COMMENT 'Name of the OS process that received the flow (from eBPF/sysdig)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_PROC_USER_NAME` COMMENT 'OS username owning the source process';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_PROC_USER_NAME` COMMENT 'OS username owning the destination process';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ALERTS_MAP` COMMENT 'Serialized bitmap of individual alert conditions triggered on this flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `TAGS_MAP` COMMENT 'Serialized bitmap of tags associated with this flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_TAGS_MAP` COMMENT 'Serialized bitmap of tags associated with the source host';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_TAGS_MAP` COMMENT 'Serialized bitmap of tags associated with the destination host';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SEVERITY` COMMENT 'Alert severity level; meaningful only when STATUS != 0';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_CLI_ATTACKER` COMMENT '1 if the client host is flagged as an attacker, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_CLI_VICTIM` COMMENT '1 if the client host is flagged as a victim, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_CLI_BLACKLISTED` COMMENT '1 if the client IP appears on a threat-intel blacklist, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_SRV_ATTACKER` COMMENT '1 if the server host is flagged as an attacker, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_SRV_VICTIM` COMMENT '1 if the server host is flagged as a victim, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_SRV_BLACKLISTED` COMMENT '1 if the server IP appears on a threat-intel blacklist, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ALERT_STATUS` COMMENT 'Alert lifecycle status (e.g. acknowledged, in-progress)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `USER_LABEL` COMMENT 'User-defined free-text label applied to this flow';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `USER_LABEL_TSTAMP` COMMENT 'Timestamp when USER_LABEL was last modified';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROTOCOL_INFO_JSON` COMMENT 'Protocol-specific metadata (HTTP URL, DNS answers, TLS cert info, etc.) as JSON';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ALERT_JSON` COMMENT 'Alert-specific context and evidence as a JSON blob';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_ALERT_DELETED` COMMENT '1 if the alert on this flow was manually acknowledged/deleted, 0 otherwise';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_PACKETS` COMMENT 'Packet count from client (source) to server (destination)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packet count from server (destination) to client (source)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ALERT_CATEGORY` COMMENT 'Alert category identifier (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `MINOR_CONNECTION_STATE` COMMENT 'Fine-grained TCP/flow connection state';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `MAJOR_CONNECTION_STATE` COMMENT 'Coarse TCP connection state (e.g. established, closing, closed)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `POST_NAT_IPV4_SRC_ADDR` COMMENT 'Source IPv4 address after NAT translation';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `POST_NAT_SRC_PORT` COMMENT 'Source port after NAT translation';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `POST_NAT_IPV4_DST_ADDR` COMMENT 'Destination IPv4 address after NAT translation';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `POST_NAT_DST_PORT` COMMENT 'Destination port after NAT translation';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DOMAIN_NAME` COMMENT 'Domain name extracted from the flow (from SNI, DNS, or HTTP Host header)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_PEER_ASN` COMMENT 'BGP peer ASN upstream of the source IP';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_PEER_ASN` COMMENT 'BGP peer ASN upstream of the destination IP';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `REQUIRE_ATTENTION` COMMENT 'True if this flow/alert has been flagged as requiring manual review';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NEXT_ADJACENT_ASN` COMMENT 'BGP next adjacent ASN (BGP_NEXT_ADJACENT_ASN / IPFIX field 128)';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `HR_SRC2DST_BYTES` COMMENT '15-second delta byte counters src->dst from nProbe high-resolution counters';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `HR_DST2SRC_BYTES` COMMENT '15-second delta byte counters dst->src from nProbe high-resolution counters';
-@
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IS_FIRST_DUMP` COMMENT 'True if this is the first time this flow is dumped to DB (i.e. it is a new flow), or false if this flows has been previously dumped (i.e. it is a continuation)';
-
+ALTER TABLE `flows` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `FLOW_ID` COMMENT 'Unique flow identifier assigned by ntopng',
+  MODIFY COLUMN `IP_PROTOCOL_VERSION` COMMENT 'IP version: 4 for IPv4, 6 for IPv6',
+  MODIFY COLUMN `FIRST_SEEN` COMMENT 'Timestamp of the first packet of the flow',
+  MODIFY COLUMN `LAST_SEEN` COMMENT 'Timestamp of the last packet of the flow',
+  MODIFY COLUMN `VLAN_ID` COMMENT '802.1Q VLAN tag (0 if untagged)',
+  MODIFY COLUMN `PACKETS` COMMENT 'Total packet count in both directions',
+  MODIFY COLUMN `TOTAL_BYTES` COMMENT 'Total bytes transferred in both directions',
+  MODIFY COLUMN `SRC2DST_BYTES` COMMENT 'Bytes sent from client (source) to server (destination)',
+  MODIFY COLUMN `DST2SRC_BYTES` COMMENT 'Bytes sent from server (destination) to client (source)',
+  MODIFY COLUMN `SRC2DST_DSCP` COMMENT 'DSCP value observed in the client-to-server direction',
+  MODIFY COLUMN `DST2SRC_DSCP` COMMENT 'DSCP value observed in the server-to-client direction',
+  MODIFY COLUMN `PROTOCOL` COMMENT 'IP transport protocol number (6=TCP, 17=UDP, 1=ICMP, etc.)',
+  MODIFY COLUMN `IPV4_SRC_ADDR` COMMENT 'Source IPv4 address as a 32-bit integer; 0 for IPv6 flows',
+  MODIFY COLUMN `IPV6_SRC_ADDR` COMMENT 'Source IPv6 address; all-zeros for IPv4 flows',
+  MODIFY COLUMN `IP_SRC_PORT` COMMENT 'Source (client) port number',
+  MODIFY COLUMN `IPV4_DST_ADDR` COMMENT 'Destination IPv4 address as a 32-bit integer; 0 for IPv6 flows',
+  MODIFY COLUMN `IPV6_DST_ADDR` COMMENT 'Destination IPv6 address; all-zeros for IPv4 flows',
+  MODIFY COLUMN `IP_DST_PORT` COMMENT 'Destination (server) port number',
+  MODIFY COLUMN `L7_PROTO` COMMENT 'nDPI layer-7 application protocol identifier',
+  MODIFY COLUMN `L7_PROTO_MASTER` COMMENT 'nDPI master/carrier protocol ID (e.g. TLS when L7_PROTO is HTTPS)',
+  MODIFY COLUMN `L7_CATEGORY` COMMENT 'nDPI application category identifier',
+  MODIFY COLUMN `FLOW_RISK` COMMENT 'Bitmap of nDPI flow risk flags (each bit represents a distinct risk)',
+  MODIFY COLUMN `INFO` COMMENT 'Supplementary flow info extracted by nDPI (e.g. HTTP host, DNS query name, TLS SNI)',
+  MODIFY COLUMN `PROFILE` COMMENT 'Traffic policy profile name matched by this flow',
+  MODIFY COLUMN `NTOPNG_INSTANCE_NAME` COMMENT 'Hostname/name of the ntopng instance that captured this flow',
+  MODIFY COLUMN `INTERFACE_ID` COMMENT 'ntopng internal interface identifier',
+  MODIFY COLUMN `STATUS` COMMENT 'Flow alert type ID (0 = normal non-alert flow; non-zero = alert type)',
+  MODIFY COLUMN `SRC_COUNTRY_CODE` COMMENT 'Source IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)',
+  MODIFY COLUMN `DST_COUNTRY_CODE` COMMENT 'Destination IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)',
+  MODIFY COLUMN `SRC_LABEL` COMMENT 'Resolved hostname or user-defined label for the source host',
+  MODIFY COLUMN `DST_LABEL` COMMENT 'Resolved hostname or user-defined label for the destination host',
+  MODIFY COLUMN `SRC_MAC` COMMENT 'Source MAC address encoded as a 64-bit integer',
+  MODIFY COLUMN `DST_MAC` COMMENT 'Destination MAC address encoded as a 64-bit integer',
+  MODIFY COLUMN `SRC_ASN` COMMENT 'Autonomous System Number of the source IP',
+  MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination IP',
+  MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter (probe); IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)',
+  MODIFY COLUMN `EXPORTER_SITE` COMMENT 'Site/location identifier of the flow exporter',
+  MODIFY COLUMN `INTERFACE_ROLE` COMMENT 'Role of the SMMP interface where 0 = other, 1 = transit, 2 = peering, 3 = internal interface, 4 = internet exchange',
+  MODIFY COLUMN `OBSERVATION_POINT_ID` COMMENT 'IPFIX observation point identifier',
+  MODIFY COLUMN `SRC2DST_TCP_FLAGS` COMMENT 'Bitwise OR of TCP flags seen in the client-to-server direction',
+  MODIFY COLUMN `DST2SRC_TCP_FLAGS` COMMENT 'Bitwise OR of TCP flags seen in the server-to-client direction',
+  MODIFY COLUMN `SCORE` COMMENT 'Composite flow risk/security score',
+  MODIFY COLUMN `QOE_SCORE` COMMENT 'Quality of Experience score (0=best)',
+  MODIFY COLUMN `CLIENT_NW_LATENCY_US` COMMENT 'Estimated client-side network RTT in microseconds',
+  MODIFY COLUMN `SERVER_NW_LATENCY_US` COMMENT 'Estimated server-side network RTT in microseconds',
+  MODIFY COLUMN `CLIENT_LOCATION` COMMENT 'Client host location type (local LAN, remote, etc.)',
+  MODIFY COLUMN `SERVER_LOCATION` COMMENT 'Server host location type (local LAN, remote, etc.)',
+  MODIFY COLUMN `SRC_NETWORK_ID` COMMENT 'ntopng local-network ID for the source IP (0 if not a known local network)',
+  MODIFY COLUMN `DST_NETWORK_ID` COMMENT 'ntopng local-network ID for the destination IP (0 if not a known local network)',
+  MODIFY COLUMN `SRC_SITE_ID` COMMENT 'ntopng site ID associated with the source network (0 if none)',
+  MODIFY COLUMN `DST_SITE_ID` COMMENT 'ntopng site ID associated with the destination network (0 if none)',
+  MODIFY COLUMN `CLIENT_FINGERPRINT` COMMENT 'TLS/QUIC client fingerprint (JA3 or similar)',
+  MODIFY COLUMN `INPUT_SNMP` COMMENT 'SNMP input interface index exported via NetFlow/IPFIX',
+  MODIFY COLUMN `OUTPUT_SNMP` COMMENT 'SNMP output interface index exported via NetFlow/IPFIX',
+  MODIFY COLUMN `SRC_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the source host',
+  MODIFY COLUMN `DST_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the destination host',
+  MODIFY COLUMN `SRC_PROC_NAME` COMMENT 'Name of the OS process that originated the flow (from eBPF/sysdig)',
+  MODIFY COLUMN `DST_PROC_NAME` COMMENT 'Name of the OS process that received the flow (from eBPF/sysdig)',
+  MODIFY COLUMN `SRC_PROC_USER_NAME` COMMENT 'OS username owning the source process',
+  MODIFY COLUMN `DST_PROC_USER_NAME` COMMENT 'OS username owning the destination process',
+  MODIFY COLUMN `ALERTS_MAP` COMMENT 'Serialized bitmap of individual alert conditions triggered on this flow',
+  MODIFY COLUMN `TAGS_MAP` COMMENT 'Serialized bitmap of tags associated with this flow',
+  MODIFY COLUMN `SRC_TAGS_MAP` COMMENT 'Serialized bitmap of tags associated with the source host',
+  MODIFY COLUMN `DST_TAGS_MAP` COMMENT 'Serialized bitmap of tags associated with the destination host',
+  MODIFY COLUMN `SEVERITY` COMMENT 'Alert severity level; meaningful only when STATUS != 0',
+  MODIFY COLUMN `IS_CLI_ATTACKER` COMMENT '1 if the client host is flagged as an attacker, 0 otherwise',
+  MODIFY COLUMN `IS_CLI_VICTIM` COMMENT '1 if the client host is flagged as a victim, 0 otherwise',
+  MODIFY COLUMN `IS_CLI_BLACKLISTED` COMMENT '1 if the client IP appears on a threat-intel blacklist, 0 otherwise',
+  MODIFY COLUMN `IS_SRV_ATTACKER` COMMENT '1 if the server host is flagged as an attacker, 0 otherwise',
+  MODIFY COLUMN `IS_SRV_VICTIM` COMMENT '1 if the server host is flagged as a victim, 0 otherwise',
+  MODIFY COLUMN `IS_SRV_BLACKLISTED` COMMENT '1 if the server IP appears on a threat-intel blacklist, 0 otherwise',
+  MODIFY COLUMN `ALERT_STATUS` COMMENT 'Alert lifecycle status (e.g. acknowledged, in-progress)',
+  MODIFY COLUMN `USER_LABEL` COMMENT 'User-defined free-text label applied to this flow',
+  MODIFY COLUMN `USER_LABEL_TSTAMP` COMMENT 'Timestamp when USER_LABEL was last modified',
+  MODIFY COLUMN `PROTOCOL_INFO_JSON` COMMENT 'Protocol-specific metadata (HTTP URL, DNS answers, TLS cert info, etc.) as JSON',
+  MODIFY COLUMN `ALERT_JSON` COMMENT 'Alert-specific context and evidence as a JSON blob',
+  MODIFY COLUMN `IS_ALERT_DELETED` COMMENT '1 if the alert on this flow was manually acknowledged/deleted, 0 otherwise',
+  MODIFY COLUMN `SRC2DST_PACKETS` COMMENT 'Packet count from client (source) to server (destination)',
+  MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packet count from server (destination) to client (source)',
+  MODIFY COLUMN `ALERT_CATEGORY` COMMENT 'Alert category identifier (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `MINOR_CONNECTION_STATE` COMMENT 'Fine-grained TCP/flow connection state',
+  MODIFY COLUMN `MAJOR_CONNECTION_STATE` COMMENT 'Coarse TCP connection state (e.g. established, closing, closed)',
+  MODIFY COLUMN `POST_NAT_IPV4_SRC_ADDR` COMMENT 'Source IPv4 address after NAT translation',
+  MODIFY COLUMN `POST_NAT_SRC_PORT` COMMENT 'Source port after NAT translation',
+  MODIFY COLUMN `POST_NAT_IPV4_DST_ADDR` COMMENT 'Destination IPv4 address after NAT translation',
+  MODIFY COLUMN `POST_NAT_DST_PORT` COMMENT 'Destination port after NAT translation',
+  MODIFY COLUMN `DOMAIN_NAME` COMMENT 'Domain name extracted from the flow (from SNI, DNS, or HTTP Host header)',
+  MODIFY COLUMN `SRC_PEER_ASN` COMMENT 'BGP peer ASN upstream of the source IP',
+  MODIFY COLUMN `DST_PEER_ASN` COMMENT 'BGP peer ASN upstream of the destination IP',
+  MODIFY COLUMN `REQUIRE_ATTENTION` COMMENT 'True if this flow/alert has been flagged as requiring manual review',
+  MODIFY COLUMN `NEXT_ADJACENT_ASN` COMMENT 'BGP next adjacent ASN (BGP_NEXT_ADJACENT_ASN / IPFIX field 128)',
+  MODIFY COLUMN `HR_SRC2DST_BYTES` COMMENT '15-second delta byte counters src->dst from nProbe high-resolution counters',
+  MODIFY COLUMN `HR_DST2SRC_BYTES` COMMENT '15-second delta byte counters dst->src from nProbe high-resolution counters',
+  MODIFY COLUMN `IS_FIRST_DUMP` COMMENT 'True if this is the first time this flow is dumped to DB (i.e. it is a new flow), or false if this flows has been previously dumped (i.e. it is a continuation)';
 @
 
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER '$CLUSTER' (
@@ -463,45 +370,27 @@ ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT E
 @
 ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts generated by the active monitoring subsystem (ICMP ping, HTTP, TLS checks, etc.). Rows are appended when an engaged alert is archived. See engaged_active_monitoring_alerts for currently-firing alerts and active_monitoring_alerts_view to query both together.';
 @
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `resolved_ip` COMMENT 'IP address resolved from the monitored hostname at time of check';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `resolved_name` COMMENT 'Hostname or target being monitored (FQDN or IP)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `measurement` COMMENT 'Type of active monitoring check (e.g. icmp, http, https, tls)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `measure_threshold` COMMENT 'Configured threshold value that was exceeded to trigger the alert';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `measure_value` COMMENT 'Measured value (e.g. latency in ms, HTTP response code) at alert time';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `resolved_ip` COMMENT 'IP address resolved from the monitored hostname at time of check',
+  MODIFY COLUMN `resolved_name` COMMENT 'Hostname or target being monitored (FQDN or IP)',
+  MODIFY COLUMN `measurement` COMMENT 'Type of active monitoring check (e.g. icmp, http, https, tls)',
+  MODIFY COLUMN `measure_threshold` COMMENT 'Configured threshold value that was exceeded to trigger the alert',
+  MODIFY COLUMN `measure_value` COMMENT 'Measured value (e.g. latency in ms, HTTP response code) at alert time',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_active_monitoring_alerts`;
@@ -534,46 +423,27 @@ ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLU
 @
 ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) active-monitoring alerts. Rows are inserted when an alert fires and removed when resolved. Merged with active_monitoring_alerts in active_monitoring_alerts_view.';
 @
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `resolved_ip` COMMENT 'IP address resolved from the monitored hostname at time of check';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `resolved_name` COMMENT 'Hostname or target being monitored (FQDN or IP)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `measurement` COMMENT 'Type of active monitoring check (e.g. icmp, http, https, tls)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `measure_threshold` COMMENT 'Configured threshold value that was exceeded to trigger the alert';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `measure_value` COMMENT 'Measured value (e.g. latency in ms, HTTP response code) at alert time';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `resolved_ip` COMMENT 'IP address resolved from the monitored hostname at time of check',
+  MODIFY COLUMN `resolved_name` COMMENT 'Hostname or target being monitored (FQDN or IP)',
+  MODIFY COLUMN `measurement` COMMENT 'Type of active monitoring check (e.g. icmp, http, https, tls)',
+  MODIFY COLUMN `measure_threshold` COMMENT 'Configured threshold value that was exceeded to trigger the alert',
+  MODIFY COLUMN `measure_value` COMMENT 'Measured value (e.g. latency in ms, HTTP response code) at alert time',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `host_alerts` ON CLUSTER '$CLUSTER' (
@@ -628,62 +498,35 @@ ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' DROP COLUMN IF EXISTS `labels_ma
 @
 ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with individual hosts (identified by IP address and VLAN). Rows are appended when an engaged host alert is archived. See engaged_host_alerts for currently-firing alerts and host_alerts_view to query both together (with MITRE ATT&CK enrichment).';
 @
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip_version` COMMENT 'IP version of the host: 4 for IPv4, 6 for IPv6';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip` COMMENT 'IP address of the host that triggered the alert';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `vlan_id` COMMENT 'VLAN on which the host was observed (0 if untagged)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name for the host';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_attacker` COMMENT '1 if the host is the attacking party in this alert';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_victim` COMMENT '1 if the host is the victim party in this alert';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_client` COMMENT '1 if the host acted as a client in the triggering flow';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_server` COMMENT '1 if the host acted as a server in the triggering flow';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `host_pool_id` COMMENT 'ntopng host-pool ID the host belongs to';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the host belongs to';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `country` COMMENT 'Two-letter ISO 3166-1 country code derived from the host IP';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-@
-ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tags_map` COMMENT 'HEX-encoded bitmap of host tags set at the time the alert triggered';
-
+ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `ip_version` COMMENT 'IP version of the host: 4 for IPv4, 6 for IPv6',
+  MODIFY COLUMN `ip` COMMENT 'IP address of the host that triggered the alert',
+  MODIFY COLUMN `vlan_id` COMMENT 'VLAN on which the host was observed (0 if untagged)',
+  MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name for the host',
+  MODIFY COLUMN `is_attacker` COMMENT '1 if the host is the attacking party in this alert',
+  MODIFY COLUMN `is_victim` COMMENT '1 if the host is the victim party in this alert',
+  MODIFY COLUMN `is_client` COMMENT '1 if the host acted as a client in the triggering flow',
+  MODIFY COLUMN `is_server` COMMENT '1 if the host acted as a server in the triggering flow',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `host_pool_id` COMMENT 'ntopng host-pool ID the host belongs to',
+  MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the host belongs to',
+  MODIFY COLUMN `country` COMMENT 'Two-letter ISO 3166-1 country code derived from the host IP',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention',
+  MODIFY COLUMN `tags_map` COMMENT 'HEX-encoded bitmap of host tags set at the time the alert triggered';
 @
 
 DROP TABLE IF EXISTS `engaged_host_alerts`;
@@ -724,62 +567,35 @@ ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_in
 @
 ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) host alerts. Rows are inserted when an alert fires and removed when resolved. Merged with host_alerts in host_alerts_view.';
 @
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip_version` COMMENT 'IP version of the host: 4 for IPv4, 6 for IPv6';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip` COMMENT 'IP address of the host that triggered the alert';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `vlan_id` COMMENT 'VLAN on which the host was observed (0 if untagged)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name for the host';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_attacker` COMMENT '1 if the host is the attacking party in this alert';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_victim` COMMENT '1 if the host is the victim party in this alert';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_client` COMMENT '1 if the host acted as a client in the triggering flow';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_server` COMMENT '1 if the host acted as a server in the triggering flow';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `host_pool_id` COMMENT 'ntopng host-pool ID the host belongs to';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the host belongs to';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `country` COMMENT 'Two-letter ISO 3166-1 country code derived from the host IP';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-@
-ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tags_map` COMMENT 'HEX-encoded bitmap of host tags set at the time the alert triggered';
-
+ALTER TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `ip_version` COMMENT 'IP version of the host: 4 for IPv4, 6 for IPv6',
+  MODIFY COLUMN `ip` COMMENT 'IP address of the host that triggered the alert',
+  MODIFY COLUMN `vlan_id` COMMENT 'VLAN on which the host was observed (0 if untagged)',
+  MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name for the host',
+  MODIFY COLUMN `is_attacker` COMMENT '1 if the host is the attacking party in this alert',
+  MODIFY COLUMN `is_victim` COMMENT '1 if the host is the victim party in this alert',
+  MODIFY COLUMN `is_client` COMMENT '1 if the host acted as a client in the triggering flow',
+  MODIFY COLUMN `is_server` COMMENT '1 if the host acted as a server in the triggering flow',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `host_pool_id` COMMENT 'ntopng host-pool ID the host belongs to',
+  MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the host belongs to',
+  MODIFY COLUMN `country` COMMENT 'Two-letter ISO 3166-1 country code derived from the host IP',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention',
+  MODIFY COLUMN `tags_map` COMMENT 'HEX-encoded bitmap of host tags set at the time the alert triggered';
 @
 
 CREATE TABLE IF NOT EXISTS `mac_alerts` ON CLUSTER '$CLUSTER' (
@@ -817,48 +633,28 @@ ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS require_
 @
 ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with MAC addresses and layer-2 devices. See engaged_mac_alerts for currently-firing alerts and mac_alerts_view to query both together.';
 @
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `address` COMMENT 'MAC address of the device that triggered the alert (colon-separated hex)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `device_type` COMMENT 'Device category/type identifier (maps to ntopng DeviceType enum)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'User-defined or discovered name for the device';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_attacker` COMMENT '1 if the device is the attacking party in this alert';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_victim` COMMENT '1 if the device is the victim party in this alert';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `address` COMMENT 'MAC address of the device that triggered the alert (colon-separated hex)',
+  MODIFY COLUMN `device_type` COMMENT 'Device category/type identifier (maps to ntopng DeviceType enum)',
+  MODIFY COLUMN `name` COMMENT 'User-defined or discovered name for the device',
+  MODIFY COLUMN `is_attacker` COMMENT '1 if the device is the attacking party in this alert',
+  MODIFY COLUMN `is_victim` COMMENT '1 if the device is the victim party in this alert',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_mac_alerts`;
@@ -892,48 +688,28 @@ ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_ins
 @
 ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) MAC/device alerts. Rows are inserted when an alert fires and removed when resolved. Merged with mac_alerts in mac_alerts_view.';
 @
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `address` COMMENT 'MAC address of the device that triggered the alert (colon-separated hex)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `device_type` COMMENT 'Device category/type identifier (maps to ntopng DeviceType enum)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'User-defined or discovered name for the device';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_attacker` COMMENT '1 if the device is the attacking party in this alert';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `is_victim` COMMENT '1 if the device is the victim party in this alert';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `address` COMMENT 'MAC address of the device that triggered the alert (colon-separated hex)',
+  MODIFY COLUMN `device_type` COMMENT 'Device category/type identifier (maps to ntopng DeviceType enum)',
+  MODIFY COLUMN `name` COMMENT 'User-defined or discovered name for the device',
+  MODIFY COLUMN `is_attacker` COMMENT '1 if the device is the attacking party in this alert',
+  MODIFY COLUMN `is_victim` COMMENT '1 if the device is the victim party in this alert',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `snmp_alerts` ON CLUSTER '$CLUSTER' (
@@ -972,46 +748,27 @@ ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_c
 @
 ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip` COMMENT 'IP address of the SNMP-polled device that triggered the alert';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `port` COMMENT 'SNMP interface index (ifIndex) of the interface that triggered the alert';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'SNMP sysName or user-defined name of the device';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `port_name` COMMENT 'SNMP ifDescr or user-defined name of the triggering interface';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `ip` COMMENT 'IP address of the SNMP-polled device that triggered the alert',
+  MODIFY COLUMN `port` COMMENT 'SNMP interface index (ifIndex) of the interface that triggered the alert',
+  MODIFY COLUMN `name` COMMENT 'SNMP sysName or user-defined name of the device',
+  MODIFY COLUMN `port_name` COMMENT 'SNMP ifDescr or user-defined name of the triggering interface',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_snmp_alerts`;
@@ -1044,46 +801,27 @@ ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_in
 @
 ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) SNMP alerts. Rows are inserted when an alert fires and removed when resolved. Merged with snmp_alerts in snmp_alerts_view.';
 @
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip` COMMENT 'IP address of the SNMP-polled device that triggered the alert';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `port` COMMENT 'SNMP interface index (ifIndex) of the interface that triggered the alert';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'SNMP sysName or user-defined name of the device';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `port_name` COMMENT 'SNMP ifDescr or user-defined name of the triggering interface';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `ip` COMMENT 'IP address of the SNMP-polled device that triggered the alert',
+  MODIFY COLUMN `port` COMMENT 'SNMP interface index (ifIndex) of the interface that triggered the alert',
+  MODIFY COLUMN `name` COMMENT 'SNMP sysName or user-defined name of the device',
+  MODIFY COLUMN `port_name` COMMENT 'SNMP ifDescr or user-defined name of the triggering interface',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `network_alerts` ON CLUSTER '$CLUSTER' (
@@ -1119,44 +857,26 @@ ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS requ
 @
 ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with local network subnets (identified by local_network_id). See engaged_network_alerts for currently-firing alerts and network_alerts_view to query both together.';
 @
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `local_network_id` COMMENT 'ntopng internal identifier of the local network subnet';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'CIDR notation or user-defined name of the network (e.g. 192.168.1.0/24)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alias` COMMENT 'User-defined alias for the network';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `local_network_id` COMMENT 'ntopng internal identifier of the local network subnet',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `name` COMMENT 'CIDR notation or user-defined name of the network (e.g. 192.168.1.0/24)',
+  MODIFY COLUMN `alias` COMMENT 'User-defined alias for the network',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_network_alerts`;
@@ -1188,44 +908,26 @@ ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng
 @
 ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) network/subnet alerts. Rows are inserted when an alert fires and removed when resolved. Merged with network_alerts in network_alerts_view.';
 @
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `local_network_id` COMMENT 'ntopng internal identifier of the local network subnet';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'CIDR notation or user-defined name of the network (e.g. 192.168.1.0/24)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alias` COMMENT 'User-defined alias for the network';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `local_network_id` COMMENT 'ntopng internal identifier of the local network subnet',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `name` COMMENT 'CIDR notation or user-defined name of the network (e.g. 192.168.1.0/24)',
+  MODIFY COLUMN `alias` COMMENT 'User-defined alias for the network',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `as_alerts` ON CLUSTER '$CLUSTER' (
@@ -1257,44 +959,26 @@ ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_instance_nam
 @
 ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with Autonomous Systems (identified by ASN). See engaged_as_alerts for currently-firing alerts and as_alerts_view to query both together.';
 @
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `asn` COMMENT 'Autonomous System Number that triggered the alert';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'AS name/description (from WHOIS or user configuration)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alias` COMMENT 'User-defined alias for this AS';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `asn` COMMENT 'Autonomous System Number that triggered the alert',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `name` COMMENT 'AS name/description (from WHOIS or user configuration)',
+  MODIFY COLUMN `alias` COMMENT 'User-defined alias for this AS',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_as_alerts`;
@@ -1326,44 +1010,26 @@ ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_inst
 @
 ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) Autonomous System alerts. Rows are inserted when an alert fires and removed when resolved. Merged with as_alerts in as_alerts_view.';
 @
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `asn` COMMENT 'Autonomous System Number that triggered the alert';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'AS name/description (from WHOIS or user configuration)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alias` COMMENT 'User-defined alias for this AS';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `asn` COMMENT 'Autonomous System Number that triggered the alert',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `name` COMMENT 'AS name/description (from WHOIS or user configuration)',
+  MODIFY COLUMN `alias` COMMENT 'User-defined alias for this AS',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `interface_alerts` ON CLUSTER '$CLUSTER' (
@@ -1400,46 +1066,27 @@ ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS re
 @
 ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with monitored network interfaces. See engaged_interface_alerts for currently-firing alerts and interface_alerts_view to query both together.';
 @
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ifid` COMMENT 'ntopng internal interface index';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `subtype` COMMENT 'Alert sub-type string providing additional context';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Interface name (e.g. eth0, wlan0)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alias` COMMENT 'User-defined alias for the interface';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `ifid` COMMENT 'ntopng internal interface index',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `subtype` COMMENT 'Alert sub-type string providing additional context',
+  MODIFY COLUMN `name` COMMENT 'Interface name (e.g. eth0, wlan0)',
+  MODIFY COLUMN `alias` COMMENT 'User-defined alias for the interface',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_interface_alerts`;
@@ -1472,46 +1119,27 @@ ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntop
 @
 ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) interface alerts. Rows are inserted when an alert fires and removed when resolved. Merged with interface_alerts in interface_alerts_view.';
 @
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ifid` COMMENT 'ntopng internal interface index';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `subtype` COMMENT 'Alert sub-type string providing additional context';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Interface name (e.g. eth0, wlan0)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alias` COMMENT 'User-defined alias for the interface';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `ifid` COMMENT 'ntopng internal interface index',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `subtype` COMMENT 'Alert sub-type string providing additional context',
+  MODIFY COLUMN `name` COMMENT 'Interface name (e.g. eth0, wlan0)',
+  MODIFY COLUMN `alias` COMMENT 'User-defined alias for the interface',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `user_alerts` ON CLUSTER '$CLUSTER' (
@@ -1545,40 +1173,24 @@ ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS require
 @
 ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical alerts associated with ntopng-managed users. See engaged_user_alerts for currently-firing alerts and user_alerts_view to query both together.';
 @
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user` COMMENT 'ntopng username associated with this alert';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `user` COMMENT 'ntopng username associated with this alert',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_user_alerts`;
@@ -1608,40 +1220,24 @@ ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_in
 @
 ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) user alerts. Rows are inserted when an alert fires and removed when resolved. Merged with user_alerts in user_alerts_view.';
 @
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user` COMMENT 'ntopng username associated with this alert';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `user` COMMENT 'ntopng username associated with this alert',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 CREATE TABLE IF NOT EXISTS `system_alerts` ON CLUSTER '$CLUSTER' (
@@ -1675,40 +1271,24 @@ ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS requi
 @
 ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Historical system-level alerts (e.g. license issues, connectivity failures, internal subsystem events). See engaged_system_alerts for currently-firing alerts and system_alerts_view to query both together.';
 @
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Name of the subsystem or component that generated the alert';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
-
+ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `name` COMMENT 'Name of the subsystem or component that generated the alert',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `engaged_system_alerts`;
@@ -1738,39 +1318,24 @@ ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopng_
 @
 ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'In-memory table holding currently active (engaged) system alerts. Rows are inserted when an alert fires and removed when resolved. Merged with system_alerts in system_alerts_view.';
 @
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Name of the subsystem or component that generated the alert';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)';
-@
-ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
+ALTER TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `rowid` COMMENT 'Unique identifier for this alert row (UUID v4)',
+  MODIFY COLUMN `alert_id` COMMENT 'Alert type identifier (maps to ntopng alert type enum)',
+  MODIFY COLUMN `alert_status` COMMENT 'Alert lifecycle status (0=engaged/active, 1=released/archived)',
+  MODIFY COLUMN `interface_id` COMMENT 'ntopng interface identifier; 65535 means system/global scope',
+  MODIFY COLUMN `name` COMMENT 'Name of the subsystem or component that generated the alert',
+  MODIFY COLUMN `tstamp` COMMENT 'Timestamp when the alert was first triggered (alert start time)',
+  MODIFY COLUMN `tstamp_end` COMMENT 'Timestamp when the alert was resolved (zero/epoch if still active)',
+  MODIFY COLUMN `severity` COMMENT 'Alert severity level (maps to ntopng AlertLevel enum)',
+  MODIFY COLUMN `score` COMMENT 'Numeric risk/impact score associated with this alert',
+  MODIFY COLUMN `granularity` COMMENT 'Periodic check interval that triggered the alert (e.g. 1=1min, 2=5min)',
+  MODIFY COLUMN `counter` COMMENT 'Number of consecutive intervals this alert condition has been detected',
+  MODIFY COLUMN `description` COMMENT 'Human-readable description of the alert',
+  MODIFY COLUMN `json` COMMENT 'Additional alert context and metadata as a JSON blob',
+  MODIFY COLUMN `user_label` COMMENT 'User-defined free-text label applied to this alert',
+  MODIFY COLUMN `user_label_tstamp` COMMENT 'Timestamp when user_label was last set',
+  MODIFY COLUMN `alert_category` COMMENT 'Alert category (maps to ntopng AlertCategory enum)',
+  MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
 DROP TABLE IF EXISTS `aggregated_flows` ON CLUSTER '$CLUSTER';
@@ -1842,92 +1407,50 @@ ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `PROBE
 @
 ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Hourly aggregated flow summaries. Multiple raw flows sharing the same 5-tuple are collapsed into one row per hour with summed byte/packet counters and OR-ed risk bitmaps. Used for long-term trend analysis and reduced-resolution historical queries.';
 @
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FLOW_ID` COMMENT 'Unique flow identifier assigned by ntopng';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IP_PROTOCOL_VERSION` COMMENT 'IP version: 4 for IPv4, 6 for IPv6';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FIRST_SEEN` COMMENT 'Timestamp of the first packet of the flow';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `LAST_SEEN` COMMENT 'Timestamp of the last packet of the flow';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `VLAN_ID` COMMENT '802.1Q VLAN tag (0 if untagged)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PACKETS` COMMENT 'Total packet count in both directions';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `TOTAL_BYTES` COMMENT 'Total bytes transferred in both directions';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_BYTES` COMMENT 'Bytes sent from client (source) to server (destination)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_BYTES` COMMENT 'Bytes sent from server (destination) to client (source)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SCORE` COMMENT 'Composite flow risk/security score';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROTOCOL` COMMENT 'IP transport protocol number (6=TCP, 17=UDP, 1=ICMP, etc.)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV4_SRC_ADDR` COMMENT 'Source IPv4 address as a 32-bit integer; 0 for IPv6 flows';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV6_SRC_ADDR` COMMENT 'Source IPv6 address; all-zeros for IPv4 flows';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV4_DST_ADDR` COMMENT 'Destination IPv4 address as a 32-bit integer; 0 for IPv6 flows';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IPV6_DST_ADDR` COMMENT 'Destination IPv6 address; all-zeros for IPv4 flows';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IP_DST_PORT` COMMENT 'Destination (server) port number';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `L7_PROTO` COMMENT 'nDPI layer-7 application protocol identifier';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `L7_PROTO_MASTER` COMMENT 'nDPI master/carrier protocol ID (e.g. TLS when L7_PROTO is HTTPS)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NUM_FLOWS` COMMENT 'Number of raw flows aggregated into this hourly summary row';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FLOW_RISK` COMMENT 'Bitmap of nDPI flow risk flags (each bit represents a distinct risk)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_MAC` COMMENT 'Source MAC address encoded as a 64-bit integer';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_MAC` COMMENT 'Destination MAC address encoded as a 64-bit integer';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter (probe); IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `EXPORTER_SITE` COMMENT 'Site/location identifier of the flow exporter';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NTOPNG_INSTANCE_NAME` COMMENT 'Hostname/name of the ntopng instance that captured this flow';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_COUNTRY_CODE` COMMENT 'Source IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_COUNTRY_CODE` COMMENT 'Destination IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_ASN` COMMENT 'Autonomous System Number of the source IP';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination IP';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INPUT_SNMP` COMMENT 'SNMP input interface index exported via NetFlow/IPFIX';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `OUTPUT_SNMP` COMMENT 'SNMP output interface index exported via NetFlow/IPFIX';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_NETWORK_ID` COMMENT 'ntopng local-network ID for the source IP (0 if not a known local network)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_NETWORK_ID` COMMENT 'ntopng local-network ID for the destination IP (0 if not a known local network)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_LABEL` COMMENT 'Resolved hostname or user-defined label for the source host';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_LABEL` COMMENT 'Resolved hostname or user-defined label for the destination host';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INTERFACE_ID` COMMENT 'ntopng internal interface identifier';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `CLIENT_LOCATION` COMMENT 'Client host location type (local LAN, remote, etc.)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SERVER_LOCATION` COMMENT 'Server host location type (local LAN, remote, etc.)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `L7_CATEGORY` COMMENT 'nDPI application category identifier';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the source host';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the destination host';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_PACKETS` COMMENT 'Packet count from client (source) to server (destination)';
-@
-ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packet count from server (destination) to client (source)';
-
+ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `FLOW_ID` COMMENT 'Unique flow identifier assigned by ntopng',
+  MODIFY COLUMN `IP_PROTOCOL_VERSION` COMMENT 'IP version: 4 for IPv4, 6 for IPv6',
+  MODIFY COLUMN `FIRST_SEEN` COMMENT 'Timestamp of the first packet of the flow',
+  MODIFY COLUMN `LAST_SEEN` COMMENT 'Timestamp of the last packet of the flow',
+  MODIFY COLUMN `VLAN_ID` COMMENT '802.1Q VLAN tag (0 if untagged)',
+  MODIFY COLUMN `PACKETS` COMMENT 'Total packet count in both directions',
+  MODIFY COLUMN `TOTAL_BYTES` COMMENT 'Total bytes transferred in both directions',
+  MODIFY COLUMN `SRC2DST_BYTES` COMMENT 'Bytes sent from client (source) to server (destination)',
+  MODIFY COLUMN `DST2SRC_BYTES` COMMENT 'Bytes sent from server (destination) to client (source)',
+  MODIFY COLUMN `SCORE` COMMENT 'Composite flow risk/security score',
+  MODIFY COLUMN `PROTOCOL` COMMENT 'IP transport protocol number (6=TCP, 17=UDP, 1=ICMP, etc.)',
+  MODIFY COLUMN `IPV4_SRC_ADDR` COMMENT 'Source IPv4 address as a 32-bit integer; 0 for IPv6 flows',
+  MODIFY COLUMN `IPV6_SRC_ADDR` COMMENT 'Source IPv6 address; all-zeros for IPv4 flows',
+  MODIFY COLUMN `IPV4_DST_ADDR` COMMENT 'Destination IPv4 address as a 32-bit integer; 0 for IPv6 flows',
+  MODIFY COLUMN `IPV6_DST_ADDR` COMMENT 'Destination IPv6 address; all-zeros for IPv4 flows',
+  MODIFY COLUMN `IP_DST_PORT` COMMENT 'Destination (server) port number',
+  MODIFY COLUMN `L7_PROTO` COMMENT 'nDPI layer-7 application protocol identifier',
+  MODIFY COLUMN `L7_PROTO_MASTER` COMMENT 'nDPI master/carrier protocol ID (e.g. TLS when L7_PROTO is HTTPS)',
+  MODIFY COLUMN `NUM_FLOWS` COMMENT 'Number of raw flows aggregated into this hourly summary row',
+  MODIFY COLUMN `FLOW_RISK` COMMENT 'Bitmap of nDPI flow risk flags (each bit represents a distinct risk)',
+  MODIFY COLUMN `SRC_MAC` COMMENT 'Source MAC address encoded as a 64-bit integer',
+  MODIFY COLUMN `DST_MAC` COMMENT 'Destination MAC address encoded as a 64-bit integer',
+  MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter (probe); IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)',
+  MODIFY COLUMN `EXPORTER_SITE` COMMENT 'Site/location identifier of the flow exporter',
+  MODIFY COLUMN `NTOPNG_INSTANCE_NAME` COMMENT 'Hostname/name of the ntopng instance that captured this flow',
+  MODIFY COLUMN `SRC_COUNTRY_CODE` COMMENT 'Source IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)',
+  MODIFY COLUMN `DST_COUNTRY_CODE` COMMENT 'Destination IP geo-country: two ASCII letters packed into a UInt16 (high byte = first letter)',
+  MODIFY COLUMN `SRC_ASN` COMMENT 'Autonomous System Number of the source IP',
+  MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination IP',
+  MODIFY COLUMN `INPUT_SNMP` COMMENT 'SNMP input interface index exported via NetFlow/IPFIX',
+  MODIFY COLUMN `OUTPUT_SNMP` COMMENT 'SNMP output interface index exported via NetFlow/IPFIX',
+  MODIFY COLUMN `SRC_NETWORK_ID` COMMENT 'ntopng local-network ID for the source IP (0 if not a known local network)',
+  MODIFY COLUMN `DST_NETWORK_ID` COMMENT 'ntopng local-network ID for the destination IP (0 if not a known local network)',
+  MODIFY COLUMN `SRC_LABEL` COMMENT 'Resolved hostname or user-defined label for the source host',
+  MODIFY COLUMN `DST_LABEL` COMMENT 'Resolved hostname or user-defined label for the destination host',
+  MODIFY COLUMN `INTERFACE_ID` COMMENT 'ntopng internal interface identifier',
+  MODIFY COLUMN `CLIENT_LOCATION` COMMENT 'Client host location type (local LAN, remote, etc.)',
+  MODIFY COLUMN `SERVER_LOCATION` COMMENT 'Server host location type (local LAN, remote, etc.)',
+  MODIFY COLUMN `L7_CATEGORY` COMMENT 'nDPI application category identifier',
+  MODIFY COLUMN `SRC_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the source host',
+  MODIFY COLUMN `DST_HOST_POOL_ID` COMMENT 'ntopng host-pool ID of the destination host',
+  MODIFY COLUMN `SRC2DST_PACKETS` COMMENT 'Packet count from client (source) to server (destination)',
+  MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packet count from server (destination) to client (source)';
 @
 
 /* VS */
@@ -1947,16 +1470,12 @@ ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ntopn
 @
 ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Per-host vulnerability scan results produced by the ntopng Vulnerability Scanner (VS) module. Each row stores the latest scan output for a given host and scan type as a JSON blob.';
 @
-ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `HOST` COMMENT 'IP address or hostname of the scanned target';
-@
-ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SCAN_TYPE` COMMENT 'Type of vulnerability scan performed (e.g. nmap, openvas)';
-@
-ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `LAST_SCAN` COMMENT 'Timestamp of when this scan was last performed';
-@
-ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `JSON_INFO` COMMENT 'Full scan results as a JSON blob';
-@
-ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER' MODIFY COLUMN `VS_RESULT_FILE` COMMENT 'Path to the raw scan result file on disk';
-
+ALTER TABLE `vulnerability_scan_data` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `HOST` COMMENT 'IP address or hostname of the scanned target',
+  MODIFY COLUMN `SCAN_TYPE` COMMENT 'Type of vulnerability scan performed (e.g. nmap, openvas)',
+  MODIFY COLUMN `LAST_SCAN` COMMENT 'Timestamp of when this scan was last performed',
+  MODIFY COLUMN `JSON_INFO` COMMENT 'Full scan results as a JSON blob',
+  MODIFY COLUMN `VS_RESULT_FILE` COMMENT 'Path to the raw scan result file on disk';
 @
 
 CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` ON CLUSTER '$CLUSTER' (
@@ -1976,20 +1495,14 @@ ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `nto
 @
 ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Summary reports of completed vulnerability scans. Each row represents one scan report with aggregate counts of scanned hosts, CVEs found, and open TCP/UDP ports.';
 @
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `REPORT_NAME` COMMENT 'User-defined name for this vulnerability scan report';
-@
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `REPORT_DATE` COMMENT 'Timestamp when the report was generated';
-@
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `REPORT_JSON_INFO` COMMENT 'Full report metadata and summary as a JSON blob';
-@
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NUM_SCANNED_HOSTS` COMMENT 'Number of hosts scanned in this report';
-@
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NUM_CVES` COMMENT 'Total number of CVEs identified across all scanned hosts';
-@
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NUM_TCP_PORTS` COMMENT 'Total number of open TCP ports found across all scanned hosts';
-@
-ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NUM_UDP_PORTS` COMMENT 'Total number of open UDP ports found across all scanned hosts';
-
+ALTER TABLE `vulnerability_scan_report` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `REPORT_NAME` COMMENT 'User-defined name for this vulnerability scan report',
+  MODIFY COLUMN `REPORT_DATE` COMMENT 'Timestamp when the report was generated',
+  MODIFY COLUMN `REPORT_JSON_INFO` COMMENT 'Full report metadata and summary as a JSON blob',
+  MODIFY COLUMN `NUM_SCANNED_HOSTS` COMMENT 'Number of hosts scanned in this report',
+  MODIFY COLUMN `NUM_CVES` COMMENT 'Total number of CVEs identified across all scanned hosts',
+  MODIFY COLUMN `NUM_TCP_PORTS` COMMENT 'Total number of open TCP ports found across all scanned hosts',
+  MODIFY COLUMN `NUM_UDP_PORTS` COMMENT 'Total number of open UDP ports found across all scanned hosts';
 @
 
 /* MITRE */
@@ -2005,18 +1518,13 @@ CREATE TABLE IF NOT EXISTS `mitre_table_info` ON CLUSTER '$CLUSTER' (
 @
 ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Mapping of ntopng alert IDs and entity types to MITRE ATT&CK tactics, techniques, and sub-techniques. Joined by host_alerts_view and flow_alerts_view to enrich alert rows with ATT&CK context.';
 @
-ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ALERT_ID` COMMENT 'ntopng alert type ID that maps to this MITRE entry';
-@
-ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ENTITY_ID` COMMENT 'ntopng entity type ID (e.g. 1=host, 4=flow) for this mapping';
-@
-ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COLUMN `TACTIC` COMMENT 'MITRE ATT&CK tactic identifier';
-@
-ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COLUMN `TECHNIQUE` COMMENT 'MITRE ATT&CK technique identifier';
-@
-ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SUB_TECHNIQUE` COMMENT 'MITRE ATT&CK sub-technique identifier (0 if none)';
-@
-ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER' MODIFY COLUMN `MITRE_ID` COMMENT 'MITRE ATT&CK ID string (e.g. T1046, T1595.002)';
-
+ALTER TABLE `mitre_table_info` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `ALERT_ID` COMMENT 'ntopng alert type ID that maps to this MITRE entry',
+  MODIFY COLUMN `ENTITY_ID` COMMENT 'ntopng entity type ID (e.g. 1=host, 4=flow) for this mapping',
+  MODIFY COLUMN `TACTIC` COMMENT 'MITRE ATT&CK tactic identifier',
+  MODIFY COLUMN `TECHNIQUE` COMMENT 'MITRE ATT&CK technique identifier',
+  MODIFY COLUMN `SUB_TECHNIQUE` COMMENT 'MITRE ATT&CK sub-technique identifier (0 if none)',
+  MODIFY COLUMN `MITRE_ID` COMMENT 'MITRE ATT&CK ID string (e.g. T1046, T1595.002)';
 @
 
 /* L7 PROTOCOLS */
@@ -2031,16 +1539,12 @@ CREATE TABLE IF NOT EXISTS `l7_protocols` ON CLUSTER '$CLUSTER' (
 @
 ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Static lookup table mapping nDPI protocol IDs to their human-readable names, categories, and breeds. Populated at ntopng startup and used to enrich flow queries with application-layer protocol labels.';
 @
-ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROTO_ID` COMMENT 'nDPI application protocol identifier, matches L7_PROTO and L7_PROTO_MASTER in the flows table';
-@
-ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROTO_NAME` COMMENT 'Human-readable nDPI protocol name (e.g. TLS, HTTP, DNS)';
-@
-ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER' MODIFY COLUMN `CATEGORY_ID` COMMENT 'nDPI protocol category identifier';
-@
-ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER' MODIFY COLUMN `CATEGORY_NAME` COMMENT 'Human-readable nDPI category name (e.g. Web, Streaming, VPN)';
-@
-ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER' MODIFY COLUMN `BREED` COMMENT 'nDPI protocol breed indicating trustworthiness (e.g. Safe, Unsafe, Fun, Unrated)';
-
+ALTER TABLE `l7_protocols` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `PROTO_ID` COMMENT 'nDPI application protocol identifier, matches L7_PROTO and L7_PROTO_MASTER in the flows table',
+  MODIFY COLUMN `PROTO_NAME` COMMENT 'Human-readable nDPI protocol name (e.g. TLS, HTTP, DNS)',
+  MODIFY COLUMN `CATEGORY_ID` COMMENT 'nDPI protocol category identifier',
+  MODIFY COLUMN `CATEGORY_NAME` COMMENT 'Human-readable nDPI category name (e.g. Web, Streaming, VPN)',
+  MODIFY COLUMN `BREED` COMMENT 'nDPI protocol breed indicating trustworthiness (e.g. Safe, Unsafe, Fun, Unrated)';
 @
 
 /* ASSET */
@@ -2076,40 +1580,24 @@ ALTER TABLE assets ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `model` String
 @
 ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Network asset inventory: one row per discovered or imported asset (host, MAC address, network device). Uses ReplicatedReplacingMergeTree on version so that re-discovered assets update existing rows rather than creating duplicates. json_info holds additional metadata as a JSON blob.';
 @
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `type` COMMENT 'Asset category (e.g. host, mac, network_device)';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `key` COMMENT 'Unique asset key within its type (e.g. IP address, MAC address)';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ifid` COMMENT 'ntopng interface on which this asset was observed';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ip` COMMENT 'IP address of the asset (empty if not applicable)';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `mac` COMMENT 'MAC address of the asset';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `vlan` COMMENT 'VLAN on which the asset was observed (0 if untagged)';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the asset belongs to';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `device_type` COMMENT 'Device category/type (maps to ntopng DeviceType enum)';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `manufacturer` COMMENT 'Hardware manufacturer derived from MAC OUI lookup';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `first_seen` COMMENT 'Timestamp when this asset was first observed by ntopng';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `last_seen` COMMENT 'Timestamp of the most recent observation of this asset';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `gateway_mac` COMMENT 'MAC address of the gateway used to reach this asset';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `json_info` COMMENT 'Additional asset metadata as a JSON blob (OS info, open ports, etc.)';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `version` COMMENT 'Monotonically increasing version counter used by ReplacingMergeTree for deduplication';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `os_type` COMMENT 'Operating system type detected for this asset';
-@
-ALTER TABLE `assets` ON CLUSTER '$CLUSTER' MODIFY COLUMN `model` COMMENT 'Hardware model string for this asset';
-
+ALTER TABLE `assets` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `type` COMMENT 'Asset category (e.g. host, mac, network_device)',
+  MODIFY COLUMN `key` COMMENT 'Unique asset key within its type (e.g. IP address, MAC address)',
+  MODIFY COLUMN `ifid` COMMENT 'ntopng interface on which this asset was observed',
+  MODIFY COLUMN `ip` COMMENT 'IP address of the asset (empty if not applicable)',
+  MODIFY COLUMN `mac` COMMENT 'MAC address of the asset',
+  MODIFY COLUMN `vlan` COMMENT 'VLAN on which the asset was observed (0 if untagged)',
+  MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the asset belongs to',
+  MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name',
+  MODIFY COLUMN `device_type` COMMENT 'Device category/type (maps to ntopng DeviceType enum)',
+  MODIFY COLUMN `manufacturer` COMMENT 'Hardware manufacturer derived from MAC OUI lookup',
+  MODIFY COLUMN `first_seen` COMMENT 'Timestamp when this asset was first observed by ntopng',
+  MODIFY COLUMN `last_seen` COMMENT 'Timestamp of the most recent observation of this asset',
+  MODIFY COLUMN `gateway_mac` COMMENT 'MAC address of the gateway used to reach this asset',
+  MODIFY COLUMN `json_info` COMMENT 'Additional asset metadata as a JSON blob (OS info, open ports, etc.)',
+  MODIFY COLUMN `version` COMMENT 'Monotonically increasing version counter used by ReplacingMergeTree for deduplication',
+  MODIFY COLUMN `os_type` COMMENT 'Operating system type detected for this asset',
+  MODIFY COLUMN `model` COMMENT 'Hardware model string for this asset';
 @
 
 /* VIEWS */
@@ -2378,46 +1866,27 @@ ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `DST_SIT
 @
 ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Hourly aggregated traffic statistics per source/destination ASN pair. Used for autonomous-system level traffic analysis and BGP peer analytics. Partitioned by day on FIRST_SEEN.';
 @
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `ID` COMMENT 'Unique row identifier';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `NTOPNG_INSTANCE_NAME` COMMENT 'Name of the ntopng instance that generated this record';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INTERFACE_ID` COMMENT 'ntopng interface identifier on which this traffic was observed';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `IP_PROTOCOL_VERSION` COMMENT 'IP version: 4 for IPv4, 6 for IPv6';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `FIRST_SEEN` COMMENT 'Start of the one-hour aggregation window';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `LAST_SEEN` COMMENT 'End of the one-hour aggregation window';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_BYTES` COMMENT 'Bytes from source ASN to destination ASN in this hour';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_BYTES` COMMENT 'Bytes from destination ASN to source ASN in this hour';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `TOTAL_BYTES` COMMENT 'Total bytes between the two ASNs in this hour';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC2DST_PACKETS` COMMENT 'Packets from source ASN to destination ASN in this hour';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packets from destination ASN to source ASN in this hour';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_ASN` COMMENT 'Autonomous System Number of the source';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_PEER_ASN` COMMENT 'BGP peer ASN upstream of the source (EXPORTER_IPV4_ADDRESS)';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_PEER_ASN` COMMENT 'BGP peer ASN upstream of the destination';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter; IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `INPUT_SNMP` COMMENT 'SNMP input interface index from NetFlow/IPFIX';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `OUTPUT_SNMP` COMMENT 'SNMP output interface index from NetFlow/IPFIX';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `SRC_SITE_ID` COMMENT 'ntopng site ID associated with the source network (0 if none)';
-@
-ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' MODIFY COLUMN `DST_SITE_ID` COMMENT 'ntopng site ID associated with the destination network (0 if none)';
-
+ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `ID` COMMENT 'Unique row identifier',
+  MODIFY COLUMN `NTOPNG_INSTANCE_NAME` COMMENT 'Name of the ntopng instance that generated this record',
+  MODIFY COLUMN `INTERFACE_ID` COMMENT 'ntopng interface identifier on which this traffic was observed',
+  MODIFY COLUMN `IP_PROTOCOL_VERSION` COMMENT 'IP version: 4 for IPv4, 6 for IPv6',
+  MODIFY COLUMN `FIRST_SEEN` COMMENT 'Start of the one-hour aggregation window',
+  MODIFY COLUMN `LAST_SEEN` COMMENT 'End of the one-hour aggregation window',
+  MODIFY COLUMN `SRC2DST_BYTES` COMMENT 'Bytes from source ASN to destination ASN in this hour',
+  MODIFY COLUMN `DST2SRC_BYTES` COMMENT 'Bytes from destination ASN to source ASN in this hour',
+  MODIFY COLUMN `TOTAL_BYTES` COMMENT 'Total bytes between the two ASNs in this hour',
+  MODIFY COLUMN `SRC2DST_PACKETS` COMMENT 'Packets from source ASN to destination ASN in this hour',
+  MODIFY COLUMN `DST2SRC_PACKETS` COMMENT 'Packets from destination ASN to source ASN in this hour',
+  MODIFY COLUMN `SRC_ASN` COMMENT 'Autonomous System Number of the source',
+  MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination',
+  MODIFY COLUMN `SRC_PEER_ASN` COMMENT 'BGP peer ASN upstream of the source (EXPORTER_IPV4_ADDRESS)',
+  MODIFY COLUMN `DST_PEER_ASN` COMMENT 'BGP peer ASN upstream of the destination',
+  MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter; IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)',
+  MODIFY COLUMN `INPUT_SNMP` COMMENT 'SNMP input interface index from NetFlow/IPFIX',
+  MODIFY COLUMN `OUTPUT_SNMP` COMMENT 'SNMP output interface index from NetFlow/IPFIX',
+  MODIFY COLUMN `SRC_SITE_ID` COMMENT 'ntopng site ID associated with the source network (0 if none)',
+  MODIFY COLUMN `DST_SITE_ID` COMMENT 'ntopng site ID associated with the destination network (0 if none)';
 @
 
 /* AS data (local, non replicated) populated on startup */
@@ -2432,10 +1901,8 @@ CREATE TABLE IF NOT EXISTS `asn_info` (
 @
 ALTER TABLE `asn_info` MODIFY COMMENT 'AS (Autonomous System) reference data loaded from geoip/as.csv on startup. Maps ASN to handle, description, and ISO 3166-1 country code. Refreshed on every ntopng startup via TRUNCATE + bulk INSERT.';
 @
-ALTER TABLE `asn_info` MODIFY COLUMN `asn` COMMENT 'Autonomous System Number (matches flows.SRC_ASN / DST_ASN)';
-@
-ALTER TABLE `asn_info` MODIFY COLUMN `handle` COMMENT 'BGP handle / RIR registry object name for this AS (e.g. LVLT-1)';
-@
-ALTER TABLE `asn_info` MODIFY COLUMN `description` COMMENT 'Human-readable organization name for this AS';
-@
-ALTER TABLE `asn_info` MODIFY COLUMN `country_code` COMMENT 'ISO 3166-1 alpha-2 country code of the AS registrant';
+ALTER TABLE `asn_info`
+  MODIFY COLUMN `asn` COMMENT 'Autonomous System Number (matches flows.SRC_ASN / DST_ASN)',
+  MODIFY COLUMN `handle` COMMENT 'BGP handle / RIR registry object name for this AS (e.g. LVLT-1)',
+  MODIFY COLUMN `description` COMMENT 'Human-readable organization name for this AS',
+  MODIFY COLUMN `country_code` COMMENT 'ISO 3166-1 alpha-2 country code of the AS registrant';
