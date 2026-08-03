@@ -495,7 +495,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
 
   if (polling_start_time == 0) polling_start_time = (u_int32_t)time(NULL);
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[NPROBE STATS] %s", payload);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[ZMQ][stats][%s] %s", get_name(), payload);
 
   o = json_tokener_parse_verbose(payload, &jerr);
 
