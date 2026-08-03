@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 #ifdef WIN32
   initWindows();
 #else
-#if defined(NTOPNG_PRO)
+#if defined(NTOPNG_PRO) && (!defined(FORCE_VALID_LICENSE))
   ntopinit(argc, argv);
 #endif
 #endif
