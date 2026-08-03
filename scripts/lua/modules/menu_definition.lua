@@ -11,16 +11,21 @@
 --
 -- NOTE: To add a new flag, update scripts/lua/modules/ntopng_menu_visibility.lua
 --
--- Each section/entry carries exactly ONE condition:
---   hidden = <lua boolean expr>
---   reason = { menu_visibility.reason(badge, reason_key, suggestion_key), ... }  -- optional
--- menu_visibility.resolve(item) is the single place deciding what `hidden`
--- means: drop entirely (no reason, or only structural iface/platform
--- reasons) vs keep-but-dimmed+tooltip (any fixable pro/perm/feature
--- reason present). Only add a reason() call for the parts of the
--- condition the user could plausibly act on — leave structural parts
--- (wrong interface type, wrong product mode) reason-less so they still
--- hard-drop even when OR'd together with fixable parts.
+-- Each section/entry carries:
+--   hard_hidden = <lua boolean expr>  -- optional, structural: ALWAYS dropped
+--   hidden      = <lua boolean expr>
+--   reason      = { menu_visibility.reason(badge, reason_key, suggestion_key), ... }  -- optional
+-- menu_visibility.resolve(item) is the single place deciding what these
+-- mean: hard_hidden drops the item outright, while `hidden` drops it only
+-- when no fixable reason is attached, otherwise keeps it dimmed+tooltip.
+--
+-- Structural conditions (system interface vs traffic interface, nEdge vs
+-- ntopng, Windows vs Unix) go in `hard_hidden`, NOT in `hidden`: they are
+-- not fixable, and leaving them in `hidden` makes the item survive as a
+-- dimmed row as soon as any fixable reason happens to be in the list.
+-- Every reason() call must be guarded by the condition it describes
+-- (`cond and reason(...) or nil`), otherwise it describes something that
+-- is not actually true.
 --
 local menu_visibility = require "ntopng_menu_visibility"
 local reason = menu_visibility.reason
@@ -31,7 +36,8 @@ return function(f)
         key = "dashboard",
         i18n = "index_page.dashboard",
         icon = "fas fa-tachometer-alt",
-        hidden = f.is_system_interface or f.is_pcap_dump or f.is_db_view_interface,
+        hard_hidden = f.is_system_interface,
+        hidden = f.is_pcap_dump or f.is_db_view_interface,
         reason = {
             f.is_pcap_dump and reason("iface", "menu.reason.is_pcap_dump", "menu.suggestion.is_pcap_dump") or nil,
             f.is_db_view_interface and reason("iface", "menu.reason.is_db_view_interface", "menu.suggestion.is_db_view_interface") or nil,
@@ -48,7 +54,8 @@ return function(f)
         key = "monitoring",
         i18n = "monitoring",
         icon = "fas fa-eye",
-        hidden = f.is_system_interface or f.no_admin,
+        hard_hidden = f.is_system_interface,
+        hidden = f.no_admin,
         reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") },
         entries = {{
             key = "active_monitoring",
@@ -62,8 +69,8 @@ return function(f)
             i18n = "discover.network_discovery",
             icon = "fas fa-search",
             url = "/lua/discover.lua",
-            hidden = f.no_discoverable_interface or f.is_windows or f.is_loopback_interface or
-                f.limit_resource_usage or f.infrastructure_view,
+            hard_hidden = f.no_discoverable_interface or f.is_windows or f.is_loopback_interface,
+            hidden = f.limit_resource_usage or f.infrastructure_view,
             reason = {
                 f.limit_resource_usage and reason("feature", "menu.reason.limit_resource_usage", "menu.suggestion.limit_resource_usage") or nil,
                 f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
@@ -73,8 +80,9 @@ return function(f)
             i18n = "scan_hosts",
             icon = "fas fa-shield-alt",
             url = "/lua/vulnerability_scan.lua",
-            hidden = f.no_vs_utils or f.is_zmq_interface,
-            reason = { f.no_vs_utils and reason("feature", "menu.reason.no_vs_utils", "menu.suggestion.no_vs_utils") or nil }
+            hard_hidden = f.is_zmq_interface,
+            hidden = f.no_vs_utils,
+            reason = { reason("feature", "menu.reason.no_vs_utils", "menu.suggestion.no_vs_utils") }
         } -- pro entries appended by menu_definition_pro: infrastructure_dashboard, snmp_monitoring
         }
     },
@@ -82,7 +90,8 @@ return function(f)
         key = "alerts",
         i18n = "details.alerts",
         icon = "fas fa-exclamation-triangle",
-        hidden = f.alerts_disabled or f.no_alerts_cap or f.is_db_view_interface or f.infrastructure_view,
+        hard_hidden = f.is_db_view_interface,
+        hidden = f.alerts_disabled or f.no_alerts_cap or f.infrastructure_view,
         reason = {
             f.alerts_disabled and reason("feature", "menu.reason.alerts_disabled", "menu.suggestion.alerts_disabled") or nil,
             f.no_alerts_cap and reason("perm", "menu.reason.no_alerts_cap", "menu.suggestion.no_alerts_cap") or nil,
@@ -111,7 +120,8 @@ return function(f)
         key = "flows",
         i18n = "flows",
         icon = "fas fa-stream",
-        hidden = f.is_system_interface or f.is_nedge or f.is_asn_mode_enabled or f.infrastructure_view,
+        hard_hidden = f.is_system_interface or f.is_nedge or f.is_asn_mode_enabled,
+        hidden = f.infrastructure_view,
         reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "active_flows",
@@ -125,7 +135,8 @@ return function(f)
         key = "hosts",
         i18n = "hosts",
         icon = "fas fa-laptop",
-        hidden = f.is_system_interface or f.is_viewed or f.is_nedge or f.is_asn_mode_enabled or f.infrastructure_view,
+        hard_hidden = f.is_system_interface or f.is_viewed or f.is_nedge or f.is_asn_mode_enabled,
+        hidden = f.infrastructure_view,
         reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "hosts",
@@ -146,7 +157,8 @@ return function(f)
         after = "collection",
         i18n = "maps",
         icon = "fas fa-map",
-        hidden = f.is_system_interface or f.is_viewed or f.infrastructure_view,
+        hard_hidden = f.is_system_interface or f.is_viewed,
+        hidden = f.infrastructure_view,
         reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "geo_map",
@@ -160,7 +172,8 @@ return function(f)
         key = "if_stats",
         i18n = "interface",
         icon = "fas fa-ethernet",
-        hidden = f.is_system_interface or f.infrastructure_view,
+        hard_hidden = f.is_system_interface,
+        hidden = f.infrastructure_view,
         reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "interface",
@@ -177,15 +190,16 @@ return function(f)
             icon = "fas fa-network-wired",
             url = "/lua/network_stats.lua",
             -- Superseded by Sites Dashboard on Pro+, not a license gate:
-            -- is_pro has no reason() so that part hard-drops, no misleading badge.
-            hidden = f.is_pro or f.is_viewed_interface,
-            reason = { f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil }
+            -- structural, so it must never show up as a dimmed "upgrade" row.
+            hard_hidden = f.is_pro,
+            hidden = f.is_viewed_interface,
+            reason = { reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") }
         }, {
             key = "host_pools",
             i18n = "host_pools.host_pools",
             icon = "fas fa-layer-group",
             url = "/lua/pool_stats.lua",
-            hidden = f.is_nedge
+            hard_hidden = f.is_nedge
         }, {
             key = "autonomous_systems",
             i18n = "as_stats.autonomous_systems",
@@ -238,7 +252,8 @@ return function(f)
         key = "health",
         i18n = "health",
         icon = "fas fa-heartbeat",
-        hidden = f.no_system_interface,
+        -- System-interface-only section: structural, never dimmed elsewhere.
+        hard_hidden = f.no_system_interface,
         entries = {{
             key = "system_status",
             i18n = "system_status",
