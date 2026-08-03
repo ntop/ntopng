@@ -344,9 +344,9 @@ end
 
 if #alerts_filters > 1 then
 	rsp[#rsp + 1] = {
-		action = "flow_alerts",
+		action = "status",
 		label = i18n("flow_alerts_filter"),
-		name = "flow_alerts",
+		name = "status",
 		value = alerts_filters,
 	}
 end
