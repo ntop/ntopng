@@ -297,6 +297,9 @@ pull-deps:
 pull-pro:
 	if test -d ./pro; then echo "Pulling ntopng/pro..."; cd pro; git pull --rebase; fi
 
+pull-ndpi-pro:
+	if test -d ../ndpi-pro; then echo "Pulling ndpi-pro..."; cd ../ndpi-pro; git pull --rebase; fi
+
 format:
 	find ./src ./include -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \;
 	if test -d ./pro; then find ./pro/src ./pro/include -type f \( -name '*.cpp' -o -name '*.h' \) -exec clang-format --style=file -i '{}' \; ; fi
@@ -308,7 +311,7 @@ fast-format:
 check-format:
 	git diff --name-only --cached | grep -P '^(src|include)/.*\.(cpp|h)$$' | xargs -n1 clang-format -n --Werror --style=file
 
-pull: pull-deps pull-pro
+pull: pull-deps pull-pro pull-ndpi-pro
 	echo "Updating ntopng..."
 	git pull --rebase
 
