@@ -132,14 +132,18 @@ end
 
 -- Returns a CSV string with all the user-defined Sites.
 -- The system-reserved Default site is skipped since it cannot be re-created.
+-- The id and parent columns describe the hierarchy: the exported id is not
+-- restored as-is (a new one is assigned on import), it is only the reference
+-- the parent column of the children points at.
 -- NOTE: the header row (CSV_HEADER) is intentionally NOT emitted; the export
 -- contains data rows only, in the canonical column order
--- (name,description,latitude,longitude). On import the header is still accepted
+-- (name,description,latitude,longitude,id,parent). The id and parent columns
+-- are appended to the previous ones, so that CSV files exported by older
+-- versions are still imported correctly. On import the header is still accepted
 -- if present (see import_csv), so externally edited files keep working.
 function sites_import_export.export_csv()
 	local sites = site_utils.getSites()
 	local schema = site_utils.get_exported_schema()
-	tprint(schema)
 	local lines = {}
 
 	for _, site in ipairs(sites) do
@@ -164,11 +168,17 @@ end
 -- ##############################################
 
 -- Imports Sites from a CSV string.
--- The CSV may optionally contain a header row (name,description,latitude,longitude);
--- if no header is found the columns are assumed to be in that fixed order.
+-- The CSV may optionally contain a header row
+-- (name,description,latitude,longitude,id,parent); if no header is found the
+-- columns are assumed to be in that fixed order.
 -- Each row is added through site_utils.addSite(), so the same validation as the
 -- manual creation applies. Rows that fail validation (e.g. duplicated names) are
 -- skipped and reported in the feedback.
+-- Hierarchies are described with the id/parent columns: a row whose parent
+-- column holds the id of another row of the file becomes a child of that Site.
+-- Since the ids of the file are not preserved, the parents are imported first
+-- (see site_utils.importSites()) and the children are linked to the id which
+-- has actually been assigned to the parent.
 function sites_import_export.import_csv(csv_string)
 	if isEmptyString(csv_string) then
 		return rest_utils.consts.err.add_site_failed, { feedback = "No CSV data provided" }
@@ -215,74 +225,62 @@ function sites_import_export.import_csv(csv_string)
 		end
 	end
 
-	local added = 0
-	local skipped = 0
-	local duplicates = 0
-	local errors = {}
-
-	-- Names already present (case-insensitive). Used to skip duplicates
-	-- silently instead of reporting them as errors. The set is updated as new
-	-- Sites are added, so duplicates *within* the same CSV are skipped too.
-	local existing_names = {}
-	for _, s in ipairs(site_utils.getSites()) do
-		existing_names[tostring(s.name):lower()] = true
-	end
+	local entries = {}
 
 	for r = start_row, #rows do
 		local fields = rows[r]
 
-		-- Build the site input generically from the schema, mapping each column
-		-- onto its addSite() input key. New exported attributes flow through
-		-- automatically.
-		local site = {}
+		-- Build the entry generically from the schema, one attribute per column.
+		-- New exported attributes flow through automatically. The values are
+		-- kept in exported form: importSites() translates them into the
+		-- addSite() inputs.
+		local entry = {}
 		for _, f in ipairs(schema) do
 			local idx = col[f.key]
 			local raw = idx and fields[idx] or nil
-			if raw == nil then
-				site[f.input_key] = f.default
+
+			if raw ~= nil then
+				raw = trimSpace(raw)
+			end
+
+			if isEmptyString(raw) then
+				entry[f.key] = f.default
 			else
-				site[f.input_key] = raw
+				entry[f.key] = raw
 			end
 		end
+
 		-- Silently ignore completely empty rows
-		if not isEmptyString(site.site_name) then
-			local name_key = site.site_name:lower()
-
-			if existing_names[name_key] then
-				-- Site already present (in Redis or added earlier in this
-				-- batch): not an error, just skip it silently
-				duplicates = duplicates + 1
-			else
-				local rc, msg = site_utils.addSite(site)
-				if rc == rest_utils.consts.success.ok then
-					added = added + 1
-					existing_names[name_key] = true
-				else
-					-- Real validation error (invalid coordinates, illegal
-					-- name, ...): report it
-					skipped = skipped + 1
-					errors[#errors + 1] = site.site_name .. ": " .. (msg or "error")
-				end
-			end
+		if not isEmptyString(entry.name) then
+			entries[#entries + 1] = entry
 		end
 	end
 
-	local feedback = string.format("Imported %d site(s)", added)
-	if duplicates > 0 then
-		feedback = feedback .. string.format(", %d already existing (skipped)", duplicates)
+	-- Sites are added parent-first, remapping the parent ids of the file onto
+	-- the ids actually assigned to the imported Sites
+	local stats = site_utils.importSites(entries)
+
+	local feedback = string.format("Imported %d site(s)", stats.added)
+	if stats.duplicates > 0 then
+		feedback = feedback .. string.format(", %d already existing (skipped)", stats.duplicates)
 	end
-	if skipped > 0 then
-		feedback = feedback .. string.format(", %d skipped", skipped)
+	if stats.skipped > 0 then
+		feedback = feedback .. string.format(", %d skipped", stats.skipped)
 	end
-	if #errors > 0 then
-		feedback = feedback .. " (" .. table.concat(errors, "; ") .. ")"
+	if #stats.warnings > 0 then
+		-- Sites imported as root ones because their parent could not be
+		-- resolved (dangling or circular reference)
+		feedback = feedback .. " [unresolved parent: " .. table.concat(stats.warnings, "; ") .. "]"
+	end
+	if #stats.errors > 0 then
+		feedback = feedback .. " (" .. table.concat(stats.errors, "; ") .. ")"
 	end
 
 	-- Treat the import as a failure only if nothing was imported AND there was
 	-- nothing to skip as a duplicate, i.e. the file had no usable rows or only
 	-- invalid ones. Re-importing an already-present configuration (all
 	-- duplicates) is a no-op, not a failure.
-	if added == 0 and duplicates == 0 then
+	if stats.added == 0 and stats.duplicates == 0 then
 		return rest_utils.consts.err.add_site_failed, { feedback = feedback }
 	end
 

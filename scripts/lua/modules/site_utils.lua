@@ -31,13 +31,20 @@ local SITE_NAME_PATTERN = "^[%w _&À-ÖØ-öø-ÿ]+$"
 
 -- ##############################################
 -- Site field schema
+-- NOTE: the order of the entries is also the canonical import/export column
+-- order (see sites_import_export.lua)
 local SITE_SCHEMA = {
-	{ key = "id", default = "0", exported = false },
 	{ key = "name", input_key = "site_name", default = "", exported = true },
 	{ key = "description", input_key = "site_description", default = "", exported = true },
 	{ key = "latitude", default = 0, exported = true },
 	{ key = "longitude", default = 0, exported = true },
-	{ key = "parent", input_key = "site_parent", default = nil, exported = false },
+	-- The id is exported as a reference only: it is never restored as-is (a new
+	-- id is always assigned on import), it just makes a Site referenceable by
+	-- the "parent" attribute
+	{ key = "id", default = "0", exported = true, is_id = true },
+	-- Parent Site: holds the exported id of another Site, remapped onto the
+	-- newly assigned id at import time
+	{ key = "parent", input_key = "site_parent", default = nil, exported = true, is_id = true },
 	{ key = "reserved", default = false, exported = false },
 }
 
@@ -359,7 +366,8 @@ end
 -- ##############################################
 
 -- Returns the ordered list of exported attributes as descriptors:
---   { key = <stored name>, input_key = <addSite/editSite input name>, default = <fallback> }
+--   { key = <stored name>, input_key = <addSite/editSite input name>,
+--     default = <fallback>, is_id = <true when the value is a Site id> }
 -- Import code uses this to map CSV/backup columns onto addSite() inputs
 -- generically, with no hardcoded field names.
 function site_utils.get_exported_schema()
@@ -370,6 +378,7 @@ function site_utils.get_exported_schema()
 				key = f.key,
 				input_key = f.input_key or f.key,
 				default = f.default,
+				is_id = f.is_id,
 			}
 		end
 	end
@@ -788,17 +797,26 @@ function site_utils.export()
 		sites = {},
 	}
 
-	local exported_fields = site_utils.get_exported_fields()
+	local exported_schema = site_utils.get_exported_schema()
 
 	local sites = get_sites_from_cache()
 	for _, site in pairsByKeys(sites, asc) do
 		if not site.reserved then
-			-- The id is kept for reference even though it is not a schema-driven
-			-- exported field; everything else is built generically so a new
-			-- exported attribute is included here with no change.
-			local entry = { id = tostring(site.id) }
-			for _, key in ipairs(exported_fields) do
-				entry[key] = site[key]
+			-- Built generically, so a new exported attribute is included here
+			-- with no change
+			local entry = {}
+
+			for _, f in ipairs(exported_schema) do
+				local v = site[f.key]
+
+				-- The attributes holding an id (the id itself and the parent
+				-- pointing at it) are exported in their canonical (string) form,
+				-- so that the two stay comparable
+				if v ~= nil and f.is_id then
+					v = tostring(v)
+				end
+
+				entry[f.key] = v
 			end
 			conf.sites[#conf.sites + 1] = entry
 		end
@@ -835,76 +853,222 @@ function site_utils.remove_all_sites()
 end
 
 -- ##############################################
+-- Import helpers
+
+-- Normalizes an id as found in an imported file: nil when empty or when it is
+-- the reserved Default site id (which is the "no parent" sentinel).
+local function normalize_import_id(id)
+	if id == nil then
+		return nil
+	end
+
+	id = trimSpace(tostring(id))
+
+	if isEmptyString(id) or id == tostring(DEFAULT_SITE.id) then
+		return nil
+	end
+
+	return id
+end
+
+-- ##############################################
+
+-- Forward declaration: resolving a parent means importing it, hence the two
+-- helpers are mutually recursive.
+local import_site_entry
+
+-- Maps a parent id, as found in the imported file, onto the id assigned to the
+-- corresponding Site, importing the parent first when it is not resolved yet
+local function resolve_import_parent(ctx, parent_id)
+	parent_id = normalize_import_id(parent_id)
+
+	if not parent_id then
+		-- No parent: the Site is a root one
+		return nil
+	end
+
+	local new_id = ctx.old_to_new[parent_id]
+
+	if new_id then
+		-- Parent already resolved: no need to walk the chain again
+		return new_id
+	end
+
+	if ctx.failed[parent_id] then
+		-- Already attempted and skipped (e.g. invalid data): not retried
+		return nil, "unable to import parent site " .. parent_id
+	end
+
+	if ctx.visiting[parent_id] then
+		-- The parent is one of the Sites being resolved further up the chain:
+		-- the file describes a circular hierarchy
+		return nil, "circular parent reference"
+	end
+
+	local parent_entry = ctx.by_file_id[parent_id]
+
+	if not parent_entry then
+		return nil, "unknown parent site id " .. parent_id
+	end
+
+	-- Import the parent (recursively, as it may have a parent itself) to get
+	-- the id which is actually assigned to it
+	new_id = import_site_entry(ctx, parent_entry)
+
+	if not new_id then
+		return nil, "unable to import parent site " .. parent_id
+	end
+
+	return new_id
+end
+
+-- ##############################################
+
+-- Imports a single entry, resolving (and hence importing) its parent first.
+function import_site_entry(ctx, entry)
+	local file_id = normalize_import_id(entry.id)
+
+	if file_id then
+		if ctx.old_to_new[file_id] then
+			-- Already imported: return the id assigned back then
+			return ctx.old_to_new[file_id]
+		end
+
+		if ctx.failed[file_id] then
+			-- Already attempted and skipped: do not try again
+			return nil
+		end
+
+		ctx.visiting[file_id] = true
+	end
+
+	local stats = ctx.stats
+	local name = trimSpace(tostring(entry.name or ""))
+	local new_id
+
+	-- Entries without a name are silently ignored
+	if not isEmptyString(name) then
+		local name_key = name:lower()
+		-- The by-name cache is kept coherent by addSite(), hence it already
+		-- accounts for the Sites added earlier in this same batch
+		local existing = get_sites_by_name()[name_key]
+
+		if existing then
+			-- Site already present: not an error, just skip it. Its id is
+			-- returned anyway, so that its children are still linked to it.
+			new_id = tostring(existing.id)
+			stats.duplicates = stats.duplicates + 1
+		else
+			local parent_id, parent_err = resolve_import_parent(ctx, entry.parent)
+
+			if parent_err then
+				-- Dangling or circular reference: the Site is imported as a root
+				-- one (parent_id is nil here) and the fact is reported
+				stats.warnings[#stats.warnings + 1] = name .. ": " .. parent_err
+			end
+
+			-- Translate the exported attributes into the addSite() input keys, so
+			-- that a new exported attribute is forwarded automatically. The id of
+			-- the file is deliberately not forwarded (a new one is generated) and
+			-- the parent is the *resolved* one.
+			local input = {}
+			for _, f in ipairs(ctx.schema) do
+				local v = entry[f.key]
+				if v == nil then
+					v = f.default
+				end
+				input[f.input_key] = v
+			end
+			input.id = nil
+			input.site_name = name
+			input.site_parent = parent_id
+
+			local rc, msg = site_utils.addSite(input)
+
+			if rc == rest_utils.consts.success.ok then
+				-- addSite() keeps the caches coherent, hence the id just assigned
+				-- is read back with no Redis round trip
+				local created = get_sites_by_name()[name_key]
+				new_id = created and tostring(created.id) or nil
+				stats.added = stats.added + 1
+			else
+				-- Real validation error (invalid coordinates, illegal name,
+				-- limit reached, ...): report it
+				stats.skipped = stats.skipped + 1
+				stats.errors[#stats.errors + 1] = name .. ": " .. (msg or "error")
+			end
+		end
+	end
+
+	if file_id then
+		ctx.visiting[file_id] = nil
+
+		-- Remember the outcome, so that the children referencing this id link to
+		-- new_id and a failed entry is never attempted again
+		if new_id then
+			ctx.old_to_new[file_id] = new_id
+		else
+			ctx.failed[file_id] = true
+		end
+	end
+
+	return new_id
+end
+
+-- ##############################################
+
+-- Imports a batch of Sites resolving the parent references described by the
+-- batch itself.
+function site_utils.importSites(entries)
+	local ctx = {
+		schema = site_utils.get_exported_schema(),
+		by_file_id = {},
+		old_to_new = {},
+		failed = {},
+		visiting = {},
+		stats = { added = 0, duplicates = 0, skipped = 0, errors = {}, warnings = {} },
+	}
+
+	if type(entries) ~= "table" then
+		return ctx.stats
+	end
+
+	-- Index the entries which can be referenced as a parent. On a duplicated
+	-- id the first entry wins.
+	for _, entry in ipairs(entries) do
+		local file_id = normalize_import_id(entry.id)
+
+		if file_id and not ctx.by_file_id[file_id] then
+			ctx.by_file_id[file_id] = entry
+		end
+	end
+
+	for _, entry in ipairs(entries) do
+		import_site_entry(ctx, entry)
+	end
+
+	return ctx.stats
+end
+
+-- ##############################################
 
 -- Imports a Sites configuration previously produced by site_utils.export()
 -- using *additive* (merge) semantics, exactly like the CSV import.
--- The original Site IDs in the file are NOT preserved. Since network ->
--- site associations are machine-local and not part of import/export, this is
--- safe: existing Sites (and their associations) keep their IDs untouched, and
--- only brand new Sites - which have no associations yet - receive a new ID.
 function site_utils.restore(conf)
 	if type(conf) ~= "table" then
 		return rest_utils.consts.err.add_site_failed
 	end
 
-	local added = 0
-	local duplicates = 0
-	local skipped = 0
-
-	-- Names already present (case-insensitive). Updated as new Sites are added
-	-- so that duplicates *within* the same file are skipped too.
-	local existing_names = {}
-	for _, s in ipairs(site_utils.getSites()) do
-		existing_names[tostring(s.name):lower()] = true
-	end
-
-	for _, site in ipairs(conf.sites or {}) do
-		-- Never import the reserved Default site (id 0)
-		if tostring(site.id or "") ~= tostring(DEFAULT_SITE.id) then
-			local name = trimSpace(tostring(site.name or ""))
-
-			-- Silently ignore entries without a name
-			if not isEmptyString(name) then
-				local name_key = name:lower()
-
-				if existing_names[name_key] then
-					-- Site already present (in Redis or added earlier in this
-					-- batch): not an error, just skip it silently
-					duplicates = duplicates + 1
-				else
-					-- Build the addSite() input generically from SITE_SCHEMA so any
-					-- new exported attribute is forwarded automatically.
-					local input = {}
-					for _, f in ipairs(site_utils.get_exported_schema()) do
-						local v = site[f.key]
-						if v == nil then
-							v = f.default
-						end
-						input[f.input_key] = v
-					end
-					-- `name` was already extracted and trimmed above.
-					input.site_name = name
-
-					local rc = site_utils.addSite(input)
-
-					if rc == rest_utils.consts.success.ok then
-						added = added + 1
-						existing_names[name_key] = true
-					else
-						-- Real validation error (invalid coordinates,
-						-- illegal name, limit reached, ...): skip it
-						skipped = skipped + 1
-					end
-				end
-			end
-		end
-	end
+	-- The backup already stores the Sites in exported form, which is exactly
+	-- what importSites() takes: they are added parent-first, remapping the ids
+	-- of the file onto the newly assigned ones.
+	local stats = site_utils.importSites(conf.sites or {})
 
 	-- Re-importing an already-present configuration (all duplicates) is a
 	-- no-op, not a failure. Treat the import as a failure only if nothing was
 	-- added AND there was nothing to skip as a duplicate, i.e. the file had no
 	-- usable Site at all.
-	if added == 0 and duplicates == 0 then
+	if stats.added == 0 and stats.duplicates == 0 then
 		return rest_utils.consts.err.add_site_failed
 	end
 
