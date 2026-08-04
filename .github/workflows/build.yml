@@ -23,5 +23,5 @@ jobs:
           ./autogen.sh
           ./configure
       - name: Build
-        run: make
+        run: make -j $(nproc)
 
