@@ -1,0 +1,15 @@
+{
+  "_comment": "OPTIONAL overrides only. Every *.json file in this directory is auto-discovered and registered using its own top-level id/title/trigger/version — dropping a new demo file here is enough, no edit needed here. List an id below to override its delay_seconds, gate it behind a visibility_condition, disable it (enabled: false), or override title/trigger.",
+  "_visibility_conditions": "Fixed allow-list evaluated server-side in demo_utils.lua (VISIBILITY_CONDITIONS) — JSON can't carry code. Currently supported: has_nanalyst. Add a new named check there before referencing it here.",
+  "demos": [
+    {
+      "id": "ntopng_overview",
+      "delay_seconds": 0
+    },
+    {
+      "id": "nanalyst_overview",
+      "delay_seconds": 0,
+      "visibility_condition": "has_nanalyst"
+    }
+  ]
+}

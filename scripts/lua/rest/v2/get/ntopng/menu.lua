@@ -28,6 +28,7 @@ local auth            = require "auth"
 local recording_utils = require "recording_utils"
 local blog_utils      = require "blog_utils"
 local menu_visibility = require "ntopng_menu_visibility"
+local demo_utils      = require "demo_utils"
 
 local ok, err = pcall(function()
 
@@ -424,6 +425,17 @@ for k, v in pairs(infrastructure_instances or {}) do
    infra_arr[#infra_arr + 1] = { id = k, info = v }
 end
 
+-- Append demo tour if needed
+local has_pending_demo_tours = false
+if not is_no_login and not isEmptyString(session_user) then
+   for _, d in ipairs(demo_utils.get_status_for_user(session_user)) do
+      if d.should_show then
+         has_pending_demo_tours = true
+         break
+      end
+   end
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, {
    -- sidebar
    sections    = result,
@@ -499,6 +511,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    are_country_ts_enabled = (areCountryTimeseriesEnabled and areCountryTimeseriesEnabled(current_ifid)) or false,
    is_asn_mode_enabled = (isASNModeEnabled and isASNModeEnabled()) or false,
    show_sankey = show_sankey,
+   has_pending_demo_tours = has_pending_demo_tours,
 })
 
 end) -- pcall

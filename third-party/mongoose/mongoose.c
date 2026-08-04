@@ -1673,12 +1673,6 @@ int mg_read(struct mg_connection *conn, void *buf, size_t len) {
   return nread;
 }
 
-/* NTOP: let embedder code force this connection closed after the current
- * response (see mongoose.h for rationale). */
-void mg_force_close(struct mg_connection *conn) {
-  conn->must_close = 1;
-}
-
 int mg_write(struct mg_connection *conn, const void *buf, size_t len) {
   time_t now;
   int64_t n, total, allowed;
@@ -5190,21 +5184,7 @@ static void process_new_connection(struct mg_connection *conn) {
   conn->data_len = 0;
   do {
     if (!getreq(conn, ebuf, sizeof(ebuf))) {
-      /* NTOP: the client closed (or never sent) the next pipelined request
-       * on a kept-alive connection -- this is routine, not an error to
-       * retry. Without forcing the connection closed here, should_keep_alive()
-       * below can still see stale state from the *previous* successful
-       * request and decide to loop, spinning getreq() against an already-dead
-       * socket (100% CPU busy-loop) while repeatedly trying to write a 500
-       * to a peer that is gone. */
-      conn->must_close = 1;
-      /* data_len == 0 means the peer sent nothing at all before closing --
-       * the normal case of an idle keep-alive connection being dropped.
-       * Nothing to reply to; attempting to write would just fail against
-       * the closed socket. Only report an error if partial garbage was
-       * actually received. */
-      if (conn->data_len > 0)
-	send_http_error(conn, 500, "Server Error", "%s", ebuf);
+      send_http_error(conn, 500, "Server Error", "%s", ebuf);
     } else if (!is_valid_uri(conn->request_info.uri)) {
       snprintf(ebuf, sizeof(ebuf), "Invalid URI: [%s]", ri->uri);
       send_http_error(conn, 400, "Bad Request", "%s", ebuf);
