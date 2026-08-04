@@ -1,0 +1,188 @@
+{
+  "id": "ntopng_overview",
+  "version": 1,
+  "title": "demo_tour_messages.ntopng_overview_title",
+  "trigger": "first_login",
+  "pages": [
+    {
+      "page_key": "dashboard",
+      "url": "/lua/index.lua",
+      "steps": [
+        {
+          "id": "dashboard_reach",
+          "element": ".sb-rail__icon.fa-tachometer-alt",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.dashboard_reach_title",
+          "text": "demo_tour_messages.dashboard_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "dashboard_iface_selector",
+          "element": ".sb-iface-selector",
+          "title": "demo_tour_messages.dashboard_iface_selector_title",
+          "text": "demo_tour_messages.dashboard_iface_selector_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "dashboard_badges",
+          "element": ".navbar-main-badges",
+          "title": "demo_tour_messages.dashboard_badges_title",
+          "text": "demo_tour_messages.dashboard_badges_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "dashboard_widgets",
+          "element": "#drag-zone",
+          "title": "demo_tour_messages.dashboard_widgets_title",
+          "text": "demo_tour_messages.dashboard_widgets_text",
+          "position": "top",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "live_flows",
+      "url": "/lua/flows_stats.lua",
+      "steps": [
+        {
+          "id": "live_flows_reach",
+          "element": ".sb-rail__icon.fa-stream",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.live_flows_reach_title",
+          "text": "demo_tour_messages.live_flows_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "flows_filters",
+          "element": ".form-group.d-flex.align-items-end.gap-2.align-items-center",
+          "title": "demo_tour_messages.flows_filters_title",
+          "text": "demo_tour_messages.flows_filters_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "flows_table",
+          "element": ".ntopng-table",
+          "title": "demo_tour_messages.flows_table_title",
+          "text": "demo_tour_messages.flows_table_text",
+          "position": "top",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "historical_flows",
+      "url": "/lua/pro/db_search.lua",
+      "visibility_condition": "has_clickhouse",
+      "steps": [
+        {
+          "id": "historical_flows_reach",
+          "element": ".sb-rail__icon.fa-stream",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.historical_flows_reach_title",
+          "text": "demo_tour_messages.historical_flows_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "historical_time_range",
+          "element": ".dtrp-bar.d-flex.align-items-center.flex-wrap.gap-2",
+          "title": "demo_tour_messages.historical_time_range_title",
+          "text": "demo_tour_messages.historical_time_range_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "historical_quick_filter",
+          "element": ".rp-filter-bar.d-flex.mt-1.gap-1.align-items-center",
+          "title": "demo_tour_messages.historical_quick_filter_title",
+          "text": "demo_tour_messages.historical_quick_filter_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "historical_filters",
+          "element": ".dt-filter-template-container",
+          "title": "demo_tour_messages.historical_filters_title",
+          "text": "demo_tour_messages.historical_filters_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "historical_results",
+          "element": ".ntopng-table",
+          "title": "demo_tour_messages.historical_results_title",
+          "text": "demo_tour_messages.historical_results_text",
+          "position": "top",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "preferences",
+      "url": "/lua/admin/prefs.lua",
+      "steps": [
+        {
+          "id": "preferences_reach",
+          "element": ".sb-rail__icon.fa-cog",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.preferences_reach_title",
+          "text": "demo_tour_messages.preferences_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "preferences_sidebar",
+          "element": ".prefs-sidebar",
+          "title": "demo_tour_messages.preferences_sidebar_title",
+          "text": "demo_tour_messages.preferences_sidebar_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "preferences_main",
+          "element": ".prefs-main",
+          "title": "demo_tour_messages.preferences_main_title",
+          "text": "demo_tour_messages.preferences_main_text",
+          "position": "left",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "interface_details",
+      "url": "/lua/if_stats.lua",
+      "steps": [
+        {
+          "id": "interface_details_reach",
+          "element": ".sb-rail__icon.fa-ethernet",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.interface_details_reach_title",
+          "text": "demo_tour_messages.interface_details_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "interface_tabs",
+          "element": ".navbar-nav",
+          "title": "demo_tour_messages.interface_tabs_title",
+          "text": "demo_tour_messages.interface_tabs_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "interface_charts",
+          "element": ".pie-title",
+          "title": "demo_tour_messages.interface_charts_title",
+          "text": "demo_tour_messages.interface_charts_text",
+          "position": "bottom",
+          "verified": true
+        }
+      ]
+    }
+  ]
+}

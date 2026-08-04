@@ -1,0 +1,167 @@
+{
+  "id": "nanalyst_overview",
+  "version": 1,
+  "title": "demo_tour_messages.nanalyst_overview_title",
+  "trigger": "new_feature",
+  "pages": [
+    {
+      "page_key": "nanalyst_rail_intro",
+      "url": null,
+      "click_trigger": { "element": ".sb-rail__icon.fa-robot", "attach_closest": ".sb-rail__btn", "events": ["click"] },
+      "steps": [
+        {
+          "id": "nanalyst_rail_invite",
+          "element": ".sb-rail__icon.fa-robot",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.nanalyst_rail_invite_title",
+          "text": "demo_tour_messages.nanalyst_rail_invite_text",
+          "position": "right",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "nanalyst_chat",
+      "url": "/lua/pro/nanalyst.lua",
+      "steps": [
+        {
+          "id": "nanalyst_chat_reach",
+          "element": ".sb-rail__icon.fa-robot",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.nanalyst_chat_reach_title",
+          "text": "demo_tour_messages.nanalyst_chat_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_presets",
+          "element": ".preset-grid",
+          "title": "demo_tour_messages.nanalyst_presets_title",
+          "text": "demo_tour_messages.nanalyst_presets_text",
+          "position": "top",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_input",
+          "element": ".chat-input",
+          "title": "demo_tour_messages.nanalyst_input_title",
+          "text": "demo_tour_messages.nanalyst_input_text",
+          "position": "top",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_provider",
+          "element": ".provider-pill",
+          "title": "demo_tour_messages.nanalyst_provider_title",
+          "text": "demo_tour_messages.nanalyst_provider_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_new_chat",
+          "element": ".btn-new-chat",
+          "title": "demo_tour_messages.nanalyst_new_chat_title",
+          "text": "demo_tour_messages.nanalyst_new_chat_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_usage_stats_reach",
+          "element": "a.sidebar-toggle-btn[href*='ai_stats.lua']",
+          "title": "demo_tour_messages.nanalyst_usage_stats_reach_title",
+          "text": "demo_tour_messages.nanalyst_usage_stats_reach_text",
+          "position": "left",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "nanalyst_usage_stats",
+      "url": "/lua/pro/ai_stats.lua",
+      "steps": [
+        {
+          "id": "nanalyst_usage_stats_filters",
+          "element": ".ai-filter-card",
+          "title": "demo_tour_messages.nanalyst_usage_stats_filters_title",
+          "text": "demo_tour_messages.nanalyst_usage_stats_filters_text",
+          "position": "bottom",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "preferences",
+      "url": "/lua/admin/prefs.lua",
+      "steps": [
+        {
+          "id": "nanalyst_prefs_reach",
+          "element": ".sb-rail__icon.fa-cog",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.nanalyst_prefs_reach_title",
+          "text": "demo_tour_messages.nanalyst_prefs_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_prefs_llm",
+          "element": ".sidebar-item-label",
+          "element_text": "LLM Providers",
+          "attach_closest": ".sidebar-item",
+          "click_on_next": true,
+          "title": "demo_tour_messages.nanalyst_prefs_llm_title",
+          "text": "demo_tour_messages.nanalyst_prefs_llm_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "nanalyst_prefs_llm_local",
+          "element": ".prefs-group-label",
+          "element_text": "Local LLM",
+          "title": "demo_tour_messages.nanalyst_prefs_llm_local_title",
+          "text": "demo_tour_messages.nanalyst_prefs_llm_local_text",
+          "position": "right",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "page_key": "ai_policy",
+      "url": "/lua/pro/ai_policy.lua",
+      "steps": [
+        {
+          "id": "ai_policy_reach",
+          "element": ".sb-rail__icon.fa-robot",
+          "attach_closest": ".sb-rail__btn",
+          "title": "demo_tour_messages.ai_policy_reach_title",
+          "text": "demo_tour_messages.ai_policy_reach_text",
+          "position": "right",
+          "verified": true
+        },
+        {
+          "id": "ai_policy_examples",
+          "element": ".ap-chip",
+          "title": "demo_tour_messages.ai_policy_examples_title",
+          "text": "demo_tour_messages.ai_policy_examples_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "ai_policy_provider",
+          "element": ".provider-pill",
+          "title": "demo_tour_messages.ai_policy_provider_title",
+          "text": "demo_tour_messages.ai_policy_provider_text",
+          "position": "bottom",
+          "verified": true
+        },
+        {
+          "id": "ai_policy_table",
+          "element": ".ntopng-table",
+          "title": "demo_tour_messages.ai_policy_table_title",
+          "text": "demo_tour_messages.ai_policy_table_text",
+          "position": "top",
+          "verified": true
+        }
+      ]
+    }
+  ]
+}

@@ -2589,6 +2589,21 @@ function M.get_sections(flags)
         }}
     }
 
+    -- Demo Tours (reset/replay guided tours)
+    sections[#sections + 1] = {
+        id = "demo_tours",
+        label = i18n("prefs.demo_tours"),
+        advanced = false,
+        pro_only = false,
+        hidden = false,
+        entries = {{
+            key = "demo_tours_manager",
+            title = i18n("prefs.demo_tours_title"),
+            description = i18n("prefs.demo_tours_description"),
+            type = "demo_tours"
+        }}
+    }
+
     -- Reports
     sections[#sections + 1] = {
         id = "reports",
