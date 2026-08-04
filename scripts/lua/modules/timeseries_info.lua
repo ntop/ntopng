@@ -49,6 +49,7 @@ local timeseries_id = {
     flow   = "flow",
     flow_aggr = "flow_aggr",
     infrastructure = "infrastructure",
+    blacklist = "blacklist",
 }
 
 -- #################################
@@ -115,6 +116,8 @@ local function getTimeseriesFromModules(tags, prefix, ts_options)
         module_to_use = require "ts_flow_aggr"
     elseif prefix == timeseries_id.infrastructure then
         module_to_use = require "ts_infrastructure_monitoring"
+    elseif prefix == timeseries_id.blacklist then
+        module_to_use = require "ts_blacklist"
     end
     if module_to_use then
         return module_to_use.getTimeseries(tags, ts_options) or {}
