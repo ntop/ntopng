@@ -2896,6 +2896,7 @@ local known_parameters = {
    ["snaplen"] = validateNumber,
    ["disk_space"] = validateNumber,
    ["smart_disk_space"] = validateNumber,
+   ["max_file_size"] = validateEmptyOr(validateNumber),
    ["file_id"] = validateNumber,
    ["job_action"] = validateExtractionJobAction,
    ["job_id"] = validateNumber,

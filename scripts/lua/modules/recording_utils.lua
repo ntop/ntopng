@@ -475,8 +475,39 @@ local function disk2diskctl(command, ifid, ...)
    return os_utils.ntopctlCmd(disk2disk_service_name(cur_provider), command, confifname, ...)
 end
 
+-- Compute pcap max file size and related buffering settings based on link speed
+local function getSpeedBasedRecordingDefaults(ifspeed)
+  local speed_defaults = {
+    max_file_size = 256, -- Max file length (MB)
+    num_buffered_files = 4,
+    min_file_size = 16,
+  }
+
+  if ifspeed > 10000 then -- 40/100G
+    speed_defaults.max_file_size = 4*1024
+    speed_defaults.min_file_size = 1024
+  elseif ifspeed > 1000 then -- 10G
+    speed_defaults.max_file_size = 1*1024
+    speed_defaults.min_file_size = 256
+  elseif ifspeed > 100 then -- 1G
+    speed_defaults.max_file_size = 256
+  else -- 10/100M
+    speed_defaults.max_file_size = 64
+    speed_defaults.num_buffered_files = 2
+  end
+
+  return speed_defaults
+end
+
+-- Compute the "auto" pcap max file size (MB) based on the interface link speed
+function recording_utils.getDefaultMaxFileSize(ifid)
+  local ifname = getN2diskInterfaceName(ifid)
+  local ifspeed = (getInterfaceSpeed(getInterfaceId(ifname)) or 1000)
+  return getSpeedBasedRecordingDefaults(ifspeed).max_file_size
+end
+
 --! @brief Generate a configuration for the traffic recording service (n2disk)
---! @param ifid the interface identifier 
+--! @param ifid the interface identifier
 --! @param params the traffic recording settings
 function recording_utils.createConfig(ifid, params)
   local ifname = getN2diskInterfaceName(ifid)
@@ -520,20 +551,10 @@ function recording_utils.createConfig(ifid, params)
   local mem_available_mb = mem_info['MemAvailable']
 
   -- Computing file and buffer size based on link speed
-  local num_buffered_files = 4
-  local min_file_size = 16 
-  if ifspeed > 10000 then -- 40/100G
-    defaults.max_file_size = 4*1024
-    min_file_size = 1024
-  elseif ifspeed > 1000 then -- 10G
-    defaults.max_file_size = 1*1024
-    min_file_size = 256
-  elseif ifspeed > 100 then -- 1G
-    defaults.max_file_size = 256
-  else -- 10/100M
-    defaults.max_file_size = 64
-    num_buffered_files = 2
-  end
+  local speed_defaults = getSpeedBasedRecordingDefaults(ifspeed)
+  defaults.max_file_size = speed_defaults.max_file_size
+  local num_buffered_files = speed_defaults.num_buffered_files
+  local min_file_size = speed_defaults.min_file_size
 
   defaults.buffer_size = num_buffered_files * defaults.max_file_size
   local total_n2disk_mem = defaults.buffer_size * 2 -- pcap + index buffer

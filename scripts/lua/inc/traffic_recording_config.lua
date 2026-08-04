@@ -53,6 +53,15 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space', tostring(disk_space))
 
+  -- Set max file size (falls back to auto if unspecified)
+  local max_file_size
+  if not isEmptyString(_POST["max_file_size"]) then
+    max_file_size = tonumber(_POST["max_file_size"])
+    ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.max_file_size', tostring(max_file_size))
+  else
+    ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.max_file_size')
+  end
+
   if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
   
     -- Toggle smart recording
@@ -104,6 +113,9 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     config.snaplen = snaplen
     config.max_disk_space = disk_space
     config.bpf_filter = bpf_filter
+    if max_file_size ~= nil then
+      config.max_file_size = max_file_size
+    end
     if ntop.isEnterpriseXL and ntop.isEnterpriseXL() and smart_record_traffic then
       config.enable_smart_recording = true
       config.max_smart_disk_space = smart_disk_space
@@ -131,10 +143,16 @@ if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording_flow_exp
   flow_export = true
 end
 
-local snaplen = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.snaplen') or recording_utils.default_snaplen
+local snaplen_raw = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.snaplen')
+local snaplen = snaplen_raw or recording_utils.default_snaplen
 local bpf_filter = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter')
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space')
 local smart_disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space')
+local max_file_size = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.max_file_size')
+local default_max_file_size = recording_utils.getDefaultMaxFileSize(master_ifid)
+
+-- Expand advanced settings if customized
+local show_advanced = (not isEmptyString(snaplen_raw)) or (not isEmptyString(max_file_size))
 
 local storage_info = recording_utils.storageInfo(master_ifid)
 local max_space = recording_utils.recommendedSpace(master_ifid, storage_info)
@@ -234,7 +252,22 @@ print [[
         </td>
       </tr>
 
-      <tr id="tr-snaplen">
+      <tr id="tr-bpf_filter">
+        <th>]] print(i18n("traffic_recording.capture_filter_bpf")) print [[</th>
+        <td colspan=2>
+          <input style="width:300px;display:inline;" name="bpf_filter" placeholder="" class="form-control input-sm" data-bpf="" autocomplete="off" spellcheck="false" value="]] print(bpf_filter) print [["></input><br>
+<small>]] print(i18n("traffic_recording.capture_filter_bpf_note")) print[[</small>
+        </td>
+      </tr>
+
+      <tr id="tr-advanced_toggle">
+        <th></th>
+        <td colspan=2>
+          <a href="#" id="toggle_advanced_settings"><i class="fas fa-cog"></i> ]] print(i18n("traffic_recording.advanced_settings")) print [[ <i class="fas fa-chevron-down"></i></a>
+        </td>
+      </tr>
+
+      <tr id="tr-snaplen" style="display:]] print(ternary(show_advanced, "table-row", "none")) print [[">
         <th>]] print(i18n("traffic_recording.snaplen")) print [[</th>
         <td colspan=2>
           <input type="number" style="width:127px;display:inline;" class="form-control" name="snaplen" placeholder="" min="14" step="1" max="16384" value="]] print(snaplen) print [["></input><span style="vertical-align: middle"> Bytes</span><br>
@@ -242,11 +275,11 @@ print [[
         </td>
       </tr>
 
-      <tr id="tr-bpf_filter">
-        <th>]] print(i18n("traffic_recording.capture_filter_bpf")) print [[</th>
+      <tr id="tr-max_file_size" style="display:]] print(ternary(show_advanced, "table-row", "none")) print [[">
+        <th>]] print(i18n("traffic_recording.max_file_size")) print [[</th>
         <td colspan=2>
-          <input style="width:300px;display:inline;" name="bpf_filter" placeholder="" class="form-control input-sm" data-bpf="" autocomplete="off" spellcheck="false" value="]] print(bpf_filter) print [["></input><br>
-<small>]] print(i18n("traffic_recording.capture_filter_bpf_note")) print[[</small>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="max_file_size" placeholder="]] print(i18n("traffic_recording.max_file_size_auto").." ("..default_max_file_size..")") print [[" min="1" step="1" value="]] print(max_file_size or "") print [["></input><span style="vertical-align: middle"> MB</span><br>
+          <small>]] print(i18n("traffic_recording.max_file_size_note", { auto_value = default_max_file_size })) print[[</small>
         </td>
       </tr>
 
@@ -364,9 +397,9 @@ print[[
 }
 
 function toggle_recording_enabled_on(){
-  $("#tr-snaplen").css("display","table-row");
   $("#tr-disk_space").css("display","table-row");
   $("#tr-bpf_filter").css("display","table-row");
+  $("#tr-advanced_toggle").css("display","table-row");
   $("#tr-storage_dir").css("display","table-row");
 }
 
@@ -374,8 +407,16 @@ function toggle_recording_enabled_off(){
   $("#tr-snaplen").css("display","none");
   $("#tr-disk_space").css("display","none");
   $("#tr-bpf_filter").css("display","none");
+  $("#tr-advanced_toggle").css("display","none");
+  $("#tr-max_file_size").css("display","none");
   $("#tr-storage_dir").css("display","none");
 }
+
+$("#toggle_advanced_settings").click(function(e) {
+  e.preventDefault();
+  $("#tr-snaplen").toggle();
+  $("#tr-max_file_size").toggle();
+});
 ]]
 
 if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
