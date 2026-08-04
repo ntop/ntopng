@@ -243,6 +243,24 @@ end
 
 -- ##############################################
 
+-- Seeds first_seen_at for every existing user x registered demo that has no
+-- progress key yet. Run once at ntopng startup so users who existed before a
+-- demo was added (fresh install upgrade)
+function demo_utils.seed_missing_progress()
+   local registry = demo_utils.get_registry()
+   local users = ntop.getUsers and ntop.getUsers() or {}
+
+   for username, _ in pairs(users) do
+      for _, demo in ipairs(registry.demos or {}) do
+         if demo.enabled ~= false and demo_utils.get_progress(username, demo.id) == nil then
+            demo_utils.save_progress(username, demo.id, { first_seen_at = os.time() })
+         end
+      end
+   end
+end
+
+-- ##############################################
+
 -- Convenience: full status list (should_show flag) for every registered demo
 function demo_utils.get_status_for_user(username)
    local registry = demo_utils.get_registry()

@@ -35,6 +35,7 @@ local vs_utils = require "vs_utils"
 local drop_host_pool_utils = require "drop_host_pool_utils"
 local json = require "dkjson"
 local cache_utils = require "cache_utils"
+local demo_utils = require "demo_utils"
 
 -- ##################################################################
 
@@ -391,6 +392,10 @@ ntop.reloadASNConfiguration()
 ts_utils.runFirstSetup()
 
 cache_utils.initialize()
+
+-- Seed demo tour progress for existing users so a demo added by an update
+-- shows on next login instead of never triggering for pre-existing accounts
+demo_utils.seed_missing_progress()
 
 ntop.startPollingBGPPrefixChanges()
 
