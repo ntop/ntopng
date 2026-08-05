@@ -1459,57 +1459,6 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
 
 /* *************************************** */
 
-void Host::serialize(json_object* my_object, DetailsLevel details_level) {
-  char buf[96];
-  Mac* m = mac;
-
-  if (stats) stats->getJSONObject(my_object, details_level);
-
-  json_object_object_add(my_object, "ip", ip.getJSONObject());
-  if (vlan_id != 0)
-    json_object_object_add(my_object, "vlan_id", json_object_new_int(vlan_id));
-  json_object_object_add(my_object, "mac_address",
-                         json_object_new_string(Utils::formatMac(
-                             m ? m->get_mac() : NULL, buf, sizeof(buf))));
-  json_object_object_add(my_object, "ifid",
-                         json_object_new_int(iface->get_id()));
-
-  if (details_level >= details_high) {
-    GenericHashEntry::getJSONObject(my_object, details_level);
-    json_object_object_add(my_object, "last_stats_reset",
-                           json_object_new_int64(last_stats_reset));
-    json_object_object_add(my_object, "asn", json_object_new_int(asn));
-
-    get_name(buf, sizeof(buf), false);
-    if (strlen(buf))
-      json_object_object_add(my_object, "symbolic_name",
-                             json_object_new_string(buf));
-    if (asname)
-      json_object_object_add(
-          my_object, "asname",
-          json_object_new_string(asname ? asname : (char*)""));
-
-    json_object_object_add(my_object, "localHost",
-                           json_object_new_boolean(isLocalHost()));
-    json_object_object_add(my_object, "systemHost",
-                           json_object_new_boolean(isSystemHost()));
-    json_object_object_add(my_object, "broadcastDomainHost",
-                           json_object_new_boolean(isBroadcastDomainHost()));
-    json_object_object_add(my_object, "is_blacklisted",
-                           json_object_new_boolean(isBlacklisted()));
-    json_object_object_add(my_object, "is_rx_only",
-                           json_object_new_boolean(isRxOnlyHost()));
-    json_object_object_add(my_object, "host_services_bitmap",
-                           json_object_new_int(host_services_bitmap));
-
-    /* Generic Host */
-    json_object_object_add(my_object, "num_alerts",
-                           json_object_new_int(getNumEngagedAlerts()));
-  }
-}
-
-/* *************************************** */
-
 char* Host::get_visual_name(char* buf, u_int buf_len) {
   bool mask_host = Utils::maskHost(isLocalHost());
   char buf2[64];

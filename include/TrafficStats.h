@@ -41,8 +41,6 @@ class TrafficStats {
   inline u_int64_t getNumPkts() const { return (numPkts); };
   inline u_int64_t getNumBytes() const { return (numBytes); };
   void printStats();
-  char* serialize();
-  void serialize(ndpi_serializer* s);
   void deserialize(json_object* o);
   json_object* getJSONObject();
 };

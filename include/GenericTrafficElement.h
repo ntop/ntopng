@@ -135,7 +135,6 @@ class GenericTrafficElement {
   inline float getBytesThpt() const { return (bytes_thpt.getThpt()); };
   inline float getPacketsThpt() const { return (pkts_thpt.getThpt()); };
   void resetStats();
-  void serialize(ndpi_serializer* s);
 };
 
 #endif /* _GENRIC_TRAFFIC_ELEMENT_H_ */

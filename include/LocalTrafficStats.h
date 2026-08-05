@@ -41,7 +41,6 @@ class LocalTrafficStats {
   LocalTrafficStats();
   void incStats(u_int num_pkts, u_int pkt_len, bool localsender,
                 bool localreceiver);
-  char* serialize();
   json_object* getJSONObject();
   void lua(lua_State* vm);
   inline void sum(LocalTrafficStats* l) const {

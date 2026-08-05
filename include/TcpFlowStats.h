@@ -36,7 +36,6 @@ class TcpFlowStats {
   inline void incReset() { numResetFlows++; }
   inline void incFin() { numFinFlows++; }
 
-  char* serialize();
   json_object* getJSONObject();
   void lua(lua_State* vm, const char* label);
   inline void sum(TcpFlowStats* s) const {

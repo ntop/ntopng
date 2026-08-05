@@ -31,18 +31,6 @@ TcpFlowStats::TcpFlowStats() {
 
 /* *************************************** */
 
-char* TcpFlowStats::serialize() {
-  json_object* my_object = getJSONObject();
-  char* rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
-/* ******************************************* */
-
 json_object* TcpFlowStats::getJSONObject() {
   json_object* my_object;
 

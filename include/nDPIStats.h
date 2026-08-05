@@ -103,7 +103,6 @@ class nDPIStats {
   }
 
   void resetStats();
-  char* serialize(NetworkInterface* iface);
   bool deserialize(json_object* o, NetworkInterface* iface);
 };
 

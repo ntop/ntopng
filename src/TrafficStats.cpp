@@ -40,18 +40,6 @@ void TrafficStats::printStats() {
 
 /* *************************************** */
 
-char* TrafficStats::serialize() {
-  json_object* my_object = getJSONObject();
-  char* rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
-/* ******************************************* */
-
 void TrafficStats::deserialize(json_object* o) {
   json_object* obj;
 
@@ -80,11 +68,4 @@ json_object* TrafficStats::getJSONObject() {
   }
 
   return (my_object);
-}
-
-/* *************************************** */
-
-void TrafficStats::serialize(ndpi_serializer* s) {
-  ndpi_serialize_string_uint32(s, "packets", numPkts);
-  ndpi_serialize_string_uint32(s, "bytes", numBytes);
 }

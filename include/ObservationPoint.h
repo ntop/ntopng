@@ -94,13 +94,6 @@ class ObservationPoint : public GenericHashEntry,
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
-  inline void serialize(json_object* obj, DetailsLevel details_level) {
-    if (!remove_entry) {
-      GenericHashEntry::getJSONObject(obj, details_level);
-      GenericTrafficElement::getJSONObject(obj, iface);
-      json_object_object_add(obj, "flows", json_object_new_int64(num_flows));
-    }
-  }
   inline char* getSerializationKey(char* buf, u_int bufsize) {
     snprintf(buf, bufsize, OBS_POINT_SERIALIZED_KEY, iface->get_id(),
              obs_point);

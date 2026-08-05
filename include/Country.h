@@ -75,7 +75,6 @@ class Country : public GenericHashEntry,
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
-  void serialize(json_object* obj, DetailsLevel details_level);
   inline char* getSerializationKey(char* buf, u_int bufsize) {
     snprintf(buf, bufsize, COUNTRY_SERIALIZED_KEY, iface->get_id(),
              country_name);

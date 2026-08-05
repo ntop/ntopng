@@ -49,18 +49,6 @@ void LocalTrafficStats::incStats(u_int num_pkts, u_int pkt_len,
 
 /* *************************************** */
 
-char* LocalTrafficStats::serialize() {
-  json_object* my_object = getJSONObject();
-  char* rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
-/* ******************************************* */
-
 json_object* LocalTrafficStats::getJSONObject() {
   json_object* my_object;
   json_object* my_stats;

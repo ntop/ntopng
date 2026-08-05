@@ -177,19 +177,6 @@ void NetworkStats::lua(lua_State* vm, bool diff, bool fullStats) {
 
 /* *************************************** */
 
-bool NetworkStats::serialize(json_object* my_object) {
-  json_object_object_add(my_object, "ingress",
-                         json_object_new_int64(ingress.getNumBytes()));
-  json_object_object_add(my_object, "egress",
-                         json_object_new_int64(egress.getNumBytes()));
-  json_object_object_add(my_object, "inner",
-                         json_object_new_int64(inner.getNumBytes()));
-
-  return true;
-}
-
-/* *************************************** */
-
 void NetworkStats::updateRoundTripTime(u_int32_t rtt_msecs) {
   /* EWMA formula is EWMA(n) = (alpha_percent * sample + (100 - alpha_percent) *
      EWMA(n-1)) / 100

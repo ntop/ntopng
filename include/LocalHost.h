@@ -145,9 +145,6 @@ class LocalHost : public Host {
     stats->resetDomainNamesCardinality();
   }
 
-  virtual void serialize(json_object* obj, DetailsLevel details_level) {
-    return Host::serialize(obj, details_level);
-  };
   virtual char* getSerializationKey(char* buf, u_int bufsize,
                                     bool short_format = false);
   char* getRedisKey(char* buf, uint buf_len, bool skip_prefix = false);

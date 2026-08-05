@@ -227,18 +227,6 @@ void nDPIStats::incFlowsStats(u_int16_t proto_id) {
 
 /* *************************************** */
 
-char* nDPIStats::serialize(NetworkInterface* iface) {
-  json_object* my_object = getJSONObject(iface);
-  char* rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
-/* *************************************** */
-
 bool nDPIStats::deserialize(json_object* o, NetworkInterface* iface) {
   if (!o || !json_object_is_type(o, json_type_object)) return false;
 

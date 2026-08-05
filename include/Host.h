@@ -772,8 +772,6 @@ class Host : public GenericHashEntry,
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto,
                                                    bool as_client);
 
-  virtual void serialize(json_object* obj, DetailsLevel details_level);
-
   inline void requestStatsReset() { stats_reset_requested = 1; };
   inline void requestNameReset() { name_reset_requested = 1; };
   inline void requestDataReset() {

@@ -89,17 +89,3 @@ void Country::lua(lua_State* vm, DetailsLevel details_level,
 bool Country::equal(const char* country) {
   return (strcmp(country_name, country) == 0);
 }
-
-/* *************************************** */
-
-void Country::serialize(json_object* o, DetailsLevel details_level) {
-  json_object* obj;
-  GenericHashEntry::getJSONObject(o, details_level);
-
-  if ((obj = sent.getJSONObject()) != NULL)
-    json_object_object_add(o, "traffic", obj);
-  if ((obj = json_object_new_object()) != NULL) {
-    dirstats.serialize(obj);
-    json_object_object_add(o, "dirstats", obj);
-  }
-}

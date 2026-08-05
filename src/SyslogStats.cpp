@@ -59,18 +59,6 @@ void SyslogStats::incStats(u_int32_t _num_total_events,
 
 /* *************************************** */
 
-char* SyslogStats::serialize() {
-  json_object* my_object = getJSONObject();
-  char* rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return (rsp);
-}
-
-/* ******************************************* */
-
 json_object* SyslogStats::getJSONObject() {
   json_object* my_object;
 
