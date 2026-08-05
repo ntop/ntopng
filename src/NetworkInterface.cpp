@@ -174,6 +174,11 @@ NetworkInterface::NetworkInterface(const char* name,
 #if defined(NTOPNG_PRO)
   pMap = NULL, sMap = NULL;
   acl_flow = NULL;
+
+  if(ntop->getPro()->is_enterprise_m_edition())
+    sites = new Sites();
+  else
+    sites = NULL;
 #endif
 
   if (id >= 0) {
@@ -1170,7 +1175,8 @@ NetworkInterface::~NetworkInterface() {
 #ifdef NTOPNG_PRO
 
 #ifdef HAVE_NEDGE
-  if (policer) delete (policer);
+  if (policer) delete policer;
+  if(sites)    delete sites;
 #else
 #ifdef HAVE_NBPF
   if (flow_profiles) delete (flow_profiles);

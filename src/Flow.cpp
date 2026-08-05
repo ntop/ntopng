@@ -555,12 +555,18 @@ void Flow::freeDPIMemory() {
 
 Flow::~Flow() {
   bool is_oneway_tcp_udp_flow =
-      (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay())
-          ? true
-          : false;
+    (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay())
+    ? true : false;
 
+#ifdef NTOPNG_PRO
+  Sites *s = getInterface()->getSites();
+
+  if(s) s->incStats(this);
+#endif
+  
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+
   if (getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
                                  __FUNCTION__, getUses());

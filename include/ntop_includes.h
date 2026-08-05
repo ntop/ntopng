@@ -288,6 +288,7 @@ using namespace std;
 #include "ParsedFlowCore.h"
 #include "ParsedeBPF.h"
 #include "ParsedFlow.h"
+#include "Sites.h"
 #ifdef HAVE_EBPF
 #include "ebpf_flow.h"
 #endif

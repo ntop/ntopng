@@ -61,6 +61,7 @@ class L7Policer;
 class FlowDevicesStats;
 class TrafficShaper;
 class NetworkInterfacePro;
+class Sites;
 #endif
 
 /** @class NetworkInterface
@@ -108,6 +109,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   } tot_num_anomalies;
   AlertsQueue* alertsQueue;
 #if defined(NTOPNG_PRO)
+  Sites *sites;
   PeriodicityMap* pMap;
   ServiceMap* sMap;
   ACLFlow* acl_flow;
@@ -1508,6 +1510,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   bool updateRanking(lua_State* vm, u_int32_t epoch, char* key, char* values);
   bool aggregateSiteFlows(lua_State* vm);
+  inline Sites* getSites() { return(sites); }
 #endif
   inline bool hasMACs() { return (macs_hash); }
 
