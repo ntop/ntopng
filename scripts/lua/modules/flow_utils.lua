@@ -182,6 +182,7 @@ function getFlowsFilter()
     local flow_status = _GET["flow_status"]
     local flow_status_severity = _GET["flow_status_severity"]
     local status = _GET["status"]
+    local flow_risk = _GET["flow_risk"]
     local alert_type_severity = _GET["alert_type_severity"]
     local deviceIP = _GET["deviceIP"]
     local inIfIdx = _GET["inIfIdx"]
@@ -338,6 +339,10 @@ function getFlowsFilter()
         else
             pageinfo["statusFilter"] = tonumber(status) or status
         end
+    end
+
+    if not isEmptyString(flow_risk) then
+        pageinfo["riskFilter"] = tonumber(flow_risk)
     end
 
     if not isEmptyString(alert_type_severity) then
