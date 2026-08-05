@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Install Ubuntu Prerequisites
         run: |
           sudo apt-get update || true
@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install libglib2.0 libxml2-dev libpcap-dev librrd-dev redis-server libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libzmq3-dev git libjson-c-dev
       - name: Build nDPI
         run: |
-          git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; ./configure; make; cd ..
+          git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; ./configure --with-only-libndpi --disable-shared; make -j $(nproc); cd ..
       - name: Configure
         run: |
           ./autogen.sh
