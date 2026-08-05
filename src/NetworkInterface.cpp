@@ -14692,7 +14692,7 @@ int32_t NetworkInterface::getNetworkId(char *ip_address) {
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %d", ip_address, local_network_id);
   
-  return(local_network_id < 0 ? 0 : local_network_id);
+  return(local_network_id < 0 ? -1 : local_network_id);
 }
 
 /* **************************************************** */
