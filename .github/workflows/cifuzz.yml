@@ -9,6 +9,7 @@ jobs:
         sanitizer: [address, undefined]
     steps:
     - name: Build Fuzzers - ${{ matrix.sanitizer }}
+      id: build
       uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
       with:
         oss-fuzz-project-name: 'ntopng'
@@ -20,8 +21,8 @@ jobs:
         fuzz-seconds: 300
         sanitizer: ${{ matrix.sanitizer }}
     - name: Upload Crash
-      uses: actions/upload-artifact@v4
-      if: steps.build.outcome == 'success'
+      uses: actions/upload-artifact@v7
+      if: failure() && steps.build.outcome == 'success'
       with:
         name: ${{ matrix.sanitizer }}-artifacts
         path: ./out/artifacts
