@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sanitizer: [address]
+        sanitizer: [address, undefined]
     steps:
     - name: Build Fuzzers - ${{ matrix.sanitizer }}
       uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
