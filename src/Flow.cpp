@@ -3822,7 +3822,7 @@ bool Flow::hasRisk(ndpi_risk_enum r) const {
 
 /* Returns true if at least one nDPI flow risk is set */
 bool Flow::hasRisks() const {
-  for (int i = 0; i < NDPI_MAX_RISK; i++) {
+  for (u_int i = 0; i < NDPI_MAX_RISK; i++) {
     if (hasRisk((ndpi_risk_enum)i)) return true;
   }
 
