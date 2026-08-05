@@ -926,13 +926,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 #ifdef NTOPNG_PRO
   /* Check if direct flow dump is enabled */
   if (ntop->getPrefs()->do_dump_flows_direct() &&
-      (ntop->getPrefs()->is_flows_dump_enabled()
-#ifdef HAVE_ZMQ
-#ifndef HAVE_NEDGE
-       || ntop->get_export_interface()
-#endif
-#endif
-           )) {
+      (ntop->getPrefs()->is_flows_dump_enabled())) {
     /* Dump flow */
     flow->dump(zflow->last_switched, true /* last dump before free */);
   }

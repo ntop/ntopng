@@ -4024,17 +4024,11 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
         || kafka_exporter
 #endif
-#if defined(HAVE_ZMQ) && !defined(HAVE_NEDGE)
-        || ntop->get_export_interface()
-#endif
     ) {
       bool generate_json = false;
 
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
       if (kafka_exporter) generate_json = true;
-#endif
-#if defined(HAVE_ZMQ) && !defined(HAVE_NEDGE)
-      if (ntop->get_export_interface()) generate_json = true;
 #endif
 
       if (ch_dump_enabled) rc = clickhouse_flows_db->dumpFlow(now, f, NULL);
@@ -4045,11 +4039,6 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
         if (json) {
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
           if (kafka_exporter) kafka_exporter->dumpFlow(now, f, json);
-#endif
-
-#if defined(HAVE_ZMQ) && !defined(HAVE_NEDGE)
-          if (ntop->get_export_interface())
-            ntop->get_export_interface()->export_data(json);
 #endif
 
           free(json);

@@ -2962,13 +2962,7 @@ void Flow::periodic_stats_update(const struct timeval* tv, bool force_update) {
  * the interface This is called by Flow::housekeep when status is active or idle
  */
 void Flow::dumpCheck(time_t now, bool last_dump_before_free) {
-  if ((ntop->getPrefs()->is_flows_dump_enabled()
-#ifdef HAVE_ZMQ
-#ifndef HAVE_NEDGE
-       || ntop->get_export_interface()
-#endif
-#endif
-           )
+  if ((ntop->getPrefs()->is_flows_dump_enabled())
 #ifdef NTOPNG_PRO
       && (getInterface()->isPacketInterface() /* Not a ZMQ interface */
           || (!ntop->getPrefs()

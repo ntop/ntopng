@@ -80,7 +80,6 @@ Ntop::Ntop(const char* appName) {
 
 #ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
-  export_interface = NULL;
   zmqPublisher = NULL;
 #endif
 #endif
@@ -552,20 +551,6 @@ void Ntop::resetNetworkInterfaces() {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u",
                                MAX_NUM_DEFINED_INTERFACES);
-}
-
-/* ******************************************* */
-
-void Ntop::createExportInterface() {
-#ifdef HAVE_ZMQ
-#ifndef HAVE_NEDGE
-  if (prefs->get_export_endpoint())
-    export_interface =
-        new (std::nothrow) ExportInterface(prefs->get_export_endpoint());
-  else
-    export_interface = NULL;
-#endif
-#endif
 }
 
 /* ******************************************* */
@@ -3992,14 +3977,7 @@ out:
 
 void Ntop::initInterface(NetworkInterface* _if, bool disable_dump) {
   /* Initialization related to flow-dump */
-  if ((ntop->getPrefs()->do_dump_flows()
-#ifdef HAVE_ZMQ
-#ifndef HAVE_NEDGE
-       || ntop->get_export_interface()
-#endif
-#endif
-           ) &&
-      !disable_dump) {
+  if (ntop->getPrefs()->do_dump_flows() && !disable_dump) {
     _if->initFlowDump();
   }
 

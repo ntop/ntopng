@@ -462,7 +462,6 @@ using namespace clickhouse;
 #include "SyslogCollectorInterface.h"
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
-#include "ExportInterface.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
 #include "ClickHouseInterface.h"
 #endif

@@ -67,8 +67,6 @@ or
 .IR <mode> <dump\-flows> ]
 .RB [ \-D
 .IR <dump\-hosts> ]
-.RB [ \-I
-.IR <export\-flows> ]
 .RB [ \-O
 .IR <communities\-list> ]
 .RB [ \-E
@@ -287,12 +285,6 @@ If ntopng is compiled with sqlite support, hosts contacts can dumped persistentl
 Databases are created daily under <data directory>/<interface>/contacts. This options supports three dump
 modes: local (dumps only local hosts), remote (dumps only remote hosts), all (dumps all hosts). If not
 specified, no hosts are dumped to disk.
-
-.It \-I|\-\-export\-flows\ <endpoint>
-Export the expired flows on the specified endpoint. For instance supposing to start ntopng on host
-1.2.3.4 as ntopng \-I "tcp://*:3456", it exports flows on this endpoint so that you can create a
-hierarchy of ntopng's. You can achieve that by starting a collector ntopng as
-ntopng \-i tcp://1.2.3.4:3456
 
 .It \-O|\-\-communities\-list\ <filename>
 Parse the specified file and retrieve a list of communities, that are a logical representation of

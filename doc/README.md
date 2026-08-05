@@ -28,23 +28,6 @@ separating them with a comma. Example:
 `ntopng -i tcp://127.0.0.1:5556,tcp://192.168.0.1:5556`
 
 
-Creating Hierarchies of ntopng Instances
-----------------------------------------
-You can create a hierarchy of ntopngs (e.g. on a star topology, where you have many
-ntopng processes on the edge of a network and a central collector) as follows:
-
-- Remote ntopng's
-  - `Host 1.2.3.4		ntopng -i ethX -I "tcp://*:3456"`
-  - `Host 1.2.3.5		ntopng -i ethX -I "tcp://*:3457"`
-  - `Host 1.2.3.6		ntopng -i ethX -I "tcp://*:3458"`
-
-- Central ntopng
-  - `ntopng -i "tcp://1.2.3.4:3456" -i "tcp://1.2.3.5:3457" -i "tcp://1.2.3.6:3458"`
-
-Note that on the central ntopng you can add `-i ethX` if you want the central ntopng
-monitor a local interface as well.
-
-
 Accessing ntopng URLs from command line tools (no web browser)
 --------------------------------------------------------------
 You need to specify the user and password as specified below (please note the space in the cookie).

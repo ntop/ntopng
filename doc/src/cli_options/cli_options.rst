@@ -184,9 +184,6 @@ ntopng supports a large number of command line parameters. To see what they are,
                                         |   
                                         |   See at the bottom of this help the list of supported kafka configuration options.
                                         |
-    [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
-                                        | See https://wp.me/p1LxdS-O5 for a -I use case.
-    [--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only) 
     [--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.
                                         | Supported TS modes are:
                                         | apcon - Timestamped pkts by apcon.com

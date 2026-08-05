@@ -140,7 +140,6 @@ Prefs::Prefs(Ntop* _ntop) {
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
   enable_zmq_encryption = false, zmq_encryption_priv_key = NULL;
-  export_zmq_encryption_key = NULL;
   es_index = es_url = es_user = es_pwd = es_host = NULL;
   https_port = 0;  // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true;
@@ -222,7 +221,6 @@ Prefs::Prefs(Ntop* _ntop) {
 #else
   daemonize = false;
 #endif
-  export_endpoint = NULL;
   enable_ixia_timestamps = false;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
@@ -752,14 +750,6 @@ void usage() {
 	 CLICKHOUSE_MAX_DUMP_BLOCKS, CLICKHOUSE_MAX_DUMP_ROWS_PER_BLOCK);
 #endif
   printf(
-	 "[--export-flows|-I] <endpoint>      | Export flows with the specified "
-	 "endpoint\n"
-	 "                                    | See https://wp.me/p1LxdS-O5 for a "
-	 "-I use case.\n"
-#if HAVE_ZMQ
-	 "[--zmq-encryption-key <key>]        | ZMQ (export) encryption public "
-	 "key (-I only) \n"
-#endif
 	 "[--hw-timestamp-mode] <mode>        | Enable hw "
 	 "timestamping/stripping.\n"
 	 "                                    | Supported TS modes:\n"
@@ -1423,7 +1413,6 @@ static const struct option long_options[] = {
   {"zmq-encrypt-pwd", required_argument, NULL, 215},
   {"zmq-encryption", no_argument, NULL, 219},
   {"zmq-encryption-key-priv", required_argument, NULL, 220},
-  {"zmq-encryption-key", required_argument, NULL, 222},
 #endif
   {"simulate-ips", required_argument, NULL, 221},
 #ifndef HAVE_NEDGE
@@ -2438,7 +2427,10 @@ int Prefs::setOption(int optkey, char* optarg) {
 #endif
 
   case 'I':
-    export_endpoint = strdup(optarg);
+    ntop->getTrace()->traceEvent(
+        TRACE_WARNING,
+        "The -I/--export-flows option is deprecated and has been removed: "
+        "hierarchical ntopng cluster export is no longer supported");
     break;
 
   case 'U':
@@ -2560,10 +2552,6 @@ int Prefs::setOption(int optkey, char* optarg) {
 
   case 221:
     num_simulated_ips = atoi(optarg);
-    break;
-
-  case 222:
-    export_zmq_encryption_key = strdup(optarg);
     break;
 
 #ifndef HAVE_NEDGE

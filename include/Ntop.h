@@ -113,10 +113,6 @@ class Ntop {
 #if !defined(WIN32) && !defined(__APPLE__)
   SyslogDump* syslog; /**< Pointer of Logstash. */
 #endif
-
-#ifdef HAVE_ZMQ
-  ExportInterface* export_interface;
-#endif
 #endif
 
 #ifdef HAVE_RADIUS
@@ -548,12 +544,6 @@ class Ntop {
   inline Redis* getRedis() { return (redis); };
   inline TimelineExtract* getTimelineExtract() { return (extract); };
 
-#ifdef HAVE_ZMQ
-#ifndef HAVE_NEDGE
-  inline ExportInterface* get_export_interface() { return (export_interface); };
-#endif
-#endif
-
   inline Prefs* getPrefs() { return (prefs); };
   void initPing();
 #ifndef WIN32
@@ -705,7 +695,6 @@ class Ntop {
   void getLocalNetworkIp(int32_t local_network_id, IpAddress** network_ip,
                          u_int8_t* network_prefix);
   void addLocalNetworkList(const char* network);
-  void createExportInterface();
   void resetNetworkInterfaces();
   void initElasticSearch();
 

@@ -399,10 +399,6 @@ int main(int argc, char* argv[])
   }
 #endif
 
-#ifndef HAVE_NEDGE
-  ntop->createExportInterface();
-#endif
-
   ntop->loadGeolocation();
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();

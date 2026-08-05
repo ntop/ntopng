@@ -166,7 +166,6 @@ class Prefs {
   char* categorization_key;
   char* zmq_encryption_pwd;
   char* zmq_encryption_priv_key;
-  char *export_endpoint, *export_zmq_encryption_key;
   char* http_prefix;
   char* instance_name;
   char *config_file_path, *ndpi_proto_path;
@@ -414,10 +413,6 @@ class Prefs {
   inline const char* get_message_broker_url() { return (message_broker_url); };
   inline const char* get_message_broker() { return (message_broker); };
   inline bool is_message_broker_enabled() { return (message_broker_enabled); };
-  inline char* get_export_endpoint() { return (export_endpoint); };
-  inline char* get_export_zmq_encryption_key() {
-    return (export_zmq_encryption_key);
-  };
   inline char* get_categorization_key() { return (categorization_key); };
   inline char* get_http_prefix() { return (http_prefix); };
   inline char* get_instance_name() { return (instance_name); };
