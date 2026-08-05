@@ -655,17 +655,21 @@ Flow::~Flow() {
   }
 
   if (iface->hasMACs() && c_mac && (!c_mac_updated)) {
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
     char buf[256];
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Client MAC not updated %s",
                                  print(buf, sizeof(buf)));
+#endif
   }
 
   if (iface->hasMACs() && s_mac && (!s_mac_updated)) {
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
     char buf[256];
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Server MAC not updated %s",
                                  print(buf, sizeof(buf)));
+#endif
   }
 
   if (c_mac) c_mac->decUses();
