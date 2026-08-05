@@ -71,6 +71,9 @@ fi
 LOGROTATE_CONF=/etc/logrotate.d/ntopng
 /bin/chmod 644 $LOGROTATE_CONF
 
+LOGROTATE_ACTIVITIES_CONF=/etc/logrotate.d/ntopng-activities
+/bin/chmod 644 $LOGROTATE_ACTIVITIES_CONF
+
 CRON_CONF=/etc/cron.d/ntopng
 /bin/chmod 644 $CRON_CONF
 
