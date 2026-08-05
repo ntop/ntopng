@@ -196,6 +196,12 @@ for _, data in pairs(aggregated_info or {}) do
         local host = interface.getHostInfo(data.client_ip, data.cli_vlan_id or data.vlan_id)
         local in_memory = (host ~= nil)
         local is_alerted = (in_memory) and (host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)
+        -- Locality flag used by the sites dashboard to split aggregated live
+        -- flows into "local hosts" vs "remote hosts" (in addition to the
+        -- plain client/server role). in_memory hosts already carry it;
+        -- flows whose client isn't currently tracked in memory fall back to
+        -- a plain local-network membership check on the IP.
+        local is_local = ternary(in_memory, host["localhost"], ntop.isLocalAddress(data.client_ip))
 
         client = {
             vlan_id = data.cli_vlan_id or data.vlan_id,
@@ -206,6 +212,7 @@ for _, data in pairs(aggregated_info or {}) do
             ip = data.client_ip,
             is_alerted = is_alerted,
             in_memory = in_memory,
+            is_local = is_local,
             extra_labels = format_utils.formatFullAddressCategory(host or {})
         }
     end
@@ -214,6 +221,7 @@ for _, data in pairs(aggregated_info or {}) do
         local host = interface.getHostInfo(data.server_ip, data.srv_vlan_id or data.vlan_id)
         local in_memory = (host ~= nil)
         local is_alerted = (in_memory) and (host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)
+        local is_local = ternary(in_memory, host["localhost"], ntop.isLocalAddress(data.server_ip))
 
         server = {
             vlan_id = data.srv_vlan_id or data.vlan_id,
@@ -224,6 +232,7 @@ for _, data in pairs(aggregated_info or {}) do
             ip = data.server_ip,
             is_alerted = is_alerted,
             in_memory = in_memory,
+            is_local = is_local,
             extra_labels = format_utils.formatFullAddressCategory(host or {})
         }
     end

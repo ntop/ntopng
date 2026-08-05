@@ -5527,6 +5527,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   IpAddress* cli_ip = (IpAddress*)f->get_srv_ip_addr();
   IpAddress* srv_ip = (IpAddress*)f->get_cli_ip_addr();
   u_int16_t alert_type_filter, site_id;
+  int32_t risk_filter;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t* mac_filter;
@@ -5937,6 +5938,11 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
     if (retriever->pag &&
         retriever->pag->flowStatusFilter(&alert_type_filter) &&
         !f->getAlertsBitmap().isSetBit(alert_type_filter))
+      return (false);
+
+    /* Flow Risk filter */
+    if (retriever->pag && retriever->pag->flowRiskFilter(&risk_filter) &&
+        !f->hasRisk((ndpi_risk_enum)risk_filter))
       return (false);
 
     /* Flow Status severity filter */
