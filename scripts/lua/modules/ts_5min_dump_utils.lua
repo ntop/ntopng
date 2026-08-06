@@ -326,24 +326,24 @@ function ts_dump.sites_update_rrds(when, ifstats, verbose)
                 ifid = ifstats.id,
                 site_a = sites[1],
                 site_b = sites[2],
-                bytes_sent = info.bytes_sent,
-                bytes_rcvd = info.bytes_rcvd,
+                bytes_sent = info.breakdown.bytes_sent,
+                bytes_rcvd = info.breakdown.bytes_rcvd,
             }, when)
             ts_utils.append("site:flows", {
                 ifid = ifstats.id,
                 site_a = sites[1],
                 site_b = sites[2],
-                num_flows_as_client = info.num_flows_as_client,
-                num_flows_as_server = info.num_flows_as_server,
+                num_flows_as_client = info.breakdown.num_flows_as_client,
+                num_flows_as_server = info.breakdown.num_flows_as_server,
             }, when)
-            if info.rtt then
+            if info.rtt.total then
                 ts_utils.append("site:rtt", {
                     ifid = ifstats.id,
                     site_a = sites[1],
                     site_b = sites[2],
-                    max = info.rtt.max,
-                    avg = info.rtt.avg,
-                    stddev = info.rtt.stddev,
+                    max = info.rtt.total.max,
+                    avg = info.rtt.total.avg,
+                    stddev = info.rtt.total.stddev,
                 }, when)
             end
         end
