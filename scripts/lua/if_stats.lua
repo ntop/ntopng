@@ -1796,8 +1796,9 @@ elseif (page == "config") then
         print(i18n("if_stats_config.custom_name"))
         print [[</th>
          <td>]]
-        local label = getHumanReadableInterfaceName(ifstats.name)
-        inline_input_form("custom_name", "Custom Name", i18n("if_stats_config.custom_name_popup_msg"), label,
+        local label = getHumanReadableInterfaceName(ifstats.name, true)
+        local editable_name = getInterfaceAlias(ifid)
+        inline_input_form("custom_name", label, i18n("if_stats_config.custom_name_popup_msg"), editable_name,
             isAdministrator(), 'autocorrect="off" spellcheck="false"')
         print [[
          </td>

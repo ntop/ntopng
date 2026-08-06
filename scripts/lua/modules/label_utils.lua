@@ -642,7 +642,7 @@ end
 
 -- ##############################################
 
-function getHumanReadableInterfaceName(interface_name)
+function getHumanReadableInterfaceName(interface_name, ignore_custom_name)
 	local interface_id = nil
 
 	if interface_name == "__system__" then
@@ -658,10 +658,12 @@ function getHumanReadableInterfaceName(interface_name)
 		interface_name = getInterfaceName(interface_id)
 	end
 
-	local custom_name = getInterfaceAlias(interface_id)
+        if not ignore_custom_name then
+		local custom_name = getInterfaceAlias(interface_id)
 
-	if not isEmptyString(custom_name) then
-		return (shortenCollapse(custom_name))
+		if not isEmptyString(custom_name) then
+			return (shortenCollapse(custom_name))
+		end
 	end
 
 	return interface_name
