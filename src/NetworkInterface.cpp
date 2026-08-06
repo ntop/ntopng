@@ -1688,7 +1688,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria,
 #ifndef HAVE_NEDGE
   std::map<u_int64_t, NetworkInterface*>::iterator subIface =
       flowHashing.find(criteria);
-  char buf[64], buf1[48];
+  char buf[128], buf1[48];
   const char* vIface_type;
 
   if (subIface != flowHashing.end()) {
