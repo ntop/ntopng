@@ -1257,9 +1257,21 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
   /* Check for POST requests */
   if ((strcmp(request_info->request_method, "POST") == 0) &&
       (content_type != NULL)) {
-    u_int32_t content_len = mg_get_content_len(conn) + 1;
+    int64_t submitted_len = mg_get_content_len(conn);
+    u_int32_t content_len;
     bool is_file_upload =
         (strncmp(content_type, "multipart/form-data", 19) == 0) ? true : false;
+
+    /* Content-Length is client supplied and 64 bit wide, so it has to be
+       capped before the narrowing conversion: the size checks below would
+       otherwise run on a wrapped value while mg_read() keeps filling the
+       buffer using the 64 bit one. */
+    if (submitted_len < 0)
+      content_len = 0; /* No Content-Length header */
+    else if (submitted_len > HTTP_MAX_UPLOAD_DATA_LEN)
+      content_len = HTTP_MAX_UPLOAD_DATA_LEN + 1; /* Rejected below */
+    else
+      content_len = (u_int32_t)submitted_len + 1;
 
     if ((!is_file_upload) && (content_len > HTTP_MAX_POST_DATA_LEN)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
