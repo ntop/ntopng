@@ -435,6 +435,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool dumpFlowOut(Flow* f, time_t when);
   bool initFlowDB();
 
+#ifdef NTOPNG_PRO
+  inline ACLFlow* getACL() { return(dynamic_interface_master ? dynamic_interface_master->getACL() : acl_flow); }
+#endif
+  
  public:
   /**
    * @brief A Constructor
@@ -790,42 +794,58 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   };
   void updateFlowPeriodicity(Flow* f);
   void updateServiceMap(Flow* f);
-
+  
   /* Access Control List */
   inline bool insertIPACL(u_int8_t protocol, char* src, char* dst, char* port,
                           u_int16_t l7_proto, bool is_allowed) {
-    if (acl_flow)
-      return acl_flow->insertIPACL(protocol, src, dst, port, l7_proto,
+    ACLFlow* a = getACL();
+    
+    if (a)
+      return a->insertIPACL(protocol, src, dst, port, l7_proto,
                                    is_allowed);
     return false;
   }
   inline bool removeIPACL(u_int8_t protocol, char* src, char* dst, char* port,
                           u_int16_t l7_proto) {
-    if (acl_flow)
-      return acl_flow->removeIPACL(protocol, src, dst, port, l7_proto);
+    ACLFlow* a = getACL();
+
+    if (a)
+      return a->removeIPACL(protocol, src, dst, port, l7_proto);
     return false;
   }
   inline bool insertMacACL(u_int8_t* mac, bool is_allowed) {
-    if (acl_flow) return acl_flow->insertMacACL(mac, is_allowed);
+    ACLFlow* a = getACL();
+
+    if (a) return a->insertMacACL(mac, is_allowed);
     return false;
   }
   inline bool removeMacACL(u_int8_t* mac) {
-    if (acl_flow) return acl_flow->removeMacACL(mac);
+    ACLFlow* a = getACL();
+
+    if (a) return a->removeMacACL(mac);
     return false;
   }
   inline bool findFlowACL(Flow* f, bool* is_allowed) {
-    if (acl_flow) return acl_flow->findFlowACL(f, is_allowed);
+    ACLFlow* a = getACL();
+
+    if (a) return a->findFlowACL(f, is_allowed);
     return false;
   }
   inline bool findMacACL(u_int8_t* mac, bool* is_allowed) {
-    if (acl_flow) return acl_flow->findMacACL(mac, is_allowed);
+    ACLFlow* a = getACL();
+    
+    if (a) return a->findMacACL(mac, is_allowed);
     return false;
   }
   inline void getACLInfo(lua_State* vm) {
-    if (acl_flow) acl_flow->lua(vm);
+    ACLFlow* a = getACL();
+    
+    if (a) a->lua(vm);
   }
   inline bool setScopeFiltersACL(char *filters) {
-    if (acl_flow) return acl_flow->setScopeFiltersACL(filters);
+    ACLFlow* a = getACL();
+    
+    if (a) return a->setScopeFiltersACL(filters);
     return false;
   }
 #endif
