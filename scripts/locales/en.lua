@@ -4156,6 +4156,7 @@ local lang = {
     ["sflow_device_x"] = "sFlow Exporter %{device}",
     ["sflow_snmp_ratio"] = "Counters/SNMP Ratio",
     ["sflow_snmp_ratio_descr"] = "The Counters/SNMP Ratio is calculated by dividing the total interface traffic obtained using sFlow counter samples, by the total traffic of the same interface read via SNMP over the latest 30 minutes",
+    ["site"] = "Site",
     ["snmp_description"] = "SNMP Description",
     ["snmp_devmodel"] = "SNMP Device Model",
     ["snmp_devname"] = "SNMP Device Name",

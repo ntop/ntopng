@@ -12626,6 +12626,37 @@ bool NetworkInterface::matchAggregatedFlow(Flow* flow,
 
 /* **************************************************** */
 
+/* Locality of a single flow endpoint: hosts tracked in memory already carry
+ * the flag, the others fall back to a local networks membership check on the
+ * IP */
+bool NetworkInterface::isLocalEndpoint(IpAddress* ip, Host* h) {
+  if (h) return (h->isLocalHost());
+
+  return (ip ? ip->isLocalHost() : false);
+}
+
+/* **************************************************** */
+
+/* Matches a single flow endpoint against the requested host locality */
+bool NetworkInterface::matchHostLocality(IpAddress* ip, Host* h,
+                                         u_int8_t host_locality) {
+  if (host_locality == NO_HOST_LOCALITY) return (true);
+
+  return ((host_locality == HOST_LOCALITY_LOCAL) == isLocalEndpoint(ip, h));
+}
+
+/* **************************************************** */
+
+/* Matches a single flow endpoint against the requested site */
+bool NetworkInterface::matchSite(Flow* f, bool is_client, u_int16_t site_id) {
+  if (site_id == NO_SITE_ID) return (true);
+
+  return ((is_client ? f->getSrcNetworkSiteId() : f->getDstNetworkSiteId()) ==
+          site_id);
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry* node,
                                                    void* user_data,
                                                    bool* matched) {
@@ -12862,31 +12893,59 @@ bool NetworkInterface::compute_host_flow_stats(GenericHashEntry* node,
       (((u_int64_t)f->get_cli_ip_addr()->key()) << 32) | ((u_int64_t)vlan_id);
   u_int64_t srv_key =
       (((u_int64_t)f->get_srv_ip_addr()->key()) << 32) | ((u_int64_t)vlan_id);
+  /* Each endpoint is a row of its own, so locality and site are evaluated per
+   * endpoint */
+  bool add_cli = matchHostLocality(f->get_cli_ip_addr(), f->get_cli_host(),
+                                   stats->host_locality);
+  bool add_srv = matchHostLocality(f->get_srv_ip_addr(), f->get_srv_host(),
+                                   stats->host_locality);
+
+  if (stats->site_id != NO_SITE_ID) {
+    if (add_cli)
+      add_cli = matchSite(
+          f,
+          isLocalEndpoint(f->get_cli_ip_addr(), f->get_cli_host())
+              ? true  /* the client itself */
+              : false /* its peer, the server */,
+          stats->site_id);
+
+    if (add_srv)
+      add_srv = matchSite(
+          f,
+          isLocalEndpoint(f->get_srv_ip_addr(), f->get_srv_host())
+              ? false /* the server itself */
+              : true  /* its peer, the client */,
+          stats->site_id);
+  }
+
+  if (!add_cli && !add_srv) return (false);
 
   // Client
-  it = stats->count.find(cli_key);
+  if (add_cli) {
+    it = stats->count.find(cli_key);
 
-  if (it == stats->count.end()) {
-    AggregatedFlowsStats* fs = new (std::nothrow) AggregatedFlowsStats(
-        f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
-        f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(),
-        f->getAlertsBitmap());
+    if (it == stats->count.end()) {
+      AggregatedFlowsStats* fs = new (std::nothrow) AggregatedFlowsStats(
+          f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
+          f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore(),
+          f->getAlertsBitmap());
 
-    if (fs != NULL) {
-      fs->setKey(cli_key);
-      fs->setHost(f->get_cli_ip_addr(), f->get_cli_host());
-      fs->setVlanId(vlan_id);
-      stats->count[cli_key] = fs;
+      if (fs != NULL) {
+        fs->setKey(cli_key);
+        fs->setHost(f->get_cli_ip_addr(), f->get_cli_host());
+        fs->setVlanId(vlan_id);
+        stats->count[cli_key] = fs;
+      }
+    } else {
+      it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+                               f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+                               f->getScore(), f->getAlertsBitmap());
     }
-  } else {
-    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
-                             f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
-                             f->getScore(), f->getAlertsBitmap());
   }
 
   // Server, first check if client and server are different, otherwise
   // in case of the same client/server the stats are going to be incorrect
-  if (cli_key != srv_key) {
+  if (add_srv && (cli_key != srv_key)) {
     it = stats->count.find(srv_key);
 
     if (it == stats->count.end()) {
@@ -13475,6 +13534,8 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   u_int32_t out_if_idx = NO_OUT_IF_INDEX /* Any outIfIdx */;
   u_int32_t if_idx = NO_OUT_IF_INDEX /* Any interface index */;
   u_int32_t alert_status = NO_ALERTS_STATUS /* Any Alert Status */;
+  u_int8_t host_locality = NO_HOST_LOCALITY /* Any host locality */;
+  u_int16_t site_id = NO_SITE_ID /* Any site */;
   /* NOTE: parsing of additional Lua parameters in
    * NetworkInterface::sort_and_filter_flow_stats() */
 
@@ -13486,6 +13547,10 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   if (lua_type(vm, 12) == LUA_TNUMBER) out_if_idx = lua_tonumber(vm, 12);
   if (lua_type(vm, 13) == LUA_TNUMBER) if_idx = lua_tonumber(vm, 13);
   if (lua_type(vm, 14) == LUA_TNUMBER) alert_status = lua_tonumber(vm, 14);
+  if (lua_type(vm, 15) == LUA_TNUMBER) host_locality = lua_tonumber(vm, 15);
+  /* Lua passes nil (and not a negative value) when no site is requested, so
+   * that NO_SITE_ID is never obtained through a negative-to-unsigned cast */
+  if (lua_type(vm, 16) == LUA_TNUMBER) site_id = lua_tonumber(vm, 16);
   stats.vlan_id = vlan_id;
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
 
@@ -13498,6 +13563,8 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   stats.out_if_index = out_if_idx;
   stats.if_index = if_idx;
   stats.alert_status = alert_status;
+  stats.host_locality = host_locality;
+  stats.site_id = site_id;
 
   switch (filter_type) {
     case AnalysisCriteria::application_criteria:

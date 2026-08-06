@@ -1443,6 +1443,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                           bool list_host_peers);
 
   static bool matchAggregatedFlow(Flow* flow, struct aggregated_stats* stats);
+  static bool isLocalEndpoint(IpAddress* ip, Host* h);
+  static bool matchHostLocality(IpAddress* ip, Host* h, u_int8_t host_locality);
+  static bool matchSite(Flow* flow, bool is_client, u_int16_t site_id);
   static bool compute_protocol_flow_stats(GenericHashEntry* node,
                                           void* user_data, bool* matched);
   static bool compute_client_flow_stats(GenericHashEntry* node, void* user_data,

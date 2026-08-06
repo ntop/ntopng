@@ -507,6 +507,13 @@ local function validateMode(mode)
    return validateChoice(modes, mode)
 end
 
+-- Host locality filter of the aggregated live flows page (per-host criteria)
+local function validateHostLocality(locality)
+   local localities = {"local", "remote"}
+
+   return validateChoice(localities, locality)
+end
+
 local function validateDashboardMode(mode)
    local modes = {"community", "pro", "enterprise"}
 
@@ -2331,6 +2338,7 @@ local known_parameters = {
    ["criteria_as"] = validateSankeyAsCriteria,
    ["criteria_exporter_interface_view"] = validateSankeyExporterInterfaceCriteria,
    ["aggregation_criteria"] = validateSingleWord,
+   ["host_locality"] = validateEmptyOr(validateHostLocality), -- Local/remote host filter of the per-host aggregation
    ["row_id"] = validateUnquoted, -- A number used to identify a record in a database
    ["rrd_file"] = validateUnquoted, -- A path or special identifier to read an RRD file
    ["port"] = validateNumber, -- An application port
