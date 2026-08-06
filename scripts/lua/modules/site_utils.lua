@@ -433,6 +433,15 @@ function site_utils.editSite(site)
 
 	local old_site = existing_sites[site.site_id]
 
+	-- The system-reserved Default site keeps its name/description/parent
+	-- fixed -- only its coordinates can be edited.
+	if old_site.reserved then
+		site.site_name = old_site.name
+		site.site_description = old_site.description
+		site.site_parent = old_site.parent
+		site.reserved = true
+	end
+
 	-- A site cannot be its own parent
 	if site.site_parent and tostring(site.site_parent) == tostring(site.site_id) then
 		return rest_utils.consts.err.edit_site_failed, "A site cannot be its own parent"
@@ -1220,6 +1229,7 @@ local function getExportersBySite()
 		local exporter_site = site_utils.resolveExporterSite(exporter_info.id)
 		local sid = tostring(exporter_site.id)
 		exporter_info.network_id = interface.getIPNetworkId(exporter_info.id)
+		
 		local bucket = exporters_by_site[sid]
 		if not bucket then
 			bucket = {}

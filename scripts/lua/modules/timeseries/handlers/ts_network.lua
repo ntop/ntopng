@@ -27,6 +27,7 @@ local timeseries_list = {{
             color = ts_gui_utils.get_timeseries_color('bytes')
         },
         bytes_ingress = {
+            invert_direction = true,
             label = i18n('graphs.metrics_suffixes.ingress'),
             color = ts_gui_utils.get_timeseries_color('bytes')
         },
