@@ -1745,6 +1745,15 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
 #define NO_OUT_IF_INDEX (u_int32_t) - 1
 #define NO_ALERTS_STATUS (u_int32_t) - 1
 
+/* Host locality filter of the per-host live flows aggregation */
+
+/* Any locality */
+#define NO_HOST_LOCALITY (u_int8_t) 0
+#define HOST_LOCALITY_LOCAL (u_int8_t) 1
+#define HOST_LOCALITY_REMOTE (u_int8_t) 2
+/* Any site, as in Paginator::siteIdFilter() */
+#define NO_SITE_ID (u_int16_t) - 1 
+
 #define CONST_MAX_NUM_DEDUP_STATS 3
 #define CONST_DEFAULT_TLS_CIPHERS "HIGH:!aNULL:!MD5:!RC4"
 #define CONST_ZMQ_PAYLOAD_LEN 131072 /* 128k max ZMQ message size */

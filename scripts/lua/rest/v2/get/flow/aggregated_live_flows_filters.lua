@@ -13,9 +13,13 @@ package.path =
 require "lua_utils"
 local rest_utils = require "rest_utils"
 local format_utils = require("format_utils")
+local site_utils
 require "lua_utils_get"
 
-if ntop.isEnterpriseM and ntop.isEnterpriseM() then require "aggregate_live_flows" end
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then 
+    require "aggregate_live_flows"
+    site_utils = require("site_utils")
+end
 -- ##################################################################
 -- REST params
 
@@ -51,6 +55,8 @@ local function retrieve_aggregation_criteria(criteria)
         criteria_type_id = 3
     elseif criteria == "client_server_srv_port" then
         criteria_type_id = 7
+    elseif criteria == "host" then
+        criteria_type_id = 11
     elseif ntop.isEnterpriseM and ntop.isEnterpriseM() then
         criteria_type_id = get_criteria_type_id(criteria)
     end
@@ -194,6 +200,52 @@ local function build_response(criteria)
         formatted_status_filters[#formatted_status_filters + 1] = status
     end 
     local rsp = {}
+
+    -- Host locality and site filters: only the per-host criteria has rows
+    -- describing a single host, so these are the only criteria where they are
+    -- meaningful (see host_locality/site_id in aggregated_live_flows.lua)
+    if (criteria_type_id == 11 and ntop.isEnterpriseM()) then
+        rsp[#rsp + 1] = {
+            action = "host_locality",
+            label = i18n("hosts_stats.location"),
+            tooltip = i18n("hosts_stats.location"),
+            name = "host_locality",
+            value = {
+                {key = "host_locality", value = "", label = i18n("all")},
+                {
+                    key = "host_locality",
+                    value = "local",
+                    label = i18n("hosts_stats.label_local_host")
+                }, {
+                    key = "host_locality",
+                    value = "remote",
+                    label = i18n("hosts_stats.label_remote_host")
+                }
+            }
+        }
+
+        local sites_list = site_utils.getSites()
+        if table.len(sites_list) > 1 then
+            local sites = {{key = "site_id", value = "-1", label = i18n("all")}}
+
+            for _, site_info in pairsByField(sites_list, "name", asc) do
+                sites[#sites + 1] = {
+                    key = "site_id",
+                    value = site_info["id"],
+                    label = site_info["name"]
+                }
+            end
+
+            rsp[#rsp + 1] = {
+                action = "site_id",
+                label = i18n("flow_devices.site"),
+                tooltip = i18n("flow_devices.site"),
+                name = "site_id",
+                value = sites
+            }
+        end
+    end
+
     if (#formatted_vlan_filters > 2) then
         rsp[#rsp + 1] = {
             action = "vlan_id",

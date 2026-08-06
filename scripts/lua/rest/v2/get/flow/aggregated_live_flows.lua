@@ -28,6 +28,17 @@ local inIfIdx = tonumber(_GET["inIfIdx"] or -1)
 local outIfIdx = tonumber(_GET["outIfIdx"] or -1)
 local status = tonumber(_GET["status"] or -1)
 local criteria = _GET["aggregation_criteria"] or ""
+-- Host locality filter ("local"/"remote")
+local host_locality = 0
+if _GET["host_locality"] == "local" then
+    host_locality = 1
+elseif _GET["host_locality"] == "remote" then
+    host_locality = 2
+end
+-- Site filter, applied by the same per-host aggregation
+if (site_id == nil) or (site_id < 0) then
+    site_id = nil
+end
 local rc = rest_utils.consts.success.ok
 local filters = {}
 
@@ -114,7 +125,7 @@ local x = 0
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
     filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]),
-        filters["map_search"], nil), ternary(filters["host"] ~= "", filters["host"], nil), vlan, device_ip, inIfIdx, outIfIdx, ifIdx, status)
+        filters["map_search"], nil), ternary(filters["host"] ~= "", filters["host"], nil), vlan, device_ip, inIfIdx, outIfIdx, ifIdx, status, host_locality, site_id)
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
     local bytes_sent = data.bytes_sent or 0
