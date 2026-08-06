@@ -297,42 +297,6 @@ if (ntop.exists(local_startup_file)) then
 end
 
 if (ntop.isPro and ntop.isPro()) then
-    if ntop.isClickHouseEnabled() then
-
-        -- Check if DB column types are good or need to be fixed
-        interface.select(getSystemInterfaceId())
-        local db_migration_required = false
-        local res, err = interface.execSQLQuery("DESCRIBE flows")
-        if res and type(res) == "table" then
-            for _, row in ipairs(res) do
-                if row['name'] == 'SRC_NETWORK_ID' or row['name'] == 'DST_NETWORK_ID' then
-                    if row['type'] ~= 'UInt32' then
-                        db_migration_required = true
-                    end
-                end
-            end
-        end
-        if db_migration_required then
-            traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                       "Migrating DB column types...")
-            interface.execSQLQuery(
-                "ALTER TABLE flows MODIFY COLUMN SRC_NETWORK_ID UInt32")
-            interface.execSQLQuery(
-                "ALTER TABLE flows MODIFY COLUMN DST_NETWORK_ID UInt32")
-            interface.execSQLQuery(
-                "ALTER TABLE hourly_flows MODIFY COLUMN SRC_NETWORK_ID UInt32")
-            interface.execSQLQuery(
-                "ALTER TABLE hourly_flows MODIFY COLUMN DST_NETWORK_ID UInt32")
-            interface.execSQLQuery(
-                "ALTER TABLE flows UPDATE SRC_NETWORK_ID = 4294967295 WHERE SRC_NETWORK_ID = 65535")
-            interface.execSQLQuery(
-                "ALTER TABLE flows UPDATE DST_NETWORK_ID = 4294967295 WHERE DST_NETWORK_ID = 65535")
-            interface.execSQLQuery(
-                "ALTER TABLE hourly_flows UPDATE SRC_NETWORK_ID = 4294967295 WHERE SRC_NETWORK_ID = 65535")
-            interface.execSQLQuery(
-                "ALTER TABLE hourly_flows UPDATE DST_NETWORK_ID = 4294967295 WHERE DST_NETWORK_ID = 65535")
-        end
-    end
     -- In case of the alert enabled, clean the list of all the elements
     drop_host_pool_utils.clean_list()
 end
