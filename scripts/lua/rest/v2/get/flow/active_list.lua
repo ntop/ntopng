@@ -10,6 +10,7 @@ require "flow_utils"
 local http_utils = require "http_utils"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
+local alert_entities = require "alert_entities"
 local format_utils = require "format_utils"
 local l4_protocol_list = require "l4_protocol_list"
 local as_utils = require "as_utils"
@@ -395,13 +396,41 @@ for _, value in ipairs(flows_stats.flows) do
       record["searched_field"] = value["searched_field"]
    end
 
-   if value["risk"] then
-      record["risk"] = {}
-      for _, r in pairs(value["risk"]) do
-         record["risk"][#record["risk"] + 1] = {
-            id = r.id,
-            name = r.name
+   if value["alerts_map"] or value["risk"] then
+      record["alerts"] = {}
+      local seen_labels = {}
+
+      for alert_id, _ in pairs(value["alerts_map"] or {}) do
+         local alert_score = value.score and value.score.alert_score and value.score.alert_score[tostring(alert_id)] or 0
+         local severity = alert_consts.alertSeverityById(map_score_to_severity(alert_score))
+         local alert_label = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
+
+         record["alerts"][#record["alerts"] + 1] = {
+            alert_id = alert_id,
+            alert_label = alert_label,
+            is_predominant = alert_id == value["predominant_alert"],
+            score = alert_score,
+            color = severity and severity.color
          }
+
+         seen_labels[alert_label] = true
+      end
+
+      -- Add risks if not already added by alerts_map
+      for _, r in pairs(value["risk"] or {}) do
+         if r.id ~= 0 and not seen_labels[r.name] then
+            local severity = alert_consts.alertSeverityById(map_score_to_severity(value.score and value.score.flow_score or 0))
+
+            record["alerts"][#record["alerts"] + 1] = {
+               alert_id = r.id,
+               alert_label = r.name,
+               is_predominant = false,
+               score = value.score and value.score.flow_score,
+               color = severity and severity.color
+            }
+
+            seen_labels[r.name] = true
+         end
       end
    end
 
