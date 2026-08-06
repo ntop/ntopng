@@ -317,10 +317,9 @@ pull: pull-deps pull-pro pull-ndpi-pro
 	echo "Updating ntopng..."
 	git pull --rebase
 
-update:
+update-submodules:
 	echo "Advancing submodule pointers to latest.."
-	git submodule update --remote
+	git submodule update --remote httpdocs/dist tests/e2e
 	git add httpdocs/dist tests/e2e
-	#git add third-party/clickhouse-cpp
 
 @FUZZ_MAKEFILE_INC@
