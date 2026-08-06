@@ -515,7 +515,9 @@ static void* packetPollLoop(void* ptr) {
              NULL /* user_data */);
   }
 
-  /* Do two full scans to make sure all stats are updated */
+  /* Do two full scans to make sure all stats are updated 
+   * Note: is_purge_idle_interface() together with force_idle=false in all calls to iface->purgeIdle()
+   * is preventing ntopng from moving flows to idle. Only in NetworkInterface::shutdown this is forced. */
   for (int i = 0; i < 2; i++)
     iface->purgeIdle(time(NULL), false, true /* Full scan */);
 
