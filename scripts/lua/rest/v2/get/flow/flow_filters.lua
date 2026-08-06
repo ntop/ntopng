@@ -337,6 +337,17 @@ for status_key, status in pairs(flowstats["status"]) do
 		}
 	end
 end
+for risk_key, status in pairs(flowstats["risk"]) do
+	if status.count > 0 then
+		tmp_list[status.name] = {
+			group = i18n("flow_details.alerted_flows"),
+			key = "status",
+			value = string.format("risk_%s", risk_key),
+			label = status.name .. " (" .. format_utils.formatValue(status.count) .. ")",
+			count = status.count,
+		}
+	end
+end
 
 for _, value in pairsByKeys(tmp_list, asc) do
 	alerts_filters[#alerts_filters + 1] = value

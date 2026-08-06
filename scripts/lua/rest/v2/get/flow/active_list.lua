@@ -22,6 +22,7 @@ end
 -- Trick to handle the application and the categories togheter
 local application = _GET["application"]
 local ip_version_or_host = _GET["flowhosts_type"]
+local flow_alerts = _GET["status"] or ""
 local search = _GET["map_search"] or ""
 local ifid = _GET["ifid"] or interface.getId()
 local current_ifid = interface.getId()
@@ -47,6 +48,14 @@ if not isEmptyString(ip_version_or_host) then
          _GET["host"] = ip_version_or_host
          _GET["flowhosts_type"] = nil
       end
+   end
+end
+
+if not isEmptyString(flow_alerts) then
+   local tmp_string = string.split(flow_alerts, "_")
+   if (table.len(tmp_string) == 2 and tmp_string[1] == "risk") then
+      _GET["flow_risk"] = tmp_string[2]
+      _GET["status"] = nil
    end
 end
 
