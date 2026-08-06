@@ -1688,7 +1688,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria,
 #ifndef HAVE_NEDGE
   std::map<u_int64_t, NetworkInterface*>::iterator subIface =
       flowHashing.find(criteria);
-  char buf[64], buf1[48];
+  char buf[128], buf1[48];
   const char* vIface_type;
 
   if (subIface != flowHashing.end()) {
@@ -1721,7 +1721,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria,
     case flowhashing_exporter_ip:
       vIface_type = CONST_INTERFACE_TYPE_FLOW;
       snprintf(buf, sizeof(buf), "%s [Exporter IP: %s]", ifname,
-               Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
+               Utils::intoaV4(ntohl((unsigned int)criteria), buf1, sizeof(buf1)));
       break;
 
     case flowhashing_iface_idx:
@@ -1743,7 +1743,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria,
 
       vIface_type = CONST_INTERFACE_TYPE_FLOW;
       snprintf(buf, sizeof(buf), "%s [Exporter IP: %s][InIfIdx: %u]", ifname,
-               Utils::intoaV4(exporter_ip, buf1, sizeof(buf1)), if_id);
+               Utils::intoaV4(ntohl(exporter_ip), buf1, sizeof(buf1)), if_id);
     } break;
 
     case flowhashing_vrfid:
@@ -8854,12 +8854,14 @@ void NetworkInterface::luaSubInterface(lua_State* vm) {
     case flowhashing_exporter_ip:
       lua_push_str_table_entry(
           vm, "dynamic_interface_exporter_ip",
-          Utils::intoaV4(dynamic_interface_criteria, buf, sizeof(buf)));
+          Utils::intoaV4(ntohl((u_int32_t)dynamic_interface_criteria), buf,
+                          sizeof(buf)));
       break;
     case flowhashing_exporter_ip_and_ingress_iface_idx:
       lua_push_str_table_entry(
           vm, "dynamic_interface_exporter_ip",
-          Utils::intoaV4(dynamic_interface_criteria >> 32, buf, sizeof(buf)));
+          Utils::intoaV4(ntohl((u_int32_t)(dynamic_interface_criteria >> 32)),
+                          buf, sizeof(buf)));
       lua_push_uint64_table_entry(vm, "dynamic_interface_inifidx",
                                   dynamic_interface_criteria & 0xFFFFFFFF);
       break;
