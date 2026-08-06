@@ -2254,17 +2254,19 @@ void Flow::flow_end_housekeeping() {
   if (flow_end_housekeeping_done)
     return;
 
-  if (is_swap_requested() && !is_swap_done()) {
+#if 1
+  if (is_swap_requested() && !is_swap_done())
     /* Swap requested but never performed (no more packets seen) */
-    iface->execProtocolDetectedChecks(this);
-  }
+#endif
+  iface->execProtocolDetectedChecks(this);
+
 
 #if 1
   if (!is_swap_requested() /* Swap not requested */
       || (is_swap_requested() &&
           !is_swap_done())) /* Or requested but never performed (no more packets seen) */
 #endif
-    iface->execFlowEndChecks(this);
+  iface->execFlowEndChecks(this);
   
   flow_end_stats_update();
 

@@ -290,6 +290,8 @@ static void* packetPollLoop(void* ptr) {
   /* Wait until the initialization completes */
   while (iface->isStartingUp()) sleep(1);
 
+  /*****/
+
   /* Test Script (Pre Analysis) */
   if (ntop->getPrefs()->get_test_pre_script_path()) {
     const char* test_pre_script_path =
@@ -312,7 +314,12 @@ static void* packetPollLoop(void* ptr) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing pcap file");
   }
 
+  /*****/
+
+  /* Main loop: get a pcap source (live interface, single pcap, or file
+     from a directory or playlist queue) and run a processing loop */
   while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
+
     if (iface->readFromPcapDump() && (pcap_files_queue != NULL)) {
       if (pcap_files_queue->size() == 0) {
         if (iface->readFromPcapDir()) {
@@ -324,11 +331,14 @@ static void* packetPollLoop(void* ptr) {
             /* Some new file to process */
           }
 
+          /* Return to the main loop: either the directory scan found a new
+             file (queued) or we should retry */
           continue;
         } else {
-          /* We're reading a pcap file */
+          /* We're reading a single pcap file */
         }
-      } else {
+
+      } else { /* Pcap file(s) in the playlist */
         curr_file = pcap_files_queue->front();
         fname = curr_file.c_str();
 
@@ -338,15 +348,13 @@ static void* packetPollLoop(void* ptr) {
           char pcap_error_buffer[PCAP_ERRBUF_SIZE];
           pcap_t* file_pcap_handle;
 
-          if ((file_pcap_handle =
-                   pcap_open_offline(fname, pcap_error_buffer)) == NULL) {
-            ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                         "Unable to open file '%s': %s", fname,
-                                         pcap_error_buffer);
+          if ((file_pcap_handle = pcap_open_offline(fname, pcap_error_buffer)) == NULL) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s",
+                                         fname, pcap_error_buffer);
+            /* Skip the unreadable file and move to the next one in the queue */
             continue;
           } else {
-            ntop->getTrace()->traceEvent(
-                TRACE_NORMAL, "Reading packets from pcap file %s", fname);
+            ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", fname);
             iface->set_pcap_handle(file_pcap_handle, 0);
             iface->set_datalink(pcap_datalink(file_pcap_handle));
           }
@@ -355,8 +363,8 @@ static void* packetPollLoop(void* ptr) {
       }
     }
 
-    /* Wait until the interface is active */
     while (iface->idle()) {
+      /* Wait: interface paused via UI */
       iface->purgeIdle(time(NULL));
       sleep(1);
     }
@@ -382,6 +390,8 @@ static void* packetPollLoop(void* ptr) {
     }
 #endif
 
+    /* Processing loop: poll all the pcap fds/sockets,
+       return to the main loop when processing the current source completes */
     while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
 #ifndef WIN32
       int timeout;
@@ -415,6 +425,7 @@ static void* packetPollLoop(void* ptr) {
 #endif
 
       if (Utils::pollSockets(socks, iface->get_num_ifaces(), timeout) == 0) {
+        /* Nothing ready: check if any live interface disappeared went down and reopen it */
         for (u_int8_t i = 0; i < iface->get_num_ifaces(); i++) {
           if (iface->getPcapIfaceName(i) == NULL) continue;
 
@@ -429,13 +440,15 @@ static void* packetPollLoop(void* ptr) {
         } /* for */
 
 #if !(defined(__APPLE__) || defined(__FreeBSD__))
+        /* Nothing to read yet, poll again */
         continue;
-#endif
-
+#else
         iface->purgeIdle(time(NULL));
+#endif
       }
 
       if (iface->idle()) {
+        /* Interface paused via UI */
         continue;
       }
 
@@ -449,6 +462,7 @@ static void* packetPollLoop(void* ptr) {
           if (iface->processNextPacket(iface->get_pcap_handle(i),
                                        iface->get_ifindex(i),
                                        iface->get_ifdatalink(i)) == false) {
+            /* pcap file/stdin exhausted or source down */
             do_break = true;
             break;
           }
@@ -462,6 +476,7 @@ static void* packetPollLoop(void* ptr) {
         } else {
 
           if (iface->read_from_pcap_dump() && (pcap_files_queue == NULL || pcap_files_queue->empty())) {
+            /* No more pcap files to process: exit loop */
             goto done;
           } else {
             sleep(1);
@@ -469,6 +484,9 @@ static void* packetPollLoop(void* ptr) {
         }
 
         iface->purgeIdle(time(NULL));
+
+        /* Exit the processing loop and go back to the main loop to check
+           for other files/source */
         break;
       }
 #else
@@ -477,8 +495,12 @@ static void* packetPollLoop(void* ptr) {
                                    iface->get_ifdatalink(0)) == false)
         break;
 #endif
-    } /* while */
-  } /* while */
+
+    } /* while (processing loop) */
+
+  } /* while (main loop) */
+
+  /*****/
 
  done:
 
@@ -488,6 +510,7 @@ static void* packetPollLoop(void* ptr) {
 
     iface->set_read_from_pcap_dump_done();
 
+    /* Account all flows traffic in the network interface */
     fh->walk(&begin_slot, true /* walk_all */, idle_flow_account,
              NULL /* user_data */);
   }
@@ -503,7 +526,6 @@ static void* packetPollLoop(void* ptr) {
                                   flow_end_housekeeping_walker,
                                   NULL /* user_data */);
   }
-
 
   iface->set_pcap_dump_processing_done();
 
