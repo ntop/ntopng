@@ -288,7 +288,9 @@ using namespace std;
 #include "ParsedFlowCore.h"
 #include "ParsedeBPF.h"
 #include "ParsedFlow.h"
+#ifdef NTOPNG_PRO
 #include "Sites.h"
+#endif
 #ifdef HAVE_EBPF
 #include "ebpf_flow.h"
 #endif

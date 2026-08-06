@@ -1173,10 +1173,10 @@ NetworkInterface::~NetworkInterface() {
   external_alerts.clear();
 
 #ifdef NTOPNG_PRO
-
+  if(ntop->getPro()->is_enterprise_m_edition())
+    if(sites)    delete sites;
 #ifdef HAVE_NEDGE
   if (policer) delete policer;
-  if(sites)    delete sites;
 #else
 #ifdef HAVE_NBPF
   if (flow_profiles) delete (flow_profiles);
