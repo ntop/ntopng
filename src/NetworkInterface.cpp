@@ -2839,8 +2839,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
         TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s", o,
         ifname);
 
-  for (std::map<u_int64_t, NetworkInterface*>::iterator it =
-           flowHashing.begin();
+  for (std::map<u_int64_t, NetworkInterface*>::iterator it = flowHashing.begin();
        it != flowHashing.end(); ++it)
     it->second->purgeIdle(when, force_idle, full_scan);
 

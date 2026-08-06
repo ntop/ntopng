@@ -80,6 +80,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
       alert_info.is_srv_attacker = alert_info.is_srv_victim = 0;
   alert_info.auto_acknowledge = 1;
   pending_alerts = refresh_triggered_alerts = false;
+  flow_end_housekeeping_done = false;
   category_list_name_shared_pointer = NULL;
   ndpiAddressFamilyProtocol = NULL;
   ndpi_confidence = NDPI_CONFIDENCE_UNKNOWN;
@@ -2214,6 +2215,33 @@ void Flow::flow_end_stats_update() {
   }
 
   if (iface) iface->incQoEStats(qoe_type);
+#endif
+
+#ifdef NTOPNG_PRO
+  if (cli_host && srv_host) {
+    u_int32_t cli_net_id = cli_host->get_local_network_id(),
+              srv_net_id = srv_host->get_local_network_id();
+
+    if (cli_net_id != (u_int32_t)-1 && srv_net_id != (u_int32_t)-1 &&
+        cli_net_id != srv_net_id) {
+      NetworkStats *cli_network_stats = iface->getNetworkStats(cli_net_id),
+                   *srv_network_stats = iface->getNetworkStats(srv_net_id);
+
+      if (cli_network_stats)
+        cli_network_stats->incTrafficBetweenNets(
+            srv_net_id, get_bytes_cli2srv(), get_bytes_srv2cli());
+      if (srv_network_stats)
+        srv_network_stats->incTrafficBetweenNets(
+            cli_net_id, get_bytes_srv2cli(), get_bytes_cli2srv());
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                   "Cli Network ID: %u | Srv Network ID: "
+                                   "%u | Bytes: %lu | Num Loc Nets: %u",
+                                   cli_net_id, srv_net_id, get_bytes(),
+                                   ntop->getNumLocalNetworks());
+#endif
+    }
+  }
 #endif
 }
 
@@ -5330,38 +5358,17 @@ void Flow::housekeep(time_t now) {
               !is_swap_done())) /* Or requested but never performed (no more
                                    packets seen) */
       {
-        iface->execFlowEndChecks(this);
+        if (!isFlowEndHousekeepingDone() /* Already executed in case of pcap file */) {
+          iface->execFlowEndChecks(this);
+        }
       }
 
       dumpCheck(now, true /* LAST dump before delete */);
-      flow_end_stats_update();
 
-#ifdef NTOPNG_PRO
-      if (cli_host && srv_host) {
-        u_int32_t cli_net_id = cli_host->get_local_network_id(),
-                  srv_net_id = srv_host->get_local_network_id();
-
-        if (cli_net_id != (u_int32_t)-1 && srv_net_id != (u_int32_t)-1 &&
-            cli_net_id != srv_net_id) {
-          NetworkStats *cli_network_stats = iface->getNetworkStats(cli_net_id),
-                       *srv_network_stats = iface->getNetworkStats(srv_net_id);
-
-          if (cli_network_stats)
-            cli_network_stats->incTrafficBetweenNets(
-                srv_net_id, get_bytes_cli2srv(), get_bytes_srv2cli());
-          if (srv_network_stats)
-            srv_network_stats->incTrafficBetweenNets(
-                cli_net_id, get_bytes_srv2cli(), get_bytes_cli2srv());
-#ifdef DEBUG
-          ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                       "Cli Network ID: %u | Srv Network ID: "
-                                       "%u | Bytes: %lu | Num Loc Nets: %u",
-                                       cli_net_id, srv_net_id, get_bytes(),
-                                       ntop->getNumLocalNetworks());
-#endif
-        }
+      if (!isFlowEndHousekeepingDone() /* Already executed in case of pcap file */) {
+        flow_end_stats_update();
+        setFlowEndHousekeepingDone();
       }
-#endif
 
       /*
         Score decrements MUST be performed here as this is the same thread of

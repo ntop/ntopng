@@ -262,6 +262,26 @@ static bool idle_flow_account(GenericHashEntry* h, void* user_data,
 
 /* **************************************************** */
 
+/*
+  Run flow-end housekeeping (flow-end checks + stats propagation to hosts/ASes/networks)
+  on all flows in the hash as soon as the pcap file(s) have been fully processed,
+  without purging them from memory
+ */
+static bool flow_end_housekeeping_walker(GenericHashEntry* h, void* user_data,
+                                         bool* matched) {
+  Flow* f = (Flow*)h;
+
+  if (!f->isFlowEndHousekeepingDone()) {
+    f->getInterface()->execFlowEndChecks(f);
+    f->flow_end_stats_update();
+    f->setFlowEndHousekeepingDone();
+  }
+
+  return (false);
+}
+
+/* **************************************************** */
+
 static void* packetPollLoop(void* ptr) {
   PcapInterface* iface = (PcapInterface*)ptr;
 
@@ -445,8 +465,14 @@ static void* packetPollLoop(void* ptr) {
         if (iface->readFromPcapDir()) {
           /* Delete the processed file */
           if (fname) ::unlink(fname);
-        } else
-          sleep(1);
+        } else {
+
+          if (iface->read_from_pcap_dump() && (pcap_files_queue == NULL || pcap_files_queue->empty())) {
+            goto done;
+          } else {
+            sleep(1);
+          }
+        }
 
         iface->purgeIdle(time(NULL));
         break;
@@ -459,6 +485,8 @@ static void* packetPollLoop(void* ptr) {
 #endif
     } /* while */
   } /* while */
+
+ done:
 
   if (iface->read_from_pcap_dump()) {
     FlowHash* fh = iface->get_flows_hash();
@@ -474,7 +502,20 @@ static void* packetPollLoop(void* ptr) {
   for (int i = 0; i < 2; i++)
     iface->purgeIdle(time(NULL), false, true /* Full scan */);
 
+  if (iface->read_from_pcap_dump()) {
+    u_int32_t begin_slot = 0;
+    /* Run the flow-end housekeeping without purging them to keep them browsable) */
+    iface->get_flows_hash()->walk(&begin_slot, true /* walk_all */,
+                                  flow_end_housekeeping_walker,
+                                  NULL /* user_data */);
+  }
+
+
   iface->set_pcap_dump_processing_done();
+
+  while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
+    sleep(1);
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
                                iface->get_description());

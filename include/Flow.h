@@ -169,6 +169,8 @@ class Flow : public GenericHashEntry {
   bool pending_alerts; /* alerts triggered with triggerAlert but waiting to be
                           enqueued */
   bool refresh_triggered_alerts; /* updated alerts previously triggered */
+  bool flow_end_housekeeping_done; /* used by pcap file processing to run flow-end housekeeping
+                                      (including flow-end checks) before shutting down and purging */
   FlowSource flow_source;
 
   struct {
@@ -1055,6 +1057,8 @@ class Flow : public GenericHashEntry {
   };
   inline bool is_swap_done() const { return (swap_done ? true : false); };
   inline void set_swap_done() { swap_done = 1; };
+  inline bool isFlowEndHousekeepingDone() const { return (flow_end_housekeeping_done); };
+  inline void setFlowEndHousekeepingDone() { flow_end_housekeeping_done = true; };
   /*
     Returns actual client and server, that is the client and server as
     determined after the swap heuristic that has taken place.
