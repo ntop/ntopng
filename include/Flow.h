@@ -1057,8 +1057,6 @@ class Flow : public GenericHashEntry {
   };
   inline bool is_swap_done() const { return (swap_done ? true : false); };
   inline void set_swap_done() { swap_done = 1; };
-  inline bool isFlowEndHousekeepingDone() const { return (flow_end_housekeeping_done); };
-  inline void setFlowEndHousekeepingDone() { flow_end_housekeeping_done = true; };
   /*
     Returns actual client and server, that is the client and server as
     determined after the swap heuristic that has taken place.
@@ -1078,6 +1076,7 @@ class Flow : public GenericHashEntry {
                                    const struct timeval* tv);
   void periodic_stats_update(const struct timeval* tv, bool force_update);
   void flow_end_stats_update();
+  void flow_end_housekeeping();
   void set_hash_entry_id(u_int32_t assigned_hash_entry_id);
   u_int32_t get_hash_entry_id() const;
 

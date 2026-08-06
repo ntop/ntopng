@@ -270,13 +270,7 @@ static bool idle_flow_account(GenericHashEntry* h, void* user_data,
 static bool flow_end_housekeeping_walker(GenericHashEntry* h, void* user_data,
                                          bool* matched) {
   Flow* f = (Flow*)h;
-
-  if (!f->isFlowEndHousekeepingDone()) {
-    f->getInterface()->execFlowEndChecks(f);
-    f->flow_end_stats_update();
-    f->setFlowEndHousekeepingDone();
-  }
-
+  f->flow_end_housekeeping();
   return (false);
 }
 

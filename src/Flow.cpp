@@ -2247,6 +2247,32 @@ void Flow::flow_end_stats_update() {
 
 /* *************************************** */
 
+/* Execute flow end activities (e.g. flow-end checks)
+ * this is called before removing a flow (hash_entry_state_idle)
+ * or after processing a pcap file (in that case idle flows are not removed until shutdown) */
+void Flow::flow_end_housekeeping() {
+  if (flow_end_housekeeping_done)
+    return;
+
+  if (is_swap_requested() && !is_swap_done()) {
+    /* Swap requested but never performed (no more packets seen) */
+    iface->execProtocolDetectedChecks(this);
+  }
+
+#if 1
+  if (!is_swap_requested() /* Swap not requested */
+      || (is_swap_requested() &&
+          !is_swap_done())) /* Or requested but never performed (no more packets seen) */
+#endif
+    iface->execFlowEndChecks(this);
+  
+  flow_end_stats_update();
+
+  flow_end_housekeeping_done = true;
+}
+
+/* *************************************** */
+
 /*
  * Update cli/srv hosts stats
  *
@@ -5348,27 +5374,9 @@ void Flow::housekeep(time_t now) {
       /* This code is executed once, as the flow is removed from the hash table
        * after calling housekeep in this state */
 
-      if (is_swap_requested() && !is_swap_done()) {
-        /* Swap requested but never performed (no more packets seen) */
-        iface->execProtocolDetectedChecks(this);
-      }
-
-      if (!is_swap_requested() /* Swap not requested */
-          || (is_swap_requested() &&
-              !is_swap_done())) /* Or requested but never performed (no more
-                                   packets seen) */
-      {
-        if (!isFlowEndHousekeepingDone() /* Already executed in case of pcap file */) {
-          iface->execFlowEndChecks(this);
-        }
-      }
+      flow_end_housekeeping();
 
       dumpCheck(now, true /* LAST dump before delete */);
-
-      if (!isFlowEndHousekeepingDone() /* Already executed in case of pcap file */) {
-        flow_end_stats_update();
-        setFlowEndHousekeepingDone();
-      }
 
       /*
         Score decrements MUST be performed here as this is the same thread of
