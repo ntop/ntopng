@@ -1385,7 +1385,7 @@ bool Utils::purifyHTTPparam(char* const param, bool strict, bool allowURL,
       char c;
       int new_i;
 
-      if ((u_char)param[i] == 0xC3) {
+      if (((u_char)param[i] == 0xC3) && (param[i + 1] != '\0')) {
         /* Latin-1 within UTF-8 - Align to ASCII encoding */
         c = param[i + 1] | 0x40;
         new_i = i + 1; /* We are actually validating two bytes */
