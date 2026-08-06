@@ -6,3 +6,4 @@
 
 # Binaries
 /fuzz_dissect_packet
+/fuzz_zmq_flow

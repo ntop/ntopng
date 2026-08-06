@@ -70,6 +70,9 @@ config.status
 configure
 configure.ac
 aclocal.m4
+.settings
+tags
+fuzzcampaign
 doc/doxygen.conf
 nDPI
 /ntopng
