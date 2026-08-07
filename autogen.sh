@@ -75,8 +75,13 @@ cat configure.ac.in | sed \
 
 rm -f config.h config.h.in *~ #*
 
+if test -d ".git"; then
 git submodule init
 git submodule update --remote
+cd httpdocs/dist && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; cd ../..
+cd tests/e2e && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; cd ../..
+cd third-party/clickhouse-cpp && git reset --hard HEAD && rm -rf build; cd ../..
+fi
 
 if test -d "pro"; then
 N=`grep __FreeBSD__ third-party/clickhouse-cpp/clickhouse/base/platform.h|wc -l|tr -d "[[:space:]]"`

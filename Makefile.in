@@ -298,8 +298,8 @@ pull-deps:
 	rm -rf httpdocs/dist tests/e2e
 	git submodule init
 	git submodule update
-	cd httpdocs/dist && git checkout dev && git pull
-	cd tests/e2e && git checkout dev && git pull
+	branch=`git rev-parse --abbrev-ref HEAD`; cd httpdocs/dist && git checkout $$branch && git pull
+	branch=`git rev-parse --abbrev-ref HEAD`; cd tests/e2e && git checkout $$branch && git pull
 
 pull-pro:
 	if test -d ./pro; then echo "Pulling ntopng/pro..."; cd pro; git pull --rebase; fi
