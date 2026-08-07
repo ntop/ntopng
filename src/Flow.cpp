@@ -2865,8 +2865,8 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
                  u_int8_t _protocol, const ICMPinfo *const _icmp_info,
                  bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
-  const Mac *src_mac, *dst_mac;
 #ifndef HAVE_NEDGE
+  const Mac *src_mac, *dst_mac;
   bool useMacAddressInFlowKey = ntop->getPrefs()->useMacAddressInFlowKey();
 #endif
 
@@ -2903,11 +2903,17 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
 
   if(cli_ip && cli_ip->equal(_cli_ip) && srv_ip && srv_ip->equal(_srv_ip) &&
      _cli_port == cli_port && _srv_port == srv_port) {
-    *src2srv_direction = true, src_mac = _src_pkt_mac, dst_mac = _dst_pkt_mac;
+    *src2srv_direction = true;
+#ifndef HAVE_NEDGE
+    src_mac = _src_pkt_mac, dst_mac = _dst_pkt_mac;
+#endif
   } else if(srv_ip && srv_ip->equal(_cli_ip) && cli_ip &&
 	    cli_ip->equal(_srv_ip) && _srv_port == cli_port &&
 	    _cli_port == srv_port) {
-    *src2srv_direction = false, src_mac = _dst_pkt_mac, dst_mac = _src_pkt_mac;
+    *src2srv_direction = false;
+#ifndef HAVE_NEDGE
+    src_mac = _dst_pkt_mac, dst_mac = _src_pkt_mac;
+#endif
     cli_ip = get_srv_ip_addr(), srv_ip = get_cli_ip_addr();
   } else
     return (false);
