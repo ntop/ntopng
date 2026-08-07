@@ -396,9 +396,9 @@ for _, value in ipairs(flows_stats.flows) do
       record["searched_field"] = value["searched_field"]
    end
 
-   if value["alerts_map"] or value["risk"] then
+   -- add alerts to show in alerts column
+   if value["alerts_map"] then
       record["alerts"] = {}
-      local seen_labels = {}
 
       for alert_id, _ in pairs(value["alerts_map"] or {}) do
          local alert_score = value.score and value.score.alert_score and value.score.alert_score[tostring(alert_id)] or 0
@@ -413,24 +413,6 @@ for _, value in ipairs(flows_stats.flows) do
             color = severity and severity.color
          }
 
-         seen_labels[alert_label] = true
-      end
-
-      -- Add risks if not already added by alerts_map
-      for _, r in pairs(value["risk"] or {}) do
-         if r.id ~= 0 and not seen_labels[r.name] then
-            local severity = alert_consts.alertSeverityById(map_score_to_severity(value.score and value.score.flow_score or 0))
-
-            record["alerts"][#record["alerts"] + 1] = {
-               alert_id = r.id,
-               alert_label = r.name,
-               is_predominant = false,
-               score = value.score and value.score.flow_score,
-               color = severity and severity.color
-            }
-
-            seen_labels[r.name] = true
-         end
       end
    end
 
