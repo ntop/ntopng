@@ -173,6 +173,10 @@ $(CLICKHOUSE_LIB):
 	cd $(CLICKHOUSE_HOME) && cmake --build build
 endif
 
+ifeq ($(HAVE_CLICKHOUSE),1)
+CLICKHOUSE_CLEAN = cd $(CLICKHOUSE_HOME) && cmake --build build --target clean -- --no-print-directory
+endif
+
 $(ZEROMQ_LIB):
 	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; $(MAKE)
 
@@ -185,6 +189,7 @@ clean:
 	-rm -f $(TARGET)
 	-rm -f fuzz/*.o fuzz/proto/ fuzz/stub/*.o
 	if [ -d pro ]; then cd pro && $(MAKE) clean; fi
+	$(CLICKHOUSE_CLEAN)
 
 cert:
 	openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
