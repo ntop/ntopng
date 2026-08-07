@@ -103,11 +103,13 @@ end
 local _schema_cache = {}
 
 local function get_schema_info(schema_name)
+   local is_top_ts = false
    if _schema_cache[schema_name] ~= nil then
       return _schema_cache[schema_name]
    end
    if schema_name == "top:iface:ndpi" then
       schema_name = "top:" .. getIfacenDPITsName()
+      is_top_ts = true
    end
 
    local base_schema = schema_name:gsub("^top:", "")
@@ -131,7 +133,7 @@ local function get_schema_info(schema_name)
 		  if type(entry.timeseries) == "table" then
 		     for series_id, smeta in pairs(entry.timeseries) do
                         local serie_label = smeta.label
-                        if isEmptyString(serie_label) then
+                        if isEmptyString(serie_label) or (is_top_ts) then
                            serie_label = nil
                         end
 			info.series_meta[series_id] = {
