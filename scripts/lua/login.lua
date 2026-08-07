@@ -16,6 +16,7 @@ local reason = _GET["reason"]
 local favicon_path
 local page_title = i18n("welcome_to", { product=info.product })
 local http_prefix = ntop.getHttpPrefix()
+local static_file_epoch = ntop.getStaticFileEpoch() .. ""
 
 print[[
   <!DOCTYPE html>
@@ -25,9 +26,9 @@ print[[
    <meta name="viewport" content="width=device-width, initial-scale=1">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-   <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
-   <link href="]] print(http_prefix) print[[/dist/white-mode.css" rel="stylesheet">
-   <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
+   <link href="]] print(http_prefix) print[[/dist/third-party.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+   <link href="]] print(http_prefix) print[[/dist/white-mode.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+   <link href="]] print(http_prefix) print[[/dist/ntopng.css?]] print(static_file_epoch) print[[" rel="stylesheet">
 ]]
 
   if ((ntop.isPro and ntop.isPro()) or (ntop.isnEdge and ntop.isnEdge())) 
@@ -41,8 +42,8 @@ print[[
   end
 
 print[[
-  <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
-  <script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js"></script>
+  <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
+  <script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js?]] print(static_file_epoch) print[["></script>
   <style>
     html, body {
       height: 100vh;
