@@ -3555,6 +3555,15 @@ decode_packet_eth:
 
           if (l4_proto == 0x3C /* IPv6 destination option */) {
             u_int8_t* options = (u_int8_t*)ip6 + ipv6_shift;
+
+            if ((ip_offset + ipv6_shift + 2) > h->caplen) {
+              incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
+                       NDPI_PROTOCOL_UNKNOWN,
+                       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                       NULL /* srcMac */, NULL /* dstMac */);
+              goto dissect_packet_end;
+            }
+
             l4_proto = options[0];
             ipv6_shift = 8 * (options[1] + 1);
           }
