@@ -145,7 +145,10 @@ function blog_utils.fetchLatestPosts()
 
     traceError(TRACE_NORMAL, TRACE_CONSOLE, "Fetching latest ntop blog posts...")
 
-    response = ntop.httpGet(JSON_FEED)
+    local info = ntop.getInfo()
+    -- Useful in case of attacks/loops
+    local url = JSON_FEED.."?system_id="..(info["pro.systemid"] or "")
+    response = ntop.httpGet(url)
 
     if ((response == nil) or (response["CONTENT"] == nil)) then
         ntop.setPref(BLOG_NEXT_FEED_UPDATE, now + 300) -- Try again not less than 5 mins
