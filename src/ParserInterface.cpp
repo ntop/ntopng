@@ -86,12 +86,21 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
   if (!flow_devices_stats) return false;
 #endif
 
-#if 0
   /* Let's map exporter IPs */
   if(!Utils::isNullAddress(&zflow->exporter_device_ip))
-    zflow->mapped_exporter_device_ip = ntop->findExporterIPMgmtAddress(zflow->exporter_device_ip);  
-#endif
+    zflow->mapped_exporter_device_ip = ntop->findExporterIPMgmtAddress(zflow->exporter_device_ip);
+
+  if(!Utils::isNullAddress(&zflow->next_hop))
+    zflow->mapped_next_hop = ntop->findExporterIPMgmtAddress(zflow->next_hop);
+
+#if 0
+  char buf[64], buf1[64], buf2[64], buf3[64];
   
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "exporter_device_ip: %s/%s - next_hop: %s/%s",
+			       Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)), Utils::intoaV6(zflow->mapped_exporter_device_ip, buf1, sizeof(buf2)),
+			       Utils::intoaV6(zflow->next_hop, buf2, sizeof(buf2)), Utils::intoaV6(zflow->mapped_next_hop, buf3, sizeof(buf3)));
+#endif
+
   now = time(NULL);
   now_tv.tv_sec = now;
 
@@ -276,12 +285,14 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
     if (new_flow) {
       flow->setFlowDeviceNextHop(zflow->getNextHop());
-      
+
       if (zflow->inIndex != 0)  flow->setFlowDeviceInIndex(zflow->inIndex);
       if (zflow->outIndex != 0) flow->setFlowDeviceOutIndex(zflow->outIndex);
 
       flow->addExporterInfo(&zflow->exporter_device_ip,
-			    zflow->getNextHop(),
+			    &zflow->next_hop,
+			    &zflow->mapped_exporter_device_ip,
+			    &zflow->mapped_next_hop,
                             zflow->inIndex, zflow->outIndex,
                             zflow->getFlowSource(), src2dst_direction);
 
@@ -323,7 +334,10 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
                                      flow->print(buf, sizeof(buf)));
 #endif
         num_deduplicated_flows++;
-        flow->addExporterInfo(&zflow->exporter_device_ip, zflow->getNextHop(),
+        flow->addExporterInfo(&zflow->exporter_device_ip,
+			      &zflow->next_hop,
+			      &zflow->mapped_exporter_device_ip,
+			      &zflow->mapped_next_hop,
                               zflow->inIndex, zflow->outIndex,
                               zflow->getFlowSource(), src2dst_direction);
 
@@ -348,8 +362,8 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
 #ifdef NTOPNG_PRO
   if (zflow->unique_source_id != 0) {
-    IpAddress exporter_ip;
-    int32_t exporter_network_id = -1;
+    IpAddress host_ip;
+    int32_t host_network_id = -1;
 
 #if 0
     char buf[64], buf1[64];
@@ -370,14 +384,13 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       return (false);
     }
 
-    if (Utils::isIPv4MappedAddress(&zflow->exporter_device_ip))
-      exporter_ip.set(zflow->exporter_device_ip.u6_addr.u6_addr32[3]);
-    else
-      exporter_ip.set(&zflow->exporter_device_ip);
+    host_ip.set(&zflow->mapped_exporter_device_ip);
+    host_ip.isLocalHost(&host_network_id);
+    flow->setExporterSiteId(getNetworkSiteId(host_network_id));
 
-    exporter_ip.isLocalHost(&exporter_network_id);
-
-    flow->setExporterFlowSiteId(getNetworkSiteId(exporter_network_id));
+    host_ip.set(&zflow->mapped_next_hop);
+    host_ip.isLocalHost(&host_network_id);
+    flow->setNextHopSiteId(getNetworkSiteId(host_network_id));
   }
 #endif
 
@@ -520,7 +533,8 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 			       Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)));
 #endif
 
-  flow->setFlowDevice(&zflow->exporter_device_ip, zflow->observationPointId,
+  flow->setFlowDevice(&zflow->exporter_device_ip,
+		      &zflow->next_hop, zflow->observationPointId,
                       src2dst_direction ? flow->getFlowDeviceInIndex()
                                         : flow->getFlowDeviceOutIndex(),
                       src2dst_direction ? flow->getFlowDeviceOutIndex()

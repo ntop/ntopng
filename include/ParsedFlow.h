@@ -40,7 +40,6 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char* external_alert;
   char* l7_json;
   char* ot_info;
-  struct ndpi_in6_addr next_hop, mapped_next_hop;
   char *smtp_rcp_to, *smtp_mail_from;
   u_int32_t src_ip_addr_pre_nat, dst_ip_addr_pre_nat, src_ip_addr_post_nat,
       dst_ip_addr_post_nat;
@@ -374,7 +373,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   }
   inline char* getClientBGPInfo() { return(bgp.src ? bgp.src : (char*)""); }
   inline char* getServerBGPInfo() { return(bgp.dst ? bgp.dst : (char*)""); }
-  
+
   inline u_int8_t* getWTPMACAddress() { return wtp_mac_address; }
 
   inline u_int32_t getPreNATSrcIp() { return src_ip_addr_pre_nat; };

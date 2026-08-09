@@ -5746,7 +5746,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
       return (false);
 
     if (retriever->pag && retriever->pag->siteIdFilter(&site_id) &&
-        !(f->getExporterFlowSiteId() == site_id))
+        !(f->getExporterSiteId() == site_id))
       return (false);
 
     if (retriever->pag && retriever->pag->transitASFilter(&transit_as) &&

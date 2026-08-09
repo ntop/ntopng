@@ -5870,7 +5870,6 @@ SNMPInterfaceRole Ntop::snmpGetInterfaceRole(struct ndpi_in6_addr *exporter_devi
 /* ******************************************* */
 
 struct ndpi_in6_addr Ntop::findExporterIPMgmtAddress(struct ndpi_in6_addr host_ip) {
-  struct ndpi_in6_addr empty;  
 #ifdef NTOPNG_PRO
   std::unordered_map<struct ndpi_in6_addr, struct ndpi_in6_addr,
 		     ndpi_in6_addr_hash, ndpi_in6_addr_eq>::iterator it;
@@ -5881,7 +5880,6 @@ struct ndpi_in6_addr Ntop::findExporterIPMgmtAddress(struct ndpi_in6_addr host_i
     return(it->second);
 #endif
 
-  memset(&empty, 0, sizeof(empty));
-  return(empty);
+  return(host_ip);
 }
 
