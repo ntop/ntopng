@@ -377,7 +377,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
     exporter_ip.isLocalHost(&exporter_network_id);
 
-    flow->setFlowSiteId(getNetworkSiteId(exporter_network_id));
+    flow->setExporterFlowSiteId(getNetworkSiteId(exporter_network_id));
   }
 #endif
 

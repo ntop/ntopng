@@ -144,7 +144,7 @@ class Flow : public GenericHashEntry {
   u_int32_t protocolErrorCode;
   u_int8_t protocol, flow_verdict;
   u_int16_t flow_score;
-  u_int16_t site_id;
+  u_int16_t exporter_site_id;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1, _notused : 5;
   u_int8_t cli_mac[6], srv_mac[6];
@@ -1489,8 +1489,8 @@ class Flow : public GenericHashEntry {
     return (&flow_device.next_hop);
   }
 
-  inline void setFlowSiteId(u_int16_t id) { site_id = id; }
-  inline u_int16_t getFlowSiteId() { return (site_id); }
+  inline void setExporterFlowSiteId(u_int16_t id) { exporter_site_id = id; }
+  inline u_int16_t getExporterFlowSiteId() { return (exporter_site_id); }
 
   u_int16_t getSrcNetworkSiteId();
   u_int16_t getDstNetworkSiteId();

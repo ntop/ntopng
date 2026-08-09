@@ -142,8 +142,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   flow_device.in_index = flow_device.out_index =
       flow_device.observation_point_id = 0;
 
-  site_id = 0;
-  flow_score = 0;
+  exporter_site_id = 0, flow_score = 0;
 
   rtp_stream_type = ndpi_multimedia_unknown_flow;
 #ifdef NTOPNG_PRO
@@ -10331,7 +10330,7 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
   /* Check for duplicates first */
   for (it = exporterStats.begin(); it != exporterStats.end(); it++) {
     if((memcmp(&it->exporter_ip, exporter_ip, sizeof(struct ndpi_in6_addr)) == 0)
-       && (memcmp(&it->next_hop, &next_hop, sizeof(struct ndpi_in6_addr)) == 0)) {
+       && (memcmp(&it->next_hop, next_hop, sizeof(struct ndpi_in6_addr)) == 0)) {
       return; /* Duplicated */
     }
   }

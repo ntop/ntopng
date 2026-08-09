@@ -3448,9 +3448,10 @@ decode_packet_eth:
               Total = CAPWAP_header_length + 24 + 8
             */
             u_short eth_type;
+
             ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
 
-            if ((ip_offset + 1) >= h->caplen) {
+            if ((const unsigned int)(ip_offset + 1) >= h->caplen) {
               incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                        NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
                        NULL /* srcMac */, NULL /* dstMac */);
@@ -5745,7 +5746,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
       return (false);
 
     if (retriever->pag && retriever->pag->siteIdFilter(&site_id) &&
-        !(f->getFlowSiteId() == site_id))
+        !(f->getExporterFlowSiteId() == site_id))
       return (false);
 
     if (retriever->pag && retriever->pag->transitASFilter(&transit_as) &&
@@ -5825,8 +5826,9 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
     }
 #endif
 #endif
-    if (retriever->pag && retriever->pag->ifaceIndexFilter(&iface_index) && iface_index != (u_int32_t)-1) {
-      if (f->getInterface() && f->getInterface()->get_id() != iface_index) {
+    if (retriever->pag && retriever->pag->ifaceIndexFilter(&iface_index)
+	&& iface_index != (u_int32_t)-1) {
+      if (f->getInterface() && (f->getInterface()->get_id() != (int)iface_index)) {
         return (false);
       }
     }
