@@ -146,8 +146,12 @@ function blog_utils.fetchLatestPosts()
     traceError(TRACE_NORMAL, TRACE_CONSOLE, "Fetching latest ntop blog posts...")
 
     local info = ntop.getInfo()
-    -- Useful in case of attacks/loops
-    local url = JSON_FEED.."?system_id="..(info["pro.systemid"] or "")
+    local url = JSON_FEED.."?id="..(info["pro.systemid"] or "")
+       .."&edition="..url_encode(info.edition)
+       .."&version="..url_encode(info.version)
+       .."&revision="..url_encode(info.revision)
+       .."&license_type="..url_encode(info["pro.license_type"] or "")
+
     response = ntop.httpGet(url)
 
     if ((response == nil) or (response["CONTENT"] == nil)) then
