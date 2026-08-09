@@ -29,6 +29,8 @@
 
 /* #define BLACKLISTED_FLOWS_DEBUG */
 
+// #define DISPLAY_MAPPED_EXPORTER
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
@@ -3711,7 +3713,19 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
         if (!Utils::isNullAddress(&it->exporter_ip)) {
           lua_newtable(vm);
+
+#ifdef DISPLAY_MAPPED_EXPORTER
+	  lua_push_str_table_entry(vm, "original_exporter_ip",
+				   Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "exporter_ip",
+				   Utils::intoaV6(it->mapped_exporter_ip, b1, sizeof(b1)));
+          lua_push_str_table_entry(vm, "original_next_hop",
+                                   Utils::intoaV6(it->next_hop, b2, sizeof(b2)));
+          lua_push_str_table_entry(vm, "next_hop",
+                                   Utils::intoaV6(it->mapped_next_hop, b2, sizeof(b2)));
+#else
+	  /* original */
+	  lua_push_str_table_entry(vm, "exporter_ip",
 				   Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "mapped_exporter_ip",
 				   Utils::intoaV6(it->mapped_exporter_ip, b1, sizeof(b1)));
@@ -3719,6 +3733,8 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
                                    Utils::intoaV6(it->next_hop, b2, sizeof(b2)));
           lua_push_str_table_entry(vm, "mapped_next_hop",
                                    Utils::intoaV6(it->mapped_next_hop, b2, sizeof(b2)));
+#endif
+	  
           lua_push_bool_table_entry(vm, "return_path", it->return_path);
           lua_push_int32_table_entry(vm, "input_idx", it->in_index);
           lua_push_int32_table_entry(vm, "output_idx", it->out_index);
@@ -8021,13 +8037,32 @@ void Flow::lua_duration_info(lua_State* vm) {
 void Flow::lua_snmp_info(lua_State* vm) {
   char buf[64];
 
+#ifdef DISPLAY_MAPPED_EXPORTER
+  lua_push_str_table_entry(vm, "original_device_ip",
+			   Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "device_ip",
+			   Utils::intoaV6(flow_device.mapped_device_ip, buf, sizeof(buf)));
+#else
   lua_push_str_table_entry(vm, "device_ip",
 			   Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf)));
-
-  if (!Utils::isNullAddress(&flow_device.next_hop))
+  lua_push_str_table_entry(vm, "mapped_device_ip",
+			   Utils::intoaV6(flow_device.mapped_device_ip, buf, sizeof(buf)));
+#endif
+  
+  if (!Utils::isNullAddress(&flow_device.next_hop)) {
+#ifdef DISPLAY_MAPPED_EXPORTER
+    lua_push_str_table_entry(vm, "original_next_hop",
+                             Utils::intoaV6(flow_device.next_hop, buf, sizeof(buf)));
+    lua_push_str_table_entry(vm, "next_hop",
+                             Utils::intoaV6(flow_device.mapped_next_hop, buf, sizeof(buf)));
+#else
     lua_push_str_table_entry(vm, "next_hop",
                              Utils::intoaV6(flow_device.next_hop, buf, sizeof(buf)));
-
+    lua_push_str_table_entry(vm, "mapped_next_hop",
+                             Utils::intoaV6(flow_device.mapped_next_hop, buf, sizeof(buf)));
+#endif
+  }
+  
   lua_push_uint64_table_entry(vm, "in_index", flow_device.in_index);
   lua_push_uint64_table_entry(vm, "out_index", flow_device.out_index);
   lua_push_uint64_table_entry(vm, "observation_point_id",
@@ -10403,13 +10438,17 @@ u_int16_t Flow::getDstNetworkSiteId() {
 /* *************************************** */
 
 void Flow::setFlowDevice(struct ndpi_in6_addr *device_ip,
+			 struct ndpi_in6_addr *mapped_device_ip,
 			 struct ndpi_in6_addr *next_hop,
+			 struct ndpi_in6_addr *mapped_next_hop,
 			 u_int16_t observation_point_id,
 			 u_int32_t inidx, u_int32_t outidx) {
   ObservationPoint* obs_point;
 
   memcpy(&flow_device.device_ip, device_ip, sizeof(struct ndpi_in6_addr));
+  memcpy(&flow_device.mapped_device_ip, mapped_device_ip, sizeof(struct ndpi_in6_addr));
   memcpy(&flow_device.next_hop, next_hop, sizeof(struct ndpi_in6_addr));
+  memcpy(&flow_device.mapped_next_hop, mapped_next_hop, sizeof(struct ndpi_in6_addr));
   
   flow_device.observation_point_id = observation_point_id;
   flow_device.in_index = inidx, flow_device.out_index = outidx;

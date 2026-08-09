@@ -94,11 +94,15 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     zflow->mapped_next_hop = ntop->findExporterIPMgmtAddress(zflow->next_hop);
 
 #if 0
-  char buf[64], buf1[64], buf2[64], buf3[64];
+  char buf[64], buf1[64], buf2[64], buf3[64], *s;
   
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "exporter_device_ip: %s/%s - next_hop: %s/%s",
-			       Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)), Utils::intoaV6(zflow->mapped_exporter_device_ip, buf1, sizeof(buf2)),
-			       Utils::intoaV6(zflow->next_hop, buf2, sizeof(buf2)), Utils::intoaV6(zflow->mapped_next_hop, buf3, sizeof(buf3)));
+  ntop->getTrace()->traceEvent(TRACE_INFO, "exporter_device_ip: %s/%s - next_hop: %s/%s",
+			       Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)),
+			       Utils::intoaV6(zflow->mapped_exporter_device_ip, buf1, sizeof(buf2)),
+			       (s = Utils::intoaV6(zflow->next_hop, buf2, sizeof(buf2))),
+			       Utils::intoaV6(zflow->mapped_next_hop, buf3, sizeof(buf3)));
+
+  }
 #endif
 
   now = time(NULL);
@@ -534,7 +538,10 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 #endif
 
   flow->setFlowDevice(&zflow->exporter_device_ip,
-		      &zflow->next_hop, zflow->observationPointId,
+		      &zflow->mapped_exporter_device_ip,
+		      &zflow->next_hop,
+		      &zflow->mapped_next_hop,
+		      zflow->observationPointId,
                       src2dst_direction ? flow->getFlowDeviceInIndex()
                                         : flow->getFlowDeviceOutIndex(),
                       src2dst_direction ? flow->getFlowDeviceOutIndex()

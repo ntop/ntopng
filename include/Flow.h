@@ -348,7 +348,9 @@ class Flow : public GenericHashEntry {
 
   struct {
     struct ndpi_in6_addr device_ip; /* IPv4 stored as IPv4-mapped IPv6 */
+    struct ndpi_in6_addr mapped_device_ip;
     struct ndpi_in6_addr next_hop;
+    struct ndpi_in6_addr mapped_next_hop;
     u_int32_t in_index, out_index;
     u_int16_t observation_point_id;
   } flow_device;
@@ -1446,7 +1448,9 @@ class Flow : public GenericHashEntry {
     applLatencyMsec = latency_msecs;
   }
   void setFlowDevice(struct ndpi_in6_addr *device_ip,
+		     struct ndpi_in6_addr *mapped_device_ip,
 		     struct ndpi_in6_addr *next_hop,
+		     struct ndpi_in6_addr *mapped_next_hop,
 		     u_int16_t observation_point_id,
 		     u_int32_t inidx, u_int32_t outidx);
   inline struct ndpi_in6_addr* getFlowDeviceIP() { return(&flow_device.device_ip); };
