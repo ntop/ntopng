@@ -10,6 +10,7 @@ local profiling = require "profiling"
 -- ########################################################
 
 require "ntop_utils"
+require "label_utils"
 require "ts_minute"
 require "check_redis_prefs"
 local ts_utils = require("ts_utils_core")
