@@ -1,0 +1,56 @@
+{
+	"id": "products_licenses",
+	"data_url": "lua/rest/v2/get/ntopng/product_licenses.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "orderId",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "orderId",
+			"data_field": "orderId",
+			"title_i18n": "about.handle_licenses.order_id",
+			"sortable": true,
+			"min-width": "155px",
+			"max-width": "250px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "product",
+			"title_i18n": "about.handle_licenses.product",
+			"data_field": "product",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "200px"
+		},
+		{
+			"id": "maintenance",
+			"data_field": "maintenance",
+			"title_i18n": "about.handle_licenses.maintenance",
+			"sortable": true,
+			"min-width": "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "message",
+			"data_field": "maintenance_msg",
+			"title_i18n": "about.handle_licenses.info",
+			"sortable": false,
+			"min-width": "300px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

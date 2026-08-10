@@ -844,6 +844,11 @@ page_utils.menu_entries = {
         i18n_title = "limits_page.limits",
         section = "about"
     },
+    handle_licenses = {
+        key = "handle_licenses",
+        i18n_title = "about.handle_licenses.retrieve_licenses",
+        section = "about"
+    },
     blog = {
         key = "blog",
         i18n_title = "about.ntop_blog",
