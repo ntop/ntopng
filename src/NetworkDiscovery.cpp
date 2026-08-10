@@ -650,7 +650,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
               if (buf[new_offset] < 32)
                 rspbuf[idx] = '.';
               else if (buf[new_offset] == 0xc0) {
-                if (new_offset + 1 >= buf_len) break;
+                if ((u_int)(new_offset + 1) >= buf_len) break;
                 new_offset = buf[new_offset + 1];
                 continue;
               } else
@@ -697,7 +697,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
             if (buf[new_offset] < 32)
               rspbuf[idx] = '.';
             else if (buf[new_offset] == 0xc0) {
-              if (new_offset + 1 >= buf_len) break;
+              if ((u_int)(new_offset + 1) >= buf_len) break;
               new_offset = buf[new_offset + 1];
               continue;
             } else
@@ -765,7 +765,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
                 if (buf[new_offset] < 32)
                   rspbuf[idx] = '.';
                 else if (buf[new_offset] == 0xc0) {
-                  if (new_offset + 1 >= buf_len) break;
+                  if ((u_int)(new_offset + 1) >= buf_len) break;
                   new_offset = buf[new_offset + 1];
                   continue;
                 } else

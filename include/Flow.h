@@ -73,6 +73,7 @@ typedef struct {
   struct ndpi_in6_addr exporter_ip; /* IPv4 stored as IPv4-mapped IPv6 (original IP) */
   struct ndpi_in6_addr mapped_exporter_ip; /* IPv4 stored as IPv4-mapped IPv6 (after SNMP mapping) */
   struct ndpi_in6_addr next_hop, mapped_next_hop; /* Same as for exporter_ip */
+  u_int16_t exporter_site_id, next_hop_site_id;
   u_int32_t in_index, out_index;
   FlowSource source; /* sFlow / NetFlow */
   bool return_path;
@@ -163,13 +164,13 @@ class Flow : public GenericHashEntry {
   u_int16_t vlanId;
   u_int32_t srcAS, dstAS; /* Calculated via GeoIP */
   u_int32_t transitAS;
+  u_int16_t observation_point_id;
   char *srcASName, *dstASName, *_srcASNameBuf, *_dstASNameBuf;
   char searched_field[64];
   u_int32_t srcPeerAS, dstPeerAS; /* Collected via NetFLow/IPFIX */
   u_int32_t protocolErrorCode;
   u_int8_t protocol, flow_verdict;
   u_int16_t flow_score;
-  u_int16_t exporter_site_id, next_hop_site_id;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1, _notused : 5;
   u_int8_t cli_mac[6], srv_mac[6];
@@ -371,15 +372,6 @@ class Flow : public GenericHashEntry {
       char* rcpt_to;
     } smtp;
   } protos;
-
-  struct {
-    struct ndpi_in6_addr device_ip; /* IPv4 stored as IPv4-mapped IPv6 */
-    struct ndpi_in6_addr mapped_device_ip;
-    struct ndpi_in6_addr next_hop;
-    struct ndpi_in6_addr mapped_next_hop;
-    u_int32_t in_index, out_index;
-    u_int16_t observation_point_id;
-  } flow_device;
 
   /* eBPF Information */
   ParsedeBPF* ebpf;
@@ -1109,7 +1101,7 @@ class Flow : public GenericHashEntry {
   u_int32_t get_hash_entry_id() const;
 
   static char* printTCPflags(u_int8_t flags, char* const buf, u_int buf_len);
-  char* print(char* buf, u_int buf_len, bool full_report = true) const;
+  char* print(char* buf, u_int buf_len, bool full_report = true);
 
   inline u_int32_t key() { return (flow_key); }
   static u_int32_t key(Host* cli, u_int16_t cli_port, Host* srv,
@@ -1473,41 +1465,17 @@ class Flow : public GenericHashEntry {
   inline void setFlowApplLatency(float latency_msecs) {
     applLatencyMsec = latency_msecs;
   }
-  void setFlowDevice(struct ndpi_in6_addr *device_ip,
-		     struct ndpi_in6_addr *mapped_device_ip,
-		     struct ndpi_in6_addr *next_hop,
-		     struct ndpi_in6_addr *mapped_next_hop,
-		     u_int16_t observation_point_id,
-		     u_int32_t inidx, u_int32_t outidx);
-  inline struct ndpi_in6_addr* getFlowDeviceIP() { return(&flow_device.device_ip); };
-  inline u_int16_t getFlowObservationPointId() {
-    return flow_device.observation_point_id;
-  };
-  inline u_int16_t get_observation_point_id() {
-    return (getFlowObservationPointId());
-  };
-  inline u_int32_t getFlowDeviceInIndex() { return flow_device.in_index; };
-  inline u_int32_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 
-  inline void setFlowDeviceInIndex(u_int32_t idx) {
-    if (idx != 0) flow_device.in_index = idx;
-  };
-  inline void setFlowDeviceOutIndex(u_int32_t idx) {
-    if (idx != 0) flow_device.out_index = idx;
-  };
+  struct ndpi_in6_addr getDeviceIP();
+  struct ndpi_in6_addr getOriginalDeviceIP();
+  struct ndpi_in6_addr getNextHop();
+  struct ndpi_in6_addr getOriginalNextHop();
+  u_int32_t getInIndex();
+  u_int32_t getOutIndex();
 
-  inline void setFlowDeviceNextHop(struct ndpi_in6_addr *nh) {
-    memcpy(&flow_device.next_hop, nh, sizeof(struct ndpi_in6_addr));
-  }
-  inline struct ndpi_in6_addr* getFlowDeviceNextHop() {
-    return (&flow_device.next_hop);
-  }
+  inline u_int16_t getObservationPointId() { return (observation_point_id); };
 
-  inline void setExporterSiteId(u_int16_t id) { exporter_site_id = id;     }
-  inline u_int16_t getExporterSiteId()        { return (exporter_site_id); }
-  inline void setNextHopSiteId(u_int16_t id)  { next_hop_site_id = id;     }
-  inline u_int16_t getNextHopSiteId()         { return (next_hop_site_id); }
-
+  u_int16_t getExporterSiteId();
   u_int16_t getSrcNetworkSiteId();
   u_int16_t getDstNetworkSiteId();
 
@@ -1797,6 +1765,8 @@ class Flow : public GenericHashEntry {
 		       struct ndpi_in6_addr *next_hop,
 		       struct ndpi_in6_addr *mapped_exporter_ip,
 		       struct ndpi_in6_addr *mapped_next_hop,
+		       u_int16_t exporter_site_id,
+		       u_int16_t next_hop_site_id,
                        u_int32_t in_index, u_int32_t out_index,
                        FlowSource source, bool src2dst_direction);
 

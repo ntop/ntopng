@@ -29,8 +29,6 @@
 
 /* #define BLACKLISTED_FLOWS_DEBUG */
 
-#define DISPLAY_MAPPED_EXPORTER
-
 /* *************************************** */
 
 Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
@@ -139,9 +137,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   last_db_dump.is_first_dump = true;
     
   memset(&protos, 0, sizeof(protos));
-  memset(&flow_device, 0, sizeof(flow_device));
-
-  exporter_site_id = next_hop_site_id = 0, flow_score = 0;
+  flow_score = 0;
 
   rtp_stream_type = ndpi_multimedia_unknown_flow;
 #ifdef NTOPNG_PRO
@@ -160,8 +156,9 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
 
   if (_observation_point_id) {
     iface->incObservationPointIdFlows(_observation_point_id);
-    flow_device.observation_point_id = _observation_point_id;
-  }
+    observation_point_id = _observation_point_id;
+  } else
+    observation_point_id = 0;
 
   if (_view_cli_mac)
     memcpy(cli_mac, _view_cli_mac, sizeof(cli_mac));
@@ -1987,7 +1984,7 @@ char* Flow::printTCPState(char* const buf, u_int buf_len) const {
 
 /* *************************************** */
 
-char* Flow::print(char* buf, u_int buf_len, bool full_report) const {
+char* Flow::print(char* buf, u_int buf_len, bool full_report) {
   char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
   char c_buf[32], s_buf[32], device_ip_buf[64];
 
@@ -2081,9 +2078,9 @@ char* Flow::print(char* buf, u_int buf_len, bool full_report) const {
       ndpiDetectedProtocol.proto.app_protocol,
       get_detected_protocol_name(pbuf, sizeof(pbuf)), get_protocol_category(),
       get_protocol_category_name(),
-      Utils::intoaV6((struct ndpi_in6_addr)flow_device.device_ip, device_ip_buf, sizeof(device_ip_buf)),
-      flow_device.in_index,
-      flow_device.out_index, get_packets_cli2srv(), get_packets_srv2cli(),
+      Utils::intoaV6(getDeviceIP(), device_ip_buf, sizeof(device_ip_buf)),
+      getInIndex(), getOutIndex(),
+      get_packets_cli2srv(), get_packets_srv2cli(),
       (long long unsigned)get_bytes_cli2srv(),
       (long long unsigned)get_bytes_srv2cli(),
       printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
@@ -2438,6 +2435,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
     }
 
     if (cli_host->get_asn() != srv_host->get_asn()) {
+      struct ndpi_in6_addr addr = getDeviceIP();
       AutonomousSystem *cli_as = cli_host ? cli_host->get_as() : NULL,
                        *srv_as = srv_host ? srv_host->get_as() : NULL;
 
@@ -2445,14 +2443,14 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         cli_as->incStats(get_cli_ip_addr()->isIPv4(),
 			 tv->tv_sec, stats_protocol, diff_sent_packets,
                          diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes,
-                         getFlowDeviceIP(), getFlowDeviceInIndex(),
-                         getFlowDeviceOutIndex());
+                         &addr, getInIndex(),
+                         getOutIndex());
       if (srv_as)
         srv_as->incStats(get_cli_ip_addr()->isIPv4(),
 			 tv->tv_sec, stats_protocol, diff_rcvd_packets,
                          diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes,
-                         getFlowDeviceIP(), getFlowDeviceInIndex(),
-                         getFlowDeviceOutIndex());
+                         &addr, getInIndex(),
+                         getOutIndex());
     }
 
     if (cli_host->get_observation_point_id() &&
@@ -3430,7 +3428,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
     /* See VLANAddressTree.h for details */
     lua_push_uint32_table_entry(vm, "observation_point_id",
-                                get_observation_point_id());
+                                getObservationPointId());
 
     if (collection) {
       if (collection->prevAdjacentAS)
@@ -3718,28 +3716,15 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
         if (!Utils::isNullAddress(&it->second.exporter_ip)) {
           lua_newtable(vm);
 
-#ifdef DISPLAY_MAPPED_EXPORTER
-	  lua_push_str_table_entry(vm, "original_exporter_ip",
-				   Utils::intoaV6(it->second.exporter_ip, b1, sizeof(b1)));
-          lua_push_str_table_entry(vm, "exporter_ip",
-				   Utils::intoaV6(it->second.mapped_exporter_ip, b1, sizeof(b1)));
-          lua_push_str_table_entry(vm, "original_next_hop",
-                                   Utils::intoaV6(it->second.next_hop, b2, sizeof(b2)));
-          lua_push_str_table_entry(vm, "next_hop",
-                                   Utils::intoaV6(it->second.mapped_next_hop, b2, sizeof(b2)));
-#else
-	  /* original */
-	  lua_push_str_table_entry(vm, "exporter_ip",
-				   Utils::intoaV6(it->second.exporter_ip, b1, sizeof(b1)));
-          lua_push_str_table_entry(vm, "mapped_exporter_ip",
-				   Utils::intoaV6(it->second.mapped_exporter_ip, b1, sizeof(b1)));
-          lua_push_str_table_entry(vm, "next_hop",
-                                   Utils::intoaV6(it->second.next_hop, b2, sizeof(b2)));
-          lua_push_str_table_entry(vm, "mapped_next_hop",
-                                   Utils::intoaV6(it->second.mapped_next_hop, b2, sizeof(b2)));
-#endif
+	  lua_push_str_table_entry(vm, "original_exporter_ip", Utils::intoaV6(it->second.exporter_ip, b1, sizeof(b1)));
+          lua_push_str_table_entry(vm, "exporter_ip", Utils::intoaV6(it->second.mapped_exporter_ip, b1, sizeof(b1)));
+	  lua_push_str_table_entry(vm, "original_next_hop", Utils::intoaV6(it->second.next_hop, b2, sizeof(b2)));
+          lua_push_str_table_entry(vm, "next_hop", Utils::intoaV6(it->second.mapped_next_hop, b2, sizeof(b2)));
+
+	  lua_push_int32_table_entry(vm, "exporter_site_id", it->second.exporter_site_id);
+	  lua_push_int32_table_entry(vm, "next_hop_site_id", it->second.next_hop_site_id);
 	  
-          lua_push_bool_table_entry(vm, "return_path", it->second.return_path);
+          lua_push_bool_table_entry(vm,  "return_path", it->second.return_path);
           lua_push_int32_table_entry(vm, "input_idx", it->second.in_index);
           lua_push_int32_table_entry(vm, "output_idx", it->second.out_index);
           lua_push_int32_table_entry(vm, "source", it->second.source);
@@ -4025,7 +4010,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [uses: %u][time: %d][idle: %s]",
 			       __FUNCTION__, getUses(),
-			       (last_seen + iface->getFlowMaxIdle()) - iface->getTimeLastPktRcvd(),
+			       (last_seen + iface->getMaxIdle()) - iface->getTimeLastPktRcvd(),
 			       ret ? "true" : "false");
 
   if(ret)
@@ -4293,14 +4278,17 @@ void Flow::formatECSNetwork(json_object* my_object, const IpAddress* addr) {
                            sizeof(jsonbuf)),
           json_object_new_string(addr->isIPv4() ? "ipv4" : "ipv6"));
 
-    if (!Utils::isNullAddress(&flow_device.device_ip))
-      json_object_object_add(network_object, "exporter",
-                             json_object_new_string(Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf))));
+    struct ndpi_in6_addr addr;
 
-    if (!Utils::isNullAddress(&flow_device.next_hop))
-      json_object_object_add(
-          network_object, "next_hop",
-          json_object_new_string(Utils::intoaV6(flow_device.next_hop, buf, sizeof(buf))));
+    addr = getDeviceIP();
+    if (!Utils::isNullAddress(&addr))
+      json_object_object_add(network_object, "exporter",
+                             json_object_new_string(Utils::intoaV6(addr, buf, sizeof(buf))));
+
+    addr = getNextHop();
+    if (!Utils::isNullAddress(&addr))
+      json_object_object_add(network_object, "next_hop",
+			     json_object_new_string(Utils::intoaV6(addr, buf, sizeof(buf))));
 
     json_object_object_add(network_object, "info",
                            json_object_new_string(getFlowInfo(false).c_str()));
@@ -4941,18 +4929,22 @@ void Flow::formatGenericFlow(json_object* my_object) {
         json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
   }
 
-  if (!Utils::isNullAddress(&flow_device.device_ip))
+  struct ndpi_in6_addr addr;
+  
+  addr = getDeviceIP();
+  if (!Utils::isNullAddress(&addr))
     json_object_object_add(my_object,
 			   Utils::jsonLabel(EXPORTER_IPV4_ADDRESS, "EXPORTER_IPV6_ADDRESS",
 					    jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf))));
+			   json_object_new_string(Utils::intoaV6(addr, buf, sizeof(buf))));
 
-  if (!Utils::isNullAddress(&flow_device.next_hop))
+  addr = getNextHop();
+  if (!Utils::isNullAddress(&addr))
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(IPV4_NEXT_HOP, "IPV4_NEXT_HOP", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_string(Utils::intoaV6(flow_device.next_hop, buf, sizeof(buf))));
+			   my_object,
+			   Utils::jsonLabel(IPV4_NEXT_HOP, "IPV4_NEXT_HOP", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(Utils::intoaV6(addr, buf, sizeof(buf))));
 
   if (bt_hash)
     json_object_object_add(my_object,
@@ -5142,7 +5134,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
   /* See VLANAddressTree.h for details */
   ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
   ndpi_serialize_string_int32(s, "observation_point_id",
-                              get_observation_point_id());
+                              getObservationPointId());
 
   ndpi_serialize_string_int32(s, "proto", get_protocol());
 
@@ -5218,9 +5210,9 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
                                  (u_int32_t)srv_host->get_local_network_id());
   }
 
-  ndpi_serialize_string_string(s, "exporter_ip", Utils::intoaV6(*getFlowDeviceIP(), buf, sizeof(buf)));
-  ndpi_serialize_string_int32(s, "input_snmp", getFlowDeviceInIndex());
-  ndpi_serialize_string_int32(s, "output_snmp", getFlowDeviceOutIndex());
+  ndpi_serialize_string_string(s, "exporter_ip", Utils::intoaV6(getDeviceIP(), buf, sizeof(buf)));
+  ndpi_serialize_string_int32(s, "input_snmp", getInIndex());
+  ndpi_serialize_string_int32(s, "output_snmp", getOutIndex());
 
   ndpi_serialize_string_string(
       s, "community_id",
@@ -7899,7 +7891,7 @@ void Flow::lua_get_info(lua_State* vm, bool client) const {
 
 /* Get minimal flow information.
  * NOTE: this is intended to be called only from flow user scripts
- * via flow.getInfo(). mask_host/allowed networks are not honored.
+ * via flow.getFlowInfo(). mask_host/allowed networks are not honored.
  */
 void Flow::lua_get_min_info(lua_State* vm) {
   char buf[128];
@@ -8041,36 +8033,20 @@ void Flow::lua_duration_info(lua_State* vm) {
 void Flow::lua_snmp_info(lua_State* vm) {
   char buf[64];
 
-#ifdef DISPLAY_MAPPED_EXPORTER
-  lua_push_str_table_entry(vm, "original_device_ip",
-			   Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf)));
-  lua_push_str_table_entry(vm, "device_ip",
-			   Utils::intoaV6(flow_device.mapped_device_ip, buf, sizeof(buf)));
-#else
-  lua_push_str_table_entry(vm, "device_ip",
-			   Utils::intoaV6(flow_device.device_ip, buf, sizeof(buf)));
-  lua_push_str_table_entry(vm, "mapped_device_ip",
-			   Utils::intoaV6(flow_device.mapped_device_ip, buf, sizeof(buf)));
-#endif
-  
-  if (!Utils::isNullAddress(&flow_device.next_hop)) {
-#ifdef DISPLAY_MAPPED_EXPORTER
-    lua_push_str_table_entry(vm, "original_next_hop",
-                             Utils::intoaV6(flow_device.next_hop, buf, sizeof(buf)));
-    lua_push_str_table_entry(vm, "next_hop",
-                             Utils::intoaV6(flow_device.mapped_next_hop, buf, sizeof(buf)));
-#else
-    lua_push_str_table_entry(vm, "next_hop",
-                             Utils::intoaV6(flow_device.next_hop, buf, sizeof(buf)));
-    lua_push_str_table_entry(vm, "mapped_next_hop",
-                             Utils::intoaV6(flow_device.mapped_next_hop, buf, sizeof(buf)));
-#endif
+  lua_push_str_table_entry(vm, "original_device_ip", Utils::intoaV6(getOriginalDeviceIP(), buf, sizeof(buf)));  
+  lua_push_str_table_entry(vm, "device_ip", Utils::intoaV6(getDeviceIP(), buf, sizeof(buf)));
+
+  struct ndpi_in6_addr addr = getNextHop();
+    
+  if (!Utils::isNullAddress(&addr)) {
+    lua_push_str_table_entry(vm, "original_next_hop", Utils::intoaV6(getOriginalNextHop(), buf, sizeof(buf)));
+    lua_push_str_table_entry(vm, "next_hop", Utils::intoaV6(getNextHop(), buf, sizeof(buf)));
   }
   
-  lua_push_uint64_table_entry(vm, "in_index", flow_device.in_index);
-  lua_push_uint64_table_entry(vm, "out_index", flow_device.out_index);
+  lua_push_uint64_table_entry(vm, "in_index", getInIndex());
+  lua_push_uint64_table_entry(vm, "out_index", getOutIndex());
   lua_push_uint64_table_entry(vm, "observation_point_id",
-                              flow_device.observation_point_id);
+                              getObservationPointId());
 }
 
 /* ***************************************************** */
@@ -9077,7 +9053,7 @@ bool Flow::setAlertsMap(FlowAlert* alert) {
     Mac *srcMac = NULL, *dstMac = NULL;
     Host *cli_host, *srv_host;
     viewedBy->findFlowHosts(getInterfaceIndex(), get_vlan_id(),
-                            get_observation_point_id(), getPrivateFlowId(),
+                            getObservationPointId(), getPrivateFlowId(),
                             srcMac, (IpAddress*)get_cli_ip_addr(), &cli_host,
                             dstMac, (IpAddress*)get_srv_ip_addr(), &srv_host);
     if ((cli_host && cli_host->isFlowAlertDisabled(alert_type)) ||
@@ -9436,7 +9412,6 @@ void Flow::swap() {
   TCPSeqNum ts;
   InterarrivalStats* is = cli2srvPktTime;
   time_t now = time(NULL);
-  u_int32_t tmp32;
 
   if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
 
@@ -9504,10 +9479,6 @@ void Flow::swap() {
   flowShapers.cli = flowShapers.srv;
   flowShapers.srv = s1;
 #endif
-
-  tmp32 = flow_device.in_index;
-  flow_device.in_index = flow_device.out_index;
-  flow_device.out_index = tmp32;
 
   if (tcp != NULL) {
     u_int32_t tmp = tcp->rtt.last_cli_ack;
@@ -9679,20 +9650,24 @@ bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
 /* **************************************************** */
 
 bool Flow::matchFlowDeviceIP(struct ndpi_in6_addr *flow_device_ip) {
-  return(memcmp(getFlowDeviceIP(), flow_device_ip, sizeof(struct ndpi_in6_addr)) ? false: true);
+  struct ndpi_in6_addr addr = getDeviceIP();
+  
+  return(memcmp(&addr, flow_device_ip, sizeof(struct ndpi_in6_addr)) ? false: true);
 }
 
 /* **************************************************** */
 
 bool Flow::matchInIfIdx(u_int32_t in_if_idx) {
-  return (getFlowDeviceInIndex() == in_if_idx ? true : false);
+  return (getInIndex() == in_if_idx ? true : false);
 }
 
 /* **************************************************** */
 
 bool Flow::matchOutIfIdx(u_int32_t out_if_idx) {
-  return (getFlowDeviceOutIndex() == out_if_idx ? true : false);
+  return (getOutIndex() == out_if_idx ? true : false);
 }
+
+/* **************************************************** */
 
 bool Flow::matchAlertsStatus(u_int32_t alert_status) {
   return (getAlertsBitmap().isSetBit(alert_status));
@@ -10363,6 +10338,8 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 			   struct ndpi_in6_addr *next_hop,
 			   struct ndpi_in6_addr *mapped_exporter_ip,
 			   struct ndpi_in6_addr *mapped_next_hop,
+			   u_int16_t exporter_site_id,
+			   u_int16_t next_hop_site_id,
                            u_int32_t in_index, u_int32_t out_index,
                            FlowSource source, bool src2dst_direction) {
   std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it;
@@ -10385,7 +10362,8 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
     d.exporter_ip = *exporter_ip, d.mapped_exporter_ip = *mapped_exporter_ip,
       d.next_hop = *next_hop, d.mapped_next_hop = *mapped_next_hop,
       d.return_path = !src2dst_direction, d.in_index = in_index,
-      d.out_index = out_index, d.source = source;
+      d.out_index = out_index, d.source = source,
+      d.exporter_site_id = exporter_site_id, d.next_hop_site_id = next_hop_site_id;
         
     exporterStats.emplace(key, d);
   } else {
@@ -10445,32 +10423,96 @@ u_int16_t Flow::getDstNetworkSiteId() {
 
 /* *************************************** */
 
-void Flow::setFlowDevice(struct ndpi_in6_addr *device_ip,
-			 struct ndpi_in6_addr *mapped_device_ip,
-			 struct ndpi_in6_addr *next_hop,
-			 struct ndpi_in6_addr *mapped_next_hop,
-			 u_int16_t observation_point_id,
-			 u_int32_t inidx, u_int32_t outidx) {
-  ObservationPoint* obs_point;
+struct ndpi_in6_addr Flow::getDeviceIP() {
+  if(exporterStats.size() == 0) {
+    struct ndpi_in6_addr a;
 
-  memcpy(&flow_device.device_ip, device_ip, sizeof(struct ndpi_in6_addr));
-  memcpy(&flow_device.mapped_device_ip, mapped_device_ip, sizeof(struct ndpi_in6_addr));
-  memcpy(&flow_device.next_hop, next_hop, sizeof(struct ndpi_in6_addr));
-  memcpy(&flow_device.mapped_next_hop, mapped_next_hop, sizeof(struct ndpi_in6_addr));
-  
-  flow_device.observation_point_id = observation_point_id;
-  flow_device.in_index = inidx, flow_device.out_index = outidx;
-  
-  if (cli_host) {
-    cli_host->setLastDeviceIp(device_ip);
-    cli_host->setLastDeviceInterfaces(inidx, outidx);
-  }
-  
-  if (srv_host) {
-    srv_host->setLastDeviceIp(device_ip);
-    srv_host->setLastDeviceInterfaces(inidx, outidx);
-  }
+    memset(&a, 0, sizeof(struct ndpi_in6_addr));
+    return(a);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
 
-  if ((obs_point = iface->getObsPoint(observation_point_id, true, true)) != NULL)
-    obs_point->addProbeIp(device_ip);
-}
+    return(it->second.mapped_exporter_ip);
+  }
+};
+
+/* *************************************** */
+
+struct ndpi_in6_addr Flow::getOriginalDeviceIP() {
+  if(exporterStats.size() == 0) {
+    struct ndpi_in6_addr a;
+
+    memset(&a, 0, sizeof(struct ndpi_in6_addr));
+    return(a);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+
+    return(it->second.exporter_ip);
+  }
+};
+
+/* *************************************** */
+
+struct ndpi_in6_addr Flow::getNextHop() {
+  if(exporterStats.size() == 0) {
+    struct ndpi_in6_addr a;
+
+    memset(&a, 0, sizeof(struct ndpi_in6_addr));
+    return(a);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+
+    return(it->second.mapped_next_hop);
+  }
+};
+
+/* *************************************** */
+
+struct ndpi_in6_addr Flow::getOriginalNextHop() {
+  if(exporterStats.size() == 0) {
+    struct ndpi_in6_addr a;
+
+    memset(&a, 0, sizeof(struct ndpi_in6_addr));
+    return(a);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+
+    return(it->second.next_hop);
+  }
+};
+
+/* *************************************** */
+
+u_int32_t Flow::getInIndex() {
+  if(exporterStats.size() == 0) {
+    return(0);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+    
+    return(it->second.in_index);
+  }
+ };
+
+/* *************************************** */
+
+u_int32_t Flow::getOutIndex() {
+  if(exporterStats.size() == 0) {
+    return(0);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+    
+    return(it->second.out_index);
+  }
+};
+
+/* *************************************** */
+
+u_int16_t Flow::getExporterSiteId() {
+  if(exporterStats.size() == 0) {
+    return(0);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+    
+    return(it->second.exporter_site_id);
+  }
+};

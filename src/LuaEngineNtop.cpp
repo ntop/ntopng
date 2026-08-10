@@ -3192,7 +3192,7 @@ static int ntop_change_user_pcap_download_permission(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Posts a JSON string body to a URL via HTTP POST.  Lua: ntop.postHTTPJsonData(url, json_body) → boolean */
+/* @brief Posts a JSON string body to a URL via HTTP POST.  Lua: ntop.postHTTPJsonData(username, password, url, json_body) → boolean */
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json, *bearer_token = NULL;
   HTTPTranferStats stats;
@@ -3224,10 +3224,9 @@ static int ntop_post_http_json_data(lua_State* vm) {
   /* Optional Bearer Token */
   if (lua_type(vm, 6) == LUA_TSTRING) bearer_token = (char*)lua_tostring(vm, 6);
 
-  bool rv =
-      Utils::postHTTPJsonData(bearer_token, username, password, url, json,
-                              connection_timeout, lifetime_timeout, &stats);
-
+  bool rv = Utils::postHTTPJsonData(bearer_token, username, password, url, json,
+				    connection_timeout, lifetime_timeout, &stats);
+  
   lua_pushboolean(vm, rv);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -3241,11 +3240,13 @@ static int ntop_http_post(lua_State* vm) {
   char *url, *form_data;
   HTTPTranferStats stats;
   HttpGetPostOptions opts;
+
   memset(&opts, 0, sizeof(opts));
   opts.follow_redirects = true;
   opts.connect_timeout  = 30;
   opts.stats            = &stats;
-
+  opts.return_content   = true; /* Default */
+  
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((url = (char*)lua_tostring(vm, 1)) == NULL)

@@ -40,9 +40,10 @@ class ParsedFlowCore {
   */  
   struct ndpi_in6_addr exporter_device_ip /* collected */;
   struct ndpi_in6_addr mapped_exporter_device_ip;  /* After SNMP mapping */
+  u_int16_t exporter_site_id;
   struct ndpi_in6_addr next_hop /* collected */;
   struct ndpi_in6_addr mapped_next_hop /* After SNMP mapping */;
-  
+  u_int16_t next_hop_site_id;
   struct ndpi_in6_addr nprobe_ip;
   u_int32_t unique_source_id; /* identifies nProbe + exporter */
   u_int32_t nprobe_source_id; /* identifies a nProbe instance */

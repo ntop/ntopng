@@ -8266,7 +8266,7 @@ bool Utils::harvestOldFIles(char *dir_path, const char *extn,
 
     // Construct the full path safely
     int len = snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name);
-    if (len >= sizeof(path)) {
+    if (len >= (int)sizeof(path)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Path too long: %s/%s\n",
 				   dir_path, entry->d_name);
@@ -8303,4 +8303,17 @@ bool Utils::harvestOldFIles(char *dir_path, const char *extn,
   closedir(dir);
   
   return(true);
+}
+
+
+/* ******************************************* */
+
+u_int16_t Utils::getHostSiteId(NetworkInterface *iface, struct ndpi_in6_addr *host) {
+  IpAddress host_ip;
+  int32_t host_network_id = -1;
+
+  host_ip.set(host);
+  host_ip.isLocalHost(&host_network_id);
+
+  return(iface->getNetworkSiteId(host_network_id));
 }

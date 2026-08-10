@@ -5616,12 +5616,12 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   memset(&deviceIP, 0, sizeof(deviceIP));
 
   if (f && (!f->idle())) {
-    if (f->get_observation_point_id() != retriever->observationPointId) {
+    if (f->getObservationPointId() != retriever->observationPointId) {
 #if 0
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Skipping VLAN: %u-%u / observationPointId: %u-%u",
 				   f->get_vlan_id(), vlan_id,
-				   f->get_observation_point_id(), retriever->observationPointId);
+				   f->getObservationPointId(), retriever->observationPointId);
 #endif
       return (false);
     }
@@ -5811,18 +5811,21 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
       return (false);
 
     if (retriever->pag && retriever->pag->deviceIPFilter(&deviceIP)) {
-      if (memcmp(f->getFlowDeviceIP(), &deviceIP, sizeof(deviceIP)) ||
+      struct ndpi_in6_addr addr = f->getDeviceIP();
+      
+      if (memcmp(&addr, &deviceIP, sizeof(deviceIP)) ||
           (retriever->pag->inIndexFilter(&inIndex) &&
-           f->getFlowDeviceInIndex() != inIndex) ||
+           f->getInIndex() != inIndex) ||
           (retriever->pag->outIndexFilter(&outIndex) &&
-           f->getFlowDeviceOutIndex() != outIndex))
+           f->getOutIndex() != outIndex))
         return (false);
+      
       // Just in or out interface needs to match
-      if (memcmp(f->getFlowDeviceIP(), &deviceIP, sizeof(deviceIP)) ||
+      if (memcmp(&addr, &deviceIP, sizeof(deviceIP)) ||
           ((retriever->pag->ifaceIndexFilter(&ifaceIndex) &&
-            f->getFlowDeviceInIndex() != ifaceIndex) &&
+            f->getInIndex() != ifaceIndex) &&
            (retriever->pag->ifaceIndexFilter(&ifaceIndex) &&
-            f->getFlowDeviceOutIndex() != ifaceIndex)))
+            f->getOutIndex() != ifaceIndex)))
         return (false);
     }
 
@@ -6244,16 +6247,20 @@ static bool flow_search_walker(GenericHashEntry* h, void* user_data,
             f->get_hash_entry_id();
         break;
       case column_device_ip:
-        memcpy(&retriever->elems[retriever->actNumEntries++].ipAddress,
-	       f->getFlowDeviceIP(), sizeof(struct ndpi_in6_addr));
+	{
+	  struct ndpi_in6_addr addr = f->getDeviceIP();
+	  
+	  memcpy(&retriever->elems[retriever->actNumEntries++].ipAddress,
+		 &addr, sizeof(struct ndpi_in6_addr));
+	}
         break;
       case column_in_index:
         retriever->elems[retriever->actNumEntries++].numericValue =
-            f->getFlowDeviceInIndex();
+            f->getInIndex();
         break;
       case column_out_index:
         retriever->elems[retriever->actNumEntries++].numericValue =
-            f->getFlowDeviceOutIndex();
+            f->getOutIndex();
         break;
       default:
         ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -6299,7 +6306,7 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
 	In conclusion, the observation point is a way to logically aggregate flows whereas pool
 	are used to aggregate hosts. For this reason they can be used simultaneously.
       */
-      || (h->get_observation_point_id() != r->observationPointId)
+      || (h->getObservationPointId() != r->observationPointId)
 #endif
   )
     return (false);
@@ -14376,11 +14383,11 @@ static bool walk_no_tx_host_flows(GenericHashEntry* node, void* user_data,
   if (c == NULL)
     c = hosts->iface->getHostByIP((IpAddress*)f->get_cli_ip_addr(),
                                   f->get_vlan_id(),
-                                  f->getFlowObservationPointId(), false);
+                                  f->getObservationPointId(), false);
   if (s == NULL)
     s = hosts->iface->getHostByIP((IpAddress*)f->get_srv_ip_addr(),
                                   f->get_vlan_id(),
-                                  f->getFlowObservationPointId(), false);
+                                  f->getObservationPointId(), false);
 
   if (c && s && s->isRxOnlyHost()) {
     if (!(s->isBroadcastHost() || s->isMulticastHost())) {
@@ -14549,7 +14556,8 @@ class AggregatedASNFlowKey {
   AggregatedASNFlowKey(Flow* f) {
     u_int32_t _src_asn = 0, _dst_asn = 0;
     char* asName;
-
+    struct ndpi_in6_addr addr = f->getDeviceIP();
+    
     f->getSrcAS(&_src_asn, &asName);
     f->getDstAS(&_dst_asn, &asName);
 
@@ -14558,9 +14566,9 @@ class AggregatedASNFlowKey {
     dst_asn = _dst_asn;
     src_peer_asn = f->getSrcPeerAS();
     dst_peer_asn = f->getDstPeerAS();
-    memcpy(&probe_ip, f->getFlowDeviceIP(), sizeof(probe_ip));
-    input_snmp = f->getFlowDeviceInIndex();
-    output_snmp = f->getFlowDeviceOutIndex();
+    memcpy(&probe_ip, &addr, sizeof(probe_ip));
+    input_snmp = f->getInIndex();
+    output_snmp = f->getOutIndex();
     src_site_id = f->getSrcNetworkSiteId();
     dst_site_id = f->getDstNetworkSiteId();
 

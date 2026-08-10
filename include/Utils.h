@@ -379,6 +379,7 @@ class Utils {
 				 struct ndpi_in6_addr *out_addr);
   static bool isNullAddress(struct ndpi_in6_addr *ip);
   static bool harvestOldFIles(char *path, const char *extn, u_int retention_sec);
+  static u_int16_t getHostSiteId(NetworkInterface *iface, struct ndpi_in6_addr *host);
 };
 
 #endif /* _UTILS_H_ */

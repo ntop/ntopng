@@ -319,7 +319,7 @@ bool IpAddress::isLocalHost(int32_t* network_id) const {
 
 #if 0 /* Debug */
   char buff[64];
-  
+
   ntop->getTrace()->traceEvent(TRACE_WARNING, "IP %s is %sLocal [broadcast=%u][multicast=%u]",
     print(buff, sizeof(buff), 128), local ? "" : "NOT ",
     addr.broadcastIP, addr.multicastIP);
@@ -441,16 +441,16 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) const {
     return (Utils::intoaV4(a, buf, bufLen));
   } else {
     struct ndpi_in6_addr ipv6;
-    
+
     bitmask = bitmask <= 128 ? bitmask : 128;
 
     memcpy(&ipv6, &addr.ipType.ipv6, sizeof(struct ndpi_in6_addr));
-    
+
     if(bitmask != 128) {
       for (int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
-	ipv6.u6_addr.u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)((0xffU << (8 - i)) & 0xffU);      
+	ipv6.u6_addr.u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)((0xffU << (8 - i)) & 0xffU);
     }
-    
+
     return (Utils::intoaV6(ipv6, buf, bufLen));
   }
 }
@@ -497,3 +497,41 @@ void IpAddress::setEmptyIPv6() {
   reset();
   addr.ipVersion = 6;
 }
+
+/* ****************************** */
+
+void IpAddress::set(struct ndpi_in6_addr* _ipv6) {
+  if(Utils::isIPv4MappedAddress(_ipv6)) {
+    set(_ipv6->u6_addr.u6_addr32[3]);
+  } else {
+    addr.ipVersion = 6,
+    memcpy(&addr.ipType.ipv6, _ipv6, sizeof(struct ndpi_in6_addr));
+    addr.privateIP = false;
+    compute_key();
+  }  
+}
+
+/* ****************************** */
+
+void IpAddress::set(struct in6_addr* _ipv6) {
+  addr.ipVersion = 6,
+    memcpy(&addr.ipType.ipv6.u6_addr, _ipv6->s6_addr, sizeof(_ipv6->s6_addr));
+  addr.privateIP = false;
+  compute_key();
+}
+
+/* ****************************** */
+
+void IpAddress::set(const IpAddress* const ip) {
+  memcpy(&addr, &ip->addr, sizeof(struct ipAddress));
+  ip_key = ip->ip_key;
+};
+
+/* ****************************** */
+
+void IpAddress::set(const struct ipAddress* const ip) {
+  memcpy(&addr, ip, sizeof(struct ipAddress));
+  compute_key();
+};
+
+/* ****************************** */

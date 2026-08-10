@@ -87,22 +87,28 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 #endif
 
   /* Let's map exporter IPs */
-  if(!Utils::isNullAddress(&zflow->exporter_device_ip))
+  if(!Utils::isNullAddress(&zflow->exporter_device_ip)) {
     zflow->mapped_exporter_device_ip = ntop->findExporterIPMgmtAddress(zflow->exporter_device_ip);
+    zflow->exporter_site_id = Utils::getHostSiteId(this, &zflow->mapped_exporter_device_ip);
+  } else
+    zflow->exporter_site_id = 0;
 
-  if(!Utils::isNullAddress(&zflow->next_hop))
+  if(!Utils::isNullAddress(&zflow->next_hop)) {
     zflow->mapped_next_hop = ntop->findExporterIPMgmtAddress(zflow->next_hop);
+    zflow->next_hop_site_id = Utils::getHostSiteId(this, &zflow->mapped_next_hop);
+  } else
+    zflow->next_hop_site_id = 0;
 
 #if 0
   char buf[64], buf1[64], buf2[64], buf3[64], *s;
-  
-  ntop->getTrace()->traceEvent(TRACE_INFO, "exporter_device_ip: %s/%s - next_hop: %s/%s",
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "exporter_device_ip: %s/%s (%d) - next_hop: %s/%s (%d)",
 			       Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)),
 			       Utils::intoaV6(zflow->mapped_exporter_device_ip, buf1, sizeof(buf2)),
-			       (s = Utils::intoaV6(zflow->next_hop, buf2, sizeof(buf2))),
-			       Utils::intoaV6(zflow->mapped_next_hop, buf3, sizeof(buf3)));
-
-  }
+			       zflow->exporter_site_id,
+			       Utils::intoaV6(zflow->next_hop, buf2, sizeof(buf2)),
+			       Utils::intoaV6(zflow->mapped_next_hop, buf3, sizeof(buf3)),
+			       zflow->next_hop_site_id);
 #endif
 
   now = time(NULL);
@@ -288,15 +294,12 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     /* Fix interface Id (if zero) */
 
     if (new_flow) {
-      flow->setFlowDeviceNextHop(zflow->getNextHop());
-
-      if (zflow->inIndex != 0)  flow->setFlowDeviceInIndex(zflow->inIndex);
-      if (zflow->outIndex != 0) flow->setFlowDeviceOutIndex(zflow->outIndex);
-
       flow->addExporterInfo(&zflow->exporter_device_ip,
 			    &zflow->next_hop,
 			    &zflow->mapped_exporter_device_ip,
 			    &zflow->mapped_next_hop,
+			    zflow->exporter_site_id,
+			    zflow->next_hop_site_id,
                             zflow->inIndex, zflow->outIndex,
                             zflow->getFlowSource(), src2dst_direction);
 
@@ -324,8 +327,10 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       incRoleBytes(zflow->in_pkts + zflow->in_bytes, r);
 #endif
 
+      struct ndpi_in6_addr addr = flow->getDeviceIP();
+      
       if (ntop->getPrefs()->isFlowDedupEnabled() &&
-          (memcmp(flow->getFlowDeviceIP(), &zflow->exporter_device_ip, sizeof(struct ndpi_in6_addr)))) {
+          (memcmp(&addr, &zflow->exporter_device_ip, sizeof(struct ndpi_in6_addr)))) {
 #ifdef DEDUPLICATION_DEBUG
         char b1[32], b2[32], buf[256];
 
@@ -342,6 +347,8 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 			      &zflow->next_hop,
 			      &zflow->mapped_exporter_device_ip,
 			      &zflow->mapped_next_hop,
+			      zflow->exporter_site_id,
+			      zflow->next_hop_site_id,
                               zflow->inIndex, zflow->outIndex,
                               zflow->getFlowSource(), src2dst_direction);
 
@@ -352,7 +359,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
             interface statistics
           */
           flow_devices_stats->incStats(
-				       now, zflow->unique_source_id /* exporter */, flow->getFlowDeviceInIndex(),
+				       now, zflow->unique_source_id /* exporter */, flow->getInIndex(),
 				       flow->getStatsProtocol(), zflow->out_pkts, zflow->out_bytes,
 				       zflow->in_pkts, zflow->in_bytes, zflow->nprobe_source_id);
         }
@@ -366,35 +373,24 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
 #ifdef NTOPNG_PRO
   if (zflow->unique_source_id != 0) {
-    IpAddress host_ip;
-    int32_t host_network_id = -1;
-
 #if 0
     char buf[64], buf1[64];
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "unique_source_id=%u, inIndex=%u, outIndex=%u, exporter_device_ip=%s, nprobe_ip=%s [%d / %d]",
 				 zflow->unique_source_id,
 				 flow->getFlowDeviceInIndex(),
-				 flow->getFlowDeviceOutIndex(),
+				 flow->getOutIndex(),
 				 Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)),
 				 Utils::intoaV6(zflow->nprobe_ip, buf1, sizeof(buf1)),
-				 flow->getFlowDeviceInIndex(), flow->getFlowDeviceOutIndex());
+				 flow->getFlowDeviceInIndex(), flow->getOutIndex());
 #endif
 
-    if (!flow_devices_stats->checkExporterInterfaces(zflow->unique_source_id, flow->getFlowDeviceInIndex(),
-						     flow->getFlowDeviceOutIndex(), &zflow->exporter_device_ip,
+    if (!flow_devices_stats->checkExporterInterfaces(zflow->unique_source_id, flow->getInIndex(),
+						     flow->getOutIndex(), &zflow->exporter_device_ip,
 						     zflow->nprobe_source_id, &zflow->nprobe_ip)) {
       exportersLimitReached();
       return (false);
     }
-
-    host_ip.set(&zflow->mapped_exporter_device_ip);
-    host_ip.isLocalHost(&host_network_id);
-    flow->setExporterSiteId(getNetworkSiteId(host_network_id));
-
-    host_ip.set(&zflow->mapped_next_hop);
-    host_ip.isLocalHost(&host_network_id);
-    flow->setNextHopSiteId(getNetworkSiteId(host_network_id));
   }
 #endif
 
@@ -536,16 +532,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s",
 			       Utils::intoaV6(zflow->exporter_device_ip, buf, sizeof(buf)));
 #endif
-
-  flow->setFlowDevice(&zflow->exporter_device_ip,
-		      &zflow->mapped_exporter_device_ip,
-		      &zflow->next_hop,
-		      &zflow->mapped_next_hop,
-		      zflow->observationPointId,
-                      src2dst_direction ? flow->getFlowDeviceInIndex()
-                                        : flow->getFlowDeviceOutIndex(),
-                      src2dst_direction ? flow->getFlowDeviceOutIndex()
-                                        : flow->getFlowDeviceInIndex());
 
 #ifdef MAC_DEBUG
   char bufm1[32], bufm2[32];
@@ -875,7 +861,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
   if (zflow->unique_source_id) {
     if (flow_devices_stats) {
       flow_devices_stats->incStats(
-          now, zflow->unique_source_id, flow->getFlowDeviceInIndex(),
+          now, zflow->unique_source_id, flow->getInIndex(),
           flow->getStatsProtocol(), out_pkts, out_bytes, in_pkts, in_bytes,
           zflow->nprobe_source_id);
 
@@ -885,9 +871,9 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
          increase its counters only if it is different from inIndex to avoid
          double counting. */
 
-      if (flow->getFlowDeviceOutIndex() != flow->getFlowDeviceInIndex())
+      if (flow->getOutIndex() != flow->getInIndex())
         flow_devices_stats->incStats(
-            now, zflow->unique_source_id, flow->getFlowDeviceOutIndex(),
+            now, zflow->unique_source_id, flow->getOutIndex(),
             flow->getStatsProtocol(), in_pkts, in_bytes, out_pkts, out_bytes,
             zflow->nprobe_source_id);
     }
