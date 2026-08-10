@@ -294,7 +294,7 @@ static void *read_oid(void *src, char **oid, int size)
     
   i = 2;
     
-  while (src < endp)
+  while (src < endp && i <= MAX_OID_PARTS)
     {
       src = read_oid_part(src, &parts[i]);
       i++;
