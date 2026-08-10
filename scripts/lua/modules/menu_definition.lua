@@ -132,50 +132,28 @@ return function(f)
         }
     },
     {
-        key = "hosts",
-        i18n = "infrastructure",
-        icon = "fas fa-laptop",
-        hard_hidden = f.is_system_interface or f.is_viewed or f.is_nedge or f.is_asn_mode_enabled,
+        key = "if_stats",
+        i18n = "network",
+        icon = "fas fa-server",
+        hard_hidden = f.is_system_interface,
         hidden = f.infrastructure_view,
         reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
         entries = {{
             key = "hosts",
             i18n = "hosts",
             icon = "fas fa-laptop",
-            url = "/lua/hosts_stats.lua"
+            url = "/lua/hosts_stats.lua",
+            hard_hidden = f.is_viewed or f.is_nedge or f.is_asn_mode_enabled
         }, {
             key = "devices",
             i18n = "layer_2",
             icon = "fas fa-hdd",
             url = "/lua/macs_stats.lua",
+            hard_hidden = f.is_viewed or f.is_nedge or f.is_asn_mode_enabled,
             hidden = f.no_macs,
             reason = { reason("feature", "menu.reason.no_macs", "menu.suggestion.no_macs") }
-        } -- pro entries appended by menu_definition_pro: inventory divider + assets
-        }
-    }, {
-        key = "maps",
-        after = "collection",
-        i18n = "maps",
-        icon = "fas fa-map",
-        hard_hidden = f.is_system_interface or f.is_viewed,
-        hidden = f.infrastructure_view,
-        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
-        entries = {{
-            key = "geo_map",
-            i18n = "geo_map.geo_map",
-            icon = "fas fa-globe",
-            url = "/lua/hosts_geomap.lua",
-            hidden = f.is_loopback_interface or f.no_geoip,
-            reason = { f.no_geoip and reason("feature", "menu.reason.no_geoip", "menu.suggestion.no_geoip") or nil }
-        }}
-    }, {
-        key = "if_stats",
-        i18n = "interface",
-        icon = "fas fa-ethernet",
-        hard_hidden = f.is_system_interface,
-        hidden = f.infrastructure_view,
-        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
-        entries = {{
+        }, -- pro entries appended by menu_definition_pro (key="if_stats"): inventory divider + assets
+        {
             key = "interface",
             i18n = "interface_details",
             icon = "fas fa-info-circle",
@@ -229,6 +207,23 @@ return function(f)
             reason = {
                 f.no_vlans and reason("feature", "menu.reason.no_vlans", "menu.suggestion.no_vlans") or nil,
                 f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil,
+            }
+        }, {
+            key = "divider_maps_community",
+            i18n = "maps",
+            is_divider = true,
+            hard_hidden = f.is_system_interface or f.is_viewed,
+            hidden = f.infrastructure_view
+        }, {
+            key = "geo_map",
+            i18n = "geo_map.geo_map",
+            icon = "fas fa-globe",
+            url = "/lua/hosts_geomap.lua",
+            hard_hidden = f.is_system_interface or f.is_viewed,
+            hidden = f.infrastructure_view or f.is_loopback_interface or f.no_geoip,
+            reason = {
+                f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
+                f.no_geoip and reason("feature", "menu.reason.no_geoip", "menu.suggestion.no_geoip") or nil,
             }
         }}
     },

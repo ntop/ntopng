@@ -19,7 +19,9 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"min-width" : "140px",
+			"max-width" : "140px",
+			"render_v_node_type": "button_auto",
 			"button_def_array": [
 				{
 					"id": "timeseries",

@@ -70,7 +70,7 @@
   // Note: third-party.js and ntopng.js are ES modules (type="module"), which are deferred
   // they execute after HTML parsing but before DOMContentLoaded. Using native
   // DOMContentLoaded avoids a dependency on $ being available synchronously.
-  document.addEventListener('DOMContentLoaded', function () {
+  function _mount_vue_page() {
     const _pageId = "{* vue_page_name *}";
     const _ctx = {* page_context *};
     /* Seed the date_format cache from server context so JS never needs date_format.lua */
@@ -78,5 +78,15 @@
       ntopVue.ntopng_utility.set_cached_date_format(_ctx.date_format);
     }
     start_vue(_pageId, ntopVue[_pageId], _ctx);
-  });
+  }
+
+  // When this markup is injected after the initial page load (e.g. via
+  // innerHTML/v-html, as done by the live-flow-details Vue card),
+  // DOMContentLoaded has already fired and will never fire again, so the
+  // listener below would silently never run. Mount immediately in that case.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _mount_vue_page);
+  } else {
+    _mount_vue_page();
+  }
 </script>

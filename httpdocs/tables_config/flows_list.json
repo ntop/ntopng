@@ -19,9 +19,9 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"min-width" : "80px",
-			"max-width" : "80px",
-			"render_v_node_type": "button_list",
+			"min-width" : "110px",
+			"max-width" : "110px",
+			"render_v_node_type": "button_auto",
 			"button_def_array": [
 				{
 					"id": "live_flows",
