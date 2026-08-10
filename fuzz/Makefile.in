@@ -57,10 +57,10 @@ fuzz_all: $(FUZZ_TARGETS) fuzz_corpus
 
 .SECONDEXPANSION:
 
-fuzz/fuzz_%_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_%/*)
+# Add traces from nDPI to the corpus
+fuzz/fuzz_dissect_packet_seed_corpus.zip: $$(wildcard $(NDPI_HOME)/tests/pcap/*.pcap* fuzz/corpus/fuzz_dissect_packet/*)
 	zip -j $@ $^
 
-# Add traces from nDPI to the corpus
-fuzz/fuzz_dissect_packet_seed_corpus.zip: $$(wildcard $(NDPI_HOME)/tests/pcap/*.pcap*)
-	zip -u $@ $^
+fuzz/fuzz_zmq_flow_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_zmq_flow/*)
+	zip -j $@ $^
 
