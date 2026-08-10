@@ -168,12 +168,12 @@ int Redis::setnx(const char *key, const char *value,
 }
 
 int Redis::keys(const char *pattern, char ***keys_p) {
-  *keys_p = (char **)malloc(0);
+  *keys_p = NULL;
   return 0;
 }
 
 int Redis::hashKeys(const char *pattern, char ***keys_p) {
-  *keys_p = (char **)malloc(0);
+  *keys_p = NULL;
   return 0;
 }
 
