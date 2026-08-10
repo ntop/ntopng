@@ -29,7 +29,7 @@
 
 /* #define BLACKLISTED_FLOWS_DEBUG */
 
-// #define DISPLAY_MAPPED_EXPORTER
+#define DISPLAY_MAPPED_EXPORTER
 
 /* *************************************** */
 
@@ -3707,7 +3707,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 #endif
 
     if (exporterStats.size() > 0) {
-      std::vector<ExporterFlowInfo>::iterator it;
+      std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it;
       int i = 0;
 
       lua_newtable(vm);
@@ -3715,34 +3715,34 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
       for (it = exporterStats.begin(); it != exporterStats.end(); it++) {
         char b1[32], b2[32];
 
-        if (!Utils::isNullAddress(&it->exporter_ip)) {
+        if (!Utils::isNullAddress(&it->second.exporter_ip)) {
           lua_newtable(vm);
 
 #ifdef DISPLAY_MAPPED_EXPORTER
 	  lua_push_str_table_entry(vm, "original_exporter_ip",
-				   Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
+				   Utils::intoaV6(it->second.exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "exporter_ip",
-				   Utils::intoaV6(it->mapped_exporter_ip, b1, sizeof(b1)));
+				   Utils::intoaV6(it->second.mapped_exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "original_next_hop",
-                                   Utils::intoaV6(it->next_hop, b2, sizeof(b2)));
+                                   Utils::intoaV6(it->second.next_hop, b2, sizeof(b2)));
           lua_push_str_table_entry(vm, "next_hop",
-                                   Utils::intoaV6(it->mapped_next_hop, b2, sizeof(b2)));
+                                   Utils::intoaV6(it->second.mapped_next_hop, b2, sizeof(b2)));
 #else
 	  /* original */
 	  lua_push_str_table_entry(vm, "exporter_ip",
-				   Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
+				   Utils::intoaV6(it->second.exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "mapped_exporter_ip",
-				   Utils::intoaV6(it->mapped_exporter_ip, b1, sizeof(b1)));
+				   Utils::intoaV6(it->second.mapped_exporter_ip, b1, sizeof(b1)));
           lua_push_str_table_entry(vm, "next_hop",
-                                   Utils::intoaV6(it->next_hop, b2, sizeof(b2)));
+                                   Utils::intoaV6(it->second.next_hop, b2, sizeof(b2)));
           lua_push_str_table_entry(vm, "mapped_next_hop",
-                                   Utils::intoaV6(it->mapped_next_hop, b2, sizeof(b2)));
+                                   Utils::intoaV6(it->second.mapped_next_hop, b2, sizeof(b2)));
 #endif
 	  
-          lua_push_bool_table_entry(vm, "return_path", it->return_path);
-          lua_push_int32_table_entry(vm, "input_idx", it->in_index);
-          lua_push_int32_table_entry(vm, "output_idx", it->out_index);
-          lua_push_int32_table_entry(vm, "source", it->source);
+          lua_push_bool_table_entry(vm, "return_path", it->second.return_path);
+          lua_push_int32_table_entry(vm, "input_idx", it->second.in_index);
+          lua_push_int32_table_entry(vm, "output_idx", it->second.out_index);
+          lua_push_int32_table_entry(vm, "source", it->second.source);
 
           lua_pushnumber(vm, i++);
           lua_insert(vm, -2);
@@ -6261,12 +6261,12 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
   std::string info_field = std::string("");
 
   if (exporterStats.size() > 1) {
-    std::vector<ExporterFlowInfo>::iterator it;
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it;
     bool swap_found = false;
     char buf[16];
 
     for (it = exporterStats.begin(); it != exporterStats.end(); it++)
-      swap_found |= it->return_path;
+      swap_found |= it->second.return_path;
 
     snprintf(buf, sizeof(buf), "%u %sExp.",
              (unsigned int)(exporterStats.size()), swap_found ? "Bidir. " : "");
@@ -8241,9 +8241,9 @@ void Flow::serializeExporters(ndpi_serializer* serializer) {
   ndpi_serialize_start_of_block(serializer, "exporters");
 
   // Iterate over all stored duplicated flow records
-  for (std::vector<ExporterFlowInfo>::iterator it = exporterStats.begin();
+  for (std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
        it != exporterStats.end(); ++it) {
-    if (Utils::isNullAddress(&it->exporter_ip)) break;
+    if (Utils::isNullAddress(&it->second.exporter_ip)) break;
 
     char key[16];
     char b1[32], b2[32];
@@ -8256,21 +8256,21 @@ void Flow::serializeExporters(ndpi_serializer* serializer) {
     // Serialize exporter IP as string
     ndpi_serialize_string_string(
         serializer, "exporter_ip",
-        Utils::intoaV6(it->exporter_ip, b1, sizeof(b1)));
+        Utils::intoaV6(it->second.exporter_ip, b1, sizeof(b1)));
 
     // Serialize next hop address
     ndpi_serialize_string_string(serializer, "next_hop",
-                                 Utils::intoaV6(it->next_hop, b2, sizeof(b2)));
+                                 Utils::intoaV6(it->second.next_hop, b2, sizeof(b2)));
 
     // Serialize boolean indicating return path
-    ndpi_serialize_string_boolean(serializer, "return_path", it->return_path);
+    ndpi_serialize_string_boolean(serializer, "return_path", it->second.return_path);
 
     // Serialize input and output indexes
-    ndpi_serialize_string_uint32(serializer, "input_idx", it->in_index);
-    ndpi_serialize_string_uint32(serializer, "output_idx", it->out_index);
+    ndpi_serialize_string_uint32(serializer, "input_idx", it->second.in_index);
+    ndpi_serialize_string_uint32(serializer, "output_idx", it->second.out_index);
 
     ndpi_serialize_string_uint32(serializer, "source",
-                                 it->source); /* FlowSource */
+                                 it->second.source); /* FlowSource */
 
     ndpi_serialize_end_of_block(serializer);
   }
@@ -10365,28 +10365,32 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 			   struct ndpi_in6_addr *mapped_next_hop,
                            u_int32_t in_index, u_int32_t out_index,
                            FlowSource source, bool src2dst_direction) {
-  std::vector<ExporterFlowInfo>::iterator it;
-  ExporterFlowInfo d;
+  std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it;
+  ExporterFlowInfoKey key;  
 
   if(Utils::isNullAddress(exporter_ip))
     return;
 
+  memset(&key, 0, sizeof(key)); // zero out to avoid uninitialized padding affecting hash/equality
+  key.exporter_ip = *exporter_ip;
+  key.next_hop    = *next_hop;
+
   /* Check for duplicates first */
-  for (it = exporterStats.begin(); it != exporterStats.end(); it++) {
-    if((memcmp(&it->exporter_ip, exporter_ip, sizeof(struct ndpi_in6_addr)) == 0)
-       && (memcmp(&it->next_hop, next_hop, sizeof(struct ndpi_in6_addr)) == 0)) {
-      return; /* Duplicated */
-    }
+  it = exporterStats.find(key);
+
+  if (it == exporterStats.end()) {
+    // Not present: build a new entry and insert it
+    ExporterFlowInfo d;
+    
+    d.exporter_ip = *exporter_ip, d.mapped_exporter_ip = *mapped_exporter_ip,
+      d.next_hop = *next_hop, d.mapped_next_hop = *mapped_next_hop,
+      d.return_path = !src2dst_direction, d.in_index = in_index,
+      d.out_index = out_index, d.source = source;
+        
+    exporterStats.emplace(key, d);
+  } else {
+    // Present: nothing to do
   }
-
-  memcpy(&d.exporter_ip, exporter_ip, sizeof(struct ndpi_in6_addr)),
-    memcpy(&d.mapped_exporter_ip, mapped_exporter_ip, sizeof(struct ndpi_in6_addr)),
-    memcpy(&d.next_hop, next_hop, sizeof(struct ndpi_in6_addr)),
-    memcpy(&d.mapped_next_hop, mapped_next_hop, sizeof(struct ndpi_in6_addr)),    
-    d.return_path = !src2dst_direction, d.in_index = in_index,
-    d.out_index = out_index, d.source = source;
-
-  exporterStats.push_back(d);
 }
 
 /* *************************************** */

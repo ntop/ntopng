@@ -79,6 +79,31 @@ typedef struct {
 } ExporterFlowInfo;
 
 typedef struct {
+  struct ndpi_in6_addr exporter_ip, next_hop;
+} ExporterFlowInfoKey;
+
+
+// Define the equality operator
+inline bool operator==(const ExporterFlowInfoKey& lhs, const ExporterFlowInfoKey& rhs) {
+  return std::memcmp(&lhs.exporter_ip, &rhs.exporter_ip, sizeof(ndpi_in6_addr)) == 0 &&
+    std::memcmp(&lhs.next_hop, &rhs.next_hop, sizeof(ndpi_in6_addr)) == 0;
+}
+
+// Hash functor
+struct ExporterFlowInfoKeyHash {
+  std::size_t operator()(const ExporterFlowInfoKey &k) const noexcept {
+    // FNV-1a over the raw bytes of both addresses
+    const unsigned char *p = reinterpret_cast<const unsigned char *>(&k);
+    std::size_t h = 1469598103934665603ULL; // FNV offset basis
+    for (size_t i = 0; i < sizeof(ExporterFlowInfoKey); i++) {
+      h ^= p[i];
+      h *= 1099511628211ULL; // FNV prime
+    }
+    return h;
+  }
+};
+
+typedef struct {
   u_int32_t prevAdjacentAS, nextAdjacentAS;
   u_int32_t vrfId;
 
@@ -161,7 +186,8 @@ class Flow : public GenericHashEntry {
      predominant of a flow, which is written into `predominant_alert`.
   */
   Bitmap128 alerts_map;
-  std::vector<ExporterFlowInfo> exporterStats;
+
+  std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash> exporterStats;
   std::map<FlowAlertTypeEnum, FlowAlert*> triggered_alerts;
   FlowAlertType predominant_alert;   /* This is the predominant alert */
   u_int16_t predominant_alert_score; /* The score associated to the predominant
