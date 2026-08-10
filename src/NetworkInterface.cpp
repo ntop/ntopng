@@ -5811,7 +5811,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
       return (false);
 
     if (retriever->pag && retriever->pag->deviceIPFilter(&deviceIP)) {
-      struct ndpi_in6_addr addr = f->getDeviceIP();
+      struct ndpi_in6_addr addr = f->getExporterIP();
       
       if (memcmp(&addr, &deviceIP, sizeof(deviceIP)) ||
           (retriever->pag->inIndexFilter(&inIndex) &&
@@ -6248,7 +6248,7 @@ static bool flow_search_walker(GenericHashEntry* h, void* user_data,
         break;
       case column_device_ip:
 	{
-	  struct ndpi_in6_addr addr = f->getDeviceIP();
+	  struct ndpi_in6_addr addr = f->getExporterIP();
 	  
 	  memcpy(&retriever->elems[retriever->actNumEntries++].ipAddress,
 		 &addr, sizeof(struct ndpi_in6_addr));
@@ -14556,7 +14556,7 @@ class AggregatedASNFlowKey {
   AggregatedASNFlowKey(Flow* f) {
     u_int32_t _src_asn = 0, _dst_asn = 0;
     char* asName;
-    struct ndpi_in6_addr addr = f->getDeviceIP();
+    struct ndpi_in6_addr addr = f->getExporterIP();
     
     f->getSrcAS(&_src_asn, &asName);
     f->getDstAS(&_dst_asn, &asName);

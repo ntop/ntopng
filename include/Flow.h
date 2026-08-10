@@ -1466,16 +1466,17 @@ class Flow : public GenericHashEntry {
     applLatencyMsec = latency_msecs;
   }
 
-  struct ndpi_in6_addr getDeviceIP();
-  struct ndpi_in6_addr getOriginalDeviceIP();
-  struct ndpi_in6_addr getNextHop();
-  struct ndpi_in6_addr getOriginalNextHop();
+  struct ndpi_in6_addr getExporterIP();
+  struct ndpi_in6_addr getOriginalExporterIP();
+  struct ndpi_in6_addr getNextHopIP();
+  struct ndpi_in6_addr getOriginalNextHopIP();
   u_int32_t getInIndex();
   u_int32_t getOutIndex();
 
   inline u_int16_t getObservationPointId() { return (observation_point_id); };
 
   u_int16_t getExporterSiteId();
+  u_int16_t getNextHopSiteId();
   u_int16_t getSrcNetworkSiteId();
   u_int16_t getDstNetworkSiteId();
 

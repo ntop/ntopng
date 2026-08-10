@@ -327,7 +327,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       incRoleBytes(zflow->in_pkts + zflow->in_bytes, r);
 #endif
 
-      struct ndpi_in6_addr addr = flow->getDeviceIP();
+      struct ndpi_in6_addr addr = flow->getExporterIP();
       
       if (ntop->getPrefs()->isFlowDedupEnabled() &&
           (memcmp(&addr, &zflow->exporter_device_ip, sizeof(struct ndpi_in6_addr)))) {

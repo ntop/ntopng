@@ -76,7 +76,7 @@ void AggregatedFlowsStats::incFlowStats(const IpAddress* _client,
 /* *************************************** */
 
 void AggregatedFlowsStats::setFlowIPVLANDeviceIP(Flow* f) {
-  struct ndpi_in6_addr addr = f->getDeviceIP();
+  struct ndpi_in6_addr addr = f->getExporterIP();
   
   setClient(f->get_cli_ip_addr(), f->get_cli_host());
   setServer(f->get_srv_ip_addr(), f->get_srv_host());
