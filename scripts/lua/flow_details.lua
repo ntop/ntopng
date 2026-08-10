@@ -35,6 +35,7 @@ local mitre_utils = require("mitre_utils")
 local bgp_utils = require "bgp_utils"
 local auth = require "auth"
 local as_utils = require "as_utils"
+local site_utils = require "site_utils"
 local live_flow_info = nil
 
 local page = _GET["page"]
@@ -2131,46 +2132,31 @@ local function print_flow_overview_page()
 	 if(flow.exporters ~= nil) then
 	    local len = table.len(flow.exporters)+1
 
+	    -- tprint(flow.exporters)
+	    
 	    print("<tr><th rowspan=\""..(len+1).."\">" .. i18n("exporters_info") .. "</th>")
 	    print("<th>" .. i18n("flow_exporter") .. " / " .. i18n("next_hop") .. "</th><th>" ..
 		  i18n("flows_page.inIfIdx") .. " / ".. i18n("flows_page.outIfIdx") .. "</th></tr>\n")
-
+	    
 	    for k,v in pairs(flow.exporters) do
-	       local ret, exp_ip, exp_name, site = formatExporter(v.exporter_ip)
-	       local ret1, next_hop_ip, next_hop_name, next_hope_site = formatNextHop(v.next_hop)
-
+	       local ret, exp_ip, exp_name, site = formatExporter(v.exporter_ip, v.exporter_site_id)
+	       local ret1, next_hop_ip, next_hop_name, next_hope_site = formatNextHop(v.next_hop, v.next_hop_site_id)
+	       
 	       print("<tr><td>".. ret .. ' <i class="fas fa-long-arrow-alt-right"></i> ' .. ret1)
 	       if(v.return_path == true) then print(" <span class='badge bg-secondary'>".. i18n("dedup_flow_swapped").."</span>") end
 	       print("</td><td>")
 	       printFlowSNMPInfo(v.exporter_ip, v.input_idx, v.output_idx, true)
 	       print("</td></tr>")
 
-	       local from_ip = get_snmp_interface_ip(v.exporter_ip, v.input_idx)
-	       local to_ip   = get_snmp_interface_ip(v.exporter_ip, v.output_idx)
-
-	       if((from_ip ~= nil) and (to_ip ~= nil)) then
-		  if(flow_trajectory[from_ip] == nil) then flow_trajectory[from_ip] = {} end
-		  if(flow_trajectory[to_ip] == nil)   then flow_trajectory[to_ip] = {}   end
-
-		  if(next_hop_ip ~= "0.0.0.0") then
-		     local ret1, exp_ip, exp_name, exp_site = formatNextHop(v.exporter_ip)
-		     
-		     if(not valueFound(flow_trajectory[from_ip], to_ip)) then
-			table.insert(flow_trajectory[from_ip], { next_hop = to_ip, return_path = v.return_path })
-		     end
-
-		     if(not valueFound(flow_trajectory[to_ip], next_hop_ip)) then
-			table.insert(flow_trajectory[to_ip], { next_hop = next_hop_ip, return_path = v.return_path })
-		     end
-		     
-		     nodes_names[from_ip] = { from_ip, exp_site }
-		     nodes_names[to_ip] = { to_ip, exp_site }
-
-		     nodes_names[next_hop_ip] = { firstDottedElement(next_hop_name), next_hope_site }
+	       if(v.next_hop ~= "0.0.0.0") then
+		  nodes_names[v.exporter_ip] = { v.exporter_ip, site_utils.getSiteName(v.exporter_site_id) }
+		  nodes_names[v.next_hop]    = { v.next_hop, site_utils.getSiteName(v.next_hop_site_id) }
+		  
+		  if(flow_trajectory[v.exporter_ip] == nil) then flow_trajectory[v.exporter_ip] = {} end
+		  if(not valueFound(flow_trajectory[v.exporter_ip], v.next_hop)) then
+		     table.insert(flow_trajectory[v.exporter_ip], { next_hop = v.next_hop, return_path = v.return_path })
 		  end
 	       end
-
-	       nodes_names[exp_ip] = { firstDottedElement(exp_name), site }
 	    end
 
 	    print("</td></tr>")

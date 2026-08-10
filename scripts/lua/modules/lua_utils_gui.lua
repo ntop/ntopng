@@ -996,11 +996,11 @@ function format_portidx_name(device_ip, portidx, short_version)
 
    if (cached_val ~= nil) then
       local num_value = tonumber(cached_val)
-      
+
       if(short_version) then
 	 cached_val = shortenString(cached_val, 26)
       end
-      
+
       return (cached_val)
    else
       return(portidx)
@@ -1616,16 +1616,21 @@ function formatHTMLaTag(real_value, name, url)
    return link
 end
 
-function formatInterfaceIP(ip, href)
+-- ################################################################
+
+function formatInterfaceIP(ip, href, site_id)
    local site_utils = require "site_utils"
    local ret
-   local site = site_utils.mapHostToSite(ip).name
    local exporter_name = getExporterName(ip, true, true, false)
 
    ret = "<a href=\"" .. ntop.getHttpPrefix() .. href .. ip .. "\">" .. exporter_name
-   
-   if(site ~= nil) then
-      ret = ret .. " (".. site ..")"
+
+   if(site_id == nil) then
+      site_id = site_utils.mapHostToSite(ip).name
+   end
+
+   if(site_id ~= nil) then
+      ret = ret .. " (".. site_utils.getSiteName(site_id) .. ")"
    end
 
    if(exporter_name ~= ip) then ret = ret .. '</A> [<A HREF="' .. ntop.getHttpPrefix() ..'/lua/host_details.lua?host='.. ip .. '">'..ip.."</A>]" end
@@ -1634,29 +1639,39 @@ function formatInterfaceIP(ip, href)
    return(ret)
 end
 
-function formatExporter(ip)
-   if ntop.isPro and ntop.isPro() then      
-      return formatInterfaceIP(ip, "/lua/pro/enterprise/exporter_interfaces.lua?ip="), ip, exporter_name or ip, site
+-- ##################################################
+
+function formatExporter(ip, site_id)
+   -- tprint(ip .. " @ ".. site_id)
+   
+   if ntop.isPro and ntop.isPro() then
+      return formatInterfaceIP(ip, "/lua/pro/enterprise/exporter_interfaces.lua?ip=", site_id),
+	 ip, exporter_name or ip, site_id
    else
-      return ip, ip, ip, nil
+      return ip, ip, ip, site_id
    end
 end
 
-function formatNextHop(ip)
+-- ##################################################
+
+function formatNextHop(ip, site_id)
    if ntop.isPro and ntop.isPro() then
       local site_utils = require "site_utils"
       local ret
-      local site = site_utils.mapHostToSite(ip).name
       local exporter_name = getExporterName(ip, true, true, false)
 
+      if(site_id == nil) then
+	 site_id = site_utils.mapHostToSite(ip).name
+      end
+
       if(exporter_name ~= ip) then
-         ret = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. "\">" .. ip .. "</a>" 
+         ret = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. "\">" .. ip .. "</a>"
 	      ret = ret .. " (<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. ip .. "\">" .. exporter_name .. "</a>"
-	 
-         if(site ~= nil) then
-            ret = ret .. " - ".. site
+
+         if(site_id ~= nil) then
+            ret = ret .. " - ".. site_utils.getSiteName(site_id)
          end
-         
+
          ret = ret .. ")"
       else
          if(ip == "0.0.0.0") then
@@ -1665,10 +1680,10 @@ function formatNextHop(ip)
             ret = "<a href=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. ">" .. ip .. "</a>"
          end
       end
-      
-      return ret, ip, exporter_name or ip, site
+
+      return ret, ip, exporter_name or ip, site_id
    else
-      return ip, ip, ip, nil
+      return ip, ip, ip, site_id
    end
 end
 
@@ -1692,6 +1707,6 @@ function url_encode(str)
       end)
       str = str:gsub(" ", "+") -- Standard HTML forms use + for spaces
    end
-   
+
    return str
 end
