@@ -133,7 +133,7 @@ return function(f)
     },
     {
         key = "hosts",
-        i18n = "hosts",
+        i18n = "infrastructure",
         icon = "fas fa-laptop",
         hard_hidden = f.is_system_interface or f.is_viewed or f.is_nedge or f.is_asn_mode_enabled,
         hidden = f.infrastructure_view,
@@ -230,22 +230,6 @@ return function(f)
                 f.no_vlans and reason("feature", "menu.reason.no_vlans", "menu.suggestion.no_vlans") or nil,
                 f.is_viewed_interface and reason("iface", "menu.reason.is_viewed", "menu.suggestion.is_viewed") or nil,
             }
-        }, {
-            key = "divider",
-            i18n = "menu_group.containers",
-            is_divider = true
-        }, {
-            key = "pods",
-            i18n = "pods",
-            icon = "fab fa-docker",
-            url = "/lua/pods_stats.lua",
-            hidden = f.no_pods
-        }, {
-            key = "containers",
-            i18n = "containers",
-            icon = "fas fa-cube",
-            url = "/lua/containers_stats.lua",
-            hidden = f.no_containers
         }}
     },
     {

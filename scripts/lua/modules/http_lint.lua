@@ -2422,6 +2422,7 @@ local known_parameters = {
    ["sequence"] = validateNumber,
    ["title"] = validateUnquoted,
    ["concise"] = validateBool,
+   ["no_store"] = validateBool, -- when true, completion.lua skips persisting chat/token-usage rows (used by test/regression harnesses)
    ["output_price_usd"] = validateFloat,
    ["input_price_usd"] = validateFloat,
    ["model"] = validateUnquoted,

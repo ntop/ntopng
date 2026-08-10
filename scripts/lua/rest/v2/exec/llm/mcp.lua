@@ -142,8 +142,10 @@ local function handle_tools_list(id, _params)
             required = { "content" },
          },
          annotations = {
-            readOnlyHint    = (entry.read_only == true),
-            destructiveHint = false,
+            readOnlyHint        = (entry.read_only == true),
+            destructiveHint     = false,
+            requiresClickHouse  = (entry.requires_clickhouse == true),
+            licenseRequired     = entry.license_required,
          },
       }
    end

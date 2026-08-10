@@ -19,10 +19,12 @@ tools._registry = {}
 
 function tools.register(name, description, handler, opts)
    tools._registry[name] = {
-      description = description,
-      handler     = handler,
-      artifact    = (opts and opts.artifact == true) or false,
-      read_only   = (opts and opts.read_only == true) or false,
+      description         = description,
+      handler             = handler,
+      artifact            = (opts and opts.artifact == true) or false,
+      read_only           = (opts and opts.read_only == true) or false,
+      requires_clickhouse = (opts and opts.requires_clickhouse == true) or false,
+      license_required    = opts and opts.license_required or nil,
    }
 end
 
