@@ -123,6 +123,13 @@ end
 
 -- ##############################################
 
+--! @brief Driver name to display
+function driver:get_name()
+    return "InfluxDB"
+end
+
+-- ##############################################
+
 local function getInfluxDBQueryTimeout()
     return tonumber(ntop.getPref("ntopng.prefs.influx_query_timeout")) or 10
 end

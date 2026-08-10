@@ -202,6 +202,7 @@ elseif page == "internals" then
       show_periodic_activities = true,
       show_checks              = true,
       show_queues              = true,
+      ts_driver_name           = ts_utils.getDriverDisplayName(),
   }
 
   template.render("pages/vue_page.template", {

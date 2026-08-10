@@ -244,6 +244,17 @@ end
 
 -- ##############################################
 
+-- ! @brief Return the driver name to display
+function ts_utils.getDriverDisplayName()
+   local driver = ts_utils.getQueryDriver()
+   if driver then
+      return driver:get_name()
+   end
+   return ts_utils.getDriverName()
+end
+
+-- ##############################################
+
 local function isUserAccessAllowed(tags)
    local user = _SESSION and _SESSION["user"] or ""
 

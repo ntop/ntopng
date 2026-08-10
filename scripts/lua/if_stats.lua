@@ -2347,6 +2347,7 @@ function toggle_mirrored_traffic_function_off(){
       aysHandleForm("#iface_config");
    </script>]]
 elseif (page == "internals") then
+    local ts_utils_core = require "ts_utils_core"
     local context = {
         is_sys_iface             = false,
         ifid                     = ifid,
@@ -2354,6 +2355,7 @@ elseif (page == "internals") then
         show_periodic_activities = true,
         show_checks              = true,
         show_queues              = true,
+        ts_driver_name           = ts_utils_core.getDriverDisplayName(),
     }
 
     template.render("pages/vue_page.template", {

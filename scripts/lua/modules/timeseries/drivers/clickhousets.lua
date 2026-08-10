@@ -52,6 +52,13 @@ function driver:new(options)
 end
 
 -- ##############################################
+
+--! @brief Driver name to display
+function driver:get_name()
+   return "CH"
+end
+
+-- ##############################################
 -- Internal helpers
 -- ##############################################
 

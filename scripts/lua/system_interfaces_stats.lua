@@ -232,6 +232,7 @@ var resetInterfaceCounters = function(drops_only) {
  ]]
 
 elseif(page == "internals") then
+   local ts_utils_core = require "ts_utils_core"
    local context = {
       is_sys_iface             = true,
       ifid                     = nil,
@@ -239,6 +240,7 @@ elseif(page == "internals") then
       show_periodic_activities = true,
       show_checks              = true,
       show_queues              = false,
+      ts_driver_name           = ts_utils_core.getDriverDisplayName(),
    }
    template.render("pages/vue_page.template", {
       vue_page_name = "PageInternals",

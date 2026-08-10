@@ -73,6 +73,13 @@ end
 
 -- ##############################################
 
+--! @brief Driver name to display
+function driver:get_name()
+   return "RRD"
+end
+
+-- ##############################################
+
 function driver:getLatestTimestamp(ifid)
    return os.time()
 end
