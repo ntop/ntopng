@@ -2782,7 +2782,7 @@ u_int8_t ZMQParserInterface::parseJSONCounter(const char* payload,
       const char* key = json_object_iter_peek_name(&it);
       json_object* v = json_object_iter_peek_value(&it);
 
-      if (key != NULL) {
+      if (key != NULL && v != NULL) {
         u_int32_t counter_id;
         size_t key_len = strlen(key);
 
@@ -2841,7 +2841,7 @@ u_int8_t ZMQParserInterface::parseJSONCounter(const char* payload,
           if (parseContainerInfo(v, &stats.container_info))
             stats.container_info_set = true;
         }
-      } /* if key != NULL */
+      }
 
       /* Move to the next element */
       json_object_iter_next(&it);
