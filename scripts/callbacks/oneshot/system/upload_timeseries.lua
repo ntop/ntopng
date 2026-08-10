@@ -42,6 +42,6 @@ while(not(ntop.isShuttingDown())) do
    total = total + callback_utils.uploadTSdata(0) -- 0 = no deadline)
 
    if(total == 0) then
-      ntop.msleep(1000) -- 1 second
+      ntop.msleep(100) -- msec
    end
 end
