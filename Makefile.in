@@ -296,7 +296,7 @@ dist:
 pull-deps:
 	echo "Pulling dependencies.."
 	rm -rf httpdocs/dist tests/e2e
-	#git submodule init
+	git submodule init httpdocs/dist tests/e2e
 	git submodule update httpdocs/dist tests/e2e
 	branch=`git rev-parse --abbrev-ref HEAD`; cd httpdocs/dist && git checkout $$branch && git pull
 	branch=`git rev-parse --abbrev-ref HEAD`; cd tests/e2e && git checkout $$branch && git pull
