@@ -314,7 +314,7 @@ page_utils.menu_entries = {
     hosts = {
         key = "hosts",
         i18n_title = "hosts",
-        section = "hosts",
+        section = "if_stats",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/hosts/hosts.html#id1"
     },
     hosts_asn_mode = {
@@ -326,12 +326,12 @@ page_utils.menu_entries = {
     devices = {
         key = "devices",
         i18n_title = "layer_2",
-        section = "hosts"
+        section = "if_stats"
     },
     assets = {
         key = "assets",
         i18n_title = "assets",
-        section = "hosts"
+        section = "if_stats"
     },
 
     -- Chatbot (nAnalyst)
@@ -394,12 +394,12 @@ page_utils.menu_entries = {
     exporters_interfaces_traffic_asn_mode = {
         key = "exporters_interfaces_traffic_asn_mode",
         i18n_title = "exporters_interfaces_configuration.network_communications",
-        section = "as"
+        section = "views"
     },
     historical_autonomous_systems_asn_mode = {
         key = "historical_autonomous_systems_asn_mode",
         i18n_title = "db_explorer.historical_data_explorer",
-        section = "as"
+        section = "views"
     },
     active_flows_asn_mode = {
         key = "active_flows_asn_mode",
@@ -498,33 +498,33 @@ page_utils.menu_entries = {
     event_exporters = {
         key = "event_exporters",
         i18n_title = "event_exporters.event_exporters",
-        section = "collection"
+        section = "if_stats"
     },
     sflow_exporters = {
         key = "sflow_exporters",
         i18n_title = "flows_page.sflow_devices",
-        section = "collection"
+        section = "if_stats"
     },
     exporters = {
         key = "exporters",
         i18n_title = "flow_devices.flow_exporters",
-        section = "collection",
+        section = "if_stats",
         help_link = "https://www.ntop.org"
     },
     nprobe = {
         key = "nprobe",
         i18n_title = "flow_devices.nprobe_instances",
-        section = "collection"
+        section = "if_stats"
     },
     exporters_interfaces_stats = {
         key = "exporters_interfaces_stats",
         i18n_title = "flow_devices.exporters_interfaces_stats",
-        section = "collection"
+        section = "if_stats"
     },
     observation_points = {
         key = "observation_points",
         i18n_title = "flow_devices.observation_points",
-        section = "collection",
+        section = "if_stats",
         help_link = "https://www.ntop.org"
     },
 
@@ -532,18 +532,18 @@ page_utils.menu_entries = {
     analysis_map = {
         key = "analysis_map",
         i18n_title = "analysis",
-        section = "maps"
+        section = "if_stats"
     },
     geo_map = {
         key = "geo_map",
         i18n_title = "geo_map.geo_map",
-        section = "maps",
+        section = "if_stats",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/maps/geo_map.html"
     },
     hosts_map = {
         key = "hosts_map",
         i18n_title = "flows_page.hosts",
-        section = "maps"
+        section = "if_stats"
     },
 
     -- Settings
@@ -635,21 +635,21 @@ page_utils.menu_entries = {
         key = "alert_exclusions",
         subkey = "hosts",
         i18n_title = alert_entities.host.i18n_label,
-        section = "alert_exclusions",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     alert_exclusions_flows = {
         key = "alert_exclusions",
         subkey = "flows",
         i18n_title = alert_entities.flow.i18n_label,
-        section = "alert_exclusions",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     alert_exclusions_domains = {
         key = "alert_exclusions",
         subkey = "domains",
         i18n_title = "domain",
-        section = "alert_exclusions",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config = {
@@ -752,26 +752,26 @@ page_utils.menu_entries = {
     export_data = {
         key = "export_data",
         i18n_title = "manage_data.export",
-        section = "tools"
+        section = "admin"
     },
 
     -- Pools
     host_members = {
         key = "host_members",
         i18n_title = "host_pools.host_members",
-        section = "pools"
+        section = "admin"
     },
     manage_pools = {
         key = "manage_pools",
         i18n_title = "pools.pools",
-        section = "pools"
+        section = "admin"
     },
 
     -- Home
     live_capture = {
         key = "live_capture",
         i18n_title = "live_capture.active_live_captures",
-        section = "home"
+        section = "admin"
     },
 
     -- Developer
@@ -939,7 +939,7 @@ page_utils.menu_entries = {
     users = {
         key = "users",
         i18n_title = "users.users",
-        section = "hosts",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html#user-authentication"
     },
     system_setup = {
