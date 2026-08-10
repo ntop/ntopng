@@ -138,7 +138,7 @@ local function schema_get_path(schema, tags)
    if ((string.find(schema.name, "iface:") ~= 1) and -- interfaces are only identified by the first tag
    (#schema._tags >= 1)) then -- some schema do not have any tag, e.g. "process:*" schemas
       local prefix = HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")
-      local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]]
+      local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]] or ""
 
       if (suffix ~= ifid) then
          host_or_network = prefix .. suffix
@@ -151,9 +151,9 @@ local function schema_get_path(schema, tags)
    -- Some exceptions to avoid conflicts / keep compatibility
    if parts[1] == "snmp_if" then
       if tags.qos_class_id then
-         suffix = tags.if_index .. "/" .. tags.qos_class_id .. "/"
+         suffix = (tags.if_index or "") .. "/" .. tags.qos_class_id .. "/"
       else
-         suffix = tags.if_index .. "/"
+         suffix = (tags.if_index or "") .. "/"
       end
    elseif (parts[1] == "flowdev_port") then
       if (tags.port) then
