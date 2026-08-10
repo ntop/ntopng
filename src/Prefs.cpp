@@ -192,6 +192,7 @@ Prefs::Prefs(Ntop* _ntop) {
   snmp_polling = true;
   active_monitoring = network_discovery = starttls = false;
   dump_pcap_to_clickhouse = false;
+  ch_ts_queue_size = CH_TS_QUEUE_SIZE;
   query_performance_log = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
@@ -1079,8 +1080,8 @@ void Prefs::reloadPrefsFromRedis() {
   network_discovery =
     getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_NETWORK_DISCOVERY, false);
   starttls = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_STARTTLS, false);
-  dump_pcap_to_clickhouse = getDefaultBoolPrefsValue(
-						     CONST_PREFS_ENABLE_DUMP_PCAP_TO_CLICKHOUSE, false);
+  dump_pcap_to_clickhouse = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DUMP_PCAP_TO_CLICKHOUSE, false);
+  ch_ts_queue_size = getDefaultPrefsValue(CONST_CLICKHOUSE_TS_QUEUE_SIZE, CH_TS_QUEUE_SIZE);
 #ifdef NTOPNG_PRO
   data_archive_before_ttl_delete = getDefaultBoolPrefsValue(
 							    CONST_PREFS_ENABLE_ARCHIVE_BEFORE_TTL_DELETE, false);

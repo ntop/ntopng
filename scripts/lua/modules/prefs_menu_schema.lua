@@ -1228,7 +1228,8 @@ function M.get_sections(flags)
                     label = "ClickHouse"
                 }},
                 to_switch = {"influxdb_url", "influxdb_dbname", "toggle_influx_auth", "influxdb_username",
-                             "influxdb_password", "influxdb_query_timeout", "clickhouse_grafana_dashboard"},
+                             "influxdb_password", "influxdb_query_timeout", "clickhouse_grafana_dashboard",
+                             "clickhouse_ts_queue_size", "clickhouse_ts_batch_size"},
                 show_when = {
                     influxdb_url = {"influxdb"},
                     influxdb_dbname = {"influxdb"},
@@ -1237,7 +1238,9 @@ function M.get_sections(flags)
                     influxdb_password = {"influxdb"},
                     influxdb_query_timeout = {"influxdb"},
                     timeseries_resolution_resolution = {"influxdb", "clickhouse"},
-                    clickhouse_grafana_dashboard = {"clickhouse"}
+                    clickhouse_grafana_dashboard = {"clickhouse"},
+                    clickhouse_ts_queue_size = {"clickhouse"},
+                    clickhouse_ts_batch_size = {"clickhouse"}
                 }
             }, {
                 key = "clickhouse_grafana_dashboard",
@@ -1247,6 +1250,36 @@ function M.get_sections(flags)
                 section = i18n("prefs.timeseries_database"),
                 download_url = ntop.getHttpPrefix() .. "/misc/grafana/ntopng-clickhouse-dashboard.json",
                 download_filename = "ntopng-clickhouse-dashboard.json"
+            }, {
+                key = "clickhouse_ts_queue_size",
+                title = i18n("prefs.clickhouse_ts_queue_size_title");
+                description = i18n("prefs.clickhouse_ts_queue_size_description", {
+                    product = info.product
+		}),
+                type = "input",
+                input_type = "number",
+                redis_key = "ntopng.prefs.clickhouse_ts_queue_size",
+                default = "200000",
+                requires_restart = true,
+                section = i18n("prefs.timeseries_database"),
+                attrs = {
+                    min = "1000"
+                }
+            }, {
+                key = "clickhouse_ts_batch_size",
+                title = i18n("prefs.clickhouse_ts_batch_size_title"),
+                description = i18n("prefs.clickhouse_ts_batch_size_description", {
+                    product = info.product
+		}),
+                type = "input",
+                input_type = "number",
+                redis_key = "ntopng.prefs.clickhouse_ts_batch_size",
+                default = "10000",
+                requires_restart = true,
+                section = i18n("prefs.timeseries_database"),
+                attrs = {
+                    min = "100"
+                }
             }, {
                 key = "influxdb_url",
                 title = i18n("prefs.influxdb_url_title"),

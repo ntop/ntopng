@@ -31,8 +31,9 @@ local CH_EXPORTED_POINTS_KEY   = CH_TS_KEY_PREFIX .. "exported_points"
 local CH_FAILED_EXPORTS_KEY    = CH_TS_KEY_PREFIX .. "failed_exports"
 
 -- Table and batching settings
-local CH_TS_TABLE_NAME  = "timeseries"
-local CH_BATCH_SIZE     = 10000   -- maximum rows per INSERT statement
+local CH_TS_TABLE_NAME = "timeseries"
+
+local CH_BATCH_SIZE = tonumber(ntop.getPref("ntopng.prefs.clickhouse_ts_batch_size")) or 10000
 
 -- ##############################################
 

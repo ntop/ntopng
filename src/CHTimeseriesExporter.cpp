@@ -27,7 +27,7 @@ CHTimeseriesExporter::CHTimeseriesExporter(NetworkInterface* _if)
     : TimeseriesExporter(_if) {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  ts_queue = new (std::nothrow) CHTSPointFifoQueue(CH_TS_QUEUE_SIZE);
+  ts_queue = new (std::nothrow) CHTSPointFifoQueue(ntop->getPrefs()->get_ch_ts_queue_size());
 }
 
 /* ******************************************************* */

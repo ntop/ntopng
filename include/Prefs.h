@@ -243,6 +243,7 @@ class Prefs {
   bool use_host_pools_for_local;
   bool dump_pcap_to_clickhouse; /* Dump pcap-interface flows to ClickHouse */
   bool query_performance_log;
+  u_int32_t ch_ts_queue_size; /* ClickHouse timeseries export queue size */
 
   InterfacesSet lan_interfaces, wan_interfaces;
 
@@ -435,6 +436,7 @@ class Prefs {
   inline bool dump_pcap_to_clickhouse_enabled() {
     return (dump_pcap_to_clickhouse);
   };
+  inline u_int32_t get_ch_ts_queue_size() { return (ch_ts_queue_size); };
   inline bool query_performance_log_enabled() {
     return (query_performance_log);
   };
