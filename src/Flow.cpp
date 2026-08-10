@@ -2782,10 +2782,12 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         c_mac_updated = true;
       } else if (iface->hasMACs() && (!iface->isView()) &&
                  iface->isPacketInterface()) {
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
         char buf[128];
 
         ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL client MAC [%s]",
                                      print(buf, sizeof(buf)));
+#endif
       }
 
       if (s_mac != NULL) {
@@ -2800,10 +2802,12 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         s_mac_updated = true;
       } else if (iface->hasMACs() && (!iface->isView()) &&
                  iface->isPacketInterface()) {
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
         char buf[128];
 
         ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL server MAC [%s]",
                                      print(buf, sizeof(buf)));
+#endif
       }
     }
 
