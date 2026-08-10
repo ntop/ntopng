@@ -62,7 +62,7 @@ page_utils.menu_sections = {
     },
     hosts = {
         key = "hosts",
-        i18n_title = "hosts",
+        i18n_title = "infrastructure",
         icon = "fas fa-laptop"
     },
     maps = {
@@ -601,34 +601,34 @@ page_utils.menu_entries = {
     device_protocols = {
         key = "device_protocols",
         i18n_title = "device_protocols.device_protocols",
-        section = "policies"
+        section = "admin"
     },
     access_control_list = {
         key = "access_control_list",
         i18n_title = "access_control_list",
-        section = "policies"
+        section = "admin"
     },
     network_config = {
         key = "network_config",
         i18n_title = "checks.network_configuration",
-        section = "policies"
+        section = "admin"
     },
     traffic_rules = {
         key = "traffic_rules",
         i18n_title = "if_stats_config.traffic_rules",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/policies/traffic_rules.html"
     },
     profiles = {
         key = "profiles",
         i18n_title = "traffic_profiles.traffic_profiles",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/policies/traffic_profiles.html"
     },
     alert_exclusions = {
         key = "alert_exclusions",
         i18n_title = "edit_check.exclusion_list",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/behavioural_checks_exclusion.html"
     },
     alert_exclusions_hosts = {
@@ -655,83 +655,83 @@ page_utils.menu_entries = {
     scripts_config = {
         key = "scripts_config",
         i18n_title = "about.checks",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_all = {
         key = "scripts_config",
         subkey = "all",
         i18n_title = "all",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_hosts = {
         key = "scripts_config",
         subkey = "hosts",
         i18n_title = alert_entities.host.i18n_label,
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_interfaces = {
         key = "scripts_config",
         subkey = "interfaces",
         i18n_title = alert_entities.interface.i18n_label,
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_networks = {
         key = "scripts_config",
         subkey = "networks",
         i18n_title = alert_entities.network.i18n_label,
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_snmp_devices = {
         key = "scripts_config",
         subkey = "snmp_devices",
         i18n_title = alert_entities.snmp_device.i18n_label,
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_flows = {
         key = "scripts_config",
         subkey = "flows",
         i18n_title = alert_entities.flow.i18n_label,
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_system = {
         key = "scripts_config",
         subkey = "system",
         i18n_title = alert_entities.system.i18n_label,
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_syslog = {
         key = "scripts_config",
         subkey = "syslog",
         i18n_title = "syslog.syslog",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_active_monitoring = {
         key = "scripts_config",
         subkey = "active_monitoring",
         i18n_title = "active_monitoring",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_as = {
         key = "scripts_config",
         subkey = "as",
         i18n_title = "as",
-        section = "policies",
+        section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     device_exclusions = {
         key = "device_exclusions",
         i18n_title = "edit_check.device_exclusion",
-        section = "policies"
+        section = "admin"
     },
 
     -- Notifications
