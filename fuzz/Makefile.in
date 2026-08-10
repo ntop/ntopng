@@ -7,6 +7,8 @@ LIB_FUZZING_ENGINE := @LIB_FUZZING_ENGINE@
 FUZZ_OBJECTS := @FUZZ_OBJECTS@
 FUZZ_WITH_PROTOBUF := @FUZZ_WITH_PROTOBUF@
 
+NDPI_HOME := @NDPI_HOME@
+
 STUB_FILTER_OUT := $(FUZZ_OBJECTS:fuzz/stub/%Stub.o=src/%.o)
 OBJECTS_FOR_FUZZ := $(filter-out src/main.o $(STUB_FILTER_OUT),$(OBJECTS))
 
@@ -57,3 +59,8 @@ fuzz_all: $(FUZZ_TARGETS) fuzz_corpus
 
 fuzz/fuzz_%_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_%/*)
 	zip -j $@ $^
+
+# Add traces from nDPI to the corpus
+fuzz/fuzz_dissect_packet_seed_corpus.zip: $$(wildcard $(NDPI_HOME)/tests/pcap/*.pcap*)
+	zip -u $@ $^
+
