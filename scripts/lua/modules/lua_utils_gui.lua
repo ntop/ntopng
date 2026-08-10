@@ -1677,8 +1677,14 @@ function formatNextHop(ip, site_id)
          if(ip == "0.0.0.0") then
             ret = ip
          else
-            ret = "<a href=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. ">" .. ip .. "</a>"
-         end
+            ret = "<a href=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. ">" .. ip 
+	    
+	    if(site_id ~= nil) then
+	       ret = ret .. " (".. site_utils.getSiteName(site_id)..")"
+	    end
+
+	     ret = ret .. "</a>"
+	 end
       end
 
       return ret, ip, exporter_name or ip, site_id
