@@ -1954,7 +1954,8 @@ bool NetworkInterface::processPacket(
     /* NOTE: ip_tot_len is not trusted as may be forged */
     ip_tot_len = ntohs(iph->tot_len);
 
-    if (ip_tot_len > (h->caplen - ip_offset)) {
+    if (ip_tot_len > (h->caplen - ip_offset) ||
+        ip_tot_len < 20) {
       /* Invalid lenght */
       incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
@@ -2046,8 +2047,15 @@ bool NetworkInterface::processPacket(
     return (pass_verdict);
   }
 
-  if (trusted_l4_packet_len > frame_padding)
+  if (trusted_l4_packet_len >= frame_padding) {
     trusted_l4_packet_len -= frame_padding;
+  } else {
+    /* Invalid lenght */
+    incStats(*ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+             NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
+             len_on_wire, 1, srcMac, dstMac);
+    return (pass_verdict);
+  }
 
   if (l4_proto == IPPROTO_TCP) {
     if (trusted_l4_packet_len >= sizeof(struct ndpi_tcphdr)) {
@@ -2427,6 +2435,8 @@ pre_get_flow:
 #endif
 
     if (update_counters) {
+      static bool shown = false;
+
 #ifdef __OpenBSD__
       struct timeval tv_ts;
 
@@ -2437,6 +2447,17 @@ pre_get_flow:
                      payload, trusted_payload_len, l4_proto, is_fragment,
                      tcp_flags, &tv_ts, fragment_extra_overhead);
 #else
+
+      if(len_on_wire - encapsulation_overhead - frame_padding <= trusted_payload_len) {
+        if(!shown) {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid pkt: caplen/len %d/%d len_on_wire %d encapsulation_overhead %d frame_padding %d-> %d",
+                                       h->caplen, h->len,
+                                       len_on_wire, encapsulation_overhead, frame_padding,
+                                       trusted_payload_len);
+          shown = true;
+        }
+      }
+
       flow->incStats(src2dst_direction,
                      len_on_wire - encapsulation_overhead - frame_padding,
                      payload, trusted_payload_len, l4_proto, is_fragment,
@@ -2917,7 +2938,7 @@ bool NetworkInterface::dissectPacket(
   if (getIfType() == interface_type_NETFILTER)
     len_on_wire += sizeof(struct ndpi_ethhdr);
 
-  if (h->len == 0) {
+  if (h->len == 0 || h->caplen > h->len) {
     incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
              NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, 0, 1, NULL /* srcMac */,
              NULL /* dstMac */);
@@ -3287,6 +3308,12 @@ decode_packet_eth:
 
 		if (flags & 0x01) ip_offset += 1; /* pdu_number is present */
 
+                if (ip_offset >= h->caplen) {
+                  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                           NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                           NULL /* srcMac */, NULL /* dstMac */);
+                  goto dissect_packet_end;
+                }
 		iph = (struct ndpi_iphdr*)&packet[ip_offset];
 
 		if (iph->version != 4) {
@@ -3332,6 +3359,12 @@ decode_packet_eth:
 
               /* PPP */
               offset += 2;
+              if (offset + 3 >= h->caplen) {
+                incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                         NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                         NULL /* srcMac */, NULL /* dstMac */);
+                goto dissect_packet_end;
+              }
               proto = (packet[offset] << 8) + packet[offset + 1];
               offset += 2; /* Skip proto */
 
@@ -3345,6 +3378,12 @@ decode_packet_eth:
                 ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
               } else if (proto == 0x003d /* PPP Multi-Link */) {
                 offset += 4;
+                if (offset + 3 >= h->caplen) {
+                  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                           NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                           NULL /* srcMac */, NULL /* dstMac */);
+                  goto dissect_packet_end;
+                }
                 proto = (packet[offset] << 8) + packet[offset + 1];
                 offset += 2;
 
