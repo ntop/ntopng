@@ -279,7 +279,13 @@ local function ja4url(what, safety, label)
    end
 end
 
-sendHTTPContentTypeHeader('text/html')
+local capture_table_html = toboolean(_GET["capture_output"])
+
+if capture_table_html then
+   sendHTTPContentTypeHeader('application/json')
+else
+   sendHTTPContentTypeHeader('text/html')
+end
 
 warn_shown = 0
 
@@ -548,18 +554,22 @@ local function displayProc(proc, label)
    end
 end
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.flow_details)
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+if not capture_table_html then
+   page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.flow_details)
+   dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-printMessageBanners(alert_banners)
+   printMessageBanners(alert_banners)
 
-if not table.empty(alert_banners) then
-   print("<br>")
+   if not table.empty(alert_banners) then
+      print("<br>")
+   end
 end
 
-print(
-   '<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>&nbsp;' ..
-   i18n("flow_details.now_purged") .. '</div>')
+if not capture_table_html then
+   print(
+      '<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>&nbsp;' ..
+      i18n("flow_details.now_purged") .. '</div>')
+end
 
 throughput_type = getThroughputType()
 
@@ -578,6 +588,7 @@ local title = i18n("flow") .. ": " .. label
 local url = ntop.getHttpPrefix() .. "/lua/flow_details.lua?flow_key=" .. flow_key .. "&flow_hash_id=" .. flow_hash_id .. "&ifid=" .. ifid
 
 --tprint(flow)
+if not capture_table_html then
 page_utils.print_navbar(title, url, {{
 			      active = isEmptyString(page) or page == "overview",
 			      page_name = "overview",
@@ -605,8 +616,11 @@ page_utils.print_navbar(title, url, {{
 			      label = i18n("details.label_profinet_server")
 					   }
 })
+end
 
-if isEmptyString(page) or page == "overview" then
+-- Renders the full live-flow overview table (identical HTML for the standalone
+-- page and for the capture-mode REST endpoint used by the flow-details card).
+local function print_flow_overview_page()
    if (flow == nil) then
       print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i> ' ..
 	    i18n("flow_details.flow_cannot_be_found_message") .. ' ' .. purgedErrorString() .. '</div>')
@@ -2600,14 +2614,16 @@ if isEmptyString(page) or page == "overview" then
    print [[
    </script>
    ]]
+end
 
-   -- Add chatbot button if nAnalyst is enabled
-   if ntop.hasnAnalyst() then
+-- Add chatbot button if nAnalyst is enabled (not part of the capturable table HTML)
+local function print_flow_chatbot_sidebar()
+   if (flow ~= nil) and ntop.hasnAnalyst() then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
       live_flow_info = require "live_flow_info"
-      
+
       local flow_data = live_flow_info.get_flow(tostring(ifid), tostring(flow_key), tostring(flow_hash_id))
-      
+
       local flow_chatbot_context = json.encode({
          csrf         = ntop.getRandomCSRFValue(),
          ifid         = ifid,
@@ -2616,15 +2632,36 @@ if isEmptyString(page) or page == "overview" then
          page         = "live_flow_details",
          flow_data    = flow_data
       })
-      
-      
+
       template.render("pages/vue_page.template", {
          vue_page_name = "FlowChatbotSidebar",
          page_context = flow_chatbot_context
       })
    end
+end
 
+if capture_table_html then
+   local output_buffer = {}
+   local real_print = print
+   print = function(...)
+      local n = select('#', ...)
+      for i = 1, n do
+         output_buffer[#output_buffer + 1] = tostring((select(i, ...)))
+      end
+   end
 
+   local ok, err = pcall(print_flow_overview_page)
+
+   print = real_print
+
+   if ok then
+      real_print(json.encode({html = table.concat(output_buffer)}))
+   else
+      real_print(json.encode({error = tostring(err)}))
+   end
+elseif isEmptyString(page) or page == "overview" then
+   print_flow_overview_page()
+   print_flow_chatbot_sidebar()
 elseif page == "modbus" then
    local json = require "dkjson"
    local json_context = json.encode({
@@ -2670,4 +2707,7 @@ elseif page == "bgp" then
       page_context = json_context
    })
 end
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+
+if not capture_table_html then
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+end

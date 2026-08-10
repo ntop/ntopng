@@ -2091,6 +2091,7 @@ local known_parameters = {
    -- NAVIGATION
    ["gui"] = validateBool, -- Return data in html format (backward compatibility)
    ["page"] = validateSingleWord, -- Currently active subpage tab
+   ["capture_output"] = validateBool, -- Return the rendered table HTML as JSON instead of the full page (used by the flow-details card)
    ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
    ["template"] = validateSingleWord, -- Currently selected template
    ["template_name"] = validateUnquoted,
