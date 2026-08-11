@@ -39,6 +39,16 @@
 			]
 		},
 		{
+			"id": "network_cidr",
+			"title_i18n": "network_stats.network_cidr",
+			"data_field": "networkCIDR",
+			"sortable": true,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "sites_page.site_name",
 			"data_field": "site",
 			"sortable": true,
