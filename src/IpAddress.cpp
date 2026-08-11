@@ -500,8 +500,8 @@ void IpAddress::setEmptyIPv6() {
 
 /* ****************************** */
 
-void IpAddress::set(struct ndpi_in6_addr* _ipv6) {
-  if(Utils::isIPv4MappedAddress(_ipv6)) {
+void IpAddress::set(struct ndpi_in6_addr* _ipv6, bool check_ipv4) {
+  if(check_ipv4 && Utils::isIPv4MappedAddress(_ipv6)) {
     set(_ipv6->u6_addr.u6_addr32[3]);
   } else {
     addr.ipVersion = 6,

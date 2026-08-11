@@ -90,7 +90,7 @@ class IpAddress {
     addr.ipVersion = 4, addr.ipType.ipv4 = _ipv4;
     compute_key();
   }
-  void set(struct ndpi_in6_addr* _ipv6);
+  void set(struct ndpi_in6_addr* _ipv6, bool check_ipv4 = false);
   void set(struct in6_addr* _ipv6);
   void set(const IpAddress* const ip);
   void set(const struct ipAddress* const ip);
