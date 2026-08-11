@@ -9499,6 +9499,7 @@ local lang = {
     ["site_b"] = "Site B",
   },
   ["sites_dashboard"] = {
+    ["assets"] = "Assets",
     ["sites"] = "Sites",
     ["site"] = "Site",
     ["default_site"] = "Default",
