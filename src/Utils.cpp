@@ -1757,7 +1757,8 @@ static void fillcURLProxy(CURL* curl) {
 bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
                              char* url, char* json, int connect_timeout,
                              int max_duration_timeout,
-                             HTTPTranferStats* stats) {
+                             HTTPTranferStats* stats,
+			     bool do_insecure_tls) {
   CURL* curl;
   bool ret = false;
 
@@ -1790,7 +1791,7 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if (!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
+    if (!strncmp(url, "https", 5) && do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1849,7 +1850,8 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
                              char* url, char* json, int connect_timeout,
                              int max_duration_timeout, HTTPTranferStats* stats,
                              char* return_data, int return_data_size,
-                             int* response_code) {
+                             int* response_code,
+			     bool do_insecure_tls) {
   CURL* curl;
   bool ret = false;
 
@@ -1886,7 +1888,7 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if (!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
+    if (!strncmp(url, "https", 5) && do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1942,7 +1944,8 @@ static size_t read_callback(void* ptr, size_t size, size_t nmemb,
 bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
                              char* url, char* path, int connect_timeout,
                              int max_duration_timeout,
-                             HTTPTranferStats* stats) {
+                             HTTPTranferStats* stats,
+			     bool do_insecure_tls) {
   CURL* curl;
   bool ret = true;
   struct stat buf;
@@ -1978,7 +1981,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if (!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
+    if (!strncmp(url, "https", 5) && do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -2064,7 +2067,8 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
 
 bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
                      char* message, char* smtp_server, char* username,
-                     char* password, bool use_proxy, bool verbose) {
+                     char* password, bool use_proxy, bool verbose,
+		     bool do_insecure_tls) {
   bool ret = true;
   const char* ret_str = "";
   u_int8_t num_runs = 0;
@@ -2109,7 +2113,7 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     } else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
-    if (ntop->getPrefs()->do_insecure_tls()) {
+    if (do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -2361,6 +2365,7 @@ static int progress_callback(void* clientp, double dltotal, double dlnow,
 /* form_data is in format param=value&param1=&value1... */
 /* NOTE if user_header_token != NULL, username AND password are ignored, and vice-versa */
 bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
+				bool do_insecure_tls,
                                 const HttpGetPostOptions& opts) {
   CURL* curl = curl_easy_init();
   FILE* out_f = NULL;
@@ -2414,7 +2419,7 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
       }
     }
 
-    if (!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
+    if (!strncmp(url, "https", 5) && do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -2480,7 +2485,7 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
         break;
     }
 
-    if (!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
+    if (!strncmp(url, "https", 5) && do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -2646,7 +2651,8 @@ long Utils::httpGet(const char* url,
                     const char* username, const char* password,
                     const char* user_header_token, int connect_timeout,
                     int max_duration_timeout, char* const resp,
-                    const u_int resp_len) {
+                    const u_int resp_len,
+		    bool do_insecure_tls) {
   CURL* curl = curl_easy_init();
   long response_code = 0;
   char tokenBuffer[64];
@@ -2680,7 +2686,7 @@ long Utils::httpGet(const char* url,
 
     if (headers != NULL) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    if (!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
+    if (!strncmp(url, "https", 5) && do_insecure_tls) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }

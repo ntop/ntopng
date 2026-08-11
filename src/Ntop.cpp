@@ -1771,7 +1771,8 @@ bool Ntop::checkHTTPAuth(const char* user, const char* password,
                               NULL,  // no digest user
                               NULL,  // no digest password
                               httpUrl, postData, 0, 0, &stats, returnData,
-                              MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN, &rc)) {
+                              MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN, &rc,
+			      ntop->getPrefs()->do_insecure_tls())) {
     if (rc == 200) {
       // parse JSON
       if (!Utils::parseAuthenticatorJson(&auth, returnData)) {
@@ -5700,7 +5701,8 @@ bool Ntop::downloadCustomnDPIProtos(char* url, char* dest_file) {
   opts.write_fname          = dest_file;
   opts.follow_redirects     = true;
   opts.ip_version           = 4;
-  bool rc = Utils::httpGetPostPutPatch(NULL, custom_ndpi_protos, method_get, opts);
+  bool rc = Utils::httpGetPostPutPatch(NULL, custom_ndpi_protos, method_get,
+				       ntop->getPrefs()->do_insecure_tls(), opts);
 
   if (rc == false) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,

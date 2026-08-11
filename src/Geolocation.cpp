@@ -554,7 +554,8 @@ bool Geolocation::getASName(u_int32_t asn, char* handle, u_int handle_len,
   snprintf(buf, sizeof(buf), "https://stat.ripe.net/data/as-overview/data.json?resource=AS%u", asn);
   json[0] = '\0';
   rc = Utils::httpGet(buf, NULL, NULL, NULL, 5 /* connect timeout */,
-                      10 /* download timeout */, json, sizeof(json));
+                      10 /* download timeout */, json, sizeof(json),
+		      ntop->getPrefs()->do_insecure_tls());
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "[rc: %u][%s]", rc, json);
 

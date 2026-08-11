@@ -112,25 +112,31 @@ class Utils {
   static bool postHTTPJsonData(char* bearer_token, char* username,
                                char* password, char* url, char* json,
                                int connect_timeout, int max_duration_timeout,
-                               HTTPTranferStats* stats);
+                               HTTPTranferStats* stats,
+			       bool do_insecure_tls);
   static bool postHTTPJsonData(char* bearer_token, char* username,
                                char* password, char* url, char* json,
                                int connect_timeout, int max_duration_timeout,
                                HTTPTranferStats* stats, char* return_data,
-                               int return_data_size, int* response_code);
+                               int return_data_size, int* response_code,
+			       bool do_insecure_tls);
   static bool sendMail(lua_State* vm, char* from, char* to, char* cc,
                        char* message, char* smtp_server, char* username,
-                       char* password, bool use_proxy, bool verbose);
+                       char* password, bool use_proxy, bool verbose,
+		       bool do_insecure_tls);
   static bool postHTTPTextFile(lua_State* vm, char* username, char* password,
                                char* url, char* path, int connect_timeout,
                                int max_duration_timeout,
-                               HTTPTranferStats* stats);
+                               HTTPTranferStats* stats,
+			       bool do_insecure_tls);
   static bool httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
+				  bool do_insecure_tls,
 				  const HttpGetPostOptions& opts = {});
   static long httpGet(const char* url, const char* username,
                       const char* password, const char* user_header_token,
                       int connect_timeout, int max_duration_timeout,
-                      char* const resp, const u_int resp_len);
+                      char* const resp, const u_int resp_len,
+		      bool do_insecure_tls);
   static bool progressCanContinue(ProgressState* progressState);
   static char* urlEncode(const char* url);
   static ticks getticks();

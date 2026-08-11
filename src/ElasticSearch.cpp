@@ -223,11 +223,10 @@ void ElasticSearch::indexESdata() {
       if (!Utils::postHTTPJsonData(NULL, ntop->getPrefs()->get_es_user(),
                                    ntop->getPrefs()->get_es_pwd(),
                                    ntop->getPrefs()->get_es_url(), postbuf, 0,
-                                   0, &stats)) {
+                                   0, &stats, ntop->getPrefs()->do_insecure_tls())) {
         /* Post failure */
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "[ES] POST request for %d flows (%d bytes) failed",
-            num_flows, len);
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "[ES] POST request for %d flows (%d bytes) failed",
+				     num_flows, len);
         incNumDroppedFlows(num_flows);
         _usleep(100000);
       } else {
@@ -268,7 +267,8 @@ const char* ElasticSearch::get_es_version() {
       long http_ret_code =
           Utils::httpGet(es_version_query_url, ntop->getPrefs()->get_es_user(),
                          ntop->getPrefs()->get_es_pwd(),
-                         NULL /* user_header_token */, 5, 0, buf, buf_len);
+                         NULL /* user_header_token */, 5, 0, buf, buf_len,
+			 ntop->getPrefs()->do_insecure_tls());
       if (http_ret_code == 200) {
         json_object *o, *obj, *obj2;
         enum json_tokener_error jerr = json_tokener_success;
@@ -370,7 +370,8 @@ void ElasticSearch::pushEStemplate() {
   while (max_attempts > 0) {
     if (!Utils::postHTTPJsonData(NULL, ntop->getPrefs()->get_es_user(),
                                  ntop->getPrefs()->get_es_pwd(),
-                                 es_template_push_url, postbuf, 0, 0, &stats)) {
+                                 es_template_push_url, postbuf, 0, 0,
+				 &stats, ntop->getPrefs()->do_insecure_tls())) {
       /* Post failure */
       _usleep(100000);
     } else {
