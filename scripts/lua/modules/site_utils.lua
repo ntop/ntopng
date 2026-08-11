@@ -246,6 +246,14 @@ end
 
 local sites_list_cache = nil
 local sites_by_name_cache = nil
+local _networks_by_site = {}
+
+-- Drops the resolved site -> networks lists. Must be called by everything
+-- that changes either the Site hierarchy (a new/edited/removed Site changes
+-- the descendants of its parent) or the network -> Site associations.
+local function invalidate_site_networks_cache()
+   _networks_by_site = {}
+end
 
 -- Retrieves all Sites from Redis cache and prepares them for use
 -- This function always includes the default site and merges it with user-defined sites
@@ -300,6 +308,7 @@ end
 local function invalidate_sites_cache()
    sites_list_cache = nil
    sites_by_name_cache = nil
+   invalidate_site_networks_cache()
 end
 
 -- ##############################################
@@ -314,6 +323,10 @@ local function cache_site_record(site_id, site_record)
    if sites_by_name_cache ~= nil then
       sites_by_name_cache[tostring(site_record.name):lower()] = site_record
    end
+
+   -- addSite() does not go through invalidate_sites_cache(), but a new Site
+   -- with a parent DOES change the descendants of that parent
+   invalidate_site_networks_cache()
 end
 
 -- ##############################################
@@ -634,6 +647,7 @@ function site_utils.mapNetworkToSite(network_id, site_id)
    if get_sites_from_cache()[tostring(site_id)] then
       -- Site found, update the network + site key
       ntop.setHashCache(REDIS_NETWORKS_SITES_KEY, tostring(network_id), tostring(site_id))
+      invalidate_site_networks_cache()
       return true
    end
 
@@ -850,6 +864,7 @@ function site_utils.unmapAllNetworks()
    local networks = ntop.getNetworks() or {}
 
    ntop.delCache(REDIS_NETWORKS_SITES_KEY)
+   invalidate_site_networks_cache()
 
    for _, network_id in pairs(networks) do
       ntop.refreshNetworkSiteId(tonumber(network_id))
@@ -1440,6 +1455,59 @@ function site_utils.getSiteComponents(site_id, scope)
       --   tprint(children)
       return children
    end
+end
+
+-- ##############################################
+
+-- Returns the ids of the networks belonging to a Site: the ones it owns
+-- directly plus, unless include_descendants is false, the ones owned by its
+-- descendant Sites.
+--
+function site_utils.getSiteNetworkIds(site_id, include_descendants)
+   if isEmptyString(site_id) then
+      return {}
+   end
+
+   if include_descendants == nil then
+      include_descendants = true
+   end
+
+   local cache_key = tostring(site_id) .. "|" .. tostring(include_descendants)
+   local cached = _networks_by_site[cache_key]
+
+   if cached then
+      return cached
+   end
+
+   local sites_to_visit = { tostring(site_id) }
+
+   if include_descendants then
+      local children_by_parent = buildChildrenIndex(site_utils.getSites())
+
+      for _, descendant in ipairs(getDescendantSites(site_id, children_by_parent)) do
+	 sites_to_visit[#sites_to_visit + 1] = tostring(descendant.id)
+      end
+   end
+
+   local network_ids = {}
+   local already_added = {}
+
+   for _, current_site in ipairs(sites_to_visit) do
+      for _, network_id in pairs(interface.getSiteNetworks(tonumber(current_site)) or {}) do
+	 network_id = tonumber(network_id)
+
+	 -- A Site and one of its descendants cannot own the same network, but
+	 -- guard against duplicates anyway: they would only bloat the query
+	 if network_id and not already_added[network_id] then
+	    already_added[network_id] = true
+	    network_ids[#network_ids + 1] = network_id
+	 end
+      end
+   end
+
+   _networks_by_site[cache_key] = network_ids
+
+   return network_ids
 end
 
 -- ##############################################
