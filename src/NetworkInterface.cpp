@@ -1967,8 +1967,8 @@ bool NetworkInterface::processPacket(
 
     /* Use the actual h->len and not the h->caplen to determine
        whether a packet is fragmented. */
-    if (ip_len > (int)h->len - ip_offset ||
-        (int)h->len - ip_offset < ip_tot_len ||
+    if ((int)ip_len > h->len - ip_offset ||
+        h->len - ip_offset < (int)ip_tot_len ||
         (iph->frag_off & htons(0x1FFF /* IP_OFFSET */)) ||
         (iph->frag_off & htons(0x2000 /* More Fragments: set */))) {
       is_fragment = true;
