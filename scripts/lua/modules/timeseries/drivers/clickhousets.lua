@@ -89,13 +89,22 @@ local function ch_escape(s)
    return s
 end
 
--- Build a ClickHouse WHERE fragment for the supplied tags table.
--- Returns a string starting with " AND " (or "" if tags is empty).
-local function tags_where(tags)
+-- Build WHERE conditions for the supplied tags table.
+-- Note: ifid is materialised into its own column as optimization
+function driver:tags_where(tags)
    local conds = {}
    for k, v in pairs(tags) do
-      conds[#conds + 1] = string.format("tags['%s'] = '%s'", ch_escape(k), ch_escape(v))
+      if k == "ifid" and tonumber(v) ~= nil then
+         conds[#conds + 1] = string.format("ifid = %d", tonumber(v))
+      else
+         conds[#conds + 1] = string.format("tags['%s'] = '%s'", ch_escape(k), ch_escape(v))
+      end
    end
+
+   -- TODO: enable this once we're ready to filter timeseries queries by the current ntopng instance
+   -- local instance_name = ntop.getPrefs()["instance_name"] or ""
+   -- conds[#conds + 1] = string.format("(ntopng_instance_name = '%s' OR ntopng_instance_name = '')", ch_escape(instance_name))
+
    if #conds > 0 then
       return " AND " .. table.concat(conds, " AND ")
    end
@@ -120,7 +129,7 @@ end
 --! Serialised to line protocol by CHTimeseriesExporter and buffered in the
 --! in-memory C++ queue; flushed to ClickHouse by driver:export().
 function driver:append(schema, timestamp, tags, metrics)
-   local ret = interface.chTsEnqueue(schema.name, timestamp, tags, metrics)
+   local ret = interface.chTsEnqueue(schema.name, timestamp, tags, metrics, tonumber(tags.ifid))
 
    if ret == false then
       ntop.ts_inc_num_drops()
@@ -148,7 +157,7 @@ function driver:query(schema, tstart, tend, tags, options)
    local raw_step   = schema.options.step
    local time_step  = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
    local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
-   local tw         = tags_where(tags)
+   local tw         = self:tags_where(tags)
    local af         = agg_func(schema)
    local sql
 
@@ -340,7 +349,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
 
    local is_counter    = (schema.options.metrics_type == ts_common.metrics.counter)
    local is_derivative = (schema.options.metrics_type == ts_common.metrics.derivative)
-   local tw            = tags_where(tags)
+   local tw            = self:tags_where(tags)
 
    local sel = {}
    for _, metric in ipairs(schema._metrics) do
@@ -386,7 +395,7 @@ end
 --! @brief List existing series matching the supplied tag filter.
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_time)
 
-   local tw = tags_where(tags_filter)
+   local tw = self:tags_where(tags_filter)
 
    local time_cond = string.format("tstamp >= toDateTime(%d)", start_time)
    if end_time ~= nil then
@@ -452,7 +461,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
    local top_tag    = top_tags[1]
    local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
-   local tw         = tags_where(tags)
+   local tw         = self:tags_where(tags)
 
    -- Build a value expression that sums all metrics into one comparable number.
    local value_parts = {}
@@ -685,7 +694,7 @@ function driver:delete(schema_prefix, tags)
                       ch_escape(schema_prefix))
    end
 
-   local tw = tags_where(tags)
+   local tw = self:tags_where(tags)
 
    -- Use ALTER TABLE ... DELETE (asynchronous mutation, universally supported).
    local sql = string.format(
@@ -768,29 +777,33 @@ function driver:setup(ts_utils)
 
    -- Create the timeseries table if it does not already exist.
    -- Best-practice design choices:
-   --   * LowCardinality(String) for schema_name        – bounded number of distinct values
-   --   * Map(LowCardinality(String), String) for tags  – LowCardinality keys avoid redundant
-   --                                                      storage of repeated tag/metric names
-   --   * Map(LowCardinality(String), Float64) metrics  – same benefit for metric keys
-   --   * MergeTree partitioned by day                 – enables efficient partition pruning
-   --   * ORDER BY (schema_name, tstamp)               – optimises time-range scans per schema
+   --   * LowCardinality(String) for schema_name          – bounded number of distinct values
+   --   * Int16 for ifid                                  – ifid from the tags Map materialized
+   --   * LowCardinality(String) for ntopng_instance_name – ntopng instance name
+   --   * Map(LowCardinality(String), String) for tags    – LowCardinality keys avoid redundant
+   --                                                        storage of repeated tag/metric names
+   --   * Map(LowCardinality(String), Float64) metrics    – same benefit for metric keys
+   --   * MergeTree partitioned by day                    – enables efficient partition pruning
+   --   * ORDER BY (schema_name, ifid, tstamp)            – optimises time-range scans per schema,
+   --                                                        per interface
    --  Note: no TTL clause, retention is enforced by deleting daily partitions in deleteOldData(),
-   --  which always uses the current preference value. A TTL configured at CREATE TABLE time 
-   --  would become complicated to handle if the user changes the retention setting: it could 
+   --  which always uses the current preference value. A TTL configured at CREATE TABLE time
+   --  would become complicated to handle if the user changes the retention setting: it could
    --  delete data that should be kept (if retention is increased) or keep data too long (if
    --  retention is decreased)
    local create_sql = string.format([[
 CREATE TABLE IF NOT EXISTS `%s`.`%s`
 (
     `schema_name`  LowCardinality(String),
+    `ifid`         Int16,
+    `ntopng_instance_name` LowCardinality(String),
     `tstamp`       DateTime CODEC(Delta, ZSTD),
     `tags`         Map(LowCardinality(String), String),
     `metrics`      Map(LowCardinality(String), Float64)
 )
 ENGINE = MergeTree()
 PARTITION BY toYYYYMMDD(tstamp)
-ORDER BY (schema_name, tstamp)
--- TTL tstamp + toIntervalDay(N)  -- removed: see comment above]],
+ORDER BY (schema_name, ifid, tstamp)]],
       ch_escape(self.db), CH_TS_TABLE_NAME)
 
    local ok = ch_write(create_sql)
@@ -800,10 +813,81 @@ ORDER BY (schema_name, tstamp)
       return false
    end
 
+   self:migrateSchema()
+
    traceError(TRACE_INFO, TRACE_CONSOLE,
       string.format("[ClickHouse TS] Table `%s`.`%s` ready (retention: %d days)",
          self.db, CH_TS_TABLE_NAME, retention_days))
    return true
+end
+
+-- ##############################################
+
+--! @brief Check actual schema (e.g. if it includes the ifid and ntopng_instance_name
+--! columns), add those which are missing, and migrate data (ifid from tags to column)
+function driver:migrateSchema()
+   local sql = string.format(
+      "SELECT name FROM system.columns WHERE database = '%s' AND table = '%s' "
+      .. "AND name IN ('ifid', 'ntopng_instance_name')",
+      ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME))
+
+   local res = ch_query(sql) or {}
+   local found = {}
+   for _, row in ipairs(res) do
+      found[row["name"]] = true
+   end
+
+   local has_ifid     = found["ifid"] or false
+   local has_instance = found["ntopng_instance_name"] or false
+   local added        = {}
+
+   if not has_ifid then
+      -- Add ifid column
+      if ch_write(string.format(
+            "ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `ifid` Int16",
+            ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME))) then
+         has_ifid = true
+         added[#added + 1] = "ifid"
+
+         -- Copy ifid data from tags
+         if ch_write(string.format(
+               "ALTER TABLE `%s`.`%s` UPDATE `ifid` = toInt16OrZero(tags['ifid']) WHERE 1",
+               ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME))) then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format(
+               "[ClickHouse TS] Migrating 'ifid' data from tags['ifid'] on %s.%s",
+               self.db, CH_TS_TABLE_NAME))
+         else
+            traceError(TRACE_WARNING, TRACE_CONSOLE, string.format(
+               "[ClickHouse TS] Failed to migrate 'ifid' data from tags on %s.%s",
+               self.db, CH_TS_TABLE_NAME))
+         end
+      end
+   end
+
+   if not has_instance then
+      if ch_write(string.format(
+            "ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String)",
+            ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME))) then
+         has_instance = true
+         added[#added + 1] = "ntopng_instance_name"
+      end
+   end
+
+   if #added > 0 then
+      traceError(TRACE_INFO, TRACE_CONSOLE, string.format(
+         "[ClickHouse TS] Added '%s' column(s) to %s.%s",
+         table.concat(added, "', '"), self.db, CH_TS_TABLE_NAME))
+   end
+
+   if (not has_ifid) or (not has_instance) then
+      local missing = {}
+      if not has_ifid     then missing[#missing + 1] = "ifid" end
+      if not has_instance then missing[#missing + 1] = "ntopng_instance_name" end
+
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format(
+         "[ClickHouse TS] Failed to add the '%s' column(s) to %s.%s",
+         table.concat(missing, "', '"), self.db, CH_TS_TABLE_NAME))
+   end
 end
 
 -- ##############################################

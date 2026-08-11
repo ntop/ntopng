@@ -89,6 +89,14 @@ bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
     return false;
   }
 
+  /* ifid: passed separately from tags (every schema requires an 'ifid' tag,
+   * see ts_schema.lua) so it can be stored directly on CHTSPoint without
+   * scanning the tags vector for it on every point. */
+  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) {
+    qdrops++;
+    return false;
+  }
+
   CHTSPoint* point = new (std::nothrow) CHTSPoint();
   if (!point) {
     qdrops++;
@@ -99,6 +107,7 @@ bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
   point->tstamp = (time_t)lua_tonumber(vm, 2);
   lua_table_to_vector<std::string>(vm, 3, point->tags, lua_val_to_string);
   lua_table_to_vector<double>(vm, 4, point->metrics, lua_val_to_double);
+  point->ifid = (int16_t)lua_tonumber(vm, 5);
 
   if (!ts_queue->enqueue(point)) {
     delete point;

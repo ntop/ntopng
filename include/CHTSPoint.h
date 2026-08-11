@@ -30,6 +30,7 @@
 struct CHTSPoint {
   std::string schema_name;
   time_t tstamp;
+  int16_t ifid; /* Same as tags['ifid'] (optimization for queries) */
   std::vector<std::pair<std::string, std::string>> tags;
   std::vector<std::pair<std::string, double>> metrics;
 };
