@@ -53,13 +53,17 @@ NetworkStats::NetworkStats(NetworkInterface* iface, u_int32_t _network_id)
 
 void NetworkStats::refreshSiteId() {
   char key[32], val[16] = {0};
-  snprintf(key, sizeof(key), "%u", network_id);
+  snprintf(key, sizeof(key), "%s", ntop->getLocalNetworkName(network_id));
   if (ntop->getRedis() &&
-      ntop->getRedis()->hashGet("ntopng.prefs.networks.sites", key, val,
+      ntop->getRedis()->hashGet("ntopng.prefs.networks.sites.v2", key, val,
                                 sizeof(val)) == 0)
     site_id = (u_int16_t)atoi(val);
   else
     site_id = 0;
+#if 0
+    if (site_id != 0)
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing Site ID [Network: %s][Site ID: %u]", key, site_id);
+#endif
 }
 
 /* *************************************** */

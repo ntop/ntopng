@@ -144,6 +144,7 @@ end
 function sites_import_export.export_csv()
 	local sites = site_utils.getSites()
 	local schema = site_utils.get_exported_schema()
+   local associations = site_utils.getAllNetworksToSite()
 	local lines = {}
 
 	for _, site in ipairs(sites) do
@@ -157,6 +158,7 @@ function sites_import_export.export_csv()
 				end
 				row[#row + 1] = csv_escape(v)
 			end
+         row[#row + 1] = ternary(associations[tostring(site.id)], json.encode(associations[tostring(site.id)]), "")
 			lines[#lines + 1] = table.concat(row, ",")
 		end
 	end
