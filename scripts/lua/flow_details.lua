@@ -1626,14 +1626,14 @@ local function print_flow_overview_page()
                      -- Add rules to disable the check
                      if auth.has_capability(auth.capabilities.checks) and ntop.isEnterpriseM and ntop.isEnterpriseM() then
                         print(string.format(
-				 '<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>',
-				 score_alert.alert_id, score_alert.alert_label))
+				 '<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button" data-bs-toggle="tooltip" data-bs-title="%s"><i class="fas fa-bell-slash"></i></a>',
+				 score_alert.alert_id, score_alert.alert_label, i18n("flow_details.disable_check_tooltip")))
                      end
 
                      -- If available, add a cog to configure the check
                      if alert_id_to_flow_check[score_alert.alert_id] then
-                        print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-cog"></i></a>',
-					    alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow")))
+                        print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button" data-bs-toggle="tooltip" data-bs-title="%s"><i class="fas fa-cog"></i></a>',
+					    alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow"), i18n("flow_details.configure_check_tooltip")))
                      end
 
                      -- Add an anchor to the historical alert
@@ -1651,8 +1651,8 @@ local function print_flow_overview_page()
                         local srv_port = flow["srv.port"] .. flowfilter_utils.SEPARATOR .. "eq"
 
                         print(string.format(
-				 '&nbsp;<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-exclamation-triangle"></i></a>',
-				 ntop.getHttpPrefix(), epoch_begin, epoch_end, l7_proto, cli_ip, cli_port, srv_ip, srv_port))
+				 '&nbsp;<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button" data-bs-toggle="tooltip" data-bs-title="%s"><i class="fas fa-exclamation-triangle"></i></a>',
+				 ntop.getHttpPrefix(), epoch_begin, epoch_end, l7_proto, cli_ip, cli_port, srv_ip, srv_port, i18n("flow_details.view_historical_alerts_tooltip")))
                      end
 
                      print('</td>')
