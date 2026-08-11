@@ -4971,7 +4971,7 @@ static int ntop_ts_queue_drops(lua_State* vm) {
   NetworkInterface* iface;
   TimeseriesExporter* ts_exporter;
 
-  if (!(iface = ntop->getFirstInterface()))
+  if (!(iface = getCurrentInterface(vm)))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   ts_exporter = iface->getTSExporter();
@@ -4987,7 +4987,7 @@ static int ntop_ts_queue_len(lua_State* vm) {
   NetworkInterface* iface;
   TimeseriesExporter* ts_exporter;
 
-  if (!(iface = ntop->getFirstInterface()))
+  if (!(iface = getCurrentInterface(vm)))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   ts_exporter = iface->getTSExporter();

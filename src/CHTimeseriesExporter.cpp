@@ -111,6 +111,7 @@ bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
 
   if (!ts_queue->enqueue(point)) {
     delete point;
+    qdrops++;
     return false;
   }
 
