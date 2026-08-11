@@ -73,7 +73,7 @@ Paginator::Paginator() {
   alert_type_severity_filter = alert_level_group_none;
   iface_index_filter = -1;
   memset(&deviceIP, 0, sizeof(deviceIP));
-  inIndex = outIndex = ifaceIndex = (u_int32_t)-1;
+  inIndex = outIndex = exporterIfaceIndex = (u_int32_t)-1;
   asn_filter = (u_int32_t)-1;
   asn_src_filter = (u_int32_t)-1;
   asn_dst_filter = (u_int32_t)-1;
@@ -233,8 +233,8 @@ void Paginator::readOptions(lua_State* L, int index) {
           local_network_filter = lua_tointeger(L, -1);
         else if (!strcmp(key, "vlanIdFilter"))
           vlan_id_filter = lua_tointeger(L, -1);
-        else if (!strcmp(key, "ifaceIndexFilter"))
-          ifaceIndex = lua_tointeger(L, -1);
+        else if (!strcmp(key, "exporterIfaceIndex"))
+          exporterIfaceIndex = lua_tointeger(L, -1);
         else if (!strcmp(key, "inIndexFilter"))
           inIndex = lua_tointeger(L, -1);
         else if (!strcmp(key, "outIndexFilter"))

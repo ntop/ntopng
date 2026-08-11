@@ -5599,8 +5599,10 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   char* pidname_filter;
   char* wlan_ssid_filter;
   struct ndpi_in6_addr deviceIP;
-  u_int32_t iface_index = (u_int32_t)-1;
-  u_int32_t inIndex, outIndex, ifaceIndex;
+  int32_t iface_index = -1;
+  u_int32_t inIndex = (u_int32_t)-1;
+  u_int32_t outIndex = (u_int32_t)-1;
+  u_int32_t exporterifaceIndex = (u_int32_t)-1;
   u_int8_t icmp_type, icmp_code, dscp_filter;
 #ifdef NTOPNG_PRO
   u_int8_t qoe_filter;
@@ -5820,13 +5822,11 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
            f->getOutIndex() != outIndex))
         return (false);
       
-      // Just in or out interface needs to match
       if (memcmp(&addr, &deviceIP, sizeof(deviceIP)) ||
-          ((retriever->pag->ifaceIndexFilter(&ifaceIndex) &&
-            f->getInIndex() != ifaceIndex) &&
-           (retriever->pag->ifaceIndexFilter(&ifaceIndex) &&
-            f->getOutIndex() != ifaceIndex)))
+          (retriever->pag->exporterIfaceIndexFilter(&exporterifaceIndex) &&
+          (f->getInIndex() != exporterifaceIndex && f->getOutIndex() != exporterifaceIndex)))
         return (false);
+      
     }
 
     if (retriever->pag && retriever->pag->containerFilter(&container_filter)) {
@@ -5869,7 +5869,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
 #endif
 #endif
     if (retriever->pag && retriever->pag->ifaceIndexFilter(&iface_index)
-	&& iface_index != (u_int32_t)-1) {
+	&& iface_index >= 0) {
       if (f->getInterface() && (f->getInterface()->get_id() != (int)iface_index)) {
         return (false);
       }

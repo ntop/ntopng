@@ -389,7 +389,7 @@ function getFlowsFilter()
         end
 
         if not isEmptyString(ifIndex) then
-            pageinfo["ifaceIndexFilter"] = tonumber(ifIndex)
+            pageinfo["exporterIfaceIndex"] = tonumber(ifIndex)
         end
 
         if not isEmptyString(outIfIdx) then
