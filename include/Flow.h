@@ -150,6 +150,9 @@ class Flow : public GenericHashEntry {
   /* Data collected from nProbe */
   std::string l7_json;
   std::vector<uint64_t> hr_src2dst_bytes, hr_dst2src_bytes;
+  /* Time (wall-clock) of slot 0 of HR counters (hr_src2dst_bytes, etc)
+     set by the first HR merge after a reset */
+  time_t hr_base_first_seen = 0;
   ICMPinfo* icmp_info;
   char* category_list_name_shared_pointer; /* NOTE: this is a pointer handled by
 					      Ntop::getPersistentCustomListNameById()
@@ -484,7 +487,7 @@ class Flow : public GenericHashEntry {
   void allocateCollection();
   void mergeHRCounters(std::vector<uint64_t>& flow_counters,
                     const std::vector<uint64_t>& update_counters,
-                    time_t update_first_seen) const;
+                    time_t update_first_seen);
   void computeKey();
   void accountBidirectionalTCPProtocolServices();
   void accountBidirectionalUDPProtocolServices();
@@ -1621,7 +1624,7 @@ class Flow : public GenericHashEntry {
   }
   inline const std::vector<uint64_t>& getHRSrc2DstBytes() const { return hr_src2dst_bytes; }
   inline const std::vector<uint64_t>& getHRDst2SrcBytes() const { return hr_dst2src_bytes; }
-  inline void resetHRCounters() { hr_src2dst_bytes.clear(); hr_dst2src_bytes.clear(); }
+  inline void resetHRCounters() { hr_src2dst_bytes.clear(); hr_dst2src_bytes.clear(); hr_base_first_seen = 0; }
   char* getWLANSSID() {
     return (collection ? collection->wifi.wlan_ssid : NULL);
   };
