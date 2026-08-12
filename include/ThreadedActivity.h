@@ -85,7 +85,7 @@ class ThreadedActivity {
   bool alignToLocalTime();
   ThreadedActivityState get_state(NetworkInterface* iface, char* script_name);
   ThreadedActivityStats* getThreadedActivityStats(NetworkInterface* iface,
-                                                  char* script_name,
+                                                  const char* script_name,
                                                   bool allocate_if_missing);
 
   void lua(NetworkInterface* iface, lua_State* vm);

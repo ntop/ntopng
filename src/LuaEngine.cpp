@@ -1744,7 +1744,8 @@ void LuaEngine::setFlow(Flow* f) {
 
 void LuaEngine::setThreadedActivityData(const ThreadedActivity* ta,
                                         ThreadedActivityStats* tas,
-                                        time_t deadline) {
+                                        time_t deadline,
+                                        const char* script_path) {
   NtopngLuaContext* cur_ctx;
   lua_State* cur_state = getState();
 
@@ -1752,6 +1753,7 @@ void LuaEngine::setThreadedActivityData(const ThreadedActivity* ta,
     cur_ctx->deadline = deadline;
     cur_ctx->threaded_activity = ta;
     cur_ctx->threaded_activity_stats = tas;
+    cur_ctx->threaded_activity_script_path = script_path;
   }
 }
 

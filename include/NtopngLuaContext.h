@@ -97,6 +97,7 @@ class NtopngLuaContext {
   time_t deadline;
   const ThreadedActivity* threaded_activity;
   ThreadedActivityStats* threaded_activity_stats;
+  const char *threaded_activity_script_path; /* Path of the periodic script currently running */
 
 #if defined(NTOPNG_PRO)
   BinAnalysis* bin;

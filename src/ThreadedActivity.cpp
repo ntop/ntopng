@@ -202,15 +202,13 @@ bool ThreadedActivity::isDeadlineApproaching(time_t deadline) {
 /* ******************************************* */
 
 ThreadedActivityStats* ThreadedActivity::getThreadedActivityStats(NetworkInterface* iface,
-								  char* script_name,
+								  const char* script_name,
 								  bool allocate_if_missing) {
   ThreadedActivityStats* ta = NULL;
 
   if (!isTerminating() && iface) {
-    std::string key =
-      std::to_string(iface->get_id()) + "/" + std::string(script_name);
-    std::map<std::string, ThreadedActivityStats*>::iterator it =
-      threaded_activity_stats.find(key);
+    std::string key = std::to_string(iface->get_id()) + "/" + std::string(script_name);
+    std::map<std::string, ThreadedActivityStats*>::iterator it = threaded_activity_stats.find(key);
 
 #ifdef THREAD_DEBUG
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s() [%s]", __FUNCTION__,
@@ -319,7 +317,7 @@ void ThreadedActivity::runScript(time_t now, char* script_name,
 
   /* Set the deadline and the threaded activity in the vm so they can be
    * accessed */
-  l->setThreadedActivityData(this, thstats, deadline);
+  l->setThreadedActivityData(this, thstats, deadline, script_name);
 
   if (thstats) {
     thstats->setDeadline(deadline);
@@ -603,21 +601,22 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool* pool,
 
 void ThreadedActivity::lua(NetworkInterface* iface, lua_State* vm) {
   ThreadedActivityStats tot_ts_stats(this);
-  ThreadedActivityStats* ta;
-  std::map<std::string, ThreadedActivityStats*>::iterator it;
+  ThreadedActivityStats* ta = NULL;
 
-  /* Sum TS write stats from all scripts */
-  for (it = threaded_activity_stats.begin();
-       it != threaded_activity_stats.end(); ++it) {
-    tot_ts_stats.sumTimeseriesStats(it->second);
+  if (iface) {
+    std::map<std::string, ThreadedActivityStats*>::iterator it;
+    std::string prefix = std::to_string(iface->get_id()) + "/";
+
+    /* Sum TS write stats from all scripts belonging to this interface */
+    for (it = threaded_activity_stats.begin();
+         it != threaded_activity_stats.end(); ++it) {
+      if (it->first.compare(0, prefix.size(), prefix) != 0) continue;
+
+      tot_ts_stats.sumTimeseriesStats(it->second);
+
+      if (!ta) ta = it->second;
+    }
   }
-
-  it = threaded_activity_stats.begin();
-
-  if (it != threaded_activity_stats.end())
-    ta = it->second;
-  else
-    ta = NULL;
 
   if (ta) {
     lua_newtable(vm);

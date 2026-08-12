@@ -73,7 +73,8 @@ class LuaEngine {
   void setFlow(Flow* f);
 
   void setThreadedActivityData(const ThreadedActivity* ta,
-                               ThreadedActivityStats* tas, time_t deadline);
+                               ThreadedActivityStats* tas, time_t deadline,
+                               const char* script_path = NULL);
 
   Host* getHost();
   NetworkInterface* getNetworkInterface();

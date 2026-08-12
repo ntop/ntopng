@@ -7263,6 +7263,28 @@ static int ntop_rrd_create(lua_State* vm) {
 
 /* ****************************************** */
 
+/* Note: some periodic scripts (e.g. second/system/timeseries.lua) run as a single
+ * VM internally looping over multiple interfaces using interface.select().
+ * Stats should be attributed to the interface currently selected rather than to
+ * the interface used to launch the VM */
+static ThreadedActivityStats* getCurrentThreadedActivityStats(lua_State* vm,
+                                                               NtopngLuaContext* ctx) {
+  if (!ctx || !ctx->threaded_activity_stats) return NULL;
+
+  if (ctx->threaded_activity && ctx->threaded_activity_script_path) {
+    NetworkInterface *cur_iface = getCurrentInterface(vm);
+    if (cur_iface) {
+      ThreadedActivity *ta = (ThreadedActivity*)ctx->threaded_activity;
+      ThreadedActivityStats* stats = ta->getThreadedActivityStats(cur_iface, ctx->threaded_activity_script_path, true);
+      if (stats) return stats;
+    }
+  }
+
+  return ctx->threaded_activity_stats;
+}
+
+/* ****************************************** */
+
 /* @brief Appends a new timestamped data point to an existing RRD file.  Lua: ntop.rrd_update(path, timestamp, ...) → nil */
 static int ntop_rrd_update(lua_State* vm) {
   NtopngLuaContext* ctx = getLuaVMContext(vm);
@@ -7330,8 +7352,8 @@ static int ntop_rrd_update(lua_State* vm) {
     status = rrd_update_r(filename, NULL, 1, (const char**)&buf);
     ticks_duration = Utils::getticks() - ticks_duration;
 
-    if (ctx && ctx->threaded_activity_stats)
-      ctx->threaded_activity_stats->updateTimeseriesWriteStats(ticks_duration);
+    ThreadedActivityStats* tas = getCurrentThreadedActivityStats(vm, ctx);
+    if (tas) tas->updateTimeseriesWriteStats(ticks_duration);
 
     if (status != 0) {
       char* err = rrd_get_error();
@@ -7434,8 +7456,8 @@ static int ntop_ts_inc_num_drops(lua_State* vm) {
 
   if (lua_type(vm, 1) == LUA_TNUMBER) num_drops = lua_tonumber(vm, 1);
 
-  if (ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->incTimeseriesWriteDrops(num_drops);
+  ThreadedActivityStats* tas = getCurrentThreadedActivityStats(vm, ctx);
+  if (tas) tas->incTimeseriesWriteDrops(num_drops);
 
   return CONST_LUA_OK;
 }
@@ -7449,8 +7471,8 @@ static int ntop_ts_inc_num_writes(lua_State* vm) {
 
   if (lua_type(vm, 1) == LUA_TNUMBER) num_ts_written = lua_tonumber(vm, 1);
 
-  if (ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->updateTimeseriesWritten(num_ts_written);
+  ThreadedActivityStats* tas = getCurrentThreadedActivityStats(vm, ctx);
+  if (tas) tas->updateTimeseriesWritten(num_ts_written);
 
   return CONST_LUA_OK;
 }
@@ -7464,8 +7486,8 @@ static int ntop_snmp_inc_num_snmp_polled_hosts(lua_State* vm) {
 
   if (lua_type(vm, 1) == LUA_TBOOLEAN) counter_poll_only = (bool)lua_toboolean(vm, 1);
 
-  if (ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->incSNMPHostPolls(counter_poll_only);
+  ThreadedActivityStats* tas = getCurrentThreadedActivityStats(vm, ctx);
+  if (tas) tas->incSNMPHostPolls(counter_poll_only);
 
   return CONST_LUA_OK;
 }
