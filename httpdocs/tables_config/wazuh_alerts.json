@@ -11,6 +11,30 @@
 	},
 	"columns": [
 		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": ["text-nowrap", "text-center"],
+			"render_v_node_type": "button_auto",
+			"button_def_array": [
+				{
+					"id": "info",
+					"icon": "fa-solid fa-magnifying-glass-plus",
+					"title_i18n": "info",
+					"class": [],
+					"event_id": "click_button_info"
+				}
+			]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.alert_id",
+			"data_field": "alert_id",
+			"sortable": true,
+			"min-width": "140px",
+			"class": ["text-nowrap"]
+		},
+		{
 			"title_i18n": "wazuh_alert_config.timestamp",
 			"data_field": "timestamp",
 			"sortable": true,
