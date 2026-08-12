@@ -996,9 +996,13 @@ function format_portidx_name(device_ip, portidx, short_version)
 
    if (cached_val ~= nil) then
       local num_value = tonumber(cached_val)
+      -- Ports number cannot have number after the comma, e.g. 2.0
+      if num_value then
+         cached_val = string.format("%d", num_value)
+      end
 
       if(short_version) then
-	 cached_val = shortenString(cached_val, 26)
+	      cached_val = shortenString(cached_val, 26)
       end
 
       return (cached_val)
