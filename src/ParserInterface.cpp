@@ -791,9 +791,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
     flow->setQoE(zflow->getQoESrc2Dst(), zflow->getQoEDst2Src());
 
-    if (zflow->getHRSrcToDstBytes()) { flow->updateHRSrc2DstBytes(parseHRBytesString(zflow->getHRSrcToDstBytes()), zflow->first_switched); setHasHRFlows(); }
-    if (zflow->getHRDstToSrcBytes()) { flow->updateHRDst2SrcBytes(parseHRBytesString(zflow->getHRDstToSrcBytes()), zflow->first_switched); setHasHRFlows(); }
-
     if (zflow->getOSHint() != ndpi_os_unknown) {
       if (flow->get_cli_host() != NULL)
         flow->get_cli_host()->setnDPIOS(zflow->getOSHint());
@@ -919,6 +916,14 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto, out_bytes,
                out_pkts, srcMac, dstMac);
+    if (zflow->getHRDstToSrcBytes()) {
+      flow->updateHRSrc2DstBytes(parseHRBytesString(zflow->getHRDstToSrcBytes()), zflow->first_switched);
+      setHasHRFlows();
+    }
+    if (zflow->getHRSrcToDstBytes()) {
+      flow->updateHRDst2SrcBytes(parseHRBytesString(zflow->getHRSrcToDstBytes()), zflow->first_switched);
+      setHasHRFlows();
+    }
   } else { /* TX */
     if (zflow->out_bytes)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
@@ -928,7 +933,16 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto, in_bytes,
                in_pkts, srcMac, dstMac);
+    if (zflow->getHRSrcToDstBytes()) {
+      flow->updateHRSrc2DstBytes(parseHRBytesString(zflow->getHRSrcToDstBytes()), zflow->first_switched);
+      setHasHRFlows();
+    }
+    if (zflow->getHRDstToSrcBytes()) {
+      flow->updateHRDst2SrcBytes(parseHRBytesString(zflow->getHRDstToSrcBytes()), zflow->first_switched);
+      setHasHRFlows();
+    }
   }
+
 
 #ifdef NTOPNG_PRO
   /* Check if direct flow dump is enabled */
