@@ -36,6 +36,7 @@ if isEmptyString(ifid) and isEmptyString(iffilter) then
    return
 end
 
+
 local function userHasRestrictions()
    local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
 
@@ -501,5 +502,13 @@ elseif not isEmptyString(iffilter) then
 else
    res = dumpInterfaceStats(ifid)
 end
+
+local pending_updates = ntop.getPendingUpdates()
+ntop.resetPendingUpdates()
+res["cacheUpdates"] = {
+   exporters_update = pending_updates.exporters_update,
+   snmp_update = pending_updates.snmp_update,
+   sites_update = pending_updates.sites_update,
+}
 
 rest_utils.answer(rc, res)

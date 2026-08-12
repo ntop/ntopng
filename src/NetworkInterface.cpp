@@ -5837,6 +5837,7 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
          (tcp_flow_state_filter == tcp_flow_state_reset && !f->isTCPReset())))
       return (false);
 
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exporter Site ID: %u", f->getExporterSiteId());
     if (retriever->pag && retriever->pag->siteIdFilter(&site_id) &&
         !(f->getExporterSiteId() == site_id))
       return (false);

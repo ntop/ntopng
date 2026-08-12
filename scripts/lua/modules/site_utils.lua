@@ -493,6 +493,7 @@ function site_utils.editSite(site)
 		return rest_utils.consts.err.edit_site_failed, msg -- Return validation error
 	end
 
+   ntop.setSitesPendingUpdates()
 	local success_msg = "Site edited successfully"
 	return rest_utils.consts.success.ok, success_msg
 end
@@ -546,6 +547,8 @@ function site_utils.addSite(site)
 	else
 		return rest_utils.consts.err.add_site_failed, msg -- Return validation error
 	end
+   -- New site added, update requested
+   ntop.setSitesPendingUpdates()
 
 	local success_msg = "Site added successfully"
 	return rest_utils.consts.success.ok, success_msg, site_id
@@ -577,6 +580,7 @@ function site_utils.deleteSite(id)
 		return rest_utils.consts.err.delete_site_failed, "Invalid Site"
 	end
 
+   ntop.setSitesPendingUpdates()
 	local success_msg = "Site deleted successfully"
 	return rest_utils.consts.success.ok, success_msg
 end
@@ -920,6 +924,7 @@ function site_utils.remove_all_sites()
 	ntop.delCache(REDIS_HASH_NAME)
 	ntop.delCache(REDIS_COUNTER_KEY)
 	site_utils.unmapAllNetworks()
+   ntop.setSitesPendingUpdates()
 	invalidate_sites_cache()
 end
 

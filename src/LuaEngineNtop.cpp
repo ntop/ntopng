@@ -1244,6 +1244,69 @@ static int ntop_get_flow_alert_score(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_exporters_pending_updates(lua_State* vm) {
+  if (!ntop) {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+  ntop->setExportersUpdate(true);
+  
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+static int ntop_set_snmp_pending_updates(lua_State* vm) {
+  if (!ntop) {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+  ntop->setSnmpUpdate(true);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+static int ntop_set_sites_pending_updates(lua_State* vm) {
+  if (!ntop) {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+  ntop->setSitesUpdate(true);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+static int ntop_reset_pending_updates(lua_State* vm) {
+  if (!ntop) {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+  ntop->resetAllUpdates();
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+static int ntop_get_pending_updates(lua_State* vm) {
+  if (!ntop) {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+
+  bool exporters_update = ntop->hasExportersUpdate();
+  bool snmp_update = ntop->hasSnmpUpdate();
+  bool sites_update = ntop->hasSitesUpdate();
+
+  lua_newtable(vm);
+  lua_push_bool_table_entry(vm, "exporters_update", exporters_update);
+  lua_push_bool_table_entry(vm, "snmp_update", snmp_update);
+  lua_push_bool_table_entry(vm, "sites_update", sites_update);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Returns a table of all known flow risk ids and their names.  Lua: ntop.getRiskList() → table */
 static int ntop_get_risk_list(lua_State* vm) {
   lua_newtable(vm);
@@ -9349,6 +9412,12 @@ static luaL_Reg _ntop_reg[] = {
     {"getLocalNetworkID", ntop_get_local_network_id},
     {"getRiskStr", ntop_get_risk_str},
     {"getRiskList", ntop_get_risk_list},
+    
+    {"getPendingUpdates", ntop_get_pending_updates},
+    {"resetPendingUpdates", ntop_reset_pending_updates},
+    {"setExportersPendingUpdates", ntop_set_exporters_pending_updates},
+    {"setSnmpPendingUpdates", ntop_set_snmp_pending_updates},
+    {"setSitesPendingUpdates", ntop_set_sites_pending_updates},
 
     {"checkNetworkPolicy", ntop_check_network_policy},
 

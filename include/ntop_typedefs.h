@@ -1328,4 +1328,14 @@ typedef enum {
   role_max_value /* Leave as last member */
 } SNMPInterfaceRole;
 
+/* This struct is used between the GUI and back end
+ * to communicate if there are new updates and the GUI
+ * cache needs to be invalidated.
+ */
+typedef struct {
+  std::atomic<bool> exporters;
+  std::atomic<bool> snmp;
+  std::atomic<bool> sites;
+} PendingUpdates;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

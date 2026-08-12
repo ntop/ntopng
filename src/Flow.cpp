@@ -10366,6 +10366,10 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
       d.exporter_site_id = exporter_site_id, d.next_hop_site_id = next_hop_site_id;
         
     exporterStats.emplace(key, d);
+    // New Exporter, update is needed
+    if (ntop) {
+        ntop->setExportersUpdate(true);
+    }
   } else {
     // Present: nothing to do
   }

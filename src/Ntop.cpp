@@ -130,6 +130,8 @@ Ntop::Ntop(const char* appName) {
   for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
   local_network_max_id = -1;
+  
+  resetAllUpdates();
 
   internal_alerts_queue =
       new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);

@@ -24,6 +24,7 @@
 
 #include <cstring>
 #include "ntop_includes.h"
+#include "ntop_typedefs.h"
 
 /** @defgroup Ntop Ntop
  * Main ntopng group.
@@ -118,6 +119,11 @@ class Ntop {
 #ifdef HAVE_RADIUS
   Radius* radiusAcc;
 #endif
+/* This variable is used between the GUI and back end
+ * to communicate if there are new updates and the GUI
+ * cache needs to be invalidated.
+ */
+  PendingUpdates updates;
 
 #ifdef NTOPNG_PRO
   OIDCAuthenticator* oidcAuth;
@@ -889,6 +895,36 @@ class Ntop {
   inline const char* getRiskStr(ndpi_risk_enum risk_id) {
     return (ndpi_risk2str(risk_id));
   };
+
+  /* Getters */
+  inline bool hasExportersUpdate() const {
+    return updates.exporters.load(std::memory_order_acquire);
+  }
+  inline bool hasSnmpUpdate() const {
+    return updates.snmp.load(std::memory_order_acquire);
+  }
+  inline bool hasSitesUpdate() const {
+    return updates.sites.load(std::memory_order_acquire);
+  }
+
+  /* Setters */
+  inline void setExportersUpdate(bool value) {
+    updates.exporters.store(value, std::memory_order_release);
+  }
+  inline void setSnmpUpdate(bool value) {
+    updates.snmp.store(value, std::memory_order_release);
+  }
+  inline void setSitesUpdate(bool value) {
+    updates.sites.store(value, std::memory_order_release);
+  }  
+  
+  /* Reset all flags at once */
+  inline void resetAllUpdates() {
+    updates.exporters.store(false, std::memory_order_release);
+    updates.snmp.store(false, std::memory_order_release);
+    updates.sites.store(false, std::memory_order_release);
+  }
+
   bool luaFlowCheckInfo(lua_State* vm, std::string check_name) const;
   bool luaHostCheckInfo(lua_State* vm, std::string check_name) const;
   inline ndpi_risk getUnhandledRisks() const {
