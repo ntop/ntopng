@@ -1577,72 +1577,72 @@ ALTER TABLE `assets`
 DROP VIEW IF EXISTS `active_monitoring_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `active_monitoring_alerts_view` AS
-SELECT * FROM `active_monitoring_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, resolved_ip, resolved_name, measurement, measure_threshold, measure_value, tstamp, tstamp_end, severity, score, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `active_monitoring_alerts`
 UNION ALL
-SELECT * FROM `engaged_active_monitoring_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, resolved_ip, resolved_name, measurement, measure_threshold, measure_value, tstamp, tstamp_end, severity, score, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_active_monitoring_alerts`
 
 @
 
 DROP VIEW IF EXISTS `mac_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `mac_alerts_view` AS
-SELECT * FROM `mac_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, address, device_type, name, is_attacker, is_victim, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `mac_alerts`
 UNION ALL
-SELECT * FROM `engaged_mac_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, address, device_type, name, is_attacker, is_victim, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_mac_alerts`
 
 @
 
 DROP VIEW IF EXISTS `snmp_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `snmp_alerts_view` AS
-SELECT * FROM `snmp_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, ip, port, name, port_name, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `snmp_alerts`
 UNION ALL
-SELECT * FROM `engaged_snmp_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, ip, port, name, port_name, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_snmp_alerts`
 
 @
 
 DROP VIEW IF EXISTS `network_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `network_alerts_view` AS
-SELECT * FROM `network_alerts`
+SELECT rowid, local_network_id, alert_id, alert_status, interface_id, name, alias, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `network_alerts`
 UNION ALL
-SELECT * FROM `engaged_network_alerts`
+SELECT rowid, local_network_id, alert_id, alert_status, interface_id, name, alias, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_network_alerts`
 
 @
 
 DROP VIEW IF EXISTS `as_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `as_alerts_view` AS
-SELECT * FROM `as_alerts`
+SELECT rowid, asn, alert_id, alert_status, interface_id, name, alias, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `as_alerts`
 UNION ALL
-SELECT * FROM `engaged_as_alerts`
+SELECT rowid, asn, alert_id, alert_status, interface_id, name, alias, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_as_alerts`
 
 @
 
 DROP VIEW IF EXISTS `interface_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `interface_alerts_view` AS
-SELECT * FROM `interface_alerts`
+SELECT rowid, ifid, alert_id, alert_status, interface_id, subtype, name, alias, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `interface_alerts`
 UNION ALL
-SELECT * FROM `engaged_interface_alerts`
+SELECT rowid, ifid, alert_id, alert_status, interface_id, subtype, name, alias, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_interface_alerts`
 
 @
 
 DROP VIEW IF EXISTS `user_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `user_alerts_view` AS
-SELECT * FROM `user_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, `user`, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `user_alerts`
 UNION ALL
-SELECT * FROM `engaged_user_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, `user`, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_user_alerts`
 
 @
 
 DROP VIEW IF EXISTS `system_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `system_alerts_view` AS
-SELECT * FROM `system_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, name, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `system_alerts`
 UNION ALL
-SELECT * FROM `engaged_system_alerts`
+SELECT rowid, alert_id, alert_status, interface_id, name, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, alert_category, require_attention, ntopng_instance_name FROM `engaged_system_alerts`
 
 @
 
@@ -1685,9 +1685,9 @@ SELECT
     mitre.MITRE_ID AS mitre_id
 FROM
 (
-    SELECT * FROM `host_alerts`
+    SELECT rowid, alert_id, alert_status, interface_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, host_pool_id, network, country, alert_category, require_attention, tags_map, ntopng_instance_name FROM `host_alerts`
     UNION ALL
-    SELECT * FROM `engaged_host_alerts`
+    SELECT rowid, alert_id, alert_status, interface_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, counter, description, json, user_label, user_label_tstamp, host_pool_id, network, country, alert_category, require_attention, tags_map, ntopng_instance_name FROM `engaged_host_alerts`
 )
     AS ha
 LEFT JOIN
