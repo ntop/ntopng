@@ -4,7 +4,9 @@
  *
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it underqo-admin@23.20.140.204: Permission denied (publickey).
+
+ the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
  *
@@ -3909,7 +3911,9 @@ static int ntop_get_totp_provisioning_uri(lua_State* vm) {
 /* @brief Generate a WebAuthn registration challenge. Lua: ntop.generateWebAuthnRegistrationOptions(username) -> table or nil */
 static int ntop_generate_webauthn_registration_options(lua_State* vm) {
   char *username;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
@@ -3922,7 +3926,8 @@ static int ntop_generate_webauthn_registration_options(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   /* Store registration challenge in Redis with TTL */
-  char key[256], val[256];
+  char key[256], val[4096];
+
   snprintf(key, sizeof(key), "%s.%s", WEBAUTHN_REG_CHALLENGE_PREFIX, challenge);
   snprintf(val, sizeof(val), "%s", username);
   ntop->getRedis()->set(key, val, WEBAUTHN_REG_CHALLENGE_TTL);
@@ -3938,7 +3943,9 @@ static int ntop_generate_webauthn_registration_options(lua_State* vm) {
 /* @brief Complete WebAuthn registration. Lua: ntop.completeWebAuthnRegistration(username, cred_name, cred_id, cdj_b64, att_obj_b64, challenge, origin, rp_id) -> boolean */
 static int ntop_complete_webauthn_registration(lua_State* vm) {
   char *username, *cred_name, *cred_id, *cdj_b64, *att_obj_b64, *challenge, *origin, *rp_id;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
@@ -4002,14 +4009,19 @@ static int ntop_complete_webauthn_registration(lua_State* vm) {
 /* @brief Get WebAuthn credentials as JSON. Lua: ntop.getWebAuthnCredentials(username) -> string JSON */
 static int ntop_get_webauthn_credentials(lua_State* vm) {
   char* username;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
   char json[4096];
+
   ntop->getWebAuthnCredentialsJSON(username, json, sizeof(json));
   lua_pushstring(vm, json);
+
   return CONST_LUA_OK;
 }
 
@@ -4018,7 +4030,9 @@ static int ntop_get_webauthn_credentials(lua_State* vm) {
 /* @brief Delete a WebAuthn credential. Lua: ntop.deleteWebAuthnCredential(username, cred_id) -> boolean */
 static int ntop_delete_webauthn_credential(lua_State* vm) {
   char *username, *cred_id;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
@@ -4052,7 +4066,9 @@ static int ntop_is_webauthn_enabled(lua_State* vm) {
 /* @brief Get pending WebAuthn token info. Lua: ntop.getWebAuthnPendingToken(token) -> table or nil */
 static int ntop_get_webauthn_pending_token(lua_State* vm) {
   char* token;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((token = (char*)lua_tostring(vm, 1)) == NULL)
@@ -6747,7 +6763,7 @@ static int ntop_list_index_redis(lua_State* vm) {
 
 /* @brief Internal helper implementing lpop/rpop; called by ntop_lpop_redis and ntop_rpop_redis.  Lua: (internal helper) → string */
 static int ntop_lrpop_redis(lua_State* vm, bool lpop) {
-  char msg[1024], *list_name;
+  char msg[4096], *list_name;
   Redis* redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
