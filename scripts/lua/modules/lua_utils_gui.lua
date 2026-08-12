@@ -1559,6 +1559,9 @@ end
 function format_utils.formatSNMPInterface(snmpdevice, interface_index)
    local interface_name = format_portidx_name(snmpdevice, interface_index)
 
+   if tostring(interface_name) == tostring(interface_index) then
+      return interface_index
+   end
    return string.format('%s (%s)', interface_index, (interface_name))
 end
 

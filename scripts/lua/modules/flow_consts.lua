@@ -111,6 +111,7 @@ flow_consts.flow_fields_description = {
    ["PACKETS_SELECTED"] = i18n("flow_fields_description.packets_selected"),
    ["SELECTOR_NAME"] = i18n("flow_fields_description.selector_name"),
    ["APPLICATION_NAME"] = i18n("flow_fields_description.application_name"),
+   ["APP_NAME"] = i18n("flow_fields_description.application_name"),
    ["USER_NAME"] = i18n("flow_fields_description.user_name"),
    ["APP_NAME"] = i18n("flow_fields_description.application_name"),
    ["WLAN_SSID"] = i18n("flow_fields_description.wlan_ssid"),
