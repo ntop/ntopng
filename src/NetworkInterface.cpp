@@ -3308,7 +3308,7 @@ decode_packet_eth:
 
 		if (flags & 0x01) ip_offset += 1; /* pdu_number is present */
 
-                if (ip_offset >= h->caplen) {
+                if (ip_offset + sizeof(struct ndpi_iphdr) >= h->caplen) { /* Update when we add IPv6. See comment below */
                   incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                            NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
                            NULL /* srcMac */, NULL /* dstMac */);
@@ -3371,10 +3371,22 @@ decode_packet_eth:
               if (proto == 0x0021) {
                 /* IPv4 */
                 eth_type = ETHERTYPE_IP;
+                if (offset + sizeof(struct ndpi_iphdr) >= h->caplen) {
+                  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                           NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                           NULL /* srcMac */, NULL /* dstMac */);
+                  goto dissect_packet_end;
+                }
                 iph = (struct ndpi_iphdr*)&packet[offset];
               } else if (proto == 0x0057) {
                 /* IPv6 */
                 eth_type = ETHERTYPE_IPV6;
+                if (offset + sizeof(struct ndpi_ipv6hdr) >= h->caplen) {
+                  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                           NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                           NULL /* srcMac */, NULL /* dstMac */);
+                  goto dissect_packet_end;
+                }
                 ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
               } else if (proto == 0x003d /* PPP Multi-Link */) {
                 offset += 4;
@@ -3389,10 +3401,22 @@ decode_packet_eth:
 
                 if (proto == 0x0021) {
                   eth_type = ETHERTYPE_IP;
+                  if (offset + sizeof(struct ndpi_iphdr) >= h->caplen) {
+                    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                             NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                             NULL /* srcMac */, NULL /* dstMac */);
+                    goto dissect_packet_end;
+                  }
                   iph = (struct ndpi_iphdr*)&packet[offset];
                   ip6 = NULL;
                 } else if (proto == 0x0057) {
                   eth_type = ETHERTYPE_IPV6;
+                  if (offset + sizeof(struct ndpi_ipv6hdr) >= h->caplen) {
+                    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                             NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                             NULL /* srcMac */, NULL /* dstMac */);
+                    goto dissect_packet_end;
+                  }
                   ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
                   iph = NULL;
                 }
@@ -3511,9 +3535,21 @@ decode_packet_eth:
 
             switch (eth_type) {
               case ETHERTYPE_IP:
+                if (ip_offset + sizeof(struct ndpi_iphdr) >= h->caplen) {
+                  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                           NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                           NULL /* srcMac */, NULL /* dstMac */);
+                  goto dissect_packet_end;
+                }
                 iph = (struct ndpi_iphdr*)&packet[ip_offset];
                 break;
               case ETHERTYPE_IPV6:
+                if (ip_offset + sizeof(struct ndpi_ipv6hdr) >= h->caplen) {
+                  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                           NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                           NULL /* srcMac */, NULL /* dstMac */);
+                  goto dissect_packet_end;
+                }
                 iph = NULL;
                 ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
                 break;
@@ -3703,11 +3739,23 @@ decode_packet_eth:
 
                 switch (eth_type) {
                   case ETHERTYPE_IP:
+                    if (ip_offset + sizeof(struct ndpi_iphdr) >= h->caplen) {
+                      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                               NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                               NULL /* srcMac */, NULL /* dstMac */);
+                      goto dissect_packet_end;
+                    }
                     iph = (struct ndpi_iphdr*)&packet[ip_offset];
                     ip6 = NULL;
                     break;
 
                   case ETHERTYPE_IPV6:
+                    if (ip_offset + sizeof(struct ndpi_ipv6hdr) >= h->caplen) {
+                      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+                               NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
+                               NULL /* srcMac */, NULL /* dstMac */);
+                      goto dissect_packet_end;
+                    }
                     ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
                     break;
 
