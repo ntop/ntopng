@@ -55,5 +55,15 @@ page_utils.print_header_and_set_active_menu_entry(active_entry)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local context = {
+   check_subdir = check_subdir,
+   page_csrf    = ntop.getRandomCSRFValue(),
+   ifid         = current_ifid,
+}
+
+template_utils.render("pages/vue_page.template", {
+   vue_page_name = "PageEditConfigset",
+   page_context  = json.encode(context),
+})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

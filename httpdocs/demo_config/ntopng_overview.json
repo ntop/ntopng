@@ -1,6 +1,6 @@
 {
   "id": "ntopng_overview",
-  "version": 1,
+  "version": 2,
   "title": "demo_tour_messages.ntopng_overview_title",
   "trigger": "first_login",
   "pages": [
@@ -8,6 +8,12 @@
       "page_key": "dashboard",
       "url": "/lua/index.lua",
       "steps": [
+        {
+          "id": "tour_intro",
+          "title": "demo_tour_messages.tour_intro_title",
+          "text": "demo_tour_messages.tour_intro_text",
+          "verified": true
+        },
         {
           "id": "dashboard_reach",
           "element": ".sb-rail__icon.fa-tachometer-alt",
