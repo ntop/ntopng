@@ -334,27 +334,34 @@ int main(int argc, char* argv[])
 
   /* Instantiated deferred view interfaces */
 #ifdef NTOPNG_PRO
-  for (int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
-    NetworkInterface* iface = NULL;
+  if (ntop->getPro()->has_valid_license()) {
+    for (int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+      NetworkInterface* iface = NULL;
 
-    if ((ifName = ntop->get_if_name(i)) == NULL || strncmp(ifName, "view:", 5))
-      continue;
+      if ((ifName = ntop->get_if_name(i)) == NULL ||
+          strncmp(ifName, "view:", 5))
+        continue;
 
-    if (!strcmp(ifName, "view:all")) {
-      /* Defer view:all interface after the other view interfaces */
-      has_view_all = true;
-      continue;
+      if (!strcmp(ifName, "view:all")) {
+        /* Defer view:all interface after the other view interfaces */
+        has_view_all = true;
+        continue;
+      }
+
+      if ((iface = new (std::nothrow) ViewInterface(ifName)))
+        ntop->registerInterface(iface);
     }
 
-    if ((iface = new (std::nothrow) ViewInterface(ifName)))
-      ntop->registerInterface(iface);
-  }
+    if (has_view_all) {
+      NetworkInterface* iface = NULL;
 
-  if (has_view_all) {
-    NetworkInterface* iface = NULL;
-
-    if ((iface = new (std::nothrow) ViewInterface("view:all")))
-      ntop->registerInterface(iface);
+      if ((iface = new (std::nothrow) ViewInterface("view:all")))
+        ntop->registerInterface(iface);
+    }
+  } else {
+    ntop->getTrace()->traceEvent(
+        TRACE_WARNING,
+        "View interfaces require a valid license, ignoring -i view option");
   }
 #endif
 
