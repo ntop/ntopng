@@ -8219,9 +8219,6 @@ local lang = {
     ["demo_tour_reset"] = "Reset",
     ["demo_tour_resetting"] = "Resetting...",
     ["demo_tour_reset_done"] = "%{title} reset — it will show again next time you visit its pages.",
-    ["demo_tour_complete_title"] = "You're all set!",
-    ["demo_tour_complete_text"] = "That's the tour. Replay or reset it anytime from Preferences → Demo Tours.",
-    ["demo_tour_complete_close"] = "Close",
     ["llm_anthropic"] = "Anthropic",
     ["llm_openai"] = "OpenAI",
     ["llm_local"] = "Local LLM",
@@ -10484,6 +10481,11 @@ local lang = {
     -- ("demo_tour_messages.<key>"), resolved client-side by useDemoTour.js
     -- via window.i18n(). Key stem matches the step's own "id" in the JSON.
     ["ntopng_overview_title"] = "Welcome to ntopng",
+    ["tour_intro_title"] = "Take a quick tour",
+    ["tour_intro_text"] = "Let's walk through the essentials — Dashboard, Live Flows, Historical Flows and Preferences. It only takes a minute.",
+    ["demo_tour_complete_title"] = "You're all set!",
+    ["demo_tour_complete_text"] = "That's the tour. Replay or reset it anytime from Preferences → Demo Tours.",
+    ["demo_tour_complete_close"] = "Close",
     ["dashboard_reach_title"] = "Dashboard",
     ["dashboard_reach_text"] = "You can always get back here from the sidebar's Dashboard icon.",
     ["dashboard_iface_selector_title"] = "Select Interface",
