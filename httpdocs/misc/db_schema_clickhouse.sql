@@ -2046,23 +2046,8 @@ ALTER TABLE `ai_model_prices`
   MODIFY COLUMN `updated_at` COMMENT 'Last update timestamp';
 @
 
-CREATE TABLE IF NOT EXISTS ntopng_docs (
-   source     LowCardinality(String),
-   title      String,
-   chunk      String,
-   indexed_at DateTime DEFAULT now(),
-   INDEX chunk_idx chunk TYPE tokenbf_v1(32768, 3, 0) GRANULARITY 1
-)
-ENGINE = MergeTree()
-ORDER BY (source, title)
-@
-ALTER TABLE `ntopng_docs` MODIFY COMMENT 'Full-text search corpus for ntopng documentation chunks. Used by the AI assistant to look up CLI options and user guide sections. Indexed via tokenbf on the chunk column.';
-@
-ALTER TABLE `ntopng_docs`
-  MODIFY COLUMN `source` COMMENT 'Relative file path or cli:ntopng / cli:nprobe',
-  MODIFY COLUMN `title` COMMENT 'Section heading',
-  MODIFY COLUMN `chunk` COMMENT 'Text content (~900 chars)',
-  MODIFY COLUMN `indexed_at` COMMENT 'Timestamp when this chunk was indexed into the ntopng_docs table';
+DROP TABLE IF EXISTS ntopng_docs
+
 @
 
 CREATE TABLE IF NOT EXISTS `analyst_pipelines` (
