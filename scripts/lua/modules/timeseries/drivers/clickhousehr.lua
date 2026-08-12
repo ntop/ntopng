@@ -6,7 +6,7 @@
 -- HR timeseries are read directly from the 'flows' table by unpacking
 -- the HR_SRC2DST_BYTES / HR_DST2SRC_BYTES Array(UInt64) columns that
 -- nProbe populates when exporting with HR fields. Each element covers
--- a 15-second slot starting at the flow FIRST_SEEN timestamp.
+-- a 15-second slot by default.
 --
 -- Note: there is NO write path, HR data is written by the C++ flow-dump,
 -- calling append() is not required.
@@ -95,14 +95,20 @@ local function tags_where(tags)
 end
 
 -- Build the SELECT list for direction-neutral HR metrics.
-local function metric_select(schema)
+local function metric_select(schema, divisor)
    local sel = {}
    for _, metric in ipairs(schema._metrics) do
       local arr = METRIC_TO_ARRAY[metric]
       if arr then
-         sel[#sel + 1] = string.format(
-            "sum(arrayElement(%s, slot)) AS `%s`",
-            ch_escape(arr), ch_escape(metric))
+         if divisor and divisor > 0 then
+            sel[#sel + 1] = string.format(
+               "sum(arrayElement(%s, slot)) / %d AS `%s`",
+               ch_escape(arr), divisor, ch_escape(metric))
+         else
+            sel[#sel + 1] = string.format(
+               "sum(arrayElement(%s, slot)) AS `%s`",
+               ch_escape(arr), ch_escape(metric))
+         end
       end
    end
    return sel
@@ -120,9 +126,13 @@ end
 -- ClickHouse expression for the wall-clock time of a slot.
 -- FIRST_SEEN is UInt32 (epoch seconds); slot is 1-based from arrayEnumerate.
 -- toUInt64 prevents overflow for long-lived flows.
+--
+-- Slot 0 is NOT at FIRST_SEEN itself: both nProbe and Flow::mergeHRCounters()
+-- anchor the array to the start of the MINUTE containing FIRST_SEEN, so every flow
+-- shares the same global 15s grid.
 local function slot_ts_expr()
    return string.format(
-      "toUInt64(FIRST_SEEN) + (toUInt64(slot) - 1) * %d",
+      "intDiv(toUInt64(FIRST_SEEN), 60) * 60 + (toUInt64(slot) - 1) * %d",
       HR_SLOT_SECONDS)
 end
 
@@ -157,17 +167,21 @@ end
 
 -- Build direction-aware SELECT expressions using CASE WHEN.
 -- When host is SRC: use the as_src array; when host is DST: use as_dst.
-local function metric_select_directional(schema, is_src_cond)
+local function metric_select_directional(schema, is_src_cond, divisor)
    local sel = {}
    for _, metric in ipairs(schema._metrics) do
       local dir = METRIC_DIRECTIONAL[metric]
       if dir then
-         sel[#sel + 1] = string.format(
+         local expr = string.format(
             "sum(CASE WHEN %s THEN arrayElement(%s, slot) "
-            ..           "ELSE arrayElement(%s, slot) END) AS `%s`",
+            ..           "ELSE arrayElement(%s, slot) END)",
             is_src_cond,
-            ch_escape(dir.as_src), ch_escape(dir.as_dst),
-            ch_escape(metric))
+            ch_escape(dir.as_src), ch_escape(dir.as_dst))
+         if divisor and divisor > 0 then
+            sel[#sel + 1] = string.format("%s / %d AS `%s`", expr, divisor, ch_escape(metric))
+         else
+            sel[#sel + 1] = string.format("%s AS `%s`", expr, ch_escape(metric))
+         end
       end
    end
    return sel
@@ -252,19 +266,21 @@ end
 
 -- Returns tw (additional WHERE conditions), sel (SELECT list), join_arr (ARRAY JOIN column),
 -- handling both simple and directional schemas.
-local function build_query_parts(schema, tags)
+-- `divisor`, when given, is the point's time width in seconds: pass the query's
+-- time_step to get bytes/sec (chart points), omit it to get raw byte sums (totals).
+local function build_query_parts(schema, tags, divisor)
    -- Exact 5-tuple match
    if schema.options and schema.options.flow_context then
       local tw  = build_flow_where(tags)
       if tw == nil then return nil end
-      local sel = metric_select(schema)   -- bytes_sent→HR_SRC2DST_BYTES, bytes_rcvd→HR_DST2SRC_BYTES
+      local sel = metric_select(schema, divisor)   -- bytes_sent→HR_SRC2DST_BYTES, bytes_rcvd→HR_DST2SRC_BYTES
       return tw, sel, pick_join_array(schema)
    end
 
    -- Aggregation: optional column filters
    if schema.options and schema.options.agg_context then
       local tw  = build_agg_where(tags)
-      local sel = metric_select(schema)
+      local sel = metric_select(schema, divisor)
       return tw, sel, pick_join_array(schema)
    end
 
@@ -280,11 +296,11 @@ local function build_query_parts(schema, tags)
       end
       local ctx = host_ip_context(host_val)
       local tw  = tags_where(tags) .. " AND " .. ctx.match_any
-      local sel = metric_select_directional(schema, ctx.src_cond)
+      local sel = metric_select_directional(schema, ctx.src_cond, divisor)
       return tw, sel, "HR_SRC2DST_BYTES"
    end
 
-   return tags_where(tags), metric_select(schema), pick_join_array(schema)
+   return tags_where(tags), metric_select(schema, divisor), pick_join_array(schema)
 end
 
 -- ##############################################
@@ -330,7 +346,7 @@ function driver:query_grouped(schema, tstart, tend, tags, options)
 
    local sql = string.format(
       "SELECT toString(%s) AS group_key, intDiv(%s, %d) * %d AS t, "
-      .. "sum(arrayElement(HR_SRC2DST_BYTES, slot) + arrayElement(HR_DST2SRC_BYTES, slot)) AS bytes "
+      .. "sum(arrayElement(HR_SRC2DST_BYTES, slot) + arrayElement(HR_DST2SRC_BYTES, slot)) / %d AS bytes "
       .. "FROM `%s`.`flows` "
       .. "ARRAY JOIN arrayEnumerate(%s) AS slot "
       .. "WHERE length(%s) > 0%s "
@@ -339,6 +355,7 @@ function driver:query_grouped(schema, tstart, tend, tags, options)
       .. "GROUP BY group_key, t ORDER BY group_key, t ASC",
       gb_def.expr,
       sts, time_step, time_step,
+      time_step,
       ch_escape(self.db),
       ch_escape(join_arr), ch_escape(join_arr), tw,
       tend, tstart,
@@ -440,7 +457,7 @@ function driver:query(schema, tstart, tend, tags, options)
       HR_SLOT_SECONDS, tstart, tend, options)
    local sts = slot_ts_expr()
 
-   local tw, sel, join_arr = build_query_parts(schema, tags)
+   local tw, sel, join_arr = build_query_parts(schema, tags, time_step)
 
    if tw == nil or #sel == 0 then
       traceError(TRACE_ERROR, TRACE_CONSOLE,
