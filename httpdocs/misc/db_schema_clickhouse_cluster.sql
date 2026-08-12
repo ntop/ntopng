@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS `flows` ON CLUSTER '$CLUSTER' (
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64;
 @
+ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String;
+@
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `CLIENT_NW_LATENCY_US` UInt32;
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `SERVER_NW_LATENCY_US` UInt32;
@@ -393,9 +395,9 @@ ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_active_monitoring_alerts`;
+DROP TABLE IF EXISTS `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_active_monitoring_alerts` (
+CREATE TABLE `engaged_active_monitoring_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `alert_id` UInt32,
 `alert_status` UInt8,
@@ -529,9 +531,9 @@ ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `tags_map` COMMENT 'HEX-encoded bitmap of host tags set at the time the alert triggered';
 @
 
-DROP TABLE IF EXISTS `engaged_host_alerts`;
+DROP TABLE IF EXISTS `engaged_host_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_host_alerts` (
+CREATE TABLE `engaged_host_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `alert_id` UInt32,
 `alert_status` UInt8,
@@ -657,9 +659,9 @@ ALTER TABLE `mac_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_mac_alerts`;
+DROP TABLE IF EXISTS `engaged_mac_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_mac_alerts` (
+CREATE TABLE `engaged_mac_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `alert_id` UInt32,
 `alert_status` UInt8,
@@ -771,9 +773,9 @@ ALTER TABLE `snmp_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_snmp_alerts`;
+DROP TABLE IF EXISTS `engaged_snmp_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_snmp_alerts` (
+CREATE TABLE `engaged_snmp_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `alert_id` UInt32,
 `alert_status` UInt8,
@@ -879,9 +881,9 @@ ALTER TABLE `network_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_network_alerts`;
+DROP TABLE IF EXISTS `engaged_network_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_network_alerts` (
+CREATE TABLE `engaged_network_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `local_network_id` UInt16,
 `alert_id` UInt32,
@@ -981,9 +983,9 @@ ALTER TABLE `as_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_as_alerts`;
+DROP TABLE IF EXISTS `engaged_as_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_as_alerts` (
+CREATE TABLE `engaged_as_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `asn` UInt32,
 `alert_id` UInt32,
@@ -1089,9 +1091,9 @@ ALTER TABLE `interface_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_interface_alerts`;
+DROP TABLE IF EXISTS `engaged_interface_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_interface_alerts` (
+CREATE TABLE `engaged_interface_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `ifid` UInt8,
 `alert_id` UInt32,
@@ -1193,9 +1195,9 @@ ALTER TABLE `user_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_user_alerts`;
+DROP TABLE IF EXISTS `engaged_user_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_user_alerts` (
+CREATE TABLE `engaged_user_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `alert_id` UInt32,
 `alert_status` UInt8,
@@ -1291,9 +1293,9 @@ ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `require_attention` COMMENT 'True if this alert has been flagged as requiring manual attention';
 @
 
-DROP TABLE IF EXISTS `engaged_system_alerts`;
+DROP TABLE IF EXISTS `engaged_system_alerts` ON CLUSTER '$CLUSTER';
 @
-CREATE TABLE `engaged_system_alerts` (
+CREATE TABLE `engaged_system_alerts` ON CLUSTER '$CLUSTER' (
 `rowid` UUID,
 `alert_id` UInt32,
 `alert_status` UInt8,
@@ -1380,6 +1382,8 @@ CREATE TABLE IF NOT EXISTS `hourly_flows` ON CLUSTER '$CLUSTER' (
 `CLIENT_LOCATION` UInt8,
 `SERVER_LOCATION` UInt8
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, IPV4_SRC_ADDR, IPV4_DST_ADDR);
+@
+ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String;
 @
 ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS SRC_LABEL String;
 @
@@ -1855,6 +1859,8 @@ CREATE TABLE IF NOT EXISTS `hourly_asn` ON CLUSTER '$CLUSTER' (
 `SRC_SITE_ID` UInt16,
 `DST_SITE_ID` UInt16
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, SRC_ASN, DST_ASN);
+@
+ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String;
 @
 ALTER TABLE `hourly_asn` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS TOTAL_BYTES UInt64;
 @
