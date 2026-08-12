@@ -768,12 +768,6 @@ void Ntop::start() {
 bool Ntop::isLocalAddress(int family, void* addr, int32_t* network_id,
                           u_int8_t* network_mask_bits) {
   u_int8_t nmask_bits;
-#if 0
-  char ipb[32];
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Find %s",
-    Utils::intoaV4(ntohl(*(u_int32_t*)addr), ipb, sizeof(ipb)));
-#endif
 
   *network_id = localNetworkLookup(family, addr, &nmask_bits);
 
@@ -4848,7 +4842,18 @@ void Ntop::setScriptsDir() {
 
 inline int32_t Ntop::localNetworkLookup(int family, void* addr,
                                         u_int8_t* network_mask_bits) {
-  return (local_network_tree.findAddress(family, addr, network_mask_bits));
+  if(family == AF_INET6) {
+    struct ndpi_in6_addr *ipv6 = (struct ndpi_in6_addr*)addr;
+
+    if(Utils::isIPv4MappedAddress(ipv6)) {
+      u_int32_t addrv4 = ipv6->u6_addr.u6_addr32[3];
+      
+      return(local_network_tree.findAddress(AF_INET,
+					    &addrv4, network_mask_bits));
+    }
+  }
+
+  return(local_network_tree.findAddress(family, addr, network_mask_bits));
 }
 
 /* ******************************************* */
