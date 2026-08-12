@@ -405,7 +405,7 @@ return function(f)
         }, {
             key = "handle_licenses",
             i18n = "about.handle_licenses.retrieve_licenses",
-            icon = "fa-regular fa-id-card",
+            icon = "fa-solid fa-receipt",
             url = "/lua/handle_licenses.lua",
             hidden = f.no_admin
         }, {
