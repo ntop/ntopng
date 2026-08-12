@@ -2142,7 +2142,12 @@ local function print_flow_overview_page()
 	       local ret, exp_ip, exp_name, site = formatExporter(v.exporter_ip, v.exporter_site_id)
 	       local ret1, next_hop_ip, next_hop_name, next_hope_site = formatNextHop(v.next_hop, v.next_hop_site_id)
 	       
-	       print("<tr><td>".. ret .. ' <i class="fas fa-long-arrow-alt-right"></i> ' .. ret1)
+	       print("<tr><td>".. ret)
+
+	       if(v.next_hop ~= "0.0.0.0") then
+		  print(' <i class="fas fa-long-arrow-alt-right"></i> ' .. ret1)
+	       end
+	       
 	       if(v.return_path == true) then print(" <span class='badge bg-secondary'>".. i18n("dedup_flow_swapped").."</span>") end
 	       print("</td><td>")
 	       printFlowSNMPInfo(v.exporter_ip, v.input_idx, v.output_idx, true)

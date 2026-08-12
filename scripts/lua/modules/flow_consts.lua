@@ -112,6 +112,7 @@ flow_consts.flow_fields_description = {
    ["SELECTOR_NAME"] = i18n("flow_fields_description.selector_name"),
    ["APPLICATION_NAME"] = i18n("flow_fields_description.application_name"),
    ["USER_NAME"] = i18n("flow_fields_description.user_name"),
+   ["APP_NAME"] = i18n("flow_fields_description.application_name"),
    ["WLAN_SSID"] = i18n("flow_fields_description.wlan_ssid"),
    ["WTP_MAC_ADDRESS"] = i18n("flow_fields_description.wtp_mac_address"),
    ["SRC_FRAGMENTS"] = i18n("flow_fields_description.src_fragments"),
