@@ -31,7 +31,6 @@ local subdir      = _POST["check_subdir"]
 local script_key  = _POST["script_key"]
 local config_json = _POST["JSON"]
 
-tprint(_POST)
 if not subdir or not script_key or not config_json then
    rest_utils.answer(rest_utils.consts.err.invalid_args)
    return

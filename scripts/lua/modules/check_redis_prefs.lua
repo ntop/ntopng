@@ -385,3 +385,10 @@ function assetsInventoryEnabled()
     end
     return ntop.assetsEnabled()
 end
+
+-- ##############################################
+
+-- Wazuh enabled toggle
+function isWazuhEnabled()
+    return ntop.getPref("ntopng.prefs.wazuh_enabled") == "1"
+end
