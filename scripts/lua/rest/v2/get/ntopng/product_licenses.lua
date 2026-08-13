@@ -34,21 +34,24 @@ if isEmptyString(email) or isEmptyString(auth_token) then
 	return
 end
 
--- Set the Authorization Token in the Redis cache in order to speed up the process
-ntop.setHashCache("ntopng.prefs.products.licenses.auth_token", email, auth_token)
 local product_licenses_url = "https://shop.ntop.org/rest/get/user/licenses.php"
 local data = json.encode({ email = email, auth_token = auth_token })
-local temp_fname = string.format("%s/configurations/product_licenses.txt", dirs.workingdir)
 local rsp = ntop.httpPost(product_licenses_url, data, { return_content = true })
-
-if rsp.RESPONSE_CODE == 200 then
+if rsp and rsp.RESPONSE_CODE == 200 then
 	local response = json.decode(rsp.CONTENT)
-    ntop.setCache("ntopng.cache.products.licenses.last_email_used", email)
-    ntop.setCache("ntopng.cache.products.licenses.last_data", json.encode(response.licenses))
-    ntop.setCache("ntopng.cache.products.licenses.last_update", os.time())
-    -- Also set the last requested info/email used, in order to hasten up the process for the next calls
-	rest_utils.answer(rc, response.licenses)
-	return
+
+	if response and response.licenses then
+		-- Store the credentials in the cache only once they are known to be
+		-- valid: refresh_licenses.lua reuses them to update the licenses
+		-- without asking the user again
+		ntop.setHashCache("ntopng.prefs.products.licenses.auth_token", email, auth_token)
+		ntop.setCache("ntopng.cache.products.licenses.last_email_used", email)
+		ntop.setCache("ntopng.cache.products.licenses.last_data", json.encode(response.licenses))
+		ntop.setCache("ntopng.cache.products.licenses.last_update", os.time())
+
+		rest_utils.answer(rc, response.licenses)
+		return
+	end
 end
 
 rest_utils.answer(rest_utils.consts.err.internal_error)
