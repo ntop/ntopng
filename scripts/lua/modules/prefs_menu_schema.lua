@@ -2088,14 +2088,25 @@ function M.get_sections(flags)
         }}
     }
 
-    -- Assets / Wazuh
+    -- External connectors
+    local wazuh_enabled = (isWazuhEnabled and isWazuhEnabled())
     sections[#sections + 1] = {
-        id = "assets",
-        label = i18n("prefs.assets"),
+        id = "connectors",
+        label = i18n("prefs.external_integrations"),
         advanced = false,
         pro_only = true,
         hidden = false,
         entries = {{
+            key = "toggle_wazuh_enabled",
+            title = i18n("prefs.toggle_wazuh_enabled_title"),
+            description = i18n("prefs.toggle_wazuh_enabled_description"),
+            type = "toggle",
+            redis_key = "ntopng.prefs.wazuh_enabled",
+            default = "0",
+            to_switch = { "wazuh_url", "wazuh_username", "wazuh_password", "toggle_wazuh_automerge" },
+            section = i18n("prefs.wazuh"),
+            hidden = (not is_enterprise_m) or (not has_ch_support)
+        }, {
             key = "wazuh_url",
             title = i18n("prefs.wazuh_url_title"),
             description = i18n("prefs.wazuh_url_description"),
@@ -2105,13 +2116,13 @@ function M.get_sections(flags)
             default = "",
             test_endpoint = "/lua/rest/v2/get/ntopng/test_wazuh_connectivity.lua",
             test_params = { username = "wazuh_username", password = "wazuh_password" },
-            section = i18n("prefs.wazuh"),
             attrs = {
                 spellcheck = "false",
                 maxlength = "255",
                 pattern = "https?://.+"
             },
-            hidden = (not is_enterprise_m)
+            section = i18n("prefs.wazuh"),
+            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
         }, {
             key = "wazuh_username",
             title = i18n("prefs.wazuh_username_title"),
@@ -2124,7 +2135,8 @@ function M.get_sections(flags)
                 spellcheck = "false",
                 maxlength = "128"
             },
-            hidden = (not is_enterprise_m)
+            section = i18n("prefs.wazuh"),
+            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
         }, {
             key = "wazuh_password",
             title = i18n("prefs.wazuh_password_title"),
@@ -2138,7 +2150,8 @@ function M.get_sections(flags)
                 spellcheck = "false",
                 maxlength = "255"
             },
-            hidden = (not is_enterprise_m)
+            section = i18n("prefs.wazuh"),
+            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
         }, {
             key = "toggle_wazuh_automerge",
             title = i18n("prefs.toggle_wazuh_automerge_title"),
@@ -2146,7 +2159,8 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.wazuh_automerge_enabled",
             default = "0",
-            hidden = (not is_enterprise_m)
+            section = i18n("prefs.wazuh"),
+            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
         }}
     }
 
