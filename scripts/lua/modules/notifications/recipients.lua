@@ -68,6 +68,13 @@ function recipients.get_notification_types()
         }
     }
 
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
+        notification_types.wazuh_alerts = {
+            title = i18n('wazuh_alert_config.wazuh_alerts'),
+            icon = 'fas fa-shield-alt'
+        }
+    end
+
     return notification_types
 end
 
