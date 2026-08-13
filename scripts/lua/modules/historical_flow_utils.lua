@@ -1675,6 +1675,8 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["verdict"] = flowfilter_utils.defined_filters["verdict"]
    flow_defined_filters["ndpi_fingerprint"] = flowfilter_utils.defined_filters["ndpi_fingerprint"]
    flow_defined_filters["community_id"] = flowfilter_utils.defined_filters["community_id"]
+   flow_defined_filters["app_name"] = flowfilter_utils.defined_filters["app_name"]
+   flow_defined_filters["user_name"] = flowfilter_utils.defined_filters["user_name"]
    flow_defined_filters["tcp_fingerprint"] = flowfilter_utils.defined_filters["tcp_fingerprint"]
    flow_defined_filters["apn_mac"] = flowfilter_utils.defined_filters["apn_mac"]
    flow_defined_filters["wlan_ssid"] = flowfilter_utils.defined_filters["wlan_ssid"]
