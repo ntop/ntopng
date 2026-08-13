@@ -2491,6 +2491,7 @@ local known_parameters = {
    ["wazuh_exception_enabled"] = validateBool,
    ["wazuh_exception_comment"] = validateUnquoted,
    ["wazuh_alert_id"] = validateSingleWord,
+   ["min_level"] = validateNumber,
 
    -- VULNERABILITY SCAN
    ["scan_type"] = validateSingleWord,

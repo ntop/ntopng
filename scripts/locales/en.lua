@@ -210,6 +210,8 @@ local lang = {
       ["priority"] = "Priority",
       ["priority_hint"] = "Evaluation order, lower runs first",
       ["min_level"] = "Min Level",
+      ["all_levels"] = "All Levels",
+      ["search_in_db"] = "Search in Historical DB",
       ["groups"] = "Groups",
       ["groups_placeholder"] = "e.g. syslog,sshd,authentication_success",
       ["groups_hint"] = "Comma-separated Wazuh rule groups (empty = any).",
