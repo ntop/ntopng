@@ -323,6 +323,7 @@ function ts_dump.sites_update_rrds(when, ifstats, verbose)
         local sites = string.split(site_key, "-")
         if (table.len(sites) == 2) then
             if info.breakdown then
+               -- Create a timeseries for A -> B
                ts_utils.append("site:traffic_rxtx", {
                   ifid = ifstats.id,
                   site_a = sites[1],
@@ -337,12 +338,36 @@ function ts_dump.sites_update_rrds(when, ifstats, verbose)
                   num_flows_as_client = info.breakdown.num_flows_as_client,
                   num_flows_as_server = info.breakdown.num_flows_as_server,
                }, when)
+
+               -- Create a timeseries for B -> A
+               ts_utils.append("site:traffic_rxtx", {
+                  ifid = ifstats.id,
+                  site_a = sites[2],
+                  site_b = sites[1],
+                  bytes_sent = info.breakdown.bytes_rcvd,
+                  bytes_rcvd = info.breakdown.bytes_sent,
+               }, when)
+               ts_utils.append("site:flows", {
+                  ifid = ifstats.id,
+                  site_a = sites[2],
+                  site_b = sites[1],
+                  num_flows_as_client = info.breakdown.num_flows_as_server,
+                  num_flows_as_server = info.breakdown.num_flows_as_client,
+               }, when)
             end
             if info.rtt and info.rtt.total then
                 ts_utils.append("site:rtt", {
                     ifid = ifstats.id,
                     site_a = sites[1],
                     site_b = sites[2],
+                    max = info.rtt.total.max,
+                    avg = info.rtt.total.avg,
+                    stddev = info.rtt.total.stddev,
+                }, when)
+                ts_utils.append("site:rtt", {
+                    ifid = ifstats.id,
+                    site_a = sites[2],
+                    site_b = sites[1],
                     max = info.rtt.total.max,
                     avg = info.rtt.total.avg,
                     stddev = info.rtt.total.stddev,

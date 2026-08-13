@@ -9546,6 +9546,7 @@ local lang = {
     ["site_description"] = "Description",
     ["site_name"] = "Site",
     ["site_networks"] = "Networks",
+    ["site_timeseries"] = "Timeseries",
     ["site_exporters"] = "Exporters",
     ["reserved_message"] = "Reserved Site",
     ["site_location"] = "Location",

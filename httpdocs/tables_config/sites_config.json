@@ -24,6 +24,13 @@
 			"render_v_node_type": "button_list",
 			"button_def_array": [
 				{
+					"id": "site_timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "sites_page.site_timeseries",
+					"class": [],
+					"event_id": "click_button_site_timeseries"
+				},
+				{
 					"id": "edit_site",
 					"icon": "fas fa-cog",
 					"title_i18n": "sites_page.edit_site",
