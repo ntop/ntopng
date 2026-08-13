@@ -12,7 +12,7 @@ local BLOG_FEED_KEY = "ntopng.cache.blog_feed"
 local BLOG_NEXT_FEED_UPDATE = "ntopng.prefs.next_feed_update"
 local JSON_FEED = "https://feed.ntop.org/blog.json"
 
--- Parse the date string, following this pattern: yyyy-mm-ddTH:M:S+00:00
+-- Parse the date string, following this pattern: yyyy-mm-ddTH:M:S
 -- Return 0 if the date string is empty, otherwise it returns the right epoch
 function blog_utils.parseDate(date)
 
@@ -20,7 +20,7 @@ function blog_utils.parseDate(date)
         return 0
     end
 
-    local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)+(%d+):(%d+)"
+    local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)"
     local year, month, day, hour, minutes = date:match(pattern)
 
     local epoch = os.time({
@@ -159,16 +159,14 @@ function blog_utils.fetchLatestPosts()
         return (false)
     end
 
-    local jsonFeed = json.decode(response["CONTENT"])
+    local posts = json.decode(response["CONTENT"])
 
-    if ((jsonFeed == nil) or table.len(jsonFeed["items"] or {}) == 0) then
+    if ((posts == nil) or table.len(posts) == 0) then
         ntop.setPref(BLOG_NEXT_FEED_UPDATE, now + 300) -- Try again not less than 5 mins
         return (false)
     end
 
     ntop.setPref(BLOG_NEXT_FEED_UPDATE, now + 43200) -- Try again not less than 12 hours
-
-    local posts = jsonFeed["items"]
 
     local latest3Posts = {posts[1], posts[2], posts[3]}
     local formattedPosts = {}
@@ -176,12 +174,13 @@ function blog_utils.fetchLatestPosts()
     for i, post in ipairs(latest3Posts) do
         if (post ~= nil) then
 
-            local splittedLink = string.split(post.id, "?p=")
-            local postId = tonumber(splittedLink[2])
-            local postTitle = post.title
-            local postURL = post.url
-            local postShortDesc = string.sub(post.content_text, 1, 48) .. '...'
-            local postEpoch = blog_utils.parseDate(post.date_published)
+            local postId = tonumber(post.id)
+            local postTitle = post.title and post.title.rendered or ""
+            local postURL = post.link
+            local excerpt = post.excerpt and post.excerpt.rendered or ""
+            excerpt = excerpt:gsub("<[^>]+>", ""):gsub("%[&hellip;%]%s*$", "")
+            local postShortDesc = string.sub(excerpt, 1, 48) .. '...'
+            local postEpoch = blog_utils.parseDate(post.date_gmt or post.date)
 
             local post = {
                 id = postId,
