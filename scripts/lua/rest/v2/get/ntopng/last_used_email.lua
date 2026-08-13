@@ -11,8 +11,9 @@ local json = require("dkjson")
 local rest_utils = require("rest_utils")
 
 --
--- Return all the actively monitored ntopng interfaces along with their ids
--- Example: curl -u admin:admin -H "Content-Type: application/json"  http://localhost:3000/lua/rest/v2/get/ntopng/interfaces.lua
+-- Return the email used for the last licenses import, along with the time of
+-- the import itself
+-- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v2/get/ntopng/last_used_email.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -26,6 +27,7 @@ local rc = rest_utils.consts.success.ok
 
 -- Basic REST API, requesting for last retrieved data
 local last_email = ntop.getCache("ntopng.cache.products.licenses.last_email_used") or ""
-local last_update = ntop.getCache("ntopng.cache.products.licenses.last_update") or nil
-rest_utils.answer(rc, json.encode({last_email = last_email, last_update = last_update}))
+local last_update = tonumber(ntop.getCache("ntopng.cache.products.licenses.last_update"))
+
+rest_utils.answer(rc, { last_email = last_email, last_update = last_update })
 return

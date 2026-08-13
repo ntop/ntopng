@@ -26,7 +26,7 @@
 					"icon": "fa-solid fa-circle-info",
 					"title_i18n": "about.handle_licenses.license_info",
 					"class": [
-						"btn-warning"
+						"btn-primary"
 					],
 					"event_id": "click_button_license_info"
 				},
@@ -35,7 +35,7 @@
 					"icon": "fa-solid fa-cart-shopping",
 					"title_i18n": "about.handle_licenses.renew_license",
 					"class": [
-						"btn-warning"
+						"btn-primary"
 					],
 					"event_id": "click_button_renew_license"
 				}
@@ -52,16 +52,6 @@
 				"text-nowrap",
 				"text-center"
 			]
-		},
-		{
-			"id": "product",
-			"title_i18n": "about.handle_licenses.product",
-			"data_field": "product",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			],
-			"min-width": "200px"
 		},
 		{
 			"id": "maintenance",

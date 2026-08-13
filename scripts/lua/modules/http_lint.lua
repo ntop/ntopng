@@ -2813,6 +2813,7 @@ local known_parameters = {
    ["email_recipient"] = validateSingleWord,
    ["email"] = validateSingleWord,
    ["auth_token"] = validateSingleWord,
+   ["force_new"] = validateBool,
    ["smtp_server"] = validateServer,
    ["smtp_port"] = validation_utils.validatePortRange,
    ["smtp_username"] = validateEmptyOr(validateSingleWord),
