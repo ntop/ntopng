@@ -292,6 +292,14 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
   if (flow) {
     /* Fix interface Id (if zero) */
+    SNMPInterfaceRole in_role  = ntop->snmpGetInterfaceRole(&zflow->exporter_device_ip, zflow->inIndex);
+    SNMPInterfaceRole out_role = ntop->snmpGetInterfaceRole(&zflow->exporter_device_ip, zflow->outIndex);
+    SNMPInterfaceRole main_role;
+
+    if ((in_role == role_transit) || (in_role == role_peering) || (in_role == role_ix))
+      main_role = in_role;
+    else
+      main_role = out_role;
 
     if (new_flow) {
       flow->addExporterInfo(&zflow->exporter_device_ip,
@@ -301,34 +309,20 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 			    zflow->exporter_site_id,
 			    zflow->next_hop_site_id,
                             zflow->inIndex, zflow->outIndex,
+			    in_role, out_role,
                             zflow->getFlowSource(), src2dst_direction);
 
 #if defined(NTOPNG_PRO)
-      /* Set interface role */
-      SNMPInterfaceRole r =
-          getRole(&zflow->exporter_device_ip, zflow->inIndex, zflow->outIndex);
-
-      flow->setSNMPExporterInterfaceRole(r);
-      incRoleBytes(zflow->in_pkts + zflow->in_bytes, r);
+      incRoleBytes(zflow->in_pkts + zflow->in_bytes, main_role);
 #endif
     } else {
       /* Existing flow */
+      struct ndpi_in6_addr addr = flow->getExporterIP();
 
 #if defined(NTOPNG_PRO)
-      /* Set interface role */
-      SNMPInterfaceRole r = flow->getSNMPExporterInterfaceRole();
-
-      if (r == role_other) {
-        r = getRole(&zflow->exporter_device_ip, zflow->inIndex, zflow->outIndex);
-
-	flow->setSNMPExporterInterfaceRole(r);
-      }
-
-      incRoleBytes(zflow->in_pkts + zflow->in_bytes, r);
+      incRoleBytes(zflow->in_pkts + zflow->in_bytes, main_role);
 #endif
 
-      struct ndpi_in6_addr addr = flow->getExporterIP();
-      
       if (ntop->getPrefs()->isFlowDedupEnabled() &&
           (memcmp(&addr, &zflow->exporter_device_ip, sizeof(struct ndpi_in6_addr)))) {
 #ifdef DEDUPLICATION_DEBUG
@@ -350,6 +344,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 			      zflow->exporter_site_id,
 			      zflow->next_hop_site_id,
                               zflow->inIndex, zflow->outIndex,
+			      in_role, out_role,
                               zflow->getFlowSource(), src2dst_direction);
 
 #ifdef NTOPNG_PRO
@@ -1074,21 +1069,6 @@ void ParserInterface::deliverFlowToCompanions(ParsedFlow* const flow) {
     }
   }
 }
-
-/* **************************************************** */
-
-#ifdef NTOPNG_PRO
-SNMPInterfaceRole ParserInterface::getRole(struct ndpi_in6_addr *exporter_device_ip,
-                                           u_int32_t if_id_in,
-                                           u_int32_t if_id_out) {
-  SNMPInterfaceRole r = ntop->snmpGetInterfaceRole(exporter_device_ip, if_id_in);
-
-  if ((r != role_transit) && (r != role_peering) && (r != role_ix))
-    r = ntop->snmpGetInterfaceRole(exporter_device_ip, if_id_out);
-
-  return (r);
-}
-#endif
 
 /* **************************************************** */
 

@@ -75,6 +75,7 @@ typedef struct {
   struct ndpi_in6_addr next_hop, mapped_next_hop; /* Same as for exporter_ip */
   u_int16_t exporter_site_id, next_hop_site_id;
   u_int32_t in_index, out_index;
+  SNMPInterfaceRole in_role, out_role;
   FlowSource source; /* sFlow / NetFlow */
   bool return_path;
 } ExporterFlowInfo;
@@ -116,7 +117,7 @@ typedef struct {
     char* wlan_ssid;
     u_int8_t wtp_mac_address[6];
   } wifi;
-  
+
   struct {
     /* IPv4 only, so a int32 bit is only needed */
     u_int32_t src_ip_addr_post_nat, dst_ip_addr_post_nat;
@@ -138,7 +139,6 @@ class Flow : public GenericHashEntry {
                                 shared hosts see below viewFlowStats */
   IpAddress *cli_ip_addr, *srv_ip_addr;
   u_int8_t src2dst_tcp_flags, dst2src_tcp_flags;
-  SNMPInterfaceRole flowExporterInterfaceRole;
   FlowTCP* tcp;
 #ifdef NTOPNG_PRO
   FlowUDP* udp;
@@ -1475,6 +1475,9 @@ class Flow : public GenericHashEntry {
   struct ndpi_in6_addr getOriginalNextHopIP();
   u_int32_t getInIndex();
   u_int32_t getOutIndex();
+  SNMPInterfaceRole getInRole();
+  SNMPInterfaceRole getOutRole();
+  SNMPInterfaceRole getMainRole();
 
   inline u_int16_t getObservationPointId() { return (observation_point_id); };
 
@@ -1772,17 +1775,15 @@ class Flow : public GenericHashEntry {
 		       u_int16_t exporter_site_id,
 		       u_int16_t next_hop_site_id,
                        u_int32_t in_index, u_int32_t out_index,
+		       SNMPInterfaceRole in_role,
+		       SNMPInterfaceRole out_role,
                        FlowSource source, bool src2dst_direction);
 
-  inline SNMPInterfaceRole getSNMPExporterInterfaceRole() {
-    return (flowExporterInterfaceRole);
-  }
-
-  void setSNMPExporterInterfaceRole(SNMPInterfaceRole r);
   inline bool isFirstFlowDump()  { return(last_db_dump.is_first_dump); }
 
-  u_int64_t get_transit_bytes() const;
-  u_int64_t get_peering_bytes() const;
+  u_int64_t get_transit_bytes();
+  u_int64_t get_peering_bytes();
+  u_int64_t get_ix_bytes();
 };
 
 #endif /* _FLOW_H_ */

@@ -135,7 +135,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
   last_db_dump.in_progress = false;
   last_db_dump.is_first_dump = true;
-    
+
   memset(&protos, 0, sizeof(protos));
   flow_score = 0;
 
@@ -359,8 +359,6 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
     }
   }
 
-  flowExporterInterfaceRole = role_other;
-
   computeKey();
   deferredInitialization();
 }
@@ -559,7 +557,7 @@ Flow::~Flow() {
 
   if(s) s->incStats(this);
 #endif
-  
+
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
 
@@ -660,22 +658,22 @@ Flow::~Flow() {
     if (iface->hasMACs() && c_mac && (!c_mac_updated)) {
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
       char buf[256];
-      
+
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Client MAC not updated %s",
 				   print(buf, sizeof(buf)));
 #endif
     }
-    
+
     if (iface->hasMACs() && s_mac && (!s_mac_updated)) {
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
       char buf[256];
-      
+
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Server MAC not updated %s",
 				   print(buf, sizeof(buf)));
 #endif
     }
   }
-  
+
   if (c_mac) c_mac->decUses();
   if (s_mac) s_mac->decUses();
 
@@ -1658,7 +1656,7 @@ void Flow::setExtraDissectionCompleted(bool src2dst_direction) {
   /* 2(**) */
 #ifdef NTOPNG_PRO
   postDetectionCallback();
-  
+
   if (!shapers_profile_set) {
 #ifdef HAVE_NEDGE
     updateFlowShapers(true);
@@ -2264,7 +2262,7 @@ void Flow::flow_end_housekeeping() {
           !is_swap_done())) /* Or requested but never performed (no more packets seen) */
 #endif
   iface->execFlowEndChecks(this);
-  
+
   flow_end_stats_update();
 
   flow_end_housekeeping_done = true;
@@ -2412,7 +2410,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
 				    srv_host->get_ip()->isBroadcastAddress() ||
 				    cli_host->get_ip()->isBroadcastAddress());
     }
-    
+
     srv_network_stats = srv_host->getNetworkStats(srv_network_id);
     srv_host->incStats(tv->tv_sec, get_protocol(), stats_protocol,
                        get_protocol_category(), custom_app, diff_rcvd_packets,
@@ -3156,7 +3154,7 @@ bool Flow::equal(const Mac* _src_pkt_mac, const Mac* _dst_pkt_mac,
   const Mac *src_mac, *dst_mac;
   /*
     nEdge note: As with Netfilter we do not have MAC visibility (at least
-    on the first packet) they should not be used here to avoid invalid flow 
+    on the first packet) they should not be used here to avoid invalid flow
     search as with Netfilter we see only the sender MAC
   */
   bool useMacAddressInFlowKey = ntop->getPrefs()->useMacAddressInFlowKey();
@@ -3594,7 +3592,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 	lua_insert(vm, -2);
 	lua_settable(vm, -3);
       }
-  
+
       if(collection->wifi.wlan_ssid) {
 	char mac_buf[20];
 
@@ -3723,10 +3721,12 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
 	  lua_push_int32_table_entry(vm, "exporter_site_id", it->second.exporter_site_id);
 	  lua_push_int32_table_entry(vm, "next_hop_site_id", it->second.next_hop_site_id);
-	  
+
           lua_push_bool_table_entry(vm,  "return_path", it->second.return_path);
           lua_push_int32_table_entry(vm, "input_idx", it->second.in_index);
           lua_push_int32_table_entry(vm, "output_idx", it->second.out_index);
+          lua_push_int32_table_entry(vm, "input_role", it->second.in_role);
+          lua_push_int32_table_entry(vm, "output_role", it->second.out_role);
           lua_push_int32_table_entry(vm, "source", it->second.source);
 
           lua_pushnumber(vm, i++);
@@ -3740,9 +3740,6 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
-
-    lua_push_uint32_table_entry(vm, "iface_role",
-                                (int)flowExporterInterfaceRole);
   }
 
   lua_get_status(vm);
@@ -4930,7 +4927,7 @@ void Flow::formatGenericFlow(json_object* my_object) {
   }
 
   struct ndpi_in6_addr addr;
-  
+
   addr = getExporterIP();
   if (!Utils::isNullAddress(&addr))
     json_object_object_add(my_object,
@@ -6320,22 +6317,22 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
     }
   }
 
-  switch (flowExporterInterfaceRole) {
-    case role_transit:
-      info_field += " Transit";
-      break;
+  switch (getMainRole()) {
+  case role_transit:
+    info_field += " Transit";
+    break;
 
-    case role_peering:
-      info_field += " Peering";
-      break;
+  case role_peering:
+    info_field += " Peering";
+    break;
 
-    case role_ix:
-      info_field += " Internet eXchange";
-      break;
+  case role_ix:
+    info_field += " Internet eXchange";
+    break;
 
-    default:
-      /* Nothing to do */
-      break;
+  default:
+    /* Nothing to do */
+    break;
   }
 
   return info_field;
@@ -8033,16 +8030,16 @@ void Flow::lua_duration_info(lua_State* vm) {
 void Flow::lua_snmp_info(lua_State* vm) {
   char buf[64];
 
-  lua_push_str_table_entry(vm, "original_device_ip", Utils::intoaV6(getOriginalExporterIP(), buf, sizeof(buf)));  
+  lua_push_str_table_entry(vm, "original_device_ip", Utils::intoaV6(getOriginalExporterIP(), buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "device_ip", Utils::intoaV6(getExporterIP(), buf, sizeof(buf)));
 
   struct ndpi_in6_addr addr = getNextHopIP();
-    
+
   if (!Utils::isNullAddress(&addr)) {
     lua_push_str_table_entry(vm, "original_next_hop", Utils::intoaV6(getOriginalNextHopIP(), buf, sizeof(buf)));
     lua_push_str_table_entry(vm, "next_hop", Utils::intoaV6(getNextHopIP(), buf, sizeof(buf)));
   }
-  
+
   lua_push_uint64_table_entry(vm, "in_index", getInIndex());
   lua_push_uint64_table_entry(vm, "out_index", getOutIndex());
   lua_push_uint64_table_entry(vm, "observation_point_id",
@@ -8642,14 +8639,14 @@ void Flow::serializeJSONRiskInfo(ndpi_serializer* serializer) {
 void Flow::serializeBGPInfo(ndpi_serializer* serializer) {
   if (serializer && collection
       && (collection->bgp.src || collection->bgp.dst)) {
-    ndpi_serialize_start_of_block(serializer, "bgp");				  
+    ndpi_serialize_start_of_block(serializer, "bgp");
 
     if(collection->bgp.src)
       ndpi_serialize_string_raw(serializer, "src", collection->bgp.src, strlen(collection->bgp.src));
-    
+
     if(collection->bgp.dst)
       ndpi_serialize_string_raw(serializer, "dst", collection->bgp.dst, strlen(collection->bgp.dst));
-    
+
     ndpi_serialize_end_of_block(serializer);
   }
 }
@@ -8871,7 +8868,7 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
                                    getTrafficStats()->get_srv2cli_tcp_lost());
     ndpi_serialize_end_of_block(serializer); /* traffic_stats block */
   }
-  
+
   // WLAN_SSID
   if (getWLANSSID()) {
     ndpi_serialize_string_string(serializer, "wlan_ssid", getWLANSSID());
@@ -8888,7 +8885,7 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
   if (getTCPFingerprint()) {
     ndpi_serialize_string_string(serializer, "tcp_fingerprint", getTCPFingerprint());
   }
-  
+
   // COMMUNITY_ID
   if (comm_id){
     ndpi_serialize_string_string(serializer, "community_id", comm_id);
@@ -9305,7 +9302,7 @@ char* Flow::getEndReason() { return (end_reason); }
 
 void Flow::setClientBGPInfo(char* bgp_info) {
   if((bgp_info == NULL) || (bgp_info[0] == '\0')) return;
-  
+
   if(!collection) allocateCollection();
 
   if(collection) {
@@ -9318,7 +9315,7 @@ void Flow::setClientBGPInfo(char* bgp_info) {
 
 void Flow::setServerBGPInfo(char* bgp_info) {
   if((bgp_info == NULL) || (bgp_info[0] == '\0')) return;
-  
+
   if(!collection) allocateCollection();
 
   if(collection) {
@@ -9651,7 +9648,7 @@ bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
 
 bool Flow::matchFlowDeviceIP(struct ndpi_in6_addr *flow_device_ip) {
   struct ndpi_in6_addr addr = getExporterIP();
-  
+
   return(memcmp(&addr, flow_device_ip, sizeof(struct ndpi_in6_addr)) ? false: true);
 }
 
@@ -10345,9 +10342,11 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 			   u_int16_t exporter_site_id,
 			   u_int16_t next_hop_site_id,
                            u_int32_t in_index, u_int32_t out_index,
+			   SNMPInterfaceRole in_role,
+			   SNMPInterfaceRole out_role,
                            FlowSource source, bool src2dst_direction) {
   std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it;
-  ExporterFlowInfoKey key;  
+  ExporterFlowInfoKey key;
 
   if(Utils::isNullAddress(exporter_ip))
     return;
@@ -10362,13 +10361,15 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
   if (it == exporterStats.end()) {
     // Not present: build a new entry and insert it
     ExporterFlowInfo d;
-    
+
     d.exporter_ip = *exporter_ip, d.mapped_exporter_ip = *mapped_exporter_ip,
       d.next_hop = *next_hop, d.mapped_next_hop = *mapped_next_hop,
       d.return_path = !src2dst_direction, d.in_index = in_index,
       d.out_index = out_index, d.source = source,
-      d.exporter_site_id = exporter_site_id, d.next_hop_site_id = next_hop_site_id;
-        
+      d.exporter_site_id = exporter_site_id, d.next_hop_site_id = next_hop_site_id,
+      d.in_role = ntop->snmpGetInterfaceRole(mapped_exporter_ip, in_index),
+      d.out_role = ntop->snmpGetInterfaceRole(mapped_exporter_ip, out_index);
+
     exporterStats.emplace(key, d);
   } else {
     // Present: nothing to do
@@ -10377,8 +10378,8 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 
 /* *************************************** */
 
-u_int64_t Flow::get_transit_bytes() const {
-  if(flowExporterInterfaceRole == role_transit)
+u_int64_t Flow::get_transit_bytes() {
+  if((getInRole() == role_transit) || (getOutRole() == role_transit))
     return(get_bytes());
   else
     return(0);
@@ -10386,8 +10387,8 @@ u_int64_t Flow::get_transit_bytes() const {
 
 /* *************************************** */
 
-u_int64_t Flow::get_peering_bytes() const {
-  if(flowExporterInterfaceRole == role_peering)
+u_int64_t Flow::get_peering_bytes() {
+  if((getInRole() == role_peering) || (getOutRole() == role_peering))
     return(get_bytes());
   else
     return(0);
@@ -10395,25 +10396,19 @@ u_int64_t Flow::get_peering_bytes() const {
 
 /* *************************************** */
 
-void Flow::setSNMPExporterInterfaceRole(SNMPInterfaceRole r) {
-  if(r == role_other)
-    return;
-  
-  if((flowExporterInterfaceRole == role_peering)
-     || (flowExporterInterfaceRole == role_transit)
-     || (flowExporterInterfaceRole == role_ix)
-     )
-    flowExporterInterfaceRole = r; /* Priority */
-  else if(flowExporterInterfaceRole == role_other /* Not yet set */)
-    flowExporterInterfaceRole = r;
+u_int64_t Flow::get_ix_bytes() {
+  if((getInRole() == role_ix) || (getOutRole() == role_ix))
+    return(get_bytes());
+  else
+    return(0);
 }
 
 /* *************************************** */
 
 u_int16_t Flow::getSrcNetworkSiteId() {
     Host *cli_host = getViewSharedClient();
-    return (cli_host) ? 
-        iface->getNetworkSiteId(cli_host->get_local_network_id()) 
+    return (cli_host) ?
+        iface->getNetworkSiteId(cli_host->get_local_network_id())
         : 0;
 }
 
@@ -10421,7 +10416,7 @@ u_int16_t Flow::getSrcNetworkSiteId() {
 
 u_int16_t Flow::getDstNetworkSiteId() {
     Host *srv_host = getViewSharedServer();
-    return (srv_host) ? 
+    return (srv_host) ?
         iface->getNetworkSiteId(srv_host->get_local_network_id()) : 0;
 }
 
@@ -10483,7 +10478,7 @@ struct ndpi_in6_addr Flow::getOriginalNextHopIP() {
 
     return(it->second.next_hop);
   }
-};
+}
 
 /* *************************************** */
 
@@ -10492,10 +10487,10 @@ u_int32_t Flow::getInIndex() {
     return(0);
   } else {
     std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-    
+
     return(it->second.in_index);
   }
- };
+}
 
 /* *************************************** */
 
@@ -10504,10 +10499,10 @@ u_int32_t Flow::getOutIndex() {
     return(0);
   } else {
     std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-    
+
     return(it->second.out_index);
   }
-};
+}
 
 /* *************************************** */
 
@@ -10516,10 +10511,10 @@ u_int16_t Flow::getExporterSiteId() {
     return(0);
   } else {
     std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-    
+
     return(it->second.exporter_site_id);
   }
-};
+}
 
 /* *************************************** */
 
@@ -10528,7 +10523,42 @@ u_int16_t Flow::getNextHopSiteId() {
     return(0);
   } else {
     std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-    
+
     return(it->second.next_hop_site_id);
   }
-};
+}
+
+/* *************************************** */
+
+SNMPInterfaceRole Flow::getInRole() {
+  if(exporterStats.size() == 0) {
+    return(role_other);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+
+    return(it->second.in_role);
+  }
+}
+
+/* *************************************** */
+
+SNMPInterfaceRole Flow::getOutRole() {
+  if(exporterStats.size() == 0) {
+    return(role_other);
+  } else {
+    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
+
+    return(it->second.out_role);
+  }
+}
+
+/* *************************************** */
+
+SNMPInterfaceRole Flow::getMainRole() {
+  SNMPInterfaceRole in_role = getInRole();
+
+  if ((in_role == role_transit) || (in_role == role_peering) || (in_role == role_ix))
+    return(in_role);
+  else
+    return(getOutRole());
+}

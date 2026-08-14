@@ -480,7 +480,7 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
       {"tls", "metadata.ja_ignore_ephemeral_tls_extn", "1"},
       {NULL, "metadata.ndpi_fingerprint_ignore_tcp_fp", "1"},
       { "tls",  "metadata.ja_data",                     "1"  },
-      { "ssh",  "metadata.ssh_data",                    "1"  },       
+      { "ssh",  "metadata.ssh_data",                    "1"  },
       {NULL, NULL, NULL}};
 
   if (ndpi_s == NULL) {
@@ -3468,12 +3468,12 @@ decode_packet_eth:
 
 		default: /* Standard Tag (1 byte type + 1 byte len + X bytes data) */
 		  u_int8_t tag_data_len;
-		  
+
 		  if (offset + 1 >= h->caplen)
-		    goto dissect_packet_end;		  
+		    goto dissect_packet_end;
 
 		  tag_data_len = packet[offset + 1];
-		  
+
 		  // Advance offset past type (1), length (1), and data payload
 		  offset += 2 + tag_data_len;
 		  break;
@@ -3494,7 +3494,7 @@ decode_packet_eth:
 		  goto datalink_check;
 		}
 	      } /* while */
-	    }	    
+	    }
 	  } else if (dport == VXLAN_PORT) {
             eth_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) +
                          sizeof(struct ndpi_vxlanhdr);
@@ -5850,7 +5850,9 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
         retriever->pag->interfaceRoleFilter(&interface_role) &&
         interface_role != role_max_value && /* Exclude the default filter (All
                                                flows, basically) */
-        !(f->getSNMPExporterInterfaceRole() == interface_role))
+        (f->getInRole() != interface_role) &&
+	(f->getOutRole() != interface_role)
+	)
       return (false);
 
     if (retriever->pag && retriever->pag->ipVersion(&ip_version) &&
@@ -5866,19 +5868,19 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
 
     if (retriever->pag && retriever->pag->deviceIPFilter(&deviceIP)) {
       struct ndpi_in6_addr addr = f->getExporterIP();
-      
+
       if (memcmp(&addr, &deviceIP, sizeof(deviceIP)) ||
           (retriever->pag->inIndexFilter(&inIndex) &&
            f->getInIndex() != inIndex) ||
           (retriever->pag->outIndexFilter(&outIndex) &&
            f->getOutIndex() != outIndex))
         return (false);
-      
+
       if (memcmp(&addr, &deviceIP, sizeof(deviceIP)) ||
           (retriever->pag->exporterIfaceIndexFilter(&exporterifaceIndex) &&
           (f->getInIndex() != exporterifaceIndex && f->getOutIndex() != exporterifaceIndex)))
         return (false);
-      
+
     }
 
     if (retriever->pag && retriever->pag->containerFilter(&container_filter)) {
@@ -6301,7 +6303,7 @@ static bool flow_search_walker(GenericHashEntry* h, void* user_data,
       case column_device_ip:
 	{
 	  struct ndpi_in6_addr addr = f->getExporterIP();
-	  
+
 	  memcpy(&retriever->elems[retriever->actNumEntries++].ipAddress,
 		 &addr, sizeof(struct ndpi_in6_addr));
 	}
@@ -6406,8 +6408,8 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
        !h->isUnidirectionalTraffic()) ||
       (r->traffic_type == traffic_type_bidirectional &&
        !h->isBidirectionalTraffic()) ||
-      ((r->iface_index != (u_int32_t)-1) && 
-       (r->iface_index != h->getLastDeviceInInterface() && 
+      ((r->iface_index != (u_int32_t)-1) &&
+       (r->iface_index != h->getLastDeviceInInterface() &&
         r->iface_index != h->getLastDeviceOutInterface())) ||
       ((!Utils::isNullAddress(&r->device_ip)) && h->getLastDeviceIp() &&
        (memcmp(&r->device_ip, h->getLastDeviceIp(), sizeof(struct ndpi_in6_addr)))) ||
@@ -7715,7 +7717,7 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
   retriever->locationFilter = location_filter,
   retriever->min_first_seen = min_first_seen, retriever->ndpi_proto = -1,
   retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE;
-  
+
   if (map_search && map_search[0]) {
     snprintf(map_search_lc, sizeof(map_search_lc), "%s", map_search);
     Utils::stringtolower(map_search_lc);
@@ -9914,7 +9916,7 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
 
 #if defined(NTOPNG_PRO)
   acl_flow = new (std::nothrow) ACLFlow();
-  
+
   if (ntop->getPrefs() && ntop->getPro()->has_valid_license() &&
       ntop->getPrefs()->isBehavourAnalysisEnabled() &&
       (ntop->getPro()->is_enterprise_l_edition() ||
@@ -9994,7 +9996,7 @@ void NetworkInterface::getSiteNetworks(u_int16_t site_id, lua_State* vm) const {
         const char* network_name = ntop->getLocalNetworkName(network_id);
         if (!network_name) continue; /* stale network_id, name no longer valid */
         if (network_stats->getSiteId() != site_id) continue;
-        
+
         lua_pushinteger(vm, network_id);
         lua_rawseti(vm, -2, ++num);
     }
@@ -14606,7 +14608,7 @@ class AggregatedASNFlowKey {
   AggregatedASNFlowKey(u_int8_t _ip_protocol_version, u_int32_t _src_asn,
                        u_int32_t _dst_asn, u_int32_t _src_peer_asn,
                        u_int32_t _dst_peer_asn, struct ndpi_in6_addr _probe_ip,
-                       u_int32_t _input_snmp, u_int32_t _output_snmp, 
+                       u_int32_t _input_snmp, u_int32_t _output_snmp,
                        u_int16_t _src_site_id, u_int16_t _dst_site_id) {
     ip_protocol_version = _ip_protocol_version;
     src_asn = _src_asn;
@@ -14624,7 +14626,7 @@ class AggregatedASNFlowKey {
     u_int32_t _src_asn = 0, _dst_asn = 0;
     char* asName;
     struct ndpi_in6_addr addr = f->getExporterIP();
-    
+
     f->getSrcAS(&_src_asn, &asName);
     f->getDstAS(&_dst_asn, &asName);
 
@@ -14891,12 +14893,12 @@ void NetworkInterface::incRoleBytes(u_int64_t bytes, SNMPInterfaceRole role) {
 int32_t NetworkInterface::getNetworkId(char *ip_address) {
   IpAddress ip;
   int32_t local_network_id;
-  
+
   ip.set(ip_address);
   ip.isLocalHost(&local_network_id);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %d", ip_address, local_network_id);
-  
+
   return(local_network_id < 0 ? -1 : local_network_id);
 }
 

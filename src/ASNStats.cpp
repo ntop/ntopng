@@ -66,13 +66,15 @@ void ASNStats::incStats(Flow* flow) {
     if (it == src_asn.end()) {
       src_asn[srcAS] = {
 	flow->get_bytes_cli2srv(), flow->get_bytes_srv2cli(),
-	flow->get_transit_bytes(), flow->get_peering_bytes()
+	flow->get_transit_bytes(), flow->get_peering_bytes(),
+	flow->get_ix_bytes()
       };
     } else {
       it->second.bytes_sent    += flow->get_bytes_cli2srv();
       it->second.bytes_rcvd    += flow->get_bytes_srv2cli();
       it->second.transit_bytes += flow->get_transit_bytes();
       it->second.peering_bytes += flow->get_peering_bytes();
+      it->second.ix_bytes      += flow->get_ix_bytes();
     }
 
     /* Now handle the destination ASN */
@@ -80,13 +82,15 @@ void ASNStats::incStats(Flow* flow) {
     if (it == dst_asn.end()) {
       dst_asn[dstAS] = {
 	flow->get_bytes_srv2cli(), flow->get_bytes_cli2srv(),
-	flow->get_transit_bytes(), flow->get_peering_bytes()
+	flow->get_transit_bytes(), flow->get_peering_bytes(),
+	flow->get_ix_bytes()
       };
     } else {
       it->second.bytes_sent    += flow->get_bytes_srv2cli();
       it->second.bytes_rcvd    += flow->get_bytes_cli2srv();
       it->second.transit_bytes += flow->get_transit_bytes();
       it->second.peering_bytes += flow->get_peering_bytes();
+      it->second.ix_bytes      += flow->get_ix_bytes();
     }
   }
 }
@@ -117,6 +121,7 @@ void ASNStats::lua(lua_State* vm, bool show_all_stats) {
       lua_push_uint64_table_entry(vm, "total_bytes", total_bytes);
       lua_push_uint64_table_entry(vm, "transit_bytes", it2->second.transit_bytes);
       lua_push_uint64_table_entry(vm, "peering_bytes", it2->second.peering_bytes);
+      lua_push_uint64_table_entry(vm, "ix_bytes",      it2->second.ix_bytes);
       lua_pushstring(vm, std::to_string(it2->first).c_str());
       lua_insert(vm, -2);
       lua_settable(vm, -3);
@@ -139,6 +144,7 @@ void ASNStats::lua(lua_State* vm, bool show_all_stats) {
       lua_push_uint64_table_entry(vm, "total_bytes", total_bytes);
       lua_push_uint64_table_entry(vm, "transit_bytes", it2->second.transit_bytes);
       lua_push_uint64_table_entry(vm, "peering_bytes", it2->second.peering_bytes);
+      lua_push_uint64_table_entry(vm, "ix_bytes",      it2->second.ix_bytes);
       lua_pushstring(vm, std::to_string(it2->first).c_str());
       lua_insert(vm, -2);
       lua_settable(vm, -3);

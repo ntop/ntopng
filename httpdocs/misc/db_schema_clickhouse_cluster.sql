@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS `flows` ON CLUSTER '$CLUSTER' (
 `DST_ASN` UInt32,
 `PROBE_IP` IPv6,
 `EXPORTER_SITE` UInt16,
-`INTERFACE_ROLE` UInt8,
+`INPUT_INTERFACE_ROLE` UInt8,
+`OUTPUT_INTERFACE_ROLE` UInt8,
 `OBSERVATION_POINT_ID` UInt16,
 `SRC2DST_TCP_FLAGS` UInt8,
 `DST2SRC_TCP_FLAGS` UInt8,
@@ -211,7 +212,9 @@ ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `HR_SRC2DST_B
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `HR_DST2SRC_BYTES` Array(UInt64);
 @
-ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `INTERFACE_ROLE` UInt8;
+ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `INPUT_INTERFACE_ROLE` UInt8;
+@
+ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `OUTPUT_INTERFACE_ROLE` UInt8;
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `IS_FIRST_DUMP` Boolean;
 @
@@ -279,7 +282,8 @@ ALTER TABLE `flows` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `DST_ASN` COMMENT 'Autonomous System Number of the destination IP',
   MODIFY COLUMN `PROBE_IP` COMMENT 'IPv4 or IPv6 address of the NetFlow/IPFIX exporter (probe); IPv4 addresses are stored as IPv4-mapped IPv6 (::ffff:a.b.c.d)',
   MODIFY COLUMN `EXPORTER_SITE` COMMENT 'Site/location identifier of the flow exporter',
-  MODIFY COLUMN `INTERFACE_ROLE` COMMENT 'Role of the SMMP interface where 0 = other, 1 = transit, 2 = peering, 3 = internal interface, 4 = internet exchange',
+  MODIFY COLUMN `INPUT_INTERFACE_ROLE` COMMENT 'Role of the input SMMP interface where 0 = other, 1 = transit, 2 = peering, 3 = internal interface, 4 = internet exchange',
+  MODIFY COLUMN `OUTPUT_INTERFACE_ROLE` COMMENT 'Role of the output SMMP interface where 0 = other, 1 = transit, 2 = peering, 3 = internal interface, 4 = internet exchange',
   MODIFY COLUMN `OBSERVATION_POINT_ID` COMMENT 'IPFIX observation point identifier',
   MODIFY COLUMN `SRC2DST_TCP_FLAGS` COMMENT 'Bitwise OR of TCP flags seen in the client-to-server direction',
   MODIFY COLUMN `DST2SRC_TCP_FLAGS` COMMENT 'Bitwise OR of TCP flags seen in the server-to-client direction',
