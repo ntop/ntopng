@@ -2423,6 +2423,7 @@ local known_parameters = {
    ["content"] = validateUnchecked,
    ["chatId"] = validateUUID,
    ["sequence"] = validateNumber,
+   ["edit_from_sequence"] = validateNumber,
    ["title"] = validateUnquoted,
    ["concise"] = validateBool,
    ["no_store"] = validateBool, -- when true, completion.lua skips persisting chat/token-usage rows (used by test/regression harnesses)
@@ -2435,6 +2436,17 @@ local known_parameters = {
    ["page_context"] = validateUnquoted,
    ["is_active"] = validateBool,
    ["sql_query"] = {jsonCleanup, validatePcap},          -- SQL may contain <>/operators; bypass httpPurifyParam
+   ["widget"] = {jsonCleanup, validatePcap},             -- JSON widget spec, embeds a raw sql_query
+   ["dashboard_id"] = validateSingleWord,                -- AI dashboard slug id (not numeric — "id" reserved for validateNumber)
+   ["widget_id"] = validateSingleWord,                   -- AI dashboard widget slug id, same reason
+   ["dashboard"] = validateSingleWord,                   -- page-ai-dashboard.vue deep-link param, same id space
+   ["pos_x"] = validateNumber,                           -- AI dashboard widget grid position (not "x" — collides elsewhere)
+   ["pos_y"] = validateNumber,
+   ["grid_w"] = validateNumber,                          -- AI dashboard widget grid size (not "w"/"h" — collides elsewhere)
+   ["grid_h"] = validateNumber,
+   ["new_dashboard_name"] = validateUnquoted,            -- free-text dashboard name, may contain spaces
+   ["dashboard_name"] = validateUnquoted,                -- AI dashboard save/rename (not "name" — that's reserved globally for a stricter filter-list shape)
+   ["reviewed"] = validateBool,
    ["explanation"] = {jsonCleanup, validatePcap},        -- free-text explanation, no lint restriction needed
    ["policy_description"] = {jsonCleanup, validatePcap}, -- ai policy description, may contain special chars
    ["periodicity"] = validateUnquoted,
@@ -2550,6 +2562,15 @@ local known_parameters = {
    ["alias"] = validateUnquoted,
    ["token"] = validateToken,
    ["instance_id"] = validateSingleWord,
+
+   -- Custom LLM providers
+   ["provider_id"] = validateSingleWord,
+   ["provider_name"] = validateUnquoted,
+   ["provider_token"] = validateEmptyOr(validateUnquoted),
+   ["timeout_sec"] = validateNumber,
+
+   -- AI Audit Log deep-link filter (page-ai-audit.vue)
+   ["tool_name"] = validateSingleWord,
    ["stats"] = validateBool,
    ["rtt_threshold"] = validateNumber,
    ["bandwidth_threshold"] = validateNumber,
