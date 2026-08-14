@@ -24,6 +24,18 @@ local ascan_utils = require "ascan_utils"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
+-- @brief Read the expiring/expired license counters kept up to date by
+--        pro/scripts/lua/modules/license_utils.lua (refreshed on manual
+--        "refresh" clicks and by the daily periodic license check), so this
+--        endpoint -- polled every few seconds by app-shell.vue -- never has
+--        to decode the full license JSON itself.
+local function countLicensesExpiration()
+   local expiring = tonumber(ntop.getCache("ntopng.cache.products.licenses.expiring_count")) or 0
+   local expired = tonumber(ntop.getCache("ntopng.cache.products.licenses.expired_count")) or 0
+
+   return expiring, expired
+end
+
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -219,6 +231,10 @@ function dumpInterfaceStats(ifid)
          if product_info["pro.out_of_maintenance"] then
             res["out_of_maintenance"] = true
          end
+
+         local expiring, expired = countLicensesExpiration()
+         if expiring > 0 then res["licenses_expiring_soon"] = expiring end
+         if expired > 0 then res["licenses_expired"] = expired end
       end
       res["system_host_stats"] = cpu_utils.systemHostStats()
       res["hosts_pctg"] = hosts_pctg
@@ -441,6 +457,10 @@ function dumpBriefInterfaceStats(ifid)
          if (product_info.ntopcloud) then
             res["ntopcloud"] = true
          end
+
+         local expiring, expired = countLicensesExpiration()
+         if expiring > 0 then res["licenses_expiring_soon"] = expiring end
+         if expired > 0 then res["licenses_expired"] = expired end
       end
 
       res["hosts_pctg"] = hosts_pctg
