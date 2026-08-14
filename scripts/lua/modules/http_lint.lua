@@ -2732,6 +2732,8 @@ local known_parameters = {
    ["interface_role"] = validateInterfaceRole,
    ["interface_name_filter"] = validateUnquoted,
    ["iface_role"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
+   ["in_iface_role"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
+   ["out_iface_role"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
    ["interface_filter"] = validateSingleWord,
 
    -- Input fields

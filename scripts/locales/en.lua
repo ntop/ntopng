@@ -2264,6 +2264,8 @@ local lang = {
     ["all_transit"] = "All Transit",
     ["autonomous_systems"] = "Autonomous Systems",
     ["interface_role"] = "Interface Role",
+    ["in_iface_role"] = "Input Interface Role",
+    ["out_iface_role"] = "Output Interface Role",
     ["interfaces"] = "Interfaces",
   },
   ["assets_page"] = {

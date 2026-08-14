@@ -1341,7 +1341,8 @@ local flow_columns = {
    ['USER_LABEL_TSTAMP'] =    { flowfilter = "user_label_tstamp" },
    ['SRC_PEER_ASN'] =         { flowfilter = "src_peer_asn" },
    ['DST_PEER_ASN'] =         { flowfilter = "dst_peer_asn" },
-   ['INTERFACE_ROLE'] =         { flowfilter = "iface_role", simple_dt_func = simple_format_interface_role, db_type = "Number", db_raw_type = "Uint8" }
+   ['INPUT_INTERFACE_ROLE'] =   { flowfilter = "in_iface_role", simple_dt_func = simple_format_interface_role, db_type = "Number", db_raw_type = "Uint8" },
+   ['OUTPUT_INTERFACE_ROLE'] =  { flowfilter = "out_iface_role", simple_dt_func = simple_format_interface_role, db_type = "Number", db_raw_type = "Uint8" },
 }
 local aggregated_flow_columns = {
    ['FLOW_ID'] =              { flowfilter = "rowid", db_type = "Number", db_raw_type = "Uint64" },
@@ -1395,6 +1396,7 @@ local additional_flow_columns = {
    ['ASN'] =                  { flowfilter = "asn", simple_dt_func = simple_format_asn },
    ['COUNTRY_CODE'] =         { flowfilter = "country", dt_func = dt_format_country },
    ['snmp_interface'] =       { flowfilter = "snmp_interface", dt_func = dt_format_snmp_interface },
+   ['iface_role'] =       { flowfilter = "iface_role", dt_func = dt_format_snmp_interface },
 }
 
 -- #####################################
@@ -1688,6 +1690,7 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["tag"] = flowfilter_utils.defined_filters["tag"]
    flow_defined_filters["cli_tag"] = flowfilter_utils.defined_filters["cli_tag"]
    flow_defined_filters["srv_tag"] = flowfilter_utils.defined_filters["srv_tag"]
+   flow_defined_filters["iface_role"] = flowfilter_utils.defined_filters["iface_role"]
 
    return flow_defined_filters
 end

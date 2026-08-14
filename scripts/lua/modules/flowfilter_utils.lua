@@ -400,6 +400,20 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq'},
         hourly_available = false
     },
+    in_iface_role = {
+        type = flowfilter_utils.input_types.select,
+        value_type = 'iface_role',
+        i18n_label = i18n('as_stats.in_iface_role'),
+        operators = {'eq', 'neq'},
+        hourly_available = false
+    },
+    out_iface_role = {
+        type = flowfilter_utils.input_types.select,
+        value_type = 'iface_role',
+        i18n_label = i18n('as_stats.out_iface_role'),
+        operators = {'eq', 'neq'},
+        hourly_available = false
+    },
     src2dst_tcp_flags = {
         value_type = 'flags',
         i18n_label = i18n('db_search.src2dst_tcp_flags'),
@@ -1773,7 +1787,9 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
                 label = i18n(severity.i18n_title)
             }
         end
-    elseif filter_def.value_type == "iface_role" then
+    elseif filter_def.value_type == "iface_role" or 
+            filter_def.value_type == "in_iface_role" or 
+            filter_def.value_type == "out_iface_role" then
         local snmp_utils = require "snmp_utils"
         filter.value_type = 'array'
         filter.options = {}
