@@ -232,7 +232,7 @@ int oid_length(char *oid)
     
   oid_split(oid, parts);
     
-  for (i = 2; i < num_parts; i++)
+  for (i = 2; i < num_parts && i < MAX_OID_PARTS; i++)
     {
       data_len += oid_part_length(parts[i]);
     }
@@ -251,7 +251,7 @@ static void *render_oid(char *oid, void *dest)
         
   first_two = parts[0] * 40 + parts[1];
   dest = render_byte(first_two, dest);
-  for (i = 2; i < num_parts; i++)
+  for (i = 2; i < num_parts && i < MAX_OID_PARTS; i++)
     dest = render_oid_part(parts[i], dest);
     
   return dest;
@@ -294,7 +294,7 @@ static void *read_oid(void *src, char **oid, int size)
     
   i = 2;
     
-  while (src < endp)
+  while ((i <= MAX_OID_PARTS) && (src < endp))
     {
       src = read_oid_part(src, &parts[i]);
       i++;
