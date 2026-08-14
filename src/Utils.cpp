@@ -2546,19 +2546,20 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
     if (opts.max_duration_timeout > 0)
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, opts.max_duration_timeout);
 
-    if (!opts.form_data) {
-      /* A GET request, track client connection status */
-      memset(&progressState, 0, sizeof(progressState));
-      progressState.vm = vm;
-      curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    /* Track client connection status for GET and POST alike: if the caller
+     * (browser) disconnects mid-request — e.g. an aborted fetch() — abort
+     * this outbound transfer too, instead of letting it run to completion
+     * in the background. Matters most for slow POSTs (LLM provider calls). */
+    memset(&progressState, 0, sizeof(progressState));
+    progressState.vm = vm;
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
 #if LIBCURL_VERSION_NUM >= 0x072000
-      curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
 #else
-      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 #endif
-      curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
-    }
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
 
 #ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout * 1000);

@@ -2499,6 +2499,20 @@ function M.get_sections(flags)
             section = i18n("prefs.llm_local"),
             hidden = (not has_nanalyst)
         }, {
+            key = "local_llm_timeout",
+            title = i18n("prefs.llm_timeout_title"),
+            description = i18n("prefs.llm_timeout_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.llm.local_llm_timeout",
+            default = "120",
+            attrs = {
+                min = "10",
+                max = "1800"
+            },
+            section = i18n("prefs.llm_local"),
+            hidden = (not has_nanalyst)
+        }, {
             key = "qwen_url",
             title = i18n("prefs.llm_url_title"),
             description = i18n("prefs.llm_qwen_url_description"),
@@ -2540,6 +2554,20 @@ function M.get_sections(flags)
             attrs = {
                 spellcheck = "false",
                 maxlength = "128"
+            },
+            section = i18n("prefs.llm_qwen"),
+            hidden = (not has_nanalyst)
+        }, {
+            key = "qwen_timeout",
+            title = i18n("prefs.llm_timeout_title"),
+            description = i18n("prefs.llm_timeout_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.llm.qwen_timeout",
+            default = "120",
+            attrs = {
+                min = "10",
+                max = "1800"
             },
             section = i18n("prefs.llm_qwen"),
             hidden = (not has_nanalyst)
@@ -2589,6 +2617,20 @@ function M.get_sections(flags)
             section = i18n("prefs.llm_anthropic"),
             hidden = (not has_nanalyst)
         }, {
+            key = "anthropic_timeout",
+            title = i18n("prefs.llm_timeout_title"),
+            description = i18n("prefs.llm_timeout_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.llm.anthropic_timeout",
+            default = "120",
+            attrs = {
+                min = "10",
+                max = "1800"
+            },
+            section = i18n("prefs.llm_anthropic"),
+            hidden = (not has_nanalyst)
+        }, {
             key = "openai_url",
             title = i18n("prefs.llm_url_title"),
             description = i18n("prefs.llm_openai_url_description"),
@@ -2632,6 +2674,37 @@ function M.get_sections(flags)
                 maxlength = "128"
             },
             section = i18n("prefs.llm_openai"),
+            hidden = (not has_nanalyst)
+        }, {
+            key = "openai_timeout",
+            title = i18n("prefs.llm_timeout_title"),
+            description = i18n("prefs.llm_timeout_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.llm.openai_timeout",
+            default = "120",
+            attrs = {
+                min = "10",
+                max = "1800"
+            },
+            section = i18n("prefs.llm_openai"),
+            hidden = (not has_nanalyst)
+        }, {
+            key = "llm_default_provider",
+            title = i18n("prefs.llm_default_provider_title"),
+            description = i18n("prefs.llm_default_provider_description"),
+            type = "llm_default_provider",
+            redis_key = "ntopng.prefs.llm.default_provider",
+            default = "",
+            section = i18n("prefs.llm_general"),
+            hidden = (not has_nanalyst)
+        }, {
+            key = "llm_custom_providers",
+            title = i18n("prefs.llm_custom_providers_title"),
+            description = i18n("prefs.llm_custom_providers_description"),
+            type = "llm_custom_providers",
+            full_width = true,
+            section = i18n("prefs.llm_custom"),
             hidden = (not has_nanalyst)
         }}
     }
