@@ -3,7 +3,7 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 if(ntop.isPro and ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -15,7 +15,7 @@ local template = require("template_utils")
 local graph_utils = require("graph_utils")
 local json = require("dkjson")
 local auth = require "auth"
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 local format_utils = require "format_utils"
 
 
@@ -23,9 +23,9 @@ if not isAllowedSystemInterface() then return end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.vulnerability_scan)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.active_scan)
 
-local base_url = ntop.getHttpPrefix() .. "/lua/vulnerability_scan.lua"
+local base_url = ntop.getHttpPrefix() .. "/lua/active_scan.lua"
 local charts_available = areHostTimeseriesEnabled(ifId, nil)
 
 local page = _GET["page"] or ('overview')
@@ -82,7 +82,7 @@ if not printable then
         active = page == "report",
         page_name = "report",
         hidden = not(ntop.isEnterpriseL and ntop.isEnterpriseL() and not ntop.isClickHouseEnabled()) or not is_host_defined,
-        url = ntop.getHttpPrefix() .."/lua/vulnerability_scan.lua?page=report&report_template=vs_result&ifid="..ifid,
+        url = ntop.getHttpPrefix() .."/lua/active_scan.lua?page=report&report_template=ascan_result&ifid="..ifid,
         label = i18n('hosts_stats.page_scan_hosts.download_page')
       },
     {
@@ -104,7 +104,7 @@ if (page == "scan_hosts" or page == "overview") then
         host = host_ip,
         is_clickhouse_enabled = ntop.isClickHouseEnabled()
     }
-    template.render("pages/vue_page.template", { vue_page_name = "PageVulnerabilityScan", page_context = json.encode(json_context) })
+    template.render("pages/vue_page.template", { vue_page_name = "PageActiveScan", page_context = json.encode(json_context) })
     
 elseif (page == "show_result") then 
     
@@ -157,10 +157,10 @@ elseif (page == 'reports') then
 
     local json_context = json.encode(context)
 
-    template.render("pages/vue_page.template", { vue_page_name = "PageVulnerabilityScanReport", page_context = json_context })
+    template.render("pages/vue_page.template", { vue_page_name = "PageActiveScanReport", page_context = json_context })
 
 elseif (page == "report") then
-    local scan_dates_json_string = vs_utils.get_scan_all_dates()
+    local scan_dates_json_string = ascan_utils.get_scan_all_dates()
     local title = i18n("hosts_stats.page_scan_hosts.report.title")
 
     if (not isEmptyString(scan_dates_json_string)) then
@@ -177,7 +177,7 @@ elseif (page == "report") then
         ifid = ifid,
         page = "vs-report",
         title = title,
-        template = "vs_result",
+        template = "ascan_result",
         printable = printable,
         csrf = ntop.getRandomCSRFValue(),
         template_endpoint = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/report/template/data.lua",

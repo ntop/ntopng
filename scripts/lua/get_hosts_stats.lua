@@ -3,13 +3,11 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require "dkjson"
 local custom_column_utils = require "custom_column_utils"
 local format_utils = require "format_utils"
-local vs_utils = require "vs_utils"
 local custom_column = _GET["custom_column"]
 
 sendHTTPHeader('application/json')
@@ -95,16 +93,6 @@ local function get_host_data(host)
     else
         res["column_thpt"] = "0 " .. throughput_type
     end
-
-    local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
-
-    if (host_vulnerabilities and 
-        host_vulnerabilities.num_vulnerabilities_found ~= nil and 
-        host_vulnerabilities.num_vulnerabilities_found > 0) then
-        res["column_num_vulnerabilities"] = format_high_num_value_for_tables(
-            host_vulnerabilities, "num_vulnerabilities_found")
-    end
-
 
     res["column_num_flows"] = host["active_flows.as_client"] + host["active_flows.as_server"]
     res["column_num_flows"] = format_high_num_value_for_tables(res, "column_num_flows")

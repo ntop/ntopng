@@ -61,7 +61,7 @@ function am.get_am_defs()
     local measurements_info = {}
 
     for key, info in pairs(am_utils.getMeasurementsInfo()) do
-        if key == "vulnerability_scan" or key == "cve_changes_detected" or key == "ports_changes_detected" then
+        if key == "active_scan" or key == "ports_changes_detected" then
             goto continue
         end
         local label = i18n(info.i18n_label) or info.i18n_label

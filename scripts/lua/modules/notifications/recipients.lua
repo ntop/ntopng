@@ -62,8 +62,8 @@ function recipients.get_notification_types()
             title = i18n('report.reports'),
             icon = 'fa-regular fa-newspaper'
         },
-        vulnerability_scans = {
-            title = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
+        active_scans = {
+            title = i18n('hosts_stats.page_scan_hosts.active_scan_reports'),
             icon = 'fa-solid fa-clipboard'
         }
     }
@@ -1130,7 +1130,7 @@ end
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
 function recipients.dispatch_notification(notification, current_script, notification_type, recipient_id)
-    local is_vs = (notification_type == 'vulnerability_scans')
+    local is_vs = (notification_type == 'active_scans')
 
     if not notification then
         -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")

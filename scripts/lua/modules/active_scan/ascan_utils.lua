@@ -4,29 +4,10 @@
 
 --
 -- This file implements some utility functions used by the REST API
--- in the vulnerability pages
+-- in the Active Scan pages.
 --
---
--- https://geekflare.com/nmap-vulnerability-scan/
--- cd /usr/share/nmap/scripts/
--- git clone https://github.com/scipag/vulscan.git
--- ln -s `pwd`/scipag_vulscan /usr/share/nmap/scripts/vulscan
--- cd vulscan/utilities/updater/
--- chmod +x updateFiles.sh
--- ./updateFiles.sh
---
--- Example:
--- nmap -sV --script vulscan --script-args vulscandb=openvas.csv <target> -p 80,233
---
---
--- exploitdb.csv
--- osvdb.csv
--- securitytracker.csv
--- openvas.csv
--- scipvuldb.csv
--- xforce.csv
--- securityfocus.csv
--- cve.csv
+-- Scans are performed with nmap: see scripts/lua/modules/active_scan/modules
+-- for the available scan engines.
 --
 
 -- **********************************************************
@@ -34,7 +15,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 require "lua_utils" -- used by tprint (debug)
@@ -75,9 +56,8 @@ local single_scan_info_key                = "ntopng.vs.single_scan.info"
 local json = require("dkjson")
 local format_utils = require("format_utils")
 local recipients = require("recipients")
-local cve_utils = require("cve_utils")
-local vs_db_utils = require("vs_db_utils")
-local vs_rest_utils = require("vs_rest_utils")
+local ascan_db_utils = require("ascan_db_utils")
+local ascan_rest_utils = require("ascan_rest_utils")
 
 -- Enable debug with:
 -- redis-cli set "ntopng.prefs.vs.debug_enabled" "1"
@@ -85,38 +65,31 @@ local vs_rest_utils = require("vs_rest_utils")
 local debug_me = ntop.getCache("ntopng.prefs.vs.debug_enabled") == "1"
 local verbose = false
 
-local vs_utils = {}
+local ascan_utils = {}
 
 local use_slow_scan;
 
 -- **********************************************************
--- Scan types temporarily disabled.
--- The CVE and Vulners engines are not functional yet, so these
--- scan types must not be selectable, must not be shown in the
--- hosts-to-scan table and must never be scheduled or executed
--- To re-enable a scan type, remove the corresponding entry below.
-local disabled_scan_types = {
+-- Scan types removed from ntopng (their engines used to live in
+-- modules/active_scan/modules and are now in attic/). Leftover Redis
+-- configurations are purged by ascan_utils.migrate_keys() at startup.
+local obsolete_scan_types = {
    ["cve"] = true,
    ["vulners"] = true,
+   ["openvas"] = true,
 }
-
--- **********************************************************
--- Returns true if the given scan type is temporarily disabled
-function vs_utils.is_scan_type_disabled(scan_type)
-   return scan_type ~= nil and disabled_scan_types[scan_type] == true
-end
 
 -- **********************************************************
 -- Function to retrieve host hash key used on redis
 
-function vs_utils.get_host_hash_key(host, scan_type)
+function ascan_utils.get_host_hash_key(host, scan_type)
    return string.format("%s-%s", host, scan_type)
 end
 
 -- **********************************************************
 
 -- Scan status
-vs_utils.scan_status = {
+ascan_utils.scan_status = {
    error       = 0,
    ok          = 1,
    scheduled   = 2,
@@ -126,7 +99,7 @@ vs_utils.scan_status = {
 }
 
 -- Scan execution type
-vs_utils.scan_in_exec_type = {
+ascan_utils.scan_in_exec_type = {
    single_scan = 1,
    scan_all = 2,
    periodic_scan = 3
@@ -134,7 +107,7 @@ vs_utils.scan_in_exec_type = {
 
 -- **********************************************************
 -- Function to retrieve nmap path on OS
-function vs_utils.get_nmap_path()
+function ascan_utils.get_nmap_path()
    local path = {
       "/usr/bin/nmap",
       "/usr/local/bin/nmap",
@@ -152,23 +125,10 @@ end
 
 -- **********************************************************
 -- Function to check if nmap is installed
-function vs_utils.is_nmap_installed()
-   local module_path = {
-      "/usr/share/nmap/scripts/",
-      "/opt/homebrew/share/nmap/scripts/vulscan/",
-      "/usr/local/share/nmap/scripts/vulscan",
-   }
-   local path = vs_utils.get_nmap_path()
-
-   if(path ~= nil) then
-      for _,m in pairs(module_path) do
-         if(ntop.exists(m)) then
-            return true
-         end
-      end
-   end
-
-   return false
+-- NOTE: no scan engine needs the vulscan NSE scripts anymore,
+-- the nmap binary is all that is required
+function ascan_utils.is_nmap_installed()
+   return(ascan_utils.get_nmap_path() ~= nil)
 end
 
 -- **********************************************************
@@ -178,6 +138,8 @@ local function get_report_path(scan_type, ip, all)
    local base_dir
    local ret = ""
 
+   -- NOTE: the directory name is kept as-is on purpose: renaming it would
+   -- orphan the scan results saved by previous versions on non-ClickHouse setups
    base_dir = dirs.workingdir .. "/" .. getSystemInterfaceId() .. "/vulnerability_scan"
    ntop.mkdir(base_dir)
 
@@ -336,7 +298,7 @@ local function save_last_result(scan_result, scan_type, host, epoch, last_port_s
    end
 
    if (scan_result ~= nil and ntop.isClickHouseEnabled()) then
-      vs_db_utils.update_last_result(scan_result, scan_type, host, epoch, last_port_scanned_label)
+      ascan_db_utils.update_last_result(scan_result, scan_type, host, epoch, last_port_scanned_label)
    end
 
 end
@@ -346,7 +308,7 @@ end
 -- false positive
 local function verify_status_ports(possible_changed_ports, host, scan_type, open_ports_case, epoch)
    local real_ports = {}
-   local scan_module = vs_utils.load_module(scan_type)
+   local scan_module = ascan_utils.load_module(scan_type)
 
    for _,possible_changed_port in ipairs(possible_changed_ports) do
       local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = scan_module:scan_host(host, possible_changed_port)
@@ -522,7 +484,7 @@ end
 -- ##############################################
 -- Function to obtain the port from the scan result
 -- line
-function vs_utils.cleanup_port(is_tcp, line)
+function ascan_utils.cleanup_port(is_tcp, line)
    local splitted_line = {}
 
    local regex =  "([^/udp]+)"
@@ -542,7 +504,7 @@ end
 -- Function to cleanup and get info from the scan
 -- result.
 -- Remove the first/last few lines that contain nmap information that change at each scan
-function vs_utils.cleanup_nmap_result(scan_result, scan_type)
+function ascan_utils.cleanup_nmap_result(scan_result)
    if(scan_result ~= nil) then
       scan_result = scan_result:gsub("|", "")
       scan_result = scan_result:gsub("_", "")
@@ -556,6 +518,9 @@ function vs_utils.cleanup_nmap_result(scan_result, scan_type)
       table.remove(scan_result, #scan_result)
 
       local num_open_ports = 0
+      -- NOTE: kept to preserve the result schema. Since the CVE/Vulners scan
+      -- engines have been removed there is no vulnerability detection anymore,
+      -- so these are always 0 / empty
       local num_vulnerabilities = 0
       local cve = {}
       local scan_out = {}
@@ -570,12 +535,12 @@ function vs_utils.cleanup_nmap_result(scan_result, scan_type)
 
             if (t > 0) then
                num_open_ports = num_open_ports + 1
-               tcp_ports[#tcp_ports+1] = vs_utils.cleanup_port(true, l)
+               tcp_ports[#tcp_ports+1] = ascan_utils.cleanup_port(true, l)
             end
 
             if(u > 0) then
                num_open_ports = num_open_ports + 1
-               udp_ports[#udp_ports+1] = vs_utils.cleanup_port(false, l)
+               udp_ports[#udp_ports+1] = ascan_utils.cleanup_port(false, l)
             end
          end
 
@@ -583,20 +548,6 @@ function vs_utils.cleanup_nmap_result(scan_result, scan_type)
          l = l:gsub("<", "&lt;")
          l = l:gsub(">", "&gt;")
 
-         if(string.sub(l, 1, 2) == " [") then
-            local c = string.split(string.sub(l,3), "]")
-            local url = cve_utils.getDocURL(c[1], scan_type)
-
-            if(scan_type == "cve") then
-	       l = '[<A HREF="'..url..'">'..c[1]..'</A>]'..c[2]
-            elseif(scan_type == "openvas") then
-               l = '[<A HREF="'..url..'">'..c[1]..'</A>]'..c[2]
-            end
-
-            table.insert(cve, c[1])
-            num_vulnerabilities = num_vulnerabilities + 1
-         end
-         
          if (string.find(l, "filtered") == nil) then
             table.insert(scan_out, l)
          end
@@ -605,13 +556,13 @@ function vs_utils.cleanup_nmap_result(scan_result, scan_type)
       scan_result = table.concat(scan_out, "\n")
       return scan_result, num_open_ports, num_vulnerabilities, cve, udp_ports, tcp_ports
    else
-      return "", 0, 0, 0, 0, 0
+      return "", 0, 0, {}, {}, {}
    end
 end
 
 -- ##############################################
 -- Remove the first/last few lines that contain nmap information that change at each scan
-function vs_utils.cleanup_nmap_check_host_result(scan_result)
+function ascan_utils.cleanup_nmap_check_host_result(scan_result)
    if(scan_result ~= nil) then
 
       if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Result: "..scan_result.."\n") end
@@ -643,53 +594,9 @@ end
 
 -- **********************************************************
 
--- Remove the first/last few lines that contain nmap information that change at each scan
-function vs_utils.cleanup_nmap_vulners_result(scan_result, scan_type)
-   scan_result = scan_result:gsub("|_", "")
-   scan_result = scan_result:gsub("|", "")
-
-   scan_result = lines(scan_result)
-
-   for i=1,4 do
-      table.remove(scan_result, 1)
-   end
-
-   table.remove(scan_result, #scan_result)
-
-   local num_open_ports = 0
-   local num_vulnerabilities = 0
-   local cve = {}
-   local scan_out = {}
-
-   for _,l in pairs(scan_result) do
-      if(string.find(l, "open") ~= nil) then
-         local t = string.find(l, "/tcp ") or 0
-         local u = string.find(l, "/udp ") or 0
-
-         if((t > 0) or (u > 0)) then
-            num_open_ports = num_open_ports + 1
-         end
-      end
-
-      if(string.find(l, "https://vulners.com/") ~= nil) then
-         local c = string.split(l, "\t")
-         table.insert(cve, c[2])
-         num_vulnerabilities = num_vulnerabilities + 1
-      end
-
-      table.insert(scan_out, l)
-   end
-
-   scan_result = table.concat(scan_out, "\n")
-
-   return scan_result, num_open_ports, num_vulnerabilities, cve
-end
-
--- **********************************************************
-
 -- Function to save host configuration
 local function isAlreadyPresent(item)
-   local host_hash_key = vs_utils.get_host_hash_key(item.host, item.scan_type)
+   local host_hash_key = ascan_utils.get_host_hash_key(item.host, item.scan_type)
    local hash_prefs_string = ntop.getHashCache(prefs_host_values_key,host_hash_key)
 
    if (not isEmptyString(hash_prefs_string)) then
@@ -702,65 +609,9 @@ local function isAlreadyPresent(item)
    return false
 end
 
--- **********************************************************
--- Compare function to sort CVE on the score
-local function compare(a,b)
-
-   local a_array = split(a,"|")
-   local a_has_score = false
-   if (#a_array > 1) then
-      a_has_score = true
-      a = a_array[2]
-   end
-
-   local b_array = split(b,"|")
-   local b_has_score = false
-   if (#b_array > 1) then
-      b_has_score = true
-      b = b_array[2]
-   end
-
-   if (a_has_score and b_has_score) then
-      return a > b
-   else
-      return a_array[1] > b_array[1]
-   end
-end
-
--- **********************************************************
-
--- Function to format cve list with scores
-local function get_cve_with_score(cve)
-   local cve_with_score_list = {}
-   local max_score = 0
-   if(cve ~= nil) then
-      for _,cve_id in ipairs(cve) do
-         local score = cve_utils.getCVEscore(cve_id)
-
-         local cve_formatted = cve
-         if(score ~= nil) then
-
-            if(max_score < score) then
-               max_score = score
-            end
-            cve_formatted = string.format("%s|%s",cve_id,score)
-         end
-         cve_with_score_list[#cve_with_score_list+1] = cve_formatted
-      end
-   end
-
-   if next(cve_with_score_list) then
-      table.sort(cve_with_score_list, compare)
-   end
-
-   return cve_with_score_list, max_score
-end
-
--- **********************************************************
-
 -- Function to remove scanning host
 local function remove_scanning_host(host_info)
-   local host_to_scan_hash_key = vs_utils.get_host_hash_key(host_info.host, host_info.scan_type)
+   local host_to_scan_hash_key = ascan_utils.get_host_hash_key(host_info.host, host_info.scan_type)
    ntop.delHashCache(host_in_scanning_hash_key,host_to_scan_hash_key)
 end
 
@@ -768,7 +619,7 @@ end
 
 -- Function to set the actual scanning host on a redis key
 local function save_scanning_host(scan_info)
-   local host_to_scan_hash_key = vs_utils.get_host_hash_key(scan_info.host, scan_info.scan_type)
+   local host_to_scan_hash_key = ascan_utils.get_host_hash_key(scan_info.host, scan_info.scan_type)
    ntop.setHashCache(host_in_scanning_hash_key, host_to_scan_hash_key, json.encode(scan_info))
 end
 
@@ -776,11 +627,11 @@ end
 
 -- Function to select correctly redis keys on periodic or scan all
 local function get_counter_periodic_all_scan_keys(exec_type)
-   if (exec_type == vs_utils.scan_in_exec_type.periodic_scan) then
+   if (exec_type == ascan_utils.scan_in_exec_type.periodic_scan) then
       return periodic_scan_host_info_key --host_periodic_scan_cve_num_key,host_periodic_scan_udp_ports_key,host_periodic_scan_tcp_ports_key
-   elseif (exec_type == vs_utils.scan_in_exec_type.scan_all) then
+   elseif (exec_type == ascan_utils.scan_in_exec_type.scan_all) then
       return ondemand_scan_host_info_key --host_scan_all_cve_num_key,host_scan_all_udp_ports_key,host_scan_all_tcp_ports_key
-   elseif(exec_type == vs_utils.scan_in_exec_type.single_scan) then
+   elseif(exec_type == ascan_utils.scan_in_exec_type.single_scan) then
       return single_scan_info_key
    end
 end
@@ -889,7 +740,7 @@ local function update_scan_info_for_report(type_of_scan_execution, new_item, hos
       end
    end
 
-   if (new_item.is_ok_last_scan == vs_utils.scan_status.ok) then
+   if (new_item.is_ok_last_scan == ascan_utils.scan_status.ok) then
       if (info_json ~= {} and info_json.scanned_hosts ~= nil) then
 	 -- count just in success case
 	 info_json.scanned_hosts = tonumber(info_json.scanned_hosts) + 1
@@ -948,7 +799,7 @@ end
 -- **********************************************************
 
 -- Function to restore scanning host
-function vs_utils.restore_host_to_scan()
+function ascan_utils.restore_host_to_scan()
    local hash_keys = ntop.getHashKeysCache(host_in_scanning_hash_key)
 
    if hash_keys then
@@ -963,9 +814,9 @@ function vs_utils.restore_host_to_scan()
                ntop.lpushCache(host_scan_queue_key, hash_value_string)
 
                -- set status to scheduled
-               vs_utils.set_status_scan(host_info_to_restore.scan_type, host_info_to_restore.host, host_info_to_restore.ports,
+               ascan_utils.set_status_scan(host_info_to_restore.scan_type, host_info_to_restore.host, host_info_to_restore.ports,
                                         host_info_to_restore.id, host_info_to_restore.is_periodicity, host_info_to_restore.is_all, host_info_to_restore.is_single_scan,
-                                        vs_utils.scan_status.scheduled)
+                                        ascan_utils.scan_status.scheduled)
             end
          end
       end
@@ -975,14 +826,14 @@ end
 -- **********************************************************
 
 -- Function to restore backup config
-function vs_utils.restore_config_backup(vs_backup)
+function ascan_utils.restore_config_backup(vs_backup)
    -- remove old hash entries
    ntop.delCache(host_to_scan_key)
    ntop.delCache(prefs_host_values_key)
 
    for _,item in ipairs(vs_backup) do
       -- restoring hash entries with status not scanned
-      local host_hash_key = vs_utils.get_host_hash_key(item.host, item.scan_type)
+      local host_hash_key = ascan_utils.get_host_hash_key(item.host, item.scan_type)
 
       local item_to_restore = item
       ntop.setHashCache(host_to_scan_key, host_hash_key, json.encode(item_to_restore))
@@ -994,7 +845,7 @@ end
 -- *********************************************************
 
 -- Function to retrieve hosts keys for backups
-function vs_utils.retrieve_hosts_backup()
+function ascan_utils.retrieve_hosts_backup()
    local hash_keys = ntop.getHashKeysCache(prefs_host_values_key)
    local rsp = {}
    if hash_keys then
@@ -1012,9 +863,9 @@ end
 
 -- **********************************************************
 -- Function to save host on configuration
-function vs_utils.add_host_pref(scan_type, host, ports, scan_frequency, discovered_host_scan_type, cidr)
+function ascan_utils.add_host_pref(scan_type, host, ports, scan_frequency, discovered_host_scan_type, cidr)
 
-   local host_hash_key = vs_utils.get_host_hash_key(host, scan_type)
+   local host_hash_key = ascan_utils.get_host_hash_key(host, scan_type)
 
    local new_item = {
       host = host,
@@ -1041,8 +892,8 @@ end
 
 -- *********************************************************
 -- Function to edit host on configuration
-function vs_utils.edit_host_pref(scan_type, host, ports, scan_frequency, discovered_host_scan_type)
-   local host_hash_key = vs_utils.get_host_hash_key(host, scan_type)
+function ascan_utils.edit_host_pref(scan_type, host, ports, scan_frequency, discovered_host_scan_type)
+   local host_hash_key = ascan_utils.get_host_hash_key(host, scan_type)
    local old_item_string = ntop.getHashCache(prefs_host_values_key,host_hash_key)
    if (not isEmptyString(old_item_string)) then
       local old_item = json.decode(old_item_string)
@@ -1083,13 +934,13 @@ end
 
 -- **********************************************************
 -- Function to update host scan values
-function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time, last_duration,
+function ascan_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time, last_duration,
                                     is_ok_last_scan, ports, scan_frequency, num_open_ports,
                                     num_vulnerabilities_found, cve, id, is_edit, udp_ports, tcp_ports, discovered_hosts)
    local checks = require "checks"
-   local trigger_alert = checks.isCheckEnabled("active_monitoring", "vulnerability_scan")
-      or checks.isCheckEnabled("system", "vulnerability_scan")
-   local host_hash_key = vs_utils.get_host_hash_key(host, scan_type)
+   local trigger_alert = checks.isCheckEnabled("active_monitoring", "active_scan")
+      or checks.isCheckEnabled("system", "active_scan")
+   local host_hash_key = ascan_utils.get_host_hash_key(host, scan_type)
    local old_data_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
    local old_data = json.decode(old_data_string)
 
@@ -1115,8 +966,8 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
    if (isEmptyString(is_ok_last_scan)) then
       -- first time saved without scan
       -- check if possible
-      is_ok_last_scan = vs_utils.scan_status.not_scanned
-   elseif (is_ok_last_scan == vs_utils.scan_status.failed and trigger_alert) then
+      is_ok_last_scan = ascan_utils.scan_status.not_scanned
+   elseif (is_ok_last_scan == ascan_utils.scan_status.failed and trigger_alert) then
       -- case host is not up and running, possible just in TCP/UDP portscan
 
       trigger_alert_host_down(host,host_name,last_scan_time)
@@ -1124,14 +975,15 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
       is_down = true
    end
 
-   local cve_formatted, max_score_cve = get_cve_with_score(cve)
-
-
+   -- NOTE: cve / max_score_cve / num_vulnerabilities_found are kept for schema
+   -- compatibility with the results stored by previous versions, but they are
+   -- always empty: CVE scoring used to be resolved through the NVD REST API by
+   -- the (now removed) CVE and Vulners scan engines
    local new_item = {
       num_open_ports = num_open_ports,
-      num_vulnerabilities_found = num_vulnerabilities_found,
-      cve = cve_formatted,
-      max_score_cve = max_score_cve,
+      num_vulnerabilities_found = num_vulnerabilities_found or 0,
+      cve = cve or {},
+      max_score_cve = 0,
       is_ok_last_scan = is_ok_last_scan,
       host_name = host_name
    }
@@ -1181,8 +1033,8 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
          duration_epoch = last_duration
       }
 
-      if is_ok_last_scan == vs_utils.scan_status.ok then
-         new_item.is_ok_last_scan = vs_utils.scan_status.ok
+      if is_ok_last_scan == ascan_utils.scan_status.ok then
+         new_item.is_ok_last_scan = ascan_utils.scan_status.ok
       end
    end
 
@@ -1219,7 +1071,7 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
 
    -- add ports statistics comparing the ntopng passive monitoring info
    if (scan_type == "tcp_portscan" or scan_type == "tcp_openports" or scan_type == "udp_portscan") then
-      local compare_info = vs_rest_utils.compare_scan_info_ntopng_info(host, scan_type, new_item.tcp_ports_list, new_item.udp_ports_list)
+      local compare_info = ascan_rest_utils.compare_scan_info_ntopng_info(host, scan_type, new_item.tcp_ports_list, new_item.udp_ports_list)
 
       new_item.host_in_mem = compare_info.host_in_mem
       local prefix_key = "udp_"
@@ -1233,9 +1085,9 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
 
    end
    ntop.setHashCache(host_to_scan_key, host_hash_key, json.encode(new_item))
-   local counts = vs_utils.update_ts_counters()
+   local counts = ascan_utils.update_ts_counters()
 
-   local host_hash_key = vs_utils.get_host_hash_key(host, scan_type)
+   local host_hash_key = ascan_utils.get_host_hash_key(host, scan_type)
    local hash_prefs_string = ntop.getHashCache(prefs_host_values_key,host_hash_key)
    -- hash value found
    local hash_pref_value = json.decode(hash_prefs_string)
@@ -1247,7 +1099,7 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
          end
       end
 
-      vs_db_utils.save_vs_result(scan_type, host, new_item.last_scan.epoch, json.encode(new_item), scan_result)
+      ascan_db_utils.save_scan_result(scan_type, host, new_item.last_scan.epoch, json.encode(new_item), scan_result)
    end
 
    local host_info_differences
@@ -1262,12 +1114,12 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
       if already_scanned then
 
          if debug_me then
-            -- traceError(TRACE_NORMAL,TRACE_CONSOLE, "Vulnerability Scan: checking for changes in host")
+            -- traceError(TRACE_NORMAL,TRACE_CONSOLE, "Active Scan: checking for changes in host")
          end
 
          local old_cve_no_score = {}
-         for _,cve in ipairs(old_data.cve) do
-            old_cve_no_score[#old_cve_no_score+1] = split(cve,"|")[1]
+         for _,old_cve in ipairs(old_data.cve or {}) do
+            old_cve_no_score[#old_cve_no_score+1] = split(old_cve,"|")[1]
          end
 
          local host_info_to_cache = check_differences(host, host_name,
@@ -1293,7 +1145,7 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
             host_info_differences = host_info_to_cache
 
             if debug_me then
-               traceError(TRACE_NORMAL,TRACE_CONSOLE, "Vulnerability Scan detected change: enqueueing event to vulnerability_scan check\n")
+               traceError(TRACE_NORMAL,TRACE_CONSOLE, "Active Scan detected change: enqueueing event to active_scan check\n")
             end
 
             ntop.rpushCache(scanned_hosts_changes_queue_key, json.encode(host_info_to_cache))
@@ -1302,11 +1154,11 @@ function vs_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time
    end
    
    if (new_item.is_periodicity) then
-      update_scan_info_for_report(vs_utils.scan_in_exec_type.periodic_scan, new_item, host_hash_key, host_info_differences, was_down)
+      update_scan_info_for_report(ascan_utils.scan_in_exec_type.periodic_scan, new_item, host_hash_key, host_info_differences, was_down)
    end
 
    if (new_item.is_all) then
-      update_scan_info_for_report(vs_utils.scan_in_exec_type.scan_all, new_item, host_hash_key, host_info_differences, was_down)
+      update_scan_info_for_report(ascan_utils.scan_in_exec_type.scan_all, new_item, host_hash_key, host_info_differences, was_down)
    end
 
    remove_scanning_host({host=host, scan_type=scan_type, ports=ports})
@@ -1316,8 +1168,8 @@ end
 
 -- **********************************************************
 -- Function to update timeseries data
-function vs_utils.update_ts_counters()
-   local hosts_details = vs_utils.retrieve_hosts_to_scan()
+function ascan_utils.update_ts_counters()
+   local hosts_details = ascan_utils.retrieve_hosts_to_scan()
    local count_cve         = 0
    local hosts_scanned
    local open_ports_count  = 0
@@ -1463,7 +1315,7 @@ end
 -- Function to retrieves report info
 
 local function retrieve_report_info(date)
-   local host_scanned_info = vs_utils.retrieve_hosts_to_scan()
+   local host_scanned_info = ascan_utils.retrieve_hosts_to_scan()
    local info = {
       cves = 0,
       tcp_ports = 0,
@@ -1503,11 +1355,11 @@ end
 
 -- **********************************************************
 -- params date used only in case of periodic or scan all exec
-function vs_utils.generate_report(date)
+function ascan_utils.generate_report(date)
 
    local report_info = retrieve_report_info(date)
 
-   vs_db_utils.save_report_info(report_info)
+   ascan_db_utils.save_report_info(report_info)
 
    return report_info
 
@@ -1552,11 +1404,6 @@ local function format_all_hosts_details_info_for_email(all_hosts_details)
          formatted_host_details_string = formatted_host_details_string .. udp_ports_details
       end
 
-      if (host_details.num_vulnerabilities_found > 0) then
-         local cve_list_string = cve_utils.getFirst5(host_details.cve, host_details.scan_type, false)
-         formatted_host_details_string = formatted_host_details_string .. i18n("hosts_stats.page_scan_hosts.email.host_details_cves", {cves_num = host_details.num_vulnerabilities_found, cves_list = cve_list_string})
-      end
-
       local host_details_email_line = i18n("hosts_stats.page_scan_hosts.email.host_details", {
 					      host_id = host_id,
 					      details = formatted_host_details_string
@@ -1574,12 +1421,12 @@ end
 -- Function to send notification after a periodic scan
 -- @param exec_type (2 -> is an all scan message, 3 -> is a periodic scan message)
 -- @param periodicity (can be nil in case of scan all)
-function vs_utils.notify_scan_results(exec_type, periodicity)
+function ascan_utils.notify_scan_results(exec_type, periodicity)
    local notification_message = ""
 
    local email_info = retrieve_email_info(exec_type)
 
-   local title = i18n("hosts_stats.page_scan_hosts.email.vulnerability_scan_report_title",{host = getHttpHost()})
+   local title = i18n("hosts_stats.page_scan_hosts.email.active_scan_report_title",{host = getHttpHost()})
    local duration = 0
    local duration_label = ''
 
@@ -1745,37 +1592,37 @@ function vs_utils.notify_scan_results(exec_type, periodicity)
       notification_message = notification_message .. no_longer_down_now .. net_scan_without_hosts_discovered .. discovered_hosts_list .. possible_discrepancies_info
    end
    local report_link_line = i18n("hosts_stats.page_scan_hosts.email.report_link_line",
-				 {url = string.format(getHttpHost() .. ntop.getHttpPrefix() .. "/lua/enterprise/vulnerability_scan_report.lua?epoch_end=%u&epoch_begin=%u",
+				 {url = string.format(getHttpHost() .. ntop.getHttpPrefix() .. "/lua/enterprise/active_scan_report.lua?epoch_end=%u&epoch_begin=%u",
 						      report_date,report_date), add_br = add_br})
 
    notification_message = notification_message .. report_link_line
 
-   vs_utils.generate_report(email_info.end_epoch_t)
+   ascan_utils.generate_report(email_info.end_epoch_t)
 
    if verbose then
-      traceError(TRACE_NORMAL,TRACE_CONSOLE, "Vulnerability Scan completed. Sending " .. title .."\n")
+      traceError(TRACE_NORMAL,TRACE_CONSOLE, "Active Scan completed. Sending " .. title .."\n")
    end
 
-   recipients.sendMessageByNotificationType({periodicity = periodicity, success = true, message = notification_message, title = title}, "vulnerability_scans")
+   recipients.sendMessageByNotificationType({periodicity = periodicity, success = true, message = notification_message, title = title}, "active_scans")
 end
 
 -- **********************************************************
 -- Function to retrieve dates of scan all or periodic scan
-function vs_utils.get_scan_all_dates()
+function ascan_utils.get_scan_all_dates()
    return ntop.getCache(hosts_scan_last_report_dates)
 end
 
 -- **********************************************************
 -- Function to verify if periodic scan is ended
-function vs_utils.is_periodic_scan_completed()
+function ascan_utils.is_periodic_scan_completed()
    local periodicity_scan_in_progress = ntop.getCache(periodic_scan_key) == "1"
 
    if (periodicity_scan_in_progress) then
-      local hosts_details = vs_utils.retrieve_hosts_to_scan()
+      local hosts_details = ascan_utils.retrieve_hosts_to_scan()
       for _,item in ipairs(hosts_details) do
 
          -- verify status of in progress periodic scanning
-         if(item.is_periodicity and (item.is_ok_last_scan == vs_utils.scan_status.scheduled or item.is_ok_last_scan == vs_utils.scan_status.scanning)) then
+         if(item.is_periodicity and (item.is_ok_last_scan == ascan_utils.scan_status.scheduled or item.is_ok_last_scan == ascan_utils.scan_status.scanning)) then
             return false
          end
       end
@@ -1785,7 +1632,7 @@ function vs_utils.is_periodic_scan_completed()
       local periodicity = ntop.getCache(periodic_scan_type_key)
 
       for _,item in ipairs(hosts_details) do
-         local host_hash_key = vs_utils.get_host_hash_key(item.host, item.scan_type)
+         local host_hash_key = ascan_utils.get_host_hash_key(item.host, item.scan_type)
          local host_hash_value_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
          if(not isEmptyString(host_hash_value_string)) then
 
@@ -1805,15 +1652,15 @@ end
 
 -- **********************************************************
 -- Function to verify if scan all is ended
-function vs_utils.is_ondemand_scan_completed()
+function ascan_utils.is_ondemand_scan_completed()
    local scan_all_in_progress = ntop.getCache(ondemand_scan_key) == "1"
 
    if (scan_all_in_progress) then
-      local hosts_details = vs_utils.retrieve_hosts_to_scan()
+      local hosts_details = ascan_utils.retrieve_hosts_to_scan()
       for _,item in ipairs(hosts_details) do
 
          -- verify status of in progress periodic scanning
-         if(item.is_all and (item.is_ok_last_scan == vs_utils.scan_status.scheduled or item.is_ok_last_scan == vs_utils.scan_status.scanning)) then
+         if(item.is_all and (item.is_ok_last_scan == ascan_utils.scan_status.scheduled or item.is_ok_last_scan == ascan_utils.scan_status.scanning)) then
             return false
          end
       end
@@ -1821,7 +1668,7 @@ function vs_utils.is_ondemand_scan_completed()
       ntop.setCache(ondemand_scan_key, "0")
 
       for _,item in ipairs(hosts_details) do
-         local host_hash_key = vs_utils.get_host_hash_key(item.host, item.scan_type)
+         local host_hash_key = ascan_utils.get_host_hash_key(item.host, item.scan_type)
          local host_hash_value_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
          if(not isEmptyString(host_hash_value_string)) then
 
@@ -1841,15 +1688,15 @@ end
 
 -- **********************************************************
 -- Function to verify if single scan is ended
-function vs_utils.is_single_scan_completed()
+function ascan_utils.is_single_scan_completed()
    local single_scan_in_progress = ntop.getCache(single_scan_key) == "1"
 
    if (single_scan_in_progress) then
-      local hosts_details = vs_utils.retrieve_hosts_to_scan()
+      local hosts_details = ascan_utils.retrieve_hosts_to_scan()
       for _,item in ipairs(hosts_details) do
 
          -- verify status of in progress periodic scanning
-         if(item.is_single_scan and (item.is_ok_last_scan == vs_utils.scan_status.scheduled or item.is_ok_last_scan == vs_utils.scan_status.scanning)) then
+         if(item.is_single_scan and (item.is_ok_last_scan == ascan_utils.scan_status.scheduled or item.is_ok_last_scan == ascan_utils.scan_status.scanning)) then
             return false
          end
       end
@@ -1857,7 +1704,7 @@ function vs_utils.is_single_scan_completed()
       ntop.setCache(single_scan_key, "0")
 
       for _,item in ipairs(hosts_details) do
-         local host_hash_key = vs_utils.get_host_hash_key(item.host, item.scan_type)
+         local host_hash_key = ascan_utils.get_host_hash_key(item.host, item.scan_type)
          local host_hash_value_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
          if(not isEmptyString(host_hash_value_string)) then
 
@@ -1878,46 +1725,13 @@ end
 
 -- **********************************************************
 -- Function to enable periodic scan end check on callbacks
-function vs_utils.is_periodic_scan_running()
+function ascan_utils.is_periodic_scan_running()
    return ntop.getCache(periodic_scan_key) == "1"
 end
 
 -- **********************************************************
--- Function to retrieve single host scan info from
--- host hash key
-local function retrieve_host_by_hash_key(host_hash_key)
-   local hash_value_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
-   local hash_prefs_string = ntop.getHashCache(prefs_host_values_key,host_hash_key)
-   local hash_value = json.decode(hash_prefs_string)
-   if (not isEmptyString(hash_value_string)) then
-      -- hash value found
-      hash_value = json.decode(hash_value_string)
-      local hash_pref_value = json.decode(hash_prefs_string) or {}
-      for k,value in pairs(hash_pref_value) do
-         if (k ~= 'is_ok_last_scan') then
-            hash_value[k] = value
-         end
-      end
-   end
-   return hash_value
-end
-
--- **********************************************************
--- Function to retrieve a specific host scan info with scan type CVE
--- (for host_details page )
-function vs_utils.retrieve_host(host)
-   local hosts_scanned = ntop.getHashKeysCache(host_to_scan_key) or {}
-   for key, _ in pairs(hosts_scanned) do
-      if key:find(host) and key:find("cve") then
-         return retrieve_host_by_hash_key(key)
-      end
-   end
-   return nil
-end
-
--- **********************************************************
 -- Function to retrieve hosts list to scan
-function vs_utils.retrieve_hosts_to_scan(epoch)
+function ascan_utils.retrieve_hosts_to_scan(epoch)
    if (isEmptyString(epoch) or (not ntop.isClickHouseEnabled())) then
       -- not a request for historical data (only for report)
       local hash_keys = ntop.getHashKeysCache(prefs_host_values_key)
@@ -1945,9 +1759,9 @@ function vs_utils.retrieve_hosts_to_scan(epoch)
 
             end
 
-            -- Skip temporarily disabled scan types (e.g. CVE, Vulners) so that
-            -- entries configured before they were disabled are not shown anymore
-            if not (hash_value and vs_utils.is_scan_type_disabled(hash_value.scan_type)) then
+            -- Defensive: never show entries left behind by removed scan
+            -- engines (migrate_keys() purges them at startup)
+            if not (hash_value and hash_value.scan_type and obsolete_scan_types[hash_value.scan_type]) then
                rsp[#rsp+1] = hash_value
             end
          end
@@ -1955,14 +1769,14 @@ function vs_utils.retrieve_hosts_to_scan(epoch)
       return rsp
    else
       -- request for report
-      local all_details, data = vs_db_utils.retrieve_report(epoch)
+      local all_details, data = ascan_db_utils.retrieve_report(epoch)
       return(data)
    end
 end
 
 -- **********************************************************
 -- Function to retrieve hosts list to scan just for status_info
-function vs_utils.check_in_progress_status()
+function ascan_utils.check_in_progress_status()
    local hash_keys = ntop.getHashKeysCache(host_to_scan_key)
    local total_in_progress = 0
    local total = 0
@@ -1974,7 +1788,7 @@ function vs_utils.check_in_progress_status()
          if (not isEmptyString(hash_value_string)) then
             local hash_value = json.decode(hash_value_string)
             -- Check IN PROGRESS --> FIX ME with enums
-            if hash_value and (hash_value.is_ok_last_scan == vs_utils.scan_status.scheduled or hash_value.is_ok_last_scan == vs_utils.scan_status.scanning) then
+            if hash_value and (hash_value.is_ok_last_scan == ascan_utils.scan_status.scheduled or hash_value.is_ok_last_scan == ascan_utils.scan_status.scanning) then
                total_in_progress = total_in_progress + 1
             end
             total = total + 1
@@ -2005,7 +1819,7 @@ end
 
 -- **********************************************************
 -- Function to retrieve last host scan result
-function vs_utils.retrieve_hosts_scan_result(scan_type, host, epoch)
+function ascan_utils.retrieve_hosts_scan_result(scan_type, host, epoch)
 
    -- retrieve from DB
    local db_result
@@ -2016,7 +1830,7 @@ function vs_utils.retrieve_hosts_scan_result(scan_type, host, epoch)
    -- retrieve data here
    if (is_clickhouse_enabled) then
       -- retrieve from DB
-      db_result = vs_db_utils.retrieve_scan_result(scan_type, host, tonumber(epoch))
+      db_result = ascan_db_utils.retrieve_scan_result(scan_type, host, tonumber(epoch))
    else
       -- retrieve from FS
       fs_result = retrieve_scan_result_from_file(scan_type, host)
@@ -2047,7 +1861,7 @@ end
 
 -- **********************************************************
 -- Function to delete host to scan
-function vs_utils.delete_host_to_scan(host, scan_type, all)
+function ascan_utils.delete_host_to_scan(host, scan_type, all)
    if all then
       ntop.delCache(prefs_host_values_key)
       ntop.delCache(host_to_scan_key)
@@ -2059,7 +1873,7 @@ function vs_utils.delete_host_to_scan(host, scan_type, all)
       local path_to_s_result = get_report_path(scan_type, host, true)
       os.execute("rm -f "..path_to_s_result)
    else
-      local host_hash_key = vs_utils.get_host_hash_key(host, scan_type)
+      local host_hash_key = ascan_utils.get_host_hash_key(host, scan_type)
       local path_to_s_result = get_report_path(scan_type, host, false)
       os.remove(path_to_s_result)
       ntop.delHashCache(host_to_scan_key, host_hash_key)
@@ -2092,11 +1906,11 @@ end
 -- **********************************************************
 -- Function to delete only the hosts whose last scan failed
 -- (i.e. host down or unreachable, is_ok_last_scan == failed).
-function vs_utils.delete_failed_hosts_to_scan()   
-   local hosts_details = vs_utils.retrieve_hosts_to_scan()
+function ascan_utils.delete_failed_hosts_to_scan()   
+   local hosts_details = ascan_utils.retrieve_hosts_to_scan()
    for _, host_detail in ipairs(hosts_details) do
-      if (host_detail.is_ok_last_scan == vs_utils.scan_status.failed) then
-         vs_utils.delete_host_to_scan(host_detail.host, host_detail.scan_type, false)
+      if (host_detail.is_ok_last_scan == ascan_utils.scan_status.failed) then
+         ascan_utils.delete_host_to_scan(host_detail.host, host_detail.scan_type, false)
       end
    end
 
@@ -2105,8 +1919,8 @@ end
 
 -- *********************************************************
 -- Function to delete host to scan by id
-function vs_utils.delete_host_to_scan_by_id(id)
-   local hosts_details = vs_utils.retrieve_hosts_to_scan()
+function ascan_utils.delete_host_to_scan_by_id(id)
+   local hosts_details = ascan_utils.retrieve_hosts_to_scan()
    local host_to_delete = {}
    local id_number = tonumber(id)
 
@@ -2118,7 +1932,7 @@ function vs_utils.delete_host_to_scan_by_id(id)
       end
    end
 
-   local host_hash_key = vs_utils.get_host_hash_key(host_to_delete.host, host_to_delete.scan_type)
+   local host_hash_key = ascan_utils.get_host_hash_key(host_to_delete.host, host_to_delete.scan_type)
    local path_to_s_result = get_report_path(host_to_delete.scan_type, host_to_delete.host, false)
    os.remove(path_to_s_result)
    ntop.delHashCache(host_to_scan_key, host_hash_key)
@@ -2130,15 +1944,12 @@ end
 
 -- **********************************************************
 -- Function to retrieve scan types list
-function vs_utils.retrieve_scan_types()
-   local scan_types = vs_utils.list_scan_modules()
+function ascan_utils.retrieve_scan_types()
+   local scan_types = ascan_utils.list_scan_modules()
    local ret = {}
 
    for _,scan_type in ipairs(scan_types) do
-      -- Skip scan types that are temporarily disabled (e.g. CVE, Vulners)
-      if not vs_utils.is_scan_type_disabled(scan_type) then
-         table.insert(ret, { id = scan_type, label = i18n("hosts_stats.page_scan_hosts.scan_type_list."..scan_type) })
-      end
+      table.insert(ret, { id = scan_type, label = i18n("hosts_stats.page_scan_hosts.scan_type_list."..scan_type) })
    end
 
    return ret
@@ -2146,15 +1957,15 @@ end
 
 -- **********************************************************
 -- Function to list scan modules
-function vs_utils.list_scan_modules()
+function ascan_utils.list_scan_modules()
    local dirs = ntop.getDirs()
-   local basedir = dirs.scriptdir .. "/lua/modules/vulnerability_scan/modules"
+   local basedir = dirs.scriptdir .. "/lua/modules/active_scan/modules"
    local modules = {}
 
    for name in pairs(ntop.readdir(basedir)) do
       if(ends(name, ".lua")) then
          name = string.sub(name, 1, string.len(name)-4) -- remove .lua trailer
-         local m = vs_utils.load_module(name)
+         local m = ascan_utils.load_module(name)
 
          if(m:is_enabled()) then
             table.insert(modules, name)
@@ -2167,18 +1978,18 @@ end
 
 -- **********************************************************
 -- Function to load VS module by name
-function vs_utils.load_module(name)
-   package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/modules/?.lua;".. package.path
+function ascan_utils.load_module(name)
+   package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/modules/?.lua;".. package.path
 
    return(require(name):new())
 end
 
 -- **********************************************************
 -- Function to discover open ports
-function vs_utils.discover_open_ports(host)
+function ascan_utils.discover_open_ports(host)
    local result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports, scan_ports, network_alert_store,now
 
-   local scan_module = vs_utils.load_module("tcp_portscan")
+   local scan_module = ascan_utils.load_module("tcp_portscan")
    now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = scan_module:scan_host(host, ports)
 
    return format_port_list_to_string(tcp_ports)
@@ -2186,13 +1997,8 @@ end
 
 -- **********************************************************
 -- Function to exec single host scan
-function vs_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, cidr)
+function ascan_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, cidr)
    if(ntop.isShuttingDown()) then return(false) end
-
-   -- Never execute temporarily disabled scan types (e.g. CVE, Vulners).
-   if vs_utils.is_scan_type_disabled(scan_type) then
-      return false
-   end
 
    if(use_coroutines == nil) then use_coroutines = false end
 
@@ -2211,15 +2017,15 @@ function vs_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, cid
       -- Nothing to do
    else
       if (isEmptyString(ports)) then
-         ports = vs_utils.discover_open_ports(host)
+         ports = ascan_utils.discover_open_ports(host)
       end
    end
 
    if(ntop.isShuttingDown()) then return(false) end
 
    if (isAlreadyPresent({host= host, scan_type= scan_type})) then
-      -- It is possible that the scan entry could be removed during the vs_utils.discover_open_ports phase.
-      vs_utils.set_status_scan(scan_type, host, ports_scan_param, id, nil,nil,nil, vs_utils.scan_status.scanning)
+      -- It is possible that the scan entry could be removed during the ascan_utils.discover_open_ports phase.
+      ascan_utils.set_status_scan(scan_type, host, ports_scan_param, id, nil,nil,nil, ascan_utils.scan_status.scanning)
       -- Save on redis the scanning host to avoid inconsistent state on ntopng restarts
       local scanning_host = {scan_type = scan_type, host = host, ports = ports_scan_param, id = scan_id}
       save_scanning_host(scanning_host)
@@ -2228,7 +2034,7 @@ function vs_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, cid
    end
    
    -- Scan host
-   local scan_module = vs_utils.load_module(scan_type)
+   local scan_module = ascan_utils.load_module(scan_type)
    local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports, discovered_hosts = scan_module:scan_host(host, ports, use_coroutines, cidr)
 
    if(ntop.isShuttingDown()) then
@@ -2243,21 +2049,21 @@ function vs_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, cid
       tcp_ports = {ports = format_port_list_to_string(tcp_ports), num_ports = #tcp_ports}
    end
 
-   if scan_result and scan_result ~= vs_utils.scan_status.failed then
-      scan_result = vs_utils.scan_status.ok
+   if scan_result and scan_result ~= ascan_utils.scan_status.failed then
+      scan_result = ascan_utils.scan_status.ok
 
       if (scan_type ~= 'ipv4_netscan') then
          -- excluding the netscan 
          ntop.incrCache(scanned_hosts_count_key)
       end
-   elseif(scan_result and scan_result == vs_utils.scan_status.failed) then
-      scan_result = vs_utils.scan_status.failed
+   elseif(scan_result and scan_result == ascan_utils.scan_status.failed) then
+      scan_result = ascan_utils.scan_status.failed
    end
 
       --traceError(TRACE_NORMAL, TRACE_CONSOLE, "End scan Host ".. host .. ", result: " .. result .. "\n")
 
    if (isAlreadyPresent({host= host, scan_type= scan_type})) then
-      vs_utils.save_host_to_scan(scan_type, host, result, now, duration, scan_result,
+      ascan_utils.save_host_to_scan(scan_type, host, result, now, duration, scan_result,
                                  ports_scan_param, nil, num_open_ports, num_vulnerabilities_found, cve, scan_id, false, udp_ports, tcp_ports, discovered_hosts)
    end
 
@@ -2283,8 +2089,8 @@ end
 
 -- **********************************************************
 -- Function to update single host status
-function vs_utils.set_status_scan(scan_type, host, ports, id, is_periodicity, is_all,is_single_scan, status)
-   local host_hash_key = vs_utils.get_host_hash_key(host, scan_type)
+function ascan_utils.set_status_scan(scan_type, host, ports, id, is_periodicity, is_all,is_single_scan, status)
+   local host_hash_key = ascan_utils.get_host_hash_key(host, scan_type)
    local host_hash_value_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
    local host_hash_value
    if(not isEmptyString(host_hash_value_string)) then
@@ -2315,14 +2121,9 @@ end
 
 -- **********************************************************
 -- Function to schedule ondemand single host scan
-function vs_utils.schedule_ondemand_single_host_scan(scan_type, host, ports, scan_id, is_periodicity, is_all, is_single_scan, cidr)
-   -- Never schedule temporarily disabled scan types (e.g. CVE, Vulners).
-   if vs_utils.is_scan_type_disabled(scan_type) then
-      return false
-   end
-
+function ascan_utils.schedule_ondemand_single_host_scan(scan_type, host, ports, scan_id, is_periodicity, is_all, is_single_scan, cidr)
    local scan = { scan_type = scan_type, host = host, ports = ports, id= scan_id, cidr = cidr}
-   vs_utils.set_status_scan(scan_type, host, ports, scan_id, is_periodicity, is_all, is_single_scan, vs_utils.scan_status.scheduled)
+   ascan_utils.set_status_scan(scan_type, host, ports, scan_id, is_periodicity, is_all, is_single_scan, ascan_utils.scan_status.scheduled)
 
    ntop.rpushCache(host_scan_queue_key, json.encode(scan))
 
@@ -2331,13 +2132,13 @@ end
 
 -- **********************************************************
 -- Function to schedule ondemand scan all hosts
-function vs_utils.schedule_ondemand_all_hosts_scan()
-   local host_to_scan_list = vs_utils.retrieve_hosts_to_scan()
+function ascan_utils.schedule_ondemand_all_hosts_scan()
+   local host_to_scan_list = ascan_utils.retrieve_hosts_to_scan()
 
    local is_scanning_almost_one = false
    if #host_to_scan_list > 0 then
       for _,scan_info in ipairs(host_to_scan_list) do
-         vs_utils.schedule_ondemand_single_host_scan(scan_info.scan_type, scan_info.host, scan_info.ports, scan_info.id, false, true, false, scan_info.cidr)
+         ascan_utils.schedule_ondemand_single_host_scan(scan_info.scan_type, scan_info.host, scan_info.ports, scan_info.id, false, true, false, scan_info.cidr)
          is_scanning_almost_one = true
       end
    end
@@ -2359,8 +2160,8 @@ end
 
 -- **********************************************************
 -- periodicity can be set to "1day" "1week" "disabled"
-function vs_utils.schedule_periodic_scan(periodicity)
-   local host_to_scan_list = vs_utils.retrieve_hosts_to_scan()
+function ascan_utils.schedule_periodic_scan(periodicity)
+   local host_to_scan_list = ascan_utils.retrieve_hosts_to_scan()
 
    if (#host_to_scan_list > 0 ) then
 
@@ -2372,7 +2173,7 @@ function vs_utils.schedule_periodic_scan(periodicity)
          for _,scan_info in ipairs(host_to_scan_list) do
             local frequency = scan_info.scan_frequency
             if(frequency == periodicity) then
-               vs_utils.schedule_ondemand_single_host_scan(scan_info.scan_type, scan_info.host, scan_info.ports, scan_info.id, true, false, false, scan_info.cidr)
+               ascan_utils.schedule_ondemand_single_host_scan(scan_info.scan_type, scan_info.host, scan_info.ports, scan_info.id, true, false, false, scan_info.cidr)
                is_scanning_almost_one = true
             end
          end
@@ -2400,23 +2201,23 @@ end
 
 -- **********************************************************
 -- Process a single host scan request that has been queued
-function vs_utils.process_oldest_scheduled_scan(use_coroutines)
+function ascan_utils.process_oldest_scheduled_scan(use_coroutines)
    if(ntop.isShuttingDown()) then return(false) end
 
    local elem = ntop.lpopCache(host_scan_queue_key)
 
    if((elem ~= nil) and (elem ~= "")) then
       if debug_me then
-         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Found vulnerability scan: ".. elem .. "\n")
+         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Found active scan: ".. elem .. "\n")
       end
 
       local elem = json.decode(elem)
 
       if(use_coroutines) then
          if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Starting scan on host "..elem.host.."["..elem.scan_type .."]") end
-         return(coroutine.create(function () vs_utils.scan_host(elem.scan_type, elem.host, elem.ports, elem.id, use_coroutines, elem.cidr) end))
+         return(coroutine.create(function () ascan_utils.scan_host(elem.scan_type, elem.host, elem.ports, elem.id, use_coroutines, elem.cidr) end))
       else
-         vs_utils.scan_host(elem.scan_type, elem.host, elem.ports, elem.id, use_coroutines, elem.cidr)
+         ascan_utils.scan_host(elem.scan_type, elem.host, elem.ports, elem.id, use_coroutines, elem.cidr)
 
          return true
       end
@@ -2432,7 +2233,7 @@ end
 
 -- **********************************************************
 -- Process all host scans request that has been queued
-function vs_utils.process_all_scheduled_scans(max_num_scans, use_coroutines)
+function ascan_utils.process_all_scheduled_scans(max_num_scans, use_coroutines)
    local num = 0
    local co = {}
 
@@ -2441,7 +2242,7 @@ function vs_utils.process_all_scheduled_scans(max_num_scans, use_coroutines)
    if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Starting up to "..max_num_scans.." scans...") end
 
    while((max_num_scans > 0) and not(ntop.isShuttingDown())) do
-      local res = vs_utils.process_oldest_scheduled_scan(use_coroutines)
+      local res = ascan_utils.process_oldest_scheduled_scan(use_coroutines)
       local do_inc = true
 
       if(use_coroutines) then
@@ -2499,15 +2300,15 @@ function vs_utils.process_all_scheduled_scans(max_num_scans, use_coroutines)
 end
 
 -- **********************************************************
--- Example vs_utils.get_active_hosts("192.168.2.0", "24")
-function vs_utils.get_active_hosts(host, cidr)
-   local result = vs_utils.exec_netscan(host, cidr)
+-- Example ascan_utils.get_active_hosts("192.168.2.0", "24")
+function ascan_utils.get_active_hosts(host, cidr)
+   local result = ascan_utils.exec_netscan(host, cidr)
    return result
 end
 
 -- **********************************************************
 -- Function to cleanup netscan result
-function vs_utils.netscan_cleanup(scan_result)
+function ascan_utils.netscan_cleanup(scan_result)
 
    scan_result = lines(scan_result)
 
@@ -2532,8 +2333,8 @@ function vs_utils.netscan_cleanup(scan_result)
 end
 
 -- **********************************************************
--- Example vs_utils.exec_netscan("192.168.2.0", "24")
-function vs_utils.exec_netscan(host, cidr)
+-- Example ascan_utils.exec_netscan("192.168.2.0", "24")
+function ascan_utils.exec_netscan(host, cidr)
    local result = {}
    local out
    local begin_epoch
@@ -2570,14 +2371,14 @@ function vs_utils.exec_netscan(host, cidr)
 
       local s = string.split(host, '%.')
       local net = s[1].."."..s[2].."."..s[3].."."
-      local nmap = vs_utils.get_nmap_path()
+      local nmap = ascan_utils.get_nmap_path()
       local command = nmap..' -sP -n ' .. net .. net_range
       
       begin_epoch = os.time()
       out = ntop.execCmd(command)
       duration = os.time() - begin_epoch
 
-      out, result = vs_utils.netscan_cleanup(out)
+      out, result = ascan_utils.netscan_cleanup(out)
       scan_ok = true
       
    end
@@ -2587,11 +2388,11 @@ end
 
 -- **********************************************************
 -- Update all scan frequencies
-function vs_utils.update_all_periodicity(scan_frequency)
-   local host_to_scan_list = vs_utils.retrieve_hosts_to_scan()
+function ascan_utils.update_all_periodicity(scan_frequency)
+   local host_to_scan_list = ascan_utils.retrieve_hosts_to_scan()
 
    for _,value in ipairs(host_to_scan_list) do
-      local host_hash_key = vs_utils.get_host_hash_key(value.host, value.scan_type)
+      local host_hash_key = ascan_utils.get_host_hash_key(value.host, value.scan_type)
       local host_hash_value_string = ntop.getHashCache(host_to_scan_key, host_hash_key)
       if(not isEmptyString(host_hash_value_string)) then
 
@@ -2618,17 +2419,17 @@ end
 
 -- **********************************************************
 -- Function to verify if VS is enabled
-function vs_utils.is_available()
+function ascan_utils.is_available()
    if (ntop.isnEdge and ntop.isnEdge()) then
       return false
    end
-   local scan_modules = vs_utils.list_scan_modules()
+   local scan_modules = ascan_utils.list_scan_modules()
    return (#scan_modules > 0)
 end
 
 -- **********************************************************
 -- Function to run command
-function vs_utils.runCommand(scan_command, use_coroutines)
+function ascan_utils.runCommand(scan_command, use_coroutines)
    local result
    local debug_me = false
 
@@ -2700,7 +2501,7 @@ end
 
 -- **********************************************************
 -- Function to scan host
-function vs_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, module_name)
+function ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, module_name)
    local scan_command
 
    if(ntop.isShuttingDown()) then
@@ -2727,7 +2528,7 @@ function vs_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, module
    if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Executing: "..scan_command.."\n") end
 
    local begin_epoch = os.time()
-   local result = vs_utils.runCommand(scan_command, use_coroutines)
+   local result = ascan_utils.runCommand(scan_command, use_coroutines)
    local duration = os.time() - begin_epoch
    local scan_ok = true
    local num_open_ports
@@ -2736,19 +2537,19 @@ function vs_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, module
    local tcp_ports
    local udp_ports
 
-   result, num_open_ports, num_vulnerabilities_found, cve, udp_ports, tcp_ports = vs_utils.cleanup_nmap_result(result, module_name)
+   result, num_open_ports, num_vulnerabilities_found, cve, udp_ports, tcp_ports = ascan_utils.cleanup_nmap_result(result, module_name)
    return begin_epoch, result, duration, scan_ok, num_open_ports, num_vulnerabilities_found, cve, udp_ports, tcp_ports
 end
 
 -- **********************************************************
 -- Function to check if a host is available
-function vs_utils.nmap_check_host(host_ip, use_coroutines)
+function ascan_utils.nmap_check_host(host_ip, use_coroutines)
    if not is_valid_nmap_target(host_ip) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, "nmap_check_host: invalid target rejected: " .. tostring(host_ip))
       return nil, 0
    end
 
-   local nmap =  vs_utils.get_nmap_path()
+   local nmap =  ascan_utils.get_nmap_path()
    local scan_command = nmap.." -sn"
 
    -- IPv6 check (need to use --privileged otherwise nmap will report hosts are down even if up)
@@ -2758,11 +2559,11 @@ function vs_utils.nmap_check_host(host_ip, use_coroutines)
    if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Executing: "..scan_command.."\n") end
 
    local start_scan = os.time()
-   local result = vs_utils.runCommand(scan_command, use_coroutines)
+   local result = ascan_utils.runCommand(scan_command, use_coroutines)
    local end_scan = os.time()
    local scan_duration = end_scan - start_scan
 
-   local is_up = vs_utils.cleanup_nmap_check_host_result(result)
+   local is_up = ascan_utils.cleanup_nmap_check_host_result(result)
    if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Host is up: "..tostring(is_up).."\n") end
 
    return is_up, scan_duration, start_scan, end_scan
@@ -2771,7 +2572,7 @@ end
 
 -- **********************************************************
 -- Migrate old configurations
-function vs_utils.migrate_keys()
+function ascan_utils.migrate_keys()
    local old_hash_key = "ntopng.prefs.host_to_scan"
    local old_hosts = ntop.getHashKeysCache(old_hash_key) or {}
 
@@ -2796,6 +2597,19 @@ function vs_utils.migrate_keys()
    end
 
    ntop.delCache(old_hash_key)
+
+   -- Purge the configurations of the scan engines that have been removed
+   -- (CVE, Vulners, OpenVAS): they can still be around on setups configured
+   -- before those engines were dropped
+   for _,hash_key in ipairs({ prefs_host_values_key, host_to_scan_key }) do
+      for key, _ in pairs(ntop.getHashKeysCache(hash_key) or {}) do
+         local value = json.decode(ntop.getHashCache(hash_key, key) or "")
+
+         if (value and value.scan_type and obsolete_scan_types[value.scan_type]) then
+            ntop.delHashCache(hash_key, key)
+         end
+      end
+   end
 
    local hosts = ntop.getHashKeysCache(host_to_scan_key) or {}
    local from_key = "tcp_openports"
@@ -2834,9 +2648,9 @@ end
 
 -- scan_frequency:
    -- the scan_frequency for the hosts discovered by the netscan
-function vs_utils.get_network_pref_value(network_ip, scan_type)
+function ascan_utils.get_network_pref_value(network_ip, scan_type)
 
-   local hash_key = vs_utils.get_host_hash_key(network_ip, scan_type)
+   local hash_key = ascan_utils.get_host_hash_key(network_ip, scan_type)
    local network_pref_value = json.decode(ntop.getHashCache(prefs_host_values_key,hash_key) or {})
 
    --[[ Retrieving values to includes net sub scans in reports and email data ]]
@@ -2856,8 +2670,8 @@ end
 
 -- **********************************************************
 -- Function to find if an ip is configured with a specific scan_type
-function vs_utils.isVSConfiguredHostScanType(ip,scan_type)
-   local host_configured_key = vs_utils.get_host_hash_key(ip, scan_type)
+function ascan_utils.isVSConfiguredHostScanType(ip,scan_type)
+   local host_configured_key = ascan_utils.get_host_hash_key(ip, scan_type)
    local pref_value = ntop.getHashCache(prefs_host_values_key,host_configured_key)
    return not isEmptyString(pref_value)
 end
@@ -2865,7 +2679,7 @@ end
 
 -- **********************************************************
 -- Function to find if an ip is configured
-function vs_utils.isVSConfiguredHost(ip)
+function ascan_utils.isVSConfiguredHost(ip)
    local hosts_scanned = ntop.getHashKeysCache(prefs_host_values_key) or {}
    for key, _ in pairs(hosts_scanned) do
       if key:find(ip) then
@@ -2878,7 +2692,7 @@ end
 -- **********************************************************
 -- Function to trigger an alert if the host
 -- is not configured
-function vs_utils.triggerHostNotConfiguredAlert(host, scan_type)
+function ascan_utils.triggerHostNotConfiguredAlert(host, scan_type)
    trigger_alert_host_not_configured(host, scan_type)
 end
 
@@ -2889,29 +2703,29 @@ end
 -- **********************************************************
 
 -- Function to retrieve reports list from the DB
-function vs_utils.retrieve_report_list(epoch)
+function ascan_utils.retrieve_report_list(epoch)
    local sort_on = "DATE"
-   return (vs_db_utils.retrieve_reports(sort_on,epoch))
+   return (ascan_db_utils.retrieve_reports(sort_on,epoch))
 end
 
 -- **********************************************************
 -- Function to retrieve single report from the DB
-function vs_utils.retrieve_report(report_name)
-   return (vs_db_utils.retrieve_report(report_name))
+function ascan_utils.retrieve_report(report_name)
+   return (ascan_db_utils.retrieve_report(report_name))
 end
 
 -- **********************************************************
 -- Function to delete single report on the DB
-function vs_utils.delete_report(epoch)
-   return(vs_db_utils.delete_report(epoch))
+function ascan_utils.delete_report(epoch)
+   return(ascan_db_utils.delete_report(epoch))
 end
 
 -- **********************************************************
 -- Function to edit single report on the DB
-function vs_utils.edit_report(epoch, report_name)
-   return(vs_db_utils.edit_report(epoch,report_name))
+function ascan_utils.edit_report(epoch, report_name)
+   return(ascan_db_utils.edit_report(epoch,report_name))
 end
 
 -- ##########################################################
 
-return vs_utils
+return ascan_utils

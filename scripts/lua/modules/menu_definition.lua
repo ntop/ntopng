@@ -76,13 +76,13 @@ return function(f)
                 f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
             }
         }, {
-            key = "vulnerability_scan",
+            key = "active_scan",
             i18n = "scan_hosts",
             icon = "fas fa-shield-alt",
-            url = "/lua/vulnerability_scan.lua",
+            url = "/lua/active_scan.lua",
             hard_hidden = f.is_zmq_interface,
-            hidden = f.no_vs_utils,
-            reason = { reason("feature", "menu.reason.no_vs_utils", "menu.suggestion.no_vs_utils") }
+            hidden = f.no_active_scan,
+            reason = { reason("feature", "menu.reason.no_active_scan", "menu.suggestion.no_active_scan") }
         } -- pro entries appended by menu_definition_pro: infrastructure_dashboard, snmp_monitoring
         }
     },

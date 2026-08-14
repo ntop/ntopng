@@ -7,7 +7,7 @@ Active Scan
 
 ntopng is able to both passively monitor network and perform a scan, whose goal is to discover TCP or UDP open ports in provided services.
 
-The current implementation leverages on `nmap <https://nmap.org>`_. The code is designed to add new scanner types by simply defining new `modules <https://github.com/ntop/ntopng/tree/dev/scripts/lua/modules/vulnerability_scan/modules>`_.
+The current implementation leverages on `nmap <https://nmap.org>`_. The code is designed to add new scanner types by simply defining new `modules <https://github.com/ntop/ntopng/tree/dev/scripts/lua/modules/active_scan/modules>`_.
 
 Active Scan Page
 ~~~~~~~~~~~~~~~~

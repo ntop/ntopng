@@ -3,13 +3,13 @@
 --
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 require "lua_utils"
 local rest_utils = require "rest_utils"
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 local search_map = _GET["map_search"]
-local vs_rest_utils = require "vs_rest_utils"
+local ascan_rest_utils = require "ascan_rest_utils"
 
 -- ##################################################################
 -- params
@@ -31,9 +31,9 @@ end
 
 -- Function to retrieve data
 local function retrieve_host()
-    local result = vs_utils.retrieve_hosts_to_scan(epoch)
+    local result = ascan_utils.retrieve_hosts_to_scan(epoch)
 
-    return vs_rest_utils.format_overview_result(result, search_map, sort, port, was_down, netscan_report)
+    return ascan_rest_utils.format_overview_result(result, search_map, sort, port, was_down, netscan_report)
 end
 
 -- ##################################################################

@@ -21,8 +21,8 @@ local has_nAnalyst =  ntop.hasnAnalyst and ntop.hasnAnalyst() and (not is_system
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {{
-      id = "vulnerability_scan",
-      label = i18n("prefs.vulnerability_scan"),
+      id = "active_scan",
+      label = i18n("prefs.active_scan"),
       advanced = false,
       pro_only = true,
       hidden =  not (ntop.isEnterprise and ntop.isEnterprise()),

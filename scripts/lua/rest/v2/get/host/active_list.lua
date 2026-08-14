@@ -3,13 +3,13 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 require "label_utils"
 require "ntop_utils"
 require "http_lint"
 local rest_utils = require "rest_utils"
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 local have_nedge = ntop.isnEdge and ntop.isnEdge()
 
 -- Table parameters

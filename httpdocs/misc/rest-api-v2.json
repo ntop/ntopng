@@ -8325,7 +8325,7 @@
         }
       }
     },
-    "/lua/rest/v2/exec/host/schedule_vulnerability_scan.lua": {
+    "/lua/rest/v2/exec/host/schedule_active_scan.lua": {
       "post": {
         "tags": [
           "Hosts"
@@ -11035,7 +11035,7 @@
         }
       }
     },
-    "/lua/rest/v2/get/host/vulnerability_scan_type_list.lua": {
+    "/lua/rest/v2/get/host/active_scan_type_list.lua": {
       "get": {
         "tags": [
           "Hosts"

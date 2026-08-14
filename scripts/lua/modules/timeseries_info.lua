@@ -45,7 +45,7 @@ local timeseries_id = {
     nedge = "nedge",
     sflow_dev = "sflowdev",
     sflow_port = "sflowdev_port",
-    vulnerability_scan = "am_vuln_scan",
+    active_scan = "am_vuln_scan", -- NOTE: schema prefix kept, it is the on-disk timeseries name
     flow   = "flow",
     flow_aggr = "flow_aggr",
     infrastructure = "infrastructure",
@@ -109,8 +109,8 @@ local function getTimeseriesFromModules(tags, prefix, ts_options)
         module_to_use = require "ts_sflow_device"
     elseif prefix == timeseries_id.sflow_port then
         module_to_use = require "ts_sflow_device_port"
-    elseif prefix == timeseries_id.vulnerability_scan then
-        module_to_use = require "ts_vulnerability_scan"
+    elseif prefix == timeseries_id.active_scan then
+        module_to_use = require "ts_active_scan"
     elseif prefix == timeseries_id.flow then
         module_to_use = require "ts_flow"
     elseif prefix == timeseries_id.flow_aggr then

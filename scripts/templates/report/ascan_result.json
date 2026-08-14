@@ -1,5 +1,5 @@
 {
-	"name" : "Vulnerability Scan Report",
+	"name" : "Active Scan Report",
 	"readonly" : true,
 	"toolbox" : {
 		"time" : {
@@ -8,13 +8,13 @@
 	},
 	"requires" : {
 		"model" : "l",
-		"modules" : [ "vulnerability_scan" ]
+		"modules" : [ "active_scan" ]
 	},
 	"components" : [
 	{
 		"component" : "table",
-		"id" : "vs_report",
-		"i18n_name" : "hosts_stats.page_scan_hosts.vs_result_total_reports",
+		"id" : "ascan_report",
+		"i18n_name" : "hosts_stats.page_scan_hosts.ascan_result_total_reports",
 		"width" : 12,
 		"height" : -1,
 		"time_window" : "day",
@@ -65,8 +65,8 @@
 	},
 	{
 		"component" : "table",
-		"id" : "vs_report",
-		"i18n_name" : "hosts_stats.page_scan_hosts.vs_result_no_longer_down",
+		"id" : "ascan_report",
+		"i18n_name" : "hosts_stats.page_scan_hosts.ascan_result_no_longer_down",
 		"width" : 12,
 		"height" : -1,
 		"time_window" : "day",
@@ -98,8 +98,8 @@
 	},
 	{
 		"component" : "table",
-		"id" : "vs_report",
-		"i18n_name" : "hosts_stats.page_scan_hosts.vs_result_ipv4_netscan",
+		"id" : "ascan_report",
+		"i18n_name" : "hosts_stats.page_scan_hosts.ascan_result_total_reports",
 		"width" : 12,
 		"height" : -1,
 		"time_window" : "day",
@@ -132,55 +132,7 @@
 	},
 	{
 		"component" : "table",
-		"id" : "vs_report_cve",
-		"i18n_name" : "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
-		"width" : 12,
-		"height" : -1,
-		"time_window" : "day",
-		"time_offset" : "",
-		"params" : {
-			 "url" : "/lua/pro/rest/v2/get/host/scan_port_list.lua",
-			 "url_params" : {
-				"start" : 0,
-				"length" : 20,
-				"sort":"cve"
-
-			 
-			 },
-			 "table_type" : "vs_scan_result",
-			 "columns" : [
-				
-		
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.cves",
-					"id": "cves",
-					"data_type": "count_score"
-				},
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.port",
-					"id": "port",
-					"data_type": "number"
-
-				},
-				
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.count",
-					"id": "count_host",
-					"data_type": "count_score"
-
-				},
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.hosts",
-					"id": "hosts",
-					"data_type": "string"
-
-				}
-			 ]
-		}
-	},
-	{
-		"component" : "table",
-		"id" : "vs_report_port",
+		"id" : "ascan_report_port",
 		"i18n_name" : "hosts_stats.page_scan_hosts.num_open_ports_tcp",
 		"width" : 12,
 		"height" : -1,
@@ -224,7 +176,7 @@
 	},
 	{
 		"component" : "table",
-		"id" : "vs_report_port",
+		"id" : "ascan_report_port",
 		"i18n_name" : "hosts_stats.page_scan_hosts.num_open_ports_udp",
 		"width" : 12,
 		"height" : -1,
