@@ -10,6 +10,15 @@ require("flow_utils")
 local rest_utils = require("rest_utils")
 local flow_sankey = require("flow_sankey")
 local format_utils = require("format_utils")
+local as_utils = require("as_utils")
+
+local snmp_utils
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" ..
+                     package.path
+   snmp_utils = require "snmp_utils"
+end
+
 
 local operators = flow_sankey.getOperators()
 
@@ -17,6 +26,9 @@ local operators = flow_sankey.getOperators()
 local asn = tonumber(_GET["asn"] or 0)
 local ifid = _GET["ifid"] or interface.getId()
 local criteria_as = _GET["criteria_as"]
+-- Roles of the exporter interfaces to take into account, sent by the
+-- ingress/egress criteria only, e.g. { "transit" } or { "transit", "peering", "ix" }
+local interface_role = as_utils.parseInterfaceRoles(_GET["interface_role"])
 local data_type = _GET["type"] or ""
 local epoch_begin = nil
 local epoch_end = nil
@@ -63,6 +75,9 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				{ key = "DST_ASN", value = asn, operator = operators.eq }, -- DST_ASN = SEARCHED_ASN
 				{ key = "SRC2DST_BYTES", value = "0", operator = operators.gt },
 			},
+			where_post_query = {
+            { key = "in_iface_index", value = interface_role, matching_funct = ternary(snmp_utils, snmp_utils.get_snmp_interface_role, nil) },
+         },
 			order_by_query = {
 				{ key = "bytes", value = "DESC" },
 			},
@@ -102,6 +117,9 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 			where_query = {
 				{ key = "SRC_ASN", value = asn, operator = operators.eq }, -- DST_ASN = SEARCHED_ASN
 				{ key = "DST2SRC_BYTES", value = "0", operator = operators.gt },
+			},
+			where_post_query = {
+            { key = "in_iface_index", value = interface_role, matching_funct = ternary(snmp_utils, snmp_utils.get_snmp_interface_role, nil) },
 			},
 			order_by_query = {
 				{ key = "bytes", value = "DESC" },
@@ -143,6 +161,9 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				{ key = "SRC_ASN", value = asn, operator = operators.eq }, -- SRC_ASN != 0
 				{ key = "SRC2DST_BYTES", value = "0", operator = operators.gt },
 			},
+			where_post_query = {
+            { key = "out_iface_index", value = interface_role, matching_funct = ternary(snmp_utils, snmp_utils.get_snmp_interface_role, nil) },
+         },
 			order_by_query = {
 				{ key = "bytes", value = "DESC" },
 			},
@@ -183,6 +204,9 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				{ key = "DST_ASN", value = asn, operator = operators.eq }, -- SRC_ASN != 0
 				{ key = "DST2SRC_BYTES", value = "0", operator = operators.gt },
 			},
+			where_post_query = {
+            { key = "out_iface_index", value = interface_role, matching_funct = ternary(snmp_utils, snmp_utils.get_snmp_interface_role, nil) },
+         },
 			order_by_query = {
 				{ key = "bytes", value = "DESC" },
 			},
