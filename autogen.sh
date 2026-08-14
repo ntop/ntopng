@@ -84,7 +84,7 @@ cd third-party/clickhouse-cpp && git reset --hard HEAD && rm -rf build; cd ../..
 fi
 
 if test -d "pro"; then
-N=`grep __FreeBSD__ third-party/clickhouse-cpp/clickhouse/base/platform.h|wc -l|tr -d "[[:space:]]"`
+N=`grep SetServerHostName third-party/clickhouse-cpp/clickhouse/client.h|wc -l|tr -d "[[:space:]]"`
 if test "${N}" = "0"; then
  cd third-party/clickhouse-cpp/; cat ../../clickhouse/clickhouse-cpp.diff | patch -p1 ; cd ../..
 fi
