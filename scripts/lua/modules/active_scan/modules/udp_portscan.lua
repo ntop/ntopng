@@ -4,8 +4,8 @@
 
 local vs_module = {}
 
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
-local vs_utils = require("vs_utils")
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
+local ascan_utils = require("ascan_utils")
 
 -- ##############################################
 
@@ -22,7 +22,7 @@ end
 
 function vs_module:is_enabled()
    -- UDP scan is enabled only on Linux
-   return(vs_utils.is_nmap_installed() and ntop.isLinux())
+   return(ascan_utils.is_nmap_installed() and ntop.isLinux())
 end
 
 
@@ -32,15 +32,15 @@ end
 
 function vs_module:scan_host(host_ip, ports, use_coroutines, cidr)
    -- Enabled (previleged) UDP scan on Linux
-   local nmap =  vs_utils.get_nmap_path()
+   local nmap =  ascan_utils.get_nmap_path()
    local command = nmap.." --privileged -sU" -- Use -F for fast scan
    -- check if host is up and running before the tcp portscan
-   local is_up, scan_duration, start_scan, end_scan = vs_utils.nmap_check_host(host_ip, use_coroutines)
+   local is_up, scan_duration, start_scan, end_scan = ascan_utils.nmap_check_host(host_ip, use_coroutines)
    if (is_up) then
-      local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = vs_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, self.name)
+      local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, self.name)
       return now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports, nil -- [[discovred_hosts]]
    end
-   return start_scan,i18n("hosts_stats.page_scan_hosts.host_is_not_up_and_running"),scan_duration,vs_utils.scan_status.failed,0,0,{},{},{}, nil -- [[discovred_hosts]]
+   return start_scan,i18n("hosts_stats.page_scan_hosts.host_is_not_up_and_running"),scan_duration,ascan_utils.scan_status.failed,0,0,{},{},{}, nil -- [[discovred_hosts]]
 
 end
 

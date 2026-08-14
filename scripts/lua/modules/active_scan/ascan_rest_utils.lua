@@ -3,15 +3,15 @@
 --
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 
 require "lua_utils"
 local format_utils = require "format_utils"
 
-local vs_rest_utils = {}
+local ascan_rest_utils = {}
 
-vs_rest_utils.ports_diff_case = {
+ascan_rest_utils.ports_diff_case = {
     no_diff          = 2, -- case 1 or 2 (combined)
     ntopng_more_t_vs = 3,
     vs_more_t_ntopng = 4
@@ -33,7 +33,7 @@ local function find_port(port_to_find, port_list)
 
 
 -- Compare vs ports and ntopng detected ports
-function vs_rest_utils.compare_ports(vs_scan_port_string_list, ntopng_ports)
+function ascan_rest_utils.compare_ports(vs_scan_port_string_list, ntopng_ports)
     local vs_scan_ports = split(vs_scan_port_string_list, ",")
  
     local ports_unused = {}
@@ -53,11 +53,11 @@ function vs_rest_utils.compare_ports(vs_scan_port_string_list, ntopng_ports)
     local diff_case
  
     if (not_found_a_port) then
-       diff_case = vs_rest_utils.ports_diff_case.vs_more_t_ntopng
+       diff_case = ascan_rest_utils.ports_diff_case.vs_more_t_ntopng
     end
  
     if (#vs_scan_ports == #ntopng_ports) then
-       diff_case = vs_rest_utils.ports_diff_case.no_diff
+       diff_case = ascan_rest_utils.ports_diff_case.no_diff
     else
        local filtered = false
  
@@ -69,7 +69,7 @@ function vs_rest_utils.compare_ports(vs_scan_port_string_list, ntopng_ports)
  
        end
        if (filtered) then
-          diff_case = vs_rest_utils.ports_diff_case.ntopng_more_t_vs
+          diff_case = ascan_rest_utils.ports_diff_case.ntopng_more_t_vs
        end
     end
  
@@ -89,16 +89,16 @@ local function get_ports_comparison_result(rsp, ports_string_list, ports_detecte
         -- vs_scan ports = 0; detected_ports = 0;
         -- no badge
  
-        result.ports_case = vs_rest_utils.ports_diff_case.no_diff
+        result.ports_case = ascan_rest_utils.ports_diff_case.no_diff
     elseif ((not isEmptyString(ports_string_list)) and (not next(ports_detected))) then
         -- vs_scan ports != 0; detected_ports = 0;
         -- case 4
-        result.ports_case = vs_rest_utils.ports_diff_case.vs_more_t_ntopng
+        result.ports_case = ascan_rest_utils.ports_diff_case.vs_more_t_ntopng
         result.ports_unused = split(ports_string_list, ",")
     elseif (isEmptyString(ports_string_list) and (next(ports_detected))) then
         -- vs_scan ports = 0; detected_ports != 0;
         -- case 3
-        result.ports_case = vs_rest_utils.ports_diff_case.ntopng_more_t_vs
+        result.ports_case = ascan_rest_utils.ports_diff_case.ntopng_more_t_vs
         result.ports_filtered = ports_detected
     elseif ((not isEmptyString(ports_string_list)) and (next(ports_detected))) then
         -- vs_scan ports != 0; detected_ports != 0;
@@ -109,7 +109,7 @@ local function get_ports_comparison_result(rsp, ports_string_list, ports_detecte
         -- different ports (case 3 or case 4)
  
         result.ports_unused, result.ports_filtered, result.ports_case =
-            vs_rest_utils.compare_ports(ports_string_list, ports_detected)
+            ascan_rest_utils.compare_ports(ports_string_list, ports_detected)
     end
  
     return result
@@ -120,7 +120,7 @@ local function get_ports_comparison_result(rsp, ports_string_list, ports_detecte
 -- **********************************************************
 -- Retrieves detected ports by ntopng
 
-function vs_rest_utils.retrieve_detected_ports(host)
+function ascan_rest_utils.retrieve_detected_ports(host)
 
     interface.select(interface.getId())
     
@@ -151,9 +151,9 @@ function vs_rest_utils.retrieve_detected_ports(host)
 
  -- **********************************************************
  
- function vs_rest_utils.compare_scan_info_ntopng_info(host, scan_type ,tcp_ports_string_list, udp_ports_string_list)
+ function ascan_rest_utils.compare_scan_info_ntopng_info(host, scan_type ,tcp_ports_string_list, udp_ports_string_list)
     local tcp_ports_detected, host_in_mem, udp_ports_detected =
-    vs_rest_utils.retrieve_detected_ports(host)
+    ascan_rest_utils.retrieve_detected_ports(host)
  
     local tcp_ports_compare_result = {}
     local udp_ports_compare_result = {}
@@ -247,7 +247,7 @@ end
 
 -- ##################################################################
 
-function vs_rest_utils.format_port_label(port, service_name, protocol)
+function ascan_rest_utils.format_port_label(port, service_name, protocol)
     if (isEmptyString(service_name)) then
        return string.format("%s/%s",port,protocol)
     else
@@ -263,7 +263,7 @@ local function format_port_list(ports_string_list, protocol)
     local formatted_ports_list = ""
     for index, port in ipairs(split(ports_string_list, ',')) do
         local service_name = mapServiceName(port, protocol)
-        local port_label = vs_rest_utils.format_port_label(port, service_name, protocol)
+        local port_label = ascan_rest_utils.format_port_label(port, service_name, protocol)
         if (index == 1) then
             formatted_ports_list = port_label
         else
@@ -292,7 +292,7 @@ end
 -- ##################################################################
 
 -- Function to format result
-function vs_rest_utils.format_overview_result(result, search_map, sort, port, was_down, netscan_report)
+function ascan_rest_utils.format_overview_result(result, search_map, sort, port, was_down, netscan_report)
     local rsp = {}
     if result then
 
@@ -362,7 +362,7 @@ function vs_rest_utils.format_overview_result(result, search_map, sort, port, wa
 
             if (next(rsp)) then
                 
-                local cmp_result = vs_rest_utils.compare_scan_info_ntopng_info(rsp[#rsp].host, rsp[#rsp].scan_type ,tcp_ports_string_list, udp_ports_string_list)
+                local cmp_result = ascan_rest_utils.compare_scan_info_ntopng_info(rsp[#rsp].host, rsp[#rsp].scan_type ,tcp_ports_string_list, udp_ports_string_list)
                 if (rsp[#rsp].scan_type == "tcp_portscan") then
                     rsp[#rsp].tcp_ports_unused = cmp_result.tcp_ports_unused
                     rsp[#rsp].tcp_ports_filtered = cmp_result.tcp_ports_filtered
@@ -505,7 +505,7 @@ end
 -- ####################################################
 
 -- Function to format rest result
-function vs_rest_utils.format_scan_port_list_result(result, l4_protocol, sort) 
+function ascan_rest_utils.format_scan_port_list_result(result, l4_protocol, sort) 
     local rest_response = {}
     if result then
         for _,value in ipairs(result) do
@@ -557,4 +557,4 @@ end
 
 -- ####################################################
 
-return vs_rest_utils
+return ascan_rest_utils

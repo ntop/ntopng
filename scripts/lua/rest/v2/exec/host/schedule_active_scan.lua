@@ -5,11 +5,11 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 local rest_utils = require "rest_utils"
 local json = require("dkjson")
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 
 if not isAdministrator() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -32,7 +32,7 @@ if single_host then
    local is_all = not single_host
    local is_periodic = not single_host
 
-   local res = vs_utils.schedule_ondemand_single_host_scan(scan_type, host, ports, scan_id, is_periodic, is_all, is_single_scan, cidr)
+   local res = ascan_utils.schedule_ondemand_single_host_scan(scan_type, host, ports, scan_id, is_periodic, is_all, is_single_scan, cidr)
 
    if res then
       rest_utils.answer(rest_utils.consts.success.ok)
@@ -41,7 +41,7 @@ if single_host then
 
    end
 else 
-   local res = vs_utils.schedule_ondemand_all_hosts_scan()
+   local res = ascan_utils.schedule_ondemand_all_hosts_scan()
 
    if res then
       rest_utils.answer(rest_utils.consts.success.ok)

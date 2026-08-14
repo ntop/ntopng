@@ -5,10 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 local rest_utils = require "rest_utils"
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 
 if not isAdministrator() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -45,21 +45,21 @@ if scan_type ~= 'ipv4_netscan' then
     if isEmptyString(cidr) then
 
         if (not is_edit) then
-            result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, nil, cidr)
+            result,id = ascan_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, nil, cidr)
 
-            vs_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false)
+            ascan_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false)
         else 
-            result,id = vs_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency)
+            result,id = ascan_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency)
         end
     else 
-        local hosts_to_save = vs_utils.get_active_hosts(host, cidr)
+        local hosts_to_save = ascan_utils.get_active_hosts(host, cidr)
         if (next(hosts_to_save)) then
             for _,item in ipairs(hosts_to_save) do
                 if (not is_edit) then
-                    result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency, nil, 32 --[[ on host discovered cidr is 32 ]])
-                    vs_utils.schedule_ondemand_single_host_scan(scan_type,item,scan_ports,id,false,false,false)
+                    result,id = ascan_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency, nil, 32 --[[ on host discovered cidr is 32 ]])
+                    ascan_utils.schedule_ondemand_single_host_scan(scan_type,item,scan_ports,id,false,false,false)
                 else
-                    result,id = vs_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
+                    result,id = ascan_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
                 end
             end
         else
@@ -71,10 +71,10 @@ else
     -- ipv4_netscan -> case
 
     if (not is_edit) then
-        result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type, cidr)
-        vs_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false, cidr)
+        result,id = ascan_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type, cidr)
+        ascan_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false, cidr)
     else
-        result,id = vs_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type)
+        result,id = ascan_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type)
     end
 
 end

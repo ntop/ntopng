@@ -5,12 +5,12 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 
 
 local rest_utils = require "rest_utils"
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 
 if not isAdministrator() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -32,13 +32,13 @@ local del_result = 0
 
 if delete_all_scan_hosts then
 -- Delete all hosts to scan
-del_result = vs_utils.delete_host_to_scan(nil, nil, true)
+del_result = ascan_utils.delete_host_to_scan(nil, nil, true)
 elseif delete_failed_scan_hosts then
 -- Only delete hosts whose last scan failed (host down or unreachable)
-del_result = vs_utils.delete_failed_hosts_to_scan()
+del_result = ascan_utils.delete_failed_hosts_to_scan()
 else
 -- Only delete a host and a scan type
-del_result = vs_utils.delete_host_to_scan(host, scan_type, false)
+del_result = ascan_utils.delete_host_to_scan(host, scan_type, false)
 end
 
 if del_result then

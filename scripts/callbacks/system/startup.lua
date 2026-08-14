@@ -9,7 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" ..
                    package.path
 package.path = dirs.installdir ..
-                   "/scripts/lua/modules/vulnerability_scan/?.lua;" ..
+                   "/scripts/lua/modules/active_scan/?.lua;" ..
                    package.path
 
 -- Important: load this before any other alert related module
@@ -31,7 +31,7 @@ local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
 local presets_utils = require "presets_utils"
 local blog_utils = require("blog_utils")
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 local drop_host_pool_utils = require "drop_host_pool_utils"
 local json = require "dkjson"
 local cache_utils = require "cache_utils"
@@ -331,8 +331,8 @@ if (ntop.exists(influxdb_dir)) then
 end
 
 -- Vulnerability scan activities
-vs_utils.migrate_keys()
-vs_utils.restore_host_to_scan()
+ascan_utils.migrate_keys()
+ascan_utils.restore_host_to_scan()
 
 -- migrate unexpected dns/ntp/dhcp/smtp scripts to /lua/admin/network_configuration.lua
 migrate_unexpected_proto_config()

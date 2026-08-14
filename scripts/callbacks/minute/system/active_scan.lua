@@ -3,13 +3,13 @@
 --
 
 --
--- This script performs the scheduled vulnerability scans
+-- This script performs the scheduled active scans
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;".. package.path
-local vs_utils = require "vs_utils"
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;".. package.path
+local ascan_utils = require "ascan_utils"
 
 -- ###########################
 
@@ -34,27 +34,27 @@ else
    use_coroutines = true
 end
 
-local num_scans = vs_utils.process_all_scheduled_scans(max_num_scans_for_loop, use_coroutines)
+local num_scans = ascan_utils.process_all_scheduled_scans(max_num_scans_for_loop, use_coroutines)
 
 if(ntop.isEnterpriseL and ntop.isEnterpriseL()) then
    -- send the notification at the end of periodic scan
-   local is_periodic_scan_completed, periodicity = vs_utils.is_periodic_scan_completed()
+   local is_periodic_scan_completed, periodicity = ascan_utils.is_periodic_scan_completed()
    
    if (is_periodic_scan_completed) then
-      vs_utils.notify_scan_results(vs_utils.scan_in_exec_type.periodic_scan, periodicity)
+      ascan_utils.notify_scan_results(ascan_utils.scan_in_exec_type.periodic_scan, periodicity)
    end
 end
 
-local is_ondemand_scan_completed = vs_utils.is_ondemand_scan_completed()
+local is_ondemand_scan_completed = ascan_utils.is_ondemand_scan_completed()
 
 if (is_ondemand_scan_completed) then
    -- send notification at the end of scan all
-   vs_utils.notify_scan_results(vs_utils.scan_in_exec_type.scan_all, nil)
+   ascan_utils.notify_scan_results(ascan_utils.scan_in_exec_type.scan_all, nil)
 end
 
-local is_single_scan_completed = vs_utils.is_single_scan_completed()
+local is_single_scan_completed = ascan_utils.is_single_scan_completed()
 
 if (is_single_scan_completed) then
-   vs_utils.generate_report()
+   ascan_utils.generate_report()
 end
 

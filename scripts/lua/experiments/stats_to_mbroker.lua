@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 -- ############################################
 
@@ -18,7 +18,7 @@ local periodic_activities_utils = require "periodic_activities_utils"
 local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
 local auth = require "auth"
-local vs_utils = require "vs_utils"
+local ascan_utils = require "ascan_utils"
 local json = require("dkjson")
 
 -- ############################################
@@ -80,8 +80,8 @@ local function format_info(ifstats)
 
     res["throughput_bps"] = ifstats.stats.throughput_bps;
 
-    if (vs_utils.is_available()) then
-        local total, total_in_progress = vs_utils.check_in_progress_status()
+    if (ascan_utils.is_available()) then
+        local total, total_in_progress = ascan_utils.check_in_progress_status()
         res["vs_in_progress"] = total_in_progress or 0
     end
 

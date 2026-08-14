@@ -15,13 +15,13 @@ local json = require("dkjson")
 local format_utils = require("format_utils")
 -- ####################################################################################
 
-local vs_db_utils = {}
+local ascan_db_utils = {}
 local debug_me = false
 
 local data_table_name               = "vulnerability_scan_data"
 local report_table_name             = "vulnerability_scan_report"
 
-vs_db_utils.report_type = {
+ascan_db_utils.report_type = {
     single_scan = 1,
     scan_all = 2,
     periodic_scan = 3
@@ -29,7 +29,7 @@ vs_db_utils.report_type = {
 
 -- ####################################################################################
 -- Function to save data of single scan on db
-function vs_db_utils.save_vs_result(scan_type, host, end_epoch, json_info, scan_result)
+function ascan_db_utils.save_scan_result(scan_type, host, end_epoch, json_info, scan_result)
     if not ntop.isClickHouseEnabled() then return end
     if debug_me then
         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Saving on DB HOST: ".. host .. " SCAN_TYPE: " .. scan_type .. " ENDEPOCH: "..end_epoch.." \n")
@@ -49,7 +49,7 @@ end
 
 -- ####################################################################################
 -- Function to retrieve nmap result from DB
-function vs_db_utils.retrieve_scan_result(scan_type, host, end_epoch) 
+function ascan_db_utils.retrieve_scan_result(scan_type, host, end_epoch) 
     if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT VS_RESULT_FILE FROM %s WHERE HOST = '%s' AND SCAN_TYPE = '%s' AND LAST_SCAN = %u;"
     sql = string.format(sql, data_table_name, host, scan_type, tonumber(end_epoch))
@@ -74,7 +74,7 @@ end
 
 -- ####################################################################################
 -- Function to retrieve all reports from DB
-function vs_db_utils.retrieve_reports(sort_item, epoch)
+function ascan_db_utils.retrieve_reports(sort_item, epoch)
     if not ntop.isClickHouseEnabled() then return end
     if (isEmptyString(sort_item) or sort_item == 'DATE') then
         sort_item = 'REPORT_DATE'
@@ -117,7 +117,7 @@ end
 
 -- ####################################################################################
 -- Function to retrieve single report from DB
-function vs_db_utils.retrieve_report(epoch)
+function ascan_db_utils.retrieve_report(epoch)
     if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT REPORT_NAME,toInt32(REPORT_DATE) REPORT_DATE, REPORT_JSON_INFO, "
                 .."NUM_SCANNED_HOSTS,NUM_CVES, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
@@ -150,7 +150,7 @@ end
 
 -- ####################################################################################
 -- Function to retrieve single report name from DB
-function vs_db_utils.retrieve_report_name(epoch)
+function ascan_db_utils.retrieve_report_name(epoch)
     if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT REPORT_NAME ".. 
                 "FROM %s " ..
@@ -171,7 +171,7 @@ end
 
 -- ####################################################################################
 -- Function to save report on DB
-function vs_db_utils.save_report_info(report_info)
+function ascan_db_utils.save_report_info(report_info)
     if not ntop.isClickHouseEnabled() then return end
     local report_name = report_info.name
     report_name = report_name:gsub(" ","_")
@@ -191,7 +191,7 @@ end
 
 -- ####################################################################################
 -- Function to delete single report from DB
-function vs_db_utils.delete_report(epoch)
+function ascan_db_utils.delete_report(epoch)
     if not ntop.isClickHouseEnabled() then return end
     local sql = string.format("DELETE FROM %s WHERE REPORT_DATE = %u;",report_table_name, tonumber(epoch))
     return(interface.execSQLWrite(sql))
@@ -199,27 +199,27 @@ end
 
 -- ####################################################################################
 -- Function to edit single report from DB
-function vs_db_utils.edit_report(epoch, report_name)
+function ascan_db_utils.edit_report(epoch, report_name)
     if not ntop.isClickHouseEnabled() then return end
     local sql = string.format("ALTER TABLE %s UPDATE REPORT_NAME = '%s' WHERE REPORT_DATE = %u;",report_table_name,report_name, tonumber(epoch))
     return(interface.execSQLWrite(sql))
 end
 
-function vs_db_utils.update_last_result(scan_result, scan_type, host, epoch, last_port)
+function ascan_db_utils.update_last_result(scan_result, scan_type, host, epoch, last_port)
     if not ntop.isClickHouseEnabled() then return end
-    local db_current_scan_result = vs_db_utils.retrieve_scan_result(scan_type,host,epoch)
+    local db_current_scan_result = ascan_db_utils.retrieve_scan_result(scan_type,host,epoch)
 
     scan_result = scan_result:gsub("%'","|")
 
-    local merged_results = vs_db_utils.get_updated_vs_result(db_current_scan_result, scan_result, last_port)
+    local merged_results = ascan_db_utils.get_updated_scan_result(db_current_scan_result, scan_result, last_port)
     
     local sql = string.format("ALTER TABLE %s UPDATE VS_RESULT_FILE = '%s' WHERE HOST = '%s' AND SCAN_TYPE = '%s' AND LAST_SCAN = %u;",data_table_name,merged_results,host,scan_type, tonumber(epoch))
     return(interface.execSQLWrite(sql))
 end
 
-function vs_db_utils.get_updated_vs_result(current_gloal_result, last_single_scan, last_port)
+function ascan_db_utils.get_updated_scan_result(current_gloal_result, last_single_scan, last_port)
     return(string.format("%s\n\n%s\n%s",current_gloal_result,i18n("hosts_stats.page_scan_hosts.inconsistency_state", {port =last_port}),last_single_scan))
 end
 -- ####################################################################################
 
-return vs_db_utils
+return ascan_db_utils
