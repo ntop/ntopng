@@ -117,12 +117,17 @@ function storage_utils.storageInfo(refresh_cache, timeout)
     info.other = volume_info.used - info.total
     info.volume_size = volume_info.total
     info.volume_dev = volume_info.dev
+    info.volume_avail = volume_info.avail
+    info.volume_used_perc = tonumber(((volume_info.used_perc or ""):gsub("%%", "")))
+    info.volume_mount = volume_info.mount
 
     if separate_pcap_volume then
-        pcap_volume_info = recording_utils.volumeInfo(dirs.pcapdir)
         info.pcap_other = pcap_volume_info.used - info.pcap_total
         info.pcap_volume_size = pcap_volume_info.total
         info.pcap_volume_dev = pcap_volume_info.dev
+        info.pcap_volume_avail = pcap_volume_info.avail
+        info.pcap_volume_used_perc = tonumber(((pcap_volume_info.used_perc or ""):gsub("%%", "")))
+        info.pcap_volume_mount = pcap_volume_info.mount
     end
 
     -- Note: do not serialize the interfaces data, its already cached

@@ -111,6 +111,7 @@ local other_alert_keys = {
    alert_redis_reads_writes_exceeded    = OTHER_BASE_KEY + 98,
    alert_asn_rule_threshold_crossed     = OTHER_BASE_KEY + 99,
    alert_as_ranking_changed            = OTHER_BASE_KEY + 100,
+   alert_disk_space_low                = OTHER_BASE_KEY + 101,
 
    MAX_OTHER_ALERT_TYPE = OTHER_BASE_KEY + 127 -- see ntop_typedefs.h
 }
