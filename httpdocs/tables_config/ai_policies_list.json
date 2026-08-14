@@ -59,6 +59,22 @@
       "class": ["text-nowrap", "text-center"]
     },
     {
+      "id": "trigger_count",
+      "title_i18n": "llm.trigger_count",
+      "data_field": "trigger_count",
+      "sortable": true,
+      "min-width": "90px",
+      "class": ["text-nowrap", "text-center"]
+    },
+    {
+      "id": "run_count",
+      "title_i18n": "llm.run_count",
+      "data_field": "run_count",
+      "sortable": true,
+      "min-width": "90px",
+      "class": ["text-nowrap", "text-center"]
+    },
+    {
       "id": "name",
       "title_i18n": "name",
       "data_field": "name",
