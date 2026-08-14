@@ -28,6 +28,7 @@ NtopngLuaContext::NtopngLuaContext() {
       sqlite_flows_filter = NULL;
   sqlite_filters_loaded = false;
   zmq_context = zmq_subscriber = NULL;
+  can_https_be_insecure = ntop->getPrefs()->do_insecure_tls();
   conn = NULL;
   allowedNets = NULL;
   allowed_pools = NULL;

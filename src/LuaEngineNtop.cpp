@@ -2599,7 +2599,9 @@ static int ntop_http_get(lua_State* vm) {
   opts.stats             = &stats;
   opts.follow_redirects  = follow_redirects;
   opts.ip_version        = ip_version;
-  Utils::httpGetPostPutPatch(vm, url, method_get, ntop->getPrefs()->do_insecure_tls(), opts);
+
+  Utils::httpGetPostPutPatch(vm, url, method_get,
+			     getLuaVMUservalue(vm, can_https_be_insecure), opts);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -2615,7 +2617,8 @@ static int ntop_http_get_auth_token(lua_State* vm) {
   bool follow_redirects = true;
   int ip_version = 0;
   HTTPTranferStats stats;
-
+  HttpGetPostOptions opts;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
@@ -2650,7 +2653,6 @@ static int ntop_http_get_auth_token(lua_State* vm) {
 
   if (lua_type(vm, 7) == LUA_TNUMBER) ip_version = lua_tointeger(vm, 7);
 
-  HttpGetPostOptions opts;
   memset(&opts, 0, sizeof(opts));
   opts.user_header_token    = auth_token;
   opts.connect_timeout      = connection_timeout;
@@ -2660,7 +2662,9 @@ static int ntop_http_get_auth_token(lua_State* vm) {
   opts.stats                = &stats;
   opts.follow_redirects     = follow_redirects;
   opts.ip_version           = ip_version;
-  Utils::httpGetPostPutPatch(vm, url, method_get, ntop->getPrefs()->do_insecure_tls(), opts);
+
+  Utils::httpGetPostPutPatch(vm, url, method_get,
+			     getLuaVMUservalue(vm, can_https_be_insecure), opts);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -3291,7 +3295,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
 
   bool rv = Utils::postHTTPJsonData(bearer_token, username, password, url, json,
 				    connection_timeout, lifetime_timeout, &stats,
-				    ntop->getPrefs()->do_insecure_tls());
+				    getLuaVMUservalue(vm, can_https_be_insecure));
   
   lua_pushboolean(vm, rv);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
@@ -3366,7 +3370,8 @@ static int ntop_http_post(lua_State* vm) {
     lua_pop(vm, 1);
   }
 
-  Utils::httpGetPostPutPatch(vm, url, method_post, ntop->getPrefs()->do_insecure_tls(), opts);
+  Utils::httpGetPostPutPatch(vm, url, method_post,
+			     getLuaVMUservalue(vm, can_https_be_insecure), opts);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -3418,7 +3423,8 @@ static int ntop_http_multi_auth_token(lua_State* vm, HttpMethod method) {
   opts.stats                = &stats;
   opts.form_data            = form_data;
   opts.follow_redirects     = true;
-  Utils::httpGetPostPutPatch(vm, url, method, ntop->getPrefs()->do_insecure_tls(), opts);
+
+  Utils::httpGetPostPutPatch(vm, url, method, getLuaVMUservalue(vm, can_https_be_insecure), opts);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -3469,7 +3475,7 @@ static int ntop_http_fetch(lua_State* vm) {
   opts.stats                = &stats;
   opts.write_fname          = fname;
   opts.follow_redirects     = true;
-  Utils::httpGetPostPutPatch(vm, url, method_post, ntop->getPrefs()->do_insecure_tls(), opts);
+  Utils::httpGetPostPutPatch(vm, url, method_post, getLuaVMUservalue(vm, can_https_be_insecure), opts);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -3514,7 +3520,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
   if (Utils::postHTTPTextFile(vm, username, password, url, path,
                               connection_timeout, lifetime_timeout,
-			      &stats, ntop->getPrefs()->do_insecure_tls())) {
+			      &stats, getLuaVMUservalue(vm, can_https_be_insecure))) {
     if (delete_file_after_post) {
       if (unlink(path) != 0)
         ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to delete file %s",
@@ -3573,7 +3579,7 @@ static int ntop_send_mail(lua_State* vm) {
     verbose = lua_toboolean(vm, 9);
 
   Utils::sendMail(vm, from, to, cc, msg, smtp_server, username, password,
-                  use_proxy, verbose, ntop->getPrefs()->do_insecure_tls());
+                  use_proxy, verbose, getLuaVMUservalue(vm, can_https_be_insecure));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -5494,6 +5500,17 @@ static int ntop_get_csrf_value(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_pushstring(vm, csrf);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Force http/https call in this VM to be executed securely regardless of --insecure */
+static int ntop_force_https_secure(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  getLuaVMUservalue(vm, can_https_be_insecure) = false;
+  lua_pushnil(vm);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
 
@@ -9314,6 +9331,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getRandomCSRFValue", ntop_get_csrf_value},
 
     /* HTTP */
+    {"forceHTTPSsecure", ntop_force_https_secure},
     {"httpGet", ntop_http_get},
     {"httpGetAuthToken", ntop_http_get_auth_token},
     {"httpPost", ntop_http_post},

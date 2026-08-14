@@ -31,7 +31,7 @@ class NtopngLuaContext {
  public:
   char *allowed_ifname, *user, *group, *csrf;
   char *sqlite_hosts_filter, *sqlite_flows_filter;
-  bool sqlite_filters_loaded;
+  bool sqlite_filters_loaded, can_https_be_insecure;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection* conn;
   AddressTree* allowedNets;
