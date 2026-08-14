@@ -89,6 +89,7 @@ if page == "overview" or not page then
             ifid = interface.getId(),
             configuration = as_utils.getASNConfiguration(asn),
             isEnterpriseXL = ntop.isEnterpriseXL and ntop.isEnterpriseXL(),
+            isEnterpriseM = ntop.isEnterpriseM and ntop.isEnterpriseM(),
             tableId = tableId,
             hasClickHouseSupport = show_historical,
             first_date_epoch = first_seen,
