@@ -1259,7 +1259,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "number",
                 redis_key = "ntopng.prefs.clickhouse_ts_queue_size",
-                default = "200000",
+                default = "500000",
                 requires_restart = true,
                 section = i18n("prefs.timeseries_database"),
                 attrs = {
@@ -1274,7 +1274,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "number",
                 redis_key = "ntopng.prefs.clickhouse_ts_batch_size",
-                default = "10000",
+                default = "50000",
                 requires_restart = true,
                 section = i18n("prefs.timeseries_database"),
                 attrs = {
