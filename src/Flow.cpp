@@ -10366,10 +10366,15 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
       d.next_hop = *next_hop, d.mapped_next_hop = *mapped_next_hop,
       d.return_path = !src2dst_direction, d.in_index = in_index,
       d.out_index = out_index, d.source = source,
-      d.exporter_site_id = exporter_site_id, d.next_hop_site_id = next_hop_site_id,
+      d.exporter_site_id = exporter_site_id, d.next_hop_site_id = next_hop_site_id;
+
+#ifdef NTOPNG_PRO
       d.in_role = ntop->snmpGetInterfaceRole(mapped_exporter_ip, in_index),
       d.out_role = ntop->snmpGetInterfaceRole(mapped_exporter_ip, out_index);
-
+#else
+      d.in_role = d.out_role = role_other;
+#endif
+      
     exporterStats.emplace(key, d);
   } else {
     // Present: nothing to do

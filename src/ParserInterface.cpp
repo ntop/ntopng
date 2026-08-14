@@ -292,15 +292,22 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
   if (flow) {
     /* Fix interface Id (if zero) */
-    SNMPInterfaceRole in_role  = ntop->snmpGetInterfaceRole(&zflow->exporter_device_ip, zflow->inIndex);
-    SNMPInterfaceRole out_role = ntop->snmpGetInterfaceRole(&zflow->exporter_device_ip, zflow->outIndex);
+    SNMPInterfaceRole in_role, out_role;
+
+#if defined(NTOPNG_PRO)
     SNMPInterfaceRole main_role;
+    
+    in_role  = ntop->snmpGetInterfaceRole(&zflow->exporter_device_ip, zflow->inIndex);   
+    out_role = ntop->snmpGetInterfaceRole(&zflow->exporter_device_ip, zflow->outIndex);
 
     if ((in_role == role_transit) || (in_role == role_peering) || (in_role == role_ix))
       main_role = in_role;
     else
       main_role = out_role;
-
+#else
+    in_role = out_role = role_other;
+#endif
+    
     if (new_flow) {
       flow->addExporterInfo(&zflow->exporter_device_ip,
 			    &zflow->next_hop,

@@ -652,13 +652,13 @@ void LocalHost::setRouterMac(Mac* gw) {
 
 void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto,
                               time_t when) {
+#ifdef NTOPNG_PRO
   bool set_port_status;
 
   if (!usedPorts) return;
 
   set_port_status = usedPorts->setServerPort(isTCP, port, proto);
 
-#ifdef NTOPNG_PRO
   if (set_port_status && ntop->getPro()->is_enterprise_l_edition()) {
     /* If the port is set for the first time set_port_status == true */
     u_int32_t learning_period = ntop->getPrefs()->hostPortLearningPeriod();
