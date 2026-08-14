@@ -795,6 +795,11 @@ if isASNModeEnabled then
 			value = "transit",
 			label = i18n("flows_page.interface_role_transit"),
 		},
+		{
+			key = "interface_role",
+			value = "ix",
+			label = i18n("flows_page.interface_role_ix"),
+		},
 	}
 
 	rsp[#rsp + 1] = {
