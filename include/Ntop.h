@@ -76,6 +76,7 @@ class Ntop {
 #ifndef WIN32
   int startupLockFile;
 #endif
+  int seed; /* random seed */
   bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool interfacesShuttedDown;
@@ -1043,6 +1044,7 @@ class Ntop {
     snmp_ip_addr_map[snmp_device_ip] = exporter_host_ip;
 #endif
   }
+  inline int getSeed() { return(seed); }
 };
 
 extern Ntop* ntop;

@@ -60,6 +60,9 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char* appName) {
+  srand((int)time(0) ^ (int)getpid()); /* Initialize random seed */
+  seed = rand();
+
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
@@ -130,7 +133,7 @@ Ntop::Ntop(const char* appName) {
   for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
   local_network_max_id = -1;
-  
+
   resetAllUpdates();
 
   internal_alerts_queue =
@@ -420,7 +423,7 @@ Ntop::~Ntop() {
   }
 
   if(bgp) delete bgp;
-  
+
 #ifdef NTOPNG_PRO
   if(ifRoles_shadow) delete ifRoles_shadow;
   if(ifRoles)        delete ifRoles;
@@ -773,7 +776,7 @@ bool Ntop::isLocalAddress(int family, void* addr, int32_t* network_id,
 
   if ((*network_id != -1) && network_mask_bits)
     *network_mask_bits = nmask_bits;
-  
+
   return (((*network_id) == -1) ? false : true);
 };
 
@@ -1107,7 +1110,7 @@ void Ntop::loadMacManufacturers(char* dir) {
 
 bool Ntop::startPollingBGPPrefixChanges(char *zmq_url) {
   char buf[128];
-  
+
   if((zmq_url == NULL) && (redis != NULL)) {
     /* In case zmq_url is not specified, we read it from preferences */
     if(redis->get((char*)CONST_BGP_PREFIX_ENDPOINT_NAME, buf, sizeof(buf)) == 0)
@@ -1116,7 +1119,7 @@ bool Ntop::startPollingBGPPrefixChanges(char *zmq_url) {
 
   if((zmq_url == NULL) || (zmq_url[0] == '\0') )
     return(false); /* Nothing to do */
-  
+
   if(bgp != NULL) {
     /* Terminate an existing BGP if existing */
     delete bgp;
@@ -2735,6 +2738,7 @@ static int compute_totp(const char* secret_b32, uint64_t counter) {
 bool Ntop::generateTOTPSecret(char* secret, size_t secret_len) const {
   /* Generate 20 random bytes and Base32-encode them */
   uint8_t raw[20];
+
   if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
   base32_encode(raw, sizeof(raw), secret, (int)secret_len);
   return true;
@@ -2816,7 +2820,7 @@ bool Ntop::createMFAPendingToken(const char* username, const char* referer,
                                  char* token, size_t token_len) const {
   char val[512], key[128];
   char random[64], tmp_token[33];
-  srand((int)time(0) ^ (int)getpid());
+
   snprintf(random, sizeof(random), "%d%s", rand(), username);
   /* mg_md5 produces a 33-char (32 hex + NUL) string */
   mg_md5(tmp_token, random, NULL);
@@ -3119,11 +3123,11 @@ static bool verify_ecdsa_p256(const uint8_t* pk_x, const uint8_t* pk_y,
   // Check signature
   {
     EVP_MD_CTX* mctx = EVP_MD_CTX_new();
-    
+
     if (EVP_DigestVerifyInit(mctx, NULL, EVP_sha256(), NULL, pkey) > 0) {
       ok = (EVP_DigestVerify(mctx, sig, sig_len, data, data_len) == 1);
     }
-    
+
     EVP_MD_CTX_free(mctx);
   }
 
@@ -3157,12 +3161,13 @@ static bool verify_ecdsa_p256(const uint8_t* pk_x, const uint8_t* pk_y,
   return ok;
 #endif
 }
-			      
+
 
 /* ---------- Ntop WebAuthn method implementations ---------- */
 
 bool Ntop::generateWebAuthnChallenge(char* challenge_b64, size_t len) const {
   uint8_t raw[32];
+
   if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
   std::string enc = webauthn_b64url_encode(raw, sizeof(raw));
   strncpy(challenge_b64, enc.c_str(), len - 1);
@@ -3176,10 +3181,10 @@ bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
                                        char* token, size_t token_len,
                                        char* challenge_b64,
                                        size_t challenge_len) const {
+  char rand_str[64], tmp_token[33];
+
   if (!generateWebAuthnChallenge(challenge_b64, challenge_len)) return false;
 
-  char rand_str[64], tmp_token[33];
-  srand((int)time(0) ^ (int)getpid());
   snprintf(rand_str, sizeof(rand_str), "%d%s", rand(), username);
   mg_md5(tmp_token, rand_str, NULL);
   strncpy(token, tmp_token, token_len - 1);
@@ -4847,7 +4852,7 @@ inline int32_t Ntop::localNetworkLookup(int family, void* addr,
 
     if(Utils::isIPv4MappedAddress(ipv6)) {
       u_int32_t addrv4 = ipv6->u6_addr.u6_addr32[3];
-      
+
       return(local_network_tree.findAddress(AF_INET,
 					    &addrv4, network_mask_bits));
     }
@@ -5831,7 +5836,7 @@ void Ntop::initSnmpInterfaceRole() {
     delete ifRoles_shadow;
     ifRoles_shadow = NULL;
   }
-  
+
   ifRoles_shadow = new (std::nothrow) std::map<std::tuple<struct ndpi_in6_addr, u_int32_t>, SNMPInterfaceRole, InterfaceKeyCompare>;
 }
 
@@ -5869,9 +5874,9 @@ SNMPInterfaceRole Ntop::snmpGetInterfaceRole(struct ndpi_in6_addr *exporter_devi
       ifRoles->find(searchKey);
 
     if (it != ifRoles->end())
-      return (it->second);    
+      return (it->second);
   }
-  
+
   return (role_other);
 }
 #endif
@@ -5884,11 +5889,10 @@ struct ndpi_in6_addr Ntop::findExporterIPMgmtAddress(struct ndpi_in6_addr host_i
 		     ndpi_in6_addr_hash, ndpi_in6_addr_eq>::iterator it;
 
   it = snmp_ip_addr_map.find(host_ip);
-  
+
   if(it != snmp_ip_addr_map.end())
     return(it->second);
 #endif
 
   return(host_ip);
 }
-
