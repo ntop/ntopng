@@ -403,12 +403,6 @@ return function(f)
             hidden = f.no_admin,
             reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") }
         }, {
-            key = "handle_licenses",
-            i18n = "about.handle_licenses.retrieve_licenses",
-            icon = "fa-solid fa-receipt",
-            url = "/lua/handle_licenses.lua",
-            hidden = f.no_admin
-        }, {
             key = "divider",
             i18n = "menu_group.community",
             is_divider = true

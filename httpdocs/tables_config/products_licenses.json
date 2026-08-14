@@ -1,6 +1,6 @@
 {
 	"id": "products_licenses",
-	"data_url": "lua/rest/v2/get/ntopng/product_licenses.lua",
+	"data_url": "lua/pro/rest/v2/get/ntopng/product_licenses.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
