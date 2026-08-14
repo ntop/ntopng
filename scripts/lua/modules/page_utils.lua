@@ -360,6 +360,11 @@ page_utils.menu_entries = {
         i18n_title = "analyst_pipeline",
         section = "nanalyst"
     },
+    ai_dashboard = {
+        key = "ai_dashboard",
+        i18n_title = "ai_dashboard.title",
+        section = "dashboard"
+    },
 
     -- Interface
     interface = {
@@ -846,7 +851,7 @@ page_utils.menu_entries = {
     },
     handle_licenses = {
         key = "handle_licenses",
-        i18n_title = "about.handle_licenses.retrieve_licenses",
+        i18n_title = "about.handle_licenses.page_title",
         section = "about"
     },
     blog = {
