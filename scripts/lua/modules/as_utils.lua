@@ -177,6 +177,20 @@ end
 -- empty or unknown value) returns every supported role
 --
 function as_utils.parseInterfaceRoles(interface_role)
+    local roles = {}
+
+    if isEmptyString(interface_role) or (interface_role == 'ix_transit_peering') then
+        -- Add the traffic of all the roles
+        for _, role in ipairs(INTERFACE_ROLE_VALUES) do
+            roles[#roles + 1] = role
+        end
+        return roles
+    end
+
+    if (interface_role == "all") then
+        return nil
+    end
+
     -- A single, known role is returned as a one element list
     if not isEmptyString(interface_role) and (interface_role ~= "all") then
         for _, role in ipairs(INTERFACE_ROLE_VALUES) do
@@ -184,11 +198,6 @@ function as_utils.parseInterfaceRoles(interface_role)
                 return { role }
             end
         end
-    end
-
-    local roles = {}
-    for _, role in ipairs(INTERFACE_ROLE_VALUES) do
-        roles[#roles + 1] = role
     end
 
     return roles

@@ -22,6 +22,7 @@ local function filterResults(query_info, results)
 			-- No value provided by the filter, skip the filtering
 			if not filter.value then
 				filtered_results[#filtered_results + 1] = result_value -- OK
+            goto continue
 			end
 			-- Search for the info inside the select
 			local param_info = nil

@@ -1601,11 +1601,11 @@ local function validateInterfaceRole(m)
 	 package.path
       local snmp_utils = require "snmp_utils"
       local roles_list = snmp_utils.get_snmp_interface_role_options()
-      local validation_list = {"all"}
+      local validation_list = {"all", "ix_transit_peering"}
       -- Dinamically retrieve the roles list in order to not need to modify
       -- also this function in case of future changes
       for _, info in pairs(roles_list) do
-	 validation_list[#validation_list + 1] = info.value
+	      validation_list[#validation_list + 1] = info.value
       end
       return validateChoice(validation_list, m)
    end
