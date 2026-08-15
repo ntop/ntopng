@@ -198,7 +198,7 @@ local function unifyNodes(new_nodes, nodes, query)
                   local tmp = split(node_id, "_")
                   if #tmp == 2 then
                      label = node_level_key_info.formatter(tmp[1], tmp[2])
-                     url_link = node_level_key_info.linker(tmp[1], tmp[2])
+                     node_link = node_level_key_info.linker(tmp[1], tmp[2])
                   end
                else
                   if node_level_key_info.formatter then
