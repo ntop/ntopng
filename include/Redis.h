@@ -64,7 +64,7 @@ class Redis {
   int msg_push(const char* cmd, const char* queue_name, const char* msg,
                u_int queue_trim_size, bool trace_errors = true,
                bool head_trim = false);
-  int lrpop(const char* queue_name, char* buf, u_int buf_len, bool lpop);
+  int lrpop(const char* queue_name, char** buf, bool lpop);
   void addToCache(const char* key, const char* value, u_int expire_secs);
   bool isCacheable(const char* key);
   bool expireCache(char* key, u_int expire_sec);
@@ -138,8 +138,8 @@ class Redis {
   int lrem(const char* queue_name, const char* value);
   int lrange(const char* list_name, char*** elements, int start_offset,
              int end_offset);
-  int lpop(const char* queue_name, char* buf, u_int buf_len);
-  int rpop(const char* queue_name, char* buf, u_int buf_len);
+  int lpop(const char* queue_name, char** buf);
+  int rpop(const char* queue_name, char** buf);
   int incr(const char* key, int amount);
   int flushDb();
   void flushCache();

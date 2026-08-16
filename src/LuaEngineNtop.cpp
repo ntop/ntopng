@@ -6780,7 +6780,7 @@ static int ntop_list_index_redis(lua_State* vm) {
 
 /* @brief Internal helper implementing lpop/rpop; called by ntop_lpop_redis and ntop_rpop_redis.  Lua: (internal helper) → string */
 static int ntop_lrpop_redis(lua_State* vm, bool lpop) {
-  char msg[16384], *list_name;
+  char *msg, *list_name;
   Redis* redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -6790,9 +6790,9 @@ static int ntop_lrpop_redis(lua_State* vm, bool lpop) {
   if ((list_name = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  if ((lpop ? redis->lpop(list_name, msg, sizeof(msg))
-            : redis->rpop(list_name, msg, sizeof(msg))) == 0) {
+  if ((lpop ? redis->lpop(list_name, &msg) : redis->rpop(list_name, &msg)) == 0) {
     lua_pushfstring(vm, "%s", msg);
+    free(msg);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
   } else
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));

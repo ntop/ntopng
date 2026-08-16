@@ -1474,7 +1474,7 @@ int Redis::lrem(const char* queue_name, const char* value) {
 
 /* ******************************************* */
 
-int Redis::lrpop(const char* queue_name, char* buf, u_int buf_len, bool lpop) {
+int Redis::lrpop(const char* queue_name, char** buf, bool lpop) {
   int rc;
   redisReply* reply;
 
@@ -1487,10 +1487,11 @@ int Redis::lrpop(const char* queue_name, char* buf, u_int buf_len, bool lpop) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s",
                                  reply->str ? reply->str : "???");
 
-  if (reply && reply->str)
-    snprintf(buf, buf_len, "%s", reply->str ? reply->str : ""), rc = 0;
-  else
-    buf[0] = '\0', rc = -1;
+  if (reply && reply->str) {
+    *buf = (char*)strdup(reply->str);
+    if(buf) rc = 0; else rc = -2;
+  } else
+    *buf = NULL, rc = -1;
 
   if (reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
@@ -1500,14 +1501,14 @@ int Redis::lrpop(const char* queue_name, char* buf, u_int buf_len, bool lpop) {
 
 /* ******************************************* */
 
-int Redis::lpop(const char* queue_name, char* buf, u_int buf_len) {
-  return lrpop(queue_name, buf, buf_len, true /* LPOP */);
+int Redis::lpop(const char* queue_name, char** buf) {
+  return lrpop(queue_name, buf, true /* LPOP */);
 }
 
 /* ******************************************* */
 
-int Redis::rpop(const char* queue_name, char* buf, u_int buf_len) {
-  return lrpop(queue_name, buf, buf_len, false /* RPOP */);
+int Redis::rpop(const char* queue_name, char** buf) {
+  return lrpop(queue_name, buf, false /* RPOP */);
 }
 
 /* ******************************************* */
