@@ -6780,7 +6780,7 @@ static int ntop_list_index_redis(lua_State* vm) {
 
 /* @brief Internal helper implementing lpop/rpop; called by ntop_lpop_redis and ntop_rpop_redis.  Lua: (internal helper) → string */
 static int ntop_lrpop_redis(lua_State* vm, bool lpop) {
-  char msg[4096], *list_name;
+  char msg[16384], *list_name;
   Redis* redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
