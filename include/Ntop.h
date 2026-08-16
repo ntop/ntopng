@@ -41,6 +41,7 @@ class Ntop {
 #ifndef WIN32
   int startupLockFile;
 #endif
+  int seed; /* random seed */
   bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool interfacesShuttedDown;
@@ -863,6 +864,8 @@ class Ntop {
   std::string getLuaCache(std::string);
   void setLuaCache(std::string, std::string);
   void dumpLuaCache(lua_State *vm);
+
+  inline int getSeed() { return(seed); }
 };
 
 extern Ntop *ntop;

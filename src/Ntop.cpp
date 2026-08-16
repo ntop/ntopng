@@ -46,6 +46,9 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char *appName) {
+  srand((int)time(0) ^ (int)getpid()); /* Initialize random seed */
+  seed = rand();
+
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   ntop = this;
