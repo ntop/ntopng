@@ -16,6 +16,10 @@ http://packages.ntop.org/. Development and stable builds are
 available. Stable builds are intended for production environments whereas
 development builds are intended for testing or early feature access.
 
+By default, freshly installed packages disable the plain HTTP web interface and enable HTTPS
+on port 3001 (i.e. ntopng is reachable at https://<host>:3001), using a self-signed certificate.
+See :ref:`SSL` for details on replacing it with your own certificate.
+
 Installing on macOS
 -------------------
 
@@ -33,9 +37,13 @@ http://packages.ntop.org/ and are installed with a GUI.
   - double click on the installer icon
 
 ntopng requires Redis to be installed in order to start, therefore you must install it first using
-Homebrew as listed below in this section. After the installation, ntopng is started and active on local port 3000
-(i.e. ntopng is available at http://127.0.0.1:3000). If you want to uninstall ntopng you can
-open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`
+Homebrew as listed below in this section.
+
+After the installation, ntopng is started and active on local HTTPS port 3001 (i.e. ntopng is reachable 
+at https://127.0.0.1:3001), while the plain HTTP port is disabled by
+default.
+
+If you want to uninstall ntopng you can open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`
 
 To enable geolocation, macOS packages require database files to be manually placed under :code:`/usr/local/share/ntopng/httpdocs/geoip`. Detailed instructions on how to obtain database files and install them are available at https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md/. Once the files have been downloaded and placed in the folder, a restart of ntopng is necessary to read load them.
 
