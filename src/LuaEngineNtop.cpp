@@ -1313,7 +1313,7 @@ static int ntop_get_pending_updates(lua_State* vm) {
 static int ntop_get_risk_list(lua_State* vm) {
   lua_newtable(vm);
 
-  for (int i = 0; i < NDPI_MAX_RISK; i++) {
+  for (int i = 1; i < NDPI_MAX_RISK; i++) {
     lua_pushstring(vm, ntop->getRiskStr((ndpi_risk_enum)i));
     lua_rawseti(vm, -2, i + 1);
   }

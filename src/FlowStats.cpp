@@ -55,7 +55,7 @@ void FlowStats::incStats(Bitmap128 alert_bitmap, u_int8_t l4_protocol,
   if (flow) {
     ndpi_risk risk_bitmap = flow->getRiskBitmap();
 
-    for (i = 0; i < NDPI_MAX_RISK; i++)
+    for (i = 1; i < NDPI_MAX_RISK; i++)
       if (NDPI_ISSET_BIT(risk_bitmap, i)) risks[i]++;
   }
 
@@ -238,7 +238,7 @@ void FlowStats::lua(lua_State* vm) {
   /* Flow risks */
   lua_newtable(vm);
 
-  for (u_int i = 0; i < NDPI_MAX_RISK; i++) {
+  for (u_int i = 1; i < NDPI_MAX_RISK; i++) {
     if (unlikely(risks[i] > 0)) {
       lua_newtable(vm);
 

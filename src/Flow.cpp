@@ -3826,7 +3826,7 @@ void Flow::lua_get_risk_info(lua_State* vm) {
 
       lua_newtable(vm);
 
-      for (u_int i = 0; i < NDPI_MAX_RISK; i++)
+      for (u_int i = 1; i < NDPI_MAX_RISK; i++)
         if (hasRisk((ndpi_risk_enum)i) &&
             NDPI_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
           lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk_enum)i), i);
@@ -3839,9 +3839,9 @@ void Flow::lua_get_risk_info(lua_State* vm) {
     /* Full alert risk list */
     lua_newtable(vm);
 
-    for (u_int i = 0; i < NDPI_MAX_RISK; i++)
+    for (u_int i = 1; i < NDPI_MAX_RISK; i++)
       if (hasRisk((ndpi_risk_enum)i)) {
-        ndpi_risk single_risk = (uint64_t)2 << (i - 1);
+        ndpi_risk single_risk = ((uint64_t)2) << (i - 1);
         u_int16_t client_score, server_score;
         u_int16_t risk_score =
             ndpi_risk2score(single_risk, &client_score, &server_score);
@@ -3894,7 +3894,7 @@ bool Flow::hasRisk(ndpi_risk_enum r) const {
 
 /* Returns true if at least one nDPI flow risk is set */
 bool Flow::hasRisks() const {
-  for (u_int i = 0; i < NDPI_MAX_RISK; i++) {
+  for (u_int i = 1; i < NDPI_MAX_RISK; i++) {
     if (hasRisk((ndpi_risk_enum)i)) return true;
   }
 

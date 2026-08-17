@@ -360,7 +360,7 @@ void FlowChecksLoader::printChecks() {
   if (unhandled_ndpi_risks) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unhandled Risks:");
 
-    for (int i = 0; i < NDPI_MAX_RISK; i++)
+    for (int i = 1; i < NDPI_MAX_RISK; i++)
       if (NDPI_RISK_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "\t%s [%u]",
                                      ndpi_risk2str((ndpi_risk_enum)i), i);
