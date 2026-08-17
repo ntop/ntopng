@@ -25,7 +25,6 @@
 --  Level 16 — Critical Event: Reserved for catastrophic events, massive continuous attacks, or total compromise of a foundational security module.
 --
 
-@
 CREATE TABLE IF NOT EXISTS wazuh_alerts
 (
     ingested_at          DateTime64(3, 'UTC')  DEFAULT now64(),
@@ -116,4 +115,3 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions
 )
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY id;
-@

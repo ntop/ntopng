@@ -144,4 +144,3 @@ INSERT INTO wazuh_alert_rules VALUES
 ('high-level-catchall', 9000, 10, [], 0,
  '[HIGH] Unclassified high-severity alert digest',
  1, 'Safety net for level 10+ events not matched by any specific rule above', now());
-@
