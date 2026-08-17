@@ -403,6 +403,26 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.flowfilters.cli_site",
+			"data_field": "cli_site",
+			"sortable": true,
+			"min-width": "120px",
+			"render_generic": "cli_site",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.flowfilters.srv_site",
+			"data_field": "srv_site",
+			"sortable": true,
+			"min-width": "120px",
+			"render_generic": "srv_site",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.cli_host_pool_id",
 			"data_field": "cli_host_pool_id",
 			"sortable": true,

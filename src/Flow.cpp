@@ -7860,6 +7860,9 @@ void Flow::lua_get_info(lua_State* vm, bool client) const {
       lua_push_int32_table_entry(vm,
                                  client ? "cli.network_id" : "srv.network_id",
                                  h->get_local_network_id());
+      lua_push_int32_table_entry(
+          vm, client ? "cli.site_id" : "srv.site_id",
+          iface->getNetworkSiteId(h->get_local_network_id()));
       lua_push_uint64_table_entry(vm, client ? "cli.pool_id" : "srv.pool_id",
                                   h->get_host_pool());
       lua_push_uint64_table_entry(vm, client ? "cli.tags" : "srv.tags",
@@ -8032,12 +8035,14 @@ void Flow::lua_snmp_info(lua_State* vm) {
 
   lua_push_str_table_entry(vm, "original_device_ip", Utils::intoaV6(getOriginalExporterIP(), buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "device_ip", Utils::intoaV6(getExporterIP(), buf, sizeof(buf)));
+  lua_push_int32_table_entry(vm, "exporter_site_id", getExporterSiteId());
 
   struct ndpi_in6_addr addr = getNextHopIP();
 
   if (!Utils::isNullAddress(&addr)) {
     lua_push_str_table_entry(vm, "original_next_hop", Utils::intoaV6(getOriginalNextHopIP(), buf, sizeof(buf)));
     lua_push_str_table_entry(vm, "next_hop", Utils::intoaV6(getNextHopIP(), buf, sizeof(buf)));
+    lua_push_int32_table_entry(vm, "next_hop_site_id", getNextHopSiteId());
   }
 
   lua_push_uint64_table_entry(vm, "in_index", getInIndex());

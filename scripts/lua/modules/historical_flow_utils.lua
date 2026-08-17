@@ -754,10 +754,10 @@ local function dt_format_site(site_id)
    if tonumber(site["value"]) ~= 0 then
       local site_utils = require "site_utils"
       local sites = site_utils.getSites() or {}
-      for _, site in pairs(sites) do
-         if site.id == tostring(site_id) then
-            site["title"] = site.name
-            site["label"] = site.name
+      for _, s in pairs(sites) do
+         if s.id == tostring(site_id) then
+            site["title"] = s.name
+            site["label"] = s.name
             break
          end
       end

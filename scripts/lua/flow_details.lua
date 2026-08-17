@@ -2028,6 +2028,17 @@ local function print_flow_overview_page()
          print("</tr>\n")
       end
 
+      if ((flow["cli.site_id"] and flow["cli.site_id"] ~= 0) or
+          (flow["srv.site_id"] and flow["srv.site_id"] ~= 0)) then
+         print("<tr>")
+         print("<th class='colspan-4'>" .. i18n("flow_details.site_src_dst") .. "</th>")
+         print("<td>" .. ((flow["cli.site_id"] ~= nil and flow["cli.site_id"] ~= 0) and
+	       site_utils.getSiteName(flow["cli.site_id"]) or "") .. "</td>")
+         print("<td>" .. ((flow["srv.site_id"] ~= nil and flow["srv.site_id"] ~= 0) and
+	       site_utils.getSiteName(flow["srv.site_id"]) or "") .. "</td>")
+         print("</tr>\n")
+      end
+
       if (not interface.isPacketInterface()) and (flow["flow_verdict"]) and (tonumber(flow["flow_verdict"]) ~= 0) then
          local flow_verdict_badge = addFlowVerdictBadge(flow["flow_verdict"], true)
          print("<tr><th class='colspan-4'>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict_badge .. "</td></tr>\n")
@@ -2110,6 +2121,21 @@ local function print_flow_overview_page()
 
             print("<tr><th>" .. i18n("details.observation_point_id") .. "</th>")
             print("<td colspan=\"2\">" .. custom_name .. "</td></tr>")
+         end
+
+         if (ntop.isPro and ntop.isPro()) then
+            local exporter_site_id = flow["exporter_site_id"]
+            local next_hop_site_id = flow["next_hop_site_id"]
+
+            if (exporter_site_id ~= nil and exporter_site_id ~= 0) then
+               print("<tr><th>" .. i18n("flow_details.exporter_site") .. "</th>")
+               print("<td colspan=\"2\">" .. site_utils.getSiteName(exporter_site_id) .. "</td></tr>")
+            end
+
+            if (next_hop_site_id ~= nil and next_hop_site_id ~= 0) then
+               print("<tr><th>" .. i18n("flow_details.next_hop_site") .. "</th>")
+               print("<td colspan=\"2\">" .. site_utils.getSiteName(next_hop_site_id) .. "</td></tr>")
+            end
          end
 
 	 local flow_trajectory = {}
