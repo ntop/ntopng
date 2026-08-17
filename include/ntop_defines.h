@@ -1230,6 +1230,9 @@ typedef enum {
 
 #define DB_SCHEMA_CLICKHOUSE_FNAME "db_schema_clickhouse.sql"
 #define DB_SCHEMA_CLICKHOUSE_CLUSTER_FNAME "db_schema_clickhouse_cluster.sql"
+#define DB_SCHEMA_WAZUH_CLICKHOUSE_FNAME "db_schema_wazuh_clickhouse.sql"
+#define DB_SCHEMA_WAZUH_CLICKHOUSE_CLUSTER_FNAME "db_schema_wazuh_clickhouse_cluster.sql"
+#define DB_SCHEMA_WAZUH_ALERT_RULES_DATA_FNAME "db_schema_wazuh_alert_rules_data.sql"
 #define ALERTS_STORE_SCHEMA_FILE_NAME "alert_store_schema.sql"
 #define ALERTS_VIEW_STORE_SCHEMA_FILE_NAME "alert_view_store_schema.sql"
 #define ALERTS_STORE_DB_FILE_NAME "alert_store_v11.db"

@@ -1,5 +1,5 @@
 /* Keep table definitions in sync with: */
-/* - httpdocs/misc/db_schema_wazuh_clickhouse_cluster.sql */
+/* - httpdocs/misc/db_schema_wazuh_clickhouse.sql */
 
 -- Schema for Wazuh alerts handling
 --
@@ -26,7 +26,7 @@
 --
 
 @
-CREATE TABLE IF NOT EXISTS wazuh_alerts
+CREATE TABLE IF NOT EXISTS wazuh_alerts ON CLUSTER '$CLUSTER'
 (
     ingested_at          DateTime64(3, 'UTC')  DEFAULT now64(),
     alert_id             String,
@@ -79,13 +79,13 @@ CREATE TABLE IF NOT EXISTS wazuh_alerts
     full_log             String,
     raw_json             String
 )
-ENGINE = MergeTree()
+ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}')
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (timestamp, agent_id, rule_id)
 TTL toDateTime(timestamp) + INTERVAL 1 YEAR
 SETTINGS index_granularity = 8192;
 @
-CREATE TABLE IF NOT EXISTS wazuh_alert_rules
+CREATE TABLE IF NOT EXISTS wazuh_alert_rules ON CLUSTER '$CLUSTER'
 (
     id          String        COMMENT 'Unique rule identifier',
     priority    Int32         DEFAULT 100 COMMENT 'Evaluation order – lower runs first',
@@ -97,10 +97,10 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_rules
     comment     String        DEFAULT ''  COMMENT 'Free-text description',
     updated_at  DateTime      DEFAULT now() COMMENT 'Last modification time'
 )
-ENGINE = ReplacingMergeTree(updated_at)
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}', updated_at)
 ORDER BY id;
 @
-CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions
+CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions ON CLUSTER '$CLUSTER'
 (
     id          String  COMMENT 'Unique exception identifier',
     rule_id     UInt32  DEFAULT 0  COMMENT 'Wazuh rule_id to match (0 = any)',
@@ -114,6 +114,6 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions
     comment     String  DEFAULT ''  COMMENT 'Free-text description',
     updated_at  DateTime DEFAULT now() COMMENT 'Last modification time'
 )
-ENGINE = ReplacingMergeTree(updated_at)
+ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}', updated_at)
 ORDER BY id;
 @
