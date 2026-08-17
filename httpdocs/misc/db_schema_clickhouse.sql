@@ -104,135 +104,74 @@ CREATE TABLE IF NOT EXISTS `flows` (
 `IS_FIRST_DUMP` Boolean,
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, IPV4_SRC_ADDR, IPV4_DST_ADDR);
 @
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `CLIENT_NW_LATENCY_US` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SERVER_NW_LATENCY_US` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `CLIENT_LOCATION` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SERVER_LOCATION` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC_NETWORK_ID` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST_NETWORK_ID` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `CLIENT_FINGERPRINT` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `INPUT_SNMP` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `OUTPUT_SNMP` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC_PROC_NAME` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST_PROC_NAME` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC_PROC_USER_NAME` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST_PROC_USER_NAME` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `ALERTS_MAP` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `TAGS_MAP` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC_TAGS_MAP` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST_TAGS_MAP` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SEVERITY` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_CLI_ATTACKER` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_CLI_VICTIM` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_CLI_BLACKLISTED` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_SRV_ATTACKER` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_SRV_VICTIM` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_SRV_BLACKLISTED` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `ALERT_STATUS` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `USER_LABEL` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `PROTOCOL_INFO_JSON` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `ALERT_JSON` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_ALERT_DELETED` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `ALERT_CATEGORY` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `MINOR_CONNECTION_STATE` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `MAJOR_CONNECTION_STATE` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `POST_NAT_IPV4_SRC_ADDR` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `POST_NAT_SRC_PORT` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `POST_NAT_IPV4_DST_ADDR` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `POST_NAT_DST_PORT` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DOMAIN_NAME` String;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `REQUIRE_ATTENTION` Boolean;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `QOE_SCORE` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC_PEER_ASN` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST_PEER_ASN` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `EXPORTER_SITE` UInt16;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `INPUT_INTERFACE_ROLE` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `OUTPUT_INTERFACE_ROLE` UInt8;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `NEXT_ADJACENT_ASN` UInt32;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `HR_SRC2DST_BYTES` Array(UInt64);
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `HR_DST2SRC_BYTES` Array(UInt64);
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `IS_FIRST_DUMP` Boolean;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `SRC_SITE_ID` UInt16;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `DST_SITE_ID` UInt16;
-@
-ALTER TABLE `flows` ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `PRE_NAT_IPV4_SRC_ADDR`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `PRE_NAT_SRC_PORT`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `PRE_NAT_IPV4_DST_ADDR`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `PRE_NAT_DST_PORT`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `COMMUNITY_ID`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `TCP_FINGERPRINT`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `WLAN_SSID`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `WTP_MAC_ADDRESS`;
-@
-ALTER TABLE `flows` DROP COLUMN IF EXISTS `LABELS_MAP`;
+ALTER TABLE `flows`
+  ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64,
+  ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String,
+  ADD COLUMN IF NOT EXISTS `CLIENT_NW_LATENCY_US` UInt32,
+  ADD COLUMN IF NOT EXISTS `SERVER_NW_LATENCY_US` UInt32,
+  ADD COLUMN IF NOT EXISTS `CLIENT_LOCATION` UInt8,
+  ADD COLUMN IF NOT EXISTS `SERVER_LOCATION` UInt8,
+  ADD COLUMN IF NOT EXISTS `SRC_NETWORK_ID` UInt32,
+  ADD COLUMN IF NOT EXISTS `DST_NETWORK_ID` UInt32,
+  ADD COLUMN IF NOT EXISTS `CLIENT_FINGERPRINT` String,
+  ADD COLUMN IF NOT EXISTS `INPUT_SNMP` UInt32,
+  ADD COLUMN IF NOT EXISTS `OUTPUT_SNMP` UInt32,
+  ADD COLUMN IF NOT EXISTS `SRC_PROC_NAME` String,
+  ADD COLUMN IF NOT EXISTS `DST_PROC_NAME` String,
+  ADD COLUMN IF NOT EXISTS `SRC_PROC_USER_NAME` String,
+  ADD COLUMN IF NOT EXISTS `DST_PROC_USER_NAME` String,
+  ADD COLUMN IF NOT EXISTS `ALERTS_MAP` String,
+  ADD COLUMN IF NOT EXISTS `TAGS_MAP` String,
+  ADD COLUMN IF NOT EXISTS `SRC_TAGS_MAP` String,
+  ADD COLUMN IF NOT EXISTS `DST_TAGS_MAP` String,
+  ADD COLUMN IF NOT EXISTS `SEVERITY` UInt8,
+  ADD COLUMN IF NOT EXISTS `IS_CLI_ATTACKER` UInt8,
+  ADD COLUMN IF NOT EXISTS `IS_CLI_VICTIM` UInt8,
+  ADD COLUMN IF NOT EXISTS `IS_CLI_BLACKLISTED` UInt8,
+  ADD COLUMN IF NOT EXISTS `IS_SRV_ATTACKER` UInt8,
+  ADD COLUMN IF NOT EXISTS `IS_SRV_VICTIM` UInt8,
+  ADD COLUMN IF NOT EXISTS `IS_SRV_BLACKLISTED` UInt8,
+  ADD COLUMN IF NOT EXISTS `ALERT_STATUS` UInt8,
+  ADD COLUMN IF NOT EXISTS `USER_LABEL` String,
+  ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime,
+  ADD COLUMN IF NOT EXISTS `PROTOCOL_INFO_JSON` String,
+  ADD COLUMN IF NOT EXISTS `ALERT_JSON` String,
+  ADD COLUMN IF NOT EXISTS `IS_ALERT_DELETED` UInt8,
+  ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32,
+  ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32,
+  ADD COLUMN IF NOT EXISTS `ALERT_CATEGORY` UInt8,
+  ADD COLUMN IF NOT EXISTS `MINOR_CONNECTION_STATE` UInt8,
+  ADD COLUMN IF NOT EXISTS `MAJOR_CONNECTION_STATE` UInt8,
+  ADD COLUMN IF NOT EXISTS `POST_NAT_IPV4_SRC_ADDR` UInt32,
+  ADD COLUMN IF NOT EXISTS `POST_NAT_SRC_PORT` UInt32,
+  ADD COLUMN IF NOT EXISTS `POST_NAT_IPV4_DST_ADDR` UInt32,
+  ADD COLUMN IF NOT EXISTS `POST_NAT_DST_PORT` UInt32,
+  ADD COLUMN IF NOT EXISTS `DOMAIN_NAME` String,
+  ADD COLUMN IF NOT EXISTS `REQUIRE_ATTENTION` Boolean,
+  ADD COLUMN IF NOT EXISTS `QOE_SCORE` UInt8,
+  ADD COLUMN IF NOT EXISTS `SRC_PEER_ASN` UInt32,
+  ADD COLUMN IF NOT EXISTS `DST_PEER_ASN` UInt32,
+  ADD COLUMN IF NOT EXISTS `EXPORTER_SITE` UInt16,
+  ADD COLUMN IF NOT EXISTS `INPUT_INTERFACE_ROLE` UInt8,
+  ADD COLUMN IF NOT EXISTS `OUTPUT_INTERFACE_ROLE` UInt8,
+  ADD COLUMN IF NOT EXISTS `NEXT_ADJACENT_ASN` UInt32,
+  ADD COLUMN IF NOT EXISTS `HR_SRC2DST_BYTES` Array(UInt64),
+  ADD COLUMN IF NOT EXISTS `HR_DST2SRC_BYTES` Array(UInt64),
+  ADD COLUMN IF NOT EXISTS `IS_FIRST_DUMP` Boolean,
+  ADD COLUMN IF NOT EXISTS `SRC_SITE_ID` UInt16,
+  ADD COLUMN IF NOT EXISTS `DST_SITE_ID` UInt16,
+  ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6;
+@
+ALTER TABLE `flows`
+  DROP COLUMN IF EXISTS `PRE_NAT_IPV4_SRC_ADDR`,
+  DROP COLUMN IF EXISTS `PRE_NAT_SRC_PORT`,
+  DROP COLUMN IF EXISTS `PRE_NAT_IPV4_DST_ADDR`,
+  DROP COLUMN IF EXISTS `PRE_NAT_DST_PORT`,
+  DROP COLUMN IF EXISTS `COMMUNITY_ID`,
+  DROP COLUMN IF EXISTS `TCP_FINGERPRINT`,
+  DROP COLUMN IF EXISTS `WLAN_SSID`,
+  DROP COLUMN IF EXISTS `WTP_MAC_ADDRESS`,
+  DROP COLUMN IF EXISTS `LABELS_MAP`;
 @
 ALTER TABLE `flows` MODIFY COMMENT 'Per-flow telemetry records captured locally or received via NetFlow/sFlow/IPFIX. Each row represents one bidirectional network flow with 5-tuple (src/dst IP, src/dst port, protocol), byte/packet counters, L7 application identification, flow-risk bitmap, DSCP, NAT addresses, process info, and optional alert metadata. Partitioned by day on FIRST_SEEN.';
 @
@@ -358,11 +297,10 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `active_monitoring_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `active_monitoring_alerts` MODIFY COMMENT 'Historical alerts generated by the active monitoring subsystem (ICMP ping, HTTP, TLS checks, etc.). Rows are appended when an engaged alert is archived. See engaged_active_monitoring_alerts for currently-firing alerts and active_monitoring_alerts_view to query both together.';
 @
@@ -474,21 +412,17 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
+ALTER TABLE `host_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `host_pool_id` UInt16,
+  ADD COLUMN IF NOT EXISTS `network` UInt16,
+  ADD COLUMN IF NOT EXISTS `country` String,
+  ADD COLUMN IF NOT EXISTS `alert_category` UInt8,
+  ADD COLUMN IF NOT EXISTS `require_attention` UInt8,
+  ADD COLUMN IF NOT EXISTS `tags_map` String DEFAULT '';
 @
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `host_pool_id` UInt16;
-@
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `network` UInt16;
-@
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `country` String;
-@
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `alert_category` UInt8;
-@
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `require_attention` UInt8;
-@
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `tags_map` String DEFAULT '';
-@
-ALTER TABLE `host_alerts` DROP COLUMN IF EXISTS `labels_map`;
+ALTER TABLE `host_alerts`
+  DROP COLUMN IF EXISTS `labels_map`;
 @
 ALTER TABLE `host_alerts` MODIFY COMMENT 'Historical alerts associated with individual hosts (identified by IP address and VLAN). Rows are appended when an engaged host alert is archived. See engaged_host_alerts for currently-firing alerts and host_alerts_view to query both together (with MITRE ATT&CK enrichment).';
 @
@@ -617,11 +551,10 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `mac_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `mac_alerts` MODIFY COMMENT 'Historical alerts associated with MAC addresses and layer-2 devices. See engaged_mac_alerts for currently-firing alerts and mac_alerts_view to query both together.';
 @
@@ -728,11 +661,10 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `snmp_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `snmp_alerts` MODIFY COMMENT 'Historical alerts from SNMP-polled network devices and their individual ports. See engaged_snmp_alerts for currently-firing alerts and snmp_alerts_view to query both together.';
 @
@@ -839,11 +771,10 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `network_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `network_alerts` MODIFY COMMENT 'Historical alerts associated with local network subnets (identified by local_network_id). See engaged_network_alerts for currently-firing alerts and network_alerts_view to query both together.';
 @
@@ -1044,11 +975,10 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `interface_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `interface_alerts` MODIFY COMMENT 'Historical alerts associated with monitored network interfaces. See engaged_interface_alerts for currently-firing alerts and interface_alerts_view to query both together.';
 @
@@ -1149,11 +1079,10 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `user_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `user_alerts` MODIFY COMMENT 'Historical alerts associated with ntopng-managed users. See engaged_user_alerts for currently-firing alerts and user_alerts_view to query both together.';
 @
@@ -1245,11 +1174,10 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
-@
-ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+ALTER TABLE `system_alerts`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS alert_category UInt8,
+  ADD COLUMN IF NOT EXISTS require_attention Boolean;
 @
 ALTER TABLE `system_alerts` MODIFY COMMENT 'Historical system-level alerts (e.g. license issues, connectivity failures, internal subsystem events). See engaged_system_alerts for currently-firing alerts and system_alerts_view to query both together.';
 @
@@ -1364,31 +1292,20 @@ CREATE TABLE IF NOT EXISTS `hourly_flows` (
 `SERVER_LOCATION` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, IPV4_SRC_ADDR, IPV4_DST_ADDR);
 @
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS SRC_LABEL String;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS DST_LABEL String;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS INTERFACE_ID UInt16;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS CLIENT_LOCATION UInt8;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS SERVER_LOCATION UInt8;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS L7_CATEGORY UInt16;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `SRC_HOST_POOL_ID` UInt16;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `DST_HOST_POOL_ID` UInt16;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `EXPORTER_SITE` UInt16;
-@
-ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6;
+ALTER TABLE `hourly_flows`
+  ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String,
+  ADD COLUMN IF NOT EXISTS SRC_LABEL String,
+  ADD COLUMN IF NOT EXISTS DST_LABEL String,
+  ADD COLUMN IF NOT EXISTS INTERFACE_ID UInt16,
+  ADD COLUMN IF NOT EXISTS CLIENT_LOCATION UInt8,
+  ADD COLUMN IF NOT EXISTS SERVER_LOCATION UInt8,
+  ADD COLUMN IF NOT EXISTS L7_CATEGORY UInt16,
+  ADD COLUMN IF NOT EXISTS `SRC_HOST_POOL_ID` UInt16,
+  ADD COLUMN IF NOT EXISTS `DST_HOST_POOL_ID` UInt16,
+  ADD COLUMN IF NOT EXISTS `SRC2DST_PACKETS` UInt32,
+  ADD COLUMN IF NOT EXISTS `DST2SRC_PACKETS` UInt32,
+  ADD COLUMN IF NOT EXISTS `EXPORTER_SITE` UInt16,
+  ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6;
 @
 ALTER TABLE `hourly_flows` MODIFY COMMENT 'Hourly aggregated flow summaries. Multiple raw flows sharing the same 5-tuple are collapsed into one row per hour with summed byte/packet counters and OR-ed risk bitmaps. Used for long-term trend analysis and reduced-resolution historical queries.';
 @
@@ -1547,11 +1464,10 @@ CREATE TABLE IF NOT EXISTS `assets` (
 `ntopng_instance_name` LowCardinality(String)
 ) ENGINE = ReplacingMergeTree(version) PRIMARY KEY (`type`, `key`) ORDER BY (`type`, `key`);
 @
-ALTER TABLE `assets` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE assets ADD COLUMN IF NOT EXISTS `os_type` String;
-@
-ALTER TABLE assets ADD COLUMN IF NOT EXISTS `model` String;
+ALTER TABLE `assets`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `os_type` String,
+  ADD COLUMN IF NOT EXISTS `model` String;
 @
 ALTER TABLE `assets` MODIFY COMMENT 'Network asset inventory: one row per discovered or imported asset (host, MAC address, network device). Uses ReplacingMergeTree on version so that re-discovered assets update existing rows rather than creating duplicates. json_info holds additional metadata as a JSON blob.';
 @
@@ -1833,13 +1749,11 @@ CREATE TABLE IF NOT EXISTS `hourly_asn` (
 `DST_SITE_ID` UInt16
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, SRC_ASN, DST_ASN);
 @
-ALTER TABLE `hourly_asn` ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String;
-@
-ALTER TABLE `hourly_asn` ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6;
-@
-ALTER TABLE `hourly_asn` ADD COLUMN IF NOT EXISTS `SRC_SITE_ID` UInt16;
-@
-ALTER TABLE `hourly_asn` ADD COLUMN IF NOT EXISTS `DST_SITE_ID` UInt16;
+ALTER TABLE `hourly_asn`
+  ADD COLUMN IF NOT EXISTS `NTOPNG_INSTANCE_NAME` String,
+  ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6,
+  ADD COLUMN IF NOT EXISTS `SRC_SITE_ID` UInt16,
+  ADD COLUMN IF NOT EXISTS `DST_SITE_ID` UInt16;
 @
 ALTER TABLE `hourly_asn` MODIFY COMMENT 'Hourly aggregated traffic statistics per source/destination ASN pair. Used for autonomous-system level traffic analysis and BGP peer analytics. Partitioned by day on FIRST_SEEN.';
 @
@@ -1887,11 +1801,10 @@ CREATE TABLE IF NOT EXISTS ai_chat_history (
     pinned UInt8 DEFAULT 0
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(created_at) ORDER BY (chat_id, sequence);
 @
-ALTER TABLE `ai_chat_history` ADD COLUMN IF NOT EXISTS context_summary String DEFAULT '';
-@
-ALTER TABLE `ai_chat_history` ADD COLUMN IF NOT EXISTS page_context String DEFAULT '';
-@
-ALTER TABLE ai_chat_history ADD COLUMN IF NOT EXISTS pinned UInt8 DEFAULT 0;
+ALTER TABLE `ai_chat_history`
+  ADD COLUMN IF NOT EXISTS context_summary String DEFAULT '',
+  ADD COLUMN IF NOT EXISTS page_context String DEFAULT '',
+  ADD COLUMN IF NOT EXISTS pinned UInt8 DEFAULT 0;
 @
 ALTER TABLE `ai_chat_history` MODIFY COMMENT 'Chat history table storing user and assistant messages for conversations';
 @
@@ -1931,31 +1844,20 @@ CREATE TABLE IF NOT EXISTS ai_token_usage (
   PARTITION BY toYYYYMMDD(created_at)
   ORDER BY (username, chat_id, call_seq);
 @
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `chat_id` UUID;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `call_seq` UInt32;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `chat_title` String DEFAULT '';
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `created_at` DateTime;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `username` String;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `call_type` LowCardinality(String);
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `provider` LowCardinality(String);
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `model` LowCardinality(String);
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `prompt_tokens` UInt32;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `completion_tokens` UInt32;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `completion_time_ms` UInt32;
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `tool_name` LowCardinality(String);
-@
-ALTER TABLE `ai_token_usage` ADD COLUMN IF NOT EXISTS `tool_params` String;
+ALTER TABLE `ai_token_usage`
+  ADD COLUMN IF NOT EXISTS `chat_id` UUID,
+  ADD COLUMN IF NOT EXISTS `call_seq` UInt32,
+  ADD COLUMN IF NOT EXISTS `chat_title` String DEFAULT '',
+  ADD COLUMN IF NOT EXISTS `created_at` DateTime,
+  ADD COLUMN IF NOT EXISTS `username` String,
+  ADD COLUMN IF NOT EXISTS `call_type` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `provider` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `model` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `prompt_tokens` UInt32,
+  ADD COLUMN IF NOT EXISTS `completion_tokens` UInt32,
+  ADD COLUMN IF NOT EXISTS `completion_time_ms` UInt32,
+  ADD COLUMN IF NOT EXISTS `tool_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `tool_params` String;
 @
 ALTER TABLE `ai_token_usage` MODIFY COMMENT 'Per-LLM-call token accounting for cost and usage analysis';
 @
@@ -1989,23 +1891,16 @@ CREATE TABLE IF NOT EXISTS ai_audit_log (
   PARTITION BY toYYYYMMDD(timestamp)
   ORDER BY (timestamp, username, tool_name);
 @
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `timestamp` DateTime;
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `username` String;
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `triggered_by` LowCardinality(String);
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `tool_name` LowCardinality(String);
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `action_label` String;
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `content` String;
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `result` String;
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `success` UInt8;
-@
-ALTER TABLE `ai_audit_log` ADD COLUMN IF NOT EXISTS `chat_id` String DEFAULT '';
+ALTER TABLE `ai_audit_log`
+  ADD COLUMN IF NOT EXISTS `timestamp` DateTime,
+  ADD COLUMN IF NOT EXISTS `username` String,
+  ADD COLUMN IF NOT EXISTS `triggered_by` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `tool_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `action_label` String,
+  ADD COLUMN IF NOT EXISTS `content` String,
+  ADD COLUMN IF NOT EXISTS `result` String,
+  ADD COLUMN IF NOT EXISTS `success` UInt8,
+  ADD COLUMN IF NOT EXISTS `chat_id` String DEFAULT '';
 @
 ALTER TABLE `ai_audit_log` MODIFY COMMENT 'Append-only audit log of mutating LLM-agent or user actions for accountability, RCA, and alert investigation';
 @
@@ -2030,15 +1925,12 @@ CREATE TABLE IF NOT EXISTS ai_model_prices (
 ) ENGINE = ReplacingMergeTree(updated_at)
   ORDER BY (provider, model);
 @
-ALTER TABLE `ai_model_prices` ADD COLUMN IF NOT EXISTS `provider` LowCardinality(String);
-@
-ALTER TABLE `ai_model_prices` ADD COLUMN IF NOT EXISTS `model` LowCardinality(String);
-@
-ALTER TABLE `ai_model_prices` ADD COLUMN IF NOT EXISTS `input_price_usd` Float64 DEFAULT 0;
-@
-ALTER TABLE `ai_model_prices` ADD COLUMN IF NOT EXISTS `output_price_usd` Float64 DEFAULT 0;
-@
-ALTER TABLE `ai_model_prices` ADD COLUMN IF NOT EXISTS `updated_at` DateTime DEFAULT now();
+ALTER TABLE `ai_model_prices`
+  ADD COLUMN IF NOT EXISTS `provider` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `model` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `input_price_usd` Float64 DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS `output_price_usd` Float64 DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS `updated_at` DateTime DEFAULT now();
 @
 ALTER TABLE `ai_model_prices` MODIFY COMMENT 'Model pricing configuration for LLM cost calculation';
 @
@@ -2071,11 +1963,10 @@ CREATE TABLE IF NOT EXISTS `analyst_pipelines` (
   ORDER BY (pipeline_id)
   PARTITION BY toYYYYMM(created_at)
 @
-ALTER TABLE `analyst_pipelines` ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String);
-@
-ALTER TABLE analyst_pipelines ADD COLUMN IF NOT EXISTS `provider`  String DEFAULT '';
-@
-ALTER TABLE analyst_pipelines ADD COLUMN IF NOT EXISTS `llm_model` String DEFAULT '';
+ALTER TABLE `analyst_pipelines`
+  ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
+  ADD COLUMN IF NOT EXISTS `provider`  String DEFAULT '',
+  ADD COLUMN IF NOT EXISTS `llm_model` String DEFAULT '';
 @
 ALTER TABLE `analyst_pipelines` MODIFY COMMENT 'Analyst investigation playbooks: parameterized multi-stage ClickHouse SQL pipelines generated from natural language. Each row is a reusable playbook. Soft-deleted via is_active=0.';
 @
