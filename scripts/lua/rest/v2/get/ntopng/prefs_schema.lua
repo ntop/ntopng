@@ -36,8 +36,25 @@ for _, section in ipairs(sections) do
    if not section.hidden then
       local visible_entries = {}
 
+      -- Keys referenced by some entry's to_switch/show_when must stay in the
+      -- payload even if currently hidden, since visibility toggles client-side
+      -- without a page reload (e.g. toggle_wazuh_enabled -> wazuh_url).
+      local switch_targets = {}
       for _, entry in ipairs(section.entries or {}) do
-         if not entry.hidden then
+         if entry.to_switch then
+            for _, dep in ipairs(entry.to_switch) do
+               switch_targets[dep] = true
+            end
+         end
+         if entry.show_when then
+            for dep, _ in pairs(entry.show_when) do
+               switch_targets[dep] = true
+            end
+         end
+      end
+
+      for _, entry in ipairs(section.entries or {}) do
+         if not entry.hidden or switch_targets[entry.key] then
             -- Resolve user-scoped redis keys (theme, date format)
             local redis_key = entry.redis_key
             if redis_key and entry.user_pref then

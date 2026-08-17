@@ -2468,6 +2468,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_local"),
+            section_id = "llm_local",
             hidden = (not has_nanalyst)
         }, {
             key = "local_llm_token",
@@ -2483,6 +2484,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_local"),
+            section_id = "llm_local",
             hidden = (not has_nanalyst)
         }, {
             key = "local_llm_model",
@@ -2497,6 +2499,7 @@ function M.get_sections(flags)
                 maxlength = "128"
             },
             section = i18n("prefs.llm_local"),
+            section_id = "llm_local",
             hidden = (not has_nanalyst)
         }, {
             key = "local_llm_timeout",
@@ -2511,6 +2514,7 @@ function M.get_sections(flags)
                 max = "1800"
             },
             section = i18n("prefs.llm_local"),
+            section_id = "llm_local",
             hidden = (not has_nanalyst)
         }, {
             key = "qwen_url",
@@ -2527,6 +2531,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_qwen"),
+            section_id = "llm_qwen",
             hidden = (not has_nanalyst)
         }, {
             key = "qwen_token",
@@ -2542,6 +2547,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_qwen"),
+            section_id = "llm_qwen",
             hidden = (not has_nanalyst)
         }, {
             key = "qwen_model",
@@ -2556,6 +2562,7 @@ function M.get_sections(flags)
                 maxlength = "128"
             },
             section = i18n("prefs.llm_qwen"),
+            section_id = "llm_qwen",
             hidden = (not has_nanalyst)
         }, {
             key = "qwen_timeout",
@@ -2570,6 +2577,7 @@ function M.get_sections(flags)
                 max = "1800"
             },
             section = i18n("prefs.llm_qwen"),
+            section_id = "llm_qwen",
             hidden = (not has_nanalyst)
         }, {
             key = "anthropic_url",
@@ -2586,6 +2594,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_anthropic"),
+            section_id = "llm_anthropic",
             hidden = (not has_nanalyst)
         }, {
             key = "anthropic_token",
@@ -2601,6 +2610,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_anthropic"),
+            section_id = "llm_anthropic",
             hidden = (not has_nanalyst)
         }, {
             key = "anthropic_model",
@@ -2615,6 +2625,7 @@ function M.get_sections(flags)
                 maxlength = "128"
             },
             section = i18n("prefs.llm_anthropic"),
+            section_id = "llm_anthropic",
             hidden = (not has_nanalyst)
         }, {
             key = "anthropic_timeout",
@@ -2629,6 +2640,7 @@ function M.get_sections(flags)
                 max = "1800"
             },
             section = i18n("prefs.llm_anthropic"),
+            section_id = "llm_anthropic",
             hidden = (not has_nanalyst)
         }, {
             key = "openai_url",
@@ -2645,6 +2657,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_openai"),
+            section_id = "llm_openai",
             hidden = (not has_nanalyst)
         }, {
             key = "openai_token",
@@ -2660,6 +2673,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.llm_openai"),
+            section_id = "llm_openai",
             hidden = (not has_nanalyst)
         }, {
             key = "openai_model",
@@ -2674,6 +2688,7 @@ function M.get_sections(flags)
                 maxlength = "128"
             },
             section = i18n("prefs.llm_openai"),
+            section_id = "llm_openai",
             hidden = (not has_nanalyst)
         }, {
             key = "openai_timeout",
@@ -2688,6 +2703,7 @@ function M.get_sections(flags)
                 max = "1800"
             },
             section = i18n("prefs.llm_openai"),
+            section_id = "llm_openai",
             hidden = (not has_nanalyst)
         }, {
             key = "llm_default_provider",
