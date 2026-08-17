@@ -287,7 +287,7 @@ const char* FlowRiskAlerts::getCheckName(ndpi_risk_enum risk) {
 /* **************************************************** */
 
 bool FlowRiskAlerts::checkConsistency() {
-  for (u_int i = 0; i < NDPI_MAX_RISK; i++) {
+  for (u_int i = 1; i < NDPI_MAX_RISK; i++) {
     if (risk_enum_to_alert_type[i].alert_type.ndpi_risk_id != i) {
       ntop->getTrace()->traceEvent(
           TRACE_ERROR, "Invalid risk_enum_to_alert_type entry Id %u", i);
