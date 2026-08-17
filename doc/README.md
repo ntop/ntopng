@@ -84,6 +84,16 @@ In order to simulate more traffic to match real traffic volume, you can apply a
 scaling factor to the size of each received packet. The scaling factor can
 be specified through the GUI, into the interface settings.
 
+Rocky Linux and redis-server
+----------------
+In the latest RockyLinux version there is no redis-server package to install. You can use as drop-in replacement valkey that you can install as follows:
+
+```
+sudo dnf install -y valkey
+sudo systemctl enable --now valkey
+```
+
+
 Debugging ntopng
 ----------------
 handle SIGPIPE nostop noprint pass
