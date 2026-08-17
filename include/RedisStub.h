@@ -102,8 +102,8 @@ class Redis {
   int lrem(const char* queue_name, const char* value);
   int lrange(const char* list_name, char*** elements, int start_offset,
              int end_offset);
-  int lpop(const char* queue_name, char* buf, u_int buf_len);
-  int rpop(const char* queue_name, char* buf, u_int buf_len);
+  int lpop(const char* queue_name, char** buf);
+  int rpop(const char* queue_name, char** buf);
   int incr(const char* key, int amount);
   int flushDb();
   void flushCache();
