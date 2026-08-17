@@ -552,12 +552,6 @@ Flow::~Flow() {
     (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay())
     ? true : false;
 
-#ifdef NTOPNG_PRO
-  Sites *s = getInterface()->getSites();
-
-  if(s) s->incStats(this);
-#endif
-
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
 
@@ -2932,6 +2926,12 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
         pkts_msec, tdiff_msec, diff_pkts, get_pkts_thpt());
 #endif
   }
+
+#ifdef NTOPNG_PRO
+  Sites *s = getInterface()->getSites();
+
+  if(s) s->incStats(this, diff_sent_bytes, diff_rcvd_bytes, getFlowRTT(true));
+#endif
 }
 
 /* *************************************** */
