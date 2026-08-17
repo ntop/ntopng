@@ -23,6 +23,7 @@ Key capabilities at a glance:
    architecture
    chat_interface
    features/index
+   tools_and_licensing
    llm_setup
    mcp_server
    observability
