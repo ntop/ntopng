@@ -168,22 +168,111 @@ For Networks, there will be displayed:
   Dashboard Sites Details
 
 
-Exporters, instead, will display:
+Exploring an Exporter
+^^^^^^^^^^^^^^^^^^^^^^
 
-- Traffic Analysis: a generic dashboard with the main stats (e.g. Top Hosts, Top Applications, ...)
-- Interfaces: the interfaces of the Exporter
-- Flows
-- Hosts
-- SNMP: only available if the Flow Exporter is being polled with SNMP by ntopng
+Clicking a Flow Exporter (NetFlow/sFlow/IPFIX probe) inside a network opens its detail view, with a
+breadcrumb (Site > Network > Exporter) at the top and header cards for Interfaces count, Current
+Traffic (sent/received split), Flows, Active Hosts and SNMP polling status. The exporter view has
+four sub-tabs:
 
+**Traffic Analysis**
+  The default sub-tab: a Traffic Time Series chart (sent/received bytes over time), a Top
+  Applications table (protocol name, traffic volume and percentage share), and Top Local Hosts /
+  Top Remote Hosts tables. Every table row links out to the Flows page pre-filtered by that
+  application or host.
 
-Finally SNMP devices are also available (only if polled by ntopng with SNMP), with a generic dashboard, displaying various info
-about the device itself
+.. figure:: ../../../img/dashboard_sites_details.png
 
+  :align: center
+  :alt: Exporter Traffic Analysis sub-tab
+
+  Exporter - Traffic Analysis
+
+**Interfaces**
+  Lists each physical/logical interface exposed by the exporter, with Bytes Received and Bytes
+  Sent columns. Clicking an interface narrows the traffic charts to that single interface.
+
+**Live Flows**
+  The live flows table for traffic seen by this exporter: source/destination host, application
+  protocol, L4 protocol, ports, VLAN, throughput and duration, with the same filter bar (protocol,
+  status, QoE, traffic type, host pool, ASN, in/out interface index) used on the standalone Flows
+  page.
+
+.. figure:: ../../../img/dashboard_sites_exporter_live_flows.png
+
+  :align: center
+  :alt: Exporter Live Flows sub-tab
+
+  Exporter - Live Flows
+
+**Hosts**
+  The host table for this exporter: every local/remote host that has generated traffic through it,
+  with traffic volume, country/ASN and the usual host-table column set (sortable, searchable, with
+  column visibility control).
+
+.. figure:: ../../../img/dashboard_sites_exporter_hosts.png
+
+  :align: center
+  :alt: Exporter Hosts sub-tab
+
+  Exporter - Hosts
+
+**SNMP**
+  Not a sub-tab on the exporter itself: the SNMP status card in the header shows *Polling* or *Not
+  Polling*. If the exporter is also configured as a polled SNMP device, an **SNMP Devices** entry
+  appears as a sibling node under it in the left sidebar tree - see below.
+
+Exploring an SNMP Device
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Finally SNMP devices are also available (only if polled by ntopng with SNMP). Expanding **SNMP
+Devices** in the sidebar tree lists every polled device by name; selecting one opens its detail
+view with:
+
+- **SNMP Interfaces** header count.
+- A **Traffic Time Series** chart, with one selectable line per SNMP interface (physical port,
+  virtual interface, bridge, etc.).
+- A **Device Information** card: Device Name, Device IP, Description (from the device's system
+  description OID), Location, Contact, Uptime, Time Since Last Poll, SNMP Interfaces count and
+  Interfaces With Errors count.
+- An **SNMP Interfaces** table, one row per polled port/interface, with columns for Name,
+  Interface Alias, Interface IPs, Role, In/Out Bytes, Throughput, VLAN, Admin. Status, Oper.
+  Status, Duplex Status, MACs, In Discards, In/Out Errors, Uplink/Downlink Speed, Last In/Out
+  Usage and Last Change. Clicking a row opens that single SNMP interface's own detail page.
 
 .. figure:: ../../../img/dashboard_sites_snmp_device_details.png
 
   :align: center
-  :alt: Dashboard Sites Details
+  :alt: SNMP device detail view: traffic chart, device information and interfaces table
 
-  Dashboard Sites Details
+  SNMP Device Details
+
+Map and Matrix Views
+^^^^^^^^^^^^^^^^^^^^^
+
+Besides the **Networks** and **Sites** tabs, the Sites Dashboard offers a **Map** tab with two
+sub-views for a geographic and cross-site perspective on traffic:
+
+- **Map**: plots every site with configured coordinates on an OpenStreetMap base layer. A
+  **Metric** selector controls what each site marker represents (defaults to Traffic), and a
+  Live/historical toggle switches between current and time-ranged data. Markers can be searched by
+  address or by typing coordinates directly.
+
+  .. figure:: ../../../img/dashboard_sites_map.png
+
+    :align: center
+    :alt: Sites Map view
+
+    Sites - Map
+
+- **Matrix**: a site-to-site traffic matrix, where rows and columns are sites and each cell shows
+  the traffic exchanged between that pair of sites - useful for spotting which sites communicate
+  most with each other.
+
+  .. figure:: ../../../img/dashboard_sites_matrix.png
+
+    :align: center
+    :alt: Sites Matrix view
+
+    Sites - Matrix
