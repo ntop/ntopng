@@ -11,9 +11,10 @@ local flow_data_historical = {}
 
 local function filterResults(query_info, results)
 	local filtered_results = {}
-	local where_post_query = query_info.where_post_query or {}
+	local where_post_query = query_info.where_post_query
 
-	if not where_post_query then
+	-- Nothing to filter out, return the rows as they are
+	if table.len(where_post_query or {}) == 0 then
 		return results
 	end
 
@@ -239,9 +240,9 @@ function flow_data_historical.retrieveFlowData(query_info)
 	local results = nil
 	local error_code = nil
 	-- Handle the select first
-	local isLive = not query_info.basic_info
-		or isEmptyString(query_info.basic_info.epoch_begin)
-		or isEmptyString(query_info.basic_info.epoch_end)
+	local isLive = not query_info.basic_filters
+		or isEmptyString(query_info.basic_filters.epoch_begin)
+		or isEmptyString(query_info.basic_filters.epoch_end)
 
 	-- In case no select keys are requested return empty -> error
 	if not query_info.select_query then
