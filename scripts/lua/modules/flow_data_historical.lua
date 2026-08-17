@@ -11,9 +11,10 @@ local flow_data_historical = {}
 
 local function filterResults(query_info, results)
 	local filtered_results = {}
-	local where_post_query = query_info.where_post_query or {}
+	local where_post_query = query_info.where_post_query
 
-	if not where_post_query then
+	-- Nothing to filter out, return the rows as they are
+	if table.len(where_post_query or {}) == 0 then
 		return results
 	end
 
