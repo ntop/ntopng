@@ -44,10 +44,12 @@ AggregatedFlowsStats::AggregatedFlowsStats(
 AggregatedFlowsStats::~AggregatedFlowsStats() {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (proto_name) free(proto_name);
   if (info_key) free(info_key);
   if (client) delete client;
   if (server) delete server;
+  if (host)   delete host;
 }
 
 /* *************************************** */
