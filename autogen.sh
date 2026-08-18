@@ -83,13 +83,6 @@ cd tests/e2e && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; c
 cd third-party/clickhouse-cpp && git reset --hard HEAD && rm -rf build; cd ../..
 fi
 
-if test -d "pro"; then
-N=`grep SetServerHostName third-party/clickhouse-cpp/clickhouse/client.h|wc -l|tr -d "[[:space:]]"`
-if test "${N}" = "0"; then
- cd third-party/clickhouse-cpp/; cat ../../clickhouse/clickhouse-cpp.diff | patch -p1 ; cd ../..
-fi
-fi
-
 # git submodule update --init --recursive
 
 echo "Wait please..."
