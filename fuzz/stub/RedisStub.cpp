@@ -494,39 +494,45 @@ int Redis::lrange(const char *list_name, char ***elements, int start_offset,
   return retList.size();
 }
 
-int Redis::lpop(const char *queue_name, char *buf, u_int buf_len) {
+int Redis::lpop(const char *queue_name, char **buf) {
+  *buf = NULL;
   stats.num_lpop_rpop++;
   std::string strKey(queue_name);
   if (this->listStore.find(strKey) == this->listStore.end()) {
-    buf[0] = 0;
     return -1;
   }
 
   if (this->listStore[strKey].size() == 0) {
-    buf[0] = 0;
     return -1;
   }
 
-  snprintf(buf, buf_len, "%s", this->listStore[strKey].front().c_str());
+  *buf = (char *)strdup(this->listStore[strKey].front().c_str());
+  if (!buf) {
+    return -1;
+  }
+
   this->listStore[strKey].erase(this->listStore[strKey].begin());
 
   return 0;
 }
 
-int Redis::rpop(const char *queue_name, char *buf, u_int buf_len) {
+int Redis::rpop(const char *queue_name, char **buf) {
+  *buf = NULL;
   stats.num_lpop_rpop++;
   std::string strKey(queue_name);
   if (this->listStore.find(strKey) == this->listStore.end()) {
-    buf[0] = 0;
     return -1;
   }
 
   if (this->listStore[strKey].size() == 0) {
-    buf[0] = 0;
     return -1;
   }
 
-  snprintf(buf, buf_len, "%s", this->listStore[strKey].back().c_str());
+  *buf = (char *)strdup(this->listStore[strKey].back().c_str());
+  if (!buf) {
+    return -1;
+  }
+
   this->listStore[strKey].pop_back();
 
   return 0;
