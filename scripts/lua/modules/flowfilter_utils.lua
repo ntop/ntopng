@@ -338,10 +338,23 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq'},
         hourly_available = true
     },
+    next_hop_ip = {
+        value_type = 'ip',
+        i18n_label = i18n('db_search.flowfilters.next_hop_ip'),
+        operators = {'eq', 'neq'},
+        hourly_available = true
+    },
     site = { -- Exporter site
         type = flowfilter_utils.input_types.select,
         value_type = 'site',
         i18n_label = i18n('db_search.flowfilters.site'),
+        operators = {'eq', 'neq'},
+        hourly_available = true
+    },
+    next_hop_site = { -- Next hop site
+        type = flowfilter_utils.input_types.select,
+        value_type = 'site',
+        i18n_label = i18n('db_search.flowfilters.next_hop_site'),
         operators = {'eq', 'neq'},
         hourly_available = true
     },

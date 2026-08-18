@@ -1281,6 +1281,8 @@ local flow_columns = {
    ['DST_ASN'] =              { flowfilter = "srv_asn", simple_dt_func = simple_format_dst_asn, db_type = "Number", db_raw_type = "Uint32" },
    ['PROBE_IP'] =             { flowfilter = "exporter_ip", dt_func = dt_format_exporter, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
    ['EXPORTER_SITE'] =        { flowfilter = "site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
+   ['NEXT_HOP_IP'] =          { flowfilter = "next_hop_ip", dt_func = dt_format_exporter, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
+   ['NEXT_HOP_SITE'] =        { flowfilter = "next_hop_site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
    ['OBSERVATION_POINT_ID'] = { flowfilter = "observation_point_id", dt_func = dt_format_obs_point, format_func = format_flow_observation_point, i18n = i18n("details.observation_point_id"), order = 12 , db_type = "Number", db_raw_type = "Uint16" },
    ['SRC2DST_TCP_FLAGS'] =    { flowfilter = "src2dst_tcp_flags", dt_func = dt_format_tcp_flags, db_type = "Number", db_raw_type = "Uint8" },
    ['DST2SRC_TCP_FLAGS'] =    { flowfilter = "dst2src_tcp_flags", dt_func = dt_format_tcp_flags, db_type = "Number", db_raw_type = "Uint8" },
@@ -1372,6 +1374,8 @@ local aggregated_flow_columns = {
    ['DST_MAC'] =              { flowfilter = "srv_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    ['PROBE_IP'] =             { flowfilter = "exporter_ip", dt_func = dt_format_exporter, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
    ['EXPORTER_SITE'] =        { flowfilter = "site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
+   ['NEXT_HOP_IP'] =          { flowfilter = "next_hop_ip", dt_func = dt_format_exporter, where_func = "toIPv6", db_type = "IPv6", db_raw_type = "IPv6" },
+   ['NEXT_HOP_SITE'] =        { flowfilter = "next_hop_site", dt_func = dt_format_site, db_type = "Number", db_raw_type = "Uint16" },
    ['SRC_COUNTRY_CODE'] =     { flowfilter = "cli_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
    ['DST_COUNTRY_CODE'] =     { flowfilter = "srv_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
    ['SRC_ASN'] =              { flowfilter = "cli_asn", simple_dt_func = simple_format_src_asn, db_type = "Number", db_raw_type = "Uint32" },
@@ -1498,6 +1502,7 @@ historical_flow_utils.extra_where_flowfilters = {
    --["tcp_fingerprint"] = "TCP_FINGERPRINT",
    ["duration"] = "DURATION",
    ["site"] = "EXPORTER_SITE", -- required?
+   ["next_hop_site"] = "NEXT_HOP_SITE",
    ["cli_site"] = "SRC_SITE_ID",
    ["srv_site"] = "DST_SITE_ID",
 }
@@ -1683,6 +1688,7 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["apn_mac"] = flowfilter_utils.defined_filters["apn_mac"]
    flow_defined_filters["wlan_ssid"] = flowfilter_utils.defined_filters["wlan_ssid"]
    flow_defined_filters["site"] = flowfilter_utils.defined_filters["site"] -- required?
+   flow_defined_filters["next_hop_site"] = flowfilter_utils.defined_filters["next_hop_site"]
    flow_defined_filters["network_site"] = flowfilter_utils.defined_filters["network_site"]
    flow_defined_filters["cli_site"] = flowfilter_utils.defined_filters["cli_site"]
    flow_defined_filters["srv_site"] = flowfilter_utils.defined_filters["srv_site"]

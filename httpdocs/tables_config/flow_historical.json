@@ -383,6 +383,26 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.flowfilters.next_hop_ip",
+			"data_field": "next_hop_ip",
+			"sortable": true,
+			"min-width": "150px",
+			"render_type": "formatNextHopIP",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.flowfilters.next_hop_site",
+			"data_field": "next_hop_site",
+			"sortable": true,
+			"min-width": "120px",
+			"render_type": "formatNextHopSite",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.flowfilters.cli_network",
 			"data_field": "cli_network",
 			"sortable": false,

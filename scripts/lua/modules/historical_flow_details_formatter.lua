@@ -840,6 +840,7 @@ end
 local function format_historical_sites(flow_details, flow)
 	local site_utils = require("site_utils")
 	local exporter_site_id = tonumber(flow["EXPORTER_SITE"])
+	local next_hop_site_id = tonumber(flow["NEXT_HOP_SITE"])
 	local src_site_id = tonumber(flow["SRC_SITE_ID"])
 	local dst_site_id = tonumber(flow["DST_SITE_ID"])
 
@@ -847,6 +848,14 @@ local function format_historical_sites(flow_details, flow)
 		local site = site_utils.getSiteInfo(tostring(exporter_site_id))
 		flow_details[#flow_details + 1] = {
 			name = i18n("db_explorer.exporter_site"),
+			values = { site.name },
+		}
+	end
+
+	if next_hop_site_id and next_hop_site_id ~= 0 then
+		local site = site_utils.getSiteInfo(tostring(next_hop_site_id))
+		flow_details[#flow_details + 1] = {
+			name = i18n("db_explorer.next_hop_site"),
 			values = { site.name },
 		}
 	end
