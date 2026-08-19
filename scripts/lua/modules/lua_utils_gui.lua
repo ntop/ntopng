@@ -1013,6 +1013,53 @@ end
 
 -- ##############################################
 
+-- @brief Interface roles that have to be reported next to the interface name,
+--        along with the (short) label used to report them.
+--        Any other role is not reported. See SNMPInterfaceRole in ntop_typedefs.h
+local REPORTED_INTERFACE_ROLES = {
+   ["transit"] = "flows_page.interface_role_transit",
+   ["peering"] = "flows_page.interface_role_peering",
+   ["ix"] = "flows_page.interface_role_ix",
+}
+
+-- Loaded on demand, to avoid concatenating the pro path at each call
+local _snmp_role_utils = nil
+
+-- @brief Same as format_portidx_name, with the interface role added next to the
+--        interface name, e.g. "VLAN100-IPT-FT (IX)". The role is added only when
+--        it is one of Transit, Peering or IX, otherwise the name is left as it is.
+-- @params device_ip: snmp device ip
+--         portidx: snmp interface index
+--         short_version: boolean, shorten the interface name
+function format_portidx_name_with_role(device_ip, portidx, short_version)
+   local idx_name = format_portidx_name(device_ip, portidx, short_version)
+
+   -- The interface role is available from Enterprise M only
+   if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
+      return idx_name
+   end
+
+   if not _snmp_role_utils then
+      -- Note: required here (and not at the top of the file) to avoid circular dependencies
+      package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+      _snmp_role_utils = require "snmp_utils"
+   end
+
+   if tonumber(device_ip) then
+      device_ip = ntop.inet_ntoa(device_ip)
+   end
+
+   local role = _snmp_role_utils.get_snmp_interface_role_value(device_ip, tostring(portidx))
+
+   if role and REPORTED_INTERFACE_ROLES[role] then
+      return string.format("%s (%s)", idx_name, i18n(REPORTED_INTERFACE_ROLES[role]))
+   end
+
+   return idx_name
+end
+
+-- ##############################################
+
 -- @brief This function converts the SNMP interface name to the corresponding port index.
 -- @params device_ip: snmp device ip
 --         port_name: string, interface name
