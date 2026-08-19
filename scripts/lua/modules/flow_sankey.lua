@@ -191,6 +191,7 @@ local function unifyNodes(new_nodes, nodes, query)
          if not nodes[node_level_key][node_id] then
             local label = node_id
             local node_link = nil
+	    
             if node_level_key_info then
                if node_level_key_info.depends_on then
                   -- In this case, the key is structured in the following way:
