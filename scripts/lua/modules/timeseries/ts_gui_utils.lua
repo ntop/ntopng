@@ -69,9 +69,11 @@ end
 
 function ts_gui_utils.removeEmptyTimeseries(timeseries, tags)
     for index, ts_info in ipairs(timeseries) do
-        local tot_serie = ts_utils.queryTotal(ts_info.schema, tags.epoch_begin, tags.epoch_end, tags)
-        if not tot_serie and (not ts_info.always_visibile) then
-            table.remove(timeseries, index)
+        if not ts_info.always_visibile then
+            local tot_serie = ts_utils.queryTotal(ts_info.schema, tags.epoch_begin, tags.epoch_end, tags)
+            if not tot_serie then
+                table.remove(timeseries, index)
+            end
         end
     end
     return timeseries

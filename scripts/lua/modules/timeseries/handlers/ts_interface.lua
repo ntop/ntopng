@@ -814,7 +814,7 @@ function ts_interface.getTimeseries(tags, tsOptions)
     local timeseries = {}
     local emptyEpoch = (not tags.epoch_begin) or (not tags.epoch_end) or (tsOptions and tsOptions.emptyEpoch == true)
 
-    timeseries = timeseries_list
+    timeseries = table.clone(timeseries_list)
 
     if ntop.isPro and ntop.isPro() then
         local ts_interface_pro = require "ts_interface_pro"
@@ -843,7 +843,8 @@ function ts_interface.getTimeseries(tags, tsOptions)
                     label = i18n("graphs.metric_labels.rcvd"),
                     color = ts_gui_utils.get_timeseries_color("bytes_rcvd")
                 }
-            }
+            },
+            always_visibile = true
         }
     end
 
