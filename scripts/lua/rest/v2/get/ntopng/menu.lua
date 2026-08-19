@@ -521,6 +521,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    is_asn_mode_enabled = (isASNModeEnabled and isASNModeEnabled()) or false,
    show_sankey = show_sankey,
    has_pending_demo_tours = has_pending_demo_tours,
+   has_geoip = not flags.no_geoip,
 })
 
 end) -- pcall
