@@ -185,6 +185,7 @@ local boot_context = json.encode({
    username           = session_user,
    active_section     = page_utils.get_active_section() or "",
    active_entry       = page_utils.get_active_entry()   or "",
+   has_geoip          = ntop.hasGeoIP and ntop.hasGeoIP(),
 })
 
 -- AppShell: sidebar + topbar

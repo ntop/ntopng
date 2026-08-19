@@ -9713,6 +9713,7 @@ local lang = {
     ["site"] = "Site",
     ["default_site"] = "Default",
     ["search_placeholder"] = "Search sites, devices, interfaces…",
+    ["geoip_missing"] = "GeoIP database not found: site locations cannot be resolved on the map.",
     ["networks"] = "Networks",
     ["network"] = "Network",
     ["sub_sites"] = "Sub-Sites",
