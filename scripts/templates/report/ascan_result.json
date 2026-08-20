@@ -41,11 +41,6 @@
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.score",
-					"id": "max_score_cve",
-					"data_type": "count_score"
-				},
-				{
 					"i18n_name": "hosts_stats.page_scan_hosts.report.scan_type",
 					"id": "scan_type",
 					"data_type": "string"

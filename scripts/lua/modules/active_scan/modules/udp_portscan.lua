@@ -37,10 +37,10 @@ function vs_module:scan_host(host_ip, ports, use_coroutines, cidr)
    -- check if host is up and running before the tcp portscan
    local is_up, scan_duration, start_scan, end_scan = ascan_utils.nmap_check_host(host_ip, use_coroutines)
    if (is_up) then
-      local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, self.name)
-      return now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports, nil -- [[discovred_hosts]]
+      local now,result,duration,scan_result,num_open_ports, udp_ports, tcp_ports = ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines)
+      return now,result,duration,scan_result,num_open_ports, udp_ports, tcp_ports, nil -- [[discovered_hosts]]
    end
-   return start_scan,i18n("hosts_stats.page_scan_hosts.host_is_not_up_and_running"),scan_duration,ascan_utils.scan_status.failed,0,0,{},{},{}, nil -- [[discovred_hosts]]
+   return start_scan,i18n("hosts_stats.page_scan_hosts.host_is_not_up_and_running"),scan_duration,ascan_utils.scan_status.failed,0,{},{}, nil -- [[discovered_hosts]]
 
 end
 

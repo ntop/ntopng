@@ -324,8 +324,6 @@ function ascan_rest_utils.format_overview_result(result, search_map, sort, port,
             if (portCheck(tcp_ports_string_list, port) or portCheck(udp_ports_string_list, port)) then
                 if (isEmptyString(search_map)) then
                     rsp[#rsp + 1] = value
-                    rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value,
-                        "num_vulnerabilities_found")
                     rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
                     rsp[#rsp].tcp_ports = format_high_num_value_for_tables(value, "tcp_ports")
                     rsp[#rsp].udp_ports = format_high_num_value_for_tables(value, "udp_ports")
@@ -341,8 +339,6 @@ function ascan_rest_utils.format_overview_result(result, search_map, sort, port,
                     if (value.host == search_map or string.find(value.host, search_map) or
                         string.find((value.host_name or ""), search_map)) then
                         rsp[#rsp + 1] = value
-                        rsp[#rsp].num_vulnerabilities_found =
-                            format_high_num_value_for_tables(value, "num_vulnerabilities_found")
                         rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
                         if (rsp[#rsp].last_scan) then
                             rsp[#rsp].last_scan.time = format_epoch(value)
@@ -403,29 +399,6 @@ end
 
 -- ####################################################
 
--- Function compare for sort on cves 
-local function compare_cve(a,b) 
-    local a_tmp = a.cves
-    local b_tmp = b.cves
-
-    -- handling nill cases
-    if (a_tmp == nil) then
-        a_tmp = 0
-    end
-    if (b_tmp == nil) then
-        b_tmp = 0
-    end
-
-    -- on same cves it will sort on port_number
-    if (a_tmp == b_tmp) then
-        return (tonumber(a.port_number) < tonumber(b.port_number))
-    end
-    return a_tmp > b_tmp
-end
-
-
--- ####################################################
-
 -- Function to format epoch
 local function add_date(value) 
     if(value.last_scan ~= nil) then
@@ -456,7 +429,6 @@ local function handle_element(rest_response, id, value, port, protocol, sort)
                 rest_response[id].hosts = rest_response[id].hosts .. "|"..value.host_name
             end
         end
-        rest_response[id].cves = rest_response[id].cves + value.num_vulnerabilities_found
 
     elseif(id ~= nil) then
         local port_label = mapServiceName(port, protocol)
@@ -476,8 +448,7 @@ local function handle_element(rest_response, id, value, port, protocol, sort)
             port = port_id,
             port_number = port,
             port_label = port_label,
-            service_name = mapServiceName(port, protocol),
-            cves = value.num_vulnerabilities_found
+            service_name = mapServiceName(port, protocol)
         }
         if ( not isEmptyString(value.host_name) ) then
             new_item.hosts = new_item.hosts .. "|"..value.host_name
@@ -488,20 +459,6 @@ local function handle_element(rest_response, id, value, port, protocol, sort)
 
     return rest_response
 end
--- ####################################################
-
--- Function to verify if there's a cve value (for report)
-local function search_cve(rest_response) 
-    local has_cve = false
-    for _,item in ipairs(rest_response) do
-        if (item.cves ~= nil and item.cves ~= 0) then
-            has_cve = true
-        end
-    end
-    return(has_cve)
-end
-
-
 -- ####################################################
 
 -- Function to format rest result
@@ -539,17 +496,10 @@ function ascan_rest_utils.format_scan_port_list_result(result, l4_protocol, sort
     if (isEmptyString(sort)) then
     elseif sort == 'port' then
         table.sort(rest_response, function (k1, k2) return tonumber(k1.port_number) < tonumber(k2.port_number) end )
-    elseif sort == 'cve' then
-        if (search_cve(rest_response)) then
-            table.sort(rest_response, compare_cve)
-        else
-            rest_response = {}
-        end
     end
 
     for _,item in ipairs(rest_response) do
         item.count_host = format_high_num_value_for_tables(item, "count_host")
-        item.cves = format_high_num_value_for_tables(item, "cves")
     end
 
     return rest_response
