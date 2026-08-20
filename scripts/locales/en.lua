@@ -6454,6 +6454,7 @@ local lang = {
     ["zmq_encryption_alias"] = "******************",
     ["zmq_encryption_public_key"] = "ZMQ Encryption Public Key",
     ["zmq_encryption_public_key_note"] = "Please add --zmq-encryption-key '%{key}' to the nProbe configuration similar to the below (set the ntopng address properly):",
+    ["zmq_encryption_public_key_toast"] = "Encryption is enabled on ZMQ, please add --zmq-encryption-key '%{key}' to the nProbe configuration.",
     ["zmq_message_drops"] = "Dropped ZMQ Messages",
     ["zmq_message_rcvd"] = "Collected ZMQ Messages",
     ["zmq_rx_statistics"] = "ZMQ Statistics",

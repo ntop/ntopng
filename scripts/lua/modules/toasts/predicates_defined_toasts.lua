@@ -434,7 +434,7 @@ function predicates.zmq_encryption_public_key(toast, container)
     end
 
     local title = i18n("if_stats_overview.zmq_encryption_public_key")
-    local body = i18n("if_stats_overview.zmq_encryption_public_key_note", {
+    local body = i18n("if_stats_overview.zmq_encryption_public_key_toast", {
         key = "<code class='text-break'>" .. public_key .. "</code>"
     })
     local action = {
