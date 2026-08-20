@@ -524,11 +524,9 @@ bool SNMP::send_snmp_request(char* agent_host, u_int version, char* community,
         if ((!strcasecmp(level, "authNoPriv")) ||
             (!strcasecmp(level, "authPriv"))) {
           if (!strcasecmp(auth_protocol, "md5")) {
-            const int len = sizeof(usmHMACMD5AuthProtocol) / sizeof(oid);
-            snmpSession->session.securityAuthProto =
-                static_cast<oid*>(netsnmp_memdup(usmHMACMD5AuthProtocol, len));
-            snmpSession->session.securityAuthProtoLen = len;
-            snmpSession->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
+            snmpSession->session.securityAuthProto = usmHMACMD5AuthProtocol;
+            snmpSession->session.securityAuthProtoLen =
+                sizeof(usmHMACMD5AuthProtocol) / sizeof(oid);
           } else if (!strcasecmp(auth_protocol, "sha")) {
             snmpSession->session.securityAuthProto = usmHMACSHA1AuthProtocol;
             snmpSession->session.securityAuthProtoLen =
