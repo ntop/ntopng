@@ -9951,6 +9951,7 @@ local lang = {
     ["snmp_devices"] = "SNMP Devices",
     ["snmp_devices_rules"] = "Rules",
     ["snmp_devices_rules_active_alert_warning"] = "The SNMP Threshold Crossed alert must be enabled to receive alerts on rules not respected.",
+    ["snmp_device_site"] = "Site",
     ["snmp_error_unable_to_set_interface_admin_status"] = "Unable to toggle the admin status. Make sure the SNMP device has a (valid) write community configured.",
     ["snmp_host"] = "Host",
     ["snmp_import_devices"] = "Check the <a href='https://www.ntop.org/guides/ntopng/user_interface/shared/snmp/configuration.html#snmp-import-file'>documentation</a> regarding the CSV / JSON format ",

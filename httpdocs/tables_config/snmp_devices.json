@@ -66,6 +66,16 @@
 			]
 		},
 		{
+			"id": "site",
+			"title_i18n": "snmp.snmp_device_site",
+			"data_field": "site",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "snmp.snmp_version",
 			"data_field": "snmp_version",
 			"min-width": "100px",

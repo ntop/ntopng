@@ -1171,20 +1171,21 @@ function site_utils.formatSite(site_id)
 end
 
 -- ################################################
--- Per-request cache: network_id -> resolved Site name.
--- The IP influences the result ONLY through its network_id, so two exporters
--- on the same network always map to the same Site. Many exporters share a
+-- Per-request cache: network_id -> resolved Site.
+-- The IP influences the result ONLY through its network_id, so two devices
+-- on the same network always map to the same Site. Many devices share a
 -- network, therefore caching by network_id lets us resolve each
--- distinct network at most once per request instead of once per exporter
+-- distinct network at most once per request instead of once per device
 local _site_by_network = {}
 
-function site_utils.resolveExporterSite(exporter_ip)
-   if isEmptyString(exporter_ip) then
+-- Resolves the Site an IP address belongs to.
+function site_utils.resolveIPSite(ip)
+   if isEmptyString(ip) then
       return site_utils.get_default_site()
    end
 
    -- In-memory lookup
-   local network_id = interface.getIPNetworkId(exporter_ip)
+   local network_id = interface.getIPNetworkId(ip)
    if network_id == nil then
       return site_utils.get_default_site()
    end
@@ -1199,6 +1200,14 @@ function site_utils.resolveExporterSite(exporter_ip)
    _site_by_network[network_id] = site
 
    return site
+end
+
+-- ##############################################
+
+-- Site of a flow exporter: an exporter is located exactly like any other IP
+-- address. Kept as a separate (backward compatible) entry point.
+function site_utils.resolveExporterSite(exporter_ip)
+   return site_utils.resolveIPSite(exporter_ip)
 end
 
 -- ##############################################
