@@ -415,6 +415,38 @@ end
 
 -- ###############################################
 
+--- Show the ZMQ encryption public key that must be configured on nProbe
+--- when encryption is enabled
+function predicates.zmq_encryption_public_key(toast, container)
+    if not IS_ADMIN then
+        return
+    end
+
+    if not interface.isZMQInterface() then
+        return
+    end
+
+    local ifstats = interface.getStats()
+    local public_key = ifstats.encryption and ifstats.encryption.public_key
+
+    if isEmptyString(public_key) then
+        return
+    end
+
+    local title = i18n("if_stats_overview.zmq_encryption_public_key")
+    local body = i18n("if_stats_overview.zmq_encryption_public_key_note", {
+        key = "<code class='text-break'>" .. public_key .. "</code>"
+    })
+    local action = {
+        url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifstats.id,
+        title = i18n("details.details")
+    }
+
+    table.insert(container, toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable))
+end
+
+-- ###############################################
+
 local function create_emergency_notifications_toast(toast, message)
     local title = i18n("emergency_notifications")
     return toast_ui:new(toast.id, title, message, ToastLevel.INFO, nil, toast.dismissable)

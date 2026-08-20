@@ -1291,6 +1291,8 @@ typedef enum {
 
 #define PREF_FORWARDER_DEBUG NTOPNG_PREFS_PREFIX ".forwarder_debug"
 
+#define PREF_FORCE_ZMQ_ENCRYPTION NTOPNG_PREFS_PREFIX ".zmq.force_encryption"
+
 #define HOST_LOW_GOODPUT_THRESHOLD \
   25 /* No more than X low goodput flows per host */
 

@@ -87,6 +87,12 @@ if [ ! -f "$TLS_CERT_PATH" ]; then
     rm $TLS_DIR/cert.pem
 fi
 
+# Force ZMQ encryption on fresh installations (avoid breaking old configurations)
+if [ -z "$PREV_VERSION" ]; then
+    if hash redis-cli 2>/dev/null; then
+	redis-cli set "ntopng.prefs.zmq.force_encryption" "1" >/dev/null 2>&1 || true
+    fi
+fi
 
 DATA_DIR=/var/lib/ntopng
 if [ ! -d "$DATA_DIR" ]; then
