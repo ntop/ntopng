@@ -5919,8 +5919,7 @@ local lang = {
       ["active_scan_reports"] = "Active Scan Reports",
       ["weekly"] = "Weekly",
       ["email"] = {
-        ["discrepancy"] = "<br>Found some discrepancy with respect to the previous scan: %{new_ports_open} new ports open, %{cves_fixed} CVEs fixed.</br><br>Discrepancies details:<ul>%{hosts_discrepancy_details}</ul>",
-        ["host_cve_discrepancy_description"] = "<li>%{host_id} has solved these CVEs: %{cves}.</li>",
+        ["discrepancy"] = "<br>Found some discrepancy with respect to the previous scan: %{new_ports_open} new ports open.</br><br>Discrepancies details:<ul>%{hosts_discrepancy_details}</ul>",
         ["host_details"] = "----- Host <b>%{host_id}</b> -----<ul> %{details} </ul>",
         ["host_details_open_ports"] = "<li>%{l4_proto} open ports: %{ports_list}</li>",
         ["host_details_scan_type"] = "<li>Scan Type: %{scan_type}</li>",
@@ -5942,10 +5941,10 @@ local lang = {
         ["num_scanned_hosts"] = "Scanned Hosts: %{num}",
         ["num_tcp"] = "%{num} TCP open ports",
         ["num_udp"] = "%{num} UDP open ports",
-        ["periodicity_scan_1_day_ended"] = "<br>Daily Active Scan successfully completed.</br><br>Start/End time %{start_date} - %{end_date} [Duration: %{duration}].</br><br>%{scanned_hosts}</br><br>%{not_scanned_hosts}%{skipped_hosts_list}%{no_hosts_down_br}%{cves}, %{udp_ports}, %{tcp_ports}.</br>",
-        ["periodicity_scan_1_week_ended"] = "<br>Weekly Active Scan successfully completed.</br><br>Start/End time %{start_date} - %{end_date} [Duration: %{duration}].</br><br>%{scanned_hosts}</br><br>%{not_scanned_hosts}%{skipped_hosts_list}%{no_hosts_down_br}%{cves}, %{udp_ports}, %{tcp_ports}.</br>",
+        ["periodicity_scan_1_day_ended"] = "<br>Daily Active Scan successfully completed.</br><br>Start/End time %{start_date} - %{end_date} [Duration: %{duration}].</br><br>%{scanned_hosts}</br><br>%{not_scanned_hosts}%{skipped_hosts_list}%{no_hosts_down_br}%{udp_ports}, %{tcp_ports}.</br>",
+        ["periodicity_scan_1_week_ended"] = "<br>Weekly Active Scan successfully completed.</br><br>Start/End time %{start_date} - %{end_date} [Duration: %{duration}].</br><br>%{scanned_hosts}</br><br>%{not_scanned_hosts}%{skipped_hosts_list}%{no_hosts_down_br}%{udp_ports}, %{tcp_ports}.</br>",
         ["report_link_line"] = "%{add_br}For further information see <a href='%{url}'>Active Scan Report</a>.",
-        ["scan_all_ended"] = "<br>Active Scan of all entries successfully completed.</br><br>Start/End time %{start_date} - %{end_date} [Duration: %{duration}].</br><br>%{scanned_hosts}</br><br>%{not_scanned_hosts}%{skipped_hosts_list}%{no_hosts_down_br}%{cves}, %{udp_ports}, %{tcp_ports}.</br>",
+        ["scan_all_ended"] = "<br>Active Scan of all entries successfully completed.</br><br>Start/End time %{start_date} - %{end_date} [Duration: %{duration}].</br><br>%{scanned_hosts}</br><br>%{not_scanned_hosts}%{skipped_hosts_list}%{no_hosts_down_br}%{udp_ports}, %{tcp_ports}.</br>",
         ["active_scan_report_title"] = "Active Scan Report",
       },
       ["notes"] = {

@@ -83,7 +83,7 @@ function ascan_db_utils.retrieve_reports(sort_item, epoch)
     end
 
     local sql = "SELECT REPORT_NAME, toInt32(REPORT_DATE) REPORT_DATE, REPORT_JSON_INFO, "
-                .."NUM_SCANNED_HOSTS,NUM_CVES, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
+                .."NUM_SCANNED_HOSTS, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
                 "FROM %s "
 
     if (not isEmptyString(epoch)) then
@@ -105,7 +105,6 @@ function ascan_db_utils.retrieve_reports(sort_item, epoch)
             name = report_name,
             epoch = item.REPORT_DATE,
             report_date = format_utils.formatEpoch(item.REPORT_DATE),
-            cves = item.NUM_CVES,
             tcp_ports = item.NUM_TCP_PORTS,
             udp_ports = item.NUM_UDP_PORTS,
             num_hosts = item.NUM_SCANNED_HOSTS
@@ -120,7 +119,7 @@ end
 function ascan_db_utils.retrieve_report(epoch)
     if not ntop.isClickHouseEnabled() then return end
     local sql = "SELECT REPORT_NAME,toInt32(REPORT_DATE) REPORT_DATE, REPORT_JSON_INFO, "
-                .."NUM_SCANNED_HOSTS,NUM_CVES, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
+                .."NUM_SCANNED_HOSTS, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
                 "FROM %s " ..
                 "WHERE REPORT_DATE = %u"
     sql = string.format(sql,report_table_name, tonumber(epoch))
@@ -137,7 +136,6 @@ function ascan_db_utils.retrieve_report(epoch)
             report_name = report_name,
             epoch = item.REPORT_DATE,
             report_date = format_utils.formatEpoch(item.REPORT_DATE),
-            cves = item.NUM_CVES,
             tcp_ports = item.NUM_TCP_PORTS,
             udp_ports = item.NUM_UDP_PORTS,
             num_hosts = item.NUM_SCANNED_HOSTS,
@@ -178,13 +176,15 @@ function ascan_db_utils.save_report_info(report_info)
     local report_date = report_info.date
     local json_info = json.encode(report_info.all_data_details)
     local num_scanned_host = report_info.scanned_hosts or 0
-    local num_cves = report_info.cves or 0
     local num_udp_ports = report_info.udp_ports or 0
     local num_tcp_ports = report_info.tcp_ports or 0
 
     local prefs = ntop.getPrefs()
-    local sql = string.format("INSERT INTO %s VALUES",report_table_name)
-    local sql = string.format("%s ('%s', %s, '%s', %u, %u, %u, %u, '%s');",sql, report_name, report_date, json_info, num_scanned_host, num_cves, num_tcp_ports, num_udp_ports, prefs.instance_name)
+    -- NOTE: the column list is explicit because the NUM_CVES column is still
+    -- part of the table schema but is no longer populated (CVE support removed)
+    local sql = string.format("INSERT INTO %s (REPORT_NAME, REPORT_DATE, REPORT_JSON_INFO, "..
+                              "NUM_SCANNED_HOSTS, NUM_TCP_PORTS, NUM_UDP_PORTS, ntopng_instance_name) VALUES",report_table_name)
+    local sql = string.format("%s ('%s', %s, '%s', %u, %u, %u, '%s');",sql, report_name, report_date, json_info, num_scanned_host, num_tcp_ports, num_udp_ports, prefs.instance_name)
 
     return(interface.execSQLWrite(sql))
 end

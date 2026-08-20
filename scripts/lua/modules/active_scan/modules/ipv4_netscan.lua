@@ -67,7 +67,7 @@ function vs_module:scan_host(network_ip, ports, use_coroutines, cidr)
       
    end
    
-return start_scan,scan_out,scan_duration,scan_ok,0--[[num_open_ports]],0--[[num_vulnerabilities_found]],{}--[[cve]],{}--[[udp_ports]],{}--[[tcp_ports]], hosts_not_configured
+return start_scan,scan_out,scan_duration,scan_ok,0--[[num_open_ports]],{}--[[udp_ports]],{}--[[tcp_ports]], hosts_not_configured
 
 end
 

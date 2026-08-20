@@ -311,7 +311,7 @@ local function verify_status_ports(possible_changed_ports, host, scan_type, open
    local scan_module = ascan_utils.load_module(scan_type)
 
    for _,possible_changed_port in ipairs(possible_changed_ports) do
-      local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = scan_module:scan_host(host, possible_changed_port)
+      local now,result,duration,scan_result,num_open_ports, udp_ports, tcp_ports = scan_module:scan_host(host, possible_changed_port)
 
       local scan_type_label = ternary(scan_type == "tcp_portscan", "tcp", "udp")
       local port_label_for_vs_result = string.format("%u/%s",possible_changed_port,scan_type_label)
@@ -518,11 +518,6 @@ function ascan_utils.cleanup_nmap_result(scan_result)
       table.remove(scan_result, #scan_result)
 
       local num_open_ports = 0
-      -- NOTE: kept to preserve the result schema. Since the CVE/Vulners scan
-      -- engines have been removed there is no vulnerability detection anymore,
-      -- so these are always 0 / empty
-      local num_vulnerabilities = 0
-      local cve = {}
       local scan_out = {}
       local tcp_ports = {}
       local udp_ports = {}
@@ -554,9 +549,9 @@ function ascan_utils.cleanup_nmap_result(scan_result)
       end
 
       scan_result = table.concat(scan_out, "\n")
-      return scan_result, num_open_ports, num_vulnerabilities, cve, udp_ports, tcp_ports
+      return scan_result, num_open_ports, udp_ports, tcp_ports
    else
-      return "", 0, 0, {}, {}, {}
+      return "", 0, {}, {}
    end
 end
 
@@ -628,9 +623,9 @@ end
 -- Function to select correctly redis keys on periodic or scan all
 local function get_counter_periodic_all_scan_keys(exec_type)
    if (exec_type == ascan_utils.scan_in_exec_type.periodic_scan) then
-      return periodic_scan_host_info_key --host_periodic_scan_cve_num_key,host_periodic_scan_udp_ports_key,host_periodic_scan_tcp_ports_key
+      return periodic_scan_host_info_key
    elseif (exec_type == ascan_utils.scan_in_exec_type.scan_all) then
-      return ondemand_scan_host_info_key --host_scan_all_cve_num_key,host_scan_all_udp_ports_key,host_scan_all_tcp_ports_key
+      return ondemand_scan_host_info_key
    elseif(exec_type == ascan_utils.scan_in_exec_type.single_scan) then
       return single_scan_info_key
    end
@@ -713,15 +708,6 @@ local function update_scan_info_for_report(type_of_scan_execution, new_item, hos
 
    -- **********************************************************
 
-   if (new_item.num_vulnerabilities_found ~= nil) then
-
-      if (info_json ~= {} and info_json.cves ~= nil) then
-         info_json.cves = tonumber(info_json.cves) + new_item.num_vulnerabilities_found
-      else
-         info_json.cves = 0
-      end
-   end
-
    if (new_item.udp_ports ~= nil) then
 
       if (info_json ~= {} and info_json.udp_ports ~= nil) then
@@ -763,7 +749,7 @@ local function update_scan_info_for_report(type_of_scan_execution, new_item, hos
       end
 
 
-      if (not cve_case and info_json ~= {}) then
+      if (info_json ~= {}) then
          -- DISCREPANCY PORTS CASES
          info_json.discrepancy_case = 'ports'
 
@@ -936,7 +922,7 @@ end
 -- Function to update host scan values
 function ascan_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_time, last_duration,
                                     is_ok_last_scan, ports, scan_frequency, num_open_ports,
-                                    num_vulnerabilities_found, cve, id, is_edit, udp_ports, tcp_ports, discovered_hosts)
+                                    id, is_edit, udp_ports, tcp_ports, discovered_hosts)
    local checks = require "checks"
    local trigger_alert = checks.isCheckEnabled("active_monitoring", "active_scan")
       or checks.isCheckEnabled("system", "active_scan")
@@ -975,15 +961,8 @@ function ascan_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_t
       is_down = true
    end
 
-   -- NOTE: cve / max_score_cve / num_vulnerabilities_found are kept for schema
-   -- compatibility with the results stored by previous versions, but they are
-   -- always empty: CVE scoring used to be resolved through the NVD REST API by
-   -- the (now removed) CVE and Vulners scan engines
    local new_item = {
       num_open_ports = num_open_ports,
-      num_vulnerabilities_found = num_vulnerabilities_found or 0,
-      cve = cve or {},
-      max_score_cve = 0,
       is_ok_last_scan = is_ok_last_scan,
       host_name = host_name
    }
@@ -1117,29 +1096,19 @@ function ascan_utils.save_host_to_scan(scan_type, host, scan_result, last_scan_t
             -- traceError(TRACE_NORMAL,TRACE_CONSOLE, "Active Scan: checking for changes in host")
          end
 
-         local old_cve_no_score = {}
-         for _,old_cve in ipairs(old_data.cve or {}) do
-            old_cve_no_score[#old_cve_no_score+1] = split(old_cve,"|")[1]
-         end
-
          local host_info_to_cache = check_differences(host, host_name,
                                                       scan_type,
                                                       {
-                                                         vulnerabilities = old_data.num_vulnerabilities_found,
                                                          ports = old_data.num_open_ports,
-                                                         cve = old_cve_no_score,
                                                          tcp_ports = {num_ports = old_data.tcp_ports, ports = old_data.tcp_ports_list },
                                                          udp_ports = {num_ports = old_data.udp_ports, ports = old_data.udp_ports_list},
                                                          old_epoch = old_data.last_scan.epoch
                                                       },
                                                       {
-                                                         vulnerabilities = num_vulnerabilities_found,
                                                          ports = num_open_ports,
-                                                         cve = cve,
                                                          tcp_ports = tcp_ports,
                                                          udp_ports = udp_ports,
                                                          last_scan_time = last_scan_time
-
 	 })
          if host_info_to_cache then
             host_info_differences = host_info_to_cache
@@ -1170,7 +1139,6 @@ end
 -- Function to update timeseries data
 function ascan_utils.update_ts_counters()
    local hosts_details = ascan_utils.retrieve_hosts_to_scan()
-   local count_cve         = 0
    local hosts_scanned
    local open_ports_count  = 0
    local hosts_count       = 0
@@ -1182,9 +1150,6 @@ function ascan_utils.update_ts_counters()
       if item.num_open_ports ~= nil then
          open_ports_count = open_ports_count + item.num_open_ports
       end
-      if item.num_vulnerabilities_found ~= nil then
-         count_cve = count_cve + item.num_vulnerabilities_found
-      end
 
    end
 
@@ -1194,7 +1159,6 @@ function ascan_utils.update_ts_counters()
    end
 
    local response = {
-      cve_count = count_cve,
       scanned_hosts = hosts_scanned,
       open_ports = open_ports_count,
       hosts_count = hosts_count
@@ -1206,7 +1170,7 @@ end
 -- **********************************************************
 
 -- Function to format num for emails
--- @param case: 0 - cve, 1 - udp, 2 - tcp, 3 - scanned_hosts, 4 - hosts unreachable, 5 - no hosts down now
+-- @param case: 1 - udp, 2 - tcp, 3 - scanned_hosts, 4 - hosts unreachable, 5 - no hosts down now
 local function format_num_for_email(num, case)
    local formatted_num = format_high_num_value_for_tables({num = num}, "num")
 
@@ -1263,7 +1227,6 @@ local function retrieve_email_info(exec_type)
       info_json = json.decode(info_string) or {}
    else
       info_json = {
-         cves = 0,
          udp_ports = 0,
          tcp_ports = 0
       }
@@ -1275,7 +1238,6 @@ local function retrieve_email_info(exec_type)
    end
 
    local email_info = {
-      cve_num = tonumber(info_json.cves) or 0,
       udp_ports = tonumber(info_json.udp_ports) or 0,
       tcp_ports = tonumber(info_json.tcp_ports) or 0,
       scanned_hosts = tonumber(info_json.scanned_hosts) or 0,
@@ -1284,7 +1246,7 @@ local function retrieve_email_info(exec_type)
       begin_epoch_t = tonumber(info_json.begin_epoch),
       end_epoch_t   = os.time(),
       report_type = exec_type,
-      -- has_discrepancy must be true only if there are new open ports or cves fixed
+      -- has_discrepancy must be true only if there are new open ports
       has_discrepancy = ((info_json.new_open_ports or 0) > 0),
       hosts_down_list = info_json.hosts_down_list,
       hosts_was_down_list = info_json.hosts_was_down_list,
@@ -1300,7 +1262,6 @@ local function retrieve_email_info(exec_type)
    email_info.duration = email_info.end_epoch_t - email_info.begin_epoch_t
 
    ntop.setCache(info_redis_key,json.encode({
-		       cves = 0,
 		       udp_ports = 0,
 		       tcp_ports = 0,
 		       begin_epoch = 0,
@@ -1317,7 +1278,6 @@ end
 local function retrieve_report_info(date)
    local host_scanned_info = ascan_utils.retrieve_hosts_to_scan()
    local info = {
-      cves = 0,
       tcp_ports = 0,
       udp_ports = 0,
       scanned_hosts = 0,
@@ -1325,10 +1285,6 @@ local function retrieve_report_info(date)
    }
 
    for _, item in ipairs(host_scanned_info) do
-      if (not isEmptyString(item.num_vulnerabilities_found)) then
-         info.cves = info.cves + tonumber(item.num_vulnerabilities_found or 0)
-      end
-
       info.tcp_ports = info.tcp_ports + tonumber(item.tcp_ports or 0)
       info.udp_ports = info.udp_ports + tonumber(item.udp_ports or 0)
 
@@ -1469,7 +1425,6 @@ function ascan_utils.notify_scan_results(exec_type, periodicity)
    end
 
    notification_message = i18n(email_body_i18n_key, {
-				  cves = format_num_for_email(email_info.cve_num, 0),
 				  udp_ports = format_num_for_email(email_info.udp_ports, 1),
 				  tcp_ports = format_num_for_email(email_info.tcp_ports, 2),
 				  scanned_hosts = format_num_for_email(email_info.scanned_hosts, 3),
@@ -1487,11 +1442,10 @@ function ascan_utils.notify_scan_results(exec_type, periodicity)
    local add_new_configured_hosts_br = true
    if (email_info.has_discrepancy) then
       
-      -- ports or cves discrepancies 
+      -- ports discrepancies
 
       possible_discrepancies_info = i18n("hosts_stats.page_scan_hosts.email.discrepancy", {
 					    new_ports_open = ternary(email_info.new_open_ports ~= 0, format_high_num_value_for_tables({num = email_info.new_open_ports}, "num"),"0"),
-					    cves_fixed = ternary(email_info.fixed_cves ~= 0, format_high_num_value_for_tables({num = email_info.fixed_cves }, "num"),"0"),
 					    hosts_discrepancy_details = email_info.discrepancies_details
       })
       add_new_configured_hosts_br = false
@@ -1987,10 +1941,10 @@ end
 -- **********************************************************
 -- Function to discover open ports
 function ascan_utils.discover_open_ports(host)
-   local result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports, scan_ports, network_alert_store,now
+   local result,duration,scan_result,num_open_ports, udp_ports, tcp_ports, scan_ports, network_alert_store,now
 
    local scan_module = ascan_utils.load_module("tcp_portscan")
-   now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports = scan_module:scan_host(host, ports)
+   now,result,duration,scan_result,num_open_ports, udp_ports, tcp_ports = scan_module:scan_host(host, ports)
 
    return format_port_list_to_string(tcp_ports)
 end
@@ -2035,7 +1989,7 @@ function ascan_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, 
    
    -- Scan host
    local scan_module = ascan_utils.load_module(scan_type)
-   local now,result,duration,scan_result,num_open_ports,num_vulnerabilities_found, cve, udp_ports, tcp_ports, discovered_hosts = scan_module:scan_host(host, ports, use_coroutines, cidr)
+   local now,result,duration,scan_result,num_open_ports, udp_ports, tcp_ports, discovered_hosts = scan_module:scan_host(host, ports, use_coroutines, cidr)
 
    if(ntop.isShuttingDown()) then
       return false
@@ -2064,7 +2018,7 @@ function ascan_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, 
 
    if (isAlreadyPresent({host= host, scan_type= scan_type})) then
       ascan_utils.save_host_to_scan(scan_type, host, result, now, duration, scan_result,
-                                 ports_scan_param, nil, num_open_ports, num_vulnerabilities_found, cve, scan_id, false, udp_ports, tcp_ports, discovered_hosts)
+                                 ports_scan_param, nil, num_open_ports, scan_id, false, udp_ports, tcp_ports, discovered_hosts)
    end
 
    return true
@@ -2077,7 +2031,6 @@ local function set_single_scan_in_progress()
    if (ntop.getCache(single_scan_key) ~= '1') then
       ntop.setCache(single_scan_key, "1")
       ntop.setCache(single_scan_info_key, json.encode({
-			  cves = 0,
 			  udp_ports = 0,
 			  tcp_ports = 0,
 			  begin_epoch = os.time(),
@@ -2148,7 +2101,6 @@ function ascan_utils.schedule_ondemand_all_hosts_scan()
    end
 
    ntop.setCache(ondemand_scan_host_info_key, json.encode({
-                       cves = 0,
                        udp_ports = 0,
                        tcp_ports = 0,
                        begin_epoch = os.time(),
@@ -2185,7 +2137,6 @@ function ascan_utils.schedule_periodic_scan(periodicity)
 
 
             ntop.setCache(periodic_scan_host_info_key , json.encode({
-                                cves = 0,
                                 udp_ports = 0,
                                 tcp_ports = 0,
                                 begin_epoch = os.time(),
@@ -2501,7 +2452,7 @@ end
 
 -- **********************************************************
 -- Function to scan host
-function ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, module_name)
+function ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines)
    local scan_command
 
    if(ntop.isShuttingDown()) then
@@ -2532,13 +2483,11 @@ function ascan_utils.nmap_scan_host(command, host_ip, ports, use_coroutines, mod
    local duration = os.time() - begin_epoch
    local scan_ok = true
    local num_open_ports
-   local num_vulnerabilities_found
-   local cve
    local tcp_ports
    local udp_ports
 
-   result, num_open_ports, num_vulnerabilities_found, cve, udp_ports, tcp_ports = ascan_utils.cleanup_nmap_result(result, module_name)
-   return begin_epoch, result, duration, scan_ok, num_open_ports, num_vulnerabilities_found, cve, udp_ports, tcp_ports
+   result, num_open_ports, udp_ports, tcp_ports = ascan_utils.cleanup_nmap_result(result)
+   return begin_epoch, result, duration, scan_ok, num_open_ports, udp_ports, tcp_ports
 end
 
 -- **********************************************************
