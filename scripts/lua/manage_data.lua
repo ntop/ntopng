@@ -35,6 +35,8 @@ local context = {
    delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname),
    is_edge      = ntop.isnEdge and ntop.isnEdge(),
    has_clickhouse = interfaceHasClickHouseSupport(),
+   purge_clickhouse_requested = delete_data_utils.purge_all_clickhouse_data_requested(),
+   purge_datadir_requested    = delete_data_utils.purge_all_datadir_data_requested(),
 }
 
 template_utils.render("pages/vue_page.template", {

@@ -52,6 +52,17 @@ if not (ntop.isnEdge and ntop.isnEdge()) then -- nEdge data deletion is handled 
 
       traceError(TRACE_INFO, TRACE_CONSOLE, "Data deletion done.")
    end
+
+   -- Handle full data dir purge requested by Manage Data -> Purge All
+   -- before interfaces are registered and data may be used.
+   if delete_data_utils.purge_all_datadir_data_requested() then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Purging the whole data directory...")
+
+      delete_data_utils.purge_all_datadir_data()
+      delete_data_utils.clear_purge_all_datadir_data_request()
+
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Data directory purge done.")
+   end
 end
 
 if ntop.isAppliance() then

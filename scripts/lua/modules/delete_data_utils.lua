@@ -15,6 +15,10 @@ local ALL_INTERFACES_HASH_KEYS         = "ntopng.prefs.iface_id"
 local ACTIVE_INTERFACES_DELETE_HASH    = "ntopng.prefs.delete_active_interfaces_data"
 local PCAP_DUMP_INTERFACES_DELETE_HASH = "ntopng.prefs.delete_pcap_dump_interfaces_data"
 
+-- Purge all data request keys
+local PURGE_ALL_DATADIR_REQUEST_KEY    = "ntopng.prefs.purge_all_datadir_data_request"
+local PURGE_ALL_CLICKHOUSE_REQUEST_KEY = "ntopng.prefs.purge_all_clickhouse_data_request"
+
 -- ################################################################
 
 function delete_data_utils.status_to_i18n(err)
@@ -598,11 +602,90 @@ end
 
 -- ################################################################
 
+-- Request the deletion of the whole data directory (RRDs and per-interface data) for all interfaces.
+-- Actual deletion is performed at the next boot  as data may currently be in use.
+function delete_data_utils.request_purge_all_datadir_data()
+   ntop.setCache(PURGE_ALL_DATADIR_REQUEST_KEY, "1")
+end
+
+function delete_data_utils.clear_purge_all_datadir_data_request()
+   ntop.delCache(PURGE_ALL_DATADIR_REQUEST_KEY)
+end
+
+function delete_data_utils.purge_all_datadir_data_requested()
+   return ntop.getCache(PURGE_ALL_DATADIR_REQUEST_KEY) == "1"
+end
+
+-- Delete the whole data directory content of all known interfaces
+function delete_data_utils.purge_all_datadir_data()
+   local if_list = delete_data_utils.list_all_interfaces()
+   if_list[tonumber(getSystemInterfaceId())] = getSystemInterfaceName()
+
+   local res = delete_interfaces_from_list(if_list, true --[[ preserve ids --]], true --[[ preserve redis keys --]])
+
+   -- Drop cached disk usage stats (see storage_utils.lua) as they are only refreshed hourly otherwise
+   ntop.delCache("ntopng.cache.system_storage_info")
+   for if_id, _ in pairs(if_list) do
+      ntop.delCache("ntopng.cache."..if_id..".storage_info")
+   end
+
+   return res
+end
+
+-- ################################################################
+
+-- Request deletion of all the data stored in ClickHouse.
+-- Actual deletion is performed at the next restart.
+function delete_data_utils.request_purge_all_clickhouse_data()
+   ntop.setCache(PURGE_ALL_CLICKHOUSE_REQUEST_KEY, "1")
+end
+
+function delete_data_utils.clear_purge_all_clickhouse_data_request()
+   ntop.delCache(PURGE_ALL_CLICKHOUSE_REQUEST_KEY)
+end
+
+function delete_data_utils.purge_all_clickhouse_data_requested()
+   return ntop.getCache(PURGE_ALL_CLICKHOUSE_REQUEST_KEY) == "1"
+end
+
+-- Truncate all tables in the ClickHouse database.
+function delete_data_utils.purge_all_clickhouse_data()
+   local status = "OK"
+
+   if not ntop.isClickHouseEnabled() then
+      return {status = status}
+   end
+
+   local database = ntop.getPrefs().clickhouse_dbname or "ntopng"
+   local tables, err = interface.execSQLQuery(string.format("SELECT name FROM system.tables WHERE database = '%s' AND engine NOT IN ('View', 'MaterializedView', 'LiveView')", database))
+
+   if not tables then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unable to list ClickHouse tables: "..(err or ""))
+      return {status = "ERR_CLICKHOUSE_TRUNCATE"}
+   end
+
+   for _, t in ipairs(tables) do
+      local q = string.format("TRUNCATE TABLE IF EXISTS `%s`.`%s`", database, t["name"])
+
+      if not dry_run then
+	 if not interface.execSQLWrite(q) then
+	    status = "ERR_CLICKHOUSE_TRUNCATE"
+	 end
+      end
+   end
+
+   return {status = status}
+end
+
+-- ################################################################
+
 -- TRACKER HOOK
 
 tracker.track(delete_data_utils, 'delete_all_interfaces_data')
 tracker.track(delete_data_utils, 'delete_inactive_interfaces')
 tracker.track(delete_data_utils, 'request_delete_active_interface_data')
+tracker.track(delete_data_utils, 'request_purge_all_datadir_data')
+tracker.track(delete_data_utils, 'request_purge_all_clickhouse_data')
 
 -- ################################################################
 

@@ -343,6 +343,17 @@ ntop.reloadAlertExclusions()
 -- Removing limits exceeded key, it's used just for the badges in the gui
 ntop.delCache("ntopng.limits.exporters")
 
+-- Handle full ClickHouse purge, right after interfaces have been initialized
+-- and thus ClickHouse connection established, but before tables are populated.
+if delete_data_utils.purge_all_clickhouse_data_requested() then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Purging all ClickHouse data...")
+
+    delete_data_utils.purge_all_clickhouse_data()
+    delete_data_utils.clear_purge_all_clickhouse_data_request()
+
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, "ClickHouse purge done.")
+end
+
 -- initialization of mitre attack matrix informations
 local mitre_utils = require "mitre_utils"
 local mitre_table = mitre_utils.insertDBMitreInfo()
