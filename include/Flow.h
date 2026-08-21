@@ -1468,6 +1468,7 @@ class Flow : public GenericHashEntry {
   inline void setFlowApplLatency(float latency_msecs) {
     applLatencyMsec = latency_msecs;
   }
+  inline float getFlowApplLatency() const { return (applLatencyMsec); }
 
   struct ndpi_in6_addr getExporterIP();
   struct ndpi_in6_addr getOriginalExporterIP();

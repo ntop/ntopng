@@ -324,6 +324,12 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'lt', 'gt', 'lte', 'gte'},
         hourly_available = false
     },
+    appl_latency = {
+        value_type = 'number',
+        i18n_label = i18n('db_search.flowfilters.appl_latency'),
+        operators = {'eq', 'lt', 'gt', 'lte', 'gte'},
+        hourly_available = false
+    },
     observation_point_id = {
         type = flowfilter_utils.input_types.select,
         value_type = 'observation_point_id',

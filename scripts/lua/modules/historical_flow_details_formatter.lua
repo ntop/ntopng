@@ -819,7 +819,8 @@ end
 
 -- ###############################################
 
-local function format_historical_application_latency(latency)
+-- Used by old protocol_info_json["appl_latency"] to be removed in future
+local function format_historical_application_latency_from_json(latency)
 	return {
 		name = i18n("flow_details.application_latency"),
 		values = { (tonumber(latency)) .. " ms" },
@@ -1328,8 +1329,11 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 			flow_details[#flow_details + 1] = format_historical_latency(flow, "SERVER_NW_LATENCY_US", "srv")
 		end
 
-		if protocol_info_json["appl_latency"] then
-			flow_details[#flow_details + 1] = format_historical_application_latency(protocol_info_json["appl_latency"])
+		if tonumber(flow["APPL_LATENCY_US"]) and tonumber(flow["APPL_LATENCY_US"]) > 0 then
+			flow_details[#flow_details + 1] = format_historical_latency(flow, "APPL_LATENCY_US", "appl")
+		elseif protocol_info_json["appl_latency"] then
+			-- Fallback for historical flows dumped before APPL_LATENCY_US column was introduced
+			flow_details[#flow_details + 1] = format_historical_application_latency_from_json(protocol_info_json["appl_latency"])
 		end
 
 		if protocol_info_json["traffic_stats"] and table.len(protocol_info_json["traffic_stats"]) > 0 then

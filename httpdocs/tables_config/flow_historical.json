@@ -353,6 +353,15 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.appl_latency",
+			"data_field": "appl_latency",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.observation_point_id",
 			"data_field": "observation_point_id",
 			"min-width": "80px",

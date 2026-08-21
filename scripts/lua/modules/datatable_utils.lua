@@ -386,6 +386,7 @@ local all_datatable_columns_def_by_tag = {
    ['dst2src_dscp'] = build_datatable_column_def_dscp('dst2src_dscp', "db_search.dst2src_dscp"),
    ['cli_nw_latency'] = build_datatable_column_def_nw_latency('cli_nw_latency', "db_search.cli_nw_latency"),
    ['srv_nw_latency'] = build_datatable_column_def_nw_latency('srv_nw_latency', "db_search.srv_nw_latency"),
+   ['appl_latency'] = build_datatable_column_def_nw_latency('appl_latency', "db_search.appl_latency"),
    ['info'] = {
       title_i18n = "db_search.info",
       data_field = "info",

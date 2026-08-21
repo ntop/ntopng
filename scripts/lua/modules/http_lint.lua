@@ -1964,6 +1964,7 @@ local known_parameters = {
    ["srv2cli_bytes"] = validateEmptyOr(validateFilters(validateNumber)), -- Client DSCP, used by db queries
    ["cli_nw_latency"] = validateEmptyOr(validateFilters(validateFloat)), -- Client network latency
    ["srv_nw_latency"] = validateEmptyOr(validateFilters(validateFloat)), -- Server network latency
+   ["appl_latency"] = validateEmptyOr(validateFilters(validateFloat)), -- Application latency
    ["flow_status_num"] = validateEmptyOr(validateFilters(validateUnquoted)), -- Flow Status, used by db queries
    ["vhost"] = validateHTTPHost, -- HTTP server name or IP address
    ["version"] = validateIpVersion, -- To specify an IPv4 or IPv6

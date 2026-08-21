@@ -1291,6 +1291,7 @@ local flow_columns = {
    ['L7_PROTO_MASTER'] =      { flowfilter = "l7proto_master", dt_func = dt_format_l7_proto, simple_dt_func = interface.getnDPIProtoName, hide = true },
    ['CLIENT_NW_LATENCY_US'] = { flowfilter = "cli_nw_latency", dt_func = dt_format_latency_ms, i18n = i18n("db_search.cli_nw_latency"), order = 13, db_type = "Number", db_raw_type = "Uint32" },
    ['SERVER_NW_LATENCY_US'] = { flowfilter = "srv_nw_latency", dt_func = dt_format_latency_ms, i18n = i18n("db_search.srv_nw_latency"), order = 14, db_type = "Number", db_raw_type = "Uint32" },
+   ['APPL_LATENCY_US'] =      { flowfilter = "appl_latency",   dt_func = dt_format_latency_ms, i18n = i18n("db_search.appl_latency"), order = 15, db_type = "Number", db_raw_type = "Uint32" },
    ['CLIENT_LOCATION'] =      { flowfilter = "cli_location", dt_func = dt_format_location, db_type = "Number", db_raw_type = "Uint8" },
    ['SERVER_LOCATION'] =      { flowfilter = "srv_location", dt_func = dt_format_location, db_type = "Number", db_raw_type = "Uint8" },
    ['SRC_NETWORK_ID'] =       { flowfilter = "cli_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint32" },
