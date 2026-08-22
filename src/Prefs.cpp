@@ -393,7 +393,13 @@ Prefs::~Prefs() {
 /* C-binding needed by Win32 service call */
 void nDPIusage() {
   struct ndpi_detection_module_struct* ndpi_struct =
-    ndpi_init_detection_module(NULL);
+    ndpi_init_detection_module(NULL,
+#ifdef NTOPNG_PRO
+			       NDPI_LICENSE_COMMERCIAL_DUAL_LICENSE
+#else
+			       NDPI_LICENSE_NON_COMMERCIAL_LGPL
+#endif
+			       );  
 
   printf("\nnDPI detected protocols:\n");
   ndpi_dump_protocols(ndpi_struct, stdout);

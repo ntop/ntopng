@@ -461,8 +461,7 @@ struct ndpi_keys_struct {
 };
 
 struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
-  struct ndpi_detection_module_struct* ndpi_s =
-      ndpi_init_detection_module(NULL);
+  struct ndpi_detection_module_struct* ndpi_s;
   ndpi_cfg_error rc;
   const char* dirs[] = {"/usr/share/ndpi/public_suffix_list.dat",
                         "/usr/local/share/ndpi/public_suffix_list.dat",
@@ -483,6 +482,14 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
       { "ssh",  "metadata.ssh_data",                    "1"  },
       {NULL, NULL, NULL}};
 
+  ndpi_s = ndpi_init_detection_module(NULL,
+#ifdef NTOPNG_PRO
+				      NDPI_LICENSE_COMMERCIAL_DUAL_LICENSE
+#else
+				      NDPI_LICENSE_NON_COMMERCIAL_LGPL
+#endif
+				      );
+  
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
