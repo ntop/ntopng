@@ -1,0 +1,29 @@
+# ASN.1 / BER tag bytes understood by net-snmp's snmp_parse()
+"\x02" # INTEGER
+"\x04" # OCTET STRING
+"\x05" # NULL
+"\x06" # OBJECT IDENTIFIER
+"\x30" # SEQUENCE
+
+# SNMP application-specific value types (net-snmp/library/asn1.h)
+"\x40" # IpAddress
+"\x41" # Counter32
+"\x42" # Gauge32
+"\x43" # TimeTicks
+"\x44" # Opaque
+"\x46" # Counter64
+"\x80" # noSuchObject
+"\x81" # noSuchInstance
+"\x82" # endOfMibView
+
+# SNMP PDU (context-specific, constructed) tags
+"\xa0" # GetRequest
+"\xa1" # GetNextRequest
+"\xa2" # GetResponse
+"\xa3" # SetRequest
+"\xa5" # GetBulkRequest
+"\xa8" # Report
+
+# Common community strings (v1/v2c envelope)
+"public"
+"private"

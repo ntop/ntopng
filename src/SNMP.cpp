@@ -56,6 +56,12 @@ SNMP::SNMP() {
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
   snmp_disable_stderrlog(); /* Suppress SNMP library error messages to stderr */
+  /* Always non-NULL: overwritten with the caller's real interpreter state
+   * by get()/getnext()/getnextbulk()/set() before any request is issued, so
+   * this throwaway state is only ever observed if handle_async_response()
+   * is reached with no request in flight (not a real production path, but
+   * keeps vm out of "used uninitialized" territory either way). */
+  vm = luaL_newstate();
 #endif
   getbulk_max_num_repetitions = 10;
 }
@@ -64,6 +70,9 @@ SNMP::SNMP() {
 
 SNMP::~SNMP() {
   for (unsigned int i = 0; i < sessions.size(); i++) delete sessions.at(i);
+#ifdef HAVE_LIBSNMP
+  if (vm) lua_close(vm);
+#endif
 }
 
 /* ******************************* */
