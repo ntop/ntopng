@@ -308,8 +308,32 @@ static void* packetPollLoop(void* ptr) {
                                  test_pre_script_path);
     Utils::exec(test_pre_script_path);
 
-    /* Allow check configs to be re-read */
-    sleep(ntop->getPrefs()->get_housekeeping_frequency() * 2);
+    /* If the pre script toggled checks and/or alert exclusions, a hot-reload
+       has been flagged (Ntop::flowChecksReloadInProgress /
+       hostChecksReloadInProgress / alertExclusionsReloadInProgress) but is
+       only applied on the next housekeeping cycle. Poll for its completion
+       instead of guessing a fixed delay: this returns immediately when no
+       reload was requested, and waits exactly as long as needed otherwise. */
+    {
+      u_int max_wait_sec = ntop->getPrefs()->get_housekeeping_frequency() * 6;
+
+      for (u_int waited = 0; waited < max_wait_sec; waited++) {
+       if (!ntop->isFlowChecksReloadPending() &&
+           !ntop->isHostChecksReloadPending() &&
+           !ntop->isAlertExclusionsReloadPending())
+         break;
+
+       sleep(1);
+      }
+
+      if (ntop->isFlowChecksReloadPending() ||
+         ntop->isHostChecksReloadPending() ||
+         ntop->isAlertExclusionsReloadPending())
+       ntop->getTrace()->traceEvent(
+           TRACE_WARNING,
+           "Timed out after %us waiting for checks reload to complete",
+           max_wait_sec);
+    }
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing pcap file");
   }
