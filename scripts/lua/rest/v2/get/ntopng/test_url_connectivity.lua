@@ -37,10 +37,10 @@ local rc = ntop.httpGet(url, nil, nil, 5 --[[timeout secs]], true --[[return_con
 
 if rc == nil then
    rest_utils.answer(rest_utils.consts.err.bad_content, {
-      message = i18n("prefs.wazuh_unreachable") or
+      message = i18n("prefs.vue_prefs.connection_failed") or
          "Unable to reach the server. Check the URL and network connectivity, or start ntopng with --insecure for unsafe TLS certificates."
    })
    return
 end
 
-rest_utils.answer(rest_utils.consts.success.ok, { message = i18n("prefs.wazuh_connection_ok") or "Connection successful" })
+rest_utils.answer(rest_utils.consts.success.ok, { message = i18n("prefs.vue_prefs.connection_successful") or "Connection successful" })
