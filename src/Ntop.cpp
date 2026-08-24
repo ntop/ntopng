@@ -1232,24 +1232,16 @@ bool Ntop::recipients_are_empty() { return recipients.empty(); }
   (i.e., the recipients.process_notifications 5-second periodic activity has
   dequeued and dispatched/persisted every pending alert), instead of
   guessing a fixed delay. Returns true if queues drained before the timeout.
-
-  A single empty read isn't quite enough: an item is removed from its
-  RecipientQueue as soon as Lua dequeues it, slightly before Lua finishes
-  dispatching/persisting it (e.g. the SQLite write in alert_store_db.lua).
-  Requiring two consecutive empty reads closes that small window.
 */
 bool Ntop::waitRecipientsQueuesDrained(u_int max_wait_sec) {
-  u_int stable_reads = 0;
-  u_int max_iterations = max_wait_sec * 5 /* poll every 200ms */;
 
-  for (u_int i = 0; i < max_iterations; i++) {
-    if (recipients_are_empty()) {
-      if (++stable_reads >= 2) return (true);
-    } else {
-      stable_reads = 0;
-    }
+  sleep(1);
 
-    _usleep(200000);
+  for (u_int i = 0; i < max_wait_sec; i++) {
+    if (recipients_are_empty())
+      return (true);
+    else
+      sleep(1);
   }
 
   return (false);
@@ -4389,8 +4381,7 @@ void Ntop::checkShutdownWhenDone() {
       const char* test_runtime_script_path =
           ntop->getPrefs()->get_test_runtime_script_path();
 
-      /* Wait for pending notifications to be dequeued/dispatched instead of
-         guessing a fixed delay */
+      /* Wait for pending notifications to be dequeued/dispatched */
       if (!waitRecipientsQueuesDrained(30 /* sec */))
        ntop->getTrace()->traceEvent(
            TRACE_WARNING,
@@ -4417,8 +4408,7 @@ void Ntop::checkShutdownWhenDone() {
           ntop->getPrefs()->get_test_post_script_path();
 
       /* shutdownInterfaces() above flushes all remaining active/idle flows,
-         which can raise further flow-end alerts: wait for those to be
-         dequeued/dispatched too, instead of guessing a fixed delay. */
+         which can raise further flow-end alerts: wait for those to be dequeued/dispatched. */
       if (!waitRecipientsQueuesDrained(30 /* sec */))
        ntop->getTrace()->traceEvent(
            TRACE_WARNING,
