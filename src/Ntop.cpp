@@ -1227,6 +1227,36 @@ bool Ntop::recipients_are_empty() { return recipients.empty(); }
 
 /* ******************************************* */
 
+/*
+  Polls recipients_are_empty() until all notification queues are drained
+  (i.e., the recipients.process_notifications 5-second periodic activity has
+  dequeued and dispatched/persisted every pending alert), instead of
+  guessing a fixed delay. Returns true if queues drained before the timeout.
+
+  A single empty read isn't quite enough: an item is removed from its
+  RecipientQueue as soon as Lua dequeues it, slightly before Lua finishes
+  dispatching/persisting it (e.g. the SQLite write in alert_store_db.lua).
+  Requiring two consecutive empty reads closes that small window.
+*/
+bool Ntop::waitRecipientsQueuesDrained(u_int max_wait_sec) {
+  u_int stable_reads = 0;
+  u_int max_iterations = max_wait_sec * 5 /* poll every 200ms */;
+
+  for (u_int i = 0; i < max_iterations; i++) {
+    if (recipients_are_empty()) {
+      if (++stable_reads >= 2) return (true);
+    } else {
+      stable_reads = 0;
+    }
+
+    _usleep(200000);
+  }
+
+  return (false);
+}
+
+/* ******************************************* */
+
 bool Ntop::recipients_enqueue(AlertFifoItem* notification) {
   return recipients.enqueue(notification);
 }
@@ -4323,8 +4353,15 @@ void Ntop::checkShutdownWhenDone() {
       NetworkInterface* iface = getInterface(i);
 
       /* Check all the interfaces reading from pcap files if they are done with
-       * their activities. */
-      if (iface->read_from_pcap_dump() && !iface->read_from_pcap_dump_done())
+       * their activities. NOTE: pcap_dump_processing_done() (not just
+       * read_from_pcap_dump_done()) is required here: packets can be fully
+       * read while flow-end housekeeping (flow_end_housekeeping_walker in
+       * PcapInterface.cpp, which runs the flow-end checks that can still
+       * raise alerts) hasn't run yet. Gating on the earlier flag let the
+       * runtime/post test scripts observe an interface as "done" before its
+       * last flows had actually been checked, silently dropping alerts for
+       * short pcaps. */
+      if (iface->read_from_pcap_dump() && !iface->pcap_dump_processing_done())
         /* iface isn't done yet */
         return;
     }
@@ -4352,12 +4389,18 @@ void Ntop::checkShutdownWhenDone() {
       const char* test_runtime_script_path =
           ntop->getPrefs()->get_test_runtime_script_path();
 
+      /* Wait for pending notifications to be dequeued/dispatched instead of
+         guessing a fixed delay */
+      if (!waitRecipientsQueuesDrained(30 /* sec */))
+       ntop->getTrace()->traceEvent(
+           TRACE_WARNING,
+           "Timed out waiting for pending notifications to drain before "
+           "running the runtime script");
+
       /* Execute as Bash script */
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "> Running Runtime Script '%s'",
                                    test_runtime_script_path);
-      sleep(10); /* Allow concurrent activities and flushing to complete before
-                    running the test */
       Utils::exec(test_runtime_script_path);
     }
 
@@ -4373,7 +4416,14 @@ void Ntop::checkShutdownWhenDone() {
       const char* test_post_script_path =
           ntop->getPrefs()->get_test_post_script_path();
 
-      sleep(1); /* Give some time to alerts to get dequeued */
+      /* shutdownInterfaces() above flushes all remaining active/idle flows,
+         which can raise further flow-end alerts: wait for those to be
+         dequeued/dispatched too, instead of guessing a fixed delay. */
+      if (!waitRecipientsQueuesDrained(30 /* sec */))
+       ntop->getTrace()->traceEvent(
+           TRACE_WARNING,
+           "Timed out waiting for pending notifications to drain before "
+           "running the post script");
 
       /* Execute as Bash script */
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Post Script '%s'",

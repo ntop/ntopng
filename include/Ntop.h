@@ -77,7 +77,10 @@ class Ntop {
   int startupLockFile;
 #endif
   int seed; /* random seed */
-  bool flowChecksReloadInProgress, hostChecksReloadInProgress;
+  /* atomic: written from the HTTP-handler Lua VM thread on reload requests,
+     read from the poller thread (PcapInterface pre-script wait) and cleared
+     from the main thread (checkReloadFlowChecks/checkReloadHostChecks) */
+  std::atomic<bool> flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool interfacesShuttedDown;
   bool offline, forced_offline;
@@ -200,7 +203,7 @@ class Ntop {
 
   /* Hosts Control (e.g., disabled alerts) */
 #ifdef NTOPNG_PRO
-  bool alertExclusionsReloadInProgress;
+  std::atomic<bool> alertExclusionsReloadInProgress;
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
   std::map<std::tuple<struct ndpi_in6_addr /* exporter IP */,
                       u_int32_t /* interface_id */>, SNMPInterfaceRole, InterfaceKeyCompare> *ifRoles, *ifRoles_shadow;
@@ -777,6 +780,7 @@ class Ntop {
   }
   void lua_alert_queues_stats(lua_State* vm);
   bool recipients_are_empty();
+  bool waitRecipientsQueuesDrained(u_int max_wait_sec);
   bool recipients_enqueue(AlertFifoItem* notification);
   AlertLevel get_default_recipient_minimum_severity();
   bool recipient_enqueue(u_int16_t recipient_id,
@@ -807,9 +811,18 @@ class Ntop {
 
   inline void reloadFlowChecks() { flowChecksReloadInProgress = true; };
   inline void reloadHostChecks() { hostChecksReloadInProgress = true; };
+  inline bool isFlowChecksReloadPending() { return (flowChecksReloadInProgress); };
+  inline bool isHostChecksReloadPending() { return (hostChecksReloadInProgress); };
   inline void reloadAlertExclusions() {
 #ifdef NTOPNG_PRO
     alertExclusionsReloadInProgress = true;
+#endif
+  };
+  inline bool isAlertExclusionsReloadPending() {
+#ifdef NTOPNG_PRO
+    return (alertExclusionsReloadInProgress);
+#else
+    return (false);
 #endif
   };
   inline void reloadHostPools() { hostPoolsReloadInProgress = true; };
