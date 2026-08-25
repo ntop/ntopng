@@ -77,7 +77,6 @@ end
 
 if (data) and (data["hosts"]) then
     for address, value in pairs(data["hosts"]) do
-
         if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
             local country = value["country"]
             local country_info = country_code.get_country_info(country)
@@ -100,6 +99,11 @@ if (data) and (data["hosts"]) then
                     country = iso3_country,
                     country_id = country_id,
                     ip = value["ip"],
+                    name = value["name"],
+                    vlan = {
+                        id = value["vlan"],
+                        name = getFullVlanName(value["vlan"], true, false)   
+                    },
                     scoreClient = value["score.as_client"] or 0,
                     scoreServer = value["score.as_server"] or 0,
                     numAlerts = value["active_alerted_flows"] or 0,
