@@ -35,8 +35,6 @@
 #ifdef HAVE_LIBSNMP
 
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
-NetworkInterface *iface;
-SNMP *snmp_obj;
 
 constexpr const char *PROG_NAME = "ntopng";
 static ndpi_protocol ndpiUnknownProtocol;
@@ -44,7 +42,6 @@ static ndpi_protocol ndpiUnknownProtocol;
 bool trace_new_delete = false;
 
 static void cleanup() {
-  if (snmp_obj) delete snmp_obj;
   if (ntop) delete ntop;
 }
 
@@ -138,7 +135,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
 
   /* SNMP::handle_async_response() is a pure varbind-formatting method: it
    * doesn't touch NetworkInterface/Redis, so no iface is created here. */
-  snmp_obj = new SNMP();
 
   return 0;
 }
@@ -177,12 +173,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   netsnmp_pdu *pdu = snmp_pdu_create(0);
   if (pdu == NULL) return 0;
 
+  SNMP *snmp_obj = new SNMP();
+
   int rc = snmp_parse(NULL /* sessp */, &session, pdu,
                       (u_char *)(data + 1), size - 1);
 
   if (rc == 0) snmp_obj->handle_async_response(pdu, "203.0.113.1" /* TEST-NET-3 */);
 
   snmp_free_pdu(pdu);
+
+  if (snmp_obj) delete snmp_obj;
 
   return 0;
 }
