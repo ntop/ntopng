@@ -898,7 +898,7 @@ local function dt_format_snmp_interface(interface, flow)
   local display_ip = exporter
 
   if tostring(interface) ~= "0" and not isEmptyString(display_ip) and display_ip ~= "::" then
-    label = format_portidx_name(display_ip, tostring(interface), true)
+    label = format_portidx_name_with_role(display_ip, tostring(interface), true)
     value = display_ip .. "_" .. tostring(interface)
   end
 
