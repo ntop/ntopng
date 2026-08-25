@@ -1702,11 +1702,11 @@ local function print_flow_overview_page()
 
       -- See SNMPInterfaceRole in ntop_typedefs.h  
       if(flow.iface_role == 1) then
-	 role = i18n("flows_page.interface_role_transit")
+	 role = i18n("prefs.snmp_interface_role_list.transit")
       elseif(flow.iface_role == 2) then
-	 role = i18n("flows_page.interface_role_peering")
+	 role = i18n("prefs.snmp_interface_role_list.peering")
       elseif(flow.iface_role == 4) then
-	 role = i18n("flows_page.interface_role_ix")
+	 role = i18n("prefs.snmp_interface_role_list.ix")
       else
 	 role = nil
       end

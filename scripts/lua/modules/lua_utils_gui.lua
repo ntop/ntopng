@@ -1018,12 +1018,12 @@ end
 --        Only the "other" role (and an unset role, that is reported as "other")
 --        is not worth reporting. See SNMPInterfaceRole in ntop_typedefs.h
 local REPORTED_INTERFACE_ROLES = {
-   ["transit"] = "flows_page.interface_role_transit",
-   ["peering"] = "flows_page.interface_role_peering",
-   ["ix"] = "flows_page.interface_role_ix",
-   ["customer_interface"] = "flows_page.interface_role_customer_interface",
-   ["internet_connectivity"] = "flows_page.interface_role_internet_connectivity",
-   ["internal_interface"] = "flows_page.interface_role_internal_interface",
+   ["transit"] = "prefs.snmp_interface_role_list.transit",
+   ["peering"] = "prefs.snmp_interface_role_list.peering",
+   ["ix"] = "prefs.snmp_interface_role_list.ix",
+   ["customer_interface"] = "prefs.snmp_interface_role_list.customer_interface",
+   ["internet_connectivity"] = "prefs.snmp_interface_role_list.internet_connectivity",
+   ["internal_interface"] = "prefs.snmp_interface_role_list.internal_interface",
 }
 
 -- Loaded on demand, to avoid concatenating the pro path at each call

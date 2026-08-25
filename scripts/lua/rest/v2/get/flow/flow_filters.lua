@@ -788,17 +788,17 @@ if isASNModeEnabled then
 		{
 			key = "interface_role",
 			value = "peering",
-			label = i18n("flows_page.interface_role_peering"),
+			label = i18n("prefs.snmp_interface_role_list.peering"),
 		},
 		{
 			key = "interface_role",
 			value = "transit",
-			label = i18n("flows_page.interface_role_transit"),
+			label = i18n("prefs.snmp_interface_role_list.transit"),
 		},
 		{
 			key = "interface_role",
 			value = "ix",
-			label = i18n("flows_page.interface_role_ix"),
+			label = i18n("prefs.snmp_interface_role_list.ix"),
 		},
 	}
 
