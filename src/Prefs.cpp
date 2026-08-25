@@ -399,7 +399,7 @@ void nDPIusage() {
 #else
 			       NDPI_LICENSE_NOT_FOR_PROFIT_LGPL
 #endif
-			       );  
+			       );
 
   printf("\nnDPI detected protocols:\n");
   ndpi_dump_protocols(ndpi_struct, stdout);
