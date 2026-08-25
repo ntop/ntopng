@@ -60,7 +60,7 @@ else
    local sum = bytes["local2remote"] + bytes["local2local"] + bytes["remote2local"] + bytes["remote2remote"]
 
    if sum > 0 then
-      local five = 0.05 * sum
+      local one = 0.001 * sum
       local other = 0
 
       local traffic_list = {
@@ -72,7 +72,7 @@ else
 
       for _, entry in ipairs(traffic_list) do
          local val = bytes[entry.key]
-         if val > five then
+         if val > one then
             res[#res + 1] = { label = entry.label, value = val }
          else
             other = other + val
