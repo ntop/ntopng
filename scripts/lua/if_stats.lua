@@ -793,16 +793,14 @@ if (ifstats.iface_role_traffic ~= nil) then
     }
 end
 
-if (ifstats.type ~= "zmq") then
-    charts[#charts + 1] = {
-        name       = "ifaceTrafficDistribution",
-        title      = i18n("if_stats_overview.traffic_distribution"),
-        update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
-        url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
-        refresh    = refresh,
-        unit       = "bytes",
-    }
-end
+charts[#charts + 1] = {
+   name       = "ifaceTrafficDistribution",
+   title      = i18n("if_stats_overview.traffic_distribution"),
+   update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
+   url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
+   refresh    = refresh,
+   unit       = "bytes",
+}
 
 print [[ <tr>]]
 print [[<td colspan=6><div class="row"><div class="row-3">]]
