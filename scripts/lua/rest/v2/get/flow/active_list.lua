@@ -14,9 +14,34 @@ local format_utils = require "format_utils"
 local l4_protocol_list = require "l4_protocol_list"
 local as_utils = require "as_utils"
 local icmp_utils = require("icmp_utils")
+local auth = require "auth"
 
 if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+end
+
+-- SNMP interface roles are an Enterprise M feature, and are reported only to
+-- users having the SNMP capability (same check done by the exporter interfaces page)
+local snmp_utils = nil
+local roles_available = (ntop.isEnterpriseM and ntop.isEnterpriseM()) and
+                        auth.has_capability(auth.capabilities.snmp)
+
+if roles_available then
+   snmp_utils = require "snmp_utils"
+end
+
+-- Returns the raw role (e.g. "transit") of an exporter SNMP interface,
+-- or nil when the role is unset/not worth reporting
+local function get_exporter_interface_role(device_ip, port_idx)
+   if (not roles_available) or (device_ip == nil) or (port_idx == nil) then
+      return nil
+   end
+
+   if tonumber(device_ip) then
+      device_ip = ntop.inet_ntoa(device_ip)
+   end
+
+   return snmp_utils.get_snmp_interface_raw_role(device_ip, port_idx)
 end
 
 -- Trick to handle the application and the categories togheter
@@ -294,12 +319,14 @@ for _, value in ipairs(flows_stats.flows) do
          in_port = {
             index = value["in_index"],
             -- last param is short version
-            name = in_port_name
+            name = in_port_name,
+            role = get_exporter_interface_role(device_ip, value["in_index"])
          },
          out_port = {
             index = value["out_index"],
             -- last param is short version
-            name = out_port_name
+            name = out_port_name,
+            role = get_exporter_interface_role(device_ip, value["out_index"])
          }
       }
 
