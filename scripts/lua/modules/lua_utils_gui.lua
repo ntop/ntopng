@@ -1015,28 +1015,29 @@ end
 
 -- @brief Interface roles that have to be reported next to the interface name,
 --        along with the (short) label used to report them.
---        Any other role is not reported. See SNMPInterfaceRole in ntop_typedefs.h
+--        Only the "other" role (and an unset role, that is reported as "other")
+--        is not worth reporting. See SNMPInterfaceRole in ntop_typedefs.h
 local REPORTED_INTERFACE_ROLES = {
    ["transit"] = "flows_page.interface_role_transit",
    ["peering"] = "flows_page.interface_role_peering",
    ["ix"] = "flows_page.interface_role_ix",
+   ["customer_interface"] = "flows_page.interface_role_customer_interface",
+   ["internet_connectivity"] = "flows_page.interface_role_internet_connectivity",
+   ["internal_interface"] = "flows_page.interface_role_internal_interface",
 }
 
 -- Loaded on demand, to avoid concatenating the pro path at each call
 local _snmp_role_utils = nil
 
--- @brief Same as format_portidx_name, with the interface role added next to the
---        interface name, e.g. "VLAN100-IPT-FT (IX)". The role is added only when
---        it is one of Transit, Peering or IX, otherwise the name is left as it is.
--- @params device_ip: snmp device ip
+-- @brief Adds the interface role to an already formatted SNMP interface name. 
+--        The role is added only when it is set, otherwise the name is left as it is.
+-- @params name: the formatted SNMP interface name
+--         device_ip: snmp device ip
 --         portidx: snmp interface index
---         short_version: boolean, shorten the interface name
-function format_portidx_name_with_role(device_ip, portidx, short_version)
-   local idx_name = format_portidx_name(device_ip, portidx, short_version)
-
+function format_name_with_portidx_role(name, device_ip, portidx)
    -- The interface role is available from Enterprise M only
    if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
-      return idx_name
+      return name
    end
 
    if not _snmp_role_utils then
@@ -1052,10 +1053,20 @@ function format_portidx_name_with_role(device_ip, portidx, short_version)
    local role = _snmp_role_utils.get_snmp_interface_role_value(device_ip, tostring(portidx))
 
    if role and REPORTED_INTERFACE_ROLES[role] then
-      return string.format("%s (%s)", idx_name, i18n(REPORTED_INTERFACE_ROLES[role]))
+      return string.format("%s (%s)", name, i18n(REPORTED_INTERFACE_ROLES[role]))
    end
 
-   return idx_name
+   return name
+end
+
+-- ##############################################
+
+-- @brief Same as format_portidx_name, with the interface role added next to the
+--        interface name
+function format_portidx_name_with_role(device_ip, portidx, short_version)
+   local idx_name = format_portidx_name(device_ip, portidx, short_version)
+
+   return format_name_with_portidx_role(idx_name, device_ip, portidx)
 end
 
 -- ##############################################
