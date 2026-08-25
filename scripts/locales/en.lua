@@ -4921,6 +4921,7 @@ local lang = {
     ["ndpi_slow_dos"] = "Slow DoS",
     ["ndpi_slow_dos_descr"] = "Detect Slow DoS",
     ["ndpi_non_pqc"] = "Obsolete non-PQC Flow",
+    ["ndpi_ai_inference_traffic"] = "Possible AI Inference Traffic",
     ["ndpi_smb_insecure_version"] = "SMB Insecure Vers",
     ["ndpi_ssh_obsolete_client_version_or_cipher"] = "Obsolete SSH Client Version or Cipher",
     ["ndpi_ssh_obsolete_client_version_or_cipher_signature"] = "Obsolete SSH Client Version or Cipher [Signature: %{signature}]",
@@ -4950,6 +4951,7 @@ local lang = {
     ["ndpi_url_possible_xss"] = "XSS Attack",
     ["ndpi_non_pqc"] = "Obsolete non-PQC Flow",
     ["ndpi_non_pqc_descr"] = "Detects non-PQC compliant (SSH, TLS, QUIC, IPSEC) flows",
+    ["ndpi_ai_inference_traffic_descr"] = "Detects flows possibly carrying traffic towards AI inference services",
   },
   ["export"] = {
     ["select_cols"] = "Select Export Columns",

@@ -208,6 +208,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
      "ndpi_slow_dos"},
     {{NDPI_NON_PQC, flow_alert_ndpi_non_pqc, alert_category_security},
      "ndpi_non_pqc"},
+    {{NDPI_AI_INFERENCE_TRAFFIC, flow_alert_ndpi_ai_inference_traffic,
+      alert_category_other},
+     "ndpi_ai_inference_traffic"},
 };
 
 /* **************************************************** */
