@@ -484,9 +484,9 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 
   ndpi_s = ndpi_init_detection_module(NULL,
 #ifdef NTOPNG_PRO
-				      NDPI_LICENSE_COMMERCIAL_DUAL_LICENSE
+				      NDPI_LICENSE_FOR_PROFIT_DUAL_LICENSE
 #else
-				      NDPI_LICENSE_NON_COMMERCIAL_LGPL
+				      NDPI_LICENSE_NOT_FOR_PROFIT_LGPL
 #endif
 				      );
   
