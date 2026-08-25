@@ -518,6 +518,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    are_host_pools_ts_enabled = (areHostPoolsTimeseriesEnabled and areHostPoolsTimeseriesEnabled(current_ifid)) or false,
    are_as_ts_enabled = (areASTimeseriesEnabled and areASTimeseriesEnabled(current_ifid)) or false,
    are_country_ts_enabled = (areCountryTimeseriesEnabled and areCountryTimeseriesEnabled(current_ifid)) or false,
+   are_vlan_ts_enabled = (areVlanTimeseriesEnabled and areVlanTimeseriesEnabled(current_ifid)) or false,
    is_asn_mode_enabled = (isASNModeEnabled and isASNModeEnabled()) or false,
    show_sankey = show_sankey,
    has_pending_demo_tours = has_pending_demo_tours,
