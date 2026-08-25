@@ -1950,7 +1950,13 @@ function historical_flow_utils.get_historical_mac(mac, info)
    
    -- Add ifid
    if info.interface_id then
-      url = url .. "ifid=" .. info.interface_id .. "&"
+      local interface_id
+      if type(info.interface_id) == "table" then
+         interface_id = info.interface_id.value
+      else
+         interface_id = info.interface_id
+      end
+      url = url .. "ifid=" .. interface_id .. "&"
    end
    
    -- Add epoch begin and end from filter or first_seen/last_seen
