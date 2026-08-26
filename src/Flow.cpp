@@ -101,7 +101,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   marker = MARKER_NO_ACTION;
 #endif
 
-  host_server_info = host_server_name = NULL, flow_source = packet_to_flow;
+  client_info = host_server_name = NULL, flow_source = packet_to_flow;
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
   json_info = NULL, tlv_info = NULL, twh_over = 0;
@@ -712,7 +712,7 @@ Flow::~Flow() {
   }
 
   if (host_server_name) free(host_server_name);
-  if (host_server_info) free(host_server_info);
+  if (client_info) free(client_info);
 
   if (iec104) delete iec104;
 #ifdef NTOPNG_PRO
@@ -931,9 +931,17 @@ void Flow::processDetectedProtocolData() {
 	if(cli_u)
 	  cli_u->offlineSetDHCPName((char*)ndpiFlow->host_server_name);
 
-	if(ndpiFlow->protos.dhcp.class_ident[0] != '\0')
-	  setServerInfo(strdup(ndpiFlow->protos.dhcp.class_ident));
+	if(ndpiFlow->protos.dhcp.class_ident[0] != '\0') {
+	  char buf[256];
 
+	  snprintf(buf, sizeof(buf), "%s (%s)",
+		   ndpiFlow->host_server_name,
+		   ndpiFlow->protos.dhcp.class_ident);
+	
+	  setClientInfo(strdup(buf));
+	} else
+	  setClientInfo(strdup(ndpiFlow->host_server_name));
+	
 	skip_host_server_name = true;
       }
     }
@@ -3533,8 +3541,8 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
       if (host_server_name)
         lua_push_str_table_entry(vm, "host_server_name", host_server_name);
 
-      if (host_server_info)
-        lua_push_str_table_entry(vm, "host_server_info", host_server_info);
+      if (client_info)
+        lua_push_str_table_entry(vm, "client_info", client_info);
 
       if (suspicious_dga_domain)
         lua_push_str_table_entry(vm, "suspicious_dga_domain",
@@ -10191,11 +10199,11 @@ void Flow::setServerName(char* value /* Allocated by caller */) {
 
 /* *************************************** */
 
-void Flow::setServerInfo(char* value /* Allocated by caller */) {
+void Flow::setClientInfo(char* value /* Allocated by caller */) {
   if (value == NULL) return;
 
-  if (host_server_info) free(host_server_info);
-  host_server_info = value;
+  if (client_info) free(client_info);
+  client_info = value;
 }
 
 /* *************************************** */

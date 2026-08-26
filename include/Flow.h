@@ -261,7 +261,7 @@ class Flow : public GenericHashEntry {
   json_object* json_info;
   ndpi_serializer* tlv_info;
   ndpi_confidence_t confidence;
-  char *host_server_name, *host_server_info, *bt_hash, *stun_mapped_address;
+  char *host_server_name, *client_info, *bt_hash, *stun_mapped_address;
   IEC104Stats* iec104;
 #ifdef NTOPNG_PRO
   ModbusStats* modbus;
@@ -492,7 +492,7 @@ class Flow : public GenericHashEntry {
   void accountBidirectionalTCPProtocolServices();
   void accountBidirectionalUDPProtocolServices();
   void setServerName(char* value);
-  void setServerInfo(char* value);
+  void setClientInfo(char* value);
 #ifdef NTOPNG_PRO
   void processHostName(char* host_name);
 #endif

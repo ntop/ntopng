@@ -1723,8 +1723,8 @@ local function print_flow_overview_page()
          print("</td></tr>\n")
       end
 
-      if ((flow.host_server_info ~= nil) and (flow.host_server_info ~= "")) then
-         print("<tr><th class='colspan-4'>" .. i18n("server_info") .. "</th><td colspan=2>" .. flow.host_server_info)
+      if ((flow.client_info ~= nil) and (flow.client_info ~= "")) then
+         print("<tr><th class='colspan-4'>" .. i18n("client_info") .. "</th><td colspan=2>" .. flow.client_info)
          print("</td></tr>\n")
       end
 
