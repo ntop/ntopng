@@ -76,12 +76,17 @@ CREATE TABLE IF NOT EXISTS wazuh_alerts ON CLUSTER '$CLUSTER'
     geo_lat_src          Float32,
     geo_lon_src          Float32,
     full_log             String,
-    raw_json             String
+    raw_json             String,
+    alert_rule_id        String DEFAULT '' COMMENT 'Reference to wazuh_alert_rules.id in case of rule match'
 )
 ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}')
 PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (timestamp, agent_id, rule_id)
 SETTINGS index_granularity = 8192;
+
+@
+
+ALTER TABLE wazuh_alerts ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_rule_id String DEFAULT '' COMMENT 'Reference to wazuh_alert_rules.id in case of rule match';
 
 @
 
