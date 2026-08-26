@@ -56,6 +56,11 @@ SNMP::SNMP() {
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
   snmp_disable_stderrlog(); /* Suppress SNMP library error messages to stderr */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+  /* With fuzzing we don't have a state since we process only responses,
+     without any previous requests */
+  vm = luaL_newstate();
+#endif
 #endif
   getbulk_max_num_repetitions = 10;
 }
@@ -64,6 +69,11 @@ SNMP::SNMP() {
 
 SNMP::~SNMP() {
   for (unsigned int i = 0; i < sessions.size(); i++) delete sessions.at(i);
+#ifdef HAVE_LIBSNMP
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+  if (vm) lua_close(vm);
+#endif
+#endif
 }
 
 /* ******************************* */

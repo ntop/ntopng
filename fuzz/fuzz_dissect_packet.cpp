@@ -115,6 +115,36 @@ static void setCLIArgs(Prefs *prefs, int params...) {
 const ndpi_protocol getConstNdpiUnknownProtocol() {
   return((const ndpi_protocol)ndpiUnknownProtocol);
 }
+
+/*
+ * Mirrors the post-pcap-read sequence PcapInterface.cpp runs once a pcap file
+ * has been fully dissected (see idle_flow_account/flow_end_housekeeping_walker
+ * and their use around PcapInterface.cpp:505-530): two full purgeIdle() scans
+ * drive every flow through Flow::housekeep(), which is what actually fires the
+ * protocol_detected checks, and the final walk runs flow_end_housekeeping()
+ * (protocol_detected, if still pending, + flow_end checks) on every flow left
+ * in the hash without purging it. Without this, dissectPacket() alone only
+ * ever exercises the flow_begin checks.
+ */
+static bool fuzz_flow_end_housekeeping_walker(GenericHashEntry *h,
+                                               void *user_data,
+                                               bool *matched) {
+  Flow *f = (Flow *)h;
+  f->flow_end_housekeeping();
+  return false;
+}
+
+static void execPendingFlowChecks() {
+  u_int32_t begin_slot = 0;
+
+  for (int i = 0; i < 2; i++) iface->purgeIdle(time(NULL), false, true /* full scan */);
+
+  begin_slot = 0;
+  iface->get_flows_hash()->walk(&begin_slot, true /* walk_all */,
+                                fuzz_flow_end_housekeeping_walker,
+                                NULL /* user_data */);
+}
+
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
   // Final cleanup
   atexit(cleanup);
@@ -173,6 +203,9 @@ DEFINE_PROTO_FUZZER(const ntopng_fuzz::Pcap &message) {
 			 &p, &srcHost, &dstHost, &flow);
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "dissecting packet");
   }
+
+  execPendingFlowChecks();
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "Ending");
 }
 
@@ -209,6 +242,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 			 DUMMY_BRIDGE_INTERFACE_ID, DLT_NULL, true, NULL, hdr, pkt,
 			 &p, &srcHost, &dstHost, &flow);
   }
+  execPendingFlowChecks();
+
   pcap_close(pcap_handle);
 
  end:

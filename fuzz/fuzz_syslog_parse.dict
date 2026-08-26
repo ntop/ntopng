@@ -1,0 +1,20 @@
+# Syslog framing tokens understood by SyslogParserInterface::parseLog()
+# (src/SyslogParserInterface.cpp)
+"<0>"
+"<13>"
+"<134>"
+"<189>"
+"1 "
+"date="
+"]: "
+": "
+";"
+"T"
+"-"
+
+# RFC 5424 structured data
+"[exampleSDID@32473 iut=\"3\"]"
+"[-]"
+
+# BOM sometimes present before CONTENT
+"\xEF\xBB\xBF"

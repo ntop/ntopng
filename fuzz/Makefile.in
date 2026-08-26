@@ -1,4 +1,4 @@
-FUZZ_TARGETS := fuzz/fuzz_dissect_packet fuzz/fuzz_zmq_flow
+FUZZ_TARGETS := fuzz/fuzz_dissect_packet fuzz/fuzz_zmq_flow fuzz/fuzz_snmp_response fuzz/fuzz_syslog_parse
 FUZZ_CORPUS := $(addsuffix _seed_corpus.zip,$(FUZZ_TARGETS))
 
 FUZZ_LOCAL_TEST := @FUZZ_LOCAL_TEST@
@@ -62,5 +62,11 @@ fuzz/fuzz_dissect_packet_seed_corpus.zip: $$(wildcard $(NDPI_HOME)/tests/pcap/*.
 	zip -j $@ $^
 
 fuzz/fuzz_zmq_flow_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_zmq_flow/*)
+	zip -j $@ $^
+
+fuzz/fuzz_snmp_response_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_snmp_response/*)
+	zip -j $@ $^
+
+fuzz/fuzz_syslog_parse_seed_corpus.zip: $$(wildcard fuzz/corpus/fuzz_syslog_parse/*)
 	zip -j $@ $^
 
