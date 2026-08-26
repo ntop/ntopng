@@ -81,9 +81,11 @@ elseif interface.isZMQInterface() then
 end
 
 local date_fmt, date_fmt_picker = graph_utils.get_date_formats()
+
 local context = {
     ifid = ifid,
     showSankey = show_sankey,
+    secondsSinceStartupEpoch = ntop.getUptime(),
     csrf = ntop.getRandomCSRFValue(),
     isEnterprise = ntop.isEnterprise and ntop.isEnterprise(),
     showTimeseries = as_ts_enabled,
