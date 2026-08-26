@@ -1,0 +1,84 @@
+{
+	"id": "vlans_stats",
+	"data_url": "lua/get_vlans_data.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "vlan_id",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "vlan_id",
+			"title_i18n": "vlan_stats.vlan_id",
+			"data_field": "vlan_id",
+			"min-width": "200px",
+			"sortable": true,
+			"class": []
+		},
+		{
+			"id": "num_hosts",
+			"title_i18n": "hosts_stats.hosts",
+			"data_field": "num_hosts",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "seen_since",
+			"title_i18n": "seen_since",
+			"data_field": "seen_since",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "score",
+			"title_i18n": "score",
+			"data_field": "score",
+			"min-width": "80px",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "breakdown",
+			"title_i18n": "breakdown",
+			"data_field": "breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "throughput",
+			"title_i18n": "throughput",
+			"data_field": "throughput_bps",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "traffic",
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}
