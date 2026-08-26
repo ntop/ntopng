@@ -28,6 +28,13 @@
 			]
 		},
 		{
+			"title_i18n": "wazuh_alert_config.alert_rule_id",
+			"data_field": "alert_rule_id",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
 			"title_i18n": "wazuh_alert_config.timestamp",
 			"data_field": "timestamp",
 			"sortable": true,
