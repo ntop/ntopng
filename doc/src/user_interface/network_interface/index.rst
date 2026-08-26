@@ -3,11 +3,12 @@ Network Interface
 
 This Web Interface is used to monitor the status of a Network Interface; there can be different types of network interfaces, see this `section`_ for more info.
 
-.. figure:: ../../img/web_gui_network_interface_dropdown.png
+.. figure:: ../../img/web_gui_interfaces_dropdown.png
   :align: center
-  :alt: System Interface Dropdown
+  :alt: Interface Dropdown
 
-  System Interface Dropdown
+  The Interfaces Dropdown Menu
+
 
 By changing interface and jumping to the Network Interface some options are going to be available.
 

@@ -152,13 +152,6 @@ also at http://packages.ntop.org/)
 In the same menu, whenever a new ntopng version is available, it is possible
 to install it by clicking on *Install update*, as depicted below.
 
-.. figure:: img/software_updates_install.png
-  :align: center
-  :width: 400
-  :alt: Install Update
-
-  Install Update
-
 It is also possible to configure ntopng to self-update itself overnight, 
 this can be enabled through *Settings* > *Preferences* > *Updates*. By
 default ntopng does not update itself overnight as it requires restarting

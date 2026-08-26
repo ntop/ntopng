@@ -6,6 +6,11 @@ Timeseries
 Ntopng creates historical timeseries to be visualized in the charts. In order to
 store timeseries data, ntopng supports RRD_, InfluxDB_ and ClickHouse as timeseries drivers.
 
+.. note::
+
+    To access these settings, jump to *Settings* -> *Preferences* -> *Timeseries*
+
+
 .. figure:: ../img/basic_concepts_timeseries_preferences.png
   :align: center
   :alt: Timeseries Preferences
@@ -92,12 +97,6 @@ Authentication
 
 InfluxDB supports HTTP/HTTPS authentication. To enable HTTP/HTTPS authentication, use the preferences toggle and specify a valid username/password pair.
 
-.. figure:: ../img/basic_concepts_influxdb_settings_auth.png
-  :align: center
-  :alt: InfluxDB Authentication Preferences
-
-  InfluxDB Authentication Preferences
-
 To enable InfluxDB authentication follow the steps highlighted at https://github.com/influxdata/influxdb/issues/8824#issuecomment-329746475.
 
 .. note::
@@ -106,6 +105,78 @@ To enable InfluxDB authentication follow the steps highlighted at https://github
 
   Therefore, an admin user is required the first time ntopng is set up to use InfluxDB to allow creation of retention policies and continuous queries. Once the database has been created, a non-privileged user can used.
 
+Using InfluxDB 2.x
+~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+  Support for InfluxDB 2.x is only partial: ntopng talks to it through the
+  v1-compatible REST API that InfluxDB 2.x still exposes, rather than through
+  native v2 endpoints.
+
+Even though ntopng natively targets InfluxDB 1.x, an InfluxDB 2.x instance can
+still be used as a timeseries backend, because InfluxDB 2.x keeps a subset of
+the v1 REST API available for backward compatibility. To use it, a bucket must
+be created and explicitly exposed through that v1-compatible API, and ntopng
+must then be pointed to it as if it were talking to an InfluxDB 1.x server.
+
+The following steps describe how to set this up.
+
+#. Log into the InfluxDB 2.x web interface and create a new bucket dedicated
+   to ntopng (for example, named ``ntopng``).
+
+
+.. figure:: ../img/basic_concepts_influxdb_create_bucket.png
+  :align: center
+  :alt: InfluxDB V.2 Create Bucket
+
+  InfluxDB V.2 Create Bucket
+
+
+#. Enable v1 API compatibility for that bucket by running the following
+   command from a terminal with access to the InfluxDB 2.x instance:
+
+   .. code-block:: shell
+
+       influx v1 auth create --read-bucket BUCKET_ID --write-bucket BUCKET_ID \
+           --username USERNAME_FOR_NTOPNG --password PASSWORD_FOR_NTOPNG \
+           --org YOUR_ORGANIZATION --token REST_API_TOKEN_PROVIDED_BY_INFLUX
+
+   Where:
+
+   - ``BUCKET_ID`` is the id of the bucket just created, as shown in the
+     InfluxDB 2.x web interface.
+   - ``USERNAME_FOR_NTOPNG`` and ``PASSWORD_FOR_NTOPNG`` are credentials of
+     your choice, which will be entered later in the ntopng InfluxDB
+     Authentication preferences.
+   - ``YOUR_ORGANIZATION`` is the organization name configured in InfluxDB
+     2.x (typically the one chosen during the first login).
+   - ``REST_API_TOKEN_PROVIDED_BY_INFLUX`` is an API token, either the one
+     shown at first login or one generated from the *API Tokens* section of
+     the InfluxDB 2.x web interface.
+
+#. In ntopng, go to *Settings* -> *Preferences* -> *Timeseries* and configure
+   the following fields:
+
+   - *Timeseries Driver*: select ``InfluxDB 1.x``.
+   - *InfluxDB URL*: the URL of the InfluxDB 2.x REST API (by default,
+     ``http://localhost:8086``).
+   - *InfluxDB Database*: the name of the bucket created for ntopng (e.g.
+     ``ntopng``).
+   - Enable *InfluxDB Authentication*.
+   - *Username* and *Password*: the credentials created with the
+     ``influx v1 auth create`` command above.
+
+Once these preferences are saved, ntopng will start exporting data to the
+InfluxDB 2.x bucket.
+
+.. warning::
+
+  InfluxDB 2.x removed support for the ``RETENTION``, ``CREATE`` and
+  ``DROP`` keywords from the REST API. This means that, unlike with
+  InfluxDB 1.x, ntopng cannot manage data retention or drop old data on an
+  InfluxDB 2.x backend. Retention policies must instead be configured and
+  managed directly from the InfluxDB 2.x web interface.
 
 .. _ClickHouseTimeseries Driver:
 
@@ -183,6 +254,7 @@ Moreover, having a lot of timeseries usually means slower query time.
   :align: center
   :alt: InfluxDB Preferences
 
+
 Enabling a "Traffic" timeseries usually has little impact on the performance. On the
 other hand, enabling the "Layer-7 Applications" (in particular for the local hosts)
 has a high impact since there are many protocols and timeseries must be processed
@@ -197,12 +269,14 @@ all the local hosts belonging to it.
   :align: center
   :alt: Per Interface Settings
 
+
 ntopng also provides timeseries on other traffic elements such as Autonomous Systems,
 Countries, VLANs and so on, which can be enabled independently.
 
 .. figure:: ../img/basic_concepts_timeseries_to_enable_2.png
   :align: center
   :alt: InfluxDB Preferences
+
 
 Network Matrix Timeseries
 -------------------------
@@ -220,13 +294,7 @@ It represent the traffic done between Local Networks (can be added to ntopng usi
   :alt: Network Matrix Preference
 
 It can be found into the Networks timeseries page; to jump to it, access the Networks tab and then click the charts icon. 
-This pspecific timeseries is reported in all time presets except the last 5 minutes.
-
-.. figure:: ../img/basic_concepts_timeseries_jump_to_network_matrix.png
-  :align: center
-  :alt: Network Matrix Preference
-
-|
+This specific timeseries is reported in all time presets except the last 5 minutes.
 
 .. figure:: ../img/basic_concepts_timeseries_network_matrix.png
   :align: center

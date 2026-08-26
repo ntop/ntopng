@@ -201,7 +201,7 @@ in order to implement a data retention policy and avoid filling the disk due to 
 There is a default data retention time configured in ntopng, this can be changed from the  Settings -> Preferences -> Reports -> 
 Reports Data Retention section.
 
-.. figure:: ../../img/report-preferences-retention.png
+.. figure:: ../../img/report-preferences-daily.png
   :align: center
   :alt: Report Data Retention Preference
 

@@ -19,7 +19,7 @@ its geographic coordinates.
 
   The Sites Page
 
-Sites are managed from the `Dashboard Sites`_ page. To access this page, click on `Dashboard` and the tab `Sites`
+Sites are managed from the `Dashboard Sites` page. To access this page, click on `Dashboard` and the tab `Sites`
 should be available
 
 .. figure:: ../../../img/dashboard_sites_entry.png
