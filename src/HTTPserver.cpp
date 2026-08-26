@@ -522,7 +522,7 @@ static bool ssl_client_x509_auth(
     char* const group, bool* const localuser) {
   bool ret = false;
   X509* cert = NULL;
-  X509_NAME* subj = NULL;
+  const X509_NAME* subj = NULL;
   char subject[256];
   char key[CONST_MAX_LEN_REDIS_KEY];
 
@@ -537,7 +537,7 @@ static bool ssl_client_x509_auth(
           TRACE_INFO, "Client X.509 certificate subject name: '%s'", subject);
 
       if (SSL_get_verify_result(conn->ssl) == X509_V_OK &&
-          X509_NAME_get_text_by_NID(subj, NID_commonName, username,
+          X509_NAME_get_text_by_NID((X509_NAME *)subj, NID_commonName, username,
                                     NTOP_USERNAME_MAXLEN) >= 0) {
         snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
