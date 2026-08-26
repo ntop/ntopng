@@ -1165,6 +1165,7 @@ local lang = {
   ["server"] = "Server",
   ["server_count"] = "Contacted Servers",
   ["server_hash_hassh"] = "HASSH Server Fingerprint",
+  ["server_info"] = "Server Information",
   ["server_name"] = "Server Name",
   ["server_names"] = "Server Names",
   ["server_signature"] = "Server Signature",

@@ -101,7 +101,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   marker = MARKER_NO_ACTION;
 #endif
 
-  host_server_name = NULL, flow_source = packet_to_flow;
+  host_server_info = host_server_name = NULL, flow_source = packet_to_flow;
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
   json_info = NULL, tlv_info = NULL, twh_over = 0;
@@ -712,6 +712,8 @@ Flow::~Flow() {
   }
 
   if (host_server_name) free(host_server_name);
+  if (host_server_info) free(host_server_info);
+
   if (iec104) delete iec104;
 #ifdef NTOPNG_PRO
   if (modbus) delete modbus;
@@ -909,9 +911,7 @@ void Flow::processDetectedProtocolData() {
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol.proto);
 
-  if ((l7proto != NDPI_PROTOCOL_DNS) &&
-      (l7proto != NDPI_PROTOCOL_DHCP) /* host_server_name in DHCP is for the
-                                         client name, not the server */
+  if ((l7proto != NDPI_PROTOCOL_DNS)
       && (ndpiFlow->host_server_name[0] != '\0') && (!host_server_name)) {
     bool skip_host_server_name = false;
 
@@ -924,6 +924,18 @@ void Flow::processDetectedProtocolData() {
         if (double_column) double_column[0] = '\0';
       } else
         skip_host_server_name = true;
+    } else if (ndpi_is_proto(ndpiDetectedProtocol.proto, NDPI_PROTOCOL_DHCP)) {
+      if(ntohs(cli_port) == 68 /* client */) {
+	Host *cli_u = getViewSharedClient();
+
+	if(cli_u)
+	  cli_u->offlineSetDHCPName((char*)ndpiFlow->host_server_name);
+
+	if(ndpiFlow->protos.dhcp.class_ident[0] != '\0')
+	  setServerInfo(strdup(ndpiFlow->protos.dhcp.class_ident));
+
+	skip_host_server_name = true;
+      }
     }
 
     if (!skip_host_server_name) {
@@ -3520,6 +3532,10 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
     if (!mask_flow) {
       if (host_server_name)
         lua_push_str_table_entry(vm, "host_server_name", host_server_name);
+
+      if (host_server_info)
+        lua_push_str_table_entry(vm, "host_server_info", host_server_info);
+
       if (suspicious_dga_domain)
         lua_push_str_table_entry(vm, "suspicious_dga_domain",
                                  suspicious_dga_domain);
@@ -6263,8 +6279,8 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
   } else if (!isMaskedFlow()) {
     if (iec104) return (iec104->getFlowInfo());
 #ifdef NTOPNG_PRO
-    if (modbus) return (modbus->getFlowInfo());
-    if (s7comm) return (s7comm->getFlowInfo());
+    if (modbus)   return (modbus->getFlowInfo());
+    if (s7comm)   return (s7comm->getFlowInfo());
     if (profinet) return (profinet->getFlowInfo());
 #endif
 
@@ -10175,6 +10191,15 @@ void Flow::setServerName(char* value /* Allocated by caller */) {
 
 /* *************************************** */
 
+void Flow::setServerInfo(char* value /* Allocated by caller */) {
+  if (value == NULL) return;
+
+  if (host_server_info) free(host_server_info);
+  host_server_info = value;
+}
+
+/* *************************************** */
+
 void Flow::getSrcAS(u_int32_t* as, char** as_name) {
   if (!srcAS) {
     Host* h = get_cli_host();
@@ -10379,7 +10404,7 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 #else
       d.in_role = d.out_role = role_other;
 #endif
-      
+
     exporterStats.emplace(key, d);
   } else {
     // Present: nothing to do
