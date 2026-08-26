@@ -5,6 +5,7 @@ local DEFAULT_DATA_RETENTION_DAYS = 30
 local DEFAULT_AGGREGATED_ASN_DATA_RETENTION_DAYS = 60
 local DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS = 60
 local DEFAULT_VS_REPORTS_DATA_RETENTION_DAYS = 30
+local DEFAULT_WAZUH_ALERTS_DATA_RETENTION_DAYS = 365
 local DEFAULT_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.data_retention_days"
 local FLOWS_AND_ALERTS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.flows_and_alerts_data_retention_days"
@@ -16,6 +17,8 @@ local VS_REPORT_RETENTION_DAYS_KEY =
     "ntopng.prefs.vs_reports_retention_days"
 local TS_AND_STATS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.ts_and_stats_data_retention_days"
+local WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY =
+    "ntopng.prefs.wazuh_alerts_data_retention_days"
 
 local data_retention_utils = {}
 
@@ -90,6 +93,19 @@ function data_retention_utils.getTSAndStatsDataRetentionDays()
 
     return tonumber(data_retention) or
                data_retention_utils.getDefaultRetention()
+end
+
+-- ########################################################
+
+function data_retention_utils.getWazuhAlertsDataRetention()
+    return DEFAULT_WAZUH_ALERTS_DATA_RETENTION_DAYS
+end
+
+-- ########################################################
+
+function data_retention_utils.getWazuhAlertsRetentionDays()
+    local data_retention = ntop.getCache(WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY)
+    return tonumber(data_retention) or data_retention_utils.getWazuhAlertsDataRetention()
 end
 
 -- ########################################################

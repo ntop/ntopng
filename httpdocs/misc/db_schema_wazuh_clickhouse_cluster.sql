@@ -79,11 +79,12 @@ CREATE TABLE IF NOT EXISTS wazuh_alerts ON CLUSTER '$CLUSTER'
     raw_json             String
 )
 ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}')
-PARTITION BY toYYYYMM(timestamp)
+PARTITION BY toYYYYMMDD(timestamp)
 ORDER BY (timestamp, agent_id, rule_id)
-TTL toDateTime(timestamp) + INTERVAL 1 YEAR
 SETTINGS index_granularity = 8192;
+
 @
+
 CREATE TABLE IF NOT EXISTS wazuh_alert_rules ON CLUSTER '$CLUSTER'
 (
     id          String        COMMENT 'Unique rule identifier',
@@ -98,7 +99,9 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_rules ON CLUSTER '$CLUSTER'
 )
 ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}', updated_at)
 ORDER BY id;
+
 @
+
 CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions ON CLUSTER '$CLUSTER'
 (
     id          String  COMMENT 'Unique exception identifier',

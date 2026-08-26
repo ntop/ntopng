@@ -2364,6 +2364,18 @@ function M.get_sections(flags)
             },
             hidden = (not ch_enabled)
         }, {
+            key = "wazuh_alerts_data_retention",
+            title = i18n("prefs.wazuh_alerts_data_retention_title"),
+            description = i18n("prefs.wazuh_alerts_data_retention_descr"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.wazuh_alerts_data_retention_days",
+            default = "365",
+            attrs = {
+                min = "1"
+            },
+            hidden = (not ch_enabled) or (not wazuh_enabled)
+        }, {
             key = "toggle_flow_aggregated_limit",
             title = i18n("prefs.toggle_flow_aggregated_limit_title"),
             description = i18n("prefs.toggle_flow_aggregated_limit_description"),
