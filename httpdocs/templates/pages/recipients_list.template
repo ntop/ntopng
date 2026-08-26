@@ -80,6 +80,8 @@
 
   const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
+    const COLUMN_INDEX_ACTIONS = 0;
+    const COLUMN_INDEX_RECIPIENT_NAME = 1;
     const COLUMN_INDEX_ENDPOINT_TYPE = 1;
     const SEVERITIES = [
         'debug',
@@ -255,11 +257,14 @@
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_recipients_endpoint.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        /* The actions column is not sortable, hence sort by recipient name by default */
+        order: [[ COLUMN_INDEX_RECIPIENT_NAME, 'asc' ]],
         columns: [
             {   
                 responsivePriority: 1,
                 targets: -1,
-                className: 'text-center',
+                orderable: false,
+                className: 'text-center text-nowrap',
                 data: null,
                 render: function (_, type, recipient) {
 
@@ -267,11 +272,12 @@
 
                     const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
 
-                    return DataTableUtils.createActionButtons([
+                    const buttons = DataTableUtils.createActionButtons([
                         //{ class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n_ext.recipient}` },
                         { class: '' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n_ext.edit}` },
                         { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal', title: `${i18n_ext.delete}` },
                     ]);
+                    return `<div class="d-inline-block align-middle">${buttons}</div>`;
                 }
             },
             {
@@ -477,6 +483,11 @@
         ],
         hasFilters: true,
         stateSave: true,
+        stateLoadParams: function (settings, data) {
+            if (data.order) {
+                data.order = data.order.filter((order) => order[0] !== COLUMN_INDEX_ACTIONS);
+            }
+        },
         initComplete: function (settings, json) {
 
             const tableAPI = settings.oInstance.api();
