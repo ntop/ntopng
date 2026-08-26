@@ -38,8 +38,9 @@ end
 -- ##############################################
 
 function alert_blacklisted_server_contact:add_extra_info(alert_json)
-   if alert_json and alert_json.custom_cat_file and not isEmptyString(alert_json.custom_cat_file) then
-        return " [ " .. i18n("flow_details.blacklist", { blacklist = alert_json.custom_cat_file or "" }) .. " ] "
+   local blacklist = alert_json and (alert_json.blacklist or alert_json.custom_cat_file)
+   if not isEmptyString(blacklist) then
+        return " [ " .. i18n("flow_details.blacklist", { blacklist = blacklist }) .. " ] "
     end
     return ""
 end
@@ -53,7 +54,9 @@ end
 -- @return A human-readable string
 function alert_blacklisted_server_contact.format(ifid, alert, alert_type_params)
     local blacklist = ""
-    if not isEmptyString(alert_type_params["custom_cat_file"]) then
+    if not isEmptyString(alert_type_params["blacklist"]) then
+        blacklist = alert_type_params["blacklist"]
+    elseif not isEmptyString(alert_type_params["custom_cat_file"]) then
         blacklist = alert_type_params["custom_cat_file"]
     end
     -- The client is blacklisted, so simply use the Client as who description    

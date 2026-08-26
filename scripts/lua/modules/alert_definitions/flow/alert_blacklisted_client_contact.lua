@@ -53,7 +53,9 @@ end
 -- @return A human-readable string
 function alert_blacklisted_client_contact.format(ifid, alert, alert_type_params)
     local blacklist = ""
-    if not isEmptyString(alert_type_params["custom_cat_file"]) then
+    if not isEmptyString(alert_type_params["blacklist"]) then
+        blacklist = alert_type_params["blacklist"]
+    elseif not isEmptyString(alert_type_params["custom_cat_file"]) then
         blacklist = alert_type_params["custom_cat_file"]
     end
     -- The client is blacklisted, so simply use the Client as who description    

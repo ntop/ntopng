@@ -2116,8 +2116,11 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
       local blacklist_name = ""
       if (info.l7cat.label == 'Malware') then
          local json_info = json.decode(info.json)
-         if (json_info and json_info.custom_cat_file) then
-            blacklist_name = " @ " ..json_info.custom_cat_file
+         if json_info then
+            local list = json_info.blacklist or json_info.custom_cat_file
+            if not isEmptyString(list) then
+               blacklist_name = " @ " .. list
+            end
          end
       end
     label = label .. " (" ..historical_flow_utils.get_historical_url(info.l7cat.label, "l7cat", info.l7cat.value, add_hyperlinks) .. blacklist_name .. ")"
