@@ -762,7 +762,7 @@ if ((page == "overview") or (page == nil)) then
             i18n("show_alerts.dropped_alerts") .. " <i class='fas fa-sm fa-question-circle ' title='" ..
             i18n("if_stats_overview.dropped_alerts_info") .. "'></i>" ..
             ternary(charts_available, " <A HREF='" .. url ..
-                "&page=historical&ts_schema=iface:dropped_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
+                "&page=historical&ts_schema=iface:dropped_alerts_v2'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
             "</th><td colspan=2><span id=dropped_alerts>" .. formatValue(ifstats.num_dropped_alerts) ..
             "</span> <span id=dropped_alerts_trend></span></td>\n</td>")
     end

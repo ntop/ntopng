@@ -315,13 +315,15 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 
     -- Alert stats
     if areAlertsEnabled() then
+        local alert_utils = require "alert_utils"
+        local tot_dropped_alerts = alert_utils.computeDroppedAlerts(ifstats)
         ts_utils.append("iface:engaged_alerts", {
             ifid = ifstats.id,
             engaged_alerts = ifstats.num_alerts_engaged
         }, when)
-        ts_utils.append("iface:dropped_alerts", {
+        ts_utils.append("iface:dropped_alerts_v2", {
             ifid = ifstats.id,
-            dropped_alerts = ifstats.num_dropped_alerts
+            dropped_alerts = tot_dropped_alerts
         }, when)
     end
 

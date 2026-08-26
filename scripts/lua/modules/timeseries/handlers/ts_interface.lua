@@ -183,7 +183,7 @@ local timeseries_list = {{
 	 }
       }
 						    }, {
-      schema = "iface:dropped_alerts",
+      schema = "iface:dropped_alerts_v2",
       id = timeseries_id,
       label = i18n("graphs.dropped_alerts"),
       description = i18n("graphs.metric_descr.iface_dropped_alerts"),

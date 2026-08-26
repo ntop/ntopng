@@ -563,9 +563,10 @@ schema:addMetric("engaged_alerts")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:dropped_alerts", {
+schema = ts_utils.newSchema("iface:dropped_alerts_v2", {
    step = 60,
-   is_critical_ts = true
+   is_critical_ts = true,
+   metrics_type = ts_utils.metrics.gauge,
 })
 schema:addTag("ifid")
 schema:addMetric("dropped_alerts")

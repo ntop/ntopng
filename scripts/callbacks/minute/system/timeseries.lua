@@ -34,8 +34,10 @@ end
 
 if create_rrd then
    if areAlertsEnabled() then
+      local alert_utils = require "alert_utils"
+      local tot_dropped_alerts = alert_utils.computeDroppedAlerts(ifstats)
       ts_utils.append("iface:engaged_alerts", {ifid=getSystemInterfaceId(), engaged_alerts=ifstats.num_alerts_engaged}, when)
-      ts_utils.append("iface:dropped_alerts", {ifid=getSystemInterfaceId(), dropped_alerts=ifstats.num_dropped_alerts}, when)
+      ts_utils.append("iface:dropped_alerts_v2", {ifid=getSystemInterfaceId(), dropped_alerts=tot_dropped_alerts}, when)
    end
 end
 
