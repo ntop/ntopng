@@ -42,7 +42,7 @@ local script = {
   },
 
   gui = {
-    i18n_title = "flow_checks.low_goodput_title",
+    i18n_title = "alerts_dashboard.flow_low_goodput",
     i18n_description = "flow_checks.low_goodput_description",
   }
 }
