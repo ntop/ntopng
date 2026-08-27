@@ -1,10 +1,10 @@
 .. _UsingNtopngWithNFW:
 
-Using ntopng with nFW
+Using ntopng with nEdgeLite
 ############################
 
 ntopng can be used to enforce traffic policies when used in combination with
-`nFW <https://www.ntop.org/guides/nFW>`_.
+`nEdgeLite <https://www.ntop.org/guides/nedgelite>`_.
 
 .. note::
 
@@ -17,11 +17,11 @@ configure the ntopng ZMQ endpoint for IPS events. Example:
 
 .. code:: bash
 
-   nfw -q 0 -z tcp://ntopng-host:5556 -p tcp://ntopng-host:5557
+   nedgelite -q 0 -z tcp://ntopng-host:5556 -p tcp://ntopng-host:5557
    ntopng -i tcp://127.0.0.1:1234 --zmq-publish-events tcp://*:5557
 
-Please refer to the `nFW documentation <https://www.ntop.org/guides/nFW/ntopng_integration.html>`_ for more 
-details about the nFW configuration and ntopng integration.
+Please refer to the `nEdgeLite documentation <https://www.ntop.org/guides/nEdgeLite/ntopng_integration.html>`_ for more 
+details about the nEdgeLite configuration and ntopng integration.
 
 A different traffic policy can be configured for each pool of hosts (see :ref:`HostPools`) by selecting the pool to edit, in the dropdown icon ('Actions column'), click 'Manage Pool'
 

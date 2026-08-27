@@ -9,7 +9,7 @@ section.
 
     nprobe
     nprobe_collector_mode
-    nfw
+    nedgelite
     nprobeagent
     cento
     n2disk

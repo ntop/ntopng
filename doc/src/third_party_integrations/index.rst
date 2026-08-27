@@ -14,4 +14,5 @@ This section includes instructions for integrating ntopng with third-party tools
     kibana
     grafana
     checkmk
+    wazuh
 
