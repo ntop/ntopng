@@ -42,6 +42,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    nDPI <https://www.ntop.org/guides/nDPI/>
    PF_RING <https://www.ntop.org/guides/pf_ring/>
    nEdge <https://www.ntop.org/guides/nedge/>
+   nEdge Lite <https://www.ntop.org/guides/nedgelite/>
    nScrub <https://www.ntop.org/guides/nscrub/>
    nBox <https://www.ntop.org/guides/nbox/>
    nTap <https://www.ntop.org/guides/ntap/>
