@@ -470,7 +470,7 @@ elif test "${with_nedge+set}" = "set"; then
   SERVICE_PRE="ExecStartPre=sleep 5"
   SERVICE_ALIAS="nedge.service"
 else
-  SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE} pf_ring.service cluster.service mysql.service"
+  SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE} pf_ring.service cluster.service"
   SERVICE_WANTS="${SERVICE_WANTS} pf_ring.service cluster.service"
 fi
 

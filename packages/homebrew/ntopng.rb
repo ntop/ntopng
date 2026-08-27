@@ -38,7 +38,6 @@ class Ntopng < Formula
   depends_on "json-c"
   depends_on "libmaxminddb"
   depends_on "lua"
-  depends_on "mysql-client"
   depends_on "redis"
   depends_on "rrdtool"
 
