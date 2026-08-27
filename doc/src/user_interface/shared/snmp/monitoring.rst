@@ -44,22 +44,19 @@ Interface Roles
 
 It is possible to assign a role to a network interface that spcifies the intent for which such interface is used. Roles include:
 
+- Customer
+- IX
+- Internal LAN
+- Internet Connectivity
+- Other
 - Peering
 - Transit
-- Internal LAN
 
 You can set the individual interface role as shown in the figure below
 
 .. figure:: ../../../img/snmp_port_role.png
   :align: center
   :alt: SNMP Interface Role
-
-or batch rename the interfaces specifying a substring that matches the interface name or alias by clicking on the cog icon under SNMP / Intefaces,
-
-
-.. figure:: ../../../img/snmp_batch_rename.png
-  :align: center
-  :alt: SNMP Batch Interface Role Set
 
 	
 

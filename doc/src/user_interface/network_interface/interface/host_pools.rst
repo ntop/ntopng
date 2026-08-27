@@ -28,12 +28,6 @@ Each row of the table shows, for each pool, the following information:
 Pools can be created or managed from the *System* interface, 
 *Pools* menu. It is possible to add new pools using the “plus” button in the same page.
 
-.. figure:: ../../../img/web_gui_interfaces_edit_pools.png
-  :align: center
-  :alt: Edit Pools
-
-  The Pools Page
-
 Once an Host Pool is created, it is possible to add members to it. Host Pool members can be added 
 from the *Pools* > *Host Pool Members* page, using the “plus” button.
 

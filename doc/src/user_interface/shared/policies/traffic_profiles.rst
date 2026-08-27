@@ -17,8 +17,9 @@ Profiles can be set and configured via the dropdown |cog_icon| menu in the top t
 
   The Edit Traffic Profiles Page
 
-In the screenshot above, ntopng has been configured with a profile that logically includes any kind of
-traffic having source and/or destination hosts within the private network 192.168.2.0/24.
+
+It is possible to add a new profile by clicking the `+` icon on the right above the table.
+Also to edit an already existing Traffic Profile, simply click on the `Actions` button and there it is possible to edit the Profile.
 
 Profiles must be expressed using the Berkeley Packet Filter (BPF) syntax. Filters will be parsed and syntax
 will be checked every time the ‘Save Profile’ button is clicked. Errors are raised when the syntax is not BPF

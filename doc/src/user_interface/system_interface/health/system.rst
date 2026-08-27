@@ -164,14 +164,6 @@ Degraded Performance
 
 When ntopng detects issues with periodic activities, it shows a triangle left to the periodic activity name. Hovering the mouse on the triangle prints the description of the ongoing issue. A yellow triangle is also shown at the top of every page. Clicking on the triangle opens a page with a summary of all the periodic activities with issues.
 
-.. figure:: ../../../img/internals_periodic_activities_issues.png
-  :align: center
-  :alt: Internals: Periodic Activities with Issues
-
-  Internals: Periodic Activities with Issues
-
-The image above shows periodic activity :code:`stats_update.lua` which is taking too long to execute for interface `eno1`. This periodic activity has a `Max Duration` of 10 seconds as it can be seen from the table column. However, periodic activity `Last Duration` equals 15 seconds and thus it has exceeded `Max Duration` by 5 seconds. This is also evident by looking at the `Time Utilization` which it is all `Busy` has no green `Available` space. When this happens, the periodic activity is said to be slow and this is the actual ongoing issue for :code:`stats_update.lua`. The total number of times since startup this periodic activity has been detected to be slow is counted in column `Running Slow` and it equals 16.
-
 Degraded performance can be temporary. The triangle shown at the top of every page and triangles shown left to periodic activity names indicate currently ongoing issues and disappear if no issue is currently occurring.
 
 Periodic activities with issues also have their alerts. Alerts are engaged when the issue is ongoing, or past when the issue is no longer occurring. 

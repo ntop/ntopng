@@ -8,7 +8,6 @@ section.
     :maxdepth: 3
     :numbered:
 
-    as_mode
     bridging_and_policing
     ids_acceleration
     interfaces/index

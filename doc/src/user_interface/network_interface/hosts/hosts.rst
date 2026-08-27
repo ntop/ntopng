@@ -33,14 +33,14 @@ clicked to sort results in descending (ascending) order of the clicked header (A
 Any host can be clicked to be redirected to its page, which is discussed below.
 
 
-Active Hosts
-^^^^^^^^^^^^
+Live Hosts
+^^^^^^^^^^
 
 .. figure:: ../../../img/web_gui_hosts_all.png
   :align: center
-  :alt: Active Hosts
+  :alt: Live Hosts
 
-  The Active Hosts Page
+  The Live Hosts Page
 
 Here all currently active hosts can be found, both local and remote.
 
@@ -118,20 +118,6 @@ and another one is available for server ports.
   :alt: Host Ports View
 
   The Ports View of the Host Details Page
-
-Peers
-^^^^^
-
-Peers page presents a graphical overview of top contacted peers and top protocols used. In the following
-screenshot some hosts are struck-through intentionally for privacy reasons. A table with top application
-per peer is shown below the graphical overview. Every information is clickable to allow the user to drill
-down and find insights.
-
-.. figure:: ../../../img/web_gui_host_details_peers.png
-  :align: center
-  :alt: Host Peers View
-
-  The Peers View of the Host Details Page
 
 Applications
 ^^^^^^^^^^^^

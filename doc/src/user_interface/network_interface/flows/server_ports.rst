@@ -3,16 +3,11 @@
 Server Ports
 ------------
 
-By jumping to the Server Ports entry, available in the Interface entry, it's possible to jump to this page.
+This page is accessible from the Flows menu, Server ports entry.
 
 .. note::
   Server Ports is available only with Enterprise L license
 
-.. figure:: ../../../img/server_ports_analysis_entry.png
-  :align: center
-  :alt: Mirrore Traffic Alert
-
-|
 
 This page is used to understand which server ports are currently in use in the current Interface.
 

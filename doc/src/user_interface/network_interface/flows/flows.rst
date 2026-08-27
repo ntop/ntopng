@@ -303,3 +303,21 @@ Info Criteria
   :alt: Live Flows Analysis Info Criteria
 
 You can use this aggregation criteria to cluster all flows with the same information field (e.g. resolved host name in DNS flows). Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+
+Geo Map View
+------------
+
+An other way to visualize the flows on a Geo Map;
+
+.. note::
+    This feature is available from the Enterprise L. The :ref:`Geolocation` needs to be enabled.
+
+When clicking on an host the flows relative to that node will be highlighted with the information:
+
+- IP Address: IP Address of the host
+- Protocol: protocol used by the flows
+- Total Flows: number of flows by the host
+
+.. figure:: ../../../img/geomap_live_flows.png
+  :align: center
+  :alt: Live Flows Analysis Info Criteria

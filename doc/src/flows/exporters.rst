@@ -29,7 +29,7 @@ Management happens at nProbe level:
 Exporters in ntopng
 -------------------
 
-Flow exporters are accessed from the menu on the left sidebar:
+Flow exporters are accessed from the menu on the left sidebar, `Flow Exp.` section:
 
 .. figure:: ../img/ntopng_exporters.png
 	    :width: 50%
