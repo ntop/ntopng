@@ -1632,7 +1632,7 @@ local function print_flow_overview_page()
                      -- If available, add a cog to configure the check
                      if alert_id_to_flow_check[score_alert.alert_id] then
                         print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button" data-bs-toggle="tooltip" data-bs-title="%s"><i class="fas fa-cog"></i></a>',
-					    alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow"), i18n("flow_details.configure_check_tooltip")))
+					    alert_utils.getConfigsetURL(score_alert.alert_label, "flow"), i18n("flow_details.configure_check_tooltip")))
                      end
 
                      -- Add an anchor to the historical alert
