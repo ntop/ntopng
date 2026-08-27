@@ -55,6 +55,15 @@ package.path = base_path .. "/?.lua;" .. package.path
 local persistance = require("persistence")
 local lang_file = base_path .. "/" .. lang_code .. ".lua"
 
+-- Some localization strings call ntopng runtime helpers (e.g. ntop.getHttpPrefix())
+-- while being *defined*. Those functions do not exist outside ntopng, so stub the
+-- globals the locale files may touch at load time. The concrete return value is
+-- irrelevant: this tool only sorts/merges keys, it never renders the strings.
+local function _stub() return "" end
+ntop = setmetatable({}, { __index = function() return _stub end })
+interface = setmetatable({}, { __index = function() return _stub end })
+if not _G.i18n then i18n = _stub end
+
 local lang = require(lang_code)
 
 if merge_strings_file then

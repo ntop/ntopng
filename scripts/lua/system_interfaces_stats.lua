@@ -107,7 +107,7 @@ $("#table-system-interfaces-stats").datatable({
        field: "column_ifid",
        hidden: true,
      }, {
-       title: "]] print(i18n("name")) print[[",
+       title: "]] print(js_str(i18n("name"))) print[[",
        field: "column_name",
        sortable: true,
        css: {
@@ -115,7 +115,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("show_alerts.engaged_alerts")) print[[",
+       title: "]] print(js_str(i18n("show_alerts.engaged_alerts"))) print[[",
        field: "column_engaged_alerts",
        sortable: true,
        css: {
@@ -123,7 +123,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("host_details.active_alerted_flows")) print[[",
+       title: "]] print(js_str(i18n("host_details.active_alerted_flows"))) print[[",
        field: "column_alerted_flows",
        sortable: true,
        css: {
@@ -131,7 +131,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("system_interfaces_stats.local_hosts")) print[[",
+       title: "]] print(js_str(i18n("system_interfaces_stats.local_hosts"))) print[[",
        field: "column_local_hosts",
        sortable: true,
        css: {
@@ -139,7 +139,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("system_interfaces_stats.remote_hosts")) print[[",
+       title: "]] print(js_str(i18n("system_interfaces_stats.remote_hosts"))) print[[",
        field: "column_remote_hosts",
        sortable: true,
        css: {
@@ -147,7 +147,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("devices")) print[[",
+       title: "]] print(js_str(i18n("devices"))) print[[",
        field: "column_devices",
        sortable: true,
        css: {
@@ -155,7 +155,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("flows")) print[[",
+       title: "]] print(js_str(i18n("flows"))) print[[",
        field: "column_flows",
        sortable: true,
        css: {
@@ -163,7 +163,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("details.total_traffic")) print[[",
+       title: "]] print(js_str(i18n("details.total_traffic"))) print[[",
        field: "column_traffic",
        sortable: true,
        css: {
@@ -171,7 +171,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("db_explorer.total_packets")) print[[",
+       title: "]] print(js_str(i18n("db_explorer.total_packets"))) print[[",
        field: "column_packets",
        sortable: true,
        css: {
@@ -179,7 +179,7 @@ $("#table-system-interfaces-stats").datatable({
          width: '5%',
        }
      }, {
-       title: "]] print(i18n("if_stats_overview.dropped_packets")) print[[",
+       title: "]] print(js_str(i18n("if_stats_overview.dropped_packets"))) print[[",
        field: "column_drops",
        sortable: true,
        css: {

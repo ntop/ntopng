@@ -44,7 +44,7 @@ print [[
           delete_user_alert.error(data.rc_str);
         }
       }, error: function (data) {
-        delete_user_alert.error("]] print(i18n("users.delete_user_error")) print[[");
+        delete_user_alert.error("]] print(js_str(i18n("users.delete_user_error"))) print[[");
       }
     });
     return false;

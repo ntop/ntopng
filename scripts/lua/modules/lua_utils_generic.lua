@@ -86,6 +86,26 @@ end
 
 -- ###############################################
 
+-- ###############################################
+
+-- Escapes a string so it can be safely embedded inside a JavaScript string
+-- literal (single OR double quoted). Use when printing i18n() output into an
+-- inline <script> block, e.g.  placeholder: ']] print(js_str(i18n("k"))) print[['
+-- Localized strings routinely contain apostrophes (French "l'hôte") or quotes
+-- that would otherwise terminate the JS literal early.
+function js_str(what)
+   if what == nil then return "" end
+   what = tostring(what)
+   what = what:gsub("\\", "\\\\")
+   what = what:gsub('"', '\\"')
+   what = what:gsub("'", "\\'")
+   what = what:gsub("\r", "\\r")
+   what = what:gsub("\n", "\\n")
+   return what
+end
+
+-- ###############################################
+
 -- TODO: improve this function
 function jsonencode(what)
    what = string.gsub(what, '"', "'")

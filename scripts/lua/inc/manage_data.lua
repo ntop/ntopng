@@ -118,7 +118,7 @@ print([[
    $(document).ready(function() {
 
       $("#delete-system-interface").click(function(e) {
-         $('#interface-name-to-delete').html(']].. i18n("system") ..[[');
+         $('#interface-name-to-delete').html(']].. js_str(i18n("system")) ..[[');
       });
 
    });

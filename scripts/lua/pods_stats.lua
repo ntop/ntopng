@@ -26,7 +26,7 @@ print [[
 
 print [[
     $("#table-pods").datatable({
-      title: "]] print(i18n("containers_stats.pods_list")) print[[",
+      title: "]] print(js_str(i18n("containers_stats.pods_list"))) print[[",
       url: url_update,
       columns: [
         {
@@ -37,14 +37,14 @@ print [[
             textAlign: 'center'
           }
         }, {
-          title: "]] print(i18n("containers_stats.pod")) print[[",
+          title: "]] print(js_str(i18n("containers_stats.pod"))) print[[",
           field: "column_pod",
           sortable: true,
           css: {
             textAlign: 'left'
           }
         }, {
-          title: "]] print(i18n("containers_stats.containers")) print[[",
+          title: "]] print(js_str(i18n("containers_stats.containers"))) print[[",
           field: "column_num_containers",
           sortable: false,
           css: {

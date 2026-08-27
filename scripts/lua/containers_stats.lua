@@ -44,7 +44,7 @@ print [[
             textAlign: 'center'
           }
         }, {
-          title: "]] print(i18n("containers_stats.container")) print[[",
+          title: "]] print(js_str(i18n("containers_stats.container"))) print[[",
           field: "column_container",
           sortable: true,
           css: {

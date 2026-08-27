@@ -253,7 +253,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("application")) print[[",
+			     title: "]] print(js_str(i18n("application"))) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
 			     css: {
@@ -261,7 +261,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("protocol")) print[[",
+			     title: "]] print(js_str(i18n("protocol"))) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
 			     css: {
@@ -272,7 +272,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    if show_vlan then
 
       if ifstats.vlan then
-	 print('{ title: "'..i18n("vlan")..'",\n')
+	 print('{ title: "'..js_str(i18n("vlan"))..'",\n')
       end
 
 
@@ -288,17 +288,17 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    end
    print [[
 			     {
-			     title: "]] print(i18n("client")) print[[",
+			     title: "]] print(js_str(i18n("client"))) print[[",
 				 field: "column_client",
 				 sortable: true,
 				 },
 			     {
-			     title: "]] print(i18n("server")) print[[",
+			     title: "]] print(js_str(i18n("server"))) print[[",
 				 field: "column_server",
 				 sortable: true,
 				 },
 			     {
-			     title: "]] print(i18n("duration")) print[[",
+			     title: "]] print(js_str(i18n("duration"))) print[[",
 				 field: "column_duration",
 				 sortable: true,
 			     css: {
@@ -306,7 +306,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 			       }
 			       },
 			     {
-			     title: "]] print(i18n("breakdown")) print[[",
+			     title: "]] print(js_str(i18n("breakdown"))) print[[",
 				 field: "column_breakdown",
 				 sortable: true,
 			     css: {
@@ -314,7 +314,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 			       }
 			       },
 			     {
-			     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+			     title: "]] print(js_str(i18n("flows_page.actual_throughput"))) print[[",
 				 field: "column_thpt",
 				 sortable: true,
 			     css: {
@@ -322,7 +322,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 			     }
 				 },
 			     {
-			     title: "]] print(i18n("flows_page.total_bytes")) print[[",
+			     title: "]] print(js_str(i18n("flows_page.total_bytes"))) print[[",
 				 field: "column_bytes",
 				 sortable: true,
 			     css: {
@@ -331,7 +331,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 
 				 }
 			     ,{
-			     title: "]] print(i18n("info")) print[[",
+			     title: "]] print(js_str(i18n("info"))) print[[",
 				 field: "column_info",
 				 sortable: true,
 			     css: {

@@ -39,7 +39,7 @@ print [[
       },
       columns: [
         {
-          title: "]] print(i18n("login.username")) print[[",
+          title: "]] print(js_str(i18n("login.username"))) print[[",
           field: "column_username",
           sortable: true,
           css: {
@@ -47,7 +47,7 @@ print [[
           }
         },
         {
-          title: "]] print(i18n("users.full_name")) print[[",
+          title: "]] print(js_str(i18n("users.full_name"))) print[[",
           field: "column_full_name",
           sortable: true,
           css: {
@@ -56,7 +56,7 @@ print [[
   
         },
         {
-          title: "]] print(i18n("manage_users.group")) print[[",
+          title: "]] print(js_str(i18n("manage_users.group"))) print[[",
           field: "column_group",
           sortable: true,
           css: {
@@ -64,7 +64,7 @@ print [[
           }
         },
         {
-          title: "]] print(i18n("users.edit")) print[[",
+          title: "]] print(js_str(i18n("users.edit"))) print[[",
           field: "column_edit",
           css: {
             textAlign: 'center'

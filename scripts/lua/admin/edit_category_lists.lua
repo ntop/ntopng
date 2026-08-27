@@ -219,18 +219,18 @@ end
 print[[],
     columns: [
       {
-        title: "]] print(i18n("name")) print[[",
+        title: "]] print(js_str(i18n("name"))) print[[",
         field: "column_label",
         sortable: true,
       }, {
-        title: "]] print(i18n("status")) print[[",
+        title: "]] print(js_str(i18n("status"))) print[[",
         field: "column_status",
         sortable: true,
         css: {
             textAlign: 'center',
         }
       }, {
-        title: "]] print(i18n("category")) print[[",
+        title: "]] print(js_str(i18n("category"))) print[[",
         field: "column_category_name",
         sortable: true,
       }, {
@@ -239,39 +239,39 @@ print[[],
         sortable: false,
         hidden: true,
       }, {
-        title: "]] print(i18n("category_lists.update_frequency")) print[[",
+        title: "]] print(js_str(i18n("category_lists.update_frequency"))) print[[",
         field: "column_update_interval_label",
         sortable: true,
       }, {
-        title: "]] print(i18n("category_lists.last_update")) print[[",
+        title: "]] print(js_str(i18n("category_lists.last_update"))) print[[",
         field: "column_last_update",
         sortable: true,
         css: {
           textAlign: 'center',
         }
       }, {
-        title: "]] print(i18n("graphs.metrics_prefixes.num_hosts")) print[[",
+        title: "]] print(js_str(i18n("graphs.metrics_prefixes.num_hosts"))) print[[",
         field: "column_num_hosts",
         sortable: true,
         css: {
             textAlign: 'center',
         }
       }, {
-        title: "]] print(i18n("graphs.metrics_prefixes.num_hits")) print[[",
+        title: "]] print(js_str(i18n("graphs.metrics_prefixes.num_hits"))) print[[",
         field: "column_num_hits",
         sortable: true,
         css: {
             textAlign: 'center',
         }
       }, {
-        title: "]] print(i18n("graphs.metrics_prefixes.chart")) print[[",
+        title: "]] print(js_str(i18n("graphs.metrics_prefixes.chart"))) print[[",
         field: "column_chart",
         sortable: false,
         css: {
             textAlign: 'center',
         }
       }, {
-        title: "]] print(i18n("actions")) print[[",
+        title: "]] print(js_str(i18n("actions"))) print[[",
         field: "column_actions",
         sortable: false,
           css: {

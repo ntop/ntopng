@@ -56,9 +56,9 @@ print [[
            </label>
          </div>
 
-         <input type="text" id="hostIPSearch" name="host" placeholder="]] print(i18n("export_data.ip_or_mac_address")) print[[" class="form-control" disabled/>
+         <input type="text" id="hostIPSearch" name="host" placeholder="]] print(js_str(i18n("export_data.ip_or_mac_address"))) print[[" class="form-control" disabled/>
 
-         <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="hostVlan" name="vlan" class="form-control" value="" disabled/>
+         <input type="number" min="1" max="65535" placeholder="]] print(js_str(i18n("vlan"))) print[[" style="display:inline;" id="hostVlan" name="vlan" class="form-control" value="" disabled/>
 
        </div>
      </div>
@@ -75,7 +75,7 @@ print [[
 
      <div class='col-md-2'>
        <div class="btn-group float-right">
-         <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary float-right">
+         <input type="submit" value="]] print(js_str(i18n("export_data.export_json_data"))) print[[" class="btn btn-secondary float-right">
        </div>
      </div>
    </div>

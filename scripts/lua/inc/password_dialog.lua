@@ -215,7 +215,7 @@ print[[
         width: '100%',
         theme: 'bootstrap-5',
         dropdownParent: $("#edit_allowed_host_pools_select").parent(),
-        placeholder: ']] print(i18n("manage_users.allowed_host_pools")) print[[',
+        placeholder: ']] print(js_str(i18n("manage_users.allowed_host_pools"))) print[[',
         allowClear: true,
       });
     });
@@ -430,7 +430,7 @@ print [[
   var frmpassreset = $('#form_password_reset');
   frmpassreset.submit(function () {
     if(!isValidPassword($("#new_password_input").val())) {
-      password_alert.error("]] print(i18n("invalid_password")) print[["); return(false);
+      password_alert.error("]] print(js_str(i18n("invalid_password"))) print[["); return(false);
     }
     if(isDefaultPassword($("#new_password_input").val())) {
       password_alert.error("Password is weak. Please choose a stronger password."); return(false);
@@ -574,7 +574,7 @@ function reset_pwd_dialog(user) {
 
         if (data.api_token === "") {
           $(`#btn-copy-token`).hide();
-          $(`#input-token`).val(']] print(i18n("manage_users.token_not_generated")) print[[');
+          $(`#input-token`).val(']] print(js_str(i18n("manage_users.token_not_generated"))) print[[');
         }
         else {
           $(`#btn-copy-token`).show();
@@ -658,16 +658,16 @@ function syncAuthTabStates() {
 
   var webauthn_available = window.isSecureContext && !!window.PublicKeyCredential;
   if (!webauthn_available) {
-    disableTab($passkeysTab, ']] print(i18n("mfa.passkey_disabled_http")) print[[' );
+    disableTab($passkeysTab, ']] print(js_str(i18n("mfa.passkey_disabled_http"))) print[[' );
     enableTab($mfaTab);
     return;
   }
 
   if (_mfa_enabled) {
-    disableTab($passkeysTab, ']] print(i18n("mfa.passkey_disabled")) print[[' );
+    disableTab($passkeysTab, ']] print(js_str(i18n("mfa.passkey_disabled"))) print[[' );
     enableTab($mfaTab);
   } else if (_has_passkeys) {
-    disableTab($mfaTab, ']] print(i18n("mfa.passkey_enabled")) print[[' );
+    disableTab($mfaTab, ']] print(js_str(i18n("mfa.passkey_enabled"))) print[[' );
     enableTab($passkeysTab);
   } else {
     enableTab($mfaTab); enableTab($passkeysTab);
@@ -682,13 +682,13 @@ function updateMfaStatus(username, enabled) {
   mfa_alert.clear();
   syncAuthTabStates();
   if (enabled) {
-    $('#mfa-status-badge').removeClass('bg-secondary').addClass('bg-success').text(']] print(i18n("mfa.status_enabled") or "Enabled") print[[');
-    $('#mfa-status-text').text(']] print(i18n("mfa.status_enabled_desc") or "Two-factor authentication is active for this account.") print[[');
+    $('#mfa-status-badge').removeClass('bg-secondary').addClass('bg-success').text(']] print(js_str(i18n("mfa.status_enabled") or "Enabled")) print[[');
+    $('#mfa-status-text').text(']] print(js_str(i18n("mfa.status_enabled_desc") or "Two-factor authentication is active for this account.")) print[[');
     $('#btn-mfa-setup').hide();
     $('#btn-mfa-disable').show();
   } else {
-    $('#mfa-status-badge').removeClass('bg-success').addClass('bg-secondary').text(']] print(i18n("mfa.status_disabled") or "Disabled") print[[');
-    $('#mfa-status-text').text(']] print(i18n("mfa.status_disabled_desc") or "Two-factor authentication is not enabled.") print[[');
+    $('#mfa-status-badge').removeClass('bg-success').addClass('bg-secondary').text(']] print(js_str(i18n("mfa.status_disabled") or "Disabled")) print[[');
+    $('#mfa-status-text').text(']] print(js_str(i18n("mfa.status_disabled_desc") or "Two-factor authentication is not enabled.")) print[[');
     $('#btn-mfa-setup').show();
     $('#btn-mfa-disable').hide();
   }
@@ -726,7 +726,7 @@ $(document).ready(function() {
 
   $('#btn-mfa-enable').click(async function() {
     const code = $('#mfa-confirm-code').val().trim();
-    if (!/^[0-9]{6}$/.test(code)) { mfa_alert.error(']] print(i18n("mfa.enter_6_digits") or "Please enter a 6-digit code.") print[['); return; }
+    if (!/^[0-9]{6}$/.test(code)) { mfa_alert.error(']] print(js_str(i18n("mfa.enter_6_digits") or "Please enter a 6-digit code.")) print[['); return; }
 
     const resp = await fetch(`${http_prefix}/lua/admin/change_user_mfa.lua`, {
       method: 'POST',
@@ -735,7 +735,7 @@ $(document).ready(function() {
     });
     const data = await resp.json();
     if (data.result !== 0) { mfa_alert.error(data.message); return; }
-    mfa_alert.success(']] print(i18n("mfa.enabled_success") or "MFA has been enabled successfully.") print[[');
+    mfa_alert.success(']] print(js_str(i18n("mfa.enabled_success") or "MFA has been enabled successfully.")) print[[');
     updateMfaStatus(_mfa_current_user, true);
   });
 
@@ -756,7 +756,7 @@ $(document).ready(function() {
     });
     const data = await resp.json();
     if (data.result !== 0) { mfa_alert.error(data.message); return; }
-    mfa_alert.success(']] print(i18n("mfa.disabled_success") or "MFA has been disabled.") print[[');
+    mfa_alert.success(']] print(js_str(i18n("mfa.disabled_success") or "MFA has been disabled.")) print[[');
     updateMfaStatus(_mfa_current_user, false);
   });
 
@@ -825,7 +825,7 @@ $('#password_reset_submit').click(function() {
               headers: {'Content-Type': 'application/x-www-form-urlencoded'},
               body: 'action=delete&username=' + encodeURIComponent(_webauthn_user) + '&cred_id=' + encodeURIComponent(cid) + '&csrf=]] print(ntop.getRandomCSRFValue()) print[['
             }).then(function(r) { return r.json(); }).then(function(d) {
-              if (d.result === 0) { wa_alert.success(']] print(i18n("webauthn.removed") or "Passkey removed.") print[['); window.updateWebAuthnStatus(_webauthn_user); }
+              if (d.result === 0) { wa_alert.success(']] print(js_str(i18n("webauthn.removed") or "Passkey removed.")) print[['); window.updateWebAuthnStatus(_webauthn_user); }
               else wa_alert.error(d.message);
             });
           });
@@ -837,7 +837,7 @@ $('#password_reset_submit').click(function() {
     var addBtn = document.getElementById('btn-webauthn-add');
     if (!addBtn) return;
     addBtn.addEventListener('click', async function() {
-      if (!window.isSecureContext || !window.PublicKeyCredential) { wa_alert.error(']] print(i18n("webauthn.not_supported") or "WebAuthn requires a secure context (HTTPS or localhost). Please access ntopng via HTTPS.") print[['); return; }
+      if (!window.isSecureContext || !window.PublicKeyCredential) { wa_alert.error(']] print(js_str(i18n("webauthn.not_supported") or "WebAuthn requires a secure context (HTTPS or localhost). Please access ntopng via HTTPS.")) print[['); return; }
       wa_alert.clear();
       var _username = _webauthn_user || document.getElementById('password_dialog_username').value || loggedUser;
       if (!_username) { wa_alert.error('Missing username'); return; }
@@ -884,7 +884,7 @@ $('#password_reset_submit').click(function() {
         });
         var completeData = await completeResp.json();
         if (completeData.result === 0) {
-          wa_alert.success(']] print(i18n("webauthn.registered") or "Passkey registered successfully!") print[[');
+          wa_alert.success(']] print(js_str(i18n("webauthn.registered") or "Passkey registered successfully!")) print[[');
           window.updateWebAuthnStatus(_username);
         } else {
           wa_alert.error('Registration failed: ' + completeData.message);
