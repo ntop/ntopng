@@ -308,16 +308,6 @@ local defined_toats = {
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
     },
-    {
-        id = 30,
-        dismissable = true,
-        has_priority = false,
-        predicate = predicates.zmq_encryption_public_key,
-        pages = EMPTY_PAGES,
-        subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES,
-        excluded_subpages = EMPTY_PAGES
-    },
 }
 
 return defined_toats

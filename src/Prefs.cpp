@@ -3436,29 +3436,6 @@ void Prefs::validate() {
   u_int32_t limit = MAX_NUM_ACTIVE_FLOWS * 2;
   max_num_hosts = max_val(min_val(max_num_hosts, limit), 1024);
   max_num_flows = max_val(min_val(max_num_flows, limit), 1024);
-
-  if (!enable_zmq_encryption) {
-    char val[8];
-
-    /* On fresh installations (flag on redis), force ZMQ encryption */
-    if (ntop->getRedis()->get((char*)PREF_FORCE_ZMQ_ENCRYPTION, val, sizeof(val)) == 0 && val[0] == '1') {
-      bool has_zmq_interface = false;
-
-      for (int i = 0; i < num_interfaces; i++) {
-        if (strstr(ifNames[i].name, "zmq://") ||
-            strstr(ifNames[i].name, "tcp://") ||
-            strstr(ifNames[i].name, "ipc://")) {
-          has_zmq_interface = true;
-          break;
-        }
-      }
-
-      if (has_zmq_interface) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Forcing ZMQ encryption on configured ZMQ interfaces");
-        enable_zmq_encryption = true;
-      }
-    }
-  }
 }
 
 /* *************************************** */

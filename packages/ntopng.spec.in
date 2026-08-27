@@ -238,10 +238,6 @@ fi
 case "$1" in
   1)
     # install
-    # Force ZMQ encryption on fresh installations (avoid breaking old configurations)
-    if hash redis-cli 2>/dev/null; then
-      redis-cli set "ntopng.prefs.zmq.force_encryption" "1" >/dev/null 2>&1 || true
-    fi
     echo ''
     echo 'NOTE'
     echo ''
