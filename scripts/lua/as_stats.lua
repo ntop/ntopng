@@ -88,6 +88,7 @@ local context = {
     secondsSinceStartupEpoch = ntop.getUptime(),
     csrf = ntop.getRandomCSRFValue(),
     isEnterprise = ntop.isEnterprise and ntop.isEnterprise(),
+    isEnterpriseM = ntop.isEnterpriseM and ntop.isEnterpriseM(),
     showTimeseries = as_ts_enabled,
     ASNModeEnabled = is_asn_mode_enabled,
     isClickhouseEnabled = hasClickHouseSupport(),
