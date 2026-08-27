@@ -359,7 +359,7 @@ var host_details_interval = window.setInterval(function() {
     url: ']] print (http_prefix) print [[/lua/mac_stats.lua',
     data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(mac_info)) print [[ },
     datatype: "json",
-    /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
+    /* error: function(content) { alert("]] print(js_str(i18n("mac_details.json_error_inactive", {product=info["product"]}))) print[["); }, */
     success: function(content) {
       var host = jQuery.parseJSON(content);
       $('#first_seen').html(NtopUtils.epoch2Seen(host["seen.first"]));

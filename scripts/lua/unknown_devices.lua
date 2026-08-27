@@ -136,14 +136,14 @@ print [[
          field: "key",
          hidden: true,
       }, {
-         title: "]] print(i18n("mac_address")) print[[",
+         title: "]] print(js_str(i18n("mac_address"))) print[[",
          field: "column_mac",
          sortable: true,
          css: {
             textAlign: 'left'
          }
       }, {
-         title: "]] print(i18n("mac_stats.manufacturer")) print[[",
+         title: "]] print(js_str(i18n("mac_stats.manufacturer"))) print[[",
          field: "column_manufacturer",
          hidden: true,
          sortable: false,
@@ -151,28 +151,28 @@ print [[
            textAlign: 'left'
          }
       }, {
-         title: "]] print(i18n("unknown_devices.device_name")) print[[",
+         title: "]] print(js_str(i18n("unknown_devices.device_name"))) print[[",
          field: "column_name",
          sortable: true,
          css: {
            textAlign: 'left'
          }
       }, {
-         title: "]] print(i18n("unknown_devices.first_seen")) print[[",
+         title: "]] print(js_str(i18n("unknown_devices.first_seen"))) print[[",
          field: "column_first_seen",
          sortable: true,
          css: {
            textAlign: 'left'
          }
       }, {
-         title: "]] print(i18n("unknown_devices.last_seen")) print[[",
+         title: "]] print(js_str(i18n("unknown_devices.last_seen"))) print[[",
          field: "column_last_seen",
          sortable: true,
          css: {
            textAlign: 'left'
          }
       }, {
-         title: "]] print(i18n("actions")) print[[",
+         title: "]] print(js_str(i18n("actions"))) print[[",
 ]]
 
 if no_pools then

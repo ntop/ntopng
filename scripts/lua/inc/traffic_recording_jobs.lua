@@ -168,18 +168,18 @@ print[[
               links = links + "</ul>";
 
               datatableAddActionButtonCallback.bind(row)(actions_td_idx,
-                "downloadJobFiles('" + links + "')", "]] print(i18n("download")) print[[");
+                "downloadJobFiles('" + links + "')", "]] print(js_str(i18n("download"))) print[[");
             } else if (num_job_files == 1) {
               datatableAddLinkButtonCallback.bind(row)(actions_td_idx,
-                "]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/pcap/extraction/data.lua?job_id=" + job_id, "]] print(i18n("download")) print[[");
+                "]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/pcap/extraction/data.lua?job_id=" + job_id, "]] print(js_str(i18n("download"))) print[[");
             }
 
             if(job_status === "processing") {
               datatableAddDeleteButtonCallback.bind(row)(actions_td_idx,
-                "$('#job_to_stop').html('"+ job_id +"'); selected_job_id = "+ job_id +"; $('#PcapStopJobDialog').modal('show')", "]] print(i18n("stop")) print[[");
+                "$('#job_to_stop').html('"+ job_id +"'); selected_job_id = "+ job_id +"; $('#PcapStopJobDialog').modal('show')", "]] print(js_str(i18n("stop"))) print[[");
             } else {
               datatableAddDeleteButtonCallback.bind(row)(actions_td_idx,
-                "$('#job_to_delete').html('"+ job_id +"'); selected_job_id = "+ job_id +"; $('#PcapDeleteJobDialog').modal('show')", "]] print(i18n("delete")) print[[");
+                "$('#job_to_delete').html('"+ job_id +"'); selected_job_id = "+ job_id +"; $('#PcapDeleteJobDialog').modal('show')", "]] print(js_str(i18n("delete"))) print[[");
             }
 
             return row;

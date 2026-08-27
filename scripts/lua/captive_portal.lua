@@ -79,9 +79,9 @@ end
 print[[" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
   <div class="form-group mb-3 has-feedback">
-      <input type="text" class="form-control" name="username" placeholder="]] print(i18n("login.username")) print[[" pattern="^[\w\.%]{1,}$" required>
-      <input type="password" autocomplete="off" class="form-control" name="password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      <input type="text" class="form-control" name="label" placeholder="]] print(i18n("login.device_label")) print[[" pattern="^[ \w\.%]{1,}$" required>
+      <input type="text" class="form-control" name="username" placeholder="]] print(js_str(i18n("login.username"))) print[[" pattern="^[\w\.%]{1,}$" required>
+      <input type="password" autocomplete="off" class="form-control" name="password" placeholder="]] print(js_str(i18n("login.password"))) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="text" class="form-control" name="label" placeholder="]] print(js_str(i18n("login.device_label"))) print[[" pattern="^[ \w\.%]{1,}$" required>
 </div>
     <button class="w-100 btn btn-lg btn-primary" type="submit">]] print(i18n("login.login")) print[[</button>
   	<div class="row">

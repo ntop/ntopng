@@ -54,21 +54,21 @@ print[[
          '<a id="addRangeBtn" onclick="addDhcpRow()" role="button" class="add-on btn" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "]] print(i18n("nedge.dhcp_first_ip")) print[[",
+            title: "]] print(js_str(i18n("nedge.dhcp_first_ip"))) print[[",
             field: "column_first_ip",
             sortable: true,
             css: {
                textAlign: 'left',
             }
          }, {
-            title: "]] print(i18n("nedge.dhcp_last_ip")) print[[",
+            title: "]] print(js_str(i18n("nedge.dhcp_last_ip"))) print[[",
             field: "column_last_ip",
             sortable: true,
             css : {
                textAlign: 'left',
             }
          }, {
-            title: "]] print(i18n("actions")) print[[",
+            title: "]] print(js_str(i18n("actions"))) print[[",
             css : {
                width: '15%',
                textAlign: 'center',
@@ -78,7 +78,7 @@ print[[
         var pools_ctr = 0;
 
         if(datatableIsEmpty("#table-dhcp")) {
-          datatableAddEmptyRow("#table-dhcp", "]] print(i18n("dhcp.no_dhcp_ranges")) print[[");
+          datatableAddEmptyRow("#table-dhcp", "]] print(js_str(i18n("dhcp.no_dhcp_ranges"))) print[[");
         } else {
           datatableForEachRow("#table-dhcp", function() {
             addInputFields($(this));
@@ -134,7 +134,7 @@ print[[
     var tr = $('<tr id="'+ newid +'"><td></td><td></td><td class="text-center"></td></tr>');
     addInputFields(tr);
 
-    datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addRangeBtn', 'onRowAddUndo')", "<i class='fas fa-undo'></i>");
+    datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(js_str(i18n("host_pools.no_pools_defined"))) print[[', '#addRangeBtn', 'onRowAddUndo')", "<i class='fas fa-undo'></i>");
     $("#table-dhcp table").append(tr);
     $("input:first", tr).focus();
 

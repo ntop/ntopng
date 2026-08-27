@@ -368,7 +368,7 @@ local function printDeviceProtocolsPage()
                   verticalAlign: 'middle',
               }
             },{
-              title: "]] print(i18n("users.client_policy")) print[[",
+              title: "]] print(js_str(i18n("users.client_policy"))) print[[",
               field: "column_client_policy",
               sortable: false,
                 css: {
@@ -378,7 +378,7 @@ local function printDeviceProtocolsPage()
               }
             },
             {
-              title: "]] print(i18n("users.server_policy")) print[[",
+              title: "]] print(js_str(i18n("users.server_policy"))) print[[",
               field: "column_server_policy",
               sortable: false,
                 css: {

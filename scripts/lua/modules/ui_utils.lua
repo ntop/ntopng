@@ -160,7 +160,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
             if(data.extraction_checks_msg) {
               $("#no-recording-data-message").html(data.extraction_checks_msg);
             } else {
-              $("#no-recording-data-message").html(']] print(i18n("traffic_recording.no_recorded_data")) print[[');
+              $("#no-recording-data-message").html(']] print(js_str(i18n("traffic_recording.no_recorded_data"))) print[[');
             }
             $("#no-recording-data").modal("show");
             return;

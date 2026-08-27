@@ -95,12 +95,12 @@ for _key, _value in pairsByValues(vals, funct) do
 	 end
 
 	 print ("{")
-	 print ("  \"column_username\"  : \"" .. key .. "\", ")
-	 print ("  \"column_full_name\" : \"" .. value["full_name"] .. "\", ")
+	 print ("  \"column_username\"  : \"" .. js_str(key) .. "\", ")
+	 print ("  \"column_full_name\" : \"" .. js_str(value["full_name"]) .. "\", ")
 
 	 if pool_names and value["host_pool_id"] then
-	    print ("  \"column_host_pool_id\" : \"" .. value["host_pool_id"] .. "\", ")
-	    print ("  \"column_host_pool_name\" : \"" .. pool_names[value["host_pool_id"]].. "\", ")
+	    print ("  \"column_host_pool_id\" : \"" .. js_str(value["host_pool_id"]) .. "\", ")
+	    print ("  \"column_host_pool_name\" : \"" .. js_str(pool_names[value["host_pool_id"]]).. "\", ")
 	 end
 
 local group_label
@@ -113,14 +113,14 @@ else
    group_label = value["group"]
 end
 
-	 print ("  \"column_group\"     : \"" .. group_label .. "\", ")
-	 print ("  \"column_edit\"      : \"<a href='#password_dialog' class='btn btn-sm btn-info' data-bs-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><i class='fas fa-edit'></i></a> ")
+	 print ("  \"column_group\"     : \"" .. js_str(group_label) .. "\", ")
+	 print ("  \"column_edit\"      : \"<a href='#password_dialog' class='btn btn-sm btn-info' data-bs-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_str(js_key).."\\\"));'><i class='fas fa-edit'></i></a> ")
    
     local can_be_deleted = (key ~= "admin" and key ~= logged_user)
 
     local id_key2 = id_key:gsub('[%p%c%s]', '')
     
-    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key2 .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key2 .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key2 .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key2 .. "').on('mouseenter', function() { delete_user_alert.warning('" .. js_str(i18n("manage_users.confirm_delete_user", {user=key})) .. "'); $('#delete_dialog_username').val('" .. js_str(key) .. "'); }); </script>")
 
 	 print ("\"}")
 	 num = num + 1

@@ -966,7 +966,7 @@ else
                      })
                      .fail(() => {
                         const $alert_message = $('<div class="alert"></div>');
-                        $alert_message.addClass('alert-danger').text("]] .. i18n('expired_csrf') .. [[");
+                        $alert_message.addClass('alert-danger').text("]] .. js_str(i18n('expired_csrf')) .. [[");
 
                      });
 

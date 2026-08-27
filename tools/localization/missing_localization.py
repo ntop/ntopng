@@ -104,7 +104,7 @@ def doCompare(base_file, cmp_file):
       print(u"%d) %s = \"%s\"" % (
         line_info[1],
         line,
-        line_info[2].encode("utf8"),
+        line_info[2],
       ))
 
 def doMissing(base_file, cmp_file):
