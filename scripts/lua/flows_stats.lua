@@ -68,7 +68,7 @@ local navbar_entries = {{
     label = i18n("aggregation")
 }}
 
-if has_geoip and ntop.isEnterpriseL() then
+if has_geoip and ntop.isEnterpriseL and ntop.isEnterpriseL() then
     navbar_entries[#navbar_entries + 1] = {
         url = base_url .. "?page=geomap",
         active = page == "geomap",
