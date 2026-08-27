@@ -60,7 +60,7 @@ INSERT INTO wazuh_alert_rules VALUES
 --    Batching avoids flooding the inbox; the digest still shows src IPs
 --    so you can spot a targeted campaign vs random noise.
 INSERT INTO wazuh_alert_rules VALUES
-('ssh-brute-force', 100, 5,
+('auth-failure', 100, 5,
  ['authentication_failed', 'authentication_failures', 'sshd'], 0,
  '[WARN] SSH / PAM authentication failures digest',
  1, 'Batches all SSH/PAM login failures – review src IPs in digest for targeting', now());
