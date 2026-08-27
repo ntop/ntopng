@@ -81,6 +81,9 @@ if not isEmptyString(flow_alerts) then
    if (table.len(tmp_string) == 2 and tmp_string[1] == "risk") then
       _GET["flow_risk"] = tmp_string[2]
       _GET["status"] = nil
+   elseif (table.len(tmp_string) == 2 and tmp_string[1] == "alert") then
+      -- risk badge click sends status=alert_<alert_type_id> but a numeric id is needed
+      _GET["status"] = tmp_string[2]
    end
 end
 
