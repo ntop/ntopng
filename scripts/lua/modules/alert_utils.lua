@@ -237,6 +237,9 @@ end
 function alert_utils.getConfigsetAlertLink(alert_json, alert_id, alert_entity)
 	if isAdministrator() then
 		local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
+      if not info then
+         return ""
+      end
 		if alert_entity and (alert_entity == alert_entities.am_host.entity_id) then
 			-- Active monitoring
 			local host = alert_json.host.host or alert_json.host
@@ -259,7 +262,7 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert_id, alert_entity)
 		else
 			local alert_id = tonumber(alert_id)
 			local alert_name = alert_consts.alertTypeLabel(alert_id, true --[[ no_html --]], alert_entity)
-			return (
+         return (
 				' <a href="'
 				.. alert_utils.getConfigsetURL(alert_name or info.script_key, info.subdir)
 				.. '">'
