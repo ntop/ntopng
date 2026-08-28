@@ -507,7 +507,7 @@
                 paramName: 'recipient_id',
                 datatableInstance: tableAPI,
                 modalHandler: $editRecipientModal,
-                cancelIf: (recipient) => recipient.endpoint_conf.builtin,
+                cancelIf: (recipient) => !recipient || !recipient.endpoint_conf || recipient.endpoint_conf.builtin,
             });
 
             // reload data each TABLE_DATA_REFRESH milliseconds
@@ -706,7 +706,7 @@
             $(`#edit-recipient-modal form [name='recipient_am_hosts']`).val(recipient.am_hosts);
             $(`#edit-recipient-modal form [name='recipient_am_hosts']`).selectpicker('refresh');
 
-            $(`#edit-recipient-modal form [name='recipient_labels']`).val(recipient.labels || []);
+            $(`#edit-recipient-modal form [name='recipient_labels']`).val(recipient.tags || []);
             $(`#edit-recipient-modal form [name='recipient_labels']`).selectpicker('refresh');
 
             const checks_array = recipient.checks || [];
@@ -817,7 +817,12 @@
     /* bind edit recipient event */
     $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
 
-        const selectedRecipient = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
+        const selectedRecipient = $recipientsTable.row($(this).closest('tr')).data();
+
+        if (!selectedRecipient) {
+            e.preventDefault();
+            return;
+        }
 
         $editRecipientModal.invokeModalInit(selectedRecipient);
     });
@@ -825,9 +830,11 @@
     /* bind remove endpoint event */
     $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
 
-        const selectedRecipient = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
-        // prevent removing builtin
-        if (selectedRecipient.endpoint_conf.builtin) {
+        const selectedRecipient = $recipientsTable.row($(this).closest('tr')).data();
+        // prevent removing builtin (or opening the modal with no row data)
+        if (!selectedRecipient
+            || !selectedRecipient.endpoint_conf
+            || selectedRecipient.endpoint_conf.builtin) {
             e.preventDefault();
             return;
         }
