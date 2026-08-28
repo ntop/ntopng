@@ -245,11 +245,6 @@ traffic appears at the top right corner of the *Historical Traffic Statistics* p
 
   The Extract Pcap Button in the Interface Historical Traffic Statistics page
 
-.. figure:: ../img/web_gui_hosts_extract_pcap.png
-  :align: center
-  :alt: Extract pcap button
-
-  The Extract Pcap Button in the Host Historical Traffic Statistics Page
 
 By clicking on the button, a dialog box will let you run an extraction to retrieve the 
 traffic matching the time interval selected on the chart. It is possible to download the
@@ -273,18 +268,7 @@ The filter format is described at `Packet Filtering <https://www.ntop.org/guides
   :alt: Extract pcap dialog filter
 
   The Extract Pcap Dialog Filter
-
-The extraction button is also available in several other places while browsing the
-historical data, an example is the list of the *Top Receivers* or *Top Senders* available 
-at the bottom of the *Interface Historical Traffic Statistics* page. In this case, a button
-on the right side of the row lets you download the traffic matching a specific host in the
-selected time interval.
-
-.. figure:: ../img/web_gui_interfaces_extract_pcap_from_list.png
-  :align: center
-  :alt: Extract pcap button
-
-  The Extract Pcap Button in the Top Receivers in the Interface Historical Traffic Statistics Page
+  
 
 When an extraction job is scheduled for background processing by selecting the *Queue as Job* option, 
 ntopng extracts the traffic and creates new *pcap* files with the traffic. This usually requires a few 
