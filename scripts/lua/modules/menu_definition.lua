@@ -314,7 +314,50 @@ return function(f)
             i18n = "custom_categories.apps_and_categories",
             icon = "fas fa-th-large",
             url = "/lua/admin/edit_categories.lua"
-        } -- nEdge entries appended by menu_definition_pro: nedge_users, divider_nedge_admin, conf_backup, conf_restore
+        },	{
+			key = "divider",
+			i18n = "menu_group.checks",
+			is_divider = true
+		},  {
+			key = "scripts_config",
+			i18n = "about.checks",
+			icon = "fas fa-check-double",
+			url_dynamic = "scripts_config_url",
+			hidden = f.infrastructure_view or f.no_checks_cap,
+			reason = {
+				f.infrastructure_view and reason(
+				    "iface",
+					"menu.reason.infrastructure_view",
+					"menu.suggestion.infrastructure_view"
+				) or nil,
+				f.no_checks_cap
+				and reason("perm", "menu.reason.no_checks_cap", "menu.suggestion.no_checks_cap")
+					or nil,
+			}
+		},  {
+			key = "alert_exclusions",
+			i18n = "edit_check.exclusion_list",
+			icon = "fas fa-filter",
+			url = "/lua/pro/admin/edit_alert_exclusions.lua?subdir=host",
+			hidden = f.infrastructure_view or f.is_system_ifid or f.no_checks_cap or not f.is_enterprise_m,
+			reason = {
+				f.infrastructure_view and reason(
+					"iface",
+					"menu.reason.infrastructure_view",
+					"menu.suggestion.infrastructure_view"
+				) or nil,
+				not f.is_system_ifid
+				and f.no_checks_cap
+				and reason("perm", "menu.reason.no_checks_cap", "menu.suggestion.no_checks_cap")
+				or nil,
+				not f.is_system_ifid
+				and not f.is_enterprise_m
+				and reason("pro", "menu.reason.no_enterprise_m", "menu.suggestion.no_enterprise_m")
+				or nil,
+			}
+		},
+        
+        -- nEdge entries appended by menu_definition_pro: nedge_users, divider_nedge_admin, conf_backup, conf_restore
         }
     },
     {
