@@ -26,6 +26,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS 1 /* Avoid Win warnings */
 
+
 // Forces the process to only load Microsoft-signed binaries
 // and removes the current directory from the search path.
 void initWindows() {
@@ -1340,3 +1341,25 @@ char* getWindowsTimezone() {
 
 	return(NULL);
 }
+
+/* ************************************* */
+
+#if 0
+
+#include <windows.h>
+#include <bcrypt.h>
+
+// Link against the bcrypt library
+#pragma comment(lib, "bcrypt.lib")
+
+int RAND_bytes(unsigned char *buf, int num) {
+    if (num <= 0 || buf == NULL) return 0;
+
+    // BCRYPT_USE_SYSTEM_PREFERRED_RNG pulls from the OS entropy source
+    NTSTATUS status = BCryptGenRandom(NULL, buf, (ULONG)num,
+                                        BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+
+    // Returns 1 on success (matching OpenSSL behavior), 0 on failure
+    return (status == 0) ? 1 : 0;
+}
+#endif

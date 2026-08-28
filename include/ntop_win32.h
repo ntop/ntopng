@@ -51,6 +51,11 @@ const char* win_inet_ntop(int af, const void* src, char* dst, socklen_t size);
 #include <direct.h>  /* mkdir */
 
 #define INET_IPV6
+#define NDPI_LIB_COMPILATION
+
+#ifndef ssize_t
+#define ssize_t SSIZE_T
+#endif
 
 /* Values for the second argument to access. These may be OR'd together.  */
 #define R_OK 4 /* Test for read permission.  */

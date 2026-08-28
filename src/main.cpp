@@ -95,14 +95,14 @@ int main(int argc, char* argv[])
   FILE* fd;
   ThreadedActivity* boot_activity;
 
-#ifdef WIN32
+ #ifdef WIN32
   initWindows();
-#else
+#endif
+
 #if defined(NTOPNG_PRO) && (!defined(FORCE_VALID_LICENSE))
   ntopinit(argc, argv);
 #endif
-#endif
-  
+
   tzset(); /* Init time and timezone */
   memset((void*)&ndpiUnknownProtocol, 0, sizeof(ndpiUnknownProtocol));
 

@@ -28,6 +28,11 @@
 #ifndef WIN32
 #include <ifaddrs.h>
 #include <sys/resource.h>
+#else
+#include <sys/stat.h>
+// Map lstat to Microsoft's 64-bit file stat function
+#define lstat(path, buffer) _stat64(path, buffer)
+#define stat _stat64
 #endif
 
 // #define TRACE_CAPABILITIES
@@ -4985,7 +4990,7 @@ char* Utils::get_real_name(const char* ifname_alias) {
 /* ****************************************************** */
 
 bool Utils::validInterfaceName(const char* name) {
-#if not defined(WIN32)
+#if !defined(WIN32)
   if (!name || !strncmp(name, "virbr", 5) /* Ignore virtual interfaces */
   )
     return false;
@@ -5340,6 +5345,10 @@ u_int64_t Utils::bitmapClear(u_int64_t bitmap, u_int8_t v) {
 /* ****************************************************** */
 
 #ifdef WIN32
+#include <intrin.h>
+
+unsigned char _BitScanForward64(unsigned long* Index, unsigned __int64 Mask);
+
 static inline int __builtin_ctzll(unsigned long long x) {
   unsigned long ret;
   _BitScanForward64(&ret, x);

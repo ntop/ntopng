@@ -2757,10 +2757,14 @@ static int compute_totp(const char* secret_b32, uint64_t counter) {
 
 /* ******************************************* */
 
+#ifdef WIN32
+extern "C" { int RAND_bytes(unsigned char* buf, int num); };
+#endif
+
 bool Ntop::generateTOTPSecret(char* secret, size_t secret_len) const {
   /* Generate 20 random bytes and Base32-encode them */
   uint8_t raw[20];
-
+  
   if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
   base32_encode(raw, sizeof(raw), secret, (int)secret_len);
   return true;
