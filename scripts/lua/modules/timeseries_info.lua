@@ -56,76 +56,78 @@ local timeseries_id = {
 -- #################################
 
 local function getTimeseriesFromModules(tags, prefix, ts_options)
-    local module_to_use = nil
+    local module_name = nil
     if prefix == timeseries_id.iface then
-        module_to_use = require "ts_interface"
+        module_name = "ts_interface"
     elseif prefix == timeseries_id.host then
-        module_to_use = require "ts_host"
+        module_name = "ts_host"
     elseif prefix == timeseries_id.mac then
-        module_to_use = require "ts_mac"
+        module_name = "ts_mac"
     elseif prefix == timeseries_id.network then
-        module_to_use = require "ts_network"
+        module_name = "ts_network"
     elseif prefix == timeseries_id.asn then
-        module_to_use = require "ts_asn"
+        module_name = "ts_asn"
     elseif prefix == timeseries_id.all_asn then
-        module_to_use = require "ts_all_asn"
+        module_name = "ts_all_asn"
     elseif prefix == timeseries_id.country then
-        module_to_use = require "ts_country"
+        module_name = "ts_country"
     elseif prefix == timeseries_id.os then
-        module_to_use = require "ts_os"
+        module_name = "ts_os"
     elseif prefix == timeseries_id.vlan then
-        module_to_use = require "ts_vlan"
+        module_name = "ts_vlan"
     elseif prefix == timeseries_id.host_pool then
-        module_to_use = require "ts_host_pool"
+        module_name = "ts_host_pool"
     elseif prefix == timeseries_id.pod then
-        module_to_use = require "ts_pod"
+        module_name = "ts_pod"
     elseif prefix == timeseries_id.container then
-        module_to_use = require "ts_container"
+        module_name = "ts_container"
     elseif prefix == timeseries_id.hash_state then
-        module_to_use = require "ts_hash_state"
+        module_name = "ts_hash_state"
     elseif prefix == timeseries_id.system then
-        module_to_use = require "ts_system"
+        module_name = "ts_system"
     elseif prefix == timeseries_id.profile then
-        module_to_use = require "ts_profile"
+        module_name = "ts_profile"
     elseif prefix == timeseries_id.redis then
-        module_to_use = require "ts_redis"
+        module_name = "ts_redis"
     elseif prefix == timeseries_id.influxdb then
-        module_to_use = require "ts_influxdb"
+        module_name = "ts_influxdb"
     elseif prefix == timeseries_id.active_monitoring then
-        module_to_use = require "ts_active_monitoring"
+        module_name = "ts_active_monitoring"
     elseif prefix == timeseries_id.snmp_interface then
-        module_to_use = require "ts_snmp_interface"
+        module_name = "ts_snmp_interface"
     elseif prefix == timeseries_id.snmp_device then
-        module_to_use = require "ts_snmp_device"
+        module_name = "ts_snmp_device"
     elseif prefix == timeseries_id.observation_point then
-        module_to_use = require "ts_observation_point"
+        module_name = "ts_observation_point"
     elseif prefix == timeseries_id.flow_dev then
-        module_to_use = require "ts_flow_device"
+        module_name = "ts_flow_device"
     elseif prefix == timeseries_id.flow_port then
-        module_to_use = require "ts_flow_device_port"
+        module_name = "ts_flow_device_port"
     elseif prefix == timeseries_id.nedge then
-        module_to_use = require "ts_nedge"
+        module_name = "ts_nedge"
     elseif prefix == timeseries_id.sflow_dev then
-        module_to_use = require "ts_sflow_device"
+        module_name = "ts_sflow_device"
     elseif prefix == timeseries_id.sflow_port then
-        module_to_use = require "ts_sflow_device_port"
+        module_name = "ts_sflow_device_port"
     elseif prefix == timeseries_id.active_scan then
-        module_to_use = require "ts_active_scan"
+        module_name = "ts_active_scan"
     elseif prefix == timeseries_id.flow then
-        module_to_use = require "ts_flow"
+        module_name = "ts_flow"
     elseif prefix == timeseries_id.flow_aggr then
-        module_to_use = require "ts_flow_aggr"
+        module_name = "ts_flow_aggr"
     elseif prefix == timeseries_id.infrastructure then
-        module_to_use = require "ts_infrastructure_monitoring"
+        module_name = "ts_infrastructure_monitoring"
     elseif prefix == timeseries_id.blacklist then
-        module_to_use = require "ts_blacklist"
+        module_name = "ts_blacklist"
     elseif prefix == timeseries_id.site then
-        module_to_use = require "ts_sites"
+        module_name = "ts_sites"
     end
-    if module_to_use then
-        return module_to_use.getTimeseries(tags, ts_options) or {}
+
+    if not module_name or not package.searchpath(module_name, package.path) then
+        return {}
     end
-    return {}
+
+    return require(module_name).getTimeseries(tags, ts_options) or {}
 end
 
 function timeseries_info.getAllTimeseries()
