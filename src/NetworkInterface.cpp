@@ -434,7 +434,7 @@ struct ndpi_keys_struct {
 };
 
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
-  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(NULL);
+  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(NULL,NDPI_LICENSE_FOR_PROFIT_DUAL_LICENSE);
   ndpi_cfg_error rc;
   const char* dirs[] = {
     "/usr/share/ndpi/public_suffix_list.dat",

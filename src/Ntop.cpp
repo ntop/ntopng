@@ -3341,7 +3341,7 @@ bool Ntop::isATrackerHost(char *host) {
 /* ******************************************* */
 
 void Ntop::initAllowedProtocolPresets() {
-  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(NULL);
+  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(NULL,NDPI_LICENSE_FOR_PROFIT_DUAL_LICENSE);
   u_int num_protocols;
 
   if(ndpi_struct) {

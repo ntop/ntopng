@@ -368,7 +368,7 @@ Prefs::~Prefs() {
 
 /* C-binding needed by Win32 service call */
 void nDPIusage() {
-  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(NULL);
+  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(NULL,NDPI_LICENSE_FOR_PROFIT_DUAL_LICENSE);
 
   printf("\nnDPI detected protocols:\n");
   ndpi_dump_protocols(ndpi_struct, stdout);
