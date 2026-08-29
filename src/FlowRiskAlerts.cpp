@@ -97,6 +97,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
   { { NDPI_BINARY_DATA_TRANSFER, flow_alert_ndpi_binary_data_transfer, alert_category_security}, "ndpi_binary_data_transfer"},
   { { NDPI_PROBING_ATTEMPT, flow_alert_ndpi_probing_attempt, alert_category_security}, "ndpi_probing_attempt"},
   { { NDPI_OBFUSCATED_TRAFFIC, flow_alert_ndpi_obfuscated_traffic, alert_category_security}, "ndpi_obfuscated_traffic"},
+  { { NDPI_SLOW_DOS, flow_alert_ndpi_slow_dos, alert_category_security}, "ndpi_slow_dos"},
+  { { NDPI_NON_PQC, flow_alert_ndpi_non_pqc, alert_category_security},  "ndpi_non_pqc"},
+  { { NDPI_AI_INFERENCE_TRAFFIC, flow_alert_ndpi_ai_inference_traffic, alert_category_other}, "ndpi_ai_inference_traffic"},  
 };
 
 /* **************************************************** */
