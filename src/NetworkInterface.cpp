@@ -25,9 +25,6 @@
 #include <uuid/uuid.h>
 #endif
 
-#define TIME_T_BITS (sizeof(time_t) * CHAR_BIT)
-#define TIME_T_MAX  ((time_t)(((uintmax_t)1 << (TIME_T_BITS - 1)) - 1))
-
 /* Lua.cpp */
 extern int ntop_lua_cli_print(lua_State* vm);
 extern int ntop_lua_check(lua_State* vm, const char* func, int pos,
@@ -1796,6 +1793,9 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria,
 
 /* **************************************************** */
 
+#define TIME_T_BITS (sizeof(time_t) * CHAR_BIT)
+#define TIME_T_MAX  ((time_t)(((uintmax_t)1 << (TIME_T_BITS - 1)) - 1))
+
 bool NetworkInterface::processPacket(
     int32_t if_index, u_int32_t bridge_iface_idx, int datalink_type,
     bool* ingressPacket, const struct bpf_timeval* when,
@@ -1833,8 +1833,30 @@ bool NetworkInterface::processPacket(
   u_int8_t tcp_window_scale = 0;
 #endif
   bool create_flow_if_missing = true;
+  static bool shown = false;
 
   *hostFlow = NULL;
+
+  /* Sanity check on the timestamp: time_t is (almost always) a signed 64-bit integer,
+     so arithmetic on it can trigger undefined behavior when the value is close
+     to the max representable value. This surfaced during fuzzing under UBSan,
+     using extremely pathological inputs.
+     Rather than adding checks throughout the codebase, we drop packets with
+     unrealistic timestamps here instead. */
+  /* TODO: should we enable this check unconditionally? */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+  if(when->tv_sec > TIME_T_MAX - 3600 * 24 /* Some random value */) {
+    /* We can't safely call incStats here because it uses the very
+       timestamp that we want to ignore... */
+    if (!shown) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Dropping packet with invalid timestamp: %lld",
+				   (long long)when->tv_sec);
+      shown = true;
+    }
+    return (pass_verdict);
+  }
+#endif
 
 #ifdef HAVE_NEDGE
   if ((iph == NULL) && (ip6 == NULL)) {
@@ -8343,12 +8365,8 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
     ntop->getPro()->purgeIdleFlows(force_idle);
 #endif
 
-    if (last_packet_time > TIME_T_MAX - FLOW_PURGE_FREQUENCY) {
-      /* Avoid signed overflow */
-      next_idle_flow_purge = 0;
-    } else {
-      next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
-    }
+    next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
+
     return (n);
   }
 }
@@ -8421,12 +8439,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = (hosts_hash ? hosts_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
-    if (last_packet_time > TIME_T_MAX - HOST_PURGE_FREQUENCY) {
-      /* Avoid signed overflow */
-      next_idle_host_purge = 0;
-    } else {
-      next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
-    }
+    next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
 
     return (n);
   }
@@ -8454,12 +8467,8 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle,
         (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0) +
         (obs_hash ? obs_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
-    if (last_packet_time > TIME_T_MAX - OTHER_PURGE_FREQUENCY) {
-      /* Avoid signed overflow */
-      next_idle_other_purge = 0;
-    } else {
-      next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
-    }
+    next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
+
     return (n);
   }
 }
