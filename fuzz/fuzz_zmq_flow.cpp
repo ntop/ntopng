@@ -29,7 +29,6 @@
 
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 NetworkInterface *iface;
-ZMQParserInterface *zmq_iface;
 
 constexpr const char *PROG_NAME = "ntopng";
 static ndpi_protocol ndpiUnknownProtocol;
@@ -37,7 +36,6 @@ static ndpi_protocol ndpiUnknownProtocol;
 bool trace_new_delete = false;
 
 static void cleanup() {
-  if (zmq_iface) delete zmq_iface;
   if (iface) delete iface;
   if (ntop) delete ntop;
 }
@@ -133,8 +131,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
   iface = new NetworkInterface("custom");
   iface->allocateStructures();
 
-  zmq_iface = new ZMQParserInterface("custom");
-
   return 0;
 }
 
@@ -149,7 +145,7 @@ static bool payload_is_json_object(const char *json) {
 }
 
 // Feed each top-level key/value into matchField(), like parseSingleJSONFlow
-static void fuzz_match_fields(const char *json) {
+static void fuzz_match_fields(ZMQParserInterface *zmq_iface, const char *json) {
   json_object *o = json_tokener_parse(json);
   if (o == NULL) return;
 
@@ -194,7 +190,9 @@ static void fuzz_match_fields(const char *json) {
 }
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
-  if (len < 2) return -1;
+  ZMQParserInterface *zmq_iface;
+
+  if (len < 2) return 0;
 
   // First byte selects the parser entry; the rest is the JSON payload
   uint8_t selector = buf[0];
@@ -204,6 +202,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
   if (json == NULL) return 0;
   memcpy(json, buf + 1, payload_len);
   json[payload_len] = '\0';
+
+  zmq_iface = new ZMQParserInterface("custom");
 
   switch (selector % 8) {
     case 0:
@@ -231,11 +231,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
       break;
     case 7:
     default:
-      fuzz_match_fields(json);
+      fuzz_match_fields(zmq_iface, json);
       break;
   }
 
   free(json);
+  if (zmq_iface) delete zmq_iface;
 
   return 0;
 }
