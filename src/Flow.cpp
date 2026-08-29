@@ -730,7 +730,7 @@ Flow::~Flow() {
 
   if (flow_payload) free(flow_payload);
 
-  if (isHTTP() || isHTTP_PROXY()) {
+  if (isHTTP() || isHTTP_PROXY() || isHTTP_CONNECT()) {
     if (protos.http.last_url) free(protos.http.last_url);
     if (protos.http.last_user_agent) free(protos.http.last_user_agent);
     if (protos.http.last_server) free(protos.http.last_server);
@@ -1168,7 +1168,7 @@ void Flow::processExtraDissectedInformation() {
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s",
        * ndpiFlow->protos.mining.currency); */
-    } else if (isHTTP() || isHTTP_PROXY()) {
+    } else if (isHTTP() || isHTTP_PROXY() || isHTTP_CONNECT()) {
       if (protos.http.last_server == NULL &&
           !Utils::isEmptyString(ndpiFlow->http.server))
         protos.http.last_server = strdup(ndpiFlow->http.server);
