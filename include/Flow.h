@@ -639,6 +639,9 @@ class Flow : public GenericHashEntry {
   inline bool isHTTP_PROXY() const {
     return (isProto(NDPI_PROTOCOL_HTTP_PROXY));
   }
+  inline bool isHTTP_CONNECT() const {
+    return (isProto(NDPI_PROTOCOL_HTTP_CONNECT));
+  }
   inline bool isIGMP() const { return (isProto(NDPI_PROTOCOL_IP_IGMP)); }
   inline bool isICMP() const {
     return (isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6));
