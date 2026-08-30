@@ -2016,6 +2016,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "VLAN Bidirectional Traffic",
     ["vpn_detection"] = "VPN Detection",
     ["warning"] = "Warning",
+    ["wazuh_check_alerts"] = "Wazuh Alerts",
     ["wazuh_info_changed"] = "Wazuh Info Changed",
     ["wazuh_info_changed_descr"] = "Trigger an alert whenever an info exported by Wazuh changes, for example a new port is added or a Network Interface is added",
     ["web_mining"] = "Web Mining",

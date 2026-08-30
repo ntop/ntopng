@@ -885,6 +885,22 @@ else
             print('</form>')
          end
 
+         
+         if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() then
+            local epoch_begin = os.time() - 3600 * 24 -- Last day
+            print([[
+               <button class='btn btn-sm btn-light' style='background-color: var(--bs-btn-hover-bg)'>
+                  <a href='#' id='btn-jump-to-wazuh-alerts'>]] .. i18n('alerts_dashboard.wazuh_check_alerts') .. [[ <i class="fas fa-shield-alt"></i></a>
+               </button>
+            <script type='text/javascript'>
+               $(document).ready(function() {
+                  $('#btn-jump-to-wazuh-alerts').click(function(e) {
+                     window.location.href = ']] .. ntop.getHttpPrefix() .. '/lua/pro/wazuh_alert_config.lua?map_search=' .. host["ip"] .. '&epoch_begin=' .. epoch_begin .. '&epoch_end=' .. os.time() .. [['
+                  })
+               })
+            </script>
+         ]])
+         end
          print("</td>\n")
       end
 
@@ -913,6 +929,7 @@ else
             page = "engaged-alerts"
          }, "<span id=num_alerts>" .. host["num_alerts"] .. "</span>") .. " <span id=alerts_trend></span></td></tr>\n")
       end
+
 
       -- Active monitoring
       if am_utils and am_utils.isMeasurementAvailable('icmp') then
