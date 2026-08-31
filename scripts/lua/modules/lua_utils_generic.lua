@@ -524,3 +524,50 @@ end
 function isInteger(str)
    return not (str == "" or str:find("%D"))  -- str:match("%D") also works
 end
+
+
+-- ###########################################
+
+function isContainer()
+   -- 1. Check for the .dockerenv file (Standard Docker)
+   local f = io.open("/.dockerenv", "r")
+   if f then
+      f:close()
+      return true
+   end
+
+   -- 2. Check /proc/1/cgroup for containerized indicators
+   f = io.open("/proc/1/cgroup", "r")
+   if f then
+      local content = f:read("*a")
+      f:close()
+      if content:find("docker") or content:find("lxc") or content:find("kubepods") or content:find("libpod") then
+	 return true
+      end
+   end
+
+   -- 3. Check /proc/1/environ for "container=" environment variable (LXC/Podman/systemd-nspawn)
+   f = io.open("/proc/1/environ", "r")
+   if f then
+      local content = f:read("*a")
+      f:close()
+      -- Environment variables in /proc are separated by null bytes (\0)
+      if content:find("container=") then
+	 return true
+      end
+   end
+
+   -- 4. Check /proc/1/sched for non-init.scope process trees
+   f = io.open("/proc/1/sched", "r")
+   if f then
+      local first_line = f:read("*l")
+      f:close()
+      -- In a container, PID 1 inside the container is usually not "systemd" or "init" on the host
+      if first_line and not first_line:find("systemd") and not first_line:find("init") then
+	 -- Fallback check: if it is a lightweight container process name (like bash, node, python)
+	 -- Note: This is an extra heuristic and might have false positives depending on the host setup
+      end
+   end
+
+   return false
+end
