@@ -3126,6 +3126,18 @@ datalink_check:
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr*)&dummy_ethernet;
     ip_offset = 0;
+  } else if (datalink_type == DLT_PPP_ETHER) {
+    if (h->caplen < 6 /* PPPoE header */) {
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+               NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
+               NULL /* srcMac */, NULL /* dstMac */);
+      goto dissect_packet_end;
+    }
+
+    ethernet = (struct ndpi_ethhdr*)&dummy_ethernet;
+    if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
+    eth_type = ETHERTYPE_PPPoE;
+    ip_offset = eth_offset;
   } else {
     incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
              NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1,
