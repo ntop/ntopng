@@ -84,6 +84,25 @@ Map shows the last six hours, but it is possible to set a different timeframe us
 
   The Home View of the Host Details Page
 
+
+Also in case Wazuh is integrated in ntopng (see `Wazuh Integration`_ for more details), a button with the possibility to jump to Wazuh alerts will appear, giving the
+possibility to instatly check the Wazuh Alerts of an host.
+
+.. figure:: ../../../img/host_details_wazuh.png
+  :align: center
+  :alt: Host Details
+
+  Wazuh Button
+
+
+.. note::
+
+   Wazuh link is enabled only for Local Hosts.
+
+
+.. _`Wazuh Integration`: ../../../third_party_integrations/wazuh.html
+
+
 Traffic
 ^^^^^^^
 

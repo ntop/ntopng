@@ -63,6 +63,35 @@ Historical flows data can be also accessed from the `Historical Charts`_ .
   :alt: Historical Flows Top L7 Contacts
 
 
+
+Details
+-------
+
+By clicking the info button on an flow (inside the action button) the details of the flow will be displayed
+
+.. figure:: ../../img/historical_flow_details.png
+  :align: center
+  :alt: Historical Flows Details
+
+  Historical Flows Details
+
+
+in case Wazuh is enabled and configured (see `Wazuh Integration`_ for more details), an icon will be added next to the hosts that
+will add the possibility to jump to the wazuh alerts filtered for the specified host in the same timeframe of the flow.  
+
+.. figure:: ../../img/historical_flow_details_wazuh.png
+  :align: center
+  :alt: Historical Flows Details
+  
+  Historical Flows Details Wazuh Integration
+
+
+.. note::
+
+   Wazuh link is enabled only for Local Hosts.
+
+
+
 Track Flows
 -----------
 
@@ -256,6 +285,7 @@ The retention of the flows dump on disk can be configured from the
 .. |flow_export_icon| image:: ../../img/flow_export_icon.png
 .. _`Flows Dump documentation` : advanced_features/flows_dump.html
 .. _`Historical Charts`: web_gui/historical.html
+.. _`Wazuh Integration`: ../../third_party_integrations/wazuh.html
 .. _`tabular view`: web_gui/historical.html#tabular-view
 
 Hourly Historical Flows
