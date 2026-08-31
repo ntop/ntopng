@@ -357,6 +357,11 @@ bool Radius::updateLoginInfo() {
   ntop->getRedis()->get((char*)PREF_RADIUS_UNPRIV_CAP_GROUP,
                         radiusUnprivCapabilitiesGroup, MAX_RADIUS_LEN);
 
+  if (!strcmp(buf, "chap"))
+    use_chap = true;
+  else
+    use_chap = false;
+
   if ((radiusAuthServer[0] == '\0') || (radiusAcctServer[0] == '\0')) {
     if (radius_debug)
       ntop->getTrace()->traceEvent(
@@ -366,11 +371,6 @@ bool Radius::updateLoginInfo() {
           radiusAuthServer, radiusAcctServer);
     return (false);
   }
-
-  if (!strcmp(buf, "chap"))
-    use_chap = true;
-  else
-    use_chap = false;
 
   if (radius_debug)
     ntop->getTrace()->traceEvent(
