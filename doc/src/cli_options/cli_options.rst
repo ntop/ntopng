@@ -104,8 +104,12 @@ ntopng supports a large number of command line parameters. To see what they are,
     [--shutdown-when-done]              | Terminate after reading the pcap (debug only)
     [--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists) 
     [--insecure]                        | Allow connections to TLS sites with invalid certificates 
-    [--zmq-encryption]                  | Enable ZMQ encryption
-    [--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) 
+    [--zmq-encryption]                  | Enable ZMQ encryption with a custom key
+                                        | (encryption is enabled by default with a
+                                        | public fallback key, see note below)
+    [--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only)
+    [--zmq-disable-encryption]          | Disable ZMQ encryption, which is enabled
+                                        | by default (accept cleartext ZMQ messages)
     [--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)
     [--disable-autologout|-q]           | Disable web logout for inactivity
     [--disable-login|-l] <mode>         | Disable user login authentication:
@@ -256,6 +260,13 @@ Some of the most important parameters are briefly discussed here.
 
       nprobe -i eth0 -n none --zmq-probe-mode --zmq "tcp://<ntopng host ip>:5556"
       ntopng -i "tcp://*:5556c"
+
+   .. note::
+      In ntopng 6.7.280831 and later, ZMQ CURVE encryption is enabled by default: ntopng no longer accepts
+      cleartext ZMQ traffic out of the box. Until custom keys are configured with
+      :code:`--zmq-encryption` / :code:`--zmq-encryption-key-priv`, ntopng and nProbe fall back to a
+      public builtin key pair, which only prevents accidental cleartext exposure. Use :code:`--zmq-disable-encryption`
+      if you want to revert to the previous behavior and accept cleartext ZMQ messages (old deployments).
 
    ntopng is also able to compute statistics based on pcap traffic files:
    

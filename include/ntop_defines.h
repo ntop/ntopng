@@ -1516,6 +1516,15 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
 #define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL \
   3 /* Keepalive probes sent every 3 seconds */
 
+/*
+  Default ZMQ keys used to encrypt/decrypt ZMQ traffic by default when the user
+  has not explicitly configured encryption with --zmq-encryption / --zmq-encryption-key-priv.
+  Note: this key pair is public and only prevents ntopng from accepting cleartext by default.
+  nProbe uses the public key below unless a different one is configured.
+*/
+#define DEFAULT_ZMQ_ENCRYPTION_PUB_KEY  "+hO@^5%GQ]^H6=fim{?$i-eu^Qcgi0l1}I:dYFN{"
+#define DEFAULT_ZMQ_ENCRYPTION_PRIV_KEY "=m8rLxEcVs:*!M6x0iWW{)i$uwN9.:[5-3:NCIDY"
+
 #define NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M 16
 #define NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_L 32
 #define NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL 128

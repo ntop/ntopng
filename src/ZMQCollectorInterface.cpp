@@ -41,6 +41,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char* _endpoint)
   zmq_decompress_buf = NULL;
   server_secret_key[0] = '\0';
   server_public_key[0] = '\0';
+  using_default_encryption_key = false;
 
   context = zmq_ctx_new();
 
@@ -69,26 +70,54 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char* _endpoint)
     if (subscriber[num_subscribers].socket == NULL)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
 
-    if (ntop->getPrefs()->is_zmq_encryption_enabled()) {
+    if (ntop->getPrefs()->is_zmq_encryption_disabled()) {
+      /*
+        Encryption explicitly disabled by the user: do not even use the default key
+        to accept cleartext messages from old probes deployed before introducing
+        encryption by default.
+      */
+      ntop->getTrace()->traceEvent(
+          TRACE_WARNING,
+          "ZMQ encryption has been explicitly disabled: cleartext ZMQ "
+          "messages will be accepted");
+    } else {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
       const char* secret_key;
 
-      if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
-        ZMQUtils::generateEncryptionKeys();
+      if (ntop->getPrefs()->is_zmq_encryption_enabled()) {
+        /* Encryption explicitly configured by the user */
+        if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
+          ZMQUtils::generateEncryptionKeys();
 
-      secret_key = findInterfaceEncryptionKeys(
-          server_public_key, server_secret_key, sizeof(server_public_key),
-          sizeof(server_secret_key));
+        secret_key = findInterfaceEncryptionKeys(
+            server_public_key, server_secret_key, sizeof(server_public_key),
+            sizeof(server_secret_key));
+      } else {
+        /*
+          Encryption not configured: use the default key so that cleartext
+          messages are not accepted (a toast will warn the user to configure a key)
+        */
+        snprintf(server_public_key, sizeof(server_public_key), "%s",
+                 DEFAULT_ZMQ_ENCRYPTION_PUB_KEY);
+        snprintf(server_secret_key, sizeof(server_secret_key), "%s",
+                 DEFAULT_ZMQ_ENCRYPTION_PRIV_KEY);
+        secret_key = server_secret_key;
+        using_default_encryption_key = true;
+      }
 
       if (secret_key != NULL) {
         if (ZMQUtils::setServerEncryptionKeys(
                 subscriber[num_subscribers].socket, secret_key) != 0)
           throw("Unable set ZMQ encryption");
+      } else {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find ZMQ encryption keys");
+        throw("Unable to find ZMQ encryption keys");
       }
 #else
       ntop->getTrace()->traceEvent(
           TRACE_ERROR,
           "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
+      throw("ZMQ >= 4.1 is required to enable mandatory ZMQ CURVE encryption");
 #endif
     }
 
@@ -735,8 +764,7 @@ bool ZMQCollectorInterface::set_packet_filter(char* filter) {
 void ZMQCollectorInterface::lua(lua_State* vm, bool fullStats) {
   ZMQParserInterface::lua(vm, fullStats);
 
-  if ((ntop->getPrefs()->is_zmq_encryption_enabled() &&
-       strlen(server_public_key) > 0)) {
+  if (strlen(server_public_key) > 0) {
     char* probe_key;
     char hex_key[83];
 
@@ -745,6 +773,7 @@ void ZMQCollectorInterface::lua(lua_State* vm, bool fullStats) {
 
     lua_newtable(vm);
     lua_push_str_table_entry(vm, "public_key", probe_key ? probe_key : "");
+    lua_push_bool_table_entry(vm, "is_default_key", using_default_encryption_key);
     lua_pushstring(vm, "encryption");
     lua_insert(vm, -2);
     lua_settable(vm, -3);

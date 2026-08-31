@@ -38,6 +38,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   u_int16_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
   char server_public_key[41], server_secret_key[41];
+  bool using_default_encryption_key;
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
   char* findInterfaceEncryptionKeys(char* public_key, char* secret_key,

@@ -613,6 +613,33 @@ function predicates.remote_probe_clock_drift(toast, container)
     end
 end
 
+local function create_zmq_default_encryption_toast(toast)
+    local title = i18n("zmq_default_encryption_title")
+    local description = i18n("zmq_default_encryption_warning")
+    local action = {
+        url = "https://www.ntop.org/?p=46312",
+        title = i18n("read_more")
+    }
+
+    return toast_ui:new(toast.id, title, description, ToastLevel.DANGER, action, toast.dismissable)
+end
+
+function predicates.zmq_default_encryption(toast, container)
+    if not IS_ADMIN then
+        return
+    end
+
+    if (IS_SYSTEM_INTERFACE) then
+        return
+    end
+
+    local ifstats = interface.getStats()
+
+    if ifstats.encryption and ifstats.encryption.is_default_key then
+        table.insert(container, create_zmq_default_encryption_toast(toast))
+    end
+end
+
 --- Create an instance for the flow dump alert toast
 --- if flow dump is not able to start/run/dump
 --- @param toast table The toast is the logic model defined in defined_toasts

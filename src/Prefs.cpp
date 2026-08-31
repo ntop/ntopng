@@ -140,6 +140,7 @@ Prefs::Prefs(Ntop* _ntop) {
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
   enable_zmq_encryption = false, zmq_encryption_priv_key = NULL;
+  disable_zmq_encryption = false;
   es_index = es_url = es_user = es_pwd = es_host = NULL;
   https_port = 0;  // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true;
@@ -600,6 +601,8 @@ void usage() {
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
 	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption "
 	 "secret key (debug only) \n"
+	 "[--zmq-disable-encryption]          | Disable ZMQ encryption which is "
+	 "enabled by default\n"
 	 "[--zmq-publish-events <URL>]        | Endpoint for publishing events "
 #endif
 	 "(e.g. IPS)\n"
@@ -1420,6 +1423,7 @@ static const struct option long_options[] = {
   {"zmq-encrypt-pwd", required_argument, NULL, 215},
   {"zmq-encryption", no_argument, NULL, 219},
   {"zmq-encryption-key-priv", required_argument, NULL, 220},
+  {"zmq-disable-encryption", no_argument, NULL, 234},
 #endif
   {"simulate-ips", required_argument, NULL, 221},
 #ifndef HAVE_NEDGE
@@ -2555,6 +2559,10 @@ int Prefs::setOption(int optkey, char* optarg) {
   case 220:
     enable_zmq_encryption = true;
     zmq_encryption_priv_key = strdup(optarg);
+    break;
+
+  case 234:
+    disable_zmq_encryption = true;
     break;
 
   case 221:
