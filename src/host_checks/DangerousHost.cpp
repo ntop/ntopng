@@ -43,15 +43,13 @@ void DangerousHost::periodicUpdate(Host* h, HostAlert* engaged_alert) {
     h->resetConsecutiveHighScore();
 
   if (h->getConsecutiveHighScore() > NUM_CONSECUTIVE_CHECKS_BEFORE_ALERTING) {
-    if (!alert) { /* Alert not already triggered */
-      /* Trigger the alert and add the host to the Default nProbe IPS host pool
-       */
+    if (!alert) { /* Alert not already triggered: trigger */
       alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, h->getScore(),
                          h->getConsecutiveHighScore(), score_threshold);
     }
 
 #ifdef NTOPNG_PRO
-    /* Get nProbe IPS host pool ID */
+    /* Get jail host pool ID (previously used by nProbe IPS, now nEdge Lite) */
     char buf[64], redis_host_key[CONST_MAX_LEN_REDIS_KEY];
     char host_buf[64], *e;
     u_int16_t host_pool_id = h->get_host_pool();

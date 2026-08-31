@@ -8735,8 +8735,8 @@ static int ntop_find_bin_similarities(lua_State* vm) {
 
 /* **************************************************************** */
 
-/* @brief Returns true if nProbe IPS is configured and active.  Lua: ntop.isNProbeIPSConfigured() → boolean */
-static int ntop_check_nprobe_ips_configured(lua_State* vm) {
+/* @brief Returns true if the ZMQ events endpoint used to publish IPS rules is configured and active.  Lua: ntop.isIPSRulesPublisherConfigured() → boolean */
+static int ntop_check_ips_rules_publisher_configured(lua_State* vm) {
   lua_pushboolean(vm,
                   (ntop->getPrefs()->getZMQPublishEventsURL() ? true : false));
 
@@ -9188,7 +9188,7 @@ static luaL_Reg _ntop_reg[] = {
     {"rmdir", ntop_remove_dir_recursively},
     {"unlink", ntop_unlink_file},
 
-    {"isNProbeIPSConfigured", ntop_check_nprobe_ips_configured},
+    {"isIPSRulesPublisherConfigured", ntop_check_ips_rules_publisher_configured},
 
 #ifndef HAVE_NEDGE
 #ifdef HAVE_ZMQ

@@ -849,7 +849,7 @@ end
 | `ntop.isPingAvailable()` | boolean | ICMP ping usable |
 | `ntop.isClickHouseEnabled()` | boolean | ClickHouse backend active |
 | `ntop.hasSpeedtestSupport()` | boolean | Speedtest compiled in |
-| `ntop.isNProbeIPSConfigured()` | boolean | nProbe IPS configured |
+| `ntop.isIPSRulesPublisherConfigured()` | boolean | IPS rules publisher configured |
 | `ntop.isFlowDedupEnabled()` | boolean | Flow deduplication active |
 | `ntop.getLicenseLimits()` | table | License capacity limits |
 
