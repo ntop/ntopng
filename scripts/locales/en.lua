@@ -1138,7 +1138,7 @@ local lang = {
       ["resend_new_token"] = "Resend New Token",
       ["send_email"] = "Send E-Mail",
       ["set_user_credentials"] = "Set User Credentials",
-      ["update_licenses_error"] = "Could not reload the licenses: check your connection to shop.ntop.org and retry",
+      ["update_licenses_error"] = "Could not reload the licenses: check your connection to the ntop.org servers and retry, or register your access token again.",
       ["update_licenses_tooltip"] = "Reload the license status from the ntop server",
       ["update_user_credentials"] = "Update User Credentials",
     },
