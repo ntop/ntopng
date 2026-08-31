@@ -310,7 +310,7 @@ local defined_toats = {
     },
     {
         id = 30,
-        dismissable = false,
+        dismissable = true,
         has_priority = true,
         predicate = predicates.zmq_default_encryption,
         pages = EMPTY_PAGES,
