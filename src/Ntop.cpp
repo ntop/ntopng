@@ -5260,8 +5260,30 @@ Ping* Ntop::getPing(char* ifname) {
 
 /* ******************************************* */
 
+/* Check if all registered interfaces are reading pcap dump
+   (used to disable features like Continuous Ping as there is no live network) */
+bool Ntop::pcapDumpInterfacesOnly() {
+  u_int8_t num = get_num_interfaces();
+
+  if (num == 0) return false;
+
+  for (u_int8_t i = 0; i < num; i++) {
+    NetworkInterface *iface = getInterface(i);
+    if (iface && !iface->isOfflineDumpInterface()) return false;
+  }
+
+  return true;
+}
+
+/* ******************************************* */
+
 void Ntop::initPing() {
   if (!can_send_icmp) return;
+
+  if (pcapDumpInterfacesOnly()) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Continuous Ping disabled while processing pcap files");
+    return;
+  }
 
   if (ntop->getPrefs()->get_active_monitoring_pref()) {
 

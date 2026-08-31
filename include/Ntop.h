@@ -555,6 +555,7 @@ class Ntop {
   inline TimelineExtract* getTimelineExtract() { return (extract); };
 
   inline Prefs* getPrefs() { return (prefs); };
+  bool pcapDumpInterfacesOnly();
   void initPing();
 #ifndef WIN32
   inline bool isPingInitialized() { return (ping_initialized); };

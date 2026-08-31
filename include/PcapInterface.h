@@ -72,6 +72,9 @@ class PcapInterface : public NetworkInterface {
                 ? CONST_INTERFACE_TYPE_PCAP_DUMP
                 : CONST_INTERFACE_TYPE_PCAP);
   };
+  virtual bool isOfflineDumpInterface() const {
+    return (read_pkts_from_pcap_dump || read_pkts_from_directory);
+  }
   inline pcap_t* get_pcap_handle(u_int8_t id) {
     return ((id < num_ifaces) ? pcap_handle[id] : NULL);
   };

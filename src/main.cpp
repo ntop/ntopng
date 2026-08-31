@@ -174,10 +174,6 @@ int main(int argc, char* argv[])
   }
 #endif
 
-#ifndef WIN32
-  ntop->initPing();
-#endif
-
   if (prefs->daemonize_ntopng()) ntop->daemonize();
 
 #ifndef HAVE_NEDGE
@@ -379,6 +375,8 @@ int main(int argc, char* argv[])
   }
 
 #ifndef WIN32
+  ntop->initPing();
+
   if (prefs->get_pid_path() != NULL) {
     FILE* fd;
 

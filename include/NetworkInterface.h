@@ -520,6 +520,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     return (getIfType() == interface_type_ZMQ);
   }
 
+  /* Interface reading packets from a pcap dump or directory */
+  virtual bool isOfflineDumpInterface() const { return (false); }
+
   virtual bool isSyslogInterface() const {
     return (getIfType() == interface_type_SYSLOG);
   }
