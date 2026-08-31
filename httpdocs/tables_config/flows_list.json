@@ -106,6 +106,15 @@
 			]
 		},
 		{
+			"title_i18n": "flow",
+			"data_field": "flow",
+			"sortable": false,
+			"min-width" : "200px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.cli_asn",
 			"data_field": "cli_asn",
 			"sortable": true,
@@ -128,15 +137,6 @@
 			"data_field": "transit_asn",
 			"sortable": true,
 			"min-width" : "102px",
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "flow",
-			"data_field": "flow",
-			"sortable": false,
-			"min-width" : "200px",
 			"class": [
 				"text-nowrap"
 			]
