@@ -1833,8 +1833,10 @@ bool NetworkInterface::processPacket(
   u_int8_t tcp_window_scale = 0;
 #endif
   bool create_flow_if_missing = true;
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   static bool shown = false;
-
+#endif
+  
   *hostFlow = NULL;
 
   /* Sanity check on the timestamp: time_t is (almost always) a signed 64-bit integer,
