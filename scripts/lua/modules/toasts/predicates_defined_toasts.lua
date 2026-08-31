@@ -617,7 +617,7 @@ local function create_zmq_default_encryption_toast(toast)
     local title = i18n("zmq_default_encryption_title")
     local description = i18n("zmq_default_encryption_warning")
     local action = {
-        url = "https://www.ntop.org/?p=46312",
+        url = "https://www.ntop.org/secure-zmq-flow-collection-now-enabled-by-default/",
         title = i18n("read_more")
     }
 
