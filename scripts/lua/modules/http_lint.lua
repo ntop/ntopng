@@ -2052,6 +2052,7 @@ local known_parameters = {
 
    -- Remote probe
    ["ifIdx"] = validateNumber, -- A generic switch/router port id
+   ["exporter_ifid"] = validateNumber, -- Sites dashboard: collector ifid disambiguating a load-balanced exporter (same exporter_ip, different collector interface)
    ["inIfIdx"] = validateNumber, -- A switch/router INPUT port id (%INPUT_SNMP)
    ["outIfIdx"] = validateNumber, -- A switch/router OUTPUT port id (%OUTPUT_SNMP)
    ["deviceIP"] = validateIpAddress, -- The switch/router probe ip address (%EXPORTER_IPV4/6_ADDRESS)
