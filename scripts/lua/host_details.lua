@@ -886,7 +886,7 @@ else
          end
 
          
-         if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() then
+         if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and host["localhost"] then
             local epoch_begin = os.time() - 3600 * 24 -- Last day
             print([[
                <button class='btn btn-sm btn-light' style='background-color: var(--bs-btn-hover-bg)'>

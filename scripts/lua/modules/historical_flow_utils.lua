@@ -2041,7 +2041,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       end
    end
 
-   if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() then
+   if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and (info.cli_location and info.cli_location == "local") then
       label = label .."<a title='" .. i18n('alerts_dashboard.wazuh_check_alerts') .. "' href='" .. ntop.getHttpPrefix() .. "/lua/pro/wazuh_alert_config.lua?map_search=" .. info.cli_ip.ip .. "&epoch_begin=" .. info.first_seen.epoch - 30*60 --[[ 30 minutes ]] .. "&epoch_end=" .. info.last_seen.epoch + 30*60 .. "'> <i class='fas fa-shield-alt'></i></a>"
    end
    
@@ -2094,7 +2094,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       end
    end
 
-   if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() then
+   if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and (info.srv_location and info.srv_location == "local") then
       label = label .."<a title='" .. i18n('alerts_dashboard.wazuh_check_alerts') .. "' href='" .. ntop.getHttpPrefix() .. "/lua/pro/wazuh_alert_config.lua?map_search=" .. info.srv_ip.ip .. "&epoch_begin=" .. info.first_seen.epoch - 30*60 --[[ 30 minutes ]] .. "&epoch_end=" .. info.last_seen.epoch + 30*60 .. "'> <i class='fas fa-shield-alt'></i></a>"
    end
 
