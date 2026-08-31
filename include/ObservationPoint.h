@@ -95,7 +95,7 @@ class ObservationPoint : public GenericHashEntry,
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
   inline char* getSerializationKey(char* buf, u_int bufsize) {
-    snprintf(buf, bufsize, OBS_POINT_SERIALIZED_KEY, iface->get_id(),
+    snprintf(buf, bufsize, OBS_POINT_SERIALIZED_KEY, (u_int)iface->get_id(),
              obs_point);
     return (buf);
   }

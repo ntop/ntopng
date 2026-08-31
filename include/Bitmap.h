@@ -120,6 +120,8 @@ class Bitmap {
     char* ptr = buf;
     ssize_t remaining = buf_len;
 
+    if (buf_len > 0) buf[0] = '\0';
+
     /* Write hex values in reverse order (most significant first) */
     for (int i = N - 1; i >= 0; i--) {
       int written =
@@ -132,7 +134,8 @@ class Bitmap {
     /* Remove heading zeroes but keep HEX byte-aligned (SQLite doesn't like
      * heading zeroes when inserting blob literals) */
     u_int shifts = 0;
-    for (u_int pos = 0; pos < strlen(buf) - 2; pos += 2) {
+    size_t buf_slen = strlen(buf);
+    for (u_int pos = 0; pos + 2 < buf_slen; pos += 2) {
       u_int8_t cur_byte = 0;
 
       sscanf(&buf[pos], "%02hhX", &cur_byte);

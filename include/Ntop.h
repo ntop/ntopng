@@ -940,8 +940,8 @@ class Ntop {
     updates.sites.store(false, std::memory_order_release);
   }
 
-  bool luaFlowCheckInfo(lua_State* vm, std::string check_name) const;
-  bool luaHostCheckInfo(lua_State* vm, std::string check_name) const;
+  bool luaFlowCheckInfo(lua_State* vm, const std::string &check_name) const;
+  bool luaHostCheckInfo(lua_State* vm, const std::string &check_name) const;
   inline ndpi_risk getUnhandledRisks() const {
     return flow_checks_loader ? flow_checks_loader->getUnhandledRisks() : 0;
   };
@@ -1014,7 +1014,7 @@ class Ntop {
 
   bool createRuntimeInterface(char* name, char* source, int* iface_id);
 
-  void incBlacklisHits(std::string listname);
+  void incBlacklisHits(const std::string &listname);
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
   inline bool sendKafkaMessage(char* kafka_broker_info, char* msg,
                                u_int msg_len) {
@@ -1048,7 +1048,7 @@ class Ntop {
   static const ndpi_protocol getConstNdpiUnknownProtocol();
 
   std::string getLuaCache(std::string);
-  void setLuaCache(std::string, std::string);  
+  void setLuaCache(const std::string &, const std::string &);
   void dumpLuaCache(lua_State* vm);
 
   bool startPollingBGPPrefixChanges(char *url);

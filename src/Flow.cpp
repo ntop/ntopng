@@ -1106,7 +1106,7 @@ void Flow::processExtraDissectedInformation() {
                 char buf[32];
                 u_int32_t ipv4_addr;
 
-                snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
+                snprintf(buf, sizeof(buf), "%d.%d.%d.%d", a, b, c, d);
                 ipv4_addr = ntohl(inet_addr(buf));
 
                 if (addr->equal(ipv4_addr))
@@ -2088,8 +2088,8 @@ char* Flow::print(char* buf, u_int buf_len, bool full_report) {
       ntohs(srv_port), (u_int32_t)first_seen, (u_int32_t)last_seen,
       ndpiDetectedProtocol.proto.master_protocol,
       ndpiDetectedProtocol.proto.app_protocol,
-      get_detected_protocol_name(pbuf, sizeof(pbuf)), get_protocol_category(),
-      get_protocol_category_name(),
+      get_detected_protocol_name(pbuf, sizeof(pbuf)),
+      (u_int)get_protocol_category(), get_protocol_category_name(),
       Utils::intoaV6(getExporterIP(), device_ip_buf, sizeof(device_ip_buf)),
       getInIndex(), getOutIndex(),
       get_packets_cli2srv(), get_packets_srv2cli(),

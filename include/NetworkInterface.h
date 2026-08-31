@@ -755,7 +755,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void processInterfaceStats(sFlowInterfaceStats* stats);
   void getLiveASNStats(ASNStats* asn_stats, AddressTree* allowed_nets,
                        Paginator* p, lua_State* vm);
-  void getActiveFlowsStats(nDPIStats* stats, FlowStats* status_stats,
+  void getActiveFlowsStats(nDPIStats* ndpi_stats, FlowStats* stats,
                            AddressTree* allowed_nets, Host* h,
                            Host* talking_with_host, Host* client, Host* server,
                            char* flow_info, Paginator* p, lua_State* vm,

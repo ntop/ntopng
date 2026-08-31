@@ -1632,6 +1632,8 @@ static int ntop_get_ndpi_full_protocol_name(lua_State* vm) {
   ndpi_protocol proto;
   char buf[64];
 
+  memset(&proto, 0, sizeof(proto));
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
@@ -5288,7 +5290,7 @@ static int ntop_interface_get_host_tags(lua_State* vm) {
   } else { /* Host offline - lookup on redis */
     char key_buf[CONST_MAX_LEN_REDIS_KEY];
     snprintf(key_buf, sizeof(key_buf), HOST_SERIALIZED_SHORT_KEY,
-             iface->get_id(), host_ip, vlan_id);
+             (u_int)iface->get_id(), host_ip, vlan_id);
     bitmap = iface->getPersistentHostTags(key_buf);
   }
 
@@ -5323,7 +5325,7 @@ static int ntop_interface_get_user_defined_host_tags(lua_State* vm) {
   } else {
     char key_buf[CONST_MAX_LEN_REDIS_KEY];
     snprintf(key_buf, sizeof(key_buf), HOST_SERIALIZED_SHORT_KEY,
-             iface->get_id(), host_ip, vlan_id);
+             (u_int)iface->get_id(), host_ip, vlan_id);
     bitmap = iface->getPersistentHostTags(key_buf) & HOST_USER_TAGS_MASK;
   }
 
@@ -5361,7 +5363,7 @@ static int ntop_interface_set_host_tags(lua_State* vm) {
   } else { /* Host offline - set on redis */
     char key_buf[CONST_MAX_LEN_REDIS_KEY];
     snprintf(key_buf, sizeof(key_buf), HOST_SERIALIZED_SHORT_KEY,
-             iface->get_id(), host_ip, vlan_id);
+             (u_int)iface->get_id(), host_ip, vlan_id);
     iface->setPersistentHostTags(key_buf, bitmap);
   }
 

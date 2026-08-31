@@ -141,3 +141,6 @@ httpdocs/img/custom_logo.png
 tests/e2e/.auth/
 tests/e2e/results/
 tests/e2e/report/
+
+# cppcheck build cache
+.cppcheck-build/

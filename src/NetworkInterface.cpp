@@ -754,6 +754,7 @@ int NetworkInterface::addTrustedIssuerDN(const char* dn) {
 ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(
     u_int16_t protoid) {
   ndpi_protocol proto;
+  memset(&proto, 0, sizeof(proto));
   protoid = ndpi_map_user_proto_id_to_ndpi_id(get_ndpi_struct(), protoid);
   proto.proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.proto.master_protocol = protoid;
@@ -9817,7 +9818,7 @@ void NetworkInterface::FillObsHash() {
     int rc = 0;
 
     snprintf(pattern, sizeof(pattern),
-             "ntopng.serialized_as.ifid_%u_obs_point_*", get_id());
+             "ntopng.serialized_as.ifid_%u_obs_point_*", (u_int)get_id());
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Pattern: %s", pattern);
 
@@ -11521,7 +11522,7 @@ void NetworkInterface::reloadDhcpRanges() {
 
   if (!ntop->getRedis()) return;
 
-  snprintf(redis_key, sizeof(redis_key), IFACE_DHCP_RANGE_KEY, get_id());
+  snprintf(redis_key, sizeof(redis_key), IFACE_DHCP_RANGE_KEY, (u_int)get_id());
 
   if ((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) &&
       !ntop->getRedis()->get(redis_key, rsp, CONST_MAX_LEN_REDIS_VALUE) &&
@@ -12636,7 +12637,7 @@ void NetworkInterface::incNumHosts(Host* host, bool rxOnlyHost) {
 
   /* Do not increase nor decrease hosts in case ntopng is shutting down, it's
    * useless */
-  if (isShuttingDown() || (!host->isUnicastHost())) return;
+  if (isShuttingDown()) return;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of %s %s
   // hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" :
@@ -12672,7 +12673,7 @@ void NetworkInterface::decNumHosts(Host* host, bool rxOnlyHost) {
 
   /* Do not increase nor decrease hosts in case ntopng is shutting down, it's
    * useless */
-  if (isShuttingDown() || (!host->isUnicastHost())) return;
+  if (isShuttingDown()) return;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Decreasing number of %s %s
   // hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" :
@@ -13342,6 +13343,7 @@ void NetworkInterface::build_lua_rsp(lua_State* vm,
 
     if (add_app_proto) {
       ndpi_protocol detected_protocol;
+      memset(&detected_protocol, 0, sizeof(detected_protocol));
       char buf[64], proto[16];
       u_int64_t key = flow_stats->getProtoKey();
 
@@ -13504,6 +13506,7 @@ void NetworkInterface::sort_and_filter_flow_stats(
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
         bool do_add_it = false;
         ndpi_protocol detected_protocol;
+        memset(&detected_protocol, 0, sizeof(detected_protocol));
 
         char buf[64], *proto;
         /* Get from the key, the master and application protocol,
@@ -13599,6 +13602,7 @@ void NetworkInterface::sort_and_filter_flow_stats(
 
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
         ndpi_protocol detected_protocol;
+        memset(&detected_protocol, 0, sizeof(detected_protocol));
         char buf[64], *proto;
 
         /* Get from the key, the master and application protocol,
@@ -13926,6 +13930,7 @@ void NetworkInterface::lua_push_ports(lua_State* vm, HostsPorts* count,
 
     u_int64_t key = it->first;
     ndpi_protocol detected_protocol;
+    memset(&detected_protocol, 0, sizeof(detected_protocol));
     detected_protocol.proto.master_protocol =
         (u_int16_t)(key & 0x00000000000FFFF);
     detected_protocol.proto.app_protocol =
@@ -14358,6 +14363,7 @@ void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
   for (it = count.begin(); it != count.end(); ++it) {
     AggregatedFlowsStats* fs = it->second;
     ndpi_protocol detected_protocol;
+    memset(&detected_protocol, 0, sizeof(detected_protocol));
     char buf[64], proto[16];
     u_int16_t vlan_id, dst_port;
 

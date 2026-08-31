@@ -47,7 +47,7 @@ void MacManufacturers::init() {
   struct stat buf;
   FILE* fd;
   char line[256], *cr;
-  int _mac[3];
+  u_int _mac[3];
   u_int32_t mac_key;
 
   if (!(stat(manufacturers_file, &buf) == 0) && (S_ISREG(buf.st_mode)))

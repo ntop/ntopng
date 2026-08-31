@@ -757,7 +757,7 @@ class Flow : public GenericHashEntry {
                     struct timeval* result, bool divide_by_two);
   std::string getFlowInfo(bool isLuaRequest);
   inline std::string getL7JSON() { return (l7_json); }
-  inline void setL7JSON(std::string j) { l7_json = j; }
+  inline void setL7JSON(const std::string &j) { l7_json = j; }
   inline char* getFlowServerInfo() {
     return (isTLS() && protos.tls.client_requested_server_name)
                ? protos.tls.client_requested_server_name

@@ -118,7 +118,7 @@ class AutonomousSystem : public GenericHashEntry,
   virtual void updateStats(const struct timeval* tv);
 
   inline char* getSerializationKey(char* buf, u_int bufsize) {
-    snprintf(buf, bufsize, AS_SERIALIZED_KEY, iface->get_id(), asn);
+    snprintf(buf, bufsize, AS_SERIALIZED_KEY, (u_int)iface->get_id(), asn);
     return (buf);
   }
   inline u_int32_t getTotalAlertedNumFlowsAsClient() const {
