@@ -347,10 +347,20 @@ end
 
 -- Collect observation points for the current interface
 local observation_points = nil
+local current_observation_point_id = nil
 do
    local obs_info = interface.getObsPointsInfo()
    if obs_info and obs_info["ObsPoints"] and table.len(obs_info["ObsPoints"]) > 0 then
-      observation_points = obs_info["ObsPoints"]
+      observation_points = {}
+      for _, v in pairsByField(obs_info["ObsPoints"], "obs_point", asc) do
+         observation_points[#observation_points + 1] = {
+            obs_point = v["obs_point"],
+            alias     = getObsPointAlias(v["obs_point"], true),
+         }
+      end
+
+      -- Currently selected observation point
+      current_observation_point_id = ntop.getUserObservationPointId()
    end
 end
 
@@ -467,6 +477,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    current_ifid        = tostring(current_ifid),
    system_ifid         = tostring(system_ifid),
    observation_points  = observation_points,
+   current_observation_point_id = current_observation_point_id,
    is_system_interface = is_system_interface,
    infrastructure_instances = infra_arr,
    infrastructure_view = infrastructure_view,
