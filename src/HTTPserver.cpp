@@ -764,7 +764,7 @@ static int getAuthorizedUser(struct mg_connection* conn,
     return (0);
   }
 
-  snprintf(key, sizeof(key), "%%%u[^|]|%%%u[^|]|%%%u[^|]|%%c",
+  snprintf(key, sizeof(key), "%%%d[^|]|%%%d[^|]|%%%d[^|]|%%c",
            NTOP_USERNAME_MAXLEN - 1, NTOP_GROUP_MAXLEN - 1,
            NTOP_CSRF_TOKEN_LENGTH - 1);
 
@@ -2242,14 +2242,14 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
   if (ntop->getPrefs()->get_http_port() == 0) use_http = false;
 
   if (use_http) {
-    snprintf(ports, sizeof(ports), "%s%s%d", http_binding_addr1,
+    snprintf(ports, sizeof(ports), "%s%s%u", http_binding_addr1,
              (http_binding_addr1[0] == '\0') ? "" : ":",
              ntop->getPrefs()->get_http_port());
 
     if (http_binding_addr2[0] &&
         strcmp(http_binding_addr1, http_binding_addr2)) {
       snprintf(&ports[strlen(ports)], sizeof(ports) - strlen(ports) - 1,
-               ",%s:%d", http_binding_addr2, ntop->getPrefs()->get_http_port());
+               ",%s:%u", http_binding_addr2, ntop->getPrefs()->get_http_port());
     }
   }
 
@@ -2260,14 +2260,14 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
     addHTTPOption("ssl_certificate", ssl_cert_path);
 
     snprintf(&ports[strlen(ports)], sizeof(ports) - strlen(ports) - 1,
-             "%s%s%s%ds", use_http ? (char*)"," : "", https_binding_addr1,
+             "%s%s%s%us", use_http ? (char*)"," : "", https_binding_addr1,
              (https_binding_addr1[0] == '\0') ? "" : ":",
              ntop->getPrefs()->get_https_port());
 
     if (http_binding_addr2[0] &&
         strcmp(https_binding_addr1, https_binding_addr2)) {
       snprintf(&ports[strlen(ports)], sizeof(ports) - strlen(ports) - 1,
-               ",%s:%d", https_binding_addr2,
+               ",%s:%u", https_binding_addr2,
                ntop->getPrefs()->get_https_port());
     }
   }
@@ -2275,7 +2275,7 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
   if ((!use_http) && (!ssl_enabled)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "The HTTP server on the default port");
-    snprintf(ports, sizeof(ports), "%d", ntop->getPrefs()->get_http_port());
+    snprintf(ports, sizeof(ports), "%u", ntop->getPrefs()->get_http_port());
     use_http = true;
   }
 

@@ -23,8 +23,8 @@
 
 /* **************************************************** */
 
-void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host* h,
-                     risk_percentage _cli_pctg) {
+void HostAlert::init(HostCheckID _check_id, const std::string &_check_name,
+                     Host* h, risk_percentage _cli_pctg) {
   host = h;
   expiring = released = false;
   check_id = _check_id;
@@ -40,8 +40,8 @@ void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host* h,
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCheckID _check_id, std::string _check_name, Host* h,
-                     risk_percentage _cli_pctg) {
+HostAlert::HostAlert(HostCheckID _check_id, const std::string &_check_name,
+                     Host* h, risk_percentage _cli_pctg) {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   init(_check_id, _check_name, h, _cli_pctg);

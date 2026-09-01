@@ -26,7 +26,7 @@
 CustomHostLuaScriptAlert::CustomHostLuaScriptAlert(HostCheck* c, Host* h,
                                                    risk_percentage cli_pctg,
                                                    u_int32_t _score,
-                                                   std::string _msg)
+                                                   const std::string &_msg)
     : HostAlert(c, h, cli_pctg) {
   score = _score, msg = _msg;
 };

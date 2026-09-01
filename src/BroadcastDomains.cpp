@@ -36,7 +36,8 @@ BroadcastDomains::BroadcastDomains(NetworkInterface* _iface) {
   next_update = last_update = 0;
   next_domain_id = 0;
 
-  snprintf(key, sizeof(key), IFACE_BROADCAST_DOMAINS_KEY, iface->get_id());
+  snprintf(key, sizeof(key), IFACE_BROADCAST_DOMAINS_KEY,
+           (u_int)iface->get_id());
   if (ntop->getRedis() && (ntop->getRedis()->get(key, buf, sizeof(buf)) == 0)) {
     broadcast_domains = new (std::nothrow) AddressTree();
 
@@ -60,7 +61,8 @@ BroadcastDomains::~BroadcastDomains() {
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Broadcast domains: %s", j);
 
-    snprintf(key, sizeof(key), IFACE_BROADCAST_DOMAINS_KEY, iface->get_id());
+    snprintf(key, sizeof(key), IFACE_BROADCAST_DOMAINS_KEY,
+           (u_int)iface->get_id());
     ntop->getRedis()->set(key, j);
   }
 

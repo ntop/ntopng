@@ -57,8 +57,8 @@ void Trace::rotate_logs(bool forceRotation) {
   logFd = NULL;
 
   for (int i = MAX_NUM_NTOPNG_LOG_FILES - 1; i >= 1; i--) {
-    snprintf(buf1, sizeof(buf1), "%s.%u", logFile, i);
-    snprintf(buf2, sizeof(buf2), "%s.%u", logFile, i + 1);
+    snprintf(buf1, sizeof(buf1), "%s.%d", logFile, i);
+    snprintf(buf2, sizeof(buf2), "%s.%d", logFile, i + 1);
 
     if (Utils::file_exists(buf1)) rename(buf1, buf2);
   } /* for */

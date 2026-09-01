@@ -73,7 +73,7 @@ ParserInterface::~ParserInterface() {
 /* **************************************************** */
 
 bool ParserInterface::processFlow(ParsedFlow* zflow) {
-  bool src2dst_direction, new_flow;
+  bool src2dst_direction = true, new_flow = false;
   Flow* flow;
   time_t now;
   bool update_seen = false;

@@ -51,11 +51,11 @@ class HostAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) {
     return serializer;
   }
-  void init(HostCheckID _check_id, std::string _check_name, Host* h,
+  void init(HostCheckID _check_id, const std::string &_check_name, Host* h,
             risk_percentage _cli_pctg);
 
  public:
-  HostAlert(HostCheckID check_id, std::string check_name, Host* h,
+  HostAlert(HostCheckID check_id, const std::string &check_name, Host* h,
             risk_percentage _cli_pctg);
   HostAlert(HostCheck* c, Host* h, risk_percentage _cli_pctg);
   virtual ~HostAlert();

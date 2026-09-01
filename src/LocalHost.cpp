@@ -90,7 +90,7 @@ void LocalHost::set_hash_entry_state_idle() {
       char key[CONST_MAX_LEN_REDIS_KEY];
       char buf[64], mac_buf[32];
 
-      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, iface->get_id(),
+      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, (u_int)iface->get_id(),
                ip.print(buf, sizeof(buf)), vlan_id);
       mac->print(mac_buf, sizeof(mac_buf));
 

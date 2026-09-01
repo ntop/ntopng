@@ -350,7 +350,7 @@ void SyslogParserInterface::doProducersMappingUpdate() {
 
   producers_map.clear();
 
-  snprintf(key, sizeof(key), SYSLOG_PRODUCERS_MAP_KEY, get_id());
+  snprintf(key, sizeof(key), SYSLOG_PRODUCERS_MAP_KEY, (u_int)get_id());
 
   rc = ntop->getRedis()->hashGetAll(key, &keys, &values);
 

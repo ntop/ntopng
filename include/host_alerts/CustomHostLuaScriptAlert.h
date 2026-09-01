@@ -37,11 +37,11 @@ class CustomHostLuaScriptAlert : public HostAlert {
   }
 
   CustomHostLuaScriptAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
-                           u_int32_t _score, std::string _msg);
+                           u_int32_t _score, const std::string &_msg);
   ~CustomHostLuaScriptAlert() {};
 
   HostAlertType getAlertType() const { return getClassType(); }
-  void setAlertMessage(std::string m) { msg = m; };
+  void setAlertMessage(const std::string &m) { msg = m; };
   void setAlertScore(u_int8_t v) { score = v; };
   virtual u_int8_t getAlertScore() const { return (score); };
 };

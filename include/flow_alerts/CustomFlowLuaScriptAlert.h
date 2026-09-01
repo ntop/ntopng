@@ -44,7 +44,7 @@ class CustomFlowLuaScriptAlert : public FlowAlert {
   ~CustomFlowLuaScriptAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); };
-  void setAlertMessage(std::string m) { msg = m; };
+  void setAlertMessage(const std::string &m) { msg = m; };
   bool autoAck() const { return false; };
 };
 

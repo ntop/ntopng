@@ -129,7 +129,7 @@ class AggregatedFlowsStats {
     }
     proto_name = strdup(_proto_name);
   };
-  inline void setInfoKey(string _key) {
+  inline void setInfoKey(const string &_key) {
     if (info_key) {
       free(info_key);
     }

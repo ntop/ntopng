@@ -170,8 +170,8 @@ void FlowAlertsLoader::registerRisk(FlowAlertType alert_type,
   if (alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE)
     ntop->getTrace()->traceEvent(
         TRACE_ERROR, "Ignoring alert with unknown id %u", alert_type.id);
-
-  alert_to_risk[alert_type.id] = risk;
+  else
+    alert_to_risk[alert_type.id] = risk;
 }
 
 /* **************************************************** */

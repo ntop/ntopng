@@ -46,7 +46,7 @@ class ScanRealtimeAlert : public HostAlert {
   };
 
   ScanRealtimeAlert(HostCheck* c, Host* h, risk_percentage cli_pctg,
-                    std::vector<ScanAlertType> _alerts)
+                    const std::vector<ScanAlertType> &_alerts)
       : HostAlert(c, h, cli_pctg) {
     alerts = _alerts;
   };

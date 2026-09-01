@@ -5107,7 +5107,7 @@ void Ntop::addLocalNetworkList(const char* rule) {
 
 /* ******************************************* */
 
-bool Ntop::luaFlowCheckInfo(lua_State* vm, std::string check_name) const {
+bool Ntop::luaFlowCheckInfo(lua_State* vm, const std::string &check_name) const {
   FlowChecksLoader* fcl = flow_checks_loader;
   if (fcl) return fcl->luaCheckInfo(vm, check_name);
 
@@ -5116,7 +5116,7 @@ bool Ntop::luaFlowCheckInfo(lua_State* vm, std::string check_name) const {
 
 /* ******************************************* */
 
-bool Ntop::luaHostCheckInfo(lua_State* vm, std::string check_name) const {
+bool Ntop::luaHostCheckInfo(lua_State* vm, const std::string &check_name) const {
   HostChecksLoader* hcl = host_checks_loader;
   if (hcl) return hcl->luaCheckInfo(vm, check_name);
 
@@ -5634,7 +5634,9 @@ bool Ntop::createRuntimeInterface(char* name, char* source, int* iface_id) {
 
 /* ******************************************* */
 
-void Ntop::incBlacklisHits(std::string listname) { blStats.incHits(listname); }
+void Ntop::incBlacklisHits(const std::string &listname) {
+  blStats.incHits(listname);
+}
 
 /* ******************************************* */
 
@@ -5879,7 +5881,7 @@ std::string Ntop::getLuaCache(std::string key) {
 
 /* ******************************************* */
 
-void Ntop::setLuaCache(std::string key, std::string val) {
+void Ntop::setLuaCache(const std::string &key, const std::string &val) {
   luaCacheLock.wrlock(__FILE__, __LINE__);
   luaCache[key] = val;
   luaCacheLock.unlock(__FILE__, __LINE__);

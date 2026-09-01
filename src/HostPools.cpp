@@ -118,7 +118,7 @@ void HostPools::storeStats(HostPoolStats** stats) {
     if (stats[i] == NULL) continue;
     u_int16_t pool_id = i;
     snprintf(stats_key, sizeof(stats_key), HOST_POOL_SERIALIZED_KEY,
-             iface->get_id());
+             (u_int)iface->get_id());
     std::string json = stats[i]->serialize(iface);
     if (!json.empty()) {
       redis->hashSet(stats_key, std::to_string(pool_id).c_str(), json.c_str());

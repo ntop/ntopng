@@ -117,7 +117,7 @@ int StatsManager::deleteStatsOlderThan(const char* cache_name,
 
   snprintf(query, sizeof(query),
            "DELETE FROM %s WHERE "
-           "CAST(TSTAMP AS INTEGER) < %lu",
+           "CAST(TSTAMP AS INTEGER) < %ld",
            cache_name, static_cast<long int>(key));
 
   m.lock(__FILE__, __LINE__);
@@ -249,8 +249,8 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval* retvals,
   *retvals = empty;
 
   snprintf(query, sizeof(query),
-           "SELECT STATS FROM %s WHERE TSTAMP >= %lu "
-           "AND TSTAMP <= %lu",
+           "SELECT STATS FROM %s WHERE TSTAMP >= %ld "
+           "AND TSTAMP <= %ld",
            cache_name, static_cast<long int>(key_start),
            static_cast<long int>(key_end));
 
@@ -500,8 +500,8 @@ int StatsManager::getSampling(string* sampling, const char* cache_name,
 
   snprintf(query, sizeof(query),
            "SELECT STATS FROM %s WHERE "
-           "CAST(TSTAMP AS INTEGER) <= %lu AND "
-           "CAST(TSTAMP AS INTEGER) >= %lu",
+           "CAST(TSTAMP AS INTEGER) <= %ld AND "
+           "CAST(TSTAMP AS INTEGER) >= %ld",
            cache_name, static_cast<long int>(key_high),
            static_cast<long int>(key_low));
 

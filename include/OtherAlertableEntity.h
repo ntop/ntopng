@@ -62,23 +62,25 @@ class OtherAlertableEntity : public AlertableEntity {
     getAlertCachedValue and setAlertCacheValue as thread safe as they are
     invoked only by periodic scripts and are not accessed by the GUI lua methods
   */
-  inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
+  inline std::string getAlertCachedValue(const std::string &key,
+                                         ScriptPeriodicity p) {
     std::map<u_int32_t /* std::string */, std::string>::iterator it =
         alert_cache[(u_int)p].find(ndpi_hash_string(key.c_str()));
 
     return ((it != alert_cache[(u_int)p].end()) ? it->second : std::string(""));
   }
 
-  inline void setAlertCacheValue(std::string key, std::string value,
+  inline void setAlertCacheValue(const std::string &key,
+                                 const std::string &value,
                                  ScriptPeriodicity p) {
     alert_cache[(u_int)p][ndpi_hash_string(key.c_str())] = value;
   }
 
-  bool triggerAlert(lua_State* vm, std::string key, ScriptPeriodicity p,
+  bool triggerAlert(lua_State* vm, const std::string &key, ScriptPeriodicity p,
                     time_t now, u_int32_t score, AlertType alert_id,
                     const char* subtype, const char* json, const char* ip,
                     const char* name, u_int16_t port);
-  bool releaseAlert(lua_State* vm, std::string key, ScriptPeriodicity p,
+  bool releaseAlert(lua_State* vm, const std::string &key, ScriptPeriodicity p,
                     time_t now);
 
   void luaAlert(lua_State* vm, const Alert* alert, ScriptPeriodicity p) const;

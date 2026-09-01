@@ -65,7 +65,7 @@ class VLAN : public GenericHashEntry,
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
   inline char* getSerializationKey(char* buf, u_int bufsize) {
-    snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, iface->get_id(), vlan_id);
+    snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, (u_int)iface->get_id(), vlan_id);
     return (buf);
   }
   inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto) {

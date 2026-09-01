@@ -635,10 +635,10 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
 	 CONST_DEFAULT_CALLBACKS_DIR, CONST_DEFAULT_DATA_DIR,
-	 CONST_DEFAULT_DATA_DIR, CONST_DEFAULT_NTOP_PORT,
-	 CONST_DEFAULT_NTOP_PORT + 1, CONST_DEFAULT_NTOP_USER,
-	 CONST_DEFAULT_TLS_CIPHERS, MAX_NUM_INTERFACE_HOSTS,
-	 MAX_NUM_INTERFACE_HOSTS, CONST_DEFAULT_USERS_FILE);
+	 CONST_DEFAULT_DATA_DIR, (u_int)CONST_DEFAULT_NTOP_PORT,
+	 (u_int)(CONST_DEFAULT_NTOP_PORT + 1), CONST_DEFAULT_NTOP_USER,
+	 CONST_DEFAULT_TLS_CIPHERS, (u_int)MAX_NUM_INTERFACE_HOSTS,
+	 (u_int)MAX_NUM_INTERFACE_HOSTS, CONST_DEFAULT_USERS_FILE);
 
   printf(
 #ifndef WIN32
@@ -719,10 +719,12 @@ void usage() {
 	 "                                    | - clickhouse-user used by clickhouse-client\n"
 	 "                                    | - mysql-user used by the mysql API\n"
 	 "                                    |\n",
-	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
+	 (u_int)CONST_DEFAULT_CLICKHOUSE_TCP_PORT,
+	 (u_int)CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
 #ifndef HAVE_NEDGE
 	 ,
-	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
+	 (u_int)CONST_DEFAULT_CLICKHOUSE_TCP_PORT,
+	 (u_int)CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
 #endif
 	 );
 #endif
@@ -757,7 +759,8 @@ void usage() {
 	 "[--dump-queue-block-size] <size>    | Set the in-memory ClickHouse data block size (Default: %u)\n"
 	 "[--direct-flows-dump]               | Dump collected flows directly before any additional processing\n"
 	 "[--readonly-flows-dump]             | Keep ClickHouse connected for reading but disable flow dump (writing)\n",
-	 CLICKHOUSE_MAX_DUMP_BLOCKS, CLICKHOUSE_MAX_DUMP_ROWS_PER_BLOCK);
+	 (u_int)CLICKHOUSE_MAX_DUMP_BLOCKS,
+	 (u_int)CLICKHOUSE_MAX_DUMP_ROWS_PER_BLOCK);
 #endif
   printf(
 	 "[--hw-timestamp-mode] <mode>        | Enable hw "

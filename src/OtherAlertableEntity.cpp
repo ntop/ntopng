@@ -66,7 +66,7 @@ void OtherAlertableEntity::luaAlert(lua_State* vm, const Alert* alert,
 /* Return true if the element was inserted, false if already present.
    NOTE: given a ScriptPeriodicity p, only one thread at time can perform
    a triggerAlert. */
-bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
+bool OtherAlertableEntity::triggerAlert(lua_State* vm, const std::string &key,
                                         ScriptPeriodicity p, time_t now,
                                         u_int32_t score, AlertType alert_id,
                                         const char* subtype, const char* json,
@@ -119,7 +119,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
 
 /* ****************************************** */
 
-bool OtherAlertableEntity::releaseAlert(lua_State* vm, std::string key,
+bool OtherAlertableEntity::releaseAlert(lua_State* vm, const std::string &key,
                                         ScriptPeriodicity p, time_t now) {
   std::map<u_int32_t /* std::string */, Alert>::iterator it;
   bool rv = false;
