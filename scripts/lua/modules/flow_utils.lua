@@ -195,7 +195,7 @@ function getFlowsFilter()
     local flow_info = _GET["flow_info"]
     local interface_role = _GET["interface_role"]
     local iface_index = tonumber(_GET["interface_filter"] or -1)
-    local site_id = tonumber(_GET["site_id"] or 0)
+    local site_id = tonumber(_GET["site_id"])
 
     if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
         sortColumn = getDefaultTableSort("flows")
