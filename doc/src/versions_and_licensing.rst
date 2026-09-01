@@ -221,7 +221,7 @@ If the system is offline and ntopng cannot reach the Internet, or it has been st
 
 .. figure:: img/license_activation_toast.png
   :align: center
-  :width: 200
+  :width: 400
   :alt: License Activation Toast
 
   License Activation Toast
@@ -234,7 +234,7 @@ To complete the activation manually:
 
 .. figure:: img/license_activation_page.png
   :align: center
-  :width: 400
+  :width: 800
   :alt: Offline License Activation Page
 
   Offline License Activation Page
