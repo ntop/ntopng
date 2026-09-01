@@ -75,6 +75,10 @@ local function get_tools()
    end
 
    -- nAnalyst tools: pro/scripts/lua/modules/llm/pro_tools.lua
+   -- nAnalyst is included from Enterprise M upward (no standalone SKU). pro_tools
+   -- itself enforces each tool's min_edition gate (M / L / XL), so loading it
+   -- whenever nAnalyst is available is correct — lower editions simply register
+   -- fewer tools.
    if isnAnalystAvailable() then
       local ok2, pro_tools = pcall(function() return require("pro_tools") end)
       if ok2 and pro_tools then
