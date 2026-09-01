@@ -219,11 +219,25 @@ If the system is offline and ntopng cannot reach the Internet, or it has been st
 - ntopng shows a toast notification in the web GUI inviting the user to activate the license
 - An `Activation` tab becomes available in the `License` page of the web GUI
 
+.. figure:: img/license_activation_toast.png
+  :align: center
+  :width: 200
+  :alt: License Activation Toast
+
+  License Activation Toast
+
 To complete the activation manually:
 
 1. From a PC with Internet access, go to https://shop.ntop.org/recover_licenses.php and recover the license: an activation code will be displayed there.
 2. Copy the activation code.
 3. On the ntopng instance, go to `"License"->"Activation"` and paste the activation code in the form, then click `"Activate"`.
+
+.. figure:: img/license_activation_page.png
+  :align: center
+  :width: 400
+  :alt: Offline License Activation Page
+
+  Offline License Activation Page
 
 .. _LicenseManager:
 
