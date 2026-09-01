@@ -62,6 +62,13 @@ local eula_url = ternary(
    "http://www.gnu.org/licenses/gpl.html"
 )
 
+local needs_activation = false
+if ntop.isPro and ntop.isPro() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   local app_utils = require "app_utils"
+   needs_activation = (app_utils.check_license_registration() == false)
+end
+
 local res = {
    system_id          = system_id,
    system_id_href     = system_id_href,
@@ -74,6 +81,7 @@ local res = {
    is_windows         = ntop.isWindows(),
    eula_url           = eula_url,
    cached_license     = ntop.getCache("ntopng.license"),
+   needs_activation   = needs_activation,
 }
 
 rest_utils.answer(rest_utils.consts.success.ok, res)

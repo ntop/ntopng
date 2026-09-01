@@ -318,6 +318,18 @@ local defined_toats = {
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        -- Warn the user that offline license activation
+        -- is required from the License page
+        id = 31,
+        dismissable = true,
+        has_priority = false,
+        predicate = predicates.license_activation,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = {pages.license.key},
+        excluded_subpages = EMPTY_PAGES
+    },
 }
 
 return defined_toats

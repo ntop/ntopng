@@ -12150,6 +12150,95 @@
         }
       }
     },
+    "/lua/rest/v2/get/ntopng/license.lua": {
+      "get": {
+        "tags": [
+          "License"
+        ],
+        "summary": "Get license information for the current ntopng instance",
+        "description": "Get license information for the current ntopng instance, including SystemId, license validity/expiry and, on Pro/Enterprise builds, whether offline activation is still pending",
+        "operationId": "get_ntopng_license",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/ntopng/license.lua": {
+      "post": {
+        "tags": [
+          "License"
+        ],
+        "summary": "Set the ntopng license key",
+        "description": "Set the ntopng license key",
+        "operationId": "set_ntopng_license",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ntopng_license",
+            "description": "The license key",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/set/ntopng/license_activation.lua": {
+      "post": {
+        "tags": [
+          "License"
+        ],
+        "summary": "Offline-activate a Pro/Enterprise license",
+        "description": "Activates the current Pro/Enterprise license's SystemId using an activation code retrieved from https://shop.ntop.org/recover_licenses.php, for instances that cannot reach the Internet to self-register at startup. Requires a valid Pro/Enterprise license to already be installed",
+        "operationId": "set_ntopng_license_activation",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "activation_code",
+            "description": "The activation code retrieved from https://shop.ntop.org/recover_licenses.php",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/pcap/live_extraction.lua": {
       "get": {
         "tags": [

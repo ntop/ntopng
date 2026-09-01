@@ -959,6 +959,35 @@ end
 
 -- ###############################################
 
+local function create_license_activation_toast(toast)
+    local title = i18n("license_activation_title")
+    local description = i18n("license_activation_warning")
+    local action = {
+        url = ntop.getHttpPrefix() .. "/lua/license.lua",
+        title = i18n("license_activation_action")
+    }
+
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, action, toast.dismissable)
+end
+
+--- Notify that license should be activated
+function predicates.license_activation(toast, container)
+    if not IS_ADMIN then
+        return
+    end
+
+    if ntop.isPro and ntop.isPro() then
+        package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+        local app_utils = require "app_utils"
+
+        if not app_utils.check_license_registration() then
+            table.insert(container, create_license_activation_toast(toast))
+        end
+    end
+end
+
+-- ###############################################
+
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.no_local_hosts(toast, container)
