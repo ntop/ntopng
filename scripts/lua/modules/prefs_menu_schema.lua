@@ -343,6 +343,14 @@ function M.get_sections(flags)
                 default = "0",
                 section = i18n("prefs.web_user_interface")
             }, {
+                key = "toggle_flow_details_card",
+                title = i18n("prefs.toggle_flow_details_card_title"),
+                description = i18n("prefs.toggle_flow_details_card_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.flow_details_card",
+                default = "1",
+                section = i18n("prefs.web_user_interface")
+            }, {
                 key = "http_index_page",
                 title = i18n("prefs.http_index_page"),
                 description = i18n("prefs.http_index_page_description"),
