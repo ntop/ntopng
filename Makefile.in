@@ -270,7 +270,7 @@ Makefile: configure Makefile.in
 
 cppcheck:
 	@mkdir -p .cppcheck-build
-	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=warning,performance,portability --suppress=useInitializationList --suppress=duplInheritedMember --suppress=noCopyConstructor --suppress=noOperatorEq -j $(shell nproc) --cppcheck-build-dir=.cppcheck-build -I include/ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp
+	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=warning,performance,portability --suppress=useInitializationList --suppress=duplInheritedMember --suppress=noCopyConstructor --suppress=noOperatorEq -j $(shell nproc) --cppcheck-build-dir=.cppcheck-build -I include/ $(PRO_CPPCHECK_INCS) @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp $(PRO_CPPCHECK_SRCS)
 
 test: test_version
 
