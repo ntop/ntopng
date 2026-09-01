@@ -90,6 +90,11 @@ ALTER TABLE wazuh_alerts ADD COLUMN IF NOT EXISTS alert_rule_id String DEFAULT '
 
 @
 
+/* Migration TTL */
+ALTER TABLE wazuh_alerts REMOVE TTL;
+
+@
+
 CREATE TABLE IF NOT EXISTS wazuh_alert_rules
 (
     id          String        COMMENT 'Unique rule identifier',
