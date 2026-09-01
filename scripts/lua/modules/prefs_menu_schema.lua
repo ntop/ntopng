@@ -15,6 +15,7 @@ local M = {}
 function M.get_flags()
     local page_utils = require "page_utils"
     local recording_utils = require "recording_utils"
+    require "check_redis_prefs"
 
     local prefs = ntop.getPrefs()
     local info = ntop.getInfo(false)
@@ -34,7 +35,8 @@ function M.get_flags()
     local is_enterprise_xl = ntop.isEnterpriseXL and ntop.isEnterpriseXL() or false
     local is_nedge_enterprise = ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise() or false
     local has_ch_support = (hasClickHouseSupport and hasClickHouseSupport()) and true or false
-    local has_nanalyst = ntop.hasnAnalyst and ntop.hasnAnalyst() or false
+
+    local has_nanalyst = isnAnalystAvailable()
 
     return {
         prefs = prefs,

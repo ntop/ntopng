@@ -17,7 +17,8 @@ local hasLdap = ntop.hasLdapSupport()
 local page_utils = require("page_utils")
 local has_ch_support = hasClickHouseSupport()
 local is_system_interface = toboolean(page_utils.is_system_view())
-local has_nAnalyst =  ntop.hasnAnalyst and ntop.hasnAnalyst() and (not is_system_interface) and (has_ch_support)
+
+local has_nAnalyst = isnAnalystAvailable() and (not is_system_interface) and (has_ch_support)
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {{

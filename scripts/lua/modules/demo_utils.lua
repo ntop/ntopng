@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local json = require "dkjson"
 local os_utils = require "os_utils"
+require "check_redis_prefs"
 
 local demo_utils = {}
 
@@ -25,7 +26,7 @@ local DEFAULT_DELAY_SECONDS = {
 -- in demo_registry.json (or the demo's own JSON file).
 local VISIBILITY_CONDITIONS = {
    has_nanalyst = function()
-      return ntop.hasnAnalyst and ntop.hasnAnalyst() or false
+      return isnAnalystAvailable()
    end,
 }
 

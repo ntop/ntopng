@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "flow_utils"
 require "voip_utils"
+require "check_redis_prefs"
 
 local shaper_utils
 local qoe_utils
@@ -2639,7 +2640,7 @@ end
 
 -- Add chatbot button if nAnalyst is enabled (not part of the capturable table HTML)
 local function print_flow_chatbot_sidebar()
-   if (flow ~= nil) and ntop.hasnAnalyst() then
+   if (flow ~= nil) and isnAnalystAvailable() then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;"  .. package.path
       live_flow_info = require "live_flow_info"
 

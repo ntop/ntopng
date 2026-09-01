@@ -320,6 +320,19 @@ end
 
 -- ##############################################
 
+function isnAnalystAvailable()
+    if ntop.hasnAnalyst and ntop.hasnAnalyst() then
+        local dirs = ntop.getDirs()
+        package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+        local app_utils = require "app_utils"
+        return app_utils.is_nanalyst_available()
+    end
+
+    return false
+end
+
+-- ##############################################
+
 function isAllowedSystemInterface()
     return ntop.isAllowedInterface(tonumber(getSystemInterfaceId()))
 end
