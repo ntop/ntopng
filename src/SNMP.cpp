@@ -105,7 +105,19 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
     switch (vp->type) {
       case SNMP_NOSUCHOBJECT:
       case SNMP_NOSUCHINSTANCE:
+        /* We got a real response but without any real data.
+           Return an (empty) table instead of nil, since for the callers
+           (example [LUA] snmp_dev:_snmpget(oid) [in pro/scripts/lua/modules/snmp_dev_utils.lua]->
+                    [LUA] snmpreadasyncrsp() ->
+                    [C++] ntop_snmpreadasyncrsp() ->
+                    [C++] snmp_fetch_responses())
+           nil means that the remote host has probably not answered yet
+           and it keep waiting for an answer (until a timeout event)
+         */
+        if (!table_added) lua_newtable(vm), table_added = true;
+        /* Fallthrough */
       case SNMP_ENDOFMIBVIEW:
+        /* TODO: should we handle this type as the two previous ones?  */
         vp = vp->next_variable;
         continue; /* Error found */
         break;
@@ -124,6 +136,9 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
           break;
       }
     }
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s, type= %d", rsp_oid, vp->type);
+#endif
 
     switch (vp->type) {
       case ASN_INTEGER:
