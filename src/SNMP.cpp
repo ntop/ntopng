@@ -268,9 +268,7 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
 
       case ASN_APPLICATION:
       case ASN_NULL:
-        /* Skip the adding to the table, it should be nil, but that could create problems 
-         * so simply leave it empty, in case, it will be pushed nil at the end of the functioon
-         */
+        if (!table_added) lua_newtable(vm), table_added = true;
         break;
       default:
         ntop->getTrace()->traceEvent(TRACE_WARNING,
