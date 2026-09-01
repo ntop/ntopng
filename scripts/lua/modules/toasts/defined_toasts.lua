@@ -332,7 +332,7 @@ local defined_toats = {
     },
     {
         -- "Flow Details Side Card" feature
-        id = 31,
+        id = 32,
         dismissable = true,
         has_priority = false,
         predicate = predicates.flow_details_card,
