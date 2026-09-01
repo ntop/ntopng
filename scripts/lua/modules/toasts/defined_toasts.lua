@@ -322,7 +322,7 @@ local defined_toats = {
         -- Warn the user that offline license activation
         -- is required from the License page
         id = 31,
-        dismissable = true,
+        dismissable = false,
         has_priority = false,
         predicate = predicates.license_activation,
         pages = EMPTY_PAGES,
