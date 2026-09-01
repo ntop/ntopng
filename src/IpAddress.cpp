@@ -176,7 +176,7 @@ void IpAddress::checkIP() {
       if (!ntop->isBroadcastIPDisabled() && nmask_bits > 0 &&
           nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a
                                 point-to-point */
-        nmask = ~((1 << (32 - nmask_bits)) - 1);
+        nmask = ~(((u_int32_t)1 << (32 - nmask_bits)) - 1);
         if (a == (a |
                   ~nmask) /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
             || a == (a & nmask) /* e.g., 10.0.0.0/8 -> matches 10.0.0.0 */)

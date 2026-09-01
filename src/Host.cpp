@@ -2409,10 +2409,11 @@ void Host::releaseAllEngagedAlerts() {
 bool Host::triggerAlert(HostAlert* alert) {
   ScoreCategory score_category;
   HostAlertType alert_type;
-  u_int64_t alert_rowid = alert->getRowID();
+  u_int64_t alert_rowid;
 
   if (alert == NULL) return false;
 
+  alert_rowid = alert->getRowID();
   alert_type = alert->getAlertType();
 
   if (ntop->getPrefs()->dontEmitHostAlerts() /* all host alerts disabled */ ||

@@ -31,6 +31,9 @@ ParsedFlowCore::ParsedFlowCore() {
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));
   memset(&exporter_device_ip, 0, sizeof(exporter_device_ip));
+  memset(&mapped_exporter_device_ip, 0, sizeof(mapped_exporter_device_ip));
+  memset(&next_hop, 0, sizeof(next_hop));
+  memset(&mapped_next_hop, 0, sizeof(mapped_next_hop));
   src_tos = dst_tos = 0;
   version = 0;
   memset(&nprobe_ip, 0, sizeof(nprobe_ip));
@@ -60,6 +63,10 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore& pfc) {
   memcpy(&dst_mac, &pfc.dst_mac, sizeof(dst_mac));
   memcpy(&exporter_device_ip, &pfc.exporter_device_ip,
          sizeof(exporter_device_ip));
+  memcpy(&mapped_exporter_device_ip, &pfc.mapped_exporter_device_ip,
+         sizeof(mapped_exporter_device_ip));
+  memcpy(&next_hop, &pfc.next_hop, sizeof(next_hop));
+  memcpy(&mapped_next_hop, &pfc.mapped_next_hop, sizeof(mapped_next_hop));
   version = pfc.version;
   memcpy(&nprobe_ip, &pfc.nprobe_ip, sizeof(struct ndpi_in6_addr));
   unique_source_id = pfc.unique_source_id;

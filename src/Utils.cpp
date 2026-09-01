@@ -3412,6 +3412,11 @@ char* Utils::get2ndLevelDomain(char* _domainname) {
 char* Utils::tokenizer(char* arg, int c, char** data) {
   char* p = NULL;
 
+  if (arg == NULL) {
+    if (data) *data = NULL;
+    return NULL;
+  }
+
   if ((p = strchr(arg, c)) != NULL) {
     *p = '\0';
     if (data) {
@@ -4655,7 +4660,7 @@ u_int32_t Utils::parsetime(char* str) {
 
     if (op == '\0')
       return (ret);
-    else if (sscanf(&str[4], "%d%s", &v, what) == 2) {
+    else if (sscanf(&str[4], "%d%63s", &v, what) == 2) {
       if (!strcmp(what, "h"))
         v *= 3600;
       else if (!strcmp(what, "d"))
@@ -6138,7 +6143,7 @@ void Utils::splitAddressAndVlan(char* addr, u_int16_t* vlan_id) {
     *vlan_id = atoi(at + 1);
     *at = '\0';
   } else
-    vlan_id = 0;
+    *vlan_id = 0;
 }
 
 /* ******************************************* */

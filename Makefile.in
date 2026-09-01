@@ -268,9 +268,27 @@ Makefile: configure Makefile.in
 #	@echo ""
 #	./autogen.sh
 
+# Checks intentionally silenced (see doc/README.cppcheck or commit log):
+#  useInitializationList/duplInheritedMember/noCopyConstructor/noOperatorEq
+#    - style/opinion, not applicable to this codebase
+#  postfixOperator            - it++ on iterators, no measurable cost here
+#  memsetClassFloat           - memset(...,0,...) is a valid zero for IEEE-754
+#  virtualCallInConstructor/Destructor - deliberate (base behaviour wanted)
+#  nullPointer in the Lua engine files - false positives from the
+#    `getLuaVMContext(a) (a ? ... : NULL)` macro; the lua_State* is never NULL
+#    inside a Lua C function (scoped so real null derefs elsewhere still show)
+CPPCHECK_SUPPRESS = --suppress=useInitializationList --suppress=duplInheritedMember \
+                    --suppress=noCopyConstructor --suppress=noOperatorEq \
+                    --suppress=postfixOperator --suppress=memsetClassFloat \
+                    --suppress=virtualCallInConstructor --suppress=virtualCallInDestructor \
+                    --suppress=nullPointer:src/LuaEngineInterface.cpp \
+                    --suppress=nullPointer:src/LuaEngineNetwork.cpp \
+                    --suppress=nullPointer:src/LuaEngineNtop.cpp \
+                    --suppress=nullPointer:src/SNMP.cpp
+
 cppcheck:
 	@mkdir -p .cppcheck-build
-	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=warning,performance,portability --suppress=useInitializationList --suppress=duplInheritedMember --suppress=noCopyConstructor --suppress=noOperatorEq -j $(shell nproc) --cppcheck-build-dir=.cppcheck-build -I include/ $(PRO_CPPCHECK_INCS) @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp $(PRO_CPPCHECK_SRCS)
+	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=warning,performance,portability $(CPPCHECK_SUPPRESS) -j $(shell nproc) --cppcheck-build-dir=.cppcheck-build -I include/ $(PRO_CPPCHECK_INCS) @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp $(PRO_CPPCHECK_SRCS)
 
 test: test_version
 

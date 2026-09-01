@@ -1489,7 +1489,7 @@ int Redis::lrpop(const char* queue_name, char** buf, bool lpop) {
 
   if (reply && reply->str) {
     *buf = (char*)strdup(reply->str);
-    if(buf) rc = 0; else rc = -2;
+    if (*buf) rc = 0; else rc = -2;
   } else
     *buf = NULL, rc = -1;
 
