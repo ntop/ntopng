@@ -2490,6 +2490,7 @@ local known_parameters = {
 
    -- WAZUH Alert Rules / Alert Exceptions (private config)
    ["wazuh_rule_id"] = validateSingleWord,
+   ["wazuh_rule_new_id"] = validateSingleWord,
    ["wazuh_rule_priority"] = validateNumber,
    ["wazuh_rule_min_level"] = validateNumber,
    ["wazuh_rule_groups"] = validateUnquoted,

@@ -127,6 +127,19 @@ end
 
 -- ###############################################################
 
+local function create_flow_details_card_toast_ui(toast)
+    local title = i18n("flow_details_card_toast.title")
+    local description = i18n("flow_details_card_toast.description")
+    local action = {
+        url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=gui",
+        title = i18n("prefs.preferences")
+    }
+
+    return toast_ui:new(toast.id, title, description, ToastLevel.INFO, action, toast.dismissable)
+end
+
+-- ###############################################################
+
 local function create_flows_limit_exceeded_toast(toast, level)
     local info = ntop.getInfo()
     local title = i18n("about.flows_limit_exceeded")
@@ -344,6 +357,14 @@ function predicates.geo_ip(toast, container)
     if IS_ADMIN and not ntop.hasGeoIP() then
         table.insert(container, create_geo_ip_toast_ui(toast))
     end
+end
+
+-- ###############################################################
+
+-- Announce the new "Flow Details Side Card" feature. Dismissable, so it
+-- disappears for good once the user closes it.
+function predicates.flow_details_card(toast, container)
+    table.insert(container, create_flow_details_card_toast_ui(toast))
 end
 
 --- Create an instance for the temp working directory alert

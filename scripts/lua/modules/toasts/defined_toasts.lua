@@ -330,6 +330,17 @@ local defined_toats = {
         excluded_pages = {pages.license.key},
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        -- "Flow Details Side Card" feature
+        id = 31,
+        dismissable = true,
+        has_priority = false,
+        predicate = predicates.flow_details_card,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = {pages.preferences.key},
+        excluded_subpages = EMPTY_PAGES
+    },
 }
 
 return defined_toats
