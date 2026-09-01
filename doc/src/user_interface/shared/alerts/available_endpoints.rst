@@ -289,16 +289,28 @@ Email
 One can create the email endpoint as follows
 
 .. figure:: ../../../img/alerts_email_endpoint.png
-  :align: center
-  :alt: Email Endpoint Configuration
+    :align: center
+    :alt: Email Endpoint Configuration
+
+    Email Endpoint Configuration
 
 Then, one can create multiple email recipients sharing the same
 endpoint but each one with a different destination email address:
 
 
 .. figure:: ../../../img/alerts_email_recipient.png
-  :align: center
-  :alt: Email Endpoint Configuration
+    :align: center
+    :alt: Email Recipient Configuration
+
+    Email Recipient Configuration
+
+
+.. note::
+
+    If TLS Encryption is a must, (so the notifications always need to be sent encrypted), use: smtps://youremail.org 
+
+    By adding the 's' after smtp, ntopng will ensure to force the communication to be encrypted. Also in case this is the case,
+    the STARTSSL option will be ignored
 
 Fail2Ban
 ^^^^^^^^
