@@ -122,7 +122,7 @@ class Utils {
 			       bool do_insecure_tls);
   static bool sendMail(lua_State* vm, char* from, char* to, char* cc,
                        char* message, char* smtp_server, char* username,
-                       char* password, bool use_proxy, bool verbose,
+                       char* password, bool use_proxy, bool use_startssl, bool verbose,
 		       bool do_insecure_tls);
   static bool postHTTPTextFile(lua_State* vm, char* username, char* password,
                                char* url, char* path, int connect_timeout,

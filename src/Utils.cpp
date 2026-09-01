@@ -2072,7 +2072,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
 
 bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
                      char* message, char* smtp_server, char* username,
-                     char* password, bool use_proxy, bool verbose,
+                     char* password, bool use_proxy, bool use_startssl, bool verbose,
 		     bool do_insecure_tls) {
   bool ret = true;
   const char* ret_str = "";
@@ -2111,7 +2111,8 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     if (strncmp(smtp_server, "smtps://", 8) == 0)
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     else if (strncmp(smtp_server, "smtp://", 7) == 0) {
-      if (ntop->getPrefs()->email_starttls_enabled())
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Use STARTSSL: %s", (use_startssl ? "true" : "false"));
+      if (use_startssl)
         curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
       else
         curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);

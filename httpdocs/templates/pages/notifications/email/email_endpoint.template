@@ -3,12 +3,13 @@
         <b>{{ i18n("notification_endpoint.email.smtp_server") }}</b>
         <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#email"><i class="fa-regular fa-circle-question"></i></a>
     </label>
-    <div class="col-sm-5">
+    <div class="col-sm-7">
         <input
             data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_server') }}"
             data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_server') }}"
-            data-pattern="ipv4|ipv6|domainName|emailUrl" data-validation-resolveDNS="true" name="smtp_server" type="text" class="form-control" required />
-    </div>
+            data-pattern="ipv4|ipv6|domainName|emailUrl" data-validation-resolveDNS="true" name="smtp_server" type="text" id="smtp_server" class="form-control" required />
+        <label class="form-check-label" for="smtp_server"><small>{{ i18n("notification_endpoint.email.use_tls_descr") }}</small></label>
+</div>
 </div>
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
@@ -20,6 +21,16 @@
             data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_port') }}"
             data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_port') }}"
             data-pattern="port" name="smtp_port" max="65535" type="number" class="form-control" />
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("notification_endpoint.email.use_startssl") }}
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#email"><i class="fa-regular fa-circle-question"></i></a>
+    </label>
+    <div class="col-sm-7">
+        <input name="use_startssl" type="checkbox" class="form-check-input" id="use_startssl">
+        <label class="form-check-label" for="use_startssl"><small>{{ i18n("notification_endpoint.email.use_startssl_descr") }}</small></label>
     </div>
 </div>
 <div class="mb-3 row">
