@@ -198,6 +198,33 @@ Upon successful generation, the license key will be printed in the browser:
 
 At this point the license can be installed as described above or simply by following the instructions indicated in the resulting page.
 
+.. _LicenseActivation:
+
+License Activation
+-------------------
+
+Installing the license key also requires activation in order to ensure full support and updates. In most cases, this happens automatically without any action from the user,
+however when ntopng is unable to connect to Internet or is started with the :code:`--offline` option, a manual activation is required.
+
+With Internet Access
+~~~~~~~~~~~~~~~~~~~~
+
+If ntopng is connected to the Internet, activation is performed automatically the first time ntopng is started with a Professional or Enterprise license installed, thus no action is required.
+
+Without Internet Access
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If the system is offline and ntopng cannot reach the Internet, or it has been started with the :code:`--offline` command line option, automatic activation is not possible. In this case:
+
+- ntopng shows a toast notification in the web GUI inviting the user to activate the license
+- An `Activation` tab becomes available in the `License` page of the web GUI
+
+To complete the activation manually:
+
+1. From a PC with Internet access, go to https://shop.ntop.org/recover_licenses.php and recover the license: an activation code will be displayed there.
+2. Copy the activation code.
+3. On the ntopng instance, go to `"License"->"Activation"` and paste the activation code in the form, then click `"Activate"`.
+
 .. _LicenseManager:
 
 Using the License Manager
