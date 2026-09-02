@@ -93,6 +93,16 @@ When a query returns time-series or ranked data, nAnalyst automatically generate
 
    nAnalyst Pie Chart
 
+Seeing what the agent can do
+----------------------------
+
+The chat header has a **Tools** button (toolbox icon). It opens the
+:ref:`Tools Catalog <nAnalystToolsCatalog>` — the full list of tools available
+to the agent on this instance, each with its description, the license that
+unlocks it, and its annotations (read-only vs. write, whether it produces a
+chart artifact, whether it needs ClickHouse). Use it to understand the
+assistant's capabilities and what a license upgrade would add.
+
 Multi-turn conversations
 ------------------------
 

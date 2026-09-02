@@ -1,0 +1,46 @@
+{
+  "id": "llm_tools",
+  "data_url": "lua/pro/rest/v2/get/llm/tools.lua",
+  "rsp_records_field": "tools",
+  "use_current_page": false,
+  "enable_search": true,
+  "paging": false,
+  "display_empty_rows": true,
+  "default_sort": {
+    "column_id": "name",
+    "sort": 1
+  },
+  "columns": [
+    {
+      "id": "name",
+      "title_i18n": "llm.tool_name",
+      "data_field": "name",
+      "sortable": true,
+      "class": ["text-nowrap"],
+      "min-width": "180px"
+    },
+    {
+      "id": "description",
+      "title_i18n": "llm.tool_description",
+      "data_field": "description",
+      "sortable": false,
+      "min-width": "320px"
+    },
+    {
+      "id": "license",
+      "title_i18n": "llm.tool_license",
+      "data_field": "license",
+      "sortable": true,
+      "class": ["text-nowrap"],
+      "min-width": "150px"
+    },
+    {
+      "id": "annotations",
+      "title_i18n": "llm.tool_annotations",
+      "data_field": "name",
+      "sortable": false,
+      "class": ["text-nowrap"],
+      "min-width": "180px"
+    }
+  ]
+}
