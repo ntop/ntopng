@@ -35,6 +35,14 @@
       "min-width": "150px"
     },
     {
+      "id": "availability",
+      "title_i18n": "llm.tool_availability",
+      "data_field": "available",
+      "sortable": true,
+      "class": ["text-nowrap"],
+      "min-width": "130px"
+    },
+    {
       "id": "annotations",
       "title_i18n": "llm.tool_annotations",
       "data_field": "name",

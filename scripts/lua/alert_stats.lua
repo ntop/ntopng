@@ -300,6 +300,7 @@ local context = {
     alert_details_url = alert_details_url,
     -- Flow Details Side Card preference
     flow_details_card = ntop.getPref("ntopng.prefs.flow_details_card") ~= "0",
+    flow_details_card_editable = isAdministrator(),
     navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), ntop.getHttpPrefix() .. "/lua/alert_stats.lua?", pages),
     csrf = ntop.getRandomCSRFValue(),
     is_va = _GET["is_va"] or false,
