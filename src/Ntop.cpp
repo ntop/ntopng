@@ -126,6 +126,7 @@ Ntop::Ntop(const char* appName) {
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
   ping_initialized = false;
+  active_monitoring_not_avail = false;
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
@@ -5298,6 +5299,7 @@ void Ntop::initPing() {
 
   if (pcapDumpInterfacesOnly()) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Continuous Ping disabled while processing pcap files");
+    active_monitoring_not_avail = true;
     return;
   }
 
@@ -5357,6 +5359,17 @@ void Ntop::initPing() {
         break;
     }
   }
+}
+
+/* ******************************************* */
+
+/* Active Monitoring intentionally not started (e.g. analysing pcap file) */
+bool Ntop::isActiveMonitoringNotAvail() {
+#ifndef WIN32
+  return active_monitoring_not_avail;
+#else
+  return true;
+#endif
 }
 
 /* ******************************************* */

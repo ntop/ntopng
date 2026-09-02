@@ -215,6 +215,7 @@ class Ntop {
   ContinuousPing* cping;
   Ping* default_ping;
   bool ping_initialized;
+  bool active_monitoring_not_avail;
   std::map<std::string /* ifname */, Ping*> ping;
 #endif
 
@@ -557,6 +558,7 @@ class Ntop {
   inline Prefs* getPrefs() { return (prefs); };
   bool pcapDumpInterfacesOnly();
   void initPing();
+  bool isActiveMonitoringNotAvail();
 #ifndef WIN32
   inline bool isPingInitialized() { return (ping_initialized); };
   void lockNtopInstance();

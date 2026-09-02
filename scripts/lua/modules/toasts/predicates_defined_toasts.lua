@@ -279,8 +279,9 @@ function predicates.restart_required(toast, container)
         return
     end
 
-    if prefs.active_monitoring_pref and not prefs.active_monitoring then
-        table.insert(container, create_restart_required_toast(toast, i18n("prefs.restart_needed", { product = info.product })))
+    if prefs.active_monitoring_pref and not prefs.active_monitoring
+        and not prefs.active_monitoring_not_avail then
+        table.insert(container, create_restart_required_toast(toast, i18n("prefs.restart_needed_active_monitoring", { product = info.product })))
     end
 
     if not ntop.isPackage() or ntop.isWindows() then

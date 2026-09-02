@@ -3099,8 +3099,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "vs_slow_scan", vs_slow_scan);
   lua_push_bool_table_entry(vm, "snmp_polling", snmp_polling);
   lua_push_bool_table_entry(vm, "active_monitoring", do_active_monitoring());
-  lua_push_bool_table_entry(vm, "active_monitoring_pref",
-                            get_active_monitoring_pref());
+  lua_push_bool_table_entry(vm, "active_monitoring_pref", get_active_monitoring_pref());
+  lua_push_bool_table_entry(vm, "active_monitoring_not_avail", ntop->isActiveMonitoringNotAvail());
   lua_push_bool_table_entry(vm, "network_discovery", network_discovery);
   lua_push_bool_table_entry(vm, "starttls", starttls);
   lua_push_bool_table_entry(vm, "dump_pcap_to_clickhouse",
