@@ -90,11 +90,6 @@ ALTER TABLE wazuh_alerts ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_ru
 
 @
 
-/* Migration TTL*/
-ALTER TABLE wazuh_alerts ON CLUSTER '$CLUSTER' REMOVE TTL;
-
-@
-
 CREATE TABLE IF NOT EXISTS wazuh_alert_rules ON CLUSTER '$CLUSTER'
 (
     id          String        COMMENT 'Unique rule identifier',
