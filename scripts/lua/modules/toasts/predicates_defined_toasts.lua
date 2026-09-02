@@ -1001,7 +1001,7 @@ function predicates.license_activation(toast, container)
         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         local app_utils = require "app_utils"
 
-        if not app_utils.check_license_registration() then
+        if not app_utils.isActivated() then
             table.insert(container, create_license_activation_toast(toast))
         end
     end

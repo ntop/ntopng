@@ -66,7 +66,7 @@ local needs_activation = false
 if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    local app_utils = require "app_utils"
-   needs_activation = (app_utils.check_license_registration() == false)
+   needs_activation = (app_utils.isActivated() == false)
 end
 
 local res = {

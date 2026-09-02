@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "Connected",
   ["connected_to_the_cloud"] = "Connected To The Cloud",
   ["connection_states"] = "Connection State [ Major / Minor ]",
+  ["content_not_available_title"] = "Content Not Available",
   ["copied"] = "Copied",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "Count",
@@ -469,6 +470,7 @@ local lang = {
   ["license_activation_action"] = "Activate Now",
   ["license_activation_title"] = "License Not Activated",
   ["license_activation_warning"] = "This license has not been activated yet. Please activate it to enable all features and ensure full support and updates.",
+  ["license_activation_content_not_available"] = "Some content couldn’t be loaded. Please activate your license to unlock all features.",
   ["legenda"] = "Legenda",
   ["level"] = "Level",
   ["light"] = "Light",
@@ -9406,6 +9408,7 @@ local lang = {
     ["use_server_timezone"] = "Use Server Timezone",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "This feature requires the license to be activated",
     ["ADD_POOL_FAILED"] = "Unable to add a pool with the submitted params",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "Too many pools created. Consider upgrading ntopng to Enterprise M or above to create additional pools.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "Too many pools created.",
