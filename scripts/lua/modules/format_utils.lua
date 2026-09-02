@@ -472,10 +472,10 @@ end
 function format_utils.formatPastEpochShort(input_epoch)
    local epoch_now = os.time()
    local epoch = input_epoch or epoch_now
-   local day = os.date("*t", epoch).day
-   local day_now = os.date("*t", epoch_now).day
+   local d = os.date("*t", epoch)
+   local d_now = os.date("*t", epoch_now)
 
-   if day == day_now then
+   if d.day == d_now.day and d.month == d_now.month and d.year == d_now.year then
       return os.date("%X", epoch)
    end
 

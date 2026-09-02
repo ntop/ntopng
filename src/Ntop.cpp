@@ -4134,7 +4134,18 @@ void Ntop::checkReloadAlertExclusions() {
 void Ntop::checkReloadFlowChecks() {
   if(flowChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
     FlowChecksLoader *old,
-        *tmp_flow_checks_loader = new (std::nothrow) FlowChecksLoader();
+        *tmp_flow_checks_loader;
+
+    /* Leave this BEFORE the actual swap and new allocation to guarantee
+       changes are always seen: the reload below (initialize() + the
+       per-interface swap + the sleep(2)) can take a couple of seconds, and
+       if another reload is requested (e.g. by a subsequent REST call) while
+       this one is still in progress, clearing the flag only at the end
+       would silently discard that newer request instead of leaving it
+       pending for the next call. */
+    flowChecksReloadInProgress = false;
+
+    tmp_flow_checks_loader = new (std::nothrow) FlowChecksLoader();
 
     if (!tmp_flow_checks_loader) {
       ntop->getTrace()->traceEvent(
@@ -4157,8 +4168,6 @@ void Ntop::checkReloadFlowChecks() {
 
       delete old;
     }
-
-    flowChecksReloadInProgress = false;
   }
 }
 
@@ -4167,7 +4176,14 @@ void Ntop::checkReloadFlowChecks() {
 void Ntop::checkReloadHostChecks() {
   if(hostChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
     HostChecksLoader *old,
-        *tmp_host_checks_loader = new (std::nothrow) HostChecksLoader();
+        *tmp_host_checks_loader;
+
+    /* Leave this BEFORE the actual swap and new allocation to guarantee
+       changes are always seen: see the identical comment in
+       checkReloadFlowChecks() above. */
+    hostChecksReloadInProgress = false;
+
+    tmp_host_checks_loader = new (std::nothrow) HostChecksLoader();
 
     if (!tmp_host_checks_loader) {
       ntop->getTrace()->traceEvent(
@@ -4190,8 +4206,6 @@ void Ntop::checkReloadHostChecks() {
 
       delete old;
     }
-
-    hostChecksReloadInProgress = false;
   }
 }
 
