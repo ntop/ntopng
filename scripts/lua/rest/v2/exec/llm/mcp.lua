@@ -28,7 +28,7 @@ local rest_utils  = require("rest_utils")
 local page_utils  = require("page_utils")
 require "check_redis_prefs"
 
-if ntop.hasnAnalyst() then
+if isnAnalystAvailable() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;"     .. package.path
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
 end
