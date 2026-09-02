@@ -1553,7 +1553,7 @@ historical_flow_utils.builtin_presets = {
       chart =
          {
             {
-               unit_measure = "bps",
+               unit_measure = "bps_no_scale",
                params = {
                   count = historical_ts_definitions and historical_ts_definitions.get_available_query_types()[1]
                }
