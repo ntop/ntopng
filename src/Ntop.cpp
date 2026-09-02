@@ -1720,7 +1720,7 @@ bool Ntop::checkLocalAuth(const char* user, const char* password,
   if (!getUserPasswordHashLocal(user, val, sizeof(val))) {
     return (false);
   } else {
-    mg_md5(password_hash, password, NULL);
+    mg_md5(password_hash, password, (char *) NULL);
 
     if (strcmp(password_hash, val) != 0) {
       return (false);
@@ -2193,7 +2193,7 @@ bool Ntop::resetUserPassword(char* username, char* old_password,
   }
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  mg_md5(password_hash, new_password, NULL);
+  mg_md5(password_hash, new_password, (char *) NULL);
 
   if (ntop->getRedis()->set(key, password_hash, 0) < 0) return (false);
 
@@ -2250,10 +2250,12 @@ bool Ntop::changeAllowedNets(char* username, char* allowed_nets) const {
 /* ******************************************* */
 
 bool Ntop::changeAllowedIfname(char* username, char* allowed_ifname) const {
-  /* Add as exception :// */
-  char* column_slash = strstr(allowed_ifname, ":__");
+  char* column_slash;
 
   if (username == NULL || username[0] == '\0') return false;
+
+  /* Add as exception :// */
+  column_slash = allowed_ifname ? strstr(allowed_ifname, ":__") : NULL;
 
   if (column_slash) column_slash[1] = column_slash[2] = '/';
 
@@ -2552,7 +2554,7 @@ bool Ntop::addUser(char* username, char* full_name, char* password,
   ntop->getRedis()->set(key, new_user_id_buf, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  mg_md5(password_hash, password, NULL);
+  mg_md5(password_hash, password, (char *) NULL);
   ntop->getRedis()->set(key, password_hash, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
@@ -2849,7 +2851,7 @@ bool Ntop::createMFAPendingToken(const char* username, const char* referer,
 
   snprintf(random, sizeof(random), "%d%s", rand(), username);
   /* mg_md5 produces a 33-char (32 hex + NUL) string */
-  mg_md5(tmp_token, random, NULL);
+  mg_md5(tmp_token, random, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
   token[token_len - 1] = '\0';
 
@@ -3212,7 +3214,7 @@ bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
   if (!generateWebAuthnChallenge(challenge_b64, challenge_len)) return false;
 
   snprintf(rand_str, sizeof(rand_str), "%d%s", rand(), username);
-  mg_md5(tmp_token, rand_str, NULL);
+  mg_md5(tmp_token, rand_str, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
   token[token_len - 1] = '\0';
 

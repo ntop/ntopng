@@ -226,7 +226,7 @@ static void generate_csrf_token(char* csrf) {
   snprintf(random_b, sizeof(random_b), "%lu", time(NULL) * rand());
 #endif
 
-  mg_md5(csrf, random_a, random_b, NULL);
+  mg_md5(csrf, random_a, random_b, (char *) NULL);
 }
 
 /* ****************************************** */
@@ -327,7 +327,7 @@ static void generate_session_id(char* buf, const char* user,
 	     rand(), num_pkts, user);
   }
 
-  mg_md5(buf, random_str, user, group, NULL);
+  mg_md5(buf, random_str, user, group, (char *) NULL);
 }
 
 /* ****************************************** */

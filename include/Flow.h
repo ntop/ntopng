@@ -1655,7 +1655,8 @@ class Flow : public GenericHashEntry {
     return (ndpiAddressFamilyProtocol);
   }
   inline void setAddressFamilyProtocol(char* proto) {
-    ndpiAddressFamilyProtocol = strdup(proto);
+    if (ndpiAddressFamilyProtocol) free(ndpiAddressFamilyProtocol);
+    ndpiAddressFamilyProtocol = proto ? strdup(proto) : NULL;
   }
 
   inline ndpi_confidence_t getConfidence() { return (confidence); }

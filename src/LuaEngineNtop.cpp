@@ -5528,7 +5528,7 @@ static int ntop_md5(lua_State* vm) {
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  mg_md5(result, lua_tostring(vm, 1), NULL);
+  mg_md5(result, lua_tostring(vm, 1), (char *) NULL);
 
   lua_pushstring(vm, result);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
