@@ -100,6 +100,12 @@ void Trace::set_log_file(const char* log_file) {
 /* ******************************* */
 
 void Trace::set_trace_level(u_int8_t id) {
+  if(id >= TRACE_LEVEL_INFO) {
+#ifndef DEBUG_NTOPNG
+    return;
+#endif
+  }
+  
   if (id > MAX_TRACE_LEVEL) id = MAX_TRACE_LEVEL;
 
   traceLevel = id;
