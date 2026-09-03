@@ -6168,135 +6168,546 @@ local lang = {
     ["shut_start"] = "Unable to serve requests at this time, possibly starting up or shutting down",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "Echo Reply",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Echo Reply",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "Router Solicitation",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "Time Exceeded",
+          ["code"] = {
+            ["0"] = "Time to Live exceeded in Transit",
+            ["1"] = "Fragment Reassembly Time Exceeded",
+          },
+        },
+        ["12"] = {
+          ["info"] = "Parameter Problem",
+          ["code"] = {
+            ["0"] = "Pointer indicates the error",
+            ["1"] = "Missing a Required Option",
+            ["2"] = "Bad Length",
+          },
+        },
+        ["13"] = {
+          ["info"] = "Timestamp",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "Timestamp Reply",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "Information Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "Information Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "Address Mask Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "Address Mask Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "Reserved (for Security)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "RFC3692-style Experiment 1",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "RFC3692-style Experiment 2",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Reserved",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Destination Unreachable",
+          ["code"] = {
+            ["0"] = "Net Unreachable",
+            ["1"] = "Host Unreachable",
+            ["10"] = "Communication with Destination Host is Administratively Prohibited",
+            ["11"] = "Destination Network Unreachable for Type of Service",
+            ["12"] = "Destination Host Unreachable for Type of Service",
+            ["13"] = "Communication Administratively Prohibited",
+            ["14"] = "Host Precedence Violation",
+            ["15"] = "Precedence cutoff in effect",
+            ["2"] = "Protocol Unreachable",
+            ["3"] = "Port Unreachable",
+            ["4"] = "Fragmentation Needed and Don't Fragment was Set",
+            ["5"] = "Source Route Failed",
+            ["6"] = "Destination Network Unknown",
+            ["7"] = "Destination Host Unknown",
+            ["8"] = "Source Host Isolated",
+            ["9"] = "Communication with Destination Network is Administratively Prohibited",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "Datagram Conversion Error (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "Mobile Host Redirect (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 Where-Are-You (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 I-Am-Here (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "Mobile Registration Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "Mobile Registration Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "Domain Name Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "Domain Name Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "SKIP (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "Source Quench (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "Photuris",
+          ["code"] = {
+            ["0"] = "Bad SPI",
+            ["1"] = "Authentication Failed",
+            ["2"] = "Decompression Failed",
+            ["3"] = "Decryption Failed",
+            ["4"] = "Need Authentication",
+            ["5"] = "Need Authorization",
+          },
+        },
+        ["41"] = {
+          ["info"] = "ICMP messages utilized by experimental mobility protocols such as Seamoby",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "Extended Echo Request",
+          ["code"] = {
+            ["0"] = "No Error",
+          },
+        },
+        ["43"] = {
+          ["info"] = "Extended Echo Reply",
+          ["code"] = {
+            ["0"] = "No Error",
+            ["1"] = "Malformed Query",
+            ["2"] = "No Such Interface",
+            ["3"] = "No Such Table Entry",
+            ["4"] = "Multiple Interfaces Satisfy Query",
+          },
+        },
+        ["5"] = {
+          ["info"] = "Redirect",
+          ["code"] = {
+            ["0"] = "Redirect Datagram for the Network (or subnet)",
+            ["1"] = "Redirect Datagram for the Host",
+            ["2"] = "Redirect Datagram for the Type of Service and Network",
+            ["3"] = "Redirect Datagram for the Type of Service and Host",
+          },
+        },
+        ["6"] = {
+          ["info"] = "Alternate Host Address (Deprecated)",
+          ["code"] = {
+            ["0"] = "Alternate Address for Host",
+          },
+        },
+        ["8"] = {
+          ["info"] = "Echo",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "Router Advertisement",
+          ["code"] = {
+            ["0"] = "Normal router advertisement",
+            ["16"] = "Does not route common traffic",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "Router Selection",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Reserved",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "Time Exceeded",
-        ["code"] = {
-          ["0"] = "Time to live exceeded in transit",
-          ["1"] = "Fragment reassembly time exceeded",
+        ["1"] = {
+          ["info"] = "Destination Unreachable",
+          ["code"] = {
+            ["0"] = "no route to destination",
+            ["1"] = "communication with destination administratively prohibited",
+            ["2"] = "beyond scope of source address",
+            ["3"] = "address unreachable",
+            ["4"] = "port unreachable",
+            ["5"] = "source address failed ingress/egress policy",
+            ["6"] = "reject route to destination",
+            ["7"] = "Error in Source Routing Header",
+            ["8"] = "Headers too long",
+            ["9"] = "Error in P-Route",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "Parameter Problem",
-        ["code"] = {
-          ["0"] = "Pointer indicates the error",
+        ["100"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "Timestamp",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "Multicast Listener Query",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "Reserved for expansion of ICMPv6 error messages",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "Multicast Listener Report",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "Echo Request",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "Router Solicitation",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "Echo Reply",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "Router Advertisement",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "Multicast Listener Query",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "Neighbor Solicitation",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "Multicast Listener Report",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "Neighbour Advertisement",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "Multicast Listener Done",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "Timestamp Reply",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "Router Solicitation",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "Multicast Listener Report v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "Router Advertisement",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "Information Request",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "Neighbor Solicitation",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "Information Reply",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "Neighbor Advertisement",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "Address mask Request",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "Redirect Message",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "Address Mask Reply",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "Router Renumbering",
+          ["code"] = {
+            ["0"] = "Router Renumbering Command",
+            ["1"] = "Router Renumbering Result",
+            ["255"] = "Sequence Number Reset",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "Destination Unreachable",
-        ["code"] = {
-          ["0"] = "Net unreachable",
-          ["1"] = "Host unreachable",
-          ["2"] = "Protocol unreachable",
-          ["3"] = "Port unreachable",
-          ["4"] = "Fragmentation needed and DF set",
-          ["5"] = "Source route failed",
+        ["139"] = {
+          ["info"] = "ICMP Node Information Query",
+          ["code"] = {
+            ["0"] = "The Data field contains an IPv6 address which is the Subject of this Query.",
+            ["1"] = "The Data field contains a name which is the Subject of this Query, or is empty, as in the case of a NOOP.",
+            ["2"] = "The Data field contains an IPv4 address which is the Subject of this Query.",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "Traceroute",
-        ["code"] = {
-          ["0"] = "Outbound Packet successfully forwarded",
-          ["1"] = "No route for Outbound Packet; packet discarded",
+        ["140"] = {
+          ["info"] = "ICMP Node Information Response",
+          ["code"] = {
+            ["0"] = "A successful reply. The Reply Data field may or may not be empty.",
+            ["1"] = "The Responder refuses to supply the answer. The Reply Data field will be empty.",
+            ["2"] = "The Qtype of the Query is unknown to the Responder. The Reply Data field will be empty.",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "Source Quench",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "Inverse Neighbor Discovery Solicitation Message",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "Redirect",
-        ["code"] = {
-          ["0"] = "Redirect datagrams for the Network",
-          ["1"] = "Redirect datagrams for the Host",
-          ["2"] = "Redirect datagrams for the Type of Service and Network",
-          ["3"] = "Redirect datagrams for the Type of Service and Host",
+        ["142"] = {
+          ["info"] = "Inverse Neighbor Discovery Advertisement Message",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "Echo Request",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "Version 2 Multicast Listener Report",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "Router Advertisement",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "Home Agent Address Discovery Request Message",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "Home Agent Address Discovery Reply Message",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "Mobile Prefix Solicitation",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "Mobile Prefix Advertisement",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "Certification Path Solicitation Message",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "Certification Path Advertisement Message",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "ICMP messages utilized by experimental mobility protocols such as Seamoby",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "Multicast Router Advertisement",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "Multicast Router Solicitation",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "Multicast Router Termination",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "FMIPv6 Messages",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "RPL Control Message",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "ILNPv6 Locator Update Message",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "Duplicate Address Request",
+          ["code"] = {
+            ["0"] = "DAR message",
+            ["1"] = "EDAR message with 64-bit ROVR field",
+            ["2"] = "EDAR message with 128-bit ROVR field",
+            ["3"] = "EDAR message with 192-bit ROVR field",
+            ["4"] = "EDAR message with 256-bit ROVR field",
+          },
+        },
+        ["158"] = {
+          ["info"] = "Duplicate Address Confirmation",
+          ["code"] = {
+            ["0"] = "DAC message",
+            ["1"] = "EDAC message with 64-bit ROVR field",
+            ["2"] = "EDAC message with 128-bit ROVR field",
+            ["3"] = "EDAC message with 192-bit ROVR field",
+            ["4"] = "EDAC message with 256-bit ROVR field",
+          },
+        },
+        ["159"] = {
+          ["info"] = "MPL Control Message",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "Extended Echo Request",
+          ["code"] = {
+            ["0"] = "No Error",
+          },
+        },
+        ["161"] = {
+          ["info"] = "Extended Echo Reply",
+          ["code"] = {
+            ["0"] = "No Error",
+            ["1"] = "Malformed Query",
+            ["2"] = "No Such Interface",
+            ["3"] = "No Such Table Entry",
+            ["4"] = "Multiple Interfaces Satisfy Query",
+          },
+        },
+        ["2"] = {
+          ["info"] = "Packet Too Big",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Reserved for expansion of ICMPv6 informational messages",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Time Exceeded",
+          ["code"] = {
+            ["0"] = "hop limit exceeded in transit",
+            ["1"] = "fragment reassembly time exceeded",
+          },
+        },
+        ["4"] = {
+          ["info"] = "Parameter Problem",
+          ["code"] = {
+            ["0"] = "erroneous header field encountered",
+            ["1"] = "unrecognized Next Header type encountered",
+            ["10"] = "Option too big",
+            ["2"] = "unrecognized IPv6 option encountered",
+            ["3"] = "IPv6 First Fragment has incomplete IPv6 Header Chain",
+            ["4"] = "SR Upper-layer Header Error",
+            ["5"] = "Unrecognized Next Header type encountered by intermediate node",
+            ["6"] = "Extension header too big",
+            ["7"] = "Extension header chain too long",
+            ["8"] = "Too many extension headers",
+            ["9"] = "Too many options in extension header",
+          },
         },
       },
     },
@@ -6315,6 +6726,7 @@ local lang = {
     ["packets_received"] = "Packets Received",
     ["packets_sent"] = "Packets Sent",
     ["top_icmp_hosts"] = "Top ICMP Hosts",
+    ["unassigned"] = "Unassigned",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "Rule type",

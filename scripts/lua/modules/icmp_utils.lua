@@ -6,97 +6,85 @@ local icmp_utils = {}
 
 local clock_start = os.clock()
 
-local icmp_locale_loaded = false
-local dirs = ntop.getDirs()
-
-local function get_icmp_locale_path(locale)
-   local locale_path = dirs.installdir .. "/scripts/locales/icmp/" .. locale .. ".lua"
-
-   return locale_path
-end
-
--- #######################
-
-local function load_icmp_locale()
-   local to_load = {i18n.getLocale()}
-
-   if i18n.getFallbackLocale() ~= i18n.getLocale() then
-      to_load[#to_load + 1] = i18n.getFallbackLocale()
-   end
-
-   for _, cur_locale in ipairs(to_load) do
-      local cur_locale_path = get_icmp_locale_path(cur_locale)
-
-      if ntop.exists(cur_locale_path) then
-	 i18n.load({
-	       [cur_locale] = dofile(cur_locale_path)
-	 })
-      end
-   end
-
-   -- tprint({cur = current_locale, fb = fallback_locale, selected = selected_locale, cane = i18n("icmp_v4_types.type_000")})
-   icmp_locale_loaded = true
-end
-
--- #######################
-
 icmp_utils.ICMP_PROTOCOL = 1
 icmp_utils.ICMPv6_PROTOCOL = 58
 
 -- #######################
 
-function icmp_utils.get_icmp_type(icmp_type, omit_number)
-  local icmp_type_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".info") or ""
+-- Maps an L4 protocol, either as a numeric id or as a protocol
+-- name ("ICMP", "IPv6-ICMP"), to the ICMP version (4 or 6)
+function icmp_utils.icmp_version_from_l4(l4_proto)
+  local proto_id = tonumber(l4_proto)
 
-  if isEmptyString(icmp_type_string) then
-    icmp_type_string = tostring(icmp_type)
-  else
-     if(omit_number ~= true) then
-	icmp_type_string = string.format("%s (%u)", icmp_type_string, icmp_type)
-     end
+  if(proto_id ~= nil) then
+     return ternary(proto_id == icmp_utils.ICMPv6_PROTOCOL, 6, 4)
   end
 
-  return icmp_type_string 
+  return ternary(string.upper(tostring(l4_proto or "")) == "IPV6-ICMP", 6, 4)
 end
 
 -- #######################
 
-function icmp_utils.get_icmp_type_label(icmp_type)
-  return string.format("%s: %s", i18n("icmp_page.icmp_type"), icmp_utils.get_icmp_type(icmp_type)) 
+-- Reads the icmp_info locale table, which follows the two IANA registries
+local function icmp_info_i18n(icmp_version, key)
+   local res
+
+   icmp_version = tonumber(icmp_version)
+
+   if(icmp_version ~= 6) then res = i18n("icmp_info.icmp." .. key) end
+   if(isEmptyString(res) and (icmp_version ~= 4)) then res = i18n("icmp_info.icmpv6." .. key) end
+
+   return res or ""
 end
 
 -- #######################
 
-function icmp_utils.get_icmp_code(icmp_type, icmp_code)
-  local icmp_code_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".code." .. tostring(icmp_code)) or ""
+function icmp_utils.get_icmp_type(icmp_type, omit_number, icmp_version)
+   local icmp_type_string = icmp_info_i18n(icmp_version, "type." .. tostring(icmp_type) .. ".info")
 
-  if isEmptyString(icmp_code_string) then
-    icmp_code_string = tostring(icmp_type)
-  else
-    icmp_code_string = string.format("%s (%u)", icmp_code_string, icmp_type)
-  end
+   if isEmptyString(icmp_type_string) then
+      -- Type numbers outside the IANA registries are unassigned
+      icmp_type_string = string.format("%s (%s)", i18n("icmp_page.unassigned"), icmp_type)
+   else
+      if(omit_number ~= true) then
+	      icmp_type_string = string.format("%s (%u)", icmp_type_string, icmp_type)
+      end
+   end
 
-  return icmp_code_string 
+   return icmp_type_string 
 end
 
 -- #######################
 
-function icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
-  return string.format("%s: %s", i18n("icmp_page.icmp_code"), icmp_utils.get_icmp_code(icmp_type, icmp_code)) 
+function icmp_utils.get_icmp_type_label(icmp_type, icmp_version)
+   return string.format("%s: %s", i18n("icmp_page.icmp_type"), icmp_utils.get_icmp_type(icmp_type, false, icmp_version)) 
 end
 
 -- #######################
 
-function icmp_utils.get_icmp_label(icmp_type, icmp_code)
-  if not icmp_locale_loaded then
-    load_icmp_locale()
-  end
+function icmp_utils.get_icmp_code(icmp_type, icmp_code, icmp_version)
+   local icmp_code_string = icmp_info_i18n(icmp_version,
+      "type." .. tostring(icmp_type) .. ".code." .. tostring(icmp_code))
 
-  -- local type_label = icmp_utils.get_icmp_type_label(icmp_type)
-  --local code_label = icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
-  -- return string.format("%s, %s", type_label, code_label)
+   if isEmptyString(icmp_code_string) then
+      icmp_code_string = tostring(icmp_code)
+   else
+      icmp_code_string = string.format("%s (%u)", icmp_code_string, icmp_code)
+   end
 
-  return(icmp_utils.get_icmp_type(icmp_type))
+   return icmp_code_string 
+end
+
+-- #######################
+
+function icmp_utils.get_icmp_code_label(icmp_type, icmp_code, icmp_version)
+   return string.format("%s: %s", i18n("icmp_page.icmp_code"), icmp_utils.get_icmp_code(icmp_type, icmp_code, icmp_version)) 
+end
+
+-- #######################
+
+function icmp_utils.get_icmp_label(icmp_type, icmp_code, icmp_version)
+   return(icmp_utils.get_icmp_type(icmp_type, false, icmp_version))
 end
 
 if(trace_script_duration ~= nil) then
