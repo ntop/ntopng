@@ -2187,12 +2187,17 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
     if (flow->nprobe_source_id == 0)
       flow->nprobe_source_id = flow->unique_source_id;
 
-    /* Process Flow */
-    INTERFACE_PROFILING_SECTION_ENTER("processFlow", 30);
+#ifdef NTOPNG_PRO
+    if (flow_devices_stats->isProbeSupported(flow->nprobe_source_id))
+#endif
+    {
+      /* Process Flow */
+      INTERFACE_PROFILING_SECTION_ENTER("processFlow", 30);
 
-    rc = processFlow(flow);
+      rc = processFlow(flow);
 
-    INTERFACE_PROFILING_SECTION_EXIT(30);
+      INTERFACE_PROFILING_SECTION_EXIT(30);
+    }
   }
 
   if (!rc) recvStats.num_dropped_flows++;
