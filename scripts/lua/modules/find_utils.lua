@@ -252,6 +252,7 @@ local function find_network(query, tot_results, ifid, add_interface_name)
             name = name,
             type = "network",
             network = network_id,
+            cidr = network,
             links = links,
             badges = badges,
             ifid = ifid
@@ -389,10 +390,10 @@ local function find_snmp_interface(query, tot_results)
          local snmp_port_index_match = snmp_port["index_match"]
 
          local title = i18n("snmp.snmp_interface_x", {
-            interface = shortenString(snmp_utils.get_snmp_interface_label({
+            interface = snmp_utils.get_snmp_interface_label({
                index = snmp_port_idx,
                name = snmp_port_name
-            }))
+            })
          })
 
          title = title .. " · " .. snmp_utils.get_snmp_device_label(snmp_device_ip)
@@ -520,8 +521,8 @@ local function find_host(query, tot_results, ifid, add_interface_name)
 
    -- Active Hosts
    local res = interface.findHost(query)
-
-   for k, host_key in pairs(res) do
+   
+   for host_key, k in pairs(res) do
       if not hosts[k] then
          local badges = {}
          local links = {}
@@ -532,8 +533,9 @@ local function find_host(query, tot_results, ifid, add_interface_name)
          local host_info = hostkey2hostinfo(host_key)
          local label = hostinfo2label(host_info, true)
          if host_key ~= k then
-            label = label .. " · " .. k
+            label = label
          end
+
 
          if isMacAddress(host_key) then -- MAC
             mac = host_key
@@ -549,9 +551,9 @@ local function find_host(query, tot_results, ifid, add_interface_name)
             add_host_link(links)
             add_historical_flows_link(links, 'ip', host_key, ifid)
          else -- Name
-            ip = k
+            ip = host_key
             add_host_link(links)
-            add_historical_flows_link(links, 'name', host_key, ifid)
+            add_historical_flows_link(links, 'name', k, ifid)
          end
 
          if add_interface_name then
@@ -665,7 +667,7 @@ local function find_host(query, tot_results, ifid, add_interface_name)
                   host = mac,
                   mac = mac,
                   name = name
-               }) .. " · " .. mac,
+               }),
                mac = mac,
                name = name,
                links = links
