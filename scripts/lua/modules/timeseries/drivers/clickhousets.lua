@@ -175,8 +175,14 @@ function driver:query(schema, tstart, tend, tags, options)
       --
       -- Window functions are evaluated after WHERE, so the lag must be computed
       -- in the middle subquery before the outer WHERE removes the extra bucket.
+      -- __rn flags the first row of the windowed result set (ORDER BY t). When the 
+      -- look-back bucket (tstart - time_step) has no data of its own, that first 
+      -- row IS the real first requested bucket, and lag() has no predecessor to 
+      -- diff against: it silently defaults to 0, turning the raw cumulative counter 
+      -- value into the delta for that point (a huge bogus spike). Null it out 
+      -- instead so it renders as a gap, same as any other missing sample.
       local inner_sel = {}
-      local mid_sel   = { "t" }
+      local mid_sel   = { "t", "row_number() OVER (ORDER BY t) AS `__rn`" }
       local outer_sel = { "t" }
       for _, metric in ipairs(schema._metrics) do
          local esc = ch_escape(metric)
@@ -185,7 +191,7 @@ function driver:query(schema, tstart, tend, tags, options)
          mid_sel[#mid_sel + 1] = string.format(
             "`%s` - lag(`%s`, 1, 0) OVER (ORDER BY t) AS `%s`", esc, esc, esc)
          outer_sel[#outer_sel + 1] = string.format(
-            "greatest(0, `%s`) / %d AS `%s`", esc, time_step, esc)
+            "if(`__rn` = 1, NULL, greatest(0, `%s`) / %d) AS `%s`", esc, time_step, esc)
       end
 
       sql = string.format(
