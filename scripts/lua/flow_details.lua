@@ -1410,7 +1410,8 @@ local function print_flow_overview_page()
 
       if (icmp ~= nil) then
          local icmp_utils = require "icmp_utils"
-         local icmp_label = icmp_utils.get_icmp_label(flow["icmp"]["type"], flow["icmp"]["code"])
+         local icmp_label = icmp_utils.get_icmp_label(flow["icmp"]["type"], flow["icmp"]["code"],
+            icmp_utils.icmp_version_from_l4(flow["proto.l4"]))
 
          print("<tr><th class='colspan-4'>" .. i18n("flow_details.icmp_info") .. "</th><td colspan=2>" .. icmp_label)
 
