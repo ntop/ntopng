@@ -196,7 +196,7 @@ local function build_qoe(flow, proto_info_json)
    return {
       qoe_score       = qoe_score,
       c2s_score       = qoe and qoe.c2s and qoe.c2s.score or nil,
-      s2c_score       = qoe and qoe.s2c and qoe.s2c.qoe_score or nil,
+      s2c_score       = qoe and qoe.s2c and (qoe.s2c.score or qoe.s2c.qoe_score) or nil,
    }
 end
 

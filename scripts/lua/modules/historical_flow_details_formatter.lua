@@ -180,7 +180,7 @@ function historical_flow_details_formatter.format_qoe(flow)
 
 		return {
 			name = i18n("flow_details.qoe_long"),
-			values = { qoe_utils.formatQoE(json_info.qoe.c2s.score), qoe_utils.formatQoE(json_info.qoe.s2c.qoe_score) },
+			values = { qoe_utils.formatQoE(json_info.qoe.c2s.score), qoe_utils.formatQoE(json_info.qoe.s2c.score or json_info.qoe.s2c.qoe_score) },
 		}
 	end
 end
