@@ -7166,6 +7166,7 @@ local lang = {
     ["no_system_id"] = "Unable to determine the SystemId for this instance.",
     ["not_valid"] = "Not Valid",
     ["status"] = "Status",
+    ["system_id_changed"] = "The SystemID seems to be changed on this instance, please <a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>read how to transfer the license</a> to the new SystemID.",
     ["valid"] = "Valid License",
   },
   ["limits_page"] = {
