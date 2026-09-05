@@ -8579,7 +8579,7 @@ bool Flow::hasDissectedTooManyPackets() {
   /* NOTE: in nEdge packet stats are update periodically, so
    * we cannot rely on get_packets() */
   if (ndpiFlow) /* WARNING: can wrap! */
-    num_packets = ndpiFlow->num_processed_pkts;
+    num_packets = ndpiFlow->core.num_processed_pkts;
   else
     num_packets = get_packets();
 #else
