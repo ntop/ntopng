@@ -2752,7 +2752,7 @@ pre_get_flow:
         } else if (flow->getRTPStreamType() == ndpi_multimedia_unknown_flow) {
           if (flow->get_ndpi_flow() != NULL) {
             flow->setRTPStreamType(
-                flow->get_ndpi_flow()->flow_multimedia_types);
+                flow->get_ndpi_flow()->metadata.flow_multimedia_types);
           }
         }
 
