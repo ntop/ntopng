@@ -109,8 +109,24 @@ function tools.dispatch(action, content)
 
    local ok, result, err, artifact = pcall(tool.handler, content)
    if not ok then
-      return nil, "tool '" .. action .. "' threw: " .. tostring(result), nil
+      -- Crash: classify so the LLM can pick a sane recovery (retry vs narrow args vs give up)
+      -- instead of just seeing an opaque Lua stack fragment.
+      local raw = tostring(result)
+      local kind = "internal_error"
+      if raw:find("attempt to call a nil value") or raw:find("attempt to index a nil value") then
+         kind = "missing_dependency" -- likely bad/unexpected arg, or feature not available on this instance
+      elseif raw:find("timeout") or raw:find("timed out") then
+         kind = "timeout"
+      end
+      return nil, string.format("[%s] tool '%s' failed: %s", kind, action, raw), nil
    end
+
+   if result == nil and err == nil then
+      -- Handler returned nothing usable: treat as an empty result, not silence,
+      -- so the LLM reports "no data" instead of assuming success or retrying blindly.
+      return nil, "[empty_result] tool '" .. action .. "' returned no data", nil
+   end
+
    return result, err, artifact
 end
 
