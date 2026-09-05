@@ -24,7 +24,8 @@
       "title_i18n": "llm.tool_description",
       "data_field": "description",
       "sortable": false,
-      "min-width": "320px"
+      "min-width": "320px",
+      "max-width": "400px"
     },
     {
       "id": "license",
