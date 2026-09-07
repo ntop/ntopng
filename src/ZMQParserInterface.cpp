@@ -1369,8 +1369,14 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow* const flow,
   case S7_INFO:
   case PROFINET_INFO:
   case MODBUS_INFO:
+    /* Set protocol-specific info, with priority over generic OT info */
+    if (value->string && value->string[0]) flow->setOTInfo(value->string);
+    break;
+
   case OT_INFO:
-    flow->setOTInfo(value->string);
+    /* Set OT info, when no protocol-specific data is received for the flow */
+    if (value->string && value->string[0] && !flow->getOTInfo())
+      flow->setOTInfo(value->string);
     break;
 
   case FLOW_SOURCE: {
