@@ -31,6 +31,14 @@ end
 
 local operators = flow_sankey.getOperators()
 
+-- ##########################################
+
+local function formatASNShort(asn)
+	return format_utils.formatASN(asn, true --[[ short version, name only ]], true --[[ shorten to max_ui_strlen ]])
+end
+
+-- ##########################################
+
 -- Retrieve the info from the rest
 local asn = tonumber(_GET["asn"] or 0)
 local ifid = _GET["ifid"] or interface.getId()
@@ -66,7 +74,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 					key = "SRC_ASN",
 					rename = "src_asn",
 					is_key = true,
-					formatter = format_utils.formatASN,
+					formatter = formatASNShort,
+					full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 					linker = generateASNLink,
             },
 				{
@@ -105,7 +114,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				epoch_end = epoch_end,
 			},
 			root = {
-				formatter = format_utils.formatASN,
+				formatter = formatASNShort,
+				full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 				id = asn,
 				add_root_last = true,
 			},
@@ -116,7 +126,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 					key = "DST_ASN",
 					rename = "src_asn",
 					is_key = true,
-					formatter = format_utils.formatASN,
+					formatter = formatASNShort,
+					full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 					linker = generateASNLink,
             },
 				{
@@ -155,7 +166,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				epoch_end = epoch_end,
 			},
 			root = {
-				formatter = format_utils.formatASN,
+				formatter = formatASNShort,
+				full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 				id = asn,
 				add_root_last = true,
 			},
@@ -181,7 +193,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 					key = "DST_ASN",
 					rename = "dst_asn",
 					is_key = true,
-					formatter = format_utils.formatASN,
+					formatter = formatASNShort,
+					full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 					linker = generateASNLink,
             },
 				{ key = "SUM(SRC2DST_BYTES)", rename = "bytes", formatter = format_utils.bytesToSize },
@@ -205,7 +218,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				epoch_end = epoch_end,
 			},
 			root = {
-				formatter = format_utils.formatASN,
+				formatter = formatASNShort,
+				full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 				id = asn,
 				add_root_first = true,
 			},
@@ -231,7 +245,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 					key = "SRC_ASN",
 					rename = "dst_asn",
 					is_key = true,
-					formatter = format_utils.formatASN,
+					formatter = formatASNShort,
+					full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 					linker = generateASNLink,
             },
 				{ key = "SUM(DST2SRC_BYTES)", rename = "bytes", formatter = format_utils.bytesToSize },
@@ -255,7 +270,8 @@ if criteria_as == "ingress_egress_traffic_criteria" then
 				epoch_end = epoch_end,
 			},
 			root = {
-				formatter = format_utils.formatASN,
+				formatter = formatASNShort,
+				full_formatter = format_utils.formatASN, -- Complete label, shown by the UI tooltip
 				id = asn,
 				add_root_first = true,
 			},
