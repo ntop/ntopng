@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "Collegato",
   ["connected_to_the_cloud"] = "Connesso al cloud",
   ["connection_states"] = "Stato della connessione [Maggiore/Minore]",
+  ["content_not_available_title"] = "Contenuto non disponibile",
   ["copied"] = "Copiato",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "Conta",
@@ -466,6 +467,10 @@ local lang = {
   ["last_user_agent"] = "User Agent",
   ["latency"] = "Latenza",
   ["layer_2"] = "Indirizzi MAC",
+  ["license_activation_action"] = "Attiva ora",
+  ["license_activation_title"] = "Licenza non attivata",
+  ["license_activation_warning"] = "Questa licenza non è stata ancora attivata. Attivalo per abilitare tutte le funzionalità e garantire supporto e aggiornamenti completi.",
+  ["license_activation_content_not_available"] = "Impossibile caricare alcuni contenuti. Attiva la tua licenza per sbloccare tutte le funzionalità.",
   ["legenda"] = "Legenda",
   ["level"] = "Livello",
   ["light"] = "Light",
@@ -764,6 +769,7 @@ local lang = {
   ["ram_used"] = "Usata",
   ["rcvd"] = "Rcvd",
   ["reason"] = "Motivo",
+  ["read_more"] = "Per saperne di più",
   ["received"] = "Ricevuto",
   ["recipient"] = "Destinatario",
   ["records_to_show"] = "Records da mostrare",
@@ -1020,6 +1026,8 @@ local lang = {
   ["year"] = "Anno",
   ["years"] = "Anni",
   ["yes"] = "Si",
+  ["zmq_default_encryption_title"] = "Chiave di crittografia ZMQ non sicura",
+  ["zmq_default_encryption_warning"] = "Questa interfaccia ZMQ utilizza una chiave di crittografia predefinita pubblica. Configura una chiave di crittografia dedicata con --zmq-encryption-key-priv (o lascia che ntopng ne generi una automaticamente con --zmq-encryption).",
   ["about"] = {
     ["about"] = "Informazioni",
     ["about_x"] = "Informazioni su %{product}",
@@ -1111,6 +1119,17 @@ local lang = {
       ["auth_token_placeholder"] = "Inserisci qui il token ricevuto via email...",
       ["auth_token_send_error"] = "Impossibile inviare il token: controlla l'indirizzo e-mail e riprova",
       ["auth_token_sent"] = "Nuovo token inviato",
+      ["credentials"] = "Credenziali",
+      ["invalid_email"] = "Inserisci un indirizzo email valido",
+      ["licenses_updated"] = "Licenze aggiornate",
+      ["refresh_licenses"] = "Aggiorna",
+      ["request_new_token"] = "Inviami un'e-mail con un nuovo token",
+      ["retrieve_failed"] = "Impossibile recuperare le licenze. Verifica che il token sia corretto oppure richiedine uno nuovo; se continua a fallire, verifica la tua connessione a shop.ntop.org.",
+      ["set_credentials_first"] = "Imposta le tue credenziali per caricare le licenze",
+      ["step_email"] = "Verifica l'e-mail",
+      ["step_token"] = "Inserisci il gettone",
+      ["token_cached_hint"] = "Utilizzando un token salvato. Se non funziona, richiederne uno nuovo.",
+      ["token_paste_hint"] = "Incolla il token dall'e-mail inviata a %{email}",
       ["badge_expired"] = "Scaduto",
       ["badge_valid"] = "Valido",
       ["badge_valid_until"] = "Valido fino al %{date}",
@@ -2016,6 +2035,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "Traffico bidirezionale VLAN",
     ["vpn_detection"] = "Rilevamento VPN",
     ["warning"] = "Attenzione",
+    ["wazuh_check_alerts"] = "Avvisi Wazuh",
     ["wazuh_info_changed"] = "Informazioni Wazuh modificate",
     ["wazuh_info_changed_descr"] = "Attiva un avviso ogni volta che un'informazione esportata da Wazuh cambia, ad esempio viene aggiunta una nuova porta o un'interfaccia di rete",
     ["web_mining"] = "Mining Web",
@@ -4294,6 +4314,10 @@ local lang = {
     ["web_mining_detected"] = "Questo sito è conosciuto per fare mining di criptovalute sui dispositivi utente",
     ["write"] = "Scrivere",
   },
+  ["flow_details_card_toast"] = {
+    ["title"] = "Novità: scheda laterale dei dettagli del flusso",
+    ["description"] = "Facendo clic su un flusso in tempo reale o storico o su un avviso di flusso, ora si aprono i relativi dettagli in un pannello laterale senza uscire dalla pagina. Puoi disattivare questa opzione in Preferenze &rarr; Interfaccia utente &rarr; Scheda laterale con dettagli sul flusso.",
+  },
   ["flow_devices"] = {
     ["active_sflow"] = "Dispositivi sFlow Attivi",
     ["all_device_ports"] = "Tutte le Porte di %{device}",
@@ -6144,135 +6168,546 @@ local lang = {
     ["shut_start"] = "Impossibile soddisfare la richiesta in questo momento (probabile booting up o shutting down)",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "Echo reply",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Risposta eco",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "Sollecitazione del router",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "Tempo superato",
+          ["code"] = {
+            ["0"] = "Tempo di vivere superato in transito",
+            ["1"] = "Fragment Reassembly Time Exceeded",
+          },
+        },
+        ["12"] = {
+          ["info"] = "Parameter Problem",
+          ["code"] = {
+            ["0"] = "Pointer indicates the error",
+            ["1"] = "Missing a Required Option",
+            ["2"] = "Bad Length",
+          },
+        },
+        ["13"] = {
+          ["info"] = "Timestamp",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "Timestamp Reply",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "Information Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "Information Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "Address Mask Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "Address Mask Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "Reserved (for Security)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "RFC3692-style Experiment 1",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "Esperimento 2 in stile RFC3692",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Prenotato",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "Riservato (per l'esperimento sulla robustezza)",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "Riservato (per l'esperimento sulla robustezza)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "Riservato (per l'esperimento sulla robustezza)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "Riservato (per l'esperimento sulla robustezza)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Destinazione irraggiungibile",
+          ["code"] = {
+            ["0"] = "Rete irraggiungibile",
+            ["1"] = "Host irraggiungibile",
+            ["10"] = "La comunicazione con l'host di destinazione è amministrativamente vietata",
+            ["11"] = "Rete di destinazione non raggiungibile per il tipo di servizio",
+            ["12"] = "Host di destinazione non raggiungibile per il tipo di servizio",
+            ["13"] = "Comunicazione amministrativamente vietata",
+            ["14"] = "Violazione della precedenza dell'host",
+            ["15"] = "Interruzione della precedenza attiva",
+            ["2"] = "Protocollo irraggiungibile",
+            ["3"] = "Porta irraggiungibile",
+            ["4"] = "È stata impostata la frammentazione necessaria e non frammentare",
+            ["5"] = "Percorso di origine non riuscito",
+            ["6"] = "Rete di destinazione sconosciuta",
+            ["7"] = "Host di destinazione sconosciuto",
+            ["8"] = "Host di origine isolato",
+            ["9"] = "La comunicazione con la rete di destinazione è amministrativamente vietata",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute (deprecato)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "Errore di conversione del datagramma (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "Reindirizzamento host mobile (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 Dove-sei (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 I-Am-Here (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "Mobile Registration Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "Mobile Registration Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "Domain Name Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "Risposta nome dominio (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "SALTA (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "Quench dell'origine (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "Foturi",
+          ["code"] = {
+            ["0"] = "Bad SPI",
+            ["1"] = "Authentication Failed",
+            ["2"] = "Decompression Failed",
+            ["3"] = "Decrittografia non riuscita",
+            ["4"] = "Necessita di autenticazione",
+            ["5"] = "Need Authorization",
+          },
+        },
+        ["41"] = {
+          ["info"] = "ICMP messages utilized by experimental mobility protocols such as Seamoby",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "Richiesta eco estesa",
+          ["code"] = {
+            ["0"] = "Nessun errore",
+          },
+        },
+        ["43"] = {
+          ["info"] = "Risposta eco estesa",
+          ["code"] = {
+            ["0"] = "Nessun errore",
+            ["1"] = "Domanda non valida",
+            ["2"] = "Nessuna interfaccia del genere",
+            ["3"] = "Nessuna voce di tabella di questo tipo",
+            ["4"] = "Interfacce multiple soddisfano la query",
+          },
+        },
+        ["5"] = {
+          ["info"] = "Reindirizzamento",
+          ["code"] = {
+            ["0"] = "Reindirizzare il datagramma per la rete (o sottorete)",
+            ["1"] = "Reindirizzare il datagramma per l'host",
+            ["2"] = "Reindirizzamento del datagramma per il tipo di servizio e di rete",
+            ["3"] = "Reindirizzamento datagramma per tipo di servizio e host",
+          },
+        },
+        ["6"] = {
+          ["info"] = "Indirizzo host alternativo (obsoleto)",
+          ["code"] = {
+            ["0"] = "Indirizzo alternativo per l'host",
+          },
+        },
+        ["8"] = {
+          ["info"] = "Eco",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "Pubblicità del router",
+          ["code"] = {
+            ["0"] = "Annuncio normale del router",
+            ["16"] = "Non instrada il traffico comune",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "Router selection",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Prenotato",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "Time exceeded",
-        ["code"] = {
-          ["0"] = "Time to live exceeded in transit",
-          ["1"] = "Fragment reassembly time exceeded",
+        ["1"] = {
+          ["info"] = "Destinazione irraggiungibile",
+          ["code"] = {
+            ["0"] = "nessun percorso verso la destinazione",
+            ["1"] = "comunicazione con destinazione amministrativamente vietata",
+            ["2"] = "oltre l'ambito dell'indirizzo di origine",
+            ["3"] = "indirizzo irraggiungibile",
+            ["4"] = "porto irraggiungibile",
+            ["5"] = "source address failed ingress/egress policy",
+            ["6"] = "reject route to destination",
+            ["7"] = "Error in Source Routing Header",
+            ["8"] = "Headers too long",
+            ["9"] = "Error in P-Route",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "Parameter problem",
-        ["code"] = {
-          ["0"] = "Pointer indicates the error",
+        ["100"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "Timestamp",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "Query del listener multicast",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "Reserved for expansion of ICMPv6 error messages",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "Rapporto sugli ascoltatori multicast",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "Echo Request",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "Sollecitazione del router",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "Echo Reply",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "Pubblicità del router",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "Multicast Listener Query",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "Sollecitazione del vicino",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "Rapporto sugli ascoltatori multicast",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "Pubblicità del vicino",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "Multicast Listener Done",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "Timestamp reply",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "Sollecitazione del router",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "Rapporto sugli ascoltatori multicast v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "Pubblicità del router",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "Information request",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "Neighbor Solicitation",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "Information reply",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "Pubblicità del vicino",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "Address mask request",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "Messaggio di reindirizzamento",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "Address mask reply",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "Rinumerazione del router",
+          ["code"] = {
+            ["0"] = "Router Renumbering Command",
+            ["1"] = "Router Renumbering Result",
+            ["255"] = "Sequence Number Reset",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "Destination unreachable",
-        ["code"] = {
-          ["0"] = "Net unreachable",
-          ["1"] = "Host unreachable",
-          ["2"] = "Protocol unreachable",
-          ["3"] = "Port unreachable",
-          ["4"] = "Fragmentation needed and DF set",
-          ["5"] = "Source route failed",
+        ["139"] = {
+          ["info"] = "ICMP Node Information Query",
+          ["code"] = {
+            ["0"] = "The Data field contains an IPv6 address which is the Subject of this Query.",
+            ["1"] = "The Data field contains a name which is the Subject of this Query, or is empty, as in the case of a NOOP.",
+            ["2"] = "The Data field contains an IPv4 address which is the Subject of this Query.",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "Traceroute",
-        ["code"] = {
-          ["0"] = "Outbound Packet successfully forwarded",
-          ["1"] = "No route for Outbound Packet; packet discarded",
+        ["140"] = {
+          ["info"] = "ICMP Node Information Response",
+          ["code"] = {
+            ["0"] = "A successful reply. The Reply Data field may or may not be empty.",
+            ["1"] = "The Responder refuses to supply the answer. The Reply Data field will be empty.",
+            ["2"] = "Il Qtype della query è sconosciuto al risponditore. Il campo Dati di risposta sarà vuoto.",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "Source quench",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "Inverse Neighbor Discovery Solicitation Message",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "Redirect",
-        ["code"] = {
-          ["0"] = "Redirect datagrams for the Network",
-          ["1"] = "Redirect datagrams for the Host",
-          ["2"] = "Redirect datagrams for the Type of Service and Network",
-          ["3"] = "Redirect datagrams for the Type of Service and Host",
+        ["142"] = {
+          ["info"] = "Messaggio pubblicitario di scoperta del vicino inverso",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "Echo",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "Rapporto sul listener multicast versione 2",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "Router advertisement",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "Messaggio di richiesta di rilevamento indirizzo agente domestico",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "Home Agent Address Discovery Reply Message",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "Sollecitazione del prefisso mobile",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "Mobile Prefix Advertisement",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "Certification Path Solicitation Message",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "Certification Path Advertisement Message",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "ICMP messages utilized by experimental mobility protocols such as Seamoby",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "Multicast Router Advertisement",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "Multicast Router Solicitation",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "Multicast Router Termination",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "FMIPv6 Messages",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "RPL Control Message",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "ILNPv6 Locator Update Message",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "Duplicate Address Request",
+          ["code"] = {
+            ["0"] = "DAR message",
+            ["1"] = "EDAR message with 64-bit ROVR field",
+            ["2"] = "EDAR message with 128-bit ROVR field",
+            ["3"] = "EDAR message with 192-bit ROVR field",
+            ["4"] = "EDAR message with 256-bit ROVR field",
+          },
+        },
+        ["158"] = {
+          ["info"] = "Duplicate Address Confirmation",
+          ["code"] = {
+            ["0"] = "DAC message",
+            ["1"] = "EDAC message with 64-bit ROVR field",
+            ["2"] = "EDAC message with 128-bit ROVR field",
+            ["3"] = "EDAC message with 192-bit ROVR field",
+            ["4"] = "EDAC message with 256-bit ROVR field",
+          },
+        },
+        ["159"] = {
+          ["info"] = "MPL Control Message",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "Extended Echo Request",
+          ["code"] = {
+            ["0"] = "No Error",
+          },
+        },
+        ["161"] = {
+          ["info"] = "Extended Echo Reply",
+          ["code"] = {
+            ["0"] = "No Error",
+            ["1"] = "Malformed Query",
+            ["2"] = "No Such Interface",
+            ["3"] = "No Such Table Entry",
+            ["4"] = "Multiple Interfaces Satisfy Query",
+          },
+        },
+        ["2"] = {
+          ["info"] = "Packet Too Big",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "Private experimentation",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Reserved for expansion of ICMPv6 informational messages",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Time Exceeded",
+          ["code"] = {
+            ["0"] = "hop limit exceeded in transit",
+            ["1"] = "fragment reassembly time exceeded",
+          },
+        },
+        ["4"] = {
+          ["info"] = "Parameter Problem",
+          ["code"] = {
+            ["0"] = "erroneous header field encountered",
+            ["1"] = "unrecognized Next Header type encountered",
+            ["10"] = "Opzione troppo grande",
+            ["2"] = "rilevata un'opzione IPv6 non riconosciuta",
+            ["3"] = "Il primo frammento IPv6 ha una catena di intestazioni IPv6 incompleta",
+            ["4"] = "Errore intestazione livello superiore SR",
+            ["5"] = "Tipo di intestazione successiva non riconosciuto rilevato dal nodo intermedio",
+            ["6"] = "Intestazione dell'estensione troppo grande",
+            ["7"] = "Catena di intestazioni di estensione troppo lunga",
+            ["8"] = "Troppe intestazioni di estensione",
+            ["9"] = "Troppe opzioni nell'intestazione dell'estensione",
+          },
         },
       },
     },
@@ -6291,6 +6726,7 @@ local lang = {
     ["packets_received"] = "Pacchetti Ricevuti",
     ["packets_sent"] = "Pacchetti Inviati",
     ["top_icmp_hosts"] = "I migliori host ICMP",
+    ["unassigned"] = "Non assegnato",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "Tipo di regola",
@@ -6716,10 +7152,21 @@ local lang = {
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
+    ["activate"] = "Attivare",
+    ["activated"] = "Attivato",
+    ["activation_code_placeholder"] = "Incolla qui il codice di attivazione",
+    ["activation_error"] = "Attivazione non riuscita. Controlla il codice di attivazione e riprova.",
+    ["activation_instructions"] = "ntopng non è riuscito ad attivare automaticamente la licenza, molto probabilmente perché non ha accesso a Internet (o è stato avviato con --offline). Da un PC con accesso a Internet, vai alla pagina <a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>Recupero licenza</a> per recuperare il codice di attivazione per questo sistema, quindi incollalo di seguito.",
+    ["activation_success"] = "Licenza attivata con successo",
+    ["activation_tab"] = "Attivazione",
+    ["activation_title"] = "Attivazione offline",
     ["agreement"] = "Contratto di licenza",
     ["license"] = "Licenza",
+    ["needs_activation_warning"] = "Questa licenza non è stata ancora attivata. Completa l'attivazione dalla scheda Attivazione.",
+    ["no_system_id"] = "Impossibile determinare il SystemId per questa istanza.",
     ["not_valid"] = "Non Valido",
     ["status"] = "Stato",
+    ["system_id_changed"] = "Il SystemID sembra essere cambiato in questa istanza, <a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>leggi come trasferire la licenza</a> al nuovo SystemID.",
     ["valid"] = "Valido",
   },
   ["limits_page"] = {
@@ -6808,14 +7255,18 @@ local lang = {
     ["evidence_live_hint"] = "Aggiornamento in tempo reale durante l'esecuzione degli strumenti",
     ["evidence_panel_title"] = "Prove investigative",
     ["evidence_tab"] = "Prova",
+    ["evidence_jump_hint"] = "Scorri la chat fino a questo messaggio",
     ["evidence_this_turn"] = "Questo turno",
     ["explanation"] = "Spiegazione",
     ["final_response"] = "Risposta finale",
     ["generate_policy"] = "Genera policy dal linguaggio naturale",
     ["generation_cost"] = "Costo di generazione",
     ["generic_error"] = "Si è verificato un errore durante il contatto con il provider LLM.",
+    ["open_chat_history"] = "Apri la cronologia della chat",
+    ["close_chat_history"] = "Chiudi la cronologia della chat",
     ["good_response"] = "Buona risposta",
     ["hide_evidence"] = "Nascondi prove",
+    ["hide_reasoning"] = "Nascondi il ragionamento",
     ["hide_steps"] = "Nascondi passaggi",
     ["historical"] = "Storico",
     ["history"] = "Storia",
@@ -6841,6 +7292,7 @@ local lang = {
     ["nAnalyst"] = "nAnalista",
     ["new_chat"] = "Nuova chiacchierata",
     ["next_steps"] = "Passaggi successivi suggeriti",
+    ["next_step_manual_hint"] = "Devi farlo: l'assistente non può ancora eseguirlo",
     ["no_artifacts_sub"] = "I grafici e gli altri elementi generati da questa conversazione verranno visualizzati qui.",
     ["no_artifacts_title"] = "Nessun artefatto",
     ["no_audit_entries"] = "Nessuna voce di controllo trovata",
@@ -6888,6 +7340,7 @@ local lang = {
     ["save_and_regenerate"] = "Salva e rigenera",
     ["send"] = "Investigare",
     ["show_evidence"] = "Mostra prove",
+    ["show_reasoning"] = "Mostra il ragionamento",
     ["show_steps"] = "Mostra passaggi",
     ["sql_query"] = "Interrogazione SQL",
     ["stat_avg_response"] = "Tempo medio di risposta",
@@ -6908,6 +7361,11 @@ local lang = {
     ["tool_add_certificate_alert_exclusion"] = "Aggiungi l'esclusione degli avvisi di certificato",
     ["tool_add_domain_alert_exclusion"] = "Aggiungi l'esclusione degli avvisi di dominio",
     ["tool_add_host_alert_exclusion"] = "Aggiungi l'esclusione degli avvisi dell'host",
+    ["tool_annotation_artifact"] = "Artefatto",
+    ["tool_annotation_clickhouse"] = "Fare clic su Casa",
+    ["tool_annotation_read_only"] = "Sola lettura",
+    ["tool_annotation_write"] = "Scrivere",
+    ["tool_annotations"] = "Annotazioni",
     ["tool_call_cost"] = "Costo di utilizzo dello strumento",
     ["tool_call_sequence"] = "Sequenza di chiamata dell'utensile",
     ["tool_calls_made"] = "chiamate dello strumento",
@@ -6915,6 +7373,8 @@ local lang = {
     ["tool_chord"] = "Disegna accordo",
     ["tool_create_ai_policy"] = "Creare una policy sull'intelligenza artificiale",
     ["tool_describe_table"] = "Descrivi la tabella",
+    ["tool_description"] = "Descrizione",
+    ["tool_discover_lan"] = "Scopri LAN",
     ["tool_followup"] = "Follow-up degli strumenti",
     ["tool_geomap"] = "Disegna la geomappa",
     ["tool_get_access_control_list"] = "Ottieni l'elenco di controllo degli accessi",
@@ -6926,6 +7386,7 @@ local lang = {
     ["tool_get_historical_flow"] = "Ottieni il flusso storico",
     ["tool_get_host_info"] = "Ottieni informazioni sull'host",
     ["tool_get_infrastructure_stats"] = "Ottieni statistiche sull'infrastruttura",
+    ["tool_get_interface_addresses"] = "Ottieni indirizzi di interfaccia",
     ["tool_get_live_flow"] = "Ottieni il flusso in tempo reale",
     ["tool_get_live_flows_for_host"] = "Ottieni flussi in tempo reale per l'host",
     ["tool_get_live_flows_summary"] = "Ottieni il riepilogo dei flussi in tempo reale",
@@ -6947,6 +7408,8 @@ local lang = {
     ["tool_get_timeseries"] = "Ottieni serie temporali",
     ["tool_get_top_exporter_interfaces"] = "Ottieni le migliori interfacce per esportatori",
     ["tool_get_vlan_traffic"] = "Ottieni traffico VLAN",
+    ["tool_get_wazuh_alert_exceptions"] = "Ottieni eccezioni avvisi Wazuh",
+    ["tool_get_wazuh_alert_rules"] = "Ottieni le regole di avviso di Wazuh",
     ["tool_get_wazuh_alerts"] = "Ricevi avvisi Wazuh",
     ["tool_list_ai_policies"] = "Elenca le policy AI",
     ["tool_list_available_active_monitoring_scripts"] = "Elenca gli script di monitoraggio attivi",
@@ -6959,16 +7422,29 @@ local lang = {
     ["tool_list_snmp_devices"] = "Elenca dispositivi SNMP",
     ["tool_list_tables"] = "Elenco tabelle",
     ["tool_list_timeseries"] = "Elenca le serie temporali",
+    ["tool_license"] = "Licenza",
+    ["tool_license_community"] = "Comunità",
+    ["tool_license_enterprise_l"] = "Impresa L",
+    ["tool_license_enterprise_m"] = "Impresa M",
+    ["tool_license_enterprise_xl"] = "ImpresaXL",
     ["tool_name"] = "Attrezzo",
+    ["tool_availability"] = "Disponibilità",
+    ["tool_available"] = "Disponibile",
+    ["tool_locked"] = "Bloccato",
     ["tool_nprobe_integration_help"] = "Guida all'integrazione di nProbe",
     ["tool_query"] = "Interrogazione SQL",
     ["tool_resolve_proto"] = "Risolvere il protocollo",
     ["tool_sankey"] = "Disegna Sankey",
     ["tool_search_docs"] = "Cerca documenti",
+    ["tools_catalog"] = "Catalogo degli strumenti",
+    ["tools_catalog_btn"] = "Utensili",
+    ["tools_catalog_hint"] = "Visualizza tutti gli strumenti che nAnalyst può utilizzare su questa istanza",
+    ["tools_catalog_subtitle"] = "Ogni strumento agente ntopng viene fornito. Gli strumenti contrassegnati come Bloccati necessitano di una licenza superiore a quella in esecuzione qui.",
     ["total_cost"] = "Costo totale",
     ["total_tokens"] = "Gettoni totali",
     ["trigger_count"] = "Tempi innescati",
     ["triggered_by"] = "Innescato da",
+    ["turn"] = "Giro",
     ["unexpected_response"] = "Risposta inaspettata da LLM. Per favore riprova",
     ["unique_chats"] = "Chat uniche",
     ["updated_at"] = "Aggiornato a",
@@ -6976,6 +7452,7 @@ local lang = {
     ["usage_by_user"] = "Utilizzo per utente",
     ["user"] = "Utente",
     ["view_source"] = "Visualizza avviso/flusso di origine",
+    ["view_tools"] = "Utensili",
     ["working"] = "Lavorando",
     ["working_on"] = "Correre %{tool}",
     ["analyst_pipeline"] = {
@@ -7974,6 +8451,9 @@ local lang = {
       ["smtp_username"] = "Username SMTP",
       ["use_proxy"] = "Usa proxy",
       ["use_proxy_descr"] = "Utilizza la configurazione proxy a livello di sistema (variabili di ambiente HTTP_PROXY o http_proxy)",
+      ["use_startssl"] = "Utilizza STARTSSL",
+      ["use_tls_descr"] = "Aggiungere una 's' alla fine di smpt (smtps) per forzare la consegna della posta con crittografia TLS (es. smtps://mail.server.org)",
+      ["use_startssl_descr"] = "Se abilitato, quando invii una mail usa STARTSSL. Nel caso in cui il server di posta utilizzi SMTPS, questa preferenza viene ignorata (es. smtps://mail.server.org)",
       ["validation"] = {
         ["empty_SMTP_port"] = "Inserisci una porta.",
         ["empty_SMTP_server"] = "Si prega di inserire un indirizzo IPv4/IPv6/Host.",
@@ -8793,6 +9273,7 @@ local lang = {
     ["reports_data_retention_time_descr"] = "Numero di giorni per cui conservare i rapporti sul traffico su disco. Impostazione predefinita: 30 giorni.",
     ["reports_data_retention_time_title"] = "Segnala la conservazione dei dati",
     ["restart_needed"] = "Riavviare %{product} per rendere effettivi i cambiamenti",
+    ["restart_needed_active_monitoring"] = "<b>Riavvia</b> %{product} per abilitare il monitoraggio attivo.",
     ["rrd_files_retention_description"] = "Numero di giorni dopo i quali i file RRD che non sono stati aggiornati vengono considerati obsoleti e rimossi dal disco. Ciò impedisce agli RRD di persistere per sempre (ad esempio un AS visitato una volta mesi fa). Impostazione predefinita: 90 giorni.<br><b>Nota:</b> si applica solo quando è in uso il driver della serie temporale RRD.",
     ["rrd_files_retention_title"] = "Conservazione dei file RRD",
     ["runtime_prefs"] = "Preferenze in Esecuzione",
@@ -8960,6 +9441,9 @@ local lang = {
     ["toggle_ids_alert_title"] = "Allarme IDS",
     ["toggle_informative_captive_portal_description"] = "Non autenticare gli utenti. Mostra solo una pagina informativa prima di permettere l'accesso a Internet.",
     ["toggle_informative_captive_portal_title"] = "Informativo",
+    ["toggle_flow_details_card_description"] = "Se abilitato, facendo clic su un flusso in tempo reale o storico (o su una riga di flusso/avviso) si aprono i dettagli in una scheda laterale. Se disabilitato, verrà invece aperta direttamente la pagina dei dettagli completi.",
+    ["toggle_flow_details_card_title"] = "Scheda laterale con dettagli sul flusso",
+    ["flow_details_card_inline_label"] = "Scheda dettagli",
     ["toggle_interface_name_only_description"] = "Se abilitato, mostra il nome dell'interfaccia solo nel menu a tendina.",
     ["toggle_interface_name_only_title"] = "Solo il Nome Interfaccia",
     ["toggle_internals_rrds_description"] = "Abilita la creazione di serie temporali <a href=\"%{url}\">internals</a>, e.g., entry nelle hash table, durata delle attività periodiche e numero di punti scritti, durata dei script e numero di chiamate.",
@@ -9341,6 +9825,7 @@ local lang = {
     ["use_server_timezone"] = "Utilizza la Timezone del Server",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "Questa funzionalità richiede l'attivazione della licenza",
     ["ADD_POOL_FAILED"] = "Impossibile aggiungere il pool",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "Troppe pools create. Considera un upgrade ntopng a Enterprise M o migliore per creare pools addizionalior above to create additionl pools.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "Troppe pools create.",
@@ -10711,6 +11196,7 @@ local lang = {
     ["groups_hint"] = "Gruppi di regole Wazuh separati da virgole (vuoto = qualsiasi).",
     ["groups_placeholder"] = "per esempio. syslog,sshd,autenticazione_successo",
     ["id"] = "ID",
+    ["id_already_exists"] = "Esiste già una regola con questo ID",
     ["id_hint"] = "Identificatore univoco della regola (senza spazi). Non può essere modificato dopo la creazione.",
     ["id_placeholder"] = "per esempio. ssh-forza bruta",
     ["id_required"] = "È richiesto un ID regola univoco (senza spazi).",

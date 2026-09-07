@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "Conectado",
   ["connected_to_the_cloud"] = "Conectado a la nube",
   ["connection_states"] = "Estado de conexión [mayor/menor]",
+  ["content_not_available_title"] = "Contenido no disponible",
   ["copied"] = "copiado",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "Contar",
@@ -466,6 +467,10 @@ local lang = {
   ["last_user_agent"] = "Agente de usuario",
   ["latency"] = "Latencia",
   ["layer_2"] = "Direcciones MAC",
+  ["license_activation_action"] = "Activar ahora",
+  ["license_activation_title"] = "Licencia no activada",
+  ["license_activation_warning"] = "Esta licencia aún no ha sido activada. Actívelo para habilitar todas las funciones y garantizar soporte y actualizaciones completos.",
+  ["license_activation_content_not_available"] = "No se pudo cargar parte del contenido. Active su licencia para desbloquear todas las funciones.",
   ["legenda"] = "Leyenda",
   ["level"] = "Nivel",
   ["light"] = "Luz",
@@ -764,6 +769,7 @@ local lang = {
   ["ram_used"] = "Usado",
   ["rcvd"] = "recibido",
   ["reason"] = "Razón",
+  ["read_more"] = "Leer más",
   ["received"] = "Recibió",
   ["recipient"] = "Recipiente",
   ["records_to_show"] = "Registros para mostrar",
@@ -1020,6 +1026,8 @@ local lang = {
   ["year"] = "Año",
   ["years"] = "Años",
   ["yes"] = "Sí",
+  ["zmq_default_encryption_title"] = "Clave de cifrado ZMQ insegura",
+  ["zmq_default_encryption_warning"] = "Esta interfaz ZMQ utiliza una clave de cifrado predeterminada que es pública. Configure una clave de cifrado dedicada con --zmq-encryption-key-priv (o deje que ntopng genere una automáticamente con --zmq-encryption).",
   ["about"] = {
     ["about"] = "Acerca de",
     ["about_x"] = "Acerca de %{product}",
@@ -1111,6 +1119,17 @@ local lang = {
       ["auth_token_placeholder"] = "Inserte aquí el token recibido por correo electrónico...",
       ["auth_token_send_error"] = "No se pudo enviar el token: verifique la dirección de correo electrónico y vuelva a intentarlo",
       ["auth_token_sent"] = "Nuevo token enviado",
+      ["credentials"] = "Cartas credenciales",
+      ["invalid_email"] = "Introduzca una dirección de correo electrónico válida",
+      ["licenses_updated"] = "Licencias actualizadas",
+      ["refresh_licenses"] = "Refrescar",
+      ["request_new_token"] = "Envíame un nuevo token por correo electrónico",
+      ["retrieve_failed"] = "No se pudieron recuperar las licencias. Verifique que el token sea correcto o solicite uno nuevo; Si sigue fallando, verifique su conexión con shop.ntop.org.",
+      ["set_credentials_first"] = "Configure sus credenciales para cargar licencias",
+      ["step_email"] = "verificar correo electrónico",
+      ["step_token"] = "Introducir token",
+      ["token_cached_hint"] = "Usando un token guardado. Si no funciona solicita uno nuevo.",
+      ["token_paste_hint"] = "Pegue el token del correo electrónico enviado a %{email}",
       ["badge_expired"] = "Venció",
       ["badge_valid"] = "Válido",
       ["badge_valid_until"] = "Válido hasta %{date}",
@@ -2016,6 +2035,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "Tráfico bidireccional VLAN",
     ["vpn_detection"] = "Detección de VPN",
     ["warning"] = "Advertencia",
+    ["wazuh_check_alerts"] = "Alertas de Wazuh",
     ["wazuh_info_changed"] = "Información de Wazuh cambiada",
     ["wazuh_info_changed_descr"] = "Activar una alerta cada vez que cambie una información exportada por Wazuh, por ejemplo, se agrega un nuevo puerto o se agrega una interfaz de red.",
     ["web_mining"] = "Minería web",
@@ -4294,6 +4314,10 @@ local lang = {
     ["web_mining_detected"] = "El sitio web es conocido por extraer criptomonedas en dispositivos de clientes.",
     ["write"] = "Escribir",
   },
+  ["flow_details_card_toast"] = {
+    ["title"] = "Nuevo: Tarjeta lateral de detalles de flujo",
+    ["description"] = "Al hacer clic en un flujo en vivo o histórico, o en una alerta de flujo, ahora se abren sus detalles en un panel lateral sin salir de la página. Puedes desactivar esto en Preferencias &rarr; Interfaz de usuario > Tarjeta lateral de detalles de flujo.",
+  },
   ["flow_devices"] = {
     ["active_sflow"] = "Exportadores activos de sFlow",
     ["all_device_ports"] = "Todos los puertos %{device}",
@@ -6144,135 +6168,546 @@ local lang = {
     ["shut_start"] = "No se pueden atender solicitudes en este momento, posiblemente iniciando o cerrando",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "Respuesta de eco",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Respuesta de eco",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "Solicitud de enrutador",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "Tiempo excedido",
+          ["code"] = {
+            ["0"] = "Tiempo de vida superado en tránsito",
+            ["1"] = "Se excedió el tiempo de reensamblaje del fragmento",
+          },
+        },
+        ["12"] = {
+          ["info"] = "Problema de parámetros",
+          ["code"] = {
+            ["0"] = "El puntero indica el error.",
+            ["1"] = "Falta una opción requerida",
+            ["2"] = "Mala longitud",
+          },
+        },
+        ["13"] = {
+          ["info"] = "Marca de tiempo",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "Respuesta de marca de tiempo",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "Solicitud de información (obsoleta)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "Respuesta de información (obsoleta)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "Solicitud de máscara de dirección (obsoleta)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "Respuesta de máscara de dirección (en desuso)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "Reservado (por seguridad)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "Experimento 1 estilo RFC3692",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "Experimento 2 estilo RFC3692",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Reservado",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "Reservado (para experimento de robustez)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Destino inalcanzable",
+          ["code"] = {
+            ["0"] = "Red inalcanzable",
+            ["1"] = "Anfitrión inalcanzable",
+            ["10"] = "La comunicación con el anfitrión de destino está administrativamente prohibida",
+            ["11"] = "Red de destino inalcanzable para el tipo de servicio",
+            ["12"] = "Host de destino inalcanzable para el tipo de servicio",
+            ["13"] = "Comunicación administrativamente prohibida",
+            ["14"] = "Violación de precedencia del anfitrión",
+            ["15"] = "Límite de precedencia vigente",
+            ["2"] = "Protocolo inalcanzable",
+            ["3"] = "Puerto inalcanzable",
+            ["4"] = "Se necesita fragmentación y se configuró No fragmentar",
+            ["5"] = "Error en la ruta de origen",
+            ["6"] = "Red de destino desconocida",
+            ["7"] = "Host de destino desconocido",
+            ["8"] = "Host de origen aislado",
+            ["9"] = "La comunicación con la red de destino está administrativamente prohibida",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "Error de conversión de datagramas (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "Redireccionamiento de host móvil (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 ¿Dónde estás? (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 Estoy aquí (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "Solicitud de registro móvil (obsoleta)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "Respuesta de registro móvil (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "Solicitud de nombre de dominio (obsoleta)",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "Respuesta de nombre de dominio (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "SALTAR (obsoleto)",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "Extinción de origen (en desuso)",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "fototuris",
+          ["code"] = {
+            ["0"] = "Mal SPI",
+            ["1"] = "Error de autenticación",
+            ["2"] = "Error de descompresión",
+            ["3"] = "Error de descifrado",
+            ["4"] = "Necesita autenticación",
+            ["5"] = "Necesita autorización",
+          },
+        },
+        ["41"] = {
+          ["info"] = "Mensajes ICMP utilizados por protocolos de movilidad experimentales como Seamoby",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "Solicitud de eco extendida",
+          ["code"] = {
+            ["0"] = "Sin errores",
+          },
+        },
+        ["43"] = {
+          ["info"] = "Respuesta de eco extendida",
+          ["code"] = {
+            ["0"] = "Sin errores",
+            ["1"] = "Consulta mal formada",
+            ["2"] = "No existe tal interfaz",
+            ["3"] = "No existe tal entrada en la tabla",
+            ["4"] = "Múltiples interfaces satisfacen la consulta",
+          },
+        },
+        ["5"] = {
+          ["info"] = "Redirigir",
+          ["code"] = {
+            ["0"] = "Redirigir Datagrama para la Red (o subred)",
+            ["1"] = "Redirigir datagrama para el host",
+            ["2"] = "Datagrama de redirección para el tipo de servicio y red",
+            ["3"] = "Datagrama de redirección para el tipo de servicio y host",
+          },
+        },
+        ["6"] = {
+          ["info"] = "Dirección de host alternativa (obsoleta)",
+          ["code"] = {
+            ["0"] = "Dirección alternativa del anfitrión",
+          },
+        },
+        ["8"] = {
+          ["info"] = "Eco",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "Anuncio de enrutador",
+          ["code"] = {
+            ["0"] = "Anuncio de enrutador normal",
+            ["16"] = "No encamina el tráfico común",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "Selección de enrutador",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Reservado",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "Tiempo excedido",
-        ["code"] = {
-          ["0"] = "Tiempo de vida excedido en tránsito",
-          ["1"] = "Se ha excedido el tiempo de reensamblaje del fragmento",
+        ["1"] = {
+          ["info"] = "Destino inalcanzable",
+          ["code"] = {
+            ["0"] = "sin ruta al destino",
+            ["1"] = "comunicación con destino prohibida administrativamente",
+            ["2"] = "más allá del alcance de la dirección de origen",
+            ["3"] = "dirección inalcanzable",
+            ["4"] = "puerto inalcanzable",
+            ["5"] = "dirección de origen falló en la política de entrada/salida",
+            ["6"] = "rechazar ruta a destino",
+            ["7"] = "Error en el encabezado de enrutamiento de origen",
+            ["8"] = "Encabezados demasiado largos",
+            ["9"] = "Error en ruta P",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "Problema de parámetros",
-        ["code"] = {
-          ["0"] = "El puntero indica el error.",
+        ["100"] = {
+          ["info"] = "Experimentación privada",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "Marca de tiempo",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "Experimentación privada",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "Consulta de escucha de multidifusión",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "Reservado para la expansión de mensajes de error ICMPv6",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "Informe de escucha de multidifusión",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "Solicitud de eco",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "Solicitud de enrutador",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "Respuesta de eco",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "Anuncio de enrutador",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "Consulta de escucha de multidifusión",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "Solicitud de Vecino",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "Informe de escucha de multidifusión",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "Anuncio vecino",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "Escucha de multidifusión terminada",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "Respuesta de marca de tiempo",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "Solicitud de enrutador",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "Informe de escucha de multidifusión v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "Anuncio de enrutador",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "Solicitud de información",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "Solicitud de Vecino",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "Respuesta de información",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "Anuncio vecino",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "Solicitud de máscara de dirección",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "Mensaje de redireccionamiento",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "Respuesta de máscara de dirección",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "Renumeración del enrutador",
+          ["code"] = {
+            ["0"] = "Comando de renumeración del enrutador",
+            ["1"] = "Resultado de la renumeración del enrutador",
+            ["255"] = "Restablecer número de secuencia",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "Destino inalcanzable",
-        ["code"] = {
-          ["0"] = "Red inalcanzable",
-          ["1"] = "Host inalcanzable",
-          ["2"] = "Protocolo inalcanzable",
-          ["3"] = "Puerto inalcanzable",
-          ["4"] = "Se necesita fragmentación y conjunto DF",
-          ["5"] = "Error en la ruta de origen",
+        ["139"] = {
+          ["info"] = "Consulta de información del nodo ICMP",
+          ["code"] = {
+            ["0"] = "El campo Datos contiene una dirección IPv6 que es el Asunto de esta Consulta.",
+            ["1"] = "El campo Datos contiene un nombre que es el Asunto de esta Consulta, o está vacío, como en el caso de un NOOP.",
+            ["2"] = "El campo Datos contiene una dirección IPv4 que es el Asunto de esta Consulta.",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "ruta de seguimiento",
-        ["code"] = {
-          ["0"] = "Paquete saliente reenviado exitosamente",
-          ["1"] = "No hay ruta para paquetes salientes; paquete descartado",
+        ["140"] = {
+          ["info"] = "Respuesta de información del nodo ICMP",
+          ["code"] = {
+            ["0"] = "Una respuesta exitosa. El campo Datos de respuesta puede estar vacío o no.",
+            ["1"] = "El Respondedor se niega a dar la respuesta. El campo Datos de respuesta estará vacío.",
+            ["2"] = "El Qtype de la consulta es desconocido para el respondedor. El campo Datos de respuesta estará vacío.",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "Fuente para enfriar",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "Mensaje de solicitud de descubrimiento de vecino inverso",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "Redirigir",
-        ["code"] = {
-          ["0"] = "Redirigir datagramas para la Red",
-          ["1"] = "Redirigir datagramas para el Host",
-          ["2"] = "Redirigir datagramas para el Tipo de Servicio y Red",
-          ["3"] = "Redirigir datagramas para el tipo de servicio y host",
+        ["142"] = {
+          ["info"] = "Mensaje publicitario de descubrimiento de vecino inverso",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "Eco",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "Informe de escucha de multidifusión versión 2",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "Anuncio de enrutador",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "Mensaje de solicitud de descubrimiento de dirección de agente local",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "Mensaje de respuesta de descubrimiento de dirección de agente local",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "Solicitud de prefijo móvil",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "Anuncio de prefijo móvil",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "Mensaje de solicitud de ruta de certificación",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "Mensaje publicitario de ruta de certificación",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "Mensajes ICMP utilizados por protocolos de movilidad experimentales como Seamoby",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "Anuncio de enrutador de multidifusión",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "Solicitud de enrutador de multidifusión",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "Terminación del enrutador de multidifusión",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "Mensajes FMIPv6",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "Mensaje de control RPL",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "Mensaje de actualización del localizador ILNPv6",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "Solicitud de dirección duplicada",
+          ["code"] = {
+            ["0"] = "mensaje DAR",
+            ["1"] = "Mensaje EDAR con campo ROVR de 64 bits",
+            ["2"] = "Mensaje EDAR con campo ROVR de 128 bits",
+            ["3"] = "Mensaje EDAR con campo ROVR de 192 bits",
+            ["4"] = "Mensaje EDAR con campo ROVR de 256 bits",
+          },
+        },
+        ["158"] = {
+          ["info"] = "Confirmación de dirección duplicada",
+          ["code"] = {
+            ["0"] = "mensaje CAD",
+            ["1"] = "Mensaje EDAC con campo ROVR de 64 bits",
+            ["2"] = "Mensaje EDAC con campo ROVR de 128 bits",
+            ["3"] = "Mensaje EDAC con campo ROVR de 192 bits",
+            ["4"] = "Mensaje EDAC con campo ROVR de 256 bits",
+          },
+        },
+        ["159"] = {
+          ["info"] = "Mensaje de control de MPL",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "Solicitud de eco extendida",
+          ["code"] = {
+            ["0"] = "Sin errores",
+          },
+        },
+        ["161"] = {
+          ["info"] = "Respuesta de eco extendida",
+          ["code"] = {
+            ["0"] = "Sin errores",
+            ["1"] = "Consulta mal formada",
+            ["2"] = "No existe tal interfaz",
+            ["3"] = "No existe tal entrada en la tabla",
+            ["4"] = "Múltiples interfaces satisfacen la consulta",
+          },
+        },
+        ["2"] = {
+          ["info"] = "Paquete demasiado grande",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "Experimentación privada",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "Experimentación privada",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Reservado para ampliación de mensajes informativos ICMPv6",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Tiempo excedido",
+          ["code"] = {
+            ["0"] = "límite de salto excedido en tránsito",
+            ["1"] = "Se superó el tiempo de reensamblaje del fragmento.",
+          },
+        },
+        ["4"] = {
+          ["info"] = "Problema de parámetros",
+          ["code"] = {
+            ["0"] = "campo de encabezado erróneo encontrado",
+            ["1"] = "Se encontró un tipo de encabezado siguiente no reconocido",
+            ["10"] = "Opción demasiado grande",
+            ["2"] = "Se encontró una opción IPv6 no reconocida.",
+            ["3"] = "El primer fragmento de IPv6 tiene una cadena de encabezados de IPv6 incompleta",
+            ["4"] = "Error de encabezado de capa superior SR",
+            ["5"] = "Tipo de encabezado siguiente no reconocido encontrado por el nodo intermedio",
+            ["6"] = "Cabecera de extensión demasiado grande",
+            ["7"] = "Cadena de extensión demasiado larga",
+            ["8"] = "Demasiados encabezados de extensión",
+            ["9"] = "Demasiadas opciones en el encabezado de la extensión",
+          },
         },
       },
     },
@@ -6291,6 +6726,7 @@ local lang = {
     ["packets_received"] = "Paquetes recibidos",
     ["packets_sent"] = "Paquetes enviados",
     ["top_icmp_hosts"] = "Principales anfitriones ICMP",
+    ["unassigned"] = "No asignado",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "Tipo de regla",
@@ -6716,10 +7152,21 @@ local lang = {
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
+    ["activate"] = "Activar",
+    ["activated"] = "Activado",
+    ["activation_code_placeholder"] = "Pegue el código de activación aquí",
+    ["activation_error"] = "La activación falló. Verifique el código de activación e inténtelo nuevamente.",
+    ["activation_instructions"] = "ntopng no pudo activar automáticamente la licencia, muy probablemente porque no tiene acceso a Internet (o se inició con --offline). Desde una PC con acceso a Internet, vaya a la página <a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>Recuperación de licencia</a> para recuperar el código de activación para este sistema, luego péguelo a continuación.",
+    ["activation_success"] = "Licencia activada exitosamente",
+    ["activation_tab"] = "Activación",
+    ["activation_title"] = "Activación sin conexión",
     ["agreement"] = "Acuerdo de licencia",
     ["license"] = "Licencia",
+    ["needs_activation_warning"] = "Esta licencia aún no ha sido activada. Complete la activación desde la pestaña Activación.",
+    ["no_system_id"] = "No se puede determinar el SystemId para esta instancia.",
     ["not_valid"] = "No es válido",
     ["status"] = "Estado",
+    ["system_id_changed"] = "El SystemID parece haber cambiado en esta instancia; <a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>lea cómo transferir la licencia</a> al nuevo SystemID.",
     ["valid"] = "Licencia válida",
   },
   ["limits_page"] = {
@@ -6808,14 +7255,18 @@ local lang = {
     ["evidence_live_hint"] = "Actualización en vivo mientras se ejecutan las herramientas",
     ["evidence_panel_title"] = "Evidencia de investigación",
     ["evidence_tab"] = "Evidencia",
+    ["evidence_jump_hint"] = "Desplázate por el chat hasta este mensaje.",
     ["evidence_this_turn"] = "este turno",
     ["explanation"] = "Explicación",
     ["final_response"] = "Respuesta final",
     ["generate_policy"] = "Generar política a partir del lenguaje natural",
     ["generation_cost"] = "Costo de generación",
     ["generic_error"] = "Se produjo un error al contactar al proveedor de LLM.",
+    ["open_chat_history"] = "Abrir historial de chat",
+    ["close_chat_history"] = "Cerrar historial de chat",
     ["good_response"] = "buena respuesta",
     ["hide_evidence"] = "Ocultar evidencia",
+    ["hide_reasoning"] = "Ocultar razonamiento",
     ["hide_steps"] = "Ocultar pasos",
     ["historical"] = "Histórico",
     ["history"] = "Historia",
@@ -6841,6 +7292,7 @@ local lang = {
     ["nAnalyst"] = "Analista",
     ["new_chat"] = "Nuevo chat",
     ["next_steps"] = "Próximos pasos sugeridos",
+    ["next_step_manual_hint"] = "Debes hacer esto; el asistente aún no puede realizarlo.",
     ["no_artifacts_sub"] = "Aquí aparecerán gráficos y otros artefactos generados a partir de esta conversación.",
     ["no_artifacts_title"] = "Sin artefactos",
     ["no_audit_entries"] = "No se encontraron entradas de auditoría",
@@ -6888,6 +7340,7 @@ local lang = {
     ["save_and_regenerate"] = "Guardar y regenerar",
     ["send"] = "Investigar",
     ["show_evidence"] = "Mostrar evidencia",
+    ["show_reasoning"] = "Mostrar razonamiento",
     ["show_steps"] = "Mostrar pasos",
     ["sql_query"] = "consulta SQL",
     ["stat_avg_response"] = "Tiempo promedio de respuesta",
@@ -6908,6 +7361,11 @@ local lang = {
     ["tool_add_certificate_alert_exclusion"] = "Agregar exclusión de alerta de certificado",
     ["tool_add_domain_alert_exclusion"] = "Agregar exclusión de alerta de dominio",
     ["tool_add_host_alert_exclusion"] = "Agregar exclusión de alerta de host",
+    ["tool_annotation_artifact"] = "Artefacto",
+    ["tool_annotation_clickhouse"] = "Haga clic en casa",
+    ["tool_annotation_read_only"] = "Sólo lectura",
+    ["tool_annotation_write"] = "Escribir",
+    ["tool_annotations"] = "Anotaciones",
     ["tool_call_cost"] = "Costo de uso de herramientas",
     ["tool_call_sequence"] = "Secuencia de llamada de herramienta",
     ["tool_calls_made"] = "llamadas de herramientas",
@@ -6915,6 +7373,8 @@ local lang = {
     ["tool_chord"] = "Dibujar acorde",
     ["tool_create_ai_policy"] = "Crear política de IA",
     ["tool_describe_table"] = "Describir tabla",
+    ["tool_description"] = "Descripción",
+    ["tool_discover_lan"] = "Descubra LAN",
     ["tool_followup"] = "Seguimiento de herramientas",
     ["tool_geomap"] = "Dibujar geomapa",
     ["tool_get_access_control_list"] = "Obtener lista de control de acceso",
@@ -6926,6 +7386,7 @@ local lang = {
     ["tool_get_historical_flow"] = "Obtener flujo histórico",
     ["tool_get_host_info"] = "Obtener información del anfitrión",
     ["tool_get_infrastructure_stats"] = "Obtener estadísticas de infraestructura",
+    ["tool_get_interface_addresses"] = "Obtener direcciones de interfaz",
     ["tool_get_live_flow"] = "Obtenga flujo en vivo",
     ["tool_get_live_flows_for_host"] = "Obtenga flujos en vivo para el anfitrión",
     ["tool_get_live_flows_summary"] = "Obtener resumen de flujos en vivo",
@@ -6947,6 +7408,8 @@ local lang = {
     ["tool_get_timeseries"] = "Obtener serie temporal",
     ["tool_get_top_exporter_interfaces"] = "Obtenga las mejores interfaces de exportador",
     ["tool_get_vlan_traffic"] = "Obtener tráfico VLAN",
+    ["tool_get_wazuh_alert_exceptions"] = "Obtenga excepciones de alerta de Wazuh",
+    ["tool_get_wazuh_alert_rules"] = "Obtenga reglas de alerta de Wazuh",
     ["tool_get_wazuh_alerts"] = "Recibe alertas de Wazuh",
     ["tool_list_ai_policies"] = "Listar políticas de IA",
     ["tool_list_available_active_monitoring_scripts"] = "Listar scripts de monitoreo activo",
@@ -6959,16 +7422,29 @@ local lang = {
     ["tool_list_snmp_devices"] = "Listar dispositivos SNMP",
     ["tool_list_tables"] = "Listar tablas",
     ["tool_list_timeseries"] = "Listar series temporales",
+    ["tool_license"] = "Licencia",
+    ["tool_license_community"] = "Comunidad",
+    ["tool_license_enterprise_l"] = "Empresa L",
+    ["tool_license_enterprise_m"] = "Empresa M",
+    ["tool_license_enterprise_xl"] = "Empresa XL",
     ["tool_name"] = "Herramienta",
+    ["tool_availability"] = "Disponibilidad",
+    ["tool_available"] = "Disponible",
+    ["tool_locked"] = "bloqueado",
     ["tool_nprobe_integration_help"] = "Ayuda de integración de nProbe",
     ["tool_query"] = "consulta SQL",
     ["tool_resolve_proto"] = "Protocolo de resolución",
     ["tool_sankey"] = "dibujar sankey",
     ["tool_search_docs"] = "Buscar documentos",
+    ["tools_catalog"] = "Catálogo de herramientas",
+    ["tools_catalog_btn"] = "Herramientas",
+    ["tools_catalog_hint"] = "Vea todas las herramientas que nAnalyst puede usar en esta instancia",
+    ["tools_catalog_subtitle"] = "Cada agente herramienta ntopng barcos. Las herramientas marcadas como Bloqueadas necesitan una licencia superior a la que se ejecuta aquí.",
     ["total_cost"] = "Costo total",
     ["total_tokens"] = "Fichas totales",
     ["trigger_count"] = "Tiempos activados",
     ["triggered_by"] = "Activado por",
+    ["turn"] = "Doblar",
     ["unexpected_response"] = "Respuesta inesperada de LLM. Por favor inténtalo de nuevo",
     ["unique_chats"] = "Chats únicos",
     ["updated_at"] = "Actualizado en",
@@ -6976,6 +7452,7 @@ local lang = {
     ["usage_by_user"] = "Uso por usuario",
     ["user"] = "Usuario",
     ["view_source"] = "Ver alerta/flujo de origen",
+    ["view_tools"] = "Herramientas",
     ["working"] = "Laboral",
     ["working_on"] = "Corriendo %{tool}",
     ["analyst_pipeline"] = {
@@ -7974,6 +8451,9 @@ local lang = {
       ["smtp_username"] = "Nombre de usuario SMTP",
       ["use_proxy"] = "Usa proxy",
       ["use_proxy_descr"] = "Utilice la configuración de Proxy en todo el sistema (variables de entorno HTTP_PROXY o http_proxy)",
+      ["use_startssl"] = "Utilice STARTSSL",
+      ["use_tls_descr"] = "Agregue una 's' al final de smpt (smtps) para forzar la entrega de correo con cifrado TLS (por ejemplo, smtps://mail.server.org)",
+      ["use_startssl_descr"] = "Si está habilitado, al enviar un correo use STARTSSL. En caso de que el servidor de correo utilice SMTPS, esta preferencia se ignora (por ejemplo, smtps://mail.server.org)",
       ["validation"] = {
         ["empty_SMTP_port"] = "Por favor inserte un puerto.",
         ["empty_SMTP_server"] = "Inserte una IPv4/IPv6/Dirección de host/URL SMTP.",
@@ -8793,6 +9273,7 @@ local lang = {
     ["reports_data_retention_time_descr"] = "Número de días para mantener los informes de tráfico en el disco. Predeterminado: 30 días.",
     ["reports_data_retention_time_title"] = "Informes de retención de datos",
     ["restart_needed"] = "Reinicie %{product} para aplicar los cambios.",
+    ["restart_needed_active_monitoring"] = "<b>Reinicie</b> %{product} para habilitar la supervisión activa.",
     ["rrd_files_retention_description"] = "Número de días después de los cuales los archivos RRD que no se han actualizado se consideran obsoletos y se eliminan del disco. Esto evita que los RRD permanezcan para siempre (por ejemplo, un AS visitó una vez hace meses). Valor predeterminado: 90 días.<br><b>Nota:</b> solo se aplica cuando el controlador de serie temporal RRD está en uso.",
     ["rrd_files_retention_title"] = "Retención de archivos RRD",
     ["runtime_prefs"] = "Preferencias de tiempo de ejecución",
@@ -8960,6 +9441,9 @@ local lang = {
     ["toggle_ids_alert_title"] = "Alertas de identificación",
     ["toggle_informative_captive_portal_description"] = "No autenticar usuarios. Mostrar sólo una página informativa antes de permitir que los usuarios accedan a Internet.",
     ["toggle_informative_captive_portal_title"] = "Informativo",
+    ["toggle_flow_details_card_description"] = "Si está habilitado, al hacer clic en un flujo en vivo o histórico (o en una fila de flujo/alerta) se abren los detalles en una tarjeta lateral. Si está deshabilitado, la página de detalles completos se abre directamente.",
+    ["toggle_flow_details_card_title"] = "Tarjeta lateral de detalles de flujo",
+    ["flow_details_card_inline_label"] = "Tarjeta de detalles",
     ["toggle_interface_name_only_description"] = "Si está habilitado, muestra el nombre de la interfaz solo en el menú desplegable.",
     ["toggle_interface_name_only_title"] = "Sólo nombre de interfaz",
     ["toggle_internals_rrds_description"] = "Alternar la creación de series temporales <a href=\"%{url}\">internas</a>, por ejemplo, entradas de tablas hash, duración de las actividades periódicas y cantidad de puntos de la serie temporal escritos, duración de los scripts y cantidad de llamadas.",
@@ -9341,6 +9825,7 @@ local lang = {
     ["use_server_timezone"] = "Usar zona horaria del servidor",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "Esta característica requiere que la licencia esté activada.",
     ["ADD_POOL_FAILED"] = "No se puede agregar un grupo con los parámetros enviados",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "Se crearon demasiados grupos. Considere actualizar ntopng a Enterprise M o superior para crear grupos adicionales.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "Se crearon demasiados grupos.",
@@ -10711,6 +11196,7 @@ local lang = {
     ["groups_hint"] = "Grupos de reglas Wazuh separados por comas (vacío = cualquiera).",
     ["groups_placeholder"] = "p.ej. syslog, sshd, autenticación_éxito",
     ["id"] = "IDENTIFICACIÓN",
+    ["id_already_exists"] = "Ya existe una regla con este ID",
     ["id_hint"] = "Identificador de regla único (sin espacios). No se puede cambiar después de la creación.",
     ["id_placeholder"] = "p.ej. ssh-fuerza-bruta",
     ["id_required"] = "Se requiere un ID de regla único (sin espacios)",

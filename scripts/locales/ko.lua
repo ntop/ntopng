@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "연결됨",
   ["connected_to_the_cloud"] = "클라우드에 연결됨",
   ["connection_states"] = "연결상태 [ 메이저 / 마이너 ]",
+  ["content_not_available_title"] = "콘텐츠를 사용할 수 없음",
   ["copied"] = "복사됨",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "세다",
@@ -466,6 +467,10 @@ local lang = {
   ["last_user_agent"] = "사용자 에이전트",
   ["latency"] = "지연 시간",
   ["layer_2"] = "MAC 주소",
+  ["license_activation_action"] = "지금 활성화",
+  ["license_activation_title"] = "라이선스가 활성화되지 않음",
+  ["license_activation_warning"] = "이 라이센스는 아직 활성화되지 않았습니다. 모든 기능을 활성화하고 완전한 지원과 업데이트를 받으려면 활성화하세요.",
+  ["license_activation_content_not_available"] = "일부 콘텐츠를 로드할 수 없습니다. 모든 기능을 잠금 해제하려면 라이센스를 활성화하십시오.",
   ["legenda"] = "레전다",
   ["level"] = "수준",
   ["light"] = "빛",
@@ -764,6 +769,7 @@ local lang = {
   ["ram_used"] = "사용된",
   ["rcvd"] = "수신",
   ["reason"] = "이유",
+  ["read_more"] = "자세히 알아보기",
   ["received"] = "받았다",
   ["recipient"] = "받는 사람",
   ["records_to_show"] = "보여줄 기록",
@@ -1020,6 +1026,8 @@ local lang = {
   ["year"] = "년도",
   ["years"] = "연령",
   ["yes"] = "예",
+  ["zmq_default_encryption_title"] = "안전하지 않은 ZMQ 암호화 키",
+  ["zmq_default_encryption_warning"] = "이 ZMQ 인터페이스는 공개된 기본 암호화 키를 사용하고 있습니다. --zmq-encryption-key-priv를 사용하여 전용 암호화 키를 구성하십시오(또는 ntopng가 --zmq-encryption을 사용하여 자동으로 생성하도록 하십시오).",
   ["about"] = {
     ["about"] = "에 대한",
     ["about_x"] = "%{product}소개",
@@ -1111,6 +1119,17 @@ local lang = {
       ["auth_token_placeholder"] = "이메일을 통해 받은 토큰을 여기에 삽입하세요...",
       ["auth_token_send_error"] = "토큰을 보낼 수 없습니다. 이메일 주소를 확인하고 다시 시도하세요.",
       ["auth_token_sent"] = "새 토큰이 전송되었습니다.",
+      ["credentials"] = "신임장",
+      ["invalid_email"] = "유효한 이메일 주소를 입력하세요",
+      ["licenses_updated"] = "라이선스가 업데이트되었습니다.",
+      ["refresh_licenses"] = "새로 고치다",
+      ["request_new_token"] = "새 토큰을 이메일로 보내주세요",
+      ["retrieve_failed"] = "라이센스를 검색할 수 없습니다. 토큰이 올바른지 확인하거나 새 토큰을 요청하세요. 계속 실패하면 shop.ntop.org에 대한 연결을 확인하세요.",
+      ["set_credentials_first"] = "라이센스를 로드하기 위한 자격 증명 설정",
+      ["step_email"] = "이메일 확인",
+      ["step_token"] = "토큰 입력",
+      ["token_cached_hint"] = "저장된 토큰을 사용합니다. 작동하지 않으면 새 것을 요청하십시오.",
+      ["token_paste_hint"] = "%{email}로 전송된 이메일의 토큰을 붙여넣으세요.",
       ["badge_expired"] = "만료됨",
       ["badge_valid"] = "유효한",
       ["badge_valid_until"] = "%{date}까지 유효",
@@ -2016,6 +2035,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "VLAN 양방향 트래픽",
     ["vpn_detection"] = "VPN 감지",
     ["warning"] = "경고",
+    ["wazuh_check_alerts"] = "Wazuh 알림",
     ["wazuh_info_changed"] = "Wazuh 정보가 변경되었습니다.",
     ["wazuh_info_changed_descr"] = "Wazuh에서 내보낸 정보가 변경될 때마다(예: 새 포트가 추가되거나 네트워크 인터페이스가 추가될 때마다) 경고를 트리거합니다.",
     ["web_mining"] = "웹 마이닝",
@@ -4294,6 +4314,10 @@ local lang = {
     ["web_mining_detected"] = "이 웹사이트는 클라이언트 장치에서 암호화폐를 채굴하는 것으로 알려져 있습니다.",
     ["write"] = "쓰다",
   },
+  ["flow_details_card_toast"] = {
+    ["title"] = "신규: 흐름 세부정보 사이드 카드",
+    ["description"] = "실시간 또는 기록 흐름이나 흐름 경고를 클릭하면 이제 페이지를 떠나지 않고도 측면 패널에서 세부 정보가 열립니다. 환경설정 &rarr;에서 이 기능을 끌 수 있습니다. 사용자 인터페이스 &rarr; 흐름 세부정보 사이드 카드.",
+  },
   ["flow_devices"] = {
     ["active_sflow"] = "활성 sFlow 내보내기",
     ["all_device_ports"] = "모든 %{device} 포트",
@@ -6144,135 +6168,546 @@ local lang = {
     ["shut_start"] = "지금은 요청을 처리할 수 없습니다. 시작하거나 종료하는 중일 수 있습니다.",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "에코 응답",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "에코 답장",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "라우터 요청",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "시간 초과",
+          ["code"] = {
+            ["0"] = "전송 중에 TTL(Time to Live)이 초과되었습니다.",
+            ["1"] = "조각 재조립 시간이 초과되었습니다.",
+          },
+        },
+        ["12"] = {
+          ["info"] = "매개변수 문제",
+          ["code"] = {
+            ["0"] = "포인터는 오류를 나타냅니다.",
+            ["1"] = "필수 옵션 누락",
+            ["2"] = "잘못된 길이",
+          },
+        },
+        ["13"] = {
+          ["info"] = "타임스탬프",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "타임스탬프 응답",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "정보 요청(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "정보 답변(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "주소 마스크 요청(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "주소 마스크 회신(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "예약됨(보안용)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "RFC3692 스타일 실험 1",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "RFC3692 스타일 실험 2",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "예약된",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "예약됨(강건성 실험용)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "목적지에 도달할 수 없음",
+          ["code"] = {
+            ["0"] = "네트 도달 불가",
+            ["1"] = "호스트에 연결할 수 없음",
+            ["10"] = "대상 호스트와의 통신이 관리상 금지되어 있습니다.",
+            ["11"] = "서비스 유형에 대해 대상 네트워크에 연결할 수 없음",
+            ["12"] = "서비스 유형에 대해 대상 호스트에 연결할 수 없음",
+            ["13"] = "행정상 금지된 통신",
+            ["14"] = "호스트 우선순위 위반",
+            ["15"] = "우선순위 차단 적용 중",
+            ["2"] = "프로토콜에 연결할 수 없음",
+            ["3"] = "포트에 연결할 수 없음",
+            ["4"] = "조각화 필요 및 조각화 안 함 설정됨",
+            ["5"] = "소스 경로 실패",
+            ["6"] = "대상 네트워크를 알 수 없음",
+            ["7"] = "대상 호스트를 알 수 없음",
+            ["8"] = "소스 호스트가 분리됨",
+            ["9"] = "대상 네트워크와의 통신은 관리적으로 금지되어 있습니다.",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "데이터그램 변환 오류(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "모바일 호스트 리디렉션(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 현재 위치(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 I-Am-Here(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "모바일 등록 요청(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "모바일 등록 답변(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "도메인 이름 요청(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "도메인 이름 회신(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "건너뛰기(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "소스 퀸치(더 이상 사용되지 않음)",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "포투리스",
+          ["code"] = {
+            ["0"] = "나쁜 SPI",
+            ["1"] = "인증 실패",
+            ["2"] = "압축 해제 실패",
+            ["3"] = "암호 해독 실패",
+            ["4"] = "인증 필요",
+            ["5"] = "승인 필요",
+          },
+        },
+        ["41"] = {
+          ["info"] = "Seamoby와 같은 실험적인 이동성 프로토콜에서 활용되는 ICMP 메시지",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "확장된 에코 요청",
+          ["code"] = {
+            ["0"] = "오류 없음",
+          },
+        },
+        ["43"] = {
+          ["info"] = "확장된 에코 응답",
+          ["code"] = {
+            ["0"] = "No Error",
+            ["1"] = "잘못된 쿼리",
+            ["2"] = "해당 인터페이스 없음",
+            ["3"] = "해당 테이블 항목이 없습니다.",
+            ["4"] = "다중 인터페이스로 쿼리 충족",
+          },
+        },
+        ["5"] = {
+          ["info"] = "리디렉션",
+          ["code"] = {
+            ["0"] = "네트워크(또는 서브넷)에 대한 리디렉션 데이터그램",
+            ["1"] = "호스트에 대한 리디렉션 데이터그램",
+            ["2"] = "서비스 유형 및 네트워크에 대한 리디렉션 데이터그램",
+            ["3"] = "서비스 유형 및 호스트에 대한 리디렉션 데이터그램",
+          },
+        },
+        ["6"] = {
+          ["info"] = "대체 호스트 주소(더 이상 사용되지 않음)",
+          ["code"] = {
+            ["0"] = "호스트의 대체 주소",
+          },
+        },
+        ["8"] = {
+          ["info"] = "에코",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "라우터 광고",
+          ["code"] = {
+            ["0"] = "일반 라우터 광고",
+            ["16"] = "일반 트래픽을 라우팅하지 않습니다.",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "라우터 선택",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "예약된",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "시간이 초과되었습니다",
-        ["code"] = {
-          ["0"] = "전송 중에 TTL(Time to Live)이 초과되었습니다.",
-          ["1"] = "조각 재조립 시간이 초과되었습니다.",
+        ["1"] = {
+          ["info"] = "목적지에 도달할 수 없음",
+          ["code"] = {
+            ["0"] = "목적지까지의 경로가 없습니다",
+            ["1"] = "행정상 금지된 목적지와의 통신",
+            ["2"] = "소스 주소 범위를 벗어남",
+            ["3"] = "주소에 연결할 수 없음",
+            ["4"] = "포트에 연결할 수 없음",
+            ["5"] = "source address failed ingress/egress policy",
+            ["6"] = "목적지까지의 경로 거부",
+            ["7"] = "소스 라우팅 헤더에 오류가 있습니다.",
+            ["8"] = "헤더가 너무 깁니다.",
+            ["9"] = "P 경로 오류",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "매개변수 문제",
-        ["code"] = {
-          ["0"] = "포인터는 오류를 나타냅니다.",
+        ["100"] = {
+          ["info"] = "비공개 실험",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "타임스탬프",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "비공개 실험",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "멀티캐스트 리스너 쿼리",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "ICMPv6 오류 메시지 확장을 위해 예약됨",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "멀티캐스트 수신기 보고서",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "에코 요청",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "라우터 요청",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "에코 답장",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "라우터 광고",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "멀티캐스트 리스너 쿼리",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "이웃 권유",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "멀티캐스트 수신기 보고서",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "이웃광고",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "멀티캐스트 리스너 완료",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "타임스탬프 응답",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "라우터 요청",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "멀티캐스트 수신기 보고서 v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "라우터 광고",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "정보 요청",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "이웃 권유",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "정보 회신",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "이웃광고",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "주소 마스크 요청",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "메시지 리디렉션",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "주소 마스크 회신",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "라우터 번호 다시 매기기",
+          ["code"] = {
+            ["0"] = "라우터 번호 다시 매기기 명령",
+            ["1"] = "라우터 번호 다시 매기기 결과",
+            ["255"] = "시퀀스 번호 재설정",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "목적지에 도달할 수 없음",
-        ["code"] = {
-          ["0"] = "네트워크에 연결할 수 없음",
-          ["1"] = "호스트에 연결할 수 없음",
-          ["2"] = "프로토콜에 연결할 수 없음",
-          ["3"] = "포트에 연결할 수 없음",
-          ["4"] = "조각화가 필요하고 DF가 설정됨",
-          ["5"] = "소스 경로 실패",
+        ["139"] = {
+          ["info"] = "ICMP 노드 정보 쿼리",
+          ["code"] = {
+            ["0"] = "데이터 필드에는 이 쿼리의 제목인 IPv6 주소가 포함되어 있습니다.",
+            ["1"] = "데이터 필드에는 이 쿼리의 주제인 이름이 포함되어 있거나 NOOP의 경우처럼 비어 있습니다.",
+            ["2"] = "데이터 필드에는 이 쿼리의 제목인 IPv4 주소가 포함되어 있습니다.",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "경로 추적",
-        ["code"] = {
-          ["0"] = "아웃바운드 패킷이 성공적으로 전달되었습니다.",
-          ["1"] = "아웃바운드 패킷에 대한 경로가 없습니다. 패킷이 삭제되었습니다.",
+        ["140"] = {
+          ["info"] = "ICMP 노드 정보 응답",
+          ["code"] = {
+            ["0"] = "성공적인 답변입니다. 응답 데이터 필드는 비어 있을 수도 있고 비어 있지 않을 수도 있습니다.",
+            ["1"] = "응답자는 답변 제공을 거부합니다. 응답 데이터 필드는 비어 있습니다.",
+            ["2"] = "쿼리의 Qtype은 응답자에게 알려지지 않았습니다. 응답 데이터 필드는 비어 있습니다.",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "소스 담금질",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "역이웃 검색 요청 메시지",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "리디렉션",
-        ["code"] = {
-          ["0"] = "네트워크에 대한 데이터그램 리디렉션",
-          ["1"] = "호스트에 대한 데이터그램 리디렉션",
-          ["2"] = "서비스 유형 및 네트워크에 대한 데이터그램 리디렉션",
-          ["3"] = "서비스 유형 및 호스트에 대한 데이터그램 리디렉션",
+        ["142"] = {
+          ["info"] = "역이웃 발견 광고 메시지",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "에코",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "버전 2 멀티캐스트 수신기 보고서",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "라우터 광고",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "홈 에이전트 주소 검색 요청 메시지",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "홈 에이전트 주소 검색 응답 메시지",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "모바일 접두사 요청",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "모바일 접두어 광고",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "인증 경로 요청 메시지",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "인증 경로 광고 메시지",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "Seamoby와 같은 실험적인 이동성 프로토콜에서 활용되는 ICMP 메시지",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "멀티캐스트 라우터 광고",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "멀티캐스트 라우터 요청",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "멀티캐스트 라우터 종료",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "FMIPv6 메시지",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "RPL 제어 메시지",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "ILNPv6 Locator Update Message",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "Duplicate Address Request",
+          ["code"] = {
+            ["0"] = "DAR message",
+            ["1"] = "64비트 ROVR 필드가 있는 EDAR 메시지",
+            ["2"] = "128비트 ROVR 필드가 있는 EDAR 메시지",
+            ["3"] = "192비트 ROVR 필드가 있는 EDAR 메시지",
+            ["4"] = "256비트 ROVR 필드가 있는 EDAR 메시지",
+          },
+        },
+        ["158"] = {
+          ["info"] = "중복된 주소 확인",
+          ["code"] = {
+            ["0"] = "DAC 메시지",
+            ["1"] = "64비트 ROVR 필드가 있는 EDAC 메시지",
+            ["2"] = "128비트 ROVR 필드가 있는 EDAC 메시지",
+            ["3"] = "192비트 ROVR 필드가 있는 EDAC 메시지",
+            ["4"] = "256비트 ROVR 필드가 있는 EDAC 메시지",
+          },
+        },
+        ["159"] = {
+          ["info"] = "MPL 제어 메시지",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "확장된 에코 요청",
+          ["code"] = {
+            ["0"] = "오류 없음",
+          },
+        },
+        ["161"] = {
+          ["info"] = "확장된 에코 응답",
+          ["code"] = {
+            ["0"] = "오류 없음",
+            ["1"] = "잘못된 쿼리",
+            ["2"] = "해당 인터페이스 없음",
+            ["3"] = "해당 테이블 항목이 없습니다.",
+            ["4"] = "다중 인터페이스로 쿼리 충족",
+          },
+        },
+        ["2"] = {
+          ["info"] = "패킷이 너무 큼",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "비공개 실험",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "비공개 실험",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "ICMPv6 정보 메시지 확장을 위해 예약됨",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "시간 초과",
+          ["code"] = {
+            ["0"] = "전송 중 홉 제한이 초과되었습니다.",
+            ["1"] = "조각 재조립 시간이 초과되었습니다.",
+          },
+        },
+        ["4"] = {
+          ["info"] = "매개변수 문제",
+          ["code"] = {
+            ["0"] = "잘못된 헤더 필드가 발견되었습니다.",
+            ["1"] = "인식할 수 없는 다음 헤더 유형이 발생했습니다.",
+            ["10"] = "옵션이 너무 큼",
+            ["2"] = "인식할 수 없는 IPv6 옵션이 발견되었습니다.",
+            ["3"] = "IPv6 첫 번째 조각에 불완전한 IPv6 헤더 체인이 있습니다.",
+            ["4"] = "SR 상위 계층 헤더 오류",
+            ["5"] = "중간 노드에서 인식할 수 없는 다음 헤더 유형이 발견되었습니다.",
+            ["6"] = "확장 헤더가 너무 큼",
+            ["7"] = "확장 헤더 체인이 너무 깁니다.",
+            ["8"] = "확장 헤더가 너무 많습니다.",
+            ["9"] = "확장 헤더에 옵션이 너무 많습니다.",
+          },
         },
       },
     },
@@ -6291,6 +6726,7 @@ local lang = {
     ["packets_received"] = "수신된 패킷",
     ["packets_sent"] = "패킷 전송됨",
     ["top_icmp_hosts"] = "상위 ICMP 호스트",
+    ["unassigned"] = "할당되지 않음",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "규칙 유형",
@@ -6716,10 +7152,21 @@ local lang = {
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
+    ["activate"] = "활성화",
+    ["activated"] = "활성화됨",
+    ["activation_code_placeholder"] = "여기에 활성화 코드를 붙여넣으세요",
+    ["activation_error"] = "활성화에 실패했습니다. 활성화 코드를 확인하고 다시 시도해 주세요.",
+    ["activation_instructions"] = "ntopng가 라이센스를 자동으로 활성화할 수 없었는데, 이는 아마도 인터넷에 접속할 수 없거나 --offline으로 시작되었기 때문일 것입니다. 인터넷에 연결된 PC에서 <a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>라이센스 복구</a> 페이지로 이동하여 이 시스템의 활성화 코드를 검색한 후 아래에 붙여넣으세요.",
+    ["activation_success"] = "라이선스가 성공적으로 활성화되었습니다.",
+    ["activation_tab"] = "활성화",
+    ["activation_title"] = "오프라인 활성화",
     ["agreement"] = "라이센스 계약",
     ["license"] = "특허",
+    ["needs_activation_warning"] = "이 라이센스는 아직 활성화되지 않았습니다. 활성화 탭에서 활성화를 완료하십시오.",
+    ["no_system_id"] = "이 인스턴스의 SystemId를 확인할 수 없습니다.",
     ["not_valid"] = "유효하지",
     ["status"] = "상태",
+    ["system_id_changed"] = "이 인스턴스에서는 SystemID가 변경된 것 같습니다. 새 SystemID로 <a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>라이센스를 전송하는 방법을 읽어보세요</a>.",
     ["valid"] = "유효한 라이센스",
   },
   ["limits_page"] = {
@@ -6808,14 +7255,18 @@ local lang = {
     ["evidence_live_hint"] = "도구 실행 시 실시간 업데이트",
     ["evidence_panel_title"] = "조사 증거",
     ["evidence_tab"] = "증거",
+    ["evidence_jump_hint"] = "채팅을 이 메시지로 스크롤하세요.",
     ["evidence_this_turn"] = "이번 차례",
     ["explanation"] = "설명",
     ["final_response"] = "최종 응답",
     ["generate_policy"] = "자연어에서 정책 생성",
     ["generation_cost"] = "생성 비용",
     ["generic_error"] = "LLM 제공업체에 문의하는 동안 오류가 발생했습니다.",
+    ["open_chat_history"] = "채팅 기록 열기",
+    ["close_chat_history"] = "채팅 기록 닫기",
     ["good_response"] = "좋은 반응",
     ["hide_evidence"] = "증거 숨기기",
+    ["hide_reasoning"] = "추론 숨기기",
     ["hide_steps"] = "단계 숨기기",
     ["historical"] = "역사적인",
     ["history"] = "역사",
@@ -6841,6 +7292,7 @@ local lang = {
     ["nAnalyst"] = "n분석가",
     ["new_chat"] = "새 채팅",
     ["next_steps"] = "권장되는 다음 단계",
+    ["next_step_manual_hint"] = "이 작업을 수행해야 합니다. 어시스턴트는 아직 수행할 수 없습니다.",
     ["no_artifacts_sub"] = "이 대화에서 생성된 차트 및 기타 아티팩트가 여기에 표시됩니다.",
     ["no_artifacts_title"] = "아티팩트 없음",
     ["no_audit_entries"] = "감사 항목을 찾을 수 없습니다.",
@@ -6888,6 +7340,7 @@ local lang = {
     ["save_and_regenerate"] = "저장 및 재생성",
     ["send"] = "조사하다",
     ["show_evidence"] = "증거 보여주기",
+    ["show_reasoning"] = "추론 보여주기",
     ["show_steps"] = "단계 표시",
     ["sql_query"] = "SQL 쿼리",
     ["stat_avg_response"] = "평균 응답 시간",
@@ -6908,6 +7361,11 @@ local lang = {
     ["tool_add_certificate_alert_exclusion"] = "인증서 경고 제외 추가",
     ["tool_add_domain_alert_exclusion"] = "도메인 경고 제외 추가",
     ["tool_add_host_alert_exclusion"] = "호스트 경고 제외 추가",
+    ["tool_annotation_artifact"] = "인공물",
+    ["tool_annotation_clickhouse"] = "클릭하우스",
+    ["tool_annotation_read_only"] = "읽기 전용",
+    ["tool_annotation_write"] = "쓰다",
+    ["tool_annotations"] = "주석",
     ["tool_call_cost"] = "도구 사용 비용",
     ["tool_call_sequence"] = "도구 호출 순서",
     ["tool_calls_made"] = "도구 호출",
@@ -6915,6 +7373,8 @@ local lang = {
     ["tool_chord"] = "코드 그리기",
     ["tool_create_ai_policy"] = "AI 정책 생성",
     ["tool_describe_table"] = "테이블 설명",
+    ["tool_description"] = "설명",
+    ["tool_discover_lan"] = "LAN 발견",
     ["tool_followup"] = "도구 후속 조치",
     ["tool_geomap"] = "지리지도 그리기",
     ["tool_get_access_control_list"] = "액세스 제어 목록 가져오기",
@@ -6926,6 +7386,7 @@ local lang = {
     ["tool_get_historical_flow"] = "기록 흐름 가져오기",
     ["tool_get_host_info"] = "호스트 정보 얻기",
     ["tool_get_infrastructure_stats"] = "인프라 통계 가져오기",
+    ["tool_get_interface_addresses"] = "인터페이스 주소 가져오기",
     ["tool_get_live_flow"] = "실시간 흐름 가져오기",
     ["tool_get_live_flows_for_host"] = "호스트를 위한 실시간 흐름 가져오기",
     ["tool_get_live_flows_summary"] = "실시간 흐름 요약 가져오기",
@@ -6947,6 +7408,8 @@ local lang = {
     ["tool_get_timeseries"] = "시계열 가져오기",
     ["tool_get_top_exporter_interfaces"] = "최고의 내보내기 인터페이스 가져오기",
     ["tool_get_vlan_traffic"] = "VLAN 트래픽 가져오기",
+    ["tool_get_wazuh_alert_exceptions"] = "Wazuh 알림 예외 받기",
+    ["tool_get_wazuh_alert_rules"] = "Wazuh 알림 규칙 받기",
     ["tool_get_wazuh_alerts"] = "Wazuh 알림 받기",
     ["tool_list_ai_policies"] = "AI 정책 나열",
     ["tool_list_available_active_monitoring_scripts"] = "활성 모니터링 스크립트 나열",
@@ -6959,16 +7422,29 @@ local lang = {
     ["tool_list_snmp_devices"] = "SNMP 장치 나열",
     ["tool_list_tables"] = "테이블 나열",
     ["tool_list_timeseries"] = "시계열 나열",
+    ["tool_license"] = "특허",
+    ["tool_license_community"] = "지역 사회",
+    ["tool_license_enterprise_l"] = "엔터프라이즈 L",
+    ["tool_license_enterprise_m"] = "엔터프라이즈M",
+    ["tool_license_enterprise_xl"] = "엔터프라이즈 XL",
     ["tool_name"] = "도구",
+    ["tool_availability"] = "유효성",
+    ["tool_available"] = "사용 가능",
+    ["tool_locked"] = "잠김",
     ["tool_nprobe_integration_help"] = "nProbe 통합 도움말",
     ["tool_query"] = "SQL 쿼리",
     ["tool_resolve_proto"] = "프로토콜 해결",
     ["tool_sankey"] = "생키 그리기",
     ["tool_search_docs"] = "문서 검색",
+    ["tools_catalog"] = "도구 카탈로그",
+    ["tools_catalog_btn"] = "도구",
+    ["tools_catalog_hint"] = "nAnalyst가 이 인스턴스에서 사용할 수 있는 모든 도구를 확인하세요.",
+    ["tools_catalog_subtitle"] = "모든 에이전트 도구 ntopng가 배송됩니다. 잠금 플래그가 지정된 도구에는 여기에서 실행되는 것보다 더 높은 라이선스가 필요합니다.",
     ["total_cost"] = "총 비용",
     ["total_tokens"] = "총 토큰",
     ["trigger_count"] = "트리거된 횟수",
     ["triggered_by"] = "트리거 원인",
+    ["turn"] = "회전하다",
     ["unexpected_response"] = "LLM의 예상치 못한 응답입니다. 다시 시도해 주세요",
     ["unique_chats"] = "독특한 채팅",
     ["updated_at"] = "업데이트 날짜",
@@ -6976,6 +7452,7 @@ local lang = {
     ["usage_by_user"] = "사용자별 사용량",
     ["user"] = "사용자",
     ["view_source"] = "소스 경고/흐름 보기",
+    ["view_tools"] = "도구",
     ["working"] = "일하고 있는",
     ["working_on"] = "달리기 %{tool}",
     ["analyst_pipeline"] = {
@@ -7974,6 +8451,9 @@ local lang = {
       ["smtp_username"] = "SMTP 사용자 이름",
       ["use_proxy"] = "프록시 사용",
       ["use_proxy_descr"] = "시스템 전체 프록시 구성(HTTP_PROXY 또는 http_proxy 환경 변수) 사용",
+      ["use_startssl"] = "STARTSSL 사용",
+      ["use_tls_descr"] = "TLS 암호화를 사용하여 메일을 강제로 배달하려면 smpt(smtps) 끝에 's'를 추가하세요(예: smtps://mail.server.org).",
+      ["use_startssl_descr"] = "활성화된 경우 메일을 보낼 때 STARTSSL을 사용합니다. 메일 서버가 SMTPS를 사용하는 경우 이 기본 설정은 무시됩니다(예: smtps://mail.server.org).",
       ["validation"] = {
         ["empty_SMTP_port"] = "포트를 삽입해 주세요.",
         ["empty_SMTP_server"] = "IPv4/IPv6/호스트 주소/SMTP URL을 입력하세요.",
@@ -8793,6 +9273,7 @@ local lang = {
     ["reports_data_retention_time_descr"] = "트래픽 보고서를 디스크에 보관하는 일수입니다. 기본값: 30일.",
     ["reports_data_retention_time_title"] = "보고서 데이터 보존",
     ["restart_needed"] = "변경 사항을 적용하려면 %{product}을(를) 다시 시작하세요.",
+    ["restart_needed_active_monitoring"] = "활성 모니터링을 활성화하려면 <b>다시 시작</b> %{product} 하세요.",
     ["rrd_files_retention_description"] = "업데이트되지 않은 RRD 파일이 오래된 것으로 간주되어 디스크에서 제거될 때까지의 일 수입니다. 이렇게 하면 RRD가 영원히 지속되는 것을 방지할 수 있습니다(예: 몇 달 전에 한 번 방문한 AS). 기본값: 90일.<br><b>참고:</b> RRD 시계열 드라이버가 사용 중인 경우에만 적용됩니다.",
     ["rrd_files_retention_title"] = "RRD 파일 보존",
     ["runtime_prefs"] = "런타임 환경설정",
@@ -8960,6 +9441,9 @@ local lang = {
     ["toggle_ids_alert_title"] = "IDS 경고",
     ["toggle_informative_captive_portal_description"] = "사용자를 인증하지 마세요. 사용자가 인터넷에 액세스할 수 있도록 하기 전에 정보 페이지만 표시합니다.",
     ["toggle_informative_captive_portal_title"] = "유익한",
+    ["toggle_flow_details_card_description"] = "활성화된 경우 실시간 또는 기록 흐름(또는 흐름/경고 행)을 클릭하면 사이드 카드에 세부 정보가 열립니다. 비활성화된 경우 대신 전체 세부정보 페이지가 직접 열립니다.",
+    ["toggle_flow_details_card_title"] = "흐름 세부정보 사이드 카드",
+    ["flow_details_card_inline_label"] = "세부정보 카드",
     ["toggle_interface_name_only_description"] = "활성화된 경우 드롭다운 메뉴에만 인터페이스 이름을 표시합니다.",
     ["toggle_interface_name_only_title"] = "인터페이스 이름만",
     ["toggle_internals_rrds_description"] = "<a href=\"%{url}\">내부</a> 시계열 생성을 전환합니다. 예를 들어, 해시 테이블 항목, 주기적 활동 기간 및 작성된 시계열 포인트 수, 스크립트 기간 및 호출 수입니다.",
@@ -9341,6 +9825,7 @@ local lang = {
     ["use_server_timezone"] = "서버 시간대 사용",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "이 기능을 사용하려면 라이선스를 활성화해야 합니다.",
     ["ADD_POOL_FAILED"] = "제출된 매개변수가 있는 풀을 추가할 수 없습니다.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "생성된 풀이 너무 많습니다. 추가 풀을 생성하려면 ntopng를 Enterprise M 이상으로 업그레이드하는 것이 좋습니다.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "생성된 풀이 너무 많습니다.",
@@ -10711,6 +11196,7 @@ local lang = {
     ["groups_hint"] = "쉼표로 구분된 Wazuh 규칙 그룹(비어 있음 = 모두)",
     ["groups_placeholder"] = "예를 들어 syslog,sshd,authentication_success",
     ["id"] = "ID",
+    ["id_already_exists"] = "이 ID를 가진 규칙이 이미 존재합니다.",
     ["id_hint"] = "고유한 규칙 식별자(공백 없음) 생성 후에는 변경할 수 없습니다.",
     ["id_placeholder"] = "예를 들어 SSH-무차별 대입",
     ["id_required"] = "고유한 규칙 ID(공백 없음)가 필요합니다.",

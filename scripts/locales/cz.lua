@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "Připojeno",
   ["connected_to_the_cloud"] = "Připojeno ke cloudu",
   ["connection_states"] = "Stav připojení [ hlavní / vedlejší ]",
+  ["content_not_available_title"] = "Obsah není k dispozici",
   ["copied"] = "Zkopírováno",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "Počítat",
@@ -466,6 +467,10 @@ local lang = {
   ["last_user_agent"] = "User Agent",
   ["latency"] = "Latence",
   ["layer_2"] = "Mac Addresses",
+  ["license_activation_action"] = "Aktivujte nyní",
+  ["license_activation_title"] = "Licence není aktivována",
+  ["license_activation_warning"] = "Tato licence dosud nebyla aktivována. Aktivujte jej, abyste povolili všechny funkce a zajistili plnou podporu a aktualizace.",
+  ["license_activation_content_not_available"] = "Některý obsah se nepodařilo načíst. Pro odemknutí všech funkcí prosím aktivujte svou licenci.",
   ["legenda"] = "Legenda",
   ["level"] = "Úroveň",
   ["light"] = "Světlo",
@@ -764,6 +769,7 @@ local lang = {
   ["ram_used"] = "Použitý",
   ["rcvd"] = "Rcvd",
   ["reason"] = "Důvod",
+  ["read_more"] = "Přečtěte si více",
   ["received"] = "Přijato",
   ["recipient"] = "Příjemce",
   ["records_to_show"] = "Záznamy k zobrazení",
@@ -1020,6 +1026,8 @@ local lang = {
   ["year"] = "Rok",
   ["years"] = "let",
   ["yes"] = "Ano",
+  ["zmq_default_encryption_title"] = "Nezabezpečený šifrovací klíč ZMQ",
+  ["zmq_default_encryption_warning"] = "Toto rozhraní ZMQ používá výchozí šifrovací klíč, který je veřejný. Nakonfigurujte prosím vyhrazený šifrovací klíč pomocí --zmq-encryption-key-priv (nebo nechte ntopng vygenerovat jej automaticky pomocí --zmq-encryption).",
   ["about"] = {
     ["about"] = "O",
     ["about_x"] = "O %{product}",
@@ -1111,6 +1119,17 @@ local lang = {
       ["auth_token_placeholder"] = "Zde vložte token přijatý e-mailem...",
       ["auth_token_send_error"] = "Token se nepodařilo odeslat: zkontrolujte e-mailovou adresu a zkuste to znovu",
       ["auth_token_sent"] = "Byl odeslán nový token",
+      ["credentials"] = "Pověření",
+      ["invalid_email"] = "Zadejte platnou e-mailovou adresu",
+      ["licenses_updated"] = "Licence byly aktualizovány",
+      ["refresh_licenses"] = "Obnovit",
+      ["request_new_token"] = "Pošlete mi e-mailem nový token",
+      ["retrieve_failed"] = "Licence se nepodařilo načíst. Zkontrolujte, zda je token správný, nebo požádejte o nový; pokud stále selhává, ověřte své připojení k shop.ntop.org.",
+      ["set_credentials_first"] = "Nastavte své přihlašovací údaje pro načtení licencí",
+      ["step_email"] = "Ověřte e-mail",
+      ["step_token"] = "Zadejte token",
+      ["token_cached_hint"] = "Pomocí uloženého tokenu. Pokud to nefunguje, požádejte o nový.",
+      ["token_paste_hint"] = "Vložte token z e-mailu odeslaného na %{email}",
       ["badge_expired"] = "Platnost vypršela",
       ["badge_valid"] = "Platný",
       ["badge_valid_until"] = "Platí do %{date}",
@@ -2016,6 +2035,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "Obousměrný provoz VLAN",
     ["vpn_detection"] = "Detekce VPN",
     ["warning"] = "Varování",
+    ["wazuh_check_alerts"] = "Upozornění Wazuh",
     ["wazuh_info_changed"] = "Informace Wazuh změněny",
     ["wazuh_info_changed_descr"] = "Spustit výstrahu vždy, když se změní informace exportované Wazuh, například je přidán nový port nebo je přidáno síťové rozhraní",
     ["web_mining"] = "Web Mining",
@@ -4294,6 +4314,10 @@ local lang = {
     ["web_mining_detected"] = "Web je známý pro těžbu kryptoměn na klientských zařízeních",
     ["write"] = "Napsat",
   },
+  ["flow_details_card_toast"] = {
+    ["title"] = "Novinka: Postranní karta s podrobnostmi o toku",
+    ["description"] = "Kliknutím na živý nebo historický tok nebo na upozornění toku se nyní otevřou jeho podrobnosti na bočním panelu, aniž byste museli opustit stránku. Toto můžete vypnout v části Předvolby &rarr; Uživatelské rozhraní &rarr; Podrobnosti o toku boční karta.",
+  },
   ["flow_devices"] = {
     ["active_sflow"] = "Aktivní sFlow zařízení",
     ["all_device_ports"] = "Všechny %{device} porty",
@@ -6144,135 +6168,546 @@ local lang = {
     ["shut_start"] = "V tuto chvíli nelze obsluhovat požadavky, možná se spouští nebo vypíná",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "Echo odpověď",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Echo odpověď",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "Router Solicitation",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "Čas překročen",
+          ["code"] = {
+            ["0"] = "Time to Live překročen v Transitu",
+            ["1"] = "Překročena doba opětovného sestavení fragmentu",
+          },
+        },
+        ["12"] = {
+          ["info"] = "Problém s parametrem",
+          ["code"] = {
+            ["0"] = "Ukazatel indikuje chybu",
+            ["1"] = "Chybí požadovaná možnost",
+            ["2"] = "Špatná délka",
+          },
+        },
+        ["13"] = {
+          ["info"] = "Časové razítko",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "Časové razítko Odpověď",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "Žádost o informace (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "Informační odpověď (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "Požadavek na masku adresy (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "Odpověď masky adresy (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "Rezervováno (pro bezpečnost)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "Experiment ve stylu RFC3692 1",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "Experiment ve stylu RFC3692 2",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Rezervováno",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "Rezervováno (pro experiment robustnosti)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Cíl nedosažitelný",
+          ["code"] = {
+            ["0"] = "Net nedostupný",
+            ["1"] = "Hostitel je nedostupný",
+            ["10"] = "Komunikace s cílovým hostitelem je administrativně zakázána",
+            ["11"] = "Cílová síť není pro typ služby dosažitelná",
+            ["12"] = "Cílový hostitel je pro typ služby nedosažitelný",
+            ["13"] = "Komunikace administrativně zakázána",
+            ["14"] = "Porušení priority hostitele",
+            ["15"] = "Platí omezení priority",
+            ["2"] = "Protokol nedostupný",
+            ["3"] = "Port nedostupný",
+            ["4"] = "Byla nastavena potřeba fragmentace a nefragmentovat",
+            ["5"] = "Zdrojová trasa selhala",
+            ["6"] = "Cílová síť neznámá",
+            ["7"] = "Cílový hostitel neznámý",
+            ["8"] = "Zdrojový hostitel izolovaný",
+            ["9"] = "Komunikace s cílovou sítí je administrativně zakázána",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "Chyba převodu datagramu (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "Přesměrování mobilního hostitele (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 Where-Are-You (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 I-Am-Here (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "Žádost o mobilní registraci (zastaralá)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "Odpověď na registraci mobilního telefonu (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "Žádost o název domény (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "Odpověď na název domény (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "PŘESKOČIT (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "Zdrojové uhašení (zastaralé)",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "Photuris",
+          ["code"] = {
+            ["0"] = "Špatné SPI",
+            ["1"] = "Ověření se nezdařilo",
+            ["2"] = "Dekomprese se nezdařila",
+            ["3"] = "Dešifrování se nezdařilo",
+            ["4"] = "Potřebujete ověření",
+            ["5"] = "Potřebujete autorizaci",
+          },
+        },
+        ["41"] = {
+          ["info"] = "Zprávy ICMP využívané experimentálními protokoly mobility, jako je Seamoby",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "Rozšířený požadavek na echo",
+          ["code"] = {
+            ["0"] = "Žádná chyba",
+          },
+        },
+        ["43"] = {
+          ["info"] = "Rozšířená odpověď Echo",
+          ["code"] = {
+            ["0"] = "Žádná chyba",
+            ["1"] = "Poškozený dotaz",
+            ["2"] = "Žádné takové rozhraní",
+            ["3"] = "Žádný takový záznam tabulky",
+            ["4"] = "Více rozhraní uspokojí dotaz",
+          },
+        },
+        ["5"] = {
+          ["info"] = "Přesměrování",
+          ["code"] = {
+            ["0"] = "Přesměrování datagramu pro síť (nebo podsíť)",
+            ["1"] = "Přesměrování datagramu pro hostitele",
+            ["2"] = "Přesměrování datagramu pro typ služby a sítě",
+            ["3"] = "Přesměrování datagramu pro typ služby a hostitele",
+          },
+        },
+        ["6"] = {
+          ["info"] = "Alternativní adresa hostitele (zastaralé)",
+          ["code"] = {
+            ["0"] = "Alternativní adresa pro hostitele",
+          },
+        },
+        ["8"] = {
+          ["info"] = "Echo",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "Reklama na router",
+          ["code"] = {
+            ["0"] = "Normální reklama na router",
+            ["16"] = "Nesměruje běžný provoz",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "Výběr routeru",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Reserved",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "Čas překročen",
-        ["code"] = {
-          ["0"] = "Překročení doby žití",
-          ["1"] = "Doba opětovného sestavení fragmentu byla překročena",
+        ["1"] = {
+          ["info"] = "Cíl nedosažitelný",
+          ["code"] = {
+            ["0"] = "žádná cesta k cíli",
+            ["1"] = "komunikace s destinací administrativně zakázána",
+            ["2"] = "mimo rozsah zdrojové adresy",
+            ["3"] = "adresa nedosažitelná",
+            ["4"] = "port nedosažitelný",
+            ["5"] = "zdrojová adresa selhala politika vstupu/výstupu",
+            ["6"] = "odmítnout cestu do cíle",
+            ["7"] = "Chyba v záhlaví směrování zdroje",
+            ["8"] = "Záhlaví jsou příliš dlouhá",
+            ["9"] = "Chyba v P-Route",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "Problém s parametrem",
-        ["code"] = {
-          ["0"] = "Ukazatel indikuje chybu",
+        ["100"] = {
+          ["info"] = "Soukromé experimentování",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "Časové razítko",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "Soukromé experimentování",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "Multicast Listener dotaz",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "Vyhrazeno pro rozšíření chybových zpráv ICMPv6",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "Zpráva posluchače vícesměrového vysílání",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "Žádost o echo",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "Router Solicitation",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "Echo odpověď",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "Reklama na router",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "Dotaz posluchače vícesměrového vysílání",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "Sousedská žádost",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "Zpráva posluchače vícesměrového vysílání",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "Inzerát souseda",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "Multicast Listener Hotovo",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "Časové razítko Odpověď",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "Router Solicitation",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "Multicast Listener Report v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "Reklama na router",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "Žádost o informace",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "Sousedská žádost",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "Informační odpověď",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "Sousedská reklama",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "Žádost o masku adresy",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "Přesměrování zprávy",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "Odpověď masky adresy",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "Přečíslování routeru",
+          ["code"] = {
+            ["0"] = "Příkaz pro přečíslování routeru",
+            ["1"] = "Výsledek přečíslování routeru",
+            ["255"] = "Obnovení pořadového čísla",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "Cíl nedosažitelný",
-        ["code"] = {
-          ["0"] = "Síť nedostupná",
-          ["1"] = "Hostitel je nedostupný",
-          ["2"] = "Protokol je nedostupný",
-          ["3"] = "Port nedosažitelný",
-          ["4"] = "Je nutná fragmentace a nastavení DF",
-          ["5"] = "Zdrojová trasa selhala",
+        ["139"] = {
+          ["info"] = "Informační dotaz ICMP uzlu",
+          ["code"] = {
+            ["0"] = "Pole Data obsahuje adresu IPv6, která je předmětem tohoto dotazu.",
+            ["1"] = "Pole Data obsahuje jméno, které je předmětem tohoto dotazu, nebo je prázdné, jako v případě NOOP.",
+            ["2"] = "Pole Data obsahuje adresu IPv4, která je předmětem tohoto dotazu.",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "Traceroute",
-        ["code"] = {
-          ["0"] = "Odchozí paket úspěšně předán",
-          ["1"] = "Žádná trasa pro odchozí paket; paket zahozen",
+        ["140"] = {
+          ["info"] = "Informační odpověď ICMP uzlu",
+          ["code"] = {
+            ["0"] = "Úspěšná odpověď. Pole Data odpovědi může, ale nemusí být prázdné.",
+            ["1"] = "Respondent odmítá poskytnout odpověď. Pole Data odpovědi bude prázdné.",
+            ["2"] = "Odpovídač nezná Qtype dotazu. Pole Data odpovědi bude prázdné.",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "Zdroj Quench",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "Inverzní zpráva s žádostí o nalezení souseda",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "Přesměrování",
-        ["code"] = {
-          ["0"] = "Přesměrování datagramů pro síť",
-          ["1"] = "Přesměrování datagramů pro hostitele",
-          ["2"] = "Přesměrování datagramů pro typ služby a síť",
-          ["3"] = "Přesměrování datagramů pro typ služby a hostitele",
+        ["142"] = {
+          ["info"] = "Inverse Neighbor Discovery Inzertní zpráva",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "Žádost o echo",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "Zpráva Multicast Listener verze 2",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "Reklama na router",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "Zpráva s žádostí o zjištění adresy domovského agenta",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "Zpráva s odpovědí na zjištění adresy domovského agenta",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "Žádost o mobilní prefix",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "Reklama na mobilní prefix",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "Zpráva s žádostí o certifikační cestu",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "Inzertní zpráva o cestě k certifikaci",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "Zprávy ICMP využívané experimentálními protokoly mobility, jako je Seamoby",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "Reklama na směrovač multicast",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "Žádost o multicastový směrovač",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "Ukončení směrovače multicast",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "Zprávy FMIPv6",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "Řídicí zpráva RPL",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "Zpráva o aktualizaci lokátoru ILNPv6",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "Žádost o duplicitní adresu",
+          ["code"] = {
+            ["0"] = "Zpráva DAR",
+            ["1"] = "Zpráva EDAR s 64bitovým polem ROVR",
+            ["2"] = "Zpráva EDAR se 128bitovým polem ROVR",
+            ["3"] = "Zpráva EDAR se 192bitovým polem ROVR",
+            ["4"] = "Zpráva EDAR s 256bitovým polem ROVR",
+          },
+        },
+        ["158"] = {
+          ["info"] = "Potvrzení duplicitní adresy",
+          ["code"] = {
+            ["0"] = "zpráva DAC",
+            ["1"] = "Zpráva EDAC s 64bitovým polem ROVR",
+            ["2"] = "Zpráva EDAC se 128bitovým polem ROVR",
+            ["3"] = "Zpráva EDAC se 192bitovým polem ROVR",
+            ["4"] = "Zpráva EDAC s 256bitovým polem ROVR",
+          },
+        },
+        ["159"] = {
+          ["info"] = "Kontrolní zpráva MPL",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "Rozšířený požadavek na echo",
+          ["code"] = {
+            ["0"] = "Žádná chyba",
+          },
+        },
+        ["161"] = {
+          ["info"] = "Rozšířená odpověď Echo",
+          ["code"] = {
+            ["0"] = "Žádná chyba",
+            ["1"] = "Poškozený dotaz",
+            ["2"] = "Žádné takové rozhraní",
+            ["3"] = "Žádný takový záznam tabulky",
+            ["4"] = "Více rozhraní uspokojí dotaz",
+          },
+        },
+        ["2"] = {
+          ["info"] = "Příliš velký balíček",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "Soukromé experimentování",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "Soukromé experimentování",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Vyhrazeno pro rozšíření informačních zpráv ICMPv6",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Čas překročen",
+          ["code"] = {
+            ["0"] = "překročen limit skoku při přepravě",
+            ["1"] = "překročena doba opětovného sestavení fragmentu",
+          },
+        },
+        ["4"] = {
+          ["info"] = "Problém s parametrem",
+          ["code"] = {
+            ["0"] = "bylo zjištěno chybné pole záhlaví",
+            ["1"] = "nerozpoznaný Další typ záhlaví",
+            ["10"] = "Možnost příliš velká",
+            ["2"] = "byla zjištěna nerozpoznaná možnost IPv6",
+            ["3"] = "První fragment IPv6 má neúplný řetězec záhlaví IPv6",
+            ["4"] = "SR Chyba záhlaví horní vrstvy",
+            ["5"] = "Mezilehlý uzel zjistil nerozpoznaný typ další hlavičky",
+            ["6"] = "Záhlaví rozšíření je příliš velké",
+            ["7"] = "Řetěz prodlužovací lišty je příliš dlouhý",
+            ["8"] = "Příliš mnoho záhlaví rozšíření",
+            ["9"] = "Příliš mnoho možností v záhlaví rozšíření",
+          },
         },
       },
     },
@@ -6291,6 +6726,7 @@ local lang = {
     ["packets_received"] = "Přijaté pakety",
     ["packets_sent"] = "Odeslané pakety",
     ["top_icmp_hosts"] = "Nejlepší hostitelé ICMP",
+    ["unassigned"] = "Nepřiřazeno",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "Typ pravidla",
@@ -6716,10 +7152,21 @@ local lang = {
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
+    ["activate"] = "Aktivovat",
+    ["activated"] = "Aktivováno",
+    ["activation_code_placeholder"] = "Sem vložte aktivační kód",
+    ["activation_error"] = "Aktivace se nezdařila. Zkontrolujte aktivační kód a zkuste to znovu.",
+    ["activation_instructions"] = "ntopng nemohl automaticky aktivovat licenci, pravděpodobně proto, že nemá přístup k internetu (nebo byl spuštěn s --offline). Z počítače s přístupem k internetu přejděte na stránku <a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>Obnova licence</a>, kde získáte aktivační kód pro tento systém, a poté jej vložte níže.",
+    ["activation_success"] = "Licence byla úspěšně aktivována",
+    ["activation_tab"] = "Aktivace",
+    ["activation_title"] = "Offline aktivace",
     ["agreement"] = "Licenční smlouva",
     ["license"] = "Licence",
+    ["needs_activation_warning"] = "Tato licence dosud nebyla aktivována. Dokončete prosím aktivaci na kartě Aktivace.",
+    ["no_system_id"] = "Nelze určit SystemId pro tuto instanci.",
     ["not_valid"] = "Neplatné",
     ["status"] = "Postavení",
+    ["system_id_changed"] = "Zdá se, že SystemID bylo v této instanci změněno, <a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>přečtěte si, jak převést licenci</a> na nové SystemID.",
     ["valid"] = "Platná licence",
   },
   ["limits_page"] = {
@@ -6808,14 +7255,18 @@ local lang = {
     ["evidence_live_hint"] = "Aktualizace za běhu nástrojů",
     ["evidence_panel_title"] = "Důkaz z vyšetřování",
     ["evidence_tab"] = "Důkaz",
+    ["evidence_jump_hint"] = "Posuňte chat na tuto zprávu",
     ["evidence_this_turn"] = "Tato odbočka",
     ["explanation"] = "Vysvětlení",
     ["final_response"] = "Konečná odpověď",
     ["generate_policy"] = "Generování zásad z přirozeného jazyka",
     ["generation_cost"] = "Generační náklady",
     ["generic_error"] = "Při kontaktování poskytovatele LLM došlo k chybě.",
+    ["open_chat_history"] = "Otevřete historii chatu",
+    ["close_chat_history"] = "Zavřít historii chatu",
     ["good_response"] = "Dobrá odezva",
     ["hide_evidence"] = "Skrýt důkazy",
+    ["hide_reasoning"] = "Skrýt uvažování",
     ["hide_steps"] = "Skrýt kroky",
     ["historical"] = "Historický",
     ["history"] = "Dějiny",
@@ -6841,6 +7292,7 @@ local lang = {
     ["nAnalyst"] = "nAnalytik",
     ["new_chat"] = "Nový chat",
     ["next_steps"] = "Doporučené další kroky",
+    ["next_step_manual_hint"] = "Musíte to udělat — asistent to zatím nemůže provést",
     ["no_artifacts_sub"] = "Zde se zobrazí grafy a další vygenerované artefakty z této konverzace.",
     ["no_artifacts_title"] = "Žádné artefakty",
     ["no_audit_entries"] = "Nebyly nalezeny žádné záznamy auditu",
@@ -6888,6 +7340,7 @@ local lang = {
     ["save_and_regenerate"] = "Uložit a obnovit",
     ["send"] = "Vyšetřovat",
     ["show_evidence"] = "Ukaž důkazy",
+    ["show_reasoning"] = "Ukaž uvažování",
     ["show_steps"] = "Zobrazit kroky",
     ["sql_query"] = "SQL dotaz",
     ["stat_avg_response"] = "Průměrná doba odezvy",
@@ -6908,6 +7361,11 @@ local lang = {
     ["tool_add_certificate_alert_exclusion"] = "Přidat vyloučení výstrahy certifikátu",
     ["tool_add_domain_alert_exclusion"] = "Přidat vyloučení upozornění domény",
     ["tool_add_host_alert_exclusion"] = "Přidat vyloučení výstrahy hostitele",
+    ["tool_annotation_artifact"] = "Artefakt",
+    ["tool_annotation_clickhouse"] = "ClickHouse",
+    ["tool_annotation_read_only"] = "Pouze pro čtení",
+    ["tool_annotation_write"] = "Napsat",
+    ["tool_annotations"] = "Anotace",
     ["tool_call_cost"] = "Náklady na používání nástroje",
     ["tool_call_sequence"] = "Sekvence volání nástroje",
     ["tool_calls_made"] = "volání nástroje",
@@ -6915,6 +7373,8 @@ local lang = {
     ["tool_chord"] = "Nakreslete akord",
     ["tool_create_ai_policy"] = "Vytvořte zásady AI",
     ["tool_describe_table"] = "Popište tabulku",
+    ["tool_description"] = "Popis",
+    ["tool_discover_lan"] = "Objevte LAN",
     ["tool_followup"] = "Následné sledování nástroje",
     ["tool_geomap"] = "Nakreslete geomapu",
     ["tool_get_access_control_list"] = "Získejte seznam řízení přístupu",
@@ -6926,6 +7386,7 @@ local lang = {
     ["tool_get_historical_flow"] = "Získejte Historický tok",
     ["tool_get_host_info"] = "Získejte informace o hostiteli",
     ["tool_get_infrastructure_stats"] = "Získejte statistiky infrastruktury",
+    ["tool_get_interface_addresses"] = "Získejte adresy rozhraní",
     ["tool_get_live_flow"] = "Získejte Live Flow",
     ["tool_get_live_flows_for_host"] = "Získejte živé toky pro hostitele",
     ["tool_get_live_flows_summary"] = "Získejte souhrn živých toků",
@@ -6947,6 +7408,8 @@ local lang = {
     ["tool_get_timeseries"] = "Získejte Timeseries",
     ["tool_get_top_exporter_interfaces"] = "Získejte nejlepší exportní rozhraní",
     ["tool_get_vlan_traffic"] = "Získejte provoz VLAN",
+    ["tool_get_wazuh_alert_exceptions"] = "Získejte výjimky upozornění Wazuh",
+    ["tool_get_wazuh_alert_rules"] = "Získejte pravidla upozornění Wazuh",
     ["tool_get_wazuh_alerts"] = "Získejte upozornění Wazuh",
     ["tool_list_ai_policies"] = "Seznam zásad AI",
     ["tool_list_available_active_monitoring_scripts"] = "Seznam aktivních monitorovacích skriptů",
@@ -6959,16 +7422,29 @@ local lang = {
     ["tool_list_snmp_devices"] = "Seznam zařízení SNMP",
     ["tool_list_tables"] = "Seznam tabulek",
     ["tool_list_timeseries"] = "Seznam časových řad",
+    ["tool_license"] = "Licence",
+    ["tool_license_community"] = "Společenství",
+    ["tool_license_enterprise_l"] = "Enterprise L",
+    ["tool_license_enterprise_m"] = "Enterprise M",
+    ["tool_license_enterprise_xl"] = "Enterprise XL",
     ["tool_name"] = "Nástroj",
+    ["tool_availability"] = "Dostupnost",
+    ["tool_available"] = "K dispozici",
+    ["tool_locked"] = "Zamčeno",
     ["tool_nprobe_integration_help"] = "Nápověda k integraci nProbe",
     ["tool_query"] = "SQL dotaz",
     ["tool_resolve_proto"] = "Vyřešit protokol",
     ["tool_sankey"] = "Nakreslete Sankeyho",
     ["tool_search_docs"] = "Hledat v Dokumentech",
+    ["tools_catalog"] = "Katalog nástrojů",
+    ["tools_catalog_btn"] = "Nástroje",
+    ["tools_catalog_hint"] = "Podívejte se na všechny nástroje, které může nAnalyst v této instanci použít",
+    ["tools_catalog_subtitle"] = "Každý agent nástroj ntopng lodě. Nástroje označené jako Uzamčeno potřebují vyšší licenci než tu, která je spuštěna zde.",
     ["total_cost"] = "Celkové náklady",
     ["total_tokens"] = "Celkový počet tokenů",
     ["trigger_count"] = "Times Triggered",
     ["triggered_by"] = "Spuštěno uživatelem",
+    ["turn"] = "Otočte se",
     ["unexpected_response"] = "Neočekávaná odpověď od LLM. Zkuste to prosím znovu",
     ["unique_chats"] = "Unikátní chaty",
     ["updated_at"] = "Aktualizováno v",
@@ -6976,6 +7452,7 @@ local lang = {
     ["usage_by_user"] = "Použití uživatelem",
     ["user"] = "Uživatel",
     ["view_source"] = "Zobrazit upozornění/tok zdroje",
+    ["view_tools"] = "Nástroje",
     ["working"] = "Pracovní",
     ["working_on"] = "Běh %{tool}",
     ["analyst_pipeline"] = {
@@ -7974,6 +8451,9 @@ local lang = {
       ["smtp_username"] = "Uživatelské jméno SMTP",
       ["use_proxy"] = "Použijte proxy",
       ["use_proxy_descr"] = "Použít konfiguraci proxy pro celý systém (proměnné prostředí HTTP_PROXY nebo http_proxy)",
+      ["use_startssl"] = "Použijte STARTSSL",
+      ["use_tls_descr"] = "Přidejte 's' na konec smpt (smtps), abyste vynutili doručování pošty pomocí šifrování TLS (např. smtps://mail.server.org)",
+      ["use_startssl_descr"] = "Pokud je povoleno, při odesílání pošty použijte STARTSSL. V případě, že poštovní server používá SMTPS, je tato předvolba ignorována (např. smtps://mail.server.org)",
       ["validation"] = {
         ["empty_SMTP_port"] = "Vložte port.",
         ["empty_SMTP_server"] = "Vložte prosím IPv4/IPv6/hostitelskou adresu/SMTP URL.",
@@ -8793,6 +9273,7 @@ local lang = {
     ["reports_data_retention_time_descr"] = "Počet dní pro uchování dopravních zpráv na disku. Výchozí: 30 dní.",
     ["reports_data_retention_time_title"] = "Hlásí uchovávání dat",
     ["restart_needed"] = "Prosím restartujte %{product} za účelem provedení změn",
+    ["restart_needed_active_monitoring"] = "<b>Restartujte</b> %{product} pro aktivaci aktivního sledování.",
     ["rrd_files_retention_description"] = "Počet dní, po kterých jsou soubory RRD, které nebyly aktualizovány, považovány za zastaralé a odstraněné z disku. To zabraňuje tomu, aby RRD trvaly navždy (např. AS navštívený jednou před měsíci). Výchozí: 90 dní.<br><b>Poznámka:</b> platí pouze v případě, že se používá ovladač časové řady RRD.",
     ["rrd_files_retention_title"] = "Uchovávání souborů RRD",
     ["runtime_prefs"] = "Předvolby procesu",
@@ -8960,6 +9441,9 @@ local lang = {
     ["toggle_ids_alert_title"] = "Upozornění IDS",
     ["toggle_informative_captive_portal_description"] = "Neověřujte uživatele. Než uživatelům povolíte přístup na internet, zobrazte pouze informativní stránku.",
     ["toggle_informative_captive_portal_title"] = "Informativní",
+    ["toggle_flow_details_card_description"] = "Je-li povoleno, kliknutím na aktuální nebo historický tok (nebo řádek toku/výstrahy) otevřete podrobnosti na postranní kartě. Pokud je zakázáno, otevře se přímo stránka s úplnými podrobnostmi.",
+    ["toggle_flow_details_card_title"] = "Podrobnosti o toku boční karta",
+    ["flow_details_card_inline_label"] = "Karta s podrobnostmi",
     ["toggle_interface_name_only_description"] = "Pokud je povoleno, zobrazit název rozhraní pouze v rozevírací nabídce.",
     ["toggle_interface_name_only_title"] = "Pouze název rozhraní",
     ["toggle_internals_rrds_description"] = "Přepnout vytváření <a href=\"%{url}\">interních</a> časových řad, např. položky hashovací tabulky, trvání periodických aktivit a počet zapsaných bodů časových řad, trvání skriptů a počet volání.",
@@ -9341,6 +9825,7 @@ local lang = {
     ["use_server_timezone"] = "Použijte časové pásmo serveru",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "Tato funkce vyžaduje aktivaci licence",
     ["ADD_POOL_FAILED"] = "Nelze přidat fond s odeslanými parametry",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "Bylo vytvořeno příliš mnoho bazénů. Zvažte upgrade ntopng na Enterprise M nebo vyšší, abyste vytvořili další fondy.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "Bylo vytvořeno příliš mnoho bazénů.",
@@ -10711,6 +11196,7 @@ local lang = {
     ["groups_hint"] = "Skupiny pravidel Wazuh oddělené čárkami (prázdné = libovolné).",
     ["groups_placeholder"] = "např. syslog,sshd,autentizace_úspěch",
     ["id"] = "ID",
+    ["id_already_exists"] = "Pravidlo s tímto ID již existuje",
     ["id_hint"] = "Jedinečný identifikátor pravidla (bez mezer). Po vytvoření nelze změnit.",
     ["id_placeholder"] = "např. ssh-brute-force",
     ["id_required"] = "Je vyžadováno jedinečné ID pravidla (bez mezer).",
