@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "接続済み",
   ["connected_to_the_cloud"] = "クラウドに接続",
   ["connection_states"] = "接続状態 [ メジャー / マイナー ]",
+  ["content_not_available_title"] = "コンテンツは利用できません",
   ["copied"] = "コピー済み",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "カウント",
@@ -466,6 +467,10 @@ local lang = {
   ["last_user_agent"] = "ユーザーエージェント",
   ["latency"] = "遅延",
   ["layer_2"] = "MACアドレス",
+  ["license_activation_action"] = "今すぐアクティベートする",
+  ["license_activation_title"] = "ライセンスがアクティベートされていません",
+  ["license_activation_warning"] = "このライセンスはまだアクティベートされていません。すべての機能を有効にし、完全なサポートとアップデートを保証するには、アクティブ化してください。",
+  ["license_activation_content_not_available"] = "一部のコンテンツを読み込めませんでした。すべての機能のロックを解除するには、ライセンスをアクティブ化してください。",
   ["legenda"] = "凡例",
   ["level"] = "レベル",
   ["light"] = "ライト",
@@ -764,6 +769,7 @@ local lang = {
   ["ram_used"] = "使用済み",
   ["rcvd"] = "受信",
   ["reason"] = "理由",
+  ["read_more"] = "続きを読む",
   ["received"] = "受信",
   ["recipient"] = "受信者",
   ["records_to_show"] = "表示するレコード数",
@@ -1020,6 +1026,8 @@ local lang = {
   ["year"] = "年",
   ["years"] = "年",
   ["yes"] = "はい",
+  ["zmq_default_encryption_title"] = "安全でない ZMQ 暗号化キー",
+  ["zmq_default_encryption_warning"] = "この ZMQ インターフェイスは、公開されているデフォルトの暗号化キーを使用しています。 --zmq-encryption-key-priv を使用して専用の暗号化キーを構成してください (または、--zmq-encryption を使用して ntopng に暗号化キーを自動的に生成させます)。",
   ["about"] = {
     ["about"] = "情報",
     ["about_x"] = "%{product}について",
@@ -1111,6 +1119,17 @@ local lang = {
       ["auth_token_placeholder"] = "電子メールで受け取ったトークンをここに挿入します...",
       ["auth_token_send_error"] = "トークンを送信できませんでした: 電子メール アドレスを確認して再試行してください",
       ["auth_token_sent"] = "新しいトークンが送信されました",
+      ["credentials"] = "資格",
+      ["invalid_email"] = "有効な電子メール アドレスを入力してください",
+      ["licenses_updated"] = "ライセンスが更新されました",
+      ["refresh_licenses"] = "リフレッシュ",
+      ["request_new_token"] = "新しいトークンを電子メールで送信してください",
+      ["retrieve_failed"] = "ライセンスを取得できませんでした。トークンが正しいことを確認するか、新しいトークンを要求します。失敗し続ける場合は、shop.ntop.org への接続を確認してください。",
+      ["set_credentials_first"] = "ライセンスをロードするための資格情報を設定します",
+      ["step_email"] = "Verify e-mail",
+      ["step_token"] = "Enter token",
+      ["token_cached_hint"] = "保存されたトークンを使用します。動作しない場合は、新しいものをリクエストしてください。",
+      ["token_paste_hint"] = "Paste the token from the e-mail sent to %{email}",
       ["badge_expired"] = "期限切れ",
       ["badge_valid"] = "有効",
       ["badge_valid_until"] = "%{date}まで有効",
@@ -2016,6 +2035,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "VLAN 双方向トラフィック",
     ["vpn_detection"] = "VPNの検出",
     ["warning"] = "警告",
+    ["wazuh_check_alerts"] = "Wazuh Alerts",
     ["wazuh_info_changed"] = "ワズー情報が変更されました",
     ["wazuh_info_changed_descr"] = "Wazuh によってエクスポートされた情報が変更されるたびにアラートをトリガーします (たとえば、新しいポートが追加された場合やネットワーク インターフェイスが追加された場合など)。",
     ["web_mining"] = "ウェブマイニング",
@@ -4294,6 +4314,10 @@ local lang = {
     ["web_mining_detected"] = "このウェブサイトは、クライアントデバイスでの仮想通貨のマイニングが知られています",
     ["write"] = "書く",
   },
+  ["flow_details_card_toast"] = {
+    ["title"] = "New: Flow Details Side Card",
+    ["description"] = "Clicking a live or historical flow, or a flow alert, now opens its details in a side panel without leaving the page. You can turn this off under Preferences &rarr; User Interface &rarr; Flow Details Side Card.",
+  },
   ["flow_devices"] = {
     ["active_sflow"] = "アクティブなsFlowエクスポーター",
     ["all_device_ports"] = "すべての%{device} ポート",
@@ -6144,135 +6168,546 @@ local lang = {
     ["shut_start"] = "現在、リクエストを処理できません。おそらく起動中またはシャットダウン中です",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "エコーリプライ",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "エコー応答",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "ルーターの要請",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "時間を超過しました",
+          ["code"] = {
+            ["0"] = "トランジット中に有効期限を超過しました",
+            ["1"] = "フラグメント再構成時間が超過しました",
+          },
+        },
+        ["12"] = {
+          ["info"] = "パラメータの問題",
+          ["code"] = {
+            ["0"] = "ポインタはエラーを示します",
+            ["1"] = "必要なオプションがありません",
+            ["2"] = "不正な長さ",
+          },
+        },
+        ["13"] = {
+          ["info"] = "タイムスタンプ",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "タイムスタンプ応答",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "情報リクエスト (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "情報返信 (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "アドレスマスクリクエスト (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "アドレスマスク応答 (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "予約済み (セキュリティのため)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "RFC3692 スタイルの実験 1",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "RFC3692 スタイルの実験 2",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "予約済み",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "予約済み (堅牢性実験用)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "宛先に到達不能",
+          ["code"] = {
+            ["0"] = "ネット到達不能",
+            ["1"] = "ホストに到達できません",
+            ["10"] = "宛先ホストとの通信は管理上禁止されています",
+            ["11"] = "サービスのタイプでは宛先ネットワークに到達できません",
+            ["12"] = "Destination Host Unreachable for Type of Service",
+            ["13"] = "管理上禁止されている通信",
+            ["14"] = "ホストの優先順位違反",
+            ["15"] = "優先順位カットオフが有効です",
+            ["2"] = "プロトコルに到達できません",
+            ["3"] = "ポートに到達できません",
+            ["4"] = "断片化が必要ですが、断片化しないが設定されました",
+            ["5"] = "ソースルートが失敗しました",
+            ["6"] = "宛先ネットワークが不明です",
+            ["7"] = "宛先ホストが不明",
+            ["8"] = "ソースホストの分離",
+            ["9"] = "宛先ネットワークとの通信は管理上禁止されています",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "データグラム変換エラー (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "モバイル ホスト リダイレクト (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 Where-Are-You (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 I-Am-Here (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "モバイル登録リクエスト (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "モバイル登録応答 (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "ドメイン名リクエスト (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "ドメイン名応答 (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "スキップ (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "ソースクエンチ (非推奨)",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "フォトリス",
+          ["code"] = {
+            ["0"] = "悪いSPI",
+            ["1"] = "認証に失敗しました",
+            ["2"] = "解凍に失敗しました",
+            ["3"] = "復号化に失敗しました",
+            ["4"] = "認証が必要です",
+            ["5"] = "承認が必要です",
+          },
+        },
+        ["41"] = {
+          ["info"] = "Seamoby などの実験的なモビリティ プロトコルで利用される ICMP メッセージ",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "拡張エコーリクエスト",
+          ["code"] = {
+            ["0"] = "エラーなし",
+          },
+        },
+        ["43"] = {
+          ["info"] = "拡張エコー応答",
+          ["code"] = {
+            ["0"] = "エラーなし",
+            ["1"] = "不正な形式のクエリ",
+            ["2"] = "そのようなインターフェースはありません",
+            ["3"] = "そのようなテーブルエントリはありません",
+            ["4"] = "複数のインターフェースがクエリを満たす",
+          },
+        },
+        ["5"] = {
+          ["info"] = "Redirect",
+          ["code"] = {
+            ["0"] = "Redirect Datagram for the Network (or subnet)",
+            ["1"] = "Redirect Datagram for the Host",
+            ["2"] = "Redirect Datagram for the Type of Service and Network",
+            ["3"] = "Redirect Datagram for the Type of Service and Host",
+          },
+        },
+        ["6"] = {
+          ["info"] = "代替ホスト アドレス (非推奨)",
+          ["code"] = {
+            ["0"] = "Alternate Address for Host",
+          },
+        },
+        ["8"] = {
+          ["info"] = "Echo",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "ルーターのアドバタイズメント",
+          ["code"] = {
+            ["0"] = "通常のルーターのアドバタイズメント",
+            ["16"] = "一般的なトラフィックをルーティングしない",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "ルーター選択",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "予約済み",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "時間切れ",
-        ["code"] = {
-          ["0"] = "通過時に生存期限切れ",
-          ["1"] = "フラグメント再組立時間切れ",
+        ["1"] = {
+          ["info"] = "宛先に到達不能",
+          ["code"] = {
+            ["0"] = "目的地までのルートがない",
+            ["1"] = "宛先との通信は管理上禁止されています",
+            ["2"] = "送信元アドレスの範囲を超えて",
+            ["3"] = "アドレスに到達できません",
+            ["4"] = "ポートに到達できません",
+            ["5"] = "送信元アドレスが入力/出力ポリシーに失敗しました",
+            ["6"] = "目的地までのルートを拒否する",
+            ["7"] = "ソースルーティングヘッダーのエラー",
+            ["8"] = "ヘッダーが長すぎます",
+            ["9"] = "Pルートのエラー",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "パラメータの問題",
-        ["code"] = {
-          ["0"] = "ポインタがエラーを示しています",
+        ["100"] = {
+          ["info"] = "プライベート実験",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "タイムスタンプ",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "プライベート実験",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "マルチキャストリスナークエリ",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "ICMPv6 エラー メッセージの拡張のために予約されています。",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "マルチキャスト リスナー レポート",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "エコーリクエスト",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "ルーターの要請",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "エコー応答",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "ルーターのアドバタイズメント",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "マルチキャストリスナークエリ",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "近隣住民の勧誘",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "マルチキャスト リスナー レポート",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "近隣広告",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "マルチキャスト リスナーの完了",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "タイムスタンプ応答",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "ルーターの要請",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "マルチキャスト リスナー レポート v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "ルーターのアドバタイズメント",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "情報要求",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "近隣住民の勧誘",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "情報応答",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "近隣広告",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "アドレスマスク要求",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "リダイレクトメッセージ",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "アドレスマスク応答",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "ルーターの再番号付け",
+          ["code"] = {
+            ["0"] = "ルーターの再番号付けコマンド",
+            ["1"] = "ルーターの再番号付けの結果",
+            ["255"] = "シーケンス番号のリセット",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "宛先到達不能",
-        ["code"] = {
-          ["0"] = "ネットワーク到達不能",
-          ["1"] = "ホスト到達不能",
-          ["2"] = "プロトコル到達不能",
-          ["3"] = "ポート到達不能",
-          ["4"] = "フラグメンテーションが必要かつDF設定",
-          ["5"] = "ソースルートが失敗",
+        ["139"] = {
+          ["info"] = "ICMP Node Information Query",
+          ["code"] = {
+            ["0"] = "The Data field contains an IPv6 address which is the Subject of this Query.",
+            ["1"] = "データ フィールドには、このクエリの件名である名前が含まれているか、NOOP の場合のように空です。",
+            ["2"] = "データ フィールドには、このクエリの主題である IPv4 アドレスが含まれています。",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "トレースルート",
-        ["code"] = {
-          ["0"] = "アウトバウンドパケットが正常に転送されました",
-          ["1"] = "アウトバウンドパケットの経路が存在しません; パケットは破棄されました",
+        ["140"] = {
+          ["info"] = "ICMP ノード情報応答",
+          ["code"] = {
+            ["0"] = "成功した返信。 [返信データ] フィールドは空の場合もあれば、空でない場合もあります。",
+            ["1"] = "レスポンダーは回答を提供することを拒否します。 「返信データ」フィールドは空になります。",
+            ["2"] = "クエリの Qtype はレスポンダーには不明です。 「返信データ」フィールドは空になります。",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "ソースクエンチ",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "逆近隣探索要請メッセージ",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "リダイレクト",
-        ["code"] = {
-          ["0"] = "ネットワーク向けのデータグラムのリダイレクト",
-          ["1"] = "ホスト向けのデータグラムのリダイレクト",
-          ["2"] = "サービスタイプおよびネットワーク向けのデータグラムのリダイレクト",
-          ["3"] = "サービスタイプおよびホスト向けのデータグラムのリダイレクト",
+        ["142"] = {
+          ["info"] = "逆近隣探索アドバタイズメントメッセージ",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "エコー",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "バージョン 2 マルチキャスト リスナー レポート",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "ルーター広告",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "ホーム エージェント アドレス検出要求メッセージ",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "ホーム エージェント アドレス検出応答メッセージ",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "モバイルプレフィックス要請",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "モバイルプレフィックスアドバタイズメント",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "認証パス要請メッセージ",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "認証パスのアドバタイズメントメッセージ",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "Seamoby などの実験的なモビリティ プロトコルで利用される ICMP メッセージ",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "マルチキャストルーターアドバタイズメント",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "マルチキャストルーター要請",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "マルチキャストルーターの終端",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "FMIPv6 メッセージ",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "RPL 制御メッセージ",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "ILNPv6 ロケーター更新メッセージ",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "重複アドレスのリクエスト",
+          ["code"] = {
+            ["0"] = "DAR メッセージ",
+            ["1"] = "64 ビット ROVR フィールドを含む EDAR メッセージ",
+            ["2"] = "128 ビット ROVR フィールドを含む EDAR メッセージ",
+            ["3"] = "192 ビット ROVR フィールドを含む EDAR メッセージ",
+            ["4"] = "256 ビット ROVR フィールドを含む EDAR メッセージ",
+          },
+        },
+        ["158"] = {
+          ["info"] = "重複アドレスの確認",
+          ["code"] = {
+            ["0"] = "DACメッセージ",
+            ["1"] = "64 ビット ROVR フィールドを含む EDAC メッセージ",
+            ["2"] = "128 ビット ROVR フィールドを含む EDAC メッセージ",
+            ["3"] = "192 ビット ROVR フィールドを含む EDAC メッセージ",
+            ["4"] = "256 ビット ROVR フィールドを含む EDAC メッセージ",
+          },
+        },
+        ["159"] = {
+          ["info"] = "MPL制御メッセージ",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "拡張エコーリクエスト",
+          ["code"] = {
+            ["0"] = "エラーなし",
+          },
+        },
+        ["161"] = {
+          ["info"] = "拡張エコー応答",
+          ["code"] = {
+            ["0"] = "エラーなし",
+            ["1"] = "不正な形式のクエリ",
+            ["2"] = "そのようなインターフェースはありません",
+            ["3"] = "そのようなテーブルエントリはありません",
+            ["4"] = "複数のインターフェースがクエリを満たす",
+          },
+        },
+        ["2"] = {
+          ["info"] = "パケットが大きすぎます",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "プライベート実験",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "プライベート実験",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "ICMPv6 情報メッセージの拡張のために予約されています。",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "時間を超過しました",
+          ["code"] = {
+            ["0"] = "転送中にホップ制限を超えました",
+            ["1"] = "フラグメントの再構築時間が超過しました",
+          },
+        },
+        ["4"] = {
+          ["info"] = "パラメータの問題",
+          ["code"] = {
+            ["0"] = "間違ったヘッダーフィールドが発生しました",
+            ["1"] = "認識できない次のヘッダー タイプが見つかりました",
+            ["10"] = "オプションが大きすぎます",
+            ["2"] = "認識できない IPv6 オプションが発生しました",
+            ["3"] = "IPv6 の最初のフラグメントに不完全な IPv6 ヘッダー チェーンがあります",
+            ["4"] = "SR上位層ヘッダエラー",
+            ["5"] = "Unrecognized Next Header type encountered by intermediate node",
+            ["6"] = "Extension header too big",
+            ["7"] = "Extension header chain too long",
+            ["8"] = "Too many extension headers",
+            ["9"] = "Too many options in extension header",
+          },
         },
       },
     },
@@ -6291,6 +6726,7 @@ local lang = {
     ["packets_received"] = "受信パケット数",
     ["packets_sent"] = "送信パケット数",
     ["top_icmp_hosts"] = "上位の ICMP ホスト",
+    ["unassigned"] = "Unassigned",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "ルールタイプ",
@@ -6716,10 +7152,21 @@ local lang = {
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
+    ["activate"] = "活性化",
+    ["activated"] = "アクティブ化された",
+    ["activation_code_placeholder"] = "ここにアクティベーション コードを貼り付けます",
+    ["activation_error"] = "アクティベーションに失敗しました。アクティベーション コードを確認して、もう一度お試しください。",
+    ["activation_instructions"] = "ntopng は、インターネットにアクセスできない (または --offline で開始された) ことが原因で、ライセンスを自動的にアクティブ化できませんでした。インターネットにアクセスできる PC から、<a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>ライセンス リカバリ</a> ページに移動して、このシステムのアクティベーション コードを取得し、下に貼り付けます。",
+    ["activation_success"] = "ライセンスが正常にアクティベートされました",
+    ["activation_tab"] = "アクティベーション",
+    ["activation_title"] = "オフラインアクティベーション",
     ["agreement"] = "ライセンス契約",
     ["license"] = "ライセンス",
+    ["needs_activation_warning"] = "このライセンスはまだアクティベートされていません。 「アクティベーション」タブからアクティベーションを完了してください。",
+    ["no_system_id"] = "このインスタンスの SystemId を特定できません。",
     ["not_valid"] = "無効",
     ["status"] = "ステータス",
+    ["system_id_changed"] = "このインスタンスでは SystemID が変更されているようです。新しい SystemID に<a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>ライセンスを移行する方法をお読みください</a>。",
     ["valid"] = "有効なライセンス",
   },
   ["limits_page"] = {
@@ -6808,14 +7255,18 @@ local lang = {
     ["evidence_live_hint"] = "ツールの実行時にライブで更新",
     ["evidence_panel_title"] = "調査証拠",
     ["evidence_tab"] = "証拠",
+    ["evidence_jump_hint"] = "チャットをこのメッセージまでスクロールします",
     ["evidence_this_turn"] = "このターン",
     ["explanation"] = "説明",
     ["final_response"] = "最終的な対応",
     ["generate_policy"] = "自然言語からポリシーを生成する",
     ["generation_cost"] = "発電コスト",
     ["generic_error"] = "LLM プロバイダーへの接続中にエラーが発生しました。",
+    ["open_chat_history"] = "チャット履歴を開く",
+    ["close_chat_history"] = "チャット履歴を閉じる",
     ["good_response"] = "良い反応",
     ["hide_evidence"] = "証拠を隠す",
+    ["hide_reasoning"] = "推論を隠す",
     ["hide_steps"] = "ステップを非表示にする",
     ["historical"] = "歴史的",
     ["history"] = "歴史",
@@ -6841,6 +7292,7 @@ local lang = {
     ["nAnalyst"] = "nアナリスト",
     ["new_chat"] = "新しいチャット",
     ["next_steps"] = "提案される次のステップ",
+    ["next_step_manual_hint"] = "これを行う必要があります - アシスタントはまだ実行できません",
     ["no_artifacts_sub"] = "この会話から生成されたチャートやその他の成果物がここに表示されます。",
     ["no_artifacts_title"] = "アーチファクトなし",
     ["no_audit_entries"] = "監査エントリが見つかりませんでした",
@@ -6888,6 +7340,7 @@ local lang = {
     ["save_and_regenerate"] = "保存と再生成",
     ["send"] = "調査する",
     ["show_evidence"] = "証拠を示す",
+    ["show_reasoning"] = "推論を示す",
     ["show_steps"] = "ステップを表示",
     ["sql_query"] = "SQLクエリ",
     ["stat_avg_response"] = "平均応答時間",
@@ -6908,6 +7361,11 @@ local lang = {
     ["tool_add_certificate_alert_exclusion"] = "証明書アラートの除外を追加",
     ["tool_add_domain_alert_exclusion"] = "ドメインアラートの除外を追加",
     ["tool_add_host_alert_exclusion"] = "ホストアラートの除外を追加",
+    ["tool_annotation_artifact"] = "アーチファクト",
+    ["tool_annotation_clickhouse"] = "クリックハウス",
+    ["tool_annotation_read_only"] = "読み取り専用",
+    ["tool_annotation_write"] = "書く",
+    ["tool_annotations"] = "注釈",
     ["tool_call_cost"] = "ツール使用コスト",
     ["tool_call_sequence"] = "ツール呼び出しシーケンス",
     ["tool_calls_made"] = "ツール呼び出し",
@@ -6915,6 +7373,8 @@ local lang = {
     ["tool_chord"] = "ドローコード",
     ["tool_create_ai_policy"] = "AI ポリシーの作成",
     ["tool_describe_table"] = "テーブルの説明",
+    ["tool_description"] = "説明",
+    ["tool_discover_lan"] = "LANの発見",
     ["tool_followup"] = "ツールのフォローアップ",
     ["tool_geomap"] = "ジオマップの描画",
     ["tool_get_access_control_list"] = "アクセス制御リストの取得",
@@ -6926,6 +7386,7 @@ local lang = {
     ["tool_get_historical_flow"] = "歴史の流れを取得する",
     ["tool_get_host_info"] = "ホスト情報の取得",
     ["tool_get_infrastructure_stats"] = "インフラストラクチャ統計の取得",
+    ["tool_get_interface_addresses"] = "インターフェースアドレスの取得",
     ["tool_get_live_flow"] = "ライブフローを取得する",
     ["tool_get_live_flows_for_host"] = "ホストのライブ フローを取得する",
     ["tool_get_live_flows_summary"] = "ライブフローの取得の概要",
@@ -6947,6 +7408,8 @@ local lang = {
     ["tool_get_timeseries"] = "時系列の取得",
     ["tool_get_top_exporter_interfaces"] = "上位のエクスポーター インターフェイスを取得する",
     ["tool_get_vlan_traffic"] = "VLANトラフィックの取得",
+    ["tool_get_wazuh_alert_exceptions"] = "Wazuh アラートの例外を取得する",
+    ["tool_get_wazuh_alert_rules"] = "Wazuh アラート ルールを取得する",
     ["tool_get_wazuh_alerts"] = "Wazuh アラートを受け取る",
     ["tool_list_ai_policies"] = "AI ポリシーの一覧表示",
     ["tool_list_available_active_monitoring_scripts"] = "アクティブな監視スクリプトのリスト",
@@ -6959,16 +7422,29 @@ local lang = {
     ["tool_list_snmp_devices"] = "SNMPデバイスの一覧表示",
     ["tool_list_tables"] = "リストテーブル",
     ["tool_list_timeseries"] = "時系列のリスト",
+    ["tool_license"] = "ライセンス",
+    ["tool_license_community"] = "コミュニティ",
+    ["tool_license_enterprise_l"] = "エンタープライズL",
+    ["tool_license_enterprise_m"] = "エンタープライズM",
+    ["tool_license_enterprise_xl"] = "エンタープライズ XL",
     ["tool_name"] = "道具",
+    ["tool_availability"] = "可用性",
+    ["tool_available"] = "利用可能",
+    ["tool_locked"] = "ロックされています",
     ["tool_nprobe_integration_help"] = "nProbe 統合ヘルプ",
     ["tool_query"] = "SQLクエリ",
     ["tool_resolve_proto"] = "プロトコルの解決",
     ["tool_sankey"] = "サンキーを描く",
     ["tool_search_docs"] = "ドキュメントの検索",
+    ["tools_catalog"] = "ツールカタログ",
+    ["tools_catalog_btn"] = "ツール",
+    ["tools_catalog_hint"] = "nAnalyst がこのインスタンスで使用できるすべてのツールを表示します",
+    ["tools_catalog_subtitle"] = "すべてのエージェント ツール ntopng が付属しています。 「ロック」フラグが付いているツールには、ここで実行されているライセンスよりも高いライセンスが必要です。",
     ["total_cost"] = "総コスト",
     ["total_tokens"] = "総トークン数",
     ["trigger_count"] = "トリガーされた回数",
     ["triggered_by"] = "きっかけ",
+    ["turn"] = "振り向く",
     ["unexpected_response"] = "LLM からの予期しない応答。もう一度試してください",
     ["unique_chats"] = "ユニークなチャット",
     ["updated_at"] = "更新日",
@@ -6976,6 +7452,7 @@ local lang = {
     ["usage_by_user"] = "ユーザー別の使用状況",
     ["user"] = "ユーザー",
     ["view_source"] = "ソースのアラート/フローを表示する",
+    ["view_tools"] = "ツール",
     ["working"] = "働く",
     ["working_on"] = "実行中 %{tool}",
     ["analyst_pipeline"] = {
@@ -7974,6 +8451,9 @@ local lang = {
       ["smtp_username"] = "SMTPユーザ名",
       ["use_proxy"] = "プロキシを使用",
       ["use_proxy_descr"] = "システム全体のプロキシ設定（HTTP_PROXYまたはhttp_proxy環境変数）を使用します。",
+      ["use_startssl"] = "STARTSSL を使用する",
+      ["use_tls_descr"] = "TLS 暗号化によるメール配信を強制するには、smpt (smtps) の末尾に「s」を追加します (例: smtps://mail.server.org)",
+      ["use_startssl_descr"] = "有効にすると、メール送信時に STARTSSL が使用されます。メールサーバーが SMTPS を使用する場合、この設定は無視されます (例: smtps://mail.server.org)",
       ["validation"] = {
         ["empty_SMTP_port"] = "ポートを挿入してください。",
         ["empty_SMTP_server"] = "IPv4/IPv6/ホストアドレスを挿入してください。",
@@ -8793,6 +9273,7 @@ local lang = {
     ["reports_data_retention_time_descr"] = "ディスク上のトラフィックレポートを保持する日数。デフォルト：30日。",
     ["reports_data_retention_time_title"] = "レポートデータ保持",
     ["restart_needed"] = "変更を適用するには、%{product}を再起動してください",
+    ["restart_needed_active_monitoring"] = "<b>再起動</b> %{product} してアクティブ モニタリングを有効にします。",
     ["rrd_files_retention_description"] = "更新されていない RRD ファイルが古いとみなされ、ディスクから削除されるまでの日数。これにより、RRD が永久に残ることがなくなります (例: 1 か月前に一度アクセスした AS)。デフォルト: 90 日。<br><b>注:</b> は、RRD timeseries ドライバーが使用されている場合にのみ適用されます。",
     ["rrd_files_retention_title"] = "RRD ファイルの保存期間",
     ["runtime_prefs"] = "ランタイム設定",
@@ -8960,6 +9441,9 @@ local lang = {
     ["toggle_ids_alert_title"] = "IDSアラート",
     ["toggle_informative_captive_portal_description"] = "ユーザーの認証を行わず、インターネットへのアクセスを許可する前に情報提供ページのみ表示します。",
     ["toggle_informative_captive_portal_title"] = "情報提供",
+    ["toggle_flow_details_card_description"] = "有効にした場合、ライブまたは履歴フロー (またはフロー/アラート行) をクリックすると、サイド カードに詳細が開きます。無効にすると、代わりに完全な詳細ページが直接開きます。",
+    ["toggle_flow_details_card_title"] = "フロー詳細サイドカード",
+    ["flow_details_card_inline_label"] = "詳細カード",
     ["toggle_interface_name_only_description"] = "有効にすると、ドロップダウンメニューにインターフェース名のみを表示します。",
     ["toggle_interface_name_only_title"] = "インターフェース名のみ",
     ["toggle_internals_rrds_description"] = "内部時系列の作成を切り替えます。<a href=\"%{url}\">内部</a>、たとえばハッシュテーブルエントリ、定期的な活動の期間、および書き込まれた時系列ポイントの数、スクリプトの期間、および呼び出し回数。",
@@ -9341,6 +9825,7 @@ local lang = {
     ["use_server_timezone"] = "サーバータイムゾーンを使用",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "この機能を使用するには、ライセンスをアクティブ化する必要があります",
     ["ADD_POOL_FAILED"] = "提出されたパラメータでプールを追加できません",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "プールが多すぎます。追加のプールを作成するには、ntopngをEnterprise M以上にアップグレードしてください。",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "プールが多すぎます。",
@@ -10711,6 +11196,7 @@ local lang = {
     ["groups_hint"] = "カンマ区切りの Wazuh ルール グループ (空 = 任意)。",
     ["groups_placeholder"] = "例えばsyslog、sshd、認証_成功",
     ["id"] = "ID",
+    ["id_already_exists"] = "この ID のルールはすでに存在します",
     ["id_hint"] = "一意のルール識別子 (スペースは含まれません)。作成後に変更することはできません。",
     ["id_placeholder"] = "例えばssh-ブルートフォース",
     ["id_required"] = "一意のルール ID (スペースなし) が必要です",

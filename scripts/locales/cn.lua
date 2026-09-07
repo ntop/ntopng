@@ -175,6 +175,7 @@ local lang = {
   ["connected"] = "已连接",
   ["connected_to_the_cloud"] = "连接到云端",
   ["connection_states"] = "连接状态 [ 主要/次要 ]",
+  ["content_not_available_title"] = "Content Not Available",
   ["copied"] = "复制的",
   ["copy_button"] = "<span title='%{full_name}'>%{name}</span>",
   ["count"] = "数数",
@@ -466,6 +467,10 @@ local lang = {
   ["last_user_agent"] = "用户代理",
   ["latency"] = "延迟",
   ["layer_2"] = "MAC 地址",
+  ["license_activation_action"] = "立即激活",
+  ["license_activation_title"] = "License Not Activated",
+  ["license_activation_warning"] = "该许可证尚未激活。请激活它以启用所有功能并确保全面支持和更新。",
+  ["license_activation_content_not_available"] = "部分内容无法加载。请激活您的许可证以解锁所有功能。",
   ["legenda"] = "图例",
   ["level"] = "级别",
   ["light"] = "灯光",
@@ -764,6 +769,7 @@ local lang = {
   ["ram_used"] = "已使用",
   ["rcvd"] = "接收",
   ["reason"] = "原因",
+  ["read_more"] = "阅读更多",
   ["received"] = "已接收",
   ["recipient"] = "接收方",
   ["records_to_show"] = "显示记录",
@@ -1020,6 +1026,8 @@ local lang = {
   ["year"] = "年",
   ["years"] = "年",
   ["yes"] = "是",
+  ["zmq_default_encryption_title"] = "不安全的 ZMQ 加密密钥",
+  ["zmq_default_encryption_warning"] = "该 ZMQ 接口使用默认的公共加密密钥。请使用 --zmq-encryption-key-priv 配置专用加密密钥（或使用 --zmq-encryption 让 ntopng 自动生成一个）。",
   ["about"] = {
     ["about"] = "关于",
     ["about_x"] = "关于%{product}",
@@ -1111,6 +1119,17 @@ local lang = {
       ["auth_token_placeholder"] = "在此插入通过电子邮件收到的令牌...",
       ["auth_token_send_error"] = "无法发送令牌：检查电子邮件地址并重试",
       ["auth_token_sent"] = "已发送新令牌",
+      ["credentials"] = "Credentials",
+      ["invalid_email"] = "Enter a valid e-mail address",
+      ["licenses_updated"] = "许可证已更新",
+      ["refresh_licenses"] = "Refresh",
+      ["request_new_token"] = "通过电子邮件给我发送一个新令牌",
+      ["retrieve_failed"] = "无法检索许可证。检查令牌是否正确或请求新的令牌；如果仍然失败，请验证您与 shop.ntop.org 的连接。",
+      ["set_credentials_first"] = "设置您的凭据以加载许可证",
+      ["step_email"] = "验证电子邮件",
+      ["step_token"] = "输入令牌",
+      ["token_cached_hint"] = "使用保存的令牌。如果不起作用，请申请新的。",
+      ["token_paste_hint"] = "粘贴发送到 %{email}的电子邮件中的令牌",
       ["badge_expired"] = "已到期",
       ["badge_valid"] = "有效的",
       ["badge_valid_until"] = "有效期至 %{date}",
@@ -2016,6 +2035,7 @@ local lang = {
     ["vlan_bidirectional_traffic"] = "VLAN 双向流量",
     ["vpn_detection"] = "VPN检测",
     ["warning"] = "警报",
+    ["wazuh_check_alerts"] = "瓦祖警报",
     ["wazuh_info_changed"] = "Wazuh 信息已更改",
     ["wazuh_info_changed_descr"] = "每当 Wazuh 导出的信息发生变化时触发警报，例如添加新端口或添加网络接口",
     ["web_mining"] = "网页挖矿",
@@ -4294,6 +4314,10 @@ local lang = {
     ["web_mining_detected"] = "该网站以在客户端设备上挖掘加密货币而闻名",
     ["write"] = "写",
   },
+  ["flow_details_card_toast"] = {
+    ["title"] = "新：流程详细信息侧卡",
+    ["description"] = "现在，单击实时或历史流量或流量警报，无需离开页面即可在侧面板中打开其详细信息。您可以在“首选项”下关闭此功能 &rarr;用户界面→流程详细信息侧卡。",
+  },
   ["flow_devices"] = {
     ["active_sflow"] = "活动 sFlow 设备",
     ["all_device_ports"] = "所有 %{device} 端口",
@@ -6144,135 +6168,546 @@ local lang = {
     ["shut_start"] = "此时无法处理请求，可能正在启动或关闭",
   },
   ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "回显应答",
-        ["code"] = {
+    -- www.iana.org/assignments/icmp-parameters
+    ["icmp"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "Echo Reply",
+          ["code"] = {
+          },
+        },
+        ["10"] = {
+          ["info"] = "Router Solicitation",
+          ["code"] = {
+          },
+        },
+        ["11"] = {
+          ["info"] = "超过时间",
+          ["code"] = {
+            ["0"] = "过境时超出生存时间",
+            ["1"] = "片段重组时间超过",
+          },
+        },
+        ["12"] = {
+          ["info"] = "参数问题",
+          ["code"] = {
+            ["0"] = "指针指示错误",
+            ["1"] = "Missing a Required Option",
+            ["2"] = "Bad Length",
+          },
+        },
+        ["13"] = {
+          ["info"] = "Timestamp",
+          ["code"] = {
+          },
+        },
+        ["14"] = {
+          ["info"] = "Timestamp Reply",
+          ["code"] = {
+          },
+        },
+        ["15"] = {
+          ["info"] = "Information Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["16"] = {
+          ["info"] = "Information Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["17"] = {
+          ["info"] = "Address Mask Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["18"] = {
+          ["info"] = "Address Mask Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["19"] = {
+          ["info"] = "Reserved (for Security)",
+          ["code"] = {
+          },
+        },
+        ["20"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["21"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["22"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["23"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["24"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["25"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["253"] = {
+          ["info"] = "RFC3692-style Experiment 1",
+          ["code"] = {
+          },
+        },
+        ["254"] = {
+          ["info"] = "RFC3692-style Experiment 2",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "Reserved",
+          ["code"] = {
+          },
+        },
+        ["26"] = {
+          ["info"] = "保留（用于鲁棒性实验）",
+          ["code"] = {
+          },
+        },
+        ["27"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["28"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["29"] = {
+          ["info"] = "Reserved (for Robustness Experiment)",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "Destination Unreachable",
+          ["code"] = {
+            ["0"] = "Net Unreachable",
+            ["1"] = "Host Unreachable",
+            ["10"] = "Communication with Destination Host is Administratively Prohibited",
+            ["11"] = "Destination Network Unreachable for Type of Service",
+            ["12"] = "Destination Host Unreachable for Type of Service",
+            ["13"] = "Communication Administratively Prohibited",
+            ["14"] = "Host Precedence Violation",
+            ["15"] = "Precedence cutoff in effect",
+            ["2"] = "Protocol Unreachable",
+            ["3"] = "Port Unreachable",
+            ["4"] = "Fragmentation Needed and Don't Fragment was Set",
+            ["5"] = "Source Route Failed",
+            ["6"] = "Destination Network Unknown",
+            ["7"] = "Destination Host Unknown",
+            ["8"] = "Source Host Isolated",
+            ["9"] = "Communication with Destination Network is Administratively Prohibited",
+          },
+        },
+        ["30"] = {
+          ["info"] = "Traceroute (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["31"] = {
+          ["info"] = "Datagram Conversion Error (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["32"] = {
+          ["info"] = "Mobile Host Redirect (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["33"] = {
+          ["info"] = "IPv6 Where-Are-You (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["34"] = {
+          ["info"] = "IPv6 I-Am-Here (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["35"] = {
+          ["info"] = "Mobile Registration Request (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["36"] = {
+          ["info"] = "Mobile Registration Reply (Deprecated)",
+          ["code"] = {
+          },
+        },
+        ["37"] = {
+          ["info"] = "域名请求（已弃用）",
+          ["code"] = {
+          },
+        },
+        ["38"] = {
+          ["info"] = "域名回复（已弃用）",
+          ["code"] = {
+          },
+        },
+        ["39"] = {
+          ["info"] = "跳过（已弃用）",
+          ["code"] = {
+          },
+        },
+        ["4"] = {
+          ["info"] = "源抑制（已弃用）",
+          ["code"] = {
+          },
+        },
+        ["40"] = {
+          ["info"] = "萤火虫属",
+          ["code"] = {
+            ["0"] = "错误的 SPI",
+            ["1"] = "认证失败",
+            ["2"] = "解压失败",
+            ["3"] = "解密失败",
+            ["4"] = "需要认证",
+            ["5"] = "需要授权",
+          },
+        },
+        ["41"] = {
+          ["info"] = "Seamoby 等实验性移动协议使用的 ICMP 消息",
+          ["code"] = {
+          },
+        },
+        ["42"] = {
+          ["info"] = "扩展回显请求",
+          ["code"] = {
+            ["0"] = "没有错误",
+          },
+        },
+        ["43"] = {
+          ["info"] = "扩展回显回复",
+          ["code"] = {
+            ["0"] = "没有错误",
+            ["1"] = "格式错误的查询",
+            ["2"] = "没有这样的接口",
+            ["3"] = "没有这样的表条目",
+            ["4"] = "多种接口满足查询",
+          },
+        },
+        ["5"] = {
+          ["info"] = "重定向",
+          ["code"] = {
+            ["0"] = "重定向网络（或子网）的数据报",
+            ["1"] = "主机重定向数据报",
+            ["2"] = "针对服务类型和网络重定向数据报",
+            ["3"] = "针对服务类型和主机重定向数据报",
+          },
+        },
+        ["6"] = {
+          ["info"] = "备用主机地址（已弃用）",
+          ["code"] = {
+            ["0"] = "主机的备用地址",
+          },
+        },
+        ["8"] = {
+          ["info"] = "回声",
+          ["code"] = {
+          },
+        },
+        ["9"] = {
+          ["info"] = "路由器通告",
+          ["code"] = {
+            ["0"] = "正常的路由器通告",
+            ["16"] = "不路由公共流量",
+          },
         },
       },
-      ["10"] = {
-        ["info"] = "路由器选择",
-        ["code"] = {
+    },
+    -- www.iana.org/assignments/icmpv6-parameters
+    ["icmpv6"] = {
+      ["type"] = {
+        ["0"] = {
+          ["info"] = "预订的",
+          ["code"] = {
+          },
         },
-      },
-      ["11"] = {
-        ["info"] = "超过时间",
-        ["code"] = {
-          ["0"] = "运输途中超过生存时间",
-          ["1"] = "片段重组时间超出",
+        ["1"] = {
+          ["info"] = "目的地无法到达",
+          ["code"] = {
+            ["0"] = "没有到达目的地的路线",
+            ["1"] = "与目的地的通信受到行政禁止",
+            ["2"] = "超出源地址范围",
+            ["3"] = "地址无法到达",
+            ["4"] = "端口不可达",
+            ["5"] = "源地址入口/出口策略失败",
+            ["6"] = "拒绝到达目的地的路线",
+            ["7"] = "源路由头错误",
+            ["8"] = "标题太长",
+            ["9"] = "P 路线错误",
+          },
         },
-      },
-      ["12"] = {
-        ["info"] = "参数问题",
-        ["code"] = {
-          ["0"] = "指针指示错误",
+        ["100"] = {
+          ["info"] = "私人实验",
+          ["code"] = {
+          },
         },
-      },
-      ["13"] = {
-        ["info"] = "时间戳",
-        ["code"] = {
+        ["101"] = {
+          ["info"] = "私人实验",
+          ["code"] = {
+          },
         },
-      },
-      ["130"] = {
-        ["info"] = "组播监听器查询",
-        ["code"] = {
+        ["127"] = {
+          ["info"] = "保留用于 ICMPv6 错误消息的扩展",
+          ["code"] = {
+          },
         },
-      },
-      ["131"] = {
-        ["info"] = "组播监听报告",
-        ["code"] = {
+        ["128"] = {
+          ["info"] = "回显请求",
+          ["code"] = {
+          },
         },
-      },
-      ["133"] = {
-        ["info"] = "路由器请求",
-        ["code"] = {
+        ["129"] = {
+          ["info"] = "回声回复",
+          ["code"] = {
+          },
         },
-      },
-      ["134"] = {
-        ["info"] = "路由器通告",
-        ["code"] = {
+        ["130"] = {
+          ["info"] = "组播监听器查询",
+          ["code"] = {
+          },
         },
-      },
-      ["135"] = {
-        ["info"] = "邻居恳求",
-        ["code"] = {
+        ["131"] = {
+          ["info"] = "组播监听报告",
+          ["code"] = {
+          },
         },
-      },
-      ["136"] = {
-        ["info"] = "邻居广告",
-        ["code"] = {
+        ["132"] = {
+          ["info"] = "组播侦听器完成",
+          ["code"] = {
+          },
         },
-      },
-      ["14"] = {
-        ["info"] = "时间戳回复",
-        ["code"] = {
+        ["133"] = {
+          ["info"] = "路由器请求",
+          ["code"] = {
+          },
         },
-      },
-      ["143"] = {
-        ["info"] = "组播侦听器报告 v2",
-        ["code"] = {
+        ["134"] = {
+          ["info"] = "路由器通告",
+          ["code"] = {
+          },
         },
-      },
-      ["15"] = {
-        ["info"] = "信息请求",
-        ["code"] = {
+        ["135"] = {
+          ["info"] = "邻居恳求",
+          ["code"] = {
+          },
         },
-      },
-      ["16"] = {
-        ["info"] = "信息回复",
-        ["code"] = {
+        ["136"] = {
+          ["info"] = "邻居广告",
+          ["code"] = {
+          },
         },
-      },
-      ["17"] = {
-        ["info"] = "地址掩码请求",
-        ["code"] = {
+        ["137"] = {
+          ["info"] = "重定向消息",
+          ["code"] = {
+          },
         },
-      },
-      ["18"] = {
-        ["info"] = "地址掩码回复",
-        ["code"] = {
+        ["138"] = {
+          ["info"] = "路由器重新编号",
+          ["code"] = {
+            ["0"] = "路由器重新编号命令",
+            ["1"] = "路由器重新编号结果",
+            ["255"] = "序列号重置",
+          },
         },
-      },
-      ["3"] = {
-        ["info"] = "目的地无法到达",
-        ["code"] = {
-          ["0"] = "网络不可达",
-          ["1"] = "主机无法访问",
-          ["2"] = "协议不可达",
-          ["3"] = "端口不可达",
-          ["4"] = "需要分段和 DF 设置",
-          ["5"] = "源路由失败",
+        ["139"] = {
+          ["info"] = "ICMP节点信息查询",
+          ["code"] = {
+            ["0"] = "数据字段包含一个 IPv6 地址，该地址是该查询的主题。",
+            ["1"] = "数据字段包含一个名称，该名称是该查询的主题，或者为空，如 NOOP 的情况。",
+            ["2"] = "数据字段包含一个 IPv4 地址，该地址是该查询的主题。",
+          },
         },
-      },
-      ["30"] = {
-        ["info"] = "路由追踪",
-        ["code"] = {
-          ["0"] = "出站数据包已成功转发",
-          ["1"] = "出站数据包无路由；数据包被丢弃",
+        ["140"] = {
+          ["info"] = "ICMP节点信息响应",
+          ["code"] = {
+            ["0"] = "成功回复。回复数据字段可以为空，也可以不为空。",
+            ["1"] = "响应者拒绝提供答案。回复数据字段将为空。",
+            ["2"] = "响应方不知道查询的 Qtype。回复数据字段将为空。",
+          },
         },
-      },
-      ["4"] = {
-        ["info"] = "源抑制",
-        ["code"] = {
+        ["141"] = {
+          ["info"] = "反向邻居发现请求消息",
+          ["code"] = {
+          },
         },
-      },
-      ["5"] = {
-        ["info"] = "重定向",
-        ["code"] = {
-          ["0"] = "重定向网络数据报",
-          ["1"] = "主机的重定向数据报",
-          ["2"] = "针对服务类型和网络重定向数据报",
-          ["3"] = "重定向服务类型和主机的数据报",
+        ["142"] = {
+          ["info"] = "反向邻居发现广告消息",
+          ["code"] = {
+          },
         },
-      },
-      ["8"] = {
-        ["info"] = "回显请求",
-        ["code"] = {
+        ["143"] = {
+          ["info"] = "第 2 版多播侦听器报告",
+          ["code"] = {
+          },
         },
-      },
-      ["9"] = {
-        ["info"] = "路由器通告",
-        ["code"] = {
+        ["144"] = {
+          ["info"] = "归属代理地址发现请求消息",
+          ["code"] = {
+          },
+        },
+        ["145"] = {
+          ["info"] = "主代理地址发现回复消息",
+          ["code"] = {
+          },
+        },
+        ["146"] = {
+          ["info"] = "移动前缀征集",
+          ["code"] = {
+          },
+        },
+        ["147"] = {
+          ["info"] = "移动前缀广告",
+          ["code"] = {
+          },
+        },
+        ["148"] = {
+          ["info"] = "认证路径征集消息",
+          ["code"] = {
+          },
+        },
+        ["149"] = {
+          ["info"] = "认证路径公告消息",
+          ["code"] = {
+          },
+        },
+        ["150"] = {
+          ["info"] = "Seamoby 等实验性移动协议使用的 ICMP 消息",
+          ["code"] = {
+          },
+        },
+        ["151"] = {
+          ["info"] = "组播路由器通告",
+          ["code"] = {
+          },
+        },
+        ["152"] = {
+          ["info"] = "组播路由器请求",
+          ["code"] = {
+          },
+        },
+        ["153"] = {
+          ["info"] = "组播路由器终止",
+          ["code"] = {
+          },
+        },
+        ["154"] = {
+          ["info"] = "FMIPv6 消息",
+          ["code"] = {
+          },
+        },
+        ["155"] = {
+          ["info"] = "RPL控制消息",
+          ["code"] = {
+          },
+        },
+        ["156"] = {
+          ["info"] = "ILNPv6 定位器更新消息",
+          ["code"] = {
+          },
+        },
+        ["157"] = {
+          ["info"] = "重复地址请求",
+          ["code"] = {
+            ["0"] = "雷达消息",
+            ["1"] = "具有 64 位 ROVR 字段的 EDAR 消息",
+            ["2"] = "具有 128 位 ROVR 字段的 EDAR 消息",
+            ["3"] = "具有 192 位 ROVR 字段的 EDAR 消息",
+            ["4"] = "具有 256 位 ROVR 字段的 EDAR 消息",
+          },
+        },
+        ["158"] = {
+          ["info"] = "重复地址确认",
+          ["code"] = {
+            ["0"] = "DAC消息",
+            ["1"] = "具有 64 位 ROVR 字段的 EDAC 消息",
+            ["2"] = "具有 128 位 ROVR 字段的 EDAC 消息",
+            ["3"] = "具有 192 位 ROVR 字段的 EDAC 消息",
+            ["4"] = "具有 256 位 ROVR 字段的 EDAC 消息",
+          },
+        },
+        ["159"] = {
+          ["info"] = "MPL控制消息",
+          ["code"] = {
+          },
+        },
+        ["160"] = {
+          ["info"] = "扩展回显请求",
+          ["code"] = {
+            ["0"] = "没有错误",
+          },
+        },
+        ["161"] = {
+          ["info"] = "扩展回显回复",
+          ["code"] = {
+            ["0"] = "没有错误",
+            ["1"] = "格式错误的查询",
+            ["2"] = "没有这样的接口",
+            ["3"] = "没有这样的表条目",
+            ["4"] = "多种接口满足查询",
+          },
+        },
+        ["2"] = {
+          ["info"] = "数据包太大",
+          ["code"] = {
+          },
+        },
+        ["200"] = {
+          ["info"] = "私人实验",
+          ["code"] = {
+          },
+        },
+        ["201"] = {
+          ["info"] = "私人实验",
+          ["code"] = {
+          },
+        },
+        ["255"] = {
+          ["info"] = "保留用于 ICMPv6 信息消息的扩展",
+          ["code"] = {
+          },
+        },
+        ["3"] = {
+          ["info"] = "超过时间",
+          ["code"] = {
+            ["0"] = "传输过程中超出跳数限制",
+            ["1"] = "片段重组时间超出",
+          },
+        },
+        ["4"] = {
+          ["info"] = "参数问题",
+          ["code"] = {
+            ["0"] = "遇到错误的标头字段",
+            ["1"] = "遇到无法识别的下一个标头类型",
+            ["10"] = "选项太大",
+            ["2"] = "遇到无法识别的 IPv6 选项",
+            ["3"] = "IPv6 第一个片段具有不完整的 IPv6 标头链",
+            ["4"] = "SR上层报头错误",
+            ["5"] = "中间节点遇到无法识别的下一个标头类型",
+            ["6"] = "扩展头太大",
+            ["7"] = "扩展头链太长",
+            ["8"] = "扩展头太多",
+            ["9"] = "扩展头中的选项太多",
+          },
         },
       },
     },
@@ -6291,6 +6726,7 @@ local lang = {
     ["packets_received"] = "收到的数据包",
     ["packets_sent"] = "发送的数据包",
     ["top_icmp_hosts"] = "顶级 ICMP 主机",
+    ["unassigned"] = "未分配",
   },
   ["if_stats_config"] = {
     ["add_rules_type"] = "规则类型",
@@ -6716,10 +7152,21 @@ local lang = {
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
+    ["activate"] = "激活",
+    ["activated"] = "活性",
+    ["activation_code_placeholder"] = "将激活码粘贴到此处",
+    ["activation_error"] = "激活失败。请检查激活码并重试。",
+    ["activation_instructions"] = "ntopng 无法自动激活许可证，很可能是因为它没有 Internet 访问权限（或使用 --offline 启动）。在可以访问互联网的电脑上，转至<a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>许可证恢复</a>页面以检索该系统的激活码，然后将其粘贴到下面。",
+    ["activation_success"] = "许可证激活成功",
+    ["activation_tab"] = "激活",
+    ["activation_title"] = "离线激活",
     ["agreement"] = "有效License",
     ["license"] = "执照",
+    ["needs_activation_warning"] = "该许可证尚未激活。请从“激活”选项卡完成激活。",
+    ["no_system_id"] = "无法确定此实例的 SystemId。",
     ["not_valid"] = "无效",
     ["status"] = "状态",
+    ["system_id_changed"] = "此实例上的 SystemID 似乎已更改，请<a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>阅读如何将许可证转移</a>到新的 SystemID。",
     ["valid"] = "有效的",
   },
   ["limits_page"] = {
@@ -6808,14 +7255,18 @@ local lang = {
     ["evidence_live_hint"] = "随着工具运行实时更新",
     ["evidence_panel_title"] = "调查证据",
     ["evidence_tab"] = "证据",
+    ["evidence_jump_hint"] = "将聊天滚动到此消息",
     ["evidence_this_turn"] = "这一回合",
     ["explanation"] = "解释",
     ["final_response"] = "最终回应",
     ["generate_policy"] = "从自然语言生成策略",
     ["generation_cost"] = "发电成本",
     ["generic_error"] = "联系 LLM 提供商时出错。",
+    ["open_chat_history"] = "打开聊天记录",
+    ["close_chat_history"] = "关闭聊天记录",
     ["good_response"] = "反响良好",
     ["hide_evidence"] = "隐藏证据",
+    ["hide_reasoning"] = "隐藏推理",
     ["hide_steps"] = "隐藏步骤",
     ["historical"] = "历史",
     ["history"] = "历史",
@@ -6841,6 +7292,7 @@ local lang = {
     ["nAnalyst"] = "分析师",
     ["new_chat"] = "新聊天",
     ["next_steps"] = "建议的后续步骤",
+    ["next_step_manual_hint"] = "你需要这样做——助手还不能执行它",
     ["no_artifacts_sub"] = "此对话中生成的图表和其他工件将显示在此处。",
     ["no_artifacts_title"] = "无伪影",
     ["no_audit_entries"] = "未找到审核条目",
@@ -6888,6 +7340,7 @@ local lang = {
     ["save_and_regenerate"] = "保存并重新生成",
     ["send"] = "调查",
     ["show_evidence"] = "展示证据",
+    ["show_reasoning"] = "展示推理",
     ["show_steps"] = "显示步骤",
     ["sql_query"] = "SQL查询",
     ["stat_avg_response"] = "平均响应时间",
@@ -6908,6 +7361,11 @@ local lang = {
     ["tool_add_certificate_alert_exclusion"] = "添加证书警报排除",
     ["tool_add_domain_alert_exclusion"] = "添加域警报排除",
     ["tool_add_host_alert_exclusion"] = "添加主机警报排除",
+    ["tool_annotation_artifact"] = "人工制品",
+    ["tool_annotation_clickhouse"] = "克利克屋",
+    ["tool_annotation_read_only"] = "只读",
+    ["tool_annotation_write"] = "写",
+    ["tool_annotations"] = "注释",
     ["tool_call_cost"] = "工具使用成本",
     ["tool_call_sequence"] = "工具调用顺序",
     ["tool_calls_made"] = "工具调用",
@@ -6915,6 +7373,8 @@ local lang = {
     ["tool_chord"] = "画和弦",
     ["tool_create_ai_policy"] = "制定人工智能策略",
     ["tool_describe_table"] = "描述表",
+    ["tool_description"] = "描述",
+    ["tool_discover_lan"] = "发现局域网",
     ["tool_followup"] = "工具跟进",
     ["tool_geomap"] = "绘制地理地图",
     ["tool_get_access_control_list"] = "获取访问控制列表",
@@ -6926,6 +7386,7 @@ local lang = {
     ["tool_get_historical_flow"] = "获取历史流量",
     ["tool_get_host_info"] = "获取主机信息",
     ["tool_get_infrastructure_stats"] = "获取基础设施统计数据",
+    ["tool_get_interface_addresses"] = "获取接口地址",
     ["tool_get_live_flow"] = "获取直播流",
     ["tool_get_live_flows_for_host"] = "获取主持人的直播流",
     ["tool_get_live_flows_summary"] = "获取实时流量摘要",
@@ -6947,6 +7408,8 @@ local lang = {
     ["tool_get_timeseries"] = "获取时间序列",
     ["tool_get_top_exporter_interfaces"] = "获取顶级导出器接口",
     ["tool_get_vlan_traffic"] = "获取 VLAN 流量",
+    ["tool_get_wazuh_alert_exceptions"] = "获取 Wazuh 警报例外情况",
+    ["tool_get_wazuh_alert_rules"] = "获取 Wazuh 警报规则",
     ["tool_get_wazuh_alerts"] = "获取瓦祖警报",
     ["tool_list_ai_policies"] = "列出人工智能策略",
     ["tool_list_available_active_monitoring_scripts"] = "列出活动监控脚本",
@@ -6959,16 +7422,29 @@ local lang = {
     ["tool_list_snmp_devices"] = "列出 SNMP 设备",
     ["tool_list_tables"] = "列表表",
     ["tool_list_timeseries"] = "列出时间序列",
+    ["tool_license"] = "执照",
+    ["tool_license_community"] = "社区",
+    ["tool_license_enterprise_l"] = "企业L",
+    ["tool_license_enterprise_m"] = "企业M",
+    ["tool_license_enterprise_xl"] = "企业特大号",
     ["tool_name"] = "工具",
+    ["tool_availability"] = "可用性",
+    ["tool_available"] = "可用的",
+    ["tool_locked"] = "锁定",
     ["tool_nprobe_integration_help"] = "nProbe 集成帮助",
     ["tool_query"] = "SQL查询",
     ["tool_resolve_proto"] = "解决协议",
     ["tool_sankey"] = "画桑基",
     ["tool_search_docs"] = "搜索文档",
+    ["tools_catalog"] = "工具目录",
+    ["tools_catalog_btn"] = "工具",
+    ["tools_catalog_hint"] = "查看 nAnalyst 可以在此实例上使用的每个工具",
+    ["tools_catalog_subtitle"] = "每个代理工具 ntopng 都附带。标记为“已锁定”的工具需要比此处运行的更高的许可证。",
     ["total_cost"] = "总成本",
     ["total_tokens"] = "代币总数",
     ["trigger_count"] = "触发次数",
     ["triggered_by"] = "触发者",
+    ["turn"] = "转动",
     ["unexpected_response"] = "LLM 的异常回应。请重试",
     ["unique_chats"] = "独特的聊天",
     ["updated_at"] = "更新于",
@@ -6976,6 +7452,7 @@ local lang = {
     ["usage_by_user"] = "用户使用情况",
     ["user"] = "用户",
     ["view_source"] = "查看源警报/流程",
+    ["view_tools"] = "工具",
     ["working"] = "在职的",
     ["working_on"] = "运行 %{tool}",
     ["analyst_pipeline"] = {
@@ -7974,6 +8451,9 @@ local lang = {
       ["smtp_username"] = "SMTP 用户名",
       ["use_proxy"] = "使用代理",
       ["use_proxy_descr"] = "使用系统范围的代理配置（HTTP_PROXY 或 http_proxy 环境变量）",
+      ["use_startssl"] = "使用 STARTSSL",
+      ["use_tls_descr"] = "在 smpt (smtps) 末尾添加 's' 以强制使用 TLS 加密发送邮件（例如 smtps://mail.server.org）",
+      ["use_startssl_descr"] = "如果启用，则在发送邮件时使用 STARTSSL。如果邮件服务器使用 SMTPS，则忽略此首选项（例如 smtps://mail.server.org）",
       ["validation"] = {
         ["empty_SMTP_port"] = "请插入端口。",
         ["empty_SMTP_server"] = "请插入 IPv4/IPv6/主机地址/SMTP URL。",
@@ -8793,6 +9273,7 @@ local lang = {
     ["reports_data_retention_time_descr"] = "在磁盘上保留流量报告的天数。默认值：30 天。",
     ["reports_data_retention_time_title"] = "报告数据保留",
     ["restart_needed"] = "请重新启动 %{product} 以应用更改",
+    ["restart_needed_active_monitoring"] = "<b>重新启动</b> %{product} 以启用主动监控。",
     ["rrd_files_retention_description"] = "未更新的 RRD 文件被视为过时并从磁盘中删除的天数。这可以防止 RRD 永远徘徊（例如，几个月前访问过一次的 AS）。默认值：90 天。<br><b>注意：</b>仅在使用 RRD 时间序列驱动程序时适用。",
     ["rrd_files_retention_title"] = "RRD 文件保留",
     ["runtime_prefs"] = "运行时首选项",
@@ -8960,6 +9441,9 @@ local lang = {
     ["toggle_ids_alert_title"] = "IDS 警报",
     ["toggle_informative_captive_portal_description"] = "不认证用户。在允许用户访问互联网之前仅显示信息页面。",
     ["toggle_informative_captive_portal_title"] = "信息页面",
+    ["toggle_flow_details_card_description"] = "如果启用，单击实时或历史流（或流/警报行）将在侧卡中打开详细信息。如果禁用，则会直接打开完整的详细信息页面。",
+    ["toggle_flow_details_card_title"] = "流程详情侧卡",
+    ["flow_details_card_inline_label"] = "详情卡",
     ["toggle_interface_name_only_description"] = "如果启用，则下拉菜单中仅显示接口名称。",
     ["toggle_interface_name_only_title"] = "仅显示接口名称",
     ["toggle_internals_rrds_description"] = "启用创建 <a href=\"%{url}\">内部信息</a> 时间序列，例如哈希表条目、周期活动持续时间和写入时间序列点数量、脚本执行时间和调用次数。",
@@ -9341,6 +9825,7 @@ local lang = {
     ["use_server_timezone"] = "使用服务器时区",
   },
   ["rest_consts"] = {
+    ["ACTIVATION_REQUIRED"] = "此功能需要激活许可证",
     ["ADD_POOL_FAILED"] = "无法使用提交的参数添加池",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "创建的池数量过多。请考虑升级 ntopng 到 Enterprise M 或更高版本以创建更多池。",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "创建的池数量过多。",
@@ -10711,6 +11196,7 @@ local lang = {
     ["groups_hint"] = "以逗号分隔的 Wazuh 规则组（空 = 任意）。",
     ["groups_placeholder"] = "例如系统日志、sshd、authentication_success",
     ["id"] = "ID",
+    ["id_already_exists"] = "具有此 ID 的规则已存在",
     ["id_hint"] = "唯一的规则标识符（无空格）。创建后无法更改。",
     ["id_placeholder"] = "例如ssh 暴力破解",
     ["id_required"] = "需要唯一的规则 ID（不含空格）",
