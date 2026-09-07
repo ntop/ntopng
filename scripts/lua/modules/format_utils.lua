@@ -909,25 +909,33 @@ function format_utils.formatASN(asn, short_version, shorten_stringing)
    local name = ""
 
    if asn then
-      local cached
-
       asn = tonumber(asn)
-
-      cached = _asn_cache[asn]
-      if(cached) then
-	 return cached
-      end
 
       name = asn
 
       if (asn ~= 0) then
-	 local as_info = interface.getASInfo(asn)
-	 if (as_info) then
-	    name = as_info.asname
-	 else
-	    -- if no asn info is present, curl to get ASN name
-	    name = getASDisplayName(asn)
+	 local cached = _asn_cache[asn]
+
+	 if (cached == nil) then
+	    local as_info = interface.getASInfo(asn)
+	    if (as_info) then
+	       cached = as_info.asname
+	    else
+	       -- if no asn info is present, curl to get ASN name
+	       cached = getASDisplayName(asn)
+	    end
+
+	    -- No name available: fall back to the ASN itself, so that unresolvable
+	    -- ASNs are not looked up over and over again
+	    if (cached == nil) then
+	       cached = asn
+	    end
+
+	    _asn_cache[asn] = cached
 	 end
+
+	 name = cached
+
 	 if (shorten_stringing) then
 	    name = shortenString(name)
 	 end
@@ -940,8 +948,6 @@ function format_utils.formatASN(asn, short_version, shorten_stringing)
       if (asn == 0) then
 	 name = i18n("no_asn")
       end
-
-      _asn_cache[asn] = name
    end
 
    return name
