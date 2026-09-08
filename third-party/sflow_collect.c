@@ -2587,6 +2587,22 @@ static void readFlowSample_header(SFSample *sample)
   sf_log("headerLen %u\n", sample->headerLen);
 
   sample->pkt_header = sample->header = (u_char *)sample->datap; /* just point at the header */
+
+  /* headerLen is taken verbatim from the datagram and is never bounded against
+     the bytes actually captured. It later becomes pcap caplen in
+     handleSflowSample() (the byte count dissectPacket walks from pkt_header) and
+     the read length passed to printHex() below. Clamp it to the bytes present in
+     the received datagram so a forged headerLen cannot drive a read past the
+     recvfrom() buffer. */
+  {
+    u_int32_t avail = ((u_char *)sample->datap <= sample->endp)
+                          ? (u_int32_t)(sample->endp - (u_char *)sample->datap)
+                          : 0;
+
+    if(sample->headerLen > avail)
+      sample->pkt_headerLen = sample->headerLen = avail;
+  }
+
   skipBytes(sample, sample->headerLen);
   {
     char scratch[2000];
