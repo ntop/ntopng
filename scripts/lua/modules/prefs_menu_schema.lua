@@ -419,23 +419,6 @@ function M.get_sections(flags)
             }}
         },
 
-        -- Notifications
-        {
-            id = "notifications",
-            label = i18n("prefs.notifications"),
-            advanced = false,
-            pro_only = false,
-            hidden = false,
-            entries = {{
-                key = "toggle_starttls",
-                title = i18n("prefs.toggle_toggle_starttls_title"),
-                description = i18n("prefs.toggle_toggle_starttls_description"),
-                type = "toggle",
-                redis_key = "ntopng.prefs.starttls",
-                default = "1"
-            }}
-        },
-
         -- Network Discovery
         {
             id = "discovery",
