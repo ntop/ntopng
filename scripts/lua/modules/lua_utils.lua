@@ -504,6 +504,10 @@ end
 function computeL7Stats(stats, show_breed, show_ndpi_category)
     local _ifstats = {}
 
+    if table.len(stats) == 0 then
+        return _ifstats
+    end
+
     if (show_breed) then
         local breed_stats = {}
 

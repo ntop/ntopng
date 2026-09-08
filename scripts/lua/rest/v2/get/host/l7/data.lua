@@ -9,9 +9,25 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local rest_utils = require "rest_utils"
 
--- Local variables
-local host_ip = _GET["host"]
-local vlan = _GET["vlan"]
+local ifid       = _GET["ifid"]
+local host_ip    = _GET["host"]
+local vlan       = _GET["vlan"]
+
+if isEmptyString(ifid) then
+   ifid = interface.getId()
+end
+
+interface.select(ifid)
+
+if isEmptyString(host_ip) then
+   rest_utils.answer(rest_utils.consts.err.invalid_host)
+   return
+end
+
+if not isEmptyString(vlan) then
+   vlan = tonumber(vlan)
+end
+
 local view = _GET["view"]
 local host = interface.getHostInfo(host_ip, vlan) or {}
 local total_bytes = 0
