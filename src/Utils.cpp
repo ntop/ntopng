@@ -2167,11 +2167,13 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     ret_str = curl_easy_strerror(res);
 
     if (res != CURLE_OK) {
-      if ((num_runs == 1) && (ntop->getPrefs()->email_starttls_enabled())) {
+      if ((num_runs == 1) && use_startssl) {
         /*
           Some mailservers have TLS misconfigured and thus STARTTLS will fail
           so as last resort let's try in plain text
         */
+        num_runs++;
+        use_startssl = false;
         goto retry_sendMail;
       }
 
