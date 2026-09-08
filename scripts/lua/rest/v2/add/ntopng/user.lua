@@ -73,6 +73,13 @@ end
 
 username = string.lower(username)
 
+-- NOTE: usernames longer than NTOP_USERNAME_MAXLEN-1 are
+-- truncated by the authentication layer, so the user would be unusable
+if string.len(username) > 32 then
+   rest_utils.answer(rest_utils.consts.err.invalid_args, res)
+   return
+end
+
 local all_users = ntop.getUsers()
 
 if(all_users[username] ~= nil) then
