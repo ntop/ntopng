@@ -13,6 +13,10 @@ Autonomous Systems shows all autonomous systems discovered by ntopng. Autonomous
 
 Ntopng uses a Maxmind database to gather information about Autonomous Systems (AS) and based on
 this it groups hosts belonging to the same AS. AS number 0 contains all hosts having private IP addresses.
+
+It is possible to tell ntopng which ASNs are your own, which ones belong to your customers, and which ones
+are simply relevant for your business: see :ref:`ASNConfiguration` for the configuration details.
+
 In the Timeseries (only available if enabled) are shown the top current active Autonomous Systems with the traffic
 done in the last week (7 days).
 

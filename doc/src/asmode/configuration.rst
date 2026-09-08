@@ -3,6 +3,8 @@ Configuration
 
 The first step is to configure the list of ASN (Authonomous System Number). In order to do this goto the left sidebar and select Policies, then "Network Configuration" and inside the page select "ASN Configuration".
 
+.. _ASNConfiguration:
+
 ASN Configuration
 -----------------
 
