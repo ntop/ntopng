@@ -1209,7 +1209,8 @@ static void oidc_callback(struct mg_connection* conn,
 static void authorize(struct mg_connection* conn,
                       const struct mg_request_info* request_info,
                       char* username, char* group, bool* localuser) {
-  char user[32] = {'\0'}, password[129] = {'\0'}, referer[256] = {'\0'};
+  char user[NTOP_USERNAME_MAXLEN] = {'\0'}, password[129] = {'\0'},
+       referer[256] = {'\0'};
   bool bad_user_pwd = false, redirect_to_change_pwd = false;
 
   if (!strcmp(request_info->request_method, "POST")) {
@@ -1292,7 +1293,7 @@ static void mfa_authorize(struct mg_connection* conn,
                           const struct mg_request_info* request_info,
                           char* username, char* group, bool* localuser) {
   char token[64] = {'\0'}, code[16] = {'\0'};
-  char user[32], referer[256];
+  char user[NTOP_USERNAME_MAXLEN], referer[256];
   bool got_token = false;
 
   if (!strcmp(request_info->request_method, "POST")) {
@@ -1368,7 +1369,8 @@ static void webauthn_authorize(struct mg_connection* conn,
     mg_get_var(post_data, post_data_len, "signature",   sig_b64, sizeof(sig_b64));
   }
 
-  char user[32] = {'\0'}, referer[256] = {'\0'}, challenge[128] = {'\0'};
+  char user[NTOP_USERNAME_MAXLEN] = {'\0'}, referer[256] = {'\0'},
+       challenge[128] = {'\0'};
   bool got_token = false;
   if (token[0] != '\0' &&
       ntop->getWebAuthnPendingToken(token, user, sizeof(user),
