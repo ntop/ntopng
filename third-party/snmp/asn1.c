@@ -510,7 +510,18 @@ int asn1_parse_integer_type(ASN1Parser *parser, int *type, int64_t *dest)
     
   size = next_len(parser);
   payload = next_payload(parser);
-    
+
+  /* A declared length must stay within the bytes still present in the current
+     state, otherwise the read loop walks off the datagram. asn1_parse_structure
+     already performs this containment check on its payload. */
+  if ((size < 0) ||
+      ((char*)payload + size >
+       (char*)parser->state->buffer + parser->state->remaining))
+    {
+      if (dest) *dest = 0;
+      return 0;
+    }
+
   for (i = 0; i < size; i++)
     {
       int v;
@@ -555,7 +566,15 @@ int asn1_parse_string_type(ASN1Parser *parser, int *type, char **dest)
     
   size = next_len(parser);
   payload = next_payload(parser);
-    
+
+  if ((size < 0) ||
+      ((char*)payload + size >
+       (char*)parser->state->buffer + parser->state->remaining))
+    {
+      *dest = NULL;
+      return 0;
+    }
+
   *dest = (char*)malloc(size + 1);
     
   for (i = 0; i < size; i++)
@@ -627,9 +646,19 @@ int asn1_parse_oid(ASN1Parser *parser, char **dest)
     return 0;
   size = next_len(parser);
   payload = next_payload(parser);
-    
+
+  /* read_oid dereferences the first payload byte unconditionally, so require at
+     least one content byte and keep the whole OID within the available bytes. */
+  if ((size < 1) ||
+      ((char*)payload + size >
+       (char*)parser->state->buffer + parser->state->remaining))
+    {
+      *dest = NULL;
+      return 0;
+    }
+
   read_oid(payload, dest, size);
-    
+
   consume(parser);
   return 1;
 }
