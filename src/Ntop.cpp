@@ -1479,7 +1479,7 @@ void Ntop::getAllowedInterface(lua_State* vm) {
 /* ******************************************* */
 
 void Ntop::getAllowedNetworks(lua_State* vm) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
   const char* username = getLuaVMUservalue(vm, user);
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username ? username : "");
@@ -1579,7 +1579,7 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char* ifname) {
 char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter) {
   char* username;
   char* restricted_filter = NULL;
-  char key[64], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
+  char key[CONST_MAX_LEN_REDIS_KEY], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
   char *tmp, *net;
   int filter_len = 0, len = 0, off = 0, num_nets = 0;
 
@@ -1662,7 +1662,7 @@ bool Ntop::checkUserInterfaces(const char* user) const {
 
 bool Ntop::getUserPasswordHashLocal(const char* user, char* password_hash,
                                     u_int password_hash_len) const {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
@@ -1677,7 +1677,7 @@ bool Ntop::getUserPasswordHashLocal(const char* user, char* password_hash,
 /* ******************************************* */
 
 void Ntop::getUserGroupLocal(const char* user, char* group) const {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
 
@@ -1958,7 +1958,7 @@ bool Ntop::checkRadiusAuth(const char* user, const char* password,
 #ifdef HAVE_RADIUS
   bool is_admin = false, has_unprivileged_capabilities = false;
   bool external_auth_for_local_users = false;
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   /*
      NOTE
@@ -2179,7 +2179,7 @@ bool Ntop::mustChangePassword(const char* user) {
 /* NOTE: the admin vs local user checks must be performed by the caller */
 bool Ntop::resetUserPassword(char* username, char* old_password,
                              char* new_password) {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
   char group[NTOP_GROUP_MAXLEN];
 
@@ -2205,7 +2205,7 @@ bool Ntop::resetUserPassword(char* username, char* old_password,
 
 bool Ntop::changeUserFullName(const char* username,
                               const char* full_name) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0' || full_name == NULL ||
       !existsUser(username))
@@ -2224,7 +2224,7 @@ bool Ntop::changeUserFullName(const char* username,
 
 bool Ntop::changeUserRole(char* username, char* usertype) const {
   if (usertype != NULL) {
-    char key[64];
+    char key[CONST_MAX_LEN_REDIS_KEY];
 
     snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
@@ -2238,7 +2238,7 @@ bool Ntop::changeUserRole(char* username, char* usertype) const {
 
 bool Ntop::changeAllowedNets(char* username, char* allowed_nets) const {
   if (allowed_nets != NULL) {
-    char key[64];
+    char key[CONST_MAX_LEN_REDIS_KEY];
 
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
 
@@ -2264,7 +2264,7 @@ bool Ntop::changeAllowedIfname(char* username, char* allowed_ifname) const {
                                "Changing allowed ifname to %s for %s",
                                allowed_ifname, username);
 
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
 
   if (allowed_ifname != NULL && allowed_ifname[0] != '\0') {
@@ -2290,7 +2290,7 @@ bool Ntop::changeUserHostPool(const char* username,
                                "Changing host pool id to %s for %s",
                                host_pool_id, username);
 
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
 
   if (host_pool_id != NULL && host_pool_id[0] != '\0') {
@@ -2347,7 +2347,7 @@ bool Ntop::changeUserLanguage(const char* username,
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Changing user language %s for %s",
                                language, username);
 
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
 
   if (language != NULL && language[0] != '\0')
@@ -2363,7 +2363,7 @@ bool Ntop::changeUserLanguage(const char* username,
 bool Ntop::changeUserPcapDownloadPermission(const char* username,
                                             bool allow_pcap_download,
                                             u_int32_t ttl) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0') return false;
 
@@ -2386,7 +2386,7 @@ bool Ntop::changeUserPcapDownloadPermission(const char* username,
 bool Ntop::changeUserHistoricalFlowPermission(const char* username,
                                               bool allow_historical_flows,
                                               u_int32_t ttl) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0') return false;
 
@@ -2409,7 +2409,7 @@ bool Ntop::changeUserHistoricalFlowPermission(const char* username,
 
 bool Ntop::changeUserAlertsPermission(const char* username, bool allow_alerts,
                                       u_int32_t ttl) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0') return false;
 
@@ -2430,7 +2430,7 @@ bool Ntop::changeUserAlertsPermission(const char* username, bool allow_alerts,
 /* ******************************************* */
 
 void Ntop::resetUserPermissions(const char* user) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
   ntop->getRedis()->del(key);
@@ -2454,7 +2454,7 @@ bool Ntop::hasCapability(lua_State* vm, UserCapabilities capability) {
 bool Ntop::getUserCapabilities(const char* username, bool* allow_pcap_download,
                                bool* allow_historical_flows,
                                bool* allow_alerts) const {
-  char key[64], val[2];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[2];
 
   *allow_pcap_download = *allow_historical_flows = *allow_alerts = false;
 
@@ -3580,7 +3580,7 @@ bool Ntop::verifyAndStoreWebAuthnRegistration(
 /* ******************************************* */
 
 bool Ntop::isCaptivePortalUser(const char* username) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
@@ -3596,7 +3596,7 @@ bool Ntop::isCaptivePortalUser(const char* username) {
 
 bool Ntop::deleteUser(char* username) {
   char user_id_buf[8];
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   users_m.lock(__FILE__, __LINE__);
 
@@ -3665,7 +3665,7 @@ bool Ntop::deleteUser(char* username) {
 /* ******************************************* */
 
 bool Ntop::getUserHostPool(char* username, u_int16_t* host_pool_id) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID,
            username ? username : "");
@@ -3682,7 +3682,7 @@ bool Ntop::getUserHostPool(char* username, u_int16_t* host_pool_id) {
 
 bool Ntop::getUserAllowedIfname(const char* username, char* buf,
                                 size_t buflen) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME,
            username ? username : "");
