@@ -7160,6 +7160,8 @@ local lang = {
     ["activated"] = "Activated",
     ["activation_code_placeholder"] = "Paste the activation code here",
     ["activation_error"] = "Activation failed. Please check the activation code and try again.",
+    ["activation_error_invalid_format"] = "Invalid activation code. Please copy and paste it again, making sure no characters are missing or extra spaces/line breaks are present.",
+    ["activation_error_system_id_mismatch"] = "The activation code does not match this instance SystemID. Make sure you generated it for the correct license or <a href='https://www.ntop.org/faq/how-can-i-transfer-a-license-to-a-new-server/' target='_blank' rel='noopener noreferrer'>transfer the license</a> if the SystemID has changed.",
     ["activation_instructions"] = "ntopng was unable to automatically activate the license, most likely because it has no Internet access (or was started with --offline). From a PC with Internet access, go to the <a href='https://shop.ntop.org/recover_licenses.php' target='_blank' rel='noopener noreferrer'>License Recovery</a> page to retrieve the activation code for this system, then paste it below.",
     ["activation_success"] = "License activated successfully",
     ["activation_tab"] = "Activation",
