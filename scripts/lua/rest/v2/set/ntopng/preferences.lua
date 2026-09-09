@@ -168,4 +168,9 @@ if entry_key == "toggle_logging_level" then
    ntop.setLoggingLevel(new_value)
 end
 
+-- In case of Radius changes, force a backend update (a restart is required otherwise)
+if string.find(redis_key, "ntopng%.prefs%.radius%.") then
+   ntop.updateRadiusLoginInfo()
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, {})
