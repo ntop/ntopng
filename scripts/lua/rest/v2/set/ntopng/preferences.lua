@@ -91,6 +91,22 @@ if target_section.pro_only then
    end
 end
 
+-- Guard: locked preferences are shown read-only in the GUI (missing license,
+-- ClickHouse down, value forced on the command line, ...). The control is
+-- disabled client-side; refuse here too so a direct API call cannot bypass it,
+-- and hand back the same reason the tooltip shows.
+local lock_reason = target_entry.locked or target_section.locked
+
+if lock_reason then
+   -- One or more missing prerequisites: report every one of them
+   if type(lock_reason) == "table" then
+      lock_reason = table.concat(lock_reason, " ")
+   end
+
+   rest_utils.answer(rest_utils.consts.err.not_granted, { message = lock_reason })
+   return
+end
+
 -- Guard: auth at-least-one (local/ldap/radius/http/oidc toggles)
 local auth_toggle_keys = {
    "ntopng.prefs.local.auth_enabled",
@@ -107,14 +123,44 @@ local function is_auth_toggle(redis_key)
    return false
 end
 
+-- An authentication method that was never toggled has no key in Redis: local
+-- auth ships enabled, so on a fresh install its key is simply missing and must
+-- not be read as "disabled" (that would make every other method impossible to
+-- turn off). Fall back to the schema default, exactly like the read path does.
+local function is_auth_method_enabled(entry)
+   local value = ntop.getPref(entry.redis_key) or ""
+
+   if value == "" then
+      value = tostring(entry.default or "0")
+   end
+
+   return value == "1"
+end
+
+-- Auth toggles visible on this build: a method hidden because the feature is
+-- not available cannot be used to log in, so it does not count as a fallback.
+local function get_auth_toggle_entries()
+   local entries = {}
+
+   for _, section in ipairs(all_sections) do
+      if not section.hidden then
+         for _, entry in ipairs(section.entries or {}) do
+            if not entry.hidden and is_auth_toggle(entry.redis_key) then
+               entries[#entries + 1] = entry
+            end
+         end
+      end
+   end
+
+   return entries
+end
+
 if is_auth_toggle(target_entry.redis_key) and new_value == "0" then
    local one_enabled = false
-   for _, k in ipairs(auth_toggle_keys) do
-      if k ~= target_entry.redis_key then
-         if ntop.getPref(k) == "1" then
-            one_enabled = true
-            break
-         end
+   for _, entry in ipairs(get_auth_toggle_entries()) do
+      if entry.redis_key ~= target_entry.redis_key and is_auth_method_enabled(entry) then
+         one_enabled = true
+         break
       end
    end
    if not one_enabled then
