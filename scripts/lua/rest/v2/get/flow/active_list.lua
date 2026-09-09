@@ -440,7 +440,8 @@ for _, value in ipairs(flows_stats.flows) do
             alert_label = alert_label,
             is_predominant = alert_id == value["predominant_alert"],
             score = alert_score,
-            color = severity and severity.color
+            color = severity and severity.color,
+            severity = i18n(severity.i18n_title)
          }
 
       end
