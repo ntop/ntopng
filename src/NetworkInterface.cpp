@@ -3054,7 +3054,7 @@ datalink_check:
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
   } else if (datalink_type == DLT_EN10MB) {
-    if (h->caplen < sizeof(ndpi_ethhdr)) {
+    if ((eth_offset + sizeof(ndpi_ethhdr)) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3065,7 +3065,7 @@ datalink_check:
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if (datalink_type == 276 /* Linux Cooked Capture v2 */) {
-    if (h->caplen < 20) {
+    if ((eth_offset + 20) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3077,7 +3077,7 @@ datalink_check:
     eth_type = (packet[eth_offset] << 8) + packet[eth_offset + 1];
     ip_offset = 20 + eth_offset;
   } else if (datalink_type == 113 /* Linux Cooked Capture */) {
-    if (h->caplen < 16) {
+    if ((eth_offset + 16) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3092,7 +3092,7 @@ datalink_check:
   } else if (datalink_type ==
                  DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
              || datalink_type == 14 /* raw IP DLT_RAW on OpenBSD captures */) {
-    if (h->caplen < sizeof(u_int32_t)) {
+    if ((eth_offset + sizeof(u_int32_t)) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
