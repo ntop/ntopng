@@ -2879,7 +2879,7 @@ function M.get_sections(flags)
             type = "input",
             input_type = "number",
             redis_key = "ntopng.prefs.snmp.max_num_poller_coroutines",
-            default = string.format("%s", max_num_pollers), -- By default the maximum number will be used
+            default = string.format("%s", 8),
             attrs = {
                 min = "8",
                 max = string.format("%s", max_num_pollers)

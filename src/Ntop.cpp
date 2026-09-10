@@ -5458,24 +5458,30 @@ void Ntop::setZoneInfo() {
   /* Read timezone from /etc/localtime (if TZ is not set) */
   if (tz == NULL) {
     /* Check if the softlink is defined */
-    ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
+    ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf) - 1);
 
     if (rc > 0) {
       buf[rc] = '\0';
 
-      rc--;
+      /* The link target looks like /usr/share/zoneinfo/<Area>/<Location>
+       so multi level zone names are kept intact instead of being truncated by a fixed slash count. */
+      const char *zi = strstr(buf, "zoneinfo/");
 
-      while (rc > 0) {
-        if (buf[rc] == '/') {
-          if (++num_slash == 2) break;
+      if (zi != NULL) {
+        zoneinfo = strdup(zi + strlen("zoneinfo/"));
+      } else {
+        /* Fall back to the last two path components */
+        ssize_t p = rc - 1;
+
+        while (p > 0) {
+          if (buf[p] == '/') {
+            if (++num_slash == 2) break;
+          }
+
+          p--;
         }
 
-        rc--;
-      }
-
-      if (num_slash == 2) {
-        rc++;
-        zoneinfo = strdup(&buf[rc]);
+        if (num_slash == 2) zoneinfo = strdup(&buf[p + 1]);
       }
     }
   }
