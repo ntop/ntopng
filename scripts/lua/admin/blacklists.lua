@@ -13,14 +13,16 @@ local page = _GET["page"] or 'overview'
 local base_url = ntop.getHttpPrefix() .. "/lua/admin/blacklists.lua"
 sendHTTPContentTypeHeader('text/html')
 
+-- Check permissions. This has to come BEFORE the page header and the menu:
+-- isAdministratorOrPrintErr() renders its own shell plus an "Access forbidden"
+-- notice, whereas bailing out after them left the user on a blank page.
+if not isAdministratorOrPrintErr() then
+  return
+end
+
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.category_lists)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
--- Check permissions
-if not isAdministrator() then
-  return
-end
   
 page_utils.print_navbar(i18n("category_lists.category_lists"), base_url .. "?", {{
     active = page == "overview" or page == nil,
