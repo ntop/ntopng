@@ -17,7 +17,8 @@ local page_utils = require "page_utils"
 
 -- Capability guard
 if not auth.has_capability(auth.capabilities.preferences) then
-   return redirect(ntop.getHttpPrefix() .. "/lua/index.lua")
+   print(ntop.httpRedirect(ntop.getHttpPrefix() .. "/lua/index.lua"))
+   return
 end
 
 sendHTTPContentTypeHeader('text/html')

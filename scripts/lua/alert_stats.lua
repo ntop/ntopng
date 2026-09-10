@@ -17,6 +17,15 @@ local json = require "dkjson"
 local template_utils = require "template_utils"
 local alert_entities = require "alert_entities"
 local recording_utils = require "recording_utils"
+local auth = require "auth"
+
+-- Capability guard: every REST endpoint backing this page already refuses
+-- without auth.capabilities.alerts, so a user reaching it anyway (typed URL,
+-- bookmark) only got a page full of NOT_GRANTED errors.
+if not auth.has_capability(auth.capabilities.alerts) then
+    print(ntop.httpRedirect(ntop.getHttpPrefix() .. "/lua/index.lua"))
+    return
+end
 
 local ifid = interface.getId()
 

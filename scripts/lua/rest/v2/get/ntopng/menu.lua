@@ -218,6 +218,16 @@ local function translate(key_i18n)
    return (type(v) == "string") and v or key_i18n
 end
 
+-- Tooltip reasons for an entry that a disabled section drags down with it:
+-- the section's own blockers come first (they are the more fundamental ones,
+-- e.g. "requires administrator privileges"), then the entry's own, if any.
+local function merge_reasons(section_reasons, entry_reasons)
+   local out = {}
+   for _, r in ipairs(section_reasons or {}) do out[#out + 1] = r end
+   for _, r in ipairs(entry_reasons or {}) do out[#out + 1] = r end
+   return (#out > 0) and out or nil
+end
+
 for _, sec_key in ipairs(section_order) do
    local section = section_map[sec_key]
    local sec_drop, sec_disabled = menu_visibility.resolve(section)
@@ -230,22 +240,36 @@ for _, sec_key in ipairs(section_order) do
       for _, entry in ipairs(section.entries) do
          local entry_drop, entry_disabled = menu_visibility.resolve(entry)
          if not entry_drop then
+            local is_divider = (entry.key == "divider") or (entry.is_divider == true)
+
+            -- A disabled section gates everything below it: its entries lead to
+            -- pages of a section the user cannot reach, so they must come back
+            -- disabled too.
+            local disabled = entry_disabled or (sec_disabled and not is_divider)
+
             entries[#entries + 1] = {
                key              = entry.key,
                label            = translate(entry.i18n),
                icon             = entry.icon or nil,
                url              = resolve_url(entry),
                is_external      = (entry.is_external == true),
-               is_divider       = (entry.key == "divider") or (entry.is_divider == true),
-               disabled         = entry_disabled,
-               disabled_reasons = entry_disabled and entry.reason or nil,
+               is_divider       = is_divider,
+               disabled         = disabled,
+               disabled_reasons = disabled and merge_reasons(
+                  sec_disabled and section.reason or nil,
+                  entry_disabled and entry.reason or nil) or nil,
             }
          end
       end
 
-      -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only
+      -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only.
+      -- Already emitted in final shape, so the section gate is applied here.
       local dynamic = compact(get_dynamic_entries(sec_key, flags, page_utils, http_prefix))
       for _, de in ipairs(dynamic) do
+         if sec_disabled and not de.is_divider then
+            de.disabled         = true
+            de.disabled_reasons = merge_reasons(section.reason, de.disabled_reasons)
+         end
          entries[#entries + 1] = de
       end
    end
