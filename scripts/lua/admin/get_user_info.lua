@@ -10,10 +10,23 @@ local json = require "dkjson"
 
 sendHTTPHeader('application/json')
 
-if(isAdministratorOrPrintErr()) then
+local is_admin = isAdministrator()
+local requested_user = _GET["username"]
+
+-- Non-administrators can only read back their own profile
+if not is_admin then
+   requested_user = _SESSION["user"]
+end
+
+if isEmptyString(requested_user) then
+   print(json.encode({}))
+   return
+end
+
+do
    local users_list = ntop.getUsers()
    for key, value in pairs(users_list) do
-      if(key == _GET["username"]) then
+      if(key == requested_user) then
          local rc = {}
 
          if value["group"] == "captive_portal" then
@@ -53,7 +66,11 @@ if(isAdministratorOrPrintErr()) then
          rc["allow_alerts"] = value["allow_alerts"] and true or false
          rc["api_token"] = ntop.getUserAPIToken(key) or ""
          rc["username"] = key
-         rc["password"] = value["password"]
+
+         if is_admin then
+            rc["password"] = value["password"]
+         end
+
          rc["full_name"] = value["full_name"]
          rc["group"] = value["group"]
          rc["totp_enabled"] = ntop.isTOTPEnabled(key) and true or false
