@@ -17,6 +17,7 @@ require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
+local auth = require "auth"
 
 local host_pools_nedge
 if ntop.isnEdge and ntop.isnEdge() then host_pools_nedge = require "host_pools_nedge" end
@@ -61,6 +62,15 @@ if (pool_id == nil) then
     print(
         "<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
             i18n("pool_details.pool_parameter_missing_message") .. "</div>")
+    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+    return
+end
+
+-- Make sure the user is allowed to access this pool
+if not auth.is_allowed_host_pool(pool_id) then
+    print(
+        "<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
+            i18n("error_not_granted") .. "</div>")
     dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
     return
 end

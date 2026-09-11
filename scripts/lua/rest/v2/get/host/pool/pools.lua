@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local host_pools = require "host_pools"
 require "lua_utils"
 local rest_utils = require "rest_utils"
+local auth = require "auth"
 
 local host_pools_instance = host_pools:create()
 local pools_stats = interface.getHostPoolsStats()
@@ -15,7 +16,7 @@ local pools_stats = interface.getHostPoolsStats()
 local res = {}
 for pool_id,item in ipairs(pools_stats) do
 
-    if (pool_id ~= 0 and pool_id ~= 1) then
+    if (pool_id ~= 0 and pool_id ~= 1) and auth.is_allowed_host_pool(pool_id) then
         local name = host_pools_instance:get_pool_name(pool_id)
         local id = pool_id    
         res[#res+1] = {
