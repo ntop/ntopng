@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local host_pools = require "host_pools"
 local rest_utils = require "rest_utils"
+local auth = require "auth"
 
 -- to extract pool members, given pool id
 local pools = require "pools"
@@ -25,6 +26,8 @@ local result = {}
 local s = pools:create()
 
 for pool_id, pool_stats in pairs(pools_stats) do
+ -- Skip the pools the current user is not allowed to access
+ if auth.is_allowed_host_pool(pool_id) then
   -- Try to convert pool to record (contains pool name and host info)
   local record = host_pools_instance:hostpool2record(ifid, pool_id, pool_stats)
 
@@ -67,6 +70,7 @@ for pool_id, pool_stats in pairs(pools_stats) do
     ["clean_members"] = clean_members,
     ["members"] = members
   })
+ end
 end
 
 rest_utils.answer(rest_utils.consts.success.ok, result)

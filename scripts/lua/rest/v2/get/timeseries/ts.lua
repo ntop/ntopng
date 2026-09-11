@@ -15,8 +15,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 
 local rest_utils = require("rest_utils")
 local ts_data = require("ts_data")
+local auth = require("auth")
 
 local tags = tsQueryToTags(_GET["ts_query"])
+
+-- Make sure the user is allowed to access this host pool
+if not isEmptyString(tags.pool) and not auth.is_allowed_host_pool(tags.pool) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 if not isEmptyString(tags.device)  and not isEmptyString(tags.port) and not isnumber(tags.port) then
    -- Ty to convert port name to index

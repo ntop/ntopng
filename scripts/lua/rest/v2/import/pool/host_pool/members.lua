@@ -25,6 +25,12 @@ if not pool_id or not members_file_content then
     return
 end
 
+-- Make sure the user is allowed to access this pool
+if not auth.is_allowed_host_pool(pool_id) then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
+
 local s = host_pools:create()
 local lines = split(members_file_content, "\n")
 -- The host pool members are arriving formatted in a list 

@@ -19,6 +19,25 @@ local pools_rest_utils = {}
 
 -- ##############################################
 
+-- Checks whether the current user can access `pool_id` of the `s` pool instance.
+-- Only host pools can be restricted on a per-user basis (see auth.allowed_host_pools).
+local function is_pool_accessible(s, pool_id)
+   if s.key ~= "host" then
+      return true
+   end
+
+   return auth.is_allowed_host_pool(pool_id)
+end
+
+-- ##############################################
+
+-- Checks whether the current user has restrictions on the pools of the `s` instance
+local function is_pool_restricted_user(s)
+   return s.key == "host" and auth.allowed_host_pools() ~= nil
+end
+
+-- ##############################################
+
 -- @brief Add a pool
 function pools_rest_utils.add_pool(pools)
    local name = _POST["pool_name"]
@@ -36,6 +55,12 @@ function pools_rest_utils.add_pool(pools)
 
    -- Create an instance out of the `pools` passed as argument
    local s = pools:create()
+
+   -- Users restricted to a subset of the pools cannot create new (unreachable) pools
+   if is_pool_restricted_user(s) then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
 
    -- Too many pools created for this ntopng version
    if s:get_num_pools() >= s:get_max_num_pools() then
@@ -95,6 +120,12 @@ function pools_rest_utils.edit_pool(pools)
    -- pool_id as number
    pool_id = tonumber(pool_id)
 
+   -- Make sure the user is allowed to access this pool
+   if not is_pool_accessible(s, pool_id) then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
    local res = s:edit_pool(pool_id,
       name,
       members_list --[[ an array of valid interface ids]]
@@ -133,6 +164,12 @@ function pools_rest_utils.delete_pool(pools)
 
    -- Create the instance
    local s = pools:create()
+
+   -- Make sure the user is allowed to access this pool
+   if not is_pool_accessible(s, pool_id) then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
 
    -- Fetch the existing pool
    local existing_pool = s:get_pool(pool_id)
@@ -409,10 +446,7 @@ function pools_rest_utils.get_pools(pools)
    local s = pools:create()
 
    -- Check if the current user has restrictions on allowed pools
-   local allowed_pools_set = ntop.getAllowedHostPools()
-   if not allowed_pools_set or table.len(allowed_pools_set) == 0 then
-      allowed_pools_set = nil
-   end
+   local allowed_pools_set = is_pool_restricted_user(s) and auth.allowed_host_pools() or nil
 
    if pool_id then
       -- Check if pool is allowed
@@ -500,7 +534,13 @@ function pools_rest_utils.get_pool_members(pools)
 
    -- Create the instance
    local s = pools:create()
-   
+
+   -- Make sure the user is allowed to access this pool
+   if not is_pool_accessible(s, pool_id) then
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
    local cur_pool = s:get_pool(pool_id)
 
    if not cur_pool then
@@ -538,6 +578,12 @@ function pools_rest_utils.get_pool_by_member(pools)
    -- Create the instance
    local s = pools:create()
    local cur_pool = s:get_pool_by_member(member)
+
+   -- Don't disclose pools the user is not allowed to access
+   if cur_pool and not is_pool_accessible(s, cur_pool.pool_id) then
+      cur_pool = nil
+   end
+
    if cur_pool then
       if pool_name_only then
          res = {
