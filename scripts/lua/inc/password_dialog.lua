@@ -23,9 +23,9 @@ print [[
   <div class='card-header'>
   <ul class="nav nav-tabs card-header-tabs" role="tablist" id="edit-user-container">
 ]]
-    if(is_admin) then
-      print[[<li class="nav-item active" id="li_change_prefs"><a class="nav-link active" href="#change-prefs-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
-    end
+    -- Non-administrators also get this tab, but it only holds the settings
+    -- they are allowed to change on themselves (i.e. the language)
+    print[[<li class="nav-item ]] print(ternary(is_admin, "active", "")) print[[" id="li_change_prefs"><a class="nav-link ]] print(ternary(is_admin, "active", "")) print[[" href="#change-prefs-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
    print[[
     <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
     <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
@@ -101,8 +101,6 @@ print [[
 </div> <!-- closes div "change-password-dialog" -->
 ]]
 
-if(is_admin) then
-
 print [[
   </div>
 <div class="tab-pane ]] print(ternary(is_admin, "active", "")) print[[" id="change-prefs-dialog">
@@ -110,7 +108,14 @@ print [[
   <form data-bs-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
+]]
 
+-- Everything below (role, allowed interface/networks/host pools, permissions)
+-- can only be edited by an administrator: change_user_prefs.lua enforces this
+-- server side as well.
+if(is_admin) then
+
+print [[
   <div class='form-group mb-3'>
   <label class='form-label' for="host_role_select">]] print(i18n("manage_users.user_role")) print[[</label>
   <div class='input-group mb-6'>
@@ -223,9 +228,12 @@ print[[
 ]]
 end
 
-print[[
+end -- is_admin
 
-]]
+if not is_admin then
+   -- Stub for the helper defined in the administrator-only section above
+   print[[<script>function toggleUserSettings() {}</script>]]
+end
 
 print[[
   <div class='form-group mb-3'>
@@ -256,11 +264,6 @@ print[[
   </form>
 </div> <!-- closes div "change-prefs-dialog" -->
 ]]
-end
-
-if not is_admin then
-print("</div>")
-end
 
 -- get the user token from redis
 local api_token = ntop.getUserAPIToken(_SESSION['user'])
@@ -485,7 +488,9 @@ print [[
     }
 
     var ok = true;
-    if($("#networks_input").val().length == 0) {
+    if($("#networks_input").length == 0) {
+      /* Non administrators cannot edit the allowed networks */
+    } else if($("#networks_input").val().length == 0) {
       password_alert.error("Network list not specified");
       ok = false;
     } else {
