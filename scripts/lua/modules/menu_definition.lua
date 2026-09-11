@@ -70,10 +70,11 @@ return function(f)
             icon = "fas fa-search",
             url = "/lua/discover.lua",
             hard_hidden = f.no_discoverable_interface or f.is_windows or f.is_loopback_interface,
-            hidden = f.limit_resource_usage or f.infrastructure_view,
+            hidden = f.limit_resource_usage or f.infrastructure_view or f.lightview,
             reason = {
                 f.limit_resource_usage and reason("feature", "menu.reason.limit_resource_usage", "menu.suggestion.limit_resource_usage") or nil,
                 f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
+                f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil,
             }
         }, {
             key = "active_scan",
@@ -91,11 +92,12 @@ return function(f)
         i18n = "details.alerts",
         icon = "fas fa-exclamation-triangle",
         hard_hidden = f.is_db_view_interface,
-        hidden = f.alerts_disabled or f.no_alerts_cap or f.infrastructure_view,
+        hidden = f.alerts_disabled or f.no_alerts_cap or f.infrastructure_view or f.lightview,
         reason = {
             f.alerts_disabled and reason("feature", "menu.reason.alerts_disabled", "menu.suggestion.alerts_disabled") or nil,
             f.no_alerts_cap and reason("perm", "menu.reason.no_alerts_cap", "menu.suggestion.no_alerts_cap") or nil,
             f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
+            f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil,
         },
         entries = {{
             key = "alerts_list",
@@ -127,7 +129,9 @@ return function(f)
             key = "active_flows",
             i18n = "active_flows",
             icon = "fas fa-water",
-            url = "/lua/flows_stats.lua"
+            url = "/lua/flows_stats.lua",
+            hidden = f.lightview,
+            reason = { f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil },
         } -- pro entries appended by menu_definition_pro: db_explorer, server_ports, bgp_looking_glass
         }
     },
@@ -136,8 +140,11 @@ return function(f)
         i18n = "network",
         icon = "fas fa-server",
         hard_hidden = f.is_system_interface,
-        hidden = f.infrastructure_view,
-        reason = { f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil },
+        hidden = f.infrastructure_view or f.lightview,
+        reason = {
+            f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
+            f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil,
+        },
         entries = {{
             key = "hosts",
             i18n = "hosts",
@@ -323,12 +330,17 @@ return function(f)
 			i18n = "about.checks",
 			icon = "fas fa-check-double",
 			url_dynamic = "scripts_config_url",
-			hidden = f.infrastructure_view or f.no_checks_cap,
+			hidden = f.infrastructure_view or f.lightview or f.no_checks_cap,
 			reason = {
 				f.infrastructure_view and reason(
 				    "iface",
 					"menu.reason.infrastructure_view",
 					"menu.suggestion.infrastructure_view"
+				) or nil,
+				f.lightview and reason(
+				    "iface",
+					"menu.reason.lightview",
+					"menu.suggestion.lightview"
 				) or nil,
 				f.no_checks_cap
 				and reason("perm", "menu.reason.no_checks_cap", "menu.suggestion.no_checks_cap")
@@ -339,12 +351,17 @@ return function(f)
 			i18n = "edit_check.exclusion_list",
 			icon = "fas fa-filter",
 			url = "/lua/pro/admin/edit_alert_exclusions.lua?subdir=host",
-			hidden = f.infrastructure_view or f.is_system_ifid or f.no_checks_cap or not f.is_enterprise_m,
+			hidden = f.infrastructure_view or f.lightview or f.is_system_ifid or f.no_checks_cap or not f.is_enterprise_m,
 			reason = {
 				f.infrastructure_view and reason(
 					"iface",
 					"menu.reason.infrastructure_view",
 					"menu.suggestion.infrastructure_view"
+				) or nil,
+				f.lightview and reason(
+					"iface",
+					"menu.reason.lightview",
+					"menu.suggestion.lightview"
 				) or nil,
 				not f.is_system_ifid
 				and f.no_checks_cap

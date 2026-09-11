@@ -69,6 +69,8 @@ local infrastructure_view      = flags.infrastructure_view
 local infrastructure_instances = {}
 _, infrastructure_instances = isInfrastructureView()
 
+local lightview = flags.lightview
+
 -- dynamic URL for scripts config
 local scripts_config_url = http_prefix .. "/lua/admin/edit_configset.lua?subdir=all"
 if tonumber(system_ifid) == tonumber(current_ifid) then
@@ -505,6 +507,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    is_system_interface = is_system_interface,
    infrastructure_instances = infra_arr,
    infrastructure_view = infrastructure_view,
+   lightview = lightview,
 
    -- topbar: user menu
    username         = session_user,

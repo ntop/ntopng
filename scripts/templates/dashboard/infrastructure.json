@@ -7,7 +7,7 @@
 			"id" : "total_throughput",
 			"datasource_id" : "interface_data",
 			"i18n_name" : "",
-			"color" : "info",
+			"color" : "primary",
 			"inactive_color" : "secondary",
 			"width" : 4,
 			"height" : 2,
