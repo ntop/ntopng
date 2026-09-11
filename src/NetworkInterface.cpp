@@ -3065,7 +3065,7 @@ datalink_check:
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if (datalink_type == 276 /* Linux Cooked Capture v2 */) {
-    if ((eth_offset + 20) > h->caplen) {
+    if (((u_int32_t)eth_offset + 20) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3077,7 +3077,7 @@ datalink_check:
     eth_type = (packet[eth_offset] << 8) + packet[eth_offset + 1];
     ip_offset = 20 + eth_offset;
   } else if (datalink_type == 113 /* Linux Cooked Capture */) {
-    if ((eth_offset + 16) > h->caplen) {
+    if (((u_int32_t)eth_offset + 16) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
