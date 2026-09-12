@@ -274,6 +274,10 @@ Makefile: configure Makefile.in
 #  postfixOperator            - it++ on iterators, no measurable cost here
 #  memsetClassFloat           - memset(...,0,...) is a valid zero for IEEE-754
 #  virtualCallInConstructor/Destructor - deliberate (base behaviour wanted)
+#  uninitMemberVar            - mostly false positives on this codebase's very
+#    large, heavily #ifdef'd constructors (cppcheck loses track of assignments,
+#    e.g. the `new (std::nothrow) T()` idiom) or reflect a deliberate
+#    construct-then-load two-phase init pattern (e.g. Prefs)
 #  nullPointer in the Lua engine files - false positives from the
 #    `getLuaVMContext(a) (a ? ... : NULL)` macro; the lua_State* is never NULL
 #    inside a Lua C function (scoped so real null derefs elsewhere still show)
@@ -281,6 +285,7 @@ CPPCHECK_SUPPRESS = --suppress=useInitializationList --suppress=duplInheritedMem
                     --suppress=noCopyConstructor --suppress=noOperatorEq \
                     --suppress=postfixOperator --suppress=memsetClassFloat \
                     --suppress=virtualCallInConstructor --suppress=virtualCallInDestructor \
+                    --suppress=uninitMemberVar \
                     --suppress=nullPointer:src/LuaEngineInterface.cpp \
                     --suppress=nullPointer:src/LuaEngineNetwork.cpp \
                     --suppress=nullPointer:src/LuaEngineNtop.cpp \

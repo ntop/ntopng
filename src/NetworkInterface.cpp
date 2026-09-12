@@ -5495,8 +5495,10 @@ struct flowHostRetriever {
   Host *host, *talking_with_host, *server, *client;
   u_int16_t observationPointId;
   u_int8_t *mac, bridge_iface_idx;
+  u_int8_t mac_buf[6]; /* Storage backing `mac` when set from a filter */
   char* manufacturer;
   char* map_search;
+  char map_search_buf[128]; /* Storage backing `map_search` when lowercased */
   bool sourceMacsOnly, dhcpHostsOnly;
   time_t min_first_seen;
   char* country;
@@ -7612,15 +7614,14 @@ int NetworkInterface::sortHosts(
     struct ndpi_in6_addr *device_ip, u_int32_t device_interface,
     bool alertedHost, u_int8_t mac_location_filter, char* sortColumn,
     char* map_search, u_int64_t label_filter) {
-  u_int8_t macAddr[6];
   int (*sorter)(const void* _a, const void* _b);
 
   if (retriever == NULL) return (-1);
 
   if (mac_filter) {
-    Utils::parseMac(macAddr, mac_filter);
+    Utils::parseMac(retriever->mac_buf, mac_filter);
 
-    retriever->mac = macAddr;
+    retriever->mac = retriever->mac_buf;
   } else {
     retriever->mac = NULL;
   }
@@ -7758,7 +7759,6 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
                                time_t min_first_seen,
                                const char* map_search) {
   int (*sorter)(const void* _a, const void* _b);
-  char map_search_lc[128];
   if (retriever == NULL) return (-1);
 
   retriever->sourceMacsOnly = sourceMacsOnly, retriever->actNumEntries = 0,
@@ -7771,9 +7771,10 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
   retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE;
 
   if (map_search && map_search[0]) {
-    snprintf(map_search_lc, sizeof(map_search_lc), "%s", map_search);
-    Utils::stringtolower(map_search_lc);
-    retriever->map_search = map_search_lc;
+    snprintf(retriever->map_search_buf, sizeof(retriever->map_search_buf), "%s",
+             map_search);
+    Utils::stringtolower(retriever->map_search_buf);
+    retriever->map_search = retriever->map_search_buf;
   } else {
     retriever->map_search = NULL;
   }

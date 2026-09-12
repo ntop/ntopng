@@ -111,12 +111,8 @@ class Ntop {
   RwLock luaCacheLock;
   u_int32_t current_time; /* Updated by current_time */
 #ifndef HAVE_NEDGE
-  ElasticSearch* elastic_search; /**< Pointer of Elastic Search. */
 #ifdef HAVE_ZMQ
   ZMQPublisher* zmqPublisher;
-#endif
-#if !defined(WIN32) && !defined(__APPLE__)
-  SyslogDump* syslog; /**< Pointer of Logstash. */
 #endif
 #endif
 
