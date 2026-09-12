@@ -7208,6 +7208,8 @@ void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
         const u_int8_t max_nested_loops = 8;
 
       nested_dns_definition:
+        if (i + 1 >= payload_len)
+          return; /* Invalid packet */
         offset = payload[i + 1] - 12;
         i = offset;
 
