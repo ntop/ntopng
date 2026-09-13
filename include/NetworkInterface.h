@@ -983,6 +983,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setIdleState(bool new_state) { is_idle = new_state; };
   inline StatsManager* getStatsManager() { return statsManager; };
   AlertsQueue* getAlertsQueue() const;
+
+  /* True when the flow/host alert queues fed by the checks (and drained by
+     flowAlertsDequeueLoop()/hostAlertsDequeueLoop() into the recipients) hold
+     no pending item. Used to tell whether the alert pipeline is fully flushed,
+     e.g. before running the e2e test scripts on shutdown-when-done. */
+  inline bool alertsQueuesDrained() const {
+    return (!flowAlertsQueue || flowAlertsQueue->isEmpty()) &&
+           (!hostAlertsQueue || hostAlertsQueue->isEmpty());
+  }
+
   bool alert_store_query(lua_State* vm, const char* sql, bool limit_rows);
   bool alert_store_write(const char* sql);
 

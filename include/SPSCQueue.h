@@ -60,11 +60,16 @@ class SPSCQueue {
   /**
    * Return true if there is at least one item in the queue
    */
-  inline bool isNotEmpty() {
+  inline bool isNotEmpty() const {
     u_int32_t next_tail = (shadow_tail + 1) & (queue_size - 1);
 
     return next_tail != head;
   }
+
+  /**
+   * Return true if the queue currently holds no item
+   */
+  inline bool isEmpty() const { return !isNotEmpty(); }
 
   /**
    * Return true if the queue is full
