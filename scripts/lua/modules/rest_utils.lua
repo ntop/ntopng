@@ -467,7 +467,8 @@ function rest_utils.sendHTTPHeaderIfName(mime, ifname, maxage,
         lines[#lines + 1] = 'Access-Control-Allow-Methods: GET, POST, HEAD'
     end
 
-    if (_SESSION ~= nil) then
+    -- Preserve the login cookie expiry unless a caller explicitly sets it (e.g. logout).
+    if (_SESSION ~= nil) and (maxage ~= nil) then
         local key = "session_" .. info.http_port .. "_" .. info.https_port
         lines[#lines + 1] =
             'Set-Cookie: ' .. key .. '=' .. _SESSION["session"] .. '; max-age=' ..
@@ -515,7 +516,7 @@ end
 
 function rest_utils.sendHTTPHeader(mime, content_disposition, extra_headers,
                                    status_code, status_descr)
-    rest_utils.sendHTTPHeaderIfName(mime, nil, 3600, content_disposition,
+    rest_utils.sendHTTPHeaderIfName(mime, nil, nil, content_disposition,
                                     extra_headers, status_code, status_descr)
 end
 
