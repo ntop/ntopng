@@ -1224,6 +1224,13 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 
 	if flow then
 		local protocol_info_json = json.decode(flow["PROTOCOL_INFO_JSON"] or "") or {}
+		-- Requested server name (SNI) is stored in the REQUESTED_SERVER_NAME column now
+                -- while it used to be in the json info
+		if not isEmptyString(flow["REQUESTED_SERVER_NAME"]) then
+			protocol_info_json.proto = protocol_info_json.proto or {}
+			protocol_info_json.proto.tls = protocol_info_json.proto.tls or {}
+			protocol_info_json.proto.tls.client_requested_server_name = flow["REQUESTED_SERVER_NAME"]
+		end
 		local info = historical_flow_utils.format_clickhouse_record(flow)
 		flow_details[#flow_details + 1] = format_historical_flow_label(flow)
 		local labels_entry = format_historical_labels(flow)
