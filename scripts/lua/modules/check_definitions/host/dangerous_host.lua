@@ -18,7 +18,7 @@ local dangerous_host = {
 
    default_value = {
       operator = "gt",
-      threshold = "1000",
+      threshold = 1000,
    },
 
    gui = {
