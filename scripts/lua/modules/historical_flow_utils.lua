@@ -1665,6 +1665,7 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["country"] = flowfilter_utils.defined_filters["country"]
    flow_defined_filters["l7_error_id"] = flowfilter_utils.defined_filters["l7_error_id"]
    -- flow_defined_filters["ja4_client"] = flowfilter_utils.defined_filters["ja4_client"]
+   -- flow_defined_filters["ja5_client"] = flowfilter_utils.defined_filters["ja5_client"]
    flow_defined_filters["issuer_dn"] = flowfilter_utils.defined_filters["issuer_dn"]
    flow_defined_filters["http_method"] = flowfilter_utils.defined_filters["http_method"]
    flow_defined_filters["http_url"] = flowfilter_utils.defined_filters["http_url"]

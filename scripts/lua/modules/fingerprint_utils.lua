@@ -18,6 +18,10 @@ local available_fingerprints = {
       stats_key = "ja4_fingerprint",
       href = function(fp) return '<A class="ntopng-external-link" class="https://ja4db.com" target="_blank">'..fp..' <i class="fas fa-external-link-alt"></A> </i>' end
    },
+   ja5 = {
+      stats_key = "ja5_fingerprint",
+      href = function(fp) return fp end
+   },
    hassh = {
       stats_key = "hassh_fingerprint",
       href = function(fp) return fp end

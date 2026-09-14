@@ -678,6 +678,11 @@ flowfilter_utils.defined_filters = {
     --    i18n_label = i18n('ja4_client_hash'),
     --    operators = { 'eq', 'neq' }
     -- },
+    -- ja5_client = {
+    --    value_type = 'text',
+    --    i18n_label = i18n('ja5_client_hash'),
+    --    operators = { 'eq', 'neq' }
+    -- },
     http_method = {
         type = flowfilter_utils.input_types.select,
         value_type = 'http_method',

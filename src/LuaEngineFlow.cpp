@@ -313,7 +313,7 @@ static int ntop_flow_get_l7_proto_ssh(lua_State* vm) {
 
 /* **************************************************************** */
 
-/* @brief Returns a table with TLS/QUIC-specific flow metadata (SNI, certificate subject/issuer, JA3/JA4 fingerprints, etc.).  Lua: flow.tls_quic() → table */
+/* @brief Returns a table with TLS/QUIC-specific flow metadata (SNI, certificate subject/issuer, JA3/JA4/JA5 fingerprints, etc.).  Lua: flow.tls_quic() → table */
 static int ntop_flow_get_l7_proto_tls_quic(lua_State* vm) {
   NtopngLuaContext* c = getLuaVMContext(vm);
   Flow* f = c ? c->flow : NULL;

@@ -798,6 +798,7 @@ class Host : public GenericHashEntry,
   virtual void setServerName(const char* n);
   virtual void setResolvedName(const char* resolved_name);
   virtual Fingerprint* getJA4Fingerprint() { return (NULL); }
+  virtual Fingerprint* getJA5Fingerprint() { return (NULL); }
   virtual Fingerprint* getHASSHFingerprint() { return (NULL); }
 
   void setPrefsChanged() { prefs_loaded = 0; }

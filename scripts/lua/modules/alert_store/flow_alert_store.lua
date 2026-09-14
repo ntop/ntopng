@@ -699,6 +699,7 @@ function flow_alert_store:_add_additional_request_filters()
 	local confidence = _GET["confidence"]
 	local community_id = _GET["community_id"]
 	local ja4_client = _GET["ja4_client"]
+	local ja5_client = _GET["ja5_client"]
 	local alert_domain = _GET["alert_domain"]
 	local l4_proto = _GET["l4proto"]
 
@@ -755,6 +756,7 @@ function flow_alert_store:_add_additional_request_filters()
 	self:add_filter_condition_list("tag", tag, "number")
 
 	self:add_filter_condition_list(self:format_query_json_value("proto.tls.ja4_client_hash"), ja4_client, "string")
+	self:add_filter_condition_list(self:format_query_json_value("proto.tls.ja5_client_hash"), ja5_client, "string")
 	self:add_filter_condition_list(self:format_query_json_value("proto.l7_error_code"), error_code, "string")
 	self:add_filter_condition_list(self:format_query_json_value("proto.confidence"), confidence, "string")
 	self:add_filter_condition_list(
@@ -794,6 +796,7 @@ function flow_alert_store:_get_additional_available_filters()
 		confidence = flowfilter_utils.defined_filters.confidence,
 		community_id = flowfilter_utils.defined_filters.community_id,
 		ja4_client = flowfilter_utils.defined_filters.ja4_client,
+		ja5_client = flowfilter_utils.defined_filters.ja5_client,
 		traffic_direction = flowfilter_utils.defined_filters.traffic_direction,
 		alert_domain = flowfilter_utils.defined_filters.alert_domain,
 

@@ -5660,6 +5660,14 @@ static bool flows_search(Flow* f, char* search) {
     }
   }
 
+  // JA5 Fingerprint
+  if (f->getJa5CliHash()) {
+    if (strstr(f->getJa5CliHash(), search) != nullptr) {
+      f->setSearchedField("ja5_fingerprint");
+      return true;
+    }
+  }
+
   return false;
 }
 
