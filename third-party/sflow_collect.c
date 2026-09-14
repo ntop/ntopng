@@ -2599,7 +2599,7 @@ static void readFlowSample_header(SFSample *sample)
                           ? (u_int32_t)(sample->endp - (u_char *)sample->datap)
                           : 0;
 
-    if(sample->headerLen > avail)
+    if((u_int32_t)sample->headerLen > avail)
       sample->pkt_headerLen = sample->headerLen = avail;
   }
 
