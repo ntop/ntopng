@@ -1343,6 +1343,7 @@ local flow_columns = {
    --['WLAN_SSID']              = { flowfilter = "wlan_ssid", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
    --['WTP_MAC_ADDRESS']        = { flowfilter = "apn_mac", dt_func = dt_format_mac_obj, db_type = "Number", db_raw_type = "Uint64" },
    ['DOMAIN_NAME']            = { flowfilter = "domain_name", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
+   ['REQUESTED_SERVER_NAME']  = { flowfilter = "requested_server_name", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
    ['IS_FIRST_DUMP']          = { flowfilter = "first_flow_dump", dt_func = dt_format_first_flow_dump, db_type = "Boolean", db_raw_type = "Boolean" },
    
    --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function

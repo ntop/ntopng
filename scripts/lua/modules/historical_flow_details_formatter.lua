@@ -715,6 +715,7 @@ local function add_info_field(flow)
 		for proto, info in pairs(protocol_info_json["proto"] or {}) do
 			if proto == "tls" then
 				add_info = isEmptyString(info.client_requested_server_name)
+					and isEmptyString(flow["REQUESTED_SERVER_NAME"])
 				break
 			elseif proto == "dns" then
 				add_info = isEmptyString(info.last_query)

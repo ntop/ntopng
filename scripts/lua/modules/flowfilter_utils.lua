@@ -764,6 +764,12 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
         hourly_available = false
     },
+    requested_server_name = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.flowfilters.requested_server_name'),
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
+    },
     alert_domain = {
         value_type = 'text',
         i18n_label = i18n('db_search.flowfilters.dga_domain_name'),

@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS `flows` ON CLUSTER '$CLUSTER' (
 `HR_SRC2DST_BYTES` Array(UInt64),
 `HR_DST2SRC_BYTES` Array(UInt64),
 `IS_FIRST_DUMP` Boolean,
+`REQUESTED_SERVER_NAME` String,
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (FIRST_SEEN, IPV4_SRC_ADDR, IPV4_DST_ADDR);
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER'
@@ -172,7 +173,8 @@ ALTER TABLE `flows` ON CLUSTER '$CLUSTER'
   ADD COLUMN IF NOT EXISTS `IS_FIRST_DUMP` Boolean,
   ADD COLUMN IF NOT EXISTS `SRC_SITE_ID` UInt16,
   ADD COLUMN IF NOT EXISTS `DST_SITE_ID` UInt16,
-  ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6;
+  ADD COLUMN IF NOT EXISTS `PROBE_IP` IPv6,
+  ADD COLUMN IF NOT EXISTS `REQUESTED_SERVER_NAME` String;
 @
 ALTER TABLE `flows` ON CLUSTER '$CLUSTER'
   DROP COLUMN IF EXISTS `PRE_NAT_IPV4_SRC_ADDR`,
@@ -285,7 +287,8 @@ ALTER TABLE `flows` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `NEXT_ADJACENT_ASN` COMMENT 'BGP next adjacent ASN (BGP_NEXT_ADJACENT_ASN / IPFIX field 128)',
   MODIFY COLUMN `HR_SRC2DST_BYTES` COMMENT '15-second delta byte counters src->dst from nProbe high-resolution counters',
   MODIFY COLUMN `HR_DST2SRC_BYTES` COMMENT '15-second delta byte counters dst->src from nProbe high-resolution counters',
-  MODIFY COLUMN `IS_FIRST_DUMP` COMMENT 'True if this is the first time this flow is dumped to DB (i.e. it is a new flow), or false if this flows has been previously dumped (i.e. it is a continuation)';
+  MODIFY COLUMN `IS_FIRST_DUMP` COMMENT 'True if this is the first time this flow is dumped to DB (i.e. it is a new flow), or false if this flows has been previously dumped (i.e. it is a continuation)',
+  MODIFY COLUMN `REQUESTED_SERVER_NAME` COMMENT 'Requested server name (SNI) as sent by the client';
 @
 
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER '$CLUSTER' (

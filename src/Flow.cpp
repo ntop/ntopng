@@ -8188,6 +8188,9 @@ void Flow::lua_get_tls_info(lua_State* vm) const {
 
 void Flow::getTLSInfo(ndpi_serializer* serializer) const {
   if (isTLS()) {
+
+    /* Note: client_requested_server_name is exposed via REQUESTED_SERVER_NAME column */
+
     ndpi_serialize_string_int32(serializer, "tls_version",
                                 protos.tls.tls_version);
 
@@ -8209,10 +8212,6 @@ void Flow::getTLSInfo(ndpi_serializer* serializer) const {
     if (protos.tls.subjectDN)
       ndpi_serialize_string_string(serializer, "subjectDN",
                                    protos.tls.subjectDN);
-
-    if (protos.tls.client_requested_server_name)
-      ndpi_serialize_string_string(serializer, "client_requested_server_name",
-                                   protos.tls.client_requested_server_name);
 
     if (protos.tls.notBefore && protos.tls.notAfter) {
       ndpi_serialize_string_int32(serializer, "notBefore",

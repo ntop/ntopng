@@ -591,6 +591,9 @@ class Flow : public GenericHashEntry {
   void serializeCustomFieldsInfo(ndpi_serializer* serializer);
 
   inline char* getJa4CliHash() { return (protos.tls.ja4.client_hash); }
+  inline char* getRequestedServerName() {
+    return (isTLS() ? protos.tls.client_requested_server_name : NULL);
+  }
 
   char* getCliCountry(char* buf, u_int buf_len);
   char* getSrvCountry(char* buf, u_int buf_len);

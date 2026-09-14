@@ -1942,6 +1942,7 @@ local known_parameters = {
    ["cli_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHostName))), -- An IPv4 or IPv6 address or an Hostname
    ["srv_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHostName))), -- An IPv4 or IPv6 address or an Hostname
    ["domain_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateUnquoted))),
+   ["requested_server_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateUnquoted))),
    ["wlan_ssid"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateUnquoted))),
    ["cli_port"] = validateListOfTypeInline(validateFilters(validatePort)), -- Client port
    ["srv_port"] = validateListOfTypeInline(validateFilters(validatePort)), -- Server port
