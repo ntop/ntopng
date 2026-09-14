@@ -30,29 +30,19 @@ local ifstats = interface.getStats()
 
 if _GET["iflocalstat_mode"] == "distribution" then
    local eth = ifstats["eth"]
-   local sum = eth.IPv4_packets + eth.IPv6_packets + eth.ARP_packets + eth.MPLS_packets + eth.other_packets
-      
-   if sum > 0 then
-      local five = 0.05 * sum
-      local tot = 0
 
-      local proto_list = {
-         { label = "IPv4", value = eth.IPv4_packets },
-         { label = "IPv6", value = eth.IPv6_packets },
-         { label = "ARP",  value = eth.ARP_packets  },
-         { label = "MPLS", value = eth.MPLS_packets },
-      }
 
-      for _, entry in ipairs(proto_list) do
-         if entry.value > five then
-            res[#res + 1] = { label = entry.label, value = entry.value }
-            tot = tot + entry.value
-         end
-      end
-
-      local leftover = sum - tot
-      if leftover > 0 then
-         res[#res + 1] = { label = "Other", value = leftover }
+   local proto_list = {
+      { label = "IPv4", value = eth.IPv4_packets},
+      { label = "IPv6", value = eth.IPv6_packets},
+      { label = "ARP", value = eth.ARP_packets},
+      { label = "MPLS", value = eth.MPLS_packets},
+      { label = "Other", value = eth.other_packets},
+   }
+   
+   for _, entry in ipairs(proto_list) do
+      if entry.value > 0 then
+         res[#res + 1] = { label = entry.label, value = entry.value }
       end
    end
 else
