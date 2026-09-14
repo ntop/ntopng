@@ -912,7 +912,8 @@ void Flow::processDetectedProtocolData() {
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol.proto);
 
   if ((l7proto != NDPI_PROTOCOL_DNS)
-      && (ndpiFlow->core.host_server_name[0] != '\0') && (!host_server_name)) {
+      && !Utils::isEmptyString(ndpiFlow->core.host_server_name)
+      && (!host_server_name)) {
     bool skip_host_server_name = false;
 
     Utils::sanitizeHostName((char*)ndpiFlow->core.host_server_name);
@@ -967,7 +968,7 @@ void Flow::processDetectedProtocolData() {
     case NDPI_PROTOCOL_TOR:
     case NDPI_PROTOCOL_TLS:
     case NDPI_PROTOCOL_QUIC:
-      if (ndpiFlow->core.host_server_name[0] != '\0') {
+      if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
         if ((ndpiDetectedProtocol.proto.app_protocol !=
              NDPI_PROTOCOL_DOH_DOT) &&
             cli_h && cli_h->isLocalHost())
@@ -1087,7 +1088,9 @@ void Flow::processExtraDissectedInformation() {
       }
 
     } else if (isDNS()) {
-      if (srv_host && (ndpiFlow->metadata.protos.dns.reply_code == 0 /* No Error */)) {
+      if (srv_host &&
+          !Utils::isEmptyString(ndpiFlow->core.host_server_name) &&
+          (ndpiFlow->metadata.protos.dns.reply_code == 0 /* No Error */)) {
         /* Now we need to check if the requested IP matches the server host */
 
         if ((ndpiFlow->metadata.protos.dns.rsp_type == 0x0C /* PTR */) &&
@@ -1174,12 +1177,12 @@ void Flow::processExtraDissectedInformation() {
         protos.http.last_server = strdup(ndpiFlow->metadata.http.server);
 
       if (ndpiFlow->metadata.http.response_status_code == 200) {
-        if (srv_host && (ndpiFlow->core.host_server_name[0] != '\0') &&
+        if (srv_host && (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) &&
             (ndpiFlow->metadata.http.nat_ip == NULL) /* This is not a proxy */
         )
           srv_host->setServerName(host_server_name);
 
-        if (ndpiFlow->core.host_server_name[0] != '\0') {
+        if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
           char *doublecol, delimiter = ':';
 
           /* If <host>:<port> we need to remove ':' */
@@ -1450,7 +1453,7 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
     case NDPI_PROTOCOL_DNS:
       ndpiDetectedProtocol = proto_id; /* Override! */
 
-      if (ndpiFlow->core.host_server_name[0] != '\0') {
+      if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
         std::string addresses;
 
         if (cli_host && (ndpiFlow->metadata.protos.dns.reply_code == 0 /* no Error */)) {
@@ -1534,7 +1537,7 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
 #if 0
   char buf[256];
   ntop->getTrace()->traceEvent(TRACE_ERROR, "%s %s",
-			       ndpiFlow->core.host_server_name[0] != '\0' ? ndpiFlow->core.host_server_name : (unsigned char*)"",
+			       !Utils::isEmptyString(ndpiFlow->core.host_server_name) ? ndpiFlow->core.host_server_name : (unsigned char*)"",
 			       print(buf, sizeof(buf)));
 #endif
 }
