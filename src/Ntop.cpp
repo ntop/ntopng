@@ -1229,20 +1229,59 @@ bool Ntop::recipients_are_empty() { return recipients.empty(); }
 /* ******************************************* */
 
 /*
-  Polls recipients_are_empty() until all notification queues are drained
-  (i.e., the recipients.process_notifications 5-second periodic activity has
-  dequeued and dispatched/persisted every pending alert), instead of
-  guessing a fixed delay. Returns true if queues drained before the timeout.
+  True when the whole alert pipeline is flushed, i.e. there is no alert
+  pending anywhere between the checks and the alert store:
+
+   1. the per-interface flow/host alert queues fed by the checks (drained by
+      flowAlertsDequeueLoop()/hostAlertsDequeueLoop() into the recipients);
+   2. the internal C->Lua alerts queue (datapath alerts);
+   3. the recipient queues (drained/persisted by
+      recipients.process_notifications).
+
+  recipients_are_empty() alone is not enough: right after a pcap file has been
+  fully processed the flow-end checks have just pushed all their alerts into
+  the per-interface queues (1), which the dequeue loops have not moved into
+  the recipients (3) yet, so the recipients can transiently look empty while
+  a whole batch of alerts is still in flight. That race let the e2e runtime
+  test scripts observe only a fraction of the expected alerts.
+*/
+bool Ntop::alerts_pipeline_drained() {
+  if (internal_alerts_queue && !internal_alerts_queue->empty()) return (false);
+
+  for (int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface* iface = getInterface(i);
+
+    if (iface && !iface->alertsQueuesDrained()) return (false);
+  }
+
+  return (recipients_are_empty());
+}
+
+/* ******************************************* */
+
+/*
+  Polls alerts_pipeline_drained() until every alert queue (per-interface,
+  internal and recipient) is drained, instead of guessing a fixed delay.
+  Returns true if the pipeline drained before the timeout.
+
+  Two consecutive drained reads are required: an item is removed from its
+  queue slightly before the consumer finishes dispatching/persisting it
+  (e.g. the SQLite write in alert_store_db.lua), so a single drained read
+  could still race with the last in-flight alert.
 */
 bool Ntop::waitRecipientsQueuesDrained(u_int max_wait_sec) {
+  u_int stable_reads = 0;
 
   sleep(1);
 
   for (u_int i = 0; i < max_wait_sec; i++) {
-    if (recipients_are_empty())
-      return (true);
-    else
-      sleep(1);
+    if (alerts_pipeline_drained()) {
+      if (++stable_reads >= 2) return (true);
+    } else {
+      stable_reads = 0;
+    }
+
+    sleep(1);
   }
 
   return (false);
@@ -4381,9 +4420,9 @@ void Ntop::checkShutdownWhenDone() {
 
     /* Here all interface reading from pcap files are done. */
 
-    if (!recipients_are_empty()) {
-      /* Recipients are still processing notifications, wait until they're done.
-       */
+    if (!alerts_pipeline_drained()) {
+      /* Alerts are still flowing through the checks -> per-interface queues ->
+       * recipients -> alert store pipeline, wait until it's fully flushed. */
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "Waiting for pending notifications..");
       return;

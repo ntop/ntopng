@@ -779,6 +779,7 @@ class Ntop {
   }
   void lua_alert_queues_stats(lua_State* vm);
   bool recipients_are_empty();
+  bool alerts_pipeline_drained();
   bool waitRecipientsQueuesDrained(u_int max_wait_sec);
   bool recipients_enqueue(AlertFifoItem* notification);
   AlertLevel get_default_recipient_minimum_severity();
