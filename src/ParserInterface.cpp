@@ -757,6 +757,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       flow->updateTLS(zflow);
 
       if (zflow->getJA4cHash()) flow->updateJA4C(zflow->getJA4cHash());
+      if (zflow->getJA5cHash()) flow->updateJA5C(zflow->getJA5cHash());
     }
 
 #ifdef NTOPNG_PRO

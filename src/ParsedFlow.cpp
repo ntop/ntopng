@@ -36,6 +36,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   dns_query = tls_server_name = end_reason = NULL;
   dhcp_client_name = NULL, sip_call_id = NULL;
   ja4c_hash = NULL;
+  ja5c_hash = NULL;
   memset(&next_hop, 0, sizeof(next_hop));
   memset(&mapped_next_hop, 0, sizeof(mapped_next_hop));
   external_alert = NULL;
@@ -130,6 +131,11 @@ ParsedFlow::ParsedFlow(const ParsedFlow& pf)
     ja4c_hash = strdup(pf.ja4c_hash);
   else
     ja4c_hash = NULL;
+
+  if (pf.ja5c_hash)
+    ja5c_hash = strdup(pf.ja5c_hash);
+  else
+    ja5c_hash = NULL;
 
   if (pf.external_alert)
     external_alert = strdup(pf.external_alert);
@@ -268,6 +274,9 @@ void ParsedFlow::fromLua(lua_State* L, int index) {
         } else if (!strcmp(key, "ja4c_hash")) {
           if (ja4c_hash) free(ja4c_hash);
           ja4c_hash = strdup(lua_tostring(L, -1));
+        } else if (!strcmp(key, "ja5c_hash")) {
+          if (ja5c_hash) free(ja5c_hash);
+          ja5c_hash = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "tcp_fingerprint")) {
           if (tcp_fingerprint) free(tcp_fingerprint);
           tcp_fingerprint = strdup(lua_tostring(L, -1));
@@ -421,6 +430,10 @@ void ParsedFlow::freeMemory() {
   if (ja4c_hash) {
     free(ja4c_hash);
     ja4c_hash = NULL;
+  }
+  if (ja5c_hash) {
+    free(ja5c_hash);
+    ja5c_hash = NULL;
   }
   if (external_alert) {
     free(external_alert);

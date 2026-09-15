@@ -16,6 +16,10 @@ local available_fingerprints = {
       stats_key = "ja4_fingerprint",
       href = function(fp) return '<A class="ntopng-external-link" href="https://ja4db.com" target="_blank">'..fp..'  <i class="fas fa-external-link-alt"></i></A>' end
    },
+   ja5 = {
+      stats_key = "ja5_fingerprint",
+      href = function(fp) return fp end
+   },
    hassh = {
       stats_key = "hassh_fingerprint",
       href = function(fp) return fp end
@@ -74,6 +78,9 @@ end
 if fingerprint_type == "ja4" then
    res = add_to_res(res, fingerprint_type, stats.ja4_fingerprint or {})
    res = add_to_res(res, "ja4", stats.ja4_fingerprint or {})
+elseif fingerprint_type == "ja5" then
+   res = add_to_res(res, fingerprint_type, stats.ja5_fingerprint or {})
+   res = add_to_res(res, "ja4", stats.ja5_fingerprint or {})
 elseif fingerprint_type == "hassh" then
    res = add_to_res(res, fingerprint_type, stats.hassh_fingerprint or {})
 end

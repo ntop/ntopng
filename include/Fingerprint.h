@@ -45,7 +45,7 @@ class Fingerprint {
 };
 
 typedef struct {
-  Fingerprint ja4, hassh;
+  Fingerprint ja4, ja5, hassh;
 } HostFingerprints;
 
 #endif /* _FINGERPRINT_H_ */
