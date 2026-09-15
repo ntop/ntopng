@@ -21,7 +21,8 @@ local tags = post_data["tags"]
 
 if tags then
     for index, t in pairs(tags) do
-        tag_badge_utils.editTag(t.tag_id, t.tag_name, t.color, t.description, false)
+        local reserved = tag_badge_utils.isReservedTag(t.tag_id)
+        tag_badge_utils.editTag(t.tag_id, t.tag_name, t.color, t.description, tostring(reserved), t.tag_protocols)
     end
 end
 
