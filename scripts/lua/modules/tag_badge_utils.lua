@@ -50,7 +50,8 @@ local function get_default_tags_table()
             color       = "#0d6efd",
             description = "",
             name        = name,
-            reserved    = "true"
+            reserved    = "true",
+            protocols   = {}
         }
     end
 
@@ -61,10 +62,33 @@ local function get_default_tags_table()
             color       = "#000000",
             description = "",
             name        = "Customizable_Tag_" .. i,
-            reserved    = "false"
+            reserved    = "false",
+            protocols   = {}
         }
     end
     return tags
+end
+
+-- ##############################################
+
+-- Sanitize the list of nDPI application ids bound to a tag. Both a table and a
+-- comma separated string (as sent by the REST) are accepted
+local function normalize_protocols(protocols)
+    local res = {}
+
+    if type(protocols) == "string" then
+        protocols = split(protocols, ",")
+    end
+
+    if type(protocols) == "table" then
+        for _, appl_id in pairs(protocols) do
+            local id = tonumber(appl_id)
+            if id then
+                res[#res + 1] = id
+            end
+        end
+    end
+    return res
 end
 
 -- ##############################################
@@ -82,10 +106,18 @@ local function get_tags()
     for _, tag_json in pairs(existing_tags) do
         local tag = json.decode(tag_json)
         if tag then
+            tag.protocols = normalize_protocols(tag.protocols)
             tags[tag.id] = tag
         end
     end
     return tags
+end
+
+-- ##############################################
+
+-- Returns true if the tag is a ntopng built-in (read-only) tag
+function tag_badge_utils.isReservedTag(id)
+    return tag_badge_utils.builtin_tags[tonumber(id)] ~= nil
 end
 
 -- ##############################################
@@ -117,14 +149,17 @@ end
 -- name: new name of the tag to update
 -- color: new color of the tag to update (string containing a HEX value)
 -- description: new description of the tag to update
-function tag_badge_utils.editTag(id, name, color, description, reserved)
+-- protocols: array of nDPI application ids bound to the tag (custom tags only)
+function tag_badge_utils.editTag(id, name, color, description, reserved, protocols)
     local json = require "dkjson"
     local tag = {
         id = id,
         name = name,
         color = color,
         description = description,
-        reserved = reserved
+        reserved = reserved,
+        -- Applications can only be bound to user-defined (custom) tags
+        protocols = (not tag_badge_utils.isReservedTag(id)) and normalize_protocols(protocols) or {}
     }
     ntop.setHashCache(get_redis_key(), id, json.encode(tag))
 end

@@ -13,6 +13,18 @@ local tag_badge_utils = require "tag_badge_utils"
 
 -- tag, color, description
 local tags = tag_badge_utils.getTags()
+
+-- Resolve the nDPI application ids
+for _, tag in ipairs(tags) do
+    local applications = {}
+
+    for _, appl_id in ipairs(tag.protocols or {}) do
+        applications[#applications + 1] = interface.getnDPIProtoName(appl_id) or tostring(appl_id)
+    end
+
+    tag.applications = applications
+end
+
 local total_rows = #tags
 
 rest_utils.extended_answer(rest_utils.consts.success.ok, tags, {["recordsTotal"] = total_rows})
