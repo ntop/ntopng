@@ -136,6 +136,18 @@ return function(f)
         }
     },
     {
+        key = "if_stats_lightview",
+        i18n = "network",
+        icon = "fas fa-server",
+        hard_hidden = not f.lightview,
+        entries = {{
+            key = "interface",
+            i18n = "interface_details",
+            icon = "fas fa-info-circle",
+            url = "/lua/if_stats.lua"
+        }}
+    },
+    {
         key = "if_stats",
         i18n = "network",
         icon = "fas fa-server",
