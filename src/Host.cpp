@@ -1807,7 +1807,10 @@ bool Host::isValidHostName(const char* name) {
       || (strchr(name, ':') != NULL) || (strchr(name, '*') != NULL) ||
       (strchr(name, ' ') != NULL) || (strchr(name, '@') != NULL) ||
       (strchr(name, ',') != NULL) || (strchr(name, '(') != NULL) ||
-      (strchr(name, ')') != NULL))
+      (strchr(name, ')') != NULL)
+      /* Not valid in a host name, and the names are reported to the GUI */
+      || (strchr(name, '<') != NULL) || (strchr(name, '>') != NULL) ||
+      (strchr(name, '"') != NULL) || (strchr(name, '\'') != NULL))
     return (false);
 
   return (true);
@@ -1824,6 +1827,9 @@ void Host::setServerName(const char* server_n) {
 /* *************************************** */
 
 void Host::setResolvedName(const char* resolved_name) {
+  /* As in the other name setters, names learnt from the network are checked */
+  if (!isValidHostName(resolved_name)) return;
+
   /* Multiple threads can set this so we must lock */
   if (resolved_name && resolved_name[0] != '\0') {
     m.lock(__FILE__, __LINE__);
