@@ -5479,10 +5479,7 @@ const char* Ntop::getPersistentCustomListNameById(u_int8_t list_id) {
 void Ntop::setZoneInfo() {
 #ifndef WIN32
   char* tz = NULL;
-  u_int num_slash = 0;
-  char buf[128];
 
-  buf[0] = '\0';
   zoneinfo = NULL;
 
   /* Read timezone from TZ env var */
@@ -5496,32 +5493,24 @@ void Ntop::setZoneInfo() {
 
   /* Read timezone from /etc/localtime (if TZ is not set) */
   if (tz == NULL) {
-    /* Check if the softlink is defined */
-    ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf) - 1);
-
-    if (rc > 0) {
-      buf[rc] = '\0';
-
-      /* The link target looks like /usr/share/zoneinfo/<Area>/<Location>
-       so multi level zone names are kept intact instead of being truncated by a fixed slash count. */
-      const char *zi = strstr(buf, "zoneinfo/");
-
+    // Resolve the real path of /etc/localtime
+    char *real_path = realpath("/etc/localtime", NULL);
+    
+    if (real_path != NULL) {
+      // Search for zoneinfo string
+      const char *zi = strstr(real_path, "zoneinfo/");
+      
+      // Found
       if (zi != NULL) {
         zoneinfo = strdup(zi + strlen("zoneinfo/"));
       } else {
-        /* Fall back to the last two path components */
-        ssize_t p = rc - 1;
-
-        while (p > 0) {
-          if (buf[p] == '/') {
-            if (++num_slash == 2) break;
-          }
-
-          p--;
+        // Fallback to the latest share/
+        const char *last_slash = strrchr(real_path, '/');
+        if (last_slash != NULL) {
+          zoneinfo = strdup(last_slash + 1); 
         }
-
-        if (num_slash == 2) zoneinfo = strdup(&buf[p + 1]);
       }
+      free(real_path); // realpath allocate memory, free is needed
     }
   }
 #ifdef __FreeBSD__
