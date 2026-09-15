@@ -3026,6 +3026,7 @@ local lang = {
       ["pre_nat_ipv4_src_addr"] = "NAT 이전 IPv4 소스 IP",
       ["pre_nat_src_port"] = "NAT 이전 Src 포트",
       ["qoe"] = "QoE",
+      ["requested_server_name"] = "Req. Server Name / SNI",
       ["require_attention"] = "주의가 필요함",
       ["retransmissions"] = "패킷 재전송",
       ["role"] = "역할",

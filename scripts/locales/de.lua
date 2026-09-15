@@ -3026,6 +3026,7 @@ local lang = {
       ["pre_nat_ipv4_src_addr"] = "Pre-NAT IPv4-Quell-IP",
       ["pre_nat_src_port"] = "Pre-NAT-Quellport",
       ["qoe"] = "QoE",
+      ["requested_server_name"] = "Req. Server Name / SNI",
       ["require_attention"] = "Erfordern Aufmerksamkeit",
       ["retransmissions"] = "Paketneuübertragungen",
       ["role"] = "Rolle",

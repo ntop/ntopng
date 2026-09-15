@@ -3026,6 +3026,7 @@ local lang = {
       ["pre_nat_ipv4_src_addr"] = "NAT 前 IPv4 源 IP",
       ["pre_nat_src_port"] = "NAT前源端口",
       ["qoe"] = "体验质量",
+      ["requested_server_name"] = "Req. Server Name / SNI",
       ["require_attention"] = "需要注意",
       ["retransmissions"] = "数据包重传",
       ["role"] = "角色",
