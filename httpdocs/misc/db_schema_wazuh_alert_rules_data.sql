@@ -10,7 +10,7 @@
 -- ==========================================================================
 
 -- --------------------------------------------------------------------------
--- TIER 1 – IMMEDIATE  (immediate = 1 → one email per event, no batching)
+-- TIER 1 : IMMEDIATE  (immediate = 1 → one email per event, no batching)
 -- --------------------------------------------------------------------------
 
 -- 1. Any critical severity alert (Wazuh level 12+)
@@ -19,13 +19,13 @@
 INSERT INTO wazuh_alert_rules VALUES
 ('critical-any', 10, 12, [], 1,
  '[CRITICAL] {rule_description} on {agent_name}',
- 1, 'Catch-all for any level 12+ alert – sent immediately', now());
+ 1, 'Catch-all for any level 12+ alert : sent immediately', now());
 @
 -- 2. Rootkit / trojan / hidden process detection (rootcheck)
 INSERT INTO wazuh_alert_rules VALUES
 ('rootkit-detected', 20, 7, ['rootcheck'], 1,
  '[CRITICAL] Rootkit/trojan detected on {agent_name}',
- 1, 'Wazuh rootcheck positive hit – treat as confirmed compromise until proven otherwise', now());
+ 1, 'Wazuh rootcheck positive hit : treat as confirmed compromise until proven otherwise', now());
 @
 -- 3. Wazuh agent stopped communicating
 --    An agent going silent may mean the host is down, the Wazuh process
@@ -33,7 +33,7 @@ INSERT INTO wazuh_alert_rules VALUES
 INSERT INTO wazuh_alert_rules VALUES
 ('agent-disconnected', 30, 7, ['ossec', 'agent_disconnected'], 1,
  '[CRITICAL] Wazuh agent disconnected: {agent_name}',
- 1, 'Agent heartbeat lost – investigate host availability and possible tamper', now());
+ 1, 'Agent heartbeat lost : investigate host availability and possible tamper', now());
 @
 -- 4. Privilege escalation (sudo / su / setuid abuse)
 --    Important for ntopng hosts where capture processes run as root
@@ -52,7 +52,7 @@ INSERT INTO wazuh_alert_rules VALUES
  1, 'Web application attack with command execution risk on management interface', now());
 @
 -- --------------------------------------------------------------------------
--- TIER 2 – BATCHED  (immediate = 0 → digest email every batch_window_seconds)
+-- TIER 2 : BATCHED  (immediate = 0 → digest email every batch_window_seconds)
 -- --------------------------------------------------------------------------
 
 -- 6. SSH brute-force / authentication failures
@@ -63,7 +63,7 @@ INSERT INTO wazuh_alert_rules VALUES
 ('auth-failure', 100, 5,
  ['authentication_failed', 'authentication_failures', 'sshd'], 0,
  '[WARN] SSH / PAM authentication failures digest',
- 1, 'Batches all SSH/PAM login failures – review src IPs in digest for targeting', now());
+ 1, 'Batches all SSH/PAM login failures : review src IPs in digest for targeting', now());
 @
 -- 7. Successful logins (especially after previous failures)
 --    A successful login is not inherently bad, but tracking them lets
@@ -73,19 +73,19 @@ INSERT INTO wazuh_alert_rules VALUES
  '[INFO] Successful authentication events digest',
  1, 'Tracks successful logins for correlation with prior failure events', now());
 @
--- 8. File integrity monitoring – configuration / binary changes (FIM)
+-- 8. File integrity monitoring : configuration / binary changes (FIM)
 --    ntopng ships signed binaries (as you know well); any unexpected
 --    change to /usr/bin/ntopng, /etc/ntopng, or nDPI libraries is critical.
 INSERT INTO wazuh_alert_rules VALUES
 ('fim-changes', 200, 7, ['syscheck'], 0,
  '[WARN] File integrity changes digest',
- 1, 'FIM hits – pay attention to ntopng/nDPI binaries and config files', now());
+ 1, 'FIM hits : pay attention to ntopng/nDPI binaries and config files', now());
 @
 -- 9. Vulnerability detections (Wazuh vulnerability scanner / CVE feed)
 INSERT INTO wazuh_alert_rules VALUES
 ('vulnerability-detected', 300, 7, ['vulnerability-detector'], 0,
  '[WARN] Vulnerability detections digest',
- 1, 'CVE matches from Wazuh vuln scanner – triage by severity and CVSS score', now());
+ 1, 'CVE matches from Wazuh vuln scanner : triage by severity and CVSS score', now());
 @
 -- 10. Suspicious process / unexpected command execution
 --     Catches shells spawned from web servers, cron abuse, or unusual
@@ -102,7 +102,7 @@ INSERT INTO wazuh_alert_rules VALUES
 INSERT INTO wazuh_alert_rules VALUES
 ('network-scan-ids', 500, 5, ['ids', 'suricata', 'snort', 'network'], 0,
  '[WARN] Network scan / IDS signature events digest',
- 1, 'Port scans and IDS hits batched – look for repeated src IPs targeting management ports', now());
+ 1, 'Port scans and IDS hits batched : look for repeated src IPs targeting management ports', now());
 @
 -- 12. Firewall / iptables block spikes
 --     Useful for detecting DDoS attempts against the capture interface
@@ -110,7 +110,7 @@ INSERT INTO wazuh_alert_rules VALUES
 INSERT INTO wazuh_alert_rules VALUES
 ('firewall-drops', 600, 5, ['firewall', 'iptables', 'pf'], 0,
  '[WARN] Firewall drop events digest',
- 1, 'Blocked traffic – volume spikes may indicate DDoS or misconfiguration', now());
+ 1, 'Blocked traffic : volume spikes may indicate DDoS or misconfiguration', now());
 @
 -- 13. Docker / container anomalies
 --     ntopng ships as Docker containers; privileged containers, unexpected
@@ -126,7 +126,7 @@ INSERT INTO wazuh_alert_rules VALUES
 INSERT INTO wazuh_alert_rules VALUES
 ('system-errors', 800, 7, ['syslog', 'kernel', 'system_error'], 0,
  '[WARN] System error digest on {agent_name}',
- 1, 'OOM kills, disk full, kernel panics, hardware errors – risk to capture continuity', now());
+ 1, 'OOM kills, disk full, kernel panics, hardware errors : risk to capture continuity', now());
 @
 -- 15. Wazuh policy / compliance violations (PCI-DSS, GDPR)
 --     If ntopng is deployed in a regulated environment or processes
@@ -144,3 +144,12 @@ INSERT INTO wazuh_alert_rules VALUES
 ('high-level-catchall', 9000, 10, [], 0,
  '[HIGH] Unclassified high-severity alert digest',
  1, 'Safety net for level 10+ events not matched by any specific rule above', now());
+
+
+-- ########################################################################
+-- Exceptions
+-- ########################################################################
+
+-- 1. Ignore when a user becomes nobody (high to low privileges)
+--     Safety net: problems happen then the reverse happpens, i.e. user X becomes root, not when user root becomes nobody
+INSERT INTO wazuh_alert_exceptions VALUES ('down-to-nobody', 0, '', '', '', '', 'su', 'invalid_login', 1, 'Ignore login as nobody from a more poweful username', now(), 'session opened for user nobody.* by \(uid=.*\)');

@@ -6,23 +6,23 @@
 --
 -- Wazuh Alert Levels Breakdown
 --
--- Level 0 — Ignored: No action is taken. These rules are processed first to filter out false positives and events with no security impact. They do not appear on the dashboard
--- Level 1 — System Log / Information: Logging events of low importance with no security relevance.
--- Level 2 — System Low Priority Notification: Routine system notifications, such as a normal system reboot or expected service status updates.
--- Level 3 — Successful / Authorized Event: Standard successful events. This includes a successful user login or a normal policy check. (This is the default logging threshold).
--- Level 4 — System Error: Standard system errors, such as a missing file or an application throwing an unhandled exception.
--- Level 5 — User Generated Error: Misconfiguration or human error, such as typing a wrong password once or attempting to access a non-existent URL.
--- Level 6 — Low Relevance Attack: Events that look slightly suspicious but are likely false positives or unsuccessful scanning attempts.
--- Level 7 — Information Contextual Alerts: Alerts that gain relevance when correlated over time or combined with other rules.
--- Level 8 — First -- Level Anomalies: Deviations from normal behavior, such as a user logging in at an unusual hour or an unknown application launching.
--- Level 9 — Error from Invalid Source: Repeated minor errors or errors caused by an invalid or unknown source, often indicating automated reconnaissance tools.
--- Level 10 — Multiple User Errors / Misuse: Multiple authentication failures, standard automated attacks, or explicit exploitation patterns like directory traversal attempts.
--- Level 11 — Increased Priority SecurityLevel: Repeated attempts to bypass security controls or an accumulation of several lower-level alerts on the same host.
--- Level 12 — High Importance Event: Error or warning messages indicating a highly probable attack on a specific application, or major system alterations. (This is the default email notification threshold).
--- Level 13 — Unusual Error (High Importance): Events matching clear, documented attack signatures or critical system infrastructure failures.
--- Level 14 — High Importance Security Event: Highly accurate security indicators. These usually indicate a successful attack confirmed through multi-event correlation.
--- Level 15 — Severe Attack: Active, confirmed attacks where there is virtually zero chance of a false positive. These demand immediate incident response actions.
---  Level 16 — Critical Event: Reserved for catastrophic events, massive continuous attacks, or total compromise of a foundational security module.
+-- Level 0 - Ignored: No action is taken. These rules are processed first to filter out false positives and events with no security impact. They do not appear on the dashboard
+-- Level 1 - System Log / Information: Logging events of low importance with no security relevance.
+-- Level 2 - System Low Priority Notification: Routine system notifications, such as a normal system reboot or expected service status updates.
+-- Level 3 - Successful / Authorized Event: Standard successful events. This includes a successful user login or a normal policy check. (This is the default logging threshold).
+-- Level 4 - System Error: Standard system errors, such as a missing file or an application throwing an unhandled exception.
+-- Level 5 - User Generated Error: Misconfiguration or human error, such as typing a wrong password once or attempting to access a non-existent URL.
+-- Level 6 - Low Relevance Attack: Events that look slightly suspicious but are likely false positives or unsuccessful scanning attempts.
+-- Level 7 - Information Contextual Alerts: Alerts that gain relevance when correlated over time or combined with other rules.
+-- Level 8 - First -- Level Anomalies: Deviations from normal behavior, such as a user logging in at an unusual hour or an unknown application launching.
+-- Level 9 - Error from Invalid Source: Repeated minor errors or errors caused by an invalid or unknown source, often indicating automated reconnaissance tools.
+-- Level 10 - Multiple User Errors / Misuse: Multiple authentication failures, standard automated attacks, or explicit exploitation patterns like directory traversal attempts.
+-- Level 11 - Increased Priority SecurityLevel: Repeated attempts to bypass security controls or an accumulation of several lower-level alerts on the same host.
+-- Level 12 - High Importance Event: Error or warning messages indicating a highly probable attack on a specific application, or major system alterations. (This is the default email notification threshold).
+-- Level 13 - Unusual Error (High Importance): Events matching clear, documented attack signatures or critical system infrastructure failures.
+-- Level 14 - High Importance Security Event: Highly accurate security indicators. These usually indicate a successful attack confirmed through multi-event correlation.
+-- Level 15 - Severe Attack: Active, confirmed attacks where there is virtually zero chance of a false positive. These demand immediate incident response actions.
+-- Level 16 - Critical Event: Reserved for catastrophic events, massive continuous attacks, or total compromise of a foundational security module.
 --
 
 CREATE TABLE IF NOT EXISTS wazuh_alerts
@@ -100,10 +100,15 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_rules
     subject     String        DEFAULT '[Wazuh] Alert digest' COMMENT 'Email subject template',
     enabled     UInt8         DEFAULT 1   COMMENT '0 = disabled',
     comment     String        DEFAULT ''  COMMENT 'Free-text description',
-    updated_at  DateTime      DEFAULT now() COMMENT 'Last modification time'
+    updated_at  DateTime      DEFAULT now() COMMENT 'Last modification time',
+    pattern     String        DEFAULT ''  COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this rule'
 )
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY id;
+
+@
+
+ALTER TABLE wazuh_alert_rules ADD COLUMN IF NOT EXISTS pattern String DEFAULT '' COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this rule';
 
 @
 
@@ -119,7 +124,15 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions
     rule_group  String  DEFAULT '' COMMENT 'Glob pattern for rule group (empty = any)',
     enabled     UInt8   DEFAULT 1   COMMENT '0 = disabled',
     comment     String  DEFAULT ''  COMMENT 'Free-text description',
-    updated_at  DateTime DEFAULT now() COMMENT 'Last modification time'
+    updated_at  DateTime DEFAULT now() COMMENT 'Last modification time',
+    pattern     String  DEFAULT ''  COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this exception'
 )
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY id;
+
+@
+
+ALTER TABLE wazuh_alert_exceptions ADD COLUMN IF NOT EXISTS pattern String DEFAULT '' COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this exception';
+
+@
+

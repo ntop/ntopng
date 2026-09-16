@@ -100,10 +100,15 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_rules ON CLUSTER '$CLUSTER'
     subject     String        DEFAULT '[Wazuh] Alert digest' COMMENT 'Email subject template',
     enabled     UInt8         DEFAULT 1   COMMENT '0 = disabled',
     comment     String        DEFAULT ''  COMMENT 'Free-text description',
+    pattern     String        DEFAULT ''  COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this rule',
     updated_at  DateTime      DEFAULT now() COMMENT 'Last modification time'
 )
 ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}', updated_at)
 ORDER BY id;
+
+@
+
+ALTER TABLE wazuh_alert_rules ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS pattern String DEFAULT '' COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this rule';
 
 @
 
@@ -119,7 +124,15 @@ CREATE TABLE IF NOT EXISTS wazuh_alert_exceptions ON CLUSTER '$CLUSTER'
     rule_group  String  DEFAULT '' COMMENT 'Glob pattern for rule group (empty = any)',
     enabled     UInt8   DEFAULT 1   COMMENT '0 = disabled',
     comment     String  DEFAULT ''  COMMENT 'Free-text description',
+    pattern     String  DEFAULT ''  COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this exception',
     updated_at  DateTime DEFAULT now() COMMENT 'Last modification time'
 )
 ENGINE = ReplicatedReplacingMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}', updated_at)
 ORDER BY id;
+
+@
+
+ALTER TABLE wazuh_alert_exceptions ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS pattern String DEFAULT '' COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this exception';
+
+@
+
