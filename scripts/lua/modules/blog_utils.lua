@@ -3,6 +3,7 @@
 --
 require "lua_trace"
 require "ntop_utils"
+require "lua_utils_gui"
 local json = require("dkjson")
 
 local MAX_POSTS = 3
