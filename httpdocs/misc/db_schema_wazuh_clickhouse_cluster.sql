@@ -134,5 +134,3 @@ ORDER BY id;
 
 ALTER TABLE wazuh_alert_exceptions ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS pattern String DEFAULT '' COMMENT 'If not empty, this is a pattern that must match the rule in order to trigger this exception';
 
-@
-
