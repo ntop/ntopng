@@ -5499,7 +5499,6 @@ void Ntop::setZoneInfo() {
     if (real_path != NULL) {
       // Search for zoneinfo string
       const char *zi = strstr(real_path, "zoneinfo/");
-      std::cout << zi << "\n";
       // Found
       if (zi != NULL) {
         zoneinfo = strdup(zi + strlen("zoneinfo/"));
