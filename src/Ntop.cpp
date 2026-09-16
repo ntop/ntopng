@@ -5499,15 +5499,26 @@ void Ntop::setZoneInfo() {
     if (real_path != NULL) {
       // Search for zoneinfo string
       const char *zi = strstr(real_path, "zoneinfo/");
-      
+      std::cout << zi << "\n";
       // Found
       if (zi != NULL) {
         zoneinfo = strdup(zi + strlen("zoneinfo/"));
       } else {
-        // Fallback to the latest share/
-        const char *last_slash = strrchr(real_path, '/');
+        // Fallback to the penultimate /
+        char *last_slash = strrchr(real_path, '/');
         if (last_slash != NULL) {
-          zoneinfo = strdup(last_slash + 1); 
+          // Temporarily cut the string at the last slash, so an other strrchar can be done
+          // to find the penultimate slash, last fallback if available
+          *last_slash = '\0'; 
+          char *penultimate_slash = strrchr(real_path, '/');
+          *last_slash = '/';
+          // Two cases, penultimate_slash is null, no penultimate_slash, 
+          // last fallback on the last_slash or, penultimate_slash is okay
+          if (penultimate_slash != NULL) {
+            zoneinfo = strdup(penultimate_slash + 1); 
+          } else {
+            zoneinfo = strdup(last_slash + 1); 
+          }
         }
       }
       free(real_path); // realpath allocate memory, free is needed
