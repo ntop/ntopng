@@ -90,6 +90,14 @@ int PacketDumperTuntap::openTap(
     return -1;
   }
 
+  if (!Utils::validInterfaceName(ifr.ifr_name)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid interface name '%s'",
+                                 ifr.ifr_name);
+    free(tuntap_device);
+    close(fd);
+    return -1;
+  }
+
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d", ifr.ifr_name,
            DUMP_MTU);
   rc = system(buf);

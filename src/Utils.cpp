@@ -4415,6 +4415,8 @@ u_int32_t Utils::findInterfaceGatewayIPv4(const char* ifname) {
   FILE* fp;
   u_int32_t rc = 0;
 
+  if (!validInterfaceName(ifname)) return (0);
+
   snprintf(cmd, sizeof(cmd),
            "netstat -rn 2>/dev/null | grep '%s' | grep 'UG' | awk '{print $2}'",
            ifname);
