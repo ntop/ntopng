@@ -4371,7 +4371,6 @@ void Ntop::runPeriodicHousekeepingTasks() {
   for (int i = 0; i < get_num_interfaces(); i++) {
     if (!iface[i]->isStartingUp()) {
       iface[i]->runPeriodicHousekeepingTasks();
-      iface[i]->purgeQueuedIdleEntries();
     }
   }
 
