@@ -6870,6 +6870,7 @@ local lang = {
     ["interface_ip"] = "Rozhraní IP",
     ["interface_name"] = "Rozhraní",
     ["interface_rx_updates"] = "Aktualizace rozhraní",
+    ["lightview_aggregated_ifaces"] = "Overview: aggregating %{num} local interfaces (%{ifaces})",
     ["malformed_logs"] = "Poškozené protokoly",
     ["nf"] = "Netfilter",
     ["nf_enobufs"] = "Žádná vyrovnávací paměť",

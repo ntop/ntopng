@@ -6870,6 +6870,7 @@ local lang = {
     ["interface_ip"] = "인터페이스 IP",
     ["interface_name"] = "상호 작용",
     ["interface_rx_updates"] = "인터페이스 업데이트",
+    ["lightview_aggregated_ifaces"] = "Overview: aggregating %{num} local interfaces (%{ifaces})",
     ["malformed_logs"] = "잘못된 로그",
     ["nf"] = "넷필터",
     ["nf_enobufs"] = "버퍼 공간 없음",

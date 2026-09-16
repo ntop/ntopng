@@ -6870,6 +6870,7 @@ local lang = {
     ["interface_ip"] = "接口IP",
     ["interface_name"] = "接口",
     ["interface_rx_updates"] = "接口更新",
+    ["lightview_aggregated_ifaces"] = "Overview: aggregating %{num} local interfaces (%{ifaces})",
     ["malformed_logs"] = "格式错误的日志",
     ["nf"] = "网络过滤器",
     ["nf_enobufs"] = "无缓冲空间",

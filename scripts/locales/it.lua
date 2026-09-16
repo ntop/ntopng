@@ -6870,6 +6870,7 @@ local lang = {
     ["interface_ip"] = "Interfaccia IP",
     ["interface_name"] = "Nome Interfaccia",
     ["interface_rx_updates"] = "Aggiornamenti RX dell'Interfaccia",
+    ["lightview_aggregated_ifaces"] = "Overview: aggregating %{num} local interfaces (%{ifaces})",
     ["malformed_logs"] = "Log Malformati",
     ["nf"] = "Netfilter",
     ["nf_enobufs"] = "Spazio Buffer Esaurito",

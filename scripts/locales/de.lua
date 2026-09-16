@@ -6870,6 +6870,7 @@ local lang = {
     ["interface_ip"] = "Schnittstellen-IP",
     ["interface_name"] = "Schnittstelle",
     ["interface_rx_updates"] = "Aktualisierungen der Benutzeroberfläche",
+    ["lightview_aggregated_ifaces"] = "Overview: aggregating %{num} local interfaces (%{ifaces})",
     ["malformed_logs"] = "Fehlerhafte Protokolle",
     ["nf"] = "Netzfilter",
     ["nf_enobufs"] = "Kein Pufferspeicher",
