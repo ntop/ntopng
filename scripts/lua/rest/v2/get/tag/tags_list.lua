@@ -14,7 +14,9 @@ local tag_badge_utils = require "tag_badge_utils"
 -- tag, color, description
 local tags = tag_badge_utils.getTags()
 
--- Resolve the nDPI application ids
+local risks_supported = tag_badge_utils.areTagRisksSupported()
+
+-- Resolve the nDPI application ids and the flow risk ids
 for _, tag in ipairs(tags) do
     local applications = {}
 
@@ -23,6 +25,16 @@ for _, tag in ipairs(tags) do
     end
 
     tag.applications = applications
+
+    local flow_risks = {}
+
+    if risks_supported then
+        for _, risk_id in ipairs(tag.risks or {}) do
+            flow_risks[#flow_risks + 1] = ntop.getRiskStr(risk_id) or tostring(risk_id)
+        end
+    end
+
+    tag.flow_risks = flow_risks
 end
 
 local total_rows = #tags

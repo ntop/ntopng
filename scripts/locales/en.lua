@@ -10778,6 +10778,7 @@ local lang = {
     ["tag_applications"] = "Applications",
     ["tag_color"] = "Tag Color",
     ["tag_description"] = "Tag Description",
+    ["tag_flow_risks"] = "Flow Risks",
     ["tag_name"] = "Tag",
     ["tags"] = "Tags",
     ["user_defined_tags"] = "User-Defined Tags",

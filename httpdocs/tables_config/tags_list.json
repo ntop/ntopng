@@ -61,6 +61,12 @@
 			"data_field": "applications",
 			"sortable": false,
 			"min-width" : "180px"
+		},
+		{
+			"title_i18n": "tags_page.tag_flow_risks",
+			"data_field": "flow_risks",
+			"sortable": false,
+			"min-width" : "180px"
 		}
 	]
 }
