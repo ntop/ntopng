@@ -552,6 +552,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    has_protos_file = (protos_utils_ok and protos_utils.hasProtosFile()) or false,
    is_pro = is_pro or false,
    is_enterprise = (ntop.isEnterprise and ntop.isEnterprise()) or false,
+   is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false,
    is_enterprise_xl = (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false,
    are_host_pools_ts_enabled = (areHostPoolsTimeseriesEnabled and areHostPoolsTimeseriesEnabled(current_ifid)) or false,
    are_as_ts_enabled = (areASTimeseriesEnabled and areASTimeseriesEnabled(current_ifid)) or false,

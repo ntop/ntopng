@@ -51,7 +51,8 @@ local function get_default_tags_table()
             description = "",
             name        = name,
             reserved    = "true",
-            protocols   = {}
+            protocols   = {},
+            risks       = {}
         }
     end
 
@@ -63,7 +64,8 @@ local function get_default_tags_table()
             description = "",
             name        = "Customizable_Tag_" .. i,
             reserved    = "false",
-            protocols   = {}
+            protocols   = {},
+            risks       = {}
         }
     end
     return tags
@@ -71,18 +73,18 @@ end
 
 -- ##############################################
 
--- Sanitize the list of nDPI application ids bound to a tag. Both a table and a
--- comma separated string (as sent by the REST) are accepted
-local function normalize_protocols(protocols)
+-- Sanitize a list of numeric ids (nDPI application ids or flow risk ids) bound
+-- to a tag. Both a table and a comma separated string (as sent by the REST) are accepted
+local function normalize_ids(ids)
     local res = {}
 
-    if type(protocols) == "string" then
-        protocols = split(protocols, ",")
+    if type(ids) == "string" then
+        ids = split(ids, ",")
     end
 
-    if type(protocols) == "table" then
-        for _, appl_id in pairs(protocols) do
-            local id = tonumber(appl_id)
+    if type(ids) == "table" then
+        for _, value in pairs(ids) do
+            local id = tonumber(value)
             if id then
                 res[#res + 1] = id
             end
@@ -106,7 +108,8 @@ local function get_tags()
     for _, tag_json in pairs(existing_tags) do
         local tag = json.decode(tag_json)
         if tag then
-            tag.protocols = normalize_protocols(tag.protocols)
+            tag.protocols = normalize_ids(tag.protocols)
+            tag.risks = normalize_ids(tag.risks)
             tags[tag.id] = tag
         end
     end
@@ -118,6 +121,13 @@ end
 -- Returns true if the tag is a ntopng built-in (read-only) tag
 function tag_badge_utils.isReservedTag(id)
     return tag_badge_utils.builtin_tags[tonumber(id)] ~= nil
+end
+
+-- ##############################################
+
+-- Returns true if flow risks can be bound to the tags (Enterprise L or above)
+function tag_badge_utils.areTagRisksSupported()
+    return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
 end
 
 -- ##############################################
@@ -150,8 +160,18 @@ end
 -- color: new color of the tag to update (string containing a HEX value)
 -- description: new description of the tag to update
 -- protocols: array of nDPI application ids bound to the tag (custom tags only)
-function tag_badge_utils.editTag(id, name, color, description, reserved, protocols)
+-- risks: array of flow risk ids bound to the tag (all tags, Enterprise L only)
+function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks)
     local json = require "dkjson"
+
+    if tag_badge_utils.areTagRisksSupported() then
+        risks = normalize_ids(risks)
+    else
+        -- Without the license the risks cannot be changed: keep the saved ones
+        local current = get_tags()[tonumber(id)]
+        risks = (current and current.risks) or {}
+    end
+
     local tag = {
         id = id,
         name = name,
@@ -159,7 +179,9 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
         description = description,
         reserved = reserved,
         -- Applications can only be bound to user-defined (custom) tags
-        protocols = (not tag_badge_utils.isReservedTag(id)) and normalize_protocols(protocols) or {}
+        protocols = (not tag_badge_utils.isReservedTag(id)) and normalize_ids(protocols) or {},
+        -- Flow risks can be bound to any tag, built-in ones included
+        risks = risks
     }
     ntop.setHashCache(get_redis_key(), id, json.encode(tag))
 end
