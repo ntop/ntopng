@@ -1014,3 +1014,25 @@ function igmpType2String(v)
       return(v)
    end
 end
+
+-- ##############################################
+
+function toInt64(x)
+   x = tonumber(x)
+   if not x then return nil end
+
+   local i = math.tointeger(x)
+   if i then return i end
+
+   -- Value is a "clean" float but out of signed int64 range.
+   -- If it's in the valid *unsigned* 64-bit range, wrap it into
+   -- the equivalent two's-complement signed representation.
+   if x == math.floor(x) and x >= 0 and x < 18446744073709551616.0 then -- 2^64
+      if x >= 9223372036854775808.0 then -- 2^63
+         x = x - 18446744073709551616.0 -- subtract 2^64
+      end
+      return math.tointeger(x)
+   end
+
+   return nil
+end
