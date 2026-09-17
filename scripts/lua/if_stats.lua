@@ -984,6 +984,7 @@ if not is_light_view then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifTrafficDistroChart",
         page_context  = json.encode({
             charts = charts,
         }),
@@ -1610,6 +1611,7 @@ if (ifstats.type ~= "zmq") then
 
         template.render("pages/vue_page.template", {
             vue_page_name = "MultiPieChart",
+            vue_container_id = "ifSizeDistroChart",
             page_context  = json.encode({
                 charts = {
                     {
@@ -1635,6 +1637,7 @@ if (ifstats.type ~= "zmq") then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifIpverFlagsDistroChart",
         page_context  = json.encode({
             charts = {
                 {
@@ -1668,6 +1671,7 @@ elseif (page == "DSCP") then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifDscpChart",
         page_context  = json.encode({
             charts = {
                 {
