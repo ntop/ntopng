@@ -1,6 +1,8 @@
 {#
   (C) 2023 - ntop.org
-  This template is used by the `Live Flows` page inside the `Host Details`.    
+  This template is used by the `Live Flows` page inside the `Host Details`.
+  Optional `vue_container_id`: DOM id of the mount container (default: vue_page_name).
+  It must be unique when the same component is rendered more than once in a page.
 #}
 
 <!--
@@ -8,7 +10,7 @@
   inside the Vue component (dropdowns, overlays, tooltips, etc.) are positioned
   relative to this container instead of the document body.
 -->
-<div id="{* vue_page_name *}" style="position: relative">
+<div id="{* vue_container_id or vue_page_name *}" style="position: relative">
   <page-vue :context="context">
   </page-vue>
 </div>
@@ -71,13 +73,14 @@
   // they execute after HTML parsing but before DOMContentLoaded. Using native
   // DOMContentLoaded avoids a dependency on $ being available synchronously.
   function _mount_vue_page() {
-    const _pageId = "{* vue_page_name *}";
+    const _pageId = "{* vue_container_id or vue_page_name *}";
+    const _component = "{* vue_page_name *}";
     const _ctx = {* page_context *};
     /* Seed the date_format cache from server context so JS never needs date_format.lua */
     if (_ctx.date_format && ntopVue.ntopng_utility) {
       ntopVue.ntopng_utility.set_cached_date_format(_ctx.date_format);
     }
-    start_vue(_pageId, ntopVue[_pageId], _ctx);
+    start_vue(_pageId, ntopVue[_component], _ctx);
   }
 
   // When this markup is injected after the initial page load (e.g. via
