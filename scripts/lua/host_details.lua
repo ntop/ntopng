@@ -1442,6 +1442,7 @@ else
 
    template.render("pages/vue_page.template", {
       vue_page_name = "MultiPieChart",
+      vue_container_id = "hostPortsDistroChart",
       page_context  = json.encode({
          charts = {
             {
@@ -1639,6 +1640,7 @@ setInterval(update_icmp_table, 5000);
 
                   template.render("pages/vue_page.template", {
                      vue_page_name = "MultiPieChart",
+                     vue_container_id = "hostDnsSentChart",
                      page_context  = json.encode({
                         charts = {{
                            name       = "dnsSent",
@@ -1661,6 +1663,7 @@ setInterval(update_icmp_table, 5000);
 
                   template.render("pages/vue_page.template", {
                      vue_page_name = "MultiPieChart",
+                     vue_container_id = "hostDnsRcvdChart",
                      page_context  = json.encode({
                         charts = {{
                            name       = "dnsRcvd",
@@ -1724,6 +1727,7 @@ setInterval(update_icmp_table, 5000);
 
             template.render("pages/vue_page.template", {
                vue_page_name = "MultiPieChart",
+               vue_container_id = "hostHttpQueriesChart",
                page_context  = json.encode({
                   charts = {{
                      name       = "httpQueries",
@@ -1759,6 +1763,7 @@ setInterval(update_icmp_table, 5000);
 
             template.render("pages/vue_page.template", {
                vue_page_name = "MultiPieChart",
+               vue_container_id = "hostHttpResponsesChart",
                page_context  = json.encode({
                   charts = {{
                      name       = "httpResponses",

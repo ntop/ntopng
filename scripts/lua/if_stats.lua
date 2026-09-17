@@ -805,12 +805,13 @@ charts[#charts + 1] = {
 print [[ <tr>]]
 print [[<td colspan=6><div class="row"><div class="row-3">]]
 
-template.render("pages/vue_page.template", {
-    vue_page_name = "MultiPieChart",
-    page_context  = json.encode({
-        charts = charts,
-    }),
-})
+    template.render("pages/vue_page.template", {
+        vue_page_name = "MultiPieChart",
+        vue_container_id = "ifTrafficDistroChart",
+        page_context  = json.encode({
+            charts = charts,
+        }),
+    })
 
 print [[</div></div></td></tr>]]
     if (ifstats.zmqRecvStats ~= nil and table.len(ifstats.zmqRecvStats) > 0) then
@@ -1428,6 +1429,7 @@ if (ifstats.type ~= "zmq") then
 
         template.render("pages/vue_page.template", {
             vue_page_name = "MultiPieChart",
+            vue_container_id = "ifSizeDistroChart",
             page_context  = json.encode({
                 charts = {
                     {
@@ -1453,6 +1455,7 @@ if (ifstats.type ~= "zmq") then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifIpverFlagsDistroChart",
         page_context  = json.encode({
             charts = {
                 {
@@ -1486,6 +1489,7 @@ elseif (page == "DSCP") then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifDscpChart",
         page_context  = json.encode({
             charts = {
                 {
