@@ -55,6 +55,12 @@
 			"class": [
 				"text-nowrap"
 			]
+		},
+		{
+			"title_i18n": "tags_page.tag_applications",
+			"data_field": "applications",
+			"sortable": false,
+			"min-width" : "180px"
 		}
 	]
 }

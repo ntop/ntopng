@@ -10775,6 +10775,7 @@ local lang = {
     ["reserved_message"] = "Reserved System Tag",
     ["reset_tag"] = "Are you sure to reset the selected tag? This action cannot be undone.",
     ["reset_tag_title"] = "Reset Tag",
+    ["tag_applications"] = "Applications",
     ["tag_color"] = "Tag Color",
     ["tag_description"] = "Tag Description",
     ["tag_name"] = "Tag",
