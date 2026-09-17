@@ -811,6 +811,8 @@ void LocalHost::setServerName(const char* server_n) {
 void LocalHost::setResolvedName(const char* resolved_name) {
   char buf[64];
 
+  if (!isValidHostName(resolved_name)) return;
+
   if (strcmp(get_ip()->print(buf, sizeof(buf)), resolved_name)) {
     Host::setResolvedName(resolved_name);
     addDataToAssets((char*)"dns_name", (char*)resolved_name);
