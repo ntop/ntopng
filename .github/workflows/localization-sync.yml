@@ -17,7 +17,7 @@ permissions:
   pull-requests: write
 
 env:
-  LOCALIZATION_DIRECT_COMMIT: "true"
+  LOCALIZATION_DIRECT_COMMIT: "false"
 
 jobs:
   sync-locales:
