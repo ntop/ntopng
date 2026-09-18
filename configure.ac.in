@@ -490,10 +490,15 @@ if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/src/%.cpp, pro/src/%.o, $(wildcard pro/src/*.cpp)) $(patsubst pro/src/flow_checks/%.cpp, pro/src/flow_checks/%.o, $(wildcard pro/src/flow_checks/*.cpp)) $(patsubst pro/src/host_checks/%.cpp, pro/src/host_checks/%.o, $(wildcard pro/src/host_checks/*.cpp))'
 CFLAGS="${CFLAGS} -I ./pro/include -I./pro/include/flow_checks -I ./pro/include/host_checks"
-MAKE_EXTRA="include pro/Makefile.pro"
+
 PRO_HEADERS='$(wildcard pro/include/*.h) $(wildcard pro/include/flow_checks/*.h) $(wildcard pro/include/host_checks/*.h) '
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
-PRO_DEP=pro_extra
+
+if test $SYSTEM = "Linux"; then
+  MAKE_EXTRA="include pro/Makefile.pro"
+  PRO_DEP=pro_extra
+fi
+  
 dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 
