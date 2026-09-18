@@ -981,6 +981,7 @@ AC_CONFIG_FILES(python/__init__.py)
 
 if test -d "pro"; then :
 AC_CONFIG_FILES(pro/scripts/lua/modules/build_info.lua)
+AC_CONFIG_FILES(pro/utils/Makefile)
 fi
 
 AC_OUTPUT
