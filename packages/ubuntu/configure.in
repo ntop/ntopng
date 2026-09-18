@@ -41,8 +41,11 @@ else
 fi
 
 if [ test -d ../../pro/ ] && [ ! test -f ../../pro/utils/snzip ]; then
-  echo "snzip is missing: please compile it and try again"
-  exit
+  cd ../../pro/utils/; make snzip
+  if [ ! test -f ../../pro/utils/snzip ]; then
+    echo "snzip is missing: please compile it and try again"
+    exit
+  fi
 fi
 
 if [ test -f /usr/bin/lsb_release ]; then
