@@ -452,6 +452,11 @@ Syslog
 
 Alerts are sent to syslog using standard syslog severities as per RFC 5424.
 
+.. note::
+
+        From ntopng 7.1.260919 it is possible to add multiple syslog endpoints (previosly it was limited just to 1 syslog endpoint)
+
+
 ntopng alert severities are mapped to standard syslog severities as follow:
 
 - *Info*  becomes syslog :code:`LOG_INFO` equal to the integer 6
