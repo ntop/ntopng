@@ -11,7 +11,7 @@ local format_utils = require "format_utils"
 
 local syslog = {
    name = "Syslog",
-   conf_max_num = 1, -- At most 1 endpoint
+   --conf_max_num = 1, -- At most 1 endpoint
    endpoint_params = {
       { param_name = "syslog_alert_format" },
       { param_name = "syslog_protocol", optional = true },
