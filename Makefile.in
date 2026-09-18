@@ -148,7 +148,7 @@ TEST_HEADERS = $(wildcard tests/include/*.h)
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
-$(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
+$(TARGET): @PRO_DEP@ $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
 
 unit_test: $(TEST_FILES) $(OBJECTS_NO_MAIN) ${TEST_HEADERS} $(LIB_TARGETS)
@@ -350,5 +350,7 @@ update-submodules:
 	echo "Advancing submodule pointers to latest.."
 	git submodule update --remote httpdocs/dist tests/e2e
 	git add httpdocs/dist tests/e2e
+
+@MAKE_EXTRA@
 
 @FUZZ_MAKEFILE_INC@
