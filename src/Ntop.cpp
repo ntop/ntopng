@@ -3136,10 +3136,20 @@ static bool verify_ecdsa_p256(const uint8_t* pk_x, const uint8_t* pk_y,
   OSSL_PARAM_BLD* param_bld = OSSL_PARAM_BLD_new();
   OSSL_PARAM* params = NULL;
 
-  // ui public key parameters (P-256)
+  // EC public key parameters (P-256). OpenSSL 3's EC keymgmt "import"
+  // (used by EVP_PKEY_fromdata) does not accept separate qx/qy BIGNUMs to
+  // build a usable public key: fromdata() reports success, but the
+  // resulting key has no usable public point and EVP_DigestVerify() always
+  // errors out. The point must be passed as a single SEC1 uncompressed
+  // octet string (0x04 || X || Y) via OSSL_PKEY_PARAM_PUB_KEY instead.
+  uint8_t pub_point[65];
+  pub_point[0] = 0x04;
+  memcpy(pub_point + 1, pk_x, 32);
+  memcpy(pub_point + 33, pk_y, 32);
+
   OSSL_PARAM_BLD_push_utf8_string(param_bld, OSSL_PKEY_PARAM_GROUP_NAME, "prime256v1", 0);
-  OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_EC_PUB_X, BN_bin2bn(pk_x, 32, NULL));
-  OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_EC_PUB_Y, BN_bin2bn(pk_y, 32, NULL));
+  OSSL_PARAM_BLD_push_octet_string(param_bld, OSSL_PKEY_PARAM_PUB_KEY,
+                                    pub_point, sizeof(pub_point));
 
   params = OSSL_PARAM_BLD_to_param(param_bld);
   ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
@@ -3428,6 +3438,11 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
                                     const char* expected_challenge_b64url,
                                     const char* expected_origin,
                                     const char* rp_id) const {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+      "[WebAuthn] verifying assertion for user '%s' cred_id='%s' "
+      "expected_origin='%s' rp_id='%s'",
+      username, cred_id_b64url, expected_origin, rp_id);
+
   /* 1. Decode base64url inputs */
   uint8_t cdj_raw[8192]; int cdj_len;
   uint8_t ad_raw[1024];  int ad_len;
@@ -3437,34 +3452,70 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
                                     (int)sizeof(cdj_raw) - 1);
   ad_len  = webauthn_b64url_decode(auth_data_b64url, ad_raw, (int)sizeof(ad_raw));
   sig_len = webauthn_b64url_decode(signature_b64url, sig_raw, (int)sizeof(sig_raw));
-  if (cdj_len <= 0 || ad_len <= 0 || sig_len <= 0) return false;
+  if (cdj_len <= 0 || ad_len <= 0 || sig_len <= 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] assertion decode failed for user '%s' "
+        "(cdj_len=%d ad_len=%d sig_len=%d)",
+        username, cdj_len, ad_len, sig_len);
+    return false;
+  }
   cdj_raw[cdj_len] = '\0'; /* null-terminate for JSON parsing */
 
   /* 2. Parse clientDataJSON */
   char type_val[64], challenge_val[256], origin_val[256];
-  if (!json_get_str((char*)cdj_raw, "type",      type_val,      sizeof(type_val)))      return false;
-  if (!json_get_str((char*)cdj_raw, "challenge", challenge_val, sizeof(challenge_val))) return false;
-  if (!json_get_str((char*)cdj_raw, "origin",    origin_val,    sizeof(origin_val)))    return false;
+  if (!json_get_str((char*)cdj_raw, "type",      type_val,      sizeof(type_val)) ||
+      !json_get_str((char*)cdj_raw, "challenge", challenge_val, sizeof(challenge_val)) ||
+      !json_get_str((char*)cdj_raw, "origin",    origin_val,    sizeof(origin_val))) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] failed to parse clientDataJSON for user '%s': %s",
+        username, (char*)cdj_raw);
+    return false;
+  }
 
-  if (strcmp(type_val, "webauthn.get") != 0) return false;
+  if (strcmp(type_val, "webauthn.get") != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] unexpected clientDataJSON type '%s' (expected webauthn.get) for user '%s'",
+        type_val, username);
+    return false;
+  }
 
   /* Compare challenges: decode both and compare bytes */
   uint8_t ch_got[256], ch_exp[256];
   int ch_got_len = webauthn_b64url_decode(challenge_val, ch_got, (int)sizeof(ch_got));
   int ch_exp_len = webauthn_b64url_decode(expected_challenge_b64url, ch_exp, (int)sizeof(ch_exp));
-  if (ch_got_len <= 0 || ch_exp_len <= 0 || ch_got_len != ch_exp_len) return false;
-  if (memcmp(ch_got, ch_exp, ch_got_len) != 0) return false;
+  if (ch_got_len <= 0 || ch_exp_len <= 0 || ch_got_len != ch_exp_len ||
+      memcmp(ch_got, ch_exp, ch_got_len) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] challenge mismatch for user '%s': got='%s' (len=%d) expected='%s' (len=%d)",
+        username, challenge_val, ch_got_len, expected_challenge_b64url, ch_exp_len);
+    return false;
+  }
 
   /* Compare origins */
-  if (strcmp(origin_val, expected_origin) != 0) return false;
+  if (strcmp(origin_val, expected_origin) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] origin mismatch for user '%s': clientData origin='%s' expected='%s'",
+        username, origin_val, expected_origin);
+    return false;
+  }
 
   /* 3. Verify rpIdHash */
   uint8_t rp_hash[32];
   SHA256((const uint8_t*)rp_id, strlen(rp_id), rp_hash);
-  if (ad_len < 37 || memcmp(ad_raw, rp_hash, 32) != 0) return false;
+  if (ad_len < 37 || memcmp(ad_raw, rp_hash, 32) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] rpIdHash mismatch for user '%s': ad_len=%d rp_id='%s'",
+        username, ad_len, rp_id);
+    return false;
+  }
 
   /* 4. Check UP (User Present) flag */
-  if (!(ad_raw[32] & 0x01)) return false;
+  if (!(ad_raw[32] & 0x01)) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] UP flag not set for user '%s' (flags=0x%02x)",
+        username, ad_raw[32]);
+    return false;
+  }
 
   /* 5. Extract signCount from authData */
   uint32_t sign_count = ((uint32_t)ad_raw[33] << 24) | ((uint32_t)ad_raw[34] << 16) |
@@ -3490,10 +3541,20 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
       found = true;
     }
   }
-  if (!found) return false;
+  if (!found) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] credential id '%s' not found among %d stored credential(s) for user '%s'",
+        cred_id_b64url, n, username);
+    return false;
+  }
 
   /* Sign count check: reject if stored > 0 and new <= stored (replay) */
-  if (stored_sc > 0 && sign_count <= stored_sc) return false;
+  if (stored_sc > 0 && sign_count <= stored_sc) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] signCount replay check failed for user '%s': stored=%u new=%u",
+        username, stored_sc, sign_count);
+    return false;
+  }
 
   /* 7. Verify ECDSA signature: msg = authData || SHA256(clientDataJSON) */
   uint8_t cdj_hash[32];
@@ -3503,8 +3564,12 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
   memcpy(msg.data(), ad_raw, (size_t)ad_len);
   memcpy(msg.data() + ad_len, cdj_hash, 32);
 
-  if (!verify_ecdsa_p256(pk_x, pk_y, msg.data(), msg.size(), sig_raw, sig_len))
+  if (!verify_ecdsa_p256(pk_x, pk_y, msg.data(), msg.size(), sig_raw, sig_len)) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] ECDSA signature verification failed for user '%s' cred_id='%s'",
+        username, cred_id_b64url);
     return false;
+  }
 
   /* 8. Update signCount in Redis using the saved name */
   char key[CONST_MAX_LEN_REDIS_KEY], val[1024];
@@ -3516,6 +3581,10 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
            cred_id_b64url, x_hex, y_hex, sign_count, found_name);
   ntop->getRedis()->set(key, val, 0);
 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+      "[WebAuthn] assertion verified OK for user '%s' cred_id='%s'",
+      username, cred_id_b64url);
+
   return true;
 }
 
@@ -3526,6 +3595,11 @@ bool Ntop::verifyAndStoreWebAuthnRegistration(
     const char* cred_id_b64url, const char* client_data_json_b64url,
     const char* attestation_obj_b64url, const char* expected_challenge_b64url,
     const char* expected_origin, const char* rp_id) const {
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+      "[WebAuthn] verifying registration for user '%s' cred_id='%s' "
+      "expected_origin='%s' rp_id='%s'",
+      username, cred_id_b64url, expected_origin, rp_id);
 
   /* 1. Decode inputs */
   uint8_t cdj_raw[8192]; int cdj_len;
