@@ -1792,7 +1792,7 @@ else
   SUDO="sudo"
 fi
 
-if test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04" || test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "24.04" || test "$UBUNTU_RELEASE" = "26.04"; then
+if test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "24.04" || test "$UBUNTU_RELEASE" = "26.04"; then
   LIBRRD="librrd8, "
 else
   LIBRRD="librrd4, "
@@ -1818,14 +1818,12 @@ fi
 /bin/rm -f debian.ntopng/control.in
 
 if test "${with_nedge+set}" = set; then
- cd debian.ntopng; ln -s control.nedge.$CONTROL_EXT.in control.in
+ cd debian.ntopng; ln -s control.nedge.$CONTROL_EXT.in control.in; cd ..
  DEFAULT_TARGET=nedge
 else
- cd debian.ntopng; ln -s control.$CONTROL_EXT.in control.in
+ cd debian.ntopng; ln -s control.$CONTROL_EXT.in control.in; cd ..
  DEFAULT_TARGET=ntopng
 fi
-
-cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2 | grep 'C_INIT' | cut -d " " -f 2 | cut -d ')' -f 1 | cut -d ',' -f 2 | tail -c +2 | sed 's/.\{1\}$//'`
 GIT_RELEASE=`git rev-parse HEAD`
