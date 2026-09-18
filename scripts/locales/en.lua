@@ -2568,6 +2568,7 @@ local lang = {
     ["ipv6_address_port"] = "IPv6 and Port:<br />&nbsp;&nbsp;&nbsp;&nbsp;ipv6:ipv6_address:port (e.g.: ipv6:[1:1:1:1:1:1:1:1]:55666 )",
     ["new_app_added"] = "Application \"%{app}\" has been configured. Please restart %{product} to start using it.",
     ["non_empty_list_required"] = "At least one rule must be specified.",
+    ["note"] = "It is possible to add custom Applications if -p option is added in the configuration file. When added a <i class='fas fa-plus'></i> will appear above the table (on top, on the right side)",
     ["option_needed"] = "Custom applications configuration is currently disabled as the <i>%{option}</i> parameter is missing from the configuration. Check out <a href=\"%{url}\">the documentation</a> for more details.",
     ["port"] = "Port rules:<br />&nbsp;&nbsp;&nbsp;&nbsp;tcp/udp:port (e.g.: tcp:11555, udp:5566 )",
     ["port_range"] = "Port Range rules:<br />&nbsp;&nbsp;&nbsp;&nbsp;tcp/udp:port-port (e.g.: tcp:111-113, udp:111-134 )",
