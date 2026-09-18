@@ -82,6 +82,7 @@ class Ntop {
      from the main thread (checkReloadFlowChecks/checkReloadHostChecks) */
   std::atomic<bool> flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
+  bool tagsMappingReloadInProgress;
   bool interfacesShuttedDown;
   bool offline, forced_offline;
   bool broadcast_ip_disabled;
@@ -215,6 +216,10 @@ class Ntop {
   std::map<std::string /* ifname */, Ping*> ping;
 #endif
 
+#ifdef NTOPNG_PRO
+  TagsMapping* tagsMapping;
+#endif
+
   /* For local network */
   inline int32_t localNetworkLookup(int family, void* addr,
                                     u_int8_t* network_mask_bits = NULL);
@@ -243,6 +248,7 @@ class Ntop {
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
+  void checkReloadTagsMapping();
   void setZoneInfo();
   char* getPersistentCustomListName(char* name, u_int8_t* list_id /* out */);
 #ifdef NTOPNG_PRO
@@ -826,6 +832,16 @@ class Ntop {
 #endif
   };
   inline void reloadHostPools() { hostPoolsReloadInProgress = true; };
+
+  /* Functions about Tag to Protocol association */
+  inline void reloadTagsMapping() {
+#ifdef NTOPNG_PRO
+    tagsMappingReloadInProgress = true;
+#endif
+  };
+#ifdef NTOPNG_PRO
+  void getTagsForProtocol(u_int16_t protocol, std::vector<int> &tags_out);
+#endif
 
   void addToPool(char* host_or_mac, u_int16_t user_pool_id);
 

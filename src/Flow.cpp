@@ -119,6 +119,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   external_alert.json = NULL, external_alert.source = NULL;
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
+  user_tags_bitmap = 0;
 
   riskInfo = NULL, json_protocol_info = NULL;
   alerts_json = NULL, alerts_json_shadow = NULL;
@@ -3795,14 +3796,46 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 /* *************************************** */
 
 u_int64_t Flow::getTags() {
-  Host *cli = getViewSharedClient();
-  Host *srv = getViewSharedServer();
   u_int64_t bm = 0;
 
+  /* Avoid getting host tags.
+   * This is a workaround to avoid setting specific host tags to ALL flows
+   * originated/terminated in these hosts (example: `EDR` tag to all flows)
+   * TODO: proper fix
+   */
+#if 0
   if (cli) bm |= cli->getTags(true /* transferrable_only */);
   if (srv) bm |= srv->getTags(true /* transferrable_only */);
+#endif
+
+  bm |= user_tags_bitmap;
+
+#if 0
+  Host *cli = getViewSharedClient();
+  Host *srv = getViewSharedServer();
+  char buf[128], buf2[128];
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Getting 0x%llx %s %s",
+                               (unsigned long long)bm,
+                               cli_ip_addr->print(buf, sizeof(buf)),
+                               srv_ip_addr->print(buf2, sizeof(buf2)));
+#endif
 
   return bm;
+}
+
+/* ***************************************** */
+
+void Flow::setUserTags(u_int64_t bitmap) {
+  /* Bits 0-31 are ntop-reserved */
+  bitmap &= HOST_USER_TAGS_MASK;
+  user_tags_bitmap |= bitmap;
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Setting tag (0x%llx -> 0x%llx)",
+                               (unsigned long long)user_tags_bitmap,
+                               (unsigned long long)(user_tags_bitmap | bitmap));
+#endif
 }
 
 /* *************************************** */

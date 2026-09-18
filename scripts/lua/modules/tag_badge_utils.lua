@@ -184,6 +184,8 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
         risks = risks
     }
     ntop.setHashCache(get_redis_key(), id, json.encode(tag))
+
+    ntop.reloadTagsMapping()
 end
 
 -- ##############################################
