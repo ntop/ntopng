@@ -115,13 +115,12 @@ else
 fi
 
 /bin/rm -f debian.ntopng/control.in
-\cd debian.ntopng
 
 if test "${with_nedge+set}" = set; then
- ln -s control.nedge.$CONTROL_EXT.in control.in
+ cd debian.ntopng; ln -s control.nedge.$CONTROL_EXT.in control.in
  DEFAULT_TARGET=nedge
 else
- ln -s control.$CONTROL_EXT.in control.in
+ cd debian.ntopng; ln -s control.$CONTROL_EXT.in control.in
  DEFAULT_TARGET=ntopng
 fi
 
