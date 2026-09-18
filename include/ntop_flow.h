@@ -261,6 +261,7 @@
 #define MODBUS_INFO NTOP_BASE_ID + 614 /* ModBus protocol info (JSON) */
 #define PROFINET_INFO NTOP_BASE_ID + 615 /* Profinet protocol info (JSON) */
 #define S7_INFO NTOP_BASE_ID + 616 /* S7comm protocol info (JSON) */
+#define JA5C_HASH NTOP_BASE_ID + 617
 
 /* eBPF / Process */
 #define SRC_PROC_PID NTOP_BASE_ID + 168

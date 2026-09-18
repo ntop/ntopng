@@ -349,6 +349,9 @@ class Flow : public GenericHashEntry {
       struct {
         char* client_hash;
       } ja4;
+      struct {
+        char* client_hash;
+      } ja5;
     } tls;
 
     struct {
@@ -458,6 +461,7 @@ class Flow : public GenericHashEntry {
   */
   void dumpCheck(time_t t, bool last_dump_before_free);
   void updateCliJA4();
+  void updateCliJA5();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
   void processDetectedProtocol(
@@ -594,6 +598,7 @@ class Flow : public GenericHashEntry {
   void serializeCustomFieldsInfo(ndpi_serializer* serializer);
 
   inline char* getJa4CliHash() { return (protos.tls.ja4.client_hash); }
+  inline char* getJa5CliHash() { return (protos.tls.ja5.client_hash); }
   inline char* getRequestedServerName() {
     return (isTLS() ? protos.tls.client_requested_server_name : NULL);
   }
@@ -734,6 +739,11 @@ class Flow : public GenericHashEntry {
     if (j && (j[0] != '\0') && (protos.tls.ja4.client_hash == NULL))
       protos.tls.ja4.client_hash = strdup(j);
     updateCliJA4();
+  }
+  inline void updateJA5C(char* j) {
+    if (j && (j[0] != '\0') && (protos.tls.ja5.client_hash == NULL))
+      protos.tls.ja5.client_hash = strdup(j);
+    updateCliJA5();
   }
 
   inline u_int8_t getTcpFlags() const {
@@ -1576,7 +1586,7 @@ class Flow : public GenericHashEntry {
   inline char* getnDPIFingerprint() { return (ndpi_fingerprint); }
 
   /* For now, the check is only on the nDPI fingerprint, but it will
-    need to be extended to the TCP fingerprint and JA4 when they are
+    need to be extended to the TCP fingerprint and JA4/JA5 when they are
     merged into the fingerprints block of proto_json_info.*/
   inline bool isFingerprintAvailable() {
     return getnDPIFingerprint() != nullptr;

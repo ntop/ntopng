@@ -522,6 +522,11 @@ else
       page_name = "tls",
       label = i18n("tls")
    }, {
+      hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja5"),
+      active = page == "tls",
+      page_name = "tls",
+      label = i18n("tls")
+   }, {
       hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
       active = page == "ssh",
       page_name = "ssh",

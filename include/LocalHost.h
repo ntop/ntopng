@@ -232,6 +232,9 @@ class LocalHost : public Host {
   inline Fingerprint* getJA4Fingerprint() {
     return (fingerprints ? &fingerprints->ja4 : NULL);
   }
+  inline Fingerprint* getJA5Fingerprint() {
+    return (fingerprints ? &fingerprints->ja5 : NULL);
+  }
   inline Fingerprint* getHASSHFingerprint() {
     return (fingerprints ? &fingerprints->hassh : NULL);
   }

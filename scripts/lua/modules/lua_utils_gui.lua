@@ -1236,6 +1236,18 @@ function format_tls_info(tls_info, no_html)
       end
    end
 
+   if tls_info["ja5_client_hash"] then
+      if no_html then
+	 formatted_tls_info["ja5_client_hash"] = tls_info["ja5_client_hash"]
+      else
+	 formatted_tls_info["ja5_client_hash"] =
+	    i18n("copy_button", {
+                    full_name = tls_info["ja5_client_hash"],
+                    name = tls_info["ja5_client_hash"]
+	    })
+      end
+   end
+
    if tls_info["server_names"] then
       if no_html then
 	 formatted_tls_info["server_names"] = tls_info["server_names"]

@@ -1425,6 +1425,7 @@ function addTLSInfoToAlertDescr(msg, alert_json, json_format)
         local tls_info = format_tls_info({
             issuerDN = alert_json["proto"]["tls"]["issuerDN"],
             ja4_client_hash = alert_json["proto"]["tls"]["ja4_client_hash"],
+            ja5_client_hash = alert_json["proto"]["tls"]["ja5_client_hash"],
             tls_version = alert_json["proto"]["tls"]["tls_version"],
             notBefore = alert_json["proto"]["tls"]["notBefore"],
             notAfter = alert_json["proto"]["tls"]["notAfter"],
