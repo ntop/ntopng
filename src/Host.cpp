@@ -1228,7 +1228,16 @@ void Host::setUserTags(u_int64_t bitmap) {
   /* Bits 0-31 are ntop-reserved (computed at runtime) and must never be
    * persisted into user_tags_bitmap, which is stored in Redis. */
   bitmap &= HOST_USER_TAGS_MASK;
-  user_tags_bitmap = bitmap;
+  user_tags_bitmap |= bitmap;
+
+#if 0
+  char buf[64];
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Setting tag (0x%llx -> 0x%llx) on %s",
+                               (unsigned long long)user_tags_bitmap,
+							   (unsigned long long)(user_tags_bitmap | bitmap),
+                               ip.print(buf, sizeof(buf)));
+#endif
+
   iface->setPersistentHostTags(this, bitmap);
 }
 

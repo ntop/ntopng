@@ -298,6 +298,7 @@
 #define HOST_TAGS_BITMAP_KEY    "ntopng.prefs.host_tags_bitmap.%s"
 #define HOST_TAGS_BITMAP_PREFIX "ntopng.prefs.host_tags_bitmap."
 #define HOST_USER_TAGS_MASK     ((u_int64_t)0xFFFFFFFF00000000ULL) /* bits 32-63: user-defined */
+#define TAGS_PREFS_HASH_KEY "ntopng.prefs.tags"
 
 /* Built-in host tags (bits 0-31).
  * Bits 0-31 are reserved for ntop; bits 32-63 are user-defined.

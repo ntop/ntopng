@@ -118,6 +118,9 @@ Ntop::Ntop(const char* appName) {
    * constructor */
   hostPoolsReloadInProgress = false;
 
+  /* Force (re)load at startup; no initialization inside the constructor */
+  tagsMappingReloadInProgress = true;
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -377,6 +380,7 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
+  if(tagsMapping) delete tagsMapping;
 #endif
 
   if (resolvedHostsBloom) delete resolvedHostsBloom;
@@ -616,6 +620,10 @@ void Ntop::start() {
 
   system_interface->allocateStructures();
 
+#ifdef NTOPNG_PRO
+  tagsMapping = new TagsMapping();
+#endif
+
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->allocateStructures();
 
@@ -710,6 +718,7 @@ void Ntop::start() {
   checkReloadHostPools();
   checkReloadFlowChecks();
   checkReloadHostChecks();
+  checkReloadTagsMapping();
 
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -4167,6 +4176,21 @@ void Ntop::checkReloadHostPools() {
 
 /* ******************************************* */
 
+void Ntop::checkReloadTagsMapping() {
+  if (tagsMappingReloadInProgress /* Check if a reload has been requested */) {
+    /* Leave this BEFORE the actual swap and new allocation to guarantee changes
+     * are always seen */
+	tagsMappingReloadInProgress = false;
+
+#ifdef NTOPNG_PRO
+    if(tagsMapping)
+      tagsMapping->reload();
+#endif
+  }
+}
+
+/* ******************************************* */
+
 u_int16_t Ntop::getNumberHostPools() {
   u_int16_t pools_number = 0;
   for (int i = 0; i < get_num_interfaces(); i++) {
@@ -4424,6 +4448,7 @@ void Ntop::lua_threadsInfo(lua_State* vm) {
 /* Execute lightweigth tasks with high frequency */
 void Ntop::runHousekeepingTasks() {
   checkReloadHostPools();
+  checkReloadTagsMapping();
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
@@ -6118,3 +6143,14 @@ struct ndpi_in6_addr Ntop::findExporterIPMgmtAddress(struct ndpi_in6_addr host_i
 
   return(host_ip);
 }
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
+
+void Ntop::getTagsForProtocol(u_int16_t protocol, std::vector<int> &tags_out) {
+  if(tagsMapping)
+    tagsMapping->getTagsForProtocol(protocol, tags_out);
+}
+
+#endif

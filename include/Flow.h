@@ -422,6 +422,9 @@ class Flow : public GenericHashEntry {
   float pkts_thpt;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
 
+  /* 64-bit tag bitmap: bits 0-31 reserved for ntop, bits 32-63 user-defined */
+  u_int64_t user_tags_bitmap; /* user-defined */
+
   MinorConnectionStates current_c_state;
   u_int counter = 0;
   /*
@@ -1493,6 +1496,8 @@ class Flow : public GenericHashEntry {
   u_int16_t getNextHopSiteId();
   u_int16_t getSrcNetworkSiteId();
   u_int16_t getDstNetworkSiteId();
+
+  void setUserTags(u_int64_t bitmap);
 
   inline const u_int16_t getScore() const { return (flow_score); };
 

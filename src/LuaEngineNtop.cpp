@@ -398,6 +398,22 @@ static int ntop_reload_host_pools(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Triggers a reload of Tags Mapping configuration from Redis.  Lua: ntop.reloadTagMappings() → nil */
+static int ntop_reload_tags_mapping(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#ifdef NTOPNG_PRO
+  ntop->reloadTagsMapping();
+
+  lua_pushnil(vm);
+#else
+  lua_pushboolean(vm, false);
+#endif
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 /* @brief Enables or disables routing mode (nEdge only).  Lua: ntop.setRoutingMode(enabled) → nil */
 static int ntop_set_routing_mode(lua_State* vm) {
@@ -9473,6 +9489,9 @@ static luaL_Reg _ntop_reg[] = {
 
     /* Host pools */
     {"reloadHostPools", ntop_reload_host_pools},
+
+    /* Tags Mapping */
+    {"reloadTagsMapping", ntop_reload_tags_mapping},
 
     /* Device Protocols */
     {"reloadDeviceProtocols", ntop_reload_device_protocols},
