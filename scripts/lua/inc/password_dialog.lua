@@ -895,7 +895,16 @@ $('#password_reset_submit').click(function() {
           wa_alert.error('Registration failed: ' + completeData.message);
         }
       } catch(e) {
-        if (e.name !== 'NotAllowedError') wa_alert.error('Error: ' + e.message);
+        if (e.name === 'NotSupportedError') {
+          console.warn('[WebAuthn] registration rejected by authenticator: none of the offered algorithms are supported', {
+            offeredAlgorithms: (opts && opts.pubKeyCredParams) || null,
+            error: e
+          });
+          wa_alert.error(']] print(js_str(i18n("webauthn.unsupported_algorithm") or "Your authenticator does not support the required algorithm (ES256). This is common on older devices (e.g. pre-2018 Windows Hello/TPM 1.2). Please try a different authenticator.")) print[[');
+        } else if (e.name !== 'NotAllowedError') {
+          console.error('[WebAuthn] registration failed', e);
+          wa_alert.error('Error: ' + e.message);
+        }
       }
     });
   });
