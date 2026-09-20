@@ -1006,6 +1006,10 @@ if test -f "packages/OPNsense/build.sh"; then
   chmod +x packages/OPNsense/build.sh
 fi
 
+dnl> Compila required packages
+
+cd third-party/lua-5.4.6/; make; cd -
+
 if test -d "pro"; then :
    cd pro/utils; make
 fi
