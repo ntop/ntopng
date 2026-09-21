@@ -70,6 +70,8 @@ GenericHash::GenericHash(NetworkInterface* _iface, u_int _num_hashes,
 GenericHash::~GenericHash() {
   cleanup();
 
+  delete idle_entries_in_use;
+
   delete[] table;
 
   for (u_int i = 0; i < num_hashes; i++) delete (locks[i]);
