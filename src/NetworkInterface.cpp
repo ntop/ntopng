@@ -2905,6 +2905,10 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
 #endif
 
   if (gw_macs_reload_requested) reloadGwMacs();
+
+  /* Free entries transitioned to idle above.
+   * Note: this used to be called by Ntop::runPeriodicHousekeepingTasks() */
+  purgeQueuedIdleEntries();
 }
 
 /* ****************************************************** */

@@ -80,8 +80,7 @@ GenericHash::~GenericHash() {
 /* ************************************ */
 
 void GenericHash::cleanup() {
-  vector<GenericHashEntry*>** ghvs[] = {&idle_entries, &idle_entries_shadow,
-                                        &idle_entries_in_use};
+  vector<GenericHashEntry*>** ghvs[] = {&idle_entries, &idle_entries_shadow};
 
   for (u_int i = 0; i < sizeof(ghvs) / sizeof(ghvs[0]); i++) {
     if (*ghvs[i]) {
@@ -95,6 +94,19 @@ void GenericHash::cleanup() {
       delete *ghvs[i];
       *ghvs[i] = NULL;
     }
+  }
+
+  /* Unlike idle_entries/idle_entries_shadow, idle_entries_in_use is allocated once
+     in the constructor and is expected to always be valid: empty rather than delete */
+  if (idle_entries_in_use) {
+    if (!idle_entries_in_use->empty()) {
+      for (vector<GenericHashEntry*>::const_iterator it = idle_entries_in_use->begin();
+           it != idle_entries_in_use->end(); ++it) {
+        delete *it;
+      }
+    }
+
+    idle_entries_in_use->clear();
   }
 
   for (u_int i = 0; i < num_hashes; i++) {
