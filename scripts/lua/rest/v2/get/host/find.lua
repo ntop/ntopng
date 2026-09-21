@@ -25,6 +25,7 @@ local ifid = _GET["ifid"] or interface.getId()
 local rc = rest_utils.consts.success.ok
 
 local search_all_interfaces = (ntop.getPref("ntopng.prefs.search_in_all_interfaces") == '1')
+   or toboolean(_GET["any_interface"])
 
 local results = {}
 
