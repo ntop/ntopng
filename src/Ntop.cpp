@@ -3073,19 +3073,55 @@ static bool parse_cose_ec2(const uint8_t* cbor, size_t cbor_len,
   if (!cbor_next(cbor, cbor_len, &off, &v) || v.type != 5) return false;
   size_t map_items = v.n;
   bool got_x = false, got_y = false;
+  bool got_kty = false, got_alg = false;
+  int64_t kty = 0, alg = 0;
   for (size_t i = 0; i < map_items; i++) {
     cbor_val key, val;
     if (!cbor_next(cbor, cbor_len, &off, &key)) return false;
     if (!cbor_next(cbor, cbor_len, &off, &val)) return false;
     if (key.type == 0 || key.type == 1) {
-      if (key.i == -2 && val.type == 2 && val.n == 32) {
+      if (key.i == 1 && (val.type == 0 || val.type == 1)) {
+        kty = val.i; got_kty = true;
+      } else if (key.i == 3 && (val.type == 0 || val.type == 1)) {
+        alg = val.i; got_alg = true;
+      } else if (key.i == -2 && val.type == 2 && val.n == 32) {
         memcpy(x_out, val.p, 32); got_x = true;
       } else if (key.i == -3 && val.type == 2 && val.n == 32) {
         memcpy(y_out, val.p, 32); got_y = true;
       }
     }
   }
-  return got_x && got_y;
+
+  /* ntopng only supports ES256 (EC2/P-256). Authenticators that only support
+   * other algorithms (e.g. RS256, common on legacy TPM 1.2-era Windows Hello
+   * setups) will send a COSE key with a different kty/alg here; detect that
+   * explicitly instead of just failing to find x/y, so it's diagnosable. */
+  if (got_kty && kty != 2 /* EC2 */) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] credential public key has kty=%lld (expected 2=EC2): "
+        "authenticator likely used an unsupported key type/algorithm "
+        "(ntopng only supports ES256/-7)",
+        (long long)kty);
+    return false;
+  }
+  if (got_alg && alg != -7 /* ES256 */) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] credential public key has alg=%lld (expected -7=ES256): "
+        "authenticator likely used an unsupported algorithm, e.g. RS256/-257 "
+        "(ntopng only supports ES256)",
+        (long long)alg);
+    return false;
+  }
+
+  if (!got_x || !got_y) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] failed to extract EC2 x/y coordinates from COSE key "
+        "(got_x=%d got_y=%d kty=%lld alg=%lld)",
+        got_x, got_y, (long long)kty, (long long)alg);
+    return false;
+  }
+
+  return true;
 }
 
 /* Extract the authData bytes from a CBOR-encoded attestationObject.

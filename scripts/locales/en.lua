@@ -11280,6 +11280,7 @@ local lang = {
     ["passkeys"] = "Passkeys",
     ["remove_passkey"] = "Remove",
     ["tab_title"] = "Passkey",
+    ["unsupported_algorithm"] = "Your authenticator does not support the required algorithm (ES256). This is common on older devices (e.g. pre-2018 Windows Hello/TPM 1.2). Please try a different authenticator.",
   },
   ["widgets_page"] = {
     ["actions"] = "Actions",
