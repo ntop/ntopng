@@ -1,3 +1,5 @@
+@PRO_MAKEFILE_INC@
+
 FUZZ_TARGETS := fuzz/fuzz_dissect_packet fuzz/fuzz_zmq_flow fuzz/fuzz_snmp_response fuzz/fuzz_syslog_parse
 FUZZ_CORPUS := $(addsuffix _seed_corpus.zip,$(FUZZ_TARGETS))
 
@@ -51,7 +53,7 @@ fuzz_corpus: $(FUZZ_CORPUS)
 
 $(FUZZ_TARGETS) : $(LIB_TARGETS)
 
-fuzz_all: $(FUZZ_TARGETS) fuzz_corpus
+fuzz_all: @PRO_DEP@ $(FUZZ_TARGETS) fuzz_corpus
 
 # fuzz_all: $(LIB_TARGETS) $(FUZZ_TARGETS) fuzz_corpus
 
