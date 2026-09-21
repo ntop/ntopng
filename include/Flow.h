@@ -587,16 +587,15 @@ class Flow : public GenericHashEntry {
   inline char* getProtocolInfo() { return json_protocol_info; };
   void updateAlertsJSON();
   inline char* getAlertJSON() { return alerts_json; };
-  const char* getDomainName();
+  char *getRequestedServerName();
+  const char *getDomainName();
+  static bool isValidDomainName(const char *domain);
   void callFlowUpdate(time_t t);
   void setProtocolJSONInfo();
   void serializeProtocolJSONInfo(ndpi_serializer* serializer);
   void serializeCustomFieldsInfo(ndpi_serializer* serializer);
 
   inline char* getJa4CliHash() { return (protos.tls.ja4.client_hash); }
-  inline char* getRequestedServerName() {
-    return (isTLS() ? protos.tls.client_requested_server_name : NULL);
-  }
 
   char* getCliCountry(char* buf, u_int buf_len);
   char* getSrvCountry(char* buf, u_int buf_len);

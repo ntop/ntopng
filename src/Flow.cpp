@@ -10108,13 +10108,10 @@ void Flow::updateServerName(Host* h) {
 
 /* *************************************** */
 
-const char* Flow::getDomainName() {
+char *Flow::getRequestedServerName() {
   switch (getLowerProtocol()) {
     case NDPI_PROTOCOL_DNS:
-      if (protos.dns.last_query)
-        return (ndpi_get_host_domain(iface->get_ndpi_struct(),
-                                     protos.dns.last_query));
-      break;
+      return (protos.dns.last_query);
 
     case NDPI_PROTOCOL_HTTP:
     case NDPI_PROTOCOL_HTTP_PROXY:
@@ -10122,20 +10119,48 @@ const char* Flow::getDomainName() {
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
     case NDPI_PROTOCOL_MAIL_POPS:
-    case NDPI_PROTOCOL_QUIC: {
-      char* s = getFlowServerInfo();
-
-      if (s) return (ndpi_get_host_domain(iface->get_ndpi_struct(), s));
-    } break;
+    case NDPI_PROTOCOL_QUIC:
+      return (getFlowServerInfo());
 
     case NDPI_PROTOCOL_MDNS:
-      if (protos.mdns.name)
-        return (
-            ndpi_get_host_domain(iface->get_ndpi_struct(), protos.mdns.name));
-      break;
+      return (protos.mdns.name);
   }
 
   return (NULL);
+}
+
+/* *************************************** */
+
+/* Check if a name looks like a valid domain name */
+bool Flow::isValidDomainName(const char* domain) {
+  if (domain == NULL) return (false);
+
+  int l = strlen(domain);
+
+  if ((l == 0) || isdigit(domain[l - 1]) ||
+      (strchr(domain, '_') != NULL) /* Ignore hosts with _ in the name */
+      || ndpi_str_endswith(domain, ".arpa") ||
+      ndpi_str_endswith(domain, ".local") ||
+      ndpi_str_endswith(domain, ".localdomain")) /* Ignore reverse or local domains */
+    return false;
+
+  if (strchr(domain, '.') == NULL) /* This does not look like a domain name */
+    return false;
+
+  return true;
+}
+
+/* *************************************** */
+
+const char* Flow::getDomainName() {
+  char* server_name = getRequestedServerName();
+  const char* domain;
+
+  if (!server_name) return (NULL);
+
+  domain = ndpi_get_host_domain(iface->get_ndpi_struct(), server_name);
+
+  return (isValidDomainName(domain) ? domain : NULL);
 }
 
 /* *************************************** */
