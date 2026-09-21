@@ -145,16 +145,28 @@ end
 
 -- ##############################################
 
+local DRIVER_CACHE_TTL = 5 -- sec
 local cached_active_drivers = nil
+local cached_active_drivers_name = nil
+local cached_active_drivers_time = nil
 
 -- ! @brief Return a list of active timeseries drivers.
 -- ! @return list of driver objects.
 function ts_utils.listActiveDrivers()
-   if cached_active_drivers ~= nil then
+   local now = os.time()
+
+   if cached_active_drivers ~= nil and
+      cached_active_drivers_time ~= nil and (now - cached_active_drivers_time) < DRIVER_CACHE_TTL then
       return cached_active_drivers
    end
 
    local driver = ts_utils.getDriverName()
+
+   if cached_active_drivers ~= nil and cached_active_drivers_name == driver then
+      cached_active_drivers_time = now
+      return cached_active_drivers
+   end
+
    local active_drivers = {}
 
    if driver == "influxdb" then
@@ -190,6 +202,8 @@ function ts_utils.listActiveDrivers()
 
    -- cache for future calls
    cached_active_drivers = active_drivers
+   cached_active_drivers_name = driver
+   cached_active_drivers_time = now
 
    return active_drivers
 end
@@ -205,18 +219,34 @@ end
 -- ##############################################
 
 local cached_hr_driver = nil
+local cached_hr_driver_enabled = nil
+local cached_hr_driver_time = nil
 
 -- Return the ClickHouse HR driver instance.
 function ts_utils.getHRDriver()
-   if cached_hr_driver then
+   local now = os.time()
+
+   if cached_hr_driver_time ~= nil and (now - cached_hr_driver_time) < DRIVER_CACHE_TTL then
       return cached_hr_driver
    end
-   if ntop.isClickHouseEnabled() then
-      local prefs = ntop.getPrefs()
-      cached_hr_driver = require("clickhousehr"):new({
-            db = prefs.clickhouse_dbname or "ntopng",
-						    })
+
+   local enabled = ntop.isClickHouseEnabled()
+
+   if cached_hr_driver_enabled ~= enabled then
+      cached_hr_driver = nil
+
+      if enabled then
+	 local prefs = ntop.getPrefs()
+	 cached_hr_driver = require("clickhousehr"):new({
+	    db = prefs.clickhouse_dbname or "ntopng",
+	 })
+      end
+
+      cached_hr_driver_enabled = enabled
    end
+
+   cached_hr_driver_time = now
+
    return cached_hr_driver
 end
 
