@@ -11223,6 +11223,7 @@ local lang = {
     ["rule_groups"] = "Rule Groups",
     ["rule_hipaa"] = "HIPAA",
     ["rule_id"] = "Rule ID",
+    ["rule_id_0"] = "0 (any)",
     ["rule_id_hint"] = "Wazuh rule_id to match (0 = any)",
     ["rule_level"] = "Level",
     ["rule_mitre_id"] = "MITRE ID",
