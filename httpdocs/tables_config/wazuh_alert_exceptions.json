@@ -101,13 +101,6 @@
 			"class": ["text-nowrap", "text-center"]
 		},
 		{
-			"title_i18n": "wazuh_alert_config.pattern",
-			"data_field": "pattern",
-			"sortable": true,
-			"min-width": "120px",
-			"class": ["text-nowrap", "text-center"]
-		},
-		{
 			"title_i18n": "comment",
 			"data_field": "comment",
 			"sortable": true,
