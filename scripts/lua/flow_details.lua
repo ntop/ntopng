@@ -280,6 +280,21 @@ local function ja4url(what, safety, label)
    end
 end
 
+local function ja5url(what, safety, label)
+   if (what == nil) then
+      print("&nbsp;")
+   else
+      print_copy_button('ja5_fingerprint', what)
+      print(what)
+
+      if ((safety ~= nil) and (safety ~= "safe")) then
+         print(
+            ' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>' ..
+	    capitalize(safety) .. ' Cipher</A> ]')
+      end
+   end
+end
+
 local capture_table_html = toboolean(_GET["capture_output"])
 
 if capture_table_html then
@@ -931,6 +946,7 @@ local function print_flow_overview_page()
       if(flow.tcp_fingerprint) then num = num + 1 end
       if(flow.ndpi_fingerprint) then num = num + 1 end
       if(flow["protos.tls.ja4.client_hash"]) then num = num + 1 end
+      if(flow["protos.tls.ja5.client_hash"]) then num = num + 1 end
       if num > 0 then
          print("<tr><th width=33% rowspan="..num..">" .. i18n("details.fingerprint") .. "</th>")
       end
@@ -970,6 +986,21 @@ local function print_flow_overview_page()
          end
 
          ja4url(flow["protos.tls.ja4.client_hash"], nil, 'ja4c')
+         print("</td></tr>")
+	 num = 1
+      end
+
+      if ((flow["protos.tls.ja5.client_hash"] ~= nil)) then
+	 if(num == 1) then print("<tr>") end
+         print("<th width=33%>" .. i18n("details.ja5c_fingerprint") .. "</th><td nowrap colspan=2<div id=ja5c_fingerprint>" )
+
+         -- We don't have malicious fingerprints associated to JA5, yet
+         --print("<th class='colspan-4'><A HREF='https://github.com/FoxIO-LLC/ja4'>JA4</A></th><td>")
+         --if (flow["protos.tls.ja4.client_malicious"]) then
+         --   print('<font color=red><i class="fas fa-ban" title="' .. i18n("alerts_dashboard.malicious_signature_detected") .. '"></i></font> ')
+         --end
+
+         ja5url(flow["protos.tls.ja5.client_hash"], nil, 'ja5c')
          print("</td></tr>")
 	 num = 1
       end

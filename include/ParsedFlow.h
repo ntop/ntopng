@@ -36,6 +36,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char* end_reason;
   char *tls_server_name, *bittorrent_hash, *tcp_fingerprint;
   char* ja4c_hash;
+  char* ja5c_hash;
   char* flow_risk_info;
   char* external_alert;
   char* l7_json;
@@ -163,6 +164,13 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
       ja4c_hash = strdup(str);
     } else
       ja4c_hash = NULL;
+  }
+  inline void setJA5cHash(const char* str) {
+    if (ja5c_hash != NULL) free(ja5c_hash);
+    if (str) {
+      ja5c_hash = strdup(str);
+    } else
+      ja5c_hash = NULL;
   }
   inline void setRiskInfo(const char* str) {
     if (flow_risk_info != NULL) free(flow_risk_info);
@@ -318,6 +326,11 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getJA4cHash(bool setToNULL = false) {
     char* r = ja4c_hash;
     if (setToNULL) ja4c_hash = NULL;
+    return (r);
+  }
+  inline char* getJA5cHash(bool setToNULL = false) {
+    char* r = ja5c_hash;
+    if (setToNULL) ja5c_hash = NULL;
     return (r);
   }
   inline char* getRiskInfo(bool setToNULL = false) {

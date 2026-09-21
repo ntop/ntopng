@@ -761,6 +761,7 @@ Flow::~Flow() {
       free(protos.tls.client_requested_server_name);
     if (protos.tls.server_names) free(protos.tls.server_names);
     if (protos.tls.ja4.client_hash) free(protos.tls.ja4.client_hash);
+    if (protos.tls.ja5.client_hash) free(protos.tls.ja5.client_hash);
     if (protos.tls.client_alpn) free(protos.tls.client_alpn);
     if (protos.tls.client_tls_supported_versions)
       free(protos.tls.client_tls_supported_versions);
@@ -1088,6 +1089,12 @@ void Flow::processExtraDissectedInformation() {
         updateCliJA4();
       }
 
+      if (protos.tls.ja5.client_hash == NULL &&
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.tls_quic.ja5_client)) {
+        protos.tls.ja5.client_hash =
+            strdup(ndpiFlow->metadata.protos.tls_quic.ja5_client);
+        updateCliJA5();
+      }
     } else if (isDNS()) {
       if (srv_host &&
           !Utils::isEmptyString(ndpiFlow->core.host_server_name) &&
@@ -4591,6 +4598,12 @@ void Flow::formatSyslogFlow(json_object* my_object) {
         Utils::jsonLabel(JA4C_HASH, "JA4C_HASH", jsonbuf, sizeof(jsonbuf)),
         json_object_new_string(protos.tls.ja4.client_hash));
 
+  if (isTLS() && protos.tls.ja5.client_hash)
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(JA5C_HASH, "JA5C_HASH", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_string(protos.tls.ja5.client_hash));
+
   if (isSSH() && protos.ssh.hassh.client_hash)
     json_object_object_add(
         my_object,
@@ -5279,6 +5292,10 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
   if (protos.tls.ja4.client_hash)
     ndpi_serialize_string_string(s, "ja4_client_hash",
                                  protos.tls.ja4.client_hash);
+
+  if (protos.tls.ja5.client_hash)
+    ndpi_serialize_string_string(s, "ja5_client_hash",
+                                 protos.tls.ja5.client_hash);
 
   if (getErrorCode() != 0)
     ndpi_serialize_string_uint32(s, "l7_error_code", getErrorCode());
@@ -7550,6 +7567,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF* const _ebpf,
   }
 
   updateCliJA4();
+  updateCliJA5();
   updateHASSH(true /* AS client */);
   updateHASSH(false /* AS server */);
 }
@@ -7564,6 +7582,19 @@ void Flow::updateCliJA4() {
       f->update(protos.tls.ja4.client_hash,
                 ebpf ? ebpf->src_process_info.process_name : NULL,
                 has_malicious_cli_signature);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::updateCliJA5() {
+  if (cli_host && isTLS() && protos.tls.ja5.client_hash) {
+    Fingerprint* f = cli_host->getJA5Fingerprint();
+
+    if (f)
+      f->update(protos.tls.ja5.client_hash,
+                ebpf ? ebpf->src_process_info.process_name : NULL,
+                false /* No malicious fingerprint associated to JA5, yet */);
   }
 }
 
@@ -8214,6 +8245,12 @@ void Flow::lua_get_tls_info(lua_State* vm) const {
       if (has_malicious_cli_signature)
         lua_push_bool_table_entry(vm, "protos.tls.ja4.client_malicious", true);
     }
+
+    if (protos.tls.ja5.client_hash) {
+      lua_push_str_table_entry(vm, "protos.tls.ja5.client_hash",
+                               protos.tls.ja5.client_hash);
+      /* No malicious fingerprint associated to JA5, yet */
+    }
   }
 }
 
@@ -8258,6 +8295,12 @@ void Flow::getTLSInfo(ndpi_serializer* serializer) const {
 
       if (has_malicious_cli_signature)
         ndpi_serialize_string_boolean(serializer, "ja4_client_malicious", true);
+    }
+
+    if (protos.tls.ja5.client_hash) {
+      ndpi_serialize_string_string(serializer, "ja5_client_hash",
+                                   protos.tls.ja5.client_hash);
+      /* No malicious fingerprint associated to JA5, yet */
     }
   }
 }
