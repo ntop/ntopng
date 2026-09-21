@@ -11191,6 +11191,7 @@ local lang = {
     ["enabled"] = "Enabled",
     ["exception_not_found"] = "Alert exception not found",
     ["explain_with_ai"] = "Explain with AI",
+    ["exception_id"] = "Exception ID",
     ["file_hash_md5"] = "MD5",
     ["file_hash_sha1"] = "SHA1",
     ["file_hash_sha256"] = "SHA256",

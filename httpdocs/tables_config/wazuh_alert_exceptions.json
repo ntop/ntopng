@@ -6,7 +6,7 @@
 	"paging": false,
 	"display_empty_rows": true,
 	"default_sort": {
-		"column_id": "rule_id",
+		"column_id": "id",
 		"sort": 1
 	},
 	"columns": [
@@ -36,6 +36,20 @@
 					"event_id": "click_button_delete"
 				}
 			]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.exception_id",
+			"data_field": "id",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
+		},
+		{
+			"title_i18n": "wazuh_alert_config.enabled",
+			"data_field": "enabled",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
 		},
 		{
 			"title_i18n": "wazuh_alert_config.rule_id",
@@ -87,10 +101,10 @@
 			"class": ["text-nowrap", "text-center"]
 		},
 		{
-			"title_i18n": "wazuh_alert_config.enabled",
-			"data_field": "enabled",
+			"title_i18n": "wazuh_alert_config.pattern",
+			"data_field": "pattern",
 			"sortable": true,
-			"min-width": "80px",
+			"min-width": "120px",
 			"class": ["text-nowrap", "text-center"]
 		},
 		{
