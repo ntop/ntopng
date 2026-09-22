@@ -11251,6 +11251,7 @@ local lang = {
     ["rule_id"] = "Rule ID",
     ["rule_id_0"] = "0 (any)",
     ["rule_id_hint"] = "Wazuh rule_id to match (0 = any)",
+    ["exception_id_hint"] = "Exception ID must be unique between all the exceptions configured",
     ["rule_level"] = "Level",
     ["rule_mitre_id"] = "MITRE ID",
     ["rule_mitre_tactic"] = "MITRE Tactic",
@@ -11280,6 +11281,7 @@ local lang = {
     ["vuln_severity"] = "Vulnerability Severity",
     ["vuln_version"] = "Vulnerable Version",
     ["wazuh_alerts"] = "Wazuh Alerts",
+    ["write_update_failed"] = "Failed to write the configuration to the database, please check that no other Exception has the same Exception ID of this one",
     ["write_failed"] = "Failed to write the configuration to the database",
   },
   ["webauthn"] = {

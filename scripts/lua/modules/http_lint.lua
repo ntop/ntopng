@@ -2500,6 +2500,7 @@ local known_parameters = {
    ["wazuh_rule_subject"] = validateUnquoted,
    ["wazuh_rule_enabled"] = validateBool,
    ["wazuh_rule_comment"] = validateUnquoted,
+   ["old_wazuh_exception_id"] = validateSingleWord,
    ["wazuh_exception_id"] = validateSingleWord,
    ["wazuh_exception_rule_id"] = validateNumber,
    ["wazuh_exception_agent_name"] = validateUnquoted,
