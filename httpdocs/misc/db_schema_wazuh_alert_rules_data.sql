@@ -152,4 +152,4 @@ INSERT INTO wazuh_alert_rules VALUES
 
 -- 1. Ignore when a user becomes nobody (high to low privileges)
 --     Safety net: problems happen then the reverse happpens, i.e. user X becomes root, not when user root becomes nobody
-INSERT INTO wazuh_alert_exceptions VALUES ('down-to-nobody', 0, '', '', '', '', 'su', 'invalid_login', 1, 'Ignore login as nobody from a more poweful username', now(), 'session opened for user nobody%(uid=65534%)');
+INSERT INTO wazuh_alert_exceptions VALUES ('down-to-nobody', 0, '', '', '', '', '', 'invalid_login', 1, 'Ignore login as nobody from a more poweful username', now(), 'session opened for user nobody%(uid=65534%)');
