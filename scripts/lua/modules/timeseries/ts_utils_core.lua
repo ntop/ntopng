@@ -187,8 +187,12 @@ function ts_utils.listActiveDrivers()
       if ch_driver then
 	 active_drivers[#active_drivers + 1] = ch_driver
       else
-	 traceError(TRACE_WARNING, TRACE_CONSOLE,
-		    "[TS] ClickHouse not available, falling back to RRD")
+	 -- Prefs.cpp already logs at startup when it forces the driver to RRD due to CH not available,
+	 -- here we warn when ClickHouse is available but the driver fails to initialize.
+	 if not prefs.ch_ts_driver_forced_to_rrd then
+	    traceError(TRACE_WARNING, TRACE_CONSOLE,
+		       "[TS] ClickHouse not available, falling back to RRD")
+	 end
       end
    end
 

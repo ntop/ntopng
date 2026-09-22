@@ -113,6 +113,10 @@ function M.get_sections(flags)
                                 i18n("prefs.locked_requires_clickhouse", { product = product }) or nil
     local lock_cmdline = i18n("prefs.locked_set_from_cmdline")
 
+    local ts_driver_ch_fallback_warning = (active_ts_driver == "clickhouse" and not flags.has_ch_support) and
+                                               i18n("prefs.timeseries_driver_ch_fallback_warning", { product = product }) or
+                                               nil
+
     local sections =
         { -- Active Monitoring
         {
@@ -1250,6 +1254,7 @@ function M.get_sections(flags)
                 type = "select",
                 redis_key = "ntopng.prefs.timeseries_driver",
                 default = "rrd",
+                warning = ts_driver_ch_fallback_warning,
                 section = i18n("prefs.timeseries_database"),
                 options = {{
                     value = "rrd",

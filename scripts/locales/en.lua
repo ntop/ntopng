@@ -9370,6 +9370,7 @@ local lang = {
     ["telemetry_email_title"] = "Contact",
     ["timeseries"] = "Timeseries",
     ["timeseries_database"] = "Timeseries Database",
+    ["timeseries_driver_ch_fallback_warning"] = "ClickHouse is selected but not available (start %{product} with -F clickhouse): currently falling back to RRD.",
     ["timeseries_resolution_resolution_description_2"] = "The interval between consecutive timeseries data points for local hosts",
     ["timeseries_resolution_resolution_title"] = "Timeseries Resolution",
     ["toggle_access_log_description"] = "Toggle the creation of HTTP access log in the data dump directory. Settings will have effect at next %{product} startup.",

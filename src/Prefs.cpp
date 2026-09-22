@@ -152,6 +152,7 @@ Prefs::Prefs(Ntop* _ntop) {
   https_binding_address2 = NULL;
   enable_client_x509_auth = false;
   timeseries_driver = ts_driver_rrd;
+  ch_ts_driver_forced_to_rrd = false;
   split_ts_direction = false;
   cpu_affinity = other_cpu_affinity = NULL;
   flow_table_time = flow_table_probe_order = false;
@@ -3086,6 +3087,8 @@ void Prefs::lua(lua_State* vm) {
     lua_push_str_table_entry(vm, "clickhouse_dbname", clickhouse_dbname);
   if (clickhouse_ro_user && clickhouse_ro_user[0])
     lua_push_str_table_entry(vm, "clickhouse_ro_user", clickhouse_ro_user);
+  lua_push_bool_table_entry(vm, "ch_ts_driver_forced_to_rrd",
+                            ch_ts_driver_forced_to_rrd);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",
                             do_dump_flows_on_es());
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
@@ -3435,9 +3438,9 @@ void Prefs::validate() {
 
   if (timeseries_driver == ts_driver_clickhouse && !do_dump_flows_on_clickhouse()) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "ClickHouse timeseries enabled in preferences but ClickHouse is not "
-				 "available (-F clickhouse not set): disabling ClickHouse timeseries, falling back to RRD");
+				 "available (-F clickhouse not set): falling back to RRD");
     timeseries_driver = ts_driver_rrd;
-    ntop->getRedis()->set((char *)CONST_RUNTIME_PREFS_TS_DRIVER, (char *)"rrd");
+    ch_ts_driver_forced_to_rrd = true;
   }
 
   /* Use max num flows as upper limit for flows/hosts cache size to avoid
