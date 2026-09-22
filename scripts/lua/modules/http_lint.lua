@@ -2509,6 +2509,7 @@ local known_parameters = {
    ["wazuh_exception_username"] = validateUnquoted,
    ["wazuh_exception_process"] = validateUnquoted,
    ["wazuh_exception_rule_group"] = validateUnquoted,
+   ["wazuh_rule_pattern"] = validateUnquoted,
    ["wazuh_exception_enabled"] = validateBool,
    ["wazuh_exception_comment"] = validateUnquoted,
    ["wazuh_exception_pattern"] = validatePassword,
