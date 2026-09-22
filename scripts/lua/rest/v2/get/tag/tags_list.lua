@@ -14,14 +14,17 @@ local tag_badge_utils = require "tag_badge_utils"
 -- tag, color, description
 local tags = tag_badge_utils.getTags()
 
+local applications_supported = tag_badge_utils.areTagApplicationsSupported()
 local risks_supported = tag_badge_utils.areTagRisksSupported()
 
 -- Resolve the nDPI application ids and the flow risk ids
 for _, tag in ipairs(tags) do
     local applications = {}
 
-    for _, appl_id in ipairs(tag.protocols or {}) do
-        applications[#applications + 1] = interface.getnDPIProtoName(appl_id) or tostring(appl_id)
+    if applications_supported then
+        for _, appl_id in ipairs(tag.protocols or {}) do
+            applications[#applications + 1] = interface.getnDPIProtoName(appl_id) or tostring(appl_id)
+        end
     end
 
     tag.applications = applications
