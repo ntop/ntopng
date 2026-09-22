@@ -3437,7 +3437,6 @@ void Prefs::validate() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "ClickHouse timeseries enabled in preferences but ClickHouse is not "
 				 "available (-F clickhouse not set): disabling ClickHouse timeseries, falling back to RRD");
     timeseries_driver = ts_driver_rrd;
-    ntop->getRedis()->set((char *)CONST_RUNTIME_PREFS_TS_DRIVER, (char *)"rrd");
   }
 
   /* Use max num flows as upper limit for flows/hosts cache size to avoid
