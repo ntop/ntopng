@@ -2957,26 +2957,17 @@ static int ntop_get_interface_vlans_info(lua_State* vm) {
   bool a2zSortOrder = true;
   DetailsLevel details_level = details_higher;
 
-  if (lua_type(vm, 1) == LUA_TSTRING) {
-    sortColumn = (char*)lua_tostring(vm, 1);
+  if (lua_type(vm, 1) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 1);
 
-    if (lua_type(vm, 2) == LUA_TNUMBER) {
-      maxHits = (u_int16_t)lua_tonumber(vm, 2);
+  if (lua_type(vm, 2) == LUA_TNUMBER) maxHits = (u_int16_t)lua_tonumber(vm, 2);
 
-      if (lua_type(vm, 3) == LUA_TNUMBER) {
-        toSkip = (u_int16_t)lua_tonumber(vm, 3);
+  if (lua_type(vm, 3) == LUA_TNUMBER) toSkip = (u_int16_t)lua_tonumber(vm, 3);
 
-        if (lua_type(vm, 4) == LUA_TBOOLEAN) {
-          a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
+  if (lua_type(vm, 4) == LUA_TBOOLEAN)
+    a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
 
-          if (lua_type(vm, 5) == LUA_TBOOLEAN) {
-            details_level =
-                lua_toboolean(vm, 4) ? details_higher : details_high;
-          }
-        }
-      }
-    }
-  }
+  if (lua_type(vm, 5) == LUA_TBOOLEAN)
+    details_level = lua_toboolean(vm, 5) ? details_higher : details_high;
 
   if (!curr_iface ||
       curr_iface->getActiveVLANList(vm, sortColumn, maxHits, toSkip,
