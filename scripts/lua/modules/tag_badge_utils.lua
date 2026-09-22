@@ -125,6 +125,13 @@ end
 
 -- ##############################################
 
+-- Returns true if nDPI applications can be bound to the tags (Enterprise L or above)
+function tag_badge_utils.areTagApplicationsSupported()
+    return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
+end
+
+-- ##############################################
+
 -- Returns true if flow risks can be bound to the tags (Enterprise L or above)
 function tag_badge_utils.areTagRisksSupported()
     return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
@@ -159,16 +166,24 @@ end
 -- name: new name of the tag to update
 -- color: new color of the tag to update (string containing a HEX value)
 -- description: new description of the tag to update
--- protocols: array of nDPI application ids bound to the tag (custom tags only)
+-- protocols: array of nDPI application ids bound to the tag (custom tags only, Enterprise L only)
 -- risks: array of flow risk ids bound to the tag (all tags, Enterprise L only)
 function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks)
     local json = require "dkjson"
+    -- Without the license applications and flow risks cannot be changed
+    local current = nil
+
+    if tag_badge_utils.areTagApplicationsSupported() then
+        protocols = normalize_ids(protocols)
+    else
+        current = get_tags()[tonumber(id)]
+        protocols = (current and current.protocols) or {}
+    end
 
     if tag_badge_utils.areTagRisksSupported() then
         risks = normalize_ids(risks)
     else
-        -- Without the license the risks cannot be changed: keep the saved ones
-        local current = get_tags()[tonumber(id)]
+        current = current or get_tags()[tonumber(id)]
         risks = (current and current.risks) or {}
     end
 
@@ -179,7 +194,7 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
         description = description,
         reserved = reserved,
         -- Applications can only be bound to user-defined (custom) tags
-        protocols = (not tag_badge_utils.isReservedTag(id)) and normalize_ids(protocols) or {},
+        protocols = (not tag_badge_utils.isReservedTag(id)) and protocols or {},
         -- Flow risks can be bound to any tag, built-in ones included
         risks = risks
     }
