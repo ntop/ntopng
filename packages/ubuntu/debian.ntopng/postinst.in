@@ -27,9 +27,9 @@ umask 022
 CONFIG_FILE=/etc/ntopng/ntopng.conf
 
 if test -f $CONFIG_FILE; then
- CH_CONFIGURED=`grep -e '\-F\=clickhouse' -e '\-F="clickhouse' $CONFIG_FILE | wc -l`
+    CH_CONFIGURED=`grep '^-F' $CONFIG_FILE | grep -e 'clickhouse' | wc -l`
 
- if test $CH_CONFIGURED -eq 0; then
+    if test $CH_CONFIGURED -eq 0; then
      CH_CLIENT="/usr/bin/clickhouse-client"
      
     if test -x $CH_CLIENT; then
