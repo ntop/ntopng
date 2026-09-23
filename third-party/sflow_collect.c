@@ -2321,8 +2321,19 @@ static void mplsLabelStack(SFSample *sample, const char *fieldName)
   SFLLabelStack lstk;
   u_int32_t lab;
   lstk.depth = getData32(sample);
-  /* just point at the lablelstack array */
-  if(lstk.depth > 0) lstk.stack = (u_int32_t *)sample->datap;
+
+  /* SFABORT is a no-op in this build, so skipBytes()/getData32() cannot be
+     trusted to stop us reading past the sample buffer: validate depth
+     against what's actually left before pointing into it. */
+  if(lstk.depth > 0) {
+    u_int64_t remaining = ((u_char *)sample->datap < sample->endp) ?
+      (u_int64_t)(sample->endp - (u_char *)sample->datap) : 0;
+    if((u_int64_t)lstk.depth * 4 > remaining) {
+      sf_log("%s truncated/invalid depth=%u\n", fieldName, lstk.depth);
+      return;
+    }
+    lstk.stack = (u_int32_t *)sample->datap;
+  }
   /* and skip over it in the input */
   skipBytes(sample, lstk.depth * 4);
 
@@ -2455,8 +2466,19 @@ static void readExtendedVlanTunnel(SFSample *sample)
   u_int32_t lab;
   SFLLabelStack lstk;
   lstk.depth = getData32(sample);
-  /* just point at the lablelstack array */
-  if(lstk.depth > 0) lstk.stack = (u_int32_t *)sample->datap;
+
+  /* SFABORT is a no-op in this build, so skipBytes()/getData32() cannot be
+     trusted to stop us reading past the sample buffer: validate depth
+     against what's actually left before pointing into it. */
+  if(lstk.depth > 0) {
+    u_int64_t remaining = ((u_char *)sample->datap < sample->endp) ?
+      (u_int64_t)(sample->endp - (u_char *)sample->datap) : 0;
+    if((u_int64_t)lstk.depth * 4 > remaining) {
+      sf_log("vlan_tunnel truncated/invalid depth=%u\n", lstk.depth);
+      return;
+    }
+    lstk.stack = (u_int32_t *)sample->datap;
+  }
   /* and skip over it in the input */
   skipBytes(sample, lstk.depth * 4);
 
@@ -2587,6 +2609,22 @@ static void readFlowSample_header(SFSample *sample)
   sf_log("headerLen %u\n", sample->headerLen);
 
   sample->pkt_header = sample->header = (u_char *)sample->datap; /* just point at the header */
+
+  /* headerLen is taken verbatim from the datagram and is never bounded against
+     the bytes actually captured. It later becomes pcap caplen in
+     handleSflowSample() (the byte count dissectPacket walks from pkt_header) and
+     the read length passed to printHex() below. Clamp it to the bytes present in
+     the received datagram so a forged headerLen cannot drive a read past the
+     recvfrom() buffer. */
+  {
+    u_int32_t avail = ((u_char *)sample->datap <= sample->endp)
+                          ? (u_int32_t)(sample->endp - (u_char *)sample->datap)
+                          : 0;
+
+    if((u_int32_t)sample->headerLen > avail)
+      sample->pkt_headerLen = sample->headerLen = avail;
+  }
+
   skipBytes(sample, sample->headerLen);
   {
     char scratch[2000];
