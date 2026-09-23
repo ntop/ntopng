@@ -831,6 +831,10 @@ function getNtopngRelease(ntopng_info, verbose)
                             ntopng_info.OS)
     end
 
+    if ntopng_info["pro.lm"] then
+        res = res .. " - LM "
+    end
+
     if not ntopng_info.oem then
         local vers = string.split(ntopng_info["version.git"], ":")
 
