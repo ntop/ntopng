@@ -190,6 +190,16 @@ class Host : public GenericHashEntry,
   char* get_mac_based_tskey(Mac* mac, char* buf, size_t bufsize,
                             bool skip_prefix = false);
   bool isValidHostName(const char* name);
+  /* Protocol-specific name validators */
+  static bool isReverseLookupName(const char* name);
+  static bool isValidDNSHostName(const char* name, bool allow_trailing_dot);
+  static bool isValidUTF8DisplayName(const char* name, u_int max_len);
+  static bool isValidMDNSName(const char* name);
+  static bool isValidMDNSTXTName(const char* name);
+  static bool isValidDHCPName(const char* name);
+  static bool isValidNetBIOSName(const char* name);
+  static bool isValidTLSName(const char* name);
+  static bool isValidHTTPName(const char* name);
   virtual void deferredInitialization();
 
  public:
