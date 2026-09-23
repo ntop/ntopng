@@ -301,7 +301,16 @@ char* LocalHost::getSerializationKey(char* redis_key, u_int bufsize,
                                      bool short_format) {
   Mac* mac = getMac();
 
-  if (mac && (is_in_broadcast_domain || serializeByMac())) {
+  /* MAC-based keying is restricted to IPv4: a single MAC can legitimately
+   * front several distinct, simultaneously-alive IPv6 addresses
+   * (example: SLAAC/privacy-extension GUAs).
+   * Keying by MAC alone would collapse all of them onto a single
+   * tag entry / Asset Inventory row. IPv6 hosts always use the IP-based key
+   * below instead, which TagsConfiguration/asset dumping already handle
+   * natively. IPv4 doesn't have this problem: a DHCP lease binds one MAC to
+   * one IP at a time, which is exactly the case MAC-based keying is meant to
+   * survive (lease churn). */
+  if (mac && isIPv4() && (is_in_broadcast_domain || serializeByMac())) {
     char mac_buf[128];
 
     get_mac_based_tskey(mac, mac_buf, sizeof(mac_buf));
