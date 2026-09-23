@@ -676,8 +676,11 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
           ExporterStats exp_stats;
           json_object* x;
 
-	  Utils::parseIPv4v6Address(key, &exporter_device_ip);
-	  
+          if (!Utils::parseIPv4v6Address(key, &exporter_device_ip)) {
+            /* Invalid exporter address */
+            memset(&exporter_device_ip, 0, sizeof(struct ndpi_in6_addr));
+          }
+
           memset(&exp_stats, 0, sizeof(exp_stats));
 
           if (json_object_object_get_ex(val, "time_last_flow", &x))
