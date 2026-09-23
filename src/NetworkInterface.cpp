@@ -9999,12 +9999,9 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
 /* **************************************** */
 
 u_int64_t NetworkInterface::getPersistentHostTags(Host* host) {
-  Mac* mac = host->getMac();
-  if (mac) {
-    u_int64_t v = host_tags.getTags(mac->get_mac());
-    if (v) return v;
-  }
-  return host_tags.getTags(host->get_ip(), host->get_vlan_id());
+  char key_buf[CONST_MAX_LEN_REDIS_KEY];
+  char* key = host->getSerializationKey(key_buf, sizeof(key_buf), true);
+  return host_tags.getTags(key);
 }
 
 /* **************************************** */
