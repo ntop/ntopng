@@ -832,7 +832,7 @@ function getNtopngRelease(ntopng_info, verbose)
     end
 
     if ntopng_info["pro.lm"] then
-        res = res .. " - LM "
+        res = res .. " - License Manager "
     end
 
     if not ntopng_info.oem then
