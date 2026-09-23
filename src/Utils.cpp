@@ -3800,7 +3800,7 @@ ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t* ptree,
 
   bits = strchr(line, '/');
   if (bits == NULL)
-    bits = (char*)"/32";
+    bits = (char*)"/32"; /* Default for IPv4 */
   else {
     slash = bits;
     slash[0] = '\0';
@@ -3815,9 +3815,11 @@ ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t* ptree,
     for (int i = 0; i < 6; i++) mac[i] = _mac[i];
     node = add_to_ptree(ptree, AF_MAC, mac, 48);
   } else if (strchr(ip, ':') != NULL) { /* IPv6 */
-    if (inet_pton(AF_INET6, ip, &addr6) == 1)
-      node = add_to_ptree(ptree, AF_INET6, &addr6, atoi(bits));
-    else
+    if (inet_pton(AF_INET6, ip, &addr6) == 1) {
+      /* No explicit '/prefix' means a bare host address: default to /128,
+         NOT /32 (the /32 default a few lines above is only correct for IPv4) */
+      node = add_to_ptree(ptree, AF_INET6, &addr6, slash ? atoi(bits) : 128);
+    } else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv6 %s\n", ip);
   } else { /* IPv4 */
     /* inet_aton(ip, &addr4) fails parsing subnets */
