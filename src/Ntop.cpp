@@ -1921,11 +1921,9 @@ bool Ntop::checkLDAPAuth(const char* user, const char* password,
        *search_path = NULL, *admin_group = NULL;
 
   if (!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-      !(ldapAccountType = (char*)calloc(
-            sizeof(char), MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
-      || !(ldapAnonymousBind = (char*)calloc(
-               sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
-      || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+      !(ldapAccountType = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) || /* either 'posix' or 'samaccount' */
+      !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) || /* either '1' or '0' */
+      !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
       !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
       !(user_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
       !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
@@ -1942,17 +1940,13 @@ bool Ntop::checkLDAPAuth(const char* user, const char* password,
   }
 
   ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType,
-                        MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind,
-                        MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, MAX_LDAP_LEN);
   ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
   ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path,
-                        MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
   ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, user_group, MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group,
-                        MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
 
   if (ldapServer[0]) {
     ldap_ret = LdapAuthenticator::validUserLogin(
@@ -1987,6 +1981,7 @@ bool Ntop::checkLDAPAuth(const char* user, const char* password,
 
 ldap_auth_out:
   if (ldapServer) free(ldapServer);
+  if (ldapAccountType) free(ldapAccountType);
   if (ldapAnonymousBind) free(ldapAnonymousBind);
   if (bind_dn) free(bind_dn);
   if (bind_pwd) free(bind_pwd);
