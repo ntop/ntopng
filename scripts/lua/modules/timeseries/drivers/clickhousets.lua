@@ -459,13 +459,12 @@ end
 --! @brief Top-k query: find the top items by total metric value.
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
-   if #top_tags ~= 1 then
+   if #top_tags < 1 then
       traceError(TRACE_ERROR, TRACE_CONSOLE,
-         "ClickHouse driver expects exactly one top tag, " .. #top_tags .. " found")
+         "ClickHouse driver expects at least one top tag, none found")
       return nil
    end
 
-   local top_tag    = top_tags[1]
    local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
    local tw         = self:tags_where(tags)
 
@@ -481,19 +480,37 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       end
    end
 
+   -- options.unlimited_top asks for every group with data, not just the top ones
+   local limit_clause = ""
+
+   if not options.unlimited_top then
+      limit_clause = string.format(" LIMIT %d", options.top or 8)
+   end
+
+   -- One group per distinct combination of the top tags
+   local sel_tags   = {}
+   local group_cols = {}
+
+   for _, tag in ipairs(top_tags) do
+      local esc = ch_escape(tag)
+      sel_tags[#sel_tags + 1]     = string.format("tags['%s'] AS `%s`", esc, esc)
+      group_cols[#group_cols + 1] = string.format("`%s`", esc)
+   end
+
    local sql = string.format(
-      "SELECT tags['%s'] AS top_tag_val, (%s) AS value "
+      "SELECT %s, (%s) AS value "
       .. "FROM `%s`.`%s` "
       .. "WHERE schema_name = '%s'%s "
       .. "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
-      .. "GROUP BY top_tag_val "
-      .. "ORDER BY value DESC LIMIT %d",
-      ch_escape(top_tag),
+      .. "GROUP BY %s "
+      .. "ORDER BY value DESC%s",
+      table.concat(sel_tags, ", "),
       table.concat(value_parts, " + "),
       ch_escape(self.db), CH_TS_TABLE_NAME,
       ch_escape(schema.name), tw,
       tstart, tend,
-      options.top or 8)
+      table.concat(group_cols, ", "),
+      limit_clause)
 
    local data = ch_query(sql)
 
@@ -509,8 +526,14 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    for _, row in ipairs(data) do
       local val = tonumber(row["value"]) or 0
       if val > 0 then
+         local item_tags = table.clone(tags)
+
+         for _, tag in ipairs(top_tags) do
+            item_tags[tag] = row[tag]
+         end
+
          sorted[#sorted + 1] = {
-            tags     = table.merge(tags, { [top_tag] = row["top_tag_val"] }),
+            tags     = item_tags,
             value    = val,
             partials = {},
          }

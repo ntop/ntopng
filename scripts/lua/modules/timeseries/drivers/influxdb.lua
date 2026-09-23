@@ -28,6 +28,10 @@ local INFLUX_MAX_EXPORT_QUEUE_LEN_LOW = 10
 local INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH = 20
 local INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN = 30 -- This edge should never be crossed. If it does, queue is manually trimmed
 
+-- InfluxDB TOP() always requires a limit: this is the one used when the caller asks
+-- for an unlimited topk (options.unlimited_top)
+local INFLUX_UNLIMITED_TOP = 1000000
+
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local MIN_INFLUXDB_MAJOR_SUPPORTED_VERSION = 1
@@ -1407,8 +1411,10 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     base_query = '(SELECT SUM(value) AS value, ' .. table.concat(sum_metrics, ", ") .. ' FROM ' .. base_query ..
                      ' GROUP BY ' .. top_tag .. ')'
 
-    -- Calculate TOPk
-    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' .. base_query
+    -- Calculate TOPk. options.unlimited_top asks for every item with data, not just
+    -- the top ones: InfluxDB TOP() always wants a limit, so a very high one is used.
+    local top_limit = options.unlimited_top and INFLUX_UNLIMITED_TOP or options.top
+    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. top_limit .. '), ' .. all_metrics .. ' FROM ' .. base_query
 
     local url = self.url
     local data =

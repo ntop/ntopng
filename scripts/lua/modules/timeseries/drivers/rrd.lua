@@ -1176,7 +1176,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
          }
       end
 
-      if #topk >= options.top then
+      -- options.unlimited_top asks for every item with data, not just the top ones
+      if (not options.unlimited_top) and (#topk >= options.top) then
          break
       end
    end

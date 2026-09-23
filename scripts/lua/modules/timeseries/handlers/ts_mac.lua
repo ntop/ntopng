@@ -43,40 +43,31 @@ local function addTopTimeseries(tags, tsOptions)
     local mac_top_ts_enabled = ntop.getCache("ntopng.prefs.l2_device_ndpi_timeseries_creation")
 
     -- Top l7 Categories
+    -- Note: a single grouped query, series with no data are not returned
     if mac_ts_enabled and mac_top_ts_enabled then
-        local series = ts_utils.listSeries("mac:ndpi_categories", table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
+        local series = ts_utils.queryTotalByTag("mac:ndpi_categories", tags.epoch_begin, tags.epoch_end, tags,
+            "category") or {}
 
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local category_name = getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))
-                local tot = 0
-                tmp_tags.category = category_name
-                local tot_serie = ts_utils.queryTotal("mac:ndpi_categories", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+        for _, serie in ipairs(series) do
+            local category = serie.tags.category
+            local category_name = getCategoryLabel(category, interface.getnDPICategoryId(category))
 
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:mac:ndpi_categories",
-                        group = i18n("graphs.category"),
-                        priority = 3,
-                        query = "category:" .. category_name,
+            timeseries[#timeseries + 1] = {
+                schema = "top:mac:ndpi_categories",
+                group = i18n("graphs.category"),
+                priority = 3,
+                query = "category:" .. category,
+                label = category_name,
+                disable_perc_95_ts = true,
+                measure_unit = "bps",
+                scale = i18n('graphs.metric_labels.traffic'),
+                timeseries = {
+                    bytes = {
                         label = category_name,
-                        disable_perc_95_ts = true,
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        timeseries = {
-                            bytes = {
-                                label = category_name,
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
-                        }
+                        color = ts_gui_utils.get_timeseries_color('bytes')
                     }
-                end
-            end
+                }
+            }
         end
     end
 

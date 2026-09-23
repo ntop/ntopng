@@ -207,88 +207,70 @@ local function addTopTimeseries(tags, tsOptions)
     local timeseries = {}
     local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
 
-    local series = ts_utils.listSeries("asn:exporter_traffic", table.clone(tags), tags.epoch_begin) or {}
-    local tmp_tags = table.clone(tags)
-
     -- Top Exporters - ASN
-    if not table.empty(series) then
-        for _, serie in pairs(series or {}) do
-            local tot = 0
-            tmp_tags.device = serie.device
-            tmp_tags.if_index = serie.if_index
-            local tot_serie = ts_utils.queryTotal("asn:exporter_traffic", tags.epoch_begin, tags.epoch_end, tmp_tags)
-            -- Remove serie with no data
-            for _, value in pairs(tot_serie or {}) do
-                tot = tot + tonumber(value)
-            end
+    -- Note: a single grouped query, series with no data are not returned
+    local series = ts_utils.queryTotalByTag("asn:exporter_traffic", tags.epoch_begin, tags.epoch_end, tags,
+        {"device", "if_index"}) or {}
 
-            if (tot > 0) then
-                timeseries[#timeseries + 1] = {
-                    schema = "asn:exporter_traffic",
-                    group = i18n("exporter_interface"),
-                    priority = 2,
-                    query = "device:" .. serie.device .. ",if_index:" .. serie.if_index,
-                    label = i18n("exporter_port", {
-                        exporter = getExporterName(serie.device),
-                        port = format_portidx_name(serie.device, serie.if_index, true)
-                    }),
-                    disable_default_ago_ts = true,
-                    measure_unit = "bps",
-                    scale = i18n('graphs.metric_labels.traffic'),
-                    timeseries = {
-                        bytes_sent = {
-                            label = i18n('graphs.metric_labels.sent'),
-                            color = ts_gui_utils.get_timeseries_color('bytes_sent')
-                        },
-                        bytes_rcvd = {
-                            invert_direction = true,
-                            label = i18n('graphs.metric_labels.rcvd'),
-                            color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
-                        }
-                    }
+    for _, serie in ipairs(series) do
+        local device = serie.tags.device
+        local if_index = serie.tags.if_index
+
+        timeseries[#timeseries + 1] = {
+            schema = "asn:exporter_traffic",
+            group = i18n("exporter_interface"),
+            priority = 2,
+            query = "device:" .. device .. ",if_index:" .. if_index,
+            label = i18n("exporter_port", {
+                exporter = getExporterName(device),
+                port = format_portidx_name(device, if_index, true)
+            }),
+            disable_default_ago_ts = true,
+            measure_unit = "bps",
+            scale = i18n('graphs.metric_labels.traffic'),
+            timeseries = {
+                bytes_sent = {
+                    label = i18n('graphs.metric_labels.sent'),
+                    color = ts_gui_utils.get_timeseries_color('bytes_sent')
+                },
+                bytes_rcvd = {
+                    invert_direction = true,
+                    label = i18n('graphs.metric_labels.rcvd'),
+                    color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
                 }
-            end
-        end
+            }
+        }
     end
 
     -- Top l7 Protocols
+    -- Note: a single grouped query, series with no data are not returned
     if (asn_ts_enabled) and (not tsOptions.is_asn_mode_enabled) then
-        local series = ts_utils.listSeries("asn:ndpi", table.clone(tags), tags.epoch_begin) or {}
-        tmp_tags = table.clone(tags)
+        local top_series = ts_utils.queryTotalByTag("asn:ndpi", tags.epoch_begin, tags.epoch_end, tags, "protocol") or
+                               {}
 
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.protocol = serie.protocol
-                local tot_serie = ts_utils.queryTotal("asn:ndpi", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+        for _, serie in ipairs(top_series) do
+            local protocol = serie.tags.protocol
 
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:asn:ndpi",
-                        group = i18n("graphs.l7_proto"),
-                        priority = 2,
-                        query = "protocol:" .. serie.protocol,
-                        label = serie.protocol,
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        disable_perc_95_ts = true,
-                        timeseries = {
-                            bytes_sent = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            },
-                            bytes_rcvd = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
-                        }
+            timeseries[#timeseries + 1] = {
+                schema = "top:asn:ndpi",
+                group = i18n("graphs.l7_proto"),
+                priority = 2,
+                query = "protocol:" .. protocol,
+                label = protocol,
+                measure_unit = "bps",
+                scale = i18n('graphs.metric_labels.traffic'),
+                disable_perc_95_ts = true,
+                timeseries = {
+                    bytes_sent = {
+                        label = protocol .. " " .. i18n('graphs.metric_labels.sent'),
+                        color = ts_gui_utils.get_timeseries_color('bytes')
+                    },
+                    bytes_rcvd = {
+                        label = protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
+                        color = ts_gui_utils.get_timeseries_color('bytes')
                     }
-                end
-            end
+                }
+            }
         end
     end
 

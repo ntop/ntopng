@@ -16,43 +16,34 @@ local timeseries_id = "asn"
 local function addTopTimeseries(tags, tsOptions)
     local timeseries = {}
     local asn_ts_enabled = ntop.getCache("ntopng.prefs.asn_rrd_creation")
+    -- Note: a single grouped query, series with no data are not returned
     if asn_ts_enabled then
         local format_utils = require "format_utils"
 
-        local series = ts_utils.listSeries("asn:traffic", table.clone(tags), tags.epoch_begin)
-        if not table.empty(series) then
-            local tmp_tags = table.clone(tags)
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.asn = serie.asn
-                local tot_serie = ts_utils.queryTotal("asn:traffic", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+        local series = ts_utils.queryTotalByTag("asn:traffic", tags.epoch_begin, tags.epoch_end, tags, "asn") or {}
 
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "asn:traffic",
-                        id = timeseries_id,
-                        priority = 2,
-                        query = "asn:" .. serie.asn,
-                        label = tostring(format_utils.formatASN(serie.asn, false, false)),
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        timeseries = {
-                            bytes_sent = {
-                                label = serie.asn .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            },
-                            bytes_rcvd = {
-                                label = serie.asn .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
-                        }
+        for _, serie in ipairs(series) do
+            local asn = serie.tags.asn
+
+            timeseries[#timeseries + 1] = {
+                schema = "asn:traffic",
+                id = timeseries_id,
+                priority = 2,
+                query = "asn:" .. asn,
+                label = tostring(format_utils.formatASN(asn, false, false)),
+                measure_unit = "bps",
+                scale = i18n('graphs.metric_labels.traffic'),
+                timeseries = {
+                    bytes_sent = {
+                        label = asn .. " " .. i18n('graphs.metric_labels.sent'),
+                        color = ts_gui_utils.get_timeseries_color('bytes')
+                    },
+                    bytes_rcvd = {
+                        label = asn .. " " .. i18n('graphs.metric_labels.rcvd'),
+                        color = ts_gui_utils.get_timeseries_color('bytes')
                     }
-                end
-            end
+                }
+            }
         end
     end
 

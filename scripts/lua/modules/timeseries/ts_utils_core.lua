@@ -378,6 +378,7 @@ function ts_utils.getQueryOptions(overrides)
 	 min_value = 0, -- minimum value of a data point
 	 max_value = math.huge, -- maximum value for a data point
 	 top = 8, -- top number of items
+	 unlimited_top = false, -- when true, topk returns every item with data, ignoring "top"
 	 calculate_stats = true, -- calculate stats if possible
 	 initial_point = false, -- add an extra initial point, not accounted in statistics but useful for drawing graphs
 	 no_timeout = true, -- do not abort queries automatically by default
@@ -848,6 +849,126 @@ function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
    ts_common.clearLastError()
 
    return driver:queryTotal(schema, tstart, tend, tags, query_options)
+end
+
+-- ##############################################
+
+-- ! @brief Compute the total value of all the series matching the given tags,
+-- ! grouped by one or more tags.
+-- ! @param schema_name the schema identifier.
+-- ! @param tstart lower time for the query.
+-- ! @param tend upper time for the query.
+-- ! @param tags_filter a list of filter tags. The grouping tags, if present, are ignored.
+-- ! @param group_tags the schema tag to group by (e.g. "protocol"), or a list of tags.
+-- ! @param options (optional) query options.
+-- ! @return a (possibly empty) array of {tags=<full tag set>, value=<total>} sorted by
+-- ! value descending, nil on error.
+-- ! @note This is the cheap replacement for a ts_utils.listSeries() enumeration followed
+-- ! by one ts_utils.queryTotal() per series: drivers implementing topk() answer it with a
+-- ! single grouped query. Series with no data in the time range are never returned.
+function ts_utils.queryTotalByTag(schema_name, tstart, tend, tags_filter, group_tags, options)
+   tags_filter = tags_filter or {}
+
+   if type(group_tags) == "string" then
+      group_tags = { group_tags }
+   end
+
+   if not isUserAccessAllowed(tags_filter) then
+      return nil
+   end
+
+   local schema = ts_utils.getSchema(schema_name)
+
+   if not schema then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+      return nil
+   end
+
+   local is_group_tag = {}
+
+   for _, tag in ipairs(group_tags) do
+      if not schema.tags[tag] then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE,
+		    "Tag '" .. tag .. "' is not a tag of schema " .. schema_name)
+	 return nil
+      end
+
+      is_group_tag[tag] = true
+   end
+
+   local driver = ts_utils.getQueryDriverForSchema(schema)
+
+   if not driver then
+      return nil
+   end
+
+   -- Only keep the schema own tags: the grouping tags are wildcards here
+   local partial_filter = {}
+
+   for tag, val in pairs(tags_filter) do
+      if not is_group_tag[tag] then
+	 partial_filter[tag] = val
+      end
+   end
+
+   local filter_tags, wildcard_tags = getWildcardTags(schema, partial_filter)
+
+   if #wildcard_tags ~= #group_tags then
+      -- All the schema tags but the grouping ones must be specified, as a single
+      -- group is expected per grouping tags combination
+      traceError(TRACE_ERROR, TRACE_CONSOLE,
+		 "Missing tags in a " .. schema_name .. " query grouped by '" ..
+		 table.concat(group_tags, ", ") .. "'")
+      return nil
+   end
+
+   local query_options = ts_utils.getQueryOptions(options)
+
+   -- Every series with data is needed here, not just the top ones, and neither the
+   -- statistics nor the total serie are used
+   query_options.unlimited_top = true
+   query_options.calculate_stats = false
+   query_options.initial_point = false
+
+   ts_common.clearLastError()
+
+   local res = {}
+
+   if driver.topk then
+      local topk_res = driver:topk(schema, filter_tags, tstart, tend, query_options, wildcard_tags)
+
+      if topk_res then
+	 -- topk already drops the items whose value is zero and sorts by value descending
+	 for _, item in ipairs(topk_res.topk or {}) do
+	    if item.tags then
+	       res[#res + 1] = { tags = item.tags, value = item.value or 0 }
+	    end
+	 end
+
+	 return res
+      end
+   end
+
+   -- Fallback for the drivers not implementing topk (or unable to group on the
+   -- requested tags): enumerate the series and total them one by one
+   local series = driver:listSeries(schema, filter_tags, wildcard_tags, tstart, tend) or {}
+
+   for _, serie_tags in pairs(series) do
+      local totals = ts_utils.queryTotal(schema_name, tstart, tend, serie_tags, query_options)
+      local tot = 0
+
+      for _, value in pairs(totals or {}) do
+	 tot = tot + (tonumber(value) or 0)
+      end
+
+      if tot > 0 then
+	 res[#res + 1] = { tags = serie_tags, value = tot }
+      end
+   end
+
+   table.sort(res, function(a, b) return a.value > b.value end)
+
+   return res
 end
 
 -- ##############################################

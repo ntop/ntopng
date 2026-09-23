@@ -638,7 +638,7 @@ local function addTopTimeseries(tags, emptyEpoch, tsOptions)
 
     if interface_ts_enabled then
         -- Adding L4 protocols timeseries
-        local series = ts_utils.listSeries("iface:l4protos", table.clone(tags), tags.epoch_begin) or {}
+        local series = ts_utils.listSeries("iface:l4protos", table.clone(tags), tags.epoch_begin, tags.epoch_end) or {}
 
         if not table.empty(series) then
             for _, serie in pairs(series or {}) do
@@ -666,52 +666,44 @@ local function addTopTimeseries(tags, emptyEpoch, tsOptions)
     if (has_top_protocols) and (not tsOptions.is_asn_mode_enabled) then
         local id = getIfacenDPITsName()
         local is_full_ts = ifaceFullnDPITs()
-        local series = ts_utils.listSeries(id, table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
+        -- Note: a single grouped query, series with no data are not returned
+        local series = ts_utils.queryTotalByTag(id, tags.epoch_begin, tags.epoch_end, tags, "protocol") or {}
 
         if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.protocol = serie.protocol
-                local tot_serie = ts_utils.queryTotal(id, tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+            for _, serie in ipairs(series) do
+                local protocol = serie.tags.protocol
+                local ts = {
+                    bytes = {
+                        label = protocol,
+                        color = ts_gui_utils.get_timeseries_color('bytes')
+                    }
+                }
 
-                if (tot > 0) then
-                    local ts = {
-                        bytes = {
-                            label = serie.protocol,
-                            color = ts_gui_utils.get_timeseries_color('bytes')
+                if is_full_ts then
+                    ts = {
+                        bytes_sent = {
+                            label = protocol .. " " .. i18n('graphs.metric_labels.sent'),
+                            color = ts_gui_utils.get_timeseries_color('bytes_sent')
+                        },
+                        bytes_rcvd = {
+                            invert_direction = true,
+                            label = protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
+                            color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
                         }
                     }
-                    if is_full_ts then
-                        ts = {
-                            bytes_sent = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = ts_gui_utils.get_timeseries_color('bytes_sent')
-                            },
-                            bytes_rcvd = {
-                                invert_direction = true,
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
-                            }
-                        }
-                    end
-
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:" .. id,
-                        disable_perc_95_ts = true,
-                        group = i18n("graphs.l7_proto"),
-                        priority = 2,
-                        query = "protocol:" .. serie.protocol,
-                        label = serie.protocol,
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        timeseries = ts
-                    }
                 end
+
+                timeseries[#timeseries + 1] = {
+                    schema = "top:" .. id,
+                    disable_perc_95_ts = true,
+                    group = i18n("graphs.l7_proto"),
+                    priority = 2,
+                    query = "protocol:" .. protocol,
+                    label = protocol,
+                    measure_unit = "bps",
+                    scale = i18n('graphs.metric_labels.traffic'),
+                    timeseries = ts
+                }
             end
             timeseries[#timeseries + 1] = {
                 schema = "top:" .. id,
@@ -732,78 +724,59 @@ local function addTopTimeseries(tags, emptyEpoch, tsOptions)
     end
 
     -- Top Categories
+    -- Note: a single grouped query, series with no data are not returned
     if has_top_categories then
-        local series = ts_utils.listSeries("iface:ndpi_categories", table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
+        local series = ts_utils.queryTotalByTag("iface:ndpi_categories", tags.epoch_begin, tags.epoch_end, tags,
+            "category") or {}
 
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.category = serie.category
-                local tot_serie = ts_utils.queryTotal("iface:ndpi_categories", tags.epoch_begin, tags.epoch_end,
-                    tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+        for _, serie in ipairs(series) do
+            local category = serie.tags.category
+            local category_name = getCategoryLabel(category, interface.getnDPICategoryId(category))
 
-                if (tot > 0) then
-                    local category_name = getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:iface:ndpi_categories",
-                        group = i18n("graphs.category"),
-                        priority = 3,
-                        query = "category:" .. category_name,
-                        disable_perc_95_ts = true,
+            timeseries[#timeseries + 1] = {
+                schema = "top:iface:ndpi_categories",
+                group = i18n("graphs.category"),
+                priority = 3,
+                query = "category:" .. category,
+                disable_perc_95_ts = true,
+                label = category_name,
+                measure_unit = "bps",
+                scale = i18n('graphs.metric_labels.traffic'),
+                timeseries = {
+                    bytes = {
                         label = category_name,
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        timeseries = {
-                            bytes = {
-                                label = category_name,
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
-                        }
+                        color = ts_gui_utils.get_timeseries_color('bytes')
                     }
-                end
-            end
+                }
+            }
         end
     end
 
     -- Top Traffic Profiles
+    -- Note: a single grouped query, series with no data are not returned
     if ntop.isPro and ntop.isPro() then
-        local series = ts_utils.listSeries("profile:traffic", table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
+        local series = ts_utils.queryTotalByTag("profile:traffic", tags.epoch_begin, tags.epoch_end, tags, "profile") or
+                           {}
 
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.profile = serie.profile
-                local tot_serie = ts_utils.queryTotal("profile:traffic", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+        for _, serie in ipairs(series) do
+            local profile = serie.tags.profile
 
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:profile:traffic",
-                        group = i18n("graphs.top_profiles"),
-                        priority = 2,
-                        query = "profile:" .. serie.profile,
-                        label = serie.profile,
-                        measure_unit = "bps",
-                        disable_perc_95_ts = true,
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        timeseries = {
-                            bytes = {
-                                label = serie.profile,
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
-                        }
+            timeseries[#timeseries + 1] = {
+                schema = "top:profile:traffic",
+                group = i18n("graphs.top_profiles"),
+                priority = 2,
+                query = "profile:" .. profile,
+                label = profile,
+                measure_unit = "bps",
+                disable_perc_95_ts = true,
+                scale = i18n('graphs.metric_labels.traffic'),
+                timeseries = {
+                    bytes = {
+                        label = profile,
+                        color = ts_gui_utils.get_timeseries_color('bytes')
                     }
-                end
-            end
+                }
+            }
         end
     end
 
