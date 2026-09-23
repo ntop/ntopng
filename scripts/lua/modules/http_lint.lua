@@ -329,6 +329,26 @@ local function validateUploadedFile(p)
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
+local function validateReferer(p)
+   -- Not a string
+   if type(referer) ~= "string" then return false end
+
+   -- Reject Unicode control/directional characters (U+202A–U+202F, U+200B–U+200F)
+   if referer:match("[\xE2\x80\xAA-\xE2\x80\xAF]") then return false end
+   if referer:match("[\xE2\x80\x8B-\xE2\x80\x8F]") then return false end
+
+   -- Must be a relative URL (no open redirect)
+   if referer:sub(1,1) ~= "/" then return false end
+
+   -- Whitelist safe URL characters only
+   if not referer:match("^[a-zA-Z0-9%-%_%/%.%?%=%&%:%%+#@!~,;]+$") then
+      return false
+   end
+
+   return true
+end
+http_lint.validateReferer = validateReferer
+
 local function validateUnchecked(p)
    -- This function does not perform any validation, so only the C side validation takes place.
    -- In particular, single quotes are allowed so they must be handled explicitly by the programmer in
@@ -1858,7 +1878,7 @@ local known_parameters = {
    -- It up to the script to implement proper validation.
    -- In NO case query should be executed directly without validation.
    -- UNQUOTED (Not Generally dangerous)
-   ["referer"] = validateUnquoted, -- An URL referer
+   ["referer"] = validateReferer, -- An URL referer
    ["url"] = {webhookCleanup, validateUnquoted}, -- An URL
    ["label"] = validateUnquoted, -- A device label
    ["os"] = validateNumber, -- An Operating System id
