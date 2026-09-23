@@ -751,6 +751,8 @@ void LocalHost::offlineSetMDNSInfo(char* const str) {
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSName(const char* mdns_n) {
+  if (!isValidMDNSName(mdns_n)) return;
+
   Host::offlineSetMDNSName(mdns_n);
   addDataToAssets((char*)"mdns_name", (char*)mdns_n);
 }
@@ -758,6 +760,8 @@ void LocalHost::offlineSetMDNSName(const char* mdns_n) {
 /* *************************************** */
 
 void LocalHost::offlineSetDHCPName(const char* dhcp_n) {
+  if (!isValidDHCPName(dhcp_n)) return;
+
   Host::offlineSetDHCPName(dhcp_n);
   addDataToAssets((char*)"dhcp_name", (char*)dhcp_n);
 }
@@ -775,6 +779,8 @@ void LocalHost::offlineSetDhcpFingerprint(const char* fingerprint) {
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
+  if (!isValidMDNSTXTName(mdns_n_txt)) return;
+
   Host::offlineSetMDNSTXTName(mdns_n_txt);
   addDataToAssets((char*)"mdns_txt_name", (char*)mdns_n_txt);
 }
@@ -782,6 +788,8 @@ void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
 /* *************************************** */
 
 void LocalHost::offlineSetNetbiosName(const char* netbios_n) {
+  if (!isValidNetBIOSName(netbios_n)) return;
+
   Host::offlineSetNetbiosName(netbios_n);
   addDataToAssets((char*)"netbios_name", (char*)netbios_n);
 }
@@ -789,13 +797,17 @@ void LocalHost::offlineSetNetbiosName(const char* netbios_n) {
 /* *************************************** */
 
 void LocalHost::offlineSetTLSName(const char* tls_n) {
-  Host::offlineSetHTTPName(tls_n);
+  if (!isValidTLSName(tls_n)) return;
+
+  Host::offlineSetTLSName(tls_n);
   addDataToAssets((char*)"tls_name", (char*)tls_n);
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetHTTPName(const char* http_n) {
+  if (!isValidHTTPName(http_n)) return;
+
   Host::offlineSetHTTPName(http_n);
   addDataToAssets((char*)"http_name", (char*)http_n);
 }
