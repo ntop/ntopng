@@ -140,7 +140,9 @@ local function schema_get_path(schema, tags)
       local prefix = HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")
       local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]] or ""
 
-      if (suffix ~= ifid) then
+      -- NOTE: site ids can match the ifid (e.g. site 0 on interface 0),
+      -- dropping site_a from the path would collide with another site directory
+      if (suffix ~= ifid) or (parts[1] == "site") then
          host_or_network = prefix .. suffix
       else
          -- Avoid repeating the ifid suffix in the path
