@@ -67,7 +67,7 @@ cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
 rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*.mmdb
 rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/as.csv
 
-mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+#mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 if test -d "$HOME/ntopng/pro"; then
    cd $HOME/ntopng/pro; make; cd -
    mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro
@@ -137,7 +137,7 @@ SRC=$RPM_BUILD_DIR/%{name}-%{version}
 /usr/share/ntop
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
-%config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+#%config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 #/etc/ntopng/ntopng.conf.sample
 #/etc/ntopng/ntopng.start
 #/usr/share/nmap/scripts/vulscan/vulscan.nse
@@ -203,7 +203,8 @@ fi
 TLS_DIR="/usr/share/ntopng/httpdocs/ssl"
 TLS_CERT_PATH="$TLS_DIR/ntopng-cert.pem"
 if [ ! -f "$TLS_CERT_PATH" ]; then
-    openssl req -new -x509 -sha1 -extensions v3_ca -nodes -days 365 -out $TLS_DIR/cert.pem -subj "/CN=ntopng.local"
+    mkdir -p $TLS_DIR
+    openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out $TLS_DIR/cert.pem -subj "/CN=ntopng.local" -addext "subjectAltName = DNS:ntopng.local"
     mv privkey.pem $TLS_CERT_PATH
     cat $TLS_DIR/cert.pem >> $TLS_CERT_PATH
     rm $TLS_DIR/cert.pem
