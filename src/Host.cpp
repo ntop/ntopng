@@ -1239,6 +1239,8 @@ void Host::setUserTags(u_int64_t bitmap) {
 #endif
 
   iface->setPersistentHostTags(this, bitmap);
+
+  setAssetUpdated();
 }
 
 /* *************************************** */
