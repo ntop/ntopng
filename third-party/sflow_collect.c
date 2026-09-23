@@ -2321,8 +2321,19 @@ static void mplsLabelStack(SFSample *sample, const char *fieldName)
   SFLLabelStack lstk;
   u_int32_t lab;
   lstk.depth = getData32(sample);
-  /* just point at the lablelstack array */
-  if(lstk.depth > 0) lstk.stack = (u_int32_t *)sample->datap;
+
+  /* SFABORT is a no-op in this build, so skipBytes()/getData32() cannot be
+     trusted to stop us reading past the sample buffer: validate depth
+     against what's actually left before pointing into it. */
+  if(lstk.depth > 0) {
+    u_int64_t remaining = ((u_char *)sample->datap < sample->endp) ?
+      (u_int64_t)(sample->endp - (u_char *)sample->datap) : 0;
+    if((u_int64_t)lstk.depth * 4 > remaining) {
+      sf_log("%s truncated/invalid depth=%u\n", fieldName, lstk.depth);
+      return;
+    }
+    lstk.stack = (u_int32_t *)sample->datap;
+  }
   /* and skip over it in the input */
   skipBytes(sample, lstk.depth * 4);
 
@@ -2455,8 +2466,19 @@ static void readExtendedVlanTunnel(SFSample *sample)
   u_int32_t lab;
   SFLLabelStack lstk;
   lstk.depth = getData32(sample);
-  /* just point at the lablelstack array */
-  if(lstk.depth > 0) lstk.stack = (u_int32_t *)sample->datap;
+
+  /* SFABORT is a no-op in this build, so skipBytes()/getData32() cannot be
+     trusted to stop us reading past the sample buffer: validate depth
+     against what's actually left before pointing into it. */
+  if(lstk.depth > 0) {
+    u_int64_t remaining = ((u_char *)sample->datap < sample->endp) ?
+      (u_int64_t)(sample->endp - (u_char *)sample->datap) : 0;
+    if((u_int64_t)lstk.depth * 4 > remaining) {
+      sf_log("vlan_tunnel truncated/invalid depth=%u\n", lstk.depth);
+      return;
+    }
+    lstk.stack = (u_int32_t *)sample->datap;
+  }
   /* and skip over it in the input */
   skipBytes(sample, lstk.depth * 4);
 
