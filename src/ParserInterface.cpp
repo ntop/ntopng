@@ -324,7 +324,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 #endif
     } else {
       /* Existing flow */
-      struct ndpi_in6_addr addr = flow->getExporterIP();
+      struct ndpi_in6_addr addr = flow->getOriginalExporterIP();
 
 #if defined(NTOPNG_PRO)
       incRoleBytes(zflow->in_pkts + zflow->in_bytes, main_role);
@@ -333,12 +333,12 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       if (ntop->getPrefs()->isFlowDedupEnabled() &&
           (memcmp(&addr, &zflow->exporter_device_ip, sizeof(struct ndpi_in6_addr)))) {
 #ifdef DEDUPLICATION_DEBUG
-        char b1[32], b2[32], buf[256];
+        char b1[64], b2[64], buf[256];
 
         ntop->getTrace()->traceEvent(
-            TRACE_NORMAL, "flow=%s vs exporter_ip=%s",
-            Utils::intoaV4(flow->getFlowDeviceIP(), b1, sizeof(b1)),
-            Utils::intoaV4(zflow->exporter_device_ip, b2, sizeof(b2)));
+            TRACE_NORMAL, "flow exporter_ip=%s vs exporter_ip=%s",
+            Utils::intoaV6(addr, b1, sizeof(b1)),
+            Utils::intoaV6(zflow->exporter_device_ip, b2, sizeof(b2)));
 
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s",
                                      flow->print(buf, sizeof(buf)));

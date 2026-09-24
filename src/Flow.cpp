@@ -72,6 +72,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   }
 
   collection = NULL;
+  primary_exporter = NULL;
   tcp_fingerprint = NULL, ndpi_fingerprint = NULL, tls_blocks = NULL;
   predominant_alert.id = flow_alert_normal,
   predominant_alert.category = alert_category_other,
@@ -10413,7 +10414,9 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
       d.in_role = d.out_role = role_other;
 #endif
 
-    exporterStats.emplace(key, d);
+    ExporterFlowInfo *e = &exporterStats.emplace(key, d).first->second;
+
+    if(!primary_exporter) primary_exporter = e;
   } else {
     // Present: nothing to do
   }
@@ -10466,132 +10469,112 @@ u_int16_t Flow::getDstNetworkSiteId() {
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getExporterIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.mapped_exporter_ip);
+    return(primary_exporter->mapped_exporter_ip);
   }
 };
 
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getOriginalExporterIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.exporter_ip);
+    return(primary_exporter->exporter_ip);
   }
 };
 
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getNextHopIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.mapped_next_hop);
+    return(primary_exporter->mapped_next_hop);
   }
 };
 
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getOriginalNextHopIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.next_hop);
+    return(primary_exporter->next_hop);
   }
 }
 
 /* *************************************** */
 
 u_int32_t Flow::getInIndex() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.in_index);
+    return(primary_exporter->in_index);
   }
 }
 
 /* *************************************** */
 
 u_int32_t Flow::getOutIndex() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.out_index);
+    return(primary_exporter->out_index);
   }
 }
 
 /* *************************************** */
 
 u_int16_t Flow::getExporterSiteId() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.exporter_site_id);
+    return(primary_exporter->exporter_site_id);
   }
 }
 
 /* *************************************** */
 
 u_int16_t Flow::getNextHopSiteId() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.next_hop_site_id);
+    return(primary_exporter->next_hop_site_id);
   }
 }
 
 /* *************************************** */
 
 SNMPInterfaceRole Flow::getInRole() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(role_other);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.in_role);
+    return(primary_exporter->in_role);
   }
 }
 
 /* *************************************** */
 
 SNMPInterfaceRole Flow::getOutRole() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(role_other);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.out_role);
+    return(primary_exporter->out_role);
   }
 }
 

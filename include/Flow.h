@@ -192,6 +192,7 @@ class Flow : public GenericHashEntry {
   Bitmap128 alerts_map;
 
   std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash> exporterStats;
+  ExporterFlowInfo *primary_exporter; /* First exporter in exporterStats (do not use begin() as it is not ordered) */
   std::map<FlowAlertTypeEnum, FlowAlert*> triggered_alerts;
   FlowAlertType predominant_alert;   /* This is the predominant alert */
   u_int16_t predominant_alert_score; /* The score associated to the predominant
