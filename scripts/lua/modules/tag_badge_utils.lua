@@ -218,6 +218,8 @@ function tag_badge_utils.deleteTag(id)
     if tags[id] then
         -- Remove tag from Redis
         ntop.delHashCache(get_redis_key(), id)
+
+        ntop.reloadTagsMapping()
     else
         return false, "Invalid ID"
     end
