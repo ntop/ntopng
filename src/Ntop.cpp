@@ -6183,4 +6183,9 @@ void Ntop::getTagsForProtocol(u_int16_t protocol, std::vector<int> &tags_out) {
     tagsMapping->getTagsForProtocol(protocol, tags_out);
 }
 
+void Ntop::getTagsForRisks(ndpi_risk flow_risks, std::vector<int> &tags_out) {
+  if(tagsMapping)
+    tagsMapping->getTagsForRisks(flow_risks, tags_out);
+}
+
 #endif

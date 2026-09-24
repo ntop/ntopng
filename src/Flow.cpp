@@ -3829,13 +3829,14 @@ u_int64_t Flow::getTags() {
 void Flow::setUserTags(u_int64_t bitmap) {
   /* Bits 0-31 are ntop-reserved */
   bitmap &= HOST_USER_TAGS_MASK;
-  user_tags_bitmap |= bitmap;
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Setting tag (0x%llx -> 0x%llx)",
                                (unsigned long long)user_tags_bitmap,
                                (unsigned long long)(user_tags_bitmap | bitmap));
 #endif
+
+  user_tags_bitmap |= bitmap;
 }
 
 /* *************************************** */
