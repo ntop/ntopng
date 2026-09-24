@@ -99,7 +99,10 @@ where the following can be changed:
 - **Description**: a free-text field to explain the purpose of the tag.
 - **Applications**: one or more network applications that automatically
   tag matching flows and hosts with this tag (Enterprise L or above). See
-  `Application-Based Tagging`_ below.
+  `Application- and Risk-Based Tagging`_ below.
+- **Flow Risks**: one or more flow risks that automatically tag matching
+  flows and hosts with this tag (Enterprise L or above), working just like
+  Applications above. See `Application- and Risk-Based Tagging`_ below.
 
 A user-defined tag can be reverted to its factory defaults (default name,
 black color, empty description) using the **Reset** action, which also
@@ -114,19 +117,22 @@ MAC) or by IP address and VLAN otherwise, so the assignment survives
 ntopng restarts and, for MAC-keyed hosts, host IP address changes (e.g. via
 DHCP).
 
-Application-Based Tagging
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Application- and Risk-Based Tagging
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
   Enterprise L license or above is required
 
 In addition to manual assignment, a user-defined tag can be bound to one
-or more network applications (i.e. nDPI protocols) directly from the tag
-edit dialog. Once one or more applications are associated with a tag,
-ntopng starts tagging automatically: every time a flow is classified as
-one of the linked applications, the flow itself is immediately tagged, and
-the same tag is persistently assigned to the flow's local client host,
-exactly as if it had been set by hand from that host's configuration page.
+or more network applications (i.e. nDPI protocols) and/or one or more flow
+risks, directly from the tag edit dialog. Once one or more applications
+and/or flow risks are associated with a tag, ntopng starts tagging
+automatically: every time a flow is classified as one of the linked
+applications, or raises one of the linked flow risks, the flow itself is
+immediately tagged, and the same tag is persistently assigned to the
+flow's local client host, exactly as if it had been set by hand from that
+host's configuration page. Flow risks work exactly like applications in
+every other respect described below.
 
 From that moment on the tag behaves just like any other user-defined tag
 and is visible wherever tags normally appear: on the matching flows in the
@@ -164,9 +170,10 @@ only describe the host itself, and would otherwise appear on every single
 flow involving that host, which would not be very informative (e.g. DNS
 server).
 
-In addition, a flow classified as an application bound to a tag (see
-`Application-Based Tagging`_) is tagged directly as soon as it is
-detected, regardless of the client/server union described above.
+In addition, a flow classified as an application, or raising a flow risk,
+bound to a tag (see `Application- and Risk-Based Tagging`_) is tagged
+directly as soon as it is detected, regardless of the client/server union
+described above.
 
 Where Tags Are Shown
 ^^^^^^^^^^^^^^^^^^^^
@@ -181,8 +188,8 @@ several places across the UI:
   not the current ones.
 - On the **Assets** page, as part of each asset's details: user-defined
   tags assigned to a host, manually or through
-  `Application-Based Tagging`_, are propagated to its corresponding entry
-  in the assets database.
+  `Application- and Risk-Based Tagging`_, are propagated to its
+  corresponding entry in the assets database.
 
 Tags can also be used to filter traffic and assets across the UI (e.g. in
 the Flows and Historical Flows, the Alerts Explorer, and the Assets page).
