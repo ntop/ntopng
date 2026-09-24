@@ -97,6 +97,9 @@ where the following can be changed:
 - **Name**: alphanumeric, no spaces, at least 2 characters long.
 - **Color**: the badge color used to render the tag everywhere in the UI.
 - **Description**: a free-text field to explain the purpose of the tag.
+- **Applications**: one or more network applications that automatically
+  tag matching flows and hosts with this tag (Enterprise L or above). See
+  `Application-Based Tagging`_ below.
 
 A user-defined tag can be reverted to its factory defaults (default name,
 black color, empty description) using the **Reset** action, which also
@@ -111,6 +114,46 @@ MAC) or by IP address and VLAN otherwise, so the assignment survives
 ntopng restarts and, for MAC-keyed hosts, host IP address changes (e.g. via
 DHCP).
 
+Application-Based Tagging
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note::
+  Enterprise L license or above is required
+
+In addition to manual assignment, a user-defined tag can be bound to one
+or more network applications (i.e. nDPI protocols) directly from the tag
+edit dialog. Once one or more applications are associated with a tag,
+ntopng starts tagging automatically: every time a flow is classified as
+one of the linked applications, the flow itself is immediately tagged, and
+the same tag is persistently assigned to the flow's local client host,
+exactly as if it had been set by hand from that host's configuration page.
+
+From that moment on the tag behaves just like any other user-defined tag
+and is visible wherever tags normally appear: on the matching flows in the
+Live Flows and Historical Flows pages, on the client host in the Hosts and
+Host Details pages and, being now an ordinary host tag, on the
+corresponding entry in the assets database - so the Assets page can be
+filtered by that tag to list every asset that has been observed using the
+linked application(s).
+
+This effectively turns a tag into a standing rule ("tag every host that
+talks a given application") that is kept up to date automatically, rather
+than a one-off manual annotation, making it a convenient way to build an
+inventory of hosts by behavior rather than by identity.
+
+**Example**: a network administrator wants to spot which PCs on the LAN
+are still accessing mail servers in plaintext instead of over the
+encrypted protocols the same mail server also supports - typically a sign
+of a misconfigured or outdated mail client. They edit tag 33, rename it to
+``UnsafeMail``, and associate it with the ``IMAP``, ``POP3`` and ``SMTP``
+applications, leaving their encrypted counterparts (``IMAPS``, ``POPS``,
+``SMTPS``) untagged. From that point on, every flow using one of the
+plaintext mail protocols is automatically tagged ``UnsafeMail``, and so is
+the host that generated it. The administrator can then open the Assets
+page, filter by the ``UnsafeMail`` tag, and get an always up-to-date list
+of the misconfigured PCs to fix, without having to hunt for them manually
+in the flow tables.
+
 Tags on Flows
 ^^^^^^^^^^^^^
 
@@ -120,6 +163,10 @@ as *DNS Server* or *Non PQC Compliant*, are not propagated to flows: they
 only describe the host itself, and would otherwise appear on every single
 flow involving that host, which would not be very informative (e.g. DNS
 server).
+
+In addition, a flow classified as an application bound to a tag (see
+`Application-Based Tagging`_) is tagged directly as soon as it is
+detected, regardless of the client/server union described above.
 
 Where Tags Are Shown
 ^^^^^^^^^^^^^^^^^^^^
@@ -132,9 +179,13 @@ several places across the UI:
   column. Since alerts are historical records, the tags shown are the ones
   that were active on the host/flow at the time the alert was generated,
   not the current ones.
+- On the **Assets** page, as part of each asset's details: user-defined
+  tags assigned to a host, manually or through
+  `Application-Based Tagging`_, are propagated to its corresponding entry
+  in the assets database.
 
-Tags can also be used to filter traffic across the UI (e.g. in the
-Flows and Historical Flows, and in the Alerts Explorer).
+Tags can also be used to filter traffic and assets across the UI (e.g. in
+the Flows and Historical Flows, the Alerts Explorer, and the Assets page).
 
 Using Tags for Notifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
