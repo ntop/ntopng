@@ -1174,6 +1174,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain() { return reload_hosts_bcast_domain; }
   void reloadHostsBlacklist();
+  u_int64_t getActiveHostsTags(AddressTree* allowed_hosts);
   void checkNetworksAlerts(vector<ScriptPeriodicity>* p, lua_State* vm);
   void checkInterfaceAlerts(vector<ScriptPeriodicity>* p, lua_State* vm);
   virtual bool areTrafficDirectionsSupported() { return (true); };

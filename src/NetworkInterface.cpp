@@ -11504,6 +11504,40 @@ void NetworkInterface::reloadHostsBlacklist() {
 
 /* *************************************** */
 
+struct hosts_tags_info {
+  AddressTree* allowed_hosts;
+  u_int64_t tags;
+};
+
+static bool host_get_tags(GenericHashEntry* host, void* user_data,
+                          bool* matched) {
+  Host* h = (Host*)host;
+  struct hosts_tags_info* info = (struct hosts_tags_info*)user_data;
+
+  if (!h->idle() && h->match(info->allowed_hosts)) {
+    info->tags |= h->getTags();
+    *matched = true;
+  }
+
+  return (false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+/* Return the OR of the tag bitmaps set on the active hosts, so that the GUI
+ * can list only the tags actually in use rather than every configurable one */
+u_int64_t NetworkInterface::getActiveHostsTags(AddressTree* allowed_hosts) {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  struct hosts_tags_info info = {allowed_hosts, 0};
+
+  walker(&begin_slot, walk_all, walker_hosts, host_get_tags, &info);
+
+  return (info.tags);
+}
+
+/* *************************************** */
+
 static bool host_reload_dhcp_host(GenericHashEntry* host, void* user_data,
                                   bool* matched) {
   Host* h = (Host*)host;
