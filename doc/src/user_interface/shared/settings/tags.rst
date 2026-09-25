@@ -150,15 +150,39 @@ inventory of hosts by behavior rather than by identity.
 **Example**: a network administrator wants to spot which PCs on the LAN
 are still accessing mail servers in plaintext instead of over the
 encrypted protocols the same mail server also supports - typically a sign
-of a misconfigured or outdated mail client. They edit tag 33, rename it to
-``UnsafeMail``, and associate it with the ``IMAP``, ``POP3`` and ``SMTP``
-applications, leaving their encrypted counterparts (``IMAPS``, ``POPS``,
-``SMTPS``) untagged. From that point on, every flow using one of the
-plaintext mail protocols is automatically tagged ``UnsafeMail``, and so is
-the host that generated it. The administrator can then open the Assets
-page, filter by the ``UnsafeMail`` tag, and get an always up-to-date list
-of the misconfigured PCs to fix, without having to hunt for them manually
-in the flow tables.
+of a misconfigured or outdated mail client.
+
+1. From the *Tags* page, pick one of the customizable tags (e.g.
+   ``Customizable_Tag_62``) and click its edit (gear) icon.
+
+   .. figure:: ../../../img/tags_page_listing.png
+     :align: center
+     :alt: Tags page listing built-in and user-defined tags
+
+2. Rename it to ``UnsafeMail``, pick a color, and in the **Applications**
+   field add ``IMAP``, ``POP3`` and ``SMTP``, leaving their encrypted
+   counterparts (``IMAPS``, ``POPS``, ``SMTPS``) out. Save.
+
+   .. figure:: ../../../img/tags_edit_applications.png
+     :align: center
+     :alt: Tag edit dialog with IMAP, POP3 and SMTP added to the Applications field
+
+3. As soon as any host on the network exchanges mail over one of the
+   three plaintext protocols, ntopng tags both the flow and the client
+   host ``UnsafeMail`` - visible right away on that host's Host Details
+   page.
+
+   .. figure:: ../../../img/tags_host_details_badge.png
+     :align: center
+     :alt: Host Details page showing the UnsafeMail tag badge
+
+4. Open the **Assets** page and filter by the ``UnsafeMail`` tag to get
+   the full, always up-to-date list of misconfigured hosts network-wide,
+   without having to hunt for them manually in the flow tables.
+
+   .. figure:: ../../../img/tags_assets_filtered.png
+     :align: center
+     :alt: Assets Inventory page filtered by the UnsafeMail tag
 
 Tags on Flows
 ^^^^^^^^^^^^^
