@@ -2124,7 +2124,8 @@ setInterval(update_icmp_table, 5000);
    elseif (page == "config") then
       local context = {
          ifid = tonumber(getSystemInterfaceId()),
-         csrf = random_csrf
+         csrf = random_csrf,
+         is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
       }
       local json_context = json.encode(context)
       template.render("pages/vue_page.template", {
