@@ -23,13 +23,20 @@
 
 nProbeStats::nProbeStats() {
   nprobe_source_id = num_exporters = remote_ifspeed = remote_time = local_time =
-      avg_bps = avg_pps = remote_lifetime_timeout = remote_idle_timeout =
-          remote_collected_lifetime_timeout = export_queue_full =
-              too_many_flows = elk_flow_drops = sflow_pkt_sample_drops =
-                  flow_collection_drops = flow_collection_udp_socket_drops = 0;
+    avg_bps = avg_pps = remote_lifetime_timeout = remote_idle_timeout =
+    remote_collected_lifetime_timeout = export_queue_full =
+    too_many_flows = elk_flow_drops = sflow_pkt_sample_drops =
+    flow_collection_drops = flow_collection_udp_socket_drops = 0;
 
-  remote_bytes = remote_pkts = num_flow_exports = 0;
+  last_update = remote_pkts = remote_pkt_drops = num_flow_exports = 0;
+  remote_bytes = 0;
   memset(&flow_collection, 0, sizeof(flow_collection));
+
+  remote_ifname[0] = remote_ifaddress[0] = remote_probe_address[0] =
+    remote_probe_public_address[0] = uuid[0] = remote_probe_version[0] =
+    remote_probe_os[0] = remote_probe_license[0] =
+    remote_probe_edition[0] = remote_probe_maintenance[0] =
+    mode[0] = '\0';
 }
 
 /* *************************************** */
