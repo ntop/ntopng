@@ -5291,6 +5291,21 @@ static int ntop_interface_get_host_tags(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Returns the OR of the tag bitmaps of the active hosts.  Lua: interface.getActiveHostsTags() → integer */
+static int ntop_interface_get_active_hosts_tags(lua_State* vm) {
+  NetworkInterface* iface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!iface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  lua_pushinteger(vm, (lua_Integer)iface->getActiveHostsTags(get_allowed_nets(vm)));
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_get_user_defined_host_tags(lua_State* vm) {
   NetworkInterface* iface = getCurrentInterface(vm);
   Host *host;
@@ -6663,6 +6678,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"triggerTrafficAlert", ntop_interface_trigger_traffic_alert},
     {"getHostAttributes", ntop_interface_get_host_attributes},
     {"getHostTags", ntop_interface_get_host_tags},
+    {"getActiveHostsTags", ntop_interface_get_active_hosts_tags},
     {"getUserDefinedHostTags", ntop_interface_get_user_defined_host_tags},
     {"setHostTags", ntop_interface_set_host_tags},
 

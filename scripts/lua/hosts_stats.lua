@@ -55,7 +55,9 @@ if page == "active_hosts" then
         ifid = interface.getId(),
         has_vlans = (vlans ~= nil),
         csrf = ntop.getRandomCSRFValue(),
-        isNedge = have_nedge
+        isNedge = have_nedge,
+        is_admin = isAdministrator(),
+        is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false,
     })
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageHostsList", page_context = json_context })
 elseif page == "local_hosts_report" then
