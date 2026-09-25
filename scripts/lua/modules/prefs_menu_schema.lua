@@ -2834,6 +2834,15 @@ function M.get_sections(flags)
             max_num_pollers = snmp_config.max_num_configured_devices()
         end
     end
+    
+    local snmp_devices_all_mibs_max_num = 0
+
+    if is_enterprise_m then
+        local snmp_config = require("snmp_config")
+        if snmp_config then
+            snmp_devices_all_mibs_max_num = snmp_config.max_num_configured_devices()
+        end
+    end
 
     -- SNMP
     sections[#sections + 1] = {
@@ -2888,6 +2897,19 @@ function M.get_sections(flags)
             attrs = {
                 min = "8",
                 max = string.format("%s", max_num_pollers)
+            },
+            hidden = (not (is_enterprise_m or have_nedge))
+        }, {
+            key = "snmp_devices_all_mibs_max_num",
+            title = i18n("prefs.snmp_devices_all_mibs_max_num_title"),
+            description = i18n("prefs.snmp_devices_all_mibs_max_num_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.snmp.snmp_devices_all_mibs_max_num",
+            default = string.format("%s", 256),
+            attrs = {
+                min = "1",
+                max = string.format("%s", snmp_devices_all_mibs_max_num)
             },
             hidden = (not (is_enterprise_m or have_nedge))
         }, {
