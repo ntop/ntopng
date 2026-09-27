@@ -4776,9 +4776,8 @@ void NetworkInterface::periodicStatsUpdate() {
   pkts_thpt.updateStats(&tv, getNumPackets());
   ethStats.updateStats(&tv);
 
-  download_stats->addPoint((u_int32_t)ethStats.getIngressBytesThpt() / 1000);
-  upload_stats->addPoint((u_int32_t)ethStats.getEgressBytesThpt() /
-                         1000); /* Use KB instead of Bytes */
+  download_stats->addPoint((u_int32_t)(ethStats.getIngressBytesThpt() / 1000));
+  upload_stats->addPoint((u_int32_t)(ethStats.getEgressBytesThpt() / 1000)); /* Use KB instead of Bytes */
 
   if (ndpiStats) ndpiStats->updateStats(&tv);
 
