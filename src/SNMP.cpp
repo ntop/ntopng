@@ -266,10 +266,17 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
         lua_push_str_table_entry(vm, rsp_oid, response);
       } break;
 
+    case ASN_OPAQUE_FLOAT:
+      float value = *(vp->val.floatVal);
+
+      lua_push_float_table_entry(vm, rsp_oid, value);
+      break;
+	  
       case ASN_APPLICATION:
       case ASN_NULL:
         if (!table_added) lua_newtable(vm), table_added = true;
         break;
+	
       default:
         ntop->getTrace()->traceEvent(TRACE_WARNING,
                                      "Missing %d type handler [agent: %s][OID: %s]",
