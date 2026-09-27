@@ -88,12 +88,17 @@ void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
   ndpi_protocol_category_t id;
   ndpi_protocol_breed_t breed;
 
-  if (ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str), &id,
-                                     &breed) == 0) {
-    ndpi_protocol_category_t category =
-        (ndpi_protocol_category_t)(((u_int16_t)id) &
-                                   0xFF); /* See Ntop::nDPILoadHostnameCategory
-                                           */
+  if (ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
+				     &id, &breed) == 0) {
+    ndpi_protocol_category_t category;
+    u_int16_t masked_id = ((u_int16_t)id) & 0xFF; /* See Ntop::nDPILoadHostnameCategory */
+
+    if (masked_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
+      category = (ndpi_protocol_category_t)masked_id;
+    } else {
+      // Fallback if the extracted ID is not a valid enum member
+      category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+    }
 
     if (category == NDPI_PROTOCOL_CATEGORY_MALWARE) addr.blacklistedIP = true;
   }

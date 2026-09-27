@@ -1746,9 +1746,16 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
       In Ntop::nDPILoadIPCategory
        u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
     */
-    u_int16_t c = (u_int16_t)proto_id.category;
-    // u_int16_t list_id = c >> 8;
-    ndpi_protocol_category_t cat_id = (ndpi_protocol_category_t)(c & 0xFF);
+    // 1. Safely extract the masked integer value
+    u_int16_t masked_c = ((u_int16_t)proto_id.category) & 0xFF;
+    ndpi_protocol_category_t cat_id;
+
+    if (masked_c < NDPI_PROTOCOL_NUM_CATEGORIES) {
+      cat_id = (ndpi_protocol_category_t)masked_c;
+    } else {
+      // Fallback value for an unknown/invalid category
+      cat_id = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+    }
 
     ndpiDetectedProtocol.category = cat_id;
   }
