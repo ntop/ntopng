@@ -95,6 +95,7 @@ void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
 
     if (masked_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
       category = (ndpi_protocol_category_t)masked_id;
+      category = static_cast<ndpi_protocol_category_t>(masked_id);
     } else {
       // Fallback if the extracted ID is not a valid enum member
       category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;

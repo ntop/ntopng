@@ -1751,7 +1751,7 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
     ndpi_protocol_category_t cat_id;
 
     if (masked_c < NDPI_PROTOCOL_NUM_CATEGORIES) {
-      cat_id = (ndpi_protocol_category_t)masked_c;
+      cat_id = static_cast<ndpi_protocol_category_t>(masked_c);
     } else {
       // Fallback value for an unknown/invalid category
       cat_id = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
@@ -10161,13 +10161,12 @@ bool Flow::isValidDomainName(const char* domain) {
 
 /* *************************************** */
 
-const char* Flow::getDomainName() {
+const char* Flow::getDomainName(char *buf, u_int buf_len) {
   const char* domain;
   char* server_name = getRequestedServerName();
-  char buf[128];
 
   if (!server_name) {
-    srv_host->get_name(buf, sizeof(buf), false);
+    srv_host->get_name(buf, buf_len, false);
     server_name = buf;
   }
 

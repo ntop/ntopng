@@ -589,7 +589,7 @@ class Flow : public GenericHashEntry {
   void updateAlertsJSON();
   inline char* getAlertJSON() { return alerts_json; };
   char *getRequestedServerName();
-  const char *getDomainName();
+  const char *getDomainName(char *buf, u_int buf_len);
   static bool isValidDomainName(const char *domain);
   void callFlowUpdate(time_t t);
   void setProtocolJSONInfo();
