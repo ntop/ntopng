@@ -22,6 +22,7 @@ local field_units = {
    ports = "field_units.ports",
    macs = "field_units.macs",
    exceptions = "field_units.exceptions",
+   errors = "field_units.errors",
    domains = "field_units.domains"
 }
 
