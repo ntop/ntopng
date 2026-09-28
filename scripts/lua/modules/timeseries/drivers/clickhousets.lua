@@ -743,6 +743,8 @@ end
 --! user.
 function driver:deleteOldData(ifid)
    local data_retention_utils = require "data_retention_utils"
+   local clickhouse_partition_utils = require "clickhouse_partition_utils"
+
    local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays() or 365
 
    -- Compute the cutoff epoch, aligned to the start of the day.
@@ -755,30 +757,13 @@ function driver:deleteOldData(ifid)
    -- <= the cutoff date (data on that day is entirely outside the window).
    local cutoff_yyyymmdd = tonumber(os.date("%Y%m%d", cutoff))
 
-   local find_sql = string.format(
-      "SELECT DISTINCT database, table, toUInt32OrZero(partition) AS drop_part"
-      .. " FROM system.parts"
-      .. " WHERE active"
-      .. "   AND database = '%s'"
-      .. "   AND table    = '%s'"
-      .. "   AND drop_part <= %u"
-      .. "   AND drop_part > 999999",  -- guard against unexpected partition formats
-      ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME), cutoff_yyyymmdd)
+   for _, tbl in ipairs(clickhouse_partition_utils.getDailyPartitionedTables(self.db, CH_TS_TABLE_NAME)) do
+      local dropped = clickhouse_partition_utils.dropOldPartitions(self.db, tbl, cutoff_yyyymmdd)
 
-   local partitions = ch_query(find_sql) or {}
-
-   for _, row in ipairs(partitions) do
-      local drop_sql = string.format(
-         "ALTER TABLE `%s`.`%s` DROP PARTITION '%s'",
-         ch_escape(row["database"]),
-         ch_escape(row["table"]),
-         ch_escape(tostring(row["drop_part"])))
-
-      traceError(TRACE_INFO, TRACE_CONSOLE,
-         string.format("[ClickHouse TS] Dropping partition %s (cutoff: %u)",
-            tostring(row["drop_part"]), cutoff_yyyymmdd))
-
-      ch_write(drop_sql)
+      for _, part in ipairs(dropped) do
+         traceError(TRACE_INFO, TRACE_CONSOLE,
+            string.format("[ClickHouse TS] Dropped partition %u (cutoff: %u)", part, cutoff_yyyymmdd))
+      end
    end
 
    return true
@@ -933,8 +918,8 @@ function driver.init(dbname, verbose)
          string.format("[ClickHouse TS] Initialising driver (db=%s)", dbname))
    end
 
-   -- Verify connectivity: a lightweight query against system tables.
-   local res = ch_query("SELECT 1 AS ok FROM system.parts LIMIT 1")
+   -- Verify connectivity
+   local res = ch_query("SELECT 1 AS ok")
    if not res then
       local err = "[ClickHouse TS] Cannot reach ClickHouse (execSQLQuery returned nil)"
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)

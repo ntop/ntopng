@@ -2525,6 +2525,19 @@ static int ntop_clickhouse_enabled(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Returns the most recent errors reported by ClickHouse (newest first).  Lua: ntop.getClickHouseRecentErrors() → table { {epoch, message}, ... } */
+static int ntop_clickhouse_recent_errors(lua_State* vm) {
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
+  ClickHouseDB::luaRecentErrors(vm);
+#else
+  lua_newtable(vm);
+#endif
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 // *** API ***
 /* @brief Issues an HTTP 302 redirect to the given URL (for page-level Lua scripts).  Lua: ntop.httpRedirect(url) → nil */
 static int ntop_http_redirect(lua_State* vm) {
@@ -9564,6 +9577,7 @@ static luaL_Reg _ntop_reg[] = {
 
     /* ClickHouse */
     {"isClickHouseEnabled", ntop_clickhouse_enabled},
+    {"getClickHouseRecentErrors", ntop_clickhouse_recent_errors},
 
     /* Data Binning */
     {"addBin", ntop_add_bin},
