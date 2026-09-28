@@ -712,7 +712,7 @@ end
 --! @brief Health reflects ClickHouse reachability (same signal as the TS driver).
 function driver:get_health()
    local res = interface.execSQLQuery(
-      "SELECT 1 AS ok FROM system.parts LIMIT 1", false, false)
+      "SELECT 1 AS ok", false, false)
    return (type(res) == "table") and "green" or "yellow"
 end
 
