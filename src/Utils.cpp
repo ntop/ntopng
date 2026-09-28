@@ -1818,11 +1818,13 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
     if (max_duration_timeout)
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, max_duration_timeout);
 
-    // Set a hard restriction to ONLY allow HTTP and HTTPS transfers
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-
-    // Set a hard restriction for redirect schemes if CURLOPT_FOLLOWLOCATION is enabled
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     res = curl_easy_perform(curl);
 
@@ -1922,11 +1924,13 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
     if (max_duration_timeout)
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, max_duration_timeout);
 
-    // Set a hard restriction to ONLY allow HTTP and HTTPS transfers
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-
-    // Set a hard restriction for redirect schemes if CURLOPT_FOLLOWLOCATION is enabled
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     res = curl_easy_perform(curl);
 
@@ -2041,11 +2045,13 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
 
     if (vm) lua_newtable(vm);
 
-    // Set a hard restriction to ONLY allow HTTP and HTTPS transfers
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-
-    // Set a hard restriction for redirect schemes if CURLOPT_FOLLOWLOCATION is enabled
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     res = curl_easy_perform(curl);
 
@@ -2181,11 +2187,13 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
       curl_easy_setopt(curl, CURLOPT_DEBUGDATA, upload_ctx);
     }
 
-    // Set a hard restriction to ONLY allow HTTP and HTTPS transfers
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-
-    // Set a hard restriction for redirect schemes if CURLOPT_FOLLOWLOCATION is enabled
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     res = curl_easy_perform(curl);
     ret_str = curl_easy_strerror(res);
@@ -2607,11 +2615,13 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
 
     if (vm) lua_newtable(vm);
 
-    // Set a hard restriction to ONLY allow HTTP and HTTPS transfers
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-
-    // Set a hard restriction for redirect schemes if CURLOPT_FOLLOWLOCATION is enabled
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     curlcode = curl_easy_perform(curl);
 
@@ -2753,11 +2763,13 @@ long Utils::httpGet(const char* url,
              PACKAGE_OS);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
 
-    // Set a hard restriction to ONLY allow HTTP and HTTPS transfers
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-
-    // Set a hard restriction for redirect schemes if CURLOPT_FOLLOWLOCATION is enabled
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     if (curl_easy_perform(curl) == CURLE_OK) {
       if ((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) !=
