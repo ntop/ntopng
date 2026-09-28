@@ -489,6 +489,12 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_source_id, num_export
       url = timeseries_url,
       label = "<i class=\"fas fa-lg fa-chart-area\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("prefs.timeseries") .. "\"></i>"
    }, {
+      active = page == "historical_probe",
+      page_name = "historical_probe",
+      hidden = page ~= "nprobe",
+      url = timeseries_url,
+      label = "<i class=\"fas fa-lg fa-chart-area\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("prefs.timeseries") .. "\"></i>"
+   }, {
       active = page == "config",
       page_name = "config",
       hidden = isEmptyString(ip) or (probe_ip == ip),

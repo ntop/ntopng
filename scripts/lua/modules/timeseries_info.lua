@@ -51,6 +51,7 @@ local timeseries_id = {
     infrastructure = "infrastructure",
     blacklist = "blacklist",
     site = "site",
+    probe = "probe",
 }
 
 -- #################################
@@ -121,6 +122,8 @@ local function getTimeseriesFromModules(tags, prefix, ts_options)
         module_name = "ts_blacklist"
     elseif prefix == timeseries_id.site then
         module_name = "ts_sites"
+    elseif prefix == timeseries_id.probe then
+        module_name = "ts_probes"
     end
 
     if not module_name or not package.searchpath(module_name, package.path) then
