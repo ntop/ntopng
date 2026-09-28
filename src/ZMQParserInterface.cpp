@@ -637,7 +637,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
     }
 
     if (json_object_object_get_ex(o, "drops", &w)) {
-      if (json_object_object_get_ex(w, "export_queue_full", &z))
+      if (json_object_object_get_ex(w, "export_queue_too_long", &z) ||
+          json_object_object_get_ex(w, "export_queue_full", &z) /* Old name */)
         zrs.export_queue_full = (u_int32_t)json_object_get_int64(z);
 
       if (json_object_object_get_ex(w, "too_many_flows", &z))
