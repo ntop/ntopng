@@ -22,7 +22,7 @@ local alert_modbus_unexpected_function_code = classes.class(alert)
 
 alert_modbus_unexpected_function_code.meta = {
    alert_key = flow_alert_keys.flow_alert_modbus_unexpected_function_code,
-   i18n_title = "flow_checks.modbus_invalid_function_code",
+   i18n_title = "flow_checks.modbus_unexpected_function_code_title",
    icon = "fas fa-fw fa-subway",
 
    -- Mitre Att&ck Matrix values
