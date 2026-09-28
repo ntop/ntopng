@@ -22,7 +22,7 @@ local alert_s7comm_unexpected_function_code = classes.class(alert)
 
 alert_s7comm_unexpected_function_code.meta = {
    alert_key = flow_alert_keys.flow_alert_s7comm_unexpected_function_code,
-   i18n_title = "flow_checks.s7comm_invalid_function_code",
+   i18n_title = "flow_checks.s7comm_unexpected_function_code_title",
    icon = "fas fa-fw fa-industry",
 
    -- Mitre Att&ck Matrix values
