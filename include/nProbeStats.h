@@ -65,6 +65,7 @@ class nProbeStats {
  public:
   char remote_ifname[32];
   char remote_ifaddress[64];
+  char remote_collector_address[64];
   char remote_probe_address[64];
   char remote_probe_public_address[64];
   char uuid[36];
@@ -82,6 +83,7 @@ class nProbeStats {
   u_int32_t remote_pkt_drops;
   u_int32_t num_flow_exports;
   u_int32_t remote_ifspeed;
+  u_int16_t remote_collector_port;
   u_int32_t remote_time;
   u_int32_t local_time;
   u_int32_t avg_bps;

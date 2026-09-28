@@ -495,7 +495,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
 
   if (polling_start_time == 0) polling_start_time = (u_int32_t)time(NULL);
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[ZMQ][stats][%s] %s", get_name(), payload);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ZMQ][stats][%s] %s", get_name(), payload);
 
   o = json_tokener_parse_verbose(payload, &jerr);
 
@@ -519,6 +519,15 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
         zrs.remote_ifspeed = (u_int32_t)json_object_get_int64(z);
       if (json_object_object_get_ex(w, "ip", &z))
         snprintf(zrs.remote_ifaddress, sizeof(zrs.remote_ifaddress), "%s",
+                 json_object_get_string(z));
+    }
+
+    if (json_object_object_get_ex(o, "collector", &w)) {
+      if (json_object_object_get_ex(w, "port", &z))
+        zrs.remote_collector_port = (u_int16_t)json_object_get_int(z);
+      if (json_object_object_get_ex(w, "ip", &z))
+        snprintf(zrs.remote_collector_address,
+                 sizeof(zrs.remote_collector_address), "%s",
                  json_object_get_string(z));
     }
 
@@ -725,7 +734,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
         TRACE_NORMAL,
         "Event parsed "
         "[iface: {name: %s, speed: %u, ip: %s}]"
-        "[probe: {public_ip: %s, ip: %s, version: %s, os: %s, license: %s, "
+        "[collector: {port: %u, ip: %s}]"
+        "[probe:{public_ip: %s, ip: %s, version: %s, os: %s, license: %s, "
         "edition: %s, maintenance: %s}]"
         "[avg: {bps: %u, pps: %u}]"
         "[remote: {time: %u, bytes: %u, packets: %u, drops: %u, idle_timeout: "
@@ -734,6 +744,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
         " collected_lifetime_timeout: %u }]"
         "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
         zrs.remote_ifname, zrs.remote_ifspeed, zrs.remote_ifaddress,
+        zrs.remote_collector_port, zrs.remote_collector_address,
         zrs.remote_probe_version, zrs.remote_probe_os, zrs.remote_probe_license,
         zrs.remote_probe_edition, zrs.remote_probe_maintenance,
         zrs.remote_probe_public_address, zrs.remote_probe_address, zrs.avg_bps,

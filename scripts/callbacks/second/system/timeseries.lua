@@ -168,15 +168,16 @@ for i = 1, num_runs do
 
 		-- Now add probes stats
 		if ifstats.probes then
-			for interface_id, probes_list in pairs(ifstats.probes or {}) do
-				for source_id, probe_info in pairs(probes_list or {}) do
-               local probe_interface = ""
-					if probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then
-                  probe_interface = probe_info["remote.name"] or ""
-						-- Packet mode (cento or nprobe)
-					else
-						-- Flows mode (nprobe)
-					end
+		   for interface_id, probes_list in pairs(ifstats.probes or {}) do
+		      for source_id, probe_info in pairs(probes_list or {}) do
+                         local probe_interface = ""
+			 if probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then
+		            -- Packet mode (cento or nprobe)
+                            probe_interface = probe_info["remote.name"] or ""
+		         else
+			    -- Flows mode (nprobe)
+                            probe_interface = tostring(probe_info["remote.collector_port"] or "")
+		         end
 
                ts_utils.append("probe:traffic", {
                   ifid = interface_id,
@@ -205,9 +206,10 @@ for i = 1, num_runs do
                   interface_name =  probe_interface,
                   active_flows = (probe_info["active_flows"] or 0),
                }, when)
-				end
-			end
-		end
+
+		      end
+		   end
+	        end
 	end, true --[[ update direction stats ]])
 
 	-- Save ZMQ stats correctly for view interfaces
