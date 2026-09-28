@@ -10168,7 +10168,7 @@ const char* Flow::getDomainName(char *buf, u_int buf_len) {
   const char* domain;
   char* server_name = getRequestedServerName();
 
-  if (!server_name) {
+  if((!server_name) && (srv_host != NULL)) {
     srv_host->get_name(buf, buf_len, false);
     server_name = buf;
   }
