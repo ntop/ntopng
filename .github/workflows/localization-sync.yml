@@ -4,8 +4,6 @@ name: Localization Sync
 # To push straight to `dev` instead (no review step), flip LOCALIZATION_DIRECT_COMMIT
 # below to "true".
 on:
-  schedule:
-    - cron: "0 1 * * *"
   workflow_dispatch:
 
 concurrency:
