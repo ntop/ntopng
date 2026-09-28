@@ -1747,9 +1747,12 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
        u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
     */
     // 1. Safely extract the masked integer value
-    u_int16_t masked_c = ((u_int16_t)proto_id.category) & 0xFF;
+    u_int16_t masked_c;
     ndpi_protocol_category_t cat_id;
 
+    memcpy(&masked_c, &proto_id.category, sizeof(u_int16_t)); /* Avoid runtime errors */
+    masked_c &= 0xFF;
+    
     if (masked_c < NDPI_PROTOCOL_NUM_CATEGORIES) {
       cat_id = static_cast<ndpi_protocol_category_t>(masked_c);
     } else {

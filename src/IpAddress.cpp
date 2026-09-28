@@ -85,11 +85,11 @@ void IpAddress::set(union usa* ip) {
 void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
   char ipbuf[64];
   char* ip_str = print(ipbuf, sizeof(ipbuf));
-  ndpi_protocol_category_t id;
+  u_int16_t id;
   ndpi_protocol_breed_t breed;
 
   if (ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
-				     &id, &breed) == 0) {
+				     (ndpi_protocol_category_t*)&id, &breed) == 0) {
     ndpi_protocol_category_t category;
     u_int16_t masked_id = ((u_int16_t)id) & 0xFF; /* See Ntop::nDPILoadHostnameCategory */
 
