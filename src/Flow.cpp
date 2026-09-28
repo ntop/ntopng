@@ -10162,10 +10162,14 @@ bool Flow::isValidDomainName(const char* domain) {
 /* *************************************** */
 
 const char* Flow::getDomainName() {
-  char* server_name = getRequestedServerName();
   const char* domain;
+  char* server_name = getRequestedServerName();
+  char buf[128];
 
-  if (!server_name) return (NULL);
+  if (!server_name) {
+    srv_host->get_name(buf, sizeof(buf), false);
+    server_name = buf;
+  }
 
   domain = ndpi_get_host_domain(iface->get_ndpi_struct(), server_name);
 
