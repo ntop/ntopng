@@ -8148,6 +8148,30 @@ DeviceType Utils::osType2deviceType(ndpi_os t) {
 
 /* ******************************************* */
 
+/* Indexed by HOST_SERVICE_* (see ntop_defines.h) */
+static const char* host_service_names[NUM_HOST_SERVICES + 1] = {
+  NULL,       /* 0 (unused)            */
+  "dhcp",     /* HOST_SERVICE_DHCP     */
+  "dns",      /* HOST_SERVICE_DNS      */
+  "ntp",      /* HOST_SERVICE_NTP      */
+  "smtp",     /* HOST_SERVICE_SMTP     */
+  "imap",     /* HOST_SERVICE_IMAP     */
+  "pop",      /* HOST_SERVICE_POP      */
+  "http",     /* HOST_SERVICE_HTTP     */
+  "ssh",      /* HOST_SERVICE_SSH      */
+  "rdp",      /* HOST_SERVICE_RDP      */
+  "modbus",   /* HOST_SERVICE_MODBUS   */
+  "s7comm",   /* HOST_SERVICE_S7COMM   */
+  "profinet", /* HOST_SERVICE_PROFINET */
+};
+
+const char* Utils::hostService2str(int service_enum) {
+  if ((service_enum <= 0) || (service_enum > NUM_HOST_SERVICES)) return (NULL);
+  return (host_service_names[service_enum]);
+}
+
+/* ******************************************* */
+
 const char* Utils::deviceType2str(DeviceType devtype) {
   switch (devtype) {
     case device_printer:

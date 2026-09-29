@@ -450,6 +450,7 @@ typedef enum {
 #define MAX_NUM_LOCAL_NETWORKS 1024
 #define CONST_MAX_NUM_CHECKPOINTS 4
 
+/* Keep in sync with Utils::hostService2str */
 #define HOST_SERVICE_DHCP 0x01
 #define HOST_SERVICE_DNS 0x02
 #define HOST_SERVICE_NTP 0x03

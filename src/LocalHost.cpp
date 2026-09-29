@@ -698,48 +698,13 @@ void LocalHost::lua_get_fingerprints(lua_State* vm) {
 void LocalHost::setService(int service_enum) {
   Host::setService(service_enum);
 
-  const char* service_name = NULL;
+  const char* service_name = Utils::hostService2str(service_enum);
 
-  switch (service_enum) {
-    case HOST_SERVICE_DHCP:
-      service_name = "dhcp_server";
-      break;
-    case HOST_SERVICE_DNS:
-      service_name = "dns_server";
-      break;
-    case HOST_SERVICE_NTP:
-      service_name = "ntp_server";
-      break;
-    case HOST_SERVICE_SMTP:
-      service_name = "smtp_server";
-      break;
-    case HOST_SERVICE_IMAP:
-      service_name = "imap_server";
-      break;
-    case HOST_SERVICE_POP:
-      service_name = "pop_server";
-      break;
-    case HOST_SERVICE_HTTP:
-      service_name = "http_server";
-      break;
-    case HOST_SERVICE_SSH:
-      service_name = "ssh_server";
-      break;
-    case HOST_SERVICE_RDP:
-      service_name = "rdp_server";
-      break;
-    case HOST_SERVICE_MODBUS:
-      service_name = "modbus_server";
-      break;
-    case HOST_SERVICE_S7COMM:
-      service_name = "s7comm_server";
-      break;
-    case HOST_SERVICE_PROFINET:
-      service_name = "profinet_server";
-      break;
+  if (service_name) {
+    char key[64];
+    snprintf(key, sizeof(key), "%s_server", service_name);
+    addDataToAssets(key, (char*)"true");
   }
-
-  if (service_name) addDataToAssets((char*)service_name, (char*)"true");
 }
 
 /* *************************************** */

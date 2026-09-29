@@ -715,30 +715,11 @@ void Host::lua_get_services(lua_State* vm) const {
 
   lua_newtable(vm);
 
-  if (providesService(HOST_SERVICE_DHCP))
-    lua_push_bool_table_entry(vm, "dhcp", true);
-  if (providesService(HOST_SERVICE_DNS))
-    lua_push_bool_table_entry(vm, "dns", true);
-  if (providesService(HOST_SERVICE_NTP))
-    lua_push_bool_table_entry(vm, "ntp", true);
-  if (providesService(HOST_SERVICE_SMTP))
-    lua_push_bool_table_entry(vm, "smtp", true);
-  if (providesService(HOST_SERVICE_IMAP))
-    lua_push_bool_table_entry(vm, "imap", true);
-  if (providesService(HOST_SERVICE_POP))
-    lua_push_bool_table_entry(vm, "pop", true);
-  if (providesService(HOST_SERVICE_HTTP))
-    lua_push_bool_table_entry(vm, "http", true);
-  if (providesService(HOST_SERVICE_SSH))
-    lua_push_bool_table_entry(vm, "ssh", true);
-  if (providesService(HOST_SERVICE_RDP))
-    lua_push_bool_table_entry(vm, "rdp", true);
-  if (providesService(HOST_SERVICE_MODBUS))
-    lua_push_bool_table_entry(vm, "modbus", true);
-  if (providesService(HOST_SERVICE_S7COMM))
-    lua_push_bool_table_entry(vm, "s7comm", true);
-  if (providesService(HOST_SERVICE_PROFINET))
-    lua_push_bool_table_entry(vm, "profinet", true);
+  for (int i = 1; i <= NUM_HOST_SERVICES; i++) {
+    const char* service_name;
+    if (providesService(i) && (service_name = Utils::hostService2str(i)))
+      lua_push_bool_table_entry(vm, service_name, true);
+  }
 
   lua_pushstring(vm, "services");
   lua_insert(vm, -2);
