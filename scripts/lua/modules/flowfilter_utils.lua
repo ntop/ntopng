@@ -1318,6 +1318,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
         label = filter_def.i18n_label,
         value_type = filter_def.value_type,
         value_label = filter_def.value_i18n_label or filter_def.i18n_label,
+        help = i18n("db_search.flowfilters_descr." .. id),
         operators = {},
         type = filter_def.type
     }
