@@ -52,7 +52,7 @@ for i = 1, num_runs do
 		if enable_second_debug then
 			print("Processing " .. ifname .. " ifid: " .. ifstats.id .. "\n")
 		end
-      local interface_id = ifstats.id
+		local interface_id = ifstats.id
 
 		if ifstats.isView then
 			view_id = interface_id
@@ -167,49 +167,71 @@ for i = 1, num_runs do
 		end
 
 		-- Now add probes stats
-		if ifstats.probes then
-		   for interface_id, probes_list in pairs(ifstats.probes or {}) do
-		      for source_id, probe_info in pairs(probes_list or {}) do
-                         local probe_interface = ""
-			 if probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then
-		            -- Packet mode (cento or nprobe)
-                            probe_interface = probe_info["remote.name"] or ""
-		         else
-			    -- Flows mode (nprobe)
-                            probe_interface = tostring(probe_info["remote.collector_port"] or "")
-		         end
+		if ifstats.probes and ntop.isPro and ntop.isPro() then
+			for interface_id, probes_list in pairs(ifstats.probes or {}) do
+				for source_id, probe_info in pairs(probes_list or {}) do
+					local probe_interface = ""
+					local export_drops = (probe_info["drops.export_queue_full"] or 0)
+						+ (probe_info["drops.elk_flow_drops"] or 0)
+					local exported_flows = 0
+					if probe_info["probe.mode"] and probe_info["probe.mode"] == "packet_collection" then
+						-- Packet mode (cento or nprobe)
+						probe_interface = probe_info["remote.name"] or ""
+						exported_flows = (probe_info["zmq.num_flow_exports"] or 0)
+					else
+						-- Flows mode (nprobe)
+						probe_interface = tostring(probe_info["remote.collector_port"] or "")
+						for _, values in pairs(probe_info.exporters or {}) do
+							exported_flows = exported_flows
+								+ (values.num_netflow_flows or 0)
+								+ (values.num_sflow_flows or 0)
+						end
+					end
 
-               ts_utils.append("probe:traffic", {
-                  ifid = interface_id,
-                  uuid = probe_info["probe.uuid"] or "",
-                  interface_name =  probe_interface,
-                  bytes = (probe_info["bytes.total"] or 0),
-               }, when)
+					ts_utils.append("probe:traffic", {
+						ifid = interface_id,
+						uuid = probe_info["probe.uuid"] or "",
+						interface_name = probe_interface,
+						bytes = (probe_info["bytes.total"] or 0),
+					}, when)
 
-               ts_utils.append("probe:packets", {
-                  ifid = interface_id,
-                  uuid = probe_info["probe.uuid"] or "",
-                  interface_name =  probe_interface,
-                  packets = (probe_info["packets.total"] or 0),
-               }, when)
+					ts_utils.append("probe:packets", {
+						ifid = interface_id,
+						uuid = probe_info["probe.uuid"] or "",
+						interface_name = probe_interface,
+						packets = (probe_info["packets.total"] or 0),
+					}, when)
 
-               ts_utils.append("probe:packets_drops", {
-                  ifid = interface_id,
-                  uuid = probe_info["probe.uuid"] or "",
-                  interface_name =  probe_interface,
-                  drops = (probe_info["packets.drops"] or 0),
-               }, when)
+					ts_utils.append("probe:packets_drops", {
+						ifid = interface_id,
+						uuid = probe_info["probe.uuid"] or "",
+						interface_name = probe_interface,
+						drops = (probe_info["packets.drops"] or 0),
+					}, when)
 
-               ts_utils.append("probe:flows", {
-                  ifid = interface_id,
-                  uuid = probe_info["probe.uuid"] or "",
-                  interface_name =  probe_interface,
-                  active_flows = (probe_info["active_flows"] or 0),
-               }, when)
+					ts_utils.append("probe:active_flows", {
+						ifid = interface_id,
+						uuid = probe_info["probe.uuid"] or "",
+						interface_name = probe_interface,
+						active_flows = (probe_info["active_flows"] or 0),
+					}, when)
 
-		      end
-		   end
-	        end
+					ts_utils.append("probe:exported_flows", {
+						ifid = interface_id,
+						uuid = probe_info["probe.uuid"] or "",
+						interface_name = probe_interface,
+						exports = (exported_flows or 0),
+					}, when)
+
+					ts_utils.append("probe:zmq_drops", {
+						ifid = interface_id,
+						uuid = probe_info["probe.uuid"] or "",
+						interface_name = probe_interface,
+						drops = (export_drops or 0),
+					}, when)
+				end
+			end
+		end
 	end, true --[[ update direction stats ]])
 
 	-- Save ZMQ stats correctly for view interfaces
