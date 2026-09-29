@@ -7167,6 +7167,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char* payload,
         payload_len -= (l + 1);
         payload = &space[1];
 
+        if (payload_len == 0) return; /* first space was the last captured byte */
+
         switch (payload[0]) {
           case '1':
             stats.incHTTPResp1xx();
