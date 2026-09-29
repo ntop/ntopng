@@ -267,7 +267,7 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
       } break;
 
     case ASN_OPAQUE_FLOAT:
-      {
+      if(vp->val.floatVal) {
 	float value = *(vp->val.floatVal);
 	
 	lua_push_float_table_entry(vm, rsp_oid, value);
