@@ -52,6 +52,7 @@ typedef struct {
   u_int64_t remote_bytes;
   u_int64_t remote_pkts;
   u_int64_t remote_pkt_drops;
+  u_int64_t remote_active_flows;
   u_int64_t num_flow_exports;
 } CumulativenProbeStats;
 
@@ -81,6 +82,7 @@ class nProbeStats {
   u_int64_t remote_bytes;
   u_int32_t remote_pkts;
   u_int32_t remote_pkt_drops;
+  u_int32_t remote_active_flows;
   u_int32_t num_flow_exports;
   u_int32_t remote_ifspeed;
   u_int16_t remote_collector_port;

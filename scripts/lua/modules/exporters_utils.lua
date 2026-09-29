@@ -349,7 +349,7 @@ end
 local function build_navbar_title(ip, nprobe_info)
    local navbar_title = i18n("flow_devices.nprobe_instances")
    
-   local overview_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua?page=overview"
+   local overview_url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua"
    navbar_title = "<a href='".. overview_url .."'>" .. navbar_title .. "</a>"
    
    if nprobe_info then
@@ -491,7 +491,7 @@ function exporters_utils.printNavbar(ifid, page, ip, probe_source_id, num_export
    }, {
       active = page == "historical_probe",
       page_name = "historical_probe",
-      hidden = page ~= "nprobe",
+      hidden = (page ~= "nprobe" and page ~= "historical_probe"),
       url = timeseries_url,
       label = "<i class=\"fas fa-lg fa-chart-area\" data-bs-toggle=\"tooltip\" " .. "title=\"" .. i18n("prefs.timeseries") .. "\"></i>"
    }, {

@@ -508,6 +508,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
       zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
     if (json_object_object_get_ex(o, "packets", &w))
       zrs.remote_pkts = (u_int64_t)json_object_get_int64(w);
+    if (json_object_object_get_ex(o, "active_flows", &w))
+      zrs.remote_active_flows = (u_int64_t)json_object_get_int64(w);
     if (json_object_object_get_ex(o, "packet_drops", &w))
       zrs.remote_pkt_drops = (u_int64_t)json_object_get_int64(w);
 

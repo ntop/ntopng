@@ -910,89 +910,185 @@ end
 
 -- ##############################################
 
+-- The top tags must be the last N tags of the schema, since the RRD
+-- directory structure follows the schema tag order.
+-- Returns the top tags sorted as in the schema, or nil + error message.
+local function normalizeTopTags(schema_info, top_tags)
+   local schema_tags = schema_info._tags
+   local n = #top_tags
+
+   if n == 0 then
+      return nil, "no topk tag specified"
+   end
+   if n > #schema_tags then
+      return nil, "more topk tags than schema tags"
+   end
+
+   local wanted = {}
+   for _, tag in ipairs(top_tags) do
+      if wanted[tag] then
+         return nil, "duplicated topk tag '" .. tostring(tag) .. "'"
+      end
+      wanted[tag] = true
+   end
+
+   local ordered = {}
+   for i = #schema_tags - n + 1, #schema_tags do
+      local tag = schema_tags[i]
+      if not wanted[tag] then
+         return nil, "RRD driver only supports topk on the last tags of the schema, '"
+            .. tag .. "' is missing"
+      end
+      ordered[#ordered + 1] = tag
+   end
+
+   return ordered
+end
+
+-- Composite key identifying a top item (e.g. "uuid1|eth0")
+local function buildTopKey(serie_tags, ordered_top_tags)
+   local TOP_KEY_SEPARATOR = "|"
+   local parts = {}
+   for i, tag in ipairs(ordered_top_tags) do
+      parts[i] = tostring(serie_tags[tag])
+   end
+   return table.concat(parts, TOP_KEY_SEPARATOR)
+end
+
+-- Optional human-readable label derived from the series tags
+local function getExtLabel(options, serie_tags)
+   local ext_label = nil
+
+   local ifindex = serie_tags.if_index or serie_tags.port
+   local device = serie_tags.device or (options.tags and options.tags.device)
+
+   -- Interface index available (probe, exporter, etc.)
+   if device and ifindex then
+      ext_label = format_portidx_name(device, ifindex, true)
+      if isEmptyString(ext_label) then
+         ext_label = ifindex
+      end
+   end
+
+   -- Special case: top protocol timeseries, the label is the protocol itself
+   if serie_tags.protocol then
+      ext_label = serie_tags.protocol
+   end
+
+   if serie_tags.asn then
+      local info = interface.getASInfo(tonumber(serie_tags.asn), true --[[ Minimal info ]])
+      if info and not isEmptyString(info.asname) then
+         ext_label = info.asname
+      else
+         ext_label = serie_tags.asn
+      end
+   end
+
+   if serie_tags.uuid and serie_tags.interface_name then
+      ext_label = string.format("%s - %s", serie_tags.uuid, serie_tags.interface_name)
+   end
+
+   return ext_label
+end
+
+-- listSeries fills the wildcard (top) tags starting from the deepest directory
+-- level, so with more than one top tag the values come back reversed with
+-- respect to the schema order. This wrapper puts each value back on its tag.
+-- ordered_top_tags must be sorted as in the schema (see normalizeTopTags).
+local function listSeriesOrdered(schema_info, tags, ordered_top_tags, epoch_begin)
+   local raw = driver:listSeries(schema_info, tags, ordered_top_tags, epoch_begin)
+   if not raw then
+      return nil
+   end
+
+   local n = #ordered_top_tags
+   if n <= 1 then
+      return raw -- nothing to fix with a single top tag
+   end
+
+   local fixed = {}
+
+   for _, serie_tags in pairs(raw) do
+      -- Shallow copy, so the table returned by listSeries is left untouched
+      local new_tags = {}
+      for k, v in pairs(serie_tags) do
+         new_tags[k] = v
+      end
+
+      -- The i-th top tag received the value of the (n - i + 1)-th level
+      for i, tag in ipairs(ordered_top_tags) do
+         new_tags[tag] = serie_tags[ordered_top_tags[n - i + 1]]
+      end
+
+      fixed[#fixed + 1] = new_tags
+   end
+
+   return fixed
+end
+
 function driver:timeseries_top(options, top_tags)
-   if #top_tags > 1 then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")
+   local ordered_top_tags, err = normalizeTopTags(options.schema_info, top_tags)
+   if not ordered_top_tags then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver topk: " .. err)
       return nil
    end
 
-   local top_tag = top_tags[1]
+   local series = listSeriesOrdered(options.schema_info, options.tags, ordered_top_tags, options.epoch_begin)
 
-   if top_tag ~= options.schema_info._tags[#options.schema_info._tags] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE,
-         "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
-      return nil
-   end
-
-   local series = driver:listSeries(options.schema_info, options.tags, top_tags, options.epoch_begin)
    if not series then
       return nil
    end
 
    local available_items = {}
-   local available_tags = {}
    local available_series = {}
-   local total_valid = true
    local step = 0
-   local query_start = options.epoch_begin
-   local cf = getConsolidationFunction(options.schema_info)
-
-   -- Quering all the different schema and unify all the data
+   
+   -- Query every series and unify the data
    for _, serie_tags in pairs(series) do
-      local rrdfile = driver.schema_get_full_path(options.schema_info, serie_tags)
-      options.rrdfile = rrdfile
       local options_merged = options
+      options_merged.rrdfile = driver.schema_get_full_path(options.schema_info, serie_tags)
       options_merged.tags = serie_tags
+
       local stats = driver:timeseries_query(options_merged)
-      local partials = {}
-      local serie_idx = 0
 
       if stats then
          local sum = 0
-         step = stats.metadata.epoch_step
          local aggregated_serie = {}
          local statistics = {}
-         -- For each serie, get the sum and other stats
-         for _, serie in pairs(stats.series or {}) do
-            serie_idx = serie_idx + 1 -- the first id is 1
-            local name = options.schema_info._metrics[serie_idx]
+         step = stats.metadata.epoch_step
 
+         -- For each metric, sum the points and the statistics
+         for _, serie in pairs(stats.series or {}) do
             if table.len(statistics) == 0 then
-               statistics = serie.statistics
+               -- Clone to avoid modifying the original statistics table
+               statistics = table.clone(serie.statistics)
             else
                for stat_name, value in pairs(serie.statistics) do
                   statistics[stat_name] = statistics[stat_name] + value
                end
             end
-            partials[name] = 0
 
             for i, serie_point in pairs(serie.data) do
-               local val_is_nan = (serie_point ~= serie_point)
-
-               if not val_is_nan then
+               -- Skip NaN values when computing the sum (NaN ~= NaN)
+               if serie_point == serie_point then
                   sum = sum + tonumber(serie_point)
                end
 
-               if not aggregated_serie[i] then
-                  aggregated_serie[i] = 0
-               end
-
-               aggregated_serie[i] = aggregated_serie[i] + serie_point
-               partials[name] = partials[name] + serie_point * step
+               aggregated_serie[i] = (aggregated_serie[i] or 0) + serie_point
             end
          end
-         if statistics and statistics.total == 0 then
-            goto continue
-         end
 
-         available_items[serie_tags[top_tag]] = sum * step
-         available_tags[serie_tags[top_tag]] = {serie_tags, partials}
-         available_series[serie_tags[top_tag]] = {
-            data = aggregated_serie,
-            statistics = statistics,
-            tags = options_merged.tags
-         }
-         ::continue::
+         -- Ignore series with no traffic at all
+         if statistics then
+            local key = buildTopKey(serie_tags, ordered_top_tags)
+
+            available_items[key] = sum * step
+            available_series[key] = {
+               data = aggregated_serie,
+               statistics = statistics,
+               tags = serie_tags,
+            }
+         end
       end
    end
 
@@ -1008,42 +1104,24 @@ function driver:timeseries_top(options, top_tags)
    elseif ends(options.schema, "thread_cpu_load") then
       id = "cpu_utilization_pct"
       show_empty = true
+   elseif string.find(options.schema, "probe:") then
+      show_empty = true
    end
 
+   -- Iterate items from the highest to the lowest value
    for top_item, value in pairsByValues(available_items, rev) do
       if value > 0 or show_empty then
-         local ifindex = available_tags[top_item][1].if_index or available_tags[top_item][1].port
-         local ext_label = nil
-         -- Interface index available, probe, exporter, ecc.
-         if options.tags.device and ifindex then
-            ext_label = format_portidx_name(options.tags.device, ifindex, true)
-            if isEmptyString(ext_label) then
-               ext_label = ifindex
-            end
-         end
+         local item = available_series[top_item]
 
-         -- Special case, top protocol timeseries, here the ext_label needs to be the protocol
-         if available_tags[top_item][1].protocol then
-            ext_label = top_item
-         end
-
-         if available_tags[top_item][1].asn then
-            local info = interface.getASInfo(tonumber(top_item), true --[[ Minimal info ]])
-            if info and not isEmptyString(info.asname) then
-               ext_label = info.asname
-            else
-               ext_label = top_item
-            end
-         end
-
-         count = table.len(available_series[top_item].data)
+         count = table.len(item.data)
          top_series[#top_series + 1] = {
-            data = available_series[top_item].data,
+            data = item.data,
             id = id,
-            statistics = available_series[top_item].statistics,
-            tags = available_series[top_item].tags,
+            statistics = item.statistics,
+            tags = item.tags,
+            -- With a single top tag this is just the tag value, as before
             name = top_item,
-            ext_label = ext_label
+            ext_label = getExtLabel(options, item.tags),
          }
       end
 
