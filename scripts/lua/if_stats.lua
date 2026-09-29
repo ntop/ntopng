@@ -455,8 +455,6 @@ local has_traffic_recording_page = (recording_utils.isAvailable() and
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
 
-local url = http_prefix .. '/lua/if_stats.lua?ifid=' .. ifid
-
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
 print('\n<script>var refresh = ' .. interface.getStatsUpdateFreq(ifstats.id) .. ' * 1000; /* ms */;</script>\n')
@@ -584,11 +582,14 @@ local navbar_entries = { {
 
 if is_light_view then
     for _, entry in ipairs(navbar_entries) do
-        if entry.page_name ~= "overview" then
+        if entry.page_name ~= "overview" and entry.page_name ~= "historical" then
             entry.hidden = true
         end
     end
 end
+
+local url = http_prefix .. '/lua/if_stats.lua?ifid=' .. ifid
+if is_light_view then url = url .. '&view=lightview' end
 
 page_utils.print_navbar(title, url, navbar_entries)
 
@@ -1758,7 +1759,8 @@ elseif (page == "sites") then
     end
 elseif (page == "historical") then
     local source_value_object = {
-        ifid = interface.getId()
+        ifid = interface.getId(),
+        is_lightview = is_light_view
     }
     graph_utils.drawNewGraphs(source_value_object)
 elseif (page == "trafficprofiles") then

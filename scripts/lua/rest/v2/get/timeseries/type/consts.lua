@@ -80,5 +80,27 @@ if query == "flow_aggr" then
     end
 end
 
-res = table.merge(res, timeseries_info.getTimeseries(tags, query))
+if query == "iface" and isLightView() then
+    -- lightview: list timeseries available on any interface
+    local seen = {}
+
+    for if_id, _ in pairs(interface.getIfNames()) do
+        interface.select(tostring(if_id))
+        tags.ifid = tostring(if_id)
+
+        for _, info in ipairs(timeseries_info.getTimeseries(tags, query)) do
+            local key = tostring(info.schema) .. "|" .. tostring(info.query) .. "|" .. tostring(info.id)
+
+            if not seen[key] then
+                seen[key] = true
+                res[#res + 1] = info
+            end
+        end
+    end
+
+    interface.select(ifid)
+else
+    res = table.merge(res, timeseries_info.getTimeseries(tags, query))
+end
+
 rest_utils.answer(rc, res)

@@ -324,6 +324,10 @@ function graph_utils.drawNewGraphs(source_value_object)
     -- Check extraction permissions (handles View interfaces transparently)
     local _, traffic_extraction_permitted = recording_utils.getStats(ifid)
 
+    if source_value_object and source_value_object.is_lightview then
+        traffic_extraction_permitted = false -- traffic extraction is per interface
+    end
+
     if source_value_object == nil then source_value_object = {} end
 
     -- Checking the available timeseries
