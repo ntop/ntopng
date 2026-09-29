@@ -258,11 +258,15 @@ class Host : public GenericHashEntry,
     return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv();
   }
 
-  inline bool providesService(int service_enum) const {
-    return (host_services_bitmap & (1 << service_enum));
+  inline bool providesService(u_int16_t service_enum) const {
+    if(service_enum >= 16 /* see host_services_bitmap */)
+      return(false);
+    else {
+      return (host_services_bitmap & (1 << service_enum));
+    }
   }
 
-  virtual void setService(int service_enum);
+  virtual bool setService(u_int16_t service_enum);
 
   inline u_int16_t getServicesMap() { return (host_services_bitmap); }
   /*

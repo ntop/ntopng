@@ -695,16 +695,21 @@ void LocalHost::lua_get_fingerprints(lua_State* vm) {
 
 /* *************************************** */
 
-void LocalHost::setService(int service_enum) {
-  Host::setService(service_enum);
+bool LocalHost::setService(u_int16_t service_enum) {
+  const char* service_name;
+  
+  if(Host::setService(service_enum) == false)
+    return(false);
 
-  const char* service_name = Utils::hostService2str(service_enum);
+  service_name = Utils::hostService2str(service_enum);
 
   if (service_name) {
     char key[64];
     snprintf(key, sizeof(key), "%s_server", service_name);
     addDataToAssets(key, (char*)"true");
   }
+  
+  return(true);
 }
 
 /* *************************************** */

@@ -2908,8 +2908,15 @@ void Host::visit(std::vector<ActiveHostWalkerInfo>* v, HostWalkMode mode) {
 
 /* *************************************** */
 
-void Host::setService(int service_enum) {
-  if (!providesService(service_enum)) host_services_bitmap |= 1 << service_enum;
+bool Host::setService(u_int16_t service_enum) {
+  if(service_enum < 16 /* see host_services_bitmap */) {
+    if (!providesService(service_enum)) {
+      host_services_bitmap |= 1 << service_enum;
+      return(true);
+    }
+  }
+
+  return(false);
 }
 
 /* *************************************** */
