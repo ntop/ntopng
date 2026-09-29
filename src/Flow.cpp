@@ -9642,6 +9642,44 @@ void Flow::setSrvService(int service_enum) {
 
 /* *************************************** */
 
+void Flow::setCliTag(int tag_idx) {
+  Host *cli_h, *srv_h;
+
+  get_actual_peers(&cli_h, &srv_h);
+
+  if (cli_h) {
+    // Not a viewed interface, set the status inside the host
+    if (!cli_h->isBroadcastHost() && !cli_h->isUserTagSet(tag_idx))
+      cli_h->setUserTags(1ULL << tag_idx);
+  } else if (cli_ip_addr) {
+    // Viewed interface, set the status inside the IP address
+    if (!cli_ip_addr->isBroadcastAddress() &&
+        !cli_ip_addr->providesTag(tag_idx))
+      cli_ip_addr->setTag(tag_idx);
+  }
+}
+
+/* *************************************** */
+
+void Flow::setSrvTag(int tag_idx) {
+  Host *cli_h, *srv_h;
+
+  get_actual_peers(&cli_h, &srv_h);
+
+  if (srv_h) {
+    // Not a viewed interface, set the status inside the host
+    if (!srv_h->isBroadcastHost() && !srv_h->isUserTagSet(tag_idx))
+      srv_h->setUserTags(1ULL << tag_idx);
+  } else if (srv_ip_addr) {
+    // Viewed interface, set the status inside the IP address
+    if (!srv_ip_addr->isBroadcastAddress() &&
+        !srv_ip_addr->providesTag(tag_idx))
+      srv_ip_addr->setTag(tag_idx);
+  }
+}
+
+/* *************************************** */
+
 void Flow::updateUDPHostServices(bool src2dst_direction) {
   Host *cli_h, *srv_h;
 

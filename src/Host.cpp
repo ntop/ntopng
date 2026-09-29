@@ -1225,6 +1225,14 @@ void Host::setUserTags(u_int64_t bitmap) {
   setAssetUpdated();
 }
 
+/* ***************************************** */
+
+bool Host::isUserTagSet(u_int tag_idx) {
+  if(tag_idx > 31) /* Bits 0-31 are ntop-reserved */
+	return user_tags_bitmap & (1ULL << tag_idx);
+  return false;
+}
+
 /* *************************************** */
 
 void Host::addTag(HostTagId tag_id) {

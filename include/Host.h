@@ -548,6 +548,7 @@ class Host : public GenericHashEntry,
   void addTag(HostTagId tag_id);
 
   void setUserTags(u_int64_t bitmap);
+  bool isUserTagSet(u_int tag_idx);
   inline u_int64_t getUserTags() const { return user_tags_bitmap; }
 
   u_int64_t getTags(bool transferrable_only = false);
