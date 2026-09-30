@@ -2660,9 +2660,11 @@ function resetCounters(drops_only) {
     url: ']]
 print(http_prefix)
 print [[/lua/reset_stats.lua',
-    data: {ifid: ]]
-print(ifstats.id)
-print [[, resetstats_mode:  action, csrf: "]]
+    data: {]]
+if not is_light_view then -- Note: lightview resets all interfaces (no ifid)
+    print("ifid: " .. ifstats.id .. ", ")
+end
+print [[resetstats_mode:  action, csrf: "]]
 print(ntop.getRandomCSRFValue())
 print [["},
     success: function(rsp) {},
