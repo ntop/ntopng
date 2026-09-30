@@ -1315,7 +1315,8 @@ end
         end
     end
 
-    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and not is_sub_interface and is_packet_interface then
+    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and not is_sub_interface and is_packet_interface
+        and not is_light_view then
         print("<tr><th>" .. i18n("live_capture.live_capture") ..
             "&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
 
