@@ -34,6 +34,7 @@ local graph_utils = require "graph_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
+local interface_utils = require "interface_utils"
 local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local sites_granularities = nil
 local show_zmq_encryption_public_key = false
@@ -144,6 +145,7 @@ end
 
 local probes_stats = {}
 local light_view_ifaces = {}
+local light_view_info = nil
 
 if interface.isView() then
     local view_id = interface.getId()
@@ -191,142 +193,10 @@ if interface.isView() then
 elseif is_light_view then
     -- Note: lightview mode has no single backend interface merging stats
     -- like the standard View, so stats from all interfaces must be summed
-    local zmq_stats = {}
-    local exporters_stats = {}
-    local agg_stats = {
-        bytes = 0,
-        packets = 0,
-        drops = 0,
-        num_deduplicated_flows = 0
-    }
-    local agg_db_stats = {
-        flows = 0,
-        dropped_flows = 0
-    }
-    local agg_export_stats = {}
-    local agg_anomalies = {
-        num_local_hosts_anomalies = 0,
-        num_remote_hosts_anomalies = 0,
-        tot_num_anomalies = {
-            local_hosts = 0,
-            remote_hosts = 0
-        }
-    }
-    local agg_traffic = {
-        tx = 0,
-        rx = 0,
-        tx_pkts = 0,
-        rx_pkts = 0
-    }
-    local has_traffic_directions = false
-    local agg_alerts = {
-        engaged = 0,
-        dropped = 0
-    }
-
-    for interface_name, _ in pairsByKeys(interface.getIfNames() or {}) do
-        interface.select(interface_name)
-
-        local tmp = interface.getStats()
-
-        light_view_ifaces[#light_view_ifaces + 1] = {
-            id = interface.getId(),
-            name = getHumanReadableInterfaceName(interface_name)
-        }
-
-        if tmp.stats and tmp.stats_since_reset then
-            tmp.stats = override_stats(tmp.stats, tmp.stats_since_reset)
-        end
-        if tmp.zmqRecvStats and tmp.zmqRecvStats_since_reset then
-            tmp.zmqRecvStats = override_stats(tmp.zmqRecvStats, tmp.zmqRecvStats_since_reset)
-        end
-
-        for k, v in pairs(tmp.probes or {}) do
-            probes_stats[k] = v
-        end
-        for k, v in pairs(tmp.exporters or {}) do
-            if not exporters_stats[k] then
-                exporters_stats[k] = {}
-            end
-            for key_stat, value_stat in pairs(v) do
-                exporters_stats[k][key_stat] = value_stat + (exporters_stats[k][key_stat] or 0)
-            end
-        end
-        for k, v in pairs(tmp.zmqRecvStats or {}) do
-            zmq_stats[k] = (zmq_stats[k] or 0) + v
-        end
-
-        if tmp.stats then
-            agg_stats.bytes = agg_stats.bytes + (tmp.stats.bytes or 0)
-            agg_stats.packets = agg_stats.packets + (tmp.stats.packets or 0)
-            agg_stats.drops = agg_stats.drops + (tmp.stats.drops or 0)
-            agg_stats.num_deduplicated_flows = agg_stats.num_deduplicated_flows + (tmp.stats.num_deduplicated_flows or 0)
-        end
-
-        if tmp.dbStats then
-            agg_db_stats.flows = agg_db_stats.flows + (tmp.dbStats.flows or 0)
-            agg_db_stats.dropped_flows = agg_db_stats.dropped_flows + (tmp.dbStats.dropped_flows or 0)
-        end
-
-        for _, db_type in ipairs({ "db", "es", "kafka", "syslog" }) do
-            local s = tmp.stats_since_reset and tmp.stats_since_reset[db_type]
-            if s then
-                agg_export_stats[db_type] = agg_export_stats[db_type] or {
-                    flow_export_count = 0,
-                    flow_export_rate = 0,
-                    flow_export_drops = 0
-                }
-                agg_export_stats[db_type].flow_export_count = agg_export_stats[db_type].flow_export_count + (s.flow_export_count or 0)
-                agg_export_stats[db_type].flow_export_rate = agg_export_stats[db_type].flow_export_rate + (s.flow_export_rate or 0)
-                agg_export_stats[db_type].flow_export_drops = agg_export_stats[db_type].flow_export_drops + (s.flow_export_drops or 0)
-            end
-        end
-
-        if tmp.anomalies then
-            agg_anomalies.num_local_hosts_anomalies = agg_anomalies.num_local_hosts_anomalies + (tmp.anomalies.num_local_hosts_anomalies or 0)
-            agg_anomalies.num_remote_hosts_anomalies = agg_anomalies.num_remote_hosts_anomalies + (tmp.anomalies.num_remote_hosts_anomalies or 0)
-            local an = tmp.anomalies.tot_num_anomalies or {}
-            agg_anomalies.tot_num_anomalies.local_hosts = agg_anomalies.tot_num_anomalies.local_hosts + (an.local_hosts or 0)
-            agg_anomalies.tot_num_anomalies.remote_hosts = agg_anomalies.tot_num_anomalies.remote_hosts + (an.remote_hosts or 0)
-        end
-
-        if tmp.has_traffic_directions then
-            has_traffic_directions = true
-            agg_traffic.tx = agg_traffic.tx + (tmp.traffic_sent_since_reset or 0)
-            agg_traffic.rx = agg_traffic.rx + (tmp.traffic_rcvd_since_reset or 0)
-            agg_traffic.tx_pkts = agg_traffic.tx_pkts + (tmp.packets_sent_since_reset or 0)
-            agg_traffic.rx_pkts = agg_traffic.rx_pkts + (tmp.packets_rcvd_since_reset or 0)
-        end
-
-        agg_alerts.engaged = agg_alerts.engaged + (tmp.num_alerts_engaged or 0)
-        agg_alerts.dropped = agg_alerts.dropped + (tmp.num_dropped_alerts or 0)
-    end
-
-    interface.select(ifname) -- Go back to the "anchor" interface used to render this page
-
-    ifstats.zmqRecvStats = zmq_stats
-    ifstats.exporters = exporters_stats
-    ifstats.stats.bytes = agg_stats.bytes
-    ifstats.stats.packets = agg_stats.packets
-    ifstats.stats.drops = agg_stats.drops
-    ifstats.stats.num_deduplicated_flows = agg_stats.num_deduplicated_flows
-    ifstats.stats_since_reset.drops = agg_stats.drops
-
-    if agg_db_stats.flows > 0 or agg_db_stats.dropped_flows > 0 then
-        ifstats.dbStats = agg_db_stats
-    end
-    for db_type, s in pairs(agg_export_stats) do
-        ifstats.stats_since_reset[db_type] = s
-    end
-
-    ifstats.anomalies = agg_anomalies
-    ifstats.has_traffic_directions = has_traffic_directions
-    ifstats.traffic_sent_since_reset = agg_traffic.tx
-    ifstats.traffic_rcvd_since_reset = agg_traffic.rx
-    ifstats.packets_sent_since_reset = agg_traffic.tx_pkts
-    ifstats.packets_rcvd_since_reset = agg_traffic.rx_pkts
-    ifstats.num_alerts_engaged = agg_alerts.engaged
-    ifstats.num_dropped_alerts = agg_alerts.dropped
+    -- (same aggregation used by rest/v2/get/interface/lightview/data.lua for the refresh)
+    ifstats, light_view_info = interface_utils.getLightViewStats(ifstats)
+    light_view_ifaces = light_view_info.ifaces
+    probes_stats = light_view_info.probes_stats
 else
     for ifid, probes in pairs(ifstats.probes or {}) do
         for k, v in pairs(probes or {}) do
@@ -1138,10 +1008,8 @@ end
             end
             interface.select(ifname) -- Go back to the View interface
         elseif is_light_view then
-            -- ifstats.exporters was already aggregated across all local interfaces above
-            for _, v in pairs(ifstats.exporters or {}) do
-                drops = drops + (v["num_drops"] or 0)
-            end
+            -- already aggregated across all local interfaces above
+            drops = light_view_info.drops
         elseif (ifstats) then
             drops = ifstats.stats_since_reset.drops
         end
@@ -2829,17 +2697,24 @@ function resetBroadcastDomains() {
 }
 
 ]]
-if (page == 'overview' or isEmptyString(page)) and not is_light_view then
+if (page == 'overview' or isEmptyString(page)) then
     print [[
     setInterval(function() {
         $.ajax({
             type: 'GET',
             url: ']]
     print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/data.lua',
+    if is_light_view then
+        -- Stats aggregated across all local interfaces
+        print [[/lua/rest/v2/get/interface/lightview/data.lua',
+            data: {},]]
+    else
+        print [[/lua/rest/v2/get/interface/data.lua',
             data: { iffilter: "]]
-    print(tostring(interface.name2id(ifstats.name)))
-    print [[" },
+        print(tostring(interface.name2id(ifstats.name)))
+        print [[" },]]
+    end
+    print [[
             success: function(content) {
             if(content["rc_str"] != "OK") {
             return;
@@ -2915,7 +2790,7 @@ if (page == 'overview' or isEmptyString(page)) and not is_light_view then
 
     print(" Pkts\");")
 
-    if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
+    if have_nedge and not is_light_view and ifstats.type == "netfilter" and ifstats.netfilter then
         local st = ifstats.netfilter
 
         print("var last_nfq_queue_total = " .. st.nfq.queue_total .. ";\n")
@@ -3055,7 +2930,7 @@ if (page == 'overview' or isEmptyString(page)) and not is_light_view then
       end
     end
 
-    if interface.isSyslogInterface() then
+    if interface.isSyslogInterface() and not is_light_view then
         print [[
             $('#syslog_tot_events').html(rsp.syslog.tot_events);
     ]]
@@ -3065,7 +2940,11 @@ if (page == 'overview' or isEmptyString(page)) and not is_light_view then
             }
                 });
         }, ]]
-    print(interface.getStatsUpdateFreq(ifstats.id) .. "")
+    if is_light_view then
+        print((light_view_info.update_freq or interface.getStatsUpdateFreq(ifstats.id)) .. "")
+    else
+        print(interface.getStatsUpdateFreq(ifstats.id) .. "")
+    end
     print [[ * 1000)
 ]]
 end
