@@ -2476,6 +2476,8 @@ local function print_flow_overview_page()
             },
          };
          const vue = ntopVue.createApp(vue_options);
+         
+         
          const vue_app = vue.mount("#vue-modals");
          return vue_app;
    }
