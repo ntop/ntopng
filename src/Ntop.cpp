@@ -5531,26 +5531,34 @@ void Ntop::setZoneInfo() {
 
   /* Read timezone from /etc/localtime (if TZ is not set) */
   if (tz == NULL) {
-    /* Check if the softlink is defined */
-    ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
-
-    if (rc > 0) {
-      buf[rc] = '\0';
-
-      rc--;
-
-      while (rc > 0) {
-        if (buf[rc] == '/') {
-          if (++num_slash == 2) break;
+    // Resolve the real path of /etc/localtime
+    char *real_path = realpath("/etc/localtime", NULL);
+    
+    if (real_path != NULL) {
+      // Search for zoneinfo string
+      const char *zi = strstr(real_path, "zoneinfo/");
+      // Found
+      if (zi != NULL) {
+        zoneinfo = strdup(zi + strlen("zoneinfo/"));
+      } else {
+        // Fallback to the penultimate /
+        char *last_slash = strrchr(real_path, '/');
+        if (last_slash != NULL) {
+          // Temporarily cut the string at the last slash, so an other strrchar can be done
+          // to find the penultimate slash, last fallback if available
+          *last_slash = '\0'; 
+          char *penultimate_slash = strrchr(real_path, '/');
+          *last_slash = '/';
+          // Two cases, penultimate_slash is null, no penultimate_slash, 
+          // last fallback on the last_slash or, penultimate_slash is okay
+          if (penultimate_slash != NULL) {
+            zoneinfo = strdup(penultimate_slash + 1); 
+          } else {
+            zoneinfo = strdup(last_slash + 1); 
+          }
         }
-
-        rc--;
       }
-
-      if (num_slash == 2) {
-        rc++;
-        zoneinfo = strdup(&buf[rc]);
-      }
+      free(real_path); // realpath allocate memory, free is needed
     }
   }
 #ifdef __FreeBSD__
