@@ -141,8 +141,10 @@ local function schema_get_path(schema, tags)
       local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]] or ""
 
       -- NOTE: site ids can match the ifid (e.g. site 0 on interface 0),
-      -- dropping site_a from the path would collide with another site directory
-      if (suffix ~= ifid) or (parts[1] == "site") then
+      -- dropping site_a from the path would collide with another site directory.
+      -- The same applies to ASNs (e.g. ASN 0 on interface 0): dropping it would
+      -- store its RRDs directly into asnstats/, where they are mistaken for ASNs
+      if (suffix ~= ifid) or (parts[1] == "site") or (parts[1] == "asn") then
          host_or_network = prefix .. suffix
       else
          -- Avoid repeating the ifid suffix in the path
@@ -857,6 +859,10 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_p
                end
             elseif wildcard_tag == "dscp_class" then
                toadd = true
+            elseif wildcard_tag == "asn" then
+               -- ASN series are stored into per-digit directories (e.g. 1/2/3/),
+               -- a plain RRD file here is not an ASN
+               toadd = false
             elseif wildcard_tag == "l4proto" then
                if L4_PROTO_KEYS[value] ~= nil then
                   toadd = true
