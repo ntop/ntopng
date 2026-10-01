@@ -329,7 +329,7 @@ local function validateUploadedFile(p)
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
-local function validateReferer(p)
+local function validateReferer(referer)
    -- Not a string
    if type(referer) ~= "string" then return false end
 
