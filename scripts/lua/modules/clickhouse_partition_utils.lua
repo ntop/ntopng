@@ -2,7 +2,8 @@
 -- (C) 2026 - ntop.org
 --
 -- ClickHouse utilities to manage clickhouse retention for flows and timeseries
--- Note: only require grants on the ntopng database, not to other system tables such as system.parts
+-- Note: only require grants on the ntopng database, not to other system tables such as system.parts,
+-- except for getPartitionsSize used for size based retention which is optional
 --
 
 local clickhouse_partition_utils = {}
@@ -60,6 +61,54 @@ end
 
 -- ##############################################
 
+--! @brief Return the size of the database and table partitions
+--! Note: this reads system.parts, which requires grants on the system database
+function clickhouse_partition_utils.getPartitionsSize(database)
+   local sql = string.format(
+      "SELECT table, partition, sum(bytes_on_disk) AS part_bytes FROM system.parts"
+      .. " WHERE database = '%s' AND active GROUP BY table, partition",
+      ch_escape(database))
+
+   local res, err = interface.execSQLQuery(sql, false --[[ no row limit ]], false --[[ don't wait for db ]])
+
+   if type(res) ~= "table" then
+      return nil, err
+   end
+
+   local sizes = {}
+
+   for _, row in ipairs(res) do
+      local tbl = row["table"]
+      local bytes = tonumber(row["part_bytes"]) or 0
+      local part = tonumber(row["partition"])
+
+      sizes[tbl] = sizes[tbl] or { bytes = 0, partitions = {} }
+      sizes[tbl].bytes = sizes[tbl].bytes + bytes
+
+      if part then
+         sizes[tbl].partitions[part] = (sizes[tbl].partitions[part] or 0) + bytes
+      end
+   end
+
+   return sizes
+end
+
+-- ##############################################
+
+--! @brief Delete a single partition (day)
+function clickhouse_partition_utils.dropPartition(database, tbl, part, debug)
+   local drop_sql = string.format("ALTER TABLE `%s`.`%s` DROP PARTITION '%u'",
+      database, tbl.name, part)
+
+   if debug then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "ClickHouse retention: " .. drop_sql)
+   end
+
+   interface.execSQLWrite(drop_sql)
+end
+
+-- ##############################################
+
 --! @brief Drop the daily partitions older or equal than cutoff_yyyymmdd.
 --! @return the list of dropped partitions
 function clickhouse_partition_utils.dropOldPartitions(database, tbl, cutoff_yyyymmdd, debug)
@@ -70,14 +119,7 @@ function clickhouse_partition_utils.dropOldPartitions(database, tbl, cutoff_yyyy
    end
 
    for _, part in ipairs(partitions) do
-      local drop_sql = string.format("ALTER TABLE `%s`.`%s` DROP PARTITION '%u'",
-         database, tbl.name, part)
-
-      if debug then
-         traceError(TRACE_NORMAL, TRACE_CONSOLE, "ClickHouse retention: " .. drop_sql)
-      end
-
-      interface.execSQLWrite(drop_sql)
+      clickhouse_partition_utils.dropPartition(database, tbl, part, debug)
    end
 
    return partitions

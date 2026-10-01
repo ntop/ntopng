@@ -2796,6 +2796,7 @@ local known_parameters = {
    ["reports_data_retention_days"] = validateNumber,
    ["ts_and_stats_data_retention_days"] = validateNumber,
    ["wazuh_alerts_data_retention_days"] = validateNumber,
+   ["clickhouse_max_size_gb"] = validateNumber,
    ["rrd_files_retention_days"] = validateNumber,
    ["max_entity_alerts"] = validateNumber,
    ["max_num_secs_before_delete_alert"] = validateNumber,

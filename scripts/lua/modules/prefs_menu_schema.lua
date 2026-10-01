@@ -2371,6 +2371,18 @@ function M.get_sections(flags)
             },
             locked = lock_ch_enabled
         }, {
+            key = "clickhouse_max_size",
+            title = i18n("prefs.clickhouse_max_size_title"),
+            description = i18n("prefs.clickhouse_max_size_descr"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.clickhouse_max_size_gb",
+            default = "0",
+            attrs = {
+                min = "0"
+            },
+            locked = lock_ch_enabled
+        }, {
             key = "aggregated_asn_data_retention",
             title = i18n("prefs.aggregated_asn_data_retention_title"),
             description = i18n("prefs.aggregated_asn_data_retention_descr"),
