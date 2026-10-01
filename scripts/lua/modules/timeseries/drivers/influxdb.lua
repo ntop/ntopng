@@ -1536,12 +1536,15 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 end
 
 function driver:timeseries_top(options, top_tags)
-    if #top_tags ~= 1 then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
+    if (not top_tags) or (#top_tags < 1) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects at least one top tag")
         return nil
     end
 
-    local top_tag = top_tags[1]
+    local n_tags = #top_tags
+    -- Comma separated list of tags, used both in SELECT and GROUP BY
+    local tags_list = table.concat(top_tags, ", ")
+
     local retention_policy = getSchemaRetentionPolicy(options.schema_info, options.epoch_begin, options.epoch_end,
         options)
     local query_schema, raw_step, data_type = retentionPolicyToSchema(options.schema_info, retention_policy, self.db)
@@ -1563,36 +1566,28 @@ function driver:timeseries_top(options, top_tags)
         sum_metrics[idx] = 'SUM(' .. metric .. ') as ' .. metric
     end
 
-    --[[
-    SELECT TOP(value,protocol,10) FROM
-      (SELECT SUM(value) AS value FROM
-        (SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM
-          (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value" FROM "host:ndpi" WHERE host='192.168.1.1'
-            AND ifid='1' AND time >= 1537540320000000000 AND time <= 1537540649000000000)
-          GROUP BY protocol)
-        GROUP BY protocol)
-  ]]
     -- Aggregate into 1 metric and filter
-    local base_query = '(SELECT ' .. top_tag .. ', (' .. table.concat(options.schema_info._metrics, " + ") ..
+    local base_query = '(SELECT ' .. tags_list .. ', (' .. table.concat(options.schema_info._metrics, " + ") ..
                            ') AS "value", ' .. all_metrics .. ' FROM ' .. query_schema .. ' ' ..
                            getWhereClause(options.tags, options.epoch_begin, options.epoch_end, -1) .. ')'
 
-    -- Calculate difference between counter values
+    -- Calculate difference between counter values (one series per tags combination)
     if data_type == "counter" then
         base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value, ' .. table.concat(derivate_metrics, ", ") ..
-                         ' FROM ' .. base_query .. " GROUP BY " .. top_tag .. ")"
+                         ' FROM ' .. base_query .. " GROUP BY " .. tags_list .. ")"
     else
         -- derivative
         base_query = '(SELECT (value * ' .. raw_step .. ') as value, ' .. table.concat(derivate_metrics, ", ") ..
-                         ' FROM ' .. base_query .. " GROUP BY " .. top_tag .. ")"
+                         ' FROM ' .. base_query .. " GROUP BY " .. tags_list .. ")"
     end
 
-    -- Sum the traffic
+    -- Sum the traffic for each tags combination
     base_query = '(SELECT SUM(value) AS value, ' .. table.concat(sum_metrics, ", ") .. ' FROM ' .. base_query ..
-                     ' GROUP BY ' .. top_tag .. ')'
+                     ' GROUP BY ' .. tags_list .. ')'
 
-    -- Calculate TOPk
-    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' .. base_query
+    -- Calculate TOPk over the tags combination: TOP(value, tag1, tag2, ..., k)
+    local query = 'SELECT TOP(value,' .. tags_list .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' ..
+                      base_query
 
     local url = self.url
     local data =
@@ -1617,7 +1612,6 @@ function driver:timeseries_top(options, top_tags)
 
     local time_step = ts_common.calculateSampledTimeStep(raw_step, options.epoch_begin, options.epoch_end, options)
     local sorted = {}
-    local top_series = {}
     local id = "bytes"
     local num_point = 0
 
@@ -1627,24 +1621,35 @@ function driver:timeseries_top(options, top_tags)
         id = "hits"
     end
 
+    -- Row layout: [1]=time, [2]=top value, [3..2+n_tags]=tag values, [3+n_tags..]=metrics
+    local first_metric_col = 3 + n_tags
+
     for idx in pairsByValues(res, rev) do
         local value = data.values[idx]
 
-        if value[2] > 0 then
+        if value[2] then
             local partials = {}
 
-            for idx = 4, #value do
-                partials[data.columns[idx]] = value[idx]
+            for col = first_metric_col, #value do
+                partials[data.columns[col]] = value[col]
             end
 
             local options_merged = {}
-            for key, value in pairs(options) do
-                options_merged[key] = value
+            for key, val in pairs(options) do
+                options_merged[key] = val
             end
 
-            local query_tag = table.merge(options.tags, {
-                [top_tag] = value[3]
-            })
+            -- Build the tags filter with all the top tags values
+            local top_tags_values = {}
+            local name_parts = {}
+
+            for tag_idx, tag in ipairs(top_tags) do
+                local tag_value = value[2 + tag_idx]
+                top_tags_values[tag] = tag_value
+                name_parts[#name_parts + 1] = tostring(tag_value)
+            end
+
+            local query_tag = table.merge(options.tags, top_tags_values)
             options_merged.tags = query_tag
             options_merged.top = nil
 
@@ -1661,12 +1666,10 @@ function driver:timeseries_top(options, top_tags)
                     total_serie[index] = total_serie[index] + serie_point
                 end
             end
+
             local statistics = ts_common.calculateStatistics(total_serie, time_step,
                 options.schema_info.options.keep_total, data_type)
             statistics = table.merge(statistics, ts_common.calculateMinMax(total_serie))
-            if statistics and statistics.total == 0 then
-                goto continue
-            end
 
             local ext_label = ts_common.getExtLabel(options, query_tag)
 
@@ -1674,12 +1677,11 @@ function driver:timeseries_top(options, top_tags)
                 tags = query_tag,
                 statistics = statistics,
                 id = id,
-                name = value[3],
+                -- With multiple tags the name is the values joined (e.g. "uuid - ifname")
+                name = table.concat(name_parts, " - "),
                 ext_label = ext_label,
                 data = total_serie
             }
-
-            ::continue::
         end
     end
 

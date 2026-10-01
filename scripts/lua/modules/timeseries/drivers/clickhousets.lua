@@ -524,8 +524,8 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    local total_vals = {}
 
    for _, row in ipairs(data) do
-      local val = tonumber(row["value"]) or 0
-      if val > 0 then
+      local val = tonumber(row["value"])
+      if val then
          local item_tags = table.clone(tags)
 
          for _, tag in ipairs(top_tags) do
