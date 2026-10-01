@@ -19,6 +19,7 @@ local TS_AND_STATS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.ts_and_stats_data_retention_days"
 local WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.wazuh_alerts_data_retention_days"
+local CLICKHOUSE_MAX_SIZE_GB_KEY = "ntopng.prefs.clickhouse_max_size_gb"
 
 local data_retention_utils = {}
 
@@ -106,6 +107,14 @@ end
 function data_retention_utils.getWazuhAlertsRetentionDays()
     local data_retention = ntop.getCache(WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY)
     return tonumber(data_retention) or data_retention_utils.getWazuhAlertsDataRetention()
+end
+
+-- ########################################################
+
+function data_retention_utils.getClickHouseMaxSizeBytes()
+    local gb = tonumber(ntop.getCache(CLICKHOUSE_MAX_SIZE_GB_KEY)) or 0
+    if gb <= 0 then return 0 end
+    return gb*1024*1024*1024
 end
 
 -- ########################################################
