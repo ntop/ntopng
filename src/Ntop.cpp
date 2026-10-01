@@ -2892,8 +2892,13 @@ bool Ntop::createMFAPendingToken(const char* username, const char* referer,
                                  char* token, size_t token_len) const {
   char val[512], key[128];
   char random[64], tmp_token[33];
+  uint8_t raw[16];
 
-  snprintf(random, sizeof(random), "%d%s", rand(), username);
+  if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
+
+  for (u_int i = 0; i < sizeof(raw); i++)
+    snprintf(&random[i * 2], 3, "%02x", raw[i]);
+
   /* mg_md5 produces a 33-char (32 hex + NUL) string */
   mg_md5(tmp_token, random, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
@@ -3300,10 +3305,15 @@ bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
                                        char* challenge_b64,
                                        size_t challenge_len) const {
   char rand_str[64], tmp_token[33];
+  uint8_t raw[16];
 
   if (!generateWebAuthnChallenge(challenge_b64, challenge_len)) return false;
 
-  snprintf(rand_str, sizeof(rand_str), "%d%s", rand(), username);
+  if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
+
+  for (u_int i = 0; i < sizeof(raw); i++)
+    snprintf(&rand_str[i * 2], 3, "%02x", raw[i]);
+
   mg_md5(tmp_token, rand_str, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
   token[token_len - 1] = '\0';
