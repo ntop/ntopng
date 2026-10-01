@@ -338,7 +338,7 @@ local function validateReferer(p)
    if referer:match("[\xE2\x80\x8B-\xE2\x80\x8F]") then return false end
 
    -- Must be a relative URL (no open redirect)
-   if referer:sub(1,1) ~= "/" then return false end
+   --if referer:sub(1,1) ~= "/" then return false end
 
    -- Whitelist safe URL characters only
    if not referer:match("^[a-zA-Z0-9%-%_%/%.%?%=%&%:%%+#@!~,;]+$") then
