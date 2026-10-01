@@ -698,31 +698,37 @@ Alert is sent to notify that TLS SNI is missing.
 ModbusTCP Invalid Transition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Interface: Packet*
+Triggers an alert when, after the learning period, a Modbus flow reports a transition between two function codes never observed before in the flow. See :doc:`/scada/modbus` for details.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 
-*Enabled by Default*
+*Disabled by Default*
 
 
 ModbusTCP Too Many Exceptions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Interface: Packet*
+Triggers an alert when the number of exceptions reported for a Modbus flow reaches the configured threshold. See :doc:`/scada/modbus` for details.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 
-*Enabled by Default*
- 
+*Disabled by Default*
+
 
 ModbusTCP Unexpected Function Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Interface: Packet*
+Triggers an alert when a Modbus flow uses a function code that is not in the list of the allowed function codes. See :doc:`/scada/modbus` for details.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 
-*Enabled by Default*
+*Disabled by Default*
 
 
 Not Purged
@@ -880,6 +886,18 @@ The alert notifies that a probing attempt has been detected.
 *Enabled by Default*
 
 
+Profinet Too Many Errors
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Triggers an alert when the number of errors reported for a PROFINET flow, summed across all the operations, reaches the configured threshold. See :doc:`/scada/profinet` for details.
+
+*Interface: ZMQ*
+
+*Category: Cybersecurity*
+
+*Disabled by Default*
+
+
 Punicody  IDN
 ~~~~~~~~~~~~~
 
@@ -1005,6 +1023,42 @@ The alert is sent when traffic is exchanged towards a risky domain.
 Category: Cybersecurity*
 
 *Enabled by Default*
+
+
+S7Comm Invalid Transition
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Triggers an alert when, after the learning period, an S7Comm flow reports a transition between two function codes never observed before in the flow. See :doc:`/scada/s7comm` for details.
+
+*Interface: ZMQ*
+
+*Category: Cybersecurity*
+
+*Disabled by Default*
+
+
+S7Comm Too Many Errors
+~~~~~~~~~~~~~~~~~~~~~~
+
+Triggers an alert when the number of errors reported for an S7Comm flow reaches the configured threshold. See :doc:`/scada/s7comm` for details.
+
+*Interface: ZMQ*
+
+*Category: Cybersecurity*
+
+*Disabled by Default*
+
+
+S7Comm Unexpected Function Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Triggers an alert when an S7Comm flow uses a function code that is not in the list of the allowed function codes. See :doc:`/scada/s7comm` for details.
+
+*Interface: ZMQ*
+
+*Category: Cybersecurity*
+
+*Disabled by Default*
 
 
 Service Map Lateral Movement Detection
