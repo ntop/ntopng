@@ -4227,9 +4227,9 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
 
   if (!rc) incDBNumDroppedFlows(clickhouse_flows_db);
 
-  f->decUses(); /* Add done, decrease the reference counter */
   f->set_dump_done();
-
+  f->decUses(); /* Add done, decrease the reference counter */
+  
   return (true);
 }
 
@@ -8130,8 +8130,7 @@ int NetworkInterface::getActiveHostsList(
 
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
     if (retriever.elems[i].hostValue)
-      retriever.elems[i]
-          .hostValue->decUses(); /* incUses in host_search_walker */
+      retriever.elems[i].hostValue->decUses(); /* incUses in host_search_walker */
   }
 
   // it's up to us to clean sorted data
@@ -10324,7 +10323,8 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator* p,
   // Decrease reference counter for all AS entries (see incUses in
   // as_search_walker)
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
-    if (retriever.elems[i].asValue) retriever.elems[i].asValue->decUses();
+    if (retriever.elems[i].asValue)
+      retriever.elems[i].asValue->decUses();
   }
 
   // finally free the elements regardless of the sorted kind
@@ -10475,7 +10475,8 @@ int NetworkInterface::getActiveCountriesList(lua_State* vm,
   // Decrease reference counter for all Country entries (see incUses in
   // country_search_walker)
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
-    if (retriever.elems[i].countryVal) retriever.elems[i].countryVal->decUses();
+    if (retriever.elems[i].countryVal)
+      retriever.elems[i].countryVal->decUses();
   }
 
   // finally free the elements regardless of the sorted kind
@@ -10534,7 +10535,8 @@ int NetworkInterface::getActiveVLANList(lua_State* vm, char* sortColumn,
   // Decrease reference counter for all VLAN entries (see incUses in
   // vlan_search_walker)
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
-    if (retriever.elems[i].vlanValue) retriever.elems[i].vlanValue->decUses();
+    if (retriever.elems[i].vlanValue)
+      retriever.elems[i].vlanValue->decUses();
   }
 
   // finally free the elements regardless of the sorted kind

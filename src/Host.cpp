@@ -74,13 +74,30 @@ Host::~Host() {
                                  getUses());
 
   if (mac) {
-    mac->decUses();
     if (!ip.isLocalHost()) mac->decNumRemoteHosts();
+    mac->decUses();
+    mac = NULL;
   }
-  if (as) as->decUses();
-  if (country) country->decUses();
-  if (obs_point) obs_point->decUses();
-  if (vlan) vlan->decUses();
+
+  if (as) {
+    as->decUses();
+    as = NULL;
+  }
+  
+  if (country) {
+    country->decUses();
+    country = NULL;
+  }
+  
+  if (obs_point) {
+    obs_point->decUses();
+    obs_point = NULL;
+  }
+  
+  if (vlan) {
+    vlan->decUses();
+    vlan = NULL;
+  }
 
 #ifdef NTOPNG_PRO
   if (host_traffic_shapers) {
@@ -490,8 +507,8 @@ void Host::set_mac(Mac* _mac) {
   bool is_remote = !ip.isLocalHost();
 
   if (mac) {
-    mac->decUses();
     if (is_remote) mac->decNumRemoteHosts();
+    mac->decUses();
   }
 
   mac = _mac;
