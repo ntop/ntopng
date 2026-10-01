@@ -125,8 +125,10 @@ Host::~Host() {
   if (customHostAlert.msg) free(customHostAlert.msg);
 
   if (!ntop->getPrefs()->limitResourcesUsage()) {
-    if (tcp_udp_contacted_ports_no_tx)
+    if (tcp_udp_contacted_ports_no_tx) {
       ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
+      tcp_udp_contacted_ports_no_tx = NULL;
+    }
 
     ndpi_hll_destroy(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
     ndpi_hll_destroy(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
