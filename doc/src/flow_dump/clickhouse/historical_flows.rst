@@ -279,7 +279,9 @@ Data Retention
 --------------
 
 The retention of the flows dump on disk can be configured from the
-:ref:`Data Retention` preferences setting.
+:ref:`Data Retention` preferences setting, in days and, optionally, as a maximum
+disk space in GB (see :ref:`Max Disk Space Retention`). When the disk space
+limit is reached, the oldest days of flows and alerts are deleted.
 
 .. |drilldown_icon| image:: ../../img/drilldown_icon.png
 .. |flow_export_icon| image:: ../../img/flow_export_icon.png

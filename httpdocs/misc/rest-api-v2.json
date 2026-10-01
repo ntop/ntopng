@@ -3852,6 +3852,105 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/lightview/aggregate.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Aggregate a REST endpoint across all interfaces (Overview)",
+        "description": "Used by the Overview (lightview) mode: forwards the request to the specified REST endpoint once per local interface (setting ifid accordingly) and merges the results according to the dashboard component type. All the other query parameters are forwarded to the endpoint, except ifid. Enterprise only.",
+        "operationId": "get_lightview_aggregate",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint",
+            "in": "query",
+            "description": "Path of the REST endpoint to query on each interface (e.g. /lua/rest/v2/get/interface/l7/stats.lua)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "description": "How to merge the per-interface results: pie, badge, table, sankey or timeseries. When omitted, the result of the endpoint is returned as is (the last interface queried).",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "pie",
+              "badge",
+              "table",
+              "sankey",
+              "timeseries"
+            ]
+          },
+          {
+            "name": "max_values",
+            "in": "query",
+            "description": "Maximum number of slices for the pie component (default 10)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. Merged data, in the same format as the forwarded endpoint (empty if endpoint is not set)"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Aggregate a REST endpoint across all interfaces (Overview), with a request body",
+        "description": "Same as GET, for endpoints that take a JSON body. With endpoint=/lua/rest/v2/get/timeseries/batch.lua, each query in the body is run on every interface (the ifid in ts_query is replaced) and the series are summed into one serie per query; queries with \"split\": true also return one serie per interface (split_series).",
+        "operationId": "post_lightview_aggregate",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint",
+            "in": "query",
+            "description": "Path of the REST endpoint to query on each interface",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "description": "How to merge the per-interface results (see GET)",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "pie",
+              "badge",
+              "table",
+              "sankey",
+              "timeseries"
+            ]
+          },
+          {
+            "name": "payload",
+            "in": "body",
+            "description": "JSON body forwarded to the endpoint (e.g. the queries of timeseries/batch.lua)",
+            "required": false,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. Merged data, in the same format as the forwarded endpoint"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/infrastructure/data.lua": {
       "get": {
         "tags": [
@@ -11390,6 +11489,185 @@
         }
       }
     },
+    "/lua/rest/v2/get/interface/lightview/data.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get interface data aggregated from all interfaces (Overview)",
+        "description": "Interface data aggregated (summed) across all the interfaces, as shown by the Overview (lightview) mode in the Interface Details page. The response is a subset of /lua/rest/v2/get/interface/data.lua, plus the list of aggregated interfaces. Export stats (db, es, kafka, syslog) are reported only when the corresponding export is enabled, alert counters only when the user has the alerts capability, ZMQ counters only when at least one interface is a collector.",
+        "operationId": "get_interface_lightview_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "packets": {
+                  "type": "integer",
+                  "description": "Total packets"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "description": "Total bytes"
+                },
+                "drops": {
+                  "type": "integer",
+                  "description": "Dropped flows (collector interfaces) or packets"
+                },
+                "num_deduplicated_flows": {
+                  "type": "integer"
+                },
+                "tot_nprobe_pkts": {
+                  "type": "integer",
+                  "description": "Packets seen by the nProbe instances"
+                },
+                "tot_pkt_drops": {
+                  "type": "integer",
+                  "description": "Packets dropped by the nProbe instances"
+                },
+                "discarded_probing_packets": {
+                  "type": "integer"
+                },
+                "discarded_probing_bytes": {
+                  "type": "integer"
+                },
+                "db": {
+                  "$ref": "#/definitions/LightViewExportStats"
+                },
+                "es": {
+                  "$ref": "#/definitions/LightViewExportStats"
+                },
+                "kafka": {
+                  "$ref": "#/definitions/LightViewExportStats"
+                },
+                "syslog": {
+                  "$ref": "#/definitions/LightViewExportStats"
+                },
+                "engaged_alerts": {
+                  "type": "integer"
+                },
+                "dropped_alerts": {
+                  "type": "integer"
+                },
+                "remote_pps": {
+                  "type": "number"
+                },
+                "remote_bps": {
+                  "type": "number"
+                },
+                "bytes_upload": {
+                  "type": "integer"
+                },
+                "bytes_download": {
+                  "type": "integer"
+                },
+                "packets_upload": {
+                  "type": "integer"
+                },
+                "packets_download": {
+                  "type": "integer"
+                },
+                "bytes_upload_since_reset": {
+                  "type": "integer"
+                },
+                "bytes_download_since_reset": {
+                  "type": "integer"
+                },
+                "packets_upload_since_reset": {
+                  "type": "integer"
+                },
+                "packets_download_since_reset": {
+                  "type": "integer"
+                },
+                "num_local_hosts_anomalies": {
+                  "type": "integer"
+                },
+                "num_remote_hosts_anomalies": {
+                  "type": "integer"
+                },
+                "zmqRecvStats": {
+                  "type": "object",
+                  "properties": {
+                    "flows": {
+                      "type": "integer"
+                    },
+                    "dropped_flows": {
+                      "type": "integer"
+                    },
+                    "events": {
+                      "type": "integer"
+                    },
+                    "counters": {
+                      "type": "integer"
+                    },
+                    "zmq_msg_rcvd": {
+                      "type": "integer"
+                    },
+                    "zmq_msg_drops": {
+                      "type": "integer"
+                    },
+                    "zmq_avg_msg_flows": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "zmq.num_flow_exports": {
+                  "type": "integer"
+                },
+                "zmq.drops.export_queue_full": {
+                  "type": "integer"
+                },
+                "zmq.drops.flow_collection_drops": {
+                  "type": "integer"
+                },
+                "zmq.drops.flow_collection_udp_socket_drops": {
+                  "type": "integer"
+                },
+                "tcpPacketStats": {
+                  "type": "object",
+                  "properties": {
+                    "retransmissions": {
+                      "type": "integer"
+                    },
+                    "out_of_order": {
+                      "type": "integer"
+                    },
+                    "lost": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "ifaces": {
+                  "type": "array",
+                  "description": "Aggregated interfaces",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "Interface identifier"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Interface name"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/interface/data.lua": {
       "get": {
         "tags": [
@@ -13980,6 +14258,21 @@
     }
   },
   "definitions": {
+    "LightViewExportStats": {
+      "type": "object",
+      "description": "Flow export counters summed across all interfaces",
+      "properties": {
+        "flow_export_count": {
+          "type": "integer"
+        },
+        "flow_export_drops": {
+          "type": "integer"
+        },
+        "flow_export_rate": {
+          "type": "number"
+        }
+      }
+    },
     "Interface": {
       "type": "object",
       "properties": {
