@@ -961,42 +961,6 @@ local function buildTopKey(serie_tags, ordered_top_tags)
    return table.concat(parts, TOP_KEY_SEPARATOR)
 end
 
--- Optional human-readable label derived from the series tags
-local function getExtLabel(options, serie_tags)
-   local ext_label = nil
-
-   local ifindex = serie_tags.if_index or serie_tags.port
-   local device = serie_tags.device or (options.tags and options.tags.device)
-
-   -- Interface index available (probe, exporter, etc.)
-   if device and ifindex then
-      ext_label = format_portidx_name(device, ifindex, true)
-      if isEmptyString(ext_label) then
-         ext_label = ifindex
-      end
-   end
-
-   -- Special case: top protocol timeseries, the label is the protocol itself
-   if serie_tags.protocol then
-      ext_label = serie_tags.protocol
-   end
-
-   if serie_tags.asn then
-      local info = interface.getASInfo(tonumber(serie_tags.asn), true --[[ Minimal info ]])
-      if info and not isEmptyString(info.asname) then
-         ext_label = info.asname
-      else
-         ext_label = serie_tags.asn
-      end
-   end
-
-   if serie_tags.uuid and serie_tags.interface_name then
-      ext_label = string.format("%s - %s", serie_tags.uuid, serie_tags.interface_name)
-   end
-
-   return ext_label
-end
-
 -- listSeries fills the wildcard (top) tags starting from the deepest directory
 -- level, so with more than one top tag the values come back reversed with
 -- respect to the schema order. This wrapper puts each value back on its tag.
@@ -1127,7 +1091,7 @@ function driver:timeseries_top(options, top_tags)
             tags = item.tags,
             -- With a single top tag this is just the tag value, as before
             name = top_item,
-            ext_label = getExtLabel(options, item.tags),
+            ext_label = ts_common.getExtLabel(options, item.tags),
          }
       end
 

@@ -604,24 +604,7 @@ function driver:timeseries_top(options, top_tags)
          count = math.max(count, n)
 
          local top_val   = item.tags[top_tag] or ""
-         local ext_label = nil
-
-         -- Device/interface schemas: resolve SNMP interface label.
-         if ntop.isPro and ntop.isPro() and options.tags and options.tags.device then
-            local snmp_utils      = require "snmp_utils"
-            local snmp_cached_dev = require "snmp_cached_dev"
-            local cached_device   = snmp_cached_dev:create(options.tags.device)
-            local ifindex         = item.tags["if_index"] or item.tags["port"]
-            if cached_device and ifindex then
-               ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
-            end
-            if isEmptyString(ext_label) then ext_label = ifindex end
-         end
-
-         -- Protocol schemas: the ext_label is the protocol name itself.
-         if item.tags["protocol"] then
-            ext_label = top_val
-         end
+         local ext_label = ts_common.getExtLabel(options, item.tags)
 
          top_series[#top_series + 1] = {
             data       = agg,

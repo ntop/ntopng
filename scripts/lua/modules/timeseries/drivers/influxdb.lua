@@ -1668,24 +1668,7 @@ function driver:timeseries_top(options, top_tags)
                 goto continue
             end
 
-            local ext_label = nil
-            if (ntop.isPro and ntop.isPro() and options.tags.device) then
-                local snmp_utils = require "snmp_utils"
-                local snmp_cached_dev = require "snmp_cached_dev"
-                local cached_device = snmp_cached_dev:create(options.tags.device)
-                -- In case of flow exporters the data is port, in case of snmp it's if_index
-                local ifindex = query_tag.if_index or query_tag.port
-                if cached_device then
-                    ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
-                end
-                if isEmptyString(ext_label) then
-                    ext_label = ifindex
-                end
-            end
-            -- Special case, top protocol timeseries, here the ext_label needs to be the protocol
-            if query_tag.protocol then
-                ext_label = value[3]
-            end
+            local ext_label = ts_common.getExtLabel(options, query_tag)
 
             sorted[#sorted + 1] = {
                 tags = query_tag,
