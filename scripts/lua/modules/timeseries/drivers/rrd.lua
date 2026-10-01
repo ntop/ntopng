@@ -138,18 +138,14 @@ local function schema_get_path(schema, tags)
    if ((string.find(schema.name, "iface:") ~= 1) and -- interfaces are only identified by the first tag
    (#schema._tags >= 1)) then -- some schema do not have any tag, e.g. "process:*" schemas
       local prefix = HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")
-      local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]] or ""
+      -- The entity is identified by the second tag. Schemas with the ifid tag
+      -- only have no entity to add to the path, as the ifid is already part of it.
+      -- NOTE: do not compare the entity value with the ifid, as they can
+      -- legitimately match (e.g. site 0, ASN 0 or pool 0 on interface 0):
+      -- dropping the entity would store its RRDs into the parent directory
+      local entity_tag = schema._tags[2]
 
-      -- NOTE: site ids can match the ifid (e.g. site 0 on interface 0),
-      -- dropping site_a from the path would collide with another site directory.
-      -- The same applies to ASNs (e.g. ASN 0 on interface 0): dropping it would
-      -- store its RRDs directly into asnstats/, where they are mistaken for ASNs
-      if (suffix ~= ifid) or (parts[1] == "site") or (parts[1] == "asn") then
-         host_or_network = prefix .. suffix
-      else
-         -- Avoid repeating the ifid suffix in the path
-         host_or_network = prefix .. ""
-      end
+      host_or_network = prefix .. ((entity_tag and tags[entity_tag]) or "")
    end
 
    -- Some exceptions to avoid conflicts / keep compatibility
