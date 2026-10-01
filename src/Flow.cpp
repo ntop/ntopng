@@ -2658,10 +2658,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       break;
 
     case NDPI_PROTOCOL_DHCP:
-      if (cli_host) {
-        if (protos.dhcp.name) {
-          cli_host->offlineSetDHCPName(protos.dhcp.name);
-        }
+      if (protos.dhcp.name) {
+        /* DHCP name should be set to the actual DHCP client: checking the port
+         * as the flow client can be the DHCP server (e.g. in case of offer/ack) */
+        Host *dhcp_cli_host = (get_cli_port() == 68) /* client */ ? cli_host :
+                             ((get_srv_port() == 68) ? srv_host : NULL);
+        if (dhcp_cli_host)
+          dhcp_cli_host->offlineSetDHCPName(protos.dhcp.name);
       }
       break;
 
