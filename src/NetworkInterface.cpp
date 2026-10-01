@@ -4223,9 +4223,9 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
 
   if (!rc) incDBNumDroppedFlows(clickhouse_flows_db);
 
-  f->decUses(); /* Add done, decrease the reference counter */
   f->set_dump_done();
-
+  f->decUses(); /* Add done, decrease the reference counter */
+  
   return (true);
 }
 

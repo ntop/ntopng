@@ -596,11 +596,9 @@ Flow::~Flow() {
     decAllFlowScores();
 #endif
 
+  /* First do whatever is necessary with cli_u and srv_u... */
   if (cli_u) {
     cli_u->updateView(cli_ip_addr);
-    cli_u->decUses(); /* Decrease the number of uses */
-    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
-
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
 
@@ -611,8 +609,6 @@ Flow::~Flow() {
 
   if (srv_u) {
     srv_u->updateView(srv_ip_addr);
-    srv_u->decUses(); /* Decrease the number of uses */
-    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
 
     if (is_oneway_tcp_udp_flow) {
       srv_u->incUnidirectionalIngressTCPUDPFlows();
@@ -628,6 +624,19 @@ Flow::~Flow() {
     }
   }
 
+  /* ...then free the memory */
+  if (cli_u) {
+    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
+    cli_u->decUses(); /* Decrease the number of uses */
+    cli_u = NULL;
+  }
+
+  if (srv_u) {
+    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
+    srv_u->decUses(); /* Decrease the number of uses */
+    srv_u = NULL;
+  }
+  
   if (!srv_host &&
       srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow
                       constructor (viewed interfaces) */

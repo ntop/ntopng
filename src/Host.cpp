@@ -74,8 +74,8 @@ Host::~Host() {
                                  getUses());
 
   if (mac) {
-    mac->decUses();
     if (!ip.isLocalHost()) mac->decNumRemoteHosts();
+    mac->decUses();
   }
   if (as) as->decUses();
   if (country) country->decUses();
@@ -490,8 +490,8 @@ void Host::set_mac(Mac* _mac) {
   bool is_remote = !ip.isLocalHost();
 
   if (mac) {
-    mac->decUses();
     if (is_remote) mac->decNumRemoteHosts();
+    mac->decUses();
   }
 
   mac = _mac;
