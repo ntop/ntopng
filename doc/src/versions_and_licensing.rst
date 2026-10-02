@@ -16,7 +16,7 @@ The Community version is free to use and open source. The full source code can b
 ntopng Professional
 -------------------
 
-The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles and LDAP authentication.
+The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles and LDAP / OIDC (SSO) authentication.
 
 ntopng Enterprise M
 -------------------
@@ -464,6 +464,14 @@ Versions Comparison Table
      - ✓
      - ✓
    * - Integrate ntopng login with LDAP authentication servers \* \*\*
+     - ✗
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+   * - Integrate ntopng login with OpenID Connect (OIDC) / SSO Identity Providers
      - ✗
      - ✓
      - ✓

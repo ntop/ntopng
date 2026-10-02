@@ -753,6 +753,7 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_oidc_auth_descr"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.oidc.enabled",
+                locked = lock_pro,
                 default = "0",
                 section = i18n("prefs.oidc_auth"),
                 to_switch = {"oidc_issuer_url", "oidc_client_id", "oidc_client_secret", "oidc_base_redirect_uri",
@@ -766,6 +767,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_issuer_url",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -778,6 +780,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_client_id",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -790,6 +793,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "password",
                 redis_key = "ntopng.prefs.oidc.oidc_client_secret",
+                locked = lock_pro,
                 default = "",
                 password = true,
                 attrs = {
@@ -803,6 +807,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_base_redirect_uri",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -815,6 +820,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_scopes",
+                locked = lock_pro,
                 default = "openid profile email roles",
                 attrs = {
                     spellcheck = "false",
@@ -827,6 +833,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_group_claim",
+                locked = lock_pro,
                 default = "groups",
                 attrs = {
                     spellcheck = "false",
@@ -839,6 +846,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_admin_group",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -850,6 +858,7 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_oidc_auto_create_users_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.oidc.oidc_auto_create_users",
+                locked = lock_pro,
                 default = "0"
             }, {
                 key = "oidc_claim_ifname",
@@ -858,6 +867,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_ifname",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -870,6 +880,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_nets",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -882,6 +893,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_host_pools",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -894,6 +906,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_allow_pcap",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -906,6 +919,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_allow_historical",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -918,6 +932,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_allow_alerts",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -946,6 +961,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.auth_enabled",
                 default = "0",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 section = i18n("prefs.ldap_authentication"),
                 to_switch = {"multiple_ldap_account_type", "ldap_server_address", "toggle_ldap_anonymous_bind",
                              "bind_dn", "bind_pwd", "search_path", "admin_group", "user_group",
@@ -958,6 +974,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.account_type",
                 default = "posix",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 options = {{
                     value = "posix",
                     label = i18n("prefs.posix")
@@ -974,6 +991,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.ldap_server_address",
                 default = "ldap://localhost:389",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -986,6 +1004,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.anonymous_bind",
                 default = "1",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 reverse_switch = true,
                 to_switch = {"bind_dn", "bind_pwd"}
             }, {
@@ -997,6 +1016,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.bind_dn",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1010,6 +1030,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.bind_pwd",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 password = true,
                 attrs = {
                     maxlength = "255"
@@ -1023,6 +1044,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.search_path",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1036,6 +1058,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.admin_group",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1049,6 +1072,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.user_group",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1060,7 +1084,8 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ldap.ext_user_cap",
                 default = "0",
-                hidden = (not hasLdap)
+                hidden = (not hasLdap),
+                locked = lock_pro
             }, {
                 key = "toggle_ldap_referrals",
                 title = i18n("prefs.toggle_ldap_referrals_title"),
@@ -1068,7 +1093,8 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ldap.follow_referrals",
                 default = "1",
-                hidden = (not hasLdap)
+                hidden = (not hasLdap),
+                locked = lock_pro
             }, {
                 key = "toggle_ldap_debug",
                 title = i18n("prefs.toggle_ldap_debug_title"),
@@ -1076,7 +1102,8 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ldap_debug",
                 default = "0",
-                hidden = (not hasLdap)
+                hidden = (not hasLdap),
+                locked = lock_pro
             }, -- RADIUS auth
             {
                 key = "toggle_radius_auth",

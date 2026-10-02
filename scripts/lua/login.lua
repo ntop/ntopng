@@ -106,8 +106,8 @@ print[[
     <button class="w-100 btn btn-lg btn-primary" type="submit">]] print(i18n("login.login")) print[[</button>
 ]]
 
--- SSO login button (shown only when OIDC is enabled)
-local oidc_enabled = ntop.getPref("ntopng.prefs.oidc.enabled") == "1"
+-- SSO login button (shown only when OIDC is enabled, Pro license required)
+local oidc_enabled = ntop.isPro and ntop.isPro() and (ntop.getPref("ntopng.prefs.oidc.enabled") == "1")
 if oidc_enabled then
   -- URL-encode the referer so embedded '?' and '&' don't break the query string
   local oidc_referer = string.gsub(referer or "", "([^%w%-%.%_%~/])", function(c)

@@ -137,15 +137,16 @@ local function is_auth_method_enabled(entry)
    return value == "1"
 end
 
--- Auth toggles visible on this build: a method hidden because the feature is
--- not available cannot be used to log in, so it does not count as a fallback.
+-- Auth toggles visible on this build: a method hidden or locked because the
+-- feature is not available (e.g. missing license) cannot be used to log in,
+-- so it does not count as a fallback.
 local function get_auth_toggle_entries()
    local entries = {}
 
    for _, section in ipairs(all_sections) do
       if not section.hidden then
          for _, entry in ipairs(section.entries or {}) do
-            if not entry.hidden and is_auth_toggle(entry.redis_key) then
+            if not entry.hidden and not entry.locked and is_auth_toggle(entry.redis_key) then
                entries[#entries + 1] = entry
             end
          end
