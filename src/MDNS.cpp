@@ -184,8 +184,11 @@ char* MDNS::decodePTRResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
   u_int offset = 0, i, idx, to_skip = ntohs(dns_h->num_queries);
   char* queries = &mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
 
+  buf[0] = '\0', *resolved_ip = 0;
+
+  if (mdnsbuf_len < sizeof(struct ndpi_dns_packet_header)) return (buf);
+
   mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header);
-  *resolved_ip = 0;
 
   /* Skip queries */
   for (i = 0, idx = 0;
@@ -243,6 +246,10 @@ char* MDNS::decodeAnyResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
       (struct ndpi_dns_packet_header*)mdnsbuf;
   u_int offset = 0, i, idx, to_skip;
   u_char* queries = (u_char*)&mdnsbuf[sizeof(struct ndpi_dns_packet_header)];
+
+  buf[0] = '\0';
+
+  if (mdnsbuf_len < sizeof(struct ndpi_dns_packet_header)) return (buf);
 
   mdnsbuf_len -= sizeof(struct ndpi_dns_packet_header);
 
