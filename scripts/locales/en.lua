@@ -6950,6 +6950,7 @@ local lang = {
     ["note_remote_probe_time"] = "Difference in seconds between ntopng time and remote nProbe time: ideally it should be close to zero. If too large please sync nProbe/ntopng time",
     ["other_probes"] = "%{num} other probes",
     ["paused"] = "Paused",
+    ["nprobe_instance_name"] = "Instance Name",
     ["probe_ip"] = "nProbe IP",
     ["probe_last_update"] = "Last Update",
     ["probe_public_ip"] = "Public IP",

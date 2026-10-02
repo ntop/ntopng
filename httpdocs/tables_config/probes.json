@@ -21,6 +21,16 @@
 			]
 		},
 		{
+			"id": "probe_instance_name",
+			"title_i18n": "if_stats_overview.nprobe_instance_name",
+			"data_field": "probe_instance_name",
+			"sortable": true,
+			"min-width": "60px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "probe_version",
 			"title_i18n": "flow_devices.nprobe_version",
 			"data_field": "probe_version",

@@ -34,10 +34,11 @@ nProbeStats::nProbeStats() {
   memset(&flow_collection, 0, sizeof(flow_collection));
 
   remote_ifname[0] = remote_ifaddress[0] = remote_collector_address[0] =
-    remote_probe_address[0] =
-    remote_probe_public_address[0] = uuid[0] = remote_probe_version[0] =
-    remote_probe_os[0] = remote_probe_license[0] =
-    remote_probe_edition[0] = remote_probe_maintenance[0] =
+    nprobe_address[0] =
+    nprobe_public_address[0] = uuid[0] = nprobe_version[0] =
+    nprobe_os[0] = nprobe_license[0] =
+    nprobe_edition[0] = nprobe_maintenance[0] =
+    nprobe_instance_name[0] =
     mode[0] = '\0';
 }
 
