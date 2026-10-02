@@ -869,7 +869,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
          increase its counters only if it is different from inIndex to avoid
          double counting. */
 
-      if (flow->getOutIndex() != flow->getInIndex())
+      if (zflow->outIndex != zflow->inIndex)
         flow_devices_stats->incStats(
             now, zflow->unique_source_id, zflow->outIndex,
             flow->getStatsProtocol(), in_pkts, in_bytes, out_pkts, out_bytes,
