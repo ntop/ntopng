@@ -1462,7 +1462,6 @@ bool NetworkInterface::walker(u_int32_t* begin_slot, bool walk_all,
 Flow* NetworkInterface::getFlow(
     int32_t if_index, Mac* src_mac, Mac* dst_mac, u_int16_t vlan_id,
     u_int16_t observation_domain_id, u_int32_t private_flow_id,
-    u_int32_t inIndex, u_int32_t outIndex,
     const ICMPinfo* const icmp_info, IpAddress* src_ip, IpAddress* dst_ip,
     u_int16_t src_port, u_int16_t dst_port, u_int8_t l4_proto,
     bool* src2dst_direction, time_t first_seen, time_t last_seen,
@@ -2263,7 +2262,7 @@ pre_get_flow:
   /* Updating Flow */
   flow = getFlow(
       if_index, srcMac, dstMac, vlan_id, 0 /* observationPointId */,
-      private_flow_id, 0, 0, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
+      private_flow_id, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
       &src_ip, &dst_ip, src_port, dst_port, l4_proto, &src2dst_direction,
       last_pkt_rcvd, last_pkt_rcvd, len_on_wire, new_flow,
       create_flow_if_missing, eth->h_source,
@@ -3931,7 +3930,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           getFlow(UNKNOWN_PKT_IFACE_IDX, NULL /* srcMac */, NULL /* dstMac */,
                   dequeued->vlan_id, 0 /* observationPointId */,
                   dequeued->get_private_flow_id(),
-                  0 /* inIndex */, 1 /* outIndex */, NULL /* ICMPinfo */,
+                  NULL /* ICMPinfo */,
                   &dequeued->src_ip, &dequeued->dst_ip, dequeued->src_port,
                   dequeued->dst_port, dequeued->l4_proto, &src2dst_direction, 0,
                   0, 0, &new_flow, true /* create_if_missing */, NULL, NULL);
