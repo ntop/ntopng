@@ -171,6 +171,11 @@ for i = 1, num_runs do
 			for interface_id, probes_list in pairs(ifstats.probes or {}) do
 				for source_id, probe_info in pairs(probes_list or {}) do
 					local probe_interface = ""
+					local uuid = probe_info["probe.instance_name"]
+					if isEmptyString(uuid) then
+						-- Fallback to the uuid for probes not exporting the instance name
+						uuid = probe_info["probe.uuid"] or ""
+					end
 					local export_drops = (probe_info["drops.export_queue_full"] or 0)
 						+ (probe_info["drops.elk_flow_drops"] or 0)
 					local exported_flows = 0
@@ -190,42 +195,42 @@ for i = 1, num_runs do
 
 					ts_utils.append("probe:traffic", {
 						ifid = interface_id,
-						uuid = probe_info["probe.uuid"] or "",
+						uuid = uuid,
 						interface_name = probe_interface,
 						bytes = (probe_info["bytes.total"] or 0),
 					}, when)
 
 					ts_utils.append("probe:packets", {
 						ifid = interface_id,
-						uuid = probe_info["probe.uuid"] or "",
+						uuid = uuid,
 						interface_name = probe_interface,
 						packets = (probe_info["packets.total"] or 0),
 					}, when)
 
 					ts_utils.append("probe:packets_drops", {
 						ifid = interface_id,
-						uuid = probe_info["probe.uuid"] or "",
+						uuid = uuid,
 						interface_name = probe_interface,
 						drops = (probe_info["packets.drops"] or 0),
 					}, when)
 
 					ts_utils.append("probe:active_flows", {
 						ifid = interface_id,
-						uuid = probe_info["probe.uuid"] or "",
+						uuid = uuid,
 						interface_name = probe_interface,
 						active_flows = (probe_info["active_flows"] or 0),
 					}, when)
 
 					ts_utils.append("probe:exported_flows", {
 						ifid = interface_id,
-						uuid = probe_info["probe.uuid"] or "",
+						uuid = uuid,
 						interface_name = probe_interface,
 						exports = (exported_flows or 0),
 					}, when)
 
 					ts_utils.append("probe:zmq_drops", {
 						ifid = interface_id,
-						uuid = probe_info["probe.uuid"] or "",
+						uuid = uuid,
 						interface_name = probe_interface,
 						drops = (export_drops or 0),
 					}, when)
