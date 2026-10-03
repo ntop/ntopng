@@ -6427,7 +6427,14 @@ char* Utils::createRandomString(char* buf, size_t buf_len) {
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
   int charset_len = (int)(sizeof(charset) - 1);
 
-  for (u_int i = 0; i < buf_len; i++) buf[i] = charset[rand() % charset_len];
+  if (buf_len == 0) return (buf);
+
+  if (RAND_bytes((unsigned char*)buf, (int)buf_len) == 1) {
+    for (u_int i = 0; i < buf_len; i++)
+      buf[i] = charset[(unsigned char)buf[i] % charset_len];
+  } else {
+    for (u_int i = 0; i < buf_len; i++) buf[i] = charset[rand() % charset_len];
+  }
 
   buf[buf_len - 1] = '\0';
 
