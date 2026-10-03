@@ -274,6 +274,8 @@ char* MDNS::decodeAnyResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
 
     offset += 10;
 
+    if ((offset + 2) > (u_int)mdnsbuf_len) break;
+
     len = ntohs(*(u_int16_t*)&queries[offset]);
     offset += len + 2;
 
@@ -289,6 +291,8 @@ char* MDNS::decodeAnyResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
         offset++;
     }
 
+    if ((offset + 12) > (u_int)mdnsbuf_len) break;
+
     qtype = ntohs(*(u_int16_t*)&queries[offset + 2]);
 
     len = ntohs(*(u_int16_t*)&queries[offset + 10]);
@@ -297,8 +301,8 @@ char* MDNS::decodeAnyResponse(char* mdnsbuf, u_int mdnsbuf_len, char* buf,
     if (qtype == 0x10) {
       int j;
 
-      for (j = 0;
-           (j < len) && (offset < (u_int)mdnsbuf_len) && (idx < buf_len - 1);
+      for (j = 0; (j < len) && ((offset + j) < (u_int)mdnsbuf_len) &&
+                  (idx < buf_len - 1);
            j++) {
         if (queries[offset + j] < 32) {
           if (idx > 0) buf[idx++] = ';';
