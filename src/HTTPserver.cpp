@@ -359,11 +359,26 @@ static void create_session(const char* user, const char* group, bool localuser,
 
 /* ****************************************** */
 
+static bool isLocalReferer(const char* referer) {
+  const unsigned char* p;
+
+  if ((referer == NULL) || (referer[0] != '/') || (referer[1] == '/') ||
+      (referer[1] == '\\'))
+    return (false);
+
+  for (p = (const unsigned char*)referer; *p != '\0'; p++)
+    if ((*p < ' ') || (*p == 0x7F)) return (false);
+
+  return (true);
+}
+
+/* ****************************************** */
+
 // Create a new session and set the session Cookie
 static void set_session_cookie(const struct mg_connection* const conn,
                                const char* user, const char* group,
                                bool localuser, const char* referer) {
-  char session_id[64], session_key[32];
+  char session_id[64], session_key[32], safe_referer[256];
   u_int session_duration;
 
   if (!strncmp(mg_get_request_info((struct mg_connection*)conn)->uri,
@@ -390,6 +405,12 @@ static void set_session_cookie(const struct mg_connection* const conn,
                  session_duration);
   Utils::make_session_key(session_key, sizeof(session_key));
 
+  if (isLocalReferer(referer))
+    snprintf(safe_referer, sizeof(safe_referer), "%s", referer);
+  else
+    snprintf(safe_referer, sizeof(safe_referer), "%s/",
+             ntop->getPrefs()->get_http_prefix());
+
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf(
       (struct mg_connection*)conn,
@@ -401,7 +422,7 @@ static void set_session_cookie(const struct mg_connection* const conn,
       session_duration,
       get_secure_cookie_attributes(
           mg_get_request_info((struct mg_connection*)conn)),
-      referer ? referer : "/");
+      safe_referer);
 
   traceHTTP(conn, 302);
 }
