@@ -18,24 +18,86 @@ local script = {
    -- This module is disabled by default
    default_enabled = false,
 
-   -- Default value (reset with "Reset Default" button)
+   -- Default values (reset with "Reset Default" button), one threshold per scan type.
+   -- field_operator is not set as thresholds are always checked with >=
    default_value = {
-      operator = "gt",
-      threshold = 20
+      -- Num of distinct ports contacted on the same host
+      port_scan = {
+         default_value = 20,
+         field_min = 1,
+         field_max = 1000,
+         i18n_fields_unit = checks.field_units.ports,
+         i18n_title = "flow_checks.scan_port_title"
+      },
+      -- Num of distinct hosts contacted on the same port
+      service_scan = {
+         default_value = 50,
+         field_min = 1,
+         field_max = 1000,
+         i18n_fields_unit = checks.field_units.hosts,
+         i18n_title = "flow_checks.scan_service_title"
+      },
+      -- Num of attempts (distinct source ports) towards the same host and port
+      service_down = {
+         default_value = 50,
+         field_min = 1,
+         field_max = 1000,
+         i18n_fields_unit = checks.field_units.flows,
+         i18n_title = "flow_checks.scan_service_down_title"
+      },
+      -- Num of distinct hosts contacted in the same network
+      network_scan = {
+         default_value = 100,
+         field_min = 1,
+         field_max = 1000,
+         i18n_fields_unit = checks.field_units.hosts,
+         i18n_title = "flow_checks.scan_network_title"
+      }
    },
 
    gui = {
       i18n_title = "flow_checks.scan_title",
       i18n_description = "flow_checks.scan_description",
-      i18n_field_unit = checks.field_units.ports,
-      input_builder = "threshold_cross",
-      field_min = 1,
-      field_max = 1000,
-      field_operator = "gt"
+      input_builder = "multi_threshold_cross"
    },
 
    hooks = {}
 }
+
+-- #################################################################
+
+-- Migrate the old configuration, made of a single threshold used for the
+-- port scan, to the per scan type thresholds
+function script.migrateConfig(script_conf)
+   local old_threshold = tonumber(script_conf.threshold)
+
+   script_conf.threshold = nil
+   script_conf.operator = nil
+
+   -- Add the thresholds missing in the saved configuration
+   for field, default in pairs(script.default_value) do
+      script_conf[field] = script_conf[field] or table.clone(default)
+   end
+
+   if old_threshold then
+      script_conf.port_scan.threshold = old_threshold
+   end
+
+   return script_conf
+end
+
+-- #################################################################
+
+-- Return the threshold configured for a scan type, nil if the scan type is disabled
+local function get_threshold(check_config, field)
+   local conf = check_config[field] or {}
+
+   if conf.enabled == false then
+      return nil
+   end
+
+   return tonumber(conf.threshold) or script.default_value[field].default_value
+end
 
 -- #################################################################
 
@@ -160,7 +222,10 @@ end
 
 local function scan_check(params)
    -- Settings
-   local threshold = tonumber(params.check_config.threshold) or script.default_value.threshold
+   local port_threshold = get_threshold(params.check_config, "port_scan")
+   local service_down_threshold = get_threshold(params.check_config, "service_down")
+   local service_threshold = get_threshold(params.check_config, "service_scan")
+   local network_threshold = get_threshold(params.check_config, "network_scan")
    local interval_size = 8 * 60 -- 8 min
 
    if not ntop.isClickHouseEnabled() then
@@ -172,81 +237,48 @@ local function scan_check(params)
    local interval_end = now
 
    -- Port Scan
-   local q_port = string.format(
-      "SELECT " .. "VLAN_ID vlan_id, " .. "COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
-         "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "COALESCE( " ..
-         "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " .. "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " .. ") AS ip_dst, " ..
-         "COUNT(DISTINCT IP_DST_PORT) AS count_dst_ports, " .. "COUNT(*) AS total_flows, " .. "MAX(LAST_SEEN) AS last_seen, " ..
-         "CLIENT_LOCATION AS src_location, " .. "SERVER_LOCATION AS dst_location, " .. "IS_CLI_BLACKLISTED AS src_blacklisted, " ..
-         "IS_SRV_BLACKLISTED AS dst_blacklisted, " .. "SRC_LABEL AS src_name, " .. "DST_LABEL AS dst_name " .. "FROM flows " ..
-         "WHERE INTERFACE_ID=%u " .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " .. "AND L7_PROTO != 5 " ..
-         "AND DST2SRC_PACKETS <= 1 " .. "GROUP BY vlan_id, ip_src, ip_dst, src_location, dst_location, " ..
-         "src_blacklisted, dst_blacklisted, src_name, dst_name " .. "HAVING count_dst_ports >= %u " .. 
-         "AND ip_src IS NOT NULL AND ip_dst IS NOT NULL ORDER BY total_flows DESC " ..
-         "LIMIT 1000", tonumber(interface.getId()), interval_begin, interval_end, interval_end, threshold)
+   local results_port = {}
+   if port_threshold then
+      local q_port = string.format(
+         "SELECT " .. "VLAN_ID vlan_id, " .. "COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
+            "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "COALESCE( " ..
+            "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " .. "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " .. ") AS ip_dst, " ..
+            "COUNT(DISTINCT IP_DST_PORT) AS count_dst_ports, " .. "COUNT(*) AS total_flows, " .. "MAX(LAST_SEEN) AS last_seen, " ..
+            "CLIENT_LOCATION AS src_location, " .. "SERVER_LOCATION AS dst_location, " .. "IS_CLI_BLACKLISTED AS src_blacklisted, " ..
+            "IS_SRV_BLACKLISTED AS dst_blacklisted, " .. "SRC_LABEL AS src_name, " .. "DST_LABEL AS dst_name " .. "FROM flows " ..
+            "WHERE INTERFACE_ID=%u " .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " .. "AND L7_PROTO != 5 " ..
+            "AND DST2SRC_PACKETS <= 1 " .. "GROUP BY vlan_id, ip_src, ip_dst, src_location, dst_location, " ..
+            "src_blacklisted, dst_blacklisted, src_name, dst_name " .. "HAVING count_dst_ports >= %u " .. 
+            "AND ip_src IS NOT NULL AND ip_dst IS NOT NULL ORDER BY total_flows DESC " ..
+            "LIMIT 1000", tonumber(interface.getId()), interval_begin, interval_end, interval_end, port_threshold)
 
-   local results_port_query,err = interface.execSQLQuery(q_port)
-   local results_port = iterative_src_dst_alert(params, results_port_query, false, "Port")
-
-   -- Service down
-   local q_service_down = string.format("SELECT " .. "VLAN_ID vlan_id, " .. "COALESCE( " ..
-                                           "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
-                                           "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "COALESCE( " ..
-                                           "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " ..
-                                           "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " .. ") AS ip_dst, " .. "IP_DST_PORT dst_port, " ..
-                                           "COUNT(DISTINCT IP_SRC_PORT) AS count_src_ports, " .. "COUNT(*) AS total_flows, " ..
-                                           "MAX(LAST_SEEN) AS last_seen, " .. "CLIENT_LOCATION AS src_location, " ..
-                                           "IS_CLI_BLACKLISTED AS src_blacklisted, " .. "SRC_LABEL AS src_name " .. "FROM flows " ..
-                                           "WHERE INTERFACE_ID=%u " .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " ..
-                                           "AND L7_PROTO != 5 " .. "AND DST2SRC_PACKETS <= 1 " ..
-                                           "GROUP BY vlan_id, ip_src, ip_dst, dst_port, src_location, " .. "src_blacklisted, src_name " ..
-                                           "HAVING count_src_ports >= %u AND ip_src IS NOT NULL AND ip_dst IS NOT NULL " .. 
-                                           "ORDER BY total_flows DESC " .. "LIMIT 500",
-      tonumber(interface.getId()), interval_begin, interval_end, interval_end, 50)
-
-   local results_service_down, rerr = interface.execSQLQuery(q_service_down)
-   for _, row in ipairs(results_service_down) do
-      local vlan_id = tonumber(row.vlan_id) or 0
-      local attacker_ip = row.ip_src
-      local victim_port = row.dst_port
-      local victim = row.ip_dst
-      if attacker_ip ~= "" then
-         local alert_type_params = {
-            alert_generation = {
-               host_info = {
-                  is_blacklisted = row.src_blacklisted == "1",
-                  is_local = row.src_location == "1",
-                  is_multicast = row.src_location == "2"
-               }
-            }
-         }
-         report_alert(params, attacker_ip, vlan_id, victim, victim_port, false, "Service Down", alert_type_params)
-      end
+      local results_port_query,err = interface.execSQLQuery(q_port)
+      results_port = iterative_src_dst_alert(params, results_port_query, false, "Port")
    end
 
-   -- Service Scan
-   local q_service = string.format(
-      "SELECT " .. "VLAN_ID vlan_id," .. "COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
-         "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "IP_DST_PORT AS dst_port, " .. "COUNT(DISTINCT COALESCE( " ..
-         "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " .. "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " ..
-         ") AS ip_dst) AS count_ip_dst, " .. "COUNT(*) AS total_flows, " .. "MAX(LAST_SEEN) AS last_seen, " ..
-         "CLIENT_LOCATION AS src_location, " .. "IS_CLI_BLACKLISTED AS src_blacklisted, " .. "SRC_LABEL AS src_name " .. "FROM flows " ..
-         "WHERE INTERFACE_ID=%u " .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " .. "AND L7_PROTO != 5 " ..
-         "AND DST2SRC_PACKETS <= 1 " .. "GROUP BY vlan_id, ip_src, dst_port, src_location, " .. "src_blacklisted, src_name " ..
-         "HAVING count_ip_dst >= %u AND ip_src IS NOT NULL " .. "ORDER BY total_flows DESC " .. "LIMIT 1000", tonumber(interface.getId()), interval_begin,
-      interval_end, interval_end, 50)
+   -- Service down
+   if service_down_threshold then
+      local q_service_down = string.format("SELECT " .. "VLAN_ID vlan_id, " .. "COALESCE( " ..
+                                              "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
+                                              "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "COALESCE( " ..
+                                              "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " ..
+                                              "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " .. ") AS ip_dst, " .. "IP_DST_PORT dst_port, " ..
+                                              "COUNT(DISTINCT IP_SRC_PORT) AS count_src_ports, " .. "COUNT(*) AS total_flows, " ..
+                                              "MAX(LAST_SEEN) AS last_seen, " .. "CLIENT_LOCATION AS src_location, " ..
+                                              "IS_CLI_BLACKLISTED AS src_blacklisted, " .. "SRC_LABEL AS src_name " .. "FROM flows " ..
+                                              "WHERE INTERFACE_ID=%u " .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " ..
+                                              "AND L7_PROTO != 5 " .. "AND DST2SRC_PACKETS <= 1 " ..
+                                              "GROUP BY vlan_id, ip_src, ip_dst, dst_port, src_location, " .. "src_blacklisted, src_name " ..
+                                              "HAVING count_src_ports >= %u AND ip_src IS NOT NULL AND ip_dst IS NOT NULL " .. 
+                                              "ORDER BY total_flows DESC " .. "LIMIT 500",
+         tonumber(interface.getId()), interval_begin, interval_end, interval_end, service_down_threshold)
 
-   local results_service,s_err = interface.execSQLQuery(q_service)
-   local service_attackers = {}
-   
-   for _, row in ipairs(results_service) do
-      local vlan_id = tonumber(row.vlan_id) or 0
-      local attacker_ip = row.ip_src
-      local attacker_key = row.ip_src .. "_" .. vlan_id
-      service_attackers[attacker_key] = true
-      if results_port[attacker_key] == nil or results_port[attacker_key][2] < 10 then
+      local results_service_down, rerr = interface.execSQLQuery(q_service_down)
+      for _, row in ipairs(results_service_down) do
+         local vlan_id = tonumber(row.vlan_id) or 0
+         local attacker_ip = row.ip_src
          local victim_port = row.dst_port
-         local num_victim = row.count_ip_dst
+         local victim = row.ip_dst
          if attacker_ip ~= "" then
             local alert_type_params = {
                alert_generation = {
@@ -257,43 +289,85 @@ local function scan_check(params)
                   }
                }
             }
-            report_alert(params, attacker_ip, vlan_id, victim_port, num_victim, false, "Service", alert_type_params)
+            report_alert(params, attacker_ip, vlan_id, victim, victim_port, false, "Service Down", alert_type_params)
          end
       end
    end
 
-   -- Network Scan 
-   local q_network = string.format(
-      "SELECT " .. "VLAN_ID vlan_id, " .. "COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
-         "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "DST_NETWORK_ID as dst_network, " ..
-         "COUNT(DISTINCT COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " ..
-         "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " .. ") AS ip_dst) AS count_ip_dst, " .. "COUNT(*) AS total_flows, " ..
-         "MAX(LAST_SEEN) AS last_seen, " .. "CLIENT_LOCATION AS src_location, " .. "IS_CLI_BLACKLISTED AS src_blacklisted, " ..
-         "SRC_LABEL AS src_name " .. "FROM flows " .. "WHERE INTERFACE_ID=%u " ..
-         "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " .. "AND L7_PROTO != 5 " .. "AND DST2SRC_PACKETS <= 1 " ..
-         "GROUP BY vlan_id, ip_src, dst_network, src_location, " .. "src_blacklisted, src_name " .. "HAVING count_ip_dst >= %u AND ip_src IS NOT NULL " ..
-         "ORDER BY total_flows DESC " .. "LIMIT 1000", tonumber(interface.getId()), interval_begin, interval_end, interval_end, 100)
+   -- Service Scan
+   local service_attackers = {}
+   if service_threshold then
+      local q_service = string.format(
+         "SELECT " .. "VLAN_ID vlan_id," .. "COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
+            "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "IP_DST_PORT AS dst_port, " .. "COUNT(DISTINCT COALESCE( " ..
+            "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " .. "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " ..
+            ") AS ip_dst) AS count_ip_dst, " .. "COUNT(*) AS total_flows, " .. "MAX(LAST_SEEN) AS last_seen, " ..
+            "CLIENT_LOCATION AS src_location, " .. "IS_CLI_BLACKLISTED AS src_blacklisted, " .. "SRC_LABEL AS src_name " .. "FROM flows " ..
+            "WHERE INTERFACE_ID=%u " .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " .. "AND L7_PROTO != 5 " ..
+            "AND DST2SRC_PACKETS <= 1 " .. "GROUP BY vlan_id, ip_src, dst_port, src_location, " .. "src_blacklisted, src_name " ..
+            "HAVING count_ip_dst >= %u AND ip_src IS NOT NULL " .. "ORDER BY total_flows DESC " .. "LIMIT 1000", tonumber(interface.getId()), interval_begin,
+         interval_end, interval_end, service_threshold)
 
-   local results_network, n_err = interface.execSQLQuery(q_network)
-   for _, row in ipairs(results_network) do
-      local vlan_id = tonumber(row.vlan_id) or 0
-      local attacker_ip = row.ip_src
-      local attacker_key = row.ip_src .. "_" .. vlan_id
-      -- Report a network scan only if the host has not performed a service scan
-      if service_attackers[attacker_key] == nil then
-         local victim_network = getLocalNetworkAliasById(row.dst_network)
-         local num_victim = row.count_ip_dst
-         if attacker_ip ~= "" then
-            local alert_type_params = {
-               alert_generation = {
-                  host_info = {
-                     is_blacklisted = row.src_blacklisted == "1",
-                     is_local = row.src_location == "1",
-                     is_multicast = row.src_location == "2"
+      local results_service,s_err = interface.execSQLQuery(q_service)
+
+      for _, row in ipairs(results_service) do
+         local vlan_id = tonumber(row.vlan_id) or 0
+         local attacker_ip = row.ip_src
+         local attacker_key = row.ip_src .. "_" .. vlan_id
+         service_attackers[attacker_key] = true
+         if results_port[attacker_key] == nil or results_port[attacker_key][2] < 10 then
+            local victim_port = row.dst_port
+            local num_victim = row.count_ip_dst
+            if attacker_ip ~= "" then
+               local alert_type_params = {
+                  alert_generation = {
+                     host_info = {
+                        is_blacklisted = row.src_blacklisted == "1",
+                        is_local = row.src_location == "1",
+                        is_multicast = row.src_location == "2"
+                     }
                   }
                }
-            }
-            report_alert(params, attacker_ip, vlan_id, victim_network, num_victim, false, "Network", alert_type_params)
+               report_alert(params, attacker_ip, vlan_id, victim_port, num_victim, false, "Service", alert_type_params)
+            end
+         end
+      end
+   end
+
+   -- Network Scan
+   if network_threshold then
+      local q_network = string.format(
+         "SELECT " .. "VLAN_ID vlan_id, " .. "COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), " ..
+            "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') " .. ") AS ip_src, " .. "DST_NETWORK_ID as dst_network, " ..
+            "COUNT(DISTINCT COALESCE( " .. "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), " ..
+            "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') " .. ") AS ip_dst) AS count_ip_dst, " .. "COUNT(*) AS total_flows, " ..
+            "MAX(LAST_SEEN) AS last_seen, " .. "CLIENT_LOCATION AS src_location, " .. "IS_CLI_BLACKLISTED AS src_blacklisted, " ..
+            "SRC_LABEL AS src_name " .. "FROM flows " .. "WHERE INTERFACE_ID=%u " ..
+            "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) " .. "AND L7_PROTO != 5 " .. "AND DST2SRC_PACKETS <= 1 " ..
+            "GROUP BY vlan_id, ip_src, dst_network, src_location, " .. "src_blacklisted, src_name " .. "HAVING count_ip_dst >= %u AND ip_src IS NOT NULL " ..
+            "ORDER BY total_flows DESC " .. "LIMIT 1000", tonumber(interface.getId()), interval_begin, interval_end, interval_end, network_threshold)
+
+      local results_network, n_err = interface.execSQLQuery(q_network)
+      for _, row in ipairs(results_network) do
+         local vlan_id = tonumber(row.vlan_id) or 0
+         local attacker_ip = row.ip_src
+         local attacker_key = row.ip_src .. "_" .. vlan_id
+         -- Report a network scan only if the host has not performed a service scan
+         if service_attackers[attacker_key] == nil then
+            local victim_network = getLocalNetworkAliasById(row.dst_network)
+            local num_victim = row.count_ip_dst
+            if attacker_ip ~= "" then
+               local alert_type_params = {
+                  alert_generation = {
+                     host_info = {
+                        is_blacklisted = row.src_blacklisted == "1",
+                        is_local = row.src_location == "1",
+                        is_multicast = row.src_location == "2"
+                     }
+                  }
+               }
+               report_alert(params, attacker_ip, vlan_id, victim_network, num_victim, false, "Network", alert_type_params)
+            end
          end
       end
    end
