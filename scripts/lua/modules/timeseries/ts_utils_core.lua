@@ -921,7 +921,7 @@ end
 -- ! @note This function should be updated whenever an existng schema is changed
 function ts_utils.getPossiblyChangedSchemas()
    return { -- Interface timeseries
-      "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2",
+      "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2", "iface:ts_queue_length",
       "iface:traffic_anomalies_v2", "iface:deduplicated_flows", "iface:role_traffic_v3", "iface:traffic_rx_behavior_v5", "iface:traffic_tx_behavior_v5",
       "iface:engaged_alerts", "iface:local_hosts", "subnet:score_anomalies", "subnet:intranet_traffic",
       "subnet:intranet_traffic_min", "host:contacts", -- split in "as_client" and "as_server"
