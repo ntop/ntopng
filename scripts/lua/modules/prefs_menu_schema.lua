@@ -37,7 +37,7 @@ function M.get_flags()
     local has_ch_support = (hasClickHouseSupport and hasClickHouseSupport()) and true or false
 
     -- nAnalyst needs both a flow source it can query (ClickHouse, or a pcap
-    -- dump interface) and an activated license. Keep the two apart, so the GUI
+    -- dump interface) and a license enabling it. Keep the two apart, so the GUI
     -- can name the prerequisite that is actually missing instead of just
     -- saying "requires nAnalyst".
     local has_nanalyst_engine = ntop.hasnAnalyst and ntop.hasnAnalyst() or false

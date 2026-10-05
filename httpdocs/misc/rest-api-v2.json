@@ -12434,7 +12434,7 @@
           "License"
         ],
         "summary": "Get license information for the current ntopng instance",
-        "description": "Get license information for the current ntopng instance, including SystemId, license validity/expiry and, on Pro/Enterprise builds, whether offline activation is still pending",
+        "description": "Get license information for the current ntopng instance, including SystemId and license validity/expiry",
         "operationId": "get_ntopng_license",
         "produces": [
           "application/json"
@@ -12478,41 +12478,6 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/set/ntopng/license_activation.lua": {
-      "post": {
-        "tags": [
-          "License"
-        ],
-        "summary": "Offline-activate a Pro/Enterprise license",
-        "description": "Activates the current Pro/Enterprise license's SystemId using an activation code retrieved from https://shop.ntop.org/recover_licenses.php, for instances that cannot reach the Internet to self-register at startup. Requires a valid Pro/Enterprise license to already be installed",
-        "operationId": "set_ntopng_license_activation",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "activation_code",
-            "description": "The activation code retrieved from https://shop.ntop.org/recover_licenses.php",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-8": {
-            "description": "BAD_CONTENT"
           }
         }
       }

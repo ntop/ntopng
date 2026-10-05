@@ -64,13 +64,6 @@ local eula_url = ternary(
 
 local has_valid_license = info["pro.has_valid_license"]
 
-local needs_activation = not has_valid_license
-if ntop.isPro and ntop.isPro() then
-   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   local app_utils = require "app_utils"
-   needs_activation = (app_utils.isActivated() == false)
-end
-
 -- Detect SystemID changes in case of invalid license
 local last_valid_system_id = ntop.getCache("ntopng.pro.last_valid_systemid")
 local system_id_changed = (not has_valid_license)
@@ -91,7 +84,6 @@ local res = {
    is_windows         = ntop.isWindows(),
    eula_url           = eula_url,
    cached_license     = ntop.getCache("ntopng.license"),
-   needs_activation   = needs_activation,
 }
 
 rest_utils.answer(rest_utils.consts.success.ok, res)
