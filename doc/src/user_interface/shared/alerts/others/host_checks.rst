@@ -227,10 +227,12 @@ Scan
 ~~~~~~~~~~~~~~
 Detects scanning activities targeting ports, networks, and services. This alert requires Clickhouse.
 
-- Port Scan: the number of contacted ports exceeds the configured threshold.
-- Service Scan: an attack targeting multiple hosts on a specific service.
-- Network Scan: communication with an unusually high number of hosts.
-- Service Down: a host made an excessive number of attempts to contact another host on a specific port, but the target did not respond. This behavior may indicate that the destination service is down or unreachable.
+The check runs every 5 minutes on the historical flows, taking into account only the flows that did not receive a response. Each detection has its own threshold, that can be configured (or individually disabled) from the check settings; the alert is triggered when the threshold is reached or exceeded.
+
+- Port Scan: a host contacted too many ports of another host. The threshold is the number of distinct ports contacted on the same host (default: 20 ports).
+- Service Scan: an attack targeting multiple hosts on a specific service. The threshold is the number of distinct hosts contacted on the same port (default: 50 hosts).
+- Network Scan: communication with an unusually high number of hosts. The threshold is the number of distinct hosts contacted in the same network (default: 100 hosts). It is not reported for hosts already reported for a Service Scan.
+- Service Down: a host made an excessive number of attempts to contact another host on a specific port, but the target did not respond. This behavior may indicate that the destination service is down or unreachable. The threshold is the number of attempts towards the same host and port (default: 50 flows).
 
 *Interface: Packet & ZMQ*
 
