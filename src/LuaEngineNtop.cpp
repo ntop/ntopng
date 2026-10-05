@@ -2948,6 +2948,7 @@ static bool allowWebAuthnManagement(lua_State* vm, const char* target_username) 
 /* @brief Changes a user password (requires old password or admin privileges).  Lua: ntop.resetUserPassword(who, username, old_pw, new_pw) → boolean */
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
+  char session_id[NTOP_SESSION_ID_LENGTH] = "";
   bool is_admin = ntop->isUserAdministrator(vm), ret;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -2985,7 +2986,14 @@ static int ntop_reset_user_password(lua_State* vm) {
   if ((old_password[0] == '\0') && !is_admin)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  ret = ntop->resetUserPassword(username, old_password, new_password);
+  /* on password change, invalidate all the other sessions of the same user, keep the current one only */
+  if ((strcmp(who, username) == 0) && getLuaVMContext(vm) && getLuaVMUservalue(vm, conn)) {
+    char session_key[32];
+    Utils::make_session_key(session_key, sizeof(session_key));
+    mg_get_cookie(getLuaVMUservalue(vm, conn), session_key, session_id, sizeof(session_id));
+  }
+
+  ret = ntop->resetUserPassword(username, old_password, new_password, session_id);
 
   lua_pushboolean(vm, ret);
   return CONST_LUA_OK;
