@@ -18,6 +18,18 @@ require "lua_utils"
 local rest_utils = require "rest_utils"
 local auth       = require "auth"
 
+local function connection_failed(detail)
+   local message = i18n("prefs.vue_prefs.connection_failed") or
+      "Unable to reach the server. Check the URL and network connectivity, or start ntopng with --insecure for unsafe TLS certificates."
+
+   if not isEmptyString(detail) then
+      message = message .. ": " .. detail
+   end
+
+   rest_utils.answer(rest_utils.consts.err.bad_content, { message = message })
+end
+
+
 if not auth.has_capability(auth.capabilities.preferences) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
@@ -35,11 +47,20 @@ url = url:gsub("/$", "")
 
 local rc = ntop.httpGet(url, nil, nil, 5 --[[timeout secs]], true --[[return_content]])
 
-if rc == nil then
-   rest_utils.answer(rest_utils.consts.err.bad_content, {
-      message = i18n("prefs.vue_prefs.connection_failed") or
-         "Unable to reach the server. Check the URL and network connectivity, or start ntopng with --insecure for unsafe TLS certificates."
-   })
+if type(rc) ~= "table" then
+   connection_failed()
+   return
+end
+
+local response_code = tonumber(rc.RESPONSE_CODE) or 0
+
+if not isEmptyString(rc.ERROR) or response_code == 0 then
+   connection_failed(rc.ERROR)
+   return
+end
+
+if response_code >= 500 then
+   connection_failed(string.format("HTTP %d", response_code))
    return
 end
 
