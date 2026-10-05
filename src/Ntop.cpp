@@ -118,6 +118,9 @@ Ntop::Ntop(const char* appName) {
    * constructor */
   hostPoolsReloadInProgress = false;
 
+  /* Force (re)load at startup; no initialization inside the constructor */
+  tagsMappingReloadInProgress = true;
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -126,6 +129,7 @@ Ntop::Ntop(const char* appName) {
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
   ping_initialized = false;
+  active_monitoring_not_avail = false;
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
@@ -376,6 +380,7 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
+  if(tagsMapping) delete tagsMapping;
 #endif
 
   if (resolvedHostsBloom) delete resolvedHostsBloom;
@@ -615,6 +620,10 @@ void Ntop::start() {
 
   system_interface->allocateStructures();
 
+#ifdef NTOPNG_PRO
+  tagsMapping = new TagsMapping();
+#endif
+
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->allocateStructures();
 
@@ -709,6 +718,7 @@ void Ntop::start() {
   checkReloadHostPools();
   checkReloadFlowChecks();
   checkReloadHostChecks();
+  checkReloadTagsMapping();
 
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -1228,20 +1238,59 @@ bool Ntop::recipients_are_empty() { return recipients.empty(); }
 /* ******************************************* */
 
 /*
-  Polls recipients_are_empty() until all notification queues are drained
-  (i.e., the recipients.process_notifications 5-second periodic activity has
-  dequeued and dispatched/persisted every pending alert), instead of
-  guessing a fixed delay. Returns true if queues drained before the timeout.
+  True when the whole alert pipeline is flushed, i.e. there is no alert
+  pending anywhere between the checks and the alert store:
+
+   1. the per-interface flow/host alert queues fed by the checks (drained by
+      flowAlertsDequeueLoop()/hostAlertsDequeueLoop() into the recipients);
+   2. the internal C->Lua alerts queue (datapath alerts);
+   3. the recipient queues (drained/persisted by
+      recipients.process_notifications).
+
+  recipients_are_empty() alone is not enough: right after a pcap file has been
+  fully processed the flow-end checks have just pushed all their alerts into
+  the per-interface queues (1), which the dequeue loops have not moved into
+  the recipients (3) yet, so the recipients can transiently look empty while
+  a whole batch of alerts is still in flight. That race let the e2e runtime
+  test scripts observe only a fraction of the expected alerts.
+*/
+bool Ntop::alerts_pipeline_drained() {
+  if (internal_alerts_queue && !internal_alerts_queue->empty()) return (false);
+
+  for (int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface* iface = getInterface(i);
+
+    if (iface && !iface->alertsQueuesDrained()) return (false);
+  }
+
+  return (recipients_are_empty());
+}
+
+/* ******************************************* */
+
+/*
+  Polls alerts_pipeline_drained() until every alert queue (per-interface,
+  internal and recipient) is drained, instead of guessing a fixed delay.
+  Returns true if the pipeline drained before the timeout.
+
+  Two consecutive drained reads are required: an item is removed from its
+  queue slightly before the consumer finishes dispatching/persisting it
+  (e.g. the SQLite write in alert_store_db.lua), so a single drained read
+  could still race with the last in-flight alert.
 */
 bool Ntop::waitRecipientsQueuesDrained(u_int max_wait_sec) {
+  u_int stable_reads = 0;
 
   sleep(1);
 
   for (u_int i = 0; i < max_wait_sec; i++) {
-    if (recipients_are_empty())
-      return (true);
-    else
-      sleep(1);
+    if (alerts_pipeline_drained()) {
+      if (++stable_reads >= 2) return (true);
+    } else {
+      stable_reads = 0;
+    }
+
+    sleep(1);
   }
 
   return (false);
@@ -1478,7 +1527,7 @@ void Ntop::getAllowedInterface(lua_State* vm) {
 /* ******************************************* */
 
 void Ntop::getAllowedNetworks(lua_State* vm) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
   const char* username = getLuaVMUservalue(vm, user);
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username ? username : "");
@@ -1578,7 +1627,7 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char* ifname) {
 char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter) {
   char* username;
   char* restricted_filter = NULL;
-  char key[64], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
+  char key[CONST_MAX_LEN_REDIS_KEY], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
   char *tmp, *net;
   int filter_len = 0, len = 0, off = 0, num_nets = 0;
 
@@ -1661,7 +1710,7 @@ bool Ntop::checkUserInterfaces(const char* user) const {
 
 bool Ntop::getUserPasswordHashLocal(const char* user, char* password_hash,
                                     u_int password_hash_len) const {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
@@ -1676,7 +1725,7 @@ bool Ntop::getUserPasswordHashLocal(const char* user, char* password_hash,
 /* ******************************************* */
 
 void Ntop::getUserGroupLocal(const char* user, char* group) const {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
 
@@ -1720,7 +1769,7 @@ bool Ntop::checkLocalAuth(const char* user, const char* password,
   if (!getUserPasswordHashLocal(user, val, sizeof(val))) {
     return (false);
   } else {
-    mg_md5(password_hash, password, NULL);
+    mg_md5(password_hash, password, (char *) NULL);
 
     if (strcmp(password_hash, val) != 0) {
       return (false);
@@ -1872,11 +1921,9 @@ bool Ntop::checkLDAPAuth(const char* user, const char* password,
        *search_path = NULL, *admin_group = NULL;
 
   if (!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
-      !(ldapAccountType = (char*)calloc(
-            sizeof(char), MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
-      || !(ldapAnonymousBind = (char*)calloc(
-               sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
-      || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
+      !(ldapAccountType = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) || /* either 'posix' or 'samaccount' */
+      !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) || /* either '1' or '0' */
+      !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
       !(bind_pwd = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
       !(user_group = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
       !(search_path = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) ||
@@ -1893,17 +1940,13 @@ bool Ntop::checkLDAPAuth(const char* user, const char* password,
   }
 
   ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType,
-                        MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind,
-                        MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, MAX_LDAP_LEN);
   ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, MAX_LDAP_LEN);
   ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path,
-                        MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, MAX_LDAP_LEN);
   ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, user_group, MAX_LDAP_LEN);
-  ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group,
-                        MAX_LDAP_LEN);
+  ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, MAX_LDAP_LEN);
 
   if (ldapServer[0]) {
     ldap_ret = LdapAuthenticator::validUserLogin(
@@ -1938,6 +1981,7 @@ bool Ntop::checkLDAPAuth(const char* user, const char* password,
 
 ldap_auth_out:
   if (ldapServer) free(ldapServer);
+  if (ldapAccountType) free(ldapAccountType);
   if (ldapAnonymousBind) free(ldapAnonymousBind);
   if (bind_dn) free(bind_dn);
   if (bind_pwd) free(bind_pwd);
@@ -1957,7 +2001,7 @@ bool Ntop::checkRadiusAuth(const char* user, const char* password,
 #ifdef HAVE_RADIUS
   bool is_admin = false, has_unprivileged_capabilities = false;
   bool external_auth_for_local_users = false;
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   /*
      NOTE
@@ -2177,8 +2221,9 @@ bool Ntop::mustChangePassword(const char* user) {
 
 /* NOTE: the admin vs local user checks must be performed by the caller */
 bool Ntop::resetUserPassword(char* username, char* old_password,
-                             char* new_password) {
-  char key[64];
+                             char* new_password,
+                             const char* keep_session_id) {
+  char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
   char group[NTOP_GROUP_MAXLEN];
 
@@ -2193,18 +2238,59 @@ bool Ntop::resetUserPassword(char* username, char* old_password,
   }
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  mg_md5(password_hash, new_password, NULL);
+  mg_md5(password_hash, new_password, (char *) NULL);
 
   if (ntop->getRedis()->set(key, password_hash, 0) < 0) return (false);
+
+  /* Log out any other session still open with the old password */
+  invalidateUserSessions(username, keep_session_id);
 
   return (true);
 }
 
 /* ******************************************* */
 
+/* Remove all HTTP sessions of the specified user, except keep_session_id */
+void Ntop::invalidateUserSessions(const char* username,
+                                  const char* keep_session_id) {
+  char **keys = NULL, val[128];
+  const char* prefix = "ntopng.cache.sessions.";
+  size_t prefix_len = strlen(prefix), user_len;
+  int num_keys;
+
+  if ((username == NULL) || (username[0] == '\0')) return;
+
+  user_len = strlen(username);
+  num_keys = ntop->getRedis()->keys("ntopng.cache.sessions.*", &keys);
+
+  for (int i = 0; i < num_keys; i++) {
+    if (keys[i] == NULL) continue;
+
+    if ((keep_session_id != NULL) && (keep_session_id[0] != '\0') &&
+        (strncmp(keys[i], prefix, prefix_len) == 0) &&
+        (strcmp(&keys[i][prefix_len], keep_session_id) == 0)) {
+      free(keys[i]);
+      continue;
+    }
+
+    /* Session value format: user|group|csrf|localuser */
+    if ((ntop->getRedis()->get(keys[i], val, sizeof(val)) == 0) &&
+        (strncmp(val, username, user_len) == 0) && (val[user_len] == '|')) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Invalidating session %s of user %s", keys[i], username);
+      ntop->getRedis()->del(keys[i]);
+    }
+
+    free(keys[i]);
+  }
+
+  if (keys) free(keys);
+}
+
+/* ******************************************* */
+
 bool Ntop::changeUserFullName(const char* username,
                               const char* full_name) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0' || full_name == NULL ||
       !existsUser(username))
@@ -2223,7 +2309,7 @@ bool Ntop::changeUserFullName(const char* username,
 
 bool Ntop::changeUserRole(char* username, char* usertype) const {
   if (usertype != NULL) {
-    char key[64];
+    char key[CONST_MAX_LEN_REDIS_KEY];
 
     snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
@@ -2237,7 +2323,7 @@ bool Ntop::changeUserRole(char* username, char* usertype) const {
 
 bool Ntop::changeAllowedNets(char* username, char* allowed_nets) const {
   if (allowed_nets != NULL) {
-    char key[64];
+    char key[CONST_MAX_LEN_REDIS_KEY];
 
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
 
@@ -2250,10 +2336,12 @@ bool Ntop::changeAllowedNets(char* username, char* allowed_nets) const {
 /* ******************************************* */
 
 bool Ntop::changeAllowedIfname(char* username, char* allowed_ifname) const {
-  /* Add as exception :// */
-  char* column_slash = strstr(allowed_ifname, ":__");
+  char* column_slash;
 
   if (username == NULL || username[0] == '\0') return false;
+
+  /* Add as exception :// */
+  column_slash = allowed_ifname ? strstr(allowed_ifname, ":__") : NULL;
 
   if (column_slash) column_slash[1] = column_slash[2] = '/';
 
@@ -2261,7 +2349,7 @@ bool Ntop::changeAllowedIfname(char* username, char* allowed_ifname) const {
                                "Changing allowed ifname to %s for %s",
                                allowed_ifname, username);
 
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
 
   if (allowed_ifname != NULL && allowed_ifname[0] != '\0') {
@@ -2287,7 +2375,7 @@ bool Ntop::changeUserHostPool(const char* username,
                                "Changing host pool id to %s for %s",
                                host_pool_id, username);
 
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
 
   if (host_pool_id != NULL && host_pool_id[0] != '\0') {
@@ -2344,7 +2432,7 @@ bool Ntop::changeUserLanguage(const char* username,
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Changing user language %s for %s",
                                language, username);
 
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
   snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
 
   if (language != NULL && language[0] != '\0')
@@ -2360,7 +2448,7 @@ bool Ntop::changeUserLanguage(const char* username,
 bool Ntop::changeUserPcapDownloadPermission(const char* username,
                                             bool allow_pcap_download,
                                             u_int32_t ttl) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0') return false;
 
@@ -2383,7 +2471,7 @@ bool Ntop::changeUserPcapDownloadPermission(const char* username,
 bool Ntop::changeUserHistoricalFlowPermission(const char* username,
                                               bool allow_historical_flows,
                                               u_int32_t ttl) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0') return false;
 
@@ -2406,7 +2494,7 @@ bool Ntop::changeUserHistoricalFlowPermission(const char* username,
 
 bool Ntop::changeUserAlertsPermission(const char* username, bool allow_alerts,
                                       u_int32_t ttl) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   if (username == NULL || username[0] == '\0') return false;
 
@@ -2427,7 +2515,7 @@ bool Ntop::changeUserAlertsPermission(const char* username, bool allow_alerts,
 /* ******************************************* */
 
 void Ntop::resetUserPermissions(const char* user) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
   ntop->getRedis()->del(key);
@@ -2451,7 +2539,7 @@ bool Ntop::hasCapability(lua_State* vm, UserCapabilities capability) {
 bool Ntop::getUserCapabilities(const char* username, bool* allow_pcap_download,
                                bool* allow_historical_flows,
                                bool* allow_alerts) const {
-  char key[64], val[2];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[2];
 
   *allow_pcap_download = *allow_historical_flows = *allow_alerts = false;
 
@@ -2552,7 +2640,7 @@ bool Ntop::addUser(char* username, char* full_name, char* password,
   ntop->getRedis()->set(key, new_user_id_buf, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  mg_md5(password_hash, password, NULL);
+  mg_md5(password_hash, password, (char *) NULL);
   ntop->getRedis()->set(key, password_hash, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
@@ -2849,7 +2937,7 @@ bool Ntop::createMFAPendingToken(const char* username, const char* referer,
 
   snprintf(random, sizeof(random), "%d%s", rand(), username);
   /* mg_md5 produces a 33-char (32 hex + NUL) string */
-  mg_md5(tmp_token, random, NULL);
+  mg_md5(tmp_token, random, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
   token[token_len - 1] = '\0';
 
@@ -3022,19 +3110,55 @@ static bool parse_cose_ec2(const uint8_t* cbor, size_t cbor_len,
   if (!cbor_next(cbor, cbor_len, &off, &v) || v.type != 5) return false;
   size_t map_items = v.n;
   bool got_x = false, got_y = false;
+  bool got_kty = false, got_alg = false;
+  int64_t kty = 0, alg = 0;
   for (size_t i = 0; i < map_items; i++) {
     cbor_val key, val;
     if (!cbor_next(cbor, cbor_len, &off, &key)) return false;
     if (!cbor_next(cbor, cbor_len, &off, &val)) return false;
     if (key.type == 0 || key.type == 1) {
-      if (key.i == -2 && val.type == 2 && val.n == 32) {
+      if (key.i == 1 && (val.type == 0 || val.type == 1)) {
+        kty = val.i; got_kty = true;
+      } else if (key.i == 3 && (val.type == 0 || val.type == 1)) {
+        alg = val.i; got_alg = true;
+      } else if (key.i == -2 && val.type == 2 && val.n == 32) {
         memcpy(x_out, val.p, 32); got_x = true;
       } else if (key.i == -3 && val.type == 2 && val.n == 32) {
         memcpy(y_out, val.p, 32); got_y = true;
       }
     }
   }
-  return got_x && got_y;
+
+  /* ntopng only supports ES256 (EC2/P-256). Authenticators that only support
+   * other algorithms (e.g. RS256, common on legacy TPM 1.2-era Windows Hello
+   * setups) will send a COSE key with a different kty/alg here; detect that
+   * explicitly instead of just failing to find x/y, so it's diagnosable. */
+  if (got_kty && kty != 2 /* EC2 */) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] credential public key has kty=%lld (expected 2=EC2): "
+        "authenticator likely used an unsupported key type/algorithm "
+        "(ntopng only supports ES256/-7)",
+        (long long)kty);
+    return false;
+  }
+  if (got_alg && alg != -7 /* ES256 */) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] credential public key has alg=%lld (expected -7=ES256): "
+        "authenticator likely used an unsupported algorithm, e.g. RS256/-257 "
+        "(ntopng only supports ES256)",
+        (long long)alg);
+    return false;
+  }
+
+  if (!got_x || !got_y) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] failed to extract EC2 x/y coordinates from COSE key "
+        "(got_x=%d got_y=%d kty=%lld alg=%lld)",
+        got_x, got_y, (long long)kty, (long long)alg);
+    return false;
+  }
+
+  return true;
 }
 
 /* Extract the authData bytes from a CBOR-encoded attestationObject.
@@ -3133,10 +3257,20 @@ static bool verify_ecdsa_p256(const uint8_t* pk_x, const uint8_t* pk_y,
   OSSL_PARAM_BLD* param_bld = OSSL_PARAM_BLD_new();
   OSSL_PARAM* params = NULL;
 
-  // ui public key parameters (P-256)
+  // EC public key parameters (P-256). OpenSSL 3's EC keymgmt "import"
+  // (used by EVP_PKEY_fromdata) does not accept separate qx/qy BIGNUMs to
+  // build a usable public key: fromdata() reports success, but the
+  // resulting key has no usable public point and EVP_DigestVerify() always
+  // errors out. The point must be passed as a single SEC1 uncompressed
+  // octet string (0x04 || X || Y) via OSSL_PKEY_PARAM_PUB_KEY instead.
+  uint8_t pub_point[65];
+  pub_point[0] = 0x04;
+  memcpy(pub_point + 1, pk_x, 32);
+  memcpy(pub_point + 33, pk_y, 32);
+
   OSSL_PARAM_BLD_push_utf8_string(param_bld, OSSL_PKEY_PARAM_GROUP_NAME, "prime256v1", 0);
-  OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_EC_PUB_X, BN_bin2bn(pk_x, 32, NULL));
-  OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_EC_PUB_Y, BN_bin2bn(pk_y, 32, NULL));
+  OSSL_PARAM_BLD_push_octet_string(param_bld, OSSL_PKEY_PARAM_PUB_KEY,
+                                    pub_point, sizeof(pub_point));
 
   params = OSSL_PARAM_BLD_to_param(param_bld);
   ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
@@ -3212,7 +3346,7 @@ bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
   if (!generateWebAuthnChallenge(challenge_b64, challenge_len)) return false;
 
   snprintf(rand_str, sizeof(rand_str), "%d%s", rand(), username);
-  mg_md5(tmp_token, rand_str, NULL);
+  mg_md5(tmp_token, rand_str, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
   token[token_len - 1] = '\0';
 
@@ -3425,6 +3559,11 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
                                     const char* expected_challenge_b64url,
                                     const char* expected_origin,
                                     const char* rp_id) const {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+      "[WebAuthn] verifying assertion for user '%s' cred_id='%s' "
+      "expected_origin='%s' rp_id='%s'",
+      username, cred_id_b64url, expected_origin, rp_id);
+
   /* 1. Decode base64url inputs */
   uint8_t cdj_raw[8192]; int cdj_len;
   uint8_t ad_raw[1024];  int ad_len;
@@ -3434,34 +3573,70 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
                                     (int)sizeof(cdj_raw) - 1);
   ad_len  = webauthn_b64url_decode(auth_data_b64url, ad_raw, (int)sizeof(ad_raw));
   sig_len = webauthn_b64url_decode(signature_b64url, sig_raw, (int)sizeof(sig_raw));
-  if (cdj_len <= 0 || ad_len <= 0 || sig_len <= 0) return false;
+  if (cdj_len <= 0 || ad_len <= 0 || sig_len <= 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] assertion decode failed for user '%s' "
+        "(cdj_len=%d ad_len=%d sig_len=%d)",
+        username, cdj_len, ad_len, sig_len);
+    return false;
+  }
   cdj_raw[cdj_len] = '\0'; /* null-terminate for JSON parsing */
 
   /* 2. Parse clientDataJSON */
   char type_val[64], challenge_val[256], origin_val[256];
-  if (!json_get_str((char*)cdj_raw, "type",      type_val,      sizeof(type_val)))      return false;
-  if (!json_get_str((char*)cdj_raw, "challenge", challenge_val, sizeof(challenge_val))) return false;
-  if (!json_get_str((char*)cdj_raw, "origin",    origin_val,    sizeof(origin_val)))    return false;
+  if (!json_get_str((char*)cdj_raw, "type",      type_val,      sizeof(type_val)) ||
+      !json_get_str((char*)cdj_raw, "challenge", challenge_val, sizeof(challenge_val)) ||
+      !json_get_str((char*)cdj_raw, "origin",    origin_val,    sizeof(origin_val))) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] failed to parse clientDataJSON for user '%s': %s",
+        username, (char*)cdj_raw);
+    return false;
+  }
 
-  if (strcmp(type_val, "webauthn.get") != 0) return false;
+  if (strcmp(type_val, "webauthn.get") != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] unexpected clientDataJSON type '%s' (expected webauthn.get) for user '%s'",
+        type_val, username);
+    return false;
+  }
 
   /* Compare challenges: decode both and compare bytes */
   uint8_t ch_got[256], ch_exp[256];
   int ch_got_len = webauthn_b64url_decode(challenge_val, ch_got, (int)sizeof(ch_got));
   int ch_exp_len = webauthn_b64url_decode(expected_challenge_b64url, ch_exp, (int)sizeof(ch_exp));
-  if (ch_got_len <= 0 || ch_exp_len <= 0 || ch_got_len != ch_exp_len) return false;
-  if (memcmp(ch_got, ch_exp, ch_got_len) != 0) return false;
+  if (ch_got_len <= 0 || ch_exp_len <= 0 || ch_got_len != ch_exp_len ||
+      memcmp(ch_got, ch_exp, ch_got_len) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] challenge mismatch for user '%s': got='%s' (len=%d) expected='%s' (len=%d)",
+        username, challenge_val, ch_got_len, expected_challenge_b64url, ch_exp_len);
+    return false;
+  }
 
   /* Compare origins */
-  if (strcmp(origin_val, expected_origin) != 0) return false;
+  if (strcmp(origin_val, expected_origin) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] origin mismatch for user '%s': clientData origin='%s' expected='%s'",
+        username, origin_val, expected_origin);
+    return false;
+  }
 
   /* 3. Verify rpIdHash */
   uint8_t rp_hash[32];
   SHA256((const uint8_t*)rp_id, strlen(rp_id), rp_hash);
-  if (ad_len < 37 || memcmp(ad_raw, rp_hash, 32) != 0) return false;
+  if (ad_len < 37 || memcmp(ad_raw, rp_hash, 32) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] rpIdHash mismatch for user '%s': ad_len=%d rp_id='%s'",
+        username, ad_len, rp_id);
+    return false;
+  }
 
   /* 4. Check UP (User Present) flag */
-  if (!(ad_raw[32] & 0x01)) return false;
+  if (!(ad_raw[32] & 0x01)) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] UP flag not set for user '%s' (flags=0x%02x)",
+        username, ad_raw[32]);
+    return false;
+  }
 
   /* 5. Extract signCount from authData */
   uint32_t sign_count = ((uint32_t)ad_raw[33] << 24) | ((uint32_t)ad_raw[34] << 16) |
@@ -3487,10 +3662,20 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
       found = true;
     }
   }
-  if (!found) return false;
+  if (!found) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] credential id '%s' not found among %d stored credential(s) for user '%s'",
+        cred_id_b64url, n, username);
+    return false;
+  }
 
   /* Sign count check: reject if stored > 0 and new <= stored (replay) */
-  if (stored_sc > 0 && sign_count <= stored_sc) return false;
+  if (stored_sc > 0 && sign_count <= stored_sc) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] signCount replay check failed for user '%s': stored=%u new=%u",
+        username, stored_sc, sign_count);
+    return false;
+  }
 
   /* 7. Verify ECDSA signature: msg = authData || SHA256(clientDataJSON) */
   uint8_t cdj_hash[32];
@@ -3500,8 +3685,12 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
   memcpy(msg.data(), ad_raw, (size_t)ad_len);
   memcpy(msg.data() + ad_len, cdj_hash, 32);
 
-  if (!verify_ecdsa_p256(pk_x, pk_y, msg.data(), msg.size(), sig_raw, sig_len))
+  if (!verify_ecdsa_p256(pk_x, pk_y, msg.data(), msg.size(), sig_raw, sig_len)) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        "[WebAuthn] ECDSA signature verification failed for user '%s' cred_id='%s'",
+        username, cred_id_b64url);
     return false;
+  }
 
   /* 8. Update signCount in Redis using the saved name */
   char key[CONST_MAX_LEN_REDIS_KEY], val[1024];
@@ -3513,6 +3702,10 @@ bool Ntop::verifyWebAuthnAssertion(const char* username,
            cred_id_b64url, x_hex, y_hex, sign_count, found_name);
   ntop->getRedis()->set(key, val, 0);
 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+      "[WebAuthn] assertion verified OK for user '%s' cred_id='%s'",
+      username, cred_id_b64url);
+
   return true;
 }
 
@@ -3523,6 +3716,11 @@ bool Ntop::verifyAndStoreWebAuthnRegistration(
     const char* cred_id_b64url, const char* client_data_json_b64url,
     const char* attestation_obj_b64url, const char* expected_challenge_b64url,
     const char* expected_origin, const char* rp_id) const {
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+      "[WebAuthn] verifying registration for user '%s' cred_id='%s' "
+      "expected_origin='%s' rp_id='%s'",
+      username, cred_id_b64url, expected_origin, rp_id);
 
   /* 1. Decode inputs */
   uint8_t cdj_raw[8192]; int cdj_len;
@@ -3577,7 +3775,7 @@ bool Ntop::verifyAndStoreWebAuthnRegistration(
 /* ******************************************* */
 
 bool Ntop::isCaptivePortalUser(const char* username) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
@@ -3593,7 +3791,7 @@ bool Ntop::isCaptivePortalUser(const char* username) {
 
 bool Ntop::deleteUser(char* username) {
   char user_id_buf[8];
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   users_m.lock(__FILE__, __LINE__);
 
@@ -3654,6 +3852,8 @@ bool Ntop::deleteUser(char* username) {
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
   ntop->getRedis()->del(key);
 
+  invalidateUserSessions(username);
+
   users_m.unlock(__FILE__, __LINE__);
 
   return true;
@@ -3662,7 +3862,7 @@ bool Ntop::deleteUser(char* username) {
 /* ******************************************* */
 
 bool Ntop::getUserHostPool(char* username, u_int16_t* host_pool_id) {
-  char key[64], val[64];
+  char key[CONST_MAX_LEN_REDIS_KEY], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID,
            username ? username : "");
@@ -3679,7 +3879,7 @@ bool Ntop::getUserHostPool(char* username, u_int16_t* host_pool_id) {
 
 bool Ntop::getUserAllowedIfname(const char* username, char* buf,
                                 size_t buflen) const {
-  char key[64];
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME,
            username ? username : "");
@@ -4051,6 +4251,21 @@ void Ntop::checkReloadHostPools() {
 
 /* ******************************************* */
 
+void Ntop::checkReloadTagsMapping() {
+  if (tagsMappingReloadInProgress /* Check if a reload has been requested */) {
+    /* Leave this BEFORE the actual swap and new allocation to guarantee changes
+     * are always seen */
+	tagsMappingReloadInProgress = false;
+
+#ifdef NTOPNG_PRO
+    if(tagsMapping)
+      tagsMapping->reload();
+#endif
+  }
+}
+
+/* ******************************************* */
+
 u_int16_t Ntop::getNumberHostPools() {
   u_int16_t pools_number = 0;
   for (int i = 0; i < get_num_interfaces(); i++) {
@@ -4134,7 +4349,18 @@ void Ntop::checkReloadAlertExclusions() {
 void Ntop::checkReloadFlowChecks() {
   if(flowChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
     FlowChecksLoader *old,
-        *tmp_flow_checks_loader = new (std::nothrow) FlowChecksLoader();
+        *tmp_flow_checks_loader;
+
+    /* Leave this BEFORE the actual swap and new allocation to guarantee
+       changes are always seen: the reload below (initialize() + the
+       per-interface swap + the sleep(2)) can take a couple of seconds, and
+       if another reload is requested (e.g. by a subsequent REST call) while
+       this one is still in progress, clearing the flag only at the end
+       would silently discard that newer request instead of leaving it
+       pending for the next call. */
+    flowChecksReloadInProgress = false;
+
+    tmp_flow_checks_loader = new (std::nothrow) FlowChecksLoader();
 
     if (!tmp_flow_checks_loader) {
       ntop->getTrace()->traceEvent(
@@ -4157,8 +4383,6 @@ void Ntop::checkReloadFlowChecks() {
 
       delete old;
     }
-
-    flowChecksReloadInProgress = false;
   }
 }
 
@@ -4167,7 +4391,14 @@ void Ntop::checkReloadFlowChecks() {
 void Ntop::checkReloadHostChecks() {
   if(hostChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
     HostChecksLoader *old,
-        *tmp_host_checks_loader = new (std::nothrow) HostChecksLoader();
+        *tmp_host_checks_loader;
+
+    /* Leave this BEFORE the actual swap and new allocation to guarantee
+       changes are always seen: see the identical comment in
+       checkReloadFlowChecks() above. */
+    hostChecksReloadInProgress = false;
+
+    tmp_host_checks_loader = new (std::nothrow) HostChecksLoader();
 
     if (!tmp_host_checks_loader) {
       ntop->getTrace()->traceEvent(
@@ -4190,8 +4421,6 @@ void Ntop::checkReloadHostChecks() {
 
       delete old;
     }
-
-    hostChecksReloadInProgress = false;
   }
 }
 
@@ -4294,6 +4523,7 @@ void Ntop::lua_threadsInfo(lua_State* vm) {
 /* Execute lightweigth tasks with high frequency */
 void Ntop::runHousekeepingTasks() {
   checkReloadHostPools();
+  checkReloadTagsMapping();
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
@@ -4315,7 +4545,6 @@ void Ntop::runPeriodicHousekeepingTasks() {
   for (int i = 0; i < get_num_interfaces(); i++) {
     if (!iface[i]->isStartingUp()) {
       iface[i]->runPeriodicHousekeepingTasks();
-      iface[i]->purgeQueuedIdleEntries();
     }
   }
 
@@ -4364,9 +4593,9 @@ void Ntop::checkShutdownWhenDone() {
 
     /* Here all interface reading from pcap files are done. */
 
-    if (!recipients_are_empty()) {
-      /* Recipients are still processing notifications, wait until they're done.
-       */
+    if (!alerts_pipeline_drained()) {
+      /* Alerts are still flowing through the checks -> per-interface queues ->
+       * recipients -> alert store pipeline, wait until it's fully flushed. */
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "Waiting for pending notifications..");
       return;
@@ -5282,6 +5511,7 @@ void Ntop::initPing() {
 
   if (pcapDumpInterfacesOnly()) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Continuous Ping disabled while processing pcap files");
+    active_monitoring_not_avail = true;
     return;
   }
 
@@ -5341,6 +5571,17 @@ void Ntop::initPing() {
         break;
     }
   }
+}
+
+/* ******************************************* */
+
+/* Active Monitoring intentionally not started (e.g. analysing pcap file) */
+bool Ntop::isActiveMonitoringNotAvail() {
+#ifndef WIN32
+  return active_monitoring_not_avail;
+#else
+  return true;
+#endif
 }
 
 /* ******************************************* */
@@ -5411,10 +5652,7 @@ const char* Ntop::getPersistentCustomListNameById(u_int8_t list_id) {
 void Ntop::setZoneInfo() {
 #ifndef WIN32
   char* tz = NULL;
-  u_int num_slash = 0;
-  char buf[128];
 
-  buf[0] = '\0';
   zoneinfo = NULL;
 
   /* Read timezone from TZ env var */
@@ -5428,26 +5666,34 @@ void Ntop::setZoneInfo() {
 
   /* Read timezone from /etc/localtime (if TZ is not set) */
   if (tz == NULL) {
-    /* Check if the softlink is defined */
-    ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
-
-    if (rc > 0) {
-      buf[rc] = '\0';
-
-      rc--;
-
-      while (rc > 0) {
-        if (buf[rc] == '/') {
-          if (++num_slash == 2) break;
+    // Resolve the real path of /etc/localtime
+    char *real_path = realpath("/etc/localtime", NULL);
+    
+    if (real_path != NULL) {
+      // Search for zoneinfo string
+      const char *zi = strstr(real_path, "zoneinfo/");
+      // Found
+      if (zi != NULL) {
+        zoneinfo = strdup(zi + strlen("zoneinfo/"));
+      } else {
+        // Fallback to the penultimate /
+        char *last_slash = strrchr(real_path, '/');
+        if (last_slash != NULL) {
+          // Temporarily cut the string at the last slash, so an other strrchar can be done
+          // to find the penultimate slash, last fallback if available
+          *last_slash = '\0'; 
+          char *penultimate_slash = strrchr(real_path, '/');
+          *last_slash = '/';
+          // Two cases, penultimate_slash is null, no penultimate_slash, 
+          // last fallback on the last_slash or, penultimate_slash is okay
+          if (penultimate_slash != NULL) {
+            zoneinfo = strdup(penultimate_slash + 1); 
+          } else {
+            zoneinfo = strdup(last_slash + 1); 
+          }
         }
-
-        rc--;
       }
-
-      if (num_slash == 2) {
-        rc++;
-        zoneinfo = strdup(&buf[rc]);
-      }
+      free(real_path); // realpath allocate memory, free is needed
     }
   }
 #ifdef __FreeBSD__
@@ -5971,3 +6217,19 @@ struct ndpi_in6_addr Ntop::findExporterIPMgmtAddress(struct ndpi_in6_addr host_i
 
   return(host_ip);
 }
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
+
+void Ntop::getTagsForProtocol(u_int16_t protocol, std::vector<int> &tags_out) {
+  if(tagsMapping)
+    tagsMapping->getTagsForProtocol(protocol, tags_out);
+}
+
+void Ntop::getTagsForRisks(ndpi_risk flow_risks, std::vector<int> &tags_out) {
+  if(tagsMapping)
+    tagsMapping->getTagsForRisks(flow_risks, tags_out);
+}
+
+#endif

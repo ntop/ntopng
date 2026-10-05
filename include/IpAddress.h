@@ -29,7 +29,9 @@ struct ipAddress {
       multicastIP : 1, broadcastIP : 1, blacklistedIP : 1, localIP : 1;
 
   u_int8_t gateway : 1, unused : 7;
+  /* TODO: These 2 fields don't belong here */
   u_int16_t services_bitmap;
+  u_int64_t tags_bitmap;
 
   union {
     struct ndpi_in6_addr ipv6;
@@ -115,14 +117,32 @@ class IpAddress {
   inline u_int8_t getVersion() const { return (addr.ipVersion); };
   inline void setVersion(u_int8_t version) { addr.ipVersion = version; };
 
-  inline bool providesService(int service_enum) const {
-    return (addr.services_bitmap & (1 << service_enum));
+  inline bool providesService(u_int16_t service_enum) const {
+    if(service_enum >= 16 /* see addr.services_bitmap */)
+      return(false);
+    else {
+      return (addr.services_bitmap & (1 << service_enum));
+    }
   }
-  inline void setService(int service_enum) {
-    if (!(addr.services_bitmap & (1 << service_enum)))
+  
+  inline bool setService(u_int16_t service_enum) {    
+    if(service_enum >= 16 /* see addr.services_bitmap */)
+      return(false);
+    else {
       addr.services_bitmap |= 1 << service_enum;
+      return(true);
+    }
   }
-  inline u_int16_t getServicesMap() { return addr.services_bitmap; }
+  inline u_int16_t getServicesMap() { return(addr.services_bitmap); }
+
+  inline bool providesTag(int tag_idx) const {
+    return (addr.tags_bitmap & (1ULL << tag_idx));
+  }
+  inline void setTag(int tag_idx) {
+    if (!(addr.tags_bitmap & (1ULL << tag_idx)))
+      addr.tags_bitmap |= 1ULL << tag_idx;
+  }
+  inline u_int64_t getTagsMap() const { return addr.tags_bitmap; }
 
   inline bool isGateway() const { return (addr.gateway); }
   inline void setGateway(bool is_gateway) { addr.gateway = is_gateway; }

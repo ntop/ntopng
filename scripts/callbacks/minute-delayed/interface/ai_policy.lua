@@ -1,12 +1,13 @@
 --
 -- (C) 26- - ntop.org
 --
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"         .. package.path
+require "check_redis_prefs"
 
-if ntop.isPro and ntop.isPro() and ntop.hasnAnalyst and ntop.hasnAnalyst()
+if ntop.isPro and ntop.isPro() and isnAnalystAvailable()
    and ntop.isEnterpriseL and ntop.isEnterpriseL()
    and ntop.isClickHouseEnabled and ntop.isClickHouseEnabled() then
-   local dirs = ntop.getDirs()
-   package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"         .. package.path
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;"     .. package.path
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
 

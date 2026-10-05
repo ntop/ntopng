@@ -180,7 +180,7 @@ function historical_flow_details_formatter.format_qoe(flow)
 
 		return {
 			name = i18n("flow_details.qoe_long"),
-			values = { qoe_utils.formatQoE(json_info.qoe.c2s.score), qoe_utils.formatQoE(json_info.qoe.s2c.qoe_score) },
+			values = { qoe_utils.formatQoE(json_info.qoe.c2s.score), qoe_utils.formatQoE(json_info.qoe.s2c.score or json_info.qoe.s2c.qoe_score) },
 		}
 	end
 end
@@ -715,6 +715,7 @@ local function add_info_field(flow)
 		for proto, info in pairs(protocol_info_json["proto"] or {}) do
 			if proto == "tls" then
 				add_info = isEmptyString(info.client_requested_server_name)
+					and isEmptyString(flow["REQUESTED_SERVER_NAME"])
 				break
 			elseif proto == "dns" then
 				add_info = isEmptyString(info.last_query)
@@ -875,7 +876,24 @@ end
 
 -- ###############################################
 
-local function format_historical_proto_info(flow_details, proto_info)
+local function format_historical_proto_info(flow_details, proto_info, flow)
+	local http_info = proto_info["http"]
+
+	-- The HTTP URL is usually the path only (e.g. /index.html) but when the server name
+	-- is unknown use the server IP as host, as done for live flows, to build a valid link
+	if type(http_info) == "table" and isEmptyString(http_info["server_name"]) then
+		local srv_ip = flow["IPV4_DST_ADDR"]
+		local srv_port = tonumber(flow["IP_DST_PORT"]) or 80
+
+		if isEmptyString(srv_ip) or empty_ip(srv_ip) then
+			srv_ip = flow["IPV6_DST_ADDR"]
+		end
+
+		if isIPv4(srv_ip) or isIPv6(srv_ip) then
+			http_info["server_name"] = format_url_safe_host(srv_ip) .. ternary(srv_port ~= 80, ":" .. srv_port, "")
+		end
+	end
+
 	local info = format_proto_info(flow_details, proto_info)
 	return info
 end
@@ -1223,6 +1241,13 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 
 	if flow then
 		local protocol_info_json = json.decode(flow["PROTOCOL_INFO_JSON"] or "") or {}
+		-- Requested server name (SNI) is stored in the REQUESTED_SERVER_NAME column now
+                -- while it used to be in the json info
+		if not isEmptyString(flow["REQUESTED_SERVER_NAME"]) then
+			protocol_info_json.proto = protocol_info_json.proto or {}
+			protocol_info_json.proto.tls = protocol_info_json.proto.tls or {}
+			protocol_info_json.proto.tls.client_requested_server_name = flow["REQUESTED_SERVER_NAME"]
+		end
 		local info = historical_flow_utils.format_clickhouse_record(flow)
 		flow_details[#flow_details + 1] = format_historical_flow_label(flow)
 		local labels_entry = format_historical_labels(flow)
@@ -1403,7 +1428,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 		end
 
 		if table.len(protocol_info_json["proto"]) > 0 then
-			flow_details = format_historical_proto_info(flow_details, protocol_info_json["proto"])
+			flow_details = format_historical_proto_info(flow_details, protocol_info_json["proto"], flow)
 
 			if
 				(type(flow_details[#flow_details]["values"]) == "table")

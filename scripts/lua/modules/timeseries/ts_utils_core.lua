@@ -145,16 +145,28 @@ end
 
 -- ##############################################
 
+local DRIVER_CACHE_TTL = 5 -- sec
 local cached_active_drivers = nil
+local cached_active_drivers_name = nil
+local cached_active_drivers_time = nil
 
 -- ! @brief Return a list of active timeseries drivers.
 -- ! @return list of driver objects.
 function ts_utils.listActiveDrivers()
-   if cached_active_drivers ~= nil then
+   local now = os.time()
+
+   if cached_active_drivers ~= nil and
+      cached_active_drivers_time ~= nil and (now - cached_active_drivers_time) < DRIVER_CACHE_TTL then
       return cached_active_drivers
    end
 
    local driver = ts_utils.getDriverName()
+
+   if cached_active_drivers ~= nil and cached_active_drivers_name == driver then
+      cached_active_drivers_time = now
+      return cached_active_drivers
+   end
+
    local active_drivers = {}
 
    if driver == "influxdb" then
@@ -175,8 +187,12 @@ function ts_utils.listActiveDrivers()
       if ch_driver then
 	 active_drivers[#active_drivers + 1] = ch_driver
       else
-	 traceError(TRACE_WARNING, TRACE_CONSOLE,
-		    "[TS] ClickHouse not available, falling back to RRD")
+	 -- Prefs.cpp already logs at startup when it forces the driver to RRD due to CH not available,
+	 -- here we warn when ClickHouse is available but the driver fails to initialize.
+	 if not prefs.ch_ts_driver_forced_to_rrd then
+	    traceError(TRACE_WARNING, TRACE_CONSOLE,
+		       "[TS] ClickHouse not available, falling back to RRD")
+	 end
       end
    end
 
@@ -190,6 +206,8 @@ function ts_utils.listActiveDrivers()
 
    -- cache for future calls
    cached_active_drivers = active_drivers
+   cached_active_drivers_name = driver
+   cached_active_drivers_time = now
 
    return active_drivers
 end
@@ -205,18 +223,34 @@ end
 -- ##############################################
 
 local cached_hr_driver = nil
+local cached_hr_driver_enabled = nil
+local cached_hr_driver_time = nil
 
 -- Return the ClickHouse HR driver instance.
 function ts_utils.getHRDriver()
-   if cached_hr_driver then
+   local now = os.time()
+
+   if cached_hr_driver_time ~= nil and (now - cached_hr_driver_time) < DRIVER_CACHE_TTL then
       return cached_hr_driver
    end
-   if ntop.isClickHouseEnabled() then
-      local prefs = ntop.getPrefs()
-      cached_hr_driver = require("clickhousehr"):new({
-            db = prefs.clickhouse_dbname or "ntopng",
-						    })
+
+   local enabled = ntop.isClickHouseEnabled()
+
+   if cached_hr_driver_enabled ~= enabled then
+      cached_hr_driver = nil
+
+      if enabled then
+	 local prefs = ntop.getPrefs()
+	 cached_hr_driver = require("clickhousehr"):new({
+	    db = prefs.clickhouse_dbname or "ntopng",
+	 })
+      end
+
+      cached_hr_driver_enabled = enabled
    end
+
+   cached_hr_driver_time = now
+
    return cached_hr_driver
 end
 
@@ -344,6 +378,7 @@ function ts_utils.getQueryOptions(overrides)
 	 min_value = 0, -- minimum value of a data point
 	 max_value = math.huge, -- maximum value for a data point
 	 top = 8, -- top number of items
+	 unlimited_top = false, -- when true, topk returns every item with data, ignoring "top"
 	 calculate_stats = true, -- calculate stats if possible
 	 initial_point = false, -- add an extra initial point, not accounted in statistics but useful for drawing graphs
 	 no_timeout = true, -- do not abort queries automatically by default
@@ -818,6 +853,126 @@ end
 
 -- ##############################################
 
+-- ! @brief Compute the total value of all the series matching the given tags,
+-- ! grouped by one or more tags.
+-- ! @param schema_name the schema identifier.
+-- ! @param tstart lower time for the query.
+-- ! @param tend upper time for the query.
+-- ! @param tags_filter a list of filter tags. The grouping tags, if present, are ignored.
+-- ! @param group_tags the schema tag to group by (e.g. "protocol"), or a list of tags.
+-- ! @param options (optional) query options.
+-- ! @return a (possibly empty) array of {tags=<full tag set>, value=<total>} sorted by
+-- ! value descending, nil on error.
+-- ! @note This is the cheap replacement for a ts_utils.listSeries() enumeration followed
+-- ! by one ts_utils.queryTotal() per series: drivers implementing topk() answer it with a
+-- ! single grouped query. Series with no data in the time range are never returned.
+function ts_utils.queryTotalByTag(schema_name, tstart, tend, tags_filter, group_tags, options)
+   tags_filter = tags_filter or {}
+
+   if type(group_tags) == "string" then
+      group_tags = { group_tags }
+   end
+
+   if not isUserAccessAllowed(tags_filter) then
+      return nil
+   end
+
+   local schema = ts_utils.getSchema(schema_name)
+
+   if not schema then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+      return nil
+   end
+
+   local is_group_tag = {}
+
+   for _, tag in ipairs(group_tags) do
+      if not schema.tags[tag] then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE,
+		    "Tag '" .. tag .. "' is not a tag of schema " .. schema_name)
+	 return nil
+      end
+
+      is_group_tag[tag] = true
+   end
+
+   local driver = ts_utils.getQueryDriverForSchema(schema)
+
+   if not driver then
+      return nil
+   end
+
+   -- Only keep the schema own tags: the grouping tags are wildcards here
+   local partial_filter = {}
+
+   for tag, val in pairs(tags_filter) do
+      if not is_group_tag[tag] then
+	 partial_filter[tag] = val
+      end
+   end
+
+   local filter_tags, wildcard_tags = getWildcardTags(schema, partial_filter)
+
+   if #wildcard_tags ~= #group_tags then
+      -- All the schema tags but the grouping ones must be specified, as a single
+      -- group is expected per grouping tags combination
+      traceError(TRACE_ERROR, TRACE_CONSOLE,
+		 "Missing tags in a " .. schema_name .. " query grouped by '" ..
+		 table.concat(group_tags, ", ") .. "'")
+      return nil
+   end
+
+   local query_options = ts_utils.getQueryOptions(options)
+
+   -- Every series with data is needed here, not just the top ones, and neither the
+   -- statistics nor the total serie are used
+   query_options.unlimited_top = true
+   query_options.calculate_stats = false
+   query_options.initial_point = false
+
+   ts_common.clearLastError()
+
+   local res = {}
+
+   if driver.topk then
+      local topk_res = driver:topk(schema, filter_tags, tstart, tend, query_options, wildcard_tags)
+
+      if topk_res then
+	 -- topk already drops the items whose value is zero and sorts by value descending
+	 for _, item in ipairs(topk_res.topk or {}) do
+	    if item.tags then
+	       res[#res + 1] = { tags = item.tags, value = item.value or 0 }
+	    end
+	 end
+
+	 return res
+      end
+   end
+
+   -- Fallback for the drivers not implementing topk (or unable to group on the
+   -- requested tags): enumerate the series and total them one by one
+   local series = driver:listSeries(schema, filter_tags, wildcard_tags, tstart, tend) or {}
+
+   for _, serie_tags in pairs(series) do
+      local totals = ts_utils.queryTotal(schema_name, tstart, tend, serie_tags, query_options)
+      local tot = 0
+
+      for _, value in pairs(totals or {}) do
+	 tot = tot + (tonumber(value) or 0)
+      end
+
+      if tot > 0 then
+	 res[#res + 1] = { tags = serie_tags, value = tot }
+      end
+   end
+
+   table.sort(res, function(a, b) return a.value > b.value end)
+
+   return res
+end
+
+-- ##############################################
+
 function ts_utils.queryLastValues(schema_name, tstart, tend, tags, options)
    if not isUserAccessAllowed(tags) then
       return nil
@@ -921,7 +1076,7 @@ end
 -- ! @note This function should be updated whenever an existng schema is changed
 function ts_utils.getPossiblyChangedSchemas()
    return { -- Interface timeseries
-      "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2",
+      "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2", "iface:ts_queue_length",
       "iface:traffic_anomalies_v2", "iface:deduplicated_flows", "iface:role_traffic_v3", "iface:traffic_rx_behavior_v5", "iface:traffic_tx_behavior_v5",
       "iface:engaged_alerts", "iface:local_hosts", "subnet:score_anomalies", "subnet:intranet_traffic",
       "subnet:intranet_traffic_min", "host:contacts", -- split in "as_client" and "as_server"

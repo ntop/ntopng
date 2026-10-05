@@ -337,6 +337,20 @@ end
 
 -- #####################################
 
+local unset_ip_addresses = {
+   [""] = true,
+   ["0.0.0.0"] = true,
+   ["::"] = true,
+   ["::0"] = true,
+   ["::ffff:0.0.0.0"] = true,
+}
+
+local function is_unset_ip(ip)
+   return (ip == nil) or (unset_ip_addresses[ip] == true)
+end
+
+-- #####################################
+
 local function dt_format_ip_common(ip, name, location, prefix, record)
    local vlan_id = tonumber(record["VLAN_ID"] or "0")
 
@@ -368,11 +382,11 @@ end
 local function dt_format_ip(ip, record, column_name)
    if column_name == 'IPV4_ADDR' and (
       (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '4') or 
-      (record['IP_PROTOCOL_VERSION'] == nil and ip == '0.0.0.0')) 
+      (record['IP_PROTOCOL_VERSION'] == nil and is_unset_ip(ip))) 
       then return nil end
    if column_name == 'IPV6_ADDR' and (
-      (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '6') or 
-      (record['IP_PROTOCOL_VERSION'] == nil and ip == '::')) 
+      (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '6') or
+      (record['IP_PROTOCOL_VERSION'] == nil and is_unset_ip(ip)))
       then return nil end
 
    return dt_format_ip_common(ip, record["HOST_LABEL"] or "", record["SERVER_LOCATION"], "srv", record)
@@ -383,11 +397,11 @@ end
 local function dt_format_dst_ip(ip, record, column_name)
    if column_name == 'IPV4_DST_ADDR' and (
       (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '4') or 
-      (record['IP_PROTOCOL_VERSION'] == nil and ip == '0.0.0.0')) 
+      (record['IP_PROTOCOL_VERSION'] == nil and is_unset_ip(ip))) 
       then return nil end
    if column_name == 'IPV6_DST_ADDR' and (
-      (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '6') or 
-      (record['IP_PROTOCOL_VERSION'] == nil and ip == '::')) 
+      (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '6') or
+      (record['IP_PROTOCOL_VERSION'] == nil and is_unset_ip(ip)))
       then return nil end
 
    return dt_format_ip_common(ip, record["DST_LABEL"] or "", record["SERVER_LOCATION"], "srv", record)
@@ -398,11 +412,11 @@ end
 local function dt_format_src_ip(ip, record, column_name)
    if column_name == 'IPV4_SRC_ADDR' and (
       (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '4') or
-      (record['IP_PROTOCOL_VERSION'] == nil and ip == '0.0.0.0'))
+      (record['IP_PROTOCOL_VERSION'] == nil and is_unset_ip(ip)))
       then return nil end
    if column_name == 'IPV6_SRC_ADDR' and (
       (record['IP_PROTOCOL_VERSION'] and record['IP_PROTOCOL_VERSION'] ~= '6') or
-      (record['IP_PROTOCOL_VERSION'] == nil and ip == '::'))
+      (record['IP_PROTOCOL_VERSION'] == nil and is_unset_ip(ip)))
       then return nil end
 
    return dt_format_ip_common(ip, record["SRC_LABEL"] or "", record["CLIENT_LOCATION"], "cli", record)
@@ -1329,6 +1343,7 @@ local flow_columns = {
    --['WLAN_SSID']              = { flowfilter = "wlan_ssid", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
    --['WTP_MAC_ADDRESS']        = { flowfilter = "apn_mac", dt_func = dt_format_mac_obj, db_type = "Number", db_raw_type = "Uint64" },
    ['DOMAIN_NAME']            = { flowfilter = "domain_name", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
+   ['REQUESTED_SERVER_NAME']  = { flowfilter = "requested_server_name", dt_func = dt_format_generic, db_type = "String", db_raw_type = "String" },
    ['IS_FIRST_DUMP']          = { flowfilter = "first_flow_dump", dt_func = dt_format_first_flow_dump, db_type = "Boolean", db_raw_type = "Boolean" },
    
    --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function
@@ -1553,7 +1568,7 @@ historical_flow_utils.builtin_presets = {
       chart =
          {
             {
-               unit_measure = "bps",
+               unit_measure = "bps_no_scale",
                params = {
                   count = historical_ts_definitions and historical_ts_definitions.get_available_query_types()[1]
                }
@@ -2213,11 +2228,11 @@ function historical_flow_utils.convertFlowToAlert(flow)
    if flow and table.len(flow) > 0 then
       local cli_ip = flow.IPV4_SRC_ADDR
       local srv_ip = flow.IPV4_DST_ADDR
-      if cli_ip == '0.0.0.0' then
+      if is_unset_ip(cli_ip) then
          cli_ip = flow.IPV6_SRC_ADDR
       end
-      if srv_ip == '0.0.0.0' then
-         srv_ip = flow.IPV4_DST_ADDR
+      if is_unset_ip(srv_ip) then
+         srv_ip = flow.IPV6_DST_ADDR
       end
       alert = {
          cli2srv_bytes = flow.SRC2DST_BYTES,

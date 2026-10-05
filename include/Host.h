@@ -190,6 +190,16 @@ class Host : public GenericHashEntry,
   char* get_mac_based_tskey(Mac* mac, char* buf, size_t bufsize,
                             bool skip_prefix = false);
   bool isValidHostName(const char* name);
+  /* Protocol-specific name validators */
+  static bool isReverseLookupName(const char* name);
+  static bool isValidDNSHostName(const char* name, bool allow_trailing_dot);
+  static bool isValidUTF8DisplayName(const char* name, u_int max_len);
+  static bool isValidMDNSName(const char* name);
+  static bool isValidMDNSTXTName(const char* name);
+  static bool isValidDHCPName(const char* name);
+  static bool isValidNetBIOSName(const char* name);
+  static bool isValidTLSName(const char* name);
+  static bool isValidHTTPName(const char* name);
   virtual void deferredInitialization();
 
  public:
@@ -248,11 +258,15 @@ class Host : public GenericHashEntry,
     return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv();
   }
 
-  inline bool providesService(int service_enum) const {
-    return (host_services_bitmap & (1 << service_enum));
+  inline bool providesService(u_int16_t service_enum) const {
+    if(service_enum >= 16 /* see host_services_bitmap */)
+      return(false);
+    else {
+      return (host_services_bitmap & (1 << service_enum));
+    }
   }
 
-  virtual void setService(int service_enum);
+  virtual bool setService(u_int16_t service_enum);
 
   inline u_int16_t getServicesMap() { return (host_services_bitmap); }
   /*
@@ -538,6 +552,7 @@ class Host : public GenericHashEntry,
   void addTag(HostTagId tag_id);
 
   void setUserTags(u_int64_t bitmap);
+  bool isUserTagSet(u_int tag_idx);
   inline u_int64_t getUserTags() const { return user_tags_bitmap; }
 
   u_int64_t getTags(bool transferrable_only = false);

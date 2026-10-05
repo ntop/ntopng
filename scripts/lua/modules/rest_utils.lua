@@ -392,6 +392,12 @@ local rest_utils = {
                 str = "MERGE_WAZUH_INFO_FAILED"
             },
 
+            activation_required = {
+                http_code = 403,
+                rc = -66,
+                str = "ACTIVATION_REQUIRED"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }

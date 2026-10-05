@@ -14,17 +14,85 @@ local json = require("dkjson")
 
 local tools = {}
 
--- name -> { description, handler, artifact, read_only }
+-- name -> { description, handler, artifact, read_only, requires_clickhouse, tier, license, min_edition }
+-- Only tools this instance is entitled to (they have a live handler and are dispatchable).
 tools._registry = {}
 
-function tools.register(name, description, handler, opts)
+-- name -> { description, tier, license, min_edition, read_only, artifact, requires_clickhouse }
+-- Full catalog of every tool ntopng ships, entitled or not. No handler. UI-only:
+-- lets the Tools Catalog show what a higher license would unlock. Never dispatched.
+tools._catalog = {}
+
+-- Resolve the license label for a tool, from its tier and edition constraints.
+--   tier == "community"                 -> "community"       (bundled, no license)
+--   tier == "pro", no min_edition       -> "enterprise_m"    (nAnalyst floor)
+--   tier == "pro", min_edition == "..."  -> that edition      (enterprise_m|enterprise_l|enterprise_xl)
+-- The label maps to i18n key  llm.tool_license_<label>  for display.
+-- nAnalyst is included from Enterprise M upward (no standalone SKU), so every
+-- pro tool needs at least Enterprise M; higher gates stack on top.
+function tools.resolve_license(tier, min_edition)
+   if tier ~= "pro" then return "community" end
+   if min_edition and min_edition ~= "" then return min_edition end
+   return "enterprise_m"
+end
+
+-- True when the running instance satisfies a tool's min_edition constraint.
+-- nil / "" / "enterprise_m" -> requires Enterprise M (nAnalyst floor)
+-- "enterprise_l"            -> requires Enterprise L
+-- "enterprise_xl"           -> requires Enterprise XL (and up)
+function tools.edition_allows(min_edition)
+   local e = (min_edition == nil or min_edition == "") and "enterprise_m" or min_edition
+
+   if e == "enterprise_xl" then
+      return (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false
+   elseif e == "enterprise_l" then
+      return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
+   else -- enterprise_m
+      return (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false
+   end
+end
+
+function tools.register(name, description, handler, opts, tier)
+   opts = opts or {}
+   local min_edition = opts.min_edition
+
    tools._registry[name] = {
       description         = description,
       handler             = handler,
-      artifact            = (opts and opts.artifact == true) or false,
-      read_only           = (opts and opts.read_only == true) or false,
-      requires_clickhouse = (opts and opts.requires_clickhouse == true) or false,
-      license_required    = opts and opts.license_required or nil,
+      artifact            = (opts.artifact == true) or false,
+      read_only           = (opts.read_only == true) or false,
+      requires_clickhouse = (opts.requires_clickhouse == true) or false,
+      tier                = tier or "community",
+      min_edition         = min_edition,
+      license             = tools.resolve_license(tier or "community", min_edition),
+      license_required    = opts.license_required or nil,
+   }
+
+   -- Mirror into the catalog so entitled tools also appear in the UI listing.
+   tools._catalog[name] = {
+      description         = description,
+      tier                = tier or "community",
+      min_edition         = min_edition,
+      license             = tools.resolve_license(tier or "community", min_edition),
+      read_only           = (opts.read_only == true) or false,
+      artifact            = (opts.artifact == true) or false,
+      requires_clickhouse = (opts.requires_clickhouse == true) or false,
+   }
+end
+
+-- Record catalog metadata for a tool this instance is NOT entitled to run.
+-- Adds no handler and never overrides a live registry entry, so it cannot be dispatched.
+function tools.register_catalog(name, description, opts, tier)
+   opts = opts or {}
+   if tools._catalog[name] then return end -- keep the entitled entry if one exists
+   tools._catalog[name] = {
+      description         = description or "",
+      tier                = tier or "pro",
+      min_edition         = opts.min_edition,
+      license             = tools.resolve_license(tier or "pro", opts.min_edition),
+      read_only           = (opts.read_only == true) or false,
+      artifact            = (opts.artifact == true) or false,
+      requires_clickhouse = (opts.requires_clickhouse == true) or false,
    }
 end
 
@@ -41,9 +109,49 @@ function tools.dispatch(action, content)
 
    local ok, result, err, artifact = pcall(tool.handler, content)
    if not ok then
-      return nil, "tool '" .. action .. "' threw: " .. tostring(result), nil
+      -- Crash: classify so the LLM can pick a sane recovery (retry vs narrow args vs give up)
+      -- instead of just seeing an opaque Lua stack fragment.
+      local raw = tostring(result)
+      local kind = "internal_error"
+      if raw:find("attempt to call a nil value") or raw:find("attempt to index a nil value") then
+         kind = "missing_dependency" -- likely bad/unexpected arg, or feature not available on this instance
+      elseif raw:find("timeout") or raw:find("timed out") then
+         kind = "timeout"
+      end
+      return nil, string.format("[%s] tool '%s' failed: %s", kind, action, raw), nil
    end
+
+   if result == nil and err == nil then
+      -- Handler returned nothing usable: treat as an empty result, not silence,
+      -- so the LLM reports "no data" instead of assuming success or retrying blindly.
+      return nil, "[empty_result] tool '" .. action .. "' returned no data", nil
+   end
+
    return result, err, artifact
+end
+
+-- Return every registered tool with its metadata (name, description, license, MCP annotations).
+-- Reflects whatever is currently loaded: community-only when pro_tools was not loaded,
+-- community + pro when nAnalyst is available.
+function tools.list_all()
+   local out = {}
+   for name, t in pairs(tools._catalog) do
+      out[#out + 1] = {
+         name                = name,
+         description         = t.description or "",
+         tier               = t.tier or "community",
+         license            = t.license or "community",
+         min_edition        = t.min_edition,
+         -- true when this instance can actually run the tool (live handler registered)
+         available          = tools._registry[name] ~= nil,
+         -- MCP annotations
+         read_only          = t.read_only == true,
+         artifact           = t.artifact == true,
+         requires_clickhouse = t.requires_clickhouse == true,
+      }
+   end
+   table.sort(out, function(a, b) return a.name < b.name end)
+   return out
 end
 
 function tools.hint_block()
@@ -78,7 +186,7 @@ local function load_tools_from_directory(tool_dir)
          end)
 
          if ok and type(tool_def) == "table" and tool_def.name and tool_def.handler then
-            tools.register(tool_def.name, tool_def.description or "", tool_def.handler, tool_def.opts or {})
+            tools.register(tool_def.name, tool_def.description or "", tool_def.handler, tool_def.opts or {}, "community")
             -- tprint("[tools] loaded: " .. tool_def.name)
          else
             if not ok then

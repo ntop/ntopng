@@ -380,6 +380,15 @@ end
 
 -- ##############################################
 
+-- This function returns true when the "Overview" (lightview) mode is requested
+-- and there is more than one local interface to aggregate.
+function isLightView()
+    local view = _GET["view"] or false
+    return view and view == 'lightview' and table.len(interface.getIfNames()) > 1
+end
+
+-- ##############################################
+
 -- This preference checks all the conditions to enable the assets inventory;
 -- Enterprise M license, preference enabled and not Windows
 function assetsInventoryEnabled()
@@ -393,7 +402,7 @@ function assetsInventoryEnabled()
     if interface.isViewed() then
         return false
     end
-    if is_infrastructure then
+    if is_infrastructure or isLightView() then
         return false
     end
     return ntop.assetsEnabled()

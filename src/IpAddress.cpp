@@ -85,15 +85,21 @@ void IpAddress::set(union usa* ip) {
 void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
   char ipbuf[64];
   char* ip_str = print(ipbuf, sizeof(ipbuf));
-  ndpi_protocol_category_t id;
+  u_int16_t id;
   ndpi_protocol_breed_t breed;
 
-  if (ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str), &id,
-                                     &breed) == 0) {
-    ndpi_protocol_category_t category =
-        (ndpi_protocol_category_t)(((u_int16_t)id) &
-                                   0xFF); /* See Ntop::nDPILoadHostnameCategory
-                                           */
+  if (ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
+				     (ndpi_protocol_category_t*)&id, &breed) == 0) {
+    ndpi_protocol_category_t category;
+    u_int16_t masked_id = ((u_int16_t)id) & 0xFF; /* See Ntop::nDPILoadHostnameCategory */
+
+    if (masked_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
+      category = (ndpi_protocol_category_t)masked_id;
+      category = static_cast<ndpi_protocol_category_t>(masked_id);
+    } else {
+      // Fallback if the extracted ID is not a valid enum member
+      category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+    }
 
     if (category == NDPI_PROTOCOL_CATEGORY_MALWARE) addr.blacklistedIP = true;
   }
@@ -176,7 +182,7 @@ void IpAddress::checkIP() {
       if (!ntop->isBroadcastIPDisabled() && nmask_bits > 0 &&
           nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a
                                 point-to-point */
-        nmask = ~((1 << (32 - nmask_bits)) - 1);
+        nmask = ~(((u_int32_t)1 << (32 - nmask_bits)) - 1);
         if (a == (a |
                   ~nmask) /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
             || a == (a & nmask) /* e.g., 10.0.0.0/8 -> matches 10.0.0.0 */)

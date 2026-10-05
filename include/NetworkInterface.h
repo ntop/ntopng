@@ -351,7 +351,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);
   Flow* getFlow(int32_t if_index, Mac* srcMac, Mac* dstMac, u_int16_t vlan_id,
                 u_int16_t observation_domain_id, u_int32_t private_flow_id,
-		u_int32_t inIndex, u_int32_t outIndex,
                 const ICMPinfo* const icmp_info, IpAddress* src_ip,
                 IpAddress* dst_ip, u_int16_t src_port, u_int16_t dst_port,
                 u_int8_t l4_proto, bool* src2dst_direction, time_t first_seen,
@@ -983,6 +982,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setIdleState(bool new_state) { is_idle = new_state; };
   inline StatsManager* getStatsManager() { return statsManager; };
   AlertsQueue* getAlertsQueue() const;
+
+  /* True when the flow/host alert queues fed by the checks (and drained by
+     flowAlertsDequeueLoop()/hostAlertsDequeueLoop() into the recipients) hold
+     no pending item. Used to tell whether the alert pipeline is fully flushed,
+     e.g. before running the e2e test scripts on shutdown-when-done. */
+  inline bool alertsQueuesDrained() const {
+    return (!flowAlertsQueue || flowAlertsQueue->isEmpty()) &&
+           (!hostAlertsQueue || hostAlertsQueue->isEmpty());
+  }
+
   bool alert_store_query(lua_State* vm, const char* sql, bool limit_rows);
   bool alert_store_write(const char* sql);
 
@@ -1164,6 +1173,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain() { return reload_hosts_bcast_domain; }
   void reloadHostsBlacklist();
+  u_int64_t getActiveHostsTags(AddressTree* allowed_hosts);
   void checkNetworksAlerts(vector<ScriptPeriodicity>* p, lua_State* vm);
   void checkInterfaceAlerts(vector<ScriptPeriodicity>* p, lua_State* vm);
   virtual bool areTrafficDirectionsSupported() { return (true); };

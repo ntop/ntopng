@@ -28,10 +28,15 @@ local INFLUX_MAX_EXPORT_QUEUE_LEN_LOW = 10
 local INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH = 20
 local INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN = 30 -- This edge should never be crossed. If it does, queue is manually trimmed
 
+-- InfluxDB TOP() always requires a limit: this is the one used when the caller asks
+-- for an unlimited topk (options.unlimited_top)
+local INFLUX_UNLIMITED_TOP = 1000000
+
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local MIN_INFLUXDB_MAJOR_SUPPORTED_VERSION = 1
-local MAX_INFLUXDB_MAJOR_SUPPORTED_VERSION = 2
+local MAX_INFLUXDB_MAJOR_SUPPORTED_VERSION = 3
+local INFLUX_DB_3_INTERNAL_DB_NAME = "_internal"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
 
 -- hourly continuous queries are disabled as they create a lot of pressure
@@ -60,6 +65,20 @@ local INFLUX_FLAG_FAILING_EXPORTS = INFLUX_KEY_PREFIX .. "flag_failing_exports"
 local INFLUX_QUEUE_FULL_FLAG = INFLUX_KEY_PREFIX .. "export_queue_full"
 local INFLUX_DB_1_INTERNAL_DB_NAME = "_internal"
 local INFLUX_DB_2_INTERNAL_DB_NAME = "_monitoring"
+
+-- ##############################################
+
+-- True when the server has no ntopng-managed retention policies / continuous
+-- queries (InfluxDB 2.x and 3.x)
+local function isSetupSkipped()
+    local skip = ntop.getCache(INFLUXDB_KEY_SKIP_RETENTION_AND_CREATION)
+
+    if isEmptyString(skip) then
+        return false
+    end
+
+    return toboolean(skip) or false
+end
 
 -- ##############################################
 
@@ -210,10 +229,21 @@ local function getResponseError(res)
                     return jres.error
                 end
             elseif jres.results then
-                for _, single_res in pairs(jres.results) do
+                local skipped_err, skipped_id
+
+                for _, single_res in ipairs(jres.results) do
                     if single_res.error then
-                        return single_res.error, single_res.statement_id
+                        if single_res.error ~= "not executed" then
+                            return single_res.error, single_res.statement_id
+                        end
+
+                        skipped_err = skipped_err or single_res.error
+                        skipped_id = skipped_id or single_res.statement_id
                     end
+                end
+
+                if skipped_err then
+                    return skipped_err, skipped_id
                 end
             end
         end
@@ -250,6 +280,14 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
     if schema.options.influx_internal_query then
         return "raw"
     end
+
+    if isSetupSkipped() then
+        -- Rollups are not managed by ntopng on this server: always read raw data.
+        -- This also ignores a stale FIRST_AGGREGATION_TIME_KEY saved while
+        -- talking to a 1.x server.
+        return "raw"
+    end
+
     tstart = tonumber(tstart)
 
     options = options or {}
@@ -458,7 +496,7 @@ local function multiQueryPost(queries, url, username, password)
     if err ~= 200 then
         local err = "Unexpected query error: " .. err
         if statement_id ~= nil then
-            err = err .. string.format(", in query #%d: %s", statement_id, queries[statement_id + 1] or "nil")
+            err = err .. string.format(", in query #%d: %s", statement_id + 1, queries[statement_id + 1] or "nil")
         end
         traceError(TRACE_ERROR, TRACE_CONSOLE, err)
         return false, err
@@ -1407,8 +1445,10 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     base_query = '(SELECT SUM(value) AS value, ' .. table.concat(sum_metrics, ", ") .. ' FROM ' .. base_query ..
                      ' GROUP BY ' .. top_tag .. ')'
 
-    -- Calculate TOPk
-    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' .. base_query
+    -- Calculate TOPk. options.unlimited_top asks for every item with data, not just
+    -- the top ones: InfluxDB TOP() always wants a limit, so a very high one is used.
+    local top_limit = options.unlimited_top and INFLUX_UNLIMITED_TOP or options.top
+    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. top_limit .. '), ' .. all_metrics .. ' FROM ' .. base_query
 
     local url = self.url
     local data =
@@ -1454,7 +1494,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
 
     local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
-    local label = data and data[1].label
+    local label = nil
     local total_serie = self:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, tags, options, url,
         time_step, label, unaligned_offset, data_type)
     local stats = nil
@@ -1496,12 +1536,15 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 end
 
 function driver:timeseries_top(options, top_tags)
-    if #top_tags ~= 1 then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
+    if (not top_tags) or (#top_tags < 1) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects at least one top tag")
         return nil
     end
 
-    local top_tag = top_tags[1]
+    local n_tags = #top_tags
+    -- Comma separated list of tags, used both in SELECT and GROUP BY
+    local tags_list = table.concat(top_tags, ", ")
+
     local retention_policy = getSchemaRetentionPolicy(options.schema_info, options.epoch_begin, options.epoch_end,
         options)
     local query_schema, raw_step, data_type = retentionPolicyToSchema(options.schema_info, retention_policy, self.db)
@@ -1523,36 +1566,28 @@ function driver:timeseries_top(options, top_tags)
         sum_metrics[idx] = 'SUM(' .. metric .. ') as ' .. metric
     end
 
-    --[[
-    SELECT TOP(value,protocol,10) FROM
-      (SELECT SUM(value) AS value FROM
-        (SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM
-          (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value" FROM "host:ndpi" WHERE host='192.168.1.1'
-            AND ifid='1' AND time >= 1537540320000000000 AND time <= 1537540649000000000)
-          GROUP BY protocol)
-        GROUP BY protocol)
-  ]]
     -- Aggregate into 1 metric and filter
-    local base_query = '(SELECT ' .. top_tag .. ', (' .. table.concat(options.schema_info._metrics, " + ") ..
+    local base_query = '(SELECT ' .. tags_list .. ', (' .. table.concat(options.schema_info._metrics, " + ") ..
                            ') AS "value", ' .. all_metrics .. ' FROM ' .. query_schema .. ' ' ..
                            getWhereClause(options.tags, options.epoch_begin, options.epoch_end, -1) .. ')'
 
-    -- Calculate difference between counter values
+    -- Calculate difference between counter values (one series per tags combination)
     if data_type == "counter" then
         base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value, ' .. table.concat(derivate_metrics, ", ") ..
-                         ' FROM ' .. base_query .. " GROUP BY " .. top_tag .. ")"
+                         ' FROM ' .. base_query .. " GROUP BY " .. tags_list .. ")"
     else
         -- derivative
         base_query = '(SELECT (value * ' .. raw_step .. ') as value, ' .. table.concat(derivate_metrics, ", ") ..
-                         ' FROM ' .. base_query .. " GROUP BY " .. top_tag .. ")"
+                         ' FROM ' .. base_query .. " GROUP BY " .. tags_list .. ")"
     end
 
-    -- Sum the traffic
+    -- Sum the traffic for each tags combination
     base_query = '(SELECT SUM(value) AS value, ' .. table.concat(sum_metrics, ", ") .. ' FROM ' .. base_query ..
-                     ' GROUP BY ' .. top_tag .. ')'
+                     ' GROUP BY ' .. tags_list .. ')'
 
-    -- Calculate TOPk
-    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' .. base_query
+    -- Calculate TOPk over the tags combination: TOP(value, tag1, tag2, ..., k)
+    local query = 'SELECT TOP(value,' .. tags_list .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' ..
+                      base_query
 
     local url = self.url
     local data =
@@ -1577,7 +1612,6 @@ function driver:timeseries_top(options, top_tags)
 
     local time_step = ts_common.calculateSampledTimeStep(raw_step, options.epoch_begin, options.epoch_end, options)
     local sorted = {}
-    local top_series = {}
     local id = "bytes"
     local num_point = 0
 
@@ -1587,24 +1621,35 @@ function driver:timeseries_top(options, top_tags)
         id = "hits"
     end
 
+    -- Row layout: [1]=time, [2]=top value, [3..2+n_tags]=tag values, [3+n_tags..]=metrics
+    local first_metric_col = 3 + n_tags
+
     for idx in pairsByValues(res, rev) do
         local value = data.values[idx]
 
-        if value[2] > 0 then
+        if value[2] then
             local partials = {}
 
-            for idx = 4, #value do
-                partials[data.columns[idx]] = value[idx]
+            for col = first_metric_col, #value do
+                partials[data.columns[col]] = value[col]
             end
 
             local options_merged = {}
-            for key, value in pairs(options) do
-                options_merged[key] = value
+            for key, val in pairs(options) do
+                options_merged[key] = val
             end
 
-            local query_tag = table.merge(options.tags, {
-                [top_tag] = value[3]
-            })
+            -- Build the tags filter with all the top tags values
+            local top_tags_values = {}
+            local name_parts = {}
+
+            for tag_idx, tag in ipairs(top_tags) do
+                local tag_value = value[2 + tag_idx]
+                top_tags_values[tag] = tag_value
+                name_parts[#name_parts + 1] = tostring(tag_value)
+            end
+
+            local query_tag = table.merge(options.tags, top_tags_values)
             options_merged.tags = query_tag
             options_merged.top = nil
 
@@ -1621,42 +1666,22 @@ function driver:timeseries_top(options, top_tags)
                     total_serie[index] = total_serie[index] + serie_point
                 end
             end
+
             local statistics = ts_common.calculateStatistics(total_serie, time_step,
                 options.schema_info.options.keep_total, data_type)
             statistics = table.merge(statistics, ts_common.calculateMinMax(total_serie))
-            if statistics and statistics.total == 0 then
-                goto continue
-            end
 
-            local ext_label = nil
-            if (ntop.isPro and ntop.isPro() and options.tags.device) then
-                local snmp_utils = require "snmp_utils"
-                local snmp_cached_dev = require "snmp_cached_dev"
-                local cached_device = snmp_cached_dev:create(options.tags.device)
-                -- In case of flow exporters the data is port, in case of snmp it's if_index
-                local ifindex = query_tag.if_index or query_tag.port
-                if cached_device then
-                    ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
-                end
-                if isEmptyString(ext_label) then
-                    ext_label = ifindex
-                end
-            end
-            -- Special case, top protocol timeseries, here the ext_label needs to be the protocol
-            if query_tag.protocol then
-                ext_label = value[3]
-            end
+            local ext_label = ts_common.getExtLabel(options, query_tag)
 
             sorted[#sorted + 1] = {
                 tags = query_tag,
                 statistics = statistics,
                 id = id,
-                name = value[3],
+                -- With multiple tags the name is the values joined (e.g. "uuid - ifname")
+                name = table.concat(name_parts, " - "),
                 ext_label = ext_label,
                 data = total_serie
             }
-
-            ::continue::
         end
     end
 
@@ -1794,10 +1819,21 @@ local function getInfluxdbVersion(url, username, password)
         return nil, err
     end
 
-    local content = res.CONTENT or ""
     -- case-insensitive match as HAProxy transforms headers to lowercase (see #3964)
-    return string.match(content:lower(), "\nx%-influxdb%-version: v?([%d|%.]+)")
+    local content = (res.CONTENT or ""):lower()
+
+    -- InfluxDB 1.x / 2.x
+    local version = string.match(content, "\nx%-influxdb%-version: v?([%d|%.]+)")
+
+    if version == nil then
+        -- InfluxDB 3.x, e.g. {"version":"3.0.0","revision":"..."}
+        version = string.match(content, '"version"%s*:%s*"v?([%d%.]+)')
+    end
+
+    return version
 end
+
+-- ##############################################
 
 function driver:getInfluxdbVersion()
     return getInfluxdbVersion(self.url, self.username, self.password)
@@ -1820,11 +1856,17 @@ end
 -- This function checks the version of Influx and correctly set
 -- the internal DB name, changes between influxdb versions
 local function checkInternalDB(version, url, user, pwd)
+    local major = tonumber(string.match(version or "", "^(%d+)"))
+
     -- Check the version
-    if string.starts(version, "1") then
-        ntop.setInfluxDBInternalDBName(INFLUX_DB_1_INTERNAL_DB_NAME)        
-    elseif string.starts(version, "2") then
+    if major == 1 then
+        ntop.setInfluxDBInternalDBName(INFLUX_DB_1_INTERNAL_DB_NAME)
+    elseif major == 2 then
         ntop.setInfluxDBInternalDBName(INFLUX_DB_2_INTERNAL_DB_NAME)
+    elseif major == 3 then
+        ntop.setInfluxDBInternalDBName(INFLUX_DB_3_INTERNAL_DB_NAME)
+        ntop.setInfluxDBInternalAvailable(false)
+        return
     end
 
     -- Now try running an internal db, to check if there is any problem
@@ -1946,6 +1988,8 @@ local function toVersion(version_str)
     }
 end
 
+-- ##############################################
+
 local function isCompatibleVersion(version)
     local current = toVersion(version)
     local required = toVersion(MIN_INFLUXDB_SUPPORTED_VERSION)
@@ -1954,16 +1998,50 @@ local function isCompatibleVersion(version)
         return false
     end
 
-    if current.major == MAX_INFLUXDB_MAJOR_SUPPORTED_VERSION then
+    if (current.major > MIN_INFLUXDB_MAJOR_SUPPORTED_VERSION) and
+        (current.major <= MAX_INFLUXDB_MAJOR_SUPPORTED_VERSION) then
+        -- InfluxDB 2.x and 3.x: no InfluxQL continuous queries and no retention
+        -- policy management, so ntopng does not create them
         ntop.setCache(INFLUXDB_KEY_SKIP_RETENTION_AND_CREATION, true)
+
+        -- Forget the rollup start time possibly saved while talking to a 1.x server
+        ntop.delCache(FIRST_AGGREGATION_TIME_KEY)
         return true
     else
         ntop.setCache(INFLUXDB_KEY_SKIP_RETENTION_AND_CREATION, false)
-        return (current.major == required.major) and 
+        return (current.major == required.major) and
                 ((current.minor > required.minor) or
                     ((current.minor == required.minor) and (current.patch >= required.patch)))
     end
 end
+
+-- ##############################################
+
+-- Returns true if dbname is listed by SHOW DATABASES
+local function influxDatabaseExists(url, dbname, username, password, timeout)
+    local query = "SHOW DATABASES"
+    local res = ntop.httpPost(url .. "/query", "q=" .. query, { username = username, password = password, timeout = timeout, return_content = true })
+
+    if res and (res.RESPONSE_CODE == 200) and res.CONTENT then
+        local reply = json.decode(res.CONTENT)
+
+        if reply and reply.results and reply.results[1] and reply.results[1].series then
+            local dbs = reply.results[1].series[1]
+
+            if ((dbs ~= nil) and (dbs.values ~= nil)) then
+                for _, row in pairs(dbs.values) do
+                    if row[1] == dbname then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+-- ##############################################
 
 function driver.init(dbname, url, days_retention, username, password, verbose)
     require "lua_utils"
@@ -1993,34 +2071,20 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
 
     checkInternalDB(version, url, username, password)
 
+    local is_v3 = (tonumber(string.match(version, "^(%d+)")) == 3)
+
     -- Check existing database (this is used to prevent db creationg error for unprivileged users)
     if verbose then
         traceError(TRACE_NORMAL, TRACE_CONSOLE, "Checking database " .. dbname .. " ...")
     end
-    local query = "SHOW DATABASES"
-    local res = ntop.httpPost(url .. "/query", "q=" .. query, { username = username, password = password, timeout = timeout, return_content = true })
-    local db_found = false
 
-    if res and (res.RESPONSE_CODE == 200) and res.CONTENT then
-        local reply = json.decode(res.CONTENT)
+    local db_found = influxDatabaseExists(url, dbname, username, password, timeout)
 
-        if reply and reply.results and reply.results[1] and reply.results[1].series then
-            local dbs = reply.results[1].series[1]
-
-            if ((dbs ~= nil) and (dbs.values ~= nil)) then
-                for _, row in pairs(dbs.values) do
-                    local user_db = row[1]
-
-                    if user_db == dbname then
-                        db_found = true
-                        break
-                    end
-                end
-            end
-        end
-    end
-
-    if not db_found then
+    if (not db_found) and is_v3 then
+        -- CREATE DATABASE is not available through InfluxQL on 3.x: do not fail
+        traceError(TRACE_WARNING, TRACE_CONSOLE, "InfluxDB 3.x: database '" .. dbname ..
+            "' not found. If it is not created on the first write, create it manually")
+    elseif not db_found then
         -- Create database
         if verbose then
             traceError(TRACE_NORMAL, TRACE_CONSOLE, "Creating database " .. dbname .. " ...")
@@ -2040,7 +2104,14 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
         end
     end
 
-    if not db_found or days_retention ~= nil then
+    if is_v3 then
+        if days_retention ~= nil then
+            -- On 3.x the retention period is a property of the database and
+            -- cannot be changed through InfluxQL
+            traceError(TRACE_WARNING, TRACE_CONSOLE, "InfluxDB 3.x: the data retention cannot be changed by ntopng, " ..
+                "update the retention period of database '" .. dbname .. "' manually")
+        end
+    elseif not db_found or days_retention ~= nil then
         -- New database or config changed
         days_retention = days_retention or getDatabaseRetentionDays()
 
@@ -2065,6 +2136,8 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
 
         -- NOTE: updateCQRetentionPolicies will be called automatically as driver:setup is triggered after this
     end
+
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Succesfully connected to InfluxDB version: " .. version)
 
     ntop.delCache(INFLUX_KEY_LAST_ERROR)
     return true, i18n("prefs.successfully_connected_influxdb", {
@@ -2191,18 +2264,28 @@ end
 
 function driver:setup(ts_utils, is_first_setup)
     local version, err = getInfluxdbVersion(self.url, self.username, self.password)
-    if version then
-        isCompatibleVersion(version)
+
+    if not version then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "Unable to get the InfluxDB version: " .. tostring(err))
+        return false
+    end
+
+    if not isCompatibleVersion(version) then
+        -- Do not try to create CQs on a server that does not support them
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "Unsupported InfluxDB version: " .. tostring(version))
+        return false
     end
     if is_first_setup then
         checkInternalDB(version, self.url, self.username, self.password)
     end
-    local skip = ntop.getCache(INFLUXDB_KEY_SKIP_RETENTION_AND_CREATION)
 
-    if isEmptyString(skip) then
-        skip = false
-    else   
-        skip = toboolean(skip) or false
+    local skip = isSetupSkipped()
+
+    if skip then
+        -- 2.x / 3.x: nothing to create, but clear the saved counters as done
+        -- for the 1.x setup
+        del_all_vals()
+        return true
     end
 
     if not skip then

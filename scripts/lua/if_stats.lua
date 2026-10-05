@@ -34,6 +34,7 @@ local graph_utils = require "graph_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
+local interface_utils = require "interface_utils"
 local have_nedge = ntop.isnEdge and ntop.isnEdge()
 local sites_granularities = nil
 local show_zmq_encryption_public_key = false
@@ -69,6 +70,7 @@ local is_pcap_dump = interface.isPcapDumpInterface()
 
 local ifstats = interface.getStats()
 local is_sub_interface = interface.isSubInterface()
+local is_light_view = isLightView()
 
 -- tprint(ifstats.stats.hosts_rcvd_only .. " / " .. ifstats.stats.hosts)
 
@@ -91,7 +93,7 @@ local host_threshold_rules_key = "ntopng.prefs.ifid_" .. tostring(ifid) .. ".hos
 
 local host_ts_available = areHostTimeseriesEnabled()
 local charts_available = areInterfaceTimeseriesEnabled()
-local zmq_charts_available = charts_available and not interface.isView()
+local zmq_charts_available = charts_available and not interface.isView() and not is_light_view
 
 function percentage(value, total)
     if (total > 0) then
@@ -142,6 +144,8 @@ if ifstats.zmqRecvStats and ifstats.zmqRecvStats_since_reset then
 end
 
 local probes_stats = {}
+local light_view_ifaces = {}
+local light_view_info = nil
 
 if interface.isView() then
     local view_id = interface.getId()
@@ -186,6 +190,13 @@ if interface.isView() then
     ifstats.exporters = exporters_stats
 
     interface.select(ifname) -- Go back to the View interface
+elseif is_light_view then
+    -- Note: lightview mode has no single backend interface merging stats
+    -- like the standard View, so stats from all interfaces must be summed
+    -- (same aggregation used by rest/v2/get/interface/lightview/data.lua for the refresh)
+    ifstats, light_view_info = interface_utils.getLightViewStats(ifstats)
+    light_view_ifaces = light_view_info.ifaces
+    probes_stats = light_view_info.probes_stats
 else
     for ifid, probes in pairs(ifstats.probes or {}) do
         for k, v in pairs(probes or {}) do
@@ -257,7 +268,8 @@ if (isAdministrator()) then
     end
 end
 
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.interface, {
+page_utils.print_header_and_set_active_menu_entry(
+    is_light_view and page_utils.menu_entries.interface_lightview or page_utils.menu_entries.interface, {
     ifname = getHumanReadableInterfaceName(if_name)
 })
 
@@ -308,11 +320,10 @@ local has_traffic_recording_page = (recording_utils.isAvailable() and
         (is_packet_interface
             or ((recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces)))
             or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
-    or (interface.isView() and not table.empty(viewed_ifaces_with_recording))))
+    or (interface.isView() and not table.empty(viewed_ifaces_with_recording)))
+    and not is_light_view) -- recording dump/active-since windows are per-interface, no clean aggregate
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
-
-local url = http_prefix .. '/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
@@ -320,13 +331,13 @@ print('\n<script>var refresh = ' .. interface.getStatsUpdateFreq(ifstats.id) .. 
 
 local internals_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid="..interface.getId() .. "&page=internals&tab=hash_tables"
 local short_name = getHumanReadableInterfaceName(ifname)
-local title = i18n("interface") .. ": " .. shortenCollapse(short_name)
+local title = is_light_view and i18n("overview") or (i18n("interface") .. ": " .. shortenCollapse(short_name))
 
 if (ntop.isPro and ntop.isPro()) then
     sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifid, true)
 end
 
-page_utils.print_navbar(title, url, { {
+local navbar_entries = { {
     hidden = only_historical,
     active = page == "overview" or page == nil,
     page_name = "overview",
@@ -437,7 +448,20 @@ page_utils.print_navbar(title, url, { {
     page_name = "service_map",
     url = http_prefix .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
     label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>"
-} })
+} }
+
+if is_light_view then
+    for _, entry in ipairs(navbar_entries) do
+        if entry.page_name ~= "overview" and entry.page_name ~= "historical" then
+            entry.hidden = true
+        end
+    end
+end
+
+local url = http_prefix .. '/lua/if_stats.lua?ifid=' .. ifid
+if is_light_view then url = url .. '&view=lightview' end
+
+page_utils.print_navbar(title, url, navbar_entries)
 
 print(template.gen("modal_confirm_dialog.html", {
     dialog = {
@@ -468,14 +492,29 @@ if ((page == "overview") or (page == nil)) then
     print("<div class='table-responsive-xl'>")
 
     print("<table class=\"table table-striped table-bordered mb-0\">\n")
-    print("<tr><th width=15%>" .. i18n("if_stats_overview.id") .. "</th><td colspan=6>" .. ifstats.id .. " ")
 
-    if (ifstats.description ~= ifstats.name) then
-        print(" (" .. ifstats.description .. ")")
+    if is_light_view then
+        -- No single id/name/family/mtu/speed makes sense here: this row is an
+        -- aggregate of every local interface summed into ifstats above.
+        local iface_labels = {}
+        for _, iface in ipairs(light_view_ifaces) do
+            iface_labels[#iface_labels + 1] = iface.name .. " [" .. iface.id .. "]"
+        end
+        print("<tr><th width=15%>" .. i18n("if_stats_overview.id") .. "</th><td colspan=6>" ..
+            i18n("if_stats_overview.lightview_aggregated_ifaces", {
+                num = #light_view_ifaces,
+                ifaces = table.concat(iface_labels, ", ")
+            }) .. "</td></tr>\n")
+    else
+        print("<tr><th width=15%>" .. i18n("if_stats_overview.id") .. "</th><td colspan=6>" .. ifstats.id .. " ")
+
+        if (ifstats.description ~= ifstats.name) then
+            print(" (" .. ifstats.description .. ")")
+        end
+        print("</td></tr>\n")
     end
-    print("</td></tr>\n")
 
-    if isAdministrator() and (not is_pcap_dump and ifstats["type"] ~= "netfilter") then
+    if not is_light_view and isAdministrator() and (not is_pcap_dump and ifstats["type"] ~= "netfilter") then
         print("<tr><th width=250>" .. i18n("if_stats_overview.state") .. "</th><td colspan=6>")
         state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1", "primary",
             i18n("if_stats_overview.paused"), "0", "primary", "toggle_local",
@@ -674,78 +713,83 @@ if ((page == "overview") or (page == nil)) then
 
     local is_physical_iface = is_packet_interface and (not is_pcap_dump)
 
-    local label = getHumanReadableInterfaceName(ifstats.name)
-    local s
-    if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
-        s = label .. " (" .. ifstats.name .. ")"
-    else
-        s = ifstats.name
-    end
-
-    if ((isAdministrator()) and (not is_pcap_dump)) then
-        s = s .. " <a href=\"" .. url ..
-            "&page=config\"><i class=\"fas fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
-    end
-
-    print('<tr><th width="250">' .. i18n("name") .. '</th><td colspan="2"><p style="word-break: break-all">')
-    print(s)
-    if (ifstats.mac and ifstats.mac ~= "00:00:00:00:00:00") then
-        print(" [" .. ifstats.mac .. "]");
-    end
-    print('</p></td>\n')
-
-    print("<th>" .. i18n("if_stats_overview.family") .. "</th><td colspan=2>")
-    if (ifstats.type == "zmq") then
-        print("ZMQ")
-    else
-        print(ifstats.type)
-    end
-
-    if (ifstats.inline) then
-        print(" " .. i18n("if_stats_overview.in_path_interface"))
-    end
-    if (ifstats.has_traffic_directions) then
-        print(" " .. i18n("if_stats_overview.has_traffic_directions") .. " ")
-    end
-    print("</tr>")
-
-    show_zmq_encryption_public_key = (ifstats.encryption and ifstats.encryption.public_key and isAdministrator())
-
-    if show_zmq_encryption_public_key == true then
-        print("<tr><th width=280 nowrap>" .. i18n("if_stats_overview.zmq_encryption_public_key") ..
-            "</th><td colspan=6>" .. i18n("if_stats_overview.zmq_encryption_alias") .. "<span>")
-        print("<input type='hidden' id='hiddenKey' value='" .. ifstats.encryption.public_key .. "'>")
-        print("<button id='copy' class='btn btn-light border ms-1'>" .. "<i class='fas fa-copy'></i>" .. " </button>")
-        print("<br><small><b>" .. i18n("if_stats_overview.note") .. "</b>:<ul><li> " ..
-            i18n("if_stats_overview.zmq_encryption_public_key_note", {
-                key = "&lt;key&gt;"
-            }) .. "")
-        local zmq_endpoint = ifstats.name
-        local probe_mode = ""
-
-        if endswith(zmq_endpoint, 'c') then
-            zmq_endpoint = string.sub(zmq_endpoint, 1, -2)
-            probe_mode = " --zmq-probe-mode"
+    if not is_light_view then
+        -- Name/MAC/family/MTU/speed/ZMQ key are all properties of one real
+        -- interface: none of them apply to an aggregate of local interfaces,
+        -- which may not even be homogeneous (packet + ZMQ mixed together).
+        local label = getHumanReadableInterfaceName(ifstats.name)
+        local s
+        if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
+            s = label .. " (" .. ifstats.name .. ")"
+        else
+            s = ifstats.name
         end
 
-        print("<li>nprobe --zmq " .. zmq_endpoint .. probe_mode .. " --zmq-encryption-key '" ..
-            i18n("if_stats_overview.zmq_encryption_alias") .. "' ...")
-
-        print("</small></ul>");
-
-        print("</td></tr>\n")
-    end
-
-    if is_physical_iface and not ifstats.isView then
-        print("<tr>")
-        print("<th>" .. i18n("mtu") .. "</th><td colspan=2  nowrap>" .. ifstats.mtu .. " " .. i18n("bytes") .. "</td>\n")
-        local speed_key = 'ntopng.prefs.ifid_' .. tostring(interface.name2id(ifname)) .. '.speed'
-        local speed = ntop.getCache(speed_key)
-        if (tonumber(speed) == nil) then
-            speed = ifstats.speed
+        if ((isAdministrator()) and (not is_pcap_dump)) then
+            s = s .. " <a href=\"" .. url ..
+                "&page=config\"><i class=\"fas fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
         end
-        print("<th width=250>" .. i18n("speed") .. "</th><td colspan=2>" .. bitsToSize(speed * 1000000) .. "</td>")
+
+        print('<tr><th width="250">' .. i18n("name") .. '</th><td colspan="2"><p style="word-break: break-all">')
+        print(s)
+        if (ifstats.mac and ifstats.mac ~= "00:00:00:00:00:00") then
+            print(" [" .. ifstats.mac .. "]");
+        end
+        print('</p></td>\n')
+
+        print("<th>" .. i18n("if_stats_overview.family") .. "</th><td colspan=2>")
+        if (ifstats.type == "zmq") then
+            print("ZMQ")
+        else
+            print(ifstats.type)
+        end
+
+        if (ifstats.inline) then
+            print(" " .. i18n("if_stats_overview.in_path_interface"))
+        end
+        if (ifstats.has_traffic_directions) then
+            print(" " .. i18n("if_stats_overview.has_traffic_directions") .. " ")
+        end
         print("</tr>")
+
+        show_zmq_encryption_public_key = (ifstats.encryption and ifstats.encryption.public_key and isAdministrator())
+
+        if show_zmq_encryption_public_key == true then
+            print("<tr><th width=280 nowrap>" .. i18n("if_stats_overview.zmq_encryption_public_key") ..
+                "</th><td colspan=6>" .. i18n("if_stats_overview.zmq_encryption_alias") .. "<span>")
+            print("<input type='hidden' id='hiddenKey' value='" .. ifstats.encryption.public_key .. "'>")
+            print("<button id='copy' class='btn btn-light border ms-1'>" .. "<i class='fas fa-copy'></i>" .. " </button>")
+            print("<br><small><b>" .. i18n("if_stats_overview.note") .. "</b>:<ul><li> " ..
+                i18n("if_stats_overview.zmq_encryption_public_key_note", {
+                    key = "&lt;key&gt;"
+                }) .. "")
+            local zmq_endpoint = ifstats.name
+            local probe_mode = ""
+
+            if endswith(zmq_endpoint, 'c') then
+                zmq_endpoint = string.sub(zmq_endpoint, 1, -2)
+                probe_mode = " --zmq-probe-mode"
+            end
+
+            print("<li>nprobe --zmq " .. zmq_endpoint .. probe_mode .. " --zmq-encryption-key '" ..
+                i18n("if_stats_overview.zmq_encryption_alias") .. "' ...")
+
+            print("</small></ul>");
+
+            print("</td></tr>\n")
+        end
+
+        if is_physical_iface and not ifstats.isView then
+            print("<tr>")
+            print("<th>" .. i18n("mtu") .. "</th><td colspan=2  nowrap>" .. ifstats.mtu .. " " .. i18n("bytes") .. "</td>\n")
+            local speed_key = 'ntopng.prefs.ifid_' .. tostring(interface.name2id(ifname)) .. '.speed'
+            local speed = ntop.getCache(speed_key)
+            if (tonumber(speed) == nil) then
+                speed = ifstats.speed
+            end
+            print("<th width=250>" .. i18n("speed") .. "</th><td colspan=2>" .. bitsToSize(speed * 1000000) .. "</td>")
+            print("</tr>")
+        end
     end
 
     if (not hasAllowedNetworksSet()) and ((ifstats.num_alerts_engaged > 0) or (ifstats.num_dropped_alerts > 0)) then
@@ -771,48 +815,54 @@ if ((page == "overview") or (page == nil)) then
 print [[</tbody></table>]]
 print [[<table class="table table-striped table-bordered"><tbody>]]
 
-local charts = {
-    {
-        name       = "ifaceTrafficBreakdown",
-        title      = i18n("if_stats_overview.traffic_breakdown"),
-        update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
-        url_params = { ifid = ifstats.id },
-        refresh    = refresh,
-        unit       = "bytes",
+if not is_light_view then
+    -- These pie charts are keyed on ifstats.id, i.e. one real interface: they
+    -- are not aggregated across local interfaces, so they'd be misleading if
+    -- shown (unlabeled) on the Overview aggregated page.
+    local charts = {
+        {
+            name       = "ifaceTrafficBreakdown",
+            title      = i18n("if_stats_overview.traffic_breakdown"),
+            update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
+            url_params = { ifid = ifstats.id },
+            refresh    = refresh,
+            unit       = "bytes",
+        }
     }
-}
 
-if (ifstats.iface_role_traffic ~= nil) then
+    if (ifstats.iface_role_traffic ~= nil) then
+        charts[#charts + 1] = {
+            name       = "ifaceTrafficRoleDistribution",
+            title      = i18n("if_stats_overview.traffic_role_distribution"),
+            update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_role_distribution.lua",
+            url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
+            refresh    = refresh,
+            unit       = "bytes",
+        }
+    end
+
     charts[#charts + 1] = {
-        name       = "ifaceTrafficRoleDistribution",
-        title      = i18n("if_stats_overview.traffic_role_distribution"),
-        update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_role_distribution.lua",
-        url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
-        refresh    = refresh,
-        unit       = "bytes",
+       name       = "ifaceTrafficDistribution",
+       title      = i18n("if_stats_overview.traffic_distribution"),
+       update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
+       url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
+       refresh    = refresh,
+       unit       = "bytes",
     }
+
+    print [[ <tr>]]
+    print [[<td colspan=6><div class="row"><div class="row-3">]]
+
+    template.render("pages/vue_page.template", {
+        vue_page_name = "MultiPieChart",
+        vue_container_id = "ifTrafficDistroChart",
+        page_context  = json.encode({
+            charts = charts,
+        }),
+    })
+
+    print [[</div></div></td></tr>]]
 end
-
-charts[#charts + 1] = {
-   name       = "ifaceTrafficDistribution",
-   title      = i18n("if_stats_overview.traffic_distribution"),
-   update_url = http_prefix .. "/lua/rest/v2/get/interface/iface_local_stats.lua",
-   url_params = { ifid = ifstats.id, iflocalstat_mode = "distribution" },
-   refresh    = refresh,
-   unit       = "bytes",
-}
-
-print [[ <tr>]]
-print [[<td colspan=6><div class="row"><div class="row-3">]]
-
-template.render("pages/vue_page.template", {
-    vue_page_name = "MultiPieChart",
-    page_context  = json.encode({
-        charts = charts,
-    }),
-})
-
-print [[</div></div></td></tr>]]
     if (ifstats.zmqRecvStats ~= nil and table.len(ifstats.zmqRecvStats) > 0) then
         print("<tr><th colspan=7 nowrap>" .. i18n("if_stats_overview.zmq_rx_statistics") .. "</th></tr>\n")
         local tot_flows = (ifstats.zmqRecvStats.flows or 0) + (ifstats.zmqRecvStats.dropped_flows or 0)
@@ -957,6 +1007,9 @@ print [[</div></div></td></tr>]]
                 end
             end
             interface.select(ifname) -- Go back to the View interface
+        elseif is_light_view then
+            -- already aggregated across all local interfaces above
+            drops = light_view_info.drops
         elseif (ifstats) then
             drops = ifstats.stats_since_reset.drops
         end
@@ -1215,10 +1268,9 @@ print [[</div></div></td></tr>]]
             end
         end
 
-        -- Storage utilization
-
+        -- Storage utilization: per-interface disk usage, no aggregate view for now
         local ts_utils = require "ts_utils_core"
-        local storage_info = storage_utils.interfaceStorageInfo(ifid)
+        local storage_info = not is_light_view and storage_utils.interfaceStorageInfo(ifid) or nil
         local storage_items = {}
 
         if storage_info then
@@ -1263,7 +1315,8 @@ print [[</div></div></td></tr>]]
         end
     end
 
-    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and not is_sub_interface and is_packet_interface then
+    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and not is_sub_interface and is_packet_interface
+        and not is_light_view then
         print("<tr><th>" .. i18n("live_capture.live_capture") ..
             "&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
 
@@ -1428,6 +1481,7 @@ if (ifstats.type ~= "zmq") then
 
         template.render("pages/vue_page.template", {
             vue_page_name = "MultiPieChart",
+            vue_container_id = "ifSizeDistroChart",
             page_context  = json.encode({
                 charts = {
                     {
@@ -1453,6 +1507,7 @@ if (ifstats.type ~= "zmq") then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifIpverFlagsDistroChart",
         page_context  = json.encode({
             charts = {
                 {
@@ -1486,6 +1541,7 @@ elseif (page == "DSCP") then
 
     template.render("pages/vue_page.template", {
         vue_page_name = "MultiPieChart",
+        vue_container_id = "ifDscpChart",
         page_context  = json.encode({
             charts = {
                 {
@@ -1572,7 +1628,8 @@ elseif (page == "sites") then
     end
 elseif (page == "historical") then
     local source_value_object = {
-        ifid = interface.getId()
+        ifid = interface.getId(),
+        is_lightview = is_light_view
     }
     graph_utils.drawNewGraphs(source_value_object)
 elseif (page == "trafficprofiles") then
@@ -2603,9 +2660,11 @@ function resetCounters(drops_only) {
     url: ']]
 print(http_prefix)
 print [[/lua/reset_stats.lua',
-    data: {ifid: ]]
-print(ifstats.id)
-print [[, resetstats_mode:  action, csrf: "]]
+    data: {]]
+if not is_light_view then -- Note: lightview resets all interfaces (no ifid)
+    print("ifid: " .. ifstats.id .. ", ")
+end
+print [[resetstats_mode:  action, csrf: "]]
 print(ntop.getRandomCSRFValue())
 print [["},
     success: function(rsp) {},
@@ -2641,17 +2700,24 @@ function resetBroadcastDomains() {
 }
 
 ]]
-if page == 'overview' or isEmptyString(page) then
+if (page == 'overview' or isEmptyString(page)) then
     print [[
     setInterval(function() {
         $.ajax({
             type: 'GET',
             url: ']]
     print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/data.lua',
+    if is_light_view then
+        -- Stats aggregated across all local interfaces
+        print [[/lua/rest/v2/get/interface/lightview/data.lua',
+            data: {},]]
+    else
+        print [[/lua/rest/v2/get/interface/data.lua',
             data: { iffilter: "]]
-    print(tostring(interface.name2id(ifstats.name)))
-    print [[" },
+        print(tostring(interface.name2id(ifstats.name)))
+        print [[" },]]
+    end
+    print [[
             success: function(content) {
             if(content["rc_str"] != "OK") {
             return;
@@ -2727,7 +2793,7 @@ if page == 'overview' or isEmptyString(page) then
 
     print(" Pkts\");")
 
-    if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
+    if have_nedge and not is_light_view and ifstats.type == "netfilter" and ifstats.netfilter then
         local st = ifstats.netfilter
 
         print("var last_nfq_queue_total = " .. st.nfq.queue_total .. ";\n")
@@ -2867,7 +2933,7 @@ if page == 'overview' or isEmptyString(page) then
       end
     end
 
-    if interface.isSyslogInterface() then
+    if interface.isSyslogInterface() and not is_light_view then
         print [[
             $('#syslog_tot_events').html(rsp.syslog.tot_events);
     ]]
@@ -2877,7 +2943,11 @@ if page == 'overview' or isEmptyString(page) then
             }
                 });
         }, ]]
-    print(interface.getStatsUpdateFreq(ifstats.id) .. "")
+    if is_light_view then
+        print((light_view_info.update_freq or interface.getStatsUpdateFreq(ifstats.id)) .. "")
+    else
+        print(interface.getStatsUpdateFreq(ifstats.id) .. "")
+    end
     print [[ * 1000)
 ]]
 end

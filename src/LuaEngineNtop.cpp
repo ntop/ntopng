@@ -398,6 +398,22 @@ static int ntop_reload_host_pools(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Triggers a reload of Tags Mapping configuration from Redis.  Lua: ntop.reloadTagMappings() → nil */
+static int ntop_reload_tags_mapping(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#ifdef NTOPNG_PRO
+  ntop->reloadTagsMapping();
+
+  lua_pushnil(vm);
+#else
+  lua_pushboolean(vm, false);
+#endif
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 /* @brief Enables or disables routing mode (nEdge only).  Lua: ntop.setRoutingMode(enabled) → nil */
 static int ntop_set_routing_mode(lua_State* vm) {
@@ -2509,6 +2525,19 @@ static int ntop_clickhouse_enabled(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Returns the most recent errors reported by ClickHouse (newest first).  Lua: ntop.getClickHouseRecentErrors() → table { {epoch, message}, ... } */
+static int ntop_clickhouse_recent_errors(lua_State* vm) {
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
+  ClickHouseDB::luaRecentErrors(vm);
+#else
+  lua_newtable(vm);
+#endif
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 // *** API ***
 /* @brief Issues an HTTP 302 redirect to the given URL (for page-level Lua scripts).  Lua: ntop.httpRedirect(url) → nil */
 static int ntop_http_redirect(lua_State* vm) {
@@ -2935,7 +2964,8 @@ static bool allowLocalUserManagement(lua_State* vm) {
 }
 
 /* Returns true if the caller is admin OR is managing their own account */
-static bool allowWebAuthnManagement(lua_State* vm, const char* target_username) {
+static bool allowSelfOrAdminUserManagement(lua_State* vm,
+                                           const char* target_username) {
   if (!ntop->isLocalUser(vm) && !ntop->isLocalAuthEnabled()) return (false);
   if (ntop->isUserAdministrator(vm)) return (true);
   char* session_user = getLuaVMUserdata(vm, user);
@@ -2948,6 +2978,7 @@ static bool allowWebAuthnManagement(lua_State* vm, const char* target_username) 
 /* @brief Changes a user password (requires old password or admin privileges).  Lua: ntop.resetUserPassword(who, username, old_pw, new_pw) → boolean */
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
+  char session_id[NTOP_SESSION_ID_LENGTH] = "";
   bool is_admin = ntop->isUserAdministrator(vm), ret;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -2985,7 +3016,14 @@ static int ntop_reset_user_password(lua_State* vm) {
   if ((old_password[0] == '\0') && !is_admin)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  ret = ntop->resetUserPassword(username, old_password, new_password);
+  /* on password change, invalidate all the other sessions of the same user, keep the current one only */
+  if ((strcmp(who, username) == 0) && getLuaVMContext(vm) && getLuaVMUservalue(vm, conn)) {
+    char session_key[32];
+    Utils::make_session_key(session_key, sizeof(session_key));
+    mg_get_cookie(getLuaVMUservalue(vm, conn), session_key, session_id, sizeof(session_id));
+  }
+
+  ret = ntop->resetUserPassword(username, old_password, new_password, session_id);
 
   lua_pushboolean(vm, ret);
   return CONST_LUA_OK;
@@ -3165,12 +3203,13 @@ static int ntop_change_user_language(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!allowLocalUserManagement(vm))
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  /* Users are allowed to change this on themselves */
+  if (!allowSelfOrAdminUserManagement(vm, username))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
@@ -3790,12 +3829,13 @@ static int ntop_set_user_totp_secret(lua_State* vm) {
   char *username, *secret;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!allowLocalUserManagement(vm))
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  /* Users are allowed to change this on themselves */
+  if (!allowSelfOrAdminUserManagement(vm, username))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
@@ -3855,12 +3895,13 @@ static int ntop_set_user_totp_enabled(lua_State* vm) {
   bool enabled;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!allowLocalUserManagement(vm))
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  /* Users are allowed to change this on themselves */
+  if (!allowSelfOrAdminUserManagement(vm, username))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK)
@@ -3927,7 +3968,7 @@ static int ntop_generate_webauthn_registration_options(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  if (!allowWebAuthnManagement(vm, username))
+  if (!allowSelfOrAdminUserManagement(vm, username))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   char challenge[64];
@@ -3959,7 +4000,7 @@ static int ntop_complete_webauthn_registration(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  if (!allowWebAuthnManagement(vm, username))
+  if (!allowSelfOrAdminUserManagement(vm, username))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
@@ -4046,7 +4087,7 @@ static int ntop_delete_webauthn_credential(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  if (!allowWebAuthnManagement(vm, username))
+  if (!allowSelfOrAdminUserManagement(vm, username))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
@@ -5528,7 +5569,7 @@ static int ntop_md5(lua_State* vm) {
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  mg_md5(result, lua_tostring(vm, 1), NULL);
+  mg_md5(result, lua_tostring(vm, 1), (char *) NULL);
 
   lua_pushstring(vm, result);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
@@ -9470,6 +9511,9 @@ static luaL_Reg _ntop_reg[] = {
     /* Host pools */
     {"reloadHostPools", ntop_reload_host_pools},
 
+    /* Tags Mapping */
+    {"reloadTagsMapping", ntop_reload_tags_mapping},
+
     /* Device Protocols */
     {"reloadDeviceProtocols", ntop_reload_device_protocols},
 
@@ -9541,6 +9585,7 @@ static luaL_Reg _ntop_reg[] = {
 
     /* ClickHouse */
     {"isClickHouseEnabled", ntop_clickhouse_enabled},
+    {"getClickHouseRecentErrors", ntop_clickhouse_recent_errors},
 
     /* Data Binning */
     {"addBin", ntop_add_bin},

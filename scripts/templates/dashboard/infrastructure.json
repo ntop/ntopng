@@ -7,7 +7,7 @@
 			"id" : "total_throughput",
 			"datasource_id" : "interface_data",
 			"i18n_name" : "",
-			"color" : "info",
+			"color" : "primary",
 			"inactive_color" : "secondary",
 			"width" : 4,
 			"height" : 2,
@@ -138,7 +138,7 @@
 			"id" : "traffic_chart",
 			"i18n_name" : "interfaces_traffic",
 			"width" : 12,
-			"height" : 3,
+			"height" : 4,
 			"params" : {
 			"url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
 			"url_params" : { },

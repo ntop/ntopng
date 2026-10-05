@@ -66,37 +66,29 @@ local timeseries_list = {{
 
 local function addTopTimeseries(tags, tsOptions)
     local timeseries = {}
-    local tmp_tags = table.clone(tags)
     local redis_timeseries_enabled = areSystemTimeseriesEnabled()
-    if redis_timeseries_enabled then
-        local series = ts_utils.listSeries("redis:hits", tmp_tags, tags.epoch_begin) or {}
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.command = serie.command
-                local tot_serie = ts_utils.queryTotal("redis:hits", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
 
-                if (tot > 0) then
-                    local label = string.upper(string.sub(serie.command, 5))
-                    timeseries[#timeseries + 1] = {
-                        schema = "redis:hits",
-                        group = i18n("graphs.commands"),
-                        priority = 2,
-                        query = "command:" .. serie.command,
-                        label = label,
-                        measure_unit = "number",
-                        timeseries = {
-                            num_calls = {
-                                label = label .. " " .. i18n("graphs.commands")
-                            }
-                        }
+    -- Note: a single grouped query, series with no data are not returned
+    if redis_timeseries_enabled then
+        local series = ts_utils.queryTotalByTag("redis:hits", tags.epoch_begin, tags.epoch_end, tags, "command") or {}
+
+        for _, serie in ipairs(series) do
+            local command = serie.tags.command
+            local label = string.upper(string.sub(command, 5))
+
+            timeseries[#timeseries + 1] = {
+                schema = "redis:hits",
+                group = i18n("graphs.commands"),
+                priority = 2,
+                query = "command:" .. command,
+                label = label,
+                measure_unit = "number",
+                timeseries = {
+                    num_calls = {
+                        label = label .. " " .. i18n("graphs.commands")
                     }
-                end
-            end
+                }
+            }
         end
     end
 

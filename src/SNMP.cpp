@@ -102,20 +102,27 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
     char rsp_oid[256], buf[256];
     int offset = 0;
 
+    /*
+      We got a real response: return a table (possibly empty) instead of nil,
+      since for the callers
+      (example [LUA] snmp_dev:_snmpget(oid) [in pro/scripts/lua/modules/snmp_dev_utils.lua]->
+               [LUA] snmpreadasyncrsp() ->
+               [C++] ntop_snmpreadasyncrsp() ->
+               [C++] snmp_fetch_responses())
+      nil means that the remote host has probably not answered yet
+      and it keep waiting for an answer (until a timeout event).
+      The table is created here, once, so that no varbind type handler
+      below can push an entry without a table on the Lua stack.
+    */
+    if (!table_added) lua_newtable(vm), table_added = true;
+
+    rsp_oid[0] = '\0';
+
     switch (vp->type) {
       case SNMP_NOSUCHOBJECT:
       case SNMP_NOSUCHINSTANCE:
       case SNMP_ENDOFMIBVIEW:
-        /* We got a real response but without any real data.
-           Return an (empty) table instead of nil, since for the callers
-           (example [LUA] snmp_dev:_snmpget(oid) [in pro/scripts/lua/modules/snmp_dev_utils.lua]->
-                    [LUA] snmpreadasyncrsp() ->
-                    [C++] ntop_snmpreadasyncrsp() ->
-                    [C++] snmp_fetch_responses())
-           nil means that the remote host has probably not answered yet
-           and it keep waiting for an answer (until a timeout event)
-         */
-        if (!table_added) lua_newtable(vm), table_added = true;
+        /* We got a real response but without any real data */
         vp = vp->next_variable;
         continue; /* Error found */
         break;
@@ -141,7 +148,6 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
     switch (vp->type) {
       case ASN_INTEGER:
         /* case ASN_GAUGE: */ /* Alias of ASN_INTEGER */
-        if (!table_added) lua_newtable(vm), table_added = true;
 #ifdef NATIVE_TYPE
         lua_push_int32_table_entry(vm, rsp_oid, (long)*vp->val.integer);
 #else
@@ -153,7 +159,6 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
       case ASN_UNSIGNED:
       case ASN_TIMETICKS:
       case ASN_COUNTER:
-        if (!table_added) lua_newtable(vm), table_added = true;
         // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %d", rsp_oid,
         // vp->val.integer);
 #ifdef NATIVE_TYPE
@@ -165,8 +170,6 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
         break;
 
       case ASN_COUNTER64: {
-        if (!table_added) lua_newtable(vm), table_added = true;
-        
         u_int64_t v =
             ((u_int64_t)vp->val.counter64->high << 32) + vp->val.counter64->low;
 
@@ -179,8 +182,6 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
       } break;
 
       case ASN_OCTET_STR: {
-        if (!table_added) lua_newtable(vm), table_added = true;
-        
         // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", rsp_oid,
         // vp->val.string);
         char buf[512];
@@ -247,10 +248,10 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
       } break;
 
       case ASN_OBJECT_ID: {
-        if (!table_added) lua_newtable(vm), table_added = true;
-        
         char response[128];
         int rsp_offset = 0;
+
+        response[0] = '\0';
 
         for (u_int i = 0; i < vp->val_len / 8; i++) {
           int rc = snprintf(&response[rsp_offset],
@@ -266,20 +267,28 @@ void SNMP::handle_async_response(struct snmp_pdu* pdu, const char* agent_ip) {
         lua_push_str_table_entry(vm, rsp_oid, response);
       } break;
 
-      case ASN_APPLICATION:
-      case ASN_NULL:
-        if (!table_added) lua_newtable(vm), table_added = true;
-        break;
-      default:
-        ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                     "Missing %d type handler [agent: %s][OID: %s]",
-                                     vp->type, agent_ip, rsp_oid);
-        break;
+    case ASN_OPAQUE_FLOAT:
+      if(vp->val.floatVal) {
+	float value = *(vp->val.floatVal);
+	
+	lua_push_float_table_entry(vm, rsp_oid, value);
+      }
+      break;
+	  
+    case ASN_APPLICATION:
+    case ASN_NULL:
+      break;
+      
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Missing %d type handler [agent: %s][OID: %s]",
+				   vp->type, agent_ip, rsp_oid);
+      break;
     }
-
+    
     vp = vp->next_variable;
   } /* while */
-
+  
   if (!table_added) lua_pushnil(vm);
 }
 
@@ -299,13 +308,15 @@ int asynch_response(int operation, struct snmp_session* sp, int reqid,
           char buf[32], *peer = sp->peername;
 
           if (peer == NULL) {
-            if (sa->sin_family == 2) /* IPv4 */
+            if (sa && (sa->sin_family == AF_INET))
               peer =
                   Utils::intoaV4(ntohl(sa->sin_addr.s_addr), buf, sizeof(buf));
             else
               ntop->getTrace()->traceEvent(TRACE_WARNING,
                                            "Missing IPv6 support");
           }
+
+          if (peer == NULL) peer = (char*)"";
 
           if (pdu->command == SNMP_MSG_RESPONSE) {
             s->handle_async_response(pdu, peer);

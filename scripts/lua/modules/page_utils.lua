@@ -372,6 +372,11 @@ page_utils.menu_entries = {
         i18n_title = "interface_details",
         section = "if_stats"
     },
+    interface_lightview = {
+        key = "interface",
+        i18n_title = "interface_details",
+        section = "if_stats_lightview"
+    },
     networks = {
         key = "networks",
         i18n_title = "networks",

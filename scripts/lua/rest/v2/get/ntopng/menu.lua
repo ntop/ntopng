@@ -69,6 +69,8 @@ local infrastructure_view      = flags.infrastructure_view
 local infrastructure_instances = {}
 _, infrastructure_instances = isInfrastructureView()
 
+local lightview = flags.lightview
+
 -- dynamic URL for scripts config
 local scripts_config_url = http_prefix .. "/lua/admin/edit_configset.lua?subdir=all"
 if tonumber(system_ifid) == tonumber(current_ifid) then
@@ -218,6 +220,16 @@ local function translate(key_i18n)
    return (type(v) == "string") and v or key_i18n
 end
 
+-- Tooltip reasons for an entry that a disabled section drags down with it:
+-- the section's own blockers come first (they are the more fundamental ones,
+-- e.g. "requires administrator privileges"), then the entry's own, if any.
+local function merge_reasons(section_reasons, entry_reasons)
+   local out = {}
+   for _, r in ipairs(section_reasons or {}) do out[#out + 1] = r end
+   for _, r in ipairs(entry_reasons or {}) do out[#out + 1] = r end
+   return (#out > 0) and out or nil
+end
+
 for _, sec_key in ipairs(section_order) do
    local section = section_map[sec_key]
    local sec_drop, sec_disabled = menu_visibility.resolve(section)
@@ -230,22 +242,36 @@ for _, sec_key in ipairs(section_order) do
       for _, entry in ipairs(section.entries) do
          local entry_drop, entry_disabled = menu_visibility.resolve(entry)
          if not entry_drop then
+            local is_divider = (entry.key == "divider") or (entry.is_divider == true)
+
+            -- A disabled section gates everything below it: its entries lead to
+            -- pages of a section the user cannot reach, so they must come back
+            -- disabled too.
+            local disabled = entry_disabled or (sec_disabled and not is_divider)
+
             entries[#entries + 1] = {
                key              = entry.key,
                label            = translate(entry.i18n),
                icon             = entry.icon or nil,
                url              = resolve_url(entry),
                is_external      = (entry.is_external == true),
-               is_divider       = (entry.key == "divider") or (entry.is_divider == true),
-               disabled         = entry_disabled,
-               disabled_reasons = entry_disabled and entry.reason or nil,
+               is_divider       = is_divider,
+               disabled         = disabled,
+               disabled_reasons = disabled and merge_reasons(
+                  sec_disabled and section.reason or nil,
+                  entry_disabled and entry.reason or nil) or nil,
             }
          end
       end
 
-      -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only
+      -- Append dynamic entries (scripts_menu, nedge, appliance) — pro only.
+      -- Already emitted in final shape, so the section gate is applied here.
       local dynamic = compact(get_dynamic_entries(sec_key, flags, page_utils, http_prefix))
       for _, de in ipairs(dynamic) do
+         if sec_disabled and not de.is_divider then
+            de.disabled         = true
+            de.disabled_reasons = merge_reasons(section.reason, de.disabled_reasons)
+         end
          entries[#entries + 1] = de
       end
    end
@@ -481,6 +507,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    is_system_interface = is_system_interface,
    infrastructure_instances = infra_arr,
    infrastructure_view = infrastructure_view,
+   lightview = lightview,
 
    -- topbar: user menu
    username         = session_user,
@@ -525,6 +552,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    has_protos_file = (protos_utils_ok and protos_utils.hasProtosFile()) or false,
    is_pro = is_pro or false,
    is_enterprise = (ntop.isEnterprise and ntop.isEnterprise()) or false,
+   is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false,
    is_enterprise_xl = (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false,
    are_host_pools_ts_enabled = (areHostPoolsTimeseriesEnabled and areHostPoolsTimeseriesEnabled(current_ifid)) or false,
    are_as_ts_enabled = (areASTimeseriesEnabled and areASTimeseriesEnabled(current_ifid)) or false,

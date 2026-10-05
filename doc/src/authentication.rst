@@ -29,6 +29,8 @@ re-authenticate again, regardless of their residual session duration.
 
 ntopng supports multiple methods to authenticate users into the ntopng GUI. Individual methods
 can be enabled from the ntopng "User Authentication" preferences.
+Some methods, including :ref:`OpenID Connect (OIDC) / SSO <oidc-authentication>` and
+:ref:`LDAP <ldap-authentication>`, require a Pro license (see :ref:`AvailableVersions`).
 
 .. figure:: img/advanced_features_authentication_methods.png
   :align: center
@@ -129,6 +131,10 @@ ntopng supports Single Sign-On via the **OpenID Connect** protocol
 Identity Provider (IdP) such as Keycloak, Okta, Auth0, Azure AD / Entra ID,
 or Google, without typing a password into ntopng.
 
+.. note::
+
+  OIDC / SSO authentication requires a Pro license.
+
 When OIDC is enabled, the ntopng login page shows a **"Login with SSO"**
 button. Clicking it redirects the browser to the IdP, which handles
 authentication (including any MFA the IdP enforces). After a successful
@@ -202,10 +208,17 @@ The administrator role is determined by checking whether the configured
 For a detailed technical description of the OIDC implementation, see
 ``doc/developers/README.OIDC.md``.
 
+.. _ldap-authentication:
+
 LDAP Authentication
 -------------------
 
 An LDAP server can be used to authenticate users.
+
+.. note::
+
+  LDAP authentication requires a Pro license.
+  LDAP authentication is not available on Windows, FreeBSD, OPNsense and pfSense.
 
 .. figure:: img/advanced_features_ldap_settings.png
   :align: center

@@ -457,6 +457,7 @@ local all_datatable_columns_def_by_tag = {
       render_type = "formatMitreSubTechnique",
    },
    ['domain_name'] = build_datatable_column_def_obj('domain_name', "db_search.flowfilters.domain_name"),
+   ['requested_server_name'] = build_datatable_column_def_obj('requested_server_name', "db_search.flowfilters.requested_server_name"),
 }
 
 -- #####################################

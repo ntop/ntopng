@@ -3024,7 +3024,7 @@ function getFlowsTableTitle(base_url)
         end
 
         local icmp_utils = require "icmp_utils"
-        local icmp_label = icmp_utils.get_icmp_label(ternary(is_v4, 4, 6), _GET["icmp_type"], _GET["icmp_cod"])
+        local icmp_label = icmp_utils.get_icmp_label(_GET["icmp_type"], _GET["icmp_cod"], ternary(is_v4, 4, 6))
 
         active_msg = active_msg .. " [" .. icmp_label .. "]"
     end

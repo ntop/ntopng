@@ -62,17 +62,27 @@ local eula_url = ternary(
    "http://www.gnu.org/licenses/gpl.html"
 )
 
-local needs_activation = false
+local has_valid_license = info["pro.has_valid_license"]
+
+local needs_activation = not has_valid_license
 if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    local app_utils = require "app_utils"
-   needs_activation = (app_utils.check_license_registration() == false)
+   needs_activation = (app_utils.isActivated() == false)
 end
+
+-- Detect SystemID changes in case of invalid license
+local last_valid_system_id = ntop.getCache("ntopng.pro.last_valid_systemid")
+local system_id_changed = (not has_valid_license)
+   and not isEmptyString(last_valid_system_id)
+   and not isEmptyString(system_id)
+   and (last_valid_system_id ~= system_id)
 
 local res = {
    system_id          = system_id,
    system_id_href     = system_id_href,
-   has_valid_license  = info["pro.has_valid_license"],
+   system_id_changed  = system_id_changed,
+   has_valid_license  = has_valid_license,
    license_type       = info["pro.license_type"],
    license_encoded    = info["pro.license_encoded"],
    license_ends_at    = info["pro.license_ends_at"],

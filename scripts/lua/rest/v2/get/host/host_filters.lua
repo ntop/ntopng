@@ -362,18 +362,33 @@ if ntop.isnEdge and ntop.isnEdge() then
 	}
 end
 
--- Label filter
+-- Label filter: only the tags set on the active hosts are listed
 local tag_badge_utils = require("tag_badge_utils")
-local all_labels = tag_badge_utils.getTags()
-if #all_labels > 0 then
-	local label_filters = { { key = "label", value = "", label = i18n("all") } }
-	for _, lbl in ipairs(all_labels) do
+local used_tags = interface.getActiveHostsTags() or 0
+local selected_tag = tonumber(_GET["label"])
+local label_filters = { { key = "label", value = "", label = i18n("all") } }
+
+for _, lbl in ipairs(tag_badge_utils.getTags()) do
+	local bit_index = tonumber(lbl.id) or 0
+
+	if bit_index >= 0 and bit_index < 64 and
+		((used_tags & (1 << bit_index)) ~= 0 or bit_index == selected_tag) then
 		label_filters[#label_filters + 1] = {
 			key = "label",
 			value = tostring(lbl.id),
 			label = lbl.name,
+			tag_id = lbl.id,
+			tag_name = lbl.name,
+			tag_color = lbl.color,
+			tag_description = lbl.description,
+			tag_reserved = lbl.reserved,
+			tag_protocols = lbl.protocols,
+			tag_risks = lbl.risks,
 		}
 	end
+end
+
+if #label_filters > 1 then
 	rsp[#rsp + 1] = {
 		action = "label",
 		label = i18n("tags_page.tags"),

@@ -22,7 +22,7 @@ local alert_s7comm_unexpected_function_code = classes.class(alert)
 
 alert_s7comm_unexpected_function_code.meta = {
    alert_key = flow_alert_keys.flow_alert_s7comm_unexpected_function_code,
-   i18n_title = "flow_checks.s7comm_invalid_function_code",
+   i18n_title = "flow_checks.s7comm_unexpected_function_code_title",
    icon = "fas fa-fw fa-industry",
 
    -- Mitre Att&ck Matrix values
@@ -45,16 +45,30 @@ end
 
 -- ##############################################
 
-local function function_code_to_string(function_id)
-  -- S7Comm function codes
-  if(function_id == 0x04) then return("Read Var (" .. function_id .. ")") end
-  if(function_id == 0x05) then return("Write Var (" .. function_id .. ")") end
-  if(function_id == 0xf0) then return("Setup Communication (" .. function_id .. ")") end
-  if(function_id == 0x00) then return("CPU Services (" .. function_id .. ")") end
-  if(function_id == 0x29) then return("PLC Control (" .. function_id .. ")") end
-  if(function_id == 0x28) then return("PLC Stop (" .. function_id .. ")") end
+-- S7Comm function codes
+-- NOTE: keep in sync with function_codes in pro/scripts/lua/modules/s7comm_utils.lua
+local function_code_names = {
+  [0x00] = "CPU services",
+  [0x01] = "Mode transition",
+  [0x04] = "Read Var",
+  [0x05] = "Write Var",
+  [0x1a] = "Request download",
+  [0x1b] = "Download block",
+  [0x1c] = "Download ended",
+  [0x1d] = "Start upload",
+  [0x1e] = "Upload",
+  [0x1f] = "End upload",
+  [0x28] = "PI-Service",
+  [0x29] = "PLC Stop",
+  [0xf0] = "Setup communication",
+}
 
-  return(function_id)
+local function function_code_to_string(function_id)
+  local name = function_code_names[tonumber(function_id or "")]
+
+  if(name == nil) then return(function_id) end
+
+  return(name .. " (" .. function_id .. ")")
 end
 
 -- #######################################################

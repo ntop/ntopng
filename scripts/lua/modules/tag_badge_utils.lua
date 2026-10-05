@@ -50,7 +50,9 @@ local function get_default_tags_table()
             color       = "#0d6efd",
             description = "",
             name        = name,
-            reserved    = "true"
+            reserved    = "true",
+            protocols   = {},
+            risks       = {}
         }
     end
 
@@ -61,10 +63,34 @@ local function get_default_tags_table()
             color       = "#000000",
             description = "",
             name        = "Customizable_Tag_" .. i,
-            reserved    = "false"
+            reserved    = "false",
+            protocols   = {},
+            risks       = {}
         }
     end
     return tags
+end
+
+-- ##############################################
+
+-- Sanitize a list of numeric ids (nDPI application ids or flow risk ids) bound
+-- to a tag. Both a table and a comma separated string (as sent by the REST) are accepted
+local function normalize_ids(ids)
+    local res = {}
+
+    if type(ids) == "string" then
+        ids = split(ids, ",")
+    end
+
+    if type(ids) == "table" then
+        for _, value in pairs(ids) do
+            local id = tonumber(value)
+            if id then
+                res[#res + 1] = id
+            end
+        end
+    end
+    return res
 end
 
 -- ##############################################
@@ -82,10 +108,33 @@ local function get_tags()
     for _, tag_json in pairs(existing_tags) do
         local tag = json.decode(tag_json)
         if tag then
+            tag.protocols = normalize_ids(tag.protocols)
+            tag.risks = normalize_ids(tag.risks)
             tags[tag.id] = tag
         end
     end
     return tags
+end
+
+-- ##############################################
+
+-- Returns true if the tag is a ntopng built-in (read-only) tag
+function tag_badge_utils.isReservedTag(id)
+    return tag_badge_utils.builtin_tags[tonumber(id)] ~= nil
+end
+
+-- ##############################################
+
+-- Returns true if nDPI applications can be bound to the tags (Enterprise L or above)
+function tag_badge_utils.areTagApplicationsSupported()
+    return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
+end
+
+-- ##############################################
+
+-- Returns true if flow risks can be bound to the tags (Enterprise L or above)
+function tag_badge_utils.areTagRisksSupported()
+    return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
 end
 
 -- ##############################################
@@ -117,16 +166,41 @@ end
 -- name: new name of the tag to update
 -- color: new color of the tag to update (string containing a HEX value)
 -- description: new description of the tag to update
-function tag_badge_utils.editTag(id, name, color, description, reserved)
+-- protocols: array of nDPI application ids bound to the tag (custom tags only, Enterprise L only)
+-- risks: array of flow risk ids bound to the tag (all tags, Enterprise L only)
+function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks)
     local json = require "dkjson"
+    -- Without the license applications and flow risks cannot be changed
+    local current = nil
+
+    if tag_badge_utils.areTagApplicationsSupported() then
+        protocols = normalize_ids(protocols)
+    else
+        current = get_tags()[tonumber(id)]
+        protocols = (current and current.protocols) or {}
+    end
+
+    if tag_badge_utils.areTagRisksSupported() then
+        risks = normalize_ids(risks)
+    else
+        current = current or get_tags()[tonumber(id)]
+        risks = (current and current.risks) or {}
+    end
+
     local tag = {
         id = id,
         name = name,
         color = color,
         description = description,
-        reserved = reserved
+        reserved = reserved,
+        -- Applications can only be bound to user-defined (custom) tags
+        protocols = (not tag_badge_utils.isReservedTag(id)) and protocols or {},
+        -- Flow risks can be bound to any tag, built-in ones included
+        risks = risks
     }
     ntop.setHashCache(get_redis_key(), id, json.encode(tag))
+
+    ntop.reloadTagsMapping()
 end
 
 -- ##############################################
@@ -144,6 +218,8 @@ function tag_badge_utils.deleteTag(id)
     if tags[id] then
         -- Remove tag from Redis
         ntop.delHashCache(get_redis_key(), id)
+
+        ntop.reloadTagsMapping()
     else
         return false, "Invalid ID"
     end

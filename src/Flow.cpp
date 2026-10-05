@@ -72,6 +72,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   }
 
   collection = NULL;
+  primary_exporter = NULL;
   tcp_fingerprint = NULL, ndpi_fingerprint = NULL, tls_blocks = NULL;
   predominant_alert.id = flow_alert_normal,
   predominant_alert.category = alert_category_other,
@@ -119,6 +120,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   external_alert.json = NULL, external_alert.source = NULL;
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
+  user_tags_bitmap = 0;
 
   riskInfo = NULL, json_protocol_info = NULL;
   alerts_json = NULL, alerts_json_shadow = NULL;
@@ -475,7 +477,7 @@ void Flow::freeDPIMemory() {
       if (ndpiFlow && iface->isPacketInterface()) {
         if ((stats.get_cli2srv_packets() > 0) &&
             (stats.get_srv2cli_packets() == 0) &&
-            (ndpiFlow->protos.dns.is_query == 0)) {
+            (ndpiFlow->metadata.protos.dns.is_query == 0)) {
           request_swap(); /* This flow will be swapped */
           swap();
         }
@@ -487,14 +489,14 @@ void Flow::freeDPIMemory() {
       }
     }
 
-    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
-    ndpi_confidence = ndpiFlow->confidence;
+    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->core.risk);
+    ndpi_confidence = ndpiFlow->core.confidence;
 
-    if ((tcp_fingerprint == NULL) && ndpiFlow->tcp.fingerprint)
-      setHostTCPFingerprint(ndpiFlow->tcp.fingerprint, ndpiFlow->tcp.os_hint);
+    if ((tcp_fingerprint == NULL) && ndpiFlow->metadata.l4.tcp.fingerprint)
+      setHostTCPFingerprint(ndpiFlow->metadata.l4.tcp.fingerprint, ndpiFlow->metadata.l4.tcp.os_hint);
 
-    if ((ndpi_fingerprint == NULL) && ndpiFlow->ndpi.client_fingerprint)
-      setnDPIFingerprint(ndpiFlow->ndpi.client_fingerprint);
+    if ((ndpi_fingerprint == NULL) && ndpiFlow->metadata.ndpi.client_fingerprint)
+      setnDPIFingerprint(ndpiFlow->metadata.ndpi.client_fingerprint);
 
 #ifdef DUMP_TLS_BLOCKS
     if ((protocol == IPPROTO_TCP) && (tls_blocks == NULL) &&
@@ -595,11 +597,9 @@ Flow::~Flow() {
     decAllFlowScores();
 #endif
 
+  /* First do whatever is necessary with cli_u and srv_u... */
   if (cli_u) {
     cli_u->updateView(cli_ip_addr);
-    cli_u->decUses(); /* Decrease the number of uses */
-    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
-
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
 
@@ -610,8 +610,6 @@ Flow::~Flow() {
 
   if (srv_u) {
     srv_u->updateView(srv_ip_addr);
-    srv_u->decUses(); /* Decrease the number of uses */
-    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
 
     if (is_oneway_tcp_udp_flow) {
       srv_u->incUnidirectionalIngressTCPUDPFlows();
@@ -625,6 +623,19 @@ Flow::~Flow() {
                                                       ntohs(srv_port));
       }
     }
+  }
+
+  /* ...then free the memory */
+  if (cli_u) {
+    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
+    cli_u->decUses(); /* Decrease the number of uses */
+    cli_u = NULL;
+  }
+
+  if (srv_u) {
+    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
+    srv_u->decUses(); /* Decrease the number of uses */
+    srv_u = NULL;
   }
 
   if (!srv_host &&
@@ -668,8 +679,15 @@ Flow::~Flow() {
     }
   }
 
-  if (c_mac) c_mac->decUses();
-  if (s_mac) s_mac->decUses();
+  if (c_mac) {
+    c_mac->decUses();
+    c_mac = NULL;
+  }
+  
+  if (s_mac) {
+    s_mac->decUses();
+    s_mac = NULL;
+  }
 
 #ifdef NTOPNG_PRO
   if (udp != NULL) {
@@ -837,8 +855,8 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
 
   /* Domain Concats Alert */
   if (ndpiFlow)
-    domain_name = ndpi_get_flow_name(ndpiFlow),
-    confidence = ndpiFlow->confidence;
+    domain_name = ndpi_get_flow_name(&ndpiFlow->core),
+    confidence = ndpiFlow->core.confidence;
 
   if (cli_h && domain_name && domain_name[0] != '\0')
     cli_h->addContactedDomainName(domain_name);
@@ -884,10 +902,10 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
     }
   }
 
-  if (ndpiFlow && (ndpiFlow->tcp.os_hint != ndpi_os_unknown)) {
+  if (ndpiFlow && (ndpiFlow->metadata.l4.tcp.os_hint != ndpi_os_unknown)) {
     Host* h = cli_h ? cli_h : getViewSharedClient() /* View interface */;
 
-    if (h != NULL) h->setnDPIOS(ndpiFlow->tcp.os_hint);
+    if (h != NULL) h->setnDPIOS(ndpiFlow->metadata.l4.tcp.os_hint);
   }
 }
 
@@ -912,14 +930,15 @@ void Flow::processDetectedProtocolData() {
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol.proto);
 
   if ((l7proto != NDPI_PROTOCOL_DNS)
-      && (ndpiFlow->host_server_name[0] != '\0') && (!host_server_name)) {
+      && !Utils::isEmptyString(ndpiFlow->core.host_server_name)
+      && (!host_server_name)) {
     bool skip_host_server_name = false;
 
-    Utils::sanitizeHostName((char*)ndpiFlow->host_server_name);
+    Utils::sanitizeHostName((char*)ndpiFlow->core.host_server_name);
 
     if (ndpi_is_proto(ndpiDetectedProtocol.proto, NDPI_PROTOCOL_HTTP)) {
-      if (ndpiFlow->http.response_status_code == 200) {
-        char* double_column = strrchr((char*)ndpiFlow->host_server_name, ':');
+      if (ndpiFlow->metadata.http.response_status_code == 200) {
+        char* double_column = strrchr((char*)ndpiFlow->core.host_server_name, ':');
 
         if (double_column) double_column[0] = '\0';
       } else
@@ -929,34 +948,34 @@ void Flow::processDetectedProtocolData() {
 	Host *cli_u = getViewSharedClient();
 
 	if(cli_u)
-	  cli_u->offlineSetDHCPName((char*)ndpiFlow->host_server_name);
+	  cli_u->offlineSetDHCPName((char*)ndpiFlow->core.host_server_name);
 
-	if(ndpiFlow->protos.dhcp.class_ident[0] != '\0') {
+	if(ndpiFlow->metadata.protos.dhcp.class_ident[0] != '\0') {
 	  char buf[256];
 
 	  snprintf(buf, sizeof(buf), "%s (%s)",
-		   ndpiFlow->host_server_name,
-		   ndpiFlow->protos.dhcp.class_ident);
-	
+		   ndpiFlow->core.host_server_name,
+		   ndpiFlow->metadata.protos.dhcp.class_ident);
+
 	  setClientInfo(strdup(buf));
 	} else
-	  setClientInfo(strdup(ndpiFlow->host_server_name));
-	
+	  setClientInfo(strdup(ndpiFlow->core.host_server_name));
+
 	skip_host_server_name = true;
       }
     }
 
     if (!skip_host_server_name) {
       /* Host server name equals the Host: HTTP header field. */
-      setServerName(strdup((char*)ndpiFlow->host_server_name));
+      setServerName(strdup((char*)ndpiFlow->core.host_server_name));
     }
   }
 
   switch (l7proto) {
     case NDPI_PROTOCOL_BITTORRENT:
       if (!bt_hash)
-        setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash,
-                          sizeof(ndpiFlow->protos.bittorrent.hash));
+        setBittorrentHash((char*)ndpiFlow->metadata.protos.bittorrent.hash,
+                          sizeof(ndpiFlow->metadata.protos.bittorrent.hash));
       break;
 
     case NDPI_PROTOCOL_MDNS:
@@ -967,13 +986,13 @@ void Flow::processDetectedProtocolData() {
     case NDPI_PROTOCOL_TOR:
     case NDPI_PROTOCOL_TLS:
     case NDPI_PROTOCOL_QUIC:
-      if (ndpiFlow->host_server_name[0] != '\0') {
+      if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
         if ((ndpiDetectedProtocol.proto.app_protocol !=
              NDPI_PROTOCOL_DOH_DOT) &&
             cli_h && cli_h->isLocalHost())
-          cli_h->incrVisitedWebSite(ndpiFlow->host_server_name);
+          cli_h->incrVisitedWebSite(ndpiFlow->core.host_server_name);
 
-        if (cli_h) cli_h->incContactedService(ndpiFlow->host_server_name);
+        if (cli_h) cli_h->incContactedService(ndpiFlow->core.host_server_name);
 #if 0
       /*
 	Commented out as it will be eventually set below by (***)
@@ -986,14 +1005,14 @@ void Flow::processDetectedProtocolData() {
 
     case NDPI_PROTOCOL_HTTP:
     case NDPI_PROTOCOL_HTTP_PROXY:
-      if (ndpiFlow->http.url) {
+      if (ndpiFlow->metadata.http.url) {
         if (!protos.http.last_url)
-          protos.http.last_url = strdup(ndpiFlow->http.url);
+          protos.http.last_url = strdup(ndpiFlow->metadata.http.url);
 
-        if ((!protos.http.last_user_agent) && ndpiFlow->http.user_agent)
-          protos.http.last_user_agent = strdup(ndpiFlow->http.user_agent);
+        if ((!protos.http.last_user_agent) && ndpiFlow->metadata.http.user_agent)
+          protos.http.last_user_agent = strdup(ndpiFlow->metadata.http.user_agent);
 
-        setHTTPMethod(ndpiFlow->http.method);
+        setHTTPMethod(ndpiFlow->metadata.http.method);
       }
 
       break;
@@ -1009,37 +1028,37 @@ void Flow::processExtraDissectedInformation() {
   if (ndpiFlow) {
     if (isSSH()) {
       if (protos.ssh.client_signature == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.ssh.client_signature))
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.ssh.client_signature))
         protos.ssh.client_signature =
-            strdup(ndpiFlow->protos.ssh.client_signature);
+            strdup(ndpiFlow->metadata.protos.ssh.client_signature);
       if (protos.ssh.server_signature == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.ssh.server_signature))
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.ssh.server_signature))
         protos.ssh.server_signature =
-            strdup(ndpiFlow->protos.ssh.server_signature);
+            strdup(ndpiFlow->metadata.protos.ssh.server_signature);
 
       if (protos.ssh.hassh.client_hash == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.ssh.hassh_client)) {
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.ssh.hassh_client)) {
         protos.ssh.hassh.client_hash =
-            strdup(ndpiFlow->protos.ssh.hassh_client);
+            strdup(ndpiFlow->metadata.protos.ssh.hassh_client);
         updateHASSH(true /* As client */);
       }
 
       if (protos.ssh.hassh.server_hash == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.ssh.hassh_server)) {
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.ssh.hassh_server)) {
         protos.ssh.hassh.server_hash =
-            strdup(ndpiFlow->protos.ssh.hassh_server);
+            strdup(ndpiFlow->metadata.protos.ssh.hassh_server);
         updateHASSH(false /* As server */);
       }
     } else if (isTLS()) {
-      protos.tls.tls_version = ndpiFlow->protos.tls_quic.ssl_version;
+      protos.tls.tls_version = ndpiFlow->metadata.protos.tls_quic.ssl_version;
 
-      protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
-      protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
+      protos.tls.notBefore = ndpiFlow->metadata.protos.tls_quic.notBefore,
+      protos.tls.notAfter = ndpiFlow->metadata.protos.tls_quic.notAfter;
 
       if (protos.tls.client_requested_server_name == NULL &&
-          !Utils::isEmptyString(ndpiFlow->host_server_name)) {
+          !Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
         protos.tls.client_requested_server_name =
-            strdup(ndpiFlow->host_server_name);
+            strdup(ndpiFlow->core.host_server_name);
         /* Now some minor cleanup */
         char* c;
 
@@ -1051,57 +1070,59 @@ void Flow::processExtraDissectedInformation() {
       }
 
       if (protos.tls.server_names == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.tls_quic.server_names))
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.tls_quic.server_names))
         protos.tls.server_names =
-            strdup(ndpiFlow->protos.tls_quic.server_names);
+            strdup(ndpiFlow->metadata.protos.tls_quic.server_names);
 
       if (protos.tls.client_alpn == NULL) {
-        if (!Utils::isEmptyString(ndpiFlow->protos.tls_quic.negotiated_alpn))
+        if (!Utils::isEmptyString(ndpiFlow->metadata.protos.tls_quic.negotiated_alpn))
           protos.tls.client_alpn =
-              strdup(ndpiFlow->protos.tls_quic.negotiated_alpn);
+              strdup(ndpiFlow->metadata.protos.tls_quic.negotiated_alpn);
         else if (!Utils::isEmptyString(
-                     ndpiFlow->protos.tls_quic.advertised_alpns))
+                     ndpiFlow->metadata.protos.tls_quic.advertised_alpns))
           protos.tls.client_alpn =
-              strdup(ndpiFlow->protos.tls_quic.advertised_alpns);
+              strdup(ndpiFlow->metadata.protos.tls_quic.advertised_alpns);
       }
 
       if (protos.tls.client_tls_supported_versions == NULL &&
           !Utils::isEmptyString(
-              ndpiFlow->protos.tls_quic.tls_supported_versions))
+              ndpiFlow->metadata.protos.tls_quic.tls_supported_versions))
         protos.tls.client_tls_supported_versions =
-            strdup(ndpiFlow->protos.tls_quic.tls_supported_versions);
+            strdup(ndpiFlow->metadata.protos.tls_quic.tls_supported_versions);
 
       if (protos.tls.issuerDN == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.tls_quic.issuerDN))
-        protos.tls.issuerDN = strdup(ndpiFlow->protos.tls_quic.issuerDN);
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.tls_quic.issuerDN))
+        protos.tls.issuerDN = strdup(ndpiFlow->metadata.protos.tls_quic.issuerDN);
 
       if (protos.tls.subjectDN == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.tls_quic.subjectDN))
-        protos.tls.subjectDN = strdup(ndpiFlow->protos.tls_quic.subjectDN);
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.tls_quic.subjectDN))
+        protos.tls.subjectDN = strdup(ndpiFlow->metadata.protos.tls_quic.subjectDN);
 
       if (protos.tls.ja4.client_hash == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.tls_quic.ja4_client)) {
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.tls_quic.ja4_client)) {
         protos.tls.ja4.client_hash =
-            strdup(ndpiFlow->protos.tls_quic.ja4_client);
+            strdup(ndpiFlow->metadata.protos.tls_quic.ja4_client);
         updateCliJA4();
       }
 
     } else if (isDNS()) {
-      if (srv_host && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */)) {
+      if (srv_host &&
+          !Utils::isEmptyString(ndpiFlow->core.host_server_name) &&
+          (ndpiFlow->metadata.protos.dns.reply_code == 0 /* No Error */)) {
         /* Now we need to check if the requested IP matches the server host */
 
-        if ((ndpiFlow->protos.dns.rsp_type == 0x0C /* PTR */) &&
-            (ndpiFlow->protos.dns.ptr_domain_name[0] != '\0')) {
-          u_int len = strlen((char*)ndpiFlow->host_server_name);
+        if ((ndpiFlow->metadata.protos.dns.rsp_type == 0x0C /* PTR */) &&
+            (ndpiFlow->metadata.protos.dns.ptr_domain_name[0] != '\0')) {
+          u_int len = strlen((char*)ndpiFlow->core.host_server_name);
           IpAddress* addr = srv_host->get_ip();
 
           if (len > 13) {
-            if (addr->isIPv4() && (strcmp(&ndpiFlow->host_server_name[len - 13],
+            if (addr->isIPv4() && (strcmp(&ndpiFlow->core.host_server_name[len - 13],
                                           ".in-addr.arpa") == 0)) {
               /* 130.197.62.178.in-addr.arpa */
               int a, b, c, d;
 
-              if (sscanf(ndpiFlow->host_server_name, "%d.%d.%d.%d", &d, &c, &b,
+              if (sscanf(ndpiFlow->core.host_server_name, "%d.%d.%d.%d", &d, &c, &b,
                          &a) == 4) {
                 char buf[32];
                 u_int32_t ipv4_addr;
@@ -1111,23 +1132,23 @@ void Flow::processExtraDissectedInformation() {
 
                 if (addr->equal(ipv4_addr))
                   srv_host->setResolvedName(
-                      (char*)ndpiFlow->protos.dns.ptr_domain_name);
+                      (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name);
                 else {
                   /* This is not the right IPv4 host: let's cache it for later
                    */
 
                   ntop->getRedis()->setResolvedAddress(
-                      buf, (char*)ndpiFlow->protos.dns.ptr_domain_name);
+                      buf, (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name);
                 }
               }
-            } else if (strcmp(&ndpiFlow->host_server_name[len - 9],
+            } else if (strcmp(&ndpiFlow->core.host_server_name[len - 9],
                               ".ip6.arpa") == 0) {
               /* 1.0.0.4.0.6.3.0.0.0.0.0.0.0.0.0.0.d.0.0.2.0.0.0.0.c.0.b.3.0.a.2.ip6.arpa
                */
               int a, b;
               int i = 15;
               char *tmp,
-                  *item = strtok_r(ndpiFlow->host_server_name, ".", &tmp);
+                  *item = strtok_r(ndpiFlow->core.host_server_name, ".", &tmp);
               struct ndpi_in6_addr ipv6_addr;
 
               while (item != NULL) {
@@ -1147,7 +1168,7 @@ void Flow::processExtraDissectedInformation() {
 
               if (addr->equal(&ipv6_addr))
                 srv_host->setResolvedName(
-                    (char*)ndpiFlow->protos.dns.ptr_domain_name);
+                    (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name);
               else {
                 char buf[64];
 
@@ -1155,7 +1176,7 @@ void Flow::processExtraDissectedInformation() {
                  */
                 ntop->getRedis()->setResolvedAddress(
                     Utils::intoaV6(ipv6_addr, buf, sizeof(buf)),
-                    (char*)ndpiFlow->protos.dns.ptr_domain_name);
+                    (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name);
               }
             }
           }
@@ -1163,56 +1184,56 @@ void Flow::processExtraDissectedInformation() {
       }
     } else if (isMining()) {
       if (protos.mining.currency == NULL &&
-          !Utils::isEmptyString(ndpiFlow->protos.mining.currency))
-        protos.mining.currency = strdup(ndpiFlow->protos.mining.currency);
+          !Utils::isEmptyString(ndpiFlow->metadata.protos.mining.currency))
+        protos.mining.currency = strdup(ndpiFlow->metadata.protos.mining.currency);
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s",
-       * ndpiFlow->protos.mining.currency); */
+       * ndpiFlow->metadata.protos.mining.currency); */
     } else if (isHTTP() || isHTTP_PROXY() || isHTTP_CONNECT()) {
       if (protos.http.last_server == NULL &&
-          !Utils::isEmptyString(ndpiFlow->http.server))
-        protos.http.last_server = strdup(ndpiFlow->http.server);
+          !Utils::isEmptyString(ndpiFlow->metadata.http.server))
+        protos.http.last_server = strdup(ndpiFlow->metadata.http.server);
 
-      if (ndpiFlow->http.response_status_code == 200) {
-        if (srv_host && (ndpiFlow->host_server_name[0] != '\0') &&
-            (ndpiFlow->http.nat_ip == NULL) /* This is not a proxy */
+      if (ndpiFlow->metadata.http.response_status_code == 200) {
+        if (srv_host && (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) &&
+            (ndpiFlow->metadata.http.nat_ip == NULL) /* This is not a proxy */
         )
           srv_host->setServerName(host_server_name);
 
-        if (ndpiFlow->host_server_name[0] != '\0') {
+        if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
           char *doublecol, delimiter = ':';
 
           /* If <host>:<port> we need to remove ':' */
           if ((doublecol = (char*)strchr(
-                   (const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
+                   (const char*)ndpiFlow->core.host_server_name, delimiter)) != NULL)
             doublecol[0] = '\0';
 
           if (cli_host) {
-            cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+            cli_host->incContactedService((char*)ndpiFlow->core.host_server_name);
 
-            if (ndpiFlow->http.detected_os)
+            if (ndpiFlow->metadata.http.detected_os)
               cli_host->inlineSetOSDetail(
                   (char*)
-                      ndpiFlow->http.detected_os); /* Learnt from User-Agent */
+                      ndpiFlow->metadata.http.detected_os); /* Learnt from User-Agent */
 
             if (cli_host->isLocalHost())
-              cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
+              cli_host->incrVisitedWebSite((char*)ndpiFlow->core.host_server_name);
           }
         }
       }
     } else if (isSTUN()) {
       if (stun_mapped_address == NULL &&
-          ndpiFlow->stun.mapped_address.port != 0) {
+          ndpiFlow->metadata.stun.mapped_address.port != 0) {
         IpAddress ip;
         char tmp[96], ipb[64];
 
-        if (ndpiFlow->stun.mapped_address.is_ipv6)
-          ip.set((struct in6_addr*)&ndpiFlow->stun.mapped_address.address);
+        if (ndpiFlow->metadata.stun.mapped_address.is_ipv6)
+          ip.set((struct in6_addr*)&ndpiFlow->metadata.stun.mapped_address.address);
         else
-          ip.set(ndpiFlow->stun.mapped_address.address.v4);
+          ip.set(ndpiFlow->metadata.stun.mapped_address.address.v4);
 
         snprintf(tmp, sizeof(tmp), "%s:%u", ip.print(ipb, sizeof(ipb)),
-                 ndpiFlow->stun.mapped_address.port);
+                 ndpiFlow->metadata.stun.mapped_address.port);
         stun_mapped_address = strdup(tmp);
       }
     }
@@ -1233,7 +1254,8 @@ void Flow::processExtraDissectedInformation() {
       char msg[32];
 
       snprintf(msg, sizeof(msg), "%u sec", periodicity);
-      ndpi_set_risk(iface->get_ndpi_struct(), get_ndpi_flow(),
+      ndpi_set_risk(iface->get_ndpi_struct(),
+		    &get_ndpi_flow()->core,
                     NDPI_PERIODIC_FLOW, msg);
     }
 
@@ -1252,13 +1274,13 @@ void Flow::processExtraDissectedInformation() {
 
     if (out != NULL) setJSONRiskInfo(out);
 
-    flow_payload = f->flow_payload, flow_payload_len = f->flow_payload_len;
-    ndpiFlow->flow_payload = NULL; /* ntopng will free this memory not nDPI */
+    flow_payload = f->core.flow_payload, flow_payload_len = f->core.flow_payload_len;
+    ndpiFlow->core.flow_payload = NULL; /* ntopng will free this memory not nDPI */
   }
 
   /* Read this data before freeing nDPI */
   if (get_ndpi_flow() != NULL) {
-    u_int8_t flow_types = get_ndpi_flow()->flow_multimedia_types;
+    u_int8_t flow_types = get_ndpi_flow()->metadata.flow_multimedia_types;
 
     if (flow_types != ndpi_multimedia_unknown_flow) {
       if (flow_types & ndpi_multimedia_audio_flow)
@@ -1312,7 +1334,7 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
       iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
   flow_category = proto_id.category, flow_breed = proto_id.breed;
 
-  if ((ndpi_flow_risk_bitmap != 0) && (ndpiFlow->risk == 0)) {
+  if ((ndpi_flow_risk_bitmap != 0) && (ndpiFlow->core.risk == 0)) {
     /*
       Probably an exception has cleared the risk that was previously
       stored in ntopng so we need to rollback also the risk in ntopng
@@ -1368,7 +1390,7 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
     updateProtocol(proto_id);
     setProtocolDetectionCompleted(payload, payload_len, h->ts.tv_sec);
 
-    if (ndpiFlow->risk != 0) {
+    if (ndpiFlow->core.risk != 0) {
       if (srv_host) {
         /* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
         Mac* srv_mac = srv_host->getMac();
@@ -1376,17 +1398,17 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
         if (srv_mac && srv_mac->isBroadcast()) {
           ndpi_risk r = ((ndpi_risk)1) << NDPI_UNSAFE_PROTOCOL;
 
-          if ((ndpiFlow->risk & r) == r)
-            ndpiFlow->risk &= ~r; /* Clear the bit */
+          if ((ndpiFlow->core.risk & r) == r)
+            ndpiFlow->core.risk &= ~r; /* Clear the bit */
         }
       }
 
       if (cli_host) {
-        if (NDPI_ISSET_BIT(ndpiFlow->risk, NDPI_HTTP_CRAWLER_BOT))
+        if (NDPI_ISSET_BIT(ndpiFlow->core.risk, NDPI_HTTP_CRAWLER_BOT))
           cli_host->setCrawlerBotScannerHost();
       }
 
-      addRisk(ndpiFlow->risk);
+      addRisk(ndpiFlow->core.risk);
     }
   } else if (proto_id.state == NDPI_STATE_PARTIAL) {
     updateProtocol(proto_id);
@@ -1435,7 +1457,7 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
      See
      https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
   */
-  ndpiFlow->max_extra_packets_to_check = 10;
+  ndpiFlow->core.max_extra_packets_to_check = 10;
 
   proto_id = ndpi_detection_process_packet(
       iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
@@ -1449,67 +1471,67 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
     case NDPI_PROTOCOL_DNS:
       ndpiDetectedProtocol = proto_id; /* Override! */
 
-      if (ndpiFlow->host_server_name[0] != '\0') {
+      if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
         std::string addresses;
 
-        if (cli_host && (ndpiFlow->protos.dns.reply_code == 0 /* no Error */)) {
-          cli_host->incContactedService((char*)ndpiFlow->host_server_name);
-          cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
+        if (cli_host && (ndpiFlow->metadata.protos.dns.reply_code == 0 /* no Error */)) {
+          cli_host->incContactedService((char*)ndpiFlow->core.host_server_name);
+          cli_host->incrVisitedWebSite((char*)ndpiFlow->core.host_server_name);
         }
 
-        for (u_int i = 0; i < ndpiFlow->protos.dns.num_rsp_addr; i++) {
+        for (u_int i = 0; i < ndpiFlow->metadata.protos.dns.num_rsp_addr; i++) {
           char buf[64];
 
-          if (ndpiFlow->protos.dns.is_rsp_addr_ipv6[i] == 0)
-            inet_ntop(AF_INET, &ndpiFlow->protos.dns.rsp_addr[i].ipv4, buf,
+          if (ndpiFlow->metadata.protos.dns.is_rsp_addr_ipv6[i] == 0)
+            inet_ntop(AF_INET, &ndpiFlow->metadata.protos.dns.rsp_addr[i].ipv4, buf,
                       sizeof(buf));
           else
-            inet_ntop(AF_INET6, &ndpiFlow->protos.dns.rsp_addr[i].ipv6, buf,
+            inet_ntop(AF_INET6, &ndpiFlow->metadata.protos.dns.rsp_addr[i].ipv6, buf,
                       sizeof(buf));
 
           if (i > 0) addresses += ",";
           addresses += buf;
         }
 
-        if (ndpiFlow->protos.dns.query_type != 0)
-          protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
+        if (ndpiFlow->metadata.protos.dns.query_type != 0)
+          protos.dns.last_query_type = ndpiFlow->metadata.protos.dns.query_type;
 
-        protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
+        protos.dns.last_return_code = ndpiFlow->metadata.protos.dns.reply_code;
 
-        if (!ndpiFlow->protos.dns.is_query) {
+        if (!ndpiFlow->metadata.protos.dns.is_query) {
           /* this is a response... */
           if (ntop->getPrefs()->is_dns_decoding_enabled()) {
             char delimiter = '@', *name = NULL;
-            char* at = (char*)strchr((const char*)ndpiFlow->host_server_name,
+            char* at = (char*)strchr((const char*)ndpiFlow->core.host_server_name,
                                      delimiter);
 
             /* Consider only positive DNS replies */
             if (at != NULL)
               name = &at[1], at[0] = '\0';
-            else if ((!strstr((const char*)ndpiFlow->host_server_name,
+            else if ((!strstr((const char*)ndpiFlow->core.host_server_name,
                               ".in-addr.arpa")) &&
-                     (!strstr((const char*)ndpiFlow->host_server_name,
+                     (!strstr((const char*)ndpiFlow->core.host_server_name,
                               ".ip6.arpa")))
-              name = (char*)ndpiFlow->host_server_name;
+              name = (char*)ndpiFlow->core.host_server_name;
 
             if (name) {
 #if 0
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s [query_type: %u][reply_code: %u][is_query: %u][num_queries: %u][num_answers: %u]",
-					 (char*)ndpiFlow->host_server_name,
-					 ndpiFlow->protos.dns.query_type,
-					 ndpiFlow->protos.dns.reply_code,
-					 ndpiFlow->protos.dns.is_query ? 1 : 0,
-					 ndpiFlow->protos.dns.num_queries,
-					 ndpiFlow->protos.dns.num_answers);
+					 (char*)ndpiFlow->core.host_server_name,
+					 ndpiFlow->metadata.protos.dns.query_type,
+					 ndpiFlow->metadata.protos.dns.reply_code,
+					 ndpiFlow->metadata.protos.dns.is_query ? 1 : 0,
+					 ndpiFlow->metadata.protos.dns.num_queries,
+					 ndpiFlow->metadata.protos.dns.num_answers);
 #endif
 
-              if (ndpiFlow->protos.dns.reply_code == 0) {
-                if (ndpiFlow->protos.dns.num_answers > 0) {
+              if (ndpiFlow->metadata.protos.dns.reply_code == 0) {
+                if (ndpiFlow->metadata.protos.dns.num_answers > 0) {
                   if (at != NULL) {
                     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[_NS] %s <->
-                    // %s", name, (char*)ndpiFlow->host_server_name);
+                    // %s", name, (char*)ndpiFlow->core.host_server_name);
                     ntop->getRedis()->setResolvedAddress(
-                        name, (char*)ndpiFlow->host_server_name);
+                        name, (char*)ndpiFlow->core.host_server_name);
                   }
                 }
               }
@@ -1517,7 +1539,7 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
           }
 
           if (protos.dns.last_return_code == 0 /* NOERROR */)
-            setDNSQuery(ndpiFlow->host_server_name, (char*)addresses.c_str(),
+            setDNSQuery(ndpiFlow->core.host_server_name, (char*)addresses.c_str(),
                         true);
         }
       }
@@ -1533,7 +1555,7 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
 #if 0
   char buf[256];
   ntop->getTrace()->traceEvent(TRACE_ERROR, "%s %s",
-			       ndpiFlow->host_server_name[0] != '\0' ? ndpiFlow->host_server_name : (unsigned char*)"",
+			       !Utils::isEmptyString(ndpiFlow->core.host_server_name) ? ndpiFlow->core.host_server_name : (unsigned char*)"",
 			       print(buf, sizeof(buf)));
 #endif
 }
@@ -1563,7 +1585,7 @@ void Flow::processIEC60870Packet(bool tx_direction, const u_char* payload,
 void Flow::endProtocolDissection(bool src2dst_direction) {
   if (!detection_completed) {
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow));
-    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
+    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->core.risk);
     setProtocolDetectionCompleted(NULL, 0, iface->getTimeLastPktRcvd());
   }
 
@@ -1595,7 +1617,7 @@ void Flow::setExtraDissectionCompleted(bool src2dst_direction) {
     return;
   } else if (needsExtraDissection()) {
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow));
-    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
+    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->core.risk);
   }
 
   if (ndpiFlow) {
@@ -1740,9 +1762,19 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
       In Ntop::nDPILoadIPCategory
        u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
     */
-    u_int16_t c = (u_int16_t)proto_id.category;
-    // u_int16_t list_id = c >> 8;
-    ndpi_protocol_category_t cat_id = (ndpi_protocol_category_t)(c & 0xFF);
+    // 1. Safely extract the masked integer value
+    u_int16_t masked_c;
+    ndpi_protocol_category_t cat_id;
+
+    memcpy(&masked_c, &proto_id.category, sizeof(u_int16_t)); /* Avoid runtime errors */
+    masked_c &= 0xFF;
+
+    if (masked_c < NDPI_PROTOCOL_NUM_CATEGORIES) {
+      cat_id = static_cast<ndpi_protocol_category_t>(masked_c);
+    } else {
+      // Fallback value for an unknown/invalid category
+      cat_id = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+    }
 
     ndpiDetectedProtocol.category = cat_id;
   }
@@ -2648,10 +2680,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       break;
 
     case NDPI_PROTOCOL_DHCP:
-      if (cli_host) {
-        if (protos.dhcp.name) {
-          cli_host->offlineSetDHCPName(protos.dhcp.name);
-        }
+      if (protos.dhcp.name) {
+        /* DHCP name should be set to the actual DHCP client: checking the port
+         * as the flow client can be the DHCP server (e.g. in case of offer/ack) */
+        Host *dhcp_cli_host = (get_cli_port() == 68) /* client */ ? cli_host :
+                             ((get_srv_port() == 68) ? srv_host : NULL);
+        if (dhcp_cli_host)
+          dhcp_cli_host->offlineSetDHCPName(protos.dhcp.name);
       }
       break;
 
@@ -3791,14 +3826,47 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 /* *************************************** */
 
 u_int64_t Flow::getTags() {
-  Host *cli = getViewSharedClient();
-  Host *srv = getViewSharedServer();
   u_int64_t bm = 0;
 
+  /* Avoid getting host tags.
+   * This is a workaround to avoid setting specific host tags to ALL flows
+   * originated/terminated in these hosts (example: `EDR` tag to all flows)
+   * TODO: proper fix
+   */
+#if 0
   if (cli) bm |= cli->getTags(true /* transferrable_only */);
   if (srv) bm |= srv->getTags(true /* transferrable_only */);
+#endif
+
+  bm |= user_tags_bitmap;
+
+#if 0
+  Host *cli = getViewSharedClient();
+  Host *srv = getViewSharedServer();
+  char buf[128], buf2[128];
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Getting 0x%llx %s %s",
+                               (unsigned long long)bm,
+                               cli_ip_addr->print(buf, sizeof(buf)),
+                               srv_ip_addr->print(buf2, sizeof(buf2)));
+#endif
 
   return bm;
+}
+
+/* ***************************************** */
+
+void Flow::setUserTags(u_int64_t bitmap) {
+  /* Bits 0-31 are ntop-reserved */
+  bitmap &= HOST_USER_TAGS_MASK;
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Setting tag (0x%llx -> 0x%llx)",
+                               (unsigned long long)user_tags_bitmap,
+                               (unsigned long long)(user_tags_bitmap | bitmap));
+#endif
+
+  user_tags_bitmap |= bitmap;
 }
 
 /* *************************************** */
@@ -7118,6 +7186,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char* payload,
         payload_len -= (l + 1);
         payload = &space[1];
 
+        if (payload_len == 0) return; /* first space was the last captured byte */
+
         switch (payload[0]) {
           case '1':
             stats.incHTTPResp1xx();
@@ -7207,6 +7277,8 @@ void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
         const u_int8_t max_nested_loops = 8;
 
       nested_dns_definition:
+        if (i + 1 >= payload_len)
+          return; /* Invalid packet */
         offset = payload[i + 1] - 12;
         i = offset;
 
@@ -8182,6 +8254,9 @@ void Flow::lua_get_tls_info(lua_State* vm) const {
 
 void Flow::getTLSInfo(ndpi_serializer* serializer) const {
   if (isTLS()) {
+
+    /* Note: client_requested_server_name is exposed via REQUESTED_SERVER_NAME column */
+
     ndpi_serialize_string_int32(serializer, "tls_version",
                                 protos.tls.tls_version);
 
@@ -8203,10 +8278,6 @@ void Flow::getTLSInfo(ndpi_serializer* serializer) const {
     if (protos.tls.subjectDN)
       ndpi_serialize_string_string(serializer, "subjectDN",
                                    protos.tls.subjectDN);
-
-    if (protos.tls.client_requested_server_name)
-      ndpi_serialize_string_string(serializer, "client_requested_server_name",
-                                   protos.tls.client_requested_server_name);
 
     if (protos.tls.notBefore && protos.tls.notAfter) {
       ndpi_serialize_string_int32(serializer, "notBefore",
@@ -8578,7 +8649,7 @@ bool Flow::hasDissectedTooManyPackets() {
   /* NOTE: in nEdge packet stats are update periodically, so
    * we cannot rely on get_packets() */
   if (ndpiFlow) /* WARNING: can wrap! */
-    num_packets = ndpiFlow->num_processed_pkts;
+    num_packets = ndpiFlow->core.num_processed_pkts;
   else
     num_packets = get_packets();
 #else
@@ -9590,6 +9661,44 @@ void Flow::setSrvService(int service_enum) {
 
 /* *************************************** */
 
+void Flow::setCliTag(int tag_idx) {
+  Host *cli_h, *srv_h;
+
+  get_actual_peers(&cli_h, &srv_h);
+
+  if (cli_h) {
+    // Not a viewed interface, set the status inside the host
+    if (!cli_h->isBroadcastHost() && !cli_h->isUserTagSet(tag_idx))
+      cli_h->setUserTags(1ULL << tag_idx);
+  } else if (cli_ip_addr) {
+    // Viewed interface, set the status inside the IP address
+    if (!cli_ip_addr->isBroadcastAddress() &&
+        !cli_ip_addr->providesTag(tag_idx))
+      cli_ip_addr->setTag(tag_idx);
+  }
+}
+
+/* *************************************** */
+
+void Flow::setSrvTag(int tag_idx) {
+  Host *cli_h, *srv_h;
+
+  get_actual_peers(&cli_h, &srv_h);
+
+  if (srv_h) {
+    // Not a viewed interface, set the status inside the host
+    if (!srv_h->isBroadcastHost() && !srv_h->isUserTagSet(tag_idx))
+      srv_h->setUserTags(1ULL << tag_idx);
+  } else if (srv_ip_addr) {
+    // Viewed interface, set the status inside the IP address
+    if (!srv_ip_addr->isBroadcastAddress() &&
+        !srv_ip_addr->providesTag(tag_idx))
+      srv_ip_addr->setTag(tag_idx);
+  }
+}
+
+/* *************************************** */
+
 void Flow::updateUDPHostServices(bool src2dst_direction) {
   Host *cli_h, *srv_h;
 
@@ -9606,7 +9715,7 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
 
           if (ndpiFlow && cli_host)
             cli_host->offlineSetDhcpFingerprint(
-                ndpiFlow->protos.dhcp.fingerprint);
+                ndpiFlow->metadata.protos.dhcp.fingerprint);
         }
       }
       break;
@@ -9615,7 +9724,7 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
       /* Swap check */
       if ((!swap_requested) && (ndpiFlow != NULL) &&
           iface->isPacketInterface()) {
-        if (ndpiFlow->protos.dns.is_query) {
+        if (ndpiFlow->metadata.protos.dns.is_query) {
           if (src2dst_direction) {
             ;
           } else {
@@ -10070,13 +10179,10 @@ void Flow::updateServerName(Host* h) {
 
 /* *************************************** */
 
-const char* Flow::getDomainName() {
+char *Flow::getRequestedServerName() {
   switch (getLowerProtocol()) {
     case NDPI_PROTOCOL_DNS:
-      if (protos.dns.last_query)
-        return (ndpi_get_host_domain(iface->get_ndpi_struct(),
-                                     protos.dns.last_query));
-      break;
+      return (protos.dns.last_query);
 
     case NDPI_PROTOCOL_HTTP:
     case NDPI_PROTOCOL_HTTP_PROXY:
@@ -10084,20 +10190,51 @@ const char* Flow::getDomainName() {
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
     case NDPI_PROTOCOL_MAIL_POPS:
-    case NDPI_PROTOCOL_QUIC: {
-      char* s = getFlowServerInfo();
-
-      if (s) return (ndpi_get_host_domain(iface->get_ndpi_struct(), s));
-    } break;
+    case NDPI_PROTOCOL_QUIC:
+      return (getFlowServerInfo());
 
     case NDPI_PROTOCOL_MDNS:
-      if (protos.mdns.name)
-        return (
-            ndpi_get_host_domain(iface->get_ndpi_struct(), protos.mdns.name));
-      break;
+      return (protos.mdns.name);
   }
 
   return (NULL);
+}
+
+/* *************************************** */
+
+/* Check if a name looks like a valid domain name */
+bool Flow::isValidDomainName(const char* domain) {
+  if (domain == NULL) return (false);
+
+  int l = strlen(domain);
+
+  if ((l == 0) || isdigit(domain[l - 1]) ||
+      (strchr(domain, '_') != NULL) /* Ignore hosts with _ in the name */
+      || ndpi_str_endswith(domain, ".arpa") ||
+      ndpi_str_endswith(domain, ".local") ||
+      ndpi_str_endswith(domain, ".localdomain")) /* Ignore reverse or local domains */
+    return false;
+
+  if (strchr(domain, '.') == NULL) /* This does not look like a domain name */
+    return false;
+
+  return true;
+}
+
+/* *************************************** */
+
+const char* Flow::getDomainName(char *buf, u_int buf_len) {
+  const char* domain;
+  char* server_name = getRequestedServerName();
+
+  if((!server_name) && (srv_host != NULL)) {
+    srv_host->get_name(buf, buf_len, false);
+    server_name = buf;
+  }
+
+  domain = ndpi_get_host_domain(iface->get_ndpi_struct(), server_name);
+
+  return (isValidDomainName(domain) ? domain : NULL);
 }
 
 /* *************************************** */
@@ -10413,7 +10550,9 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
       d.in_role = d.out_role = role_other;
 #endif
 
-    exporterStats.emplace(key, d);
+    ExporterFlowInfo *e = &exporterStats.emplace(key, d).first->second;
+
+    if(!primary_exporter) primary_exporter = e;
   } else {
     // Present: nothing to do
   }
@@ -10466,132 +10605,112 @@ u_int16_t Flow::getDstNetworkSiteId() {
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getExporterIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.mapped_exporter_ip);
+    return(primary_exporter->mapped_exporter_ip);
   }
 };
 
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getOriginalExporterIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.exporter_ip);
+    return(primary_exporter->exporter_ip);
   }
 };
 
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getNextHopIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.mapped_next_hop);
+    return(primary_exporter->mapped_next_hop);
   }
 };
 
 /* *************************************** */
 
 struct ndpi_in6_addr Flow::getOriginalNextHopIP() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     struct ndpi_in6_addr a;
 
     memset(&a, 0, sizeof(struct ndpi_in6_addr));
     return(a);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.next_hop);
+    return(primary_exporter->next_hop);
   }
 }
 
 /* *************************************** */
 
 u_int32_t Flow::getInIndex() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.in_index);
+    return(primary_exporter->in_index);
   }
 }
 
 /* *************************************** */
 
 u_int32_t Flow::getOutIndex() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.out_index);
+    return(primary_exporter->out_index);
   }
 }
 
 /* *************************************** */
 
 u_int16_t Flow::getExporterSiteId() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.exporter_site_id);
+    return(primary_exporter->exporter_site_id);
   }
 }
 
 /* *************************************** */
 
 u_int16_t Flow::getNextHopSiteId() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(0);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.next_hop_site_id);
+    return(primary_exporter->next_hop_site_id);
   }
 }
 
 /* *************************************** */
 
 SNMPInterfaceRole Flow::getInRole() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(role_other);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.in_role);
+    return(primary_exporter->in_role);
   }
 }
 
 /* *************************************** */
 
 SNMPInterfaceRole Flow::getOutRole() {
-  if(exporterStats.size() == 0) {
+  if(!primary_exporter) {
     return(role_other);
   } else {
-    std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash>::iterator it = exporterStats.begin();
-
-    return(it->second.out_role);
+    return(primary_exporter->out_role);
   }
 }
 

@@ -2,7 +2,7 @@ SSL certificates will be installed on this directory.
 
 If you have compiled ntopng from source, please type "make cert"
 to generate your certificate. Otherwise if you want to generate your own certificate do
-# openssl req -new -x509 -sha1 -extensions v3_ca -nodes -days 365 -out cert.pem
+# openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
 # cat privkey.pem cert.pem > ntopng-cert.pem
 
 openssl ecparam -name prime256v1 -genkey -noout -out es256.key

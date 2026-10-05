@@ -51,7 +51,7 @@ cp ${NTOPNG_HOME}/ntopng.8 ${STAGEDIR}/usr/local/share/man/man8
 cp -r ${NTOPNG_HOME}/httpdocs ${STAGEDIR}/usr/local/share/ntopng
 rm -f ${STAGEDIR}/usr/local/share/ntopng/httpdocs/misc/ntopng-utils-manage*
 cp -Lr ${NTOPNG_HOME}/scripts ${STAGEDIR}/usr/local/share/ntopng  # L to dereference symlinks
-mv ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+#mv ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 mkdir ${STAGEDIR}/usr/local/share/ntopng/pro
 cp -r ${NTOPNG_HOME}/pro/httpdocs ${STAGEDIR}/usr/local/share/ntopng/pro
 cp -r ${NTOPNG_HOME}/pro/scripts ${STAGEDIR}/usr/local/share/ntopng/pro
@@ -96,6 +96,18 @@ cd $HERE
 # Build +POST_INSTALL
 
 cat >> ${STAGEDIR}/+POST_INSTALL <<EOF
+
+TLS_DIR="/usr/local/share/ntopng/httpdocs/ssl"
+TLS_CERT_PATH="$TLS_DIR/ntopng-cert.pem"
+if [ ! -f "$TLS_CERT_PATH" ]; then
+    mkdir -p $TLS_DIR
+    openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out $TLS_DIR/cert.pem -subj "/CN=ntopng.local" -addext "subjectAltName = DNS:ntopng.local"
+    mv privkey.pem $TLS_CERT_PATH
+    cat $TLS_DIR/cert.pem >> $TLS_CERT_PATH
+    rm $TLS_DIR/cert.pem
+fi
+
+
 
 # Add missing libraries symlinks due to invalid shlib version
 RES=\`ldd /usr/local/bin/ntopng | grep "not found" | cut -d '=' -f 1 | sed 's/[[:blank:]]//g'\`

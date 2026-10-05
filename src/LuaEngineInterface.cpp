@@ -1014,8 +1014,8 @@ static int ntop_interface_delete_mac_data(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Executes a SQL query against the interface's local SQLite database.  Lua: interface.execSQLQuery(sql) → table */
-static int ntop_interface_exec_sql_query(lua_State* vm) {
+static int ntop_interface_exec_sql_query(lua_State* vm,
+                                         bool check_historical_capability) {
   NetworkInterface* curr_iface = getCurrentInterface(vm);
   bool limit_rows = true;  // honour the limit by default
   bool wait_for_db_created = true;
@@ -1042,7 +1042,8 @@ static int ntop_interface_exec_sql_query(lua_State* vm) {
   /* In case the users login is disabled, the users have not the ability to run
    * queries, check if the users login is enabled or not
    */
-  if (!ntop->hasCapability(vm, capability_historical_flows) &&
+  if (check_historical_capability &&
+      !ntop->hasCapability(vm, capability_historical_flows) &&
       ntop->getPrefs()->is_users_login_enabled()) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "User is not allowed to run query: %s", sql);
@@ -1053,6 +1054,20 @@ static int ntop_interface_exec_sql_query(lua_State* vm) {
 
   /* stack top: [result_table_or_nil, error_or_nil] */
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_TWO_RETURN_VALUES));
+}
+
+/* ****************************************** */
+
+/* @brief Executes a SQL query on historical data (requires historical flows capability). Lua: interface.execSQLQuery(sql, limit_rows, wait_for_db) → table, err */
+static int ntop_interface_exec_sql_query(lua_State* vm) {
+  return (ntop_interface_exec_sql_query(vm, true));
+}
+
+/* ****************************************** */
+
+/* @brief Executes a SQL query on timeseries (does not require historical flows capability, only timeseries access). Lua: interface.execTSQuery(sql, limit_rows, wait_for_db) → table, err */
+static int ntop_interface_exec_ts_query(lua_State* vm) {
+  return (ntop_interface_exec_sql_query(vm, false));
 }
 
 /* ****************************************** */
@@ -2957,26 +2972,17 @@ static int ntop_get_interface_vlans_info(lua_State* vm) {
   bool a2zSortOrder = true;
   DetailsLevel details_level = details_higher;
 
-  if (lua_type(vm, 1) == LUA_TSTRING) {
-    sortColumn = (char*)lua_tostring(vm, 1);
+  if (lua_type(vm, 1) == LUA_TSTRING) sortColumn = (char*)lua_tostring(vm, 1);
 
-    if (lua_type(vm, 2) == LUA_TNUMBER) {
-      maxHits = (u_int16_t)lua_tonumber(vm, 2);
+  if (lua_type(vm, 2) == LUA_TNUMBER) maxHits = (u_int16_t)lua_tonumber(vm, 2);
 
-      if (lua_type(vm, 3) == LUA_TNUMBER) {
-        toSkip = (u_int16_t)lua_tonumber(vm, 3);
+  if (lua_type(vm, 3) == LUA_TNUMBER) toSkip = (u_int16_t)lua_tonumber(vm, 3);
 
-        if (lua_type(vm, 4) == LUA_TBOOLEAN) {
-          a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
+  if (lua_type(vm, 4) == LUA_TBOOLEAN)
+    a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
 
-          if (lua_type(vm, 5) == LUA_TBOOLEAN) {
-            details_level =
-                lua_toboolean(vm, 4) ? details_higher : details_high;
-          }
-        }
-      }
-    }
-  }
+  if (lua_type(vm, 5) == LUA_TBOOLEAN)
+    details_level = lua_toboolean(vm, 5) ? details_higher : details_high;
 
   if (!curr_iface ||
       curr_iface->getActiveVLANList(vm, sortColumn, maxHits, toSkip,
@@ -5300,6 +5306,21 @@ static int ntop_interface_get_host_tags(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Returns the OR of the tag bitmaps of the active hosts.  Lua: interface.getActiveHostsTags() → integer */
+static int ntop_interface_get_active_hosts_tags(lua_State* vm) {
+  NetworkInterface* iface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (!iface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  lua_pushinteger(vm, (lua_Integer)iface->getActiveHostsTags(get_allowed_nets(vm)));
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_get_user_defined_host_tags(lua_State* vm) {
   NetworkInterface* iface = getCurrentInterface(vm);
   Host *host;
@@ -6640,6 +6661,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 
     /* DB */
     {"execSQLQuery", ntop_interface_exec_sql_query},
+    {"execTSQuery", ntop_interface_exec_ts_query},
 
     /* sFlow */
     {"getSFlowDevices", ntop_getsflowdevices},
@@ -6672,6 +6694,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"triggerTrafficAlert", ntop_interface_trigger_traffic_alert},
     {"getHostAttributes", ntop_interface_get_host_attributes},
     {"getHostTags", ntop_interface_get_host_tags},
+    {"getActiveHostsTags", ntop_interface_get_active_hosts_tags},
     {"getUserDefinedHostTags", ntop_interface_get_user_defined_host_tags},
     {"setHostTags", ntop_interface_set_host_tags},
 

@@ -48,6 +48,7 @@ void GenericTrafficElement::resetStats() {
   sent = TrafficStats();
   rcvd = TrafficStats();
   bytes_thpt.resetStats();
+  bytes_thpt_diff = 0;
   pkts_thpt.resetStats();
   tcp_packet_stats_sent = TcpPacketStats();
   tcp_packet_stats_rcvd = TcpPacketStats();
@@ -60,6 +61,7 @@ GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement& gte) {
       (gte.ndpiStats) ? new (std::nothrow) nDPIStats(*gte.ndpiStats) : NULL;
 
   bytes_thpt = ThroughputStats(gte.bytes_thpt);
+  bytes_thpt_diff = gte.bytes_thpt_diff;
   pkts_thpt = ThroughputStats(gte.pkts_thpt);
 
   /* Stats */

@@ -695,51 +695,21 @@ void LocalHost::lua_get_fingerprints(lua_State* vm) {
 
 /* *************************************** */
 
-void LocalHost::setService(int service_enum) {
-  Host::setService(service_enum);
+bool LocalHost::setService(u_int16_t service_enum) {
+  const char* service_name;
+  
+  if(Host::setService(service_enum) == false)
+    return(false);
 
-  const char* service_name = NULL;
+  service_name = Utils::hostService2str(service_enum);
 
-  switch (service_enum) {
-    case HOST_SERVICE_DHCP:
-      service_name = "dhcp_server";
-      break;
-    case HOST_SERVICE_DNS:
-      service_name = "dns_server";
-      break;
-    case HOST_SERVICE_NTP:
-      service_name = "ntp_server";
-      break;
-    case HOST_SERVICE_SMTP:
-      service_name = "smtp_server";
-      break;
-    case HOST_SERVICE_IMAP:
-      service_name = "imap_server";
-      break;
-    case HOST_SERVICE_POP:
-      service_name = "pop_server";
-      break;
-    case HOST_SERVICE_HTTP:
-      service_name = "http_server";
-      break;
-    case HOST_SERVICE_SSH:
-      service_name = "ssh_server";
-      break;
-    case HOST_SERVICE_RDP:
-      service_name = "rdp_server";
-      break;
-    case HOST_SERVICE_MODBUS:
-      service_name = "modbus_server";
-      break;
-    case HOST_SERVICE_S7COMM:
-      service_name = "s7comm_server";
-      break;
-    case HOST_SERVICE_PROFINET:
-      service_name = "profinet_server";
-      break;
+  if (service_name) {
+    char key[64];
+    snprintf(key, sizeof(key), "%s_server", service_name);
+    addDataToAssets(key, (char*)"true");
   }
-
-  if (service_name) addDataToAssets((char*)service_name, (char*)"true");
+  
+  return(true);
 }
 
 /* *************************************** */
@@ -751,6 +721,8 @@ void LocalHost::offlineSetMDNSInfo(char* const str) {
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSName(const char* mdns_n) {
+  if (!isValidMDNSName(mdns_n)) return;
+
   Host::offlineSetMDNSName(mdns_n);
   addDataToAssets((char*)"mdns_name", (char*)mdns_n);
 }
@@ -758,6 +730,8 @@ void LocalHost::offlineSetMDNSName(const char* mdns_n) {
 /* *************************************** */
 
 void LocalHost::offlineSetDHCPName(const char* dhcp_n) {
+  if (!isValidDHCPName(dhcp_n)) return;
+
   Host::offlineSetDHCPName(dhcp_n);
   addDataToAssets((char*)"dhcp_name", (char*)dhcp_n);
 }
@@ -775,6 +749,8 @@ void LocalHost::offlineSetDhcpFingerprint(const char* fingerprint) {
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
+  if (!isValidMDNSTXTName(mdns_n_txt)) return;
+
   Host::offlineSetMDNSTXTName(mdns_n_txt);
   addDataToAssets((char*)"mdns_txt_name", (char*)mdns_n_txt);
 }
@@ -782,6 +758,8 @@ void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
 /* *************************************** */
 
 void LocalHost::offlineSetNetbiosName(const char* netbios_n) {
+  if (!isValidNetBIOSName(netbios_n)) return;
+
   Host::offlineSetNetbiosName(netbios_n);
   addDataToAssets((char*)"netbios_name", (char*)netbios_n);
 }
@@ -789,13 +767,17 @@ void LocalHost::offlineSetNetbiosName(const char* netbios_n) {
 /* *************************************** */
 
 void LocalHost::offlineSetTLSName(const char* tls_n) {
-  Host::offlineSetHTTPName(tls_n);
+  if (!isValidTLSName(tls_n)) return;
+
+  Host::offlineSetTLSName(tls_n);
   addDataToAssets((char*)"tls_name", (char*)tls_n);
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetHTTPName(const char* http_n) {
+  if (!isValidHTTPName(http_n)) return;
+
   Host::offlineSetHTTPName(http_n);
   addDataToAssets((char*)"http_name", (char*)http_n);
 }

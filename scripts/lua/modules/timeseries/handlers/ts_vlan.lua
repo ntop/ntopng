@@ -61,44 +61,34 @@ local function addTopTimeseries(tags, tsOptions)
     local vlan_ts_enabled = ntop.getCache("ntopng.prefs.vlan_rrd_creation")
 
     -- Top l7 Protocols
+    -- Note: a single grouped query, series with no data are not returned
     if (vlan_ts_enabled) and (tsOptions.is_asn_mode_enabled) then
-        local series = ts_utils.listSeries("vlan:ndpi", table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
+        local series = ts_utils.queryTotalByTag("vlan:ndpi", tags.epoch_begin, tags.epoch_end, tags, "protocol") or {}
 
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.protocol = serie.protocol
-                local tot_serie = ts_utils.queryTotal("vlan:ndpi", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
+        for _, serie in ipairs(series) do
+            local protocol = serie.tags.protocol
 
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:vlan:ndpi",
-                        group = i18n("graphs.l7_proto"),
-                        priority = 2,
-                        id = timeseries_id,
-                        query = "protocol:" .. serie.protocol,
-                        label = serie.protocol,
-                        measure_unit = "bps",
-                        scale = i18n('graphs.metric_labels.traffic'),
-                        disable_perc_95_ts = true,
-                        timeseries = {
-                            bytes_sent = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            },
-                            bytes_rcvd = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = ts_gui_utils.get_timeseries_color('bytes')
-                            }
-                        }
+            timeseries[#timeseries + 1] = {
+                schema = "top:vlan:ndpi",
+                group = i18n("graphs.l7_proto"),
+                priority = 2,
+                id = timeseries_id,
+                query = "protocol:" .. protocol,
+                label = protocol,
+                measure_unit = "bps",
+                scale = i18n('graphs.metric_labels.traffic'),
+                disable_perc_95_ts = true,
+                timeseries = {
+                    bytes_sent = {
+                        label = protocol .. " " .. i18n('graphs.metric_labels.sent'),
+                        color = ts_gui_utils.get_timeseries_color('bytes')
+                    },
+                    bytes_rcvd = {
+                        label = protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
+                        color = ts_gui_utils.get_timeseries_color('bytes')
                     }
-                end
-            end
+                }
+            }
         end
     end
 

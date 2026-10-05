@@ -17,6 +17,15 @@ local json = require "dkjson"
 local template_utils = require "template_utils"
 local alert_entities = require "alert_entities"
 local recording_utils = require "recording_utils"
+local auth = require "auth"
+
+-- Capability guard: every REST endpoint backing this page already refuses
+-- without auth.capabilities.alerts, so a user reaching it anyway (typed URL,
+-- bookmark) only got a page full of NOT_GRANTED errors.
+if not auth.has_capability(auth.capabilities.alerts) then
+    print(ntop.httpRedirect(ntop.getHttpPrefix() .. "/lua/index.lua"))
+    return
+end
 
 local ifid = interface.getId()
 
@@ -300,6 +309,7 @@ local context = {
     alert_details_url = alert_details_url,
     -- Flow Details Side Card preference
     flow_details_card = ntop.getPref("ntopng.prefs.flow_details_card") ~= "0",
+    flow_details_card_editable = isAdministrator(),
     navbar = page_utils.get_new_navbar_context(i18n("alerts_dashboard.alerts"), ntop.getHttpPrefix() .. "/lua/alert_stats.lua?", pages),
     csrf = ntop.getRandomCSRFValue(),
     is_va = _GET["is_va"] or false,

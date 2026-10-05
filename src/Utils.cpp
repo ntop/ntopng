@@ -1818,6 +1818,14 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
     if (max_duration_timeout)
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, max_duration_timeout);
 
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
+
     res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
@@ -1915,6 +1923,14 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
 
     if (max_duration_timeout)
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, max_duration_timeout);
+
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     res = curl_easy_perform(curl);
 
@@ -2028,6 +2044,14 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
     }
 
     if (vm) lua_newtable(vm);
+
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     res = curl_easy_perform(curl);
 
@@ -2163,15 +2187,25 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
       curl_easy_setopt(curl, CURLOPT_DEBUGDATA, upload_ctx);
     }
 
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
+
     res = curl_easy_perform(curl);
     ret_str = curl_easy_strerror(res);
 
     if (res != CURLE_OK) {
-      if ((num_runs == 1) && (ntop->getPrefs()->email_starttls_enabled())) {
+      if ((num_runs == 1) && use_startssl) {
         /*
           Some mailservers have TLS misconfigured and thus STARTTLS will fail
           so as last resort let's try in plain text
         */
+        num_runs++;
+        use_startssl = false;
         goto retry_sendMail;
       }
 
@@ -2581,6 +2615,14 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
 
     if (vm) lua_newtable(vm);
 
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
+
     curlcode = curl_easy_perform(curl);
 
     /* Workaround for curl 7.81.0 which fails in case of unexpected EOF
@@ -2720,6 +2762,14 @@ long Utils::httpGet(const char* url,
     snprintf(ua, sizeof(ua), "%s [%s][%s]", PACKAGE_STRING, PACKAGE_MACHINE,
              PACKAGE_OS);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
+
+#if LIBCURL_VERSION_NUM >= 0x075500
+  // Modern libcurl (7.85.0+)
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#else
+  // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#endif
 
     if (curl_easy_perform(curl) == CURLE_OK) {
       if ((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) !=
@@ -3413,6 +3463,11 @@ char* Utils::get2ndLevelDomain(char* _domainname) {
 char* Utils::tokenizer(char* arg, int c, char** data) {
   char* p = NULL;
 
+  if (arg == NULL) {
+    if (data) *data = NULL;
+    return NULL;
+  }
+
   if ((p = strchr(arg, c)) != NULL) {
     *p = '\0';
     if (data) {
@@ -3483,7 +3538,7 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, char* buf, u_short bufLen) {
   } else {
     if (ipv6.u6_addr.u6_addr64[0] == 0) {
       if (ipv6.u6_addr.u6_addr64[1] == 0) {
-	snprintf(buf, bufLen, "0.0.0.0");	
+	snprintf(buf, bufLen, "0.0.0.0");
       } else if(IN6_IS_ADDR_V4MAPPED(
 #ifdef WIN32
 				     (const IN6_ADDR *)
@@ -3493,7 +3548,7 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, char* buf, u_short bufLen) {
 				     &ipv6))
 	return (&ret[7]); /* IPv4 address */
     }
-    
+
     return (ret);
   }
 }
@@ -3687,11 +3742,11 @@ bool Utils::isMulticastMac(const u_int8_t* mac) {
 void Utils::parseMac(u_int8_t* mac, const char* symMac) {
 #if 0
   int _mac[6] = {0};
- 
+
   if (symMac)
     sscanf(symMac, "%x:%x:%x:%x:%x:%x", &_mac[0], &_mac[1], &_mac[2], &_mac[3],
            &_mac[4], &_mac[5]);
- 
+
   for (int i = 0; i < 6; i++) mac[i] = (u_int8_t)_mac[i];
 
 #else /* Faster than sscanf */
@@ -3793,7 +3848,7 @@ ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t* ptree,
 
   bits = strchr(line, '/');
   if (bits == NULL)
-    bits = (char*)"/32";
+    bits = (char*)"/32"; /* Default for IPv4 */
   else {
     slash = bits;
     slash[0] = '\0';
@@ -3808,9 +3863,11 @@ ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t* ptree,
     for (int i = 0; i < 6; i++) mac[i] = _mac[i];
     node = add_to_ptree(ptree, AF_MAC, mac, 48);
   } else if (strchr(ip, ':') != NULL) { /* IPv6 */
-    if (inet_pton(AF_INET6, ip, &addr6) == 1)
-      node = add_to_ptree(ptree, AF_INET6, &addr6, atoi(bits));
-    else
+    if (inet_pton(AF_INET6, ip, &addr6) == 1) {
+      /* No explicit '/prefix' means a bare host address: default to /128,
+         NOT /32 (the /32 default a few lines above is only correct for IPv4) */
+      node = add_to_ptree(ptree, AF_INET6, &addr6, slash ? atoi(bits) : 128);
+    } else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv6 %s\n", ip);
   } else { /* IPv4 */
     /* inet_aton(ip, &addr4) fails parsing subnets */
@@ -4656,7 +4713,7 @@ u_int32_t Utils::parsetime(char* str) {
 
     if (op == '\0')
       return (ret);
-    else if (sscanf(&str[4], "%d%s", &v, what) == 2) {
+    else if (sscanf(&str[4], "%d%63s", &v, what) == 2) {
       if (!strcmp(what, "h"))
         v *= 3600;
       else if (!strcmp(what, "d"))
@@ -6139,7 +6196,7 @@ void Utils::splitAddressAndVlan(char* addr, u_int16_t* vlan_id) {
     *vlan_id = atoi(at + 1);
     *at = '\0';
   } else
-    vlan_id = 0;
+    *vlan_id = 0;
 }
 
 /* ******************************************* */
@@ -8091,6 +8148,30 @@ DeviceType Utils::osType2deviceType(ndpi_os t) {
 
 /* ******************************************* */
 
+/* Indexed by HOST_SERVICE_* (see ntop_defines.h) */
+static const char* host_service_names[NUM_HOST_SERVICES + 1] = {
+  NULL,       /* 0 (unused)            */
+  "dhcp",     /* HOST_SERVICE_DHCP     */
+  "dns",      /* HOST_SERVICE_DNS      */
+  "ntp",      /* HOST_SERVICE_NTP      */
+  "smtp",     /* HOST_SERVICE_SMTP     */
+  "imap",     /* HOST_SERVICE_IMAP     */
+  "pop",      /* HOST_SERVICE_POP      */
+  "http",     /* HOST_SERVICE_HTTP     */
+  "ssh",      /* HOST_SERVICE_SSH      */
+  "rdp",      /* HOST_SERVICE_RDP      */
+  "modbus",   /* HOST_SERVICE_MODBUS   */
+  "s7comm",   /* HOST_SERVICE_S7COMM   */
+  "profinet", /* HOST_SERVICE_PROFINET */
+};
+
+const char* Utils::hostService2str(int service_enum) {
+  if ((service_enum <= 0) || (service_enum > NUM_HOST_SERVICES)) return (NULL);
+  return (host_service_names[service_enum]);
+}
+
+/* ******************************************* */
+
 const char* Utils::deviceType2str(DeviceType devtype) {
   switch (devtype) {
     case device_printer:
@@ -8234,7 +8315,7 @@ bool Utils::parseIPv4v6Address(const char *ip_str,
     memset(out_addr, 0, sizeof(struct ndpi_in6_addr));
     return(false);
   }
-  
+
   // 1. Try to parse as a native IPv6 address
   if (inet_pton(AF_INET6, ip_str, out_addr) == 1) {
     return(true);
@@ -8269,7 +8350,7 @@ bool Utils::harvestOldFIles(char *dir_path, const char *extn,
   DIR *dir = opendir(dir_path);
   u_int extn_len = strlen(extn);
   struct stat sb;
-  
+
   if (!dir) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Error opening directory %s", dir_path);
     return(false);
@@ -8300,7 +8381,7 @@ bool Utils::harvestOldFIles(char *dir_path, const char *extn,
       Utils::harvestOldFIles(path, extn, retention_sec);
     } else if (S_ISREG(sb.st_mode)) {
       size_t name_len = strlen(entry->d_name);
-      
+
       if (name_len >= 4 && strcmp(entry->d_name + name_len - extn_len, extn) == 0) {
 	// Calculate file age in seconds
 	double file_age = difftime(time(NULL), sb.st_mtime);
@@ -8318,7 +8399,7 @@ bool Utils::harvestOldFIles(char *dir_path, const char *extn,
   }
 
   closedir(dir);
-  
+
   return(true);
 }
 

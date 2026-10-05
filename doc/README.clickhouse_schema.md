@@ -62,7 +62,7 @@ The central table. Every bidirectional network flow observed by ntopng — wheth
 | Alert fields | `STATUS`, `SCORE`, `SEVERITY`, `ALERT_STATUS`, `ALERT_CATEGORY`, `ALERT_JSON`, `ALERTS_MAP`, `IS_ALERT_DELETED`, `FLOW_RISK` |
 | Threat intel flags | `IS_CLI_ATTACKER`, `IS_CLI_VICTIM`, `IS_CLI_BLACKLISTED`, `IS_SRV_ATTACKER`, `IS_SRV_VICTIM`, `IS_SRV_BLACKLISTED` |
 | User annotation | `USER_LABEL`, `USER_LABEL_TSTAMP`, `PROFILE`, `REQUIRE_ATTENTION` |
-| Protocol detail | `PROTOCOL_INFO_JSON`, `DOMAIN_NAME` |
+| Protocol detail | `PROTOCOL_INFO_JSON`, `DOMAIN_NAME`, `REQUESTED_SERVER_NAME` |
 
 > **Note on alert flows**: A flow row doubles as an alert record when `STATUS != 0`. The `flow_alerts_view` filters for these rows and joins them with `mitre_table_info` for ATT&CK enrichment.
 

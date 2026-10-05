@@ -37,7 +37,7 @@ local timeseries_list = {{
 
 local function addTopTimeseries(tags, tsOptions)
     local timeseries = {}
-    local series = ts_utils.listSeries("blacklist_v2:hits", table.clone(tags), tags.epoch_begin) or {}
+    local series = ts_utils.listSeries("blacklist_v2:hits", table.clone(tags), tags.epoch_begin, tags.epoch_end) or {}
     local tmp_tags = table.clone(tags)
 
     --    if table.empty(series) then

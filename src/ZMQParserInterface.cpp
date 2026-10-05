@@ -508,6 +508,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
       zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
     if (json_object_object_get_ex(o, "packets", &w))
       zrs.remote_pkts = (u_int64_t)json_object_get_int64(w);
+    if (json_object_object_get_ex(o, "active_flows", &w))
+      zrs.remote_active_flows = (u_int64_t)json_object_get_int64(w);
     if (json_object_object_get_ex(o, "packet_drops", &w))
       zrs.remote_pkt_drops = (u_int64_t)json_object_get_int64(w);
 
@@ -522,14 +524,23 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
                  json_object_get_string(z));
     }
 
+    if (json_object_object_get_ex(o, "collector", &w)) {
+      if (json_object_object_get_ex(w, "port", &z))
+        zrs.remote_collector_port = (u_int16_t)json_object_get_int(z);
+      if (json_object_object_get_ex(w, "ip", &z))
+        snprintf(zrs.remote_collector_address,
+                 sizeof(zrs.remote_collector_address), "%s",
+                 json_object_get_string(z));
+    }
+
     if (json_object_object_get_ex(o, "mode", &w))
       snprintf(zrs.mode, sizeof(zrs.mode), "%s", json_object_get_string(w));
 
     if (json_object_object_get_ex(o, "probe", &w)) {
       if (json_object_object_get_ex(w, "public_ip", &z)) {
         const char* ip = json_object_get_string(z);
-        snprintf(zrs.remote_probe_public_address,
-                 sizeof(zrs.remote_probe_public_address), "%s", ip);
+        snprintf(zrs.nprobe_public_address,
+                 sizeof(zrs.nprobe_public_address), "%s", ip);
         // nprobe_ip = ntohl(inet_addr(ip));
       }
 
@@ -543,6 +554,11 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
           json_object_object_get_ex(w, "unique_source_id", &z))
         zrs.nprobe_source_id = (u_int32_t)json_object_get_int64(z);
 
+      if (json_object_object_get_ex(w, "instance_name", &z))
+        snprintf(zrs.nprobe_instance_name,
+                 sizeof(zrs.nprobe_instance_name), "%s",
+                 json_object_get_string(z));
+
       /* This is a UUID (string) - printed on the probes table only
        * Do not confuse this with the probe source_id (aka uuid_num) */
       if (json_object_object_get_ex(w, "uuid", &z))
@@ -550,25 +566,25 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
 
       if (json_object_object_get_ex(w, "ip", &z)) {
         const char* ip = json_object_get_string(z);
-        snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address),
+        snprintf(zrs.nprobe_address, sizeof(zrs.nprobe_address),
                  "%s", ip);
-        // nprobe_ip = ntohl(inet_addr(zrs.remote_probe_address));
+        // nprobe_ip = ntohl(inet_addr(zrs.nprobe_address));
       }
       if (json_object_object_get_ex(w, "version", &z))
-        snprintf(zrs.remote_probe_version, sizeof(zrs.remote_probe_version),
+        snprintf(zrs.nprobe_version, sizeof(zrs.nprobe_version),
                  "%s", json_object_get_string(z));
       if (json_object_object_get_ex(w, "osname", &z))
-        snprintf(zrs.remote_probe_os, sizeof(zrs.remote_probe_os), "%s",
+        snprintf(zrs.nprobe_os, sizeof(zrs.nprobe_os), "%s",
                  json_object_get_string(z));
       if (json_object_object_get_ex(w, "license", &z))
-        snprintf(zrs.remote_probe_license, sizeof(zrs.remote_probe_license),
+        snprintf(zrs.nprobe_license, sizeof(zrs.nprobe_license),
                  "%s", json_object_get_string(z));
       if (json_object_object_get_ex(w, "edition", &z))
-        snprintf(zrs.remote_probe_edition, sizeof(zrs.remote_probe_edition),
+        snprintf(zrs.nprobe_edition, sizeof(zrs.nprobe_edition),
                  "%s", json_object_get_string(z));
       if (json_object_object_get_ex(w, "maintenance", &z))
-        snprintf(zrs.remote_probe_maintenance,
-                 sizeof(zrs.remote_probe_maintenance), "%s",
+        snprintf(zrs.nprobe_maintenance,
+                 sizeof(zrs.nprobe_maintenance), "%s",
                  json_object_get_string(z));
     }
 
@@ -599,7 +615,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
                                          "detected (local: %u remote: %u [%s])",
                                          abs(time_delta), zrs.local_time,
                                          zrs.remote_time,
-                                         zrs.remote_probe_address);
+                                         zrs.nprobe_address);
           }
         }
       } else
@@ -637,7 +653,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
     }
 
     if (json_object_object_get_ex(o, "drops", &w)) {
-      if (json_object_object_get_ex(w, "export_queue_full", &z))
+      if (json_object_object_get_ex(w, "export_queue_too_long", &z) ||
+          json_object_object_get_ex(w, "export_queue_full", &z) /* Old name */)
         zrs.export_queue_full = (u_int32_t)json_object_get_int64(z);
 
       if (json_object_object_get_ex(w, "too_many_flows", &z))
@@ -676,8 +693,11 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
           ExporterStats exp_stats;
           json_object* x;
 
-	  Utils::parseIPv4v6Address(key, &exporter_device_ip);
-	  
+          if (!Utils::parseIPv4v6Address(key, &exporter_device_ip)) {
+            /* Invalid exporter address */
+            memset(&exporter_device_ip, 0, sizeof(struct ndpi_in6_addr));
+          }
+
           memset(&exp_stats, 0, sizeof(exp_stats));
 
           if (json_object_object_get_ex(val, "time_last_flow", &x))
@@ -721,7 +741,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
         TRACE_NORMAL,
         "Event parsed "
         "[iface: {name: %s, speed: %u, ip: %s}]"
-        "[probe: {public_ip: %s, ip: %s, version: %s, os: %s, license: %s, "
+        "[collector: {port: %u, ip: %s}]"
+        "[probe:{public_ip: %s, ip: %s, version: %s, os: %s, license: %s, "
         "edition: %s, maintenance: %s}]"
         "[avg: {bps: %u, pps: %u}]"
         "[remote: {time: %u, bytes: %u, packets: %u, drops: %u, idle_timeout: "
@@ -730,9 +751,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
         " collected_lifetime_timeout: %u }]"
         "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
         zrs.remote_ifname, zrs.remote_ifspeed, zrs.remote_ifaddress,
-        zrs.remote_probe_version, zrs.remote_probe_os, zrs.remote_probe_license,
-        zrs.remote_probe_edition, zrs.remote_probe_maintenance,
-        zrs.remote_probe_public_address, zrs.remote_probe_address, zrs.avg_bps,
+        zrs.remote_collector_port, zrs.remote_collector_address,
+        zrs.nprobe_version, zrs.nprobe_os, zrs.nprobe_license,
+        zrs.nprobe_edition, zrs.nprobe_maintenance,
+        zrs.nprobe_public_address, zrs.nprobe_address, zrs.avg_bps,
         zrs.avg_pps, zrs.remote_time, (u_int32_t)zrs.remote_bytes,
         (u_int32_t)zrs.remote_pkts, (u_int32_t)zrs.remote_pkt_drops,
         zrs.remote_idle_timeout, zrs.remote_lifetime_timeout,
@@ -1369,8 +1391,14 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow* const flow,
   case S7_INFO:
   case PROFINET_INFO:
   case MODBUS_INFO:
+    /* Set protocol-specific info, with priority over generic OT info */
+    if (value->string && value->string[0]) flow->setOTInfo(value->string);
+    break;
+
   case OT_INFO:
-    flow->setOTInfo(value->string);
+    /* Set OT info, when no protocol-specific data is received for the flow */
+    if (value->string && value->string[0] && !flow->getOTInfo())
+      flow->setOTInfo(value->string);
     break;
 
   case FLOW_SOURCE: {
@@ -2187,12 +2215,17 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
     if (flow->nprobe_source_id == 0)
       flow->nprobe_source_id = flow->unique_source_id;
 
-    /* Process Flow */
-    INTERFACE_PROFILING_SECTION_ENTER("processFlow", 30);
+#ifdef NTOPNG_PRO
+    if (flow_devices_stats->isProbeSupported(flow->nprobe_source_id))
+#endif
+    {
+      /* Process Flow */
+      INTERFACE_PROFILING_SECTION_ENTER("processFlow", 30);
 
-    rc = processFlow(flow);
+      rc = processFlow(flow);
 
-    INTERFACE_PROFILING_SECTION_EXIT(30);
+      INTERFACE_PROFILING_SECTION_EXIT(30);
+    }
   }
 
   if (!rc) recvStats.num_dropped_flows++;

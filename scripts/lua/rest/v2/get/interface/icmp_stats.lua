@@ -56,7 +56,7 @@ if stats ~= nil then
 
             local entry = {
                 icmp_message = {
-                    label = icmp_utils.get_icmp_label(icmp_type, icmp_value),
+                    label = icmp_utils.get_icmp_label(icmp_type, icmp_value, ternary(is_v4, 4, 6)),
                     url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua?icmp_type=" ..
                             icmp_type .. "&icmp_cod=" .. icmp_value ..
                             "&version=" .. ternary(is_v4, "4", "6"),

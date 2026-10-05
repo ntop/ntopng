@@ -36,6 +36,11 @@ function M.get_flags()
     local is_nedge_enterprise = ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise() or false
     local has_ch_support = (hasClickHouseSupport and hasClickHouseSupport()) and true or false
 
+    -- nAnalyst needs both a flow source it can query (ClickHouse, or a pcap
+    -- dump interface) and an activated license. Keep the two apart, so the GUI
+    -- can name the prerequisite that is actually missing instead of just
+    -- saying "requires nAnalyst".
+    local has_nanalyst_engine = ntop.hasnAnalyst and ntop.hasnAnalyst() or false
     local has_nanalyst = isnAnalystAvailable()
 
     return {
@@ -54,7 +59,8 @@ function M.get_flags()
         is_enterprise_xl = is_enterprise_xl,
         is_nedge_enterprise = is_nedge_enterprise,
         has_ch_support = has_ch_support,
-        has_nanalyst = has_nanalyst
+        has_nanalyst = has_nanalyst,
+        has_nanalyst_engine = has_nanalyst_engine
     }
 end
 
@@ -71,6 +77,45 @@ function M.get_sections(flags)
     local has_cmdl_trace_lvl = prefs.has_cmdl_trace_lvl
     local is_users_login_enabled = prefs.is_users_login_enabled
     local active_ts_driver = ntop.getPref("ntopng.prefs.timeseries_driver") or "rrd"
+
+    -- Collects the prerequisites that are actually missing. A preference can
+    -- lack more than one at a time (no license AND no ClickHouse): report them
+    -- all rather than only the first, so the user knows everything to fix.
+    -- Returns nil when nothing is missing, i.e. the preference is editable.
+    local function locks(...)
+        local reasons = {}
+
+        for i = 1, select("#", ...) do
+            local reason = select(i, ...)
+
+            if reason then
+                reasons[#reasons + 1] = reason
+            end
+        end
+
+        return (#reasons > 0) and reasons or nil
+    end
+
+    local product = info.product
+    local lock_pro = (not flags.is_pro) and i18n("prefs.locked_requires_pro", { product = product }) or nil
+    local lock_enterprise = (not flags.is_enterprise) and
+                                i18n("prefs.locked_requires_enterprise", { product = product }) or nil
+    local lock_enterprise_m = (not flags.is_enterprise_m) and
+                                  i18n("prefs.locked_requires_enterprise_m", { product = product }) or nil
+    local lock_enterprise_l = (not flags.is_enterprise_l) and
+                                  i18n("prefs.locked_requires_enterprise_l", { product = product }) or nil
+    local lock_enterprise_xl = (not flags.is_enterprise_xl) and
+                                   i18n("prefs.locked_requires_enterprise_xl", { product = product }) or nil
+    local lock_nanalyst = locks((not flags.has_nanalyst) and i18n("prefs.locked_requires_nanalyst") or nil,
+                                (not flags.has_nanalyst_engine) and
+                                    i18n("prefs.locked_nanalyst_needs_flow_source", { product = product }) or nil)
+    local lock_clickhouse = (not flags.has_ch_support) and
+                                i18n("prefs.locked_requires_clickhouse", { product = product }) or nil
+    local lock_cmdline = i18n("prefs.locked_set_from_cmdline")
+
+    local ts_driver_ch_fallback_warning = (active_ts_driver == "clickhouse" and not flags.has_ch_support) and
+                                               i18n("prefs.timeseries_driver_ch_fallback_warning", { product = product }) or
+                                               nil
 
     local sections =
         { -- Active Monitoring
@@ -96,7 +141,7 @@ function M.get_sections(flags)
             label = i18n("show_alerts.alerts"),
             advanced = false,
             pro_only = false,
-            hidden = (has_cmdl_disable_alerts == true),
+            locked = has_cmdl_disable_alerts and lock_cmdline or nil,
             entries = {{
                 key = "disable_alerts_generation",
                 title = i18n("prefs.disable_alerts_generation_title"),
@@ -179,7 +224,7 @@ function M.get_sections(flags)
             label = i18n("prefs.logging"),
             advanced = false,
             pro_only = false,
-            hidden = (has_cmdl_trace_lvl == true),
+            locked = has_cmdl_trace_lvl and lock_cmdline or nil,
             entries = {{
                 key = "toggle_logging_level",
                 title = i18n("prefs.toggle_logging_level_title"),
@@ -233,7 +278,7 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.enable_assets_log",
                 default = "0",
-                hidden = (not is_enterprise_m)
+                locked = lock_enterprise_m
             }, {
                 key = "toggle_host_pools_log",
                 title = i18n("prefs.toggle_host_pools_log_title"),
@@ -374,7 +419,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.menu_entries.help",
                 default = "1",
                 section = i18n("prefs.menu_entries"),
-                hidden = (not is_enterprise_m)
+                locked = lock_enterprise_m
             }, {
                 key = "toggle_menu_entry_developer",
                 title = i18n("prefs.toggle_menu_entry_developer_title"),
@@ -383,7 +428,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.menu_entries.developer",
                 default = "1",
                 section = i18n("prefs.menu_entries"),
-                hidden = (not is_enterprise_m)
+                locked = lock_enterprise_m
             }, {
                 key = "toggle_search_in_all_interfaces",
                 title = i18n("prefs.toggle_search_in_all_interfaces_title"),
@@ -416,23 +461,6 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.sites_collection",
                 default = "0"
-            }}
-        },
-
-        -- Notifications
-        {
-            id = "notifications",
-            label = i18n("prefs.notifications"),
-            advanced = false,
-            pro_only = false,
-            hidden = false,
-            entries = {{
-                key = "toggle_starttls",
-                title = i18n("prefs.toggle_toggle_starttls_title"),
-                description = i18n("prefs.toggle_toggle_starttls_description"),
-                type = "toggle",
-                redis_key = "ntopng.prefs.starttls",
-                default = "1"
             }}
         },
 
@@ -570,7 +598,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.topk_heuristic_precision",
                 default = "more_accurate",
                 section = i18n("prefs.report"),
-                hidden = (not flags.is_pro),
+                locked = lock_pro,
                 options = {{
                     value = "disabled",
                     label = i18n("topk_heuristic.precision.disabled")
@@ -725,6 +753,7 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_oidc_auth_descr"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.oidc.enabled",
+                locked = lock_pro,
                 default = "0",
                 section = i18n("prefs.oidc_auth"),
                 to_switch = {"oidc_issuer_url", "oidc_client_id", "oidc_client_secret", "oidc_base_redirect_uri",
@@ -738,6 +767,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_issuer_url",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -750,6 +780,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_client_id",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -762,6 +793,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "password",
                 redis_key = "ntopng.prefs.oidc.oidc_client_secret",
+                locked = lock_pro,
                 default = "",
                 password = true,
                 attrs = {
@@ -775,6 +807,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_base_redirect_uri",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -787,6 +820,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_scopes",
+                locked = lock_pro,
                 default = "openid profile email roles",
                 attrs = {
                     spellcheck = "false",
@@ -799,6 +833,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_group_claim",
+                locked = lock_pro,
                 default = "groups",
                 attrs = {
                     spellcheck = "false",
@@ -811,6 +846,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.oidc_admin_group",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -822,6 +858,7 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_oidc_auto_create_users_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.oidc.oidc_auto_create_users",
+                locked = lock_pro,
                 default = "0"
             }, {
                 key = "oidc_claim_ifname",
@@ -830,6 +867,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_ifname",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -842,6 +880,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_nets",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -854,6 +893,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_host_pools",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -866,6 +906,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_allow_pcap",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -878,6 +919,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_allow_historical",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -890,6 +932,7 @@ function M.get_sections(flags)
                 type = "input",
                 input_type = "text",
                 redis_key = "ntopng.prefs.oidc.claim_allow_alerts",
+                locked = lock_pro,
                 default = "",
                 attrs = {
                     spellcheck = "false",
@@ -918,6 +961,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.auth_enabled",
                 default = "0",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 section = i18n("prefs.ldap_authentication"),
                 to_switch = {"multiple_ldap_account_type", "ldap_server_address", "toggle_ldap_anonymous_bind",
                              "bind_dn", "bind_pwd", "search_path", "admin_group", "user_group",
@@ -930,6 +974,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.account_type",
                 default = "posix",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 options = {{
                     value = "posix",
                     label = i18n("prefs.posix")
@@ -946,6 +991,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.ldap_server_address",
                 default = "ldap://localhost:389",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -958,6 +1004,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.anonymous_bind",
                 default = "1",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 reverse_switch = true,
                 to_switch = {"bind_dn", "bind_pwd"}
             }, {
@@ -969,6 +1016,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.bind_dn",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -982,6 +1030,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.bind_pwd",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 password = true,
                 attrs = {
                     maxlength = "255"
@@ -995,6 +1044,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.search_path",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1008,6 +1058,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.admin_group",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1021,6 +1072,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ldap.user_group",
                 default = "",
                 hidden = (not hasLdap),
+                locked = lock_pro,
                 attrs = {
                     spellcheck = "false",
                     maxlength = "255"
@@ -1032,7 +1084,8 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ldap.ext_user_cap",
                 default = "0",
-                hidden = (not hasLdap)
+                hidden = (not hasLdap),
+                locked = lock_pro
             }, {
                 key = "toggle_ldap_referrals",
                 title = i18n("prefs.toggle_ldap_referrals_title"),
@@ -1040,7 +1093,8 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ldap.follow_referrals",
                 default = "1",
-                hidden = (not hasLdap)
+                hidden = (not hasLdap),
+                locked = lock_pro
             }, {
                 key = "toggle_ldap_debug",
                 title = i18n("prefs.toggle_ldap_debug_title"),
@@ -1048,7 +1102,8 @@ function M.get_sections(flags)
                 type = "toggle",
                 redis_key = "ntopng.prefs.ldap_debug",
                 default = "0",
-                hidden = (not hasLdap)
+                hidden = (not hasLdap),
+                locked = lock_pro
             }, -- RADIUS auth
             {
                 key = "toggle_radius_auth",
@@ -1226,6 +1281,7 @@ function M.get_sections(flags)
                 type = "select",
                 redis_key = "ntopng.prefs.timeseries_driver",
                 default = "rrd",
+                warning = ts_driver_ch_fallback_warning,
                 section = i18n("prefs.timeseries_database"),
                 options = {{
                     value = "rrd",
@@ -1600,7 +1656,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.intranet_traffic_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not flags.is_pro)
+                locked = lock_pro
             }, {
                 key = "toggle_observation_points_rrd_creation",
                 title = i18n("prefs.toggle_observation_points_rrds_title"),
@@ -1609,7 +1665,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.observation_points_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not flags.is_pro)
+                locked = lock_pro
             }, {
                 key = "toggle_pools_rrds",
                 title = i18n(have_nedge and "prefs.toggle_users_rrds_title" or "prefs.toggle_pools_rrds_title"),
@@ -1619,7 +1675,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.host_pools_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not flags.is_pro)
+                locked = lock_pro
             }, {
                 key = "toggle_vlan_rrds",
                 title = i18n("prefs.toggle_vlan_rrds_title"),
@@ -1652,7 +1708,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.ndpi_flows_rrd_creation",
                 default = "0",
                 section = i18n("prefs.other_timeseries"),
-                hidden = (not flags.is_pro)
+                locked = lock_pro
             }, {
                 key = "toggle_internals_rrds",
                 title = i18n("prefs.toggle_internals_rrds_title"),
@@ -1931,7 +1987,7 @@ function M.get_sections(flags)
                 attrs = {
                     min = "3600"
                 },
-                hidden = (not is_enterprise_l)
+                locked = lock_enterprise_l
             }, {
                 key = "s7comm_learning_period",
                 title = i18n("prefs.s7comm_learning_period_title"),
@@ -1944,7 +2000,7 @@ function M.get_sections(flags)
                 attrs = {
                     min = "3600"
                 },
-                hidden = (not is_enterprise_l)
+                locked = lock_enterprise_l
             }}
         },
 
@@ -2078,7 +2134,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.host_top_sites_creation",
             default = "0",
-            hidden = (not is_pro)
+            locked = lock_pro
         }, {
             key = "toggle_dns_cache",
             title = i18n("prefs.toggle_dns_cache_title"),
@@ -2086,7 +2142,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.dns_cache",
             default = "0",
-            hidden = (not is_pro)
+            locked = lock_pro
         }, {
             key = "toggle_tls_quic_hostnaming",
             title = i18n("prefs.toggle_tls_quic_hostnaming_title"),
@@ -2094,7 +2150,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.tls_quic_hostnaming",
             default = "0",
-            hidden = (not is_pro)
+            locked = lock_pro
         }}
     }
 
@@ -2115,7 +2171,7 @@ function M.get_sections(flags)
             default = "0",
             to_switch = { "wazuh_url", "wazuh_username", "wazuh_password", "toggle_wazuh_automerge" },
             section = i18n("prefs.wazuh"),
-            hidden = (not is_enterprise_m) or (not has_ch_support)
+            locked = locks(lock_enterprise_m, lock_clickhouse)
         }, {
             key = "wazuh_url",
             title = i18n("prefs.wazuh_url_title"),
@@ -2132,7 +2188,7 @@ function M.get_sections(flags)
                 pattern = "https?://.+"
             },
             section = i18n("prefs.wazuh"),
-            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
+            locked = locks(lock_enterprise_m, lock_clickhouse)
         }, {
             key = "wazuh_username",
             title = i18n("prefs.wazuh_username_title"),
@@ -2146,7 +2202,7 @@ function M.get_sections(flags)
                 maxlength = "128"
             },
             section = i18n("prefs.wazuh"),
-            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
+            locked = locks(lock_enterprise_m, lock_clickhouse)
         }, {
             key = "wazuh_password",
             title = i18n("prefs.wazuh_password_title"),
@@ -2161,7 +2217,7 @@ function M.get_sections(flags)
                 maxlength = "255"
             },
             section = i18n("prefs.wazuh"),
-            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
+            locked = locks(lock_enterprise_m, lock_clickhouse)
         }, {
             key = "toggle_wazuh_automerge",
             title = i18n("prefs.toggle_wazuh_automerge_title"),
@@ -2170,7 +2226,7 @@ function M.get_sections(flags)
             redis_key = "ntopng.prefs.wazuh_automerge_enabled",
             default = "0",
             section = i18n("prefs.wazuh"),
-            hidden = (not is_enterprise_m) or (not has_ch_support) or (not wazuh_enabled)
+            locked = locks(lock_enterprise_m, lock_clickhouse)
         }}
     }
 
@@ -2180,7 +2236,7 @@ function M.get_sections(flags)
         label = i18n("prefs.behaviour"),
         advanced = true,
         pro_only = true,
-        hidden = (not is_enterprise),
+        locked = lock_enterprise,
         entries = {
             -- Assets
             {
@@ -2208,7 +2264,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "3600"
             },
-            hidden = (not is_enterprise_l)
+            locked = lock_enterprise_l
         }, {
             key = "behaviour_analysis_learning_status_during_learning",
             title = i18n("prefs.behaviour_analysis_status_during_learning_title"),
@@ -2227,7 +2283,7 @@ function M.get_sections(flags)
                 label = i18n("traffic_behaviour.denied")
             }},
             section = i18n("prefs.service_map"),
-            hidden = (not is_enterprise_l)
+            locked = lock_enterprise_l
         }, {
             key = "behaviour_analysis_learning_status_post_learning",
             title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
@@ -2246,7 +2302,7 @@ function M.get_sections(flags)
                 label = i18n("traffic_behaviour.denied")
             }},
             section = i18n("prefs.service_map"),
-            hidden = (not is_enterprise_l)
+            locked = lock_enterprise_l
         },
             -- Devices Behaviour
             {
@@ -2262,7 +2318,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "7200"
             },
-            hidden = (not is_enterprise_m)
+            locked = lock_enterprise_m
         }, {
             key = "devices_status_during_learning",
             title = i18n("prefs.devices_status_during_learning_title"),
@@ -2278,7 +2334,7 @@ function M.get_sections(flags)
                 label = i18n("traffic_behaviour.denied")
             }},
             section = i18n("prefs.devices_behaviour"),
-            hidden = (not is_enterprise_m)
+            locked = lock_enterprise_m
         }, {
             key = "devices_status_post_learning",
             title = i18n("prefs.devices_status_post_learning_title"),
@@ -2294,7 +2350,7 @@ function M.get_sections(flags)
                 label = i18n("traffic_behaviour.denied")
             }},
             section = i18n("prefs.devices_behaviour"),
-            hidden = (not is_enterprise_m)
+            locked = lock_enterprise_m
         },
             -- Host Analysis
             {
@@ -2310,7 +2366,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "7200"
             },
-            hidden = (not is_enterprise_m)
+            locked = lock_enterprise_m
         }}
     }
 
@@ -2319,6 +2375,10 @@ function M.get_sections(flags)
                            ntop.isClickHouseEnabled()
     -- aggregate flow prefs require EnterpriseXL + ClickHouse
     local agg_flows_enabled = is_enterprise_xl and ch_enabled
+
+    -- ClickHouse-backed features: name the missing prerequisite, most specific first
+    local lock_ch_enabled = (not ch_enabled) and locks(lock_enterprise_m, lock_clickhouse) or nil
+    local lock_agg_flows = (not agg_flows_enabled) and locks(lock_enterprise_xl, lock_clickhouse) or nil
     sections[#sections + 1] = {
         id = "clickhouse",
         label = i18n("prefs.clickhouse"),
@@ -2336,7 +2396,19 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
-            hidden = (not ch_enabled)
+            locked = lock_ch_enabled
+        }, {
+            key = "clickhouse_max_size",
+            title = i18n("prefs.clickhouse_max_size_title"),
+            description = i18n("prefs.clickhouse_max_size_descr"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.clickhouse_max_size_gb",
+            default = "0",
+            attrs = {
+                min = "0"
+            },
+            locked = lock_ch_enabled
         }, {
             key = "aggregated_asn_data_retention",
             title = i18n("prefs.aggregated_asn_data_retention_title"),
@@ -2348,7 +2420,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
-            hidden = (not ch_enabled)
+            locked = lock_ch_enabled
         }, {
             key = "aggregated_flows_data_retention",
             title = i18n("prefs.aggregated_flows_data_retention_title"),
@@ -2360,7 +2432,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
-            hidden = (not ch_enabled)
+            locked = lock_ch_enabled
         }, {
             key = "vs_reports_data_retention",
             title = i18n("prefs.vs_reports_data_retention_title"),
@@ -2372,7 +2444,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
-            hidden = (not ch_enabled)
+            locked = lock_ch_enabled
         }, {
             key = "wazuh_alerts_data_retention",
             title = i18n("prefs.wazuh_alerts_data_retention_title"),
@@ -2384,7 +2456,8 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
-            hidden = (not ch_enabled) or (not wazuh_enabled)
+            hidden = (not wazuh_enabled),
+            locked = lock_ch_enabled
         }, {
             key = "toggle_flow_aggregated_limit",
             title = i18n("prefs.toggle_flow_aggregated_limit_title"),
@@ -2397,7 +2470,7 @@ function M.get_sections(flags)
                 min = "1000",
                 max = "10000000"
             },
-            hidden = (not agg_flows_enabled)
+            locked = lock_agg_flows
         }, {
             key = "toggle_flow_aggregated_traffic_limit",
             title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
@@ -2410,7 +2483,7 @@ function M.get_sections(flags)
                 min = "0",
                 max = "5000"
             },
-            hidden = (not agg_flows_enabled)
+            locked = lock_agg_flows
         }, {
             key = "toggle_flow_aggregated_alerted_flows",
             title = i18n("prefs.toggle_flow_aggregated_alerted_flows_title"),
@@ -2418,7 +2491,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.include_alerted_flows_in_aggregated_flows",
             default = "0",
-            hidden = (not agg_flows_enabled)
+            locked = lock_agg_flows
         }, {
             key = "toggle_dump_pcap_to_clickhouse",
             title = i18n("prefs.toggle_dump_pcap_to_clickhouse_title"),
@@ -2426,7 +2499,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.dump_pcap_to_clickhouse",
             default = "0",
-            hidden = (not ch_enabled)
+            locked = lock_ch_enabled
         }, {
             key = "toggle_dump_duplicated_flows_to_clickhouse",
             title = i18n("prefs.toggle_dump_duplicated_flows_to_clickhouse_title"),
@@ -2434,7 +2507,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.dump_duplicated_flows_to_clickhouse",
             default = "0",
-            hidden = (not ch_enabled) or true
+            hidden = true
         }, {
             key = "toggle_query_performance_log",
             title = i18n("prefs.toggle_query_performance_log_title"),
@@ -2442,7 +2515,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.enable_query_performance_log",
             default = "0",
-            hidden = (not ch_enabled)
+            locked = lock_ch_enabled
         }, {
             key = "toggle_data_archive_before_ttl_delete",
             title = i18n("prefs.toggle_export_flows_to_archive_title"),
@@ -2451,7 +2524,7 @@ function M.get_sections(flags)
             redis_key = "ntopng.prefs.data_archive_before_ttl_delete",
             default = "0",
             to_switch = {"path_data_archive_before_ttl_delete"},
-            hidden = (not agg_flows_enabled)
+            locked = lock_agg_flows
         }, {
             key = "path_data_archive_before_ttl_delete",
             title = i18n("prefs.path_export_flows_to_archive_title"),
@@ -2464,7 +2537,7 @@ function M.get_sections(flags)
                 spellcheck = "false",
                 maxlength = "512"
             },
-            hidden = (not agg_flows_enabled)
+            locked = lock_agg_flows
         }}
     }
 
@@ -2474,7 +2547,7 @@ function M.get_sections(flags)
         label = i18n("prefs.llm_providers"),
         advanced = false,
         pro_only = true,
-        hidden = (not has_nanalyst),
+        locked = lock_nanalyst,
         entries = {{
             key = "local_llm_url",
             title = i18n("prefs.llm_url_title"),
@@ -2491,7 +2564,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_local"),
             section_id = "llm_local",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "local_llm_token",
             title = i18n("prefs.llm_token_title"),
@@ -2507,7 +2580,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_local"),
             section_id = "llm_local",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "local_llm_model",
             title = i18n("prefs.llm_model_title"),
@@ -2522,7 +2595,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_local"),
             section_id = "llm_local",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "local_llm_timeout",
             title = i18n("prefs.llm_timeout_title"),
@@ -2537,7 +2610,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_local"),
             section_id = "llm_local",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "qwen_url",
             title = i18n("prefs.llm_url_title"),
@@ -2554,7 +2627,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_qwen"),
             section_id = "llm_qwen",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "qwen_token",
             title = i18n("prefs.llm_token_title"),
@@ -2570,7 +2643,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_qwen"),
             section_id = "llm_qwen",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "qwen_model",
             title = i18n("prefs.llm_model_title"),
@@ -2585,7 +2658,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_qwen"),
             section_id = "llm_qwen",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "qwen_timeout",
             title = i18n("prefs.llm_timeout_title"),
@@ -2600,7 +2673,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_qwen"),
             section_id = "llm_qwen",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "anthropic_url",
             title = i18n("prefs.llm_url_title"),
@@ -2617,7 +2690,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_anthropic"),
             section_id = "llm_anthropic",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "anthropic_token",
             title = i18n("prefs.llm_token_title"),
@@ -2633,7 +2706,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_anthropic"),
             section_id = "llm_anthropic",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "anthropic_model",
             title = i18n("prefs.llm_model_title"),
@@ -2648,7 +2721,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_anthropic"),
             section_id = "llm_anthropic",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "anthropic_timeout",
             title = i18n("prefs.llm_timeout_title"),
@@ -2663,7 +2736,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_anthropic"),
             section_id = "llm_anthropic",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "openai_url",
             title = i18n("prefs.llm_url_title"),
@@ -2680,7 +2753,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_openai"),
             section_id = "llm_openai",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "openai_token",
             title = i18n("prefs.llm_token_title"),
@@ -2696,7 +2769,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_openai"),
             section_id = "llm_openai",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "openai_model",
             title = i18n("prefs.llm_model_title"),
@@ -2711,7 +2784,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_openai"),
             section_id = "llm_openai",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "openai_timeout",
             title = i18n("prefs.llm_timeout_title"),
@@ -2726,7 +2799,7 @@ function M.get_sections(flags)
             },
             section = i18n("prefs.llm_openai"),
             section_id = "llm_openai",
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "llm_default_provider",
             title = i18n("prefs.llm_default_provider_title"),
@@ -2735,7 +2808,7 @@ function M.get_sections(flags)
             redis_key = "ntopng.prefs.llm.default_provider",
             default = "",
             section = i18n("prefs.llm_general"),
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }, {
             key = "llm_custom_providers",
             title = i18n("prefs.llm_custom_providers_title"),
@@ -2743,7 +2816,7 @@ function M.get_sections(flags)
             type = "llm_custom_providers",
             full_width = true,
             section = i18n("prefs.llm_custom"),
-            hidden = (not has_nanalyst)
+            locked = lock_nanalyst
         }}
     }
 
@@ -2776,7 +2849,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.automatic_reports_enabled",
             default = "0",
-            hidden = (not is_enterprise_l)
+            locked = lock_enterprise_l
         }, {
             key = "reports_data_retention_time",
             title = i18n("prefs.reports_data_retention_time_title"),
@@ -2788,7 +2861,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
-            hidden = (not is_enterprise_l)
+            locked = lock_enterprise_l
         }}
     }
     
@@ -2798,6 +2871,15 @@ function M.get_sections(flags)
         local snmp_config = require("snmp_config")
         if snmp_config then
             max_num_pollers = snmp_config.max_num_configured_devices()
+        end
+    end
+    
+    local snmp_devices_all_mibs_max_num = 0
+
+    if is_enterprise_m then
+        local snmp_config = require("snmp_config")
+        if snmp_config then
+            snmp_devices_all_mibs_max_num = snmp_config.max_num_configured_devices()
         end
     end
 
@@ -2850,10 +2932,23 @@ function M.get_sections(flags)
             type = "input",
             input_type = "number",
             redis_key = "ntopng.prefs.snmp.max_num_poller_coroutines",
-            default = string.format("%s", max_num_pollers), -- By default the maximum number will be used
+            default = string.format("%s", 8),
             attrs = {
                 min = "8",
                 max = string.format("%s", max_num_pollers)
+            },
+            hidden = (not (is_enterprise_m or have_nedge))
+        }, {
+            key = "snmp_devices_all_mibs_max_num",
+            title = i18n("prefs.snmp_devices_all_mibs_max_num_title"),
+            description = i18n("prefs.snmp_devices_all_mibs_max_num_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.snmp.snmp_devices_all_mibs_max_num",
+            default = string.format("%s", 256),
+            attrs = {
+                min = "1",
+                max = string.format("%s", snmp_devices_all_mibs_max_num)
             },
             hidden = (not (is_enterprise_m or have_nedge))
         }, {
@@ -2919,7 +3014,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.toggle_snmp_excluded_from_usage",
             default = "0",
-            hidden = (not is_enterprise_l)
+            locked = lock_enterprise_l
         }, {
             key = "toggle_snmp_trap",
             title = i18n("prefs.toggle_snmp_trap_title"),
@@ -2927,7 +3022,7 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.toggle_snmp_trap",
             default = "0",
-            hidden = (not is_enterprise_xl)
+            locked = lock_enterprise_xl
         }, {
             key = "toggle_snmp_debug",
             title = i18n("prefs.toggle_snmp_debug_title"),

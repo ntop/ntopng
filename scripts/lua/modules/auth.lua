@@ -101,6 +101,26 @@ end
 
 -- #######################
 
+-- @brief Checks whether the currently logged user is allowed to access host pool `pool_id`
+function auth.is_allowed_host_pool(pool_id)
+   local allowed_pools = auth.allowed_host_pools()
+
+   if not allowed_pools then
+      -- No restriction is configured for this user, every pool is allowed
+      return true
+   end
+
+   pool_id = tonumber(pool_id)
+
+   if not pool_id then
+      return false
+   end
+
+   return allowed_pools[pool_id] == true
+end
+
+-- #######################
+
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end

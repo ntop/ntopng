@@ -16,7 +16,17 @@ function historical_format_utils.parseInfoJson(info, flow)
         info = json.decode(info)
         info_field = info
     else
-        return {}
+        info = {}
+        info_field = {}
+    end
+
+    -- The requested server name (SNI) is stored in the REQUESTED_SERVER_NAME column now,
+    -- while it used to be in the json field (client_requested_server_name)
+    if flow and not isEmptyString(flow["REQUESTED_SERVER_NAME"]) then
+        info.proto = info.proto or {}
+        info.proto.tls = info.proto.tls or {}
+        info.proto.tls.client_requested_server_name = flow["REQUESTED_SERVER_NAME"]
+        info_field = info
     end
 
     if (info.proto) and (table.len(info.proto) > 0) then

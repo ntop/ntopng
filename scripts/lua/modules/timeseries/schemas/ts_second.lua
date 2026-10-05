@@ -114,3 +114,49 @@ schema:addMetric("bytes")
 schema = ts_utils.newSchema("iface:disc_prob_pkts", {step = 1, rrd_fname = "disc_prob_pkts"})
 schema:addTag("ifid")
 schema:addMetric("packets")
+
+-- ##############################################
+
+-------------------------------------------------------
+-- PRO VERSION SCHEMAS
+-------------------------------------------------------
+
+-- ##############################################
+
+if ntop.isPro and ntop.isPro() then
+   schema = ts_utils.newSchema("probe:traffic", {step=1, rrd_fname="bytes", is_critical_ts=true})
+   schema:addTag("ifid")
+   schema:addTag("uuid")
+   schema:addTag("interface_name")
+   schema:addMetric("bytes")
+   
+   schema = ts_utils.newSchema("probe:packets", {step=1, rrd_fname="packets", is_critical_ts=true})
+   schema:addTag("ifid")
+   schema:addTag("uuid")
+   schema:addTag("interface_name")
+   schema:addMetric("packets")
+   
+   schema = ts_utils.newSchema("probe:packets_drops", {step=1, rrd_fname="packets_drops", is_critical_ts=true})
+   schema:addTag("ifid")
+   schema:addTag("uuid")
+   schema:addTag("interface_name")
+   schema:addMetric("drops")
+   
+   schema = ts_utils.newSchema("probe:active_flows", {step=1, rrd_fname="active_flows", is_critical_ts=true})
+   schema:addTag("ifid")
+   schema:addTag("uuid")
+   schema:addTag("interface_name")
+   schema:addMetric("active_flows")
+   
+   schema = ts_utils.newSchema("probe:exported_flows", {step=1, rrd_fname="exported_flows", is_critical_ts=true})
+   schema:addTag("ifid")
+   schema:addTag("uuid")
+   schema:addTag("interface_name")
+   schema:addMetric("exports")
+   
+   schema = ts_utils.newSchema("probe:zmq_drops", {step=1, rrd_fname="zmq_drops", is_critical_ts=true})
+   schema:addTag("ifid")
+   schema:addTag("uuid")
+   schema:addTag("interface_name")
+   schema:addMetric("drops")
+end

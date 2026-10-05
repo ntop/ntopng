@@ -271,6 +271,16 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.flowfilters.requested_server_name",
+			"data_field": "requested_server_name",
+			"min-width": "100px",
+			"sortable": true,
+			"render_generic": "requested_server_name",
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.src2dst_tcp_flags",
 			"data_field": "src2dst_tcp_flags",
 			"min-width": "140px",

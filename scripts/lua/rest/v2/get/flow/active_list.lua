@@ -373,7 +373,8 @@ for _, value in ipairs(flows_stats.flows) do
    if (((record.l4_proto.id == 58) or (record.l4_proto.id == 1)) -- ICMP or ICMPv6
    and (value["info"] ~= "")) then
       local tc = split(value["info"], ",")
-      record["info"] = icmp_utils.get_icmp_label(tc[1], tc[2])
+      record["info"] = icmp_utils.get_icmp_label(tc[1], tc[2],
+         icmp_utils.icmp_version_from_l4(record.l4_proto.id))
    elseif(record.l4_proto.id == 2) then
       record["info"] = igmpType2String(tonumber(value["info"]))
    else
@@ -439,7 +440,8 @@ for _, value in ipairs(flows_stats.flows) do
             alert_label = alert_label,
             is_predominant = alert_id == value["predominant_alert"],
             score = alert_score,
-            color = severity and severity.color
+            color = severity and severity.color,
+            severity = i18n(severity.i18n_title)
          }
 
       end

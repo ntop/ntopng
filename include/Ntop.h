@@ -82,6 +82,7 @@ class Ntop {
      from the main thread (checkReloadFlowChecks/checkReloadHostChecks) */
   std::atomic<bool> flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
+  bool tagsMappingReloadInProgress;
   bool interfacesShuttedDown;
   bool offline, forced_offline;
   bool broadcast_ip_disabled;
@@ -111,12 +112,8 @@ class Ntop {
   RwLock luaCacheLock;
   u_int32_t current_time; /* Updated by current_time */
 #ifndef HAVE_NEDGE
-  ElasticSearch* elastic_search; /**< Pointer of Elastic Search. */
 #ifdef HAVE_ZMQ
   ZMQPublisher* zmqPublisher;
-#endif
-#if !defined(WIN32) && !defined(__APPLE__)
-  SyslogDump* syslog; /**< Pointer of Logstash. */
 #endif
 #endif
 
@@ -215,7 +212,12 @@ class Ntop {
   ContinuousPing* cping;
   Ping* default_ping;
   bool ping_initialized;
+  bool active_monitoring_not_avail;
   std::map<std::string /* ifname */, Ping*> ping;
+#endif
+
+#ifdef NTOPNG_PRO
+  TagsMapping* tagsMapping;
 #endif
 
   /* For local network */
@@ -246,6 +248,7 @@ class Ntop {
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
+  void checkReloadTagsMapping();
   void setZoneInfo();
   char* getPersistentCustomListName(char* name, u_int8_t* list_id /* out */);
 #ifdef NTOPNG_PRO
@@ -557,6 +560,7 @@ class Ntop {
   inline Prefs* getPrefs() { return (prefs); };
   bool pcapDumpInterfacesOnly();
   void initPing();
+  bool isActiveMonitoringNotAvail();
 #ifndef WIN32
   inline bool isPingInitialized() { return (ping_initialized); };
   void lockNtopInstance();
@@ -589,7 +593,10 @@ class Ntop {
   bool isBlacklistedLogin(struct mg_connection* conn) const;
   bool checkUserInterfaces(const char* user) const;
   bool resetUserPassword(char* username, char* old_password,
-                         char* new_password);
+                         char* new_password,
+                         const char* keep_session_id = NULL);
+  void invalidateUserSessions(const char* username,
+                              const char* keep_session_id = NULL);
   bool mustChangePassword(const char* user);
   bool changeUserFullName(const char* username, const char* full_name) const;
   bool changeUserRole(char* username, char* user_role) const;
@@ -781,6 +788,7 @@ class Ntop {
   }
   void lua_alert_queues_stats(lua_State* vm);
   bool recipients_are_empty();
+  bool alerts_pipeline_drained();
   bool waitRecipientsQueuesDrained(u_int max_wait_sec);
   bool recipients_enqueue(AlertFifoItem* notification);
   AlertLevel get_default_recipient_minimum_severity();
@@ -827,6 +835,17 @@ class Ntop {
 #endif
   };
   inline void reloadHostPools() { hostPoolsReloadInProgress = true; };
+
+  /* Functions about Tag to Protocol association */
+  inline void reloadTagsMapping() {
+#ifdef NTOPNG_PRO
+    tagsMappingReloadInProgress = true;
+#endif
+  };
+#ifdef NTOPNG_PRO
+  void getTagsForProtocol(u_int16_t protocol, std::vector<int> &tags_out);
+  void getTagsForRisks(ndpi_risk flow_risks, std::vector<int> &tags_out);
+#endif
 
   void addToPool(char* host_or_mac, u_int16_t user_pool_id);
 

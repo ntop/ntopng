@@ -329,6 +329,26 @@ local function validateUploadedFile(p)
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
+local function validateReferer(referer)
+   -- Not a string
+   if type(referer) ~= "string" then return false end
+
+   -- Reject Unicode control/directional characters (U+202A–U+202F, U+200B–U+200F)
+   if referer:match("[\xE2\x80\xAA-\xE2\x80\xAF]") then return false end
+   if referer:match("[\xE2\x80\x8B-\xE2\x80\x8F]") then return false end
+
+   -- Must be a relative URL (no open redirect)
+   --if referer:sub(1,1) ~= "/" then return false end
+
+   -- Whitelist safe URL characters only
+   if not referer:match("^[a-zA-Z0-9%-%_%/%.%?%=%&%:%%+#@!~,;]+$") then
+      return false
+   end
+
+   return true
+end
+http_lint.validateReferer = validateReferer
+
 local function validateUnchecked(p)
    -- This function does not perform any validation, so only the C side validation takes place.
    -- In particular, single quotes are allowed so they must be handled explicitly by the programmer in
@@ -1858,7 +1878,7 @@ local known_parameters = {
    -- It up to the script to implement proper validation.
    -- In NO case query should be executed directly without validation.
    -- UNQUOTED (Not Generally dangerous)
-   ["referer"] = validateUnquoted, -- An URL referer
+   ["referer"] = validateReferer, -- An URL referer
    ["url"] = {webhookCleanup, validateUnquoted}, -- An URL
    ["label"] = validateUnquoted, -- A device label
    ["os"] = validateNumber, -- An Operating System id
@@ -1942,6 +1962,7 @@ local known_parameters = {
    ["cli_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHostName))), -- An IPv4 or IPv6 address or an Hostname
    ["srv_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHostName))), -- An IPv4 or IPv6 address or an Hostname
    ["domain_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateUnquoted))),
+   ["requested_server_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateUnquoted))),
    ["wlan_ssid"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateUnquoted))),
    ["cli_port"] = validateListOfTypeInline(validateFilters(validatePort)), -- Client port
    ["srv_port"] = validateListOfTypeInline(validateFilters(validatePort)), -- Server port
@@ -2349,6 +2370,7 @@ local known_parameters = {
    ["rrd_file"] = validateUnquoted, -- A path or special identifier to read an RRD file
    ["port"] = validateNumber, -- An application port
    ["ntopng_license"] = {licenseCleanup, validateLicense}, -- ntopng licence string
+   ["activation_code"] = {licenseCleanup, validateLicense}, -- ntopng offline activation code
    ["update_version"] = validateSingleWord, -- dismissed update version string
    ["syn_attacker_threshold"] = validateEmptyOr(validateNumber),
    ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
@@ -2498,6 +2520,7 @@ local known_parameters = {
    ["wazuh_rule_subject"] = validateUnquoted,
    ["wazuh_rule_enabled"] = validateBool,
    ["wazuh_rule_comment"] = validateUnquoted,
+   ["old_wazuh_exception_id"] = validateSingleWord,
    ["wazuh_exception_id"] = validateSingleWord,
    ["wazuh_exception_rule_id"] = validateNumber,
    ["wazuh_exception_agent_name"] = validateUnquoted,
@@ -2506,8 +2529,11 @@ local known_parameters = {
    ["wazuh_exception_username"] = validateUnquoted,
    ["wazuh_exception_process"] = validateUnquoted,
    ["wazuh_exception_rule_group"] = validateUnquoted,
+   ["wazuh_rule_pattern"] = validateUnquoted,
    ["wazuh_exception_enabled"] = validateBool,
    ["wazuh_exception_comment"] = validateUnquoted,
+   ["wazuh_exception_pattern"] = validatePassword,
+   ["wazuh_exception_test_string"] = validatePassword,
    ["wazuh_alert_id"] = validateSingleWord,
    ["min_level"] = validateNumber,
 
@@ -2770,6 +2796,7 @@ local known_parameters = {
    ["reports_data_retention_days"] = validateNumber,
    ["ts_and_stats_data_retention_days"] = validateNumber,
    ["wazuh_alerts_data_retention_days"] = validateNumber,
+   ["clickhouse_max_size_gb"] = validateNumber,
    ["rrd_files_retention_days"] = validateNumber,
    ["max_entity_alerts"] = validateNumber,
    ["max_num_secs_before_delete_alert"] = validateNumber,
@@ -3198,6 +3225,8 @@ local known_parameters = {
     -- tags
     ["tag_id"] = validateNumber,
     ["tag_name"] = validateUnquoted,
+    ["tag_protocols"] = validateListOfTypeInline(validateNumber),
+    ["tag_risks"] = validateListOfTypeInline(validateNumber),
     ["color"] = validateSingleWord,
     ["host_tags_bitmap"] = validateNumber, -- 64-bit host tag bitmap
 

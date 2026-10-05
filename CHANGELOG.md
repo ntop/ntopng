@@ -1,5 +1,236 @@
 # Changelog
 
+#### ntopng 7.0 (September 2026)
+
+## Breakthroughs
+- New nAnalyst: AI-assisted traffic analysis with chat, AI policies, AI dashboards and an agentic loop, supporting multiple LLM providers (Anthropic, OpenAI, Google, Qwen, local models) and an MCP server
+- New Wazuh XDR/SIEM integration: alert collection and correlation, asset enrichment, dedicated pages and configurable retention
+- New Sites: network-to-site hierarchy with sites dashboard, geomap with edges, matrix/heatmap views, per-site timeseries and statistics
+- New BGP/BMP support with Looking Glass page, RPKI validation, prefix-change alerts and BGP information in live/historical flows
+- New ClickHouse timeseries engine, including a High-Resolution (HR) counters driver, the Observability dashboard and Grafana integration
+- New authentication options: SSO with OpenID Connect, Multi-Factor Authentication, Passkey and X-API-Key
+- New user-defined host Tags, with filtering across flows, alerts, hosts and assets
+- New flow deduplication, enabled by default when available
+- New Vue.js frontend with D3-based charts, replacing the legacy pages and ApexCharts
+- New nEdge Lite
+- Extended OT visibility with S7comm and Profinet support, in addition to improved Modbus
+- Continuous fuzzing (ClusterFuzzLite/OSS-Fuzz) and extensive packet dissector hardening
+
+## Improvements
+### nAnalyst and AI
+- Add LLM providers preferences, with multiple/default provider selection and the ability to stop the response generation
+- Add nAnalyst pipelines and license-gated tools; nAnalyst is available only when ClickHouse is enabled, starting from enterprise M and above
+- Add live/historical flow and alerts chatbot panel with concise mode, streaming steps and chat download. Analyze traffic and alerts in natural language
+- Add AI policy runner, AI policy page, AI policy alerts and execution counters
+- Integrated MCP server in ntopng with dedicated ntopng functions, split between community and pro
+- Add nAnalyst to the Wazuh alerts page and to flow details
+
+### Wazuh
+- Collect Wazuh alerts into ClickHouse with day-based partitioning and a configurable retention preference
+- Add Wazuh alerts page, alert details, info button and alert exceptions
+- Add Wazuh asset information merge (manual and automatic) with connection check before saving credentials
+- Add Wazuh alerts to the recipient configuration and notification subjects
+- Ship Wazuh schemas and sample rules (standalone and cluster), with MITRE information in alerts
+
+### Sites
+- Implement network-to-site hierarchy mapping, with parent sites and circular reference checks
+- Add sites dashboard with SNMP, live flows, hosts, assets, exporters, top items and descendant networks
+- Add sites geomap with edges, sites matrix/heatmap and clickable navigation to per-site timeseries
+- Add sites timeseries and a dedicated SNMP dashboard per site
+- Add site import/export with hierarchy, site reset, short names and name validation
+- Store client/server Site IDs in historical flows, and add site filters to flows, reports and aggregations
+- Add Exporter Sites with map, coordinates editing, filters and historical data
+
+### BGP
+- Add BGP server preferences, BMP listener integration and a BGP poller
+- Add BGP Looking Glass page with RPKI support, best path and next hop formatting
+- Add BGP prefix update alerts and a prefix-changes endpoint preference
+- Show BGP information in live and historical flow details, and serialize it in the flow JSON
+- Add %BGP_INFO support from a probe
+
+### Timeseries and Observability
+- Implement a ClickHouse timeseries driver with a dedicated export queue, batching and native block inserts
+- Implement a ClickHouse High-Resolution timeseries driver with wildcard, aggregation and flow filters
+- Collect HR counters in flows and add HR charts for interfaces, hosts and historical flow details
+- Rename the HR dashboard to Observability and add group-by support
+- Add sample Grafana dashboards, downloadable from the preferences, and an l7_protocols table for external queries
+- Handle timeseries retention by dropping partitions instead of using TTL
+- Add ifid and ntopng instance name to the ClickHouse timeseries table, with migration of old data
+- Add RRD file retention preference and a minimum RRD retention of 7 days
+- Add timeseries drops, queue length (per interface) and polling statistics
+- Add per-thread CPU load timeseries with 5s granularity
+- Add SNMP polled devices and deduplicated flows timeseries
+
+### ClickHouse
+- Add --clickhouse-client-cert/key and --clickhouse-server-cn options for TLS
+- Batch ALTER TABLE and column comment statements to speed up startup
+- Add read-only ClickHouse user configuration and automatic configuration when ClickHouse is present
+- Add --dump-queue-len and --dump-queue-block-size to tune the dump queue
+- Migrate rarely used columns into the JSON field and drop obsolete ones
+- Extend the Manage Data page with a Purge All Data tab and full data-directory purge
+- Add --strict-startup to fail when critical subsystems cannot be initialized
+- Add --readonly-flows-dump for ClickHouse dump on external probes
+- Add Next-Hop and site to ClickHouse schema
+
+### Authentication and security
+- Implement SSO with OpenID Connect, including role scopes and user capability mapping
+- Implement Multi-Factor Authentication and Passkey authentication
+- Add X-API-Key and bearer token support for REST calls
+- Use a cryptographically strong random source for HTTP session identifiers
+- Add administrator capability checks to the configuration backup, flow filters, notification endpoints and pools
+- Move all authentication settings to a dedicated Authentication preferences section
+- Harden packet dissectors (DNS, mDNS, NetBIOS, SSDP, Modbus, CAPWAP, EtherNet/IP, RTP, ZMQ, HTTP parameters)
+- Integrate ClusterFuzzLite and add OSS-Fuzz targets for ZMQ, SNMP and syslog parsing
+- Implemented application SBOM
+- Enable HTTPS by default in the configuration file and add ntop.forceHTTPSsecure()
+
+### Flows and collection
+- Implement flow deduplication with a dedicated preference, statistics, timeseries and support for swapped duplicated flows
+- Add full IPv6 support to flow exporters and enable IPv6 ZMQ
+- Rework the exporter implementation, exporter IP mapping and next hop handling (including IPv6 next hop)
+- Add the nDPI flow fingerprint, shown in the flow details, stored in historical flows and usable as a historical filter, next to the already supported TCP and JA4 fingerprints
+- Add SNMP interface roles, adding role filters, timeseries and per-role traffic breakdown
+- Add PQC (post-quantum) flow detection with a dedicated behavioural check and Non-PQC tag
+- Add VPN detection alert and Slow DoS alert
+- Add S7comm and Profinet support, with statistics, alerts, learning period and historical flow details
+- Update Modbus statistics from OT_INFO and add Modbus information to the assets
+- Add ERSPAN and Linux cooked capture v2 (SLL2) support
+- Add search across all interfaces, with a dedicated preference and interface selection in the historical flow explorer
+- Add Tags columns and filters to historical flows, flow alerts and host alerts
+- Optimize ZMQ processing with preallocated buffers, unordered maps and fewer allocations
+- Add EXPORTER_SW_REVISION, NEXT_ADJACENT_ASN and application latency support
+- Rework the flow end housekeeping code and improve the flow swap heuristic
+- Add IPinfo lookup and AS information from geoip/as.csv, with Redis caching and RIPE as last resort
+- Improve the flow details visualization with the flow trajectory, the flow topology chart and a side card showing flow and alert details
+- Collect the DHCP client name and the vendor class identifier, reported as Client Information in the flow details
+- Add a copy button to the JA4, TCP and nDPI fingerprint fields of the flow details
+- Add Kea DHCP v3 support (nEdge)
+
+### SNMP
+- Add an alternative SNMP API to handle large workloads, with configurable request timeout
+- Add SNMP interface formatter and a preference for the SNMP interface label format
+- Add SNMP data caching to speed up searches and reduce polling time
+- Add SNMP exporter polling, ordering of polled devices, and SNMP threaded activity statistics
+- Add SNMP Context to SNMPv3 device add/edit and set v2c as the default version
+- Add a search field to the SNMP devices topology page and interface IP addresses in the SNMP tables
+- Add the site column to the SNMP devices page
+- Improved SNMP OOID polling
+
+### Assets
+- Rework the asset dashboard, making it dynamic and adding a site filter
+- Render host Tags in the asset list, replacing service badges
+- Add asset import/export with a larger maximum import size, and an assets log preference
+
+### User interface
+- Port the menu, footer, topbar and preferences to Vue.js, with a REST endpoint serving the menu definition
+- Port the checks, VLANs, networks, MAC addresses, service map, backup, configurations, DHCP leases, internals and error pages to Vue.js
+- Replace ApexCharts with D3: pie, bar, line, stacked, heatmap, bubble, chord, sankey and geomap
+- Move the frontend build to Vite and add gzip compression of the dist files, reducing their size by about 7x
+- Add on-the-fly compression of Lua-generated output when requested by the client
+- Add a guided demo and a static user-friendly startup page
+- Add a new expandable search box supporting multiple interfaces
+- Add dynamic table columns, resizable and sticky action columns, autorefresh persistence and improved sorting
+- Improve dark/white mode consistency and mobile rendering (sidebar, navbar, dashboard cards)
+- Add a no-data component, loading indicators and progress bars across pages
+
+### Miscellaneous
+- Add Swagger documentation for the REST API and document the ntop.* Lua API
+- Implement multipart file upload, extending the on-disk limit to 256MB
+- Add Allowed Host Pools for users and a Use Host Pools for Local Host Detection preference
+- Add a disk space low alert with a configurable threshold
+- Add TLS support for Redis and an atomic Redis getset
+- Add a Flowtriq notification endpoint
+- Rework the configuration import/export, adding error toasts on invalid imports
+- Add --mtu to set the interface MTU on non-Linux interfaces
+- Add the XXXL edition and per-edition process resource limits
+- Add an official ntopng Chrome extension
+- Add a products licenses page with token resend and license registration check
+- Add unit tests for the Python SDK and additional Lua ts_common tests
+- Add a Debian package for Ubuntu 26 and improve the RHEL 8 packaging patch
+- Add STARTSSL option to email endpoints
+- Read logs with journalctl on Linux, falling back to ntopng.log
+
+## Changes
+- Rename the flow filter labels to flowfilters, to avoid confusion with the new host Tags
+- Convert the Vulnerability Scan into Active Scan, removing CVE and Vulners visibility and triggering
+- ntopng now starts in community mode when no license is provided; the --community option has been removed
+- Move Wazuh to the Enterprise M edition
+- Remove the geomap from the live flows page for community, available from Pro and above
+- Remove bundled rrdtool, MessageBroker ntopCloud code, dead DoH/DoT code and the deprecated -I hierarchy support
+- Remove ApexCharts, nvd3, dc and cubism dependencies
+- Rename probe_ip to exporter_ip when used for exporters, and rename the SNMP interface_id field to avoid confusion
+- Remove the old database migration code and obsolete Lua template files
+- Move the geomap, BGP statistics and the Behavioural Checks menu from pro to community
+- Move asset and license REST endpoints
+- Make ClickHouse the database used for Active Scan reports
+- Enable flow deduplication by default where available
+- Disable HTTP keep-alive by default and increase the number of web threads from 5 to 8
+- Disable SNMP configuration management in the community edition
+- Move the Sites page to the navbar, adding statistics and configuration pages
+- Rework the AS dashboard and AS report, adding traffic roles
+- Added encryption to ZMQ communications
+
+## Fixes
+- Fix several heap and stack overflows in the mDNS, DNS, IPv6 and NetBIOS dissectors
+- Fix signed integer overflows and a 4-byte write into a 2-byte variable
+- Fix arbitrary redirects at login and add validation on URLs used for redirects
+- Fix a missing authorization check in the blacklist REST endpoint
+- Fix a crash on broken ClickHouse connections and on --version
+- Fix a crash when retrieving AS, country, observation points and VLAN
+- Fix concurrent access to the mDNS VM between packet capture and periodic discovery
+- Fix memory leaks with SNMPv3 devices using authentication, and a socket fd leak in Utils::get_ifindex
+- Fix SNMP infinite polling loop on unhandled errors, and harden the SNMP code
+- Fix the CSV import of SNMP devices and SNMPv3 import with MD5 authentication
+- Fix SNMP interface counters, timeseries, formatting and topology sorting
+- Fix ClickHouse cluster schema issues (missing columns, comments, alter table on cluster)
+- Fix ClickHouse timeseries naming, labels, 1s resolution charts and points with no data
+- Fix historical flow filters, labels, column titles, export filtering and CSV download
+- Fix historical flow details, aggregated flows and the Download Records dialog for custom queries
+- Fix flow risk badge filtering, flow risk column and missing nDPI flow risk mappings
+- Fix incorrect links when jumping from an alert to a flow, and href to checks from live flows
+- Fix the exporter interfaces table, exporter statistics pages and exporter/interface counts with load balancing
+- Fix reported exporter IP byte order and incorrect exporter port numbers
+- Fix top timeseries not being shown, not refreshing and merging incorrectly
+- Fix dashboard timeseries height, empty points, colors changing between updates and dark mode legend colors
+- Fix host pools timeseries, applications timeseries, members table and traffic breakdown
+- Fix the geomap links, minimum height, tooltip glitches, resizing and CSS
+- Fix the host flows sankey, its resizing in the dashboard and the limit on the number of plotted nodes
+- Fix pie chart rendering, legend wrapping, no-data message and overflow
+- Fix the preferences page in the community edition, including when SNMP is disabled
+- Fix the recipients page, recipient editing and notification endpoint capability checks
+- Fix the networks page, network alias editing, network name validation and CIDR handling
+- Fix local network ID generation, make local network IDs persistent and fix a segfault on removed networks
+- Fix the ASN page, historical page, filters, sorting, sankey, charts and interface roles usage
+- Fix the BGP looking glass REST API, page loading and formatting issues
+- Fix per-interface periodic activity statistics being computed on the wrong interface
+- Fix the Unexpected Gateway and Unexpected DHCP server (with relay) checks
+- Fix false positives in the no-interface-activity alert and increase the minimum uptime before triggering
+- Fix active monitoring parameters, RTT/throughput checks, interface selection and tracing
+- Fix logout behind nginx, HTTP prefix handling in auth and the Vue router with a custom HTTP prefix
+- Fix the case where HTTP and HTTPS are set to the same port
+- Fix Redis connection to a Unix socket and invalid Redis caching
+- Fix TZSP packet parsing, GTP offsets enforcement and pcap file processing on shutdown
+- Fix interface switching when analysing a pcap file, and PCAP download
+- Fix the configuration import/export, assets import/export and pool CSV import
+- Fix CodeQL issues in the JavaScript and Vue.js pages, remote property injection and insecure functions
+- Fix the ElasticSearch dumped flows/sec rate and InfluxDB top timeseries crash when snmp_utils is unavailable
+- Fix Utils::readIPv4 with bond interfaces and Utils::findInterfaceGatewayIPv4
+- Fix usernames containing dots and interface names containing dots
+- Fix the blacklisted country alert with view interfaces, and hidden hosts not working
+- Fix various dark mode and white mode styling, linting and dropdown issues
+- Fix the live flows and aggregated live flows pages (filters, flow duration, interface selection, info button and links)
+- Fix the new menu: labels, highlighting, visibility conditions, interface selector, duplicated entries and caching
+- Fix incorrect Access Control List initialization
+
+## nEdge
+- Add nEdge Lite support (will be announced soon)
+- Implement nEdge configuration import/export based on nf_config, regenerating the system configuration files
+- Initialize network discovery only on interfaces that are discoverable (LAN interfaces defined)
+- Raise the SNMP devices limit and add the missing SNMP dependency
+- Export system.config when exporting the configuration
+- Disable Use MAC in Flow Key support
+- Fix incorrect ifid indexing, the menu and the reboot/poweroff entries
+
 #### ntopng 6.6 (November 2025)
 
 ## Breakthroughs

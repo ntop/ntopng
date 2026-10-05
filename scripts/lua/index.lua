@@ -24,9 +24,10 @@ local view = _GET["view"]
 
 local infrastructure_view = view and view == 'infrastructure' and
                                 ntop.isEnterpriseL and ntop.isEnterpriseL()
+local lightview = isLightView()
 
 local is_system_interface = page_utils.is_system_view()
-if is_system_interface and not infrastructure_view then
+if is_system_interface and not infrastructure_view and not lightview then
     print(ntop.httpRedirect(ntop.getHttpPrefix() .. "/lua/system_stats.lua"))
     return
 end
@@ -96,6 +97,7 @@ end
 template = template or default_template
 
 if infrastructure_view then template = "infrastructure" end
+if lightview then template = "lightview" end
 
 -- ######################################
 
@@ -110,6 +112,7 @@ local context = {
     page = "dashboard",
     template = template,
     is_infrastructure = infrastructure_view,
+    is_lightview = lightview,
     csrf = ntop.getRandomCSRFValue(),
     template_endpoint = ntop.getHttpPrefix() ..
         "/lua/rest/v2/get/dashboard/template/data.lua",

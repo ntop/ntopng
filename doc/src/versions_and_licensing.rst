@@ -16,12 +16,12 @@ The Community version is free to use and open source. The full source code can b
 ntopng Professional
 -------------------
 
-The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles and LDAP authentication.
+The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles and LDAP / OIDC (SSO) authentication.
 
 ntopng Enterprise M
 -------------------
 
-The Enterprise M version offers some extra features with respect to the Professional version, which are particularly useful for large organizations, including SNMP support, advanced alerts management.
+The Enterprise M version offers some extra features with respect to the Professional version, which are particularly useful for large organizations, including SNMP support, advanced alerts management. Enterprise M and every higher edition also include :ref:`nAnalyst <nAnalyst>`, the agentic AI network intelligence assistant; the number of nAnalyst tools available grows with the edition (see :ref:`nAnalyst Tools and Licensing <nAnalystToolsLicensing>`).
 
 ntopng Enterprise L
 -------------------
@@ -464,6 +464,14 @@ Versions Comparison Table
      - ✓
      - ✓
    * - Integrate ntopng login with LDAP authentication servers \* \*\*
+     - ✗
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+   * - Integrate ntopng login with OpenID Connect (OIDC) / SSO Identity Providers
      - ✗
      - ✓
      - ✓

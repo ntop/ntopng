@@ -541,10 +541,12 @@ function as_utils.retrieveASHistoricalTraffic(options)
     end
 
     -- Before getting the data, format the paginator, to filter flows
+    -- (as for live flows, a flow matches a role if either its input or output interface does)
     local filter_options = as_utils.formatFilters(options)
     local interface_role_filter = ""
     if (filter_options.interfaceRole) then
-        interface_role_filter = string.format(" AND INTERFACE_ROLE = %u", filter_options.interfaceRole)
+        interface_role_filter = string.format(" AND (INPUT_INTERFACE_ROLE = %u OR OUTPUT_INTERFACE_ROLE = %u)",
+            filter_options.interfaceRole, filter_options.interfaceRole)
     end
     -- Built two different where for efficiency reasons, filtering inside the UNION
     -- is a lot faster the filtering outside even if the code readability is a bit less
@@ -554,13 +556,17 @@ function as_utils.retrieveASHistoricalTraffic(options)
     local where = string.format("(FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) AND INTERFACE_ID = %u %s",
         tonumber(options.epoch_begin), tonumber(options.epoch_end), tonumber(options.epoch_end), tonumber(options.ifid), interface_role_filter)
 
+    -- Same as Flow::getMainRole(): the input role if meaningful, otherwise the output one
+    local interface_role = string.format(
+        "if(INPUT_INTERFACE_ROLE IN (%u, %u, %u), INPUT_INTERFACE_ROLE, OUTPUT_INTERFACE_ROLE) AS INTERFACE_ROLE",
+        INTERFACE_ROLE_TRANSIT, INTERFACE_ROLE_PEERING, INTERFACE_ROLE_INTERNET_EXCHANGE)
     -- Complex SQL query to aggregate ASN statistics from flows table
     -- Combines both source and destination ASNs
     local query = string.format(
         "SELECT asn, INTERFACE_ROLE, min(FIRST_SEEN) as \"seen.first\", max(LAST_SEEN) as \"seen.last\", sum(SCORE) as score, sum(total_bytes) AS traffic, sum(bytes_sent) as \"bytes.sent\", sum(bytes_rcvd) as \"bytes.rcvd\", sum(total_bytes) / sum(dateDiff('second', FIRST_SEEN, LAST_SEEN) + 1) AS throughput_bps " ..
-            "FROM (SELECT SRC_ASN AS asn, INTERFACE_ROLE, FLOW_ID, TOTAL_BYTES as total_bytes, SRC2DST_BYTES as bytes_sent, DST2SRC_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s UNION ALL " ..
-            "SELECT DST_ASN AS asn, INTERFACE_ROLE, FLOW_ID, TOTAL_BYTES as total_bytes, DST2SRC_BYTES as bytes_sent, SRC2DST_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s AND DST_ASN != SRC_ASN " ..
-            ") GROUP BY asn, INTERFACE_ROLE", where, ternary(isEmptyString(src_asn_filters), "", " AND " .. src_asn_filters), where,
+            "FROM (SELECT SRC_ASN AS asn, %s, FLOW_ID, TOTAL_BYTES as total_bytes, SRC2DST_BYTES as bytes_sent, DST2SRC_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s UNION ALL " ..
+            "SELECT DST_ASN AS asn, %s, FLOW_ID, TOTAL_BYTES as total_bytes, DST2SRC_BYTES as bytes_sent, SRC2DST_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s AND DST_ASN != SRC_ASN " ..
+            ") GROUP BY asn, INTERFACE_ROLE", interface_role, where, ternary(isEmptyString(src_asn_filters), "", " AND " .. src_asn_filters), interface_role, where,
         ternary(isEmptyString(dst_asn_filters), "", " AND " .. dst_asn_filters))
 
     local historical_asn_stats,err = interface.execSQLQuery(query)

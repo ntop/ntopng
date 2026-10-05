@@ -77,6 +77,7 @@ local function formatNodes(nodes, max_nodes_per_level)
          elseif (current_depth_nodes <= max_nodes_per_level) then
             formatted_nodes[#formatted_nodes + 1] = {
                label = node_info.label,
+               full_label = node_info.full_label,
                node_id = string.format("%s%s%s", depth_id, node_key_id_separator, node_id),
                link = node_info.link
             }
@@ -159,11 +160,18 @@ local function addRootNode(nodes, query)
    if not nodes[ROOT_ID] then
       -- Format the root node
       local label = query.root.formatter(query.root.id)
+      local full_label = nil
       local link = nil
+
+      if query.root.full_formatter then
+         full_label = query.root.full_formatter(query.root.id)
+      end
+
       nodes[ROOT_ID] = {
          [ROOT_ID] = {
             node_id = ROOT_ID, 
             label = label, 
+            full_label = full_label,
             link = link
          }
       }
@@ -190,6 +198,9 @@ local function unifyNodes(new_nodes, nodes, query)
          -- Now check the presence of the new node in the list of all nodes
          if not nodes[node_level_key][node_id] then
             local label = node_id
+            -- Optional, untruncated version of the label: the UI displays `label`
+            -- (that must fit the node) and shows `full_label` in the tooltip
+            local full_label = nil
             local node_link = nil
 	    
             if node_level_key_info then
@@ -200,10 +211,16 @@ local function unifyNodes(new_nodes, nodes, query)
                   if #tmp == 2 then
                      label = node_level_key_info.formatter(tmp[1], tmp[2])
                      node_link = node_level_key_info.linker(tmp[1], tmp[2])
+                     if node_level_key_info.full_formatter then
+                        full_label = node_level_key_info.full_formatter(tmp[1], tmp[2])
+                     end
                   end
                else
                   if node_level_key_info.formatter then
                      label = node_level_key_info.formatter(node_id)
+                  end
+                  if node_level_key_info.full_formatter then
+                     full_label = node_level_key_info.full_formatter(node_id)
                   end
                   if node_level_key_info.linker then
                      node_link = node_level_key_info.linker(node_id)
@@ -213,6 +230,7 @@ local function unifyNodes(new_nodes, nodes, query)
             nodes[node_level_key][node_id] = {
                node_id = id,
                label = label,
+               full_label = full_label,
                link = node_link,
                value = 0
             }

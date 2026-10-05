@@ -148,7 +148,7 @@ TEST_HEADERS = $(wildcard tests/include/*.h)
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
-$(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
+$(TARGET): @PRO_DEP@ $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
 
 unit_test: $(TEST_FILES) $(OBJECTS_NO_MAIN) ${TEST_HEADERS} $(LIB_TARGETS)
@@ -192,7 +192,7 @@ clean:
 	$(CLICKHOUSE_CLEAN)
 
 cert:
-	openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
+	openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem -subj "/CN=ntopng.local" -addext "subjectAltName = DNS:ntopng.local"
 	cat privkey.pem cert.pem > httpdocs/ssl/ntopng-cert.pem
 	/bin/rm -f privkey.pem cert.pem
 
@@ -268,9 +268,32 @@ Makefile: configure Makefile.in
 #	@echo ""
 #	./autogen.sh
 
+# Checks intentionally silenced (see doc/README.cppcheck or commit log):
+#  useInitializationList/duplInheritedMember/noCopyConstructor/noOperatorEq
+#    - style/opinion, not applicable to this codebase
+#  postfixOperator            - it++ on iterators, no measurable cost here
+#  memsetClassFloat           - memset(...,0,...) is a valid zero for IEEE-754
+#  virtualCallInConstructor/Destructor - deliberate (base behaviour wanted)
+#  uninitMemberVar            - mostly false positives on this codebase's very
+#    large, heavily #ifdef'd constructors (cppcheck loses track of assignments,
+#    e.g. the `new (std::nothrow) T()` idiom) or reflect a deliberate
+#    construct-then-load two-phase init pattern (e.g. Prefs)
+#  nullPointer in the Lua engine files - false positives from the
+#    `getLuaVMContext(a) (a ? ... : NULL)` macro; the lua_State* is never NULL
+#    inside a Lua C function (scoped so real null derefs elsewhere still show)
+CPPCHECK_SUPPRESS = --suppress=useInitializationList --suppress=duplInheritedMember \
+                    --suppress=noCopyConstructor --suppress=noOperatorEq \
+                    --suppress=postfixOperator --suppress=memsetClassFloat \
+                    --suppress=virtualCallInConstructor --suppress=virtualCallInDestructor \
+                    --suppress=uninitMemberVar \
+                    --suppress=nullPointer:src/LuaEngineInterface.cpp \
+                    --suppress=nullPointer:src/LuaEngineNetwork.cpp \
+                    --suppress=nullPointer:src/LuaEngineNtop.cpp \
+                    --suppress=nullPointer:src/SNMP.cpp
+
 cppcheck:
 	@mkdir -p .cppcheck-build
-	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=warning,performance,portability --suppress=useInitializationList --suppress=duplInheritedMember --suppress=noCopyConstructor --suppress=noOperatorEq -j $(shell nproc) --cppcheck-build-dir=.cppcheck-build -I include/ $(PRO_CPPCHECK_INCS) @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp $(PRO_CPPCHECK_SRCS)
+	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=warning,performance,portability $(CPPCHECK_SUPPRESS) -j $(shell nproc) --cppcheck-build-dir=.cppcheck-build -I include/ $(PRO_CPPCHECK_INCS) @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUA_INC) $(CLICKHOUSE_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) src/*.cpp $(PRO_CPPCHECK_SRCS)
 
 test: test_version
 
@@ -327,5 +350,7 @@ update-submodules:
 	echo "Advancing submodule pointers to latest.."
 	git submodule update --remote httpdocs/dist tests/e2e
 	git add httpdocs/dist tests/e2e
+
+@MAKE_EXTRA@
 
 @FUZZ_MAKEFILE_INC@

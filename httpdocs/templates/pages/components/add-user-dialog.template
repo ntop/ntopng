@@ -22,7 +22,7 @@
             <label for="username_input">{* messages.username *}</label>
             <div class="input-group mb-6">
               <span class="input-group-text"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
-              <input id="username_input" type="text" name="username" value="" class="form-control" data-pattern="username" required>
+              <input id="username_input" type="text" name="username" value="" maxlength="32" class="form-control" data-pattern="username" required>
             </div>
           </div>
       
@@ -208,6 +208,11 @@
 
     if($("#username_input").val().length < 5) {
       add_user_alert.error("Username too short (5 or more characters)");
+      return(false);
+    }
+
+    if($("#username_input").val().length > 32) {
+      add_user_alert.error("Username too long (32 characters at most)");
       return(false);
     }
 

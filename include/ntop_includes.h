@@ -485,6 +485,7 @@ using namespace clickhouse;
 #include "PartializableFlowTrafficStats.h"
 #if defined(NTOPNG_PRO)
 #include "ViewInterfaceFlowStats.h"
+#include "TagsMapping.h"
 #endif
 #include "FlowTrafficStats.h"
 #include "HostStats.h"

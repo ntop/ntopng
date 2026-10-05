@@ -102,7 +102,8 @@ if (page == "flows" or page == nil) then
         isNedge = have_nedge,
         has_geoip = ntop.hasGeoIP and ntop.hasGeoIP(),
         -- Flow Details Side Card preference
-        flow_details_card = ntop.getPref("ntopng.prefs.flow_details_card") ~= "0"
+        flow_details_card = ntop.getPref("ntopng.prefs.flow_details_card") ~= "0",
+        flow_details_card_editable = isAdministrator()
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 elseif page == "geomap" then

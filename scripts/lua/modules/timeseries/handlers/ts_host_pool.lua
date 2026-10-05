@@ -105,43 +105,34 @@ local function addTopTimeseries(tags, tsOptions)
 	local host_pool_ts_enabled = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
 
 	-- Top l7 Protocols
+	-- Note: a single grouped query, series with no data are not returned
 	if host_pool_ts_enabled then
-		local series = ts_utils.listSeries("host_pool:ndpi", table.clone(tags), tags.epoch_begin) or {}
-		local tmp_tags = table.clone(tags)
+		local series = ts_utils.queryTotalByTag("host_pool:ndpi", tags.epoch_begin, tags.epoch_end, tags, "protocol")
+			or {}
 
-		if not table.empty(series) then
-			for _, serie in pairs(series or {}) do
-				local tot = 0
-				tmp_tags.protocol = serie.protocol
-				local tot_serie = ts_utils.queryTotal("host_pool:ndpi", tags.epoch_begin, tags.epoch_end, tmp_tags)
-				-- Remove serie with no data
-				for _, value in pairs(tot_serie or {}) do
-					tot = tot + tonumber(value)
-				end
+		for _, serie in ipairs(series) do
+			local protocol = serie.tags.protocol
 
-				if tot > 0 then
-					timeseries[#timeseries + 1] = {
-						schema = "top:host_pool:ndpi",
-						disable_perc_95_ts = true,
-						group = i18n("graphs.l7_proto"),
-						priority = 2,
-						query = "protocol:" .. serie.protocol,
-						label = serie.protocol,
-						measure_unit = "bps",
-						scale = i18n("graphs.metric_labels.traffic"),
-						timeseries = {
-							bytes_sent = {
-								label = serie.protocol .. " " .. i18n("graphs.metric_labels.sent"),
-								color = ts_gui_utils.get_timeseries_color("bytes"),
-							},
-							bytes_rcvd = {
-								label = serie.protocol .. " " .. i18n("graphs.metric_labels.rcvd"),
-								color = ts_gui_utils.get_timeseries_color("bytes"),
-							},
-						},
-					}
-				end
-			end
+			timeseries[#timeseries + 1] = {
+				schema = "top:host_pool:ndpi",
+				disable_perc_95_ts = true,
+				group = i18n("graphs.l7_proto"),
+				priority = 2,
+				query = "protocol:" .. protocol,
+				label = protocol,
+				measure_unit = "bps",
+				scale = i18n("graphs.metric_labels.traffic"),
+				timeseries = {
+					bytes_sent = {
+						label = protocol .. " " .. i18n("graphs.metric_labels.sent"),
+						color = ts_gui_utils.get_timeseries_color("bytes"),
+					},
+					bytes_rcvd = {
+						label = protocol .. " " .. i18n("graphs.metric_labels.rcvd"),
+						color = ts_gui_utils.get_timeseries_color("bytes"),
+					},
+				},
+			}
 		end
 	end
    

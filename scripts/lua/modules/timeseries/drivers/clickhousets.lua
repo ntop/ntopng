@@ -66,7 +66,7 @@ end
 -- Execute a query via the C++ ClickHouse native client.
 -- Returns a list of row-tables on success, nil on failure.
 local function ch_query(sql)
-   local res,err = interface.execSQLQuery(sql, false --[[no row limit]], false --[[don't wait for db]])
+   local res,err = interface.execTSQuery(sql, false --[[no row limit]], false --[[don't wait for db]])
    if type(res) ~= "table" then
       return nil
    end
@@ -175,8 +175,14 @@ function driver:query(schema, tstart, tend, tags, options)
       --
       -- Window functions are evaluated after WHERE, so the lag must be computed
       -- in the middle subquery before the outer WHERE removes the extra bucket.
+      -- __rn flags the first row of the windowed result set (ORDER BY t). When the 
+      -- look-back bucket (tstart - time_step) has no data of its own, that first 
+      -- row IS the real first requested bucket, and lag() has no predecessor to 
+      -- diff against: it silently defaults to 0, turning the raw cumulative counter 
+      -- value into the delta for that point (a huge bogus spike). Null it out 
+      -- instead so it renders as a gap, same as any other missing sample.
       local inner_sel = {}
-      local mid_sel   = { "t" }
+      local mid_sel   = { "t", "row_number() OVER (ORDER BY t) AS `__rn`" }
       local outer_sel = { "t" }
       for _, metric in ipairs(schema._metrics) do
          local esc = ch_escape(metric)
@@ -185,7 +191,7 @@ function driver:query(schema, tstart, tend, tags, options)
          mid_sel[#mid_sel + 1] = string.format(
             "`%s` - lag(`%s`, 1, 0) OVER (ORDER BY t) AS `%s`", esc, esc, esc)
          outer_sel[#outer_sel + 1] = string.format(
-            "greatest(0, `%s`) / %d AS `%s`", esc, time_step, esc)
+            "if(`__rn` = 1, NULL, greatest(0, `%s`) / %d) AS `%s`", esc, time_step, esc)
       end
 
       sql = string.format(
@@ -453,13 +459,12 @@ end
 --! @brief Top-k query: find the top items by total metric value.
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
-   if #top_tags ~= 1 then
+   if #top_tags < 1 then
       traceError(TRACE_ERROR, TRACE_CONSOLE,
-         "ClickHouse driver expects exactly one top tag, " .. #top_tags .. " found")
+         "ClickHouse driver expects at least one top tag, none found")
       return nil
    end
 
-   local top_tag    = top_tags[1]
    local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
    local tw         = self:tags_where(tags)
 
@@ -475,19 +480,37 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
       end
    end
 
+   -- options.unlimited_top asks for every group with data, not just the top ones
+   local limit_clause = ""
+
+   if not options.unlimited_top then
+      limit_clause = string.format(" LIMIT %d", options.top or 8)
+   end
+
+   -- One group per distinct combination of the top tags
+   local sel_tags   = {}
+   local group_cols = {}
+
+   for _, tag in ipairs(top_tags) do
+      local esc = ch_escape(tag)
+      sel_tags[#sel_tags + 1]     = string.format("tags['%s'] AS `%s`", esc, esc)
+      group_cols[#group_cols + 1] = string.format("`%s`", esc)
+   end
+
    local sql = string.format(
-      "SELECT tags['%s'] AS top_tag_val, (%s) AS value "
+      "SELECT %s, (%s) AS value "
       .. "FROM `%s`.`%s` "
       .. "WHERE schema_name = '%s'%s "
       .. "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
-      .. "GROUP BY top_tag_val "
-      .. "ORDER BY value DESC LIMIT %d",
-      ch_escape(top_tag),
+      .. "GROUP BY %s "
+      .. "ORDER BY value DESC%s",
+      table.concat(sel_tags, ", "),
       table.concat(value_parts, " + "),
       ch_escape(self.db), CH_TS_TABLE_NAME,
       ch_escape(schema.name), tw,
       tstart, tend,
-      options.top or 8)
+      table.concat(group_cols, ", "),
+      limit_clause)
 
    local data = ch_query(sql)
 
@@ -501,10 +524,16 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    local total_vals = {}
 
    for _, row in ipairs(data) do
-      local val = tonumber(row["value"]) or 0
-      if val > 0 then
+      local val = tonumber(row["value"])
+      if val then
+         local item_tags = table.clone(tags)
+
+         for _, tag in ipairs(top_tags) do
+            item_tags[tag] = row[tag]
+         end
+
          sorted[#sorted + 1] = {
-            tags     = table.merge(tags, { [top_tag] = row["top_tag_val"] }),
+            tags     = item_tags,
             value    = val,
             partials = {},
          }
@@ -575,24 +604,7 @@ function driver:timeseries_top(options, top_tags)
          count = math.max(count, n)
 
          local top_val   = item.tags[top_tag] or ""
-         local ext_label = nil
-
-         -- Device/interface schemas: resolve SNMP interface label.
-         if ntop.isPro and ntop.isPro() and options.tags and options.tags.device then
-            local snmp_utils      = require "snmp_utils"
-            local snmp_cached_dev = require "snmp_cached_dev"
-            local cached_device   = snmp_cached_dev:create(options.tags.device)
-            local ifindex         = item.tags["if_index"] or item.tags["port"]
-            if cached_device and ifindex then
-               ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
-            end
-            if isEmptyString(ext_label) then ext_label = ifindex end
-         end
-
-         -- Protocol schemas: the ext_label is the protocol name itself.
-         if item.tags["protocol"] then
-            ext_label = top_val
-         end
+         local ext_label = ts_common.getExtLabel(options, item.tags)
 
          top_series[#top_series + 1] = {
             data       = agg,
@@ -714,6 +726,8 @@ end
 --! user.
 function driver:deleteOldData(ifid)
    local data_retention_utils = require "data_retention_utils"
+   local clickhouse_partition_utils = require "clickhouse_partition_utils"
+
    local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays() or 365
 
    -- Compute the cutoff epoch, aligned to the start of the day.
@@ -726,30 +740,13 @@ function driver:deleteOldData(ifid)
    -- <= the cutoff date (data on that day is entirely outside the window).
    local cutoff_yyyymmdd = tonumber(os.date("%Y%m%d", cutoff))
 
-   local find_sql = string.format(
-      "SELECT DISTINCT database, table, toUInt32OrZero(partition) AS drop_part"
-      .. " FROM system.parts"
-      .. " WHERE active"
-      .. "   AND database = '%s'"
-      .. "   AND table    = '%s'"
-      .. "   AND drop_part <= %u"
-      .. "   AND drop_part > 999999",  -- guard against unexpected partition formats
-      ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME), cutoff_yyyymmdd)
+   for _, tbl in ipairs(clickhouse_partition_utils.getDailyPartitionedTables(self.db, CH_TS_TABLE_NAME)) do
+      local dropped = clickhouse_partition_utils.dropOldPartitions(self.db, tbl, cutoff_yyyymmdd)
 
-   local partitions = ch_query(find_sql) or {}
-
-   for _, row in ipairs(partitions) do
-      local drop_sql = string.format(
-         "ALTER TABLE `%s`.`%s` DROP PARTITION '%s'",
-         ch_escape(row["database"]),
-         ch_escape(row["table"]),
-         ch_escape(tostring(row["drop_part"])))
-
-      traceError(TRACE_INFO, TRACE_CONSOLE,
-         string.format("[ClickHouse TS] Dropping partition %s (cutoff: %u)",
-            tostring(row["drop_part"]), cutoff_yyyymmdd))
-
-      ch_write(drop_sql)
+      for _, part in ipairs(dropped) do
+         traceError(TRACE_INFO, TRACE_CONSOLE,
+            string.format("[ClickHouse TS] Dropped partition %u (cutoff: %u)", part, cutoff_yyyymmdd))
+      end
    end
 
    return true
@@ -904,10 +901,10 @@ function driver.init(dbname, verbose)
          string.format("[ClickHouse TS] Initialising driver (db=%s)", dbname))
    end
 
-   -- Verify connectivity: a lightweight query against system tables.
-   local res = ch_query("SELECT 1 AS ok FROM system.parts LIMIT 1")
+   -- Verify connectivity
+   local res = ch_query("SELECT 1 AS ok")
    if not res then
-      local err = "[ClickHouse TS] Cannot reach ClickHouse (execSQLQuery returned nil)"
+      local err = "[ClickHouse TS] Cannot reach ClickHouse (execTSQuery returned nil)"
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false, err
    end

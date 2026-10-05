@@ -16,6 +16,7 @@ local alert_consts = require "alert_consts"
 local host_pools = require "host_pools"
 local consts = require "consts"
 local tag_badge_utils = require "tag_badge_utils"
+local auth = require "auth"
 require "lua_utils_get"
 local qoe_utils
 
@@ -763,6 +764,12 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
         hourly_available = false
     },
+    requested_server_name = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.flowfilters.requested_server_name'),
+        operators = {'eq', 'neq', 'in', 'nin', 'empty', 'nempty'},
+        hourly_available = false
+    },
     alert_domain = {
         value_type = 'text',
         i18n_label = i18n('db_search.flowfilters.dga_domain_name'),
@@ -1311,6 +1318,7 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
         label = filter_def.i18n_label,
         value_type = filter_def.value_type,
         value_label = filter_def.value_i18n_label or filter_def.i18n_label,
+        help = i18n("db_search.flowfilters_descr." .. id),
         operators = {},
         type = filter_def.type
     }
@@ -1504,11 +1512,14 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
         local host_pools_stats = interface.getHostPoolsStats()
         local host_pool_list = {}
         for pool_id, _ in pairs(host_pools_stats) do
-            local label = host_pools_instance:get_pool_name(pool_id)
-            filter.options[#filter.options + 1] = {
-                value = pool_id,
-                label = label
-            }
+            -- Skip the pools the current user is not allowed to access
+            if auth.is_allowed_host_pool(pool_id) then
+                local label = host_pools_instance:get_pool_name(pool_id)
+                filter.options[#filter.options + 1] = {
+                    value = pool_id,
+                    label = label
+                }
+            end
         end
     elseif filter_def.value_type == "minor_connection_state" then
         local flow_consts = require "flow_consts"

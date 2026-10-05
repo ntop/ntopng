@@ -1462,7 +1462,6 @@ bool NetworkInterface::walker(u_int32_t* begin_slot, bool walk_all,
 Flow* NetworkInterface::getFlow(
     int32_t if_index, Mac* src_mac, Mac* dst_mac, u_int16_t vlan_id,
     u_int16_t observation_domain_id, u_int32_t private_flow_id,
-    u_int32_t inIndex, u_int32_t outIndex,
     const ICMPinfo* const icmp_info, IpAddress* src_ip, IpAddress* dst_ip,
     u_int16_t src_port, u_int16_t dst_port, u_int8_t l4_proto,
     bool* src2dst_direction, time_t first_seen, time_t last_seen,
@@ -2263,7 +2262,7 @@ pre_get_flow:
   /* Updating Flow */
   flow = getFlow(
       if_index, srcMac, dstMac, vlan_id, 0 /* observationPointId */,
-      private_flow_id, 0, 0, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
+      private_flow_id, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
       &src_ip, &dst_ip, src_port, dst_port, l4_proto, &src2dst_direction,
       last_pkt_rcvd, last_pkt_rcvd, len_on_wire, new_flow,
       create_flow_if_missing, eth->h_source,
@@ -2752,7 +2751,7 @@ pre_get_flow:
         } else if (flow->getRTPStreamType() == ndpi_multimedia_unknown_flow) {
           if (flow->get_ndpi_flow() != NULL) {
             flow->setRTPStreamType(
-                flow->get_ndpi_flow()->flow_multimedia_types);
+                flow->get_ndpi_flow()->metadata.flow_multimedia_types);
           }
         }
 
@@ -2905,6 +2904,10 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
 #endif
 
   if (gw_macs_reload_requested) reloadGwMacs();
+
+  /* Free entries transitioned to idle above.
+   * Note: this used to be called by Ntop::runPeriodicHousekeepingTasks() */
+  purgeQueuedIdleEntries();
 }
 
 /* ****************************************************** */
@@ -3054,7 +3057,7 @@ datalink_check:
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
   } else if (datalink_type == DLT_EN10MB) {
-    if (h->caplen < sizeof(ndpi_ethhdr)) {
+    if ((eth_offset + sizeof(ndpi_ethhdr)) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3065,7 +3068,7 @@ datalink_check:
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if (datalink_type == 276 /* Linux Cooked Capture v2 */) {
-    if (h->caplen < 20) {
+    if (((u_int32_t)eth_offset + 20) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3077,7 +3080,7 @@ datalink_check:
     eth_type = (packet[eth_offset] << 8) + packet[eth_offset + 1];
     ip_offset = 20 + eth_offset;
   } else if (datalink_type == 113 /* Linux Cooked Capture */) {
-    if (h->caplen < 16) {
+    if (((u_int32_t)eth_offset + 16) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3092,7 +3095,7 @@ datalink_check:
   } else if (datalink_type ==
                  DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
              || datalink_type == 14 /* raw IP DLT_RAW on OpenBSD captures */) {
-    if (h->caplen < sizeof(u_int32_t)) {
+    if ((eth_offset + sizeof(u_int32_t)) > h->caplen) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1,
                NULL /* srcMac */, NULL /* dstMac */);
@@ -3927,7 +3930,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           getFlow(UNKNOWN_PKT_IFACE_IDX, NULL /* srcMac */, NULL /* dstMac */,
                   dequeued->vlan_id, 0 /* observationPointId */,
                   dequeued->get_private_flow_id(),
-                  0 /* inIndex */, 1 /* outIndex */, NULL /* ICMPinfo */,
+                  NULL /* ICMPinfo */,
                   &dequeued->src_ip, &dequeued->dst_ip, dequeued->src_port,
                   dequeued->dst_port, dequeued->l4_proto, &src2dst_direction, 0,
                   0, 0, &new_flow, true /* create_if_missing */, NULL, NULL);
@@ -4223,9 +4226,9 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
 
   if (!rc) incDBNumDroppedFlows(clickhouse_flows_db);
 
-  f->decUses(); /* Add done, decrease the reference counter */
   f->set_dump_done();
-
+  f->decUses(); /* Add done, decrease the reference counter */
+  
   return (true);
 }
 
@@ -4772,9 +4775,8 @@ void NetworkInterface::periodicStatsUpdate() {
   pkts_thpt.updateStats(&tv, getNumPackets());
   ethStats.updateStats(&tv);
 
-  download_stats->addPoint((u_int32_t)ethStats.getIngressBytesThpt() / 1000);
-  upload_stats->addPoint((u_int32_t)ethStats.getEgressBytesThpt() /
-                         1000); /* Use KB instead of Bytes */
+  download_stats->addPoint((u_int32_t)(ethStats.getIngressBytesThpt() / 1000));
+  upload_stats->addPoint((u_int32_t)(ethStats.getEgressBytesThpt() / 1000)); /* Use KB instead of Bytes */
 
   if (ndpiStats) ndpiStats->updateStats(&tv);
 
@@ -5495,8 +5497,10 @@ struct flowHostRetriever {
   Host *host, *talking_with_host, *server, *client;
   u_int16_t observationPointId;
   u_int8_t *mac, bridge_iface_idx;
+  u_int8_t mac_buf[6]; /* Storage backing `mac` when set from a filter */
   char* manufacturer;
   char* map_search;
+  char map_search_buf[128]; /* Storage backing `map_search` when lowercased */
   bool sourceMacsOnly, dhcpHostsOnly;
   time_t min_first_seen;
   char* country;
@@ -7612,15 +7616,14 @@ int NetworkInterface::sortHosts(
     struct ndpi_in6_addr *device_ip, u_int32_t device_interface,
     bool alertedHost, u_int8_t mac_location_filter, char* sortColumn,
     char* map_search, u_int64_t label_filter) {
-  u_int8_t macAddr[6];
   int (*sorter)(const void* _a, const void* _b);
 
   if (retriever == NULL) return (-1);
 
   if (mac_filter) {
-    Utils::parseMac(macAddr, mac_filter);
+    Utils::parseMac(retriever->mac_buf, mac_filter);
 
-    retriever->mac = macAddr;
+    retriever->mac = retriever->mac_buf;
   } else {
     retriever->mac = NULL;
   }
@@ -7758,7 +7761,6 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
                                time_t min_first_seen,
                                const char* map_search) {
   int (*sorter)(const void* _a, const void* _b);
-  char map_search_lc[128];
   if (retriever == NULL) return (-1);
 
   retriever->sourceMacsOnly = sourceMacsOnly, retriever->actNumEntries = 0,
@@ -7771,9 +7773,10 @@ int NetworkInterface::sortMacs(u_int32_t* begin_slot, bool walk_all,
   retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE;
 
   if (map_search && map_search[0]) {
-    snprintf(map_search_lc, sizeof(map_search_lc), "%s", map_search);
-    Utils::stringtolower(map_search_lc);
-    retriever->map_search = map_search_lc;
+    snprintf(retriever->map_search_buf, sizeof(retriever->map_search_buf), "%s",
+             map_search);
+    Utils::stringtolower(retriever->map_search_buf);
+    retriever->map_search = retriever->map_search_buf;
   } else {
     retriever->map_search = NULL;
   }
@@ -8126,8 +8129,7 @@ int NetworkInterface::getActiveHostsList(
 
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
     if (retriever.elems[i].hostValue)
-      retriever.elems[i]
-          .hostValue->decUses(); /* incUses in host_search_walker */
+      retriever.elems[i].hostValue->decUses(); /* incUses in host_search_walker */
   }
 
   // it's up to us to clean sorted data
@@ -9994,12 +9996,9 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
 /* **************************************** */
 
 u_int64_t NetworkInterface::getPersistentHostTags(Host* host) {
-  Mac* mac = host->getMac();
-  if (mac) {
-    u_int64_t v = host_tags.getTags(mac->get_mac());
-    if (v) return v;
-  }
-  return host_tags.getTags(host->get_ip(), host->get_vlan_id());
+  char key_buf[CONST_MAX_LEN_REDIS_KEY];
+  char* key = host->getSerializationKey(key_buf, sizeof(key_buf), true);
+  return host_tags.getTags(key);
 }
 
 /* **************************************** */
@@ -10323,7 +10322,8 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator* p,
   // Decrease reference counter for all AS entries (see incUses in
   // as_search_walker)
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
-    if (retriever.elems[i].asValue) retriever.elems[i].asValue->decUses();
+    if (retriever.elems[i].asValue)
+      retriever.elems[i].asValue->decUses();
   }
 
   // finally free the elements regardless of the sorted kind
@@ -10474,7 +10474,8 @@ int NetworkInterface::getActiveCountriesList(lua_State* vm,
   // Decrease reference counter for all Country entries (see incUses in
   // country_search_walker)
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
-    if (retriever.elems[i].countryVal) retriever.elems[i].countryVal->decUses();
+    if (retriever.elems[i].countryVal)
+      retriever.elems[i].countryVal->decUses();
   }
 
   // finally free the elements regardless of the sorted kind
@@ -10533,7 +10534,8 @@ int NetworkInterface::getActiveVLANList(lua_State* vm, char* sortColumn,
   // Decrease reference counter for all VLAN entries (see incUses in
   // vlan_search_walker)
   for (u_int i = 0; i < retriever.actNumEntries; i++) {
-    if (retriever.elems[i].vlanValue) retriever.elems[i].vlanValue->decUses();
+    if (retriever.elems[i].vlanValue)
+      retriever.elems[i].vlanValue->decUses();
   }
 
   // finally free the elements regardless of the sorted kind
@@ -11498,6 +11500,40 @@ void NetworkInterface::reloadHostsBlacklist() {
 
   /* Update the hosts */
   walker(&begin_slot, walk_all, walker_hosts, host_reload_blacklist, NULL);
+}
+
+/* *************************************** */
+
+struct hosts_tags_info {
+  AddressTree* allowed_hosts;
+  u_int64_t tags;
+};
+
+static bool host_get_tags(GenericHashEntry* host, void* user_data,
+                          bool* matched) {
+  Host* h = (Host*)host;
+  struct hosts_tags_info* info = (struct hosts_tags_info*)user_data;
+
+  if (!h->idle() && h->match(info->allowed_hosts)) {
+    info->tags |= h->getTags();
+    *matched = true;
+  }
+
+  return (false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+/* Return the OR of the tag bitmaps set on the active hosts, so that the GUI
+ * can list only the tags actually in use rather than every configurable one */
+u_int64_t NetworkInterface::getActiveHostsTags(AddressTree* allowed_hosts) {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+  struct hosts_tags_info info = {allowed_hosts, 0};
+
+  walker(&begin_slot, walk_all, walker_hosts, host_get_tags, &info);
+
+  return (info.tags);
 }
 
 /* *************************************** */

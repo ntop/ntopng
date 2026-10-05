@@ -139,6 +139,7 @@ function M.get_flags()
 
    local infrastructure_view = false
    infrastructure_view, _ = isInfrastructureView()
+   local lightview = isLightView()
 
    local cap_alerts    = auth.has_capability(auth.capabilities.alerts)
    local cap_checks    = auth.has_capability(auth.capabilities.checks)
@@ -172,6 +173,7 @@ function M.get_flags()
       is_asn_mode_enabled       = is_asn_mode,
       no_asn_mode               = not is_asn_mode,
       infrastructure_view       = infrastructure_view,
+      lightview                 = lightview,
       is_db_type                = is_db_type,
       no_vlans                  = not has_vlans,
       no_macs                   = not has_macs,

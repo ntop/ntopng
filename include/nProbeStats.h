@@ -52,6 +52,7 @@ typedef struct {
   u_int64_t remote_bytes;
   u_int64_t remote_pkts;
   u_int64_t remote_pkt_drops;
+  u_int64_t remote_active_flows;
   u_int64_t num_flow_exports;
 } CumulativenProbeStats;
 
@@ -65,14 +66,16 @@ class nProbeStats {
  public:
   char remote_ifname[32];
   char remote_ifaddress[64];
-  char remote_probe_address[64];
-  char remote_probe_public_address[64];
+  char remote_collector_address[64];
+  char nprobe_address[64];
+  char nprobe_public_address[64];
   char uuid[36];
-  char remote_probe_version[64];
-  char remote_probe_os[64];
-  char remote_probe_license[64];
-  char remote_probe_edition[64];
-  char remote_probe_maintenance[64];
+  char nprobe_version[64];
+  char nprobe_os[64];
+  char nprobe_license[64];
+  char nprobe_edition[64];
+  char nprobe_maintenance[64];
+  char nprobe_instance_name[64];
   char mode[64];
   u_int32_t nprobe_source_id;
   u_int32_t num_exporters;
@@ -80,8 +83,10 @@ class nProbeStats {
   u_int64_t remote_bytes;
   u_int32_t remote_pkts;
   u_int32_t remote_pkt_drops;
+  u_int32_t remote_active_flows;
   u_int32_t num_flow_exports;
   u_int32_t remote_ifspeed;
+  u_int16_t remote_collector_port;
   u_int32_t remote_time;
   u_int32_t local_time;
   u_int32_t avg_bps;

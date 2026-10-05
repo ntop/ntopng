@@ -89,6 +89,7 @@ class Prefs {
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
+  bool ch_ts_driver_forced_to_rrd;
   u_int64_t iec104_allowed_typeids[2];
   u_int32_t auth_session_duration;
   bool auth_session_midnight_expiration;
@@ -684,6 +685,9 @@ class Prefs {
   }
 #endif
   const TsDriver getTimeseriesDriver() const { return (timeseries_driver); }
+  inline bool isChTimeseriesDriverForcedToRrd() const {
+    return (ch_ts_driver_forced_to_rrd);
+  }
   inline u_int8_t getDefaultl7Policy() { return (default_l7policy); }
 
   inline u_int32_t get_dump_frequency() const { return (dump_frequency); };

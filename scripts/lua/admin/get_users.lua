@@ -8,7 +8,8 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(isAdministratorOrPrintErr()) then
+local is_admin = isAdministrator()
+
 local currentPage     = _GET["currentPage"]
 local perPage         = _GET["perPage"]
 local sortColumn      = _GET["sortColumn"]
@@ -45,6 +46,11 @@ else
 end
 
 local users_list = ntop.getUsers()
+
+if not is_admin then
+   -- Non-administrators only see (and can edit) their own profile
+   users_list = { [logged_user or ""] = users_list[logged_user] }
+end
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 local num = 0
@@ -119,8 +125,12 @@ end
     local can_be_deleted = (key ~= "admin" and key ~= logged_user)
 
     local id_key2 = id_key:gsub('[%p%c%s]', '')
-    
+
+    -- Only administrators can delete users, and the delete dialog (with its
+    -- `delete_user_alert` helper) is not even loaded for the other users
+    if is_admin then
     print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key2 .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key2 .. "').on('mouseenter', function() { delete_user_alert.warning('" .. js_str(i18n("manage_users.confirm_delete_user", {user=key})) .. "'); $('#delete_dialog_username').val('" .. js_str(key) .. "'); }); </script>")
+    end
 
 	 print ("\"}")
 	 num = num + 1
@@ -144,4 +154,3 @@ end
 print ("\"sort\" : [ [ \"" .. sortColumn .. "\", \"" .. sortOrder .."\" ] ],\n")
 
 print ("\"totalRows\" : " .. total .. " \n}")
-end

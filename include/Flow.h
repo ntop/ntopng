@@ -192,6 +192,7 @@ class Flow : public GenericHashEntry {
   Bitmap128 alerts_map;
 
   std::unordered_map<ExporterFlowInfoKey, ExporterFlowInfo, ExporterFlowInfoKeyHash> exporterStats;
+  ExporterFlowInfo *primary_exporter; /* First exporter in exporterStats (do not use begin() as it is not ordered) */
   std::map<FlowAlertTypeEnum, FlowAlert*> triggered_alerts;
   FlowAlertType predominant_alert;   /* This is the predominant alert */
   u_int16_t predominant_alert_score; /* The score associated to the predominant
@@ -422,6 +423,9 @@ class Flow : public GenericHashEntry {
   float pkts_thpt;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
 
+  /* 64-bit tag bitmap: bits 0-31 reserved for ntop, bits 32-63 user-defined */
+  u_int64_t user_tags_bitmap; /* user-defined */
+
   MinorConnectionStates current_c_state;
   u_int counter = 0;
   /*
@@ -584,7 +588,9 @@ class Flow : public GenericHashEntry {
   inline char* getProtocolInfo() { return json_protocol_info; };
   void updateAlertsJSON();
   inline char* getAlertJSON() { return alerts_json; };
-  const char* getDomainName();
+  char *getRequestedServerName();
+  const char *getDomainName(char *buf, u_int buf_len);
+  static bool isValidDomainName(const char *domain);
   void callFlowUpdate(time_t t);
   void setProtocolJSONInfo();
   void serializeProtocolJSONInfo(ndpi_serializer* serializer);
@@ -1491,6 +1497,8 @@ class Flow : public GenericHashEntry {
   u_int16_t getSrcNetworkSiteId();
   u_int16_t getDstNetworkSiteId();
 
+  void setUserTags(u_int64_t bitmap);
+
   inline const u_int16_t getScore() const { return (flow_score); };
 
 #ifdef HAVE_NEDGE
@@ -1655,7 +1663,8 @@ class Flow : public GenericHashEntry {
     return (ndpiAddressFamilyProtocol);
   }
   inline void setAddressFamilyProtocol(char* proto) {
-    ndpiAddressFamilyProtocol = strdup(proto);
+    if (ndpiAddressFamilyProtocol) free(ndpiAddressFamilyProtocol);
+    ndpiAddressFamilyProtocol = proto ? strdup(proto) : NULL;
   }
 
   inline ndpi_confidence_t getConfidence() { return (confidence); }
@@ -1772,6 +1781,8 @@ class Flow : public GenericHashEntry {
 
   void setCliService(int service_enum);
   void setSrvService(int service_enum);
+  void setCliTag(int tag_idx);
+  void setSrvTag(int tag_idx);
   inline void setIGMPType(u_int8_t t) { protos.igmp.igmp_type = t; }
   void addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 		       struct ndpi_in6_addr *next_hop,
