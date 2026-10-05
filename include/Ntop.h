@@ -593,7 +593,10 @@ class Ntop {
   bool isBlacklistedLogin(struct mg_connection* conn) const;
   bool checkUserInterfaces(const char* user) const;
   bool resetUserPassword(char* username, char* old_password,
-                         char* new_password);
+                         char* new_password,
+                         const char* keep_session_id = NULL);
+  void invalidateUserSessions(const char* username,
+                              const char* keep_session_id = NULL);
   bool mustChangePassword(const char* user);
   bool changeUserFullName(const char* username, const char* full_name) const;
   bool changeUserRole(char* username, char* user_role) const;

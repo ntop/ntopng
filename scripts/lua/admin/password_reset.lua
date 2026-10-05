@@ -37,17 +37,8 @@ if(new_password ~= confirm_new_password) then
 end
 
 if(ntop.resetUserPassword(_SESSION["user"], username, old_password, new_password)) then
+   -- Note: other sessions of the user are invalidated by resetUserPassword
    print ("{ \"result\" : 0, \"message\" : \"Password changed successfully\" }")
-
-   -- Delete sessions for the current user
-   local keys = ntop.getKeysCache("ntopng.cache.sessions.*")
-   for k,_ in pairs(keys) do
-      local v = ntop.getCache(k)
-      
-      if(string.starts(v, username)) then
-	 ntop.delCache(k)
-      end
-   end
 else
    print ("{ \"result\" : -1, \"message\" : \"Unable to set the new user password: perhaps the old password was invalid ?\" }")
 end

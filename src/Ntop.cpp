@@ -2221,7 +2221,8 @@ bool Ntop::mustChangePassword(const char* user) {
 
 /* NOTE: the admin vs local user checks must be performed by the caller */
 bool Ntop::resetUserPassword(char* username, char* old_password,
-                             char* new_password) {
+                             char* new_password,
+                             const char* keep_session_id) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
   char group[NTOP_GROUP_MAXLEN];
@@ -2241,7 +2242,48 @@ bool Ntop::resetUserPassword(char* username, char* old_password,
 
   if (ntop->getRedis()->set(key, password_hash, 0) < 0) return (false);
 
+  /* Log out any other session still open with the old password */
+  invalidateUserSessions(username, keep_session_id);
+
   return (true);
+}
+
+/* ******************************************* */
+
+/* Remove all HTTP sessions of the specified user, except keep_session_id */
+void Ntop::invalidateUserSessions(const char* username,
+                                  const char* keep_session_id) {
+  char **keys = NULL, val[128];
+  const char* prefix = "ntopng.cache.sessions.";
+  size_t prefix_len = strlen(prefix), user_len;
+  int num_keys;
+
+  if ((username == NULL) || (username[0] == ' ')) return;
+
+  user_len = strlen(username);
+  num_keys = ntop->getRedis()->keys("ntopng.cache.sessions.*", &keys);
+
+  for (int i = 0; i < num_keys; i++) {
+    if (keys[i] == NULL) continue;
+
+    if ((keep_session_id != NULL) && (keep_session_id[0] != ' ') &&
+        (strncmp(keys[i], prefix, prefix_len) == 0) &&
+        (strcmp(&keys[i][prefix_len], keep_session_id) == 0)) {
+      free(keys[i]);
+      continue;
+    }
+
+    /* Session value format: user|group|csrf|localuser */
+    if ((ntop->getRedis()->get(keys[i], val, sizeof(val)) == 0) &&
+        (strncmp(val, username, user_len) == 0) && (val[user_len] == '|')) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Invalidating session %s of user %s", keys[i], username);
+      ntop->getRedis()->del(keys[i]);
+    }
+
+    free(keys[i]);
+  }
+
+  if (keys) free(keys);
 }
 
 /* ******************************************* */
@@ -3809,6 +3851,8 @@ bool Ntop::deleteUser(char* username) {
 
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
   ntop->getRedis()->del(key);
+
+  invalidateUserSessions(username);
 
   users_m.unlock(__FILE__, __LINE__);
 
