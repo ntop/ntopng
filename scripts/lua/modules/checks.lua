@@ -1210,8 +1210,17 @@ function checks.initDefaultConfig()
                     nil then
 
                     if default_conf[subdir] and default_conf[subdir][key] then
-                        -- There is already a configuration for this script
-                        -- (nothing to do)
+                        -- There is already a configuration for this script:
+                        -- nothing to do, unless the script needs to migrate
+                        -- a configuration saved with an old format
+                        if usermod.migrateConfig then
+                            for _, hook_conf in pairs(default_conf[subdir][key]) do
+                                if type(hook_conf.script_conf) == "table" then
+                                    hook_conf.script_conf =
+                                        usermod.migrateConfig(hook_conf.script_conf)
+                                end
+                            end
+                        end
 
                     else
                         -- Add default configuration
