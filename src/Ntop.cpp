@@ -2258,7 +2258,7 @@ void Ntop::invalidateUserSessions(const char* username,
   size_t prefix_len = strlen(prefix), user_len;
   int num_keys;
 
-  if ((username == NULL) || (username[0] == ' ')) return;
+  if ((username == NULL) || (username[0] == '\0')) return;
 
   user_len = strlen(username);
   num_keys = ntop->getRedis()->keys("ntopng.cache.sessions.*", &keys);
@@ -2266,7 +2266,7 @@ void Ntop::invalidateUserSessions(const char* username,
   for (int i = 0; i < num_keys; i++) {
     if (keys[i] == NULL) continue;
 
-    if ((keep_session_id != NULL) && (keep_session_id[0] != ' ') &&
+    if ((keep_session_id != NULL) && (keep_session_id[0] != '\0') &&
         (strncmp(keys[i], prefix, prefix_len) == 0) &&
         (strcmp(&keys[i][prefix_len], keep_session_id) == 0)) {
       free(keys[i]);
