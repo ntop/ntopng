@@ -21,8 +21,20 @@ local max_total_items = 20
 
 -- -----------------------------------------------
 
+-- In lightview alerts and historical flows of all interfaces are available (ClickHouse only)
+-- stay there instead of switching interface
+local function interface_url_param(ifid)
+   if isLightView() and ntop.isClickHouseEnabled() then
+      return 'view=lightview'
+   end
+
+   return 'ifid=' .. ifid
+end
+
+-- -----------------------------------------------
+
 local function build_flow_alerts_url(key, value, ifid)
-   local url = ntop.getHttpPrefix() .. '/lua/alert_stats.lua?ifid=' .. ifid .. "&status=historical&page=flow"
+   local url = ntop.getHttpPrefix() .. '/lua/alert_stats.lua?' .. interface_url_param(ifid) .. "&status=historical&page=flow"
 
    local host_info = hostkey2hostinfo(value)
    if host_info['host'] then
@@ -38,7 +50,7 @@ end
 -- -----------------------------------------------
 
 local function build_historical_flows_url(key, value, ifid)
-   local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid
+   local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?' .. interface_url_param(ifid)
 
    local host_info = hostkey2hostinfo(value)
    if host_info['host'] then
