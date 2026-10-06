@@ -254,7 +254,7 @@ local _exporter_source_id = {}
 function exporters_utils.getExporterID(exporter_ip)
    local ret = _exporter_source_id[exporter_ip]
    if (ret ~= nil) then
-      return ret
+      return ret[1], ret[2]
    end
 
    if not isEmptyString(exporter_ip) then
@@ -290,7 +290,7 @@ local _probe_source_id = {}
 function exporters_utils.getProbeID(exporter_ip)
    local ret = _probe_source_id[exporter_ip]
    if (ret ~= nil) then
-      return ret
+      return ret[1], ret[2]
    end
 
    if not isEmptyString(exporter_ip) then
