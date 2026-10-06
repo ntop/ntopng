@@ -115,6 +115,10 @@ class Host : public GenericHashEntry,
   ObservationPoint* obs_point;
   ndpi_bitmap* tcp_udp_contacted_ports_no_tx; /* Ports of this host that have
                                                  been contacted by peers */
+  Mutex tcp_udp_contacted_ports_no_tx_m; /* Protects the bitmap above: it is
+                                            updated by Flow destructors that
+                                            can run on multiple threads
+                                            (e.g. viewed interfaces) */
 
   /*
     Both OS and device type are duplicated in MAC and host as
@@ -1011,13 +1015,20 @@ class Host : public GenericHashEntry,
   u_int32_t getNumContactsFromPeersAsServerTCPUDPNoTX();
 
   inline u_int16_t getNumContactedTCPUDPServerPortsNoTX() {
-    return (tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(
-                                                tcp_udp_contacted_ports_no_tx)
-                                          : 0);
+    u_int16_t ret = 0;
+
+    tcp_udp_contacted_ports_no_tx_m.lock(__FILE__, __LINE__);
+    if (tcp_udp_contacted_ports_no_tx)
+      ret = (u_int16_t)ndpi_bitmap_cardinality(tcp_udp_contacted_ports_no_tx);
+    tcp_udp_contacted_ports_no_tx_m.unlock(__FILE__, __LINE__);
+
+    return (ret);
   }
   inline void setContactedTCPUDPServerPortNoTX(u_int16_t port) {
+    tcp_udp_contacted_ports_no_tx_m.lock(__FILE__, __LINE__);
     if (tcp_udp_contacted_ports_no_tx)
       ndpi_bitmap_set(tcp_udp_contacted_ports_no_tx, port);
+    tcp_udp_contacted_ports_no_tx_m.unlock(__FILE__, __LINE__);
   }
 
   void resetHostContacts();
