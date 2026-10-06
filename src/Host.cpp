@@ -2988,10 +2988,16 @@ void Host::resetHostContacts() {
     ndpi_hll_reset(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
     ndpi_hll_reset(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
 
-    if (tcp_udp_contacted_ports_no_tx)
-      ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
+    ndpi_bitmap *new_bitmap = ndpi_bitmap_alloc(), *old_bitmap;
 
-    tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
+    /* Swap under lock: the bitmap can be concurrently updated by
+       Flow destructors running on other threads */
+    tcp_udp_contacted_ports_no_tx_m.lock(__FILE__, __LINE__);
+    old_bitmap = tcp_udp_contacted_ports_no_tx;
+    tcp_udp_contacted_ports_no_tx = new_bitmap;
+    tcp_udp_contacted_ports_no_tx_m.unlock(__FILE__, __LINE__);
+
+    if (old_bitmap) ndpi_bitmap_free(old_bitmap);
   }
 }
 
