@@ -1224,24 +1224,42 @@ u_int64_t Host::getTags(bool transferrable_only) {
 
 /* ***************************************** */
 
+/* Replace the user-defined tags with the specified bitmap */
 void Host::setUserTags(u_int64_t bitmap) {
   /* Bits 0-31 are ntop-reserved (computed at runtime) and must never be
    * persisted into user_tags_bitmap, which is stored in Redis. */
   bitmap &= HOST_USER_TAGS_MASK;
 
+  if (bitmap == user_tags_bitmap) return; /* Nothing to do */
+
 #if 0
   char buf[64];
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Setting tag (0x%llx -> 0x%llx) on %s",
                                (unsigned long long)user_tags_bitmap,
-							   (unsigned long long)(user_tags_bitmap | bitmap),
+                               (unsigned long long)bitmap,
                                ip.print(buf, sizeof(buf)));
 #endif
 
-  user_tags_bitmap |= bitmap;
+  user_tags_bitmap = bitmap;
 
   iface->setPersistentHostTags(this, user_tags_bitmap);
 
   setAssetUpdated();
+}
+
+/* ***************************************** */
+
+/* Add the tags in the specified bitmap to the user-defined tags already set */
+void Host::addUserTags(u_int64_t bitmap) {
+#if 0
+  char buf[64];
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Adding tag (0x%llx to 0x%llx) on %s",
+                               (unsigned long long)bitmap,
+                               (unsigned long long)user_tags_bitmap,
+                               ip.print(buf, sizeof(buf)));
+#endif
+
+  setUserTags(user_tags_bitmap | bitmap);
 }
 
 /* ***************************************** */
