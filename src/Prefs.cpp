@@ -1451,8 +1451,8 @@ static const struct option long_options[] = {
   {"clickhouse-client-key", required_argument, NULL, 246},
   {"clickhouse-server-cn", required_argument, NULL, 247},
 #endif
-  {"dump-queue-len", no_argument, NULL, 248},
-  {"dump-queue-block-size", no_argument, NULL, 249},
+  {"dump-queue-len", required_argument, NULL, 248},
+  {"dump-queue-block-size", required_argument, NULL, 249},
   {"direct-flows-dump", no_argument, NULL, 250},
   {"fail-invalid-license", no_argument, NULL, 251},
   {"check-maintenance", no_argument, NULL, 252},
@@ -2645,11 +2645,19 @@ int Prefs::setOption(int optkey, char* optarg) {
 #endif
 
   case 248:
-    dump_queue_len = atoi(optarg);
+    if (atoi(optarg) > 0)
+      dump_queue_len = atoi(optarg);
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --dump-queue-len %s, using %u",
+                                   optarg, dump_queue_len);
     break;
 
   case 249:
-    dump_queue_block_size = atoi(optarg);
+    if (atoi(optarg) > 0)
+      dump_queue_block_size = atoi(optarg);
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --dump-queue-block-size %s, using %u",
+                                   optarg, dump_queue_block_size);
     break;
 
   case 250:
