@@ -176,6 +176,38 @@ end
 
 -- ##############################################
 
+-- @brief Check if alerts from all interfaces should be returned (lightview).
+-- Note: only supported with ClickHouse where alerts from all interfaces are in the same database.
+function alert_store:is_lightview()
+    return ntop.isClickHouseEnabled() and isLightView() and
+        (self:get_ifid() ~= tonumber(getSystemInterfaceId()))
+end
+
+-- ##############################################
+
+-- @brief Get engaged alerts (in memory) for the selected interface, or for all interfaces in case of lightview
+function alert_store:_get_engaged_alerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter)
+    local alerts = {}
+
+    if not self:is_lightview() then
+        return interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter)
+    end
+
+    local cur_ifid = interface.getId()
+    for ifid, _ in pairs(interface.getIfNames() or {}) do
+        interface.select(ifid)
+        local iface_alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter) or {}
+        for _, alert in ipairs(iface_alerts) do
+            alerts[#alerts + 1] = alert
+        end
+    end
+    interface.select(tostring(cur_ifid))
+
+    return alerts
+end
+
+-- ##############################################
+
 -- @brief Return the alert family name
 function alert_store:get_family()
     local family_name
@@ -1308,7 +1340,7 @@ function alert_store:select_engaged(filter, debug)
     local severity_filter = nil
     local role_filter = nil
 
-    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter,
+    local alerts = self:_get_engaged_alerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter,
         role_filter)
 
     alerts = self:filter_alerts(alerts)
@@ -1508,7 +1540,7 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
     local severity_filter = nil
     local role_filter = nil
 
-    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
+    local alerts = self:_get_engaged_alerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
 
     alerts = self:filter_alerts(alerts)
 
@@ -1712,7 +1744,7 @@ function alert_store:count_by_24h_engaged(filter, severity)
     local severity_filter = nil
     local role_filter = nil
 
-    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
+    local alerts = self:_get_engaged_alerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
 
     q_res = self:filter_alerts(alerts)
 
@@ -2190,7 +2222,8 @@ function alert_store:add_request_filters(is_write)
 
     if (ntop.isClickHouseEnabled()) then
         -- Clickhouse db has the column 'interface_id', filter by that per interface
-        if ifid ~= self:ifid_2_db_ifid(getSystemInterfaceId()) then
+        -- (no filter in lightview: alerts of any interface)
+        if ifid ~= self:ifid_2_db_ifid(getSystemInterfaceId()) and not self:is_lightview() then
             self:add_filter_condition_list('interface_id', ifid, 'number')
         end
         self:add_filter_condition_list('rowid', rowid, 'string')

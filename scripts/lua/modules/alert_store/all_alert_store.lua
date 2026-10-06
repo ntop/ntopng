@@ -121,8 +121,8 @@ function all_alert_store:select_engaged(filter)
     local total_rows = 0
     local sort_2_col = {}
 
-    -- Compute alert stats for this interface
-    local alerts = interface.getEngagedAlerts()
+    -- Compute alert stats for this interface (or all interfaces in lightview)
+    local alerts = self:_get_engaged_alerts()
 
     for _, alert in pairs(alerts) do
         self:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
@@ -137,7 +137,7 @@ function all_alert_store:select_engaged(filter)
         for _, alert in pairs(alerts) do
             self:__add_alert_stats(alert, alerts_by_entity, alerts_by_entity_flat)
         end
-        interface.select(tostring(sys_ifid))
+        interface.select(tostring(ifid))
     end
 
     -- Sort and filtering

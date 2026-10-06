@@ -92,12 +92,12 @@ return function(f)
         i18n = "details.alerts",
         icon = "fas fa-exclamation-triangle",
         hard_hidden = f.is_db_view_interface,
-        hidden = f.alerts_disabled or f.no_alerts_cap or f.infrastructure_view or f.lightview,
+        hidden = f.alerts_disabled or f.no_alerts_cap or f.infrastructure_view or f.lightview_no_ch,
         reason = {
             f.alerts_disabled and reason("feature", "menu.reason.alerts_disabled", "menu.suggestion.alerts_disabled") or nil,
             f.no_alerts_cap and reason("perm", "menu.reason.no_alerts_cap", "menu.suggestion.no_alerts_cap") or nil,
             f.infrastructure_view and reason("iface", "menu.reason.infrastructure_view", "menu.suggestion.infrastructure_view") or nil,
-            f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil,
+            f.lightview_no_ch and reason("feature", "menu.reason.no_ch_support", "menu.suggestion.no_ch_support") or nil,
         },
         entries = {{
             key = "alerts_list",

@@ -532,6 +532,11 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 			table.tconcat(final_filter, "=", "&")
 		)
 
+		-- Stay in lightview mode (historical flows of all interfaces)
+		if isLightView() then
+			res = res .. "&view=lightview"
+		end
+
 		return res
 	end
 
