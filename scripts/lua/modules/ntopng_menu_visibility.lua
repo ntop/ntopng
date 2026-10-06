@@ -174,6 +174,8 @@ function M.get_flags()
       no_asn_mode               = not is_asn_mode,
       infrastructure_view       = infrastructure_view,
       lightview                 = lightview,
+      -- lightview aggregates alerts only with ClickHouse (single DB for all interfaces)
+      lightview_no_ch           = lightview and not ntop.isClickHouseEnabled(),
       is_db_type                = is_db_type,
       no_vlans                  = not has_vlans,
       no_macs                   = not has_macs,

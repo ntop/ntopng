@@ -14,6 +14,7 @@ package.path = dirs.installdir ..
 
 -- Important: load this before any other alert related module
 require "prefs_utils"
+require "rrd_paths"
 local checks = require "checks"
 local radius_handler = require "radius_handler"
 checks.loadChecks()
@@ -265,6 +266,39 @@ if (ntop.getCache("ntopng.cache.rrd_category_migration") ~= "1") then
 
     -- do not perform migration again
     ntop.setCache("ntopng.cache.rrd_category_migration", "1")
+end
+
+-- Migrate the RRDs of the entities whose id matches the interface id (e.g.
+-- pool 0 on interface 0): the entity id used to be dropped from their path,
+-- so they were written directly into the parent directory
+if (ntop.getCache("ntopng.cache.rrd_entity_ifid_migration") ~= "1") then
+    -- Entities with a numeric id, as prefixed in getRRDName
+    local entity_prefixes = {"pool:", "vlan:", "obs_point:", "os:"}
+
+    for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
+        for _, prefix in ipairs(entity_prefixes) do
+            local old_dir = getRRDName(ifid, prefix)
+            local new_dir = getRRDName(ifid, prefix .. ifid)
+
+            -- NOTE: sub-directories belong to the other entities, only the
+            -- RRDs must be moved
+            for fname in pairs(ntop.readdir(old_dir) or {}) do
+                local new_path = os_utils.fixPath(new_dir .. "/" .. fname)
+
+                if ends(fname, ".rrd") and not ntop.exists(new_path) then
+                    local old_path = os_utils.fixPath(old_dir .. "/" .. fname)
+
+                    traceError(TRACE_INFO, TRACE_CONSOLE,
+                               "Migrating RRD: " .. old_path)
+                    ntop.mkdir(new_dir)
+                    os.rename(old_path, new_path)
+                end
+            end
+        end
+    end
+
+    -- do not perform migration again
+    ntop.setCache("ntopng.cache.rrd_entity_ifid_migration", "1")
 end
 
 -- Clear the unused DHCP cache keys

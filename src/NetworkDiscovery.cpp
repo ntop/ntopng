@@ -641,7 +641,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
           rspbuf[idx] = '.', dissected_ptr = false;
         } else {
           if (buf[offset] == 0xc0) {
-            u_int8_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
+            u_int16_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
 
             offset++, dissected_ptr = true;
 
@@ -651,6 +651,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
                 rspbuf[idx] = '.';
               else if (buf[new_offset] == 0xc0) {
                 if ((u_int)(new_offset + 1) >= buf_len) break;
+                if (buf[new_offset + 1] <= new_offset) break;
                 new_offset = buf[new_offset + 1];
                 continue;
               } else
@@ -663,6 +664,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
         }
       }
 
+      idx = idx >= sizeof(rspbuf) - 1 ? sizeof(rspbuf) - 1 : idx;
       rspbuf[idx] = '\0';
 #ifdef MDNS_DEBUG_DISSECT
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "MDNS Query %s", rspbuf);
@@ -688,7 +690,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
         rspbuf[idx] = '.', dissected_ptr = false;
       } else {
         if (buf[offset] == 0xc0) {
-          u_int8_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
+          u_int16_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
 
           offset++, dissected_ptr = true;
 
@@ -698,6 +700,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
               rspbuf[idx] = '.';
             else if (buf[new_offset] == 0xc0) {
               if ((u_int)(new_offset + 1) >= buf_len) break;
+              if (buf[new_offset + 1] <= new_offset) break;
               new_offset = buf[new_offset + 1];
               continue;
             } else
@@ -710,12 +713,16 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
       }
     }
 
+    idx = idx >= sizeof(rspbuf) - 1 ? sizeof(rspbuf) - 1 : idx;
     rspbuf[idx] = '\0';
 
 #ifdef MDNS_DEBUG_DISSECT
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u] %s",
                                  (u_int8_t)buf[offset + 2], rspbuf);
 #endif
+
+    if (offset + 9 + 2 >= (u_int)buf_len)
+      return;
 
     switch ((record_type = buf[offset + 2]) /* record_type */) {
       case 16: /* TXT */
@@ -756,7 +763,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
             rspbuf[idx] = '.', dissected_ptr = false;
           } else {
             if (buf[offset] == 0xc0) {
-              u_int8_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
+              u_int16_t new_offset = (offset + 1 < buf_len) ? buf[offset + 1] : 0;
 
               offset++, dissected_ptr = true;
 
@@ -766,6 +773,7 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
                   rspbuf[idx] = '.';
                 else if (buf[new_offset] == 0xc0) {
                   if ((u_int)(new_offset + 1) >= buf_len) break;
+                  if (buf[new_offset + 1] <= new_offset) break;
                   new_offset = buf[new_offset + 1];
                   continue;
                 } else
@@ -803,7 +811,8 @@ void _dissectMDNS(u_char* buf, u_int buf_len, char* out, u_int out_len) {
             len++;
           }
 
-          if ((len + txt_len) >= sizeof(rspbuf)) break;
+          if ((len + txt_len) >= sizeof(rspbuf) - 1) break;
+          if ((offset + txt_len) >= buf_len) break;
 
           memcpy(&rspbuf[len], &buf[offset], txt_len);
           len += txt_len;

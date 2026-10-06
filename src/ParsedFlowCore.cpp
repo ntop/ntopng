@@ -99,7 +99,8 @@ ParsedFlowCore::~ParsedFlowCore() {}
 void ParsedFlowCore::swap() {
   u_int8_t tmp_mac[6];
   IpAddress tmp_ip;
-  u_int16_t tmp_port, tmp_index;
+  u_int16_t tmp_port;
+  u_int32_t tmp_index;
   u_int32_t tmp_bytes, tmp_pkts;
   u_int32_t tmp_fragments;
   u_int8_t tmp_tcp_flags;

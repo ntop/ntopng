@@ -281,7 +281,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     /* Updating Flow */
     flow = getFlow(UNKNOWN_PKT_IFACE_IDX, srcMac, dstMac, zflow->vlan_id,
                    zflow->observationPointId, zflow->get_private_flow_id(),
-                   zflow->inIndex, zflow->outIndex,
                    NULL /* ICMPinfo */, &srcIP, &dstIP, zflow->src_port,
                    zflow->dst_port, zflow->l4_proto, &src2dst_direction,
                    zflow->first_switched, zflow->last_switched, 0, &new_flow,
@@ -361,7 +360,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
             interface statistics
           */
           flow_devices_stats->incStats(
-				       now, zflow->unique_source_id /* exporter */, flow->getInIndex(),
+				       now, zflow->unique_source_id /* exporter */, zflow->inIndex,
 				       flow->getStatsProtocol(), zflow->out_pkts, zflow->out_bytes,
 				       zflow->in_pkts, zflow->in_bytes, zflow->nprobe_source_id);
         }
@@ -387,8 +386,8 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 				 flow->getFlowDeviceInIndex(), flow->getOutIndex());
 #endif
 
-    if (!flow_devices_stats->checkExporterInterfaces(zflow->unique_source_id, flow->getInIndex(),
-						     flow->getOutIndex(), &zflow->exporter_device_ip,
+    if (!flow_devices_stats->checkExporterInterfaces(zflow->unique_source_id, zflow->inIndex,
+						     zflow->outIndex, &zflow->exporter_device_ip,
 						     zflow->nprobe_source_id, &zflow->nprobe_ip)) {
       exportersLimitReached();
       return (false);
@@ -860,7 +859,7 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
   if (zflow->unique_source_id) {
     if (flow_devices_stats) {
       flow_devices_stats->incStats(
-          now, zflow->unique_source_id, flow->getInIndex(),
+          now, zflow->unique_source_id, zflow->inIndex,
           flow->getStatsProtocol(), out_pkts, out_bytes, in_pkts, in_bytes,
           zflow->nprobe_source_id);
 
@@ -870,9 +869,9 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
          increase its counters only if it is different from inIndex to avoid
          double counting. */
 
-      if (flow->getOutIndex() != flow->getInIndex())
+      if (zflow->outIndex != zflow->inIndex)
         flow_devices_stats->incStats(
-            now, zflow->unique_source_id, flow->getOutIndex(),
+            now, zflow->unique_source_id, zflow->outIndex,
             flow->getStatsProtocol(), in_pkts, in_bytes, out_pkts, out_bytes,
             zflow->nprobe_source_id);
     }

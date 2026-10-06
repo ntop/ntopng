@@ -66,7 +66,7 @@ end
 -- Execute a query via the C++ ClickHouse native client.
 -- Returns a list of row-tables on success, nil on failure.
 local function ch_query(sql)
-   local res,err = interface.execSQLQuery(sql, false --[[no row limit]], false --[[don't wait for db]])
+   local res,err = interface.execTSQuery(sql, false --[[no row limit]], false --[[don't wait for db]])
    if type(res) ~= "table" then
       return nil
    end
@@ -904,7 +904,7 @@ function driver.init(dbname, verbose)
    -- Verify connectivity
    local res = ch_query("SELECT 1 AS ok")
    if not res then
-      local err = "[ClickHouse TS] Cannot reach ClickHouse (execSQLQuery returned nil)"
+      local err = "[ClickHouse TS] Cannot reach ClickHouse (execTSQuery returned nil)"
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false, err
    end

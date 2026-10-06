@@ -387,6 +387,8 @@ flowfilter_utils.defined_filters = {
         hourly_available = false
     },
     vlan_id = {
+        -- Dropdown with the known VLANs (id and alias), still accepting any other VLAN id
+        type = flowfilter_utils.input_types.select_with_input,
         value_type = 'vlan_id',
         i18n_label = i18n('db_search.flowfilters.vlan_id'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
@@ -1676,22 +1678,35 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
         end
     elseif filter_def.value_type == "vlan_id" then
         filter.options = {}
-        local vlans = interface.getVLANsList()
+        local vlan_ids = {}
 
-        if vlans == nil then
-            vlans = {
-                VLANs = {}
-            }
+        -- VLANs currently active on the interface
+        local vlans = interface.getVLANsList() or {}
+        for _, vlan in pairs(vlans["VLANs"] or {}) do
+            local vlan_id = tonumber(vlan["vlan_id"])
+            if vlan_id then
+                vlan_ids[vlan_id] = true
+            end
         end
-        vlans = vlans["VLANs"]
-        for _, vlan in pairs(vlans) do
-            local vlan_name = getFullVlanName(vlan["vlan_id"])
+
+        -- VLANs with an alias: stored data can refer to VLANs no longer active,
+        -- that should still be selectable by name
+        for aliased_vlan, _ in pairs(ntop.getHashAllCache(getVlanAliasKey()) or {}) do
+            local vlan_id = tonumber(aliased_vlan)
+            if vlan_id then
+                vlan_ids[vlan_id] = true
+            end
+        end
+
+        for vlan_id, _ in pairsByKeys(vlan_ids, asc) do
+            -- The value is always the VLAN id, the alias is only part of the label
+            local vlan_name = getFullVlanName(vlan_id)
             if isEmptyString(vlan_name) then
                 vlan_name = i18n('no_vlan')
             end
             filter.options[#filter.options + 1] = {
-                value = vlan["vlan_id"],
-                label = vlan_name
+                value = vlan_id,
+                label = tostring(vlan_name)
             }
         end
     elseif filter_def.value_type == "exporter_ip" then

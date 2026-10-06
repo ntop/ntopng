@@ -52,8 +52,11 @@ local base_url = getPageUrl(ntop.getHttpPrefix() .. "/lua/alert_stats.lua", base
 base_params["status"] = "historical"
 local base_url_historical_only = getPageUrl(ntop.getHttpPrefix() .. "/lua/alert_stats.lua", base_params)
 local master_ifid = interface.getMasterInterfaceId()
-local traffic_extraction_available = recording_utils.isActive(master_ifid) or
-                                         recording_utils.isExtractionActive(master_ifid)
+-- lightview: show alerts from all interfaces (ClickHouse only)
+local is_lightview = isLightView() and ntop.isClickHouseEnabled()
+local traffic_extraction_available = (not is_lightview) and
+                                         (recording_utils.isActive(master_ifid) or
+                                          recording_utils.isExtractionActive(master_ifid))
 local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/top.lua"
 local alert_details_url = ntop.getHttpPrefix() .. "/lua/alert_details.lua"
 local endpoint_list = "/lua/rest/v2/get/PAGE/alert/list.lua"
@@ -277,6 +280,7 @@ end
 
 local context = {
     ifid = ifid,
+    is_lightview = is_lightview,
     is_ntop_enterprise_m = ntop.isEnterpriseM and ntop.isEnterpriseM(),
     is_ntop_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL(),
     show_chart = true,
@@ -293,7 +297,7 @@ local context = {
     },
     actions = {
         show_settings = (page ~= 'system') and isAdministrator(),
-        show_flows = (page == 'host'),
+        show_flows = (page == 'host') and not is_lightview, -- live flows are per interface
         show_historical = ((page == 'host') or (page == 'flow') or (page == 'am_host')) and ntop.isEnterpriseM and ntop.isEnterpriseM() and
             hasClickHouseSupport(),
         show_pcap_download = traffic_extraction_available and page == 'flow',

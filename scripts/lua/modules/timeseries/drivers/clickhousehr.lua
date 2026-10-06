@@ -66,7 +66,7 @@ local METRIC_DIRECTIONAL = {
 -- ##############################################
 
 local function ch_query(sql)
-   local res, err = interface.execSQLQuery(sql, false --[[no row limit]], false --[[don't wait]])
+   local res, err = interface.execTSQuery(sql, false --[[no row limit]], false --[[don't wait]])
    if type(res) ~= "table" then return nil end
    return res
 end
@@ -711,7 +711,7 @@ end
 
 --! @brief Health reflects ClickHouse reachability (same signal as the TS driver).
 function driver:get_health()
-   local res = interface.execSQLQuery(
+   local res = interface.execTSQuery(
       "SELECT 1 AS ok", false, false)
    return (type(res) == "table") and "green" or "yellow"
 end

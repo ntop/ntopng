@@ -80,7 +80,7 @@ class DB {
   virtual bool isDbCreated() { return (true); };
   virtual void shutdown();
   virtual void flush() {};
-  virtual void checkIdle(time_t when) { ; }
+  virtual void checkIdle(time_t when, bool flush_on_pcap_done = true) { ; }
 };
 
 #endif /* _DB_CLASS_H_ */

@@ -67,11 +67,15 @@ interface. Any interface listed can be selected simply by clicking on its name.
 The dropdown menu is only used to switch between selected interfaces, it is also used to actually see
 interface traffic statistics.
 
+When two or more interfaces are monitored, the dropdown also lists the `Overview <overview/index.html>`_
+entry, which combines the data of all the local interfaces in a single view.
+
 .. toctree::
     :maxdepth: 2
 
     network_interface/index
     system_interface/index
+    overview/index
 
 
 Alerts

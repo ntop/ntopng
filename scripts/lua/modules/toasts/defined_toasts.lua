@@ -319,18 +319,6 @@ local defined_toats = {
         excluded_subpages = EMPTY_PAGES
     },
     {
-        -- Warn the user that offline license activation
-        -- is required from the License page
-        id = 31,
-        dismissable = false,
-        has_priority = false,
-        predicate = predicates.license_activation,
-        pages = EMPTY_PAGES,
-        subpages = EMPTY_PAGES,
-        excluded_pages = {pages.license.key},
-        excluded_subpages = EMPTY_PAGES
-    },
-    {
         -- "Flow Details Side Card" feature
         id = 32,
         dismissable = true,

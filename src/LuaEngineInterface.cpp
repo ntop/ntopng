@@ -1014,8 +1014,8 @@ static int ntop_interface_delete_mac_data(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Executes a SQL query against the interface's local SQLite database.  Lua: interface.execSQLQuery(sql) → table */
-static int ntop_interface_exec_sql_query(lua_State* vm) {
+static int ntop_interface_exec_sql_query(lua_State* vm,
+                                         bool check_historical_capability) {
   NetworkInterface* curr_iface = getCurrentInterface(vm);
   bool limit_rows = true;  // honour the limit by default
   bool wait_for_db_created = true;
@@ -1042,7 +1042,8 @@ static int ntop_interface_exec_sql_query(lua_State* vm) {
   /* In case the users login is disabled, the users have not the ability to run
    * queries, check if the users login is enabled or not
    */
-  if (!ntop->hasCapability(vm, capability_historical_flows) &&
+  if (check_historical_capability &&
+      !ntop->hasCapability(vm, capability_historical_flows) &&
       ntop->getPrefs()->is_users_login_enabled()) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "User is not allowed to run query: %s", sql);
@@ -1053,6 +1054,20 @@ static int ntop_interface_exec_sql_query(lua_State* vm) {
 
   /* stack top: [result_table_or_nil, error_or_nil] */
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_TWO_RETURN_VALUES));
+}
+
+/* ****************************************** */
+
+/* @brief Executes a SQL query on historical data (requires historical flows capability). Lua: interface.execSQLQuery(sql, limit_rows, wait_for_db) → table, err */
+static int ntop_interface_exec_sql_query(lua_State* vm) {
+  return (ntop_interface_exec_sql_query(vm, true));
+}
+
+/* ****************************************** */
+
+/* @brief Executes a SQL query on timeseries (does not require historical flows capability, only timeseries access). Lua: interface.execTSQuery(sql, limit_rows, wait_for_db) → table, err */
+static int ntop_interface_exec_ts_query(lua_State* vm) {
+  return (ntop_interface_exec_sql_query(vm, false));
 }
 
 /* ****************************************** */
@@ -6646,6 +6661,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 
     /* DB */
     {"execSQLQuery", ntop_interface_exec_sql_query},
+    {"execTSQuery", ntop_interface_exec_ts_query},
 
     /* sFlow */
     {"getSFlowDevices", ntop_getsflowdevices},
