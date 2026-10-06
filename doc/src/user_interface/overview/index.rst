@@ -33,6 +33,12 @@ local interface and merging the results: traffic charts show the total across al
 while Top Local / Remote Hosts tables report, next to each host, the name of the interface where
 the host has been seen.
 
+.. figure:: ../../img/web_gui_overview_dashboard.png
+  :align: center
+  :alt: Overview Dashboard
+
+  Overview Dashboard
+
 Report and Historical Flows
 ---------------------------
 
