@@ -3139,6 +3139,7 @@ local lang = {
       ["tcp_fingerprint"] = "TCP/IP stack fingerprint of the client, useful to guess its operating system.",
       ["traffic_direction"] = "Direction of the flow with respect to local and remote hosts (e.g. local client to remote server).",
       ["user_agent"] = "User-Agent header sent by the HTTP client.",
+      ["vlan_id"] = "VLAN of the flow. The dropdown suggests the VLANs active since ntopng started and those with a saved alias, but any other VLAN ID can be typed in the search box.",
       ["wlan_ssid"] = "WLAN SSID on which the flow was seen.",
     },
   },
