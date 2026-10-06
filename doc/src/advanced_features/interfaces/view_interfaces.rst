@@ -38,3 +38,9 @@ was a physical interface.
   :alt: View Interfaces Dropdown
 
   The Interfaces Dropdown Menu in the Top Toolbar
+
+.. note::
+
+    To see the combined data of all the interfaces without configuring a view, the
+    `Overview <../../user_interface/overview/index.html>`_ entry of the Interfaces dropdown
+    can be used. The Overview entry is hidden when a View Interface is configured.
