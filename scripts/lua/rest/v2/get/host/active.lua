@@ -83,8 +83,6 @@ if isEmptyString(mode) then
    mode = "all"
 end
 
-interface.select(ifname)
-
 local to_skip = (currentPage - 1) * perPage
 
 if (sortOrder == "desc") then sOrder = false else sOrder = true end
