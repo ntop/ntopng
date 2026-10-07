@@ -481,82 +481,57 @@ end
 -- ##############################################
 
 local function get_top_talkers(schema_id, tags, tstart, tend, options)
-   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-   local top_utils = require "top_utils"
-   local top_talkers = top_utils.getAggregatedTop(tags.ifid, tend, tstart)
-   local top_series = {}
-   local top_hosts = {}
-   local direction = nil
-   local select_col = nil
-   local step = 0
-   local count = 0
+	package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+	local top_utils = require("top_utils")
+	local top_talkers = top_utils.getAggregatedTop(tags.ifid, tend, tstart)
+	local top_series = {}
+	local top_hosts = {}
+	local direction = nil
+	local select_col = nil
 
-   if schema_id == "local_senders" then
-      direction = "senders"
-      select_col = "sent"
-   else
-      direction = "receivers"
-      select_col = "rcvd"
-   end
+	if schema_id == "local_senders" then
+		direction = "senders"
+		select_col = "sent"
+	else
+		direction = "receivers"
+		select_col = "rcvd"
+	end
 
-   for _, vlan in pairs(top_talkers.vlan or {}) do
-      for _, host in pairs(vlan.hosts[1][direction] or {}) do
-	 -- need to recalculate total value
-	 local host_tags = {
-	    ifid = tags.ifid,
-	    host = host.address
-	 }
-	 local host_options = ts_utils.getQueryOptions({
-	       schema = "host:traffic",
-	       epoch_begin = tstart,
-	       epoch_end = tend,
-	       tags = host_tags
-	 })
-	 local host_partials = ts_utils.timeseries_query(host_options) or {}
-	 local data_direction = ternary(direction == "senders", "bytes_sent", "bytes_rcvd")
+	for _, vlan in pairs(top_talkers.vlan or {}) do
+		for _, host_info in pairs(vlan.hosts[1][direction] or {}) do
+			-- Do not calculate by using timeseries, otherwise only local hosts will be used.
+         -- Simply used the ones available in the sqllite db
+			top_series[host_info.address] = host_info
+         top_hosts[host_info.address] = host_info.value
+		end
+	end
 
-	 if not table.empty(host_partials) then
-	    for _, timeseries_info in pairs(host_partials.series) do
-	       if timeseries_info.id == data_direction then
-		  host_partials = timeseries_info
-		  top_hosts[host.address] = timeseries_info.statistics.total or 0
-		  break
-	       end
-	    end
-
-	    top_series[host.address] = table.merge({
-		  tags = host_tags,
-		  meta = {
-		     url = host.url,
-		     label = host.label,
-		     ipaddr = host.ipaddr, -- optional
-		     visual_addr = host.visual_addr -- optional
-		  }
-						   }, host_partials)
-	 end
+	local res = {}
+	for host, _ in pairsByValues(top_hosts, rev) do
+      local host_info = top_series[host]
+      host_info.is_available = false
+      local in_memory_info = interface.getHostMinInfo(host)
+      if in_memory_info then
+         host_info.is_localhost = in_memory_info.localhost
+         host_info.label = hostinfo2label(in_memory_info, true)
+         host_info.is_available = true
       end
-   end
+      res[#res + 1] = host_info
 
-   local res = {}
-   for host, _ in pairsByValues(top_hosts, rev) do
-      res[#res + 1] = top_series[host]
+		if #res >= options.top then
+			break
+		end
+	end
 
-      if #res >= options.top then
-	 break
-      end
-   end
-
-   return {
-      metadata = {
-	 epoch_begin = options.epoch_begin,
-	 epoch_end = options.epoch_end,
-	 epoch_step = step,
-	 num_point = count,
-	 schema = options.schema,
-	 query = options.tags
-      },
-      series = res
-   }
+	return {
+		metadata = {
+			epoch_begin = options.epoch_begin,
+			epoch_end = options.epoch_end,
+			schema = options.schema,
+			query = options.tags,
+		},
+		series = res,
+	}
 end
 
 -- A bunch of pre-computed top items functions
@@ -575,60 +550,60 @@ end
 -- ! @param options contains all the info available of the timeseries
 --                  from the schema to the timeframe, options, ecc.
 function ts_utils.timeseries_query_top(options)
-   options = ts_utils.getQueryOptions(options)
-   local top_items = nil
-   local schema = nil
+	options = ts_utils.getQueryOptions(options)
+	local top_items = nil
+	local schema = nil
 
-   if not isUserAccessAllowed(options.tags) then
-      return nil
-   end
+	if not isUserAccessAllowed(options.tags) then
+		return nil
+	end
 
-   ts_common.clearLastError()
+	ts_common.clearLastError()
 
-   -- Check if some tops are already pre-computed
-   local pre_computed = getPrecomputedTops(options.schema, options.tags, options.epoch_begin, options.epoch_end,
-					   options)
+	-- Check if some tops are already pre-computed
+	local pre_computed =
+		getPrecomputedTops(options.schema, options.tags, options.epoch_begin, options.epoch_end, options)
 
-   if pre_computed then
-      -- Use precomputed top items
-      top_items = pre_computed
-      schema = pre_computed.schema
-   else
-      options.schema_info = ts_utils.getSchema(options.schema)
+	if pre_computed then
+		-- Use precomputed top items
+		top_items = pre_computed
+		schema = pre_computed.schema
+	else
+		options.schema_info = ts_utils.getSchema(options.schema)
 
-      if not options.schema_info then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. options.schema)
-	 return nil
-      end
+		if not options.schema_info then
+			traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. options.schema)
+			return nil
+		end
 
-      local driver = ts_utils.getQueryDriverForSchema(options.schema_info)
+		local driver = ts_utils.getQueryDriverForSchema(options.schema_info)
 
-      if not driver then
-	 return nil
-      end
+		if not driver then
+			return nil
+		end
 
-      local top_tags = {}
+		local top_tags = {}
 
-      for _, tag in ipairs(options.schema_info._tags) do
-	 if not options.tags[tag] then
-	    top_tags[#top_tags + 1] = tag
-	 end
-      end
+		for _, tag in ipairs(options.schema_info._tags) do
+			if not options.tags[tag] then
+				top_tags[#top_tags + 1] = tag
+			end
+		end
 
-      -- options.rrdfile means that a single query is requested
-      if table.empty(top_tags) then
-	 -- no top tags, just a plain query
-	 return ts_utils.timeseries_query(options)
-      end
+		-- options.rrdfile means that a single query is requested
+		if table.empty(top_tags) then
+			-- no top tags, just a plain query
+			return ts_utils.timeseries_query(options)
+		end
 
-      -- Find the top items
-      local topk_heuristic = ntop.getPref("ntopng.prefs.topk_heuristic_precision")
-      if (topk_heuristic ~= 'disabled') then
-	 top_items = driver:timeseries_top(options, top_tags)
-      end
-   end
+		-- Find the top items
+		local topk_heuristic = ntop.getPref("ntopng.prefs.topk_heuristic_precision")
+		if topk_heuristic ~= "disabled" then
+			top_items = driver:timeseries_top(options, top_tags)
+		end
+	end
 
-   return top_items
+	return top_items
 end
 
 -- ##############################################
