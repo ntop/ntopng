@@ -4433,6 +4433,7 @@ void Ntop::registerThread(const char* name, pthread_t id) {
   ti.name = name;
   ti.last_cpu_ts.tv_sec = ti.last_cpu_ts.tv_nsec = 0;
   ti.last_elapsed_ts.tv_sec = ti.last_elapsed_ts.tv_nsec = 0;
+  ti.cpu_clock_valid = (pthread_getcpuclockid(id, &ti.cpu_clock_id) == 0);
 
   threads_info_m.lock(__FILE__, __LINE__);
   threads_info[id] = ti;
@@ -4450,68 +4451,69 @@ void Ntop::lua_threadsInfo(lua_State* vm) {
 
   threads_info_m.lock(__FILE__, __LINE__);
 
-  for (it = threads_info.begin(); it != threads_info.end(); ++it) {
-    pthread_t tid = it->first;
+  for (it = threads_info.begin(); it != threads_info.end();) {
     ThreadInfo& ti = it->second;
-    clockid_t cpu_clock_id;
+    struct timespec cpu_now;
 
-    if (pthread_getcpuclockid(tid, &cpu_clock_id) == 0) {
-      struct timespec cpu_now;
-
-      if (clock_gettime(cpu_clock_id, &cpu_now) == 0) {
-        float utilization = 0;
-
-        if (ti.last_elapsed_ts.tv_sec > 0 || ti.last_elapsed_ts.tv_nsec > 0) {
-          int64_t delta_cpu_ns =
-              ((int64_t)cpu_now.tv_sec - (int64_t)ti.last_cpu_ts.tv_sec) *
-                  1000000000 +
-              (cpu_now.tv_nsec - ti.last_cpu_ts.tv_nsec);
-          int64_t delta_elapsed_ns =
-              ((int64_t)elapsed_now.tv_sec -
-               (int64_t)ti.last_elapsed_ts.tv_sec) *
-                  1000000000 +
-              (elapsed_now.tv_nsec - ti.last_elapsed_ts.tv_nsec);
-          if (delta_elapsed_ns > 0)
-            utilization = (float)delta_cpu_ns * 100 / (float)delta_elapsed_ns;
-        }
-
-        ti.last_cpu_ts = cpu_now;
-        ti.last_elapsed_ts = elapsed_now;
-
-        u_int64_t total_ms =
-            (u_int64_t)cpu_now.tv_sec * 1000 + cpu_now.tv_nsec / 1000000;
-
-        lua_pushstring(vm, ti.name.c_str());
-        lua_gettable(vm, -2);
-
-        if (lua_istable(vm, -1)) {
-          /* If another thread with the same name was already added, sum it */
-          lua_getfield(vm, -1, "cpu_utilization_pct");
-          float existing_pct = (float)lua_tonumber(vm, -1);
-          lua_pop(vm, 1);
-          lua_pushnumber(vm, existing_pct + utilization);
-          lua_setfield(vm, -2, "cpu_utilization_pct");
-
-          lua_getfield(vm, -1, "cpu_total_ms");
-          u_int64_t existing_ms = (u_int64_t)lua_tonumber(vm, -1);
-          lua_pop(vm, 1);
-          lua_pushnumber(vm, (lua_Number)(existing_ms + total_ms));
-          lua_setfield(vm, -2, "cpu_total_ms");
-
-          lua_pop(vm, 1);
-        } else {
-          lua_pop(vm, 1);
-
-          lua_newtable(vm);
-          lua_push_float_table_entry(vm, "cpu_utilization_pct", utilization);
-          lua_push_uint64_table_entry(vm, "cpu_total_ms", total_ms);
-
-          lua_pushstring(vm, ti.name.c_str());
-          lua_insert(vm, -2);
-          lua_settable(vm, -3);
-        }
-      }
+    if (!ti.cpu_clock_valid || clock_gettime(ti.cpu_clock_id, &cpu_now) != 0) {
+      /* Thread terminated, remove */
+      it = threads_info.erase(it);
+      continue;
     }
+
+    float utilization = 0;
+
+    if (ti.last_elapsed_ts.tv_sec > 0 || ti.last_elapsed_ts.tv_nsec > 0) {
+      int64_t delta_cpu_ns =
+          ((int64_t)cpu_now.tv_sec - (int64_t)ti.last_cpu_ts.tv_sec) *
+              1000000000 +
+          (cpu_now.tv_nsec - ti.last_cpu_ts.tv_nsec);
+      int64_t delta_elapsed_ns =
+          ((int64_t)elapsed_now.tv_sec -
+           (int64_t)ti.last_elapsed_ts.tv_sec) *
+              1000000000 +
+          (elapsed_now.tv_nsec - ti.last_elapsed_ts.tv_nsec);
+      if (delta_elapsed_ns > 0)
+        utilization = (float)delta_cpu_ns * 100 / (float)delta_elapsed_ns;
+    }
+
+    ti.last_cpu_ts = cpu_now;
+    ti.last_elapsed_ts = elapsed_now;
+
+    u_int64_t total_ms =
+        (u_int64_t)cpu_now.tv_sec * 1000 + cpu_now.tv_nsec / 1000000;
+
+    lua_pushstring(vm, ti.name.c_str());
+    lua_gettable(vm, -2);
+
+    if (lua_istable(vm, -1)) {
+      /* If another thread with the same name was already added, sum it */
+      lua_getfield(vm, -1, "cpu_utilization_pct");
+      float existing_pct = (float)lua_tonumber(vm, -1);
+      lua_pop(vm, 1);
+      lua_pushnumber(vm, existing_pct + utilization);
+      lua_setfield(vm, -2, "cpu_utilization_pct");
+
+      lua_getfield(vm, -1, "cpu_total_ms");
+      u_int64_t existing_ms = (u_int64_t)lua_tonumber(vm, -1);
+      lua_pop(vm, 1);
+      lua_pushnumber(vm, (lua_Number)(existing_ms + total_ms));
+      lua_setfield(vm, -2, "cpu_total_ms");
+
+      lua_pop(vm, 1);
+    } else {
+      lua_pop(vm, 1);
+
+      lua_newtable(vm);
+      lua_push_float_table_entry(vm, "cpu_utilization_pct", utilization);
+      lua_push_uint64_table_entry(vm, "cpu_total_ms", total_ms);
+
+      lua_pushstring(vm, ti.name.c_str());
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
+    ++it;
   }
 
   threads_info_m.unlock(__FILE__, __LINE__);
