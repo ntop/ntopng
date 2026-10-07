@@ -3485,7 +3485,7 @@ static int ntop_http_patch_auth_token(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Full-featured HTTP fetch accepting all options in a single parameter table.  Lua: ntop.httpFetch(params_table) → table */
+/* @brief Downloads a URL into a file.  Lua: ntop.httpFetch(url, file_path, [connect_timeout], [max_duration_timeout]) → table */
 static int ntop_http_fetch(lua_State* vm) {
   char *url, *f, fname[PATH_MAX];
   HTTPTranferStats stats;
@@ -3503,6 +3503,9 @@ static int ntop_http_fetch(lua_State* vm) {
 
   if (lua_type(vm, 3) == LUA_TNUMBER) /* Optional */
     connection_timeout = lua_tonumber(vm, 3);
+
+  if (lua_type(vm, 4) == LUA_TNUMBER) /* Optional, 0 = no limit */
+    lifetime_timeout = lua_tonumber(vm, 4);
 
   snprintf(fname, sizeof(fname), "%s", f);
   ntop->fixPath(fname);

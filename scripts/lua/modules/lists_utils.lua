@@ -390,7 +390,7 @@ local function checkListsUpdate(timeout)
             traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
 
             local started_at = os.time()
-            local res = ntop.httpFetch(list.url, temp_fname, timeout)
+            local res = ntop.httpFetch(list.url, temp_fname, 10, 10)
 
             if (res and (res["RESPONSE_CODE"] == 200)) then
                 -- download was successful, replace the original file
