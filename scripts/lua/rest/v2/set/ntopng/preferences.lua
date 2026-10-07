@@ -8,10 +8,10 @@
 --
 -- POST body (JSON):
 --   {
---     "csrf":    "<token>",
---     "section": "<section_id>",
---     "key":     "<entry_key>",
---     "value":   "<new_value>"
+--     "csrf":         "<token>",
+--     "pref_section": "<section_id>",
+--     "pref_key":     "<entry_key>",
+--     "pref_value":   "<new_value>"
 --   }
 --
 -- Special behaviours (server-side only):
