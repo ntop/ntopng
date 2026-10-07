@@ -1,6 +1,19 @@
 Ntopng Automatic Tests
 ======================
 
+Standalone Lua Tests
+--------------------
+
+The session cookie header regression test runs without ntopng or Redis. From
+the repository root, using Lua 5.4 or later:
+
+```
+lua tests/unit/session_cookie_expiry.lua
+```
+
+REST API Tests
+--------------
+
 An automated test suite is available under ntopng/tests/e2e/rest,
 in order to run it:
 
