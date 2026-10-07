@@ -9669,7 +9669,7 @@ void Flow::setCliTag(int tag_idx) {
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
     if (!cli_h->isBroadcastHost() && !cli_h->isUserTagSet(tag_idx))
-      cli_h->setUserTags(1ULL << tag_idx);
+      cli_h->addUserTags(1ULL << tag_idx);
   } else if (cli_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!cli_ip_addr->isBroadcastAddress() &&
@@ -9688,7 +9688,7 @@ void Flow::setSrvTag(int tag_idx) {
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
     if (!srv_h->isBroadcastHost() && !srv_h->isUserTagSet(tag_idx))
-      srv_h->setUserTags(1ULL << tag_idx);
+      srv_h->addUserTags(1ULL << tag_idx);
   } else if (srv_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!srv_ip_addr->isBroadcastAddress() &&

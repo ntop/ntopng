@@ -555,7 +555,8 @@ class Host : public GenericHashEntry,
 
   void addTag(HostTagId tag_id);
 
-  void setUserTags(u_int64_t bitmap);
+  void setUserTags(u_int64_t bitmap); /* Replace the user-defined tags */
+  void addUserTags(u_int64_t bitmap); /* Add to the user-defined tags */
   bool isUserTagSet(u_int tag_idx);
   inline u_int64_t getUserTags() const { return user_tags_bitmap; }
 
