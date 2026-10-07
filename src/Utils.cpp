@@ -37,6 +37,11 @@
 
 // #define TRACE_CAPABILITIES
 
+/* Note: CURLOPT_CONNECTTIMEOUT_MS is an enum, checking version */
+#if LIBCURL_VERSION_NUM >= 0x071002 /* 7.16.2 */
+#define HAVE_CURLOPT_CONNECTTIMEOUT_MS
+#endif
+
 static const char* hex_chars = "0123456789ABCDEF";
 
 static map<string, int> initTcpStatesStr2State() {
@@ -1809,9 +1814,10 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_post_writefunc);
 
     if (connect_timeout) {
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
-#ifdef CURLOPT_CONNECTTIMEOUT_MS
+#ifdef HAVE_CURLOPT_CONNECTTIMEOUT_MS
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, connect_timeout * 1000);
+#else
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
 #endif
     }
 
@@ -1915,9 +1921,10 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
 
     if (connect_timeout) {
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
-#ifdef CURLOPT_CONNECTTIMEOUT_MS
+#ifdef HAVE_CURLOPT_CONNECTTIMEOUT_MS
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, connect_timeout * 1000);
+#else
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
 #endif
     }
 
@@ -2017,9 +2024,10 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (curl_off_t)file_len);
 
     if (connect_timeout > 0) {
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
-#ifdef CURLOPT_CONNECTTIMEOUT_MS
+#ifdef HAVE_CURLOPT_CONNECTTIMEOUT_MS
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, connect_timeout * 1000);
+#else
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
 #endif
     }
 
@@ -2577,9 +2585,10 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
     if (opts.connect_timeout > 0) {
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, opts.connect_timeout);
-#ifdef CURLOPT_CONNECTTIMEOUT_MS
+#ifdef HAVE_CURLOPT_CONNECTTIMEOUT_MS
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, opts.connect_timeout * 1000);
+#else
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, opts.connect_timeout);
 #endif
     }
 
@@ -2600,10 +2609,6 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 #endif
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
-
-#ifdef CURLOPT_CONNECTTIMEOUT_MS
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout * 1000);
-#endif
 
     if (ntop->getTrace()->get_trace_level() > TRACE_LEVEL_NORMAL)
       curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -2750,9 +2755,10 @@ long Utils::httpGet(const char* url,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
     if (connect_timeout > 0) {
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
-#ifdef CURLOPT_CONNECTTIMEOUT_MS
+#ifdef HAVE_CURLOPT_CONNECTTIMEOUT_MS
       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, connect_timeout * 1000);
+#else
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, connect_timeout);
 #endif
     }
 
