@@ -9373,10 +9373,10 @@ void Flow::setJSONRiskInfo(char* r) {
         const char* info = json_object_get_string(obj);
 
         if (info) {
-          if (strstr(info, "client") && cli_host)
-            cli_host->addTag(HOST_TAG_NON_PQC_COMPLIANT);
-          if (strstr(info, "server") && srv_host)
-            srv_host->addTag(HOST_TAG_NON_PQC_COMPLIANT);
+          if (strstr(info, "client"))
+            setCliTag(HOST_TAG_NON_PQC_COMPLIANT);
+          if (strstr(info, "server"))
+            setSrvTag(HOST_TAG_NON_PQC_COMPLIANT);
         }
       }
 
@@ -9668,8 +9668,8 @@ void Flow::setCliTag(int tag_idx) {
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
-    if (!cli_h->isBroadcastHost() && !cli_h->isUserTagSet(tag_idx))
-      cli_h->addUserTags(1ULL << tag_idx);
+    if (!cli_h->isBroadcastHost() && !cli_h->isTagSet(tag_idx))
+      cli_h->addTag(tag_idx);
   } else if (cli_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!cli_ip_addr->isBroadcastAddress() &&
@@ -9687,8 +9687,8 @@ void Flow::setSrvTag(int tag_idx) {
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
-    if (!srv_h->isBroadcastHost() && !srv_h->isUserTagSet(tag_idx))
-      srv_h->addUserTags(1ULL << tag_idx);
+    if (!srv_h->isBroadcastHost() && !srv_h->isTagSet(tag_idx))
+      srv_h->addTag(tag_idx);
   } else if (srv_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!srv_ip_addr->isBroadcastAddress() &&

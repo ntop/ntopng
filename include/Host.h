@@ -553,7 +553,8 @@ class Host : public GenericHashEntry,
   void lua_get_listening_ports(lua_State* vm);
   void lua_get_tags(lua_State* vm) const;
 
-  void addTag(HostTagId tag_id);
+  void addTag(u_int tag_idx);
+  bool isTagSet(u_int tag_idx);
 
   void setUserTags(u_int64_t bitmap); /* Replace the user-defined tags */
   void addUserTags(u_int64_t bitmap); /* Add to the user-defined tags */

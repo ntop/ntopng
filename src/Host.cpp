@@ -1272,8 +1272,28 @@ bool Host::isUserTagSet(u_int tag_idx) {
 
 /* *************************************** */
 
-void Host::addTag(HostTagId tag_id) {
-  computed_tags_bitmap |= ((u_int64_t)1 << tag_id);
+/* Add a tag set programmatically (e.g. from the flows of the host):
+ * bits 0-31 (ntop-reserved) are computed at runtime and not persisted,
+ * bits 32-63 are user-defined tags */
+void Host::addTag(u_int tag_idx) {
+  if (tag_idx > 63) return;
+
+  if (tag_idx > 31)
+    addUserTags(1ULL << tag_idx);
+  else if (!(computed_tags_bitmap & (1ULL << tag_idx))) {
+    computed_tags_bitmap |= (1ULL << tag_idx);
+    setAssetUpdated();
+  }
+}
+
+/* *************************************** */
+
+bool Host::isTagSet(u_int tag_idx) {
+  if (tag_idx > 63) return false;
+
+  if (tag_idx > 31) return isUserTagSet(tag_idx);
+
+  return (computed_tags_bitmap & (1ULL << tag_idx)) ? true : false;
 }
 
 /* ***************************************** */
