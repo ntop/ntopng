@@ -1,14 +1,14 @@
-.. _Overview:
+.. _Lightview:
 
-Overview
-========
+Light View
+==========
 
 When ntopng monitors more than one network interface, the Interfaces dropdown menu in the top
-toolbar lists an additional *Overview* entry. Selecting it switches the web GUI to a view that
+toolbar lists an additional *Overview* entry. Selecting it switches the web GUI to a *light view* that
 combines the data of all the local interfaces of the ntopng instance, so that a single page shows
 the overall picture instead of one interface at a time.
 
-The Overview does not require any configuration: it is computed on demand from the interfaces
+This light view does not require any configuration: it is computed on demand from the interfaces
 ntopng is already monitoring. It is not an interface itself, nothing is added to the command line,
 and no extra traffic processing takes place in the background. This is the main difference with
 `View Interfaces <../../advanced_features/interfaces/view_interfaces.html>`_, which are created
@@ -21,14 +21,14 @@ The Overview entry is shown in the dropdown when:
 - no View Interface is configured. When a View Interface exists, that is the intended way to see
   aggregated data, and the Overview entry is hidden.
 
-While the Overview is selected, the menu only shows the pages that are able to combine data of all the
+While Overview is selected, the menu only shows the pages that are able to combine data of all the
 interfaces. The other menu entries are disabled with the *Not available in Overview* hint;
 select a regular interface from the dropdown to access them.
 
 Dashboard
 ---------
 
-The Overview has its own dashboard. Counters, charts and tables are computed by querying every
+This light view has its own dashboard. Counters, charts and tables are computed by querying every
 local interface and merging the results: traffic charts show the total across all the interfaces,
 while Top Local / Remote Hosts tables report, next to each host, the name of the interface where
 the host has been seen.
@@ -42,7 +42,7 @@ the host has been seen.
 Report and Historical Flows
 ---------------------------
 
-In the Overview, the Report and the Historical Flows Explorer are also available: queries return
+In the light view, the Report and the Historical Flows Explorer are also available: queries return
 flows and data of all the interfaces. In the Historical Flows Explorer, the interface where each flow has
 been seen is reported in a dedicated column.
 
@@ -68,7 +68,7 @@ The *Reset Counters* action resets the counters of all the local interfaces.
 Alerts
 ------
 
-When ClickHouse is enabled, the Alerts Explorer is available in the Overview and lists the
+When ClickHouse is enabled, the Alerts Explorer is available in the light view and lists the
 alerts of all the interfaces, both engaged and past alerts. All the explorer actions work on the
 whole set of alerts: filters, acknowledging and deleting alerts, and opening alert details.
 
@@ -77,16 +77,16 @@ the traffic of a flow from the traffic recording, require jumping on the actual 
 
 .. note::
 
-   Alerts are only available in the Overview when ClickHouse is enabled. With the default
-   (SQLite) alert database, the Alerts menu is disabled in the Overview.
+   Alerts are only available in the light view when ClickHouse is enabled. With the default
+   (SQLite) alert database, the Alerts menu is disabled in the light view.
 
 Search
 ------
 
-In the Overview, the search box in the top toolbar always looks for hosts on all the
+In the light view, the search box in the top toolbar always looks for hosts on all the
 interfaces, regardless of the *Search In All Interfaces* preference. Each result reports the
 interface where the host has been found:
 
 - clicking a host opens its details page on the interface where the host is active;
 - the *Alerts* and *Historical Flows* icons next to a result open those pages within the
-  Overview, filtered by the host, so the results cover all the interfaces.
+  light view, filtered by the host, so the results cover all the interfaces.
