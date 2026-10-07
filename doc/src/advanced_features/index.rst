@@ -11,6 +11,7 @@ section.
     bridging_and_policing
     ids_acceleration
     interfaces/index
+    lightview/index
     live_pcap_download
     deduplication
     oem

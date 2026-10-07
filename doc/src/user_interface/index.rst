@@ -75,7 +75,6 @@ entry, which combines the data of all the local interfaces in a single view.
 
     network_interface/index
     system_interface/index
-    lightview/index
 
 
 Alerts
