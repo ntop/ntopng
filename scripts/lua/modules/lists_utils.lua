@@ -29,6 +29,7 @@ local DEFAULT_UPDATE_INTERVAL = 86400
 local MAX_LIST_ERRORS = 2
 local MIN_DOWNLOAD_INTERVAL = 3600
 local SIXH_DOWNLOAD_INTERVAL = 21600
+local LIST_DOWNLOAD_TIMEOUT = 10 -- seconds
 
 local REDIS_KEY_HITS = "ntopng.cache.system.blacklists_hits"
 
@@ -390,7 +391,7 @@ local function checkListsUpdate(timeout)
             traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
 
             local started_at = os.time()
-            local res = ntop.httpFetch(list.url, temp_fname, 10, 10)
+            local res = ntop.httpFetch(list.url, temp_fname, LIST_DOWNLOAD_TIMEOUT, LIST_DOWNLOAD_TIMEOUT)
 
             if (res and (res["RESPONSE_CODE"] == 200)) then
                 -- download was successful, replace the original file
