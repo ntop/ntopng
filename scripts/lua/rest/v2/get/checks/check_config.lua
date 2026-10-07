@@ -91,6 +91,9 @@ if script.gui then
    if script.gui.i18n_field_unit then
       gui.field_unit = i18n(script.gui.i18n_field_unit)
    end
+   if script.gui.field_operator then
+      gui.field_operator = script.gui.field_operator
+   end
    if script.gui.input_title then
       gui.input_title = i18n(script.gui.input_title) or script.gui.input_title
    end
