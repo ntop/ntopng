@@ -4427,13 +4427,20 @@ void Ntop::checkReloadHostChecks() {
 /* ******************************************* */
 
 void Ntop::registerThread(const char* name, pthread_t id) {
+  ThreadInfo ti;
+
   Utils::setThreadName(name);
 
-  ThreadInfo ti;
   ti.name = name;
   ti.last_cpu_ts.tv_sec = ti.last_cpu_ts.tv_nsec = 0;
   ti.last_elapsed_ts.tv_sec = ti.last_elapsed_ts.tv_nsec = 0;
-  ti.cpu_clock_valid = (pthread_getcpuclockid(id, &ti.cpu_clock_id) == 0);
+
+  ti.cpu_clock_valid =
+#if defined(__APPLE__) || defined(WIN32)
+    false;
+#else
+    (pthread_getcpuclockid(id, &ti.cpu_clock_id) == 0);
+#endif
 
   threads_info_m.lock(__FILE__, __LINE__);
   threads_info[id] = ti;
