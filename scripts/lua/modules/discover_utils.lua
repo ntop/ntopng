@@ -16,11 +16,10 @@ discover.progress_string = "discovery.progess"
 discover.osinfo = {
     [0] = {"Unknown", ''},
     [1] = {"Windows", '<i class=\'fab fa-windows fa-lg\'></i>'},
-    [2] = {"macOS", '<i class=\'fab fa-apple fa-lg\'></i>'},
-    [3] = {"iOS", '<i class=\'fab fa-apple fa-lg\'></i>'},
-    [4] = {"Android", '<i class=\'fab fa-android fa-lg\'></i>'},   
-    [5] = {"Linux", '<i class=\'fab fa-linux fa-lg\'></i>'},
-    [6] = {"FreeBSD", ''},
+    [2] = {"macOS/iOS/iPad", '<i class=\'fab fa-apple fa-lg\'></i>'},
+    [3] = {"Android", '<i class=\'fab fa-android fa-lg\'></i>'},   
+    [4] = {"Linux", '<i class=\'fab fa-linux fa-lg\'></i>'},
+    [5] = {"FreeBSD", ''},
 }
 
 -- #################################
@@ -671,9 +670,9 @@ local function appendSSHOS(mac, ip)
     if ((r ~= nil) and (r ~= "")) then
         if (string.contains(r, "Debian") or string.contains(r, "Raspbian") or string.contains(r, "dropbear") or
             string.contains(r, "Ubuntu")) then
-            interface.setHostOperatingSystem(ip, 1) -- 1 = Linux
+            interface.setHostOperatingSystem(ip, 4) -- 4 = Linux
         elseif (string.contains(r, "MS")) then
-            interface.setHostOperatingSystem(ip, 2) -- 2 = windows
+            interface.setHostOperatingSystem(ip, 1) -- 1 = windows
         end
 
         return (" (" .. r .. ")")
@@ -802,13 +801,13 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         if (osx ~= nil) then
             ret = ret .. osx
         end
-        interface.setHostOperatingSystem(ip, 3) -- 3 = OSX
+        interface.setHostOperatingSystem(ip, 2) -- 2 = macOS/iOS/iPad
         if (discover.debug) then
             io.write(debug.traceback())
         end
         return icon, ret, nil
     elseif (mdns["_nvstream_dbd._tcp.local"] ~= nil) then
-        interface.setHostOperatingSystem(ip, 2) -- 2 = windows
+        interface.setHostOperatingSystem(ip, 1) -- 1 = windows
         if (discover.debug) then
             io.write(debug.traceback())
         end
@@ -820,7 +819,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         end
         return 'multimedia', discover.asset_icons['multimedia'], nil
     elseif (mdns["_workstation._tcp.local"] ~= nil) then
-        interface.setHostOperatingSystem(ip, 1) -- 1 = Linux
+        interface.setHostOperatingSystem(ip, 4) -- 4 = Linux
         if (discover.debug) then
             io.write(debug.traceback())
         end
@@ -993,7 +992,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         if (discover.debug) then
             io.write(debug.traceback())
         end
-        interface.setHostOperatingSystem(ip, 5) -- 5 = Android
+        interface.setHostOperatingSystem(ip, 3) -- 3 = Android
         return 'phone', discover.asset_icons['phone'] .. ' ' .. discover.android_icon, nil
     elseif ((string.contains(manufacturer, "hewlett packard") or string.contains(manufacturer, "hon hai")) and
         (snmpName ~= nil)) then
@@ -1040,19 +1039,19 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         return 'printer', discover.asset_icons['printer'] .. l, snmpName
     elseif (string.contains(manufacturer, "apple")) then
         if (string.contains(hostname, "iphone") or string.contains(symName, "iphone")) then
-            interface.setHostOperatingSystem(ip, 4) -- 4 = iOS
+            interface.setHostOperatingSystem(ip, 2) -- 2 = macOS / iPadOS / iOS
             if (discover.debug) then
                 io.write(debug.traceback())
             end
             return 'phone', discover.asset_icons['phone'] .. ' (' .. discover.apple_icon .. ' iPhone)', nil
         elseif (string.contains(hostname, "ipad") or string.contains(symName, "ipad")) then
-            interface.setHostOperatingSystem(ip, 4) -- 4 = iOS
+            interface.setHostOperatingSystem(ip, 2) -- 2 = macOS / iPadOS / iOS
             if (discover.debug) then
                 io.write(debug.traceback())
             end
             return 'tablet', discover.asset_icons['tablet'] .. ' (' .. discover.apple_icon .. 'iPad)', nil
         elseif (string.contains(hostname, "ipod") or string.contains(symName, "ipod")) then
-            interface.setHostOperatingSystem(ip, 4) -- 4 = iOS
+            interface.setHostOperatingSystem(ip, 2) -- 2 = macOS / iPadOS / iOS
             if (discover.debug) then
                 io.write(debug.traceback())
             end
@@ -1076,7 +1075,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
             if (snmpName ~= nil) then
                 ret = ret .. " [" .. snmpName .. "]"
             end
-            interface.setHostOperatingSystem(ip, 3) -- 3 = OSX
+            interface.setHostOperatingSystem(ip, 2) -- 2 = macOS/iOS/iPad
             if (discover.debug) then
                 io.write(debug.traceback())
             end
@@ -1139,7 +1138,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
     end
 
     if (string.starts(hostname, "desktop-") or string.starts(symName, "desktop-")) then
-        interface.setHostOperatingSystem(ip, 2) -- 2 = windows
+        interface.setHostOperatingSystem(ip, 1) -- 1 = windows
         if (discover.debug) then
             io.write(debug.traceback())
         end
@@ -1150,7 +1149,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
         end
         return 'laptop', discover.asset_icons['laptop'], nil
     elseif (string.contains(hostname, "android") or string.contains(symName, "android")) then
-        interface.setHostOperatingSystem(ip, 5) -- 5 = Android
+        interface.setHostOperatingSystem(ip, 3) -- 3 = Android
         if (discover.debug) then
             io.write(debug.traceback())
         end
@@ -1222,7 +1221,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
             end
             if (string.contains(server, "Ubuntu") or string.contains(server, "Debian") or
                 string.contains(server, "Linux")) then
-                interface.setHostOperatingSystem(ip, 1) -- 1 = Linux
+                interface.setHostOperatingSystem(ip, 4) -- 4 = Linux
                 if (discover.debug) then
                     io.write(debug.traceback())
                 end
@@ -1241,7 +1240,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
                 if (discover.debug) then
                     io.write(debug.traceback())
                 end
-                interface.setHostOperatingSystem(ip, 2) -- 2 = windows
+                interface.setHostOperatingSystem(ip, 1) -- 1 = windows
                 return 'workstation', discover.asset_icons['workstation'] .. ' (Windows)', nil
             elseif (string.contains(server, "Virata%-EmWeb") or string.contains(server, "HP%-ChaiSOE") -- Usually LaserJet
             or string.contains(server, "EWS%-NIC5") -- Xerox

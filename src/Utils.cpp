@@ -5334,7 +5334,7 @@ DeviceType Utils::getDeviceTypeFromOsDetail(const char* os, ndpi_os* hint) {
   *hint = ndpi_os_unknown;
 
   if (strcasestr(os, "iPhone")) {
-    *hint = ndpi_os_ios_ipad_os;
+    *hint = ndpi_os_apple;
     return (device_phone);
   } else if (strcasestr(os, "Android")) {
     *hint = ndpi_os_android;
@@ -5343,7 +5343,7 @@ DeviceType Utils::getDeviceTypeFromOsDetail(const char* os, ndpi_os* hint) {
     return (device_phone);
   else if (strcasestr(os, "Mac OS") || strstr(os, "Macintosh") ||
            strstr(os, "OS X")) {
-    *hint = ndpi_os_macos;
+    *hint = ndpi_os_apple;
     return (device_workstation);
   } else if (strcasestr(os, "Windows")) {
     *hint = ndpi_os_windows;
@@ -5356,7 +5356,7 @@ DeviceType Utils::getDeviceTypeFromOsDetail(const char* os, ndpi_os* hint) {
     *hint = ndpi_os_freebsd;
     return (device_workstation);
   } else if (strcasestr(os, "iPad")) {
-    *hint = ndpi_os_ios_ipad_os;
+    *hint = ndpi_os_apple;
     return (device_tablet);
   } else if (strcasestr(os, "Airport")) {
     return (device_tablet);
@@ -8052,12 +8052,8 @@ const char* Utils::OS2Str(ndpi_os os) {
       return ("Windows");
       break;
 
-    case ndpi_os_macos:
-      return ("macOS");
-      break;
-
-    case ndpi_os_ios_ipad_os:
-      return ("iOS/iPad");
+    case ndpi_os_apple:
+      return ("macOS/iOS/iPad");
       break;
 
     case ndpi_os_android:
@@ -8135,11 +8131,10 @@ DeviceType Utils::osType2deviceType(ndpi_os t) {
     case ndpi_os_linux:
     case ndpi_os_freebsd:
     case ndpi_os_windows:
-    case ndpi_os_macos:
+    case ndpi_os_apple:
       return (device_workstation);
       break;
 
-    case ndpi_os_ios_ipad_os:
     case ndpi_os_android:
       return (device_phone);
       break;
