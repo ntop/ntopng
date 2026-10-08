@@ -126,6 +126,7 @@ void LocalHost::initialize() {
   os_detail = NULL;
   usedPorts = NULL;
   asset_map_updated = false;
+  tags_refreshed_bitmap = tags_removed_bitmap = tags_assigned_bitmap = 0;
 
   ip.isLocalHost(&local_network_id);
   inconsistent_host_os = false;
@@ -254,7 +255,11 @@ void LocalHost::periodic_stats_update(const struct timeval* tv,
     Mac* cur_mac = getMac();
     if (cur_mac) asset_map_updated |= cur_mac->isAssetUpdated();
 
-    if ((diff > CONST_ASSETS_PERIODIC_UPDATE) && asset_map_updated) {
+    if (((diff > CONST_ASSETS_PERIODIC_UPDATE) && asset_map_updated) ||
+        /* Nothing has changed, but some tags that expire when not refreshed
+         * have been observed again */
+        ((diff > ntop->getPrefs()->getAssetTagsRefreshInterval()) &&
+         (tags_refreshed_bitmap & ntop->getTTLTagsBitmap()))) {
       memcpy(&last_periodic_asset_update, tv,
              sizeof(last_periodic_asset_update));
       dumpAssetInfo();

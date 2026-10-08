@@ -26,9 +26,9 @@ Built-in Tags
 
 Built-in tags are read-only: their name and description cannot be changed
 (the corresponding fields are disabled in the edit dialog), although their
-color can still be customized to fit personal preference. They cannot be
-deleted, and there is no "reset" action for them as there is nothing
-user-provided to revert.
+color can still be customized to fit personal preference, and a TTL can be
+set for them (see `Asset Tag Expiration (TTL)`_). They cannot be deleted, and
+there is no "reset" action for them.
 
 ntopng currently defines the following built-in tags:
 
@@ -111,11 +111,11 @@ where the following can be changed:
 - **TTL**: disabled by default, meaning the tag never expires. When
   enabled, it is the number of days (from 1 to 365) after which the tag
   associated to an asset expires, unless it is refreshed (Enterprise L or
-  above).
+  above). See `Asset Tag Expiration (TTL)`_ below.
 
 A user-defined tag can be reverted to its factory defaults (default name,
-black color, empty description) using the **Reset** action, which also
-removes it from any host it was assigned to.
+black color, empty description, no TTL) using the **Reset** action, which
+also removes it from any host and asset it was assigned to.
 
 Unlike built-in tags, user-defined tags are not computed automatically:
 they must be explicitly assigned to a host from that host's configuration
@@ -170,11 +170,12 @@ of a misconfigured or outdated mail client.
 
 2. Rename it to ``UnsafeMail``, pick a color, and in the **Applications**
    field add ``IMAP``, ``POP3`` and ``SMTP``, leaving their encrypted
-   counterparts (``IMAPS``, ``POPS``, ``SMTPS``) out. Save.
+   counterparts (``IMAPS``, ``POPS``, ``SMTPS``) out. Enable the **TTL**
+   and set it to ``7`` days (see `Asset Tag Expiration (TTL)`_). Save.
 
    .. figure:: ../../../img/tags_edit_applications.png
      :align: center
-     :alt: Tag edit dialog with IMAP, POP3 and SMTP added to the Applications field
+     :alt: Tag edit dialog with IMAP, POP3 and SMTP added to the Applications field, and a TTL of 7 days
 
 3. As soon as any host on the network exchanges mail over one of the
    three plaintext protocols, ntopng tags both the flow and the client
@@ -192,6 +193,74 @@ of a misconfigured or outdated mail client.
    .. figure:: ../../../img/tags_assets_filtered.png
      :align: center
      :alt: Assets Inventory page filtered by the UnsafeMail tag
+
+5. The administrator then reconfigures the mail clients one by one. No
+   further action is needed in ntopng: thanks to the TTL, a PC that stops
+   using the plaintext protocols loses the ``UnsafeMail`` tag about 7 days
+   after its last plaintext mail flow, and disappears from the filtered
+   list by itself. A PC that has not been fixed (or that has been
+   misconfigured again) keeps the tag, as every new plaintext mail flow
+   refreshes it. The filtered Assets page therefore always shows the work
+   still to be done, rather than every host that has ever used plaintext
+   mail.
+
+   Without a TTL the tag would stay on those assets forever, and the list
+   could only grow: the administrator would have to remove the tag by hand
+   from every fixed host, or could not tell the fixed hosts from the ones
+   still to be fixed.
+
+Asset Tag Expiration (TTL)
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note::
+  Enterprise L license or above is required
+
+The assets inventory remembers the hosts seen on the network, together
+with their tags, long after those hosts have stopped doing what earned
+them a tag. By default a tag stays on an asset forever: a host that was a
+DNS server one year ago, or that once used an outdated application, is
+still listed as such. This is the right behaviour for tags used as
+permanent annotations, but it makes tags describing a *behaviour* less and
+less accurate over time.
+
+The **TTL** (Time To Live) of a tag tells for how long the tag is kept on
+an asset when nothing confirms it anymore. It is set in the tag edit
+dialog, in days (from 1 to 365), for both built-in and user-defined tags.
+When the TTL is disabled (the default) the tag never expires.
+
+A tag on an asset is **refreshed** every time ntopng has a new evidence of
+it:
+
+- for the server tags (DNS Server, HTTP Server, ...), when the host is
+  observed providing that service again;
+- for the *Non PQC Compliant* tag, when a new non-Post-Quantum-safe flow of
+  the host is detected;
+- for the tags bound to applications or flow risks (see
+  `Application- and Risk-Based Tagging`_), when a new matching flow of the
+  host is detected;
+- for the tags assigned by hand, when the tag is assigned. Nothing
+  refreshes them afterwards, so a tag assigned by hand with a TTL is a
+  temporary annotation that removes itself (e.g. "under maintenance" for
+  a week).
+
+If a tag is not refreshed for longer than its TTL, it is removed from the
+asset. For example, with a TTL of 30 days on the *DNS Server* tag, an
+asset that has not been seen answering DNS queries for 30 days is no
+longer listed as a DNS server; if it starts again, the tag is back.
+
+Things worth knowing:
+
+- Tags assigned because the host is listed in the `Network Configuration`_
+  (DNS, NTP, DHCP, SMTP, SSH, RDP, PowerShell and FTP servers, network
+  gateway) never expire as long as the host is listed there, whatever the
+  TTL. If the
+  host is removed from the configuration, the tag expires as any other.
+- The TTL is in days and the expiration is checked periodically: a tag can
+  be removed up to half a day later than its TTL, never earlier.
+- The expiration is about the **assets**, not the hosts. For the latter,
+  the previously described rules apply.
+- With a license below Enterprise L the TTL is not available, and the
+  tags of an asset simply are the tags of its host.
 
 Tags on Flows
 ^^^^^^^^^^^^^
@@ -219,10 +288,11 @@ several places across the UI:
   column. Since alerts are historical records, the tags shown are the ones
   that were active on the host/flow at the time the alert was generated,
   not the current ones.
-- On the **Assets** page, as part of each asset's details: user-defined
-  tags assigned to a host, manually or through
-  `Application- and Risk-Based Tagging`_, are propagated to its
-  corresponding entry in the assets database.
+- On the **Assets** page, as part of each asset's details: the tags of a
+  host, built-in and user-defined (assigned manually or through
+  `Application- and Risk-Based Tagging`_), are propagated to its
+  corresponding entry in the assets database, where they are kept until
+  they expire (see `Asset Tag Expiration (TTL)`_).
 
 Tags can also be used to filter traffic and assets across the UI (e.g. in
 the Flows and Historical Flows, the Alerts Explorer, and the Assets page).
