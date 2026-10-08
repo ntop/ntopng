@@ -27,6 +27,9 @@ tag_badge_utils.builtin_tags = {
     [13] = { i18n = "asset_details.non_pqc_compliant"  }, -- HOST_TAG_NON_PQC_COMPLIANT
 }
 
+-- Maximum Time To Live (in days) of a tag, 0 means the tag never expires
+tag_badge_utils.MAX_TAG_TTL = 365
+
 -- ##############################################
 
 local function get_redis_key()
@@ -52,7 +55,8 @@ local function get_default_tags_table()
             name        = name,
             reserved    = "true",
             protocols   = {},
-            risks       = {}
+            risks       = {},
+            ttl         = 0
         }
     end
 
@@ -65,7 +69,8 @@ local function get_default_tags_table()
             name        = "Customizable_Tag_" .. i,
             reserved    = "false",
             protocols   = {},
-            risks       = {}
+            risks       = {},
+            ttl         = 0
         }
     end
     return tags
@@ -95,6 +100,16 @@ end
 
 -- ##############################################
 
+-- Sanitize the Time To Live (in days) of a tag: 0 (default) means the tag never
+-- expires, otherwise the value is in the range 1..MAX_TAG_TTL
+local function normalize_ttl(ttl)
+    ttl = math.floor(tonumber(ttl) or 0)
+
+    return math.max(0, math.min(ttl, tag_badge_utils.MAX_TAG_TTL))
+end
+
+-- ##############################################
+
 local function get_tags_from_cache()
     return ntop.getHashAllCache(get_redis_key()) or {}
 end
@@ -110,6 +125,7 @@ local function get_tags()
         if tag then
             tag.protocols = normalize_ids(tag.protocols)
             tag.risks = normalize_ids(tag.risks)
+            tag.ttl = normalize_ttl(tag.ttl)
             tags[tag.id] = tag
         end
     end
@@ -168,7 +184,9 @@ end
 -- description: new description of the tag to update
 -- protocols: array of nDPI application ids bound to the tag (custom tags only, Enterprise L only)
 -- risks: array of flow risk ids bound to the tag (all tags, Enterprise L only)
-function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks)
+-- ttl: days after which the tag (associated to an asset) expires if not refreshed,
+--      0 means it never expires (all tags). When nil the current TTL is left untouched
+function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks, ttl)
     local json = require "dkjson"
     -- Without the license applications and flow risks cannot be changed
     local current = nil
@@ -187,6 +205,11 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
         risks = (current and current.risks) or {}
     end
 
+    if ttl == nil then
+        current = current or get_tags()[tonumber(id)]
+        ttl = current and current.ttl
+    end
+
     local tag = {
         id = id,
         name = name,
@@ -196,7 +219,9 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
         -- Applications can only be bound to user-defined (custom) tags
         protocols = (not tag_badge_utils.isReservedTag(id)) and protocols or {},
         -- Flow risks can be bound to any tag, built-in ones included
-        risks = risks
+        risks = risks,
+        -- Days after which the tag expires, 0 means never
+        ttl = normalize_ttl(ttl)
     }
     ntop.setHashCache(get_redis_key(), id, json.encode(tag))
 

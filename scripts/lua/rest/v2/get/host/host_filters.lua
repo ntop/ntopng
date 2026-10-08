@@ -384,6 +384,7 @@ for _, lbl in ipairs(tag_badge_utils.getTags()) do
 			tag_reserved = lbl.reserved,
 			tag_protocols = lbl.protocols,
 			tag_risks = lbl.risks,
+			tag_ttl = lbl.ttl,
 		}
 	end
 end
