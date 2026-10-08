@@ -387,7 +387,7 @@ local function printAddCustomHostRule(full_url)
       local cat_name = interface.getnDPICategoryName(matched_category)
 
       existing_note = existing_note .. "<br><br>" .. i18n("details.note") .. ": " .. i18n("custom_categories.similar_host_found", {
-											     host = page_utils.safe_html(full_url),
+											     host = safeHtml(full_url),
 											     category = (i18n("ndpi_categories." .. cat_name) or cat_name)
 											 }) .. "<br><br>"
    end
@@ -749,7 +749,7 @@ local function print_flow_overview_page()
 
       if (flow["protos.tls.certificate"] ~= nil) then
          historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"],
-				 page_utils.safe_html(flow["protos.tls.certificate"] or ''))
+				 safeHtml(flow["protos.tls.certificate"] or ''))
       end
 
       if ((flow["protos.tls_version"] ~= nil) and (flow["protos.tls_version"] ~= 0)) then
@@ -1252,13 +1252,13 @@ local function print_flow_overview_page()
          print(i18n("flow_details.client_requested") .. ":<br>")
 
          -- TLS, so use https
-         print(format_external_link(page_utils.safe_html(flow["protos.tls.client_requested_server_name"]),
-				    page_utils.safe_html(flow["protos.tls.client_requested_server_name"]), false, "https"))
+         print(format_external_link(safeHtml(flow["protos.tls.client_requested_server_name"]),
+				    safeHtml(flow["protos.tls.client_requested_server_name"]), false, "https"))
          if (flow["category"] ~= nil) then
             print(" " .. getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"]))
          end
          historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"],
-				 page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
+				 safeHtml(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
          printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
          print("</td>")
 
@@ -1309,13 +1309,13 @@ local function print_flow_overview_page()
 
       if (flow["protos.tls.client_alpn"] ~= nil) then
          print('<tr><th class=\'colspan-4\'><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-bs-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>' ..
-	    page_utils.safe_html(flow["protos.tls.client_alpn"]) .. '</td></tr>\n')
+	    safeHtml(flow["protos.tls.client_alpn"]) .. '</td></tr>\n')
       end
 
       if (flow["protos.tls.client_tls_supported_versions"] ~= nil) then
          print('<tr><th class=\'colspan-4\'><a href="https://tools.ietf.org/html/rfc7301" data-bs-toggle="tooltip">' ..
 	       i18n("flow_details.client_tls_supported_versions") .. '</A></th><td colspan=2>' ..
-	       page_utils.safe_html(flow["protos.tls.client_tls_supported_versions"]) .. '</td></tr>\n')
+	       safeHtml(flow["protos.tls.client_tls_supported_versions"]) .. '</td></tr>\n')
       end
 
       if ((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
@@ -1844,12 +1844,12 @@ local function print_flow_overview_page()
          if (string.ends(flow["protos.dns.last_query"], "arpa")) then
             print(shortHostName(flow["protos.dns.last_query"]))
          else
-            print(format_external_link(page_utils.safe_html(flow["protos.dns.last_query"]),
-				       page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])), false, "dns"))
+            print(format_external_link(safeHtml(flow["protos.dns.last_query"]),
+				       safeHtml(shortHostName(flow["protos.dns.last_query"])), false, "dns"))
          end
 
          historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"],
-				 page_utils.safe_html(flow["protos.dns.last_query"] or ''))
+				 safeHtml(flow["protos.dns.last_query"] or ''))
 
          if (flow["category"] ~= nil) then
             print(" " .. getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
@@ -1931,7 +1931,7 @@ local function print_flow_overview_page()
 
 	 flow.vlan = save_vlan
 	 
-         print(format_external_link(page_utils.safe_html(svr_name), page_utils.safe_html(svr_name), false, "http"))
+         print(format_external_link(safeHtml(svr_name), safeHtml(svr_name), false, "http"))
 
          if (flow["category"] ~= nil) then
             print(" " .. getCategoryIcon(flow["host_server_name"], flow["category"]))
@@ -1967,7 +1967,7 @@ local function print_flow_overview_page()
 	    base_url = host ..p .. base_url
 	 end
 	 
-         local last_url = page_utils.safe_html(base_url)
+         local last_url = safeHtml(base_url)
          local last_url_short = shortenString(last_url, 64)
          local proto = "https"
 
@@ -1998,7 +1998,7 @@ local function print_flow_overview_page()
             if (starts(flow["proto.ndpi"], "TLS")) then
                proto = "https"
             end
-            print(format_external_link(page_utils.safe_html(flow["host_server_name"]), page_utils.safe_html(flow["host_server_name"]),
+            print(format_external_link(safeHtml(flow["host_server_name"]), safeHtml(flow["host_server_name"]),
 				       false, proto))
             if not isEmptyString(flow["protos.http.server_name"]) then
                printAddCustomHostRule(flow["protos.http.server_name"])

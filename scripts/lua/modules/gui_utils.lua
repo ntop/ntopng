@@ -37,6 +37,30 @@ end
 
 -- ##############################################
 
+-- @brief Encode the HTML entities in a string.
+--        Useful when printing dissected data which may result in XSS
+--        e.g., curl -u admin:admin1 "http://devel:3000/</a><script>alert(1);</script><a>"
+-- @param s The string to escape.
+-- @return The string with HTML entities properly escaped
+function safeHtml(s)
+   if not s then
+      return ''
+   end
+
+   local ret = string.gsub(s, "[\">/<'&]", {
+      ["&"] = "&amp;",
+      ["<"] = "&lt;",
+      [">"] = "&gt;",
+      ['"'] = "&quot;",
+      ["'"] = "&#39;",
+      ["/"] = "&#47;"
+   })
+
+   return ret
+end
+
+-- ##############################################
+
 function map_score_to_severity(score)
    if score ~= nil then
        return ntop.mapScoreToSeverity(score)

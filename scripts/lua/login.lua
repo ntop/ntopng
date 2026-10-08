@@ -75,7 +75,7 @@ print[[
 	<form id="form_add_user" role="form" data-bs-toggle="validator" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/authorize.html" method="POST" accept-charset="UTF-8">
 
     <input type="hidden" class="form-control" name="user">
-    <input type="hidden" class="form-control" name="referer" value="]] print(referer or "") print [[">
+    <input type="hidden" class="form-control" name="referer" value="]] print(safeHtml(referer)) print [[">
 
     <h1 class="h3 mb-3 fw-normal">]] print(i18n("login.welcome_to", {product=info["product"]})) print[[</h1>
     <div class="form-group mb-3 has-feedback mb-3">

@@ -2,7 +2,7 @@
 -- (C) 2017-26 - ntop.org
 --
 local json = require "dkjson"
-local page_utils = require "page_utils"
+require "gui_utils"
 require "locales_utils"
 require "xmlSimple"
 
@@ -1300,7 +1300,7 @@ local function analyzeSSDP(ssdp)
         end
     end
 
-    -- NOTE: use page_utils.safe_html to protect agains malicious SSDP responses trying to inject code
+    -- NOTE: use safeHtml to protect agains malicious SSDP responses trying to inject code
     for url, host in pairs(ssdp) do
         url = ntop.httpPurifyParam(url) -- Cleanup against XSS
 
@@ -1320,13 +1320,13 @@ local function analyzeSSDP(ssdp)
             if (r.root ~= nil) then
                 if (r.root.device ~= nil) then
                     if (r.root.device.friendlyName ~= nil) then
-                        friendlyName = page_utils.safe_html(r.root.device.friendlyName:value())
+                        friendlyName = safeHtml(r.root.device.friendlyName:value())
                     end
                     if (r.root.device.modelName ~= nil) then
-                        modelName = page_utils.safe_html(r.root.device.modelName:value())
+                        modelName = safeHtml(r.root.device.modelName:value())
                     end
                     if (r.root.device.modelDescription ~= nil) then
-                        modelDescription = page_utils.safe_html(r.root.device.modelDescription:value())
+                        modelDescription = safeHtml(r.root.device.modelDescription:value())
                     end
                 end
             end
@@ -1334,7 +1334,7 @@ local function analyzeSSDP(ssdp)
             if (r.root ~= nil) then
                 if (r.root.device ~= nil) then
                     if (r.root.device.manufacturer ~= nil) then
-                        manufacturer = page_utils.safe_html(r.root.device.manufacturer:value())
+                        manufacturer = safeHtml(r.root.device.manufacturer:value())
                     end
 
                     if (r.root.device.serviceList ~= nil) then
@@ -1343,7 +1343,7 @@ local function analyzeSSDP(ssdp)
 
                         for k, v in pairs(serviceList) do
                             if (v.serviceId ~= nil) then
-                                local value = page_utils.safe_html(v.serviceId:value())
+                                local value = safeHtml(v.serviceId:value())
                                 if (value ~= nil) then
                                     if (discover.debug) then
                                         io.write(value .. "\n")
