@@ -8169,9 +8169,12 @@ static const char* host_service_names[NUM_HOST_SERVICES + 1] = {
   "modbus",   /* HOST_SERVICE_MODBUS   */
   "s7comm",   /* HOST_SERVICE_S7COMM   */
   "profinet", /* HOST_SERVICE_PROFINET */
+  "gateway",    /* HOST_SERVICE_GATEWAY    */
+  "powershell", /* HOST_SERVICE_POWERSHELL */
+  "ftp",        /* HOST_SERVICE_FTP        */
 };
 
-const char* Utils::hostService2str(int service_enum) {
+const char* Utils::hostService2str(HostService service_enum) {
   if ((service_enum <= 0) || (service_enum > NUM_HOST_SERVICES)) return (NULL);
   return (host_service_names[service_enum]);
 }

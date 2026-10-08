@@ -684,7 +684,7 @@ void Host::lua_get_min_info(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_rx_only", isRxOnlyHost());
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
-  lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
+  lua_push_uint32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
   lua_get_services(vm);
   lua_get_geoloc(vm);
   lua_get_ip(vm);
@@ -735,8 +735,9 @@ void Host::lua_get_services(lua_State* vm) const {
   lua_newtable(vm);
 
   for (int i = 1; i <= NUM_HOST_SERVICES; i++) {
+    HostService s = (HostService) i;
     const char* service_name;
-    if (providesService(i) && (service_name = Utils::hostService2str(i)))
+    if (providesService(s) && (service_name = Utils::hostService2str(s)))
       lua_push_bool_table_entry(vm, service_name, true);
   }
 
@@ -1184,6 +1185,26 @@ char* Host::get_host_label(char* const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
+/* Map services (HostService) to host tags (HostTagId) */
+static const int8_t host_service_to_host_tag[HOST_SERVICE_MAX] = {
+  -1,                        /* HOST_SERVICE_NONE       */
+  HOST_TAG_DHCP_SERVER,      /* HOST_SERVICE_DHCP       */
+  HOST_TAG_DNS_SERVER,       /* HOST_SERVICE_DNS        */
+  HOST_TAG_NTP_SERVER,       /* HOST_SERVICE_NTP        */
+  HOST_TAG_SMTP_SERVER,      /* HOST_SERVICE_SMTP       */
+  HOST_TAG_IMAP_SERVER,      /* HOST_SERVICE_IMAP       */
+  HOST_TAG_POP_SERVER,       /* HOST_SERVICE_POP        */
+  HOST_TAG_HTTP_SERVER,      /* HOST_SERVICE_HTTP       */
+  HOST_TAG_SSH_SERVER,       /* HOST_SERVICE_SSH        */
+  HOST_TAG_RDP_SERVER,       /* HOST_SERVICE_RDP        */
+  HOST_TAG_MODBUS_SERVER,    /* HOST_SERVICE_MODBUS     */
+  HOST_TAG_S7COMM_SERVER,    /* HOST_SERVICE_S7COMM     */
+  HOST_TAG_PROFINET_SERVER,  /* HOST_SERVICE_PROFINET   */
+  HOST_TAG_NETWORK_GATEWAY,  /* HOST_SERVICE_GATEWAY    */
+  -1,                        /* HOST_SERVICE_POWERSHELL */
+  -1,                        /* HOST_SERVICE_FTP        */
+};
+
 /* Return tags
  * Set transferrable_only = true to avoid transferring host-only tags to flows */
 u_int64_t Host::getTags(bool transferrable_only) {
@@ -1195,28 +1216,14 @@ u_int64_t Host::getTags(bool transferrable_only) {
   bm = user_tags_bitmap;
 
   if (!transferrable_only) {
-    /* Network Configuration (admin-configured server lists) */
-    if (p->isDNSServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_DNS_SERVER);
-    if (p->isNTPServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_NTP_SERVER);
-    if (p->isDHCPServer(&ip, vlan)) bm |= ((u_int64_t)1 << HOST_TAG_DHCP_SERVER);
-    if (p->isSMTPServer(&ip, vlan)) bm |= ((u_int64_t)1 << HOST_TAG_SMTP_SERVER);
-    if (p->isSSHServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_SSH_SERVER);
-    if (p->isRDPServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_RDP_SERVER);
-    if (p->isGateway(&ip, vlan))    bm |= ((u_int64_t)1 << HOST_TAG_NETWORK_GATEWAY);
-
-    /* Traffic-observed services (auto-detected from flows) */
-    if (providesService(HOST_SERVICE_DNS))      bm |= ((u_int64_t)1 << HOST_TAG_DNS_SERVER);
-    if (providesService(HOST_SERVICE_NTP))      bm |= ((u_int64_t)1 << HOST_TAG_NTP_SERVER);
-    if (providesService(HOST_SERVICE_DHCP))     bm |= ((u_int64_t)1 << HOST_TAG_DHCP_SERVER);
-    if (providesService(HOST_SERVICE_SMTP))     bm |= ((u_int64_t)1 << HOST_TAG_SMTP_SERVER);
-    if (providesService(HOST_SERVICE_IMAP))     bm |= ((u_int64_t)1 << HOST_TAG_IMAP_SERVER);
-    if (providesService(HOST_SERVICE_POP))      bm |= ((u_int64_t)1 << HOST_TAG_POP_SERVER);
-    if (providesService(HOST_SERVICE_HTTP))     bm |= ((u_int64_t)1 << HOST_TAG_HTTP_SERVER);
-    if (providesService(HOST_SERVICE_SSH))      bm |= ((u_int64_t)1 << HOST_TAG_SSH_SERVER);
-    if (providesService(HOST_SERVICE_RDP))      bm |= ((u_int64_t)1 << HOST_TAG_RDP_SERVER);
-    if (providesService(HOST_SERVICE_MODBUS))   bm |= ((u_int64_t)1 << HOST_TAG_MODBUS_SERVER);
-    if (providesService(HOST_SERVICE_S7COMM))   bm |= ((u_int64_t)1 << HOST_TAG_S7COMM_SERVER);
-    if (providesService(HOST_SERVICE_PROFINET)) bm |= ((u_int64_t)1 << HOST_TAG_PROFINET_SERVER);
+    /* Check configured servers (Network Configuration) and services automatically detected */
+    u_int32_t services = p->getServerTypes(&ip, vlan) | host_services_bitmap;
+    if (services) {
+      for (int s = 1; s < HOST_SERVICE_MAX; s++) {
+        if ((services & (1 << s)) && (host_service_to_host_tag[s] != -1))
+          bm |= ((u_int64_t)1 << host_service_to_host_tag[s]);
+      }
+    }
 
     bm |= computed_tags_bitmap;
   }
@@ -2225,8 +2232,10 @@ void Host::checkStatsReset() {
   have been observed on the shadow IP address
 */
 void Host::updateView(IpAddress* ipa) {
-  for (int i = 1; i <= NUM_HOST_SERVICES; i++)
-    if (ipa->providesService(i) && !providesService(i)) setService(i);
+  for (int i = 1; i <= NUM_HOST_SERVICES; i++) {
+    HostService s = (HostService)i;
+    if (ipa->providesService(s) && !providesService(s)) setService(s);
+  }
 }
 
 /* *************************************** */
@@ -2967,12 +2976,10 @@ void Host::visit(std::vector<ActiveHostWalkerInfo>* v, HostWalkMode mode) {
 
 /* *************************************** */
 
-bool Host::setService(u_int16_t service_enum) {
-  if(service_enum < 16 /* see host_services_bitmap */) {
-    if (!providesService(service_enum)) {
-      host_services_bitmap |= 1 << service_enum;
-      return(true);
-    }
+bool Host::setService(HostService service_enum) {
+  if (!providesService(service_enum)) {
+    host_services_bitmap |= 1 << service_enum;
+    return(true);
   }
 
   return(false);

@@ -241,7 +241,7 @@ class LocalHost : public Host {
     return (&contacted_server_ports);
   };
 
-  bool setService(u_int16_t service_enum);
+  bool setService(HostService service_enum);
 
   void offlineSetMDNSInfo(char* const s);
   void offlineSetMDNSName(const char* n);

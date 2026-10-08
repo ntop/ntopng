@@ -26,7 +26,7 @@
 /* ***************************************************** */
 
 bool UnexpectedDNSServer::isAllowedHost(Flow* f) {
-  if (ntop->getPrefs()->getConfiguredDNSServers()->isEmptyConfiguration())
+  if (ntop->getPrefs()->isEmptyServersConfiguration(HOST_SERVICE_DNS))
     return (true);
   else {
     IpAddress* ip = (IpAddress*)getServerIP(f);
@@ -41,12 +41,11 @@ bool UnexpectedDNSServer::isAllowedHost(Flow* f) {
           "DNS: %s]",
           ip->print(buf, sizeof(buf)),
           ip->providesService(HOST_SERVICE_DNS) ? "Yes" : "No",
-          ntop->getPrefs()->isDNSServer(ip, f->get_vlan_id()) ? "Yes" : "No");
+          ntop->getPrefs()->isServer(HOST_SERVICE_DNS, ip, f->get_vlan_id()) ? "Yes" : "No");
 #endif
 
-      return (ntop->getPrefs()->isDNSServer(ip, f->get_vlan_id()) ||
-              ntop->getPrefs()->isDNSServer(
-                  ip, 0 /* Check for the VLAN 0 (no vlan) too */));
+      return (ntop->getPrefs()->isServer(HOST_SERVICE_DNS, ip, f->get_vlan_id()) ||
+              ntop->getPrefs()->isServer(HOST_SERVICE_DNS, ip, 0 /* Check for the VLAN 0 (no vlan) too */));
     } else
       return (true);
   }

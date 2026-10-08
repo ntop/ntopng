@@ -25,7 +25,7 @@
 /* ***************************************************** */
 
 bool UnexpectedDHCPServer::isAllowedHost(Flow* f) {
-  if (ntop->getPrefs()->getConfiguredDHCPServers()->isEmptyConfiguration()) {
+  if (ntop->getPrefs()->isEmptyServersConfiguration(HOST_SERVICE_DHCP)) {
     return (true);
   }
 
@@ -35,16 +35,16 @@ bool UnexpectedDHCPServer::isAllowedHost(Flow* f) {
     return (true);
   }
 
-  if (ntop->getPrefs()->isDHCPServer(ip, f->get_vlan_id())) {
+  if (ntop->getPrefs()->isServer(HOST_SERVICE_DHCP, ip, f->get_vlan_id())) {
     return (true);
   }
       
-  if (ntop->getPrefs()->isDHCPServer(ip, 0 /* Check VLAN 0 (no vlan) too */)) {
+  if (ntop->getPrefs()->isServer(HOST_SERVICE_DHCP, ip, 0 /* Check VLAN 0 (no vlan) too */)) {
     /* Backward compatibility - now VLAN configuration is allowed */
     return (true);
   }
 
-  if (f->get_srv_ip_addr() && ntop->getPrefs()->isDHCPServer(f->get_srv_ip_addr(), f->get_vlan_id())) {
+  if (f->get_srv_ip_addr() && ntop->getPrefs()->isServer(HOST_SERVICE_DHCP, f->get_srv_ip_addr(), f->get_vlan_id())) {
     /* DHCP relay? Relay agent (cli port 67) forwards to DHCP server (srv port 67) */
     return (true);
   }

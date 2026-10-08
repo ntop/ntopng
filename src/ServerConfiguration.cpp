@@ -25,77 +25,98 @@
 /* ***************************************************** */
 
 ServerConfiguration::ServerConfiguration() {
-  /* Given the key, load the server configuration found on key */
-  tree_shadow = NULL;
-
-  tree = new (std::nothrow) VLANAddressTree;
-  if (tree == NULL) {
-    return;
-  }
+  servers_shadow = NULL;
+  servers = new (std::nothrow) ServersTree();
 }
 
 /* ***************************************************** */
 
 ServerConfiguration::~ServerConfiguration() {
-  if (tree_shadow) delete tree_shadow;
-  if (tree) delete tree;
+  if (servers_shadow) delete servers_shadow;
+  if (servers) delete servers;
 }
 
 /* ***************************************************** */
 
-void ServerConfiguration::reloadServerConfiguration(char* key) {
-  VLANAddressTree* new_tree;
+void ServerConfiguration::reloadServersConfiguration() {
+  ServersTree* new_servers = new (std::nothrow) ServersTree();
 
-  new_tree = new (std::nothrow) VLANAddressTree;
+  if (new_servers == NULL) return;
 
-  if (new_tree == NULL)
-    return;
-  
-  loadConfiguration(new_tree, key);
+  for (int type = 1; type < HOST_SERVICE_MAX; type++)
+    loadConfiguration(new_servers, (HostService)type);
 
-  /* Swap address trees */
-  if (tree) {
-    if (tree_shadow) delete tree_shadow;
-    tree_shadow = tree;
+  /* Swap trees */
+  if (servers) {
+    if (servers_shadow) delete servers_shadow;
+    servers_shadow = servers;
   }
 
-  tree = new_tree;
+  servers = new_servers;
 }
 
 /* ***************************************************** */
 
-bool ServerConfiguration::findAddress(IpAddress* ip, u_int16_t vlan_id) {
-  VLANAddressTree* cur_tree; /* must use this as tree can be swapped */
+u_int32_t ServerConfiguration::getServerTypes(IpAddress* ip,
+                                              u_int16_t vlan_id) {
+  ServersTree* cur = servers;
   ndpi_patricia_node_t* found_node;
-  if (!tree || !(cur_tree = tree) || !ip) return (false);
 
-  found_node =
-      (ndpi_patricia_node_t*)ip->findAddress(cur_tree->getAddressTree(vlan_id));
+  if (!cur || !ip) return (0);
 
-  if (found_node) {
-    return (true);
-  }
+  found_node = (ndpi_patricia_node_t*)ip->findAddress(cur->tree.getAddressTree(vlan_id & 0xFFF));
 
-  return (false);
+  if (found_node) return ((u_int32_t)ndpi_patricia_get_node_u64(found_node));
+
+  return (0);
 }
 
 /* ***************************************************** */
 
-void ServerConfiguration::loadConfiguration(VLANAddressTree* tree, char* key) {
-  char* rsp = NULL;
-  Redis* redis = ntop->getRedis();
-  u_int actual_len = redis->len(key);
+/* Add server to the tree. Note: the same address can be configured for multiple server types,
+ * we merge the new type with the types already set for the address (bitmap) */
+void ServerConfiguration::addServer(ServersTree* st, HostService type,
+                                    u_int16_t vlan_id, const char* net) {
+  AddressTree* t = st->tree.getAddressTree(vlan_id & 0xFFF);
+  int64_t cur_types = t ? t->find(net) : -1 /* Not found */;
+  u_int64_t types = (cur_types > 0) ? (u_int64_t) cur_types : 0;
 
-  if (actual_len++ /* ++ for the \0 */ > 0 &&
-      (rsp = (char*)malloc(actual_len)) != NULL) {
+  types |= ((u_int64_t)1 << type);
+
+  if (!st->tree.addAddress(vlan_id, net, (int64_t)types)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to add tree node in Server "
+                                 "Configuration [vlan %i] [IP: %s]", vlan_id, net);
+    return;
+  }
+
+  st->num_servers[type]++;
+}
+
+/* ***************************************************** */
+
+/* Load the configured servers for the service from Redis
+ * (see CONST_SERVICE_CONFIGURATION_REDIS_KEY) */
+void ServerConfiguration::loadConfiguration(ServersTree* st, HostService type) {
+  char* rsp = NULL;
+  const char* service_name = Utils::hostService2str(type);
+  char key[64];
+  Redis* redis = ntop->getRedis();
+  u_int actual_len;
+
+  if (service_name == NULL) return;
+
+  snprintf(key, sizeof(key), CONST_SERVICE_CONFIGURATION_REDIS_KEY, service_name);
+
+  actual_len = redis->len(key);
+
+  if (actual_len++ /* ++ for the \0 */ > 0 && (rsp = (char*)malloc(actual_len)) != NULL) {
     redis->get(key, rsp, actual_len);
     /* Get a list of Servers separated by commas */
     std::string ipStr(rsp);
     char charToRemove = ' ';
 
     /* Remove the spaces between the IPs */
-    ipStr.erase(std::remove(ipStr.begin(), ipStr.end(), charToRemove),
-                ipStr.end());
+    ipStr.erase(std::remove(ipStr.begin(), ipStr.end(), charToRemove), ipStr.end());
 
     /* Now iterate the string */
     std::stringstream ipList(ipStr);
@@ -103,7 +124,8 @@ void ServerConfiguration::loadConfiguration(VLANAddressTree* tree, char* key) {
     while (std::getline(ipList, ip, ',')) {
       u_int16_t vlan_id = 0;
       char* at = NULL;
-      bool rc;
+
+      if (ip.empty()) continue;
 
       /* Check for the VLAN */
       if ((at = strchr((char*)ip.c_str(), '@'))) {
@@ -112,12 +134,7 @@ void ServerConfiguration::loadConfiguration(VLANAddressTree* tree, char* key) {
       } else
         vlan_id = 0;
 
-      if (!(rc = tree->addAddress(vlan_id, (char*)ip.c_str()))) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                     "Unable to add tree node in Server "
-                                     "Configuration [vlan %i] [IP: %s]",
-                                     vlan_id, (char*)ip.c_str());
-      }
+      addServer(st, type, vlan_id, ip.c_str());
     }
 
     if (rsp) free(rsp);

@@ -36,7 +36,7 @@ class Host : public GenericHashEntry,
   char *asname, *blacklist_name;
   int32_t iface_index; /* Interface index on which this host has been first
                           observed */
-  u_int16_t host_services_bitmap;
+  u_int32_t host_services_bitmap;
   u_int16_t vlan_id;
   u_int16_t observationPointId;
   u_int16_t host_pool_id;
@@ -262,17 +262,13 @@ class Host : public GenericHashEntry,
     return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv();
   }
 
-  inline bool providesService(u_int16_t service_enum) const {
-    if(service_enum >= 16 /* see host_services_bitmap */)
-      return(false);
-    else {
-      return (host_services_bitmap & (1 << service_enum));
-    }
+  inline bool providesService(HostService service_enum) const {
+    return (host_services_bitmap & (1 << service_enum));
   }
 
-  virtual bool setService(u_int16_t service_enum);
+  virtual bool setService(HostService service_enum);
 
-  inline u_int16_t getServicesMap() { return (host_services_bitmap); }
+  inline u_int32_t getServicesMap() { return (host_services_bitmap); }
   /*
     NOTE: update the fucntion below when a new service is added
     Return true if this host is a server for known protocols

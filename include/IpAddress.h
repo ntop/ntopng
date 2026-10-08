@@ -30,7 +30,7 @@ struct ipAddress {
 
   u_int8_t gateway : 1, unused : 7;
   /* TODO: These 2 fields don't belong here */
-  u_int16_t services_bitmap;
+  u_int32_t services_bitmap; /* HostService bitmap */
   u_int64_t tags_bitmap;
 
   union {
@@ -117,23 +117,15 @@ class IpAddress {
   inline u_int8_t getVersion() const { return (addr.ipVersion); };
   inline void setVersion(u_int8_t version) { addr.ipVersion = version; };
 
-  inline bool providesService(u_int16_t service_enum) const {
-    if(service_enum >= 16 /* see addr.services_bitmap */)
-      return(false);
-    else {
-      return (addr.services_bitmap & (1 << service_enum));
-    }
+  inline bool providesService(HostService service_enum) const {
+    return (addr.services_bitmap & (1 << service_enum));
   }
   
-  inline bool setService(u_int16_t service_enum) {    
-    if(service_enum >= 16 /* see addr.services_bitmap */)
-      return(false);
-    else {
-      addr.services_bitmap |= 1 << service_enum;
-      return(true);
-    }
+  inline bool setService(HostService service_enum) {
+    addr.services_bitmap |= 1 << service_enum;
+    return(true);
   }
-  inline u_int16_t getServicesMap() { return(addr.services_bitmap); }
+  inline u_int32_t getServicesMap() { return(addr.services_bitmap); }
 
   inline bool providesTag(int tag_idx) const {
     return (addr.tags_bitmap & (1ULL << tag_idx));

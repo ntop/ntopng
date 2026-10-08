@@ -44,9 +44,9 @@ void UnexpectedGateway::periodicUpdate(Host* h, HostAlert* engaged_alert) {
         "Checking Unexpected Gateway [IP %s] [Is Gateway: %s] [Is Configured "
         "Gateway: %s]",
         p->print(buf, sizeof(buf)), p->isGateway() ? "Yes" : "No",
-        ntop->getPrefs()->isGateway(p, h->get_vlan_id()) ? "Yes" : "No");
+        ntop->getPrefs()->isServer(HOST_SERVICE_GATEWAY, p, h->get_vlan_id()) ? "Yes" : "No");
 #endif
-    if (p->isGateway() && !ntop->getPrefs()->isGateway(p, h->get_vlan_id())) {
+    if (p->isGateway() && !ntop->getPrefs()->isServer(HOST_SERVICE_GATEWAY, p, h->get_vlan_id())) {
       if (!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE);
       if (alert) h->triggerAlert(alert);
     }

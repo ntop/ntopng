@@ -25,15 +25,14 @@
 /* ***************************************************** */
 
 bool UnexpectedNTPServer::isAllowedHost(Flow* f) {
-  if (ntop->getPrefs()->getConfiguredNTPServers()->isEmptyConfiguration())
+  if (ntop->getPrefs()->isEmptyServersConfiguration(HOST_SERVICE_NTP))
     return (true);
   else {
     IpAddress* p = (IpAddress*)getServerIP(f);
 
     if (p != NULL)
-      return (ntop->getPrefs()->isNTPServer(p, f->get_vlan_id()) ||
-              ntop->getPrefs()->isNTPServer(
-                  p, 0 /* Check for the VLAN 0 (no vlan) too */));
+      return (ntop->getPrefs()->isServer(HOST_SERVICE_NTP, p, f->get_vlan_id()) ||
+              ntop->getPrefs()->isServer(HOST_SERVICE_NTP, p, 0 /* Check for the VLAN 0 (no vlan) too */));
     else
       return (true);
   }

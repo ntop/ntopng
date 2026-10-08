@@ -9623,7 +9623,7 @@ void Flow::updateTCPHostServices(Host* cli_h, Host* srv_h) {
 
 /* *************************************** */
 
-void Flow::setCliService(int service_enum) {
+void Flow::setCliService(HostService service_enum) {
   Host *cli_h, *srv_h;
 
   get_actual_peers(&cli_h, &srv_h);
@@ -9642,7 +9642,7 @@ void Flow::setCliService(int service_enum) {
 
 /* *************************************** */
 
-void Flow::setSrvService(int service_enum) {
+void Flow::setSrvService(HostService service_enum) {
   Host *cli_h, *srv_h;
 
   get_actual_peers(&cli_h, &srv_h);

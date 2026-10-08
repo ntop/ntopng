@@ -1779,8 +1779,8 @@ class Flow : public GenericHashEntry {
 
   void updateTCPStats(u_int32_t cli_stats, u_int32_t srv_stats);
 
-  void setCliService(int service_enum);
-  void setSrvService(int service_enum);
+  void setCliService(HostService service_enum);
+  void setSrvService(HostService service_enum);
   void setCliTag(int tag_idx);
   void setSrvTag(int tag_idx);
   inline void setIGMPType(u_int8_t t) { protos.igmp.igmp_type = t; }

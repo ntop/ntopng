@@ -360,7 +360,7 @@ class Utils {
   static const char* OS2Str(ndpi_os os);
   static const char* learningMode2str(OSLearningMode mode);
   static const char* deviceType2str(DeviceType devtype);
-  static const char* hostService2str(int service_enum);
+  static const char* hostService2str(HostService service_enum);
   static bool checkNetworkList(char* network_list, char* rsp,
                                bool (*callback)(char*, char*, void* user_data),
                                void* user_data);

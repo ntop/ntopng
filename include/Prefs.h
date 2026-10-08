@@ -216,8 +216,7 @@ class Prefs {
   bool appliance;
 #endif
 
-  ServerConfiguration *gateway, *dns_servers, *ntp_servers, *smtp_servers,
-      *dhcp_servers, *ssh_servers, *powershell_servers, *ftp_servers, *rdp_servers;
+  ServerConfiguration* servers;
   ASNConfiguration *customer_asn, *sub_customer_asn, *remote_asn;
 
 #ifdef NTOPNG_PRO
@@ -853,29 +852,21 @@ class Prefs {
                                NetworkConfigurationId id);
   AddressTree* getNetworksPolicyConfiguration();
 #endif
-  bool isGateway(IpAddress* ip, u_int16_t vlan_id);
-  bool isDNSServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isNTPServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isSMTPServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isDHCPServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isSSHServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isPowershellServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isFTPServer(IpAddress* ip, u_int16_t vlan_id);
-  bool isRDPServer(IpAddress* ip, u_int16_t vlan_id);
+  inline bool isServer(HostService type, IpAddress* ip, u_int16_t vlan_id) {
+    return (servers ? servers->isServer(type, ip, vlan_id) : false);
+  }
+  /* Return the bitmap of HostService configured for the address */
+  inline u_int32_t getServerTypes(IpAddress* ip, u_int16_t vlan_id) {
+    return (servers ? servers->getServerTypes(ip, vlan_id) : 0);
+  }
+  inline bool isEmptyServersConfiguration(HostService type) {
+    return (servers ? servers->isEmptyConfiguration(type) : true);
+  }
 
   bool isCustomerASN(u_int32_t asn);
   bool isSubCustomerASN(u_int32_t asn);
   bool isRemoteASN(u_int32_t asn);
 
-  ServerConfiguration* getConfiguredGateways() { return (gateway); }
-  ServerConfiguration* getConfiguredDNSServers() { return (dns_servers); }
-  ServerConfiguration* getConfiguredNTPServers() { return (ntp_servers); }
-  ServerConfiguration* getConfiguredSMTPServers() { return (smtp_servers); }
-  ServerConfiguration* getConfiguredDHCPServers() { return (dhcp_servers); }
-  ServerConfiguration* getConfiguredSSHServers() { return (ssh_servers); }
-  ServerConfiguration* getConfiguredPowershellServers() { return (powershell_servers); }
-  ServerConfiguration* getConfiguredFTPServers() { return (ftp_servers); }
-  ServerConfiguration* getConfiguredRDPServers() { return (rdp_servers); }
 
   ASNConfiguration* getCustomerASN() { return (customer_asn); }
   ASNConfiguration* getSubCustomerASN() { return (sub_customer_asn); }

@@ -26,19 +26,38 @@
 
 class ServerConfiguration {
  private:
-  VLANAddressTree *tree, *tree_shadow;
+  class ServersTree {
+   public:
+   /* All services are stored in a single VLANAddressTree, each node has a bitmap of server types (HostService).
+    * Note: servers are configured by (exact) IP addresses (and VLAN). */
+    VLANAddressTree tree;
+    u_int32_t num_servers[HOST_SERVICE_MAX];
 
-  void loadConfiguration(VLANAddressTree* tree, char* key);
+    ServersTree() { memset(num_servers, 0, sizeof(num_servers)); }
+  };
+
+  ServersTree *servers, *servers_shadow;
+
+  void loadConfiguration(ServersTree* st, HostService type);
+  void addServer(ServersTree* st, HostService type, u_int16_t vlan_id,
+                 const char* net);
 
  public:
   ServerConfiguration();
   ~ServerConfiguration();
 
-  inline bool isEmptyConfiguration() {
-    return ((tree == NULL) || tree->isEmpty());
+  void reloadServersConfiguration();
+
+  inline bool isEmptyConfiguration(HostService type) {
+    ServersTree* cur = servers;
+    return ((cur == NULL) || (cur->num_servers[type] == 0));
   }
-  bool findAddress(IpAddress* ip, u_int16_t vlan_id);
-  void reloadServerConfiguration(char* key);
+
+  u_int32_t getServerTypes(IpAddress* ip, u_int16_t vlan_id);
+
+  inline bool isServer(HostService type, IpAddress* ip, u_int16_t vlan_id) {
+    return ((getServerTypes(ip, vlan_id) & (1 << type)) != 0);
+  }
 };
 
 #endif /* _SERVER_CONFIGURATION_H */

@@ -695,7 +695,7 @@ void LocalHost::lua_get_fingerprints(lua_State* vm) {
 
 /* *************************************** */
 
-bool LocalHost::setService(u_int16_t service_enum) {
+bool LocalHost::setService(HostService service_enum) {
   const char* service_name;
   
   if(Host::setService(service_enum) == false)
