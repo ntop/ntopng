@@ -11089,6 +11089,16 @@ local lang = {
     ["previous_week"] = "Previous Week",
     ["weekly"] = "Weekly",
   },
+  ["menu_search"] = {
+    ["clear"] = "Clear",
+    ["hosts_and_more"] = "Hosts, MACs, networks & more",
+    ["navigate"] = "Navigate",
+    ["no_results"] = "No menu entries match your search",
+    ["open"] = "Open",
+    ["placeholder"] = "Search pages, hosts, MACs, networks...",
+    ["searching"] = "Searching hosts, MACs, networks, SNMP...",
+    ["title"] = "Search",
+  },
   ["tree_map"] = {
     ["hosts_treemap"] = "Hosts Tree Map",
   },
