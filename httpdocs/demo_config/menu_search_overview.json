@@ -1,0 +1,31 @@
+{
+  "id": "menu_search_overview",
+  "version": 1,
+  "title": "demo_tour_messages.menu_search_overview_title",
+  "trigger": "new_feature",
+  "pages": [
+    {
+      "page_key": "menu_search_intro",
+      "url": "/lua/index.lua",
+      "steps": [
+        {
+          "id": "menu_search_what",
+          "element": ".sb-search-btn",
+          "title": "demo_tour_messages.menu_search_what_title",
+          "text": "demo_tour_messages.menu_search_what_text",
+          "position": "bottom",
+          "click_on_next": true,
+          "verified": true
+        },
+        {
+          "id": "menu_search_dialog",
+          "element": ".ms-dialog",
+          "title": "demo_tour_messages.menu_search_dialog_title",
+          "text": "demo_tour_messages.menu_search_dialog_text",
+          "position": "bottom",
+          "verified": true
+        }
+      ]
+    }
+  ]
+}

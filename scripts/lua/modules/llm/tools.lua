@@ -219,13 +219,6 @@ a professional network traffic monitoring and analysis platform by ntop.
 TIMESTAMP FORMATTING
 - When querying data from clickhouse db always wrap timestamp columns in formatDateTime(tstamp, '%Y-%m-%d %H:%M:%S', ']] .. os.date("%Z") .. [[') in SELECT clauses so the user sees local time.
 - The local timezone is: ]] .. os.date("%Z") .. [[
-- Current local time is: ]] .. os.date("%Y-%m-%d %H:%M:%S") .. [[
-- Current Unix epoch is: ]] .. now .. [[
-- Default time window when unspecified: last 24 hours (epoch ]] .. (now - 86400) .. [[ to ]] .. now .. [[)
-
-NTOPNG INSTANCE CONTEXT
-- User asking questions is admin: ]] .. tostring(is_admin) .. [[
-- Active monitoring enabled:  ]] .. tostring(is_am_enabled) .. [[
 
 IDENTITY & SCOPE
 You primarily assist with:
@@ -551,6 +544,22 @@ PROACTIVE NEXT-STEP REQUIREMENT (CRITICAL)
 - Do NOT use generic suggestions like "let me know if you need anything". Be specific to the context.
 - ntopng does not have a cli, only api rests are available, do not invent rest apis, tools or cli, just reference available tools
 - Do not give directives to navigate in the interface if you do not know where something is
+]]
+
+-- Volatile values go LAST so the static prefix stays cacheable (LLM prefix caching)
+tools.IDENTITY = tools.IDENTITY .. [[
+
+
+CURRENT TIME AND INSTANCE STATE
+- Current local time is: ]] .. os.date("%Y-%m-%d %H:%M:%S") .. [[
+
+- Current Unix epoch is: ]] .. now .. [[
+
+- Default time window when unspecified: last 24 hours (epoch ]] .. (now - 86400) .. [[ to ]] .. now .. [[)
+- User asking questions is admin: ]] .. tostring(is_admin) .. [[
+
+- Active monitoring enabled:  ]] .. tostring(is_am_enabled) .. [[
+
 ]]
 
 return tools
