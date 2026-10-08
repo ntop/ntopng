@@ -211,6 +211,8 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
     {{NDPI_AI_INFERENCE_TRAFFIC, flow_alert_ndpi_ai_inference_traffic,
       alert_category_other},
      "ndpi_ai_inference_traffic"},
+    {{NDPI_NON_PQC_FLOW, flow_alert_ndpi_non_pqc_flow, alert_category_security},
+     "ndpi_non_pqc_flow"},
 };
 
 /* **************************************************** */

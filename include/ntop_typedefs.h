@@ -547,6 +547,7 @@ typedef enum {
   flow_alert_ndpi_slow_dos = 112,
   flow_alert_ndpi_non_pqc = 113,
   flow_alert_ndpi_ai_inference_traffic = 114,
+  flow_alert_ndpi_non_pqc_flow = 115,
 
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
