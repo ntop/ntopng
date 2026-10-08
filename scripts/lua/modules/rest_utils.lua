@@ -509,8 +509,17 @@ end
 
 function rest_utils.sendHTTPHeader(mime, content_disposition, extra_headers,
                                    status_code, status_descr)
-    rest_utils.sendHTTPHeaderIfName(mime, nil, 3600, content_disposition,
-                                    extra_headers, status_code, status_descr)
+    local prefs = ntop.getPrefs()
+    local session_duration = prefs.auth_session_duration or 3600
+    local runtime_auto_logout = ntop.getPref("ntopng.prefs.is_autologon_enabled")
+
+    if (prefs.is_autologout_enabled == false) or (runtime_auto_logout == "0") then
+        session_duration = 604800 -- EXTENDED_HTTP_SESSION_DURATION
+    end
+
+    rest_utils.sendHTTPHeaderIfName(mime, nil, session_duration,
+                                    content_disposition, extra_headers,
+                                    status_code, status_descr)
 end
 
 -- Configure the module to return the REST answer locally
