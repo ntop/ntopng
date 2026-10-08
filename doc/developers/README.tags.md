@@ -147,7 +147,7 @@ Central module for managing tag definitions stored in Redis under
 | Function | Description |
 |---|---|
 | `getTags()` | Returns the full tag list (built-in + user-defined). |
-| `editTag(id, name, color, description, reserved)` | Create or update a tag entry. |
+| `editTag(id, name, color, description, reserved, protocols, risks, ttl)` | Create or update a tag entry. `ttl` is the number of days (1-365) after which the tag expires, 0 means never. |
 | `deleteTag(id)` | Remove a user-defined tag (resets to default placeholder name). |
 
 ### REST endpoints
