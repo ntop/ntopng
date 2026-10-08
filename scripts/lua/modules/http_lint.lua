@@ -3226,6 +3226,7 @@ local known_parameters = {
     ["tag_name"] = validateUnquoted,
     ["tag_protocols"] = validateListOfTypeInline(validateNumber),
     ["tag_risks"] = validateListOfTypeInline(validateNumber),
+    ["tag_ttl"] = validateNumber,
     ["color"] = validateSingleWord,
     ["host_tags_bitmap"] = validateNumber, -- 64-bit host tag bitmap
 
