@@ -28,7 +28,7 @@ And install the repository using the command provided at https://www.ntop.org/su
 
 .. code:: bash
 
-   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:14:amd64/latest/ntop-1.0.pkg
+   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:15:amd64/latest/ntop-1.0.pkg
 
 The output should look like the below.
 
