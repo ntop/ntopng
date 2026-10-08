@@ -526,6 +526,7 @@ function M.get_sections(flags)
                     input_type = "text",
                     redis_key = "ntopng.prefs.ntopng_host_address",
                     default = host_info.ip or "",
+                    dynamic_default = true,
                     attrs = {
                         spellcheck = "false"
                     }
@@ -537,6 +538,7 @@ function M.get_sections(flags)
                     input_type = "text",
                     redis_key = "ntopng.prefs.ntopng_instance_name",
                     default = host_info.instance_name or "",
+                    dynamic_default = true,
                     attrs = {
                         spellcheck = "false"
                     }
