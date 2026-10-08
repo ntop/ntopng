@@ -55,9 +55,9 @@ ntopng currently defines the following built-in tags:
   * - HTTP Server
     - the host has been observed acting as an HTTP server
   * - SSH Server
-    - the host has been observed acting as an SSH server
+    - the host is configured as an SSH server, or has been observed acting as one
   * - RDP Server
-    - the host has been observed acting as an RDP server
+    - the host is configured as an RDP server, or has been observed acting as one
   * - Modbus Server
     - the host has been observed acting as a Modbus (ICS/SCADA) server
   * - S7comm Server
@@ -67,12 +67,17 @@ ntopng currently defines the following built-in tags:
   * - Non PQC Compliant
     - a TLS flow to/from the host has been detected using cryptography that
       is not resistant to quantum computer attacks (Post-Quantum Cryptography)
+  * - PowerShell Server
+    - the host is configured as a PowerShell server
+  * - FTP Server
+    - the host is configured as an FTP server
 
-The first five tags (DNS/NTP/DHCP/SMTP Server and Network Gateway) are
-assigned either because the host has been explicitly configured as such
-(under `Network Configuration`_) or because ntopng has observed it providing
-that service on the network. The remaining server tags (IMAP, POP, HTTP,
-SSH, RDP, Modbus, S7comm, Profinet) are assigned purely based on traffic
+The DNS, NTP, DHCP, SMTP, SSH and RDP Server tags are assigned either because
+the host has been explicitly configured as such (under `Network Configuration`_)
+or because ntopng has observed it providing that service on the network.
+The Network Gateway, PowerShell Server and FTP Server tags are assigned only
+when the host is configured as such. The remaining server tags (IMAP, POP,
+HTTP, Modbus, S7comm, Profinet) are assigned purely based on traffic
 observation. The *Non PQC Compliant* tag is instead set the first time a
 flow risk is raised on a TLS connection indicating non-Post-Quantum-safe
 cryptography, and it is applied to whichever of the client/server hosts is
