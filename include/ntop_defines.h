@@ -318,6 +318,8 @@ typedef enum {
   HOST_TAG_S7COMM_SERVER      = 11,
   HOST_TAG_PROFINET_SERVER    = 12,
   HOST_TAG_NON_PQC_COMPLIANT  = 13,
+  HOST_TAG_POWERSHELL_SERVER  = 14,
+  HOST_TAG_FTP_SERVER         = 15,
 } HostTagId;
 
 #define IFACE_DHCP_RANGE_KEY "ntopng.prefs.ifid_%u.dhcp_ranges"

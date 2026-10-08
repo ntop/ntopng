@@ -1187,22 +1187,22 @@ char* Host::get_host_label(char* const buf, ssize_t buf_len) {
 
 /* Map services (HostService) to host tags (HostTagId) */
 static const int8_t host_service_to_host_tag[HOST_SERVICE_MAX] = {
-  -1,                        /* HOST_SERVICE_NONE       */
-  HOST_TAG_DHCP_SERVER,      /* HOST_SERVICE_DHCP       */
-  HOST_TAG_DNS_SERVER,       /* HOST_SERVICE_DNS        */
-  HOST_TAG_NTP_SERVER,       /* HOST_SERVICE_NTP        */
-  HOST_TAG_SMTP_SERVER,      /* HOST_SERVICE_SMTP       */
-  HOST_TAG_IMAP_SERVER,      /* HOST_SERVICE_IMAP       */
-  HOST_TAG_POP_SERVER,       /* HOST_SERVICE_POP        */
-  HOST_TAG_HTTP_SERVER,      /* HOST_SERVICE_HTTP       */
-  HOST_TAG_SSH_SERVER,       /* HOST_SERVICE_SSH        */
-  HOST_TAG_RDP_SERVER,       /* HOST_SERVICE_RDP        */
-  HOST_TAG_MODBUS_SERVER,    /* HOST_SERVICE_MODBUS     */
-  HOST_TAG_S7COMM_SERVER,    /* HOST_SERVICE_S7COMM     */
-  HOST_TAG_PROFINET_SERVER,  /* HOST_SERVICE_PROFINET   */
-  HOST_TAG_NETWORK_GATEWAY,  /* HOST_SERVICE_GATEWAY    */
-  -1,                        /* HOST_SERVICE_POWERSHELL */
-  -1,                        /* HOST_SERVICE_FTP        */
+  -1,                         /* HOST_SERVICE_NONE (unused) */
+  HOST_TAG_DHCP_SERVER,       /* HOST_SERVICE_DHCP       */
+  HOST_TAG_DNS_SERVER,        /* HOST_SERVICE_DNS        */
+  HOST_TAG_NTP_SERVER,        /* HOST_SERVICE_NTP        */
+  HOST_TAG_SMTP_SERVER,       /* HOST_SERVICE_SMTP       */
+  HOST_TAG_IMAP_SERVER,       /* HOST_SERVICE_IMAP       */
+  HOST_TAG_POP_SERVER,        /* HOST_SERVICE_POP        */
+  HOST_TAG_HTTP_SERVER,       /* HOST_SERVICE_HTTP       */
+  HOST_TAG_SSH_SERVER,        /* HOST_SERVICE_SSH        */
+  HOST_TAG_RDP_SERVER,        /* HOST_SERVICE_RDP        */
+  HOST_TAG_MODBUS_SERVER,     /* HOST_SERVICE_MODBUS     */
+  HOST_TAG_S7COMM_SERVER,     /* HOST_SERVICE_S7COMM     */
+  HOST_TAG_PROFINET_SERVER,   /* HOST_SERVICE_PROFINET   */
+  HOST_TAG_NETWORK_GATEWAY,   /* HOST_SERVICE_GATEWAY    */
+  HOST_TAG_POWERSHELL_SERVER, /* HOST_SERVICE_POWERSHELL */
+  HOST_TAG_FTP_SERVER,        /* HOST_SERVICE_FTP        */
 };
 
 /* Return tags
