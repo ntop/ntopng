@@ -13,16 +13,15 @@ local BLOG_FEED_KEY = "ntopng.cache.blog_feed"
 local BLOG_NEXT_FEED_UPDATE = "ntopng.prefs.next_feed_update"
 local JSON_FEED = "https://feed.ntop.org/blog.json"
 
--- Parse the date string, following this pattern: yyyy-mm-ddTH:M:S
--- Return 0 if the date string is empty, otherwise it returns the right epoch
+-- Parse the date array, following this pattern: {yyyy, mm, dd, H, M, S, ...}
+-- Return 0 if the date is missing, otherwise it returns the right epoch
 function blog_utils.parseDate(date)
 
-    if (isEmptyString(date)) then
+    if (type(date) ~= "table") then
         return 0
     end
 
-    local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)"
-    local year, month, day, hour, minutes = date:match(pattern)
+    local year, month, day, hour, minutes = table.unpack(date)
 
     local epoch = os.time({
         year = year,
@@ -160,7 +159,9 @@ function blog_utils.fetchLatestPosts()
         return (false)
     end
 
-    local posts = json.decode(response["CONTENT"])
+    -- The feed is an RSS converted to JSON, with the posts in 'entries'
+    local feed = json.decode(response["CONTENT"])
+    local posts = feed and feed.entries
 
     if ((posts == nil) or table.len(posts) == 0) then
         ntop.setPref(BLOG_NEXT_FEED_UPDATE, now + 300) -- Try again not less than 5 mins
@@ -175,13 +176,13 @@ function blog_utils.fetchLatestPosts()
     for i, post in ipairs(latest3Posts) do
         if (post ~= nil) then
 
-            local postId = tonumber(post.id)
-            local postTitle = post.title and post.title.rendered or ""
+            local postId = tonumber(string.match(post.id or "", "p=(%d+)"))
+            local postTitle = post.title or ""
             local postURL = post.link
-            local excerpt = post.excerpt and post.excerpt.rendered or ""
+            local excerpt = post.summary or ""
             excerpt = excerpt:gsub("<[^>]+>", ""):gsub("%[&hellip;%]%s*$", "")
             local postShortDesc = string.sub(excerpt, 1, 48) .. '...'
-            local postEpoch = blog_utils.parseDate(post.date_gmt or post.date)
+            local postEpoch = blog_utils.parseDate(post.published_parsed)
 
             local post = {
                 id = postId,
