@@ -291,6 +291,13 @@ function hostinfo2label(host_info, show_vlan, shorten_len, skip_resolution)
 		-- This goes first as a label set by the user MUST take precedance over any other possibly available label
 		res = getHostAltName(ip)
 
+		-- Prefer a user-configured device alias over names learned
+		-- automatically from traffic for local L2/DHCP hosts.
+		if isEmptyString(res) and host_info["mac"] and
+			(host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
+			res = getHostAltName(host_info["mac"])
+		end
+
 		if isEmptyString(res) then
 			-- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
 			res = host_info["name"]
