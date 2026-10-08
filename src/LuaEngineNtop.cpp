@@ -4932,6 +4932,25 @@ static int ntop_get_cookie_attributes(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Returns true if the current HTTP request has been received over HTTPS (TLS).  Lua: ntop.isHTTPS() → boolean */
+static int ntop_is_https(lua_State* vm) {
+  struct mg_request_info* request_info;
+  struct mg_connection* conn;
+  bool is_https = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  /* No connection (e.g. periodic scripts) means no HTTPS */
+  if ((conn = getLuaVMUserdata(vm, conn)) &&
+      (request_info = mg_get_request_info(conn)))
+    is_https = request_info->is_ssl ? true : false;
+
+  lua_pushboolean(vm, is_https);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Returns true if the current user is allowed to access the given interface.  Lua: ntop.isAllowedInterface(ifname) → boolean */
 static int ntop_is_allowed_interface(lua_State* vm) {
   int id;
@@ -9155,6 +9174,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getSystemAlertsStats", ntop_get_system_alerts_stats},
     {"refreshCPULoad", ntop_refresh_cpu_load},
     {"getCookieAttributes", ntop_get_cookie_attributes},
+    {"isHTTPS", ntop_is_https},
     {"isAllowedInterface", ntop_is_allowed_interface},
     {"isAllowedNetwork", ntop_is_allowed_network},
     {"isLocalInterfaceAddress", ntop_is_local_interface_address},

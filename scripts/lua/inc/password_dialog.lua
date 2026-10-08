@@ -6,6 +6,10 @@ local template = require("template_utils")
 local locales_utils = require "locales_utils"
 local host_pools = require "host_pools"
 
+-- Passkeys can be configured only over HTTPS: the login verifies the passkey
+-- against the request scheme, so one configured over HTTP would lock the user out
+local is_https = ntop.isHTTPS()
+
 print [[
 
 <div id="password_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="password_dialog_label" aria-hidden="true">
@@ -29,8 +33,12 @@ print [[
    print[[
     <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
     <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
-    <li class="nav-item"><a class="nav-link" href="#user-mfa-tab" role="tab" data-bs-toggle="tab"> <i class="fas fa-shield-alt"></i> ]] print(i18n("mfa.tab_title") or "MFA") print[[ </a></li>
-    <li class="nav-item"><a class="nav-link" href="#user-webauthn-tab" role="tab" data-bs-toggle="tab"> <i class="fas fa-fingerprint"></i> ]] print(i18n("webauthn.tab_title")) print[[ </a></li>
+    <li class="nav-item"><a class="nav-link" href="#user-mfa-tab" role="tab" data-bs-toggle="tab"> <i class="fas fa-shield-alt"></i> ]] print(i18n("mfa.tab_title") or "MFA") print[[ </a></li>]]
+   if is_https then
+    print[[
+    <li class="nav-item"><a class="nav-link" href="#user-webauthn-tab" role="tab" data-bs-toggle="tab"> <i class="fas fa-fingerprint"></i> ]] print(i18n("webauthn.tab_title")) print[[ </a></li>]]
+   end
+   print[[
 
   </ul>
   </div>
@@ -351,6 +359,7 @@ print([[
 ]])
 
 -- WebAuthn/Passkeys Tab
+if is_https then
 print[[
   <div class='tab-pane' id='user-webauthn-tab'>
     <div id="webauthn_alert_placeholder"></div>
@@ -369,6 +378,7 @@ print[[
     </button>
   </div>
 ]]
+end
 
 print [[
   <script type='text/javascript'>
@@ -773,7 +783,10 @@ $('#password_reset_submit').click(function() {
 });
 */
 </script>
+]]
 
+if is_https then
+print[[
 <script>
 (function() {
   var _webauthn_user = '';
@@ -910,6 +923,10 @@ $('#password_reset_submit').click(function() {
   });
 })();
 </script>
+]]
+end
+
+print[[
 
 </div>
 </div>
