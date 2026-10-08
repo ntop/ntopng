@@ -237,6 +237,7 @@ local field = data and data["field"]
 | `ntop.checkLicense()` | integer | Run license validation (returns 1) |
 | `ntop.getSystemAlertsStats()` | table | Alert statistics (drops, writes) |
 | `ntop.getCookieAttributes()` | string | Cookie security attributes string (e.g. `SameSite=Strict; Secure`) |
+| `ntop.isHTTPS()` | boolean | True if the current HTTP request has been received over HTTPS (TLS) |
 | `ntop.getAllPaths(path, pattern)` | table | Recursively find all files matching pattern under path |
 | `ntop.getStartupEpoch()` | integer | ntopng start time as Unix epoch |
 | `ntop.getStaticFileEpoch()` | integer | Epoch for static-file cache busting |
