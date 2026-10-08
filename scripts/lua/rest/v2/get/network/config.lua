@@ -17,6 +17,10 @@ res = {
    {key= "ntp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_ntp_list") or "" },
    {key= "dhcp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_dhcp_list") or "" },
    {key= "smtp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_smtp_list") or "" },
+   {key= "ssh_list", value_description=ntop.getCache("ntopng.prefs.nw_config_ssh_list") or "" },
+   {key= "powershell_list", value_description=ntop.getCache("ntopng.prefs.nw_config_powershell_list") or "" },
+   {key= "ftp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_ftp_list") or "" },
+   {key= "rdp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_rdp_list") or "" },
    {key= "gateway_list", value_description=ntop.getCache("ntopng.prefs.nw_config_gateway_list") or "" },
 }
 

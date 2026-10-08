@@ -1200,6 +1200,8 @@ u_int64_t Host::getTags(bool transferrable_only) {
     if (p->isNTPServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_NTP_SERVER);
     if (p->isDHCPServer(&ip, vlan)) bm |= ((u_int64_t)1 << HOST_TAG_DHCP_SERVER);
     if (p->isSMTPServer(&ip, vlan)) bm |= ((u_int64_t)1 << HOST_TAG_SMTP_SERVER);
+    if (p->isSSHServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_SSH_SERVER);
+    if (p->isRDPServer(&ip, vlan))  bm |= ((u_int64_t)1 << HOST_TAG_RDP_SERVER);
     if (p->isGateway(&ip, vlan))    bm |= ((u_int64_t)1 << HOST_TAG_NETWORK_GATEWAY);
 
     /* Traffic-observed services (auto-detected from flows) */

@@ -1784,6 +1784,14 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
   "ntopng.prefs.nw_config_dhcp_list"
 #define CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY \
   "ntopng.prefs.nw_config_smtp_list"
+#define CONST_SSH_SERVER_CONFIGURATION_REDIS_KEY \
+  "ntopng.prefs.nw_config_ssh_list"
+#define CONST_POWERSHELL_SERVER_CONFIGURATION_REDIS_KEY \
+  "ntopng.prefs.nw_config_powershell_list"
+#define CONST_FTP_SERVER_CONFIGURATION_REDIS_KEY \
+  "ntopng.prefs.nw_config_ftp_list"
+#define CONST_RDP_SERVER_CONFIGURATION_REDIS_KEY \
+  "ntopng.prefs.nw_config_rdp_list"
 
 #define CONST_CUSTOMER_ASN_CONFIGURATION_REDIS_KEY \
   "ntopng.prefs.config_customer_asn_list"

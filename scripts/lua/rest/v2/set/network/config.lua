@@ -14,6 +14,10 @@ local dns_list = _POST["dns_list"]
 local ntp_list = _POST["ntp_list"]
 local smtp_list = _POST["smtp_list"]
 local dhcp_list = _POST["dhcp_list"]
+local ssh_list = _POST["ssh_list"]
+local powershell_list = _POST["powershell_list"]
+local ftp_list = _POST["ftp_list"]
+local rdp_list = _POST["rdp_list"]
 local gateway_list = _POST["gateway_list"]
 
 if dns_list then
@@ -34,6 +38,26 @@ end
 if dhcp_list then
    local parsed_dhcp_list = dhcp_list:gsub("%s+", "") -- Remove the empty spaces
    ntop.setCache("ntopng.prefs.nw_config_dhcp_list", parsed_dhcp_list)
+end
+
+if rdp_list then
+   local parsed_rdp_list = rdp_list:gsub("%s+", "") -- Remove the empty spaces
+   ntop.setCache("ntopng.prefs.nw_config_rdp_list", parsed_rdp_list)
+end
+
+if ftp_list then
+   local parsed_ftp_list = ftp_list:gsub("%s+", "") -- Remove the empty spaces
+   ntop.setCache("ntopng.prefs.nw_config_ftp_list", parsed_ftp_list)
+end
+
+if ssh_list then
+   local parsed_ssh_list = ssh_list:gsub("%s+", "") -- Remove the empty spaces
+   ntop.setCache("ntopng.prefs.nw_config_ssh_list", parsed_ssh_list)
+end
+
+if powershell_list then
+   local parsed_powershell_list = powershell_list:gsub("%s+", "") -- Remove the empty spaces
+   ntop.setCache("ntopng.prefs.nw_config_powershell_list", parsed_powershell_list)
 end
 
 if gateway_list then
