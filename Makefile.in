@@ -141,10 +141,10 @@ TEST_FILES = $(wildcard tests/src/*.cpp)
 TEST_HEADERS = $(wildcard tests/include/*.h)
 
 %.o: %.c $(HEADERS) $(INC) Makefile
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) @MFLAGS@ -c $< -o $@
 
 %.o: %.cpp $(HEADERS) $(INC) Makefile
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) @MFLAGS@ -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 

@@ -893,6 +893,10 @@ if test $GIT_BRANCH != "dev"; then
   STABLE_SUFFIX="-stable"
 fi
 
+if test $SYSTEM = "Linux"; then
+  MFLAGS="-fno-plt -Wl,-z,now,-z,relro, -fvisibility=hidden -Bsymbolic"
+fi
+
 PWD=${HERE}
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
@@ -914,6 +918,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
+AC_SUBST(MFLAGS)
 AC_SUBST(NTOPNG_VERSION)
 AC_SUBST(NTOPNG_SHORT_VERSION)
 AC_SUBST(GIT_RELEASE)
