@@ -67,6 +67,15 @@
 			"data_field": "flow_risks",
 			"sortable": false,
 			"min-width" : "180px"
+		},
+		{
+			"title_i18n": "tags_page.tag_ttl",
+			"data_field": "ttl",
+			"sortable": true,
+			"min-width" : "80px",
+			"class": [
+				"text-nowrap"
+			]
 		}
 	]
 }

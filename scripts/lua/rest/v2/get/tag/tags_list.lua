@@ -16,6 +16,7 @@ local tags = tag_badge_utils.getTags()
 
 local applications_supported = tag_badge_utils.areTagApplicationsSupported()
 local risks_supported = tag_badge_utils.areTagRisksSupported()
+local ttl_supported = tag_badge_utils.isTagTTLSupported()
 
 -- Resolve the nDPI application ids and the flow risk ids
 for _, tag in ipairs(tags) do
@@ -38,6 +39,10 @@ for _, tag in ipairs(tags) do
     end
 
     tag.flow_risks = flow_risks
+
+    if not ttl_supported then
+        tag.ttl = 0
+    end
 end
 
 local total_rows = #tags

@@ -110,7 +110,8 @@ where the following can be changed:
   Applications above. See `Application- and Risk-Based Tagging`_ below.
 - **TTL**: disabled by default, meaning the tag never expires. When
   enabled, it is the number of days (from 1 to 365) after which the tag
-  associated to an asset expires, unless it is refreshed.
+  associated to an asset expires, unless it is refreshed (Enterprise L or
+  above).
 
 A user-defined tag can be reverted to its factory defaults (default name,
 black color, empty description) using the **Reset** action, which also
