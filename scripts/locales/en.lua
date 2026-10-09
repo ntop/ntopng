@@ -7569,6 +7569,7 @@ local lang = {
     ["jp"] = "Japanese",
     ["ko"] = "Korean",
     ["pt"] = "Portuguese",
+    ["tw"] = "Traditional Chinese (Taiwan)",
   },
   ["login"] = {
     ["add_captive_portal_user"] = "Add Captive Portal User",

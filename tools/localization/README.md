@@ -73,6 +73,7 @@ Language file name → Google Translate code (handled automatically):
 | file | code | | file | code | | file | code |
 |---|---|---|---|---|---|---|---|
 | `cn` | `zh-CN` | | `de` | `de` | | `it` | `it` |
+| `tw` | `zh-TW` | | | | | | |
 | `cz` | `cs`    | | `es` | `es` | | `jp` | `ja` |
 | `fr` | `fr`    | | `ko` | `ko` | | `pt` | `pt` |
 

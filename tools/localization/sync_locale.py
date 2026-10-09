@@ -49,6 +49,7 @@ LANGS = {
     "jp": "ja",
     "ko": "ko",
     "pt": "pt",
+    "tw": "zh-TW",
 }
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
