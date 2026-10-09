@@ -157,6 +157,13 @@ end
 
 -- ##############################################
 
+-- Returns true if a Time To Live can be set on the tags (Enterprise L or above)
+function tag_badge_utils.isTagTTLSupported()
+    return (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
+end
+
+-- ##############################################
+
 -- Returns all the tags
 function tag_badge_utils.getTags()
     local tags = get_tags()
@@ -187,10 +194,11 @@ end
 -- protocols: array of nDPI application ids bound to the tag (custom tags only, Enterprise L only)
 -- risks: array of flow risk ids bound to the tag (all tags, Enterprise L only)
 -- ttl: days after which the tag (associated to an asset) expires if not refreshed,
---      0 means it never expires (all tags). When nil the current TTL is left untouched
+--      0 means it never expires (all tags, Enterprise L only). When nil the current
+--      TTL is left untouched
 function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks, ttl)
     local json = require "dkjson"
-    -- Without the license applications and flow risks cannot be changed
+    -- Without the license applications, flow risks and TTL cannot be changed
     local current = nil
 
     if tag_badge_utils.areTagApplicationsSupported() then
@@ -207,7 +215,7 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
         risks = (current and current.risks) or {}
     end
 
-    if ttl == nil then
+    if ttl == nil or not tag_badge_utils.isTagTTLSupported() then
         current = current or get_tags()[tonumber(id)]
         ttl = current and current.ttl
     end
