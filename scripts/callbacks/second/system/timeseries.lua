@@ -168,6 +168,7 @@ for i = 1, num_runs do
 
 		-- Now add probes stats
 		if ifstats.probes and ntop.isPro and ntop.isPro() then
+			local probe_system_info = {}
 			for interface_id, probes_list in pairs(ifstats.probes or {}) do
 				for source_id, probe_info in pairs(probes_list or {}) do
 					local probe_interface = ""
@@ -234,6 +235,41 @@ for i = 1, num_runs do
 						interface_name = probe_interface,
 						drops = (export_drops or 0),
 					}, when)
+
+					-- Updating system timeseries
+					if probe_info.system then
+						local cpu_info = probe_info.system.cpu
+						if cpu_info then
+							ts_utils.append("probe:cpu_load", {
+								ifid = interface_id,
+								uuid = uuid,
+								interface_name = probe_interface,
+								load = (cpu_info.capture_core_load or 0),
+							}, when)
+
+							-- Now Updating the timeseries per core, only once per uuid (different probe)
+							if not probe_system_info[uuid] then
+								for core, cpu_load in pairs(cpu_info.cores_load or {}) do
+									ts_utils.append("probe:cpu_load_all_cores", {
+										ifid = interface_id,
+										uuid = uuid,
+										core = string.format("core_%d", core - 1),
+										load = (cpu_load or 0),
+									}, when)
+								end
+
+                        if probe_info.system.memory then
+                           ts_utils.append("probe:memory_load", {
+                              ifid = interface_id,
+                              uuid = uuid,
+                              bytes = (probe_info.system.memory.used or 0) * 1024,
+                           }, when)
+                        end
+
+								probe_system_info[uuid] = true
+							end
+						end
+					end
 				end
 			end
 		end

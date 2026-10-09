@@ -337,6 +337,10 @@ function ts_common.getExtLabel(options, serie_tags)
       ext_label = string.format("%s - %s", serie_tags.uuid, serie_tags.interface_name)
    end
 
+   if serie_tags.uuid and serie_tags.core then
+      ext_label = string.format("%s %d", i18n("graphs.metric_labels.core"), string.gsub(serie_tags.core, "core_", ""))
+   end
+
    return ext_label
 end
 

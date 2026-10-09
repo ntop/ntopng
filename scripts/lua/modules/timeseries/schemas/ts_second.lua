@@ -5,50 +5,49 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
-local ts_utils = require "ts_utils_core"
+local ts_utils = require("ts_utils_core")
 local schema
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:traffic", {step=1, rrd_fname="bytes", is_critical_ts=true})
+schema = ts_utils.newSchema("iface:traffic", { step = 1, rrd_fname = "bytes", is_critical_ts = true })
 schema:addTag("ifid")
 schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:packets", {step=1, rrd_fname="packets", is_critical_ts=true})
+schema = ts_utils.newSchema("iface:packets", { step = 1, rrd_fname = "packets", is_critical_ts = true })
 schema:addTag("ifid")
 schema:addMetric("packets")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:traffic_rxtx", {step=1, is_critical_ts=true})
+schema = ts_utils.newSchema("iface:traffic_rxtx", { step = 1, is_critical_ts = true })
 schema:addTag("ifid")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:packets_rxtx", {step=1, is_critical_ts=true})
+schema = ts_utils.newSchema("iface:packets_rxtx", { step = 1, is_critical_ts = true })
 schema:addTag("ifid")
 schema:addMetric("packets_sent")
 schema:addMetric("packets_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:traffic_ip", {step=1, is_critical_ts=true})
+schema = ts_utils.newSchema("iface:traffic_ip", { step = 1, is_critical_ts = true })
 schema:addTag("ifid")
 schema:addMetric("bytes_ipv4")
 schema:addMetric("bytes_ipv6")
 
-
 -- ##############################################
 
 schema = ts_utils.newSchema("iface:throughput_pps", {
-   step=1,
-   is_critical_ts=true,
-   metrics_type = ts_utils.metrics.gauge,
-   aggregation_function = ts_utils.aggregation.max
+	step = 1,
+	is_critical_ts = true,
+	metrics_type = ts_utils.metrics.gauge,
+	aggregation_function = ts_utils.aggregation.max,
 })
 schema:addTag("ifid")
 schema:addMetric("pps")
@@ -56,47 +55,47 @@ schema:addMetric("pps")
 -- ##############################################
 
 schema = ts_utils.newSchema("iface:throughput_bps", {
-   step=1,
-   is_critical_ts=true,
-   metrics_type = ts_utils.metrics.gauge,
-   aggregation_function = ts_utils.aggregation.max
+	step = 1,
+	is_critical_ts = true,
+	metrics_type = ts_utils.metrics.gauge,
+	aggregation_function = ts_utils.aggregation.max,
 })
 schema:addTag("ifid")
 schema:addMetric("bps")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_recv_flows", {step=1, rrd_fname = "zmq_rcvd_flows"})
+schema = ts_utils.newSchema("iface:zmq_recv_flows", { step = 1, rrd_fname = "zmq_rcvd_flows" })
 schema:addTag("ifid")
 schema:addMetric("flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_rcvd_msgs", {step=1, rrd_fname = "zmq_rcvd_msgs"})
+schema = ts_utils.newSchema("iface:zmq_rcvd_msgs", { step = 1, rrd_fname = "zmq_rcvd_msgs" })
 schema:addTag("ifid")
 schema:addMetric("msgs")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_msg_drops", {step=1, rrd_fname = "zmq_msg_drops"})
+schema = ts_utils.newSchema("iface:zmq_msg_drops", { step = 1, rrd_fname = "zmq_msg_drops" })
 schema:addTag("ifid")
 schema:addMetric("msgs")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_flow_coll_drops", {step = 1, rrd_fname = "zmq_flow_coll_drops"})
+schema = ts_utils.newSchema("iface:zmq_flow_coll_drops", { step = 1, rrd_fname = "zmq_flow_coll_drops" })
 schema:addTag("ifid")
 schema:addMetric("drops")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:zmq_flow_coll_udp_drops", {step = 1, rrd_fname = "zmq_flow_udp_drops"})
+schema = ts_utils.newSchema("iface:zmq_flow_coll_udp_drops", { step = 1, rrd_fname = "zmq_flow_udp_drops" })
 schema:addTag("ifid")
 schema:addMetric("drops")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:packets_vs_drops", {step=1, is_critical_ts=true})
+schema = ts_utils.newSchema("iface:packets_vs_drops", { step = 1, is_critical_ts = true })
 schema:addTag("ifid")
 schema:addMetric("packets")
 schema:addMetric("drops")
@@ -104,14 +103,14 @@ schema:addMetric("drops")
 -- ##############################################
 
 -- Discarded Probing bytes
-schema = ts_utils.newSchema("iface:disc_prob_bytes", {step = 1, rrd_fname = "disc_prob_bytes"})
+schema = ts_utils.newSchema("iface:disc_prob_bytes", { step = 1, rrd_fname = "disc_prob_bytes" })
 schema:addTag("ifid")
 schema:addMetric("bytes")
 
 -- ##############################################
 
 -- Discarded Probing packets
-schema = ts_utils.newSchema("iface:disc_prob_pkts", {step = 1, rrd_fname = "disc_prob_pkts"})
+schema = ts_utils.newSchema("iface:disc_prob_pkts", { step = 1, rrd_fname = "disc_prob_pkts" })
 schema:addTag("ifid")
 schema:addMetric("packets")
 
@@ -124,39 +123,64 @@ schema:addMetric("packets")
 -- ##############################################
 
 if ntop.isPro and ntop.isPro() then
-   schema = ts_utils.newSchema("probe:traffic", {step=1, rrd_fname="bytes", is_critical_ts=true})
-   schema:addTag("ifid")
-   schema:addTag("uuid")
-   schema:addTag("interface_name")
-   schema:addMetric("bytes")
-   
-   schema = ts_utils.newSchema("probe:packets", {step=1, rrd_fname="packets", is_critical_ts=true})
-   schema:addTag("ifid")
-   schema:addTag("uuid")
-   schema:addTag("interface_name")
-   schema:addMetric("packets")
-   
-   schema = ts_utils.newSchema("probe:packets_drops", {step=1, rrd_fname="packets_drops", is_critical_ts=true})
-   schema:addTag("ifid")
-   schema:addTag("uuid")
-   schema:addTag("interface_name")
-   schema:addMetric("drops")
-   
-   schema = ts_utils.newSchema("probe:active_flows", {step=1, rrd_fname="active_flows", is_critical_ts=true})
-   schema:addTag("ifid")
-   schema:addTag("uuid")
-   schema:addTag("interface_name")
-   schema:addMetric("active_flows")
-   
-   schema = ts_utils.newSchema("probe:exported_flows", {step=1, rrd_fname="exported_flows", is_critical_ts=true})
-   schema:addTag("ifid")
-   schema:addTag("uuid")
-   schema:addTag("interface_name")
-   schema:addMetric("exports")
-   
-   schema = ts_utils.newSchema("probe:zmq_drops", {step=1, rrd_fname="zmq_drops", is_critical_ts=true})
-   schema:addTag("ifid")
-   schema:addTag("uuid")
-   schema:addTag("interface_name")
-   schema:addMetric("drops")
+	schema = ts_utils.newSchema("probe:traffic", { step = 1, rrd_fname = "bytes", is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("bytes")
+
+	schema = ts_utils.newSchema("probe:packets", { step = 1, rrd_fname = "packets", is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("packets")
+
+	schema = ts_utils.newSchema("probe:packets_drops", { step = 1, rrd_fname = "packets_drops", is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("drops")
+
+	schema = ts_utils.newSchema("probe:active_flows", { step = 1, rrd_fname = "active_flows", is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("active_flows")
+
+	schema =
+		ts_utils.newSchema("probe:exported_flows", { step = 1, rrd_fname = "exported_flows", is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("exports")
+
+	schema = ts_utils.newSchema("probe:zmq_drops", { step = 1, rrd_fname = "zmq_drops", is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("drops")
+
+	schema =
+		ts_utils.newSchema("probe:cpu_load", { step = 1, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true })
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("interface_name")
+	schema:addMetric("load")
+
+	schema = ts_utils.newSchema(
+		"probe:memory_load",
+		{ step = 1, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true }
+	)
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addMetric("bytes")
+
+	schema = ts_utils.newSchema(
+		"probe:cpu_load_all_cores",
+		{ step = 1, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true }
+	)
+	schema:addTag("ifid")
+	schema:addTag("uuid")
+	schema:addTag("core")
+	schema:addMetric("load")
 end
