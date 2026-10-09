@@ -736,6 +736,40 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
         zrs.num_exporters = (u_int8_t)json_object_get_int(z);
     }
 
+    if (json_object_object_get_ex(o, "system", &w)) {
+      zrs.system.available = true;
+
+      if (json_object_object_get_ex(w, "cpu", &z)) {
+        json_object* x;
+
+        if (json_object_object_get_ex(z, "num_cores", &x)) zrs.system.cpu.num_cores = (u_int16_t)json_object_get_int(x);
+        if (json_object_object_get_ex(z, "load", &x)) zrs.system.cpu.load = (float)json_object_get_double(x);
+
+        if (json_object_object_get_ex(z, "cores_load", &x) && json_object_is_type(x, json_type_array)) {
+          size_t num_cores = json_object_array_length(x);
+          for (size_t i = 0; i < num_cores; i++)
+            zrs.system.cpu.cores_load.push_back((float) json_object_get_double(json_object_array_get_idx(x, i)));
+        }
+
+        if (json_object_object_get_ex(z, "capture_core", &x)) zrs.system.cpu.capture_core = (int32_t) json_object_get_int(x);
+        if (json_object_object_get_ex(z, "export_core", &x)) zrs.system.cpu.export_core = (int32_t) json_object_get_int(x);
+        if (json_object_object_get_ex(z, "capture_core_load", &x)) zrs.system.cpu.capture_core_load = (float) json_object_get_double(x);
+        if (json_object_object_get_ex(z, "export_core_load", &x)) zrs.system.cpu.export_core_load = (float) json_object_get_double(x);
+      }
+
+      if (json_object_object_get_ex(w, "memory", &z)) {
+        json_object* x;
+        if (json_object_object_get_ex(z, "total", &x)) zrs.system.memory.total = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "used", &x))  zrs.system.memory.used = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "free", &x))  zrs.system.memory.free = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "available", &x)) zrs.system.memory.available = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "buffers", &x)) zrs.system.memory.buffers = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "cached", &x)) zrs.system.memory.cached = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "swap_total", &x)) zrs.system.memory.swap_total = (u_int64_t)json_object_get_int64(x);
+        if (json_object_object_get_ex(z, "swap_used", &x)) zrs.system.memory.swap_used = (u_int64_t)json_object_get_int64(x);
+      }
+    }
+
 #ifdef ZMQ_EVENT_DEBUG
     ntop->getTrace()->traceEvent(
         TRACE_NORMAL,

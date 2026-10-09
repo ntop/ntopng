@@ -38,6 +38,23 @@ typedef struct {
   u_int32_t unique_source_id;
 } ExporterStats;
 
+/* Probe system stats */
+typedef struct {
+  bool available; /* true when system stats have been received */
+  struct {
+    u_int16_t num_cores;
+    float load; /* overall CPU load (%) */
+    std::vector<float> cores_load; /* per-core load (%) */
+    /* Core affinity and load for the cores used */
+    int32_t capture_core, export_core; /* -1 if unknown */
+    float capture_core_load, export_core_load;
+  } cpu;
+  struct { /* KB */
+    u_int64_t total, used, free, available, buffers, cached;
+    u_int64_t swap_total, swap_used;
+  } memory;
+} ProbeSystemStats;
+
 typedef struct {
   u_int32_t last_update;
   u_int32_t remote_lifetime_timeout;
@@ -101,6 +118,7 @@ class nProbeStats {
   u_int32_t flow_collection_drops;
   u_int32_t flow_collection_udp_socket_drops;
   FlowCollection flow_collection;
+  ProbeSystemStats system;
 
   std::map<struct ndpi_in6_addr, ExporterStats, NdpiIn6AddrCompare> exportersStats;
 

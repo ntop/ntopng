@@ -33,6 +33,12 @@ nProbeStats::nProbeStats() {
   remote_bytes = 0;
   memset(&flow_collection, 0, sizeof(flow_collection));
 
+  system.available = false;
+  system.cpu.num_cores = 0;
+  system.cpu.load = system.cpu.capture_core_load = system.cpu.export_core_load = 0;
+  system.cpu.capture_core = system.cpu.export_core = -1;
+  memset(&system.memory, 0, sizeof(system.memory));
+
   remote_ifname[0] = remote_ifaddress[0] = remote_collector_address[0] =
     nprobe_address[0] =
     nprobe_public_address[0] = uuid[0] = nprobe_version[0] =
