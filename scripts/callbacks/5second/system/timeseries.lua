@@ -31,7 +31,7 @@ for i = 1, num_runs do
 
     -- Update CPU load timeseries
     if (ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0") then
-        ts_dump.dump_cpu_stats(interface.getId(), when)
+        ts_dump.dump_cpu_memory_stats(interface.getId(), when)
         ts_dump.dump_thread_cpu_stats(interface.getId(), when)
     end
 

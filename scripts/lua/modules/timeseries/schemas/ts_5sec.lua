@@ -22,6 +22,10 @@ schema = ts_utils.newSchema("system:cpu_load", {step = 5, metrics_type = ts_util
 schema:addTag("ifid")
 schema:addMetric("load_percentage")
 
+schema = ts_utils.newSchema("system:memory_used", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
+schema:addTag("ifid")
+schema:addMetric("bytes")
+
 schema = ts_utils.newSchema("system:thread_cpu_load", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("thread_name")
