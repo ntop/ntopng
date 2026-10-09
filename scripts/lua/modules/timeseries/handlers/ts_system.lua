@@ -87,6 +87,7 @@ local timeseries_list = {
 		disable_default_ago_ts = false,
 		draw_stacked = false,
 		disable_stacked = true,
+      hide_total = true,
 	},
 	{
 		schema = "process:resident_memory",
