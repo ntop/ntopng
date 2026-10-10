@@ -60,6 +60,7 @@ class Prefs {
       enable_ixia_timestamps, full_stats_enabled, enable_interface_name_only,
       enable_users_login, disable_localhost_login, service_license_check,
       enable_sql_log, enable_access_log, enable_assets_log, log_to_file,
+      asset_tags_ttl_test_mode,
       enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
       enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
       enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
@@ -310,6 +311,12 @@ class Prefs {
     enable_access_log = state;
   };
   inline bool is_assets_log_enabled() { return (enable_assets_log); };
+  inline bool isAssetTagsTTLTestMode() { return (asset_tags_ttl_test_mode); };
+  inline u_int32_t getAssetTagsRefreshInterval() {
+    return (asset_tags_ttl_test_mode
+                ? CONST_ASSETS_TAGS_REFRESH_INTERVAL_TEST_MODE
+                : CONST_ASSETS_TAGS_REFRESH_INTERVAL);
+  };
   inline void do_enable_assets_log(bool state = true) {
     enable_assets_log = state;
   };
