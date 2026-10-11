@@ -255,6 +255,17 @@ function tag_badge_utils.deleteTag(id)
         ntop.delHashCache(get_redis_key(), id)
 
         ntop.reloadTagsMapping()
+
+        -- Remove the tag from the assets.
+        -- NOTE: built-in tags are not deleted, only their configuration is reset
+        if ntop.isPro() and tag_badge_utils.isTagTTLSupported() and (not tag_badge_utils.isReservedTag(id)) then
+            package.path = ntop.getDirs().installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+            local ok, asset_utils = pcall(require, "asset_utils")
+
+            if ok and asset_utils.removeTagFromAssets then
+                asset_utils.removeTagFromAssets(id)
+            end
+        end
     else
         return false, "Invalid ID"
     end

@@ -549,10 +549,17 @@ class Host : public GenericHashEntry,
   void lua_get_listening_ports(lua_State* vm);
   void lua_get_tags(lua_State* vm) const;
 
-  void addTag(u_int tag_idx);
-  bool isTagSet(u_int tag_idx);
+  void addTags(u_int64_t bitmap);
+  /* Tags set because the host is in one of the configured servers lists */
+  u_int64_t getConfiguredTags();
+  /* Tags observed (set or confirmed) / assigned / removed by the user: used to keep the
+   * tags of the assets up to date, see LocalHost */
+  virtual void setTagsRefreshed(u_int64_t bitmap) { ; }
+  virtual void setTagsAssigned(u_int64_t bitmap) { ; }
+  virtual void setTagsRemoved(u_int64_t bitmap) { ; }
 
-  void setUserTags(u_int64_t bitmap); /* Replace the user-defined tags */
+  /* Replace the user-defined tags (by_user: tags set manually by the user) */
+  void setUserTags(u_int64_t bitmap, bool by_user = true);
   void addUserTags(u_int64_t bitmap); /* Add to the user-defined tags */
   bool isUserTagSet(u_int tag_idx);
   inline u_int64_t getUserTags() const { return user_tags_bitmap; }

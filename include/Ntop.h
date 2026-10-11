@@ -847,6 +847,8 @@ class Ntop {
 #ifdef NTOPNG_PRO
   void getTagsForProtocol(u_int16_t protocol, std::vector<int> &tags_out);
   void getTagsForRisks(ndpi_risk flow_risks, std::vector<int> &tags_out);
+  /* Bitmap of the tags configured with a TTL */
+  u_int64_t getTTLTagsBitmap();
 #endif
 
   void addToPool(char* host_or_mac, u_int16_t user_pool_id);

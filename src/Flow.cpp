@@ -9630,8 +9630,7 @@ void Flow::setCliService(HostService service_enum) {
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
-    if (!cli_h->isBroadcastHost() && !cli_h->providesService(service_enum))
-      cli_h->setService(service_enum);
+    if (!cli_h->isBroadcastHost()) cli_h->setService(service_enum);
   } else if (cli_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!cli_ip_addr->isBroadcastAddress() &&
@@ -9649,8 +9648,7 @@ void Flow::setSrvService(HostService service_enum) {
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
-    if (!srv_h->isBroadcastHost() && !srv_h->providesService(service_enum))
-      srv_h->setService(service_enum);
+    if (!srv_h->isBroadcastHost()) srv_h->setService(service_enum);
   } else if (srv_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!srv_ip_addr->isBroadcastAddress() &&
@@ -9664,12 +9662,13 @@ void Flow::setSrvService(HostService service_enum) {
 void Flow::setCliTag(int tag_idx) {
   Host *cli_h, *srv_h;
 
+  if ((tag_idx < 0) || (tag_idx > 63)) return;
+
   get_actual_peers(&cli_h, &srv_h);
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
-    if (!cli_h->isBroadcastHost() && !cli_h->isTagSet(tag_idx))
-      cli_h->addTag(tag_idx);
+    if (!cli_h->isBroadcastHost()) cli_h->addTags(1ULL << tag_idx);
   } else if (cli_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!cli_ip_addr->isBroadcastAddress() &&
@@ -9683,12 +9682,13 @@ void Flow::setCliTag(int tag_idx) {
 void Flow::setSrvTag(int tag_idx) {
   Host *cli_h, *srv_h;
 
+  if ((tag_idx < 0) || (tag_idx > 63)) return;
+
   get_actual_peers(&cli_h, &srv_h);
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
-    if (!srv_h->isBroadcastHost() && !srv_h->isTagSet(tag_idx))
-      srv_h->addTag(tag_idx);
+    if (!srv_h->isBroadcastHost()) srv_h->addTags(1ULL << tag_idx);
   } else if (srv_ip_addr) {
     // Viewed interface, set the status inside the IP address
     if (!srv_ip_addr->isBroadcastAddress() &&

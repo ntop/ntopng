@@ -72,6 +72,7 @@ Prefs::Prefs(Ntop* _ntop) {
   influx_internal_db_name = strdup(CONST_DEFAULT_INFLUXDB_INTERNAL_DB_NAME);
   influx_internal_available = true;
   enable_access_log = false, enable_assets_log = false, enable_sql_log = false;
+  asset_tags_ttl_test_mode = false;
   enable_flow_device_port_rrd_creation =
     enable_observation_points_rrd_creation =
     enable_intranet_traffic_rrd_creation = false;
@@ -988,6 +989,13 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_assets_log =
     getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ASSETS_LOG, false);
+  if (!asset_tags_ttl_test_mode &&
+      (asset_tags_ttl_test_mode =
+       getDefaultBoolPrefsValue(TAGS_TTL_TEST_MODE_KEY, false)))
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                 "Asset tags TTL test mode enabled (%s): tags "
+                                 "TTL is in minutes. Do NOT use in production",
+                                 TAGS_TTL_TEST_MODE_KEY);
   enable_sql_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
 #ifndef HAVE_NEDGE
   use_mac_in_flow_key =

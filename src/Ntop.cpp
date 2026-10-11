@@ -6241,4 +6241,11 @@ void Ntop::getTagsForRisks(ndpi_risk flow_risks, std::vector<int> &tags_out) {
     tagsMapping->getTagsForRisks(flow_risks, tags_out);
 }
 
+u_int64_t Ntop::getTTLTagsBitmap() {
+  /* The tags of the assets expire with Enterprise L (or above) only */
+  if ((!tagsMapping) || (!pro->is_enterprise_l_edition())) return 0;
+
+  return tagsMapping->getTTLTagsBitmap();
+}
+
 #endif

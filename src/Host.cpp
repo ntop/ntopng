@@ -1233,13 +1233,33 @@ u_int64_t Host::getTags(bool transferrable_only) {
 
 /* ***************************************** */
 
+/* Tags set because the host is in one of the configured servers lists
+ * (Network Configuration) */
+u_int64_t Host::getConfiguredTags() {
+  u_int32_t services = ntop->getPrefs()->getServerTypes(&ip, vlan_id);
+  u_int64_t bm = 0;
+
+  for (int s = 1; services && (s < HOST_SERVICE_MAX); s++) {
+    if ((services & (1 << s)) && (host_service_to_host_tag[s] != -1))
+      bm |= ((u_int64_t)1 << host_service_to_host_tag[s]);
+  }
+
+  return bm;
+}
+
+/* ***************************************** */
+
 /* Replace the user-defined tags with the specified bitmap */
-void Host::setUserTags(u_int64_t bitmap) {
+void Host::setUserTags(u_int64_t bitmap, bool by_user) {
   /* Bits 0-31 are ntop-reserved (computed at runtime) and must never be
    * persisted into user_tags_bitmap, which is stored in Redis. */
   bitmap &= HOST_USER_TAGS_MASK;
 
   if (bitmap == user_tags_bitmap) return; /* Nothing to do */
+
+  setTagsRefreshed(bitmap & ~user_tags_bitmap); /* Tags just set */
+  if (by_user) setTagsAssigned(bitmap & ~user_tags_bitmap);
+  setTagsRemoved(user_tags_bitmap & ~bitmap);   /* Tags just unset */
 
 #if 0
   char buf[64];
@@ -1268,7 +1288,7 @@ void Host::addUserTags(u_int64_t bitmap) {
                                ip.print(buf, sizeof(buf)));
 #endif
 
-  setUserTags(user_tags_bitmap | bitmap);
+  setUserTags(user_tags_bitmap | bitmap, false /* not set by the user */);
 }
 
 /* ***************************************** */
@@ -1281,28 +1301,23 @@ bool Host::isUserTagSet(u_int tag_idx) {
 
 /* *************************************** */
 
-/* Add a tag set programmatically (e.g. from the flows of the host):
+/* Add the tags set programmatically (e.g. from the flows of the host):
  * bits 0-31 (ntop-reserved) are computed at runtime and not persisted,
- * bits 32-63 are user-defined tags */
-void Host::addTag(u_int tag_idx) {
-  if (tag_idx > 63) return;
+ * bits 32-63 are user-defined tags.
+ * This must be called every time the tags are observed, even when the host
+ * already has them, as it also refreshes the tags (see setTagsRefreshed) */
+void Host::addTags(u_int64_t bitmap) {
+  u_int64_t user_tags = bitmap & HOST_USER_TAGS_MASK;
+  u_int64_t computed_tags = bitmap & ~HOST_USER_TAGS_MASK;
 
-  if (tag_idx > 31)
-    addUserTags(1ULL << tag_idx);
-  else if (!(computed_tags_bitmap & (1ULL << tag_idx))) {
-    computed_tags_bitmap |= (1ULL << tag_idx);
+  setTagsRefreshed(bitmap);
+
+  if (user_tags) addUserTags(user_tags);
+
+  if (computed_tags & ~computed_tags_bitmap) {
+    computed_tags_bitmap |= computed_tags;
     setAssetUpdated();
   }
-}
-
-/* *************************************** */
-
-bool Host::isTagSet(u_int tag_idx) {
-  if (tag_idx > 63) return false;
-
-  if (tag_idx > 31) return isUserTagSet(tag_idx);
-
-  return (computed_tags_bitmap & (1ULL << tag_idx)) ? true : false;
 }
 
 /* ***************************************** */
@@ -2228,14 +2243,16 @@ void Host::checkStatsReset() {
 
 /*
   This method is called by Flow::~Flow()
-  to set on the original host, the services that
-  have been observed on the shadow IP address
+  to set on the original host, the services and the tags
+  that have been observed on the shadow IP address
 */
 void Host::updateView(IpAddress* ipa) {
   for (int i = 1; i <= NUM_HOST_SERVICES; i++) {
     HostService s = (HostService)i;
-    if (ipa->providesService(s) && !providesService(s)) setService(s);
+    if (ipa->providesService(s)) setService(s);
   }
+
+  if (ipa->getTagsMap() != 0) addTags(ipa->getTagsMap());
 }
 
 /* *************************************** */
@@ -2976,7 +2993,14 @@ void Host::visit(std::vector<ActiveHostWalkerInfo>* v, HostWalkMode mode) {
 
 /* *************************************** */
 
+/* This must be called every time the service is observed, even when the host
+ * already provides it, as it also refreshes the tag of the service (see
+ * setTagsRefreshed). Return true when the service is new for the host */
 bool Host::setService(HostService service_enum) {
+  if ((service_enum > 0) && (service_enum < HOST_SERVICE_MAX) &&
+      (host_service_to_host_tag[service_enum] != -1))
+    setTagsRefreshed(1ULL << host_service_to_host_tag[service_enum]);
+
   if (!providesService(service_enum)) {
     host_services_bitmap |= 1 << service_enum;
     return(true);

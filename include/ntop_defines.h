@@ -299,6 +299,9 @@
 #define HOST_TAGS_BITMAP_PREFIX "ntopng.prefs.host_tags_bitmap."
 #define HOST_USER_TAGS_MASK     ((u_int64_t)0xFFFFFFFF00000000ULL) /* bits 32-63: user-defined */
 #define TAGS_PREFS_HASH_KEY "ntopng.prefs.tags"
+/* Testing only: asset tags TTL in minutes (rather than days), with the tags
+ * refreshed/expired every minute. Read at startup */
+#define TAGS_TTL_TEST_MODE_KEY "ntopng.prefs.tags_ttl_test_mode"
 
 /* Built-in host tags (bits 0-31).
  * Bits 0-31 are reserved for ntop; bits 32-63 are user-defined.
@@ -417,6 +420,10 @@ typedef enum {
 #define CONST_INTERFACE_TYPE_UNKNOWN "unknown"
 
 #define CONST_ASSETS_PERIODIC_UPDATE 60       /* 1 min  */
+/* How often the tags observed on a host (see LocalHost::setTagsRefreshed) are
+ * dumped to the assets, when nothing else has changed on the host */
+#define CONST_ASSETS_TAGS_REFRESH_INTERVAL (6 * 3600) /* 6 hours */
+#define CONST_ASSETS_TAGS_REFRESH_INTERVAL_TEST_MODE 60 /* 1 min */
 #define CONST_MAX_DUMP_DURATION 300           /* 5 min  */
 #define CONST_MAX_NUM_PACKETS_PER_LIVE 100000 /* live captures via HTTP */
 #define CONST_MAX_DUMP 500000000
