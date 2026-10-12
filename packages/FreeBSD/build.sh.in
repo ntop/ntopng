@@ -157,5 +157,5 @@ FOUND=`tar -tvf ${PKG_NAME} | grep /usr/local/bin/ntopng | wc -l`
 if test $FOUND -eq "1" ; then
     cp ${PKG_NAME} ~/binary_packages/
 else
-    echo "Brokeb package: missing ntopng binary"
+    echo "Broken package: missing ntopng binary"
 fi
