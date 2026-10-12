@@ -1109,6 +1109,17 @@ class Flow : public GenericHashEntry {
     else
       *actual_client = get_cli_host(), *actual_server = get_srv_host();
   };
+  /*
+    Same as above, for the IP addresses of the peers: they are used in place of
+    the hosts with viewed interfaces, where flows have no hosts.
+  */
+  inline void get_actual_peers_ip(IpAddress** actual_client,
+                                  IpAddress** actual_server) const {
+    if (is_swap_requested())
+      *actual_client = srv_ip_addr, *actual_server = cli_ip_addr;
+    else
+      *actual_client = cli_ip_addr, *actual_server = srv_ip_addr;
+  };
   bool is_hash_entry_state_idle_transition_ready();
   void hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
                                    Host* srv_host,

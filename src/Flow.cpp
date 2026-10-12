@@ -9638,17 +9638,19 @@ void Flow::updateTCPHostServices(Host* cli_h, Host* srv_h) {
 
 void Flow::setCliService(HostService service_enum) {
   Host *cli_h, *srv_h;
+  IpAddress *cli_ip, *srv_ip;
 
   get_actual_peers(&cli_h, &srv_h);
+  get_actual_peers_ip(&cli_ip, &srv_ip);
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
     if (!cli_h->isBroadcastHost()) cli_h->setService(service_enum);
-  } else if (cli_ip_addr) {
+  } else if (cli_ip) {
     // Viewed interface, set the status inside the IP address
-    if (!cli_ip_addr->isBroadcastAddress() &&
-        !cli_ip_addr->providesService(service_enum))
-      cli_ip_addr->setService(service_enum);
+    if (!cli_ip->isBroadcastAddress() &&
+        !cli_ip->providesService(service_enum))
+      cli_ip->setService(service_enum);
   }
 }
 
@@ -9656,17 +9658,19 @@ void Flow::setCliService(HostService service_enum) {
 
 void Flow::setSrvService(HostService service_enum) {
   Host *cli_h, *srv_h;
+  IpAddress *cli_ip, *srv_ip;
 
   get_actual_peers(&cli_h, &srv_h);
+  get_actual_peers_ip(&cli_ip, &srv_ip);
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
     if (!srv_h->isBroadcastHost()) srv_h->setService(service_enum);
-  } else if (srv_ip_addr) {
+  } else if (srv_ip) {
     // Viewed interface, set the status inside the IP address
-    if (!srv_ip_addr->isBroadcastAddress() &&
-        !srv_ip_addr->providesService(service_enum))
-      srv_ip_addr->setService(service_enum);
+    if (!srv_ip->isBroadcastAddress() &&
+        !srv_ip->providesService(service_enum))
+      srv_ip->setService(service_enum);
   }
 }
 
@@ -9674,19 +9678,21 @@ void Flow::setSrvService(HostService service_enum) {
 
 void Flow::setCliTag(int tag_idx) {
   Host *cli_h, *srv_h;
+  IpAddress *cli_ip, *srv_ip;
 
   if ((tag_idx < 0) || (tag_idx > 63)) return;
 
   get_actual_peers(&cli_h, &srv_h);
+  get_actual_peers_ip(&cli_ip, &srv_ip);
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
     if (!cli_h->isBroadcastHost()) cli_h->addTags(1ULL << tag_idx);
-  } else if (cli_ip_addr) {
+  } else if (cli_ip) {
     // Viewed interface, set the status inside the IP address
-    if (!cli_ip_addr->isBroadcastAddress() &&
-        !cli_ip_addr->providesTag(tag_idx))
-      cli_ip_addr->setTag(tag_idx);
+    if (!cli_ip->isBroadcastAddress() &&
+        !cli_ip->providesTag(tag_idx))
+      cli_ip->setTag(tag_idx);
   }
 }
 
@@ -9694,19 +9700,21 @@ void Flow::setCliTag(int tag_idx) {
 
 void Flow::setSrvTag(int tag_idx) {
   Host *cli_h, *srv_h;
+  IpAddress *cli_ip, *srv_ip;
 
   if ((tag_idx < 0) || (tag_idx > 63)) return;
 
   get_actual_peers(&cli_h, &srv_h);
+  get_actual_peers_ip(&cli_ip, &srv_ip);
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
     if (!srv_h->isBroadcastHost()) srv_h->addTags(1ULL << tag_idx);
-  } else if (srv_ip_addr) {
+  } else if (srv_ip) {
     // Viewed interface, set the status inside the IP address
-    if (!srv_ip_addr->isBroadcastAddress() &&
-        !srv_ip_addr->providesTag(tag_idx))
-      srv_ip_addr->setTag(tag_idx);
+    if (!srv_ip->isBroadcastAddress() &&
+        !srv_ip->providesTag(tag_idx))
+      srv_ip->setTag(tag_idx);
   }
 }
 
