@@ -1783,6 +1783,9 @@ class Flow : public GenericHashEntry {
   void setSrvService(HostService service_enum);
   void setCliTag(int tag_idx);
   void setSrvTag(int tag_idx);
+#ifdef NTOPNG_PRO
+  void refreshHostsTags();
+#endif
   inline void setIGMPType(u_int8_t t) { protos.igmp.igmp_type = t; }
   void addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 		       struct ndpi_in6_addr *next_hop,
