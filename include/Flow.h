@@ -309,6 +309,7 @@ class Flow : public GenericHashEntry {
           last_query_update_time; /* The time when the last query was updated */
       u_int16_t last_query_type;
       u_int16_t last_return_code;
+      bool last_pkt_src2dst; /* Direction of the last packet dissected by nDPI */
     } dns;
 
     struct {
