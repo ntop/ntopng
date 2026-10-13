@@ -3165,10 +3165,12 @@ void Host::setnDPIOS(ndpi_os _os) {
       /* ntop->getTrace()->traceEvent(TRACE_WARNING, "OS change detected [%u ->
        * %u]", os_type, _os); */
 
-      alt_os_type = os_type;
-      os_type = _os;
+      ndpi_os prev_os_type = os_type;
 
-      setOS(_os, os_learning_tcp_fingerprint);
+      /* NOTE: os_type must not be set here but by setOS(), that otherwise
+       * finds the OS already set and does not handle it as a change (e.g. the
+       * OS of the asset is not updated, see LocalHost::setOS) */
+      if (setOS(_os, os_learning_tcp_fingerprint)) alt_os_type = prev_os_type;
     }
   }
 }
