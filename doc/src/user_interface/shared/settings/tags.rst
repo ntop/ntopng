@@ -71,12 +71,17 @@ ntopng currently defines the following built-in tags:
     - the host is configured as a PowerShell server
   * - FTP Server
     - the host is configured as an FTP server
+  * - Windows Domain Controller
+    - the host is configured as a Windows Domain Controller
+  * - Windows, macOS/iOS/iPadOS, Android, Linux, FreeBSD
+    - this is the Operating System of the host, as detected by ntopng (see
+      `Operating System Tags`_ below)
 
 The DNS, NTP, DHCP, SMTP, SSH and RDP Server tags are assigned either because
 the host has been explicitly configured as such (under `Network Configuration`_)
 or because ntopng has observed it providing that service on the network.
-The Network Gateway, PowerShell Server and FTP Server tags are assigned only
-when the host is configured as such. The remaining server tags (IMAP, POP,
+The Network Gateway, PowerShell Server, FTP Server and Windows Domain
+Controller tags are assigned only when the host is configured as such. The remaining server tags (IMAP, POP,
 HTTP, Modbus, S7comm, Profinet) are assigned purely based on traffic
 observation. The *Non PQC Compliant* tag is instead set the first time a
 flow risk is raised on a TLS connection indicating non-Post-Quantum-safe
@@ -85,6 +90,26 @@ responsible for it.
 
 Built-in tags are computed on the fly and are **not** persisted to disk:
 they always reflect the current state of the host.
+
+Operating System Tags
+~~~~~~~~~~~~~~~~~~~~~
+
+A host whose Operating System is known is tagged with it: *Windows*,
+*macOS/iOS/iPadOS*, *Android*, *Linux* or *FreeBSD*. These tags follow the
+Operating System that ntopng reports for the host, that is learnt from the
+traffic of the host itself (mainly the fingerprint of its TCP connections,
+but also DHCP, the HTTP User-Agent, the information received from nProbe
+and the network discovery).
+
+Unlike the other tags, a host (and its asset) has **at most one** of them:
+when a different Operating System is detected, the new tag replaces the
+previous one. This means that the tag of a host that is seen with more
+than one Operating System (e.g. a host running virtual machines, doing NAT
+or sharing its connection) changes over time.
+
+The assets already in the inventory when these tags have been introduced
+are tagged, the first time ntopng is started, with the Operating System
+they are stored with.
 
 .. _Network Configuration: ../policies/network_configuration.html
 
@@ -239,6 +264,9 @@ it:
   observed providing that service again;
 - for the *Non PQC Compliant* tag, when a new non-Post-Quantum-safe flow of
   the host is detected;
+- for the Operating System tags (see `Operating System Tags`_), when the
+  same Operating System is detected again, e.g. when the host opens a new
+  TCP connection;
 - for the tags bound to applications or flow risks (see
   `Application- and Risk-Based Tagging`_), when a new matching flow of the
   host is detected;
@@ -255,14 +283,17 @@ longer listed as a DNS server; if it starts again, the tag is back.
 Things worth knowing:
 
 - Tags assigned because the host is listed in the `Network Configuration`_
-  (DNS, NTP, DHCP, SMTP, SSH, RDP, PowerShell and FTP servers, network
-  gateway) never expire as long as the host is listed there, whatever the
-  TTL. If the
+  (DNS, NTP, DHCP, SMTP, SSH, RDP, PowerShell and FTP servers, Windows
+  Domain Controllers, network gateway) never expire as long as the host is
+  listed there, whatever the TTL. If the
   host is removed from the configuration, the tag expires as any other.
 - The TTL is in days and the expiration is checked periodically: a tag can
   be removed up to half a day later than its TTL, never earlier.
 - The expiration is about the **assets**, not the hosts. For the latter,
   the previously described rules apply.
+- An Operating System tag that expires is removed from the asset, but the
+  Operating System reported for the asset is not changed. The tag is back
+  as soon as the Operating System is detected again.
 - With a license below Enterprise L the TTL is not available, and the
   tags of an asset simply are the tags of its host.
 

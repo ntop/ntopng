@@ -324,6 +324,13 @@ typedef enum {
   HOST_TAG_POWERSHELL_SERVER  = 14,
   HOST_TAG_FTP_SERVER         = 15,
   HOST_TAG_WINDOWS_DOMAIN_CONTROLLER = 16,
+  /* Operating System of the host: at most one of them is set, see
+   * Host::getOSTag() */
+  HOST_TAG_OS_FREEBSD         = 27,
+  HOST_TAG_OS_LINUX           = 28,
+  HOST_TAG_OS_ANDROID         = 29,
+  HOST_TAG_OS_APPLE           = 30,
+  HOST_TAG_OS_WINDOWS         = 31,
 } HostTagId;
 
 #define IFACE_DHCP_RANGE_KEY "ntopng.prefs.ifid_%u.dhcp_ranges"

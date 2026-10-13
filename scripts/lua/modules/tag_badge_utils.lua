@@ -28,6 +28,12 @@ tag_badge_utils.builtin_tags = {
     [14] = { i18n = "asset_details.powershell_server"  }, -- HOST_TAG_POWERSHELL_SERVER
     [15] = { i18n = "asset_details.ftp_server"         }, -- HOST_TAG_FTP_SERVER
     [16] = { i18n = "asset_details.windows_domain_controller"         }, -- HOST_TAG_WINDOWS_DOMAIN_CONTROLLER
+    -- Operating System of the host: at most one of them is set
+    [27] = { i18n = "asset_details.os_freebsd"         }, -- HOST_TAG_OS_FREEBSD
+    [28] = { i18n = "asset_details.os_linux"           }, -- HOST_TAG_OS_LINUX
+    [29] = { i18n = "asset_details.os_android"         }, -- HOST_TAG_OS_ANDROID
+    [30] = { i18n = "asset_details.os_apple"           }, -- HOST_TAG_OS_APPLE
+    [31] = { i18n = "asset_details.os_windows"         }, -- HOST_TAG_OS_WINDOWS
 }
 
 -- Maximum Time To Live (in days) of a tag, 0 means the tag never expires
