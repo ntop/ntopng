@@ -3469,11 +3469,11 @@ u_int8_t ZMQParserInterface::parseOption(const char* payload, int payload_size,
 /* **************************************** */
 
 u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
-  u_int32_t update_freq_min = ntop->getPrefs()->get_housekeeping_frequency();
+  u_int32_t update_freq_min = ntop->getPrefs()->get_housekeeping_frequency(); /* (5s) */
   u_int32_t update_freq;
 
   if (cumulative_remote_stats.stats_interval > 0) {
-    update_freq = cumulative_remote_stats.stats_interval; /* sent by nprobe */
+    update_freq = cumulative_remote_stats.stats_interval; /* sent by nprobe (1s) */
   } else {
     /* Keep the old math for old probes not reporting the interval */
     update_freq = min_val(max_val(cumulative_remote_stats.remote_lifetime_timeout,

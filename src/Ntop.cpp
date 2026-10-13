@@ -737,8 +737,7 @@ void Ntop::start() {
   globals->setInitialized(); /* We're ready to go */
 
   while ((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    const u_int32_t nap_usec =
-        ntop->getPrefs()->get_housekeeping_frequency() * 1e6; /* 5 sec */
+    const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6; /* 5 sec */
 
     gettimeofday(&begin, NULL);
 
