@@ -8167,7 +8167,7 @@ static const char* host_service_names[NUM_HOST_SERVICES + 1] = {
   "gateway",    /* HOST_SERVICE_GATEWAY    */
   "powershell", /* HOST_SERVICE_POWERSHELL */
   "ftp",        /* HOST_SERVICE_FTP        */
-  "windows_domain_controoller", /* HOST_SERVICE_WINDOWS_DOMAIN_CONTROLLER */
+  "windows_domain_controller", /* HOST_SERVICE_WINDOWS_DOMAIN_CONTROLLER */
 };
 
 const char* Utils::hostService2str(HostService service_enum) {
