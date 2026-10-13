@@ -74,6 +74,8 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   collection = NULL;
   primary_exporter = NULL;
   tcp_fingerprint = NULL, ndpi_fingerprint = NULL, tls_blocks = NULL;
+  view_cli_os_hint = view_cli_fingerprint_os = ndpi_os_unknown;
+  view_cli_os_applied = 0;
   predominant_alert.id = flow_alert_normal,
   predominant_alert.category = alert_category_other,
   predominant_alert_score = 0;
@@ -902,11 +904,8 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
     }
   }
 
-  if (ndpiFlow && (ndpiFlow->metadata.l4.tcp.os_hint != ndpi_os_unknown)) {
-    Host* h = cli_h ? cli_h : getViewSharedClient() /* View interface */;
-
-    if (h != NULL) h->setnDPIOS(ndpiFlow->metadata.l4.tcp.os_hint);
-  }
+  if (ndpiFlow && (ndpiFlow->metadata.l4.tcp.os_hint != ndpi_os_unknown))
+    setClientOSHint(ndpiFlow->metadata.l4.tcp.os_hint);
 }
 
 /* *************************************** */
@@ -10299,8 +10298,10 @@ bool Flow::isThreeWayHandshakeOK() const {
 /* *************************************** */
 
 void Flow::setHostTCPFingerprint(char* fp, ndpi_os os_hint) {
-  if ((fp != NULL) && (cli_host || getViewSharedClient())) {
-    Host* h = cli_host ? cli_host : getViewSharedClient();
+  if (fp == NULL) return;
+
+  if (cli_host) {
+    Host* h = cli_host;
 
 #if 0
     char buf[64];
@@ -10325,8 +10326,50 @@ void Flow::setHostTCPFingerprint(char* fp, ndpi_os os_hint) {
 
       ntop->getRedis()->hashSet(CONST_STR_UNKNOWN_TCP_FINGERPRINTS, fp, log);
     }
+  } else {
+    /* Viewed interface: no hosts here, and the host of the view might not
+     * exist yet. The fingerprint is set on it by the view, see
+     * updateViewClientOS. NOTE: to be set before the fingerprint of the flow */
+    view_cli_fingerprint_os = os_hint;
+  }
 
-    setTCPFingerprint(fp);
+  setTCPFingerprint(fp);
+}
+
+/* *************************************** */
+
+/* Set the OS of the client of the flow, as learnt from the flow (nDPI or
+ * nProbe hint) */
+void Flow::setClientOSHint(ndpi_os os_hint) {
+  Host *cli_h, *srv_h;
+
+  if (os_hint == ndpi_os_unknown) return;
+
+  get_actual_peers(&cli_h, &srv_h);
+
+  if (cli_h)
+    cli_h->setnDPIOS(os_hint, get_first_seen());
+  else
+    view_cli_os_hint = os_hint; /* Viewed interface: see updateViewClientOS */
+}
+
+/* *************************************** */
+
+/* Called by the view (ViewInterface::viewed_flows_walker) on its flows: set on
+ * the host of the view the OS of the client that this flow has learnt, as
+ * setHostTCPFingerprint() and setClientOSHint() do with the hosts of the flows
+ * of the other interfaces. Each information is applied once per flow */
+void Flow::updateViewClientOS(Host* view_cli_host) {
+  if (!view_cli_host) return;
+
+  if ((!(view_cli_os_applied & 0x1)) && tcp_fingerprint) {
+    view_cli_host->setTCPfingerprint(tcp_fingerprint, view_cli_fingerprint_os);
+    view_cli_os_applied |= 0x1;
+  }
+
+  if ((!(view_cli_os_applied & 0x2)) && (view_cli_os_hint != ndpi_os_unknown)) {
+    view_cli_host->setnDPIOS(view_cli_os_hint, get_first_seen());
+    view_cli_os_applied |= 0x2;
   }
 }
 
