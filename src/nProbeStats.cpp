@@ -23,7 +23,7 @@
 
 nProbeStats::nProbeStats() {
   nprobe_source_id = num_exporters = remote_ifspeed = remote_time = local_time =
-    avg_bps = avg_pps = remote_lifetime_timeout = remote_idle_timeout =
+    avg_bps = avg_pps = stats_interval = remote_lifetime_timeout = remote_idle_timeout =
     remote_collected_lifetime_timeout = export_queue_full =
     too_many_flows = elk_flow_drops = sflow_pkt_sample_drops =
     flow_collection_drops = flow_collection_udp_socket_drops = 0;

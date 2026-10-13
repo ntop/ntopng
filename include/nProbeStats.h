@@ -57,6 +57,7 @@ typedef struct {
 
 typedef struct {
   u_int32_t last_update;
+  u_int32_t stats_interval;
   u_int32_t remote_lifetime_timeout;
   u_int32_t remote_idle_timeout;
   u_int32_t remote_collected_lifetime_timeout;
@@ -108,6 +109,7 @@ class nProbeStats {
   u_int32_t local_time;
   u_int32_t avg_bps;
   u_int32_t avg_pps;
+  u_int32_t stats_interval; /* Stats update interval sec (sent by nprobe) */
   u_int32_t remote_lifetime_timeout;
   u_int32_t remote_idle_timeout;
   u_int32_t remote_collected_lifetime_timeout;

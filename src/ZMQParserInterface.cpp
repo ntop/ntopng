@@ -623,6 +623,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char* payload, int payload_size,
                                              the grace period */
     }
 
+    if (json_object_object_get_ex(o, "stats_interval", &w))
+      zrs.stats_interval = (u_int32_t)json_object_get_int64(w);
+
     if (json_object_object_get_ex(o, "avg", &w)) {
       if (json_object_object_get_ex(w, "bps", &z))
         zrs.avg_bps = (u_int32_t)json_object_get_int64(z);
@@ -3467,10 +3470,17 @@ u_int8_t ZMQParserInterface::parseOption(const char* payload, int payload_size,
 
 u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
   u_int32_t update_freq_min = ntop->getPrefs()->get_housekeeping_frequency();
-  u_int32_t update_freq =
-      min_val(max_val(cumulative_remote_stats.remote_lifetime_timeout,
-                      cumulative_remote_stats.remote_idle_timeout),
-              cumulative_remote_stats.remote_collected_lifetime_timeout);
+  u_int32_t update_freq;
+
+  if (cumulative_remote_stats.stats_interval > 0) {
+    update_freq = cumulative_remote_stats.stats_interval; /* sent by nprobe */
+  } else {
+    /* Keep the old math for old probes not reporting the interval */
+    update_freq = min_val(max_val(cumulative_remote_stats.remote_lifetime_timeout,
+                                  cumulative_remote_stats.remote_idle_timeout),
+                          cumulative_remote_stats.remote_collected_lifetime_timeout);
+  }
+
   return max_val(update_freq, update_freq_min);
 }
 
