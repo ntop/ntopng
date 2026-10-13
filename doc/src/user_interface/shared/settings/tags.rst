@@ -228,6 +228,10 @@ an asset when nothing confirms it anymore. It is set in the tag edit
 dialog, in days (from 1 to 365), for both built-in and user-defined tags.
 When the TTL is disabled (the default) the tag never expires.
 
+To set the same TTL on many tags at once, use the **Set TTL** button at
+the bottom of the Tags page. The TTL is set on all the tags or, when
+**All Tags** is disabled, on the selected ones.
+
 A tag on an asset is **refreshed** every time ntopng has a new evidence of
 it:
 
