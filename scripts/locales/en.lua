@@ -10847,11 +10847,13 @@ local lang = {
     ["autorefresh"] = "Enable table autorefresh each %time seconds",
   },
   ["tags_page"] = {
+    ["all_tags"] = "All Tags",
     ["edit_tag"] = "Edit Tag",
     ["hosts"] = "Hosts",
     ["reserved_message"] = "Reserved System Tag",
     ["reset_tag"] = "Are you sure to reset the selected tag? This action cannot be undone.",
     ["reset_tag_title"] = "Reset Tag",
+    ["set_ttl"] = "Set TTL",
     ["tag_applications"] = "Applications",
     ["tag_color"] = "Tag Color",
     ["tag_description"] = "Tag Description",
