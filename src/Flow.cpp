@@ -1420,9 +1420,12 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
     performed and later used by checks.
   */
 
-  if (isDNS())
+  if (isDNS()) {
+    /* Direction of the packet the nDPI DNS metadata (e.g. is_query) refer to,
+     * see updateUDPHostServices() */
+    protos.dns.last_pkt_src2dst = src2dst_direction;
     processDNSPacket(ip_packet, ip_len, packet_time);
-  else if (isIEC60870())
+  } else if (isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
                           payload_len, h);
 
@@ -9724,8 +9727,14 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
       /* Swap check */
       if ((!swap_requested) && (ndpiFlow != NULL) &&
           iface->isPacketInterface()) {
+        /* NOTE: src2dst_direction cannot be used here. When the dissection is
+         * ended without a packet (flow idle or deleted) it is not the
+         * direction of a packet, whereas is_query is about the last DNS packet
+         * that has been dissected: use the direction of that packet */
+        bool dns_src2dst_direction = protos.dns.last_pkt_src2dst;
+
         if (ndpiFlow->metadata.protos.dns.is_query) {
-          if (src2dst_direction) {
+          if (dns_src2dst_direction) {
             ;
           } else {
             request_swap();
@@ -9733,7 +9742,7 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
           }
         } else {
           /* Response */
-          if (src2dst_direction) {
+          if (dns_src2dst_direction) {
             request_swap();
             // ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** SWAP ***");
           } else {
