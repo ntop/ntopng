@@ -6,11 +6,17 @@ local json = require "dkjson"
 local flowfilter_utils = require "flowfilter_utils"
 local snmp_utils
 local snmp_location
+local asset_utils
 
 if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
    snmp_location = require "snmp_location"
+end
+
+-- Assets Inventory requires Enterprise M
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .. package.path
 end
 
 local find_utils = {}
@@ -134,6 +140,12 @@ end
 
 local function add_host_link(links)
    add_icon_link(links, 'desktop', i18n('host_details.host'))
+end
+
+-- -----------------------------------------------
+
+local function add_asset_link(links)
+   add_icon_link(links, 'boxes', i18n('asset'))
 end
 
 -- -----------------------------------------------
@@ -729,8 +741,102 @@ end
 
 -- -----------------------------------------------
 
+-- Look by asset by IP, name or MAC
+local function find_asset(query, tot_results, ifid, add_interface_name)
+   local results = {}
+
+   if not assetsInventoryEnabled() then
+      return results
+   end
+
+   local max_items = math.min(max_group_items, max_total_items - tot_results)
+   if max_items <= 0 then
+      return results
+   end
+
+   asset_utils = asset_utils or require "asset_utils"
+
+   local interface_name = getInterfaceName(ifid)
+
+   -- Dedicated lightweight query
+   local assets = asset_utils.searchHostsAssets(ifid, query, max_items)
+
+   for _, asset in ipairs(assets) do
+      local host_key = hostinfo2hostkey({
+         host = asset.ip,
+         vlan = asset.vlan
+      })
+      local name = asset.name
+      if isEmptyString(name) then
+         name = host_key
+      end
+
+      local links = {}
+      local badges = {}
+      add_asset_link(links)
+      add_historical_flows_link(links, 'ip', host_key, ifid)
+
+      -- Match on the MAC address only: show it, as it is not part of the label
+      if not isEmptyString(asset.mac) and string.containsIgnoreCase(asset.mac, query, true) and
+         not string.containsIgnoreCase(name, query, true) and not string.containsIgnoreCase(host_key, query, true) then
+         add_badge(badges, asset.mac)
+      end
+
+      if interface.getHostMinInfo(asset.ip, tonumber(asset.vlan)) == nil then
+         add_inactive_badge(badges)
+      end
+
+      if add_interface_name then
+         add_badge(badges, interface_name)
+      end
+
+      local result = build_result(name, asset.key, "asset", links, badges, nil, ifid)
+      result.ip = host_key
+      results[#results + 1] = result
+   end
+
+   return results
+end
+
+-- -----------------------------------------------
+
+-- What the search looks for is configurable from the preferences (Search Preferences)
+local function is_search_scope_enabled(scope, enabled_by_default)
+   local value = ntop.getPref("ntopng.prefs.search_" .. scope)
+
+   if isEmptyString(value) then
+      return enabled_by_default
+   end
+
+   return value == "1"
+end
+
+-- -----------------------------------------------
+
+local function get_search_scopes(hosts_only)
+   if hosts_only then
+      -- Hosts lookup requested by a page (not the global search): preferences do not apply
+      return {
+         hosts = true,
+         historical_flows = true
+      }
+   end
+
+   -- Everything is enabled by default, but the assets
+   return {
+      hosts = is_search_scope_enabled("hosts", true),
+      networks = is_search_scope_enabled("networks", true),
+      asn = is_search_scope_enabled("asn", true),
+      snmp = is_search_scope_enabled("snmp", true),
+      historical_flows = is_search_scope_enabled("historical_flows", true),
+      assets = is_search_scope_enabled("assets", false)
+   }
+end
+
+-- -----------------------------------------------
+
 -- Lookup on all entities
-local function find_on_interface(query, hosts_only, ifid, tot_results, add_interface_name)
+local function find_on_interface(query, scopes, ifid, tot_results, add_interface_name)
    local results = {}
    local host_results = {}
    local lookup_info = {}
@@ -750,16 +856,23 @@ local function find_on_interface(query, hosts_only, ifid, tot_results, add_inter
 
    -- Lookups
 
-   if not hosts_only then
-      if not is_system_interface then
+   if not is_system_interface then
+      if scopes.networks then
          results = table.merge(results, find_network(query, #results + tot_results, ifid, add_interface_name))
+      end
+
+      if scopes.asn then
          results = table.merge(results, find_as(query, #results + tot_results, ifid, add_interface_name))
       end
-   end
 
-   if not is_system_interface then
-      host_results, lookup_info = find_host(query, #results + tot_results, ifid, add_interface_name)
-      results = table.merge(results, host_results)
+      if scopes.hosts then
+         host_results, lookup_info = find_host(query, #results + tot_results, ifid, add_interface_name)
+         results = table.merge(results, host_results)
+      end
+
+      if scopes.assets then
+         results = table.merge(results, find_asset(query, #results + tot_results, ifid, add_interface_name))
+      end
    end
 
    -- Select actual ifid
@@ -778,21 +891,24 @@ end
 function find_utils.find(query, hosts_only, ifid)
    local results = {}
    local lookup_info = {}
+   local scopes = get_search_scopes(hosts_only)
 
    -- Lookups
 
-   results, lookup_info = find_on_interface(query, hosts_only, ifid, #results)
+   results, lookup_info = find_on_interface(query, scopes, ifid, #results)
 
-   if lookup_info.num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
-      results[#results + 1] = build_no_results_entry(query, ifid)
-   else
-      local no_exact_ip_match = (lookup_info.is_full_ip and lookup_info.partial_ip_match and not lookup_info.exact_ip_match)
-      if no_exact_ip_match then
-         results[#results + 1] = build_no_exact_match_entry(query)
+   if scopes.historical_flows then
+      if lookup_info.num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
+         results[#results + 1] = build_no_results_entry(query, ifid)
+      else
+         local no_exact_ip_match = (lookup_info.is_full_ip and lookup_info.partial_ip_match and not lookup_info.exact_ip_match)
+         if no_exact_ip_match then
+            results[#results + 1] = build_no_exact_match_entry(query)
+         end
       end
    end
 
-   if not hosts_only then
+   if scopes.snmp then
       results = table.merge(results, find_snmp_mac(query, #results, ifid))
       results = table.merge(results, find_snmp_interface(query, #results, ifid))
       results = table.merge(results, find_snmp_device(query, #results, ifid))
@@ -811,11 +927,12 @@ function find_utils.find_on_any_interface(query, hosts_only)
    local is_full_ip = false
    local exact_ip_match = false
    local partial_ip_match = false
+   local scopes = get_search_scopes(hosts_only)
 
    local interfaces = interface.getIfNames()
 
    for id, name in pairs(interfaces) do
-      local host_results, lookup_info = find_on_interface(query, hosts_only, id, #results, true --[[ Add the interface name to the label ]])
+      local host_results, lookup_info = find_on_interface(query, scopes, id, #results, true --[[ Add the interface name to the label ]])
       results = table.merge(results, host_results)
       tot_num_hosts = tot_num_hosts + lookup_info.num_hosts
       if lookup_info.is_full_ip then
@@ -829,16 +946,18 @@ function find_utils.find_on_any_interface(query, hosts_only)
       end
    end
 
-   if tot_num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
-      results[#results + 1] = build_no_results_entry(query)
-   else
-      local no_exact_ip_match = (is_full_ip and partial_ip_match and not exact_ip_match)
-      if no_exact_ip_match then
-         results[#results + 1] = build_no_exact_match_entry(query)
+   if scopes.historical_flows then
+      if tot_num_hosts == 0 and not isEmptyString(query) and hasClickHouseSupport() then
+         results[#results + 1] = build_no_results_entry(query)
+      else
+         local no_exact_ip_match = (is_full_ip and partial_ip_match and not exact_ip_match)
+         if no_exact_ip_match then
+            results[#results + 1] = build_no_exact_match_entry(query)
+         end
       end
    end
 
-   if not hosts_only then
+   if scopes.snmp then
       results = table.merge(results, find_snmp_mac(query, #results, ifid))
       results = table.merge(results, find_snmp_interface(query, #results, ifid))
       results = table.merge(results, find_snmp_device(query, #results, ifid))

@@ -437,6 +437,58 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.search_in_all_interfaces",
                 default = "0",
                 section = i18n("prefs.search_preferences")
+            },
+            {
+                key = "toggle_search_hosts",
+                title = i18n("prefs.toggle_search_hosts_title"),
+                description = i18n("prefs.toggle_search_hosts_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_hosts",
+                default = "1",
+                section = i18n("prefs.search_preferences")
+            }, {
+                key = "toggle_search_networks",
+                title = i18n("prefs.toggle_search_networks_title"),
+                description = i18n("prefs.toggle_search_networks_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_networks",
+                default = "1",
+                section = i18n("prefs.search_preferences")
+            }, {
+                key = "toggle_search_asn",
+                title = i18n("prefs.toggle_search_asn_title"),
+                description = i18n("prefs.toggle_search_asn_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_asn",
+                default = "1",
+                section = i18n("prefs.search_preferences")
+            }, {
+                key = "toggle_search_snmp",
+                title = i18n("prefs.toggle_search_snmp_title"),
+                description = i18n("prefs.toggle_search_snmp_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_snmp",
+                default = "1",
+                section = i18n("prefs.search_preferences"),
+                locked = lock_enterprise_m
+            }, {
+                key = "toggle_search_historical_flows",
+                title = i18n("prefs.toggle_search_historical_flows_title"),
+                description = i18n("prefs.toggle_search_historical_flows_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_historical_flows",
+                default = "1",
+                section = i18n("prefs.search_preferences"),
+                locked = lock_clickhouse
+            }, {
+                key = "toggle_search_assets",
+                title = i18n("prefs.toggle_search_assets_title"),
+                description = i18n("prefs.toggle_search_assets_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_assets",
+                default = "0",
+                section = i18n("prefs.search_preferences"),
+                locked = lock_enterprise_m
             }}
         },
 
