@@ -17,7 +17,7 @@ local dhcp_list = _POST["dhcp_list"]
 local ssh_list = _POST["ssh_list"]
 local powershell_list = _POST["powershell_list"]
 local ftp_list = _POST["ftp_list"]
-local rdp_list = _POST["rdp_list"]
+local windows_domain_controller = _POST["windows_domain_controller"]
 local gateway_list = _POST["gateway_list"]
 
 if dns_list then
@@ -40,9 +40,9 @@ if dhcp_list then
    ntop.setCache("ntopng.prefs.nw_config_dhcp_list", parsed_dhcp_list)
 end
 
-if rdp_list then
-   local parsed_rdp_list = rdp_list:gsub("%s+", "") -- Remove the empty spaces
-   ntop.setCache("ntopng.prefs.nw_config_rdp_list", parsed_rdp_list)
+if windows_domain_controller then
+   local parsed_windows_domain_controller = windows_domain_controller:gsub("%s+", "") -- Remove the empty spaces
+   ntop.setCache("ntopng.prefs.nw_config_windows_domain_controller", parsed_windows_domain_controller)
 end
 
 if ftp_list then

@@ -20,7 +20,7 @@ res = {
    {key= "ssh_list", value_description=ntop.getCache("ntopng.prefs.nw_config_ssh_list") or "" },
    {key= "powershell_list", value_description=ntop.getCache("ntopng.prefs.nw_config_powershell_list") or "" },
    {key= "ftp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_ftp_list") or "" },
-   {key= "rdp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_rdp_list") or "" },
+   {key= "windows_domain_controller", value_description=ntop.getCache("ntopng.prefs.nw_config_windows_domain_controller") or "" },
    {key= "gateway_list", value_description=ntop.getCache("ntopng.prefs.nw_config_gateway_list") or "" },
 }
 

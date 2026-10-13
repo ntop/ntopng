@@ -27,6 +27,7 @@ tag_badge_utils.builtin_tags = {
     [13] = { i18n = "asset_details.non_pqc_compliant"  }, -- HOST_TAG_NON_PQC_COMPLIANT
     [14] = { i18n = "asset_details.powershell_server"  }, -- HOST_TAG_POWERSHELL_SERVER
     [15] = { i18n = "asset_details.ftp_server"         }, -- HOST_TAG_FTP_SERVER
+    [16] = { i18n = "asset_details.windows_domain_controller"         }, -- HOST_TAG_WINDOWS_DOMAIN_CONTROLLER
 }
 
 -- Maximum Time To Live (in days) of a tag, 0 means the tag never expires

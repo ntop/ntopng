@@ -19,7 +19,7 @@ return {
          { server_type = "Configured SSH Servers",  list = ntop.getCache("ntopng.prefs.nw_config_ssh_list")     or "" },
          { server_type = "Configured POWERHSELL Servers", list = ntop.getCache("ntopng.prefs.nw_config_powershell_list") or "" },
          { server_type = "Configured FTP Servers",  list = ntop.getCache("ntopng.prefs.nw_config_ftp_list")     or "" },
-         { server_type = "Configured RDP Servers",  list = ntop.getCache("ntopng.prefs.nw_config_rdp_list")     or "" },
+         { server_type = "Configured RDP Servers",  list = ntop.getCache("ntopng.prefs.nw_config_windows_domain_controller")     or "" },
          { server_type = "Configured gateway",      list = ntop.getCache("ntopng.prefs.nw_config_gateway_list") or "" },
       }
       return json.encode(servers_list)

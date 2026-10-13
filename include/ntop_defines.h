@@ -323,6 +323,7 @@ typedef enum {
   HOST_TAG_NON_PQC_COMPLIANT  = 13,
   HOST_TAG_POWERSHELL_SERVER  = 14,
   HOST_TAG_FTP_SERVER         = 15,
+  HOST_TAG_WINDOWS_DOMAIN_CONTROLLER = 16,
 } HostTagId;
 
 #define IFACE_DHCP_RANGE_KEY "ntopng.prefs.ifid_%u.dhcp_ranges"
@@ -481,6 +482,7 @@ typedef enum {
   HOST_SERVICE_GATEWAY = 13,
   HOST_SERVICE_POWERSHELL = 14,
   HOST_SERVICE_FTP = 15,
+  HOST_SERVICE_WINDOWS_DOMAIN_CONTROLLER = 16,
   /* Max 31! */
   HOST_SERVICE_MAX /* Keep it last */
 } HostService;
