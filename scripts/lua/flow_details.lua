@@ -2160,7 +2160,6 @@ local function print_flow_overview_page()
 	       nodes_names[next_hop_ip] = { firstDottedElement(next_hop_name), next_hop_site }
 	    end
          end
-
 	 if(flow.exporters ~= nil) then
 	    local len = table.len(flow.exporters)+1
 
@@ -2198,7 +2197,6 @@ local function print_flow_overview_page()
 
 	    print("</td></tr>")
 	 end
-
 	 -- tprint(flow_trajectory)
 
 	 if(table.len(flow_trajectory) > 0) then
