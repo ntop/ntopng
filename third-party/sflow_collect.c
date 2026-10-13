@@ -1997,12 +1997,20 @@ static float sf_log_nextFloat(SFSample *sample, const char *fieldName) {
   return val;
 }
 
+static u_int32_t getBytes(SFSample *sample, u_char *buf, u_int32_t len) {
+  u_int32_t remaining = ((u_char *)sample->datap < sample->endp)
+                          ? (u_int32_t)(sample->endp - (u_char *)sample->datap) : 0;
+  if(len > remaining) len = remaining;
+  memcpy(buf, sample->datap, len);
+  return len;
+}
+
 static u_int32_t getString(SFSample *sample, char *buf, u_int32_t bufLen) {
   u_int32_t len, read_len;
   len = getData32(sample);
   // truncate if too long
   read_len = (len >= bufLen) ? (bufLen - 1) : len;
-  memcpy(buf, sample->datap, read_len);
+  read_len = getBytes(sample, (u_char *)buf, read_len);
   buf[read_len] = '\0';   // null terminate
   skipBytes(sample, len);
   return len;
@@ -2013,7 +2021,7 @@ static u_int32_t getAddress(SFSample *sample, SFLAddress *address) {
   if(address->type == SFLADDRESSTYPE_IP_V4)
     address->address.ip_v4.addr = getData32_nobswap(sample);
   else {
-    memcpy(&address->address.ip_v6.addr, sample->datap, 16);
+    getBytes(sample, (u_char *)&address->address.ip_v6.addr, 16);
     skipBytes(sample, 16);
   }
   return address->type;
@@ -2693,9 +2701,9 @@ static void readFlowSample_ethernet(SFSample *sample)
   u_char *p;
   sf_log("flowSampleType ETHERNET\n");
   sample->eth_len = getData32(sample);
-  memcpy(sample->eth_src, sample->datap, 6);
+  getBytes(sample, sample->eth_src, 6);
   skipBytes(sample, 6);
-  memcpy(sample->eth_dst, sample->datap, 6);
+  getBytes(sample, sample->eth_dst, 6);
   skipBytes(sample, 6);
   sample->eth_type = getData32(sample);
   sf_log("ethernet_type %u\n", sample->eth_type);
@@ -2951,10 +2959,10 @@ static void readExtendedSocket6(SFSample *sample)
   sf_log("extendedType socket6\n");
   sf_log_next32(sample, "socket6_ip_protocol");
   sample->ipsrc.type = SFLADDRESSTYPE_IP_V6;
-  memcpy(&sample->ipsrc.address.ip_v6, sample->datap, 16);
+  getBytes(sample, (u_char *)&sample->ipsrc.address.ip_v6, 16);
   skipBytes(sample, 16);
   sample->ipdst.type = SFLADDRESSTYPE_IP_V6;
-  memcpy(&sample->ipdst.address.ip_v6, sample->datap, 16);
+  getBytes(sample, (u_char *)&sample->ipdst.address.ip_v6, 16);
   skipBytes(sample, 16);
   sf_log("socket6_local_ip %s\n", printAddress(&sample->ipsrc, buf, 50));
   sf_log("socket6_remote_ip %s\n", printAddress(&sample->ipdst, buf, 50));
