@@ -352,12 +352,6 @@ Unrelated issues found on the way:
   executed, and the DNS Server service goes to the client. Candidate fix,
   tried and not applied: request the swap for a response only when no packet
   has been seen in the other direction.
-- **Apostrophes and backslashes in asset values** are stored doubled
-  (`it's` becomes `it''s`): they are escaped twice, in `cleanValues` and in
-  `insertHost`. When an asset is updated the stored values go through
-  `cleanValues` again, so a value that is not sent again by the host is
-  doubled once more at every update. The tag expiration writes the asset
-  without going through that path and does not add to it.
 
 ---
 
@@ -368,6 +362,8 @@ Unrelated issues found on the way:
 | Area | How | Status |
 |---|---|---|
 | `asset_tags.lua` (apply, expire, remove) | Standalone test, see below | 88 checks pass |
+| `asset_escape.lua` (values with apostrophes, backslashes, percent signs: stored as they are and unchanged after repeated updates; newlines, semicolons and double quotes removed) | Standalone test, see below; same values through the SQLite and ClickHouse parsers | 193 checks pass |
+| Escaping of the asset values on a running ntopng, SQLite and ClickHouse: host and MAC assets, first write, values sent again, 4 updates without them, edit of the MAC status, REST list, export and import of an asset | Synthetic snapshots pushed to the queue of a real ntopng | As expected |
 | Host snapshot fields: observed service, mapped tag, manual add and remove, configured list | pcap replay, snapshots read from the Redis queue | As expected |
 | TTL mask parsing and reload when a tag is edited | Temporary trace | As expected |
 | Asset side on SQLite and on ClickHouse (26.9): apply, expiry, pin check by address and by network, assets stored before the feature, host sync, rate limit, tag deletion, TTL kept on edit, list badges, tag filter with tag 63, expiry query limited to the assets with a tag that has a TTL | Synthetic snapshots pushed to the queue of a real ntopng | As expected |
@@ -387,10 +383,12 @@ Not tested:
 - large tables (the 20-second budget of the expiration);
 - collected flows (ZMQ).
 
-Standalone test of `asset_tags.lua` (from the ntopng root):
+Standalone tests of `asset_tags.lua` and `asset_escape.lua` (from the ntopng
+root):
 
 ```
 third-party/lua-5.4.6/src/lua pro/tests/lua/asset_tags_test.lua
+third-party/lua-5.4.6/src/lua pro/tests/lua/asset_escape_test.lua
 ```
 
 ### Live tests
