@@ -184,9 +184,9 @@ static void XMLCALL start_element(void *userData, const char *el, const char **a
     for (i = 0; atts[i]; i += 2) {
       //printf(" %s \n", atts[i]);
       if (strcmp(atts[i], "ip") == 0)
-        strcpy(p_client->ip, atts[i + 1]);
+        snprintf(p_client->ip, sizeof(p_client->ip), "%s", atts[i + 1]);
       if (strcmp(atts[i], "isp") == 0)
-        strcpy(p_client->isp, atts[i + 1]);
+        snprintf(p_client->isp, sizeof(p_client->isp), "%s", atts[i + 1]);
       if (strcmp(atts[i], "lat") == 0)
         p_client->lat = atof(atts[i + 1]);
       if (strcmp(atts[i], "lon") == 0)
@@ -202,9 +202,10 @@ static void XMLCALL start_element(void *userData, const char *el, const char **a
     for (i = 0; atts[i]; i += 2) {
       //printf(" %s \n", atts[i]);
       if (strcmp(atts[i], "url") == 0)
-        strcpy(p_server->url, atts[i + 1]);
+        snprintf(p_server->url, sizeof(p_server->url), "%s", atts[i + 1]);
       if (strcmp(atts[i], "country") == 0)
-        strcpy(p_server->country, atts[i + 1]);
+        snprintf(p_server->country, sizeof(p_server->country), "%s",
+                 atts[i + 1]);
       if (strcmp(atts[i], "lat") == 0)
         p_server->lat = atof(atts[i + 1]);
       if (strcmp(atts[i], "lon") == 0)
@@ -771,7 +772,7 @@ static int get_upload_extension(char *server, char *p_ext)
   }
   p = strstr(web.data, UPLOAD_EXTENSION_TAG);
   if (p == NULL ||
-      sscanf(p + strlen(UPLOAD_EXTENSION_TAG), "%*[^a-zA-Z]%[a-zA-Z]", p_ext) <= 0) {
+      sscanf(p + strlen(UPLOAD_EXTENSION_TAG), "%*[^a-zA-Z]%4[a-zA-Z]", p_ext) <= 0) {
     // fprintf(stderr, "Upload extension not found\n");
     goto cleanup;
   }
