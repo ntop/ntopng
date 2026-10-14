@@ -3762,6 +3762,7 @@ local lang = {
     ["name_cannot_be_empty"] = "Name Cannot Be Empty",
     ["name_cannot_contain_spaces"] = "Name Cannot Contain Spaces",
     ["name_must_be_alphanumeric"] = "Name Must Be Alphanumeric",
+    ["name_must_be_alphanumeric_underscore_dash"] = "Name Must Contain Only Letters, Numbers, \"_\" Or \"-\"",
     ["name_must_be_longer_than_1_character"] = "Name Must Be Longer Than 1 Char",
   },
   ["error_page"] = {
