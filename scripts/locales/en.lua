@@ -11134,6 +11134,8 @@ local lang = {
     ["weekly"] = "Weekly",
   },
   ["menu_search"] = {
+    ["all_preferences"] = "All preferences",
+    ["always_on_overview"] = "Always enabled in the Overview, where the search runs on all interfaces.",
     ["clear"] = "Clear",
     ["hosts_and_more"] = "Hosts, MACs, networks & more",
     ["navigate"] = "Navigate",
@@ -11141,6 +11143,10 @@ local lang = {
     ["open"] = "Open",
     ["placeholder"] = "Search pages, hosts, MACs, networks...",
     ["searching"] = "Searching hosts, MACs, networks, SNMP...",
+    ["settings"] = "Search Preferences",
+    ["settings_load_error"] = "Unable to load the search preferences.",
+    ["settings_read_only"] = "You are not allowed to change the search preferences.",
+    ["settings_save_error"] = "Unable to save the search preference",
     ["title"] = "Search",
   },
   ["tree_map"] = {
