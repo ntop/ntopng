@@ -175,7 +175,7 @@ for i = 1, num_runs do
 					local uuid = probe_info["probe.instance_name"]
 					if isEmptyString(uuid) then
 						-- Fallback to the uuid for probes not exporting the instance name
-						uuid = probe_info["probe.uuid"] or ""
+						uuid = probe_info["probe.source_id"] or ""
 					end
 					local export_drops = (probe_info["drops.export_queue_full"] or 0)
 						+ (probe_info["drops.elk_flow_drops"] or 0)
