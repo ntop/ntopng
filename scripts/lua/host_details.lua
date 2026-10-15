@@ -697,6 +697,18 @@ else
          end
          print(host["ip"])
 
+         if host["localhost"] and assetsInventoryEnabled() then
+            local asset_utils = require "asset_utils"
+            -- The asset is looked up by IP and VLAN, as the same IP can be on different VLANs
+            local asset_serial_key = asset_utils.getHostAssetKey(ifId, host_ip, host_vlan)
+
+            if asset_serial_key then
+               print(" <a href='" .. http_prefix .. "/lua/pro/asset_details.lua?ifid=" .. ifId .. "&serial_key=" ..
+                        asset_serial_key .. "' data-bs-toggle='tooltip' data-bs-placement='top' title='" ..
+                        i18n("asset_details_tooltip") .. "'><i class='fas fa-search-plus'></i></a>")
+            end
+         end
+
          if (host.childSafe == true) then
             print(getSafeChildIcon())
          end
