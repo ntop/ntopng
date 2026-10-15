@@ -705,7 +705,7 @@ else
             if asset_serial_key then
                print(" <a href='" .. http_prefix .. "/lua/pro/asset_details.lua?ifid=" .. ifId .. "&serial_key=" ..
                         asset_serial_key .. "' data-bs-toggle='tooltip' data-bs-placement='top' title='" ..
-                        i18n("asset_details_tooltip") .. "'><i class='fas fa-search-plus'></i></a>")
+                        i18n("asset_details_tooltip") .. "'><i class='fas fa-boxes'></i></a>")
             end
          end
 
