@@ -3032,6 +3032,17 @@ void Flow::periodic_stats_update(const struct timeval* tv, bool force_update) {
   hosts_periodic_stats_update(getInterface(), cli_h, srv_h, &partial,
                               first_partial, tv);
 
+#ifdef NTOPNG_PRO
+  /* Once per refresh interval (i.e. when this update and the previous one are
+   * not in the same interval), refresh the tags set by this flow */
+  if (last_update_time.tv_sec > 0) {
+    u_int32_t interval = ntop->getPrefs()->getAssetTagsRefreshInterval();
+
+    if ((tv->tv_sec / interval) != (last_update_time.tv_sec / interval))
+      refreshHostsTags();
+  }
+#endif
+
 #ifndef HAVE_NEDGE
   /* For nEdge check Flow::setPacketsBytes updates throughput */
   if (getFlowSource() != collected_netflow_ipfix) {
@@ -9699,6 +9710,31 @@ void Flow::setSrvTag(int tag_idx) {
       srv_ip_addr->setTag(tag_idx);
   }
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+/* Refresh, on the client of the flow, the user-defined tags that this flow has
+ * set on it (those bound to its application or to its risks, see
+ * Flow::postDetectionCallback).
+ *
+ * A tag is set (and so refreshed) once per flow, but the tags with a TTL
+ * expire on the assets when they are not refreshed: without this, a tag would
+ * expire while the flow it comes from is still alive.
+ *
+ * NOTE: not used with viewed interfaces, where flows have no hosts: there the
+ * tags are refreshed by ViewInterface::viewed_flows_walker */
+void Flow::refreshHostsTags() {
+  u_int64_t tags = user_tags_bitmap & ntop->getTTLTagsBitmap();
+  Host *cli_h, *srv_h;
+
+  if (!tags) return; /* No tags to keep alive */
+
+  get_actual_peers(&cli_h, &srv_h);
+
+  if (cli_h && !cli_h->isBroadcastHost()) cli_h->setTagsRefreshed(tags);
+}
+#endif
 
 /* *************************************** */
 

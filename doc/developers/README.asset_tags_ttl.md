@@ -170,12 +170,24 @@ configured, no extra dump is sent.
 
 How often a flow refreshes a tag:
 
-- **Normal interfaces:** once per flow, when the tag or service is set (tags
-  at protocol detection, services mostly at flow end).
+- **Normal interfaces:** when the tag or service is set (tags at protocol
+  detection, services mostly at flow end). The user-defined tags bound to the
+  application or to the risks of the flow are then refreshed once per refresh
+  interval (`Prefs::getAssetTagsRefreshInterval()`, 6 hours) while the flow
+  is alive, so that they do not expire under a long-lived flow:
+  `Flow::refreshHostsTags`, called by `Flow::periodic_stats_update`, marks as
+  refreshed on the client the tags of the flow (`user_tags_bitmap`) that have
+  a TTL. The built-in tags (services, Non-PQC Compliant) are not refreshed
+  this way.
 - **View interfaces:** at every walker pass while the flow is alive. Viewed
   flows park tags and services on the flow's `IpAddress`, and
   `ViewInterface::viewed_flows_walker` copies them to the host of the view.
   `Host::updateView` does the same when the flow is destroyed.
+
+So the two modes still differ for the built-in tags set before the end of a
+flow (Non-PQC Compliant, DHCP Server): on a view they are refreshed at every
+pass, on a normal interface only when set. In both modes a service set at
+flow end (DNS, HTTP, SSH, ...) is not refreshed before the flow ends.
 
 ### Asset side (Lua)
 
