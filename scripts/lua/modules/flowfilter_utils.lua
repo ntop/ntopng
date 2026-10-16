@@ -456,6 +456,7 @@ flowfilter_utils.defined_filters = {
         hourly_available = false
     },
     require_attention = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.require_attention'),
         operators = {'eq', 'neq'},
@@ -908,36 +909,42 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq'}
     },
     is_srv_blacklisted = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.is_srv_blacklisted'),
         operators = {'eq', 'neq'},
         hourly_available = false
     },
     is_cli_blacklisted = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.is_cli_blacklisted'),
         operators = {'eq', 'neq'},
         hourly_available = false
     },
     is_srv_victim = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.is_srv_victim'),
         operators = {'eq', 'neq'},
         hourly_available = false
     },
     is_cli_victim = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.is_cli_victim'),
         operators = {'eq', 'neq'},
         hourly_available = false
     },
     is_srv_attacker = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.is_srv_attacker'),
         operators = {'eq', 'neq'},
         hourly_available = false
     },
     is_cli_attacker = {
+        type = flowfilter_utils.input_types.select,
         value_type = 'boolean',
         i18n_label = i18n('db_search.flowfilters.is_cli_attacker'),
         operators = {'eq', 'neq'},
@@ -1368,6 +1375,18 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
             {
                 value = 0,
                 label = i18n('db_search.flowfilters.first_flow_dump_excluded')
+            }
+        }
+    elseif filter_def.value_type == "boolean" then
+        filter.value_type = 'array'
+        filter.options = {
+            {
+                value = 1,
+                label = i18n('yes')
+            },
+            {
+                value = 0,
+                label = i18n('no')
             }
         }
     elseif filter_def.value_type == "qoe_score" then
