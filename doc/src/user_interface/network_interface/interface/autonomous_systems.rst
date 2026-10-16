@@ -20,6 +20,18 @@ are simply relevant for your business: see :ref:`ASNConfiguration` for the confi
 In the Timeseries (only available if enabled) are shown the top current active Autonomous Systems with the traffic
 done in the last week (7 days).
 
+When the `Live` time is selected (or when ClickHouse is not available), the table below the chart is labeled
+`Active ASN Since Startup`: it reports the traffic of each Autonomous System cumulated since ntopng startup,
+and it is independent from the time range selected for the chart. Hovering the label shows a tooltip with this explanation.
+
+This happens because the Autonomous Systems historical table is built from the data stored in ClickHouse, while the
+Timeseries do not require ClickHouse. As a consequence, without ClickHouse the chart can be moved to any time range,
+but the table always shows the data collected since ntopng startup.
+
+.. note::
+
+  When ClickHouse is enabled, select a `Time` value other than `Live` to show the historical table for the selected period.
+
 There are four different possible actions available in the Actions button (Action column of the table):
 
 - Timeseries
