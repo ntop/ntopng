@@ -886,6 +886,7 @@ class Prefs {
   inline bool failOnInvalidLicense() { return (fail_on_invalid_license); }
   inline char* getCiphersList() { return (ciphers_list); }
 #ifdef NTOPNG_PRO
+  inline void  clearLicMgrConfigFile() { if(lic_mgr_config_file) { free(lic_mgr_config_file); lic_mgr_config_file = NULL; } }
   inline char* getLicMgrConfigFile() { return (lic_mgr_config_file); }
   inline AddressTree* getNwPolicyConfig() {
     return (networks_policy_configuration);
