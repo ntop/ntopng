@@ -1916,14 +1916,18 @@ static u_int32_t getData32_nobswap(SFSample *sample) {
   u_int32_t *ans = (u_int32_t*)sample->datap;
   u_int32_t val;
 
+  // make sure we don't run off the end of the datagram.  Thanks to
+  // Sven Eschenberg for spotting a bug/overrun-vulnerabilty that was here before.
+  if((u_char *)sample->datap > sample->endp
+     || (sample->endp - (u_char *)sample->datap) < 4) {
+    sample->datap = sample->endp;
+    SFABORT(sample, SF_ABORT_EOS);
+    return 0;
+  }
+
   memcpy(&val, ans, 4);
 
   sample->datap += 4;
-  // make sure we didn't run off the end of the datagram.  Thanks to
-  // Sven Eschenberg for spotting a bug/overrun-vulnerabilty that was here before.
-  if((u_char *)sample->datap > sample->endp) {
-    SFABORT(sample, SF_ABORT_EOS);
-  }
   return val;
 }
 
@@ -1947,16 +1951,21 @@ static u_int64_t getData64(SFSample *sample) {
 
 /* Function modified by Luca */
 static void skipBytes(SFSample *sample, u_int32_t skip) {
+  u_int64_t aligned, remaining;
 
   /* Luca: align to 4 bytes */
-  skip = (skip + 3) & ~3; /* Align */
+  aligned = ((u_int64_t)skip + 3) & ~(u_int64_t)3; /* Align */
 
   /* ntop->getTrace()->traceEvent(TRACE_WARNING, "===>> skipBytes(%d)", skip); */
 
-  sample->datap += skip;
-  if(skip > sample->rawSampleLen || (u_char *)sample->datap > sample->endp) {
+  remaining = ((u_char *)sample->datap < sample->endp)
+    ? (u_int64_t)(sample->endp - (u_char *)sample->datap) : 0;
+
+  if(aligned > remaining) {
+    sample->datap = sample->endp;
     SFABORT(sample, SF_ABORT_EOS);
-  }
+  } else
+    sample->datap += aligned;
 }
 
 void sf_log(const char *fmt, ...)
@@ -2725,6 +2734,11 @@ static void readFlowSample_IPv4(SFSample *sample)
   sf_log("flowSampleType IPV4\n");
   sample->headerLen = sizeof(SFLSampled_ipv4);
   sample->header = (u_char *)sample->datap; /* just point at the header */
+  if((u_char *)sample->datap > sample->endp
+     || (u_int32_t)(sample->endp - (u_char *)sample->datap) < sample->headerLen) {
+    skipBytes(sample, sample->headerLen);
+    return;
+  }
   skipBytes(sample, sample->headerLen);
   {
     char buf[51];
@@ -2781,6 +2795,11 @@ static void readFlowSample_IPv6(SFSample *sample)
   sf_log("flowSampleType IPV6\n");
   sample->header = (u_char *)sample->datap; /* just point at the header */
   sample->headerLen = sizeof(SFLSampled_ipv6);
+  if((u_char *)sample->datap > sample->endp
+     || (u_int32_t)(sample->endp - (u_char *)sample->datap) < sample->headerLen) {
+    skipBytes(sample, sample->headerLen);
+    return;
+  }
   skipBytes(sample, sample->headerLen);
   {
     char buf[51];
