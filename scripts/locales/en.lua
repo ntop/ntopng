@@ -2164,6 +2164,7 @@ local lang = {
     ["user_traffic_breakdown"] = "Customer Breakdown",
   },
   ["as_stats"] = {
+    ["active_asn_since_startup"] = "Active ASN Since Startup",
     ["all_peering"] = "All Peering",
     ["all_roles"] = "All Roles",
     ["all_transit"] = "All Transit",
@@ -2172,6 +2173,8 @@ local lang = {
     ["interface_role"] = "Interface Role",
     ["interfaces"] = "Interfaces",
     ["out_iface_role"] = "Output Interface Role",
+    ["since_startup_hint"] = "The table reports data cumulated since ntopng startup and does not follow the chart time range: historical tables require ClickHouse, while timeseries do not.",
+    ["since_startup_hint_clickhouse"] = "The table reports data cumulated since ntopng startup. Select a Time value other than Live to show the historical data stored in ClickHouse.",
     ["ts_not_enabled"] = "Autonomous System timeseries are not enabled. Enable them in Preferences.",
   },
   ["asn_configuration"] = {
