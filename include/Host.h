@@ -129,6 +129,7 @@ class Host : public GenericHashEntry,
   ndpi_os os_type,
       alt_os_type; /* Operating system type, equivalent to os->get_os_type(),
                       used by operating system setters and getters */
+  time_t os_hint_time; /* Time of the flow the OS hint (see setnDPIOS) comes from */
   DeviceType device_type;
 
   struct {
@@ -1056,7 +1057,7 @@ class Host : public GenericHashEntry,
   void incQoEStats(QoEType qoe_type) { qoe_stats.incQoEStats(qoe_type); };
 #endif
 
-  void setnDPIOS(ndpi_os hint);
+  void setnDPIOS(ndpi_os hint, time_t when);
   virtual void setMACmeaningful() { is_mac_meaningful = true; }
   inline bool isMACmeaningful() {
     return (is_mac_meaningful || isSystemHost());

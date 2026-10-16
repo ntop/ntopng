@@ -177,6 +177,13 @@ class Flow : public GenericHashEntry {
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1, _notused : 5;
   u_int8_t cli_mac[6], srv_mac[6];
+  /* Viewed flows have no hosts: the OS of the client learnt from this flow is
+   * parked here, and it is set on the host of the view by the view itself (see
+   * updateViewClientOS). The flags are written by the view only, the other
+   * two when the flow is processed.
+   * NOTE: the flags come first, as they fit in the padding after the MACs */
+  u_int8_t view_cli_os_applied;
+  ndpi_os view_cli_os_hint, view_cli_fingerprint_os;
   Mac *c_mac, *s_mac; /* Real flow MACs (hosts can have floating MACs when
                          load-balancers are in use) Calculated using cli_mac and
                          srv_mac[6] */
@@ -1753,6 +1760,8 @@ class Flow : public GenericHashEntry {
       has_collected_qoe = 1;
   }
   void setHostTCPFingerprint(char* fp, ndpi_os os_hint);
+  void setClientOSHint(ndpi_os os_hint);
+  void updateViewClientOS(Host* view_cli_host);
 
   u_int32_t getSrcAS() { return (srcAS); }
   u_int32_t getDstAS() { return (dstAS); }

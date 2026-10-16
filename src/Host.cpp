@@ -320,6 +320,7 @@ void Host::initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlanId,
                                                    changed by deserialize */
   as = NULL, asn = 0, asname = NULL, obs_point = NULL;
   os_type = alt_os_type = ndpi_os_unknown;
+  os_hint_time = 0;
   ssdpLocation = NULL, blacklist_name = NULL, country = NULL;
 
   memset(&names, 0, sizeof(names));
@@ -3155,7 +3156,14 @@ void Host::toggleRxOnlyHost(bool rx_only) {
 
 /* *************************************** */
 
-void Host::setnDPIOS(ndpi_os _os) {
+/* when: time of the flow the OS has been learnt from. The view interfaces do
+ * not process their flows in time order: an OS learnt from a flow older than
+ * the one that has set the current OS must not replace it */
+void Host::setnDPIOS(ndpi_os _os, time_t when) {
+  if (when < os_hint_time) return;
+
+  os_hint_time = when;
+
   if (os_type != ndpi_os_unknown) {
     /* Already set */
 
