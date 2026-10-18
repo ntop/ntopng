@@ -62,7 +62,8 @@ The MCP server exposes all nAnalyst domain tools, including:
 - ``add_active_monitoring_script`` — register a new monitoring probe
 - ``create_ai_policy`` — create a policy from a natural language description
 - ``list_protos`` — enumerate nDPI-detected application protocols
-- And 15+ additional tools
+
+The MCP server exposes the same tools available to the nAnalyst chat interface. See :ref:`nAnalystToolsLicensing` for the complete, up-to-date list of tools and the editions that include them.
 
 Use cases
 ---------
@@ -82,6 +83,8 @@ Operational runbooks can query ntopng programmatically via MCP to verify network
 Further reading
 ---------------
 
+- `AI-Powered Network Monitoring: Introducing the ntopng MCP Server <https://www.ntop.org/ai-powered-network-monitoring-introducing-ntopng-mcp-server/>`_
+- `HowTo: Use LLMs with ntopng (Part I) <https://www.ntop.org/howto-use-llms-with-ntopng-part-i/>`_
 - `Model Context Protocol specification <https://modelcontextprotocol.io>`_
 - `Claude Code MCP documentation <https://docs.anthropic.com/en/docs/claude-code/mcp>`_
 - `Cursor MCP guide <https://docs.cursor.com/context/model-context-protocol>`_
