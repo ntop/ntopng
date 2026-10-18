@@ -1,5 +1,5 @@
 ntopng Documentation
-====================
+=================================
 
 ntopng can be used in combination with other ntop tools. Documentation to use ntopng with other tools is the object of this section.
 

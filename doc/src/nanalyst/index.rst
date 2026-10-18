@@ -22,6 +22,7 @@ Key capabilities at a glance:
    what_is_nanalyst
    architecture
    chat_interface
+   ai_dashboards
    features/index
    tools_and_licensing
    llm_setup
