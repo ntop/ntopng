@@ -331,6 +331,10 @@ if (ntop.exists(influxdb_dir)) then
 end
 
 -- Vulnerability scan activities
+if not ascan_utils.is_nmap_installed() and not (ntop.isnEdge and ntop.isnEdge()) then
+    traceError(TRACE_WARNING, TRACE_CONSOLE, "nmap is not installed: Active Scan is disabled, install nmap to enable it")
+end
+
 ascan_utils.migrate_keys()
 ascan_utils.restore_host_to_scan()
 

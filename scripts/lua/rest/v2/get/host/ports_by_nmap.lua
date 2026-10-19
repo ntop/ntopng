@@ -9,6 +9,11 @@ require "lua_utils"
 local rest_utils = require "rest_utils"
 local ascan_utils = require "ascan_utils"
 
+if not ascan_utils.is_nmap_installed() then
+    rest_utils.answer(rest_utils.consts.err.not_enabled, {error = i18n("hosts_stats.page_scan_hosts.nmap_not_installed")})
+    return
+end
+
 local host = _GET["host"]
 
 if isEmptyString(host) then
