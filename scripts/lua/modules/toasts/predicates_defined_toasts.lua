@@ -705,13 +705,13 @@ function predicates.about_page(toast, container)
 
         info = ntop.getInfo()
 
-        if (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
+        if (info["version.enterprise_l_edition"] and info["pro.has_valid_license"]) then
             table.insert(container,
                 toast_ui:new(toast.id, i18n("info"), i18n("about.create_license_l"), ToastLevel.INFO, {
                     url = "https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/",
                     title = i18n("details.details")
                 }))
-        elseif (not info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
+        elseif (not info["version.enterprise_l_edition"] and info["pro.has_valid_license"]) then
             table.insert(container, toast_ui:new(toast.id, i18n("info"), i18n("about.create_license"), ToastLevel.INFO))
         end
 

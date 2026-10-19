@@ -2754,9 +2754,6 @@ int Prefs::checkOptions() {
           printf("        \t%s\n", buff);
       }
     }
-
-    if (ntop->getPro()->get_license()[0] != '\0')
-      printf("License Hash:\t%s\n", ntop->getPro()->get_license());
 #endif
 
     exit(0);
