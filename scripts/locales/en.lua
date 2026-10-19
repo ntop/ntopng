@@ -5551,6 +5551,7 @@ local lang = {
       ["redis_keys"] = "Number of Redis keys",
       ["redis_ram_memory"] = "Redis memory usage in bytes",
       ["redis_reads_writes"] = "Redis read and write operations count",
+      ["site_traffic"] = "Bytes egress, ingress and inner of all the networks of the site (sub-sites included)",
       ["subnet_broadcast_traffic"] = "Broadcast bytes egress, ingress and inner per subnet",
       ["subnet_engaged_alerts"] = "Engaged alerts per subnet",
       ["subnet_rtt"] = "Round-trip time per subnet",

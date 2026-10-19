@@ -188,6 +188,23 @@ schema:addMetric("bytes_inner")
 
 -- ##############################################
 
+if ntop.isEnterpriseM and ntop.isEnterpriseM() then
+   -- Sites are only from the Enterprise M version on.
+   -- Traffic of a Site: sum of the subnet:traffic of its networks, including
+   -- the ones of its descendant Sites (see ts_dump.site_update_rrds)
+   schema = ts_utils.newSchema("site:traffic", {
+      step = 60,
+      rrd_fname = "bytes"
+   })
+   schema:addTag("ifid")
+   schema:addTag("site")
+   schema:addMetric("bytes_ingress")
+   schema:addMetric("bytes_egress")
+   schema:addMetric("bytes_inner")
+end
+
+-- ##############################################
+
 schema = ts_utils.newSchema("subnet:broadcast_traffic", {
    step = 60,
    rrd_fname = "broadcast_bytes"

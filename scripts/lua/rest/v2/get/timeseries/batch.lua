@@ -83,6 +83,7 @@ local _prefix_to_module = {
    obs_point = "ts_observation_point",
    am_vuln_scan = "ts_active_scan",
    nedge = "ts_nedge",
+   site = "ts_sites",
    snmp = "ts_system", -- This is a particular case. These are SNMP Stats timeseries, like devices polled ecc...
 }
 
