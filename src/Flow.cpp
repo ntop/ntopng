@@ -332,7 +332,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
 
         setDetectedProtocol(
             ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL,
-                                           NDPI_PROTOCOL_IP_IGMP),
+                                           NDPI_IGMP_PROTOCOL_TYPE),
             true);
         break;
 
