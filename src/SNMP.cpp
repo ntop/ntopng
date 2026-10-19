@@ -932,10 +932,13 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
 
         /* Add a nil in case no response was pushed in the stack */
         if (lua_gettop(vm) > 0) add_nil = false;
-      } else if (timeout > 0) {
+      } else {
         /*
           If select(2) times out (that is, it returns zero), snmp_sess_timeout()
           should be called to see if a timeout has occurred on the SNMP session.
+          Done also with `timeout` == 0 (non-blocking reads), otherwise
+          requests are never retransmitted. It does not push anything on the
+          Lua stack.
         */
         snmp_sess_timeout(snmpSession->session_ptr);
       }
