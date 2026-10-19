@@ -92,6 +92,11 @@ if not printable then
       label = i18n('hosts_stats.page_scan_hosts.reports_page.reports')
     }
     })
+
+    if not ascan_utils.is_nmap_installed() then
+        print("<div class=\"alert alert alert-warning\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
+                 i18n("hosts_stats.page_scan_hosts.nmap_not_installed") .. "</div>")
+    end
 end
 
 -- #######################################################

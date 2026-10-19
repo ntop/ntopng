@@ -6023,6 +6023,7 @@ local lang = {
       ["last_scan_status"] = "Status",
       ["load_nmap_ports"] = "Scan Host Ports",
       ["load_ports"] = "Load Open Ports",
+      ["nmap_not_installed"] = "nmap is not installed: Active Scan (host port scans and network scans) is not available. Install nmap on this system (e.g. <code>apt install nmap</code> or <code>dnf install nmap</code>) to enable it.",
       ["no_cves_detected"] = "No CVEs detected",
       ["no_ports_detected"] = "No Ports Detected!",
       ["not_scanned"] = "Not Yet Scanned",

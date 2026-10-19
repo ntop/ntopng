@@ -6,10 +6,10 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: libsqlite3-0, libexpat1, redis-server, librrd8, libzmq5,  logrotate, libcurl3, libnetfilter-queue1, libldap-2.4-2, libssl1.1, libpcap0.8, libhiredis0.13, tar, ethtool, libradcli4, udev, libjson-c3, libmaxminddb0, libsnmp30, whiptail, nmap
+Depends: libsqlite3-0, libexpat1, redis-server, librrd8, libzmq5,  logrotate, libcurl3, libnetfilter-queue1, libldap-2.4-2, libssl1.1, libpcap0.8, libhiredis0.13, tar, ethtool, libradcli4, udev, libjson-c3, libmaxminddb0, libsnmp30, whiptail
 Package: ntopng
 Architecture: @EXTN@
-Recommends:
+Recommends: nmap
 Suggests:
 Pre-Depends:
 Conflicts:
