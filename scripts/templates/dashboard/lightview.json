@@ -67,6 +67,7 @@
 			"i18n_name" : "interfaces_traffic",
 			"width" : 12,
 			"height" : 4,
+			"time_window" : "hour",
 			"params" : {
 				"url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
 				"url_params" : { },
