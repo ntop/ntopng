@@ -2,6 +2,10 @@
 
 # Ignoring front end developement directories
 node_modules/
+httpdocs/ai_dashboards
+python/
+confdefs.h
+.code-workspace.code-workspace
 .history/
 package-lock.json
 .claude/
