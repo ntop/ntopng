@@ -39,11 +39,22 @@ local function send_json(body, status_code)
    if body and body ~= "" then print(body) end
 end
 
+-- Encode empty object
+local function empty_object()
+   return setmetatable({}, { __jsontype = "object" })
+end
+
+-- Metatable passed to json.decode so decoded empty objects re-encode as {}.
+local OBJECT_META = { __jsontype = "object" }
+
 local function rpc_ok(id, result)
+   if id == nil then id = json.null end
    return json.encode({ jsonrpc = "2.0", id = id, result = result })
 end
 
+-- Per JSON-RPC 2.0, "id" must be present in an error response (null when unknown).
 local function rpc_err(id, code, message)
+   if id == nil then id = json.null end
    return json.encode({ jsonrpc = "2.0", id = id,
       error = { code = code, message = message } })
 end
@@ -175,6 +186,10 @@ local function handle_tools_call(id, params)
    local tools, err = get_tools()
    if not tools then return rpc_err(id, -32603, err) end
 
+   if type(arguments) ~= "table" then
+      return rpc_err(id, -32602, "params.arguments must be an object")
+   end
+
    -- Derive content from arguments:
    --   {content: "..."}   -> pass content value directly (like agentic loop)
    --   {sql: "..."}       -> shorthand for query tool
@@ -196,13 +211,15 @@ local function handle_tools_call(id, params)
    -- call tool
    local result, tool_err, artifact = tools.dispatch(tool_name, content)
 
-   if tool_err and not result then
-      return rpc_err(id, -32603, "tool error: " .. tostring(tool_err))
-   end
-
+   -- Tool execution failures are reported inside the result with isError=true
+   local is_error = (tool_err ~= nil and result == nil)
    local text = result or ""
    if tool_err then
-      text = text .. "\n[tool warning: " .. tostring(tool_err) .. "]"
+      if is_error then
+         text = tostring(tool_err)
+      else
+         text = text .. "\n[tool warning: " .. tostring(tool_err) .. "]"
+      end
    end
 
    local mcp_content = { { type = "text", text = text } }
@@ -217,7 +234,7 @@ local function handle_tools_call(id, params)
 
    return rpc_ok(id, {
       content = mcp_content,
-      isError = (tool_err ~= nil and result == nil),
+      isError = is_error,
    })
 end
 
@@ -226,7 +243,7 @@ local method_handlers = {
    ["initialize"]               = handle_initialize,
    ["tools/list"]               = handle_tools_list,
    ["tools/call"]               = handle_tools_call,
-   ["ping"]                     = function(id, _) return rpc_ok(id, {}) end,
+   ["ping"]                     = function(id, _) return rpc_ok(id, empty_object()) end,
    
    -- Notifications: no id, no response expected
    ["notifications/initialized"] = function(_, _) return nil end,
@@ -238,20 +255,35 @@ local function dispatch_request(req)
       return rpc_err(nil, -32600, "invalid request")
    end
 
-   local req_id     = req.id
+   local req_id = req.id
    local method = req.method
    local params = req.params
 
-   local handler = method_handlers[method]
-   if handler then
-      return handler(req_id, params)
+   -- Client responses (no method, has result/error) are not requests: ignore
+   if method == nil and (req.result ~= nil or req.error ~= nil) then
+      return nil
    end
 
-   -- Unknown method: only respond if there is an id, not a notification
-   if req_id ~= nil then
-      return rpc_err(req_id, -32601, "method not found: " .. tostring(method))
+   if req.jsonrpc ~= "2.0" or type(method) ~= "string"
+      or (params ~= nil and type(params) ~= "table") then
+      return rpc_err(req_id, -32600, "invalid request")
    end
-   return nil
+
+   local handler = method_handlers[method]
+   if not handler then
+      -- Unknown method: only respond if there is an id, not a notification
+      if req_id ~= nil then
+         return rpc_err(req_id, -32601, "method not found: " .. tostring(method))
+      end
+      return nil
+   end
+
+   local resp = handler(req_id, params)
+
+   -- A request without an id is a notification: never send a response
+   if req_id == nil then return nil end
+
+   return resp
 end
 
 -------------------------------------------------------------------
@@ -284,20 +316,26 @@ if not payload or payload == "" then
    return
 end
 
-local request, _, parse_err = json.decode(payload)
+local request, _, parse_err = json.decode(payload, 1, nil, OBJECT_META)
 if request == nil then
    send_json(rpc_err(nil, -32700, "JSON parse error: " .. tostring(parse_err)), 400)
    return
 end
 
 -- Batch request: array of JSON-RPC objects
+if type(request) == "table" and request[1] == nil and next(request) == nil then
+   -- Empty batch "[]" (or empty object) is an invalid request
+   send_json(rpc_err(nil, -32600, "invalid request"), 400)
+   return
+end
+
 if type(request) == "table" and request[1] ~= nil then
    local responses = {}
 
    for _, req in ipairs(request) do
       local resp_str = dispatch_request(req)
       if resp_str then
-         local obj = json.decode(resp_str)
+         local obj = json.decode(resp_str, 1, nil, OBJECT_META)
          if obj then responses[#responses + 1] = obj end
       end
    end
