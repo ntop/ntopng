@@ -59,6 +59,7 @@ ntopng-build:
 	rm -rf ${NTOPNG_BUILD}/usr/local/share/ntopng/pro/scripts/lua/nedge
 	cd ${NTOPNG_BUILD}/usr/local/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro; cd -
 
+	$(MAKE) -C $(NTOPNG_HOME)/pro/utils snzip
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ./compresslua.sh {} ';'
 
 	mkdir -p ./install/Library/LaunchDaemons

@@ -56,10 +56,13 @@ mkdir ${STAGEDIR}/usr/local/share/ntopng/pro
 cp -r ${NTOPNG_HOME}/pro/httpdocs ${STAGEDIR}/usr/local/share/ntopng/pro
 cp -r ${NTOPNG_HOME}/pro/scripts ${STAGEDIR}/usr/local/share/ntopng/pro
 rm -rf ${STAGEDIR}/usr/local/share/ntopng/pro/scripts/lua/nedge
-cd ${STAGEDIR}/usr/local/share/ntopng/scripts/lua; rm -rf pro; cp -r ../../pro/scripts/lua pro
+rm -rf ${STAGEDIR}/usr/local/share/ntopng/scripts/lua/pro
+gmake -C ${NTOPNG_HOME}/pro/utils snzip || exit 1
 find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}/pro/utils/snzip -c -i {} -o {}r \;
 find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';';
 find ${STAGEDIR}/usr/local/share/ntopng/pro/scripts -name "*.luar" | xargs renamex -s/.luar/.lua/s;
+# Copy pro scripts only now that they are encrypted and signed (cleartext must never be shipped)
+cd ${STAGEDIR}/usr/local/share/ntopng/scripts/lua; cp -r ../../pro/scripts/lua pro
 
 # find ${STAGEDIR}/usr/local/share/ntopng/scripts/lua -name "*.lua" -type f -exec  ${NTOPNG_HOME}/tools/luac.sh {} ';'
 

@@ -26,6 +26,7 @@ ntopng-prep:
 		cp -r $(NTOPNG_HOME)/pro/scripts ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
 		rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts/lua/nedge; \
 		cd ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua; rm -rf pro; ln -s ../../pro/scripts/lua pro; \
+		$(MAKE) -C $(NTOPNG_HOME)/pro/utils snzip || exit 1; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
@@ -72,6 +73,7 @@ nedge-prep: ntopng-prep
 #	-cp -r $(NTOPNG_HOME)/nedge/packages/ ${NTOPNG_BUILD}
 	if test -d "$(NTOPNG_HOME)/pro/nedge"; then \
 		cp -r $(NTOPNG_HOME)/pro/scripts/lua/nedge ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua/pro/; \
+		$(MAKE) -C $(NTOPNG_HOME)/pro/utils snzip || exit 1; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua/pro/nedge -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua/pro/nedge -name "*.lua" -type f -exec /bin/rm  {} ';'; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua/pro/nedge -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
