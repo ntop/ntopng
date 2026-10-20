@@ -1036,3 +1036,17 @@ function toInt64(x)
 
    return nil
 end
+
+-- ##############################################
+
+function url_encode(str)
+   if str then
+      str = str:gsub("\n", "\r\n")
+      str = str:gsub("([^%w %-%_%.%~])", function(c)
+         return string.format("%%%02X", string.byte(c))
+      end)
+      str = str:gsub(" ", "+") -- Standard HTML forms use + for spaces
+   end
+
+   return str
+end

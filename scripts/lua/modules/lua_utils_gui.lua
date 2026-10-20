@@ -1769,15 +1769,3 @@ if (trace_script_duration ~= nil) then
    io.write(debug.getinfo(1, 'S').source .. " executed in " ..
 	    (os.clock() - clock_start) * 1000 .. " ms\n")
 end
-
-function url_encode(str)
-   if str then
-      str = str:gsub("\n", "\r\n")
-      str = str:gsub("([^%w %-%_%.%~])", function(c)
-			return string.format("%%%02X", string.byte(c))
-      end)
-      str = str:gsub(" ", "+") -- Standard HTML forms use + for spaces
-   end
-
-   return str
-end
