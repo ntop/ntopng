@@ -34,7 +34,7 @@ Web-based traffic monitoring
 # %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 %build
-if ! test -f "$HOME/ntopng/pro/utils/snzip"; then echo "snzip missing"; exit; fi
+make -C $HOME/ntopng/pro/utils snzip || exit 1
 #
 
 # Installation may be a matter of running an install make target or you

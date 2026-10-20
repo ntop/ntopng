@@ -841,7 +841,14 @@ void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os) {
 /* *************************************** */
 
 bool LocalHost::setOS(ndpi_os _os, OSLearningMode mode) {
-  if ((_os != ndpi_os_unknown) && (getOS() != _os)) {
+  if (_os == ndpi_os_unknown) return (false);
+
+  if (getOS() == _os) {
+    /* Nothing changed: the OS has been observed again, refresh its tag.
+     * NOTE: not with DHCP, as in this case the OS is copied from the Mac when
+     * its info changes (see syncMACMetadata), that is not an observation */
+    if (mode != os_learning_dhcp) setTagsRefreshed(getOSTag(_os));
+  } else {
     if (Host::setOS(_os, mode)) {
       char buf[8];
 

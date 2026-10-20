@@ -151,6 +151,17 @@ TEST_HEADERS = $(wildcard tests/include/*.h)
 $(TARGET): @PRO_DEP@ $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
 
+ifneq ($(wildcard pro/utils/gen_sign_keys.sh),)
+# Per-build snzip signing keypair (see pro/utils/gen_sign_keys.sh), generated if missing.
+# The public key is written last, so it stands for both files.
+PRO_SIGN_KEYS = pro/utils/build_keys/sign_public_key.c.inc
+
+$(PRO_SIGN_KEYS):
+	CC="$(CC)" pro/utils/gen_sign_keys.sh
+
+pro/src/LuaHandler.o: $(PRO_SIGN_KEYS)
+endif
+
 unit_test: $(TEST_FILES) $(OBJECTS_NO_MAIN) ${TEST_HEADERS} $(LIB_TARGETS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(TEST_FILES) $(OBJECTS_NO_MAIN) -lm -lgtest $(LIBS) -o ./tests/unit_tests
 

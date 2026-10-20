@@ -1207,6 +1207,31 @@ static const int8_t host_service_to_host_tag[HOST_SERVICE_MAX] = {
   HOST_TAG_WINDOWS_DOMAIN_CONTROLLER /* HOST_SERVICE_WINDOWS_DOMAIN_CONTROLLER */
 };
 
+/* Operating System (ndpi_os) -> tag */
+static const int8_t host_os_to_host_tag[] = {
+  -1,                  /* ndpi_os_unknown */
+  HOST_TAG_OS_WINDOWS, /* ndpi_os_windows */
+  HOST_TAG_OS_APPLE,   /* ndpi_os_apple   */
+  HOST_TAG_OS_ANDROID, /* ndpi_os_android */
+  HOST_TAG_OS_LINUX,   /* ndpi_os_linux   */
+  HOST_TAG_OS_FREEBSD, /* ndpi_os_freebsd */
+};
+
+/* When this fails, the list of the Operating Systems of nDPI has changed:
+ * update the table above, HostTagId and tag_badge_utils.builtin_tags */
+static_assert(COUNT_OF(host_os_to_host_tag) == ndpi_os_MAX_OS,
+              "host_os_to_host_tag is not in sync with ndpi_os");
+
+u_int64_t Host::getOSTag(ndpi_os os) {
+  if ((os > ndpi_os_unknown) && (os < ndpi_os_MAX_OS) &&
+      (host_os_to_host_tag[os] != -1))
+    return (1ULL << host_os_to_host_tag[os]);
+
+  return (0);
+}
+
+/* ***************************************** */
+
 /* Return tags
  * Set transferrable_only = true to avoid transferring host-only tags to flows */
 u_int64_t Host::getTags(bool transferrable_only) {
@@ -1228,6 +1253,10 @@ u_int64_t Host::getTags(bool transferrable_only) {
     }
 
     bm |= computed_tags_bitmap;
+
+    /* Operating System: computed from the OS of the host, so that at most one
+     * of these tags is set */
+    bm |= getOSTag(os_type);
   }
 
   return bm;
@@ -2387,12 +2416,18 @@ bool Host::setOS(ndpi_os _os, OSLearningMode mode) {
     if (mode == os_learning_http_user_agent) {
       /*
         In case of inconsistency, we ignore the User-Agent information
-        as this information can be inconsistent/fake/wrong
+        as this information can be inconsistent/fake/wrong.
+        NOTE: it is ignored for the tag of the Operating System too, on the
+        host and on its asset: the tag is not changed, nor refreshed.
       */
 
       return (false); /* Don't overwrite the existing value */
     }
   }
+
+  /* Tag of the Operating System: the previous one (if any) is replaced */
+  if (os_type != _os) setTagsRemoved(getOSTag(os_type));
+  setTagsRefreshed(getOSTag(_os));
 
   os_type = _os;
 
@@ -3167,9 +3202,11 @@ void Host::setnDPIOS(ndpi_os _os, time_t when) {
   if (os_type != ndpi_os_unknown) {
     /* Already set */
 
-    if (os_type == _os)
-      return; /* Nothing changed */
-    else {
+    if (os_type == _os) {
+      /* Nothing changed: the OS has been observed again, refresh its tag */
+      setTagsRefreshed(getOSTag(_os));
+      return;
+    } else {
       /* ntop->getTrace()->traceEvent(TRACE_WARNING, "OS change detected [%u ->
        * %u]", os_type, _os); */
 

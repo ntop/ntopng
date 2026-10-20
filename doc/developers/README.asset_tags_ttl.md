@@ -200,6 +200,7 @@ database, and every function returns the list of the changes (events):
 | `apply(tags_info, changes, when)` | Apply a host snapshot |
 | `expire(tags_info, ttls, pinned, now)` | Remove the expired tags |
 | `remove(tags_info, tags, when, reason)` | Remove some tags (tag deleted) |
+| `add(tags_info, tags, when, source)` | Add some tags (seeding of the Operating System tags) |
 
 `asset_utils.updateData()` takes the tag fields out of the generic merge of
 `json_info` and calls `apply()`:
@@ -264,6 +265,85 @@ comes back at the next matching flow, and then on the asset.
 
 ---
 
+## Operating System tags
+
+Five built-in tags tell the Operating System of a host. They use the same
+machinery as the other tags (snapshot fields, TTL, events), with one
+addition: a host, and an asset, has at most one of them.
+
+| Tag | Id (`HostTagId`) | OS (`ndpi_os`) |
+|---|---|---|
+| Windows | 31 `HOST_TAG_OS_WINDOWS` | `ndpi_os_windows` |
+| macOS/iOS/iPadOS | 30 `HOST_TAG_OS_APPLE` | `ndpi_os_apple` |
+| Android | 29 `HOST_TAG_OS_ANDROID` | `ndpi_os_android` |
+| Linux | 28 `HOST_TAG_OS_LINUX` | `ndpi_os_linux` |
+| FreeBSD | 27 `HOST_TAG_OS_FREEBSD` | `ndpi_os_freebsd` |
+
+The list is in four places, to be kept in sync: `HostTagId`
+(`ntop_defines.h`), `host_os_to_host_tag[]` (`Host.cpp`),
+`tag_badge_utils.builtin_tags` (with the names in `scripts/locales/en.lua`)
+and, for the seeding, `os_tags` in `asset_utils.lua`. A `static_assert` in
+`Host.cpp` breaks the build when nDPI adds or removes an Operating System.
+
+### Host side
+
+- **The tag is not stored:** `Host::getTags()` computes it from the OS of the
+  host (`os_type`, `Host::getOSTag()`), as it does for the services. So the
+  host has one OS tag at most, always matching the OS it reports. As the
+  other built-in tags, it is not transferred to the flows.
+- **OS set or changed** (`Host::setOS()`): the new tag is marked as refreshed
+  and the previous one (if any) as removed. Two changes between two
+  snapshots are fine: marking a tag as removed clears its pending refresh.
+- **Same OS observed again:** the tag is marked as refreshed
+  (`Host::setnDPIOS()`, `LocalHost::setOS()`), for the TTL.
+
+What sets, and what refreshes, the OS tag:
+
+| Source | Sets / changes the OS | Refreshes the tag |
+|---|---|---|
+| TCP fingerprint / nDPI hint (once per TCP flow) | Yes | Yes |
+| OS hint received from nProbe | Yes | Yes |
+| HTTP User-Agent | Only when the host has no OS yet: when it tells another OS it is ignored, for the tag too | Yes, when it tells the OS the host has |
+| Network discovery (`interface.setHostOperatingSystem`) | Yes | Yes |
+| DHCP fingerprint | Yes | No: the OS is copied from the Mac when the info of the Mac changes (`LocalHost::syncMACMetadata`), that is not an observation |
+
+View interfaces behave the same: the flows of a viewed interface keep the OS
+of their client, and the view sets it on its host (`Flow::updateViewClientOS`,
+called by `ViewInterface::viewed_flows_walker`). As a view does not walk its
+flows in time order, a host ignores an OS hint coming from a flow older than
+the one its current hint comes from (`Host::setnDPIOS`).
+
+### Asset side
+
+- **Mutually exclusive tags:** `asset_tags.exclusive_groups` lists groups of
+  tags (bitmaps) an asset can have one of. The OS tags are the only group so
+  far. When `apply()` gets a new tag of a group, it removes the tag of that
+  group the asset has, with reason `replaced`.
+- This is done on the asset, and not left to the host, because the host
+  forgets its OS when it is purged or when ntopng is restarted: it then
+  reports the new OS without telling that the previous tag is gone.
+- An older snapshot processed late does not replace a newer tag, and the tag
+  it reports as removed is kept.
+- **Seeding:** `seedOSTags()` (`asset_utils.lua`, called at startup by
+  `asset_utils.init()`) tags the host assets stored before these tags have
+  been introduced with the OS of their `os_type` column: source `seed`, dated
+  at the seeding time (the TTL starts then). An asset that has an OS tag
+  already is left untouched. It is done once per interface
+  (`ntopng.prefs.assets.os_tags_seeded.ifid_<id>`).
+- The `os_type` column of the asset is not touched by the tags: when an OS
+  tag expires, the column still tells the OS.
+
+### Limitations
+
+- **Hosts seen with several Operating Systems** (virtual machines, NAT,
+  hotspot): the tag changes at every change of the OS of the host. Each
+  change is a `replaced` removal plus an `observed` addition.
+- **First TCP fingerprint of a host on a view:** it depends on the flow the
+  view walks first, so it can differ from the one reported without a view.
+  The OS, and so the tag, does not.
+
+---
+
 ## Timing
 
 | Event | Accuracy |
@@ -309,7 +389,8 @@ Assets stored for interface <name> [ifid: <id>]: <n>                    (startup
 Stored asset <key> [ip: ...][name: ...] tags: 0 [observed][first: ...][last: ...], ...
 Asset <key>: tag <id> added [reason: observed|manual|config|seed][when: <epoch>]
 Asset <key>: tag <id> refreshed [last: <old> -> <new>]
-Asset <key>: tag <id> removed [reason: removed|expired|deleted][when: <epoch>]
+Asset <key>: tag <id> removed [reason: removed|replaced|expired|deleted][when: <epoch>]
+Asset OS tags seeded for interface <name> [ifid: <id>]: <n> assets tagged       (startup, once)
 Asset tags expiration [ifid: <id>]: <n> tags with a TTL, <n> assets with tags, <n> assets changed
 ```
 
@@ -354,17 +435,6 @@ an event.
   a non-canonical form does not match.
 - **History** of the tags is not stored.
 
-Unrelated issues found on the way:
-
-- **DNS Server attribution.** `Flow::updateUDPHostServices()` requests a flow
-  swap when it sees a DNS response in the client-to-server direction. When
-  the dissection is ended by force (flow idle or destroyed) the direction
-  passed is a fixed `true`, so a normal query/response flow whose response
-  has no answers (NXDomain, ServFail) gets a swap request that is never
-  executed, and the DNS Server service goes to the client. Candidate fix,
-  tried and not applied: request the swap for a response only when no packet
-  has been seen in the other direction.
-
 ---
 
 ## Tests
@@ -373,9 +443,15 @@ Unrelated issues found on the way:
 
 | Area | How | Status |
 |---|---|---|
-| `asset_tags.lua` (apply, expire, remove) | Standalone test, see below | 88 checks pass |
+| `asset_tags.lua` (apply, expire, remove, add, mutually exclusive tags) | Standalone test, see below | 128 checks pass |
 | `asset_escape.lua` (values with apostrophes, backslashes, percent signs: stored as they are and unchanged after repeated updates; newlines, semicolons and double quotes removed) | Standalone test, see below; same values through the SQLite and ClickHouse parsers | 193 checks pass |
 | Escaping of the asset values on a running ntopng, SQLite and ClickHouse: host and MAC assets, first write, values sent again, 4 updates without them, edit of the MAC status, REST list, export and import of an asset | Synthetic snapshots pushed to the queue of a real ntopng | As expected |
+| OS tag on the host, normal and view interface: one tag, following the OS | pcap replay (`host_os_change.pcap`: Windows, then Linux), e2e `tags_os_01`; on the view, snapshot read from the Redis queue | As expected |
+| OS tags in the list of the tags, TTL set on an OS tag | REST | As expected |
+| Seeding of the OS tags on ClickHouse: no tags info, old bitmap only, other tags, no OS, OS tag already there; not repeated | Assets inserted by hand, ntopng restarted | As expected |
+| Live, OS tags, normal interface, ClickHouse, test mode | Live tests 10 to 14 below | All pass |
+| Live, OS tags, view interface and SQLite | Live tests 15 and 16 below | Pass |
+| OS tags in the GUI: tag list, badges (bit 31 included), tag filter of the assets | Live test 17 below | Pass |
 | Host snapshot fields: observed service, mapped tag, manual add and remove, configured list | pcap replay, snapshots read from the Redis queue | As expected |
 | TTL mask parsing and reload when a tag is edited | Temporary trace | As expected |
 | Asset side on SQLite and on ClickHouse (26.9): apply, expiry, pin check by address and by network, assets stored before the feature, host sync, rate limit, tag deletion, TTL kept on edit, list badges, tag filter with tag 63, expiry query limited to the assets with a tag that has a TTL | Synthetic snapshots pushed to the queue of a real ntopng | As expected |
@@ -393,7 +469,10 @@ Not tested:
 - the configuration as source of a tag that is also observed, on a live
   host (standalone test only);
 - large tables (the 20-second budget of the expiration);
-- collected flows (ZMQ).
+- collected flows (ZMQ);
+- seeding of the OS tags on SQLite (no simple way to create an asset
+  stored before these tags on SQLite);
+- OS learnt from flows collected from nProbe.
 
 Standalone tests of `asset_tags.lua` and `asset_escape.lua` (from the ntopng
 root):
@@ -563,3 +642,49 @@ Same tests, with a view: add `-i view:all` to the command line.
 - A tag is refreshed at every pass of the walker while its flow is alive, so
   the last refresh can be a minute or two after the traffic has stopped: the
   expiration has to be counted from the last `refreshed` line.
+
+#### Live tests of the OS tags
+
+Setup: the traffic comes from pcap files replayed on a veth pair, so that
+the OS of each host is under control:
+
+```
+sudo ip link add veth0 type veth peer name veth1
+sudo ip link set veth0 up && sudo ip link set veth1 up
+sudo ip addr add 10.99.99.1/24 dev veth1
+ping -I veth1 -i 1 10.99.99.2      # keep running: see the note below
+
+sudo ./ntopng --dont-change-user -i veth0 -m "172.16.1.0/24,192.168.2.0/24" -F clickhouse
+sudo tcpreplay -i veth1 <pcap>
+```
+
+| pcap | Content |
+|---|---|
+| `nDPI/tests/pcap/kerberos-user.pcap` | 172.16.1.137 with the TCP fingerprint of Windows |
+| `nDPI/tests/pcap/slowloris.pcap` | 192.168.2.61 with the TCP fingerprint of Linux and a Windows HTTP User-Agent |
+| `tests/e2e/rest/pcap/host_os_change.pcap` | 172.16.1.137: Windows, then Linux 10 seconds later |
+
+NOTE: on an interface with no traffic at all the hosts are not dumped every
+minute: a host reaches its asset only when it is purged (about 5 minutes
+later). The ping on the other end of the veth pair avoids that.
+
+| # | Test | How | What to expect | Result |
+|---|---|---|---|---|
+| 10 | OS tag on a new host | Replay `kerberos-user.pcap` | Windows badge on the host; asset: `tag 31 added [reason: observed]`, `os_type` Windows | Pass |
+| 11 | OS change | Replay `host_os_change.pcap` | In the same pass: `tag 31 removed [reason: replaced]`, `tag 28 added [reason: observed]`; Linux only on the asset (`os_type` Linux) and on the host, learnt via TCP fingerprint | Pass |
+| 12 | Refresh and expiration | TTL 3 on Linux; `slowloris.pcap` replayed 10 times, 30 seconds apart, with a different client port each time (`tcprewrite --portmap=39970:<port>`) so that each replay is a new flow | `tag 28 added`, then refreshed about once a minute; `removed [reason: expired]` at the first pass after TTL + margin from the last refresh; `os_type` unchanged; never a Windows tag (User-Agent ignored) | Pass |
+| 13 | Replacement after a restart | Restart with the asset holding Linux, replay `kerberos-user.pcap` | `tag 28 removed [reason: replaced]`, `tag 31 added`: the asset replaces the tag although the host has no memory of the previous OS | Pass |
+| 14 | Seeding | Asset inserted by hand (`os_type` FreeBSD, `json_info` `{}`), seeding key deleted, two restarts | First start: `tag 27 added [reason: seed]` and `Asset OS tags seeded ...: 1 assets tagged`; second start: nothing | Pass |
+| 15 | View interface | Tests 10 to 12 with `-i veth0 -i view:all` | Same results on the assets of the view, none on the viewed interface; OS of the host of the view learnt via TCP fingerprint | Pass |
+| 16 | SQLite | Tests 10 to 12 without `-F clickhouse` | Same results | Pass |
+| 17 | GUI | Tags page, host page, assets list and asset details, tag filter of the assets | The five OS tags listed as built-in (TTL and color editable); badges shown, Windows (bit 31) included; filter by OS tag | Pass |
+
+Notes:
+
+- On a view the tag is refreshed at every pass of the walker while the flow
+  is alive, so the refreshes go on for a couple of minutes after the
+  traffic has stopped; the expiration is counted from the last one.
+- A host purged after its tag has expired is dumped once more: that
+  snapshot does not refresh the tag, so it is not added back.
+- Without a TTL (the default) the tag is never removed by the expiration,
+  only replaced.
