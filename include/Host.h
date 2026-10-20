@@ -556,6 +556,8 @@ class Host : public GenericHashEntry,
   /* Tags observed (set or confirmed) / assigned / removed by the user: used to keep the
    * tags of the assets up to date, see LocalHost */
   virtual void setTagsRefreshed(u_int64_t bitmap) { ; }
+  /* Tag (as a bitmap) of the specified Operating System, 0 if it has no tag */
+  static u_int64_t getOSTag(ndpi_os os);
   virtual void setTagsAssigned(u_int64_t bitmap) { ; }
   virtual void setTagsRemoved(u_int64_t bitmap) { ; }
 
