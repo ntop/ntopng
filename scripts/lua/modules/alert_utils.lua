@@ -735,7 +735,7 @@ local function notify_ntopng_status(started)
 			msg = string.format(
 				"%s %s",
 				i18n("alert_messages.ntopng_anomalous_termination", {
-					url = "https://www.ntop.org/support/need-help-2/need-help/",
+					url = "https://www.ntop.org/support/need-help-2/need-help/?utm_source=ntopng",
 				}),
 				msg_details
 			)

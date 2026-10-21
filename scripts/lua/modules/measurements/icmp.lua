@@ -156,7 +156,7 @@ return {
       -- If set, indicates the default threshold value
       default_threshold = nil,
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
-      -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
+      -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html?utm_source=ntopng#charting-new-metrics .
       additional_timeseries = {},
       -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "NtopUtils.fmillis",

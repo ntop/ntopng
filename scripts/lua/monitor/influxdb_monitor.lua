@@ -152,7 +152,7 @@ refreshInfluxStats();
        print("</table>\n")
        print("<b>"..i18n("notes").."</b>")
        print("<ul>")
-       print("<li>"..i18n("system_stats.influxdb_note_docs", {url = "https://www.ntop.org/guides/ntopng/basic_concepts/timeseries.html#influxdb-driver"}).."</li>")
+       print("<li>"..i18n("system_stats.influxdb_note_docs", {url = "https://www.ntop.org/guides/ntopng/basic_concepts/timeseries.html?utm_source=ntopng#influxdb-driver"}).."</li>")
        print("</ul>")
 
 elseif(page == "historical" and charts_available) then

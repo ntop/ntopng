@@ -997,7 +997,7 @@ function get_version_update_msg(info, latest_version)
             return i18n("about.new_major_available", {
                 product = info["product"],
                 version = latest_version,
-                url = "http://www.ntop.org/get-started/download/"
+                url = "http://www.ntop.org/get-started/download/?utm_source=ntopng"
             })
         end
     end

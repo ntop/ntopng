@@ -51,14 +51,14 @@ local system_id = info["pro.systemid"]
 local system_id_href = nil
 if system_id and system_id ~= "" then
    system_id_href = string.format(
-      "https://shop.ntop.org/mkntopng?systemid=%s&version=%s&edition=%s",
+      "https://shop.ntop.org/mkntopng?systemid=%s&version=%s&edition=%s&utm_source=ntopng",
       system_id, version[1], edition
    )
 end
 
 local eula_url = ternary(
    info["pro.release"],
-   "https://www.ntop.org/support/faq/what-is-the-end-user-license-agreement-for-binary-products/",
+   "https://www.ntop.org/support/faq/what-is-the-end-user-license-agreement-for-binary-products/?utm_source=ntopng",
    "http://www.gnu.org/licenses/gpl.html"
 )
 

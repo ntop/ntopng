@@ -443,7 +443,7 @@ return function(f)
             key = "api",
             i18n = "about.api_reference",
             icon = "fas fa-book-open",
-            url = "https://www.ntop.org/guides/ntopng/api/",
+            url = "https://www.ntop.org/guides/ntopng/api/?utm_source=ntopng",
             is_external = true
         }}
     },
@@ -482,7 +482,7 @@ return function(f)
             key = "blog",
             i18n = "about.ntop_blog",
             icon = "fas fa-rss",
-            url = "http://blog.ntop.org/",
+            url = "http://blog.ntop.org/?utm_source=ntopng",
             is_external = true
         }, {
             key = "telegram",
@@ -494,7 +494,7 @@ return function(f)
             key = "manual",
             i18n = "about.user_manual",
             icon = "fas fa-book",
-            url = "https://www.ntop.org/guides/ntopng/",
+            url = "https://www.ntop.org/guides/ntopng/?utm_source=ntopng",
             is_external = true
         }, {
             key = "divider",
@@ -510,7 +510,7 @@ return function(f)
             key = "suggest_feature",
             i18n = "about.suggest_feature",
             icon = "fas fa-lightbulb",
-            url = "https://www.ntop.org/support/need-help-2/contact-us/",
+            url = "https://www.ntop.org/support/need-help-2/contact-us/?utm_source=ntopng",
             is_external = true
         }}
     }}
