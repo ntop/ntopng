@@ -73,10 +73,11 @@ end
 function locales.loadLocaleFile(path, locale)
   local data = loadfile_to_data(path)
   local os_utils = require("os_utils")
-  local script_manager = require("script_manager")
 
   -- Check if script specific locales exist
-  local scripts_locales = os_utils.fixPath(script_manager.getRuntimePath() .. "/locales/" .. locale .. ".lua")
+  -- NOTE: same path as script_manager.getRuntimePath(), without requiring
+  -- script_manager (and template_utils, ...) on every request using i18n
+  local scripts_locales = os_utils.fixPath(ntop.getCurrentScriptsDir() .. "/locales/" .. locale .. ".lua")
 
   if ntop.exists(scripts_locales) then
      local scripts_data = loadfile_to_data(scripts_locales)

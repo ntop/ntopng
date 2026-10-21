@@ -6,6 +6,11 @@ local format_utils = {}
 
 local clock_start = os.clock()
 
+-- Local copy of truncate() (lua_utils): format_utils must work without lua_utils
+local function truncate(x)
+   return x < 0 and math.ceil(x) or math.floor(x)
+end
+
 -- Returns the AS display name (description, or handle as fallback)
 local function getASDisplayName(asn)
    local info = ntop.getASNameFromASN(asn)

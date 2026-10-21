@@ -8,14 +8,19 @@ package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. p
 
 -- trace_script_duration = true
 
-require "lua_utils"
+-- NOTE: this endpoint is polled every few seconds by the GUI: require only
+-- light modules. lua_utils and ascan_utils (with their dependencies) take
+-- from hundreds of ms up to seconds to load, while the stats take ~1 ms.
+require "ntop_utils"
+require "lua_utils_generic"
+require "lua_utils_get" -- getInterfaceSpeed(), getInterfaceName() (label_utils)
+local format_utils = require "format_utils"
 local periodic_activities_utils = require "periodic_activities_utils"
 local cpu_utils = require("cpu_utils")
-local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
 local rest_utils = require("rest_utils")
 local auth = require "auth"
-local ascan_utils = require "ascan_utils"
+local ascan_status_utils = require "ascan_status_utils"
 
 --
 -- Read information about an interface
@@ -66,6 +71,9 @@ local function countHosts()
       local_hosts = 0,
       hosts = 0
    }
+
+   -- Only users with restricted networks get here: load it only when needed
+   local callback_utils = require("callback_utils")
 
    for host, info in callback_utils.getHostsIterator(false --[[no details]] ) do
       if info.localhost then
@@ -224,7 +232,7 @@ function dumpInterfaceStats(ifid)
       res["epoch"] = os.time()
       res["localtime"] = os.date("%H:%M:%S %z", res["epoch"])
       res["uptime_sec"] = uptime
-      res["uptime"] = secondsToTime(uptime)
+      res["uptime"] = format_utils.secondsToTime(uptime)
       if ntop.isPro and ntop.isPro() then
          local product_info = ntop.getInfo(true)
 
@@ -352,8 +360,8 @@ function dumpInterfaceStats(ifid)
 
       -- Adding a preference if active discovery is enabled
       res["active_discovery_active"] = ntop.getPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId()) == "1"
-      if (ascan_utils.is_available()) then
-         local total, total_in_progress = ascan_utils.check_in_progress_status()
+      if (ascan_status_utils.is_available()) then
+         local total, total_in_progress = ascan_status_utils.check_in_progress_status()
          res["vs_in_progress"] = total_in_progress or 0
       end
    end
@@ -382,8 +390,8 @@ function dumpBriefInterfaceStats(ifid)
       res["drops"] = ifstats.stats_since_reset.drops
 
       res["throughput_bps"] = ifstats.stats.throughput_bps;
-      if (ascan_utils.is_available()) then
-         local total, total_in_progress = ascan_utils.check_in_progress_status()
+      if (ascan_status_utils.is_available()) then
+         local total, total_in_progress = ascan_status_utils.check_in_progress_status()
          res["vs_in_progress"] = total_in_progress or 0
       end
       if ntop.isClickHouseEnabled() and ifstats.stats_since_reset["db"] then
@@ -445,7 +453,7 @@ function dumpBriefInterfaceStats(ifid)
 
       res["epoch"] = os.time()
       res["localtime"] = os.date("%H:%M:%S %z", res["epoch"])
-      res["uptime"] = secondsToTime(uptime)
+      res["uptime"] = format_utils.secondsToTime(uptime)
       res["uptime_sec"] = uptime
       if ntop.isPro and ntop.isPro() then
          local product_info = ntop.getInfo(true)

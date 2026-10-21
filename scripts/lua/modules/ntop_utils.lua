@@ -373,14 +373,17 @@ local function sortBy(a, n, f, get)
 
       if value_type ~= false then
 	 if values == nil then
+       -- Descending
 	    if descending then
 	       table.sort(a, function(x, y) return x > y end)
 	    else
+          -- Ascending
 	       table.sort(a) -- Native '<'
 	    end
 	 elseif descending then
 	    table.sort(a, function(x, y) return values[x] > values[y] end)
 	 else
+       -- Ascending
 	    table.sort(a, function(x, y) return values[x] < values[y] end)
 	 end
 

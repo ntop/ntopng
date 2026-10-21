@@ -58,6 +58,7 @@ local format_utils = require("format_utils")
 local recipients = require("recipients")
 local ascan_db_utils = require("ascan_db_utils")
 local ascan_rest_utils = require("ascan_rest_utils")
+local ascan_status_utils = require("ascan_status_utils")
 
 -- Enable debug with:
 -- redis-cli set "ntopng.prefs.vs.debug_enabled" "1"
@@ -89,14 +90,7 @@ end
 -- **********************************************************
 
 -- Scan status
-ascan_utils.scan_status = {
-   error       = 0,
-   ok          = 1,
-   scheduled   = 2,
-   not_scanned = 3,
-   scanning    = 4,
-   failed      = 5,
-}
+ascan_utils.scan_status = ascan_status_utils.scan_status
 
 -- Scan execution type
 ascan_utils.scan_in_exec_type = {
@@ -108,16 +102,10 @@ ascan_utils.scan_in_exec_type = {
 -- **********************************************************
 -- Function to retrieve nmap path on OS
 function ascan_utils.get_nmap_path()
-   local path = {
-      "/usr/bin/nmap",
-      "/usr/local/bin/nmap",
-      "/opt/homebrew/bin/nmap"
-   }
+   local p = ascan_status_utils.get_nmap_binary()
 
-   for _,p in pairs(path) do
-      if(ntop.exists(p)) then
-         return(p..use_slow_scan)
-      end
+   if p then
+      return(p..use_slow_scan)
    end
 
    return(nil)
@@ -1731,26 +1719,7 @@ end
 -- **********************************************************
 -- Function to retrieve hosts list to scan just for status_info
 function ascan_utils.check_in_progress_status()
-   local hash_keys = ntop.getHashKeysCache(host_to_scan_key)
-   local total_in_progress = 0
-   local total = 0
-
-   if hash_keys then
-      for k in pairs(hash_keys) do
-         local hash_value_string = ntop.getHashCache(host_to_scan_key, k)
-
-         if (not isEmptyString(hash_value_string)) then
-            local hash_value = json.decode(hash_value_string)
-            -- Check IN PROGRESS --> FIX ME with enums
-            if hash_value and (hash_value.is_ok_last_scan == ascan_utils.scan_status.scheduled or hash_value.is_ok_last_scan == ascan_utils.scan_status.scanning) then
-               total_in_progress = total_in_progress + 1
-            end
-            total = total + 1
-         end
-      end
-   end
-
-   return total, total_in_progress
+   return ascan_status_utils.check_in_progress_status()
 end
 
 -- **********************************************************
