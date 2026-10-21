@@ -299,40 +299,138 @@ end
 
 -- ##############################################
 
-function pairsByKeys(t, f)
-   local a = {}
-   if t == nil then io.write(debug.traceback() .. "\n") end
-   for n in pairs(t) do table.insert(a, n) end
-   table.sort(a, f)
-   local i = 0 -- iterator variable
-   local iter = function() -- iterator function
-      i = i + 1
-      if a[i] == nil then
-	 return nil
-      else
-	 return a[i], t[a[i]]
+-- Sorting helpers
+--
+-- When f is asc, rev, asc_insensitive or rev_insensitive and all the sort
+-- values are numbers, or all are strings, the comparators are exactly
+-- '<' / '>' (on the lowered strings for the _insensitive ones): the sort
+-- values are computed once per element (string.lower included) and the
+-- comparison is inlined, with no function call nor nil/type checks per
+-- comparison. In all the other cases (custom f, nil values, mixed types)
+-- f is used as is.
+
+local string_lower = string.lower
+
+-- Collects the keys of t into an array, returns the array and its length
+local function collectKeys(t)
+   local a, n = {}, 0
+
+   for k in pairs(t) do
+      n = n + 1
+      a[n] = k
+   end
+
+   return a, n
+end
+
+-- Sorts in place the n elements of a by get(element), or by the element
+-- itself when get is nil, with the comparator f
+local function sortBy(a, n, f, get)
+   local descending
+
+   if (f == asc) or (f == asc_insensitive) then
+      descending = false
+   elseif (f == rev) or (f == rev_insensitive) then
+      descending = true
+   end
+
+   if descending ~= nil then
+      local insensitive = (f == asc_insensitive) or (f == rev_insensitive)
+      -- Precomputed sort values, not needed when sorting plain elements
+      local values = (get or insensitive) and {} or nil
+      local value_type
+
+      -- Single pass: check that the sort values are all numbers or all
+      -- strings, and compute them once
+      for i = 1, n do
+	 local x = a[i]
+	 local v
+
+	 if get then v = get(x) else v = x end
+
+	 local vt = type(v)
+
+	 if value_type == nil then
+	    if (vt ~= "number") and (vt ~= "string") then
+	       value_type = false
+	       break
+	    end
+
+	    value_type = vt
+	 elseif vt ~= value_type then
+	    value_type = false
+	    break
+	 end
+
+	 if values then
+	    if insensitive and (vt == "string") then
+	       values[x] = string_lower(v)
+	    else
+	       values[x] = v
+	    end
+	 end
+      end
+
+      if value_type ~= false then
+	 if values == nil then
+	    if descending then
+	       table.sort(a, function(x, y) return x > y end)
+	    else
+	       table.sort(a) -- Native '<'
+	    end
+	 elseif descending then
+	    table.sort(a, function(x, y) return values[x] > values[y] end)
+	 else
+	    table.sort(a, function(x, y) return values[x] < values[y] end)
+	 end
+
+	 return
       end
    end
-   return iter
+
+   -- Custom comparator, nil values or mixed types: use f as is
+   if get then
+      table.sort(a, function(x, y) return f(get(x), get(y)) end)
+   else
+      table.sort(a, f)
+   end
+end
+
+-- Iterator over the sorted keys
+local function sortedKeysIterator(a, n, t)
+   local i = 0
+
+   return function()
+      i = i + 1
+      if i > n then return nil end
+
+      local k = a[i]
+      return k, t[k]
+   end
+end
+
+-- ##############################################
+
+function pairsByKeys(t, f)
+   if t == nil then io.write(debug.traceback() .. "\n") end
+
+   local a, n = collectKeys(t)
+
+   sortBy(a, n, f)
+
+   return sortedKeysIterator(a, n, t)
 end
 
 -- ##############################################
 
 function pairsByValues(t, f)
-   local a = {}
    if t == nil then io.write(debug.traceback() .. "\n") end
-   for n in pairs(t) do table.insert(a, n) end
-   table.sort(a, function(x, y) return f(t[x], t[y]) end)
-   local i = 0 -- iterator variable
-   local iter = function() -- iterator function
-      i = i + 1
-      if a[i] == nil then
-	 return nil
-      else
-	 return a[i], t[a[i]]
-      end
-   end
-   return iter
+
+   local a, n = collectKeys(t)
+
+   sortBy(a, n, f, function(k) return t[k] end)
+
+   return sortedKeysIterator(a, n, t)
 end
 
 -- ##############################################
@@ -396,20 +494,41 @@ end
 -- ##############################################
 
 function pairsByField(t, field, f)
-   local a = {}
-   for n in pairs(t) do table.insert(a, n) end
+   local a, n = collectKeys(t)
 
-   table.sort(a, function(x, y) return f(t[x][field], t[y][field]) end)
-   local i = 0 -- iterator variable
-   local iter = function() -- iterator function
-      i = i + 1
-      if a[i] == nil then
-	 return nil
-      else
-	 return a[i], t[a[i]]
+   sortBy(a, n, f, function(k) return t[k][field] end)
+
+   return sortedKeysIterator(a, n, t)
+end
+
+-- ##############################################
+
+-- @brief Returns the values of t (tables) in an array sorted by one of their fields.
+--        Use it instead of pairsByField when the sorted list itself is needed
+--        (e.g. to be returned or serialized): it sorts the values directly
+--        (no keys array, no iterator)
+-- @param t The table whose values are sorted
+-- @param field The field of the values used to sort
+-- @param f The sort function, e.g. `asc` or `rev`
+-- @param max_entries (optional) Max number of returned values
+-- @return The array of sorted values
+function valuesSortedByField(t, field, f, max_entries)
+   local a, n = {}, 0
+
+   for _, v in pairs(t) do
+      n = n + 1
+      a[n] = v
+   end
+
+   sortBy(a, n, f, function(v) return v[field] end)
+
+   if (max_entries ~= nil) and (n > max_entries) then
+      for i = n, max_entries + 1, -1 do
+	 a[i] = nil
       end
    end
-   return iter
+
+   return a
 end
 
 -- ##############################################
@@ -445,16 +564,18 @@ end
 
 -- ##############################################
 
+-- NOTE: when passed to pairsByKeys/pairsByValues/pairsByField/valuesSortedByField
+-- these are not called per comparison: the strings are lowered once per element
 function asc_insensitive(a, b)
    if type(a) ~= "string" then return asc(a, b) end
-   return (string.lower(a) < string.lower(b))
+   return (string_lower(a) < string_lower(b))
 end
 
 -- ##############################################
 
 function rev_insensitive(a, b)
    if type(a) ~= "string" then return rev(a, b) end
-   return (string.lower(a) > string.lower(b))
+   return (string_lower(a) > string_lower(b))
 end
 
 -- ##############################################
