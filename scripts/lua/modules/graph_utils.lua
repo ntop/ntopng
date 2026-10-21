@@ -424,7 +424,10 @@ function graph_utils.drawNewGraphs(source_value_object)
             top_categories = host_has_top_categories
         },
         snmp = {top_snmp_ifaces = true},
-        flowdevice = {top_flowdev_ifaces = true}
+        flowdevice = {
+            top_flowdev_ifaces = true,
+            top_flowdev_port_protocols = areExportersTimeseriesPerApplicationEnabled()
+        }
     }
 
     local date_fmt, date_fmt_picker = graph_utils.get_date_formats()

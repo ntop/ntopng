@@ -5300,6 +5300,9 @@ local lang = {
     ["ip_traffic_breakdown"] = "Traffic IPv4/IPv6",
     ["l4_proto"] = "Traffic Protocols",
     ["l7_proto"] = "Applications",
+    ["l7_proto_usage"] = "Applications Link Usage",
+    ["top_l7_proto_downlink_usage"] = "Top L7 Applications Downlink (percentage)",
+    ["top_l7_proto_uplink_usage"] = "Top L7 Applications Uplink (percentage)",
     ["last_ms"] = "Last ms",
     ["loc_host_anomalies"] = "Local Hosts Anomalies",
     ["local2remote"] = "Local to Remote",
@@ -8790,6 +8793,7 @@ local lang = {
       ["top_traffic_sflow"] = "Top Traffic",
       ["top_traffic_snmp"] = "Top Traffic (SNMP)",
       ["top_traffic_snmp_min"] = "Top Traffic (SNMP min)",
+      ["traffic_share"] = "Traffic Share",
     },
     ["usage"] = {
       ["average"] = "Average (<i class=\"fa-solid fa-circle-arrow-down\" data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"Downlink\" style=\"color: #90EE90\"></i> / <i class=\"fa-solid fa-circle-arrow-up\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"Uplink\" style=\"color: #C6D9FD\"></i>)",

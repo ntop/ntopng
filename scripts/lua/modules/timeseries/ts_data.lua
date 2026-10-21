@@ -38,6 +38,131 @@ local function addHostInfo(tags)
    return tags
 end
 
+-- Private function: Converts the per-application traffic of a flow exporter interface into a percentage
+-- of the interface speed configured for the exporter interface.
+-- Returns, per metric, the factor converting bytes/sec into a percentage of
+-- the speed (bits/sec) configured for the exporter interface, nil if not available
+local function getFlowDevUsageFactors(tags)
+   -- The speed is configured per exporter interface (Enterprise M only)
+   if not ntop.isEnterpriseM() or isEmptyString(tags.device) or isEmptyString(tags.port) or isEmptyString(tags.ifid) then
+      return nil
+   end
+
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+   require "flow_exporter_utils"
+
+   local config = getFlowDevInterfaceConfig(tags.device, tags.port, tags.ifid)
+   local factors = {}
+
+   for metric, speed in pairs({ bytes_sent = config.uplink_speed, bytes_rcvd = config.downlink_speed }) do
+      speed = tonumber(speed)
+      factors[metric] = (speed and speed > 0) and (8 * 100 / speed) or 0
+   end
+
+   return factors
+end
+
+-- Scales the points and the statistics of a serie by the provided factor
+local function scaleSerie(serie, factor)
+   for idx, val in pairs(serie.data or {}) do
+      -- Keep NaN values (val ~= val) as they are
+      if val == val then
+         serie.data[idx] = val * factor
+      end
+   end
+
+   if serie.statistics then
+      for _, stat in pairs({ "average", "95th_percentile", "min_val", "max_val" }) do
+         if serie.statistics[stat] then
+            serie.statistics[stat] = serie.statistics[stat] * factor
+         end
+      end
+      -- The total volume makes no sense for a percentage
+      serie.statistics.total = nil
+   end
+end
+
+local function performFlowDevUsageQuery(options)
+   local ts_utils = require("ts_utils")
+   local usage_schema = options.schema
+   local factors = getFlowDevUsageFactors(options.tags)
+
+   if not factors then
+      return nil
+   end
+
+   options.schema = usage_schema:gsub("ndpi_usage", "ndpi")
+   local res = ts_utils.timeseries_query(options)
+   options.schema = usage_schema
+
+   for _, serie in pairs(res and res.series or {}) do
+      scaleSerie(serie, factors[serie.id] or 0)
+   end
+
+   return res
+end
+
+-- Top applications of a flow exporter interface as percentage of the interface speed, for a single direction
+local function performFlowDevUsageTopQuery(options)
+   local ts_utils = require("ts_utils")
+   local tags = options.tags
+   local factors = getFlowDevUsageFactors(tags)
+
+   if not factors then
+      return nil
+   end
+
+   local metric = (options.schema:match("ndpi_usage_(%a+)") == "uplink") and "bytes_sent" or "bytes_rcvd"
+   local schema = "flowdev_port:ndpi" .. (ends(options.schema, "_min") and "_min" or "")
+   local max_items = ts_utils.getQueryOptions(table.clone(options)).top
+   local port_tags = { ifid = tags.ifid, device = tags.device, port = tags.port }
+   local items = {}
+   local metadata = nil
+
+   -- One query per application, as done by the "top" query of the drivers
+   for _, serie_tags in pairs(ts_utils.listSeries(schema, port_tags, options.epoch_begin) or {}) do
+      local res = ts_utils.timeseries_query(table.merge(options, { schema = schema, tags = serie_tags }))
+
+      for _, serie in pairs(res and res.series or {}) do
+         if serie.id == metric then
+            scaleSerie(serie, factors[metric])
+
+            local avg = serie.statistics and serie.statistics.average or 0
+            -- Skip applications with no traffic in this direction (NaN ~= NaN)
+            if avg == avg and avg > 0 then
+               metadata = res.metadata
+               items[#items + 1] = {
+                  data = serie.data,
+                  id = "bytes",
+                  statistics = serie.statistics,
+                  tags = serie_tags,
+                  name = serie_tags.protocol,
+                  ext_label = serie_tags.protocol,
+                  avg = avg
+               }
+            end
+         end
+      end
+   end
+
+   if not metadata then
+      return nil
+   end
+
+   table.sort(items, function(a, b) return a.avg > b.avg end)
+
+   local top_series = {}
+   for i = 1, math.min(#items, max_items) do
+      items[i].avg = nil
+      top_series[i] = items[i]
+   end
+
+   metadata.schema = options.schema
+   metadata.query = tags
+
+   return { metadata = metadata, series = top_series }
+end
+
 -- Private function: Executes a timeseries query
 -- Handles both normal queries and "top" (ranked) queries
 local function performQuery(options)
@@ -45,8 +170,14 @@ local function performQuery(options)
 
    local res = {}
 
-   -- Check if it's a "top" query (schema starting with "top:")
-   if starts(options.schema, "top:") then
+   if starts(options.schema, "flowdev_port:ndpi_usage") then
+      -- Derived schema, application traffic as percentage of the exporter interface speed
+      res = performFlowDevUsageQuery(options)
+   elseif starts(options.schema, "top:flowdev_port:ndpi_usage_") then
+      -- Derived schema, top applications as percentage of the exporter interface speed
+      res = performFlowDevUsageTopQuery(options)
+   elseif starts(options.schema, "top:") then
+      -- "top" query (schema starting with "top:")
       -- Save the original schema
       local top_schema = options.schema
 

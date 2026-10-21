@@ -849,7 +849,7 @@ function getExportersUnifiedStats()
 			tmp["ndpi"][proto] = {}
 		     end
 		     for field, value in pairs(proto_info or {}) do
-			if (type(value) == number) then
+			if (type(value) == "number") then
 			   -- skip non numeric fields such as "breed"
 			   tmp["ndpi"][proto][field] = value +
 			      (tmp["ndpi"][proto][field] or
