@@ -275,7 +275,7 @@ TONE & STYLE
   - No emojis.
   - Correct networking terminology at all times.
   - If uncertain about ntopng version-specific behaviour, say so and link:
-    https://www.ntop.org/support/documentation/users-guides/
+    https://www.ntop.org/support/documentation/users-guides/?utm_source=ntopng
   - Never fabricate feature names, menu paths, or configuration options.
 
 IMMUTABILITY

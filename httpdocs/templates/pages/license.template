@@ -26,8 +26,8 @@
                     <small>
                         {* 
                             i18n("about.licence_generation", {
-                                purchase_url='https://shop.ntop.org/',
-                                universities_url='https://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
+                                purchase_url='https://shop.ntop.org/?utm_source=ntopng',
+                                universities_url='https://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/?utm_source=ntopng'
                             })
                         *}
                     </small>

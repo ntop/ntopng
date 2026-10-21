@@ -154,7 +154,7 @@ return {
       -- If set, indicates a maximum threshold value
       max_threshold = 10000,
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
-      -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
+      -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html?utm_source=ntopng#charting-new-metrics .
       additional_timeseries = {{
 	schema="am_host:http_stats",
 	label=i18n("graphs.http_stats"),

@@ -448,7 +448,7 @@ if info["pro.systemid"] and info["pro.systemid"] ~= "" then
       license_badge = {
          type  = "upgrade",
          label = i18n("about.upgrade_to_professional"),
-         url   = "https://shop.ntop.org",
+         url   = "https://shop.ntop.org?utm_source=ntopng",
       }
    end
 end

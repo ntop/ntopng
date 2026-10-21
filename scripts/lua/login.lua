@@ -128,7 +128,7 @@ print[[
   	<div class="row">
 
       <div >&nbsp;</div>
-      <div class="col-lg-12"><small><center> <i class="fas fa-lock"></i> <A target="_blank" HREF="https://www.ntop.org/guides/ntopng/faq.html#cannot-login-into-the-gui">]]
+      <div class="col-lg-12"><small><center> <i class="fas fa-lock"></i> <A target="_blank" HREF="https://www.ntop.org/guides/ntopng/faq.html?utm_source=ntopng#cannot-login-into-the-gui">]]
       print(i18n("login.unable_to_login") .. "</A>")
       print("&nbsp | " .. i18n("login.mfa_passkey"))
 
@@ -141,7 +141,7 @@ print[[
 
 if(info["product"] == "ntopng") then
         print[[<small>
-      <p>]] print(i18n("login.links", {product=info["product"], donation_url="http://shop.ntop.org"})) print[[
+      <p>]] print(i18n("login.links", {product=info["product"], donation_url="http://shop.ntop.org?utm_source=ntopng"})) print[[
           </p>
 
       <p class='text-muted'>]] print(info["copyright"]) print [[<br> ]] print(i18n("login.license", {product=info["product"], license="GPLv3", license_url="http://www.gnu.org/copyleft/gpl.html"})) print[[</p>

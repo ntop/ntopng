@@ -11,9 +11,9 @@ local clock_start = os.clock()
 function flow_risk_utils.get_remediation_documentation_link(risk_id, source)
    local url = ""
    if (source == "ntopng") then
-      url = string.format("https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/remediations/ntopng_flow_risks.html#risk-%.3u", risk_id)
+      url = string.format("https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/remediations/ntopng_flow_risks.html?utm_source=ntopng#risk-%.3u", risk_id)
    else
-      url = string.format("https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/remediations/ndpi_flow_risks.html#risk-%.3u", risk_id)
+      url = string.format("https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/remediations/ndpi_flow_risks.html?utm_source=ntopng#risk-%.3u", risk_id)
    end
 
    local link = string.format('<a href="%s" target="_blank"><i class="fa-solid fa-lg fa-briefcase-medical"></i></a>', url)

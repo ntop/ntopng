@@ -103,7 +103,7 @@ local function create_tempdir_toast_ui(toast)
     local title = i18n("warning")
     local description = i18n("about.datadir_warning")
     local action = {
-        url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/",
+        url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/?utm_source=ntopng",
         title = i18n("details.details")
     }
 
@@ -639,7 +639,7 @@ local function create_zmq_default_encryption_toast(toast)
     local title = i18n("zmq_default_encryption_title")
     local description = i18n("zmq_default_encryption_warning")
     local action = {
-        url = "https://www.ntop.org/secure-zmq-flow-collection-now-enabled-by-default/",
+        url = "https://www.ntop.org/secure-zmq-flow-collection-now-enabled-by-default/?utm_source=ntopng",
         title = i18n("read_more")
     }
 
@@ -708,7 +708,7 @@ function predicates.about_page(toast, container)
         if (info["version.enterprise_l_edition"] and info["pro.has_valid_license"]) then
             table.insert(container,
                 toast_ui:new(toast.id, i18n("info"), i18n("about.create_license_l"), ToastLevel.INFO, {
-                    url = "https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/",
+                    url = "https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/?utm_source=ntopng",
                     title = i18n("details.details")
                 }))
         elseif (not info["version.enterprise_l_edition"] and info["pro.has_valid_license"]) then
@@ -742,7 +742,7 @@ function predicates.active_scan(toast, container)
 
     if not ntop.isClickHouseEnabled() then
         local body = i18n("hosts_stats.page_scan_hosts.enable_clickhouse_toast_label", {
-            link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/monitoring/active_scan.html#scan-reports"
+            link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/monitoring/active_scan.html?utm_source=ntopng#scan-reports"
         })
         table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
             ToastLevel.INFO, nil, toast.dismissable))
@@ -878,7 +878,7 @@ function predicates.create_endpoint(toast, container)
 
     local title = i18n("endpoint_notifications.hints.create_endpoint.title")
     local body = i18n("endpoint_notifications.hints.create_endpoint.body", {
-        link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
+        link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html?utm_source=ntopng#available-endpoints"
     })
     local action = {
         title = i18n("endpoint_notifications.hints.create_endpoint.action"),
@@ -911,7 +911,7 @@ function predicates.create_recipients_for_endpoint(toast, container)
 
     local title = i18n("endpoint_notifications.hints.create_recipients.title")
     local body = i18n("endpoint_notifications.hints.create_recipients.body", {
-        link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
+        link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html?utm_source=ntopng#available-endpoints"
     })
     local action = {
         url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua?subdir=recipient",
@@ -937,10 +937,10 @@ function predicates.unexpected_scripts(toast, container)
     -- TODO: missing documentation links
     local title = i18n("checks.hint.title")
     local body = i18n("checks.hint.body", {
-        link_DHCP = "https://ntop.org",
-        link_SMTP = "https://ntop.org",
-        link_DNS = "https://ntop.org",
-        link_NTP = "https://ntop.org",
+        link_DHCP = "https://ntop.org?utm_source=ntopng",
+        link_SMTP = "https://ntop.org?utm_source=ntopng",
+        link_DNS = "https://ntop.org?utm_source=ntopng",
+        link_NTP = "https://ntop.org?utm_source=ntopng",
         product = info["product"]
     })
     local action = {

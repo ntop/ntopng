@@ -2061,8 +2061,8 @@ function M.get_sections(flags)
                 key = "n2disk_license",
                 title = i18n("prefs.n2disk_license_title"),
                 description = i18n("prefs.n2disk_license_description", {
-                    purchase_url = "http://shop.ntop.org/",
-                    universities_url = "http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/"
+                    purchase_url = "http://shop.ntop.org/?utm_source=ntopng",
+                    universities_url = "http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/?utm_source=ntopng"
                 }),
                 type = "input",
                 input_type = "text",
