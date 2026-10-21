@@ -29,14 +29,22 @@ end
 
 -- ##############################################
 
+-- id -> category index, built on first use
+local categories_by_id = nil
+
 function alert_category_utils.getCategoryById(id)
-   for cat_k, cat_v in pairs(alert_categories) do
-      if cat_v["id"] == id then
-	 return cat_v
+   if not categories_by_id then
+      categories_by_id = {}
+
+      for cat_k, cat_v in pairs(alert_categories) do
+         -- Keep the first match as the original linear scan did
+         if categories_by_id[cat_v["id"]] == nil then
+            categories_by_id[cat_v["id"]] = cat_v
+         end
       end
    end
 
-   return alert_categories.other
+   return categories_by_id[id] or alert_categories.other
 end
 
 -- ##############################################

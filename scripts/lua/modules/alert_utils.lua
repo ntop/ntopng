@@ -31,6 +31,9 @@ end
 -- ##############################################
 
 local alert_utils = {}
+local ntop_http_prefix = ntop.getHttpPrefix()
+local ntop_is_enterprise_m = (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false
+
 
 -- ##############################################
 
@@ -226,7 +229,7 @@ end
 function alert_utils.getConfigsetURL(script_key, subdir)
 	return string.format(
 		"%s/lua/admin/edit_configset.lua?subdir=%s&check=%s#all",
-		ntop.getHttpPrefix(),
+		ntop_http_prefix,
 		url_encode(subdir or "all"),
 		url_encode(script_key or "all")
 	)
@@ -247,14 +250,14 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert_id, alert_entity)
 				local measurement = alert_json.host.measurement or alert_json.measurement
 				return string.format(
 					"<a href='%s/lua/active_monitoring.lua?host=%s%s&page=overview'><i class='fas fa-cog' title='%s'></i></a>",
-					ntop.getHttpPrefix(),
+					ntop_http_prefix,
 					host,
 					ternary(measurement, "&measurement=" .. measurement, ""),
 					i18n("edit_configuration")
 				)
 			else
 				return ' <a href="'
-					.. ntop.getHttpPrefix()
+					.. ntop_http_prefix
 					.. '/lua/active_monitoring.lua?page=overview"><i class="fas fa-cog" title="'
 					.. i18n("edit_configuration")
 					.. '"></i></a>'
@@ -277,6 +280,31 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert_id, alert_entity)
 end
 
 -- #################################
+
+-- Decodes the "json" field of a flow alert row only once per row, for the READ-ONLY consumers of
+-- the alert list (format_json_record_common, flow_alert_store:format_record, formatFlowAlertDescription).
+-- The returned table is shared: do not modify it.
+local decoded_alert_json_cache = setmetatable({}, {__mode = "k"})
+
+function alert_utils.getSharedDecodedAlertJson(row)
+	local raw = row and row["json"]
+
+	if isEmptyString(raw) then
+		return {}
+	end
+
+	local cached = decoded_alert_json_cache[row]
+
+	if cached and cached.raw == raw then
+		return cached.decoded
+	end
+
+	local decoded = json.decode(raw) or {}
+
+	decoded_alert_json_cache[row] = {raw = raw, decoded = decoded}
+
+	return decoded
+end
 
 function alert_utils.getAlertInfo(alert)
 	local alert_json = alert["json"] or alert["alert_json"]
@@ -451,7 +479,7 @@ end
 -- #################################
 
 function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
-	if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) or not hasClickHouseSupport() then
+	if not ntop_is_enterprise_m or not hasClickHouseSupport() then
 		-- nIndex not enabled or enabled but not available for this particular interface
 		return
 	end
@@ -526,7 +554,7 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 		-- Return the link augmented with the filter
 		local res = string.format(
 			"%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&%s",
-			ntop.getHttpPrefix(),
+			ntop_http_prefix,
 			epoch_begin,
 			epoch_end,
 			table.tconcat(final_filter, "=", "&")
@@ -841,6 +869,22 @@ end
 
 -- ##############################################
 
+-- Flow alert score and nDPI risk are static per alert id: avoid the C calls for every row
+local flow_alert_score_cache = {}
+local flow_alert_risk_cache = {}
+
+local function cachedFlowAlertScore(alert_id)
+	local v = flow_alert_score_cache[alert_id]
+	if v == nil then v = ntop.getFlowAlertScore(alert_id); flow_alert_score_cache[alert_id] = v end
+	return v
+end
+
+local function cachedFlowAlertRisk(alert_id)
+	local v = flow_alert_risk_cache[alert_id]
+	if v == nil then v = ntop.getFlowAlertRisk(alert_id); flow_alert_risk_cache[alert_id] = v end
+	return v
+end
+
 function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json, add_score, no_html, json_format)
 	local other_alerts_by_score = {} -- Table used to keep messages ordered by score
 	local additional_alerts = {}
@@ -868,13 +912,13 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 							message = message
 								.. " "
 								.. alert_consts.addExtraInfo(alert_id, alert_entities.flow.entity_id, alert_json)
-							local alert_score = ntop.getFlowAlertScore(alert_id)
+							local alert_score = cachedFlowAlertScore(alert_id)
 
 							if add_score then
 								message = alert_utils.format_score(message, alert_score)
 							end
 
-							local alert_risk = ntop.getFlowAlertRisk(tonumber(alert_id))
+							local alert_risk = cachedFlowAlertRisk(tonumber(alert_id))
 
 							if alert_risk > 0 then -- source is nDPI
 								if not no_html then
@@ -1021,7 +1065,7 @@ function alert_utils.formatFlowAlertDescription(alert, alert_info, alert_id)
 	local alert_risk = ntop.getFlowAlertRisk(tonumber(alert_id))
 	-- Decode the alert json, includes various info about the alert
 	if not isEmptyString(alert.json) then
-		alert_json = json.decode(alert.json) or {}
+		alert_json = alert_utils.getSharedDecodedAlertJson(alert)
 	end
 	-- Check if there is also a flow risk info set by nDPI
 	if alert_risk ~= 0 then

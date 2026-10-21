@@ -8,7 +8,17 @@ local clock_start = os.clock()
 
 -- ##############################################
 
+-- The link only depends on (risk_id, source): memoize it
+local remediation_links_cache = {}
+
 function flow_risk_utils.get_remediation_documentation_link(risk_id, source)
+   local cache_key = tostring(source) .. ":" .. tostring(risk_id)
+   local link = remediation_links_cache[cache_key]
+
+   if link then
+      return link
+   end
+
    local url = ""
    if (source == "ntopng") then
       url = string.format("https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/remediations/ntopng_flow_risks.html?utm_source=ntopng#risk-%.3u", risk_id)
@@ -16,9 +26,10 @@ function flow_risk_utils.get_remediation_documentation_link(risk_id, source)
       url = string.format("https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/remediations/ndpi_flow_risks.html?utm_source=ntopng#risk-%.3u", risk_id)
    end
 
-   local link = string.format('<a href="%s" target="_blank"><i class="fa-solid fa-lg fa-briefcase-medical"></i></a>', url)
+   link = string.format('<a href="%s" target="_blank"><i class="fa-solid fa-lg fa-briefcase-medical"></i></a>', url)
+   remediation_links_cache[cache_key] = link
 
-   return link 
+   return link
 end
 
 -- ##############################################

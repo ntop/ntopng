@@ -4,7 +4,9 @@
 
 local format_utils = {}
 
+
 local clock_start = os.clock()
+local ntop_http_prefix = ntop.getHttpPrefix()
 
 -- Local copy of truncate() (lua_utils): format_utils must work without lua_utils
 local function truncate(x)
@@ -45,7 +47,7 @@ function format_utils.formatBgpBmpInfo(bgp_data)
       out[#out + 1] = "<tr><th>" .. i18n("flow_details.bgp_peer_asn") .. "</th>"
       for _, peer in ipairs(peer_list) do
          out[#out + 1] = "<td>"
-	    .. "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. peer.info.asn
+	    .. "<A HREF=\"" .. ntop_http_prefix .. "/lua/hosts_stats.lua?asn=" .. peer.info.asn
 	    .. "\">" .. peer.info.asn .. " (" .. shortenString(getASDisplayName(tonumber(peer.info.asn)) or "", max_len) .. ")</A>"
       end
       out[#out + 1] = "</tr>"
@@ -65,7 +67,7 @@ function format_utils.formatBgpBmpInfo(bgp_data)
          if peer.info["as_path"] and #peer.info["as_path"] > 0 then
             local parts = {}
             for _, asn in ipairs(peer.info["as_path"]) do
-               parts[#parts + 1] = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. asn
+               parts[#parts + 1] = "<A HREF=\"" .. ntop_http_prefix .. "/lua/hosts_stats.lua?asn=" .. asn
                   .. "\">" .. asn .. " (" .. shortenString(getASDisplayName(tonumber(asn)) or "", max_len) .. ")</A>"
             end
             as_path_string = (#parts == 0) and "Local" or table.concat(parts, "<li>")
@@ -452,7 +454,8 @@ function format_utils.formatEpoch(epoch, full_time)
       local time = ""
 
       if _SESSION then
-	 key = ntop.getPref('ntopng.user.' .. (_SESSION["user"] or "") .. '.date_format')
+	 local pref_key = 'ntopng.user.' .. (_SESSION["user"] or "") .. '.date_format'
+	 key = ntop.getPref(pref_key)
       end
 
       if(key == "big_endian") then
@@ -474,11 +477,20 @@ function format_utils.formatEpoch(epoch, full_time)
    end
 end
 
+-- Today's date table is computed once per second instead of once per row
+local cached_now_epoch, cached_now_date = nil, nil
+
 function format_utils.formatPastEpochShort(input_epoch)
    local epoch_now = os.time()
    local epoch = input_epoch or epoch_now
    local d = os.date("*t", epoch)
-   local d_now = os.date("*t", epoch_now)
+
+   if cached_now_epoch ~= epoch_now then
+      cached_now_date = os.date("*t", epoch_now)
+      cached_now_epoch = epoch_now
+   end
+
+   local d_now = cached_now_date
 
    if d.day == d_now.day and d.month == d_now.month and d.year == d_now.year then
       return os.date("%X", epoch)
@@ -633,7 +645,7 @@ function format_utils.formatMainAddressCategory(host)
 
    if host ~= nil then
       if(host["country"] and not isEmptyString(host["country"])) then
-	 addr_category = addr_category .. " <a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/dist/images/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
+	 addr_category = addr_category .. " <a href='".. ntop_http_prefix .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop_http_prefix .. "/dist/images/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
       end
 
       if(host["is_blacklisted"] == true) then
@@ -979,12 +991,12 @@ function format_utils.formatASN_transit(v, peer_as, ip, is_client_as)
       end
 
       -- format asn link
-      asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s</A>', ntop.getHttpPrefix(), v, label)
+      asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s</A>', ntop_http_prefix, v, label)
    end
 
    -- Process peer/transit ASN if valid, non-zero, and different from main ASN
    if peer_as and peer_as ~= 0 and v ~= peer_as then
-      local peer_asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s', ntop.getHttpPrefix(), peer_as, peer_as)
+      local peer_asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s', ntop_http_prefix, peer_as, peer_as)
       local peer_as_name = shortenString(getASDisplayName(peer_as) or "", max_len)
 
       local via = ""

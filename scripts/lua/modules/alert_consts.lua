@@ -47,6 +47,9 @@ alert_consts.SEPARATOR = consts.SEPARATOR
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 alert_consts.ALL_ALERT_KEY = 0 -- Special ID to select 'all' alerts
+local ntop_http_prefix = ntop.getHttpPrefix()
+local ntop_is_pro = (ntop.isPro and ntop.isPro()) or false
+
 
 -- ##############################################
 
@@ -201,13 +204,13 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
             value, nil, true --[[ check if the link brings to an active page]])
       end
    elseif entity_type == "interface" then
-      value = "<a href='" .. ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid ..
+      value = "<a href='" .. ntop_http_prefix .. "/lua/if_stats.lua?ifid=" .. ifid ..
           "&page=historical&epoch_begin=" .. epoch_begin .. "&epoch_end=" .. epoch_end ..
           "'>" .. getHumanReadableInterfaceName(getInterfaceName(ifid)) .. "</a>"
    elseif entity_type == "network" then
       value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
 
-      value = "<a href='" .. ntop.getHttpPrefix() .. "/lua/network_details.lua?network_cidr=" ..
+      value = "<a href='" .. ntop_http_prefix .. "/lua/network_details.lua?network_cidr=" ..
           entity_value .. "&page=historical&epoch_begin=" .. epoch_begin
           .. "&epoch_end=" .. epoch_end .. "'>" .. value .. "</a>"
    elseif entity_type == "host_pool" then
@@ -239,7 +242,7 @@ function getMacUrl(mac)
    if not mac then
       return ""
    end
-   return ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. mac
+   return ntop_http_prefix .. "/lua/mac_details.lua?host=" .. mac
 end
 
 -- ##############################################
@@ -256,7 +259,7 @@ function getNedgeHostPoolUrl(pool_name)
       tprint(debug.traceback())
       return ""
    end
-   return ntop.getHttpPrefix() .. "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. pool_name
+   return ntop_http_prefix .. "/lua/pro/nedge/admin/nf_edit_user.lua?username=" .. pool_name
 end
 
 -- ##############################################
@@ -264,7 +267,7 @@ end
 local function showSnmpUrl(snmp_device)
    local show_url = true
 
-   if ntop.isPro and ntop.isPro() then
+   if ntop_is_pro then
       local snmp_config = require "snmp_config"
       local device_config = snmp_config.get_device_config(snmp_device)
 
@@ -283,7 +286,7 @@ end
 function snmpDeviceUrl(snmp_device)
    if showSnmpUrl(snmp_device) then
       return string.format(
-      getHttpHost() .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
+      getHttpHost() .. ntop_http_prefix .. "/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
    end
 
    return "#"
@@ -294,7 +297,7 @@ end
 function snmpIfaceUrl(snmp_device, interface_idx)
    if showSnmpUrl(snmp_device) then
       return string.format(
-      getHttpHost() .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d",
+      getHttpHost() .. ntop_http_prefix .. "/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d",
          snmp_device, interface_idx)
    end
 
@@ -376,14 +379,22 @@ local function loadAlertsDefs()
       if defs_dir:ends(os_utils.fixPath("/flow")) then
          -- Load flow alerts for flows with nDPI risks that don't have an alert .lua file explicitly defined under alert_definitions/
          local flow_risk_alerts = ntop.getFlowRiskAlerts()
+         local risk_def_path = os_utils.fixPath(string.format(
+            "%s/scripts/lua/modules/flow_risk_simple_alert_definition.lua", dirs.installdir))
+         local risk_def_chunk = nil -- Parsed once and executed for each risk, instead of parsing the file for each risk
+
          for mod_fname, flow_risk_alert in pairs(flow_risk_alerts) do
             local alert_type = alert_consts.getAlertType(flow_risk_alert.alert_id, alert_entities.flow.entity_id)
 
             -- Make sure the alert hasn't already been loaded via a dedicated alert_definition .lua file
             if not alert_type then
                -- Can't use the require. Require always returns the same table and this would result in overwritten alert_key and title
-               local def_script = dofile(os_utils.fixPath(string.format(
-               "%s/scripts/lua/modules/flow_risk_simple_alert_definition.lua", dirs.installdir)))
+               if not risk_def_chunk then
+                  risk_def_chunk = loadfile(risk_def_path)
+               end
+
+               -- Executing the chunk again creates a new table every time
+               local def_script = risk_def_chunk and risk_def_chunk() or dofile(risk_def_path)
 
                -- Add the mandatory fields according to what arrives from C++
                def_script.meta.alert_key = flow_risk_alert.alert_id

@@ -27,6 +27,9 @@ local tag_badge_utils = require "tag_badge_utils"
 local historical_flow_utils = {}
 
 local _all_tags_cache = nil
+local ntop_http_prefix = ntop.getHttpPrefix()
+local ntop_is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
+
 local function get_all_tags()
    if _all_tags_cache == nil then
       _all_tags_cache = tag_badge_utils.getTags()
@@ -35,18 +38,40 @@ local function get_all_tags()
 end
 
 -- Parse TAGS_MAP hex string stored in ClickHouse into an array of name/color
+-- The same tag bitmaps are repeated over and over in the rows of a table: the tags matching a bitmap
+-- are computed once. Callers receive a fresh copy, so they are free to modify it.
+local tags_by_bitmap_cache = {}
+
 local function dt_format_tags_map(hex_str)
    if isEmptyString(hex_str) then return nil end
    local bitmap = tonumber(hex_str, 16)
    if not bitmap or bitmap == 0 then return nil end
-   local result = {}
-   for _, label in ipairs(get_all_tags()) do
-      local bit_index = tonumber(label.id) or 0
-      if (bitmap & (1 << bit_index)) ~= 0 then
-         result[#result + 1] = { id = label.id, name = label.name, color = label.color }
+
+   local cached = tags_by_bitmap_cache[bitmap]
+
+   if cached == nil then
+      cached = false
+
+      local result = {}
+      for _, label in ipairs(get_all_tags()) do
+         local bit_index = tonumber(label.id) or 0
+         if (bitmap & (1 << bit_index)) ~= 0 then
+            result[#result + 1] = { id = label.id, name = label.name, color = label.color }
+         end
       end
+
+      if #result > 0 then cached = result end
+      tags_by_bitmap_cache[bitmap] = cached
    end
-   return #result > 0 and result or nil
+
+   if not cached then return nil end
+
+   local copy = {}
+   for i, t in ipairs(cached) do
+      copy[i] = { id = t.id, name = t.name, color = t.color }
+   end
+
+   return copy
 end
 
 ------------------------------------------------------------------------
@@ -612,40 +637,45 @@ end
 
 -- #####################################
 
+-- Risk strings and remediation links are static: computed once per risk id, not once per row
+local flow_risk_titles_cache = {}
+local risk_bit_position = {} -- (1 << n) -> n
+for n = 0, 63 do risk_bit_position[1 << n] = n end
+local flow_risk_links_cache = {}
+
 local function dt_format_flow_risk(flow_risk_id)
    local flow_risks = {}
-   
-   -- Get alert risk source
-   --[[
-      local alert_src = ""
-      local alert_risk = ntop.getFlowAlertRisk(tonumber(flow_risk_id))
-      tprint("flow_risk_id:" .. tostring(flow_risk_id))
-      tprint("alert_risk_id:" .. tostring(alert_risk))
-      tprint("-------")
-      
-      if (tonumber(alert_risk) == 0) then 
-         alert_src = "ntopng"
-      else
-         alert_src = "nDPI"
-      end
-      ]]
+   local bitmap = tonumber(flow_risk_id)
 
-   for i = 1, 63 do
-      local cur_risk = (tonumber(flow_risk_id) >> i) & 0x1
+   -- Only the set bits are visited (bit 0 is never used)
+   bitmap = bitmap & ~1
 
-      if cur_risk > 0 then
-	 local cur_risk_id = i
-         local title = ntop.getRiskStr(cur_risk_id)
+   while bitmap ~= 0 do
+      local lowest = bitmap & -bitmap -- Lowest set bit
+      local cur_risk_id = risk_bit_position[lowest] -- Position of the lowest set bit
 
-	 local flow_risk = {
-	    title = title,
-	    label = title,
-	    value = cur_risk_id,
+      if cur_risk_id >= 1 and cur_risk_id <= 63 then
+         local title = flow_risk_titles_cache[cur_risk_id]
+         if title == nil then
+            title = ntop.getRiskStr(cur_risk_id)
+            flow_risk_titles_cache[cur_risk_id] = title
+         end
+
+         local remediation = flow_risk_links_cache[cur_risk_id]
+         if remediation == nil then
             remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id, "")
-	 }
+            flow_risk_links_cache[cur_risk_id] = remediation
+         end
 
-	 flow_risks[#flow_risks + 1] = flow_risk
+         flow_risks[#flow_risks + 1] = {
+            title = title,
+            label = title,
+            value = cur_risk_id,
+            remediation = remediation
+         }
       end
+
+      bitmap = bitmap & ~lowest
    end
 
    return flow_risks
@@ -861,8 +891,14 @@ end
 
 -- #####################################
 
+local country_code_cache = {}
+
 local function dt_format_country(id)
-   local country_code = interface.convertCountryU162Code(id)
+   local country_code = country_code_cache[id]
+   if country_code == nil then
+      country_code = interface.convertCountryU162Code(id)
+      country_code_cache[id] = country_code
+   end
    local label = ""
    if country_codes[country_code] then
       label = country_codes[country_code]
@@ -878,9 +914,22 @@ end
 
 -- #####################################
 
-local function dt_format_network(network)
-   local networks_stats = interface.getNetworksStats()
+-- Title of a network from its id. Called for every row: the networks table of the interface is
+-- built by the C++ core at every call
 
+local function compute_network_title(network_id)
+   local title = nil
+
+   for n, ns in pairs(interface.getNetworksStats()) do
+      if ns.network_id == network_id then
+         title = getFullLocalNetworkName(ns.network_key)
+      end
+   end
+
+   return title
+end
+
+local function dt_format_network(network)
    if isEmptyString(network)
       or tonumber(network) >= network_consts.UNKNOWN_NETWORK then
      return { value = 0, label = "", title = "" }
@@ -892,11 +941,12 @@ local function dt_format_network(network)
       title = network,
    }
 
-   for n, ns in pairs(networks_stats) do
-      if ns.network_id == tonumber(network) then
-         network_tag.title = getFullLocalNetworkName(ns.network_key)
-         network_tag.label = network_tag.title
-      end
+   local network_id = tonumber(network)
+   local title = compute_network_title(network_id)
+
+   if title then
+      network_tag.title = title
+      network_tag.label = network_tag.title
    end
 
    return network_tag
@@ -1058,7 +1108,7 @@ local function dt_add_alerts_url(processed_record, record, is_aggregated)
       cli_port = processed_record.cli_port.value
    end
    processed_record["alerts_url"] = string.format('%s/lua/alert_stats.lua?page=flow&status=historical&epoch_begin=%u&epoch_end=%u&%s=%s%s&%s=%s%s&cli_port=%s%s&srv_port=%s%s', -- &l4proto=%s%s',
-         ntop.getHttpPrefix(), 
+         ntop_http_prefix, 
          tonumber(record["FIRST_SEEN"]) - (5*60),
          tonumber(record["LAST_SEEN"]) + (5*60),
          --[[ Use name if available, IP otherwise
@@ -1614,8 +1664,20 @@ end
 
 -- #####################################
 
+-- The merged tables are built once: this function is called for every record of every query
+-- and callers never modify the returned table
+local extended_flow_columns_cache = {}
+
 function historical_flow_utils.get_extended_flow_columns(use_aggregated)
-   local extended_flow_columns = {}
+   local cache_key = use_aggregated and "aggregated" or "raw"
+   local extended_flow_columns = extended_flow_columns_cache[cache_key]
+
+   if extended_flow_columns then
+      return extended_flow_columns
+   end
+
+   extended_flow_columns = {}
+
    if not use_aggregated then
       for k, v in pairs(flow_columns) do
          extended_flow_columns[k] = v
@@ -1628,6 +1690,8 @@ function historical_flow_utils.get_extended_flow_columns(use_aggregated)
    for k, v in pairs(additional_flow_columns) do
       extended_flow_columns[k] = v
    end
+
+   extended_flow_columns_cache[cache_key] = extended_flow_columns
 
    return extended_flow_columns
 end
@@ -1903,27 +1967,27 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
 
       ----------------------------------
       -- Cycling the value of the record
+      local tracing = (do_trace == "1")
       for column_name, value in pairs(record) do
-	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " start") end
+	 if tracing then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " start") end
          local new_column_name = column_name
          local new_value = value
+         local column_def = extended_flow_columns[column_name]
 
       	 -- Format the values and pass to the answer
-      	 if extended_flow_columns[column_name] and 
-            --extended_flow_columns[column_name]["dt_func"] and
-            extended_flow_columns[column_name]["flowfilter"] then
+      	 if column_def and column_def["flowfilter"] then
+            new_column_name = column_def["flowfilter"]
 
-            new_column_name = extended_flow_columns[column_name]["flowfilter"]
-
-            if extended_flow_columns[column_name]["dt_func"] then
-               new_value = extended_flow_columns[column_name]["dt_func"](value, record, column_name, formatted_record)
+            local dt_func = column_def["dt_func"]
+            if dt_func then
+               new_value = dt_func(value, record, column_name, formatted_record)
             end
       	 end
 
       	 if new_column_name and new_value then
             processed_record[new_column_name] = new_value
       	 end
-	 if do_trace == "1" then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " end") end
+	 if tracing then traceError(TRACE_NORMAL, TRACE_CONSOLE, column_name .. " end") end
       end
 
       dt_format_asn(processed_record, record)
@@ -1942,12 +2006,12 @@ function historical_flow_utils.get_historical_url(label, flowfilter, value, add_
       return label
    else
       if add_copy_button ~= nil and add_copy_button then
-         return "<span><button data-to-copy='"..value.."' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button> <a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?" .. 
+         return "<span><button data-to-copy='"..value.."' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button> <a href=\"" .. ntop_http_prefix .. "/lua/pro/db_search.lua?" .. 
             flowfilter .. "=" .. value .. flowfilter_utils.SEPARATOR .. "eq\" " .. 
             ternary(title ~= nil, "title=\"" .. (title or "") .."\"", "") .. 
             " target='_blank'>" .. label .. "</a>"
       end
-      return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?" .. 
+      return "<a href=\"" .. ntop_http_prefix .. "/lua/pro/db_search.lua?" .. 
             flowfilter .. "=" .. value .. flowfilter_utils.SEPARATOR .. "eq\" " .. 
             ternary(title ~= nil, "title=\"" .. (title or "") .."\"", "") .. 
             " target='_blank'>" .. label .. "</a>"
@@ -1959,9 +2023,9 @@ end
 
 function historical_flow_utils.get_historical_mac(mac, info)
    -- live mac data (OLD URL)
-   --return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?mac=" .. mac .. "\">" .. mac .. "</a>"
+   --return "<a href=\"" .. ntop_http_prefix .. "/lua/hosts_stats.lua?mac=" .. mac .. "\">" .. mac .. "</a>"
 
-   local url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
+   local url = ntop_http_prefix .. "/lua/pro/db_search.lua?"
    
    -- Add ifid
    if info.interface_id then
@@ -2020,7 +2084,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if info.cli_country and not isEmptyString(info.cli_country.value) then
-    label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '">'
+    label = label .. ' <img src="' .. ntop_http_prefix .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '">'
    end
 
    if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location) then
@@ -2056,8 +2120,8 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       end
    end
 
-   if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and (info.cli_location and info.cli_location == "local") then
-      label = label .."<a title='" .. i18n('alerts_dashboard.wazuh_check_alerts') .. "' href='" .. ntop.getHttpPrefix() .. "/lua/pro/wazuh_alert_config.lua?map_search=" .. info.cli_ip.ip .. "&epoch_begin=" .. info.first_seen.epoch - 30*60 --[[ 30 minutes ]] .. "&epoch_end=" .. info.last_seen.epoch + 30*60 .. "'> <i class='fas fa-shield-alt'></i></a>"
+   if ntop_is_enterprise_l and hasClickHouseSupport() and isWazuhEnabled() and (info.cli_location and info.cli_location == "local") then
+      label = label .."<a title='" .. i18n('alerts_dashboard.wazuh_check_alerts') .. "' href='" .. ntop_http_prefix .. "/lua/pro/wazuh_alert_config.lua?map_search=" .. info.cli_ip.ip .. "&epoch_begin=" .. info.first_seen.epoch - 30*60 --[[ 30 minutes ]] .. "&epoch_end=" .. info.last_seen.epoch + 30*60 .. "'> <i class='fas fa-shield-alt'></i></a>"
    end
    
    label = label .. "&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
@@ -2073,7 +2137,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if info.srv_country and not isEmptyString(info.srv_country.value) then
-    label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.srv_country.value) .. '">'
+    label = label .. ' <img src="' .. ntop_http_prefix .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.srv_country.value) .. '">'
    end
 
    if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location) then
@@ -2109,8 +2173,8 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       end
    end
 
-   if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and (info.srv_location and info.srv_location == "local") then
-      label = label .."<a title='" .. i18n('alerts_dashboard.wazuh_check_alerts') .. "' href='" .. ntop.getHttpPrefix() .. "/lua/pro/wazuh_alert_config.lua?map_search=" .. info.srv_ip.ip .. "&epoch_begin=" .. info.first_seen.epoch - 30*60 --[[ 30 minutes ]] .. "&epoch_end=" .. info.last_seen.epoch + 30*60 .. "'> <i class='fas fa-shield-alt'></i></a>"
+   if ntop_is_enterprise_l and hasClickHouseSupport() and isWazuhEnabled() and (info.srv_location and info.srv_location == "local") then
+      label = label .."<a title='" .. i18n('alerts_dashboard.wazuh_check_alerts') .. "' href='" .. ntop_http_prefix .. "/lua/pro/wazuh_alert_config.lua?map_search=" .. info.srv_ip.ip .. "&epoch_begin=" .. info.first_seen.epoch - 30*60 --[[ 30 minutes ]] .. "&epoch_end=" .. info.last_seen.epoch + 30*60 .. "'> <i class='fas fa-shield-alt'></i></a>"
    end
 
    return label

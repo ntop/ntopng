@@ -42,6 +42,10 @@ sendHTTPHeader = rest_utils.sendHTTPHeader
 flow2hostinfo = host_utils.flow2hostinfo
 hostinfo2url = host_utils.hostinfo2url
 hostinfo2detailsurl = host_utils.hostinfo2detailsurl
+local ntop_http_prefix = ntop.getHttpPrefix()   
+local ntop_is_pro = (ntop.isPro and ntop.isPro()) or false
+local ntop_is_enterprise_m = (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false
+
 
 -- ##############################################
 
@@ -247,7 +251,7 @@ function interface2detailhref(ifid, href_params)
 	 params = string.format('%s&%s=%s', params, param_name, param_value)
       end
 
-      return string.format('%s/lua/if_stats.lua?%s', ntop.getHttpPrefix(),
+      return string.format('%s/lua/if_stats.lua?%s', ntop_http_prefix,
 			   params)
    end
 
@@ -287,7 +291,7 @@ function flowinfo2process(process, host_info_to_url)
 
 	 proc_name = string.format(
 	    "<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fas fa-terminal'></i> %s</A>",
-	    ntop.getHttpPrefix(), host_info_to_url,
+	    ntop_http_prefix, host_info_to_url,
 	    full_clean_name, process["pid"], clean_name)
       end
 
@@ -308,13 +312,13 @@ function flowinfo2container(container)
    if container then
       cont_name = string.format(
 	 "<A HREF='%s/lua/flows_stats.lua?container=%s'><i class='fas fa-ship'></i> %s</A>",
-	 ntop.getHttpPrefix(), container["id"],
+	 ntop_http_prefix, container["id"],
 	 format_utils.formatContainer(container))
 
       -- local formatted_pod = format_utils.formatPod(container)
       -- if not isEmptyString(formatted_pod) then
       -- 	 pod_name = string.format("<A HREF='%s/lua/containers_stats.lua?pod=%s'><i class='fas fa-crosshairs'></i> %s</A>",
-      -- 				  ntop.getHttpPrefix(),
+      -- 				  ntop_http_prefix,
       -- 				  formatted_pod,
       -- 				  formatted_pod)
       -- end
@@ -446,7 +450,7 @@ end
 
 function macInfoWithSymbName(mac, name)
    return
-      (' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host=' ..
+      (' <A HREF="' .. ntop_http_prefix .. '/lua/mac_details.lua?host=' ..
        mac .. '">' .. name .. '</A> ')
 end
 
@@ -454,7 +458,7 @@ end
 
 function macInfo(mac)
    return
-      (' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host=' ..
+      (' <A HREF="' .. ntop_http_prefix .. '/lua/mac_details.lua?host=' ..
        mac .. '">' .. mac .. '</A> ')
 end
 
@@ -730,11 +734,11 @@ end
 -- ###########################################
 
 -- avoids manual HTTP prefix and /lua concatenation
-function page_url(path) return ntop.getHttpPrefix() .. "/lua/" .. path end
+function page_url(path) return ntop_http_prefix .. "/lua/" .. path end
 
 -- extracts a page url from the path
 function path_get_page(path)
-   local prefix = ntop.getHttpPrefix() .. "/lua/"
+   local prefix = ntop_http_prefix .. "/lua/"
 
    if string.find(path, prefix) == 1 then
       return string.sub(path, string.len(prefix) + 1)
@@ -838,7 +842,7 @@ function buildHostHREF(ip_address, vlan_id, page)
       local res
 
       if ((name == nil) or (name == "")) then name = ip_address end
-      res = '<A HREF="' .. ntop.getHttpPrefix() ..
+      res = '<A HREF="' .. ntop_http_prefix ..
 	 '/lua/host_details.lua?host=' .. ip_address
       if (vlan_id and (vlan_id ~= 0)) then res = res .. "@" .. vlan_id end
       res = res .. '&page=' .. page .. '">' .. name .. '</A>'
@@ -861,7 +865,7 @@ function buildMapHREF(service_peer, map, page, asset_family)
    local name
    local vlan = service_peer.vlan
    service_peer.vlan = nil
-   local map_url = ntop.getHttpPrefix() ..
+   local map_url = ntop_http_prefix ..
       '/lua/pro/enterprise/network_maps.lua?map=' .. map ..
       '&page=' .. page .. '&' .. hostinfo2url(service_peer)
    local host_url = ''
@@ -891,7 +895,7 @@ function buildMapHREF(service_peer, map, page, asset_family)
 
       -- The URL only if the MAC is active
       if minfo and table.len(minfo) > 0 then
-	 host_url = ntop.getHttpPrefix() .. '/lua/mac_details.lua?' ..
+	 host_url = ntop_http_prefix .. '/lua/mac_details.lua?' ..
 	    hostinfo2url(service_peer)
       end
 
@@ -946,7 +950,7 @@ end
 function add_historical_flow_explorer_button_ref(extra_params, no_href)
    if not ntop.isClickHouseEnabled() then return '' end
 
-   local base_url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
+   local base_url = ntop_http_prefix .. "/lua/pro/db_search.lua?"
 
    for k, v in pairs(extra_params) do
       if v["value"] and v["operator"] then
@@ -1036,7 +1040,7 @@ local _snmp_role_utils = nil
 --         portidx: snmp interface index
 function format_name_with_portidx_role(name, device_ip, portidx)
    -- The interface role is available from Enterprise M only
-   if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
+   if not ntop_is_enterprise_m then
       return name
    end
 
@@ -1076,7 +1080,7 @@ end
 --         port_name: string, interface name
 function get_portidx_by_name(device_ip, port_name)
    -- SNMP is available only with Pro version at least
-   if ntop.isPro and ntop.isPro() then
+   if ntop_is_pro then
       local cached_dev = _snmp_devices[device_ip]
 
       if (cached_dev == nil) then
@@ -1577,7 +1581,22 @@ end
 
 -- ##############################################
 
+-- The confidence depends only on the JSON text, which is the same for the several columns of a row
+-- that ask for it: remember the result by raw JSON
+local confidence_by_json = {}
+local confidence_by_json_size = 0
+
 function format_confidence_from_json(record)
+   local raw = record["PROTOCOL_INFO_JSON"] or record["protocol_info_json"]
+
+   if raw ~= nil then
+      local cached = confidence_by_json[raw]
+
+      if cached ~= nil then
+         return cached or nil
+      end
+   end
+
    local json = require "dkjson"
    local alert_json = {}
    local confidence = nil
@@ -1591,6 +1610,15 @@ function format_confidence_from_json(record)
    if (alert_json) and (alert_json.proto) and (alert_json.proto.confidence) and
       (not isEmptyString(alert_json.proto.confidence)) then
       confidence = get_confidence(alert_json.proto.confidence)
+   end
+
+   if raw ~= nil and type(confidence) ~= "table" then
+      if confidence_by_json_size >= 4096 then
+         confidence_by_json, confidence_by_json_size = {}, 0
+      end
+
+      confidence_by_json[raw] = confidence or false
+      confidence_by_json_size = confidence_by_json_size + 1
    end
 
    return confidence
@@ -1688,7 +1716,7 @@ function formatInterfaceIP(ip, href, site_id)
    local ret
    local exporter_name = getExporterName(ip, true, true, false)
 
-   ret = "<a href=\"" .. ntop.getHttpPrefix() .. href .. ip .. "\">" .. exporter_name
+   ret = "<a href=\"" .. ntop_http_prefix .. href .. ip .. "\">" .. exporter_name
 
    if(site_id == nil) then
       site_id = site_utils.mapHostToSite(ip).name
@@ -1698,7 +1726,7 @@ function formatInterfaceIP(ip, href, site_id)
       ret = ret .. " (".. site_utils.getSiteName(site_id) .. ")"
    end
 
-   if(exporter_name ~= ip) then ret = ret .. '</A> [<A HREF="' .. ntop.getHttpPrefix() ..'/lua/host_details.lua?host='.. ip .. '">'..ip.."</A>]" end
+   if(exporter_name ~= ip) then ret = ret .. '</A> [<A HREF="' .. ntop_http_prefix ..'/lua/host_details.lua?host='.. ip .. '">'..ip.."</A>]" end
    ret = ret .. "</a>"
 
    return(ret)
@@ -1709,7 +1737,7 @@ end
 function formatExporter(ip, site_id)
    -- tprint(ip .. " @ ".. site_id)
    
-   if ntop.isPro and ntop.isPro() then
+   if ntop_is_pro then
       return formatInterfaceIP(ip, "/lua/pro/enterprise/exporter_interfaces.lua?ip=", site_id),
 	 ip, exporter_name or ip, site_id
    else
@@ -1720,7 +1748,7 @@ end
 -- ##################################################
 
 function formatNextHop(ip, site_id)
-   if ntop.isPro and ntop.isPro() then
+   if ntop_is_pro then
       local site_utils = require "site_utils"
       local ret
       local exporter_name = getExporterName(ip, true, true, false)
@@ -1730,8 +1758,8 @@ function formatNextHop(ip, site_id)
       end
 
       if(exporter_name ~= ip) then
-         ret = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. "\">" .. ip .. "</a>"
-	      ret = ret .. " (<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. ip .. "\">" .. exporter_name .. "</a>"
+         ret = "<a href=\"" .. ntop_http_prefix .. "/lua/host_details.lua?host=" .. ip .. "\">" .. ip .. "</a>"
+	      ret = ret .. " (<a href=\"" .. ntop_http_prefix .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. ip .. "\">" .. exporter_name .. "</a>"
 
          if(site_id ~= nil) then
             ret = ret .. " - ".. site_utils.getSiteName(site_id)
@@ -1742,7 +1770,7 @@ function formatNextHop(ip, site_id)
          if(ip == "0.0.0.0") then
             ret = ip
          else
-            ret = "<a href=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" .. ip .. ">" .. ip 
+            ret = "<a href=" .. ntop_http_prefix .. "/lua/host_details.lua?host=" .. ip .. ">" .. ip 
 	    
 	    if(site_id ~= nil) then
 	       ret = ret .. " (".. site_utils.getSiteName(site_id)..")"

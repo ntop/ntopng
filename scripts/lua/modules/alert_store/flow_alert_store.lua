@@ -34,6 +34,10 @@ local mitre_utils = require("mitre_utils")
 -- ##############################################
 
 local flow_alert_store = classes.class(alert_store)
+local ntop_http_prefix = ntop.getHttpPrefix()
+local ntop_is_enterprise = (ntop.isEnterprise and ntop.isEnterprise()) or false
+local ntop_clickhouse_enabled = ntop.isClickHouseEnabled()
+
 
 -- ##############################################
 
@@ -85,7 +89,7 @@ end
 function flow_alert_store:init(args)
 	self.super:init()
 
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		-- Alerts from historical flows (see also RecipientQueue::enqueue)
 		self._table_name = "flow_alerts_view"
 		self._write_table_name = "flows"
@@ -166,7 +170,7 @@ function flow_alert_store:acknowledge(label)
 
 	-- Prepare the final query
 	local q
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		-- This is using the historical 'flows' table
 		q = string.format(
 			"ALTER TABLE `%s` UPDATE `%s` = %u, `%s` = '%s', `%s` = %u WHERE %s",
@@ -203,7 +207,7 @@ function flow_alert_store:delete()
 
 	-- Prepare the final query
 	local q
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		if self._write_table_name then
 			-- Fix column type conversion
 			where_clause = historical_flow_utils.fixWhereTypes(where_clause)
@@ -223,7 +227,7 @@ end
 -- ##############################################
 
 function flow_alert_store:_get_tstamp_column_name()
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		return "first_seen"
 	else
 		return "tstamp"
@@ -239,11 +243,11 @@ function flow_alert_store:insert(alert)
 
 	-- Note: this is no longer called when ClickHouse is enabled
 	-- as a view on the historical is used. See RecipientQueue::enqueue
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		return -- Safety check
 	end
 
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		extra_columns = "rowid, "
 		extra_values = "generateUUIDv4(), "
 	else
@@ -389,7 +393,7 @@ function flow_alert_store:top_cli_ip_historical()
 	local where_clause = self:build_where_clause()
 
 	local q
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		q = string.format(
 			"SELECT cli_ip, vlan_id, cli_name, sum(score), count(*) as count FROM %s WHERE %s GROUP BY cli_ip, vlan_id, cli_name ORDER BY count DESC LIMIT %u",
 			self:get_table_name(),
@@ -418,7 +422,7 @@ function flow_alert_store:top_srv_ip_historical()
 	local where_clause = self:build_where_clause()
 
 	local q
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		q = string.format(
 			"SELECT srv_ip, vlan_id, srv_name, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY srv_ip, vlan_id, srv_name ORDER BY count DESC LIMIT %u",
 			self:get_table_name(),
@@ -448,7 +452,7 @@ function flow_alert_store:top_srv_ip_domain()
 	local field_to_search = self:get_column_name("json", false)
 	local q = nil
 	local q_res = {}
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		q = string.format(
 			"SELECT '.' || arrayStringConcat(arraySlice(splitByString('.',"
 				.. string.format("JSON_VALUE(%s, '$.%s')", field_to_search, "proto.tls.client_requested_server_name")
@@ -520,7 +524,7 @@ function flow_alert_store:top_cli_network_historical()
 	local where_clause = self:build_where_clause()
 
 	local q
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		q = string.format(
 			"SELECT cli_network, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
 			self:get_table_name(),
@@ -549,7 +553,7 @@ function flow_alert_store:top_srv_network_historical()
 	local where_clause = self:build_where_clause()
 
 	local q
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		q = string.format(
 			"SELECT srv_network, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
 			self:get_table_name(),
@@ -981,7 +985,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
 	local predominant_alert_info = alert_info -- old format
 	local alert_json = {}
 	if not isEmptyString(value.json) then
-		alert_json = json.decode(value.json) or {}
+		alert_json = alert_utils.getSharedDecodedAlertJson(value)
 	end
 	if alert_info.alerts then -- new format
 		predominant_alert_info = alert_info.alerts[value.alert_id]
@@ -1023,7 +1027,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
 		if active_flow and active_flow["seen.first"] < tonumber(value["tstamp_end"]) then
 			local href = string.format(
 				"%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u",
-				ntop.getHttpPrefix(),
+				ntop_http_prefix,
 				active_flow["ntopng.key"],
 				active_flow["hash_entry_id"]
 			)
@@ -1032,7 +1036,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
 	end
 
 	-- add additional flow related info
-	if verbose and ntop.isEnterprise and ntop.isEnterprise() then
+	if verbose and ntop_is_enterprise then
 		-- get alert details page info
 		local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
 
@@ -1442,7 +1446,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
 		local op_suffix = flowfilter_utils.SEPARATOR .. "eq"
 		local href = string.format(
 			"%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s%s%s&l4proto=%s%s",
-			ntop.getHttpPrefix(),
+			ntop_http_prefix,
 			tonumber(value["tstamp"]) - (5 * 60),
 			tonumber(value["tstamp_end"]) + (5 * 60),
 			value["cli_ip"],
@@ -1670,9 +1674,9 @@ end
 local function add_historical_link(value, flow_link)
 	local historical_href = ""
 
-	if ntop.isClickHouseEnabled() then
+	if ntop_clickhouse_enabled then
 		historical_href = '<a href="'
-			.. ntop.getHttpPrefix()
+			.. ntop_http_prefix
 			.. "/lua/pro/db_flow_details.lua?row_id="
 			.. value["rowid"]
 			.. "&tstamp="
