@@ -1321,9 +1321,7 @@ int NetworkInterface::dumpFlow(Flow* f) {
       Signal there's work to do.
       Don't signal for view interfaces, they use sleep.
     */
-#ifndef WIN32
     if (!isViewed()) dump_condition.signal();
-#endif
 
 #ifdef DEBUG_FLOW_DUMP
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -4123,7 +4121,6 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
   */
   u_int64_t num_done = idle_flows_done + active_flows_done;
 
-#ifndef WIN32
   if (!isViewed() && num_done == 0) {
     /*
       Do a timedwait to avoid blocking indefinitely. Failing to do this, for
@@ -4137,7 +4134,6 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
 
     dump_condition.timedWait(&dump_wait_expire);
   }
-#endif
 
 #ifdef NTOPNG_PRO
   /* Flush possibly pending flows (avoids interfaces with almost no traffic
@@ -4263,14 +4259,8 @@ void NetworkInterface::flowAlertsDequeueLoop() {
 
     if (n == 0) {
       /* No flow was dequeued. Let's wait. */
-#ifdef WIN32
       /*
-        If windows, sleep if nothing was done during the previous cycle.
-      */
-      _usleep(10000);
-#else
-      /*
-        On non-windows, signal/waits are implemented to throttle the speed
+        Signal/waits are implemented to throttle the speed
         Wait for at most 1-2s. Cannot wait indefinitely
         as we must ensure purgeQueuedIdleFlows() gets executed,
         and also to exit when it's time to shutdown.
@@ -4281,7 +4271,6 @@ void NetworkInterface::flowAlertsDequeueLoop() {
       hooks_wait_expire.tv_nsec = 0;
 
       flow_checks_condvar.timedWait(&hooks_wait_expire);
-#endif
     }
   }
 
@@ -4325,14 +4314,6 @@ void NetworkInterface::hostAlertsDequeueLoop() {
       /*
         No host was dequeued. Let's wait.
       */
-#ifdef WIN32
-      /*
-        If windows, sleep if nothing was done during the previous cycle.
-        On non-windows, there's nothing do to as signal/waits are implemented to
-        throttle the speed
-      */
-      _usleep(10000);
-#else
       /*
         Wait for at most 1-2s. Cannot wait indefinitely
         as we must ensure purgeQueuedIdleHosts() gets executed,
@@ -4344,7 +4325,6 @@ void NetworkInterface::hostAlertsDequeueLoop() {
       hooks_wait_expire.tv_nsec = 0;
 
       host_checks_condvar.timedWait(&hooks_wait_expire);
-#endif
     }
   }
 
@@ -4505,11 +4485,9 @@ void NetworkInterface::shutdown() {
     /* stop host/flow alerts dump threads */
     shutting_down = true;
 
-#ifndef WIN32
     dump_condition.signal();
     flow_checks_condvar.signal();
     host_checks_condvar.signal();
-#endif
 
     /* Shut down dump threads (after purging flows/hosts to flush engaged
      * alerts to the database) */

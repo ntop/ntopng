@@ -75,9 +75,16 @@ const char* win_inet_ntop(int af, const void* src, char* dst, socklen_t size);
 #define realpath(N, R) _fullpath((R), (N), _MAX_PATH)
 #define PCAP_NETMASK_UNKNOWN 0xffffffff
 
-typedef HANDLE pthread_mutex_t;
+/*
+  Opaque storage for the native SRWLOCK / CONDITION_VARIABLE (see
+  ntop_win32.c), so that this header does not depend on _WIN32_WINNT.
+  As on Linux, do not copy them once initialized.
+*/
 typedef struct {
-  HANDLE signal, broadcast;
+  void* opaque;
+} pthread_mutex_t;
+typedef struct {
+  void* opaque;
 } pthread_cond_t;
 typedef HANDLE pthread_t;
 typedef int mode_t;
@@ -96,6 +103,7 @@ extern int pthread_mutex_lock(pthread_mutex_t*);
 extern int pthread_mutex_unlock(pthread_mutex_t*);
 extern int pthread_mutex_init(pthread_mutex_t* mutex, void* unused);
 extern void pthread_mutex_destroy(pthread_mutex_t* mutex);
+extern int pthread_mutex_trylock(pthread_mutex_t* mutex);
 extern int pthread_mutex_timedlock(pthread_mutex_t* mutex,
                                    const struct timespec* w);
 extern int pthread_cond_init(pthread_cond_t* cv, const void* unused);

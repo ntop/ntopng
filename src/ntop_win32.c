@@ -23,6 +23,7 @@
 #include "ntop_win32.h"
 #include "time.h"
 #include <sys/timeb.h>		/* For prototype of "_ftime()" */
+#include <errno.h>
 
 #define _CRT_SECURE_NO_WARNINGS 1 /* Avoid Win warnings */
 
@@ -89,103 +90,154 @@ int pthread_join (pthread_t threadId, void **_value_ptr) {
 
 /* ************************************ */
 
+/*
+  Mutexes and condition variables on top of the native Win32 SRW locks and
+  condition variables:
+  - uncontended lock/unlock is a single interlocked instruction in user space
+    (a CreateMutex HANDLE costs a syscall for every lock and every unlock)
+  - SleepConditionVariableSRW atomically releases the lock and waits, and
+    wakeups are not lost (unlike SetEvent/PulseEvent)
+  As the default pthread mutexes on Linux, SRW locks are not recursive.
+*/
+
+#define WIN_SRW(m) ((PSRWLOCK)(m))
+#define WIN_CV(c)  ((PCONDITION_VARIABLE)(c))
+
+/* pthread_mutex_t/pthread_cond_t are opaque storage for the native types */
+typedef char pthread_mutex_t_size_check[(sizeof(pthread_mutex_t) == sizeof(SRWLOCK)) ? 1 : -1];
+typedef char pthread_cond_t_size_check[(sizeof(pthread_cond_t) == sizeof(CONDITION_VARIABLE)) ? 1 : -1];
+
+/* Milliseconds since the Unix epoch (FILETIME counts 100ns since 1601) */
+static ULONGLONG epoch_msec(void) {
+  FILETIME ft;
+  ULARGE_INTEGER t;
+
+  GetSystemTimeAsFileTime(&ft);
+  t.LowPart = ft.dwLowDateTime, t.HighPart = ft.dwHighDateTime;
+
+  return((t.QuadPart - 116444736000000000ULL) / 10000);
+}
+
+/* ************************************ */
+
 int pthread_mutex_init(pthread_mutex_t *mutex, void* notused) {
-  (*mutex) = CreateMutex(NULL, FALSE, NULL);
-  (void) notused;	
+  (void) notused;
+  InitializeSRWLock(WIN_SRW(mutex));
   return(0);
 }
 
 /* ************************************ */
 
 void pthread_mutex_destroy(pthread_mutex_t *mutex) {
-  ReleaseMutex(*mutex);
-  CloseHandle(*mutex);
+  (void) mutex; /* SRW locks have no resources to free */
 }
 
 /* ************************************ */
 
 int pthread_mutex_lock(pthread_mutex_t *mutex) {
-  if(*mutex == NULL) {
-    printf("Error\n");
-    return(-1);
-  }
-
-  WaitForSingleObject(*mutex, INFINITE);
+  AcquireSRWLockExclusive(WIN_SRW(mutex));
   return(0);
 }
 
 /* ************************************ */
 
-int pthread_mutex_timedlock(pthread_mutex_t * mutex, const struct timespec *w) {
-  DWORD status;
-  DWORD ms;
-  
-  if((*mutex == NULL) || (w == NULL)) {
-    printf("Error\n");
-    return(-1);
-  }
-  
-  ms = (w->tv_sec * 1000) + (w->tv_nsec / 1000000);
-
-  WaitForSingleObject(*mutex, ms);
-
-  return(status == WAIT_TIMEOUT ? -1 : 00);
+int pthread_mutex_trylock(pthread_mutex_t *mutex) {
+  return(TryAcquireSRWLockExclusive(WIN_SRW(mutex)) ? 0 : EBUSY);
 }
 
 /* ************************************ */
 
-int pthread_mutex_trylock(pthread_mutex_t *mutex) {
-  if(WaitForSingleObject(*mutex, 0) == WAIT_FAILED)
-    return(1);
-  else
+/*
+  NOTE: as the macOS implementation in Mutex.cpp (and the caller
+  Mutex::lockTimeout), 'w' is a timeout relative to now. SRW locks have no
+  timed acquire: try, then back off. Not used on hot paths.
+*/
+int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *w) {
+  ULONGLONG deadline;
+  DWORD backoff_ms = 0; /* First retry only yields the CPU */
+
+  if(w == NULL)
+    return(EINVAL);
+
+  if(TryAcquireSRWLockExclusive(WIN_SRW(mutex)))
     return(0);
+
+  deadline = GetTickCount64() + (ULONGLONG)w->tv_sec * 1000 + (w->tv_nsec / 1000000);
+
+  for(;;) {
+    Sleep(backoff_ms);
+
+    if(TryAcquireSRWLockExclusive(WIN_SRW(mutex)))
+      return(0);
+
+    if(GetTickCount64() >= deadline)
+      return(ETIMEDOUT);
+
+    backoff_ms = 1;
+  }
 }
 
 /* ************************************ */
 
 int pthread_mutex_unlock(pthread_mutex_t *mutex) {
-  if(*mutex == NULL)
-    printf("Error\n");
-  return(!ReleaseMutex(*mutex));
+  ReleaseSRWLockExclusive(WIN_SRW(mutex));
+  return(0);
 }
 
 /* ************************************ */
 
-/* static */int pthread_cond_init(pthread_cond_t *cv, const void *unused) {
-	unused = NULL;
-	cv->signal = CreateEvent(NULL, FALSE, FALSE, NULL);
-	cv->broadcast = CreateEvent(NULL, TRUE, FALSE, NULL);
-	return cv->signal != NULL && cv->broadcast != NULL ? 0 : -1;
+int pthread_cond_init(pthread_cond_t *cv, const void *unused) {
+  (void) unused;
+  InitializeConditionVariable(WIN_CV(cv));
+  return(0);
 }
 
-/* static */int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex) {
-	HANDLE handles[] = { cv->signal, cv->broadcast };
-	ReleaseMutex(*mutex);
-	WaitForMultipleObjects(2, handles, FALSE, INFINITE);
-	return WaitForSingleObject(*mutex, INFINITE) == WAIT_OBJECT_0 ? 0 : -1;
+/* ************************************ */
+
+int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex) {
+  return(SleepConditionVariableSRW(WIN_CV(cv), WIN_SRW(mutex), INFINITE, 0) ? 0 : EINVAL);
 }
 
-/* static */int pthread_cond_signal(pthread_cond_t *cv) {
-	return SetEvent(cv->signal) == 0 ? -1 : 0;
+/* ************************************ */
+
+/* abstime is absolute (since the Unix epoch) as in POSIX */
+int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime) {
+  ULONGLONG now_ms = epoch_msec();
+  ULONGLONG abs_ms = (ULONGLONG)abstime->tv_sec * 1000 + (abstime->tv_nsec / 1000000);
+  DWORD timeout_ms;
+
+  if(abs_ms <= now_ms)
+    timeout_ms = 0;
+  else if((abs_ms - now_ms) >= INFINITE)
+    timeout_ms = INFINITE - 1;
+  else
+    timeout_ms = (DWORD)(abs_ms - now_ms);
+
+  if(SleepConditionVariableSRW(WIN_CV(cv), WIN_SRW(mutex), timeout_ms, 0))
+    return(0);
+
+  return((GetLastError() == ERROR_TIMEOUT) ? ETIMEDOUT : EINVAL);
 }
 
-/* static */int pthread_cond_broadcast(pthread_cond_t *cv) {
-	// Implementation with PulseEvent() has race condition, see                                                                                                                           
-	// http://www.cs.wustl.edu/~schmidt/win32-cv-1.html                                                                                                                                   
-	return PulseEvent(cv->broadcast) == 0 ? -1 : 0;
+/* ************************************ */
+
+int pthread_cond_signal(pthread_cond_t *cv) {
+  WakeConditionVariable(WIN_CV(cv));
+  return(0);
 }
 
-/* static */int pthread_cond_destroy(pthread_cond_t *cv) {
-	return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
+/* ************************************ */
+
+int pthread_cond_broadcast(pthread_cond_t *cv) {
+  WakeAllConditionVariable(WIN_CV(cv));
+  return(0);
 }
 
-/* static */int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime) {
-	HANDLE handles[] = { cv->signal, cv->broadcast };
-	DWORD msec = abstime->tv_sec * 1000 + abstime->tv_sec / 1000;
+/* ************************************ */
 
-	ReleaseMutex(*mutex);
-	WaitForMultipleObjects(2, handles, FALSE, msec);
-	return WaitForSingleObject(*mutex, msec) == WAIT_OBJECT_0 ? 0 : -1;
+int pthread_cond_destroy(pthread_cond_t *cv) {
+  (void) cv; /* Condition variables have no resources to free */
+  return(0);
 }
 
 /* ************************************ */

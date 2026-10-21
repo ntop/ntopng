@@ -114,7 +114,26 @@ bool Mutex::lockTimeout(const char* filename, const int line,
   int rc;
 
   errno = 0;
+#if !defined(WIN32) && !defined(__APPLE__)
+  {
+    /*
+      'wait' is relative to now, whereas the POSIX pthread_mutex_timedlock()
+      expects an absolute CLOCK_REALTIME deadline (the Windows and macOS
+      implementations take the relative timeout)
+    */
+    struct timespec deadline;
+
+    clock_gettime(CLOCK_REALTIME, &deadline);
+    deadline.tv_sec += wait->tv_sec, deadline.tv_nsec += wait->tv_nsec;
+
+    if (deadline.tv_nsec >= 1000000000L)
+      deadline.tv_sec++, deadline.tv_nsec -= 1000000000L;
+
+    rc = pthread_mutex_timedlock(&the_mutex, &deadline);
+  }
+#else
   rc = pthread_mutex_timedlock(&the_mutex, wait);
+#endif
   //~ printf("LOCK %s:%d\n", filename, line);
 
   if (rc != 0) {
