@@ -48,6 +48,46 @@ ORDER BY (WHEN, INTERFACE_ID, L7_PROTO, IP_DST_PORT, PROTOCOL, IPV6_SRC_ADDR, IP
 
 @
 
+-- Daily server model: which hosts acted as which type of server (see scripts/lua/modules/server_types.lua for the enum)
+--
+-- MODEL_TYPE encoding (same as traffic_model_daily_*, bidirectional only):
+--   1 = working-hours bidirectional      2 = non-working-hours bidirectional
+-- SERVER_TYPE: server_types.lua server_type_id (1 DNS, 2 NTP, 3 DHCP, 4 SMTP, 5 FTP, 6 Windows DC, 7 SSH, 8 PowerShell, 9 Gateway)
+-- Insert each (WHEN, key) only once per day: the table is a SummingMergeTree.
+
+-- DROP TABLE `server_model_daily_v4`;
+-- DROP TABLE `server_model_daily_v6`;
+
+CREATE TABLE IF NOT EXISTS `server_model_daily_v4` (
+`WHEN` Date,
+`INTERFACE_ID` UInt16,
+`IPV4_ADDR` IPv4,
+`MODEL_TYPE` UInt8,
+`SERVER_TYPE` UInt8,
+`NUM_FLOWS` UInt64,
+`TOT_KB` Float64
+)
+ENGINE = SummingMergeTree((NUM_FLOWS, TOT_KB))
+PARTITION BY toYYYYMM(WHEN)
+ORDER BY (WHEN, INTERFACE_ID, SERVER_TYPE, IPV4_ADDR, MODEL_TYPE);
+
+@
+
+CREATE TABLE IF NOT EXISTS `server_model_daily_v6` (
+`WHEN` Date,
+`INTERFACE_ID` UInt16,
+`IPV6_ADDR` IPv6,
+`MODEL_TYPE` UInt8,
+`SERVER_TYPE` UInt8,
+`NUM_FLOWS` UInt64,
+`TOT_KB` Float64
+)
+ENGINE = SummingMergeTree((NUM_FLOWS, TOT_KB))
+PARTITION BY toYYYYMM(WHEN)
+ORDER BY (WHEN, INTERFACE_ID, SERVER_TYPE, IPV6_ADDR, MODEL_TYPE);
+
+@
+
 -- IPv4: one scan of yesterday's flows produces all 4 model types
 INSERT INTO traffic_model_daily_v4
 SELECT
@@ -98,3 +138,311 @@ WHERE CLIENT_LOCATION = 1
   AND NOT (IPV6_SRC_ADDR BETWEEN toIPv6('fe80::') AND toIPv6('febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff'))
   AND NOT (IPV6_DST_ADDR BETWEEN toIPv6('fe80::') AND toIPv6('febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff'))
 GROUP BY INTERFACE_ID, IPV6_SRC_ADDR, IPV6_DST_ADDR, L7_PROTO, IP_DST_PORT, PROTOCOL, MODEL_TYPE;
+
+@
+
+-- Detect server type based on the daily traffic model for IPV4 and IPV6
+
+-- 1 DNS - IPv4
+INSERT INTO server_model_daily_v4
+  SELECT
+      WHEN,
+      INTERFACE_ID,
+      IPV4_DST_ADDR AS ADDR,
+      MODEL_TYPE,
+      toUInt8(1) AS SERVER_TYPE,
+      sum(NUM_FLOWS) AS FLOWS,
+      sum(TOT_KB) AS KB
+  FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (5)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 1 DNS - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(1) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (5)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 2 NTP - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(2) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (9)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 2 NTP - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(2) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (9)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 3 DHCP (DHCP, DHCPV6) - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(3) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (18,103)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 3 DHCP (DHCP, DHCPV6) - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(3) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (18,103)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 4 SMTP (SMTP, SMTPS) - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(4) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (3,29)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 4 SMTP (SMTP, SMTPS) - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(4) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (3,29)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 5 FTP (control, data) - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(5) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (1,175)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 5 FTP (control, data) - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(5) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (1,175)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 6 Windows Domain Controller (Kerberos AND LDAP) - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(6) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (111,112)
+  AND IPV4_DST_ADDR IN (
+      SELECT IPV4_DST_ADDR
+      FROM traffic_model_daily_v4
+      WHERE WHEN = yesterday()
+        AND MODEL_TYPE IN (1, 2)
+        AND L7_PROTO IN (111,112)
+      GROUP BY IPV4_DST_ADDR
+      HAVING uniqExact(L7_PROTO) = 2
+  )
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 6 Windows Domain Controller (Kerberos AND LDAP) - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(6) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (111,112)
+  AND IPV6_DST_ADDR IN (
+      SELECT IPV6_DST_ADDR
+      FROM traffic_model_daily_v6
+      WHERE WHEN = yesterday()
+        AND MODEL_TYPE IN (1, 2)
+        AND L7_PROTO IN (111,112)
+      GROUP BY IPV6_DST_ADDR
+      HAVING uniqExact(L7_PROTO) = 2
+  )
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 7 SSH - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(7) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (92)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 7 SSH - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(7) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (92)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 8 PowerShell - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(8) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (496)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 8 PowerShell - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(8) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (496)
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
