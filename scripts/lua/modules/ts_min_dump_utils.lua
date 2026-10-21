@@ -97,8 +97,87 @@ end
 
 -- ########################################################
 
+-- Dumps the site:traffic timeseries. The traffic of a Site is the sum of the
+-- traffic of the networks it owns directly plus the one of the networks owned
+-- by its descendant Sites.
+local SITE_TRAFFIC_METRICS = {"ingress", "egress", "inner"}
+
+function ts_dump.site_update_rrds(when, ifstats, subnet_stats, verbose)
+    local site_utils = require "site_utils"
+    local alert_granularities = require "alert_granularities"
+    local granularity_id = alert_granularities["min"].granularity_id
+    local sites = {}
+    local deltas = {}
+
+    for _, site in ipairs(site_utils.getSites()) do
+        sites[tostring(site.id)] = site
+    end
+
+    for _, sstats in pairs(subnet_stats or {}) do
+        local site_id = tostring(sstats.site_id or 0)
+        local visited = {}
+        local network_delta = {}
+
+        -- Bytes exchanged since the previous minute (0 on the first run, so
+        -- that a restart does not account the whole network counter)
+        for _, metric in ipairs(SITE_TRAFFIC_METRICS) do
+            network_delta[metric] = delta_val(interface,
+                                        "site_traffic.net." .. sstats.network_id .. "." .. metric,
+                                        "min", sstats[metric] or 0, true)
+        end
+
+        -- Add the network traffic to its own Site and to all of its ancestors.
+        -- A network mapped to a Site which no longer exists falls back to the
+        -- Default Site, as site_utils.getNetworkSite() does
+        if not sites[site_id] then site_id = "0" end
+
+        while site_id and sites[site_id] and not visited[site_id] do
+            local delta = deltas[site_id]
+
+            visited[site_id] = true
+
+            if not delta then
+                delta = {ingress = 0, egress = 0, inner = 0}
+                deltas[site_id] = delta
+            end
+
+            for _, metric in ipairs(SITE_TRAFFIC_METRICS) do
+                delta[metric] = delta[metric] + network_delta[metric]
+            end
+
+            site_id = (not isEmptyString(sites[site_id].parent)) and tostring(sites[site_id].parent) or nil
+        end
+    end
+
+    for site_id, delta in pairs(deltas) do
+        local total = {}
+
+        -- Per-Site counter: previous value + bytes of the last minute
+        for _, metric in ipairs(SITE_TRAFFIC_METRICS) do
+            local key = "site_traffic.site." .. site_id .. "." .. metric
+
+            total[metric] = (tonumber(interface.getCachedAlertValue(key, granularity_id)) or 0) + delta[metric]
+            interface.setCachedAlertValue(key, tostring(total[metric]), granularity_id)
+        end
+
+        ts_utils.append("site:traffic", {
+            ifid = ifstats.id,
+            site = site_id,
+            bytes_ingress = total.ingress,
+            bytes_egress = total.egress,
+            bytes_inner = total.inner
+        }, when)
+    end
+end
+
+-- ########################################################
+
 function ts_dump.subnet_update_rrds(when, ifstats, verbose)
     local subnet_stats = interface.getNetworksStats(false, true)
+
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
+        ts_dump.site_update_rrds(when, ifstats, subnet_stats, verbose)
+    end
 
     for subnet, sstats in pairs(subnet_stats or {}) do
         if ntop.isPro and ntop.isPro() and
