@@ -6051,10 +6051,14 @@ static int ntop_stats_get_minute_samplings_interval(lua_State* vm) {
   if (sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  lua_newtable(vm);
+  lua_createtable(vm, retvals.rows.size(), 0);
 
-  for (unsigned i = 0; i < retvals.rows.size(); i++)
-    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
+  /* Return the samplings as an array: using them as keys would collapse
+     samplings with the same content */
+  for (unsigned i = 0; i < retvals.rows.size(); i++) {
+    lua_pushlstring(vm, retvals.rows[i].data(), retvals.rows[i].size());
+    lua_rawseti(vm, -2, i + 1);
+  }
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -6099,10 +6103,14 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State* vm) {
   if (sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  lua_newtable(vm);
+  lua_createtable(vm, retvals.rows.size(), 0);
 
-  for (unsigned i = 0; i < retvals.rows.size(); i++)
-    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
+  /* Return the samplings as an array: using them as keys would collapse
+     samplings with the same content */
+  for (unsigned i = 0; i < retvals.rows.size(); i++) {
+    lua_pushlstring(vm, retvals.rows[i].data(), retvals.rows[i].size());
+    lua_rawseti(vm, -2, i + 1);
+  }
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -6147,10 +6155,14 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State* vm) {
   if (sm->retrieveHourStatsInterval(epoch_start, epoch_end, &retvals))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  lua_newtable(vm);
+  lua_createtable(vm, retvals.rows.size(), 0);
 
-  for (unsigned i = 0; i < retvals.rows.size(); i++)
-    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
+  /* Return the samplings as an array: using them as keys would collapse
+     samplings with the same content */
+  for (unsigned i = 0; i < retvals.rows.size(); i++) {
+    lua_pushlstring(vm, retvals.rows[i].data(), retvals.rows[i].size());
+    lua_rawseti(vm, -2, i + 1);
+  }
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -6195,10 +6207,14 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State* vm) {
   if (sm->retrieveDayStatsInterval(epoch_start, epoch_end, &retvals))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  lua_newtable(vm);
+  lua_createtable(vm, retvals.rows.size(), 0);
 
-  for (unsigned i = 0; i < retvals.rows.size(); i++)
-    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
+  /* Return the samplings as an array: using them as keys would collapse
+     samplings with the same content */
+  for (unsigned i = 0; i < retvals.rows.size(); i++) {
+    lua_pushlstring(vm, retvals.rows[i].data(), retvals.rows[i].size());
+    lua_rawseti(vm, -2, i + 1);
+  }
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }

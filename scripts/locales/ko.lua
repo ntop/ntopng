@@ -10807,14 +10807,6 @@ local lang = {
     ["top_hosts"] = "상위 호스트(로컬 및 원격)",
     ["top_hosts_local"] = "상위 호스트(로컬)",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "공격적인",
-      ["disabled"] = "장애가 있는",
-      ["less_accurate"] = "덜 정확함",
-      ["more_accurate"] = "더 정확한",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "인정 받은",
     ["denied"] = "허가받지 않음",

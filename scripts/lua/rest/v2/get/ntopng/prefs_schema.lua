@@ -84,6 +84,23 @@ for _, section in ipairs(sections) do
                value = tostring(entry.default)
             end
 
+            -- Values no longer among the options (e.g. saved by older versions)
+            -- are shown as the schema default
+            if entry.type == "button_group" and entry.options and entry.default ~= nil then
+               local found = false
+
+               for _, option in ipairs(entry.options) do
+                  if tostring(option.value) == value then
+                     found = true
+                     break
+                  end
+               end
+
+               if not found then
+                  value = tostring(entry.default)
+               end
+            end
+
             -- Convert stored units to display units (e.g. seconds → days)
             if entry.display_multiplier and value ~= "" then
                local num = tonumber(value)

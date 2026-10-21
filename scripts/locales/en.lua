@@ -10941,14 +10941,6 @@ local lang = {
     ["top_hosts"] = "Top Hosts (Local and Remote)",
     ["top_hosts_local"] = "Top Hosts (Local)",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "Aggressive",
-      ["disabled"] = "Disabled",
-      ["less_accurate"] = "Less Accurate",
-      ["more_accurate"] = "More Accurate",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "Authorized",
     ["denied"] = "Unauthorized",

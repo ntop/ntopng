@@ -648,21 +648,15 @@ function M.get_sections(flags)
                 description = i18n("prefs.topk_heuristic_precision_description"),
                 type = "button_group",
                 redis_key = "ntopng.prefs.topk_heuristic_precision",
-                default = "more_accurate",
+                default = "enabled",
                 section = i18n("prefs.report"),
                 locked = lock_pro,
                 options = {{
+                    value = "enabled",
+                    label = i18n("enabled")
+                }, {
                     value = "disabled",
-                    label = i18n("topk_heuristic.precision.disabled")
-                }, {
-                    value = "more_accurate",
-                    label = i18n("topk_heuristic.precision.more_accurate")
-                }, {
-                    value = "accurate",
-                    label = i18n("topk_heuristic.precision.less_accurate")
-                }, {
-                    value = "aggressive",
-                    label = i18n("topk_heuristic.precision.aggressive")
+                    label = i18n("disabled")
                 }}
             }, {
                 key = "toggle_host_mask",

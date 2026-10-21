@@ -483,7 +483,9 @@ end
 local function get_top_talkers(schema_id, tags, tstart, tend, options)
 	package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 	local top_utils = require("top_utils")
-	local top_talkers = top_utils.getAggregatedTop(tags.ifid, tend, tstart)
+	-- Only the first options.top records per VLAN/direction can be selected below,
+	-- so do not enrich the others
+	local top_talkers = top_utils.getAggregatedTop(tags.ifid, tend, tstart, tonumber(options.top))
 	local top_series = {}
 	local top_hosts = {}
 	local direction = nil
@@ -498,7 +500,9 @@ local function get_top_talkers(schema_id, tags, tstart, tend, options)
 	end
 
 	for _, vlan in pairs(top_talkers.vlan or {}) do
-		for _, host_info in pairs(vlan.hosts[1][direction] or {}) do
+		local hosts = vlan.hosts and vlan.hosts[1] or {}
+
+		for _, host_info in pairs(hosts[direction] or {}) do
 			-- Do not calculate by using timeseries, otherwise only local hosts will be used.
 			-- Simply used the ones available in the sqllite db
 			top_series[host_info.address] = host_info

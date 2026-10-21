@@ -10807,14 +10807,6 @@ local lang = {
     ["top_hosts"] = "Nejlepší hostitelé (místní a vzdálení)",
     ["top_hosts_local"] = "Top Hostitelé (Lokální)",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "Agresivní",
-      ["disabled"] = "Zakázáno",
-      ["less_accurate"] = "Méně přesné",
-      ["more_accurate"] = "Přesnější",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "Autorizovaný",
     ["denied"] = "Neoprávněný",

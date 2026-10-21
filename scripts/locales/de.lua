@@ -10807,14 +10807,6 @@ local lang = {
     ["top_hosts"] = "Top-Hosts (lokal und remote)",
     ["top_hosts_local"] = "Top-Hosts (lokal)",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "Aggressiv",
-      ["disabled"] = "Deaktiviert",
-      ["less_accurate"] = "Weniger genau",
-      ["more_accurate"] = "Genauer",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "Autorisiert",
     ["denied"] = "Nicht autorisiert",

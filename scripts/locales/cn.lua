@@ -10807,14 +10807,6 @@ local lang = {
     ["top_hosts"] = "流量排行",
     ["top_hosts_local"] = "主机排行（本地）",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "激进",
-      ["disabled"] = "已禁用",
-      ["less_accurate"] = "较低准确度",
-      ["more_accurate"] = "较高准确度",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "已授权",
     ["denied"] = "未授权",

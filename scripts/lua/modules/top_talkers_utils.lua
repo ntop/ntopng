@@ -7,11 +7,8 @@ top_talkers_utils.MAX_NUM_ENTRIES = 10
 top_talkers_utils.THRESHOLD_LOW = .05
 top_talkers_utils.TOP_ENABLED_KEY = "ntopng.prefs.ifid_%i.interface_top_talkers_creation"
 
-local vlan_totals = {}
-local asname_cache = {}
-local hostname_cache = {}
-local localhost_cache = {}
-local ipaddr_cache = {}
+local OTHER_KEY = "Other"
+local HIDDEN_KEY = "Hidden Hosts"
 
 -- ########################################################
 
@@ -21,152 +18,122 @@ end
 
 -- ########################################################
 
-local function updateCache(cache, key, val)
-    if ((key ~= nil) and (cache[key] == nil)) then
-        cache[key] = val
-    end
-end
-
--- ########################################################
-
-local function getCache(cache, key)
-    return cache[key]
-end
-
--- ########################################################
-
-local function updateRes(res, vlan, what_key, what_value, direction, delta)
-    if res == nil then
-        res = {}
-    end
-    if res[vlan] == nil then
-        res[vlan] = {}
-    end
-    if res[vlan][what_key] == nil then
-        res[vlan][what_key] = {}
-    end
-    if res[vlan][what_key][direction] == nil then
-        res[vlan][what_key][direction] = {}
-    end
-    if res[vlan][what_key][direction][what_value] == nil then
-        res[vlan][what_key][direction][what_value] = 0
-    end
-
-    res[vlan][what_key][direction][what_value] = res[vlan][what_key][direction][what_value] + delta
-end
-
--- ########################################################
-
-local function sortRes(res)
-    for vlan_k, vlan_val in pairs(res) do
-        for what_key_k, what_key_val in pairs(vlan_val) do
-            for direction_key, direction_val in pairs(what_key_val) do
-                local total, count, other = 0, 0, 0
-
-                for what_val_k, delta in pairsByValues(direction_val, rev) do
-                    count = count + 1
-                    total = total + delta
-
-                    if delta <= 0 or count > top_talkers_utils.MAX_NUM_ENTRIES then
-                        if delta > 0 then
-                            other = other + delta
-                        end
-                        direction_val[what_val_k] = nil
-                    end
-                end
-
-                count = 0
-                for what_val_k, delta in pairs(direction_val) do
-                    count = count + 1
-                    -- at least 5
-                    if (count > top_talkers_utils.MAX_NUM_ENTRIES / 2 and delta / total <
-                        top_talkers_utils.THRESHOLD_LOW) then
-                        if delta > 0 then
-                            other = other + delta
-                        end
-                        direction_val[what_val_k] = nil
-                    end
-                end
-
-                if other > 0 then
-                    direction_val["Other"] = other
-                end
-            end
-        end
-    end
-end
-
--- ########################################################
-
-local function finalizeRes(res)
-    for vlan_k, vlan_val in pairs(res) do
-        for what_key_k, what_key_val in pairs(vlan_val) do
-            for direction_key, direction_val in pairs(what_key_val) do
-                for what_val_k, delta in pairs(direction_val) do
-                    local label = what_val_k
-
-                    if (what_val_k ~= "Other") and (what_val_k ~= "Hidden Hosts") then
-                        if what_key_k == "hosts" then
-                            label = getCache(hostname_cache, what_val_k)
-                        elseif what_key_k == "asn" then
-                            label = getCache(asname_cache, what_val_k)
-                        end
-                    end
-
-                    if label == what_val_k then
-                        -- Skip this label, as it is the same as the address
-                        label = nil
-                    end
-
-                    direction_val[what_val_k] = {
-                        address = what_val_k .. '',
-                        value = delta,
-                        label = label
-                    }
-                    if what_key_k == "hosts" then
-                        local ip_addr = getCache(ipaddr_cache, what_val_k)
-                        direction_val[what_val_k]["local"] = tostring(getCache(localhost_cache, what_val_k) or "false")
-
-                        if ip_addr ~= what_val_k then
-                            -- storing the IP address is necessary for MAC based keys to create the
-                            -- correct URL
-                            direction_val[what_val_k]["ipaddr"] = ip_addr
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    -- Convert to the previous format
-    local p = {}
-    for vlan_k, vlan_val in pairs(res) do
-        p[#p + 1] = vlan_val
-
-        for what_key_k, what_key_val in pairs(vlan_val) do
-            local s = {}
-            for _, sender in pairs(what_key_val["sent"]) do
-                s[#s + 1] = sender
-            end
-
-            local r = {}
-            for _, receiver in pairs(what_key_val["rcvd"]) do
-                r[#r + 1] = receiver
-            end
-
-            vlan_val[what_key_k] = {{
-                senders = s,
-                receivers = r
-            }}
-        end
-
-        vlan_val["value"] = vlan_totals[vlan_k]
-        vlan_val["address"] = vlan_k .. ""
-    end
-
+-- Per-direction bounded top: the array part holds at most MAX_NUM_ENTRIES
+-- entries sorted by value (descending), 'sum' is the total of all the deltas.
+-- Memory is O(MAX_NUM_ENTRIES) per VLAN instead of O(num hosts) and no full sort
+-- is needed: most hosts are rejected with a single comparison.
+local function newDirectionTop()
     return {
-        vlan = p
+        n = 0,
+        sum = 0
     }
+end
+
+-- ########################################################
+
+local function topInsert(top, value, hostkey, hoststats)
+    local max_entries = top_talkers_utils.MAX_NUM_ENTRIES
+    local n = top.n
+
+    if n < max_entries then
+        n = n + 1
+        top.n = n
+    elseif value <= top[n].value then
+        return -- Smaller than the current smallest top entry
+    end
+
+    -- Insertion sort step: shift smaller entries down (the last one is dropped when full)
+    -- Basically what happens is the following, being the table ordered by the greater to the lowest
+    -- e.g. : 7 - 5 - 3 - 1
+    -- this algorithm starts from the end (latest position) and shift on the "right" the values
+    -- until it finds a greater value where it stops shifting
+    local i = n
+    while (i > 1) and (top[i - 1].value < value) do
+        top[i] = top[i - 1]
+        i = i - 1
+    end
+
+    top[i] = {
+        value = value,
+        hostkey = hostkey,
+        host = hoststats
+    }
+end
+
+-- ########################################################
+
+local function makeHostRecord(entry)
+    local hoststats = entry.host
+
+    if hoststats == nil then
+        -- Pseudo entry (e.g. hidden hosts)
+        return {
+            address = entry.hostkey,
+            value = entry.value,
+            ["local"] = "false"
+        }
+    end
+
+    local hostkey = entry.hostkey
+    local tskey = hoststats.tskey or hostkey
+    local name = hoststats.name
+    local rec = {
+        address = tskey,
+        value = entry.value,
+        ["local"] = hoststats.localhost and "true" or "false"
+    }
+
+    if (name ~= nil) and (name ~= tskey) then
+        rec.label = name
+    end
+
+    if hostkey ~= tskey then
+        -- storing the IP address is necessary for MAC based keys to create the
+        -- correct URL
+        rec.ipaddr = hostkey
+    end
+
+    return rec
+end
+
+-- ########################################################
+
+-- Converts a direction top into the list of records saved on the DB:
+-- the first MAX_NUM_ENTRIES / 2 entries are always kept, the following ones
+-- only if they are at least THRESHOLD_LOW of the total; the rest goes into "Other"
+local function finalizeDirection(top, hidden_sum)
+    if hidden_sum > 0 then
+        topInsert(top, hidden_sum, HIDDEN_KEY, nil)
+    end
+
+    local total = top.sum
+    local min_kept = top_talkers_utils.MAX_NUM_ENTRIES / 2
+    local min_value = total * top_talkers_utils.THRESHOLD_LOW
+    local list = {}
+    local kept_sum = 0
+
+    for i = 1, top.n do
+        local entry = top[i]
+
+        -- Entries are sorted, once one is discarded all the following ones are too
+        if (i > min_kept) and (entry.value < min_value) then
+            break
+        end
+
+        list[i] = makeHostRecord(entry)
+        kept_sum = kept_sum + entry.value
+    end
+
+    local other = total - kept_sum
+    if other > 0 then
+        list[#list + 1] = {
+            address = OTHER_KEY,
+            value = other,
+            ["local"] = "false"
+        }
+    end
+
+    return list
 end
 
 -- ########################################################
@@ -193,62 +160,138 @@ end
 
 -- ########################################################
 
-function top_talkers_utils.makeTopJson(_ifname)
+-- Computes the top talkers of the last minute (since the previous checkpoint)
+-- in a single pass over the hosts, keeping only the top MAX_NUM_ENTRIES per
+-- VLAN and direction. Returns the JSON to be saved on the DB.
+function top_talkers_utils.makeTopJson(_ifname, ifid)
     require "ntop_utils"
-    -- Include here otherwise it's a useless waste of memory
-    local json = require "dkjson"
-    local callback_utils = require "callback_utils"
-
-    local ifid = getInterfaceId(_ifname)
-    local res = {}
 
     if not top_talkers_utils.areTopEnabled(ifid) then
         return nil
     end
-    
-    if (false) then
-        print("Calculating talkers for interfaceId " .. ifid .. "\n")
-    end
 
-    local in_time = callback_utils.foreachHost(_ifname, function(hostname, hoststats)
-        local tskey = hoststats["tskey"]
-        local vlan = hoststats["vlan"]
-        
-        updateCache(hostname_cache, tskey, hoststats["name"])
-        updateCache(localhost_cache, tskey, hoststats["localhost"])
-        updateCache(ipaddr_cache, tskey, hostname)
-        updateCache(asname_cache, hoststats["asn"], hoststats["asname"])
+    -- Include here otherwise it's a useless waste of memory
+    local json = require "dkjson"
 
-        if (not hoststats["delta"] == nil) then
-            goto continue
+    local getBatchedHostsInfo = interface.getBatchedHostsInfo
+    local isDeadlineApproaching = ntop.isDeadlineApproaching
+    local isShuttingDown = ntop.isShuttingDown
+    local vlans = {}
+    local next_slot = 0
+    local num_hosts = 0
+    local in_time = true
+
+    interface.select(_ifname)
+
+    -- Iterate the hosts batches directly (no per-host closure/iterator), the
+    -- deadline is checked once per batch.
+    -- NOTE: hosts are checkpointed (delta reset) by the C core when fetched
+    repeat
+        if isShuttingDown() then
+            break
         end
 
-        for _, direction in pairs({"sent", "rcvd"}) do
-            local delta = hoststats["delta"][direction]
+        if isDeadlineApproaching() then
+            in_time = false
+            break
+        end
 
-            vlan_totals[vlan] = (vlan_totals[vlan] or 0) + delta
+        local batch = getBatchedHostsInfo(next_slot, false --[[ no details ]])
 
-            for what_key, what_value in pairs({
-                ["hosts"] = tskey
-            }) do
-                if hoststats.hiddenFromTop then
-                    what_value = "Hidden Hosts"
+        if batch == nil then
+            break
+        end
+
+        for hostkey, hoststats in pairs(batch.hosts or {}) do
+            local delta = hoststats.delta
+
+            if delta ~= nil then
+                local vlan_id = hoststats.vlan or 0
+                local v = vlans[vlan_id]
+                local sent = delta.sent or 0
+                local rcvd = delta.rcvd or 0
+
+                if v == nil then
+                    v = {
+                        sent = newDirectionTop(),
+                        rcvd = newDirectionTop(),
+                        hidden_sent = 0,
+                        hidden_rcvd = 0
+                    }
+                    vlans[vlan_id] = v
                 end
 
-                updateRes(res, vlan, what_key, what_value, direction, delta)
+                if sent > 0 then
+                    local top = v.sent
+                    top.sum = top.sum + sent
+
+                    if hoststats.hiddenFromTop then
+                        v.hidden_sent = v.hidden_sent + sent
+                    else
+                        topInsert(top, sent, hostkey, hoststats)
+                    end
+                end
+
+                if rcvd > 0 then
+                    local top = v.rcvd
+                    top.sum = top.sum + rcvd
+
+                    if hoststats.hiddenFromTop then
+                        v.hidden_rcvd = v.hidden_rcvd + rcvd
+                    else
+                        topInsert(top, rcvd, hostkey, hoststats)
+                    end
+                end
             end
+
+            num_hosts = num_hosts + 1
         end
 
-        ::continue::
-    end)
+        next_slot = batch.nextSlot
+    until (next_slot == nil) or (next_slot == 0)
 
     if not in_time then
-        print("[" .. _ifname ..
-                  "] ERROR: Cannot complete top talkers generation in 1 minute. Is there a huge number of hosts in the system?")
+        require "lua_trace"
+
+        local deadline = ntop.getDeadline()
+        local remaining = deadline - os.time()
+
+        if num_hosts == 0 then
+            -- Nothing processed: the script started (almost) at its deadline,
+            -- i.e. it was waiting in the periodic activities queue
+            traceError(TRACE_ERROR, TRACE_CONSOLE,
+                string.format("[%s] Top talkers not computed: the periodic script started too late " ..
+                                  "(%d sec before its deadline). Are the periodic activities overloaded?",
+                    _ifname, remaining))
+        else
+            traceError(TRACE_ERROR, TRACE_CONSOLE,
+                string.format("[%s] Cannot complete top talkers generation in 1 minute " ..
+                                  "(processed %d hosts, %d sec before the deadline). Is there a huge number of hosts in the system?",
+                    _ifname, num_hosts, remaining))
+        end
     end
 
-    sortRes(res)
-    return json.encode(finalizeRes(res))
+    local res = {}
+
+    for vlan_id, v in pairs(vlans) do
+        local total = v.sent.sum + v.rcvd.sum
+
+        -- Skip VLANs without traffic in the last minute
+        if total > 0 then
+            res[#res + 1] = {
+                hosts = {{
+                    senders = finalizeDirection(v.sent, v.hidden_sent),
+                    receivers = finalizeDirection(v.rcvd, v.hidden_rcvd)
+                }},
+                value = total,
+                address = tostring(vlan_id)
+            }
+        end
+    end
+
+    return json.encode({
+        vlan = res
+    })
 end
 
 -- ########################################################

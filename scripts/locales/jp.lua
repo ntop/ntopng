@@ -10807,14 +10807,6 @@ local lang = {
     ["top_hosts"] = "上位ホスト (ローカルおよびリモート)",
     ["top_hosts_local"] = "トップホスト（ローカル）",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "アグレッシブ",
-      ["disabled"] = "無効",
-      ["less_accurate"] = "より正確でない",
-      ["more_accurate"] = "より正確",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "許可",
     ["denied"] = "拒否",

@@ -10921,14 +10921,6 @@ local lang = {
     ["top_hosts"] = "流量排行",
     ["top_hosts_local"] = "主機排行（本機）",
   },
-  ["topk_heuristic"] = {
-    ["precision"] = {
-      ["aggressive"] = "激進",
-      ["disabled"] = "已停用",
-      ["less_accurate"] = "較低準確度",
-      ["more_accurate"] = "較高準確度",
-    },
-  },
   ["traffic_behaviour"] = {
     ["allowed"] = "已授權",
     ["denied"] = "未授權",
