@@ -125,7 +125,7 @@ void LocalHost::initialize() {
   local_network_id = -1;
   os_detail = NULL;
   usedPorts = NULL;
-  asset_map_updated = false;
+  asset_map_updated = false, too_many_server_ports_logged = false;
   tags_refreshed_bitmap = tags_removed_bitmap = tags_assigned_bitmap = 0;
 
   ip.isLocalHost(&local_network_id);

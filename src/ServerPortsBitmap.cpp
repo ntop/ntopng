@@ -74,6 +74,43 @@ void ServerPortsBitmap::bitmap_deserialize(const char* tcp_str,
 
 /* *************************************** */
 
+/* Return a bitmap with only the lowest max_ports ports of the bitmap (that is
+ * freed if a new bitmap is returned) */
+ndpi_bitmap* ServerPortsBitmap::bitmap_limit(ndpi_bitmap* port_bitmap,
+                                             u_int32_t max_ports) {
+  ndpi_bitmap* limited;
+  ndpi_bitmap_iterator* it;
+  u_int64_t port;
+  u_int32_t num_ports = 0;
+
+  if (ndpi_bitmap_cardinality(port_bitmap) <= max_ports) return (port_bitmap);
+
+  if ((limited = ndpi_bitmap_alloc()) == NULL) return (port_bitmap);
+
+  if ((it = ndpi_bitmap_iterator_alloc(port_bitmap)) == NULL) {
+    ndpi_bitmap_free(limited);
+    return (port_bitmap);
+  }
+
+  /* Ports are returned in ascending order */
+  while ((num_ports < max_ports) && ndpi_bitmap_iterator_next(it, &port))
+    ndpi_bitmap_set(limited, port), num_ports++;
+
+  ndpi_bitmap_iterator_free(it);
+  ndpi_bitmap_free(port_bitmap);
+
+  return (limited);
+}
+
+/* *************************************** */
+
+void ServerPortsBitmap::limitPorts(u_int32_t max_ports) {
+  tcp_bitmap = bitmap_limit(tcp_bitmap, max_ports);
+  udp_bitmap = bitmap_limit(udp_bitmap, max_ports);
+}
+
+/* *************************************** */
+
 const char* ServerPortsBitmap::serializer() {
   const char *bitmap_str_tcp, *bitmap_str_udp;
   ndpi_serializer serializer;
