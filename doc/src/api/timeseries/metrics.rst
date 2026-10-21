@@ -2051,6 +2051,97 @@ Flow Device Metrics
    +--------------------------+-----------------------------------------------------------+
 
 
+.. admonition:: flowdev_port:usage
+
+   Usage of a port of a flow device, as percentage of the configured port speed.
+
+   - **Type**: gauge
+   - **Resolution**: 5m, or 1m when "Flow Exporters and nProbes Timeseries Resolution" is set to 1 minute
+
+   **Tags**
+
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | ifid                     | Interface index                                           |
+   +--------------------------+-----------------------------------------------------------+
+   | device                   | Device IP                                                 |
+   +--------------------------+-----------------------------------------------------------+
+   | port                     | Port index                                                |
+   +--------------------------+-----------------------------------------------------------+
+
+   **Fields**
+
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | uplink                   | Uplink (out) usage percentage.                            |
+   +--------------------------+-----------------------------------------------------------+
+   | downlink                 | Downlink (in) usage percentage.                           |
+   +--------------------------+-----------------------------------------------------------+
+
+
+.. admonition:: flowdev_port:ndpi
+
+   Total number of bytes sent and received by an application on a port of a flow device (nProbe).
+   Created when the "Flow Exporters L7 Application" preference is set to "Per Application".
+
+   - **Type**: counter
+   - **Resolution**: 5m, or 1m when "Flow Exporters and nProbes Timeseries Resolution" is set to 1 minute
+
+   **Tags**
+
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | ifid                     | Interface index                                           |
+   +--------------------------+-----------------------------------------------------------+
+   | device                   | Device IP                                                 |
+   +--------------------------+-----------------------------------------------------------+
+   | port                     | Port index                                                |
+   +--------------------------+-----------------------------------------------------------+
+   | protocol                 | Application name                                          |
+   +--------------------------+-----------------------------------------------------------+
+
+   **Fields**
+
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | bytes_sent               | Bytes sent (uplink).                                      |
+   +--------------------------+-----------------------------------------------------------+
+   | bytes_rcvd               | Bytes received (downlink).                                |
+   +--------------------------+-----------------------------------------------------------+
+
+
+.. admonition:: flowdev_port:ndpi_usage
+
+   Usage of an application on a port of a flow device, as percentage of the configured port speed.
+   This metric is not stored: it is calculated at query time from :code:`flowdev_port:ndpi` and the
+   port uplink/downlink speed, so it is only available through the timeseries REST API
+   (e.g. :code:`/lua/rest/v2/get/timeseries/ts.lua`).
+
+   - **Type**: gauge (derived)
+   - **Resolution**: same as :code:`flowdev_port:ndpi`
+
+   **Tags**
+
+   Same as :code:`flowdev_port:ndpi`, :code:`ifid`, :code:`device` and :code:`port` are mandatory.
+
+   **Fields**
+
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | bytes_sent               | Uplink (out) usage percentage.                            |
+   +--------------------------+-----------------------------------------------------------+
+   | bytes_rcvd               | Downlink (in) usage percentage.                           |
+   +--------------------------+-----------------------------------------------------------+
+
+   The top applications usage, for a single direction, can be requested with the
+   :code:`top:flowdev_port:ndpi_usage_downlink` and :code:`top:flowdev_port:ndpi_usage_uplink` schemas.
+
+
 Event Exporter Metrics
 ======================
 

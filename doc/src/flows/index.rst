@@ -9,6 +9,7 @@ Network devices (routers, switches, firewalls) generate NetFlow, sFlow, IPFIX, o
 
     nprobe.rst
     exporters.rst
+    exporters_bandwidth_usage.rst
     ../using_with_other_tools/nprobe
     ../using_with_other_tools/nprobe_collector_mode
 

@@ -49,3 +49,5 @@ Sites can be configured from the above menu and you set its location under the c
 	    :width: 50%
 	
 Exporter sites are reported in various ntopng pages such as the live flow page or the dashboard. If you have enabled historical flows you can search for flows according to a site.
+
+The bandwidth usage per application of the exporter interfaces is described in :ref:`ExporterInterfaceBandwidthUsage`.
