@@ -465,7 +465,7 @@ end
 
 -- ##############################################
 
-function getLocalNetworkAliasById(network, remove_slash)
+local function computeLocalNetworkAliasById(network, remove_slash)
 	local network_consts = require("network_consts")
 
 	local networks_stats = interface.getNetworksStats() or {}
@@ -485,12 +485,17 @@ function getLocalNetworkAliasById(network, remove_slash)
 	return label
 end
 
+function getLocalNetworkAliasById(network, remove_slash)
+	return computeLocalNetworkAliasById(network, remove_slash)
+end
+
 -- ##############################################
 
 function getLocalNetworkAlias(network)
    local alias = ""
    -- Try with the cache on redis
-	alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
+	local alias_key = getLocalNetworkAliasKey()
+	alias = ntop.getHashCache(alias_key, network)
 
    -- Try with the C++ naming (config file)
 	if isEmptyString(alias) then

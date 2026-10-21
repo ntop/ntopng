@@ -129,8 +129,8 @@ local function initLocales()
 
    i18n.setLocale(language)
 
-   -- Note: en already loaded
-   if ((not is_nedge) or nedge_supported_locales[language]) then
+   -- Note: en already loaded (do not load it twice, it is a very large file)
+   if (language ~= default_locale) and ((not is_nedge) or nedge_supported_locales[language]) then
       local locale_path = lookupLocale(language)
 
       if locale_path then

@@ -41,6 +41,10 @@ local ALERT_SORTING_COLUMN = "ntopng.cache.alert.%d.%s.sort_column.%s"
 local ALERT_SCORE_FILTER_KEY = "ntopng.alert.score.ifid_%d"
 
 local CSV_SEPARATOR = "|"
+local ntop_http_prefix = ntop.getHttpPrefix()
+local ntop_is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false
+local ntop_clickhouse_enabled = ntop.isClickHouseEnabled()
+
 
 -- ##############################################
 
@@ -114,7 +118,7 @@ function alert_store:_escape(str)
         str = tostring(str)
     end
 
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         -- ClickHouse use backslash escaping, not quote doubling
         str = str:gsub("\\", "\\\\"):gsub("'", "\\'")
     else
@@ -179,7 +183,7 @@ end
 -- @brief Check if alerts from all interfaces should be returned (lightview).
 -- Note: only supported with ClickHouse where alerts from all interfaces are in the same database.
 function alert_store:is_lightview()
-    return ntop.isClickHouseEnabled() and isLightView() and
+    return ntop_clickhouse_enabled and isLightView() and
         (self:get_ifid() ~= tonumber(getSystemInterfaceId()))
 end
 
@@ -359,7 +363,7 @@ function alert_store:build_sql_cond(cond, is_write)
         if self._alert_entity == alert_entities.flow then
             -- filter with the predominant alert_id and also search 
             -- the alert_id in the alerts_map where the other flow alerts are present.
-            if ntop.isClickHouseEnabled() then
+            if ntop_clickhouse_enabled then
                 local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
                 local and_cond = 'neq'
                 sql_cond = string.format(" (%s %s %u %s (bitAnd(%s,reinterpretAsUInt128(reverse(unhex(%s)))) %s %s) ) ",
@@ -522,7 +526,7 @@ function alert_store:build_sql_cond(cond, is_write)
         -- Special case: tag (hex: use bit test)
     elseif cond.field == 'tag' then
         local bit_index = tonumber(cond.value) or 0
-        if ntop.isClickHouseEnabled() then
+        if ntop_clickhouse_enabled then
             local is_set = ternary(cond.op == 'in', '= 1', '= 0')
             sql_cond = string.format(
                 "(bitTest(reinterpretAsUInt64(reverse(unhex(leftPad(tags_map, 16, '0')))), %u) %s)",
@@ -905,14 +909,14 @@ function alert_store:format_query_json_value(nested_field, field)
         if string.ends(field, '%') then
             field = field:sub(1, -2)
         end
-        if ntop.isClickHouseEnabled() then
+        if ntop_clickhouse_enabled then
             json_formatted = string.format("JSONExtractString(%s, '%s')", json_formatted, field)
         else
             json_formatted = string.format("json_extract(%s, '$.%s')", json_formatted, field)
         end
     end
     
-    if not ntop.isClickHouseEnabled() then
+    if not ntop_clickhouse_enabled then
         json_formatted = string.format("cast(%s as text)", json_formatted)
     end
 
@@ -1046,7 +1050,7 @@ function alert_store:insert(alert)
 
         local extra_columns = ""
         local extra_values = ""
-        if ntop.isClickHouseEnabled() then
+        if ntop_clickhouse_enabled then
             local prefs = ntop.getPrefs()
             extra_columns = "rowid, ntopng_instance_name, "
             extra_values = string.format("generateUUIDv4(), '%s', ", self:_escape(prefs.instance_name))
@@ -1089,7 +1093,7 @@ function alert_store:insert_engaged(alert)
 
         local extra_columns
         local extra_values
-        if ntop.isClickHouseEnabled() then
+        if ntop_clickhouse_enabled then
             local prefs = ntop.getPrefs()
             extra_columns = "rowid, ntopng_instance_name, "
             extra_values = string.format("'%s', '%s', ", int_to_uuid(alert.rowid), self:_escape(prefs.instance_name))
@@ -1124,7 +1128,7 @@ function alert_store:delete_engaged(alert)
     if engaged_write_table then
         local delete_stmt
 
-        if ntop.isClickHouseEnabled() then
+        if ntop_clickhouse_enabled then
             delete_stmt = string.format("ALTER TABLE %s DELETE WHERE rowid = '%s'", engaged_write_table, int_to_uuid(alert.rowid))
         else
             delete_stmt = string.format("DELETE FROM %s WHERE rowid = %u", engaged_write_table, alert.rowid)
@@ -1147,7 +1151,7 @@ function alert_store:delete()
 
     -- Prepare the final query
     local delete_stmt
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         delete_stmt = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)
     else
         delete_stmt = string.format("DELETE FROM `%s` WHERE %s ", table_name, where_clause)
@@ -1168,7 +1172,7 @@ function alert_store:acknowledge(label)
 
     -- Prepare the final query
     local q
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         q = string.format(
             "ALTER TABLE `%s` UPDATE `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s",
             table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(),
@@ -1222,7 +1226,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
             fields = fields .. ", (srv2cli_bytes + cli2srv_bytes) total_bytes"
 
             -- SQLite needs BLOB conversion to HEX
-            if not ntop.isClickHouseEnabled() then
+            if not ntop_clickhouse_enabled then
                 fields = fields .. ", hex(alerts_map) alerts_map"
             end
         end
@@ -1241,7 +1245,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     -- [OPTIONAL] Add sort criteria
     if self._order_by then
-        if (self._order_by.sort_column == 'name' and ntop.isClickHouseEnabled()) then
+        if (self._order_by.sort_column == 'name' and ntop_clickhouse_enabled) then
             order_by_clause = string.format("ORDER BY %s %s COLLATE 'en'", self._order_by.sort_column,
                 self._order_by.sort_order)
         else
@@ -1267,7 +1271,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
     -- NOTE: entity_id is necessary as alert_utils.formatAlertMessage assumes it to always be present inside the alert
     local q
 
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         if (isEmptyString(group_by_clause)) then
             q = string.format(
                 " SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM %s WHERE %s %s %s %s",
@@ -1298,11 +1302,19 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     -- count records
     local count_res = 0
+    local known_count = self._known_total_count
+    self._known_total_count = nil -- Consume it, it is valid for a single select only
+
     if isEmptyString(group_by_clause) then
-        local count_q = string.format("SELECT COUNT(*) AS totalRows FROM `%s` WHERE %s", table_name, where_clause)
-        local count_r = interface.alert_store_query(count_q)
-        if table.len(count_r) > 0 then
-            count_res = tonumber(count_r[1]["totalRows"])
+        if known_count and isEmptyString(filter) then
+            -- select_request() has just counted the very same where clause, avoid running the same COUNT(*) twice
+            count_res = known_count
+        else
+            local count_q = string.format("SELECT COUNT(*) AS totalRows FROM `%s` WHERE %s", table_name, where_clause)
+            local count_r = interface.alert_store_query(count_q)
+            if table.len(count_r) > 0 then
+                count_res = tonumber(count_r[1]["totalRows"])
+            end
         end
     else
         if res then
@@ -1609,7 +1621,7 @@ function alert_store:count_by_severity_and_time_historical()
     local q
 
     -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
-    if (ntop.isClickHouseEnabled()) then
+    if (ntop_clickhouse_enabled) then
         q = string.format(
             "SELECT severity, (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
             time_slot_width, table_name, where_clause)
@@ -1663,7 +1675,7 @@ function alert_store:count_by_severity_and_time_historical()
    -- can lead to performance degradation.
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
-   if(ntop.isClickHouseEnabled()) then
+   if(ntop_clickhouse_enabled) then
       q = string.format("SELECT severity, (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as slot, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp_end) %% %u) as slot_end, count(*) count FROM %s WHERE %s GROUP BY severity, slot, slot_end ORDER BY severity, slot ASC",
          time_slot_width, time_slot_width, table_name, where_clause)
    else
@@ -1715,7 +1727,7 @@ function alert_store:count_by_24h_historical()
 
     -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
     local q
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         q = string.format(
             "SELECT (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
             time_slot_width, table_name, where_clause)
@@ -1964,7 +1976,7 @@ function alert_store:top_generic_historical(field, excluded_field_values)
 
     -- Run query
     local q_res = {}
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         local q = string.format(
             "SELECT %s, COUNT(*) AS count FROM %s WHERE %s GROUP BY %s ORDER BY count DESC LIMIT %u",
             field, self._table_name, where_clause, field, self._top_limit)
@@ -2054,7 +2066,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
         -- Handle Custom Queries (query_preset)
         local p = _GET["query_preset"] -- Example: &query_preset=contacts
-        if not isEmptyString(p) and ntop.isEnterpriseL and ntop.isEnterpriseL() then
+        if not isEmptyString(p) and ntop_is_enterprise_l then
             package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
             local db_query_presets = require "db_query_presets"
 
@@ -2101,6 +2113,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
         -- Count
         local total_row = self:count()
+        self._known_total_count = total_row -- Reused by select_historical to avoid counting twice
 
         -- Add limits and sort criteria only after the count has been done
         self:add_request_ranges()
@@ -2143,7 +2156,7 @@ function alert_store:get_earliest_available_epoch(status)
         if alert_status_cond then
             extra_cond = " AND " .. alert_status_cond
         end
-        if ntop.isClickHouseEnabled() then
+        if ntop_clickhouse_enabled then
             q = string.format(
                 " SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d %s ORDER BY tstamp ASC LIMIT 1",
                 table_name, interface.getId(), extra_cond)
@@ -2220,7 +2233,7 @@ function alert_store:add_request_filters(is_write)
 
     self:add_filter_condition_list('description', description)
 
-    if (ntop.isClickHouseEnabled()) then
+    if (ntop_clickhouse_enabled) then
         -- Clickhouse db has the column 'interface_id', filter by that per interface
         -- (no filter in lightview: alerts of any interface)
         if ifid ~= self:ifid_2_db_ifid(getSystemInterfaceId()) and not self:is_lightview() then
@@ -2426,7 +2439,7 @@ function alert_store:format_json_record_common(value, entity_id, no_html)
 
     local alert_json = {}
     if not isEmptyString(value["json"]) then
-        alert_json = json.decode(value["json"]) or {}
+        alert_json = alert_utils.getSharedDecodedAlertJson(value)
     end
 
     record[BASE_RNAME.SCRIPT_KEY.name] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
@@ -2575,7 +2588,7 @@ function alert_store.get_label_link(label_info, tag, value_info, add_hyperlink)
       local value = value_info
       if type(value) == "table" then value = value.value or "" end
 
-      return "<a href=\"" .. ntop.getHttpPrefix() ..
+      return "<a href=\"" .. ntop_http_prefix ..
 	 "/lua/alert_stats.lua?status=" .. _GET['status'] .. "&page=" ..
 	 _GET['page'] .. "&" .. tag .. "=" .. value ..
 	 flowfilter_utils.SEPARATOR .. "eq\" " .. ">" .. (label or "") ..
@@ -2599,7 +2612,7 @@ function alert_store:housekeeping(ifid)
     local limit = math.floor(max_entity_alerts * 0.8) -- deletes 20% more alerts than the maximum number
 
     local q
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         q = string.format(
             "ALTER TABLE `%s` DELETE WHERE %s = %d AND %s <= (SELECT %s FROM `%s` WHERE %s = %u ORDER BY %s DESC LIMIT 1 OFFSET %u)",
             table_name, self:get_column_name('interface_id', true), ifid, self:get_column_name('rowid', true),
@@ -2619,7 +2632,7 @@ function alert_store:housekeeping(ifid)
     local max_time_sec = prefs.max_num_secs_before_delete_alert
     local expiration_epoch = now - max_time_sec
 
-    if ntop.isClickHouseEnabled() then
+    if ntop_clickhouse_enabled then
         q = string.format("ALTER TABLE `%s` DELETE WHERE %s = %d AND tstamp < %u", table_name,
             self:get_column_name('interface_id', true), ifid,
             self:get_column_name(self:_get_tstamp_column_name(), true), expiration_epoch)

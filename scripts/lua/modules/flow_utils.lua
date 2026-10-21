@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "template"
 require "voip_utils"
 require "lua_utils"
-local graph_utils = require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")
 local flow_consts = require "flow_consts"
@@ -1697,6 +1696,7 @@ end
 -- #######################
 
 function printFlowQuota(ifid, info, as_client)
+    local graph_utils = require "graph_utils"
     local flow_quota, proto_stats, category_stats = getFlowQuota(ifid, info, as_client)
 
     if flow_quota ~= nil then
