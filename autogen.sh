@@ -76,11 +76,17 @@ cat configure.ac.in | sed \
 rm -f config.h config.h.in *~ #*
 
 if test -d ".git"; then
-git submodule init
-git submodule update --remote
-cd httpdocs/dist && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; cd ../..
-cd tests/e2e && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; cd ../..
-cd third-party/clickhouse-cpp && git checkout master && git pull && rm -rf build; cd ../..
+  git submodule init
+  git submodule sync --quiet
+
+  if test "$GIT_BRANCH" = "dev"; then
+    git submodule update --remote
+    cd httpdocs/dist && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; cd ../..
+    cd tests/e2e && git reset --hard HEAD && git checkout $GIT_BRANCH && git pull; cd ../..
+    cd third-party/clickhouse-cpp && git checkout master && git pull && rm -rf build; cd ../..
+  else
+    git submodule update --init
+  fi
 fi
 
 # git submodule update --init --recursive
