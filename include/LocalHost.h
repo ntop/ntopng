@@ -39,7 +39,7 @@ class LocalHost : public Host {
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1,
-      asset_map_updated : 1, _notused : 4;
+      asset_map_updated : 1, too_many_server_ports_logged : 1, _notused : 3;
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail, *tcp_fingerprint;
   std::map<OSLearningMode, ndpi_os>
@@ -288,6 +288,8 @@ class LocalHost : public Host {
   bool removeDataFromAssets(char* field);
   void dumpAssetJson(ndpi_serializer* serializer);
   void dumpAssetPortsJson(ndpi_serializer* serializer);
+  void dumpAssetPortsJson(ndpi_serializer* serializer, const char* l4_proto,
+                          std::unordered_map<u_int16_t, ndpi_protocol>* ports);
   void incActiveFlowStats(bool isRemotePeer);
   bool isVPNActivityDetected();
 #endif

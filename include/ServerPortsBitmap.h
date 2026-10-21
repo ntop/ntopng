@@ -8,6 +8,7 @@ class ServerPortsBitmap {
   ndpi_bitmap *tcp_bitmap, *udp_bitmap;
   const char* bitmap_serialize(ndpi_bitmap* bitmap);
   void bitmap_deserialize(const char* tcp_str, const char* udp_str);
+  ndpi_bitmap* bitmap_limit(ndpi_bitmap* bitmap, u_int32_t max_ports);
 
  public:
   ServerPortsBitmap();
@@ -16,6 +17,7 @@ class ServerPortsBitmap {
   inline void addPort(bool isTCP, u_int16_t port) {
     ndpi_bitmap_set((isTCP ? tcp_bitmap : udp_bitmap), port);
   };
+  void limitPorts(u_int32_t max_ports);
   const char* serializer();
   bool deserializer(const char* json_str);
 };

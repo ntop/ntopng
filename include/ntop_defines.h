@@ -294,6 +294,10 @@
 #define DNS_CACHE_DURATION 3600                /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION 3600        /*  1 h */
 #define LOCALHOST_SERVER_PORT_BITMAP "ntopng.cache.localhost_srv_port_bitmap.%s"
+/* Max number of server ports (per L4 protocol) of a local host saved to
+ * redis and to the assets DB: the lowest ports are kept.
+ * Keep in sync with MAX_NUM_ASSET_SERVER_PORTS in asset_utils.lua */
+#define MAX_NUM_ASSET_SERVER_PORTS 128
 #define HOST_LABEL_NAMES_KEY "ntopng.cache.host_labels.%s"
 #define HOST_TAGS_BITMAP_KEY    "ntopng.prefs.host_tags_bitmap.%s"
 #define HOST_TAGS_BITMAP_PREFIX "ntopng.prefs.host_tags_bitmap."

@@ -71,7 +71,12 @@ UsedPorts::~UsedPorts() {
   if (bitmap_server_ports) {
     if (h) {
       char redis_key[128];
-      const char* rsp = bitmap_server_ports->serializer();
+      const char* rsp;
+
+      /* The bitmap, restored from redis, can contain more ports than the
+       * allowed ones (e.g. saved by older versions) */
+      bitmap_server_ports->limitPorts(MAX_NUM_ASSET_SERVER_PORTS);
+      rsp = bitmap_server_ports->serializer();
 
       if (rsp != NULL) {
         getRedisKey(redis_key, 128);
