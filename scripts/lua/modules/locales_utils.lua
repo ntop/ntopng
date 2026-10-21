@@ -19,6 +19,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.
 
 local clock_start = os.clock()
 
+require "ntop_utils"
 i18n = require "i18n"
 
 local locales = {}
