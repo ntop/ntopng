@@ -9,7 +9,6 @@ require "lua_utils"
 require "db_utils"
 require "rrd_paths"
 
-local ts_utils = require("ts_utils")
 local format_utils = require "format_utils"
 
 -- ########################################################

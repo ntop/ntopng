@@ -13,7 +13,8 @@ local rest_utils = require "rest_utils"
 local lua_path_utils = require "lua_path_utils"
 local file_utils = require "file_utils"
 local json = require "dkjson"
-local ascan_utils = require "ascan_utils"
+-- Light: ascan_utils loads the scan modules, recipients, alert_consts, ...
+local ascan_status_utils = require "ascan_status_utils"
 local prefs = ntop.getPrefs()
 
 local dashboard_utils = {}
@@ -30,7 +31,7 @@ end
 
 dashboard_utils.module_available = {
    ['historical_flows']   = is_clickhouse_available,
-   ['active_scan'] = ascan_utils.is_available,
+   ['active_scan'] = ascan_status_utils.is_available,
    ['l7_timeseries'] = is_l7_timeseries_available,
    ['packet_interface'] = interface.isPacketInterface,
    ['zmq_interface'] = interface.isZMQInterface,

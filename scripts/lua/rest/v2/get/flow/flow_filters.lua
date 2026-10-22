@@ -14,6 +14,7 @@ require("check_redis_prefs")
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")
 local alert_consts = require("alert_consts")
+local alert_entities = require("alert_entities")
 local rest_utils = require("rest_utils")
 local dscp_consts = require("dscp_consts")
 local site_utils = require("site_utils")
@@ -327,7 +328,8 @@ end
 tmp_list = {}
 for status_key, status in pairs(flowstats["status"]) do
 	if status.count > 0 then
-		local name = alert_consts.alertTypeLabel(status_key, true --[[ no html --]])
+		-- Flow alerts: passing the entity loads only the flow alert definitions
+		local name = alert_consts.alertTypeLabel(status_key, true --[[ no html --]], alert_entities.flow.entity_id)
 		tmp_list[name] = {
 			group = i18n("flow_details.alerted_flows"),
 			key = "status",

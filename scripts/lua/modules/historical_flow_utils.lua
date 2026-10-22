@@ -9,9 +9,6 @@ local flowfilter_utils = require "flowfilter_utils"
 local dscp_consts = require "dscp_consts"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
-local flow_risk_utils = require "flow_risk_utils"
-local country_codes = require "country_codes"
-local network_consts = require "network_consts"
 local historical_format_utils = require "historical_format_utils"
 local qoe_utils
 local historical_ts_definitions
@@ -665,6 +662,7 @@ local function dt_format_flow_risk(flow_risk_id)
 
          local remediation = flow_risk_links_cache[cur_risk_id]
          if remediation == nil then
+            local flow_risk_utils = require "flow_risk_utils"
             remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id, "")
             flow_risk_links_cache[cur_risk_id] = remediation
          end
@@ -896,6 +894,7 @@ end
 local country_code_cache = {}
 
 local function dt_format_country(id)
+   local country_codes = require "country_codes"
    local country_code = country_code_cache[id]
    if country_code == nil then
       country_code = interface.convertCountryU162Code(id)
@@ -932,6 +931,7 @@ local function compute_network_title(network_id)
 end
 
 local function dt_format_network(network)
+   local network_consts = require "network_consts"
    if isEmptyString(network)
       or tonumber(network) >= network_consts.UNKNOWN_NETWORK then
      return { value = 0, label = "", title = "" }

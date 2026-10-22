@@ -465,10 +465,32 @@ end
 
 -- ##############################################
 
+-- network_id -> network_key of the networks of an interface, built once per
+-- interface: interface.getNetworksStats() returns the stats of all the networks
+-- and calling it for each lookup was quadratic (e.g. ~1.3s with ~350 networks)
+local network_keys_by_ifid = {}
+
+local function getNetworkKeysById()
+	local ifid = interface.getId()
+	local keys = network_keys_by_ifid[ifid]
+
+	if not keys then
+		keys = {}
+
+		for _, ns in pairs(interface.getNetworksStats() or {}) do
+			-- Same as the original linear scan: the last match wins
+			keys[ns.network_id] = ns.network_key
+		end
+
+		network_keys_by_ifid[ifid] = keys
+	end
+
+	return keys
+end
+
 local function computeLocalNetworkAliasById(network, remove_slash)
 	local network_consts = require("network_consts")
 
-	local networks_stats = interface.getNetworksStats() or {}
 	local network_id = tonumber(network)
 
 	-- If network is unknown (u_int32_t max) then return an empty value
@@ -476,13 +498,13 @@ local function computeLocalNetworkAliasById(network, remove_slash)
 		return " "
 	end
 
-	local label = ""
-	for n, ns in pairs(networks_stats) do
-		if ns.network_id == network_id then
-			label = getFullLocalNetworkName(ns.network_key, remove_slash)
-		end
+	local network_key = getNetworkKeysById()[network_id]
+
+	if network_key then
+		return getFullLocalNetworkName(network_key, remove_slash)
 	end
-	return label
+
+	return ""
 end
 
 function getLocalNetworkAliasById(network, remove_slash)
