@@ -3,6 +3,7 @@
 --
 
 require "ntop_utils"
+require "locales_utils" -- i18n(): it came by chance from asset_utils, which now loads discover_utils lazily
 
 local tag_badge_utils = {}
 
