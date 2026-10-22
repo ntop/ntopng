@@ -996,23 +996,25 @@ FMT_TO_DATA_BYTES = {
     }
 }
 
+-- Label translated on first access: calling i18n here would load the whole
+-- locale (~35 ms) on every require of lua_utils, also in scripts never using it
+local function lazyLabelEntry(label_i18n, value)
+    return setmetatable({ value = value }, {
+        __index = function(entry, key)
+            if key == "label" then
+                local label = i18n(label_i18n)
+                rawset(entry, "label", label)
+                return label
+            end
+        end
+    })
+end
+
 FMT_TO_DATA_TIME = {
-    ["s"] = {
-        label = i18n("metrics.secs"),
-        value = 1
-    },
-    ["m"] = {
-        label = i18n("metrics.mins"),
-        value = 60
-    },
-    ["h"] = {
-        label = i18n("metrics.hours"),
-        value = 3600
-    },
-    ["d"] = {
-        label = i18n("metrics.days"),
-        value = 3600 * 24
-    }
+    ["s"] = lazyLabelEntry("metrics.secs", 1),
+    ["m"] = lazyLabelEntry("metrics.mins", 60),
+    ["h"] = lazyLabelEntry("metrics.hours", 3600),
+    ["d"] = lazyLabelEntry("metrics.days", 3600 * 24)
 }
 
 -- ###########################################
