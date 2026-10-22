@@ -12,7 +12,6 @@ local recipients_manager = require("recipients")
 local page_utils = require('page_utils')
 local toast_ui = require("toast_ui")
 local stats_utils = require("stats_utils")
-local delete_data_utils = require("delete_data_utils")
 local prefs_factory_reset_utils = require("prefs_factory_reset_utils")
 local configuration_utils = require "configuration_utils"
 local recipients = require "recipients"
@@ -287,6 +286,9 @@ function predicates.restart_required(toast, container)
     if not ntop.isPackage() or ntop.isWindows() then
         return
     end
+
+    -- Required here: delete_data_utils loads ts_utils and all the ts schemas
+    local delete_data_utils = require("delete_data_utils")
 
     -- ifname is defined globally
     local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)

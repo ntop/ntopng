@@ -491,11 +491,25 @@ end
 
 -- ##############################################
 
+-- All the network aliases set by the user, read with a single Redis call the
+-- first time an alias is needed (it was one call per network, slow with many
+-- networks, e.g. building the network filter options)
+local local_network_aliases = nil
+
+-- Updates the cached alias of `network` (see setLocalNetworkAlias)
+function setCachedLocalNetworkAlias(network, alias)
+   if local_network_aliases then
+      local_network_aliases[network] = alias
+   end
+end
+
 function getLocalNetworkAlias(network)
    local alias = ""
    -- Try with the cache on redis
-	local alias_key = getLocalNetworkAliasKey()
-	alias = ntop.getHashCache(alias_key, network)
+	if not local_network_aliases then
+	   local_network_aliases = ntop.getHashAllCache(getLocalNetworkAliasKey()) or {}
+	end
+	alias = local_network_aliases[network]
 
    -- Try with the C++ naming (config file)
 	if isEmptyString(alias) then

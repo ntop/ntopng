@@ -535,8 +535,10 @@ end
 function setLocalNetworkAlias(network, alias)
     if ((network ~= alias) or isEmptyString(alias)) then
         ntop.setHashCache(getLocalNetworkAliasKey(), network, alias)
+        setCachedLocalNetworkAlias(network, alias)
     else
         ntop.delHashCache(getLocalNetworkAliasKey(), network)
+        setCachedLocalNetworkAlias(network, nil)
     end
 end
 

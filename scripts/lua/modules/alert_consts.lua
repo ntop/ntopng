@@ -350,25 +350,20 @@ end
 alert_consts.alert_types = {}
 local alerts_by_id = {} -- All available alerts keyed by entity_id and alert_id
 local all_defs_loaded = false
+local loaded_defs_dirs = {} -- Definition directories already loaded
 
-local function loadAlertsDefs()
-   if all_defs_loaded then
+-- Loads the definitions of a single directory (see getDefinititionDirs)
+local function loadAlertsDefsDir(defs_dir)
+   if loaded_defs_dirs[defs_dir] then
       return
    end
 
    -- Set before loading, to avoid recursions while the definitions are loaded
-   all_defs_loaded = true
+   loaded_defs_dirs[defs_dir] = true
 
    local lua_path_utils = require "lua_path_utils"
 
-   if (false) then
-      if (string.find(debug.traceback(), "second.lua")) then
-         traceError(TRACE_WARNING, TRACE_CONSOLE, "second.lua is loading alert_consts.lua. This will slow it down!")
-      end
-   end
-   local defs_dirs = alert_consts.getDefinititionDirs()
-
-   for _, defs_dir in pairs(defs_dirs) do
+   do
       lua_path_utils.package_path_prepend(defs_dir)
 
       for fname in pairs(ntop.readdir(defs_dir)) do
@@ -423,6 +418,37 @@ local function loadAlertsDefs()
             end
          end
       end
+   end
+end
+
+local function loadAlertsDefs()
+   if all_defs_loaded then
+      return
+   end
+
+   all_defs_loaded = true
+
+   for _, defs_dir in ipairs(alert_consts.getDefinititionDirs()) do
+      loadAlertsDefsDir(defs_dir)
+   end
+end
+
+-- Flow and host alerts have their own directory (no definition of the other
+-- directories registers them, see meta.entities): load only that one when
+-- just the alerts of these entities are needed (e.g. ~100 files instead of ~200)
+local function loadAlertsDefsOfEntity(alert_entity_id)
+   if all_defs_loaded then
+      return
+   end
+
+   local defs_dirs = alert_consts.getDefinititionDirs()
+
+   if alert_entity_id == alert_entities.flow.entity_id then
+      loadAlertsDefsDir(defs_dirs[1])
+   elseif alert_entity_id == alert_entities.host.entity_id then
+      loadAlertsDefsDir(defs_dirs[2])
+   else
+      loadAlertsDefs()
    end
 end
 
@@ -707,12 +733,12 @@ end
 -- ##############################################
 
 function alert_consts.getAlertType(alert_key, alert_entity_id)
-   -- alerts_by_id is complete only when all the definitions are loaded
-   loadAlertsDefs()
-
    -- Make sure we are working with numbers
    alert_key = tonumber(alert_key)
    alert_entity_id = tonumber(alert_entity_id)
+
+   -- alerts_by_id is complete only when the needed definitions are loaded
+   loadAlertsDefsOfEntity(alert_entity_id)
 
    -- If the alert entity has been explicity submitted and is one among 'flow' or 'host', then
    -- this method return if no alert is found. Otherwise, fallbacks are tried.
@@ -748,7 +774,7 @@ end
 -- ##############################################
 
 function alert_consts.getAlertTypes(alert_entity_id)
-   loadAlertsDefs()
+   loadAlertsDefsOfEntity(tonumber(alert_entity_id))
 
    return alerts_by_id[alert_entity_id]
 end

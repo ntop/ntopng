@@ -2315,6 +2315,7 @@ function driver:setup(ts_utils, is_first_setup)
         end
 
         -- Continuos Queries stuff
+        local ts_utils = require("ts_utils")
         ts_utils.loadSchemas()
         local schemas = ts_utils.getLoadedSchemas()
 
