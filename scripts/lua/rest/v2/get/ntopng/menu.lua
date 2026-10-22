@@ -512,6 +512,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    -- topbar: user menu
    username         = session_user,
    is_admin         = is_admin,
+   pro_forced_community = (flags.pro_forced_community == true),
    is_no_login_user = is_no_login,
    is_local_user    = (_SESSION["localuser"] ~= nil),
    is_nedge         = is_nedge,

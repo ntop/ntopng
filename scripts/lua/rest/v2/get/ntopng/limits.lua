@@ -4,6 +4,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+-- Parses the JSON POST payload and validates/sanitizes _GET/_POST (normally
+-- loaded by lua_utils): must be required before reading the parameters
+require "http_lint"
+require "ntop_utils" -- pairsByKeys(), isAdministrator()
 local rest_utils = require("rest_utils")
 
 --
@@ -12,6 +16,12 @@ local rest_utils = require("rest_utils")
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
+
+-- Same permissions of the page (Help -> License -> Limits)
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
 
 local rc = rest_utils.consts.success.ok
 local res = {}

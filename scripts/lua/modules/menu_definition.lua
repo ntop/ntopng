@@ -462,16 +462,8 @@ return function(f)
             i18n = "license_page.license",
             icon = "fas fa-id-card",
             url = "/lua/license.lua",
-            hidden = f.pro_forced_community or f.no_admin,
-            reason = {
-                f.pro_forced_community and reason("pro", "menu.reason.pro_forced_community", "menu.suggestion.pro_forced_community") or nil,
-                f.no_admin and reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") or nil,
-            }
-        }, {
-            key = "limits",
-            i18n = "limits_page.limits",
-            icon = "fas fa-tachometer-alt",
-            url = "/lua/limits.lua",
+            -- License and License Limits in a single page: with the pro features
+            -- forced off only the limits are shown (see page-license-overview.vue)
             hidden = f.no_admin,
             reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") }
         }, {

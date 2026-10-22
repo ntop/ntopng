@@ -94,6 +94,7 @@ local lang = {
   ["avg_client_nw_latency"] = "Average Client Network Latency",
   ["avg_host_score"] = "Average Host Score",
   ["avg_server_nw_latency"] = "Average Server Network Latency",
+  ["back"] = "Back",
   ["backup"] = "Backup",
   ["backup_date"] = "Backup Date",
   ["begin"] = "Begin",

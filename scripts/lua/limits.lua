@@ -1,23 +1,14 @@
 --
 -- (C) 2020-26 - ntop.org
 --
+-- License Limits is now a tab of the License page (see page-license-overview.vue):
+-- this page is kept for the bookmarks and redirects there
+--
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
 
-require "lua_utils"
+local rest_utils = require "rest_utils"
 
-local page_utils = require("page_utils")
-
-if not isAdministratorOrPrintErr() then
-   return
-end
-
-sendHTTPContentTypeHeader('text/html')
-
-page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.limits)
-
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
-
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+rest_utils.sendHTTPHeader("text/html", nil, {
+   ["Location"] = ntop.getHttpPrefix() .. "/lua/license.lua?page=limits"
+}, 302, "Found")

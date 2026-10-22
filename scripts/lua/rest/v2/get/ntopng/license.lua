@@ -5,7 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- Parses the JSON POST payload and validates/sanitizes _GET/_POST (normally
+-- loaded by lua_utils): must be required before reading the parameters
+require "http_lint"
+require "ntop_utils" -- isAdministrator(), split(), ternary(), isEmptyString()
 local rest_utils = require "rest_utils"
 
 --
@@ -13,7 +16,8 @@ local rest_utils = require "rest_utils"
 -- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/get/ntopng/license.lua
 --
 
-if not isAdministratorOrPrintErr() then
+-- NOTE: isAdministratorOrPrintErr() would print an HTML error before the JSON answer
+if not isAdministrator() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
