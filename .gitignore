@@ -148,3 +148,4 @@ tests/e2e/report/
 
 # cppcheck build cache
 .cppcheck-build/
+scripts/locales/*.luac
