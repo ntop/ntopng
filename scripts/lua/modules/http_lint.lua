@@ -1049,6 +1049,11 @@ local function validateDate(p)
    end
 end
 
+-- YYYY-MM-DD day (traffic model)
+local function validateISODay(p)
+   return type(p) == "string" and p:match("^%d%d%d%d%-%d%d%-%d%d$") ~= nil
+end
+
 local function validateMemberRelaxed(m)
    -- This does not actually check the semantic with isValidPoolMember
    -- as this is used in pool deletion to handle bad pool member values
@@ -2829,6 +2834,11 @@ local known_parameters = {
    ["radius_acct_server_address"] = validateSingleWord,
    ["os_type"] = validateSingleWord,
    ["server_type"] = validateNumber,
+   ["day"] = validateISODay,
+   ["day_from"] = validateISODay,
+   ["day_to"] = validateISODay,
+   ["day_old"] = validateISODay,
+   ["day_new"] = validateISODay,
    ["switch_ip"] = validateIpAddress,
    ["switch_port"] = validateNumber,
    ["http_auth_url"] = validateSingleWord,

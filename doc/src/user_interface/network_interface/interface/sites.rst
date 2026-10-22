@@ -108,6 +108,41 @@ part of the Default site.
   The Network edit form
 
 
+Adding an Exporter to a Site
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Flow exporters (NetFlow/sFlow/IPFIX probes, nProbe collectors) are not assigned to a site directly:
+an exporter belongs to the site of the network it is part of. By default every exporter, and
+its network, belongs to the Default site. To move an exporter to another site:
+
+1. Start ntopng with a file listing the monitored networks, using the ``-m`` option
+   (for example ``-m networks.txt``). The network the exporter belongs to must be in this list,
+   otherwise it is not available in the **Networks** tab.
+
+2. If the destination site does not exist yet, create it: open the **Sites** tab of the
+   `Dashboard Sites` page and click the **+** button (see `Adding a Site`_).
+
+   .. figure:: ../../../img/create_site.png
+     :align: center
+     :alt: Create a Site
+
+     Creating a new Site with the + button
+
+3. Open the **Networks** tab, click the **Actions** button of the network the exporter is part of
+   and select **Edit**.
+
+4. In the **Site** field choose the desired site and click **Save**.
+
+   .. figure:: ../../../img/exporter_to_site_association.png
+     :align: center
+     :alt: Associate the Network of an Exporter to a Site
+
+     Changing the Site of a network
+
+The exporter is now listed under the new site, together with its network. All the other exporters
+of the same network are moved as well.
+
+
 Navigating Sites
 ^^^^^^^^^^^^^^^^
 
