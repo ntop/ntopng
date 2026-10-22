@@ -5988,7 +5988,7 @@ static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
   const char* sql;
   const char* delimiter = "|";
   const char* null_value = " ";
-  bool use_json = false, remove_headers = false;
+  bool remove_headers = false;
   struct mg_connection* conn = getLuaVMUserdata(vm, conn);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -6001,8 +6001,9 @@ static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
 
   sql = lua_tostring(vm, 1);
 
-  if (lua_type(vm, 2) == LUA_TBOOLEAN) /* optional */
-    use_json = lua_toboolean(vm, 2) ? true : false;
+  if ((lua_type(vm, 2) == LUA_TBOOLEAN) && lua_toboolean(vm, 2))
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                 "JSON output not supported, using CSV");
 
   if (lua_type(vm, 3) == LUA_TSTRING) /* optional */
     delimiter = lua_tostring(vm, 3);
@@ -6014,8 +6015,8 @@ static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
     remove_headers = lua_toboolean(vm, 5);
 
   Utils::flushHTTPBuffer(vm);
-  curr_iface->execSQLQuery2CSV(sql, delimiter, null_value, use_json,
-                               remove_headers, conn);
+  curr_iface->execSQLQuery2CSV(sql, delimiter, null_value, remove_headers,
+                               conn);
 #endif
 
   lua_pushnil(vm); /* Data is pushed via the HTTP server */

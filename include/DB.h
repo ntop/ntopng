@@ -54,8 +54,7 @@ class DB {
   }
 
   virtual int execSQLQuery2CSV(const char* sql, const char* delimiter,
-                               const char* null_value, bool dump_in_json_format,
-                               bool remove_headers,
+                               const char* null_value, bool remove_headers,
                                struct mg_connection* mg_conn) {
     return (-1);
   }

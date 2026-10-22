@@ -44,7 +44,7 @@ Prefs::Prefs(Ntop* _ntop) {
   ntop = _ntop, pcap_file_purge_hosts_flows = false, ignore_vlans = false,
     simulate_vlans = false, simulate_macs = false, ignore_macs = false;
   housekeeping_frequency = HOUSEKEEPING_FREQUENCY;
-  insecure_tls = false, clickhouse_client = clickhouse_cluster_name = NULL;
+  insecure_tls = false, clickhouse_cluster_name = NULL;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   custom_if_mtu = 0;
@@ -710,7 +710,7 @@ void usage() {
 	 "                                    |   clickhouse-cloud;europe-east15.clickhouse.cloud@9440s,3306;ntopng;default,mysql-user;mych-password\n"
 	 "                                    |\n"
 	 "                                    | NOTE:\n"
-	 "                                    | - clickhouse-user used by clickhouse-client\n"
+	 "                                    | - clickhouse-user used by the native (TCP) API\n"
 	 "                                    | - mysql-user used by the mysql API\n"
 	 "                                    |\n",
 	 (u_int)CONST_DEFAULT_CLICKHOUSE_TCP_PORT,
@@ -2168,47 +2168,6 @@ int Prefs::setOption(int optkey, char* optarg) {
 	(strncmp(optarg, "clickhouse-cluster", 18) == 0) ? true : false;
       use_clickhouse_cloud =
 	(strncmp(optarg, "clickhouse-cloud", 16) == 0) ? true : false;
-
-      /* Check if CLICKHOUSE_CLIENT is present */
-      struct stat buf;
-      bool client_found =
-	((stat(CONST_BIN_DIR "/" CLICKHOUSE_CLIENT, &buf) == 0) &&
-	 (S_ISREG(buf.st_mode)))
-	? true
-	: false;
-
-      if (!client_found) {
-	client_found =
-	  ((stat(CONST_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT, &buf) == 0) &&
-	   (S_ISREG(buf.st_mode)))
-	  ? true
-	  : false;
-	if (client_found)
-	  clickhouse_client = CONST_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT_CMD;
-      } else {
-	if (!client_found) {
-	  client_found = ((stat(CONST_LOCAL_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT,
-				&buf) == 0) &&
-			  (S_ISREG(buf.st_mode)))
-	    ? true
-	    : false;
-	  if (client_found)
-	    clickhouse_client =
-	      CONST_LOCAL_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT_CMD;
-	} else {
-	  clickhouse_client = CONST_BIN_DIR "/" CLICKHOUSE_CLIENT;
-	}
-      }
-
-      if (!client_found) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "-F clickhouse is not available "
-				     "(ClickHouse client not found)");
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %s or %s",
-				     CONST_BIN_DIR "/" CLICKHOUSE_CLIENT,
-				     CONST_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT);
-	all_good = dump_flows_on_clickhouse = false;
-      }
 
       if (all_good) {
 	u_int num_semicolumns = 0;

@@ -1078,11 +1078,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                       : -1);
   };
   inline int execSQLQuery2CSV(const char* sql, const char* delimiter,
-                              const char* null_value, bool dump_in_json_format,
-                              bool remove_headers, struct mg_connection* conn) {
+                              const char* null_value, bool remove_headers,
+                              struct mg_connection* conn) {
     DB* actual_db = db ? db : clickhouse_flows_db;
     return (actual_db ? actual_db->execSQLQuery2CSV(sql, delimiter, null_value,
-                                                    dump_in_json_format,
                                                     remove_headers, conn)
                       : -1);
   }

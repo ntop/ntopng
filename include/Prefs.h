@@ -51,7 +51,7 @@ class Prefs {
   bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge,
       strict_startup;
   char *zmq_publish_events_url, *http_log_path;
-  const char *clickhouse_client, *clickhouse_cluster_name;
+  const char *clickhouse_cluster_name;
   Ntop* ntop;
   bool enable_dns_resolution, sniff_dns_responses, sniff_name_responses,
       sniff_local_name_responses, pcap_file_purge_hosts_flows,
@@ -836,7 +836,6 @@ class Prefs {
   };
   inline void dontUseClickHouse() { dump_flows_on_clickhouse = false; };
   inline char* getZMQPublishEventsURL() { return (zmq_publish_events_url); };
-  inline const char* getClickHouseClientPath() { return (clickhouse_client); };
   inline const char* getClickHouseClusterName() {
     return (clickhouse_cluster_name);
   };
