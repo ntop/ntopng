@@ -438,7 +438,7 @@ end
 
 function getKeysSortedByValue(tbl, sortFunction)
     local keys = {}
-    for key in pairs(tbl) do table.insert(keys, key) end
+    for key in pairs(tbl) do keys[#keys + 1] = key end
 
     table.sort(keys, function(a, b) return sortFunction(tbl[a], tbl[b]) end)
 

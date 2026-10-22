@@ -21,7 +21,7 @@ local ifstats = interface.getFlowsStatus()
 
 local function add_entry(t, label_key, val)
   if val ~= 0 then
-    table.insert(t, { label = i18n(label_key), value = val })
+    t[#t + 1] = { label = i18n(label_key), value = val }
   end
 end
 

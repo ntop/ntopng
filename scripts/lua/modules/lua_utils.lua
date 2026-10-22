@@ -329,12 +329,12 @@ function split(s, delimiter)
         if delimiter == nil then
             -- No delimiter, split all characters
             for match in s:gmatch "." do
-                table.insert(result, match);
+                result[#result + 1] = match;
             end
         else
             -- Split by delimiter
             for match in (s .. delimiter):gmatch("(.-)" .. delimiter) do
-                table.insert(result, match);
+                result[#result + 1] = match;
             end
         end
     end

@@ -751,7 +751,7 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
 
         if ((elems == nil) and string.contains(osx, "model=")) then
             elems = {}
-            table.insert(elems, osx)
+            elems[#elems + 1] = osx
         end
 
         if (elems ~= nil) then
@@ -1348,7 +1348,7 @@ local function analyzeSSDP(ssdp)
                                         io.write(value .. "\n")
                                     end
 
-                                    table.insert(services, value)
+                                    services[#services + 1] = value
                                 end
                             end
                         end
@@ -1410,7 +1410,7 @@ local function analyzeSSDP(ssdp)
             rsp[host].url = rsp[host].url .. "<br><A HREF=" .. url .. ">" .. friendlyName .. "</A>"
 
             for _, v in ipairs(services) do
-                table.insert(rsp[host].services, v)
+                rsp[host].services[#rsp[host].services + 1] = v
             end
         else
             rsp[host] = {

@@ -21,8 +21,9 @@ for _,iface in pairs(names) do
    for interface_id, probe_list in pairs(ifstats.probes or {}) do
       stats[iface] = {}
 
+      local iface_stats = stats[iface]
       for probe_ip, probe_info in pairsByKeys(probe_list or {}) do
-	 table.insert(stats[iface], probe_info)
+	 iface_stats[#iface_stats + 1] = probe_info
       end
    end
 end

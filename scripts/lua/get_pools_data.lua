@@ -52,11 +52,11 @@ for pool_id, pool_stats in pairs(pools_stats) do
     for i, member in pairs(cur_pool.members) do
       -- remove '@' and everything after it (used for ntopng key)
       local clean_member = member:match("^[^@]+")
-      table.insert(clean_members, clean_member)
-      table.insert(members, member)
+      clean_members[#clean_members + 1] = clean_member
+      members[#members + 1] = member
     end
   end
-  table.insert(result, {
+  result[#result + 1] = {
     ["pool_name"] = pool_name,
     ["pool_id"] = pool_id,
     ["hosts"] = hosts,
@@ -69,7 +69,7 @@ for pool_id, pool_stats in pairs(pools_stats) do
     ["traffic"] = traffic,
     ["clean_members"] = clean_members,
     ["members"] = members
-  })
+  }
  end
 end
 

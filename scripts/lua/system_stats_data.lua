@@ -56,7 +56,7 @@ if not ntop.isWindows() then
          col = col + 1
          if col > #colors then col = 1 end
       end
-      table.insert(storage_items, item)
+      storage_items[#storage_items + 1] = item
       num_items = num_items + 1
    end
 
@@ -67,7 +67,7 @@ if not ntop.isWindows() then
       link = ""
    }
    item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
-   table.insert(storage_items, item)
+   storage_items[#storage_items + 1] = item
 
    info.storage =
       "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.volume_dev..")</span><br />"..
@@ -91,7 +91,7 @@ if not ntop.isWindows() then
             col = col + 1
             if col > #colors then col = 1 end
          end
-         table.insert(storage_items, item)
+         storage_items[#storage_items + 1] = item
          num_items = num_items + 1
       end
 
@@ -102,7 +102,7 @@ if not ntop.isWindows() then
          link = ""
       }
       item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
-      table.insert(storage_items, item)
+      storage_items[#storage_items + 1] = item
 
       info.pcap_storage =
         "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.pcap_volume_dev..")</span><br />"..

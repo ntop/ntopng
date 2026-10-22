@@ -127,7 +127,7 @@ function slack.dequeueRecipientAlerts(recipient, budget)
       if not alerts_by_types[notif.entity_id][notif.severity] then
         alerts_by_types[notif.entity_id][notif.severity] = {}
       end
-      table.insert(alerts_by_types[notif.entity_id][notif.severity], notif)
+      alerts_by_types[notif.entity_id][notif.severity][#alerts_by_types[notif.entity_id][notif.severity] + 1] = notif
     end
   end
 
@@ -140,7 +140,7 @@ function slack.dequeueRecipientAlerts(recipient, budget)
       -- Most recent notifications first
       for _, notif in pairsByValues(notifications, alert_utils.notification_timestamp_rev) do
         local msg = format_utils.formatMessage(notif, {nohtml=true, show_severity=false, show_entity=true})
-        table.insert(messages, msg)
+        messages[#messages + 1] = msg
 
         if #messages >= MAX_ALERTS_PER_MESSAGE then
           break
@@ -150,7 +150,7 @@ function slack.dequeueRecipientAlerts(recipient, budget)
       local missing = #notifications - #messages
 
       if missing > 0 then
-        table.insert(messages, "NOTE: " .. missing .. " older messages have been suppressed")
+        messages[#messages + 1] = "NOTE: " .. missing .. " older messages have been suppressed"
       end
 
       messages = table.concat(messages, "\n")

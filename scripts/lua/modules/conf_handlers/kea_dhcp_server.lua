@@ -56,14 +56,14 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
   -- Build the list of LAN interfaces and subnet configurations
   for if_name, role in pairsByKeys(all_interfaces, asc_insensitive) do
     if (role == "lan") and (dhcp_config["subnet"][if_name]) and (dhcp_config["subnet"][if_name]["enabled"] == "1") then
-      table.insert(lan_interfaces, if_name)
+      lan_interfaces[#lan_interfaces + 1] = if_name
 
       local lan_dhcp_config = dhcp_config["subnet"][if_name]
 
       -- Build DNS servers list
       local dns_servers = {dns_config.global}
       if not isEmptyString(dns_config.secondary) then
-        table.insert(dns_servers, dns_config.secondary)
+        dns_servers[#dns_servers + 1] = dns_config.secondary
       end
 
       -- Build subnet configuration
@@ -127,17 +127,17 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
 
       --]]
 
-      table.insert(subnet4_configs, subnet_config)
+      subnet4_configs[#subnet4_configs + 1] = subnet_config
     end
   end
 
   -- Build host reservations (static leases)
   for mac, lease in pairs(dhcp_config.leases or {}) do
-    table.insert(reservations, {
+    reservations[#reservations + 1] = {
       ["hw-address"] = mac,
       ["ip-address"] = lease.ip,
       hostname = lease.hostname
-    })
+    }
   end
 
   -- Build the complete Kea DHCP4 configuration

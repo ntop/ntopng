@@ -1276,20 +1276,20 @@ end
         if storage_info then
             if ts_utils.getDriverName() == "rrd" then
                 if storage_info.rrd ~= nil and storage_info.rrd > 0 then
-                    table.insert(storage_items, {
+                    storage_items[#storage_items + 1] = {
                         title = i18n("if_stats_overview.rrd_timeseries"),
                         value = storage_info.rrd,
                         class = "primary"
-                    })
+                    }
                 end
             end
 
             if storage_info.flows ~= nil and storage_info.flows > 0 then
-                table.insert(storage_items, {
+                storage_items[#storage_items + 1] = {
                     title = i18n("flows"),
                     value = storage_info.flows,
                     class = "info"
-                })
+                }
             end
 
             if storage_info.pcap ~= nil and storage_info.pcap > 0 then
@@ -1299,12 +1299,12 @@ end
                     link = http_prefix .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
                 end
 
-                table.insert(storage_items, {
+                storage_items[#storage_items + 1] = {
                     title = i18n("traffic_recording.packet_dumps"),
                     value = storage_info.pcap,
                     class = "warning",
                     link = link
-                })
+                }
             end
 
             if #storage_items > 0 then
@@ -1698,7 +1698,7 @@ elseif (page == "traffic_recording" and has_traffic_recording_page) then
         if ntop.isEnterpriseM and ntop.isEnterpriseM() then
             local iface_names = {}
             for _, iface in ipairs(viewed_ifaces_with_recording) do
-                table.insert(iface_names, iface.ifname)
+                iface_names[#iface_names + 1] = iface.ifname
             end
             print('<div class="alert alert-info">' ..
                 i18n('traffic_recording.view_extraction_note',

@@ -340,7 +340,7 @@ local function parse(template, options, output, include_list, current_path)
 			-- ensure that no two text chunks follow each other
 			output[#output].text = output[#output].text .. chunk.text
 		else -- other chunk
-			table.insert(output, chunk)
+			output[#output + 1] = chunk
 		end
 
 	end
@@ -357,11 +357,11 @@ function liluat.inline(template, options, start_path)
 	local output = {}
 	for _,chunk in ipairs(parse(template, options, nil, nil, start_path)) do
 		if chunk.type == "expression" then
-			table.insert(output, options.start_tag .. "=" .. chunk.text .. options.end_tag)
+			output[#output + 1] = options.start_tag .. "=" .. chunk.text .. options.end_tag
 		elseif chunk.type == "code" then
-			table.insert(output, options.start_tag .. chunk.text .. options.end_tag)
+			output[#output + 1] = options.start_tag .. chunk.text .. options.end_tag
 		else
-			table.insert(output, chunk.text)
+			output[#output + 1] = chunk.text
 		end
 	end
 
@@ -381,7 +381,7 @@ function liluat.get_dependencies(template, options, start_path)
 		for key, value in pairs(list) do
 			if (type(key) == "string") and (not have_seen[key]) then
 				have_seen[key] = true
-				table.insert(dependencies, key)
+				dependencies[#dependencies + 1] = key
 				recursive_traversal(value)
 			end
 		end
@@ -408,9 +408,9 @@ function liluat.compile(template, options, template_name, start_path)
 	for i, chunk in ipairs(lexed_template) do
 		-- check if the chunk is a template (either code or expression)
 		if chunk.type == "expression" then
-			table.insert(lua_code, output_function..'('..chunk.text..')')
+			lua_code[#lua_code + 1] = output_function..'('..chunk.text..')'
 		elseif chunk.type == "code" then
-			table.insert(lua_code, chunk.text)
+			lua_code[#lua_code + 1] = chunk.text
 		else --text chunk
 			-- determine if this block needs to be trimmed right
 			-- (strip newline)
@@ -471,7 +471,7 @@ function liluat.compile(template, options, template_name, start_path)
 				chunk.text = chunk.text:gsub("^\n", "")
 			end
 			if not (chunk.text == "") then
-				table.insert(lua_code, output_function..'('..string.format("%q", chunk.text)..')')
+				lua_code[#lua_code + 1] = output_function..'('..string.format("%q", chunk.text)..')'
 			end
 		end
 	end
@@ -505,7 +505,7 @@ function liluat.render(t, env, options)
 	-- add closure that renders the text into the result table
 	env = merge_tables({
 			__liluat_output_function = function (text)
-				table.insert(result, text) end
+				result[#result + 1] = text end
 			},
 			env,
 			options.reference

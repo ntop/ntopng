@@ -186,25 +186,25 @@ local function ipv_to_hex(ip)
     if string.find(ip, ":") then
         local parts = {}
         for part in string.gmatch(ip, "([^:]+)") do
-            table.insert(parts, part)
+            parts[#parts + 1] = part
         end
         local hex_parts = {}
         for _, part in ipairs(parts) do
             -- Ensure each part has at least 4 characters by padding with zeros
             part = string.format("%04s", part)
-            table.insert(hex_parts, part)
+            hex_parts[#hex_parts + 1] = part
         end
         return table.concat(hex_parts, ":")
     else
         -- IPv4 address
         local parts = {}
         for part in string.gmatch(ip, "([^.]+)") do
-            table.insert(parts, part)
+            parts[#parts + 1] = part
         end
         local hex_parts = {}
         for _, part in ipairs(parts) do
             local hex_part = string.format("%02X", tonumber(part))
-            table.insert(hex_parts, hex_part)
+            hex_parts[#hex_parts + 1] = hex_part
         end
         return table.concat(hex_parts, ".")
     end

@@ -168,7 +168,7 @@ function discord.dequeueRecipientAlerts(recipient, budget)
     local alerts = {}
 
     for _, json_message in ipairs(notifications) do
-       table.insert(alerts, formatDiscordMessage(json.decode(json_message)))       
+       alerts[#alerts + 1] = formatDiscordMessage(json.decode(json_message))       
     end
 
     local res, msg = discord.sendMessage(table.concat(alerts, "\n"), settings)

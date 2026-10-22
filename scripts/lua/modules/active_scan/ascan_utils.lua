@@ -146,7 +146,7 @@ local function lines(str)
    local result = {}
 
    for line in str:gmatch '[^\n]+' do
-      table.insert(result, line)
+      result[#result + 1] = line
    end
    return result
 end
@@ -481,7 +481,7 @@ function ascan_utils.cleanup_port(is_tcp, line)
       regex =  "([^/tcp]+)"
    end
    for str in string.gmatch(line, regex) do
-      table.insert(splitted_line, str)
+      splitted_line[#splitted_line + 1] = str
    end
 
    return splitted_line[1]
@@ -532,7 +532,7 @@ function ascan_utils.cleanup_nmap_result(scan_result)
          l = l:gsub(">", "&gt;")
 
          if (string.find(l, "filtered") == nil) then
-            table.insert(scan_out, l)
+            scan_out[#scan_out + 1] = l
          end
       end
 
@@ -1813,7 +1813,7 @@ function ascan_utils.delete_host_to_scan(host, scan_type, all)
          else
             local r = json.decode(e)
             if(r and not((r.scan_type == scan_type) and (r.host == host))) then
-               table.insert(elems, e)
+               elems[#elems + 1] = e
             end
          end
       end
@@ -1872,7 +1872,7 @@ function ascan_utils.retrieve_scan_types()
    local ret = {}
 
    for _,scan_type in ipairs(scan_types) do
-      table.insert(ret, { id = scan_type, label = i18n("hosts_stats.page_scan_hosts.scan_type_list."..scan_type) })
+      ret[#ret + 1] = { id = scan_type, label = i18n("hosts_stats.page_scan_hosts.scan_type_list."..scan_type) }
    end
 
    return ret
@@ -1891,7 +1891,7 @@ function ascan_utils.list_scan_modules()
          local m = ascan_utils.load_module(name)
 
          if(m:is_enabled()) then
-            table.insert(modules, name)
+            modules[#modules + 1] = name
          end
       end
    end
@@ -2245,7 +2245,7 @@ function ascan_utils.netscan_cleanup(scan_result)
          discovered_hosts[#discovered_hosts + 1] =  string.split(l," ")[5]
          
       end
-      table.insert(scan_out, l)
+      scan_out[#scan_out + 1] = l
    end
 
    local scan_result_out = table.concat(scan_out, "\n")

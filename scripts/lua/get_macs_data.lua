@@ -85,7 +85,7 @@ macs_stats = macs_stats["macs"]
 local res_formatted = {}
 for _, mac in ipairs(macs_stats) do
    local record = mac2record(mac)
-   table.insert(res_formatted, record)
+   res_formatted[#res_formatted + 1] = record
 end
 
 local result = {}

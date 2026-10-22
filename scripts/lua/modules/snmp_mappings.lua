@@ -31,7 +31,7 @@ function snmp_mappings.get_all_exporters()
 	 len1 = string.len(k) - postfix_len
 	 k = string.sub(k, 1, len1)
 
-	 table.insert(rc, k)
+	 rc[#rc + 1] = k
       end
    end
 

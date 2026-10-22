@@ -1916,7 +1916,7 @@ function flowfilter_utils.add_flowfilter_if_valid(filters, filter_key, operators
             selectedOperator = selected_operator
         }
 
-        table.insert(filters, filter_item)
+        filters[#filters + 1] = filter_item
     end
 end
 

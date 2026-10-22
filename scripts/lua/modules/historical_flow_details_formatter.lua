@@ -1141,14 +1141,11 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
 						local ret1, exp_ip, exp_name, exp_site = formatNextHop(exporter_ip)
 
 						if not valueFound(flow_trajectory[from_ip], to_ip) then
-							table.insert(flow_trajectory[from_ip], { next_hop = to_ip, return_path = exp.return_path })
+							flow_trajectory[from_ip][#flow_trajectory[from_ip] + 1] = { next_hop = to_ip, return_path = exp.return_path }
 						end
 
 						if not valueFound(flow_trajectory[to_ip], next_hop_ip) then
-							table.insert(
-								flow_trajectory[to_ip],
-								{ next_hop = next_hop_ip, return_path = exp.return_path }
-							)
+							flow_trajectory[to_ip][#flow_trajectory[to_ip] + 1] = { next_hop = next_hop_ip, return_path = exp.return_path }
 						end
 
 						nodes_names[from_ip] = { from_ip, exp_site }
@@ -1169,20 +1166,14 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
 										(not valueFound(flow_trajectory[exp.next_hop_ip], srv_ip))
 										and (exp.next_hop_ip ~= srv_ip)
 									then
-										table.insert(
-											flow_trajectory[exp.next_hop_ip],
-											{ next_hop = srv_ip, return_path = exp.return_path }
-										)
+										flow_trajectory[exp.next_hop_ip][#flow_trajectory[exp.next_hop_ip] + 1] = { next_hop = srv_ip, return_path = exp.return_path }
 									end
 								else
 									if
 										(not valueFound(flow_trajectory[exp.next_hop_ip], cli_ip))
 										and (exp.next_hop_ip ~= cli_ip)
 									then
-										table.insert(
-											flow_trajectory[exp.next_hop_ip],
-											{ next_hop = cli_ip, return_path = exp.return_path }
-										)
+										flow_trajectory[exp.next_hop_ip][#flow_trajectory[exp.next_hop_ip] + 1] = { next_hop = cli_ip, return_path = exp.return_path }
 									end
 								end
 							end

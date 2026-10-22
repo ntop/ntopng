@@ -73,7 +73,7 @@ if not host then
 			label = selected_ip,
 		}
 
-		table.insert(hosts_type_filters, newFilter)
+		hosts_type_filters[#hosts_type_filters + 1] = newFilter
 	end
 
 	local hosts_type_filters2 = {

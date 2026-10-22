@@ -26,7 +26,7 @@ end
 local function flat_subdirs(subdir, elements)
 
    if (subdir.subdirs == nil) then
-      table.insert(elements, { title = subdir.title, active = subdir.active, href = subdir.href, })
+      elements[#elements + 1] = { title = subdir.title, active = subdir.active, href = subdir.href, }
       return
    end
 

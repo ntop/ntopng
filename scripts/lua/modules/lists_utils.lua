@@ -542,7 +542,7 @@ local function parse_ip_occurencies_line(line)
     local words = {}
     -- split line by space
     for word in line:gmatch("%S+") do
-        table.insert(words, word)
+        words[#words + 1] = word
     end
 
     local host = nil

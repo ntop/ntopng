@@ -280,7 +280,7 @@ function predicates.restart_required(toast, container)
 
     if prefs.active_monitoring_pref and not prefs.active_monitoring
         and not prefs.active_monitoring_not_avail then
-        table.insert(container, create_restart_required_toast(toast, i18n("prefs.restart_needed_active_monitoring", { product = info.product })))
+        container[#container + 1] = create_restart_required_toast(toast, i18n("prefs.restart_needed_active_monitoring", { product = info.product }))
     end
 
     if not ntop.isPackage() or ntop.isWindows() then
@@ -293,19 +293,19 @@ function predicates.restart_required(toast, container)
     -- ifname is defined globally
     local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
     if delete_active_interface_requested then
-        table.insert(container, create_restart_required_toast(toast, i18n("delete_data.restart_product_toast", {
+        container[#container + 1] = create_restart_required_toast(toast, i18n("delete_data.restart_product_toast", {
             product = ntop.getInfo()["product"]
-        })))
+        }))
     end
     if prefs_factory_reset_utils.is_prefs_factory_reset_requested() then
-        table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
+        container[#container + 1] = create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
             product = ntop.getInfo()["product"]
-        })))
+        }))
     end
     if configuration_utils.restart_required() then
-        table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.restart_request", {
+        container[#container + 1] = create_restart_required_toast(toast, i18n("manage_configurations.restart_request", {
             product = ntop.getInfo()["product"]
-        })))
+        }))
     end
 end
 
@@ -358,7 +358,7 @@ end
 --- @param container table Is the table where to put the new toast ui
 function predicates.geo_ip(toast, container)
     if IS_ADMIN and not ntop.hasGeoIP() then
-        table.insert(container, create_geo_ip_toast_ui(toast))
+        container[#container + 1] = create_geo_ip_toast_ui(toast)
     end
 end
 
@@ -367,7 +367,7 @@ end
 -- Announce the new "Flow Details Side Card" feature. Dismissable, so it
 -- disappears for good once the user closes it.
 function predicates.flow_details_card(toast, container)
-    table.insert(container, create_flow_details_card_toast_ui(toast))
+    container[#container + 1] = create_flow_details_card_toast_ui(toast)
 end
 
 --- Create an instance for the temp working directory alert
@@ -380,7 +380,7 @@ function predicates.temp_working_dir(toast, container)
     end
 
     if (dirs.workingdir == "/var/tmp/ntopng") then
-        table.insert(container, create_tempdir_toast_ui(toast))
+        container[#container + 1] = create_tempdir_toast_ui(toast)
     end
 end
 
@@ -396,7 +396,7 @@ function predicates.update_ntopng(toast, container)
     local message = check_latest_major_release()
 
     if is_not_oem_and_administrator and not isEmptyString(message) then
-        table.insert(container, create_update_ntopng_toast(toast, message))
+        container[#container + 1] = create_update_ntopng_toast(toast, message)
     end
 end
 
@@ -433,7 +433,7 @@ function predicates.mirrored_traffic(toast, container)
 
     if is_not_oem_and_administrator and not isEmptyString(message) and (num_tot_traffic_points > 10) and
         (upload_traffic == 0 and download_traffic > 0 and is_mirrored_traffic_pref) then
-        table.insert(container, create_mirrored_traffic_toast(toast, message))
+        container[#container + 1] = create_mirrored_traffic_toast(toast, message)
     end
 end
 
@@ -468,7 +468,7 @@ function predicates.emergency_recipient(toast, container)
     end
 
     if is_not_oem_and_administrator and not isEmptyString(message) and not emergency_recipient_configured then
-        table.insert(container, create_emergency_notifications_toast(toast, message))
+        container[#container + 1] = create_emergency_notifications_toast(toast, message)
         return true
     end
 end
@@ -503,7 +503,7 @@ function predicates.flows_limit_exceeded(toast, container)
     end
 
     if (level ~= nil) then
-        table.insert(container, create_flows_limit_exceeded_toast(toast, level))
+        container[#container + 1] = create_flows_limit_exceeded_toast(toast, level)
     end
 end
 
@@ -536,7 +536,7 @@ function predicates.hosts_limit_exceeded(toast, container)
     end
 
     if (level ~= nil) then
-        table.insert(container, create_hosts_limit_exceeded_toast(toast, level))
+        container[#container + 1] = create_hosts_limit_exceeded_toast(toast, level)
     end
 end
 
@@ -563,7 +563,7 @@ function predicates.too_many_hosts(toast, container)
     end
 
     if (level ~= nil) then
-        table.insert(container, create_too_many_hosts_toast(toast, level))
+        container[#container + 1] = create_too_many_hosts_toast(toast, level)
     end
 end
 
@@ -601,7 +601,7 @@ function predicates.too_many_flows(toast, container)
     end
 
     if (level ~= nil) then
-        table.insert(container, create_too_many_flows_toast(toast, level, is_db_view))
+        container[#container + 1] = create_too_many_flows_toast(toast, level, is_db_view)
     end
 end
 
@@ -631,8 +631,8 @@ function predicates.remote_probe_clock_drift(toast, container)
         end
 
         if (level ~= nil) then
-            table.insert(container, create_remote_probe_clock_drift_toast(toast, level, ifstats["probe.local_time"],
-                ifstats["probe.remote_time"]))
+            container[#container + 1] = create_remote_probe_clock_drift_toast(toast, level, ifstats["probe.local_time"],
+                ifstats["probe.remote_time"])
         end
     end
 end
@@ -660,7 +660,7 @@ function predicates.zmq_default_encryption(toast, container)
     local ifstats = interface.getStats()
 
     if ifstats.encryption and ifstats.encryption.is_default_key then
-        table.insert(container, create_zmq_default_encryption_toast(toast))
+        container[#container + 1] = create_zmq_default_encryption_toast(toast)
     end
 end
 
@@ -686,7 +686,7 @@ function predicates.flow_dump(toast, container)
             and not ifstats.syslog -- Syslog
             and not ifstats.kafka -- Kafka
             and not ifstats.es then -- Elasticsearch
-            table.insert(container, create_flow_dump_toast_ui(toast))
+            container[#container + 1] = create_flow_dump_toast_ui(toast)
         end
     end
 end
@@ -708,13 +708,12 @@ function predicates.about_page(toast, container)
         info = ntop.getInfo()
 
         if (info["version.enterprise_l_edition"] and info["pro.has_valid_license"]) then
-            table.insert(container,
-                toast_ui:new(toast.id, i18n("info"), i18n("about.create_license_l"), ToastLevel.INFO, {
+            container[#container + 1] = toast_ui:new(toast.id, i18n("info"), i18n("about.create_license_l"), ToastLevel.INFO, {
                     url = "https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/?utm_source=ntopng",
                     title = i18n("details.details")
-                }))
+                })
         elseif (not info["version.enterprise_l_edition"] and info["pro.has_valid_license"]) then
-            table.insert(container, toast_ui:new(toast.id, i18n("info"), i18n("about.create_license"), ToastLevel.INFO))
+            container[#container + 1] = toast_ui:new(toast.id, i18n("info"), i18n("about.create_license"), ToastLevel.INFO)
         end
 
     end
@@ -730,8 +729,8 @@ function predicates.hosts_geomap(toast, container)
     local hosts_stats = interface.getHostsInfo()
     local num = hosts_stats["numHosts"]
     if (num > 0) then
-        table.insert(container, toast_ui:new(toast.id, i18n("warning"), i18n("geo_map.warning_accuracy"),
-            ToastLevel.WARNING, nil, toast.dismissable))
+        container[#container + 1] = toast_ui:new(toast.id, i18n("warning"), i18n("geo_map.warning_accuracy"),
+            ToastLevel.WARNING, nil, toast.dismissable)
     end
 end
 
@@ -746,8 +745,8 @@ function predicates.active_scan(toast, container)
         local body = i18n("hosts_stats.page_scan_hosts.enable_clickhouse_toast_label", {
             link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/monitoring/active_scan.html?utm_source=ntopng#scan-reports"
         })
-        table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
-            ToastLevel.INFO, nil, toast.dismissable))
+        container[#container + 1] = toast_ui:new(toast.id, i18n("info"),body,
+            ToastLevel.INFO, nil, toast.dismissable)
     end
 end
 
@@ -757,8 +756,8 @@ function predicates.service_map(toast, container)
     local service_map_status = interface.serviceMapLearningStatus()
     if ntop.isEnterprise and ntop.isEnterprise() and service_map_status.service_map_learning_status == true then
         local body = i18n("map_page.learning")
-        table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
-            ToastLevel.INFO, nil, toast.dismissable))       
+        container[#container + 1] = toast_ui:new(toast.id, i18n("info"),body,
+            ToastLevel.INFO, nil, toast.dismissable)       
     end
 end
 
@@ -769,8 +768,8 @@ function predicates.enable_exporters_timeseries(toast, container)
         local body = i18n("prefs.enable_exporters_timeseries", {
             link = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts"
         })
-        table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
-            ToastLevel.INFO, nil, toast.dismissable))       
+        container[#container + 1] = toast_ui:new(toast.id, i18n("info"),body,
+            ToastLevel.INFO, nil, toast.dismissable)       
     end
 end
 
@@ -782,8 +781,8 @@ function predicates.configured_exporters_timeseries_resolution(toast, container)
         local body = i18n("prefs.change_exporter_timeseries_resolution", {
             link = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts"
         })
-        table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
-            ToastLevel.INFO, nil, toast.dismissable))       
+        container[#container + 1] = toast_ui:new(toast.id, i18n("info"),body,
+            ToastLevel.INFO, nil, toast.dismissable)       
     end
 end
 
@@ -849,7 +848,7 @@ function predicates.exporters_SNMP_ratio_column(toast, container)
     end
 
     if body then
-        table.insert(container, toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable))
+        container[#container + 1] = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
     end
 
 end
@@ -889,7 +888,7 @@ function predicates.create_endpoint(toast, container)
 
     local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
 
-    table.insert(container, hint)
+    container[#container + 1] = hint
 
 end
 
@@ -921,7 +920,7 @@ function predicates.create_recipients_for_endpoint(toast, container)
     }
 
     local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
-    table.insert(container, hint)
+    container[#container + 1] = hint
 end
 
 --- Check if unexpected scripts are disabled and notifiy the user
@@ -951,7 +950,7 @@ function predicates.unexpected_scripts(toast, container)
     }
 
     local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
-    table.insert(container, hint)
+    container[#container + 1] = hint
 end
 
 -- ###############################################
@@ -976,7 +975,7 @@ function predicates.export_drops(toast, container)
             product = "<b>" .. info.product .. "</b>"
         })
         local hint = toast_ui:new(toast.id, i18n("too_many_exports"), body, severity, nil, toast.dismissable)
-        table.insert(container, hint)
+        container[#container + 1] = hint
     end
 
 end
@@ -993,7 +992,7 @@ function predicates.no_local_hosts(toast, container)
     if interface.getNumLocalHosts() == 0 and interface.getNumHosts() > 5 and ntop.getUptime() > 60 then
         local title = i18n("no_local_hosts_title")
         local description = i18n("configured_localhost")
-        table.insert(container, toast_ui:new(toast.id, title, description, ToastLevel.DANGER, nil, toast.dismissable))
+        container[#container + 1] = toast_ui:new(toast.id, title, description, ToastLevel.DANGER, nil, toast.dismissable)
     end
 end
 

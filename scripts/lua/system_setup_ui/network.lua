@@ -179,10 +179,10 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
   local elementToSwitch = {"iface_ip_"..if_id, "iface_gw_"..if_id, "iface_netmask_"..if_id}
   local showElementArray = {true, false, false}
   if not is_nedge then
-    table.insert(elementToSwitch, "iface_primary_dns_"..if_id)
-    table.insert(showElementArray, false)
-    table.insert(elementToSwitch, "iface_secondary_dns_"..if_id)
-    table.insert(showElementArray, false)
+    elementToSwitch[#elementToSwitch + 1] = "iface_primary_dns_"..if_id
+    showElementArray[#showElementArray + 1] = false
+    elementToSwitch[#elementToSwitch + 1] = "iface_secondary_dns_"..if_id
+    showElementArray[#showElementArray + 1] = false
   end
 
   multipleTableButtonPrefs(i18n("nedge.mode"),

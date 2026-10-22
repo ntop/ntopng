@@ -138,10 +138,10 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
       local exlusion_comment_map_key = ""
 
       if(is_flow_exclusion) then
-        table.insert(exclusions[subject_key].flow_alerts, alert_key)
+        exclusions[subject_key].flow_alerts[#exclusions[subject_key].flow_alerts + 1] = alert_key
         exlusion_comment_map_key = string.format('%s_%s_%s', "flow", subject_key, alert_key)
       else
-        table.insert(exclusions[subject_key].host_alerts, alert_key)
+        exclusions[subject_key].host_alerts[#exclusions[subject_key].host_alerts + 1] = alert_key
         exlusion_comment_map_key = string.format('%s_%s_%s', "host", subject_key, alert_key)
 
       end
@@ -166,7 +166,7 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
 
         for i=0,table.len(t) do
           if(t[i] ~= alert_key) then
-            table.insert(r, t[i])
+            r[#r + 1] = t[i]
           end
         end
 	    

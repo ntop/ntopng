@@ -103,7 +103,7 @@ for key, value in pairs(country_stats) do
    record["charts_enabled"] = charts_enabled
    
    -- add record to response
-   table.insert(rsp, record)
+   rsp[#rsp + 1] = record
 
 end
 

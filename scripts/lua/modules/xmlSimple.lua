@@ -59,7 +59,7 @@ function newParser()
     function XmlParser:ParseXmlText(xmlText)
         local stack = {}
         local top = newNode()
-        table.insert(stack, top)
+        stack[#stack + 1] = top
         local ni, c, label, xarg, empty
         local i, j = 1, 1
         while true do
@@ -77,7 +77,7 @@ function newParser()
             elseif c == "" then -- start tag
                 local lNode = newNode(label)
                 self:ParseArgs(lNode, xarg)
-                table.insert(stack, lNode)
+                stack[#stack + 1] = lNode
 		top = lNode
             else -- end tag
                 local toclose = table.remove(stack) -- remove top
@@ -138,14 +138,14 @@ function newNode(name)
         if self[child:name()] ~= nil then
             if type(self[child:name()].name) == "function" then
                 local tempTable = {}
-                table.insert(tempTable, self[child:name()])
+                tempTable[#tempTable + 1] = self[child:name()]
                 self[child:name()] = tempTable
             end
             table.insert(self[child:name()], child)
         else
             self[child:name()] = child
         end
-        table.insert(self.___children, child)
+        self.___children[#self.___children + 1] = child
     end
 
     function node:properties() return self.___props end
@@ -155,14 +155,14 @@ function newNode(name)
         if self[lName] ~= nil then
             if type(self[lName]) == "string" then
                 local tempTable = {}
-                table.insert(tempTable, self[lName])
+                tempTable[#tempTable + 1] = self[lName]
                 self[lName] = tempTable
             end
-            table.insert(self[lName], value)
+            self[lName][#self[lName] + 1] = value
         else
             self[lName] = value
         end
-        table.insert(self.___props, { name = name, value = self[name] })
+        self.___props[#self.___props + 1] = { name = name, value = self[name] }
     end
 
     return node
