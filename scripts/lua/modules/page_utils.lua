@@ -1197,10 +1197,11 @@ function page_utils.print_header(title, addLoginJS)
     print(dark_mode and "dark" or "light")
     print [[";
     document.documentElement.setAttribute('data-theme', mode);
+    document.documentElement.setAttribute('data-bs-theme', mode);
     </script>
     </head>]]
     print([[
-     <body class="body ]] .. (dark_mode and "dark" or "") .. [[">
+     <body class="body ]] .. (dark_mode and "dark dark-mode" or "") .. [[">
   ]])
 end
 
