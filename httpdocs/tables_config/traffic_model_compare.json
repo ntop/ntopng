@@ -1,0 +1,82 @@
+{
+	"id": "traffic_model_compare",
+	"data_url": "lua/pro/rest/v2/get/traffic_model/compare.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "delta_flows",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "ip",
+			"title": "Server",
+			"data_field": "ip",
+			"sortable": true,
+			"min-width": "160px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "status",
+			"title": "Status",
+			"data_field": "status",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-center", "text-nowrap"]
+		},
+		{
+			"id": "flows_old",
+			"title": "Flows (Reference)",
+			"data_field": "flows_old",
+			"sortable": true,
+			"min-width": "120px",
+			"render_type": "number",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "flows_new",
+			"title": "Flows (Checked)",
+			"data_field": "flows_new",
+			"sortable": true,
+			"min-width": "120px",
+			"render_type": "number",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "delta_flows",
+			"title": "Delta",
+			"data_field": "delta_flows",
+			"sortable": true,
+			"min-width": "90px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "delta_pct",
+			"title": "Delta %",
+			"data_field": "delta_pct",
+			"sortable": true,
+			"min-width": "90px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "bytes_old",
+			"title": "Traffic (Reference)",
+			"data_field": "bytes_old",
+			"sortable": true,
+			"min-width": "130px",
+			"render_type": "bytes",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "bytes_new",
+			"title": "Traffic (Checked)",
+			"data_field": "bytes_new",
+			"sortable": true,
+			"min-width": "130px",
+			"render_type": "bytes",
+			"class": ["text-end", "text-nowrap"]
+		}
+	]
+}

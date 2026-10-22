@@ -1,0 +1,24 @@
+{
+	"id": "traffic_model_expected_missing",
+	"data_url": "lua/pro/rest/v2/get/traffic_model/expected.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "ip",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "ip",
+			"title": "Expected But Not Seen",
+			"data_field": "ip",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

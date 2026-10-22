@@ -10943,6 +10943,12 @@ local lang = {
     ["top_hosts"] = "Top Hosts (Local and Remote)",
     ["top_hosts_local"] = "Top Hosts (Local)",
   },
+  ["traffic_model"] = {
+    ["servers"] = "Servers",
+    ["expected_servers"] = "Expected Servers",
+    ["compare_days"] = "Compare Days",
+    ["calendar"] = "Calendar",
+  },
   ["traffic_behaviour"] = {
     ["allowed"] = "Authorized",
     ["denied"] = "Unauthorized",

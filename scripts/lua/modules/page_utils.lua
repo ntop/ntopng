@@ -641,6 +641,11 @@ page_utils.menu_entries = {
         section = "admin",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/behavioural_checks_exclusion.html?utm_source=ntopng"
     },
+    traffic_model = {
+        key = "traffic_model",
+        i18n_title = "Traffic Model",
+        section = "admin",
+    },
     alert_exclusions_hosts = {
         key = "alert_exclusions",
         subkey = "hosts",
