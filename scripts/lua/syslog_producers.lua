@@ -25,7 +25,7 @@ end
 local producer_types = {};
 local syslog_scripts = checks.listScripts(checks.script_types.syslog, "syslog")
 for k,v in pairs(syslog_scripts) do
-  table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
+  producer_types[#producer_types + 1] = { title = i18n(v.."_collector.title"), value = v  }
 end
 
 -- #######################################################

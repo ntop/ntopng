@@ -26,11 +26,11 @@ function split(s, delimiter)
    if (s ~= nil) then
       if delimiter == nil then
 	 -- No delimiter, split all characters
-	 for match in s:gmatch "." do table.insert(result, match); end
+	 for match in s:gmatch "." do result[#result + 1] = match; end
       else
 	 -- Split by delimiter
 	 for match in (s .. delimiter):gmatch("(.-)" .. delimiter) do
-	    table.insert(result, match);
+	    result[#result + 1] = match;
 	 end
       end
    end
@@ -597,11 +597,11 @@ function string.split(s, p)
       if i and e then
 	 local next_index = e + 1
 	 local word_bound = i - 1
-	 table.insert(temp, string.sub(s, index, word_bound))
+	 temp[#temp + 1] = string.sub(s, index, word_bound)
 	 index = next_index
       else
 	 if index > 0 and index <= last_index then
-	    table.insert(temp, string.sub(s, index, last_index))
+	    temp[#temp + 1] = string.sub(s, index, last_index)
 	 elseif index == 0 then
 	    temp = nil
 	 end

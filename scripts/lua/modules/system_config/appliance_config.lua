@@ -259,7 +259,7 @@ function appliance_config:_guess_config()
       for a, b in pairsByKeys(wired_devs) do
          if a ~= passive["interfaces"]["lan"] then
             -- table.insert(passive["interfaces"]["unused"], a)
-            table.insert(passive["interfaces"]["wan"], a)
+            passive["interfaces"]["wan"][#passive["interfaces"]["wan"] + 1] = a
          end
       end
 
@@ -293,9 +293,9 @@ function appliance_config:_guess_config()
 
             for n,c in pairsByKeys(b.ports) do
                if n == 1 then
-                  table.insert(bridging["interfaces"]["lan"], c)
+                  bridging["interfaces"]["lan"][#bridging["interfaces"]["lan"] + 1] = c
                else
-                  table.insert(bridging["interfaces"]["wan"], c)
+                  bridging["interfaces"]["wan"][#bridging["interfaces"]["wan"] + 1] = c
                end
                used_ifaces[c] = true
             end
@@ -313,7 +313,7 @@ function appliance_config:_guess_config()
          -- add other interfaces to the unused ones
          for iface,_ in pairsByKeys(wired_devs) do
             if used_ifaces[iface] == nil then
-               table.insert(bridging["interfaces"]["unused"], iface)
+               bridging["interfaces"]["unused"][#bridging["interfaces"]["unused"] + 1] = iface
             end
          end
       end
@@ -334,7 +334,7 @@ function appliance_config:_guess_config()
          elseif(n == 1) then
             bridging["interfaces"]["wan"] = { a }
          else
-            table.insert(bridging["interfaces"]["unused"], a)
+            bridging["interfaces"]["unused"][#bridging["interfaces"]["unused"] + 1] = a
          end
 
          n = n + 1

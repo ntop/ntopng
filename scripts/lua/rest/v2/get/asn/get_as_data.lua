@@ -129,7 +129,7 @@ for key, value in pairs(ases_info or {}) do
     }
 
     if add_record then
-        table.insert(res, record)
+        res[#res + 1] = record
     end
 end
 

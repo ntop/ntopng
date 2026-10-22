@@ -598,18 +598,18 @@ function recording_utils.createConfig(ifid, params)
   local first_core = 0
 
   defaults.writer_core = nextFreeCore(cores, busy_cores, first_core)
-  table.insert(busy_cores, defaults.writer_core)
+  busy_cores[#busy_cores + 1] = defaults.writer_core
   first_core = (defaults.writer_core + 1) % cores
 
   defaults.reader_core = nextFreeCore(cores, busy_cores, first_core)
-  table.insert(busy_cores, defaults.reader_core)
+  busy_cores[#busy_cores + 1] = defaults.reader_core
   first_core = (defaults.reader_core + 1) % cores
 
   defaults.indexer_cores = {}
   for i=1,indexing_threads do
     local indexer_core = nextFreeCore(cores, busy_cores, first_core)
-    table.insert(defaults.indexer_cores, indexer_core)
-    table.insert(busy_cores, indexer_core)
+    defaults.indexer_cores[#defaults.indexer_cores + 1] = indexer_core
+    busy_cores[#busy_cores + 1] = indexer_core
     first_core = (indexer_core + 1) % cores
   end 
 
@@ -807,7 +807,7 @@ function recording_utils.getViewedInterfacesWithRecording(view_ifid)
     if interface.viewedBy() == view_id then
       local sub_ifid = interface.getId()
       if recording_utils.isEnabled(sub_ifid) then
-        table.insert(result, { ifid = sub_ifid, ifname = other_ifname })
+        result[#result + 1] = { ifid = sub_ifid, ifname = other_ifname }
       end
     end
   end
@@ -1244,7 +1244,7 @@ function recording_utils.getJobFiles(id)
       local file_id = 1
       local file = getPcapFilePath(job.id, job.ifid, file_id)
       while ntop.exists(file) do
-	 table.insert(files, file)
+	 files[#files + 1] = file
 	 file_id = file_id + 1
 	 file = getPcapFilePath(job.id, job.ifid, file_id) 
       end

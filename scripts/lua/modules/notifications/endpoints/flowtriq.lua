@@ -156,7 +156,7 @@ function flowtriq.dequeueRecipientAlerts(recipient, budget)
 
       for _, json_message in ipairs(notifications) do
          local alert = formatAlertPayload(json_message)
-         table.insert(alerts, alert)
+         alerts[#alerts + 1] = alert
       end
 
       if not flowtriq.sendMessage(alerts, settings) then

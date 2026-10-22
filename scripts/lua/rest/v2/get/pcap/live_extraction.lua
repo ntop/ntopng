@@ -66,7 +66,7 @@ if ifstats.isView then
    for _, iface in ipairs(viewed_ifaces) do
       local tl = recording_utils.getTimelineByInterval(iface.ifid, time_from, time_to)
       if tl then
-         table.insert(paths, tl)
+         paths[#paths + 1] = tl
       end
    end
 

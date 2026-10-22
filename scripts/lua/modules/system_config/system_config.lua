@@ -496,7 +496,7 @@ function system_config:getLocalIpv4Addresses(ifname)
   for _, iface in ipairs(ifaces) do
     local address = self:getInterfaceAddress(iface)
     if not isEmptyString(address) then
-      table.insert(addresses, address)
+      addresses[#addresses + 1] = address
     end
   end
 
@@ -507,7 +507,7 @@ function system_config:getLocalIpv4Addresses(ifname)
     if ifname and self.config.interfaces.configuration[ifname] then
       -- This is possibly wrong (e.g. in transparent bridge)
       local address = self.config.interfaces.configuration[ifname].network.ip or "192.168.1.1"
-      table.insert(addresses, address)
+      addresses[#addresses + 1] = address
     end
   end
 
@@ -923,13 +923,13 @@ function system_config:getLanNetworks()
     local lan_config = self.config.interfaces.configuration[lan_iface].network
     local lan_network = ipv4_utils.addressToNetwork(lan_config.ip, lan_config.netmask)
 
-    table.insert(networks, {
+    networks[#networks + 1] = {
       iface = lan_iface,
       network = lan_network,
       cidr = lan_network,
       ip = lan_config.ip,
       netmask = lan_config.netmask,
-    })
+    }
   end
 
   return networks

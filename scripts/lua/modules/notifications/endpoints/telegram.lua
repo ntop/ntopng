@@ -171,7 +171,7 @@ function telegram.dequeueRecipientAlerts(recipient, budget)
         local alerts = {}
 
         for _, json_message in ipairs(notifications) do
-            table.insert(alerts, formatTelegramMessage(json.decode(json_message)))
+            alerts[#alerts + 1] = formatTelegramMessage(json.decode(json_message))
         end
 
         local json_msg = table.concat(alerts, " | ")

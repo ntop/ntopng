@@ -166,7 +166,7 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
     for _, json_message in ipairs(notifications) do
        local alert = formatAlertMsg(json_message)
        if(debugme) then tprint("[ALERT] "..json_message) end
-       table.insert(alerts, alert)
+       alerts[#alerts + 1] = alert
     end
 
     num_messages_dequeued = num_messages_dequeued + #notifications

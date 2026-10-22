@@ -143,7 +143,7 @@ function mattermost.dequeueRecipientAlerts(recipient, budget)
     local alerts = {}
 
     for _, json_message in ipairs(notifications) do
-      table.insert(alerts, formatMattermostMessage(json.decode(json_message)))
+      alerts[#alerts + 1] = formatMattermostMessage(json.decode(json_message))
     end
 
     local res, msg = mattermost.sendMattermost(table.concat(alerts, "\n"), settings)

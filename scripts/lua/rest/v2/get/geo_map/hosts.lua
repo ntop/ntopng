@@ -69,7 +69,7 @@ if host_key then
         for ip, count in pairs(flowstats["talking_with"]) do
 
             local host_info = interface.getHostMinInfo(ip)
-            table.insert(data.hosts, host_info)
+            data.hosts[#data.hosts + 1] = host_info
         end
     end
 end

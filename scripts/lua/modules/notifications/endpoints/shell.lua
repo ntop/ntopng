@@ -182,7 +182,7 @@ function shell.dequeueRecipientAlerts(recipient, budget)
 
         for _, json_message in ipairs(notifications) do
             local alert = json.decode(json_message)
-            table.insert(alerts, alert)
+            alerts[#alerts + 1] = alert
         end
 
         if (shell.runScript(alerts, settings) == false) then

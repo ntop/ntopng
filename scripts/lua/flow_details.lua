@@ -2190,7 +2190,7 @@ local function print_flow_overview_page()
 		  
 		  if(flow_trajectory[v.exporter_ip] == nil) then flow_trajectory[v.exporter_ip] = {} end
 		  if(not valueFound(flow_trajectory[v.exporter_ip], v.next_hop)) then
-		     table.insert(flow_trajectory[v.exporter_ip], { next_hop = v.next_hop, return_path = v.return_path })
+		     flow_trajectory[v.exporter_ip][#flow_trajectory[v.exporter_ip] + 1] = { next_hop = v.next_hop, return_path = v.return_path }
 		  end
 	       end
 	    end

@@ -103,7 +103,7 @@ if (discovered["devices"] ~= nil) then
             information = value["information"]
         }
 
-        table.insert(res, record)
+        res[#res + 1] = record
         ::continue::
     end
 end

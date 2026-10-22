@@ -179,7 +179,7 @@ else --  i.e., total_rows == -1, that it, it was unknown
    local cur = 0
    for _, record in pairs(res) do
       if cur < per_page then
-	 table.insert(res_sliced, record)
+	 res_sliced[#res_sliced + 1] = record
       end
       cur = cur + 1
    end
@@ -231,7 +231,7 @@ for _, record in pairs(res_sliced) do
    if record["avg_flow_duration"] then
       record_contents["column_avg_flow_duration"] = secondsToTime(tonumber(record["avg_flow_duration"]))
    end
-   table.insert(res_formatted, record_contents)
+   res_formatted[#res_formatted + 1] = record_contents
 end
 
 -- tprint(res_formatted)

@@ -26,8 +26,8 @@ for k,v in pairs(schemas) do
 	    families[s[1]] = {}
 	 end
 
-	 for t,_ in pairs(v.tags)    do table.insert(tags, t) end
-	 for m,_ in pairs(v.metrics) do table.insert(metrics, m) end
+	 for t,_ in pairs(v.tags)    do tags[#tags + 1] = t end
+	 for m,_ in pairs(v.metrics) do metrics[#metrics + 1] = m end
 
 	 if(#metrics > 0) then
 	    table.insert(families[s[1]], { schema=k, tags=tags, metrics=metrics })

@@ -225,7 +225,7 @@ function am_utils.getAvailability(host, measurement)
                 color = 3
             end
 
-            table.insert(rc, color)
+            rc[#rc + 1] = color
         end
     end
 
