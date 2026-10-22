@@ -503,6 +503,30 @@ ALTER TABLE assets ADD model TEXT NULL;
 @
 
 -- -----------------------------------------------------
+-- Table assets_journal: journal of the assets (one row
+-- per event), see doc/developers/README.assets_journal.md
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS assets_journal (
+rowid INTEGER PRIMARY KEY AUTOINCREMENT,
+ifid INTEGER NOT NULL,
+asset_type TEXT NOT NULL, -- Type of the asset (host, mac, snmp, ...)
+key TEXT NOT NULL, -- Key of the asset (as in the assets table)
+event_time INTEGER NOT NULL, -- Time of the event (epoch in seconds)
+created_time INTEGER NOT NULL, -- Time the entry has been written (epoch in seconds)
+who TEXT NOT NULL, -- ntopng, or the name of the user
+action TEXT NOT NULL, -- Baseline, New, Update, Delete, Manual
+subaction TEXT NULL, -- What the event is about: os, tag, the name of a field (ip, mac, ...), empty for the asset as a whole
+message_id TEXT NULL, -- Template of the message (i18n key), empty for a plain text message
+message_values TEXT NULL, -- Values of the template, as JSON
+message TEXT NULL -- Plain text message, when there is no template
+);
+@
+CREATE INDEX IF NOT EXISTS assets_journal_i_key_time ON assets_journal(ifid, key, event_time);
+@
+ALTER TABLE assets_journal ADD subaction TEXT NULL;
+@
+
+-- -----------------------------------------------------
 -- -----------------------------------------------------
 -- In-Memory DataBase
 -- -----------------------------------------------------
