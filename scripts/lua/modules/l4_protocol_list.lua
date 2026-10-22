@@ -31,4 +31,30 @@ l4_protocol_list.l4_keys = {
   { "Other IP",  "other_ip",   -1 }
 }
 
+-- ##############################################
+
+function l4_protocol_list.l4_proto_to_string(proto_id)
+    if not proto_id then
+        return ""
+    end
+    if (proto_id == "") or (proto_id == " ") then -- Same as isEmptyString()
+        return ""
+    end
+
+    local proto_id_num = tonumber(proto_id)
+
+    if proto_id_num == nil then
+        -- Already string?
+        return proto_id
+    end
+
+    for _, proto in pairs(l4_protocol_list.l4_keys) do
+        if proto[3] == proto_id_num then
+            return proto[1], proto[2]
+        end
+    end
+
+    return string.format("%d", proto_id_num)
+end
+
 return l4_protocol_list

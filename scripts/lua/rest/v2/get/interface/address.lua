@@ -6,9 +6,10 @@ local dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-local alert_utils = require "alert_utils"
-local json = require("dkjson")
+-- Parses the JSON POST payload and validates/sanitizes _GET/_POST (normally
+-- loaded by lua_utils): must be required before reading the parameters
+require "http_lint"
+require "ntop_utils" -- isEmptyString(), split()
 local rest_utils = require("rest_utils")
 
 --
@@ -31,7 +32,7 @@ end
 
 interface.select(ifid)
 
-local ifstats = interface.getStats()
+local ifstats = interface.getStats(false --[[ ip_addresses is in the basic stats ]])
 
 local addresses = {}
 

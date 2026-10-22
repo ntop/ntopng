@@ -11,8 +11,6 @@ pragma_once_lua_utils_print = true
 
 local clock_start = os.clock()
 
-local dscp_consts  = require "dscp_consts"
-
 -- ##############################################
 
 function printGETParameters(get)
@@ -159,6 +157,8 @@ function printDSCPDropdown(base_url, page_params, dscp_list, format_utils)
     end
 
     local ordered_dscp_list = {}
+
+    local dscp_consts = require "dscp_consts"
 
     for key, value in pairs(dscp_list) do
         local name = dscp_consts.dscp_descr(key)

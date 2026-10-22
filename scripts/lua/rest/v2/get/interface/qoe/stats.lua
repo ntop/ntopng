@@ -5,7 +5,12 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- Parses the JSON POST payload and validates/sanitizes _GET/_POST (normally
+-- loaded by lua_utils): must be required before reading the parameters
+require "http_lint"
+require "ntop_utils" -- isEmptyString(), pairsByField(), rev()
+require "lua_utils_generic" -- toboolean()
+require "locales_utils" -- i18n()
 local rest_utils  = require "rest_utils"
 local stats_utils = require "stats_utils"
 

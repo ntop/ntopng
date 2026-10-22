@@ -158,7 +158,7 @@ function host_utils.hostinfo2detailsurl(host_info, href_params, href_check)
             end
             -- All other pages are in host_details.lua
         else
-            res = string.format("%s/lua/host_details.lua?%s%s%s", ntop.getHttpPrefix(), hostinfo2url(host_info),
+            res = string.format("%s/lua/host_details.lua?%s%s%s", ntop.getHttpPrefix(), host_utils.hostinfo2url(host_info),
                 isEmptyString(url_params) and '' or '&', url_params)
         end
     end

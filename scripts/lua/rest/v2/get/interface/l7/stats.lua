@@ -5,7 +5,11 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require("lua_utils")
+-- Parses the JSON POST payload and validates/sanitizes _GET/_POST (normally
+-- loaded by lua_utils): must be required before reading the parameters
+require "http_lint"
+require "ntop_utils" -- isEmptyString(), pairsByValues(), rev()
+require "locales_utils" -- i18n()
 local rest_utils = require("rest_utils")
 local stats_utils = require("stats_utils")
 
@@ -81,7 +85,7 @@ end
 
 -- ##################################
 
-local _ifstats = computeL7Stats(stats, show_breed, show_ndpi_category)
+local _ifstats = stats_utils.computeL7Stats(stats, show_breed, show_ndpi_category)
 
 for key, value in pairsByValues(_ifstats, rev) do
 	data[#data + 1] = {

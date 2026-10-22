@@ -11,6 +11,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. p
 -- NOTE: this endpoint is polled every few seconds by the GUI: require only
 -- light modules. lua_utils and ascan_utils (with their dependencies) take
 -- from hundreds of ms up to seconds to load, while the stats take ~1 ms.
+-- Parses the JSON POST payload and validates/sanitizes _GET/_POST (normally
+-- loaded by lua_utils): must be required before reading the parameters
+require "http_lint"
 require "ntop_utils"
 require "lua_utils_generic"
 require "lua_utils_get" -- getInterfaceSpeed(), getInterfaceName() (label_utils)

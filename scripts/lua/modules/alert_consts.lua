@@ -13,6 +13,9 @@ require "ntop_utils"
 require "label_utils"
 require "gui_utils"
 require "lua_trace"
+require "check_redis_prefs"
+require "lua_utils_generic"
+require "locales_utils"
 local alert_entities_utils = require "alert_entities_utils"
 local os_utils = require "os_utils"
 local alert_consts = {}
@@ -341,10 +344,21 @@ end
 -- ##############################################
 
 -- See alert_consts.resetDefinitions()
+-- NOTE: alert definitions are loaded lazily (see the metatable set below):
+-- loading all of them requires ~200 files, too slow to be done on every
+-- require of this module
 alert_consts.alert_types = {}
 local alerts_by_id = {} -- All available alerts keyed by entity_id and alert_id
+local all_defs_loaded = false
 
 local function loadAlertsDefs()
+   if all_defs_loaded then
+      return
+   end
+
+   -- Set before loading, to avoid recursions while the definitions are loaded
+   all_defs_loaded = true
+
    local lua_path_utils = require "lua_path_utils"
 
    if (false) then
@@ -358,7 +372,9 @@ local function loadAlertsDefs()
       lua_path_utils.package_path_prepend(defs_dir)
 
       for fname in pairs(ntop.readdir(defs_dir)) do
-         if string.ends(fname, ".lua") then
+         -- Skip the definitions already loaded by name (see loadAlertDefByName)
+         if string.ends(fname, ".lua") and
+            (rawget(alert_consts.alert_types, string.sub(fname, 1, string.len(fname) - 4)) == nil) then
             local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
             local def_script = require(mod_fname)
 
@@ -409,6 +425,48 @@ local function loadAlertsDefs()
       end
    end
 end
+
+-- ##############################################
+
+-- Loads only the definition file of the alert `name` (e.g. alert_types.alert_xxx).
+-- Names without a definition file (e.g. nDPI flow risk alerts) load all the definitions
+local function loadAlertDefByName(name)
+   if all_defs_loaded or (type(name) ~= "string") or (not name:match("^[%w_]+$")) then
+      return
+   end
+
+   for _, defs_dir in ipairs(alert_consts.getDefinititionDirs()) do
+      if ntop.exists(os_utils.fixPath(defs_dir .. "/" .. name .. ".lua")) then
+         local lua_path_utils = require "lua_path_utils"
+
+         lua_path_utils.package_path_prepend(defs_dir)
+
+         local def_script = require(name)
+
+         if (def_script == nil) then
+            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", name))
+         elseif not loadDefinition(def_script, name, defs_dir) then
+            -- Retry reload
+            package.loaded[name] = nil
+         end
+
+         return
+      end
+   end
+
+   loadAlertsDefs()
+end
+
+setmetatable(alert_consts.alert_types, {
+   __index = function(t, name)
+      loadAlertDefByName(name)
+      return rawget(t, name)
+   end,
+   __pairs = function(t)
+      loadAlertsDefs()
+      return next, t, nil
+   end
+})
 
 -- ##############################################
 
@@ -649,6 +707,9 @@ end
 -- ##############################################
 
 function alert_consts.getAlertType(alert_key, alert_entity_id)
+   -- alerts_by_id is complete only when all the definitions are loaded
+   loadAlertsDefs()
+
    -- Make sure we are working with numbers
    alert_key = tonumber(alert_key)
    alert_entity_id = tonumber(alert_entity_id)
@@ -687,6 +748,8 @@ end
 -- ##############################################
 
 function alert_consts.getAlertTypes(alert_entity_id)
+   loadAlertsDefs()
+
    return alerts_by_id[alert_entity_id]
 end
 
@@ -903,8 +966,7 @@ function alert_consts.sec2granularity(seconds)
    end
    return key
 end
--- Load definitions now
-loadAlertsDefs()
+-- NOTE: alert definitions are loaded on demand (see loadAlertDefByName)
 initMappings()
 
 if (trace_script_duration ~= nil) then

@@ -12,7 +12,6 @@ pragma_once_lua_utils_get = true
 require "ntop_utils"
 require "label_utils"
 require "check_redis_prefs"
-local cache_utils = require "cache_utils"
 
 local clock_start = os.clock()
 local snmp_cached_devices = {}
@@ -90,6 +89,7 @@ function getExporterName(exporter_ip, show_vlan, shorten_len, show_ip_and_alias)
     if tonumber(exporter_ip) then exporter_ip = ntop.inet_ntoa(exporter_ip) end
 
     if (exporter_ip ~= nil) then
+        local cache_utils = require "cache_utils"
         local ret = cache_utils.gethostname(exporter_ip)
 
         if (not isEmptyString(ret)) then return (ret) end
@@ -1149,19 +1149,22 @@ end
 
 -- ##############################################
 
+-- Same ids/labels as flowfilter_utils.confidence: not required here as it
+-- loads alert_consts, host_pools, ... (hundreds of ms) just for 3 labels
+local confidence_i18n_keys = {
+    [-1] = "confidence_unknown",
+    [0] = "confidence_guessed",
+    [1] = "confidence_dpi"
+}
+
 function get_confidence(confidence_id, shorten_string)
-    local flowfilter_utils = require "flowfilter_utils"
     local confidence_name = confidence_id
 
     if confidence_id and tonumber(confidence_id) then
-        confidence_id = tonumber(confidence_id)
+        local i18n_key = confidence_i18n_keys[tonumber(confidence_id)]
 
-        for _, confidence in pairs(flowfilter_utils.confidence or {}) do
-            if confidence.id == confidence_id then
-                confidence_name = confidence.label
-
-                break
-            end
+        if i18n_key then
+            confidence_name = i18n(i18n_key)
         end
     end
 

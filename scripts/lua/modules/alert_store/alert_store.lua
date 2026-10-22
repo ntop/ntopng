@@ -1830,31 +1830,6 @@ end
 
 -- ##############################################
 
--- @brief Performs a query for the top alerts by severity
-function alert_store:top_alert_id_historical_by_severity()
-    self:add_request_filters()
-    local table_name = self:get_table_name()
-    -- Preserve all the filters currently set
-    local where_clause = self:build_where_clause()
-    local limit = 10
-    local q = string.format(
-        "SELECT alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY max(severity) DESC, count DESC LIMIT %u",
-        table_name, where_clause, limit)
-
-    if not self._alert_entity then
-        -- For the all view alert_entity is read from the database
-        q = string.format(
-            "SELECT entity_id, alert_id, max(severity) severity, count(*) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY max(severity) DESC, count DESC LIMIT %u",
-            table_name, where_clause, limit)
-    end
-
-    local q_res = interface.alert_store_query(q) or {}
-
-    return q_res
-end
-
--- ##############################################
-
 -- @brief Child stats
 function alert_store:_get_additional_stats()
     return {}

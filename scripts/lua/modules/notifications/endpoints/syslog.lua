@@ -2,6 +2,8 @@
 -- (C) 2021 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"

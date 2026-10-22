@@ -20,13 +20,9 @@ local clock_start = os.clock()
 
 require "gui_utils"
 require "lua_utils_get"
-local host_utils = require "host_utils"
 local format_utils = require "format_utils"
-local dns_utils = require "dns_utils"
-local http_utils = require "http_utils"
 local rest_utils = require "rest_utils"
 --local snmp_utils
-local cache_utils = require "cache_utils"
 
 if ntop.isPro and ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -39,9 +35,10 @@ sendHTTPContentTypeHeader = rest_utils.sendHTTPContentTypeHeader
 sendHTTPHeaderIfName = rest_utils.sendHTTPHeaderIfName
 sendHTTPHeaderLogout = rest_utils.sendHTTPHeaderLogout
 sendHTTPHeader = rest_utils.sendHTTPHeader
-flow2hostinfo = host_utils.flow2hostinfo
-hostinfo2url = host_utils.hostinfo2url
-hostinfo2detailsurl = host_utils.hostinfo2detailsurl
+-- host_utils is required lazily: it is not needed by most of the scripts
+function flow2hostinfo(...) return require("host_utils").flow2hostinfo(...) end
+function hostinfo2url(...) return require("host_utils").hostinfo2url(...) end
+function hostinfo2detailsurl(...) return require("host_utils").hostinfo2detailsurl(...) end
 local ntop_http_prefix = ntop.getHttpPrefix()   
 local ntop_is_pro = (ntop.isPro and ntop.isPro()) or false
 local ntop_is_enterprise_m = (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false
@@ -996,6 +993,7 @@ function format_portidx_name(device_ip, portidx, short_version)
       device_ip = ntop.inet_ntoa(device_ip)
    end
 
+   local cache_utils = require "cache_utils"
    local cached_val = cache_utils.getifname(device_ip, portidx)
 
    if (cached_val ~= nil) then
@@ -1128,6 +1126,7 @@ end
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
 function format_dns_query_info(dns_info, no_html)
+   local dns_utils = require "dns_utils"
 
    local formatted_dns_query_info = {}
 
@@ -1305,6 +1304,7 @@ end
 -- ##############################################
 
 function format_http_info(http_info, no_html)
+   local http_utils = require "http_utils"
 
    local formatted_http_info = {}
 

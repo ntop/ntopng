@@ -2,6 +2,8 @@
 -- (C) 2021 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_keys/?.lua;" .. package.path
 

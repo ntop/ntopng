@@ -2,6 +2,8 @@
 -- (C) 2013-26 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+
 require "lua_utils_get"
 local flowfilter_utils = require "flowfilter_utils"
 local dscp_consts = require "dscp_consts"

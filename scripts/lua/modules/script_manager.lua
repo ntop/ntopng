@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
 
 local os_utils = require("os_utils")
-local template_utils = require("template_utils")
 local lua_path_utils = require("lua_path_utils")
 require "lua_trace"
 require "lua_utils_generic"
@@ -306,6 +305,8 @@ function script_manager.renderNotificationTemplate(script_name, template_file, c
     if not ntop.exists(full_path) then
         full_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/check_templates/" .. template_file)
     end
+
+    local template_utils = require("template_utils")
 
     return template_utils.gen(full_path, context, true --[[ using full path ]] )
 end

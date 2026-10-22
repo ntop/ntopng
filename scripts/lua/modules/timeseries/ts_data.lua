@@ -268,8 +268,6 @@ end
 -- Main public function: Retrieves timeseries data based on HTTP context
 -- This is the primary entry point for timeseries data retrieval
 function ts_data.get_timeseries(http_context)
-   local graph_utils = require "graph_utils"
-
    -- Extract parameters from HTTP context
    local ts_schema = http_context.ts_schema
    local compare_backward = http_context.ts_compare

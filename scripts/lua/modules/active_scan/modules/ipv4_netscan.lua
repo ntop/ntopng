@@ -2,6 +2,8 @@
 -- (C) 2020-26 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+
 local vs_module = {}
 
 package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path

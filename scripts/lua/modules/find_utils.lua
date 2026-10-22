@@ -1,6 +1,8 @@
 --
 -- (C) 2017-26 - ntop.org
 --
+local dirs = ntop.getDirs()
+
 require "label_utils"
 local json = require "dkjson"
 local flowfilter_utils = require "flowfilter_utils"

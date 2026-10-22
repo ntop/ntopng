@@ -220,29 +220,8 @@ end
 
 -- ##############################################
 
-function l4_proto_to_string(proto_id)
-    if not proto_id then
-        return ""
-    end
-    if isEmptyString(proto_id) then
-        return ""
-    end
-
-    proto_id_num = tonumber(proto_id)
-
-    if proto_id_num == nil then
-        -- Already string?
-        return proto_id
-    end
-
-    for _, proto in pairs(l4_keys) do
-        if proto[3] == proto_id_num then
-            return proto[1], proto[2]
-        end
-    end
-
-    return string.format("%d", proto_id_num)
-end
+-- Moved to l4_protocol_list: kept for compatibility
+l4_proto_to_string = l4_protocol_list.l4_proto_to_string
 
 -- ##############################################
 
@@ -501,77 +480,9 @@ end
 
 -- ###########################################
 
+-- Moved to stats_utils (not loaded by lua_utils): kept for compatibility
 function computeL7Stats(stats, show_breed, show_ndpi_category)
-    local _ifstats = {}
-
-    if table.len(stats) == 0 then
-        return _ifstats
-    end
-
-    if (show_breed) then
-        local breed_stats = {}
-
-        for key, value in pairs(stats["ndpi"]) do
-            local b = stats["ndpi"][key]["breed"]
-
-            local traffic = stats["ndpi"][key]["bytes.sent"] + stats["ndpi"][key]["bytes.rcvd"]
-
-            if (breed_stats[b] == nil) then
-                breed_stats[b] = traffic
-            else
-                breed_stats[b] = breed_stats[b] + traffic
-            end
-        end
-
-        for key, value in pairs(breed_stats) do
-            _ifstats[key] = value
-        end
-
-    elseif (show_ndpi_category) then
-        local ndpi_category_stats = {}
-
-        for key, value in pairs(stats["ndpi_categories"]) do
-            key = getCategoryLabel(key, value.category)
-            local traffic = value["bytes"]
-
-            if (ndpi_category_stats[key] == nil) then
-                ndpi_category_stats[key] = traffic
-            else
-                ndpi_category_stats[key] = ndpi_category_stats[key] + traffic
-            end
-        end
-
-        for key, value in pairs(ndpi_category_stats) do
-            _ifstats[key] = value
-        end
-
-    else
-        -- Add ARP to stats
-        local arpBytes = 0
-        if (stats["eth"] ~= nil) then
-            arpBytes = stats["eth"]["ARP_bytes"]
-            if (arpBytes > 0) then
-                _ifstats["ARP"] = arpBytes
-            end
-        end
-
-        for key, value in pairs(stats["ndpi"]) do
-            local traffic = value["bytes.sent"] + value["bytes.rcvd"]
-            if (key == "Unknown") then
-                traffic = traffic - arpBytes
-            end
-
-            if (traffic > 0) then
-                if (show_breed) then
-                    _ifstats[value["breed"]] = traffic
-                else
-                    _ifstats[key] = traffic
-                end
-            end
-        end
-    end
-
-    return _ifstats
+    return require("stats_utils").computeL7Stats(stats, show_breed, show_ndpi_category)
 end
 
 -- ##############################################

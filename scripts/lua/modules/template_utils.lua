@@ -1,3 +1,5 @@
+local dirs = ntop.getDirs()
+
 local template = require "resty.template"
 local os_utils = require "os_utils"
 
