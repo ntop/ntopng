@@ -2293,6 +2293,16 @@ function M.get_sections(flags)
             redis_key = "ntopng.prefs.enable_asset_inventory",
             default = "1",
             section = i18n("assets")
+        }, {
+            -- Journal of the assets (see doc/developers/README.assets_journal.md)
+            key = "toggle_assets_journal",
+            title = i18n("prefs.toggle_assets_journal_title"),
+            description = i18n("prefs.toggle_assets_journal_description"),
+            type = "toggle",
+            redis_key = "ntopng.prefs.assets_journal_enabled",
+            default = "1",
+            section = i18n("assets"),
+            locked = lock_enterprise_l
         },
             -- Service Map
             -- tformat="hd": value stored in seconds; UI shows number + Hours/Days selector

@@ -937,6 +937,12 @@ typedef enum {
   NTOPNG_PREFS_PREFIX ".enable_asset_inventory"  // same name as lua prefs.lua
 #define CONST_DEFAULT_ASSET_INVENTORY_ENABLED 1  // enabled by default
 
+/* Journal of the assets (see doc/developers/README.assets_journal.md). Keep in
+ * sync with assets_journal.lua */
+#define CONST_PREFS_ASSETS_JOURNAL_ENABLED \
+  NTOPNG_PREFS_PREFIX ".assets_journal_enabled"
+#define CONST_DEFAULT_ASSETS_JOURNAL_ENABLED 1  // enabled by default
+
 #define CONST_PREFS_SNMP_TRAP_ENABLED \
   NTOPNG_PREFS_PREFIX ".toggle_snmp_trap"  // same name as lua prefs.lua
 #define CONST_DEFAULT_SNMP_TRAP_ENABLED 0  // disabled by default
