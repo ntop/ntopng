@@ -373,6 +373,7 @@ class Utils {
     if (*v < 0xFF) (*v)++;
   }
   static void flushHTTPBuffer(lua_State *vm);
+  static void addHTTPConnectionClose(std::string &headers);
   static void convertIPv4ToIPv6(u_int32_t ipv4_addr /* in */,
 				struct ndpi_in6_addr *ipv6_addr /* out */);
   static void setIPv4Address(struct ndpi_in6_addr *out_addr, u_int32_t ipv4);

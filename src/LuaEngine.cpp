@@ -1152,6 +1152,8 @@ static void flushBufferedHTTPResponse(
 
   /* Isolate the header block (no trailing \r\n\r\n) and the body. */
   std::string headers(response, 0, boundary);
+
+  Utils::addHTTPConnectionClose(headers);
   const char* body_data = response.data() + boundary + 4;
   size_t body_size = response.size() - (boundary + 4);
 

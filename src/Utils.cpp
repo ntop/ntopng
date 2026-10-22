@@ -8258,11 +8258,37 @@ bool Utils::setProcessLimit(int resource, u_int32_t upper_limit) {
   directly from the backend, thus HTTP headers and other data from Lua
   needs to be sent/flushed.
 */
+/*
+  The HTTP server closes the connection after every response (enable_keep_alive
+  is "no", see HTTPserver.cpp): say so to the client, otherwise an HTTP/1.1
+  client assumes a persistent connection and may send the next request on the
+  closed socket. Chrome/Firefox silently retry, Safari fails the request
+  ("The network connection was lost"), e.g. charts randomly not loading.
+
+  headers: the response status line and headers, without the final \r\n\r\n
+*/
+void Utils::addHTTPConnectionClose(std::string &headers) {
+  if (strcasestr(headers.c_str(), "\r\nConnection:") == NULL)
+    headers += "\r\nConnection: close";
+}
+
+/* ******************************************* */
+
 void Utils::flushHTTPBuffer(lua_State *vm) {
   NtopngLuaContext *ctx = getLuaVMContext(vm);
   struct mg_connection* conn = getLuaVMUserdata(vm, conn);
 
   if (ctx && ctx->buffer_http_response && !ctx->http_response_buffer.empty()) {
+    /* Streamed response: the headers are in the first chunk */
+    size_t boundary = ctx->http_response_buffer.find("\r\n\r\n");
+
+    if (boundary != std::string::npos) {
+      std::string headers(ctx->http_response_buffer, 0, boundary);
+
+      addHTTPConnectionClose(headers);
+      ctx->http_response_buffer.replace(0, boundary, headers);
+    }
+
     mg_write(conn, ctx->http_response_buffer.data(), ctx->http_response_buffer.size());
     ctx->buffer_http_response = false;
     ctx->http_response_buffer.clear();

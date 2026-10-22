@@ -442,10 +442,11 @@ function rest_utils.sendHTTPHeaderIfName(mime, ifname, maxage,
     local lines = {
         'Cache-Control: max-age=0, no-cache, no-store',
         'Server: ntopng ' .. info["version"] .. ' [' .. info["platform"] .. ']',
-        'Set-Cookie: tzname=' .. tzname .. '; path=/' .. cookie_attr,
+        'Set-Cookie: tzname=' .. tzname .. '; path=/;' .. cookie_attr,
         'Pragma: no-cache', 'X-Frame-Options: DENY',
         'X-Content-Type-Options: nosniff', 'Content-Type: ' .. mime,
-        'Last-Modified: ' .. os.date("!%a, %m %B %Y %X %Z")
+        -- HTTP date (RFC 9110), e.g. Thu, 22 Oct 2026 15:04:05 GMT
+        'Last-Modified: ' .. os.date("!%a, %d %b %Y %H:%M:%S GMT")
     }
 
     local uri = _SERVER.URI
@@ -469,13 +470,13 @@ function rest_utils.sendHTTPHeaderIfName(mime, ifname, maxage,
     end
 
     if (ifname ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/' ..
+        lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/;' ..
                                 cookie_attr
     end
 
     if (info.timezone ~= nil) then
         lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone ..
-                                '; path=/' .. cookie_attr
+                                '; path=/;' .. cookie_attr
     end
 
     if (content_disposition ~= nil) then
