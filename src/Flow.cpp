@@ -365,6 +365,14 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
 
   computeKey();
   deferredInitialization();
+
+#ifdef NTOPNG_PRO
+  /* Journal of the assets: the flow that has created the hosts (only the
+   * first flow of a host is recorded, see LocalHost). NOTE: the hosts of the
+   * views are handled by the view (no hosts here) */
+  if (cli_host) cli_host->setJournalCreatedBy(this);
+  if (srv_host) srv_host->setJournalCreatedBy(this);
+#endif
 }
 
 /* *************************************** */
@@ -592,17 +600,12 @@ Flow::~Flow() {
 
   /* First do whatever is necessary with cli_u and srv_u... */
   if (cli_u) {
-    cli_u->updateView(cli_ip_addr);
+    cli_u->updateView(cli_ip_addr, this);
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
 
-  if (!cli_host &&
-      cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow
-                      constructor (viewed interfaces) */
-    delete cli_ip_addr;
-
   if (srv_u) {
-    srv_u->updateView(srv_ip_addr);
+    srv_u->updateView(srv_ip_addr, this);
 
     if (is_oneway_tcp_udp_flow) {
       srv_u->incUnidirectionalIngressTCPUDPFlows();
@@ -630,6 +633,13 @@ Flow::~Flow() {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u = NULL;
   }
+
+  /* NOTE: the addresses are freed after updateView() of both the hosts, that
+   * can print this flow (journal of the assets) */
+  if (!cli_host &&
+      cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow
+                      constructor (viewed interfaces) */
+    delete cli_ip_addr;
 
   if (!srv_host &&
       srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow
@@ -1095,7 +1105,8 @@ void Flow::processExtraDissectedInformation() {
 
                 if (addr->equal(ipv4_addr))
                   srv_host->setResolvedName(
-                      (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name);
+                      (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name,
+                      this);
                 else {
                   /* This is not the right IPv4 host: let's cache it for later
                    */
@@ -1131,7 +1142,7 @@ void Flow::processExtraDissectedInformation() {
 
               if (addr->equal(&ipv6_addr))
                 srv_host->setResolvedName(
-                    (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name);
+                    (char*)ndpiFlow->metadata.protos.dns.ptr_domain_name, this);
               else {
                 char buf[64];
 
@@ -2090,19 +2101,40 @@ char* Flow::print(char* buf, u_int buf_len, bool full_report) {
   buf[0] = '\0';
 
   if (!full_report) {
-    char b1[32], b2[32];
+    /* One line, also used by the journal of the assets, e.g.
+     * "TCP 10.0.0.5:51234->1.2.3.4:443 eth0 (0) [TLS.Google]": IPv6 addresses
+     * in brackets, ports with TCP/UDP only, application when known */
+    IpAddress *c = get_cli_ip_addr(), *s = get_srv_ip_addr();
+    bool with_ports = ((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP));
+    char a1[64], a2[64], cli[80], srv[80];
+    int len;
 
-    snprintf(
-        buf, buf_len,
-        "%s %s:%u [%s] <-> %s:%u [%s][%u/%u pkts][%llu/%llu bytes]",
-        get_protocol_name(),
-        get_cli_ip_addr() ? get_cli_ip_addr()->print(buf1, sizeof(buf1)) : "",
-        ntohs(cli_port), c_mac ? c_mac->print(b1, sizeof(b1)) : "",
-        get_srv_ip_addr() ? get_srv_ip_addr()->print(buf2, sizeof(buf2)) : "",
-        ntohs(srv_port), s_mac ? s_mac->print(b2, sizeof(b2)) : "",
-        get_packets_cli2srv(), get_packets_srv2cli(),
-        (long long unsigned)get_bytes_cli2srv(),
-        (long long unsigned)get_bytes_srv2cli());
+    if (!c || !s) {
+      snprintf(buf, buf_len, "%s", get_protocol_name());
+      return (buf);
+    }
+
+    /* NOTE: print() returns a pointer inside the buffer */
+    char *c_str = c->print(a1, sizeof(a1)), *s_str = s->print(a2, sizeof(a2));
+
+    if (with_ports) {
+      snprintf(cli, sizeof(cli), c->isIPv6() ? "[%s]:%u" : "%s:%u", c_str,
+               ntohs(cli_port));
+      snprintf(srv, sizeof(srv), s->isIPv6() ? "[%s]:%u" : "%s:%u", s_str,
+               ntohs(srv_port));
+    } else
+      snprintf(cli, sizeof(cli), "%s", c_str),
+          snprintf(srv, sizeof(srv), "%s", s_str);
+
+    len = snprintf(buf, buf_len, "%s %s->%s %s (%d)", get_protocol_name(), cli,
+                   srv, iface->get_name(), iface->get_id());
+
+    if ((len > 0) && ((u_int)len < buf_len) && isDetectionCompleted() &&
+        ((ndpiDetectedProtocol.proto.master_protocol != NDPI_PROTOCOL_UNKNOWN) ||
+         (ndpiDetectedProtocol.proto.app_protocol != NDPI_PROTOCOL_UNKNOWN)))
+      snprintf(&buf[len], buf_len - len, " [%s]",
+               get_detected_protocol_name(pbuf, sizeof(pbuf)));
+
     return (buf);
   }
 
@@ -2666,7 +2698,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       if (operating_system != ndpi_os_unknown) {
         if (cli_host && !(get_cli_ip_addr()->isBroadcastAddress() ||
                           get_cli_ip_addr()->isMulticastAddress()))
-          cli_host->setOS(operating_system, os_learning_http_user_agent);
+          cli_host->setOS(operating_system, os_learning_http_user_agent, this);
       }
 
       /* Don't break, let's process also HTTP_PROXY */
@@ -9811,10 +9843,15 @@ void Flow::setJSONRiskInfo(char* r) {
         const char* info = json_object_get_string(obj);
 
         if (info) {
+          char evidence[96]; /* Journal of the assets */
+
+          snprintf(evidence, sizeof(evidence), "risk %s",
+                   ndpi_risk2str(NDPI_NON_PQC));
+
           if (strstr(info, "client"))
-            setCliTag(HOST_TAG_NON_PQC_COMPLIANT);
+            setCliTag(HOST_TAG_NON_PQC_COMPLIANT, evidence);
           if (strstr(info, "server"))
-            setSrvTag(HOST_TAG_NON_PQC_COMPLIANT);
+            setSrvTag(HOST_TAG_NON_PQC_COMPLIANT, evidence);
         }
       }
 
@@ -10070,7 +10107,7 @@ void Flow::setCliService(HostService service_enum) {
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
-    if (!cli_h->isBroadcastHost()) cli_h->setService(service_enum);
+    if (!cli_h->isBroadcastHost()) cli_h->setService(service_enum, this);
   } else if (cli_ip) {
     // Viewed interface, set the status inside the IP address
     if (!cli_ip->isBroadcastAddress() &&
@@ -10090,7 +10127,7 @@ void Flow::setSrvService(HostService service_enum) {
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
-    if (!srv_h->isBroadcastHost()) srv_h->setService(service_enum);
+    if (!srv_h->isBroadcastHost()) srv_h->setService(service_enum, this);
   } else if (srv_ip) {
     // Viewed interface, set the status inside the IP address
     if (!srv_ip->isBroadcastAddress() &&
@@ -10101,7 +10138,7 @@ void Flow::setSrvService(HostService service_enum) {
 
 /* *************************************** */
 
-void Flow::setCliTag(int tag_idx) {
+void Flow::setCliTag(int tag_idx, const char* evidence) {
   Host *cli_h, *srv_h;
   IpAddress *cli_ip, *srv_ip;
 
@@ -10112,7 +10149,7 @@ void Flow::setCliTag(int tag_idx) {
 
   if (cli_h) {
     // Not a viewed interface, set the status inside the host
-    if (!cli_h->isBroadcastHost()) cli_h->addTags(1ULL << tag_idx);
+    if (!cli_h->isBroadcastHost()) cli_h->addTags(1ULL << tag_idx, this, evidence);
   } else if (cli_ip) {
     // Viewed interface, set the status inside the IP address
     if (!cli_ip->isBroadcastAddress() &&
@@ -10123,7 +10160,7 @@ void Flow::setCliTag(int tag_idx) {
 
 /* *************************************** */
 
-void Flow::setSrvTag(int tag_idx) {
+void Flow::setSrvTag(int tag_idx, const char* evidence) {
   Host *cli_h, *srv_h;
   IpAddress *cli_ip, *srv_ip;
 
@@ -10134,7 +10171,7 @@ void Flow::setSrvTag(int tag_idx) {
 
   if (srv_h) {
     // Not a viewed interface, set the status inside the host
-    if (!srv_h->isBroadcastHost()) srv_h->addTags(1ULL << tag_idx);
+    if (!srv_h->isBroadcastHost()) srv_h->addTags(1ULL << tag_idx, this, evidence);
   } else if (srv_ip) {
     // Viewed interface, set the status inside the IP address
     if (!srv_ip->isBroadcastAddress() &&
@@ -10164,7 +10201,7 @@ void Flow::refreshHostsTags() {
 
   get_actual_peers(&cli_h, &srv_h);
 
-  if (cli_h && !cli_h->isBroadcastHost()) cli_h->setTagsRefreshed(tags);
+  if (cli_h && !cli_h->isBroadcastHost()) cli_h->setTagsRefreshed(tags, this);
 }
 #endif
 
@@ -10211,7 +10248,7 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
            * requests carry the fingerprint of the client they relay) */
           if (ndpiFlow && cli_host && (get_cli_port() == 68 /* bootpc */))
             cli_host->offlineSetDhcpFingerprint(
-                ndpiFlow->metadata.protos.dhcp.fingerprint);
+                ndpiFlow->metadata.protos.dhcp.fingerprint, this);
         }
       }
       break;
@@ -10779,7 +10816,7 @@ void Flow::setHostTCPFingerprint(char* fp, ndpi_os os_hint) {
 				 vlanId);
 #endif
 
-    h->setTCPfingerprint(fp, os_hint);
+    h->setTCPfingerprint(fp, os_hint, this);
 
     if ((os_hint == ndpi_os_unknown) && h->isLocalHost() &&
         ntop->getPrefs()->areFingerprintStatsEnabled()) {
@@ -10815,7 +10852,7 @@ void Flow::setClientOSHint(ndpi_os os_hint) {
   get_actual_peers(&cli_h, &srv_h);
 
   if (cli_h)
-    cli_h->setnDPIOS(os_hint, get_first_seen());
+    cli_h->setnDPIOS(os_hint, get_first_seen(), this);
   else
     view_cli_os_hint = os_hint; /* Viewed interface: see updateViewClientOS */
 }
@@ -10830,12 +10867,13 @@ void Flow::updateViewClientOS(Host* view_cli_host) {
   if (!view_cli_host) return;
 
   if ((!(view_cli_os_applied & 0x1)) && tcp_fingerprint) {
-    view_cli_host->setTCPfingerprint(tcp_fingerprint, view_cli_fingerprint_os);
+    view_cli_host->setTCPfingerprint(tcp_fingerprint, view_cli_fingerprint_os,
+                                     this);
     view_cli_os_applied |= 0x1;
   }
 
   if ((!(view_cli_os_applied & 0x2)) && (view_cli_os_hint != ndpi_os_unknown)) {
-    view_cli_host->setnDPIOS(view_cli_os_hint, get_first_seen());
+    view_cli_host->setnDPIOS(view_cli_os_hint, get_first_seen(), this);
     view_cli_os_applied |= 0x2;
   }
 }
