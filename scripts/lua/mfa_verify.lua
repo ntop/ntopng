@@ -12,6 +12,8 @@ local info = ntop.getInfo()
 local token = _GET["token"] or ""
 local reason = _GET["reason"]
 local http_prefix = ntop.getHttpPrefix()
+-- Version of the static files: they are cached by the browsers (see ntop_cache_control() in mongoose.c)
+local static_file_epoch = ntop.getStaticFileEpoch() .. ""
 
 -- Basic token sanity check
 if isEmptyString(token) then
@@ -25,9 +27,9 @@ print[[
 <head>
  <title>]] print(i18n("mfa.title") or "Two-Factor Authentication") print[[</title>
  <meta name="viewport" content="width=device-width, initial-scale=1">
- <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
- <link href="]] print(http_prefix) print[[/dist/white-mode.css" rel="stylesheet">
- <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
+ <link href="]] print(http_prefix) print[[/dist/third-party.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+ <link href="]] print(http_prefix) print[[/dist/white-mode.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+ <link href="]] print(http_prefix) print[[/dist/ntopng.css?]] print(static_file_epoch) print[[" rel="stylesheet">
  <style>
    html, body { height: 100vh; }
    body {
@@ -99,7 +101,7 @@ print[[
      </div>
    </form>
  </main>
- <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
+ <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
  <script>
    /* Auto-submit when 6 digits are entered */
    document.getElementById('totp_code').addEventListener('input', function() {

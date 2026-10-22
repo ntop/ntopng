@@ -2961,6 +2961,81 @@ static void fclose_on_exec(struct file *filep) {
   }
 }
 
+static int is_not_modified(const struct mg_connection *conn,
+			   const struct file *filep); /* NTOP: used by handle_file_request() */
+
+/* NTOP: true for the public files of the GUI bundles: under <document root>/dist/
+   and of a type served without authentication (see isStaticResourceUrl() in
+   HTTPserver.cpp). Only these can be cached as public/long-lived: the check is
+   done on the file system path, not on the (attacker controlled) URI */
+static int ntop_is_public_bundle_file(const struct mg_connection *conn, const char *path) {
+  static const char *exts[] = { ".js", ".css", ".map", ".ttf", ".woff", ".woff2", NULL };
+  const char *root = conn->ctx->config[DOCUMENT_ROOT], *ext;
+  size_t root_len;
+  int i;
+
+  if (root == NULL) return 0;
+
+  root_len = strlen(root);
+  while ((root_len > 0) && (root[root_len - 1] == '/')) root_len--;
+
+  if ((strncmp(path, root, root_len) != 0) || (strncmp(&path[root_len], "/dist/", 6) != 0)
+      || (strstr(path, "..") != NULL) /* Already normalized: defense in depth */)
+    return 0;
+
+  ext = strrchr(path, '.');
+  if ((ext == NULL) || (strchr(ext, '/') != NULL)) return 0;
+
+  for (i = 0; exts[i] != NULL; i++)
+    if (strcmp(ext, exts[i]) == 0) return 1;
+
+  return 0;
+}
+
+/* NTOP: true for the build assets with a content hash in the name (e.g.
+   dist/assets/fa-solid-900-B4ZZ7kfP.woff2, see assetFileNames in vite.ntopng.config.js):
+   their content never changes for a given name */
+static int ntop_is_hashed_asset(const char *path) {
+  const char *name, *dot, *p;
+
+  if (strstr(path, "/dist/assets/") == NULL) return 0;
+
+  name = strrchr(path, '/') + 1;
+  dot = strrchr(name, '.');
+
+  /* <name>-<8 chars hash>.<ext> (the hash is base64url: it can contain '-' and '_') */
+  if ((dot == NULL) || ((dot - name) < 10) || (dot[-9] != '-')) return 0;
+
+  for (p = dot - 8; p < dot; p++)
+    if (!isalnum((unsigned char) *p) && (*p != '_') && (*p != '-')) return 0;
+
+  return 1;
+}
+
+/* NTOP: Cache-Control of the static files.
+   - public bundle files with a hash in the name: the name changes with the
+     content, cached by anybody without revalidation
+   - public bundle files requested with a version (the pages add ?<epoch>, see
+     ntop.getStaticFileEpoch()): cached without revalidation only by the browser
+     (private). The version is ignored when serving the file and it is
+     predictable: a shared cache could be filled with the current file under a
+     future version, served then after an upgrade
+   - the other public bundle files are revalidated (ETag)
+   - all the other files may require authentication: never stored by shared
+     caches (private) and always revalidated */
+static const char *ntop_cache_control(const struct mg_connection *conn, const char *path) {
+  if (!ntop_is_public_bundle_file(conn, path))
+    return "private, no-cache";
+
+  if (ntop_is_hashed_asset(path))
+    return "public, max-age=31536000, immutable";
+
+  if (conn->request_info.ntop_versioned_url)
+    return "private, max-age=31536000, immutable";
+
+  return "public, no-cache";
+}
+
 static void handle_file_request(struct mg_connection *conn, const char *path,
 				struct file *filep) {
   char date[64], lm[64], etag[64], range[64];
@@ -2971,26 +3046,53 @@ static void handle_file_request(struct mg_connection *conn, const char *path,
   int n;
   char gz_path[PATH_MAX];
   struct file gz_file = STRUCT_FILE_INITIALIZER;
-  int use_gzip = 0;
+  const char *encoding = NULL; /* NTOP: "br" or "gzip" when a pre-compressed file is sent */
+  const char *cache_control = ntop_cache_control(conn, path);
 
   get_mime_type(conn->ctx, path, &mime_vec);
 
-  // Serve pre-compressed .gz file if the browser accepts gzip and it exists
+  // Serve a pre-compressed file (.br preferred, smaller, then .gz) if the browser accepts it and it exists
   hdr = mg_get_header(conn, "Accept-Encoding");
-  if (hdr != NULL && strstr(hdr, "gzip") != NULL) {
-    mg_snprintf(conn, gz_path, sizeof(gz_path), "%s.gz", path);
-    if (mg_stat(conn, gz_path, &gz_file)) {
-      use_gzip = 1;
-      filep->size = gz_file.size;
-      filep->modification_time = gz_file.modification_time;
-    }
+  // (the name is used only if not truncated: a truncated one could be another file)
+  if (hdr != NULL && strstr(hdr, "br") != NULL) {
+    if ((mg_snprintf(conn, gz_path, sizeof(gz_path), "%s.br", path) == (int) strlen(path) + 3)
+	&& mg_stat(conn, gz_path, &gz_file) && !gz_file.is_directory)
+      encoding = "br";
+  }
+  if (encoding == NULL && hdr != NULL && strstr(hdr, "gzip") != NULL) {
+    if ((mg_snprintf(conn, gz_path, sizeof(gz_path), "%s.gz", path) == (int) strlen(path) + 3)
+	&& mg_stat(conn, gz_path, &gz_file) && !gz_file.is_directory)
+      encoding = "gzip";
+  }
+  if (encoding != NULL) {
+    filep->size = gz_file.size;
+    filep->modification_time = gz_file.modification_time;
+  }
+
+  // NTOP: check If-None-Match against the ETag of the file actually sent (the
+  // compressed one, if any): it was checked against the uncompressed one before
+  if (is_not_modified(conn, filep)) {
+    gmt_time_string(date, sizeof(date), &curtime);
+    gmt_time_string(lm, sizeof(lm), &filep->modification_time);
+    construct_etag(etag, sizeof(etag), filep);
+    conn->status_code = 304;
+    (void) mg_printf(conn,
+		     "HTTP/1.1 304 Not Modified\r\n"
+		     "Date: %s\r\n"
+		     "Last-Modified: %s\r\n"
+		     "Etag: %s\r\n"
+		     "Cache-Control: %s\r\n"
+		     "Vary: Accept-Encoding\r\n"
+		     "Connection: %s\r\n\r\n",
+		     date, lm, etag, cache_control, suggest_connection_header(conn));
+    return;
   }
 
   cl = filep->size;
   conn->status_code = 200;
   range[0] = '\0';
 
-  if (!mg_fopen(conn, use_gzip ? gz_path : path, "rb", filep)) {
+  if (!mg_fopen(conn, encoding ? gz_path : path, "rb", filep)) {
     send_http_error(conn, 500, http_500_error,
 		    "fopen(%s): %s", path, strerror(ERRNO));
     return;
@@ -3027,11 +3129,14 @@ static void handle_file_request(struct mg_connection *conn, const char *path,
 		   "Content-Length: %" INT64_FMT "\r\n"
 		   "Connection: %s\r\n"
 		   "Accept-Ranges: bytes\r\n"
-		   "%s"
+		   "Cache-Control: %s\r\n"
+		   "Vary: Accept-Encoding\r\n"
+		   "%s%s%s"
 		   "%s\r\n",
 		   conn->status_code, msg, date, lm, etag, (int) mime_vec.len,
 		   mime_vec.ptr, cl, suggest_connection_header(conn),
-		   use_gzip ? "Content-Encoding: gzip\r\n" : "",
+		   cache_control,
+		   encoding ? "Content-Encoding: " : "", encoding ? encoding : "", encoding ? "\r\n" : "",
 		   range);
 
 #ifdef DEBUG /* ntop */
@@ -3050,7 +3155,7 @@ static void handle_file_request(struct mg_connection *conn, const char *path,
 	 __FUNCTION__,
 	 conn->status_code, msg, date, lm, etag, (int) mime_vec.len,
 	 mime_vec.ptr, cl, suggest_connection_header(conn),
-	 use_gzip ? "Content-Encoding: gzip\n" : "",
+	 encoding ? "Content-Encoding: compressed\n" : "",
 	 range);
 #endif
 
@@ -4451,6 +4556,10 @@ static void handle_request(struct mg_connection *conn) {
   if ((conn->request_info.query_string = strchr(ri->uri, '?')) != NULL) {
     * ((char *) conn->request_info.query_string++) = '\0';
   }
+
+  /* NTOP: static files are requested with a version (?<epoch>) by the pages, see
+     handle_file_request(). Set here as the ntopng callback discards the query string */
+  ri->ntop_versioned_url = (ri->query_string != NULL) && (ri->query_string[0] != '\0');
   
   uri_len = (int) strlen(ri->uri);
   url_decode(ri->uri, uri_len, (char *) ri->uri, uri_len + 1, 0);
@@ -4561,9 +4670,8 @@ static void handle_request(struct mg_connection *conn) {
 			 strlen(conn->ctx->config[SSI_EXTENSIONS]),
 			 path) > 0) {
    handle_ssi_file_request(conn, path);
- } else if (is_not_modified(conn, &file)) {
-   send_http_error(conn, 304, "Not Modified", "%s", "");
  } else {
+   /* NTOP: handle_file_request() also replies 304 (Not Modified) */
    handle_file_request(conn, path, &file);
  }
   }

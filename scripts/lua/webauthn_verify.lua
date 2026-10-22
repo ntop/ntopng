@@ -11,6 +11,8 @@ sendHTTPContentTypeHeader('text/html')
 local token = _GET["token"] or ""
 local reason = _GET["reason"]
 local http_prefix = ntop.getHttpPrefix()
+-- Version of the static files: they are cached by the browsers (see ntop_cache_control() in mongoose.c)
+local static_file_epoch = ntop.getStaticFileEpoch() .. ""
 
 if isEmptyString(token) then
    print('<html><head><meta http-equiv="refresh" content="0; URL=' .. http_prefix .. '/lua/login.lua?reason=session-expired"></head><body></body></html>')
@@ -35,9 +37,9 @@ print([[
 <head>
  <title>Passkey Verification</title>
  <meta name="viewport" content="width=device-width, initial-scale=1">
- <link href="]] .. http_prefix .. [[/dist/third-party.css" rel="stylesheet">
- <link href="]] .. http_prefix .. [[/dist/white-mode.css" rel="stylesheet">
- <link href="]] .. http_prefix .. [[/dist/ntopng.css" rel="stylesheet">
+ <link href="]] .. http_prefix .. [[/dist/third-party.css?]] .. static_file_epoch .. [[" rel="stylesheet">
+ <link href="]] .. http_prefix .. [[/dist/white-mode.css?]] .. static_file_epoch .. [[" rel="stylesheet">
+ <link href="]] .. http_prefix .. [[/dist/ntopng.css?]] .. static_file_epoch .. [[" rel="stylesheet">
  <style>
    html, body { height: 100vh; }
    body {
@@ -95,7 +97,7 @@ print([[
    </form>
  </main>
 
- <script type="text/javascript" src="]] .. http_prefix .. [[/dist/third-party.js"></script>
+ <script type="text/javascript" src="]] .. http_prefix .. [[/dist/third-party.js?]] .. static_file_epoch .. [["></script>
  <script>
 (function() {
   var CHALLENGE_B64URL = ']] .. challenge .. [[';

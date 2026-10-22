@@ -848,7 +848,9 @@ static bool isStaticResourceUrl(const struct mg_request_info* request_info,
       (len >= 4 && (!strncmp(&request_info->uri[len - 4], ".css", 4) ||
                     !strncmp(&request_info->uri[len - 4], ".map", 4) ||
                     !strncmp(&request_info->uri[len - 4], ".ttf", 4))) ||
-      (len >= 6 && (!strncmp(&request_info->uri[len - 6], ".woff2", 6))))
+      (len >= 6 && (!strncmp(&request_info->uri[len - 6], ".woff2", 6))) ||
+      /* Requested by the browsers also on the login page (it was redirected to it) */
+      (!strcmp(request_info->uri, "/favicon.ico")))
     return true;
 
   return false;

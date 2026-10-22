@@ -2722,7 +2722,27 @@ static int ntop_http_get_startup_epoch(lua_State* vm) {
 
 /* @brief Returns an epoch value used for HTTP static-file cache busting.  Lua: ntop.getStaticFileEpoch() → integer */
 static int ntop_http_get_static_file_epoch(lua_State* vm) {
+  /* Bundles included by the pages as <file>?<epoch>: as they are cached by the
+     browsers without revalidation (see ntop_cache_control() in mongoose.c), the
+     epoch must change as soon as they are rebuilt (stat() is cheap) */
+  static const char* bundles[] = {"ntopng.js",      "third-party.js", "login.js",
+                                  "ntopng.css",     "third-party.css", "white-mode.css",
+                                  "dark-mode.css",  NULL};
+  HTTPserver* http_server = ntop->get_HTTPserver();
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (http_server && http_server->get_docs_dir()) {
+    char path[MAX_PATH];
+    struct stat s;
+
+    for (int i = 0; bundles[i] != NULL; i++) {
+      snprintf(path, sizeof(path), "%s/dist/%s", http_server->get_docs_dir(), bundles[i]);
+
+      if (stat(path, &s) == 0)
+        ntop->setLastModifiedStaticFileEpoch((u_int32_t)s.st_mtime);
+    }
+  }
 
   lua_pushinteger(vm, ntop->getLastModifiedStaticFileEpoch());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
