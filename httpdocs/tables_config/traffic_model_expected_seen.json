@@ -1,0 +1,71 @@
+{
+	"id": "traffic_model_expected_seen",
+	"data_url": "lua/pro/rest/v2/get/traffic_model/expected.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "status",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "ip",
+			"title": "Server",
+			"data_field": "ip",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "status",
+			"title": "Status",
+			"data_field": "status",
+			"sortable": true,
+			"min-width": "110px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "days_seen",
+			"title": "Days Seen",
+			"data_field": "days_seen",
+			"sortable": true,
+			"min-width": "100px",
+			"render_type": "number",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "flows",
+			"title": "Flows",
+			"data_field": "flows",
+			"sortable": true,
+			"min-width": "100px",
+			"render_type": "number",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "bytes",
+			"title": "Traffic",
+			"data_field": "bytes",
+			"sortable": true,
+			"min-width": "100px",
+			"render_type": "bytes",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		}
+	]
+}
