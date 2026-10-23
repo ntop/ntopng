@@ -1159,6 +1159,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_menu_entry_developer_title"),
             description = i18n("prefs.toggle_menu_entry_developer_description")
 	 },
+	 toggle_menu_entry_experimental_features = {
+            title = i18n("prefs.toggle_menu_entry_experimental_features_title"),
+            description = i18n("prefs.toggle_menu_entry_experimental_features_description")
+	 },
 	 toggle_search_in_all_interfaces = {
             title = i18n("prefs.toggle_search_in_all_interfaces_title"),
             description = i18n("prefs.toggle_search_in_all_interfaces_description")

@@ -644,7 +644,7 @@ page_utils.menu_entries = {
     traffic_model = {
         key = "traffic_model",
         i18n_title = "Traffic Model",
-        section = "admin",
+        section = "nanalyst",
     },
     alert_exclusions_hosts = {
         key = "alert_exclusions",

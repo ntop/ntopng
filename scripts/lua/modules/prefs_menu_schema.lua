@@ -430,6 +430,15 @@ function M.get_sections(flags)
                 section = i18n("prefs.menu_entries"),
                 locked = lock_enterprise_m
             }, {
+                key = "toggle_menu_entry_experimental_features",
+                title = i18n("prefs.toggle_menu_entry_experimental_features_title"),
+                description = i18n("prefs.toggle_menu_entry_experimental_features_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.menu_entries.experimental_features",
+                default = "0",
+                section = i18n("prefs.menu_entries"),
+                locked = lock_enterprise_m
+            }, {
                 key = "toggle_search_in_all_interfaces",
                 title = i18n("prefs.toggle_search_in_all_interfaces_title"),
                 description = i18n("prefs.toggle_search_in_all_interfaces_description"),
