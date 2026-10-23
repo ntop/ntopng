@@ -127,6 +127,9 @@ void LocalHost::initialize() {
   usedPorts = NULL;
   asset_map_updated = false, too_many_server_ports_logged = false;
   tags_refreshed_bitmap = tags_removed_bitmap = tags_assigned_bitmap = 0;
+#ifdef NTOPNG_PRO
+  journal_causes = NULL, journal_created_pending = 1;
+#endif
 
   ip.isLocalHost(&local_network_id);
   inconsistent_host_os = false;
@@ -597,6 +600,10 @@ void LocalHost::freeLocalHostData() {
   if (tcp_fingerprint) free(tcp_fingerprint);
 
   if (fingerprints) delete fingerprints;
+
+#ifdef NTOPNG_PRO
+  freeJournalCauses();
+#endif
 }
 
 /* *************************************** */
@@ -700,10 +707,10 @@ void LocalHost::lua_get_fingerprints(lua_State* vm) {
 
 /* *************************************** */
 
-bool LocalHost::setService(HostService service_enum) {
+bool LocalHost::setService(HostService service_enum, Flow* f) {
   const char* service_name;
   
-  if(Host::setService(service_enum) == false)
+  if(Host::setService(service_enum, f) == false)
     return(false);
 
   service_name = Utils::hostService2str(service_enum);
@@ -743,11 +750,20 @@ void LocalHost::offlineSetDHCPName(const char* dhcp_n) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetDhcpFingerprint(const char* fingerprint) {
+void LocalHost::offlineSetDhcpFingerprint(const char* fingerprint, Flow* f) {
   if (fingerprint && (fingerprint[0] != '\0')) {
     Mac* mac = getMac();
 
-    if (mac) mac->setDHCPFingerprint(fingerprint);
+    if (mac) {
+#ifdef NTOPNG_PRO
+      /* Journal of the assets: the fingerprint is dumped with the Mac */
+      if ((mac->getDHCPfingerprint() == NULL) ||
+          strcmp(mac->getDHCPfingerprint(), fingerprint))
+        addJournalCause(asset_journal_dhcp_fingerprint, 0, f);
+#endif
+
+      mac->setDHCPFingerprint(fingerprint);
+    }
   }
 }
 
@@ -795,31 +811,70 @@ void LocalHost::setServerName(const char* server_n) {
 
 /* *************************************** */
 
-void LocalHost::setResolvedName(const char* resolved_name) {
+void LocalHost::setResolvedName(const char* resolved_name, Flow* f) {
   char buf[64];
 
   if (strcmp(get_ip()->print(buf, sizeof(buf)), resolved_name)) {
-    Host::setResolvedName(resolved_name);
-    addDataToAssets((char*)"dns_name", (char*)resolved_name);
+    char name[256];
+
+    Host::setResolvedName(resolved_name, f);
+
+    /* Lowercase, as the name of the host (see Host::setResolvedName): host
+     * names are case insensitive, and the callers do not agree on the case
+     * (e.g. the resolver cache vs label_utils.lua), that would otherwise
+     * change the asset at every call */
+    snprintf(name, sizeof(name), "%s", resolved_name);
+    Utils::stringtolower(name);
+
+    if (addDataToAssets((char*)"dns_name", name)) {
+#ifdef NTOPNG_PRO
+      /* Journal of the assets: without flow, the name has been resolved by
+       * ntopng (or cached from a DNS response of another host) */
+      addJournalCause(asset_journal_dns_name, 0, f,
+                      f ? NULL : "reverse DNS lookup by ntopng");
+#endif
+    }
   }
 }
 
 /* *************************************** */
 
-void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os) {
+void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os,
+                                  Flow* f) {
   if ((tcp_fingerprint != NULL) &&
       (strcmp(_tcp_fingerprint, tcp_fingerprint) == 0))
     return; /* Already set */
 
-  if (_tcp_fingerprint && _tcp_fingerprint[0] != '\0')
-    addDataToAssets((char*)"tcp_fingerprint", (char*)_tcp_fingerprint);
+  if (_tcp_fingerprint && _tcp_fingerprint[0] != '\0') {
+    if (addDataToAssets((char*)"tcp_fingerprint", (char*)_tcp_fingerprint)) {
+#ifdef NTOPNG_PRO
+      addJournalCause(asset_journal_tcp_fingerprint, 0, f);
+#endif
+    }
+  }
 
   if (tcp_fingerprint_host_os == ndpi_os_unknown) {
     /* Not yet set the host fingerprint */
     ndpi_os l_os_type = os;
 
-    if (l_os_type != ndpi_os_unknown)
-      setOS(l_os_type, os_learning_tcp_fingerprint);
+    if (l_os_type != ndpi_os_unknown) {
+      if (setOS(l_os_type, os_learning_tcp_fingerprint, f)) {
+#ifdef NTOPNG_PRO
+        u_int64_t os_tag = getOSTag(l_os_type);
+
+        /* Journal of the assets: the fingerprint is the evidence of the OS
+         * (replaces the cause set by setOS) */
+        if (os_tag && _tcp_fingerprint) {
+          char evidence[128];
+
+          snprintf(evidence, sizeof(evidence), "TCP fingerprint %s (%s)",
+                   _tcp_fingerprint, Utils::OS2Str(l_os_type));
+          addJournalCause(asset_journal_tag_refreshed,
+                          (u_int8_t)Utils::bitmapGetNext(os_tag, 0), f, evidence);
+        }
+#endif
+      }
+    }
 
     tcp_fingerprint_host_os = os;
 
@@ -840,17 +895,109 @@ void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os) {
 
 /* *************************************** */
 
-bool LocalHost::setOS(ndpi_os _os, OSLearningMode mode) {
+void LocalHost::setTagsRefreshed(u_int64_t bitmap, Flow* f,
+                                 const char* evidence) {
+#ifdef NTOPNG_PRO
+  /* Journal of the assets: the cause of the tags refreshed for the first time
+   * since the asset info has been dumped (f or evidence needed) */
+  u_int64_t first_time = bitmap & ~tags_refreshed_bitmap;
+
+  if (f || evidence) {
+    for (int tag_id = Utils::bitmapGetNext(first_time, 0); tag_id != -1;
+         tag_id = Utils::bitmapGetNext(first_time, tag_id + 1))
+      addJournalCause(asset_journal_tag_refreshed, (u_int8_t)tag_id, f,
+                      evidence);
+  }
+#endif
+
+  tags_refreshed_bitmap |= bitmap, tags_removed_bitmap &= ~bitmap,
+      tags_assigned_bitmap &= ~bitmap;
+}
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+/* Journal of the assets: the evidence of the tag of an OS, e.g.
+ * "HTTP User-Agent "..." (Windows)", "TCP fingerprint 2_64_... (Linux)",
+ * "DHCP fingerprint 1,3,6 (Linux)", "Linux (TCP Fingerprint)" (OS hint, the
+ * flow has not yet its fingerprint), "Linux (Set by User via Lua)" */
+static char* journalOSEvidence(ndpi_os os, OSLearningMode mode, Flow* f,
+                               Mac* mac, char* buf, u_int buf_len) {
+  const char* ua = ((mode == os_learning_http_user_agent) && f)
+                       ? f->getHTTPUserAgent()
+                       : NULL;
+  const char* dhcp_fp = ((mode == os_learning_dhcp) && mac)
+                            ? mac->getDHCPfingerprint()
+                            : NULL;
+  const char* tcp_fp = ((mode == os_learning_tcp_fingerprint) && f)
+                           ? f->getTCPFingerprint()
+                           : NULL;
+
+  if (ua && ua[0])
+    snprintf(buf, buf_len, "HTTP User-Agent \"%s\" (%s)", ua,
+             Utils::OS2Str(os));
+  else if (tcp_fp && tcp_fp[0])
+    snprintf(buf, buf_len, "TCP fingerprint %s (%s)", tcp_fp,
+             Utils::OS2Str(os));
+  else if (dhcp_fp && dhcp_fp[0])
+    snprintf(buf, buf_len, "DHCP fingerprint %s (%s)", dhcp_fp,
+             Utils::OS2Str(os));
+  else
+    snprintf(buf, buf_len, "%s (%s)", Utils::OS2Str(os),
+             Utils::learningMode2str(mode));
+
+  return (buf);
+}
+#endif
+
+/* *************************************** */
+
+bool LocalHost::setOS(ndpi_os _os, OSLearningMode mode, Flow* f) {
+#ifdef NTOPNG_PRO
+  char evidence[192];
+#endif
+
   if (_os == ndpi_os_unknown) return (false);
 
   if (getOS() == _os) {
     /* Nothing changed: the OS has been observed again, refresh its tag.
      * NOTE: not with DHCP, as in this case the OS is copied from the Mac when
      * its info changes (see syncMACMetadata), that is not an observation */
-    if (mode != os_learning_dhcp) setTagsRefreshed(getOSTag(_os));
+    if (mode != os_learning_dhcp) {
+      u_int64_t os_tag = getOSTag(_os);
+
+#ifdef NTOPNG_PRO
+      /* Journal of the assets: the evidence is needed only the first time the
+       * tag is refreshed (see setTagsRefreshed) */
+      if (os_tag & ~tags_refreshed_bitmap)
+        setTagsRefreshed(os_tag, f,
+                         journalOSEvidence(_os, mode, f, getMac(), evidence,
+                                           sizeof(evidence)));
+      else
+#endif
+        setTagsRefreshed(os_tag, f);
+    }
   } else {
-    if (Host::setOS(_os, mode)) {
+    ndpi_os prev_os = getOS();
+
+    if (Host::setOS(_os, mode, f)) {
       char buf[8];
+
+#ifdef NTOPNG_PRO
+      /* Journal of the assets: the tag of the new OS (refreshed by
+       * Host::setOS) replaces the one of the previous OS (if any) */
+      u_int64_t new_tag = getOSTag(_os), prev_tag = getOSTag(prev_os);
+
+      if (new_tag || prev_tag)
+        journalOSEvidence(_os, mode, f, getMac(), evidence, sizeof(evidence));
+
+      if (new_tag)
+        addJournalCause(asset_journal_tag_refreshed,
+                        (u_int8_t)Utils::bitmapGetNext(new_tag, 0), f, evidence);
+      if (prev_tag && (prev_tag != new_tag))
+        addJournalCause(asset_journal_tag_removed,
+                        (u_int8_t)Utils::bitmapGetNext(prev_tag, 0), f, evidence);
+#endif
 
       os_learning[mode] = _os;
 

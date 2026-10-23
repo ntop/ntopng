@@ -1549,6 +1549,40 @@ ALTER TABLE `assets` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `model` COMMENT 'Hardware model string for this asset';
 @
 
+CREATE TABLE IF NOT EXISTS `assets_journal` ON CLUSTER '$CLUSTER' (
+`ifid` UInt8,
+`asset_type` LowCardinality(String),
+`key` String,
+`event_time` DateTime,
+`created_time` DateTime,
+`who` String,
+`action` LowCardinality(String),
+`subaction` LowCardinality(String) DEFAULT '',
+`message_id` LowCardinality(String),
+`message_values` String DEFAULT '',
+`message` String DEFAULT '',
+`ntopng_instance_name` LowCardinality(String)
+) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(`created_time`) ORDER BY (`ifid`, `key`, `event_time`);
+@
+ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `subaction` LowCardinality(String) DEFAULT '' AFTER `action`;
+@
+ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Journal of the assets: one row per event (a change of a field of an asset, an asset created or deleted, a manual note), with the time of the event, who caused it, the action and a message. Entries are never deleted. See doc/developers/README.assets_journal.md.';
+@
+ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER'
+  MODIFY COLUMN `ifid` COMMENT 'ntopng interface of the asset',
+  MODIFY COLUMN `asset_type` COMMENT 'Type of the asset (host, mac, snmp, ...)',
+  MODIFY COLUMN `key` COMMENT 'Key of the asset (as in the assets table)',
+  MODIFY COLUMN `event_time` COMMENT 'Time of the event (seconds)',
+  MODIFY COLUMN `created_time` COMMENT 'Time the entry has been written (seconds)',
+  MODIFY COLUMN `who` COMMENT 'Who caused the event: ntopng, or the name of the user',
+  MODIFY COLUMN `action` COMMENT 'Kind of event: Baseline, New, Update, Delete, Manual',
+  MODIFY COLUMN `subaction` COMMENT 'What the event is about: os, tag, the name of a field of the asset (ip, mac, ...), empty for the asset as a whole',
+  MODIFY COLUMN `message_id` COMMENT 'Template of the message (i18n key), empty for a plain text message',
+  MODIFY COLUMN `message_values` COMMENT 'Values of the template of the message, as JSON',
+  MODIFY COLUMN `message` COMMENT 'Plain text message, when there is no template',
+  MODIFY COLUMN `ntopng_instance_name` COMMENT 'Name of the ntopng instance that wrote the entry';
+@
+
 /* VIEWS */
 
 DROP VIEW IF EXISTS `active_monitoring_alerts_view` ON CLUSTER '$CLUSTER';

@@ -122,6 +122,7 @@ Prefs::Prefs(Ntop* _ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
   asset_inventory_enabled = CONST_DEFAULT_ASSET_INVENTORY_ENABLED;
+  assets_journal_enabled = CONST_DEFAULT_ASSETS_JOURNAL_ENABLED;
   snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
   lic_mgr_config_file = NULL;
@@ -1242,6 +1243,9 @@ void Prefs::reloadPrefsFromRedis() {
   asset_inventory_enabled =
     getDefaultPrefsValue(CONST_PREFS_ASSET_INVENTORY_ENABLED,
 			 CONST_DEFAULT_ASSET_INVENTORY_ENABLED);
+  assets_journal_enabled =
+    getDefaultPrefsValue(CONST_PREFS_ASSETS_JOURNAL_ENABLED,
+                         CONST_DEFAULT_ASSETS_JOURNAL_ENABLED);
   snmp_trap_enabled = getDefaultPrefsValue(CONST_PREFS_SNMP_TRAP_ENABLED,
                                            CONST_DEFAULT_SNMP_TRAP_ENABLED);
 #endif

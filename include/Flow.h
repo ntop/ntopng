@@ -1802,8 +1802,10 @@ class Flow : public GenericHashEntry {
 
   void setCliService(HostService service_enum);
   void setSrvService(HostService service_enum);
-  void setCliTag(int tag_idx);
-  void setSrvTag(int tag_idx);
+  /* evidence: why the tag is set, beside the flow (journal of the assets),
+   * e.g. "risk <name>" */
+  void setCliTag(int tag_idx, const char* evidence = NULL);
+  void setSrvTag(int tag_idx, const char* evidence = NULL);
 #ifdef NTOPNG_PRO
   void refreshHostsTags();
 #endif
