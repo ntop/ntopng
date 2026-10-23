@@ -2792,6 +2792,7 @@ local known_parameters = {
    ["toggle_dark_theme"] = validateBool,
    ["toggle_menu_entry_help"] = validateBool,
    ["toggle_menu_entry_developer"] = validateBool,
+   ["toggle_menu_entry_experimental_features"] = validateBool,
    ["toggle_search_in_all_interfaces"] = validateBool,
    ["toggle_flow_aggregated_alerted_flows"] = validateBool,
    ["toggle_slow_mode"] = validateBool,
