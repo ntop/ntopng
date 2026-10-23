@@ -5,14 +5,20 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
 local rest_utils = require "rest_utils"
+local auth       = require "auth"
 local checks     = require "checks"
 
 --
 -- Returns the list of checks (user scripts) with their metadata and runtime stats.
 -- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/get/ntopng/checks.lua
 --
+
+-- Developer pages (Developer > Catalog): users with the developer capability
+if not auth.has_capability(auth.capabilities.developer) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 local ifid               = interface.getId()
 local flow_checks_stats  = ntop.getFlowChecksStats() or {}

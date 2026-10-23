@@ -30,19 +30,33 @@ local auth = {}
 
 -- #######################
 
+-- Label translated on first access: calling i18n here would load the whole
+-- locale (~15-40 ms) on every require of auth, also in scripts never using it
+local function capability(id, label_i18n)
+   return setmetatable({ id = id }, {
+      __index = function(cap, key)
+         if key == "label" then
+            local label = i18n(label_i18n)
+            rawset(cap, "label", label)
+            return label
+         end
+      end
+   })
+end
+
 -- List of available capabilities
 -- NOTE: Keep ids in sync with ntop_typedefs.h UserCapabilities
 auth.capabilities = {
-   pools             = {id = 0, label = i18n("capabilities.pools")},
-   notifications     = {id = 1, label = i18n("capabilities.notifications")},
-   snmp              = {id = 2, label = i18n("capabilities.snmp")},
-   active_monitoring = {id = 3, label = i18n("capabilities.active_monitoring")},
-   preferences       = {id = 4, label = i18n("capabilities.preferences")},
-   developer         = {id = 5, label = i18n("capabilities.developer")},
-   checks            = {id = 6, label = i18n("capabilities.checks")},
-   flowdevices       = {id = 7, label = i18n("capabilities.flowdevices")},
-   alerts            = {id = 8, label = i18n("capabilities.alerts")},
-   historical_flows  = {id = 9, label = i18n("capabilities.historical_flows")},
+   pools             = capability(0, "capabilities.pools"),
+   notifications     = capability(1, "capabilities.notifications"),
+   snmp              = capability(2, "capabilities.snmp"),
+   active_monitoring = capability(3, "capabilities.active_monitoring"),
+   preferences       = capability(4, "capabilities.preferences"),
+   developer         = capability(5, "capabilities.developer"),
+   checks            = capability(6, "capabilities.checks"),
+   flowdevices       = capability(7, "capabilities.flowdevices"),
+   alerts            = capability(8, "capabilities.alerts"),
+   historical_flows  = capability(9, "capabilities.historical_flows"),
 }
 
 -- #######################

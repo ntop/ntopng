@@ -732,6 +732,16 @@ end
 
 -- ##############################################
 
+-- All the alert definitions: { [alert_entity_id] = { [alert_key] = alert_type } }.
+-- Keys are unique only within an entity (e.g. flow and host alerts share them)
+function alert_consts.getAlertTypesByEntity()
+   loadAlertsDefs()
+
+   return alerts_by_id
+end
+
+-- ##############################################
+
 function alert_consts.getAlertType(alert_key, alert_entity_id)
    -- Make sure we are working with numbers
    alert_key = tonumber(alert_key)

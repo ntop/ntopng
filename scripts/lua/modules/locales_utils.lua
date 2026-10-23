@@ -171,6 +171,13 @@ end
 
 -- ##############################################
 
+-- True when the locale files are already loaded for this request (i18n used)
+function locales.isInitialized()
+   return locales_initialized
+end
+
+-- ##############################################
+
 function locales.getAvailableLocales()
    initLocales()
 

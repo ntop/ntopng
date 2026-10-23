@@ -416,25 +416,11 @@ return function(f)
             i18n = "menu_group.internals",
             is_divider = true
         }, {
-            key = "checks_dev",
-            i18n = "about.checks",
-            icon = "fas fa-check-square",
-            url = "/lua/checks_overview.lua"
-        }, {
-            key = "alert_definitions",
-            i18n = "about.alert_defines",
-            icon = "fas fa-exclamation-circle",
-            url = "/lua/defs_overview.lua"
-        }, {
-            key = "ts_definitions",
-            i18n = "about.ts_definitions",
-            icon = "fas fa-chart-line",
-            url = "/lua/ts_overview.lua"
-        }, {
-            key = "directories",
-            i18n = "about.directories",
-            icon = "fas fa-folder-open",
-            url = "/lua/directories.lua"
+            -- Checks, alert definitions, timeseries and directories (tabs)
+            key = "catalog",
+            i18n = "about.catalog",
+            icon = "fas fa-book",
+            url = "/lua/catalog.lua"
         }, {
             key = "divider",
             i18n = "menu_group.documentation",

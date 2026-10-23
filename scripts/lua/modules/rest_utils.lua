@@ -18,7 +18,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 -- require "lua_utils"
 require "ntop_utils"
-require "locales_utils"
+local locales = require "locales_utils"
 require "lua_utils_generic"
 local json = require("dkjson")
 
@@ -562,8 +562,14 @@ function rest_utils.rc(ret_const, payload, additional_response_param, format)
     local rc_str = ret_const.str -- String associated to the return code
     local rc_str_hr -- String associated to the return code, human readable
 
-    -- Prepare the human readable string
-    rc_str_hr = i18n("rest_consts." .. rc_str) or "Unknown"
+    -- Prepare the human readable string. A successful answer of a script that
+    -- never used i18n, for an english user, does not load the whole locale
+    -- (~15 ms) just for "Success": same text of rest_consts.OK in en.lua
+    if (rc_str == "OK") and (language == "en") and not locales.isInitialized() then
+        rc_str_hr = "Success"
+    else
+        rc_str_hr = i18n("rest_consts." .. rc_str) or "Unknown"
+    end
 
     local client_rsp = {
         rc = ret_code,

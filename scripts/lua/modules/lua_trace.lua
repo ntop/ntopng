@@ -28,6 +28,12 @@ TRACE_CONSOLE = 0
 TRACE_WEB = 1
 
 function traceError(p_trace_level, p_trace_mode, p_message)
+   -- Discarded messages (e.g. TRACE_DEBUG): return before the costly
+   -- debug.getinfo/debug.traceback parsing below
+   if (p_trace_level > MAX_TRACE_LEVEL) or (p_trace_level > TRACE_LEVEL) then
+      return
+   end
+
    local currentline = debug.getinfo(2).currentline
    local what =  debug.getinfo(2).what
    local src =  debug.getinfo(2).short_src

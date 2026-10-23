@@ -790,15 +790,9 @@ page_utils.menu_entries = {
     },
 
     -- Developer
-    directories = {
-        key = "directories",
-        i18n_title = "about.directories",
-        section = "dev",
-        help_link = "https://www.ntop.org/guides/ntopng/scripts/distributing_scripts.html?utm_source=ntopng"
-    },
-    checks_dev = {
-        key = "checks_dev",
-        i18n_title = "about.checks",
+    catalog = {
+        key = "catalog",
+        i18n_title = "about.catalog",
         section = "dev",
         help_link = "https://www.ntop.org/guides/ntopng/scripts/checks.html?utm_source=ntopng"
     },
@@ -813,17 +807,6 @@ page_utils.menu_entries = {
         i18n_title = "about.analyze_pcap",
         section = "dev",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/developer/analyze_pcap_file.html?utm_source=ntopng"
-    },
-    alert_definitions = {
-        key = "alert_definitions",
-        i18n_title = "about.alert_defines",
-        section = "dev",
-        help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html?utm_source=ntopng"
-    },
-    ts_definitions = {
-        key = "ts_definitions",
-        i18n_title = "about.ts_defines",
-        section = "dev",
     },
     api = {
         key = "api",

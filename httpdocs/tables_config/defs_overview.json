@@ -22,6 +22,16 @@
 			]
 		},
 		{
+			"id": "entity",
+			"title_i18n": "scripts_overview.alert_entity",
+			"data_field": "entity",
+			"sortable": true,
+			"min-width": "80px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "alert_type",
 			"title_i18n": "scripts_overview.alert_key_string",
 			"data_field": "alert_type",
