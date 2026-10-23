@@ -3851,6 +3851,40 @@ bool Ntop::deleteUser(char* username) {
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
   ntop->getRedis()->del(key);
 
+  /*
+     Permissions, MFA and passkeys: left in redis, a user created again with
+     the same name would inherit them (e.g. the passkeys of the deleted user
+     would log into the new account)
+  */
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_HOST_POOLS, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_CAPABILITIES, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_TOTP_SECRET, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_TOTP_ENABLED, username);
+  ntop->getRedis()->del(key);
+
+  for (int i = 0, num_creds = getWebAuthnCredentialCount(username); i < num_creds; i++) {
+    snprintf(key, sizeof(key), CONST_STR_USER_WEBAUTHN_CRED, username, i);
+    ntop->getRedis()->del(key);
+  }
+
+  snprintf(key, sizeof(key), CONST_STR_USER_WEBAUTHN_CRED_COUNT, username);
+  ntop->getRedis()->del(key);
+
   invalidateUserSessions(username);
 
   users_m.unlock(__FILE__, __LINE__);

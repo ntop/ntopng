@@ -10,7 +10,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- No lua_utils: nothing of it is used here (rest_utils loads i18n)
 local rest_utils     = require "rest_utils"
 local auth           = require "auth"
 local alert_consts   = require "alert_consts"

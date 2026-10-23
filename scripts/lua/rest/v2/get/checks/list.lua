@@ -5,7 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- No lua_utils: http_lint validates _GET, ntop_utils has getSystemInterfaceId()
+-- and isEmptyString(), rest_utils loads i18n
+require "http_lint"
+require "ntop_utils"
 
 local json        = require("dkjson")
 local alert_consts = require("alert_consts")

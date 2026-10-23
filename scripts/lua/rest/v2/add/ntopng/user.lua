@@ -80,6 +80,13 @@ if string.len(username) > 32 then
    return
 end
 
+-- Letters, digits and . _ - @ only: the username is shown in many pages
+-- (http_lint only refuses spaces and quotes, so e.g. "<" would pass)
+if not username:match("^[%w%._%-@]+$") then
+   rest_utils.answer(rest_utils.consts.err.invalid_args, res)
+   return
+end
+
 local all_users = ntop.getUsers()
 
 if(all_users[username] ~= nil) then

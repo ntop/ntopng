@@ -59,6 +59,14 @@ end
 
 username = string.lower(username)
 
+-- The built-in admin always stays an administrator (the GUI disables the role
+-- select, this also covers direct calls)
+if (username == "admin") and (host_role ~= nil) and (host_role ~= "administrator") then
+   rc = { result = -1, message = "Error in changing host type" }
+   print(json.encode(rc))
+   return
+end
+
 if(host_role ~= nil) then
    if(not ntop.changeUserRole(username, host_role)) then
       rc = { result = -1, message = "Error in changing host type" }

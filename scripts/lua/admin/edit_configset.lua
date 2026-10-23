@@ -8,11 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils     = require "page_utils"
-local json           = require "dkjson"
-local template_utils = require "template_utils"
 local rest_utils     = require "rest_utils"
 local auth           = require "auth"
-local checks_utils   = require "checks_utils"
 
 local current_ifid = interface.getId()
 
@@ -55,15 +52,8 @@ page_utils.print_header_and_set_active_menu_entry(active_entry)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local context = {
-   check_subdir = check_subdir,
-   page_csrf    = ntop.getRandomCSRFValue(),
-   ifid         = current_ifid,
-}
-
-template_utils.render("pages/vue_page.template", {
-   vue_page_name = "PageEditConfigset",
-   page_context  = json.encode(context),
-})
+-- The page is pro/http_src/vue/page-edit-configset.vue (SPA route): mounting it
+-- here too made it load twice (the SPA unmounts the server-side copy). Its
+-- context (subdir, csrf, ifid) comes from app-shell.vue's route context
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -237,6 +237,9 @@ for _, sec_key in ipairs(section_order) do
    if not sec_drop then
 
    local entries = nil
+   -- A disabled section with an "ungated" entry still enabled stays reachable
+   -- (e.g. Settings > Users for the non administrators: their own profile)
+   local section_reachable = false
    if section.entries ~= nil then
       entries = {}
       for _, entry in ipairs(section.entries) do
@@ -246,8 +249,13 @@ for _, sec_key in ipairs(section_order) do
 
             -- A disabled section gates everything below it: its entries lead to
             -- pages of a section the user cannot reach, so they must come back
-            -- disabled too.
-            local disabled = entry_disabled or (sec_disabled and not is_divider)
+            -- disabled too. Except the "ungated" entries, whose page enforces
+            -- its own permissions (menu_definition.lua)
+            local disabled = entry_disabled or (sec_disabled and not is_divider and not entry.ungated)
+
+            if sec_disabled and entry.ungated and not entry_disabled then
+               section_reachable = true
+            end
 
             entries[#entries + 1] = {
                key              = entry.key,
@@ -285,8 +293,8 @@ for _, sec_key in ipairs(section_order) do
          icon             = section.icon or "",
          url              = section.url and (http_prefix .. section.url) or nil,
          entries          = entries,
-         disabled         = sec_disabled,
-         disabled_reasons = sec_disabled and section.reason or nil,
+         disabled         = sec_disabled and not section_reachable,
+         disabled_reasons = (sec_disabled and not section_reachable) and section.reason or nil,
       }
    end
 

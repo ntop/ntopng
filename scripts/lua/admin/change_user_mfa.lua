@@ -34,6 +34,14 @@ if (not isAdministrator()) and (curr_user ~= username) then
 end
 
 if action == "generate_secret" then
+   -- Only while MFA is off: replacing the secret of an active MFA would skip the
+   -- current code (required to disable it) and lock the user out if the setup
+   -- is not completed. Disable MFA first.
+   if ntop.isTOTPEnabled(username) then
+      print(json.encode({ result = -1, message = "MFA is already enabled: disable it first" }))
+      return
+   end
+
    -- Generate a new TOTP secret and store it (does not enable MFA yet)
    local secret = ntop.generateTOTPSecret()
    if not secret then

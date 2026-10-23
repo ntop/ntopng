@@ -4,9 +4,11 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-local json = require "dkjson"
+-- No lua_utils: pairsByKeys/asc_insensitive come from ntop_utils, the
+-- category label from categories_utils (what getCategoryLabel() calls)
+require "ntop_utils"
 local rest_utils = require "rest_utils"
+local categories_utils = require "categories_utils"
 
 --
 -- Read all the defined L7 application categories
@@ -20,7 +22,6 @@ local res = {}
 local app_list = {}
 
 local categories = interface.getnDPICategories()
-local applications = interface.getnDPIProtocols()
 
 for category, cat_id in pairs(categories) do
 
@@ -37,7 +38,7 @@ for category, cat_id in pairs(categories) do
 
     -- Create the record for the cat_id
     res[#res + 1] = {
-        name = getCategoryLabel(category, cat_id),
+        name = categories_utils.getCustomCategoryName(cat_id, category),
         cat_id = tonumber(cat_id),
         app_list = tmp_app_list
     }

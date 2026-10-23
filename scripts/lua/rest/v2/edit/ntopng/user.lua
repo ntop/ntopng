@@ -74,6 +74,12 @@ if(full_name ~= nil) then
    end
 end
 
+-- The built-in admin always stays an administrator
+if (username == "admin") and (host_role ~= nil) and (host_role ~= "administrator") then
+   rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
+   return
+end
+
 if(host_role ~= nil) then
    if(not ntop.changeUserRole(username, host_role)) then
       rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)

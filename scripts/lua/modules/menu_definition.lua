@@ -296,6 +296,9 @@ return function(f)
             i18n = "manage_users.manage_users",
             icon = "fas fa-user-cog",
             url = "/lua/admin/users.lua",
+            -- Also for the non administrators: they see and edit only their own
+            -- profile there (password, MFA, token), the endpoints enforce it
+            ungated = true,
             hidden = f.no_local_auth_or_local_user,
             reason = { reason("perm", "menu.reason.no_local_auth_or_local_user", "menu.suggestion.no_local_auth_or_local_user") }
         }, {

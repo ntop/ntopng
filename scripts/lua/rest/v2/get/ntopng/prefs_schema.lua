@@ -10,8 +10,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-
+-- No lua_utils: rest_utils loads i18n, prefs_menu_schema its own modules
 local rest_utils       = require "rest_utils"
 local auth             = require "auth"
 

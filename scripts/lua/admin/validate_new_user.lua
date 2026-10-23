@@ -9,15 +9,14 @@ require "lua_utils"
 sendHTTPHeader('application/json')
 
 if(isAdministratorOrPrintErr()) then
-   key = "ntopng.user.".. string.lower(_GET["username"]) ..".password"
-   existing = ntop.getCache(key)
-   
-   if(string.len(existing) > 0) then
-      print('{ "valid" : 0, "user": "'.. string.lower(_GET["username"])..'", "msg": "User already existing" }\n')
-      return
-   else
-      valid = 1
-   end
+   local json = require "dkjson"
+   local username = string.lower(_GET["username"] or "")
+   local existing = ntop.getCache("ntopng.user.".. username ..".password")
 
-   print('{ "valid" : 1, "user": "'.. string.lower(_GET["username"])..'", "msg": "Ok" }\n')
+   -- Same answer as before, encoded (the username is user input)
+   if(string.len(existing) > 0) then
+      print(json.encode({ valid = 0, user = username, msg = "User already existing" }) .. "\n")
+   else
+      print(json.encode({ valid = 1, user = username, msg = "Ok" }) .. "\n")
+   end
 end

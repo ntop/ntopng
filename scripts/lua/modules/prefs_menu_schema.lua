@@ -13,7 +13,6 @@ local M = {}
 -- Called once per request by the REST endpoints to build the flags table that
 -- controls section/entry visibility and pro write-guards.
 function M.get_flags()
-    local page_utils = require "page_utils"
     local recording_utils = require "recording_utils"
     require "check_redis_prefs"
 

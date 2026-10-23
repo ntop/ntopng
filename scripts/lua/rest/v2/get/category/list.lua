@@ -5,7 +5,9 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- No lua_utils: http_lint validates _GET, ntop_utils has table.len
+require "http_lint"
+require "ntop_utils"
 
 local categories_utils = require("categories_utils")
 local rest_utils = require "rest_utils"
@@ -30,7 +32,7 @@ for item_name, item_id in pairs(items) do
   local record = {}
 
   record["column_category_id"] = item_id
-  record["column_category_name"] = getCategoryLabel(item_name, item_id)
+  record["column_category_name"] = categories_utils.getCustomCategoryName(item_id, item_name)
   record["column_num_hosts"] = tostring(num_hosts)
   record["column_num_protos"] = tostring(num_protocols)
   record["column_category_hosts"] = table.concat(hosts_list, ",")

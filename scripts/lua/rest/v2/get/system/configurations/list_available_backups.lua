@@ -8,13 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" ..
 
 -- ##############################################
 
-require "lua_utils"
+require "http_lint"   -- validates _GET before it is read
+require "ntop_utils"  -- isAdministrator()
 local backup_config = require("backup_config")
 local rest_utils = require("rest_utils")
 
 -- ##############################################
 
-if not isAdministratorOrPrintErr() then
+if not isAdministrator() then
   rest_utils.answer(rest_utils.consts.err.not_granted)
   return
 end

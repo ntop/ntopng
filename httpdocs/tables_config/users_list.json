@@ -1,0 +1,82 @@
+{
+	"id": "users_list",
+	"data_url": "",
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "username",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"min-width": "80px",
+			"max-width": "80px",
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "users.edit",
+					"class": [],
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "users.delete_user",
+					"class": [],
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"id": "username",
+			"title_i18n": "login.username",
+			"data_field": "username",
+			"sortable": true,
+			"min-width": "140px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "full_name",
+			"title_i18n": "users.full_name",
+			"data_field": "full_name",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "group",
+			"title_i18n": "manage_users.group",
+			"data_field": "group",
+			"sortable": true,
+			"min-width": "140px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "totp_enabled",
+			"title_i18n": "mfa.tab_title",
+			"data_field": "totp_enabled",
+			"sortable": true,
+			"min-width": "80px",
+			"class": [
+				"text-center"
+			]
+		}
+	]
+}

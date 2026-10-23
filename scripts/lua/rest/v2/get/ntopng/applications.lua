@@ -4,8 +4,12 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- No lua_utils: http_lint validates _GET, the category label comes from
+-- categories_utils (what getCategoryLabel() calls)
+require "http_lint"
+require "ntop_utils"
 local protos_utils = require("protos_utils")
+local categories_utils = require("categories_utils")
 local rest_utils = require("rest_utils")
 
 -- Table parameters
@@ -51,7 +55,7 @@ for app_name, app_id in pairs(applications) do
     record["num_hosts"] = proto_to_num_rules[app_name] or 0
     record["custom_rules"] = makeApplicationHostsList(app_name)
     record["is_custom"] = ntop.isCustomApplication(tonumber(app_id))
-    record["category"] = getCategoryLabel(category.name, category.id)
+    record["category"] = categories_utils.getCustomCategoryName(category.id, category.name)
 
     result[#result + 1] = record
 end
