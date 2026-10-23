@@ -1280,6 +1280,19 @@ end
 	
 -- #############################################################################
 
+-- Returns true when the URL authority is exactly the host that sent the reply
+local function ssdp_location_is_sender(url, host)
+    local authority = url:match("^https?://([^/?#]*)")
+
+    if isEmptyString(authority) or authority:find("@", 1, true) then
+        return false
+    end
+
+    return (authority == host) or (authority:match("^(.-):%d+$") == host)
+end
+
+-- #############################################################################
+
 local function analyzeSSDP(ssdp)
     local rsp = {}
 
@@ -1292,7 +1305,7 @@ local function analyzeSSDP(ssdp)
             ssdp[url] = nil
         end
 
-        if not url:starts("http://" .. host) and not url:starts("https://" .. host) then
+        if not ssdp_location_is_sender(url, host) then
             -- Not using HTTP or HTTPs, or the host is telling us to contact
             -- another host different from itself. Skip to avoid SSRF
             ssdp[url] = nil
