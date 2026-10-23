@@ -11,6 +11,11 @@ require("http_lint")
 local rest_utils = require("rest_utils")
 local site_utils = require("site_utils")
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local network_id = _POST["network"]
 local network_alias = _POST["custom_name"]
 local network_site = _POST["site_id"]
