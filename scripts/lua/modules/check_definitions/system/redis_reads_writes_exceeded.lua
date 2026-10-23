@@ -1,6 +1,9 @@
 --
 -- (C) 2019-26 - ntop.org
 --
+-- For ts_utils
+dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 local alert_consts = require("alert_consts")
 local alerts_api = require("alerts_api")
