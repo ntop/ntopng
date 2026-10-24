@@ -324,8 +324,16 @@ http_lint.validateLuaScriptPath = validateLuaScriptPath
 local function validateUploadedFile(p)
    local os_utils = require("os_utils")
    local dirs = ntop.getDirs()
+   local divider = os_utils.getPathDivider()
+   local upload_dir = dirs.workingdir .. divider .. "tmp" .. divider .. "upload" .. divider
 
-   return (starts(p, dirs.workingdir .. os_utils.getPathDivider() .. "tmp" .. os_utils.getPathDivider() .. "upload"))
+   if not starts(p, upload_dir) then
+      return false
+   end
+
+   local name = string.sub(p, string.len(upload_dir) + 1)
+
+   return ((name ~= "") and (name ~= ".") and (name ~= "..") and (not name:find("[/\\]")))
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
