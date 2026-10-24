@@ -12,7 +12,7 @@
 	"columns": [
 		{
 			"id": "ip",
-			"title": "Expected But Not Seen",
+			"title": "Configured but Not Seen",
 			"data_field": "ip",
 			"sortable": true,
 			"min-width": "160px",
