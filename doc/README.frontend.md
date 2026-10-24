@@ -31,7 +31,7 @@ Requires `pro/` checked out. Node.js ≥ 18.15.0.
 | Vue components / JS source | `pro/http_src/` |
 | Images, third-party JS/CSS, login script | `pro/assets/` |
 | `package.json`, lockfile | `pro/` |
-| Build scripts | `pro/build.mjs`, `pro/vite.ntopng.config.js` |
+| Build scripts | `pro/build.mjs`, `pro/vite.ntopng.config.mjs` |
 | Lint configs | `pro/.eslintrc.json`, `pro/.stylelintrc` |
 | Compiled output (commit this) | `httpdocs/dist/` (repo root, unchanged) |
 | Root `package.json` | thin proxy — just `cd pro && npm run <script>` |
