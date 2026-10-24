@@ -63,7 +63,7 @@ The MCP server exposes all nAnalyst domain tools, including:
 - ``create_ai_policy`` — create a policy from a natural language description
 - ``list_protos`` — enumerate nDPI-detected application protocols
 
-The MCP server exposes the same tools available to the nAnalyst chat interface. See :ref:`nAnalystToolsLicensing` for the complete, up-to-date list of tools and the editions that include them.
+The examples above are only a subset. The MCP server exposes the same tools available to the nAnalyst chat interface. The complete, up-to-date list of tools and the editions that include them is maintained in one place: :ref:`nAnalystToolsLicensing` (online at `Tools and Licensing <https://www.ntop.org/guides/ntopng/nanalyst/tools_and_licensing.html>`_).
 
 Use cases
 ---------

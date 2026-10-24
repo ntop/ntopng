@@ -20,7 +20,7 @@
 		},
 		{
 			"id": "status",
-			"title": "Status",
+			"title": "Change",
 			"data_field": "status",
 			"sortable": true,
 			"min-width": "100px",
@@ -28,7 +28,7 @@
 		},
 		{
 			"id": "flows_old",
-			"title": "Flows (Reference)",
+			"title": "Flows on Baseline Day",
 			"data_field": "flows_old",
 			"sortable": true,
 			"min-width": "120px",
@@ -37,7 +37,7 @@
 		},
 		{
 			"id": "flows_new",
-			"title": "Flows (Checked)",
+			"title": "Flows on Day to Compare",
 			"data_field": "flows_new",
 			"sortable": true,
 			"min-width": "120px",
@@ -46,7 +46,7 @@
 		},
 		{
 			"id": "delta_flows",
-			"title": "Delta",
+			"title": "Flows Change",
 			"data_field": "delta_flows",
 			"sortable": true,
 			"min-width": "90px",
@@ -54,7 +54,7 @@
 		},
 		{
 			"id": "delta_pct",
-			"title": "Delta %",
+			"title": "Flows Change %",
 			"data_field": "delta_pct",
 			"sortable": true,
 			"min-width": "90px",
@@ -62,7 +62,7 @@
 		},
 		{
 			"id": "bytes_old",
-			"title": "Traffic (Reference)",
+			"title": "Traffic on Baseline Day",
 			"data_field": "bytes_old",
 			"sortable": true,
 			"min-width": "130px",
@@ -71,7 +71,7 @@
 		},
 		{
 			"id": "bytes_new",
-			"title": "Traffic (Checked)",
+			"title": "Traffic on Day to Compare",
 			"data_field": "bytes_new",
 			"sortable": true,
 			"min-width": "130px",

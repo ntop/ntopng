@@ -79,3 +79,10 @@ When the user signals they are done (e.g. "bye", "done", "wrap up", "end session
 - **Next Steps**: bullet list, max 3 items
 
 Keep `CONTEXT.md` under 20 lines total. Do NOT summarize the full conversation — only what's needed to resume next session.
+
+## Documentation
+
+- The user guide is Sphinx reStructuredText in `doc/src/`. Edit the `.rst` sources there.
+- Images live alongside the docs in `doc/src/img/`. Reference them from `.rst` with a relative path such as `../img/nAnalyst_auth_token.png`.
+- `doc/nedge/src/` holds the nEdge docs, with its own `img/` folder (47 files).
+- Single source of truth for nAnalyst tool counts and editions: `doc/src/nanalyst/tools_and_licensing.rst`. Other pages link to it instead of repeating the list.

@@ -33,7 +33,7 @@
 		},
 		{
 			"id": "days_seen",
-			"title": "Days Seen",
+			"title": "Days Active",
 			"data_field": "days_seen",
 			"sortable": true,
 			"min-width": "100px",
@@ -45,7 +45,7 @@
 		},
 		{
 			"id": "flows",
-			"title": "Flows",
+			"title": "Flows as Server",
 			"data_field": "flows",
 			"sortable": true,
 			"min-width": "100px",
@@ -57,7 +57,7 @@
 		},
 		{
 			"id": "bytes",
-			"title": "Traffic",
+			"title": "Traffic as Server",
 			"data_field": "bytes",
 			"sortable": true,
 			"min-width": "100px",
