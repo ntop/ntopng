@@ -883,8 +883,8 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
 
         case NDPI_PROTOCOL_DNS:
           if (payload_len > 4) {
-            if ((payload[3] & 0x80) == 0x80) {
-              /* server -> client */
+            if ((payload[2] & 0x80) == 0x80) {
+              /* QR bit set: server -> client */
               request_swap(); /* This flow will be swapped */
               swap();
             }
@@ -9767,8 +9767,10 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
       break;
 
     case NDPI_PROTOCOL_DNS:
-      /* Swap check */
-      if ((!swap_requested) && (ndpiFlow != NULL) &&
+      /* Swap check. Skipped when the flow has already been swapped (see
+       * processDetectedProtocol): the direction of the last DNS packet was
+       * stored before that swap, so the check would swap the flow back */
+      if ((!swap_requested) && (!swap_done) && (ndpiFlow != NULL) &&
           iface->isPacketInterface()) {
         /* NOTE: src2dst_direction cannot be used here. When the dissection is
          * ended without a packet (flow idle or deleted) it is not the
