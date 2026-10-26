@@ -162,7 +162,7 @@ static const char* location2str(MacLocation location) {
 /* *************************************** */
 
 void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
-  char buf[32], *m;
+  char buf[32], *m, fingerprint[64];
 
   lua_newtable(vm);
 
@@ -185,8 +185,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   if (stats) stats->lua(vm, show_details);
 
-  if (dhcpv4_fingerprint)
-    lua_push_str_table_entry(vm, "dhcp_fingerprint", dhcpv4_fingerprint);
+  if (getDHCPfingerprint(fingerprint, sizeof(fingerprint)))
+    lua_push_str_table_entry(vm, "dhcp_fingerprint", fingerprint);
 
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
   lua_push_uint64_table_entry(vm, "seen.last", last_seen);
@@ -496,15 +496,41 @@ bool Mac::is_hash_entry_state_idle_transition_ready() {
 /* *************************************** */
 
 void Mac::setDHCPFingerprint(const char* f) {
+  char *new_fingerprint, *old_fingerprint;
+
   if ((f == NULL) || (f[0] == '\0')) return;
 
-  if (dhcpv4_fingerprint != NULL) free(dhcpv4_fingerprint);
+  if ((new_fingerprint = strdup(f)) == NULL) return;
 
-  dhcpv4_fingerprint = strdup(f);
+  m.lock(__FILE__, __LINE__);
+  old_fingerprint = dhcpv4_fingerprint;
+  dhcpv4_fingerprint = new_fingerprint;
+  m.unlock(__FILE__, __LINE__);
+
+  if (old_fingerprint) free(old_fingerprint);
 
 #ifdef NTOPNG_PRO
-  analyzeDevice();
+  analyzeDevice(f);
 #endif
+}
+
+/* *************************************** */
+
+/* Returns a copy (NULL if not set): dhcpv4_fingerprint can be replaced (and
+ * freed) by another thread at any time */
+char* Mac::getDHCPfingerprint(char* const buf, ssize_t buf_size) {
+  bool found = false;
+
+  if (buf && buf_size) {
+    m.lock(__FILE__, __LINE__);
+    if (dhcpv4_fingerprint) {
+      snprintf(buf, buf_size, "%s", dhcpv4_fingerprint);
+      found = true;
+    }
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return (found ? buf : NULL);
 }
 
 /* *************************************** */

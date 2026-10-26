@@ -919,7 +919,9 @@ void Host::lua(lua_State* vm, AddressTree* ptree, bool host_details,
   if (!is_dhcp_host) {
     Mac* cur_mac = getMac();
 
-    if (cur_mac && cur_mac->getDHCPfingerprint()) {
+    char fingerprint[64];
+
+    if (cur_mac && cur_mac->getDHCPfingerprint(fingerprint, sizeof(fingerprint))) {
       is_dhcp_host = 1;
     }
   }

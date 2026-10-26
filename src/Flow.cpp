@@ -3810,9 +3810,10 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
   lua_push_uint64_table_entry(vm, "tags", getTags());
 
   if (c_mac != NULL) {
-    if (c_mac->getDHCPfingerprint())
-      lua_push_str_table_entry(vm, "dhcp_fingerprint",
-                               c_mac->getDHCPfingerprint());
+    char fingerprint[64];
+
+    if (c_mac->getDHCPfingerprint(fingerprint, sizeof(fingerprint)))
+      lua_push_str_table_entry(vm, "dhcp_fingerprint", fingerprint);
   }
 }
 

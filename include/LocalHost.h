@@ -39,20 +39,23 @@ class LocalHost : public Host {
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1,
-      asset_map_updated : 1, too_many_server_ports_logged : 1, _notused : 3;
+      too_many_server_ports_logged : 1, _notused : 4;
+  std::atomic<bool> asset_map_updated;
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail, *tcp_fingerprint;
   std::map<OSLearningMode, ndpi_os>
       os_learning; /* How OS info has been learnt */
-  std::map<std::string, std::string>
-      asset_map; /* For generic purposes, a <string, string> pair is done */
+  /* For generic purposes, a <string, string> pair is done.
+   * NOTE: protected by Host::m */
+  std::map<std::string, std::string> asset_map;
   struct timeval last_periodic_asset_update;
   /* Tags observed on the host / removed by the user since the last time the
    * asset info has been dumped: they are used to refresh the tags of the asset
    * (that expire when not refreshed) and to remove tags from it.
    * tags_assigned_bitmap is the subset of the refreshed tags that have been
    * set manually by the user (rather than observed in the traffic) */
-  u_int64_t tags_refreshed_bitmap, tags_removed_bitmap, tags_assigned_bitmap;
+  std::atomic<u_int64_t> tags_refreshed_bitmap, tags_removed_bitmap,
+      tags_assigned_bitmap;
 
 #ifdef NTOPNG_PRO
   struct {
@@ -263,7 +266,7 @@ class LocalHost : public Host {
   virtual bool setOS(ndpi_os _os, OSLearningMode mode);
   void setTCPfingerprint(char* tcp_fingerprint, ndpi_os os);
 
-  virtual inline void setAssetUpdated() { asset_map_updated = 1; }
+  virtual inline void setAssetUpdated() { asset_map_updated = true; }
   virtual inline void setTagsRefreshed(u_int64_t bitmap) {
     tags_refreshed_bitmap |= bitmap, tags_removed_bitmap &= ~bitmap,
         tags_assigned_bitmap &= ~bitmap;

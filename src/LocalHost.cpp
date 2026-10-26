@@ -71,6 +71,7 @@ LocalHost::~LocalHost() {
 
   /* Decrease number of active hosts */
   iface->decNumHosts(this, is_rx_only);
+  /* NOTE: no lock (see dumpAssetJson), the host is no longer used */
   asset_map.clear();
 }
 
@@ -253,7 +254,7 @@ void LocalHost::periodic_stats_update(const struct timeval* tv,
     float diff = Utils::msTimevalDiff(tv, &last_periodic_asset_update) /
                  1000; /* in Sec */
     Mac* cur_mac = getMac();
-    if (cur_mac) asset_map_updated |= cur_mac->isAssetUpdated();
+    if (cur_mac && cur_mac->isAssetUpdated()) asset_map_updated = true;
 
     if (((diff > CONST_ASSETS_PERIODIC_UPDATE) && asset_map_updated) ||
         /* Nothing has changed, but some tags that expire when not refreshed
