@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local page_utils = require("page_utils")
 local template = require("template_utils")
+local json = require("dkjson")
 local defined_toasts = require("defined_toasts")
 
 local MAX_NON_PRIORITY_TOASTS_TO_SHOW = 1
@@ -101,15 +102,23 @@ function toats_manager.dismiss_toast(toast_id)
     return true, "Success"
 end
 
---- Create a toast container inside the page where to render the alert toasts.
---- @param container_id string The container id attribute
---- @param toasts table A alert_toasts list to render inside the container,
+--- Show the alert toasts of the page: they are rendered by the PageToasts Vue component, which shows
+--- them with the toast stack of the page (pro/http_src/vue/components/toast-stack.vue).
+--- @param container_id string The id of the container of the Vue component
+--- @param toasts table A alert_toasts list to render
 function toats_manager.render_toasts(container_id, toasts)
-    -- render the toasts
-    print(template.gen('pages/components/toasts-container.template', {
-        toasts = toasts,
-        container_id = container_id
-    }))
+    if #toasts == 0 then return end
+
+    local list = {}
+    for _, toast in ipairs(toasts) do
+        list[#list + 1] = toast:to_table()
+    end
+
+    template.render("pages/vue_page.template", {
+        vue_page_name = "PageToasts",
+        vue_container_id = container_id,
+        page_context = json.encode({ toasts = list, csrf = ntop.getRandomCSRFValue() }),
+    })
 end
 
 return toats_manager

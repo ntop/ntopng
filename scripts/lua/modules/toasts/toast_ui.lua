@@ -59,6 +59,43 @@ function ToastUI:new(id, title, description, level, action, dismissable)
    return this
 end
 
+-- Toast action types that need more than a link: the PageToasts Vue component runs them
+local ACTION_TYPES = {
+   ["toast-config-change-flows"] = "incr_flows",
+   ["toast-config-change-hosts"] = "incr_hosts",
+   ["restart-service"] = "restart",
+}
+
+-- Plain table of the toast, to be sent to the PageToasts Vue component (see toasts_manager.render_toasts)
+function ToastUI:to_table()
+   local action = nil
+
+   if self.action then
+      action = {
+         url = self.action.url,
+         title = self.action.title,
+         type = ACTION_TYPES[self.action.additional_classes],
+      }
+
+      if self.action.dialog then
+         action.dialog = {
+            title = self.action.dialog.title,
+            message = self.action.dialog.message,
+            err_msg = self.action.dialog.err_msg,
+         }
+      end
+   end
+
+   return {
+      id = self.id,
+      title = self.title,
+      description = self.description, -- HTML
+      level = self.level.bg_color, -- success | info | warning | danger
+      dismissable = self.dismissable,
+      action = action,
+   }
+end
+
 -- Return the rendered HTML template for the toast
 -- to be displayed. The return string can be printed inside the page
 -- with the `print` method
