@@ -1,0 +1,9 @@
+{
+	"id": "clickhouse_explorer_results",
+	"data_url": "lua/pro/rest/v2/post/db_explorer/query.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"columns": []
+}

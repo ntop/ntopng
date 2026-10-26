@@ -823,6 +823,11 @@ page_utils.menu_entries = {
         i18n_title = "swagger_api",
         section = "dev"
     },
+    clickhouse_explorer = {
+        key = "clickhouse_explorer",
+        i18n_title = "clickhouse_explorer.clickhouse_explorer",
+        section = "dev",
+    },
     manage_data = {
         key = "manage_data",
         i18n_title = "manage_data.manage_data",
