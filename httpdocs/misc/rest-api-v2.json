@@ -298,7 +298,7 @@
           "Infrastructures"
         ],
         "summary": "Add a new infrastructure configuration",
-        "description": "Add a new infrastructure configuration",
+        "description": "Add a new infrastructure configuration. Administrators only.",
         "operationId": "add_infrastructure_config",
         "produces": [
           "application/json"
@@ -306,33 +306,40 @@
         "parameters": [
           {
             "name": "url",
-            "description": "The URL of the ntopng in the infrastructure",
+            "description": "The URL of the ntopng in the infrastructure (http or https, stored as scheme://host:port)",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "alias",
             "description": "An alias for the infrastructure",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "token",
             "description": "The REST API Token for the authentication",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "rtt_threshold",
-            "description": "RTT threshold used by the active monitoring",
+            "description": "RTT threshold of the active monitoring, in seconds (1-10)",
             "required": true,
-            "type": "int32"
+            "type": "integer",
+            "in": "formData",
+            "format": "int32"
           },
           {
             "name": "bandwidth_threshold",
-            "description": "Bandwidth threshold used by the active monitoring",
+            "description": "Bandwidth threshold of the active monitoring, in Mbps (0-1000)",
             "required": true,
-            "type": "int32"
+            "type": "integer",
+            "in": "formData",
+            "format": "int32"
           }
         ],
         "responses": {
@@ -611,10 +618,10 @@
     "/lua/pro/rest/v2/check/infrastructure/config.lua": {
       "post": {
         "tags": [
-          "All"
+          "Infrastructures"
         ],
         "summary": "Test an infrastructure configuration",
-        "description": "Uses an url and token to connect to the REST API of an ntopng in the infrastructure",
+        "description": "Connects to the REST API of an ntopng in the infrastructure with the url and token: parameters in the JSON body (query string accepted for compatibility). Administrators only.",
         "operationId": "check_infrastructure_config",
         "produces": [
           "application/json"
@@ -622,14 +629,14 @@
         "parameters": [
           {
             "name": "url",
-            "in": "query",
+            "in": "formData",
             "description": "The URL of the ntopng in the infrastructure",
             "required": true,
             "type": "string"
           },
           {
             "name": "token",
-            "in": "query",
+            "in": "formData",
             "description": "The REST API Token for the authentication",
             "required": true,
             "type": "string"
@@ -653,6 +660,12 @@
           },
           "-46": {
             "description": "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -905,7 +918,7 @@
           "Infrastructures"
         ],
         "summary": "Delete an existing infrastructure configuration",
-        "description": "Delete an existing infrastructure configuration",
+        "description": "Delete an existing infrastructure configuration. Administrators only.",
         "operationId": "delete_infrastructure_config",
         "produces": [
           "application/json"
@@ -915,7 +928,8 @@
             "name": "instance_id",
             "description": "The ID of the infrastructure to delete",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           }
         ],
         "responses": {
@@ -1208,7 +1222,6 @@
         }
       }
     },
-
     "/lua/pro/rest/v2/edit/device/exclusion.lua": {
       "get": {
         "tags": [
@@ -1280,7 +1293,7 @@
           "Infrastructures"
         ],
         "summary": "Edit an existing infrastructure configuration",
-        "description": "Edit an existing infrastructure configuration",
+        "description": "Edit an existing infrastructure configuration. Administrators only.",
         "operationId": "edit_infrastructure_config",
         "produces": [
           "application/json"
@@ -1290,37 +1303,45 @@
             "name": "instance_id",
             "description": "The ID of the infrastructure configuration to edit",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "url",
-            "description": "The URL of the ntopng in the infrastructure",
+            "description": "The URL of the ntopng in the infrastructure (http or https, stored as scheme://host:port)",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "alias",
             "description": "An alias for the infrastructure",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "token",
             "description": "The REST API Token for the authentication",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "in": "formData"
           },
           {
             "name": "rtt_threshold",
-            "description": "RTT threshold used by the active monitoring",
+            "description": "RTT threshold of the active monitoring, in seconds (1-10)",
             "required": true,
-            "type": "int32"
+            "type": "integer",
+            "in": "formData",
+            "format": "int32"
           },
           {
             "name": "bandwidth_threshold",
-            "description": "Bandwidth threshold used by the active monitoring",
+            "description": "Bandwidth threshold of the active monitoring, in Mbps (0-1000)",
             "required": true,
-            "type": "int32"
+            "type": "integer",
+            "in": "formData",
+            "format": "int32"
           }
         ],
         "responses": {
@@ -1497,7 +1518,6 @@
             "required": true,
             "type": "string"
           }
-          
         ],
         "responses": {
           "0": {
@@ -3979,20 +3999,25 @@
           "Infrastructures"
         ],
         "summary": "Get one or all infrastructure configs",
-        "description": "Get one or all infrastructure configs",
+        "description": "Get one or all infrastructure configs. Administrators only.",
         "operationId": "get_infrastructure_configs",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "instance_id": "string",
-            "required": false
+            "name": "instance_id",
+            "in": "query",
+            "description": "ID of the infrastructure configuration (all of them when empty)",
+            "required": false,
+            "type": "string"
           },
           {
-            "stats": "boolean",
+            "name": "stats",
+            "in": "query",
+            "description": "Add the statistics collected by the active monitoring module",
             "required": false,
-            "description": "Add statistics collected by the active monitoring module"
+            "type": "boolean"
           }
         ],
         "responses": {
@@ -5184,7 +5209,7 @@
           "SNMP"
         ],
         "summary": "Get system information",
-        "description": "Get system information for a single or all SNMP devices",
+        "description": "Get system information (SNMPv2-MIB system group) for a single or all SNMP devices; oid_label is the object id with the hardware model when known. Requires the SNMP capability and access to the system interface.",
         "operationId": "get_snmp_device_system",
         "produces": [
           "application/json"
@@ -5201,6 +5226,9 @@
         "responses": {
           "-3": {
             "description": "NOT_GRANTED"
+          },
+          "0": {
+            "description": "OK"
           }
         }
       }
@@ -13129,11 +13157,15 @@
     },
     "/lua/rest/v2/get/system/status.lua" : {
       "get":{
-        "tags": ["Health"],
+        "tags": [
+          "Health"
+        ],
         "summary": "Get system status info",
         "description": "Get license information and resources used data",
         "operationId": "get_system_status",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "parameters": [],
         "responses": {
           "0" : {
@@ -13144,11 +13176,15 @@
     },
     "/lua/rest/v2/get/system/reload_ndpi.lua" : {
       "get":{
-        "tags": ["Health"],
+        "tags": [
+          "Health"
+        ],
         "summary": "Reload nDPI and Blacklists",
         "description": "Reload nDPI (also the changes to the custom protocols) and all the enabled blacklists",
         "operationId": "reload_ndpi",
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "parameters": [],
         "responses": {
           "0" : {
@@ -14217,6 +14253,1058 @@
         "responses": {
           "0": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/active_monitoring/list.lua": {
+      "get": {
+        "tags": [
+          "Active Monitoring"
+        ],
+        "summary": "List the active monitoring measurements",
+        "description": "Measurements with their last result and thresholds. Requires access to the system interface.",
+        "operationId": "get_active_monitoring_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface ID",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "measurement",
+            "in": "query",
+            "description": "Only this measurement type (e.g. icmp, http)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "only_alerted_hosts",
+            "in": "query",
+            "description": "Only the measurements with engaged alerts",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/active_monitoring/filters.lua": {
+      "get": {
+        "tags": [
+          "Active Monitoring"
+        ],
+        "summary": "Active monitoring table filters",
+        "description": "Filters (measurement types) of the active monitoring table. Requires access to the system interface.",
+        "operationId": "get_active_monitoring_filters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface ID",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/active_monitoring/measurements.lua": {
+      "get": {
+        "tags": [
+          "Active Monitoring"
+        ],
+        "summary": "Active monitoring measurement types",
+        "description": "Definitions of the available measurements (units, thresholds, granularities). Requires access to the system interface.",
+        "operationId": "get_active_monitoring_measurements",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/active_monitoring/timeseries_list.lua": {
+      "get": {
+        "tags": [
+          "Active Monitoring"
+        ],
+        "summary": "Active monitoring hosts with timeseries",
+        "description": "Active monitoring hosts, the sources of the timeseries charts. Requires access to the system interface.",
+        "operationId": "get_active_monitoring_timeseries_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/active_monitoring/measurement.lua": {
+      "post": {
+        "tags": [
+          "Active Monitoring"
+        ],
+        "summary": "Delete an active monitoring measurement",
+        "description": "Removes a measurement. Requires the active monitoring capability.",
+        "operationId": "delete_active_monitoring_measurement",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "am_host",
+            "in": "formData",
+            "description": "Monitored host",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "measurement",
+            "in": "formData",
+            "description": "Measurement type (e.g. icmp, http)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/ntopng/menu.lua": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Menu and shared page flags",
+        "description": "Sidebar menu of the GUI and the flags shared by its pages (e.g. is_am_active, are_system_ts_enabled, are_alerts_enabled).",
+        "operationId": "get_ntopng_menu",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface ID",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/page_context.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Context of the SNMP devices page",
+        "description": "Number and limit of the configured devices, LLDP/CDP availability, polling/timeseries/license flags and the default community used by the SNMP devices page. Administrators only. Requires access to the system interface.",
+        "operationId": "get_snmp_page_context",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/page_context.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Context of the SNMP device page",
+        "description": "Device name and the data it exposes (interfaces, LLDP/CDP, BRIDGE, NET-SNMP, Printer MIBs, QoS polling, flow export); found is false for a device not configured. Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_device_page_context",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/netsnmp.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "NET-SNMP resources of an SNMP device",
+        "description": "CPU states (%), memory and swap (bytes) from the UCD-SNMP-MIB and which of their timeseries exist (charts). Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_device_netsnmp",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/printer.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Printer data of an SNMP device",
+        "description": "Printer-MIB data; error_state_bytes are the bytes of hrPrinterDetectedErrorState (flag bits, RFC 1759). Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_device_printer",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/mac/macs_info.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "MAC addresses learned by an SNMP device",
+        "description": "MAC addresses of the BRIDGE-MIB forwarding table, of all the ports or of one, with manufacturer, device type id (discover id, e.g. printer) and associated IP. Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_macs_info",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_port_idx",
+            "in": "query",
+            "description": "Only the MACs of this port (SNMP ifIndex)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/interface/page_context.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Context of the SNMP interface page",
+        "description": "Device and interface names, role label, learned MACs, timeseries and the interface exporting the flows of this port (exporter_ifid); found is false for an unknown device or interface. Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_interface_page_context",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_port_idx",
+            "in": "query",
+            "description": "SNMP ifIndex of the interface",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/interface/details.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Details of an SNMP interface",
+        "description": "Raw interface data: name, type, IPs, VLAN, speeds (bit/s), status codes, counters, last change (s), LLDP neighbour, last usage (%, -1 when not available). Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_interface_details",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_port_idx",
+            "in": "query",
+            "description": "SNMP ifIndex of the interface",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/interface/config.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Configuration of an SNMP interface",
+        "description": "Alerts toggles, role, usage page exclusion, speeds (bit/s) and admin status of an interface. Administrators only.",
+        "operationId": "get_snmp_interface_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_port_idx",
+            "in": "query",
+            "description": "SNMP ifIndex of the interface",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/snmp/interface/config.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Edit the configuration of an SNMP interface",
+        "description": "Only the parameters sent are changed. toggle_snmp_port_admin_status sets the admin status on the device (SNMP SET, admin_status_set_failed when it fails). Administrators only.",
+        "operationId": "edit_snmp_interface_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_port_idx",
+            "in": "formData",
+            "description": "SNMP ifIndex of the interface",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "toggle_snmp_alerts_port_status_change",
+            "in": "formData",
+            "description": "Alerts on operational status changes",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "toggle_snmp_alerts_port_duplexstatus_change",
+            "in": "formData",
+            "description": "Alerts on duplex status changes",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "toggle_snmp_alerts_port_errors",
+            "in": "formData",
+            "description": "Alerts on discards/errors",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "toggle_exclude_from_usage_page",
+            "in": "formData",
+            "description": "Exclude the interface from the usage page",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "snmp_interface_role_change",
+            "in": "formData",
+            "description": "Interface role (a value of get/snmp/interface_roles_options.lua)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "uplink_speed",
+            "in": "formData",
+            "description": "Uplink speed in Gbit (>= 0)",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "downlink_speed",
+            "in": "formData",
+            "description": "Downlink speed in Gbit (>= 0)",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "toggle_snmp_port_admin_status",
+            "in": "formData",
+            "description": "Admin status up (true) or down (false)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/rules.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "List the SNMP interface rules",
+        "description": "Threshold rules on the metrics of SNMP interfaces. Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_device_rules",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/snmp/device/rule.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Add an SNMP interface rule",
+        "description": "Adds a threshold rule on a metric of an SNMP interface; parameters in the JSON body (CSRF checked). Administrators only.",
+        "operationId": "add_snmp_device_rule",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_device",
+            "in": "formData",
+            "description": "IP address of the SNMP device, * for all",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_device_port",
+            "in": "formData",
+            "description": "SNMP ifIndex of the interface",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "snmp_device_port_label",
+            "in": "formData",
+            "description": "Label of the interface",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "metric",
+            "in": "formData",
+            "description": "Metric (e.g. bytes, errors, usage)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "metric_label",
+            "in": "formData",
+            "description": "Label of the metric",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "metric_type",
+            "in": "formData",
+            "description": "Threshold type (e.g. volume, throughput, percentage_change)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "frequency",
+            "in": "formData",
+            "description": "Check frequency: 5min, hour or day",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "threshold",
+            "in": "formData",
+            "description": "Threshold",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "rule_threshold_sign",
+            "in": "formData",
+            "description": "1: greater than, -1: lower than",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "snmp_device_label",
+            "in": "formData",
+            "description": "Label of the device",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_threshold_value",
+            "in": "formData",
+            "description": "Threshold as typed by the user",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "snmp_threshold_unit",
+            "in": "formData",
+            "description": "Unit of the threshold",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_metric_type_label",
+            "in": "formData",
+            "description": "Label of the threshold type",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/snmp/device/rule.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Delete an SNMP interface rule",
+        "description": "Removes a threshold rule; parameters in the JSON body (CSRF checked). Administrators only.",
+        "operationId": "delete_snmp_device_rule",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "rule_id",
+            "in": "formData",
+            "description": "ID of the rule",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/snmp_debug.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Download the SNMP cache of a device",
+        "description": "Raw cached SNMP data of a device, as a text file attachment (debug). Administrators only.",
+        "operationId": "get_snmp_debug",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/metric/interfaces.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "List the SNMP interfaces",
+        "description": "Interfaces of all the devices or of one, with status, speeds, counters and usage, filtered and paged (without start/length the whole list). Requires access to the system interface.",
+        "operationId": "get_snmp_metric_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the interfaces of this device",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First row",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of rows",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text to search",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_status",
+            "in": "query",
+            "description": "Operational status code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_admin_status",
+            "in": "query",
+            "description": "Admin status code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_if_type",
+            "in": "query",
+            "description": "Interface type",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "err_counters_filter",
+            "in": "query",
+            "description": "Only the interfaces with errors",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "snmp_interface_role",
+            "in": "query",
+            "description": "Interface role",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "lldp_cdp_mode",
+            "in": "query",
+            "description": "Only the interfaces with LLDP/CDP neighbours",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/metric/interfaces_filters.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "SNMP interfaces table filters",
+        "description": "Filters of the SNMP interfaces table (status, type, role, errors). Administrators only.",
+        "operationId": "get_snmp_metric_interfaces_filters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the values of this device",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/metric/usage.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "SNMP interfaces usage",
+        "description": "Usage of the SNMP interfaces in a time range, paged. Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_metric_usage",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the interfaces of this device",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First row",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of rows",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text to search",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/metric/usage_chart.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "SNMP interfaces usage chart",
+        "description": "Usage distribution of the SNMP interfaces in a time range, for the usage chart. Requires the SNMP capability and access to the system interface.",
+        "operationId": "get_snmp_metric_usage_chart",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the interfaces of this device",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the range (epoch)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
           }
         }
       }
