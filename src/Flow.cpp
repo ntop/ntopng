@@ -7702,6 +7702,11 @@ void Flow::lua_get_status(lua_State* vm) const {
                                 getPredominantAlert().id);
     lua_push_uint64_table_entry(vm, "predominant_alert_score",
                                 getPredominantAlertScore());
+    /* Used to merge live flow alerts with the stored ones (alert groups) */
+    lua_push_uint64_table_entry(vm, "predominant_alert_category",
+                                getPredominantAlert().category);
+    lua_push_bool_table_entry(vm, "predominant_alert_auto_ack",
+                              alert_info.auto_acknowledge ? true : false);
   }
 
   lua_push_bool_table_entry(vm, "has_hr_counters",
