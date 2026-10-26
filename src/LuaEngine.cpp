@@ -1300,11 +1300,29 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
 
           char fname[1024], upload_dir[512];
 
+          /* The multipart body is handled by mg_upload, which is unable to return other form fields,
+           * thus the CSRF token is expected in the query string (checked before accepting the upload) */
+          valid_csrf = 0;
+          if (!strcmp(session_csrf, NTOP_CSRF_TOKEN_NO_SESSION)) {
+            /* No session (username/password or token authentication provided), no CSRF check required */
+            valid_csrf = 1;
+          } else if (request_info->query_string) {
+            mg_get_var(request_info->query_string,
+                       strlen(request_info->query_string), "csrf", csrf,
+                       sizeof(csrf));
+
+            if (!strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
+              valid_csrf = 1;
+          }
+
           snprintf(upload_dir, sizeof(upload_dir), "%s/tmp/upload",
                    ntop->get_working_dir());
           ntop->fixPath(upload_dir);
 
-          if (!Utils::mkdir_tree(upload_dir))
+          if (!valid_csrf)
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing or invalid CSRF in file upload [URI: %s]",
+                request_info->uri);
+          else if (!Utils::mkdir_tree(upload_dir))
             ntop->getTrace()->traceEvent(
                 TRACE_WARNING, "Unable to create directory %s", upload_dir);
           else {
@@ -1320,34 +1338,16 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
                        upload_dir, fname);
               ntop->fixPath(uploaded_file);
 
-              lua_newtable(L);
+              /* CSRF is valid here: fill _POST with the (validated) query
+               * string parameters, then add the uploaded file path */
+              *attack_attempt = setParamsTable(L, request_info, "_POST",
+                                               request_info->query_string);
+
+              lua_getglobal(L, "_POST");
               lua_push_str_table_entry(L, "uploaded_file", uploaded_file);
-
-              if (request_info->query_string) {
-                char* d = strdup(request_info->query_string);
-
-                if (d != NULL) {
-                  char* where;
-                  char* tok = strtok_r(d, "&", &where);
-
-                  while (tok != NULL) {
-                    char* tok_where;
-                    char* k = strtok_r(tok, "=", &tok_where);
-
-                    if (k != NULL) {
-                      char* v = strtok_r(NULL, "=", &tok_where);
-
-                      if (v != NULL) lua_push_str_table_entry(L, k, v);
-                    }
-
-                    tok = strtok_r(NULL, "&", &where);
-                  } /* while */
-                }
-              }
-
-              lua_setglobal(L, "_POST");
-              valid_csrf = 1; /* Dummy */
-            }
+              lua_pop(L, 1);
+            } else
+              valid_csrf = 0; /* Multipart request without a file */
           }
         }
       } else if ((post_data = (char*)malloc(content_len * sizeof(char))) ==
