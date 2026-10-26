@@ -2,23 +2,34 @@
 	"id": "traffic_model_expected_missing",
 	"data_url": "lua/pro/rest/v2/get/traffic_model/expected.lua",
 	"use_current_page": false,
-	"enable_search": false,
-	"paging": false,
+	"enable_search": true,
+	"paging": true,
 	"display_empty_rows": false,
 	"default_sort": {
-		"column_id": "ip",
+		"column_id": "status",
 		"sort": 1
 	},
 	"columns": [
 		{
 			"id": "ip",
-			"title": "Configured but Not Seen",
 			"data_field": "ip",
 			"sortable": true,
 			"min-width": "160px",
 			"class": [
 				"text-nowrap"
-			]
+			],
+			"title_i18n": "traffic_model.col.server"
+		},
+		{
+			"id": "status",
+			"data_field": "status",
+			"sortable": true,
+			"min-width": "90px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.status"
 		}
 	]
 }
