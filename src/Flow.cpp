@@ -9578,7 +9578,7 @@ void Flow::swap() {
 
     memcpy(&t, &tcp_stats.cli2srv, sizeof(TCPStats));
     memcpy(&tcp_stats.cli2srv, &tcp_stats.srv2cli, sizeof(TCPStats));
-    memcpy(&tcp_stats.srv2cli, &tcp_stats.cli2srv, sizeof(TCPStats));
+    memcpy(&tcp_stats.srv2cli, &t, sizeof(TCPStats));
   }
 
   cli2srvPktTime = srv2cliPktTime;
