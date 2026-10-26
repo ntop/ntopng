@@ -3370,7 +3370,7 @@ bool Ntop::getWebAuthnPendingToken(const char* token, char* username,
   char* p1 = strchr(val, '|');
   if (!p1) return false;
   *p1 = '\0';
-  char* p2 = strchr(p1 + 1, '|');
+  char* p2 = strrchr(p1 + 1, '|');
   if (!p2) return false;
   *p2 = '\0';
 
