@@ -26,6 +26,9 @@
 
 class Mac : public GenericHashEntry {
  private:
+  /* Protects names and dhcpv4_fingerprint. Same rules of Host::m: lock it
+   * only around operations on the data and never call, with m locked, a
+   * method that can lock it itself or other mutexes */
   Mutex m;
   u_int8_t mac[6];
   u_int16_t host_pool_id;
@@ -33,8 +36,8 @@ class Mac : public GenericHashEntry {
   /* Number of remote (non-local) hosts reachable behind this MAC. A value > 0 means the MAC is
      actually routing traffic towards remote networks, i.e. it behaves as a gateway/router. */
   u_int32_t num_remote_hosts; 
-  bool special_mac, lockDeviceTypeChanges, broadcast_mac, asset_map_updated,
-      empty_mac;
+  bool special_mac, lockDeviceTypeChanges, broadcast_mac, empty_mac;
+  std::atomic<bool> asset_map_updated;
   bool stats_reset_requested, data_delete_requested;
   const char* manuf;
   MacStats *stats, *stats_shadow;
@@ -48,7 +51,8 @@ class Mac : public GenericHashEntry {
     char* dhcp; /* Extracted from DHCP dissection */
   } names;
 
-  char* dhcpv4_fingerprint;
+  char* dhcpv4_fingerprint; /* Protected by m */
+  /* NOTE: no lock, as they are set only once and freed by the destructor */
   char* model;
   char* ssid;
 
@@ -241,10 +245,10 @@ class Mac : public GenericHashEntry {
   void dumpAssetMac(ndpi_serializer* serializer);
   void dumpAssetInfo(ndpi_serializer* serializer);
   void dumpMacInfo(bool add_last_seen);
-  void analyzeDevice();
+  void analyzeDevice(const char* dhcp_fingerprint);
 #endif
 
-  inline char* getDHCPfingerprint() { return (dhcpv4_fingerprint); }
+  char* getDHCPfingerprint(char* const buf, ssize_t buf_size);
 
 #ifdef HAVE_NEDGE
   void logMacEvent(char* msg);

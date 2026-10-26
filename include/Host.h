@@ -150,6 +150,12 @@ class Host : public GenericHashEntry,
     char* msg;
   } customHostAlert;
 
+  /* Protects the host data used by different threads (names, asset_map, ...).
+   * NOTE: it is not recursive, so, to avoid deadlocks:
+   * - lock it only around operations on the data (copy, assign, free, ...)
+   * - never call, with m locked, a method that can lock it itself (e.g.
+   *   get_name() and the names getters, print(), addDataToAssets(),
+   *   removeDataFromAssets()) or that can lock other mutexes */
   Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
