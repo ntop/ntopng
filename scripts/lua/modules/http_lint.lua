@@ -2917,6 +2917,7 @@ local known_parameters = {
    ["influx_query_timeout"] = validateNumber,
    ["host_to_scan_max_num_scans"] = validateNumber,
    ["serial_key"] = validateSingleWord,
+   ["acl_port"] = validateSingleWord, -- ACL rules port filter: number, range ("80-90") or "*"
    ["message_broker_username"] = validateEmptyOr(validateSingleWord),
    ["message_broker_password"] = validateEmptyOr(validateSingleWord),
    ["message_broker_url"] = validateEmptyOr(validateSingleWord),

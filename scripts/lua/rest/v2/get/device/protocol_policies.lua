@@ -35,9 +35,17 @@ local device_policies = presets_utils.getDevicePolicies(device_type)
 local all_protocols   = interface.getnDPIProtocols(nil, true)
 
 local protocols = {}
+-- Categories of all the protocols (for the filter UI), in the same pass
+local categories_set = {}
+local getnDPIProtoCategory = ntop.getnDPIProtoCategory
 
 for proto_name, proto_id in pairs(all_protocols) do
    local pid = tonumber(proto_id)
+   local cat = getnDPIProtoCategory(pid)
+
+   if cat and cat.name then
+      categories_set[cat.name] = true
+   end
 
    -- Proto filter
    if not isEmptyString(proto_filter) and proto_filter ~= proto_id then
@@ -45,7 +53,6 @@ for proto_name, proto_id in pairs(all_protocols) do
    end
 
    -- Category filter
-   local cat = ntop.getnDPIProtoCategory(pid)
    if not isEmptyString(category_filter) and category_filter ~= cat.name then
       goto continue
    end
@@ -85,14 +92,6 @@ for _, action in ipairs(presets_utils.actions) do
    }
 end
 
--- Build categories list from all protocols for the filter UI
-local categories_set = {}
-for proto_name, proto_id in pairs(all_protocols) do
-   local cat = ntop.getnDPIProtoCategory(tonumber(proto_id))
-   if cat and cat.name and not categories_set[cat.name] then
-      categories_set[cat.name] = true
-   end
-end
 local categories = {}
 for cat_name in pairs(categories_set) do
    categories[#categories + 1] = cat_name

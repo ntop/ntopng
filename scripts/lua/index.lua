@@ -6,10 +6,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local template_utils = require "template_utils"
-local json = require "dkjson"
-local auth = require "auth"
-local os_utils = require("os_utils")
 
 -- interface.select(ifname)
 local ifid = interface.getId()
@@ -101,9 +97,6 @@ if lightview then template = "lightview" end
 
 -- ######################################
 
-page_utils.print_header_and_set_active_menu_entry(
-    page_utils.menu_entries.traffic_dashboard)
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- ######################################
 
@@ -120,11 +113,13 @@ local context = {
         "/lua/rest/v2/get/dashboard/template/list.lua"
 }
 
-local json_context = json.encode(context)
+-- The dashboard (Dashboard Vue component) is the SPA route of this page
+-- (router.js), mounted by AppShell with this context: the redirects above
+-- and this template choice are also in router.js for the SPA navigations
+page_route_context = context
 
-template_utils.render("pages/vue_page.template", {
-    vue_page_name = "Dashboard",
-    page_context = json_context
-})
+page_utils.print_header_and_set_active_menu_entry(
+    page_utils.menu_entries.traffic_dashboard)
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

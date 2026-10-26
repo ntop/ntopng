@@ -524,6 +524,7 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    is_no_login_user = is_no_login,
    is_local_user    = (_SESSION["localuser"] ~= nil),
    is_nedge         = is_nedge,
+   is_nedge_enterprise = (ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise()) or false,
    is_windows       = is_windows,
    is_package       = (ntop.isPackage() == true),
    has_updates_support = (hasSoftwareUpdatesSupport() == true),

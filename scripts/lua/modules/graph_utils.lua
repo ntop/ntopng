@@ -203,11 +203,13 @@ end
 
 -- #################################################
 
-function graph_utils.drawNewGraphs(source_value_object)
-    -- Import modules
-    local json = require("dkjson")
+-- Context of the PageStats Vue page (timeseries charts) for source_value_object,
+-- drawn by drawNewGraphs or returned by rest/v2/get/timeseries/page_context.lua
+function graph_utils.getNewGraphsContext(source_value_object)
     local recording_utils = require "recording_utils"
-    local template_utils = require "template_utils"
+
+    -- Some callers pass nothing (e.g. flowdevices_stats.lua)
+    if source_value_object == nil then source_value_object = {} end
 
     -- Interface stats
     local ifstats = interface.getStats()
@@ -216,11 +218,9 @@ function graph_utils.drawNewGraphs(source_value_object)
     -- Check extraction permissions (handles View interfaces transparently)
     local _, traffic_extraction_permitted = recording_utils.getStats(ifid)
 
-    if source_value_object and source_value_object.is_lightview then
+    if source_value_object.is_lightview then
         traffic_extraction_permitted = false -- traffic extraction is per interface
     end
-
-    if source_value_object == nil then source_value_object = {} end
 
     -- Checking the available timeseries
     local interface_ts_enabled = ntop.getCache(
@@ -335,7 +335,17 @@ function graph_utils.drawNewGraphs(source_value_object)
         date_format = date_fmt,
         date_format_range_picker = date_fmt_picker,
     }
-    local json_context = json.encode(context)
+
+    return context
+end
+
+-- #################################################
+
+function graph_utils.drawNewGraphs(source_value_object)
+    local json = require("dkjson")
+    local template_utils = require "template_utils"
+
+    local json_context = json.encode(graph_utils.getNewGraphsContext(source_value_object))
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageStats", page_context = json_context })
 end
 

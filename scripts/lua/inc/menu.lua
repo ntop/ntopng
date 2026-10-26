@@ -186,6 +186,10 @@ local boot_context = json.encode({
    active_section     = page_utils.get_active_section() or "",
    active_entry       = page_utils.get_active_entry()   or "",
    has_geoip          = ntop.hasGeoIP and ntop.hasGeoIP(),
+   -- Optional: the context the page script computed for its SPA route (global
+   -- page_route_context, set before including this file). AppShell uses it for
+   -- the route of this page load; the SPA navigations compute it (router.js)
+   route_context      = page_route_context,
 })
 
 -- AppShell: sidebar + topbar
