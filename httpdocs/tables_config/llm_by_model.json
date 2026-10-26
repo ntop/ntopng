@@ -2,6 +2,7 @@
 	"id": "llm_by_model",
 	"paging": false,
 	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.llm_by_model",
 	"enable_search": true,
 	"columns": [
 		{

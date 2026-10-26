@@ -4,7 +4,8 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.network_discovery",
 	"default_sort": {
 		"column_id": "name",
 		"sort": 0

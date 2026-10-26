@@ -4,7 +4,8 @@
   "use_current_page": false,
   "enable_search": true,
   "paging": false,
-  "display_empty_rows": true,
+  "display_empty_rows": false,
+  "empty_message_i18n": "table_empty.alert_exclusions_hosts",
   "show_autorefresh": 0,
   "columns": [
     {

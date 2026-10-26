@@ -5,6 +5,7 @@
 	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.manage_configurations_backup",
 	"default_sort": {
 		"column_id": "date",
 		"sort": 2

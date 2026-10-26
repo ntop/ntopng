@@ -5,6 +5,7 @@
 	"enable_search": true,
 	"paging": true,
 	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.traffic_model_compare",
 	"default_sort": {
 		"column_id": "flows_new",
 		"sort": 2
