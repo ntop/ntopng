@@ -2222,6 +2222,11 @@ local function print_flow_overview_page()
          local function format_custom_field(key, value, snmpdevice)
             local formatted_value = handleCustomFlowField(key, value, snmpdevice)
 
+            -- An identifier, even when made of digits (e.g. IMSI): shown as is
+            if key == 'FLOW_USER_NAME' then
+               return formatted_value
+            end
+
             if ((tonumber(formatted_value)) and (math.floor(tonumber(formatted_value)) == 0)) then
                formatted_value = ''
             end
