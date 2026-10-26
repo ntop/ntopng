@@ -1,0 +1,60 @@
+{
+	"id": "snmp_macs",
+	"data_url": "lua/pro/rest/v2/get/snmp/mac/macs_info.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.snmp_macs",
+	"default_sort": {
+		"column_id": "interface_index",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"title_i18n": "snmp.ifindex",
+			"data_field": "interface_index",
+			"sortable": true,
+			"min-width": "90px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_address",
+			"data_field": "mac",
+			"sortable": true,
+			"min-width": "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "snmp_page.ip_associated",
+			"data_field": "ip",
+			"sortable": true,
+			"min-width": "130px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_stats.manufacturer",
+			"data_field": "manufacturer",
+			"sortable": true,
+			"min-width": "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "details.device_type",
+			"data_field": "device_type",
+			"sortable": true,
+			"min-width": "120px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}
