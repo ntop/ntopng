@@ -1,12 +1,13 @@
 {
-	"id": "active_monitoring",
+	"id": "infrastructure_monitoring",
 	"data_url": "lua/pro/rest/v2/get/infrastructure/instance.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.infrastructure_monitoring",
 	"default_sort": {
-		"column_id": "target",
+		"column_id": "alias",
 		"sort": 1
 	},
 	"columns": [
@@ -46,7 +47,7 @@
 		},
 		{
 			"title_i18n": "infrastructure_dashboard.name",
-			"data_field": "name",
+			"data_field": "alias",
 			"sortable": true,
 			"min-width": "180px",
 			"class": [
@@ -56,7 +57,7 @@
 		{
 			"title_i18n": "infrastructure_dashboard.url",
 			"data_field": "url",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "160px",
 			"class": [
 				"text-nowrap"
@@ -64,11 +65,12 @@
 		},
 		{
 			"title_i18n": "infrastructure_dashboard.status",
-			"data_field": "status",
+			"data_field": "am_success",
 			"sortable": true,
 			"min-width": "90px",
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
 			]
 		},
 		{

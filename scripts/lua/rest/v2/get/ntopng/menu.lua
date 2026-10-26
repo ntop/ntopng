@@ -568,6 +568,10 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    are_as_ts_enabled = (areASTimeseriesEnabled and areASTimeseriesEnabled(current_ifid)) or false,
    are_country_ts_enabled = (areCountryTimeseriesEnabled and areCountryTimeseriesEnabled(current_ifid)) or false,
    are_vlan_ts_enabled = (areVlanTimeseriesEnabled and areVlanTimeseriesEnabled(current_ifid)) or false,
+   are_system_ts_enabled = (areSystemTimeseriesEnabled and areSystemTimeseriesEnabled()) or false,
+   -- page-active-monitoring.vue, page-infrastructure-monitoring.vue
+   is_am_active = (prefs.active_monitoring == true),
+   are_alerts_enabled = areAlertsEnabled(),
    is_asn_mode_enabled = (isASNModeEnabled and isASNModeEnabled()) or false,
    show_sankey = show_sankey,
    has_pending_demo_tours = has_pending_demo_tours,

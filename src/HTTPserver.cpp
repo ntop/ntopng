@@ -406,7 +406,18 @@ static void set_session_cookie(const struct mg_connection* const conn,
                  session_duration);
   Utils::make_session_key(session_key, sizeof(session_key));
 
-  if (isLocalReferer(referer))
+  /* Never back to the logout page: refreshing it before its redirect to the
+     login makes it the referer, and the user would be logged out again */
+  const char* prefix = ntop->getPrefs()->get_http_prefix();
+  size_t prefix_len = strlen(prefix);
+  const char* referer_path =
+      (referer && prefix_len && !strncmp(referer, prefix, prefix_len))
+          ? referer + prefix_len
+          : referer;
+  bool to_logout = referer_path &&
+                   !strncmp(referer_path, LOGOUT_URL, strlen(LOGOUT_URL));
+
+  if (isLocalReferer(referer) && !to_logout)
     safe_referer = referer;
   else
     safe_referer = std::string(ntop->getPrefs()->get_http_prefix()) + "/";

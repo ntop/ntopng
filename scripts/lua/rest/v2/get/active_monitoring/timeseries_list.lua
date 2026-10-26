@@ -17,6 +17,12 @@ local infrastructure_utils = nil
 if ntop.isEnterprise and ntop.isEnterprise() then
     infrastructure_utils = require("infrastructure_utils")
 end
+
+-- Same access as the Active Monitoring page (system interface)
+if not isAllowedSystemInterface() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
 --
 -- List of active monitoring hosts (replaces get_active_monitoring_hosts.lua)
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{ }' http://localhost:3000/lua/rest/v2/get/am_host/list.lua
