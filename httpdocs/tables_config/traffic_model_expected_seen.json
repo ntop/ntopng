@@ -3,7 +3,25 @@
 	"data_url": "lua/pro/rest/v2/get/traffic_model/expected.lua",
 	"use_current_page": false,
 	"enable_search": true,
-	"paging": false,
+	"paging": true,
+	"selection": {
+		"key": "ip",
+		"row_filter": {
+			"status": [
+				"UNEXPECTED"
+			]
+		},
+		"not_selectable_tooltip_i18n": "traffic_model.already_expected",
+		"actions": [
+			{
+				"id": "mark_expected",
+				"label_i18n": "traffic_model.mark_expected",
+				"icon": "fa-check",
+				"class": "btn-primary",
+				"confirm": true
+			}
+		]
+	},
 	"display_empty_rows": false,
 	"default_sort": {
 		"column_id": "status",
@@ -12,28 +30,37 @@
 	"columns": [
 		{
 			"id": "ip",
-			"title": "Server",
 			"data_field": "ip",
 			"sortable": true,
 			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.server"
+		},
+		{
+			"id": "network",
+			"title_i18n": "traffic_model.col.network",
+			"data_field": "network",
+			"sortable": false,
+			"min-width": "140px",
 			"class": [
 				"text-nowrap"
 			]
 		},
 		{
 			"id": "status",
-			"title": "Status",
 			"data_field": "status",
 			"sortable": true,
 			"min-width": "110px",
 			"class": [
 				"text-center",
 				"text-nowrap"
-			]
+			],
+			"title_i18n": "traffic_model.col.status"
 		},
 		{
 			"id": "days_seen",
-			"title": "Days Active",
 			"data_field": "days_seen",
 			"sortable": true,
 			"min-width": "100px",
@@ -41,11 +68,11 @@
 			"class": [
 				"text-end",
 				"text-nowrap"
-			]
+			],
+			"title_i18n": "traffic_model.col.days_active"
 		},
 		{
 			"id": "flows",
-			"title": "Flows as Server",
 			"data_field": "flows",
 			"sortable": true,
 			"min-width": "100px",
@@ -53,11 +80,11 @@
 			"class": [
 				"text-end",
 				"text-nowrap"
-			]
+			],
+			"title_i18n": "traffic_model.col.flows_as_server"
 		},
 		{
 			"id": "bytes",
-			"title": "Traffic as Server",
 			"data_field": "bytes",
 			"sortable": true,
 			"min-width": "100px",
@@ -65,7 +92,8 @@
 			"class": [
 				"text-end",
 				"text-nowrap"
-			]
+			],
+			"title_i18n": "traffic_model.col.traffic_as_server"
 		}
 	]
 }

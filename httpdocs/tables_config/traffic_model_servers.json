@@ -3,7 +3,7 @@
 	"data_url": "lua/pro/rest/v2/get/traffic_model/servers.lua",
 	"use_current_page": false,
 	"enable_search": true,
-	"paging": false,
+	"paging": true,
 	"display_empty_rows": false,
 	"default_sort": {
 		"column_id": "flows",
@@ -12,38 +12,59 @@
 	"columns": [
 		{
 			"id": "ip",
-			"title": "Server",
 			"data_field": "ip",
 			"sortable": true,
 			"min-width": "160px",
-			"class": ["text-nowrap"]
+			"class": [
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.server"
+		},
+		{
+			"id": "network",
+			"title_i18n": "traffic_model.col.network",
+			"data_field": "network",
+			"sortable": false,
+			"min-width": "140px",
+			"class": [
+				"text-nowrap"
+			]
 		},
 		{
 			"id": "days_seen",
-			"title": "Days Active",
 			"data_field": "days_seen",
 			"sortable": true,
 			"min-width": "100px",
 			"render_type": "number",
-			"class": ["text-end", "text-nowrap"]
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.days_active"
 		},
 		{
 			"id": "flows",
-			"title": "Flows as Server",
 			"data_field": "flows",
 			"sortable": true,
 			"min-width": "100px",
 			"render_type": "number",
-			"class": ["text-end", "text-nowrap"]
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.flows_as_server"
 		},
 		{
 			"id": "bytes",
-			"title": "Traffic as Server",
 			"data_field": "bytes",
 			"sortable": true,
 			"min-width": "100px",
 			"render_type": "bytes",
-			"class": ["text-end", "text-nowrap"]
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.traffic_as_server"
 		}
 	]
 }

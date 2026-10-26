@@ -3,80 +3,56 @@
 	"data_url": "lua/pro/rest/v2/get/traffic_model/compare.lua",
 	"use_current_page": false,
 	"enable_search": true,
-	"paging": false,
+	"paging": true,
 	"display_empty_rows": false,
 	"default_sort": {
-		"column_id": "delta_flows",
+		"column_id": "flows_new",
 		"sort": 2
 	},
 	"columns": [
 		{
 			"id": "ip",
-			"title": "Server",
 			"data_field": "ip",
 			"sortable": true,
 			"min-width": "160px",
-			"class": ["text-nowrap"]
+			"class": [
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.server"
 		},
 		{
 			"id": "status",
-			"title": "Change",
 			"data_field": "status",
 			"sortable": true,
-			"min-width": "100px",
-			"class": ["text-center", "text-nowrap"]
-		},
-		{
-			"id": "flows_old",
-			"title": "Flows on Baseline Day",
-			"data_field": "flows_old",
-			"sortable": true,
 			"min-width": "120px",
-			"render_type": "number",
-			"class": ["text-end", "text-nowrap"]
+			"class": [
+				"text-center",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.status"
 		},
 		{
 			"id": "flows_new",
-			"title": "Flows on Day to Compare",
 			"data_field": "flows_new",
 			"sortable": true,
-			"min-width": "120px",
+			"min-width": "150px",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.flows"
+		},
+		{
+			"id": "flows_old",
+			"data_field": "flows_old",
+			"sortable": true,
+			"min-width": "130px",
 			"render_type": "number",
-			"class": ["text-end", "text-nowrap"]
-		},
-		{
-			"id": "delta_flows",
-			"title": "Flows Change",
-			"data_field": "delta_flows",
-			"sortable": true,
-			"min-width": "90px",
-			"class": ["text-end", "text-nowrap"]
-		},
-		{
-			"id": "delta_pct",
-			"title": "Flows Change %",
-			"data_field": "delta_pct",
-			"sortable": true,
-			"min-width": "90px",
-			"class": ["text-end", "text-nowrap"]
-		},
-		{
-			"id": "bytes_old",
-			"title": "Traffic on Baseline Day",
-			"data_field": "bytes_old",
-			"sortable": true,
-			"min-width": "130px",
-			"render_type": "bytes",
-			"class": ["text-end", "text-nowrap"]
-		},
-		{
-			"id": "bytes_new",
-			"title": "Traffic on Day to Compare",
-			"data_field": "bytes_new",
-			"sortable": true,
-			"min-width": "130px",
-			"render_type": "bytes",
-			"class": ["text-end", "text-nowrap"]
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.flows_compared"
 		}
 	]
 }
