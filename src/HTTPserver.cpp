@@ -1381,6 +1381,7 @@ static void webauthn_authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[32768];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data) - 1);
+    if (post_data_len < 0) post_data_len = 0;
     post_data[post_data_len] = '\0';
     mg_get_var(post_data, post_data_len, "token",       token,   sizeof(token));
     mg_get_var(post_data, post_data_len, "cred_id",     cred_id, sizeof(cred_id));
