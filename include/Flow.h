@@ -1093,6 +1093,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
   void request_swap();
+  void performPendingSwap();
   inline bool is_swap_requested() const {
     return (swap_requested ? true : false);
   };

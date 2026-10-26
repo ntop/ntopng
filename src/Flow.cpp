@@ -2297,18 +2297,8 @@ void Flow::flow_end_housekeeping() {
   if (flow_end_housekeeping_done)
     return;
 
-#if 1
-  if (is_swap_requested() && !is_swap_done())
-    /* Swap requested but never performed (no more packets seen) */
-#endif
-  iface->execProtocolDetectedChecks(this);
+  performPendingSwap();
 
-
-#if 1
-  if (!is_swap_requested() /* Swap not requested */
-      || (is_swap_requested() &&
-          !is_swap_done())) /* Or requested but never performed (no more packets seen) */
-#endif
   iface->execFlowEndChecks(this);
 
   flow_end_stats_update();
@@ -5472,20 +5462,14 @@ void Flow::housekeep(time_t now) {
         to guarantee timely execution.
         hookPeriodicUpdateCheck(now);
       */
-      dumpCheck(now, false /* NOT the last dump before delete */);
-
       /*
-        Swap requested but not yet performed (no more packets seen).
-        In case of interfaces processing pcap files, if the processing of the
-        pcap file is completed, i.e. read_from_pcap_dump_done() is true, then
-        there will be no more packets so the flow swap won't take place. For
-        this reason, the callbacks are executed on the original flow that should
-        have been swapped but actually it is not.
+        When the processing of a pcap file is completed there will be no more
+        packets, so a swap requested but not yet performed would never take
+        place: perform it before dumping the flow
       */
-      if (getInterface()->read_from_pcap_dump_done() && is_swap_requested() &&
-          !is_swap_done()) {
-        iface->execProtocolDetectedChecks(this);
-      }
+      if (getInterface()->read_from_pcap_dump_done()) performPendingSwap();
+
+      dumpCheck(now, false /* NOT the last dump before delete */);
       break;
 
     case hash_entry_state_idle:
@@ -9510,6 +9494,25 @@ void Flow::request_swap() {
   if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
 
   swap_requested = true;
+}
+
+/* *************************************** */
+
+/* A requested swap is performed by the next packet of the flow, in either
+ * direction (see FlowHash::find). When no packet follows the request it is
+ * never performed: flows with a single packet, or requests made after the last
+ * packet of the flow (e.g. by the DNS swap check when the dissection is ended
+ * by housekeep). Perform it here, so that checks, dumps and the view get the
+ * actual client and server. NOTE: to be called by the thread processing the
+ * packets (e.g. housekeep), like the swap done by a packet */
+void Flow::performPendingSwap() {
+  if (!(is_swap_requested() && !is_swap_done())) return;
+
+  swap();
+
+  /* The protocol detected checks have been postponed to the swapped flow (see
+   * housekeep): run them */
+  iface->execProtocolDetectedChecks(this);
 }
 
 /* *************************************** */
