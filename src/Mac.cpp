@@ -522,12 +522,14 @@ char* Mac::getDHCPfingerprint(char* const buf, ssize_t buf_size) {
   bool found = false;
 
   if (buf && buf_size) {
-    m.lock(__FILE__, __LINE__);
     if (dhcpv4_fingerprint) {
-      snprintf(buf, buf_size, "%s", dhcpv4_fingerprint);
-      found = true;
+      m.lock(__FILE__, __LINE__);
+      if (dhcpv4_fingerprint) {
+        snprintf(buf, buf_size, "%s", dhcpv4_fingerprint);
+        found = true;
+      }
+      m.unlock(__FILE__, __LINE__);
     }
-    m.unlock(__FILE__, __LINE__);
   }
 
   return (found ? buf : NULL);

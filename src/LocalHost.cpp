@@ -68,6 +68,7 @@ LocalHost::~LocalHost() {
 
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
+  if (fingerprints) delete fingerprints;
 
   /* Decrease number of active hosts */
   iface->decNumHosts(this, is_rx_only);
@@ -595,9 +596,16 @@ void LocalHost::freeLocalHostData() {
     os_detail = NULL;
   }
 
-  if (tcp_fingerprint) free(tcp_fingerprint);
+  if (tcp_fingerprint) {
+    free(tcp_fingerprint);
+    tcp_fingerprint = NULL;
+  }
 
-  if (fingerprints) delete fingerprints;
+  /* So that the TCP fingerprint is learnt again */
+  tcp_fingerprint_host_os = ndpi_os_unknown;
+
+  /* NOTE: fingerprints is not deleted here, as it can be in use by the
+   * threads processing the flows (see deleteHostData) */
 }
 
 /* *************************************** */
@@ -608,6 +616,14 @@ void LocalHost::deleteHostData() {
   m.lock(__FILE__, __LINE__);
   freeLocalHostData();
   m.unlock(__FILE__, __LINE__);
+
+  /* Emptied rather than deleted, as the threads processing the flows use it
+   * without locking (see Flow::updateCliJA4): its content is protected by its
+   * own lock */
+  if (fingerprints) {
+    fingerprints->ja4.reset();
+    fingerprints->hassh.reset();
+  }
 
   updateHostTrafficPolicy(NULL);
 }
@@ -695,8 +711,11 @@ void LocalHost::lua_get_fingerprints(lua_State* vm) {
     fingerprints->hassh.lua("hassh_fingerprint", vm);
   }
 
+  /* NOTE: under m, as tcp_fingerprint is freed by a data reset */
+  m.lock(__FILE__, __LINE__);
   if (tcp_fingerprint != NULL)
     lua_push_str_table_entry(vm, "tcp_fingerprint", tcp_fingerprint);
+  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
@@ -808,9 +827,16 @@ void LocalHost::setResolvedName(const char* resolved_name) {
 /* *************************************** */
 
 void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os) {
-  if ((tcp_fingerprint != NULL) &&
-      (strcmp(_tcp_fingerprint, tcp_fingerprint) == 0))
-    return; /* Already set */
+  bool already_set;
+
+  /* NOTE: tcp_fingerprint is accessed under m, as it is freed by a data reset
+   * and read by the Lua threads (lua_get_fingerprints) */
+  m.lock(__FILE__, __LINE__);
+  already_set = ((tcp_fingerprint != NULL) &&
+                 (strcmp(_tcp_fingerprint, tcp_fingerprint) == 0));
+  m.unlock(__FILE__, __LINE__);
+
+  if (already_set) return;
 
   if (_tcp_fingerprint && _tcp_fingerprint[0] != '\0')
     addDataToAssets((char*)"tcp_fingerprint", (char*)_tcp_fingerprint);
@@ -824,7 +850,14 @@ void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os) {
 
     tcp_fingerprint_host_os = os;
 
-    if (tcp_fingerprint == NULL) tcp_fingerprint = strdup(_tcp_fingerprint);
+    char* new_fingerprint = strdup(_tcp_fingerprint);
+
+    m.lock(__FILE__, __LINE__);
+    if (tcp_fingerprint == NULL)
+      tcp_fingerprint = new_fingerprint, new_fingerprint = NULL;
+    m.unlock(__FILE__, __LINE__);
+
+    if (new_fingerprint) free(new_fingerprint); /* Already set */
   } else if ((os != ndpi_os_unknown) && (tcp_fingerprint_host_os != os)) {
     char buf[64];
 
