@@ -381,6 +381,32 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
+-- Syslog rules (ClickHouse backed). Values end up inside SQL literals and are matched by the
+-- collector as RE2, so they are validated on shape (UUID, 0-7, bounded text with no control
+-- chars) rather than just rejecting quotes: the SQL layer escapes them anyway.
+function http_lint.validateSyslogRuleId(p)
+   return type(p) == "string" and
+      string.match(p, "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$") ~= nil
+end
+
+function http_lint.validateSyslogSeverity(p)
+   return type(p) == "string" and string.match(p, "^[0-7]$") ~= nil
+end
+
+-- Empty is handled by validateEmptyOr. Strict charset first, then the generic IP/network check
+function http_lint.validateSyslogSource(p)
+   return type(p) == "string" and #p <= 49 and
+      string.match(p, "^[%x:%.]+/?%d*$") ~= nil and
+      string.match(p, "^%d+%.%d+%.%d+%.%d+:") == nil and -- no ip:port
+      http_lint.validateNetwork(p)
+end
+
+function http_lint.validateSyslogText(max_len)
+   return function(p)
+      return type(p) == "string" and #p <= max_len and string.find(p, "%c") == nil
+   end
+end
+
 -- ##############################################
 
 -- @brief Returns true if inputstr is inside alert, function used to check
