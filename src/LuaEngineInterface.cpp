@@ -462,7 +462,12 @@ static int ntop_interface_is_zmq_interface(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (curr_iface && curr_iface->getIfType() == interface_type_ZMQ) rv = true;
+  if (!curr_iface) {
+    lua_pushnil(vm);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
+
+  if (curr_iface->getIfType() == interface_type_ZMQ) rv = true;
 #ifdef NTOPNG_PRO
   else if (curr_iface->getIfType() == interface_type_VIEW) {
     /*
@@ -2173,6 +2178,9 @@ static int ntop_set_host_operating_system(lua_State* vm) {
   ndpi_os os = ndpi_os_unknown;
   Host* host;
 
+  if (!curr_iface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf,
@@ -2190,7 +2198,7 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
-  if (curr_iface && host && (os < ndpi_os_MAX_OS) && (os != ndpi_os_unknown))
+  if (host && (os < ndpi_os_MAX_OS) && (os != ndpi_os_unknown))
     host->setOS(os, os_learning_user_set_via_lua);
 
   lua_pushnil(vm);
@@ -2207,6 +2215,9 @@ static int ntop_set_host_resolved_name(lua_State* vm) {
   u_int16_t vlan_id = 0;
   char* host_name = NULL;
   Host* host;
+
+  if (!curr_iface)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
@@ -2225,7 +2236,7 @@ static int ntop_set_host_resolved_name(lua_State* vm) {
 			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
-  if (curr_iface && host && host_name) host->setResolvedName(host_name);
+  if (host && host_name) host->setResolvedName(host_name);
 
   lua_pushnil(vm);
 

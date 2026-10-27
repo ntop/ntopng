@@ -2810,7 +2810,7 @@ pre_get_flow:
   }
 
 #ifdef NTOPNG_PRO
-  if (flow && flow->isQUIC() && (trusted_payload_len > 0))
+  if (flow->isQUIC() && (trusted_payload_len > 0))
     flow->updateQUICStats(src2dst_direction, &h->ts, payload,
                           trusted_payload_len);
 #endif
@@ -5655,8 +5655,6 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
   u_int16_t cli_pool, srv_pool, pool_filter;
   AlertLevelGroup flow_status_severity_filter = alert_level_group_none;
   ndpi_patricia_node_t *srv_target_node = NULL, *cli_target_node = NULL;
-  IpAddress* cli_ip = (IpAddress*)f->get_srv_ip_addr();
-  IpAddress* srv_ip = (IpAddress*)f->get_cli_ip_addr();
   u_int16_t alert_type_filter, site_id;
   int32_t risk_filter;
   u_int8_t ip_version;
@@ -6130,6 +6128,9 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
                        !f->get_srv_ip_addr()->isBroadcastAddress()))))
       return (false);
 
+    IpAddress* cli_ip = (IpAddress*)f->get_cli_ip_addr();
+    IpAddress* srv_ip = (IpAddress*)f->get_srv_ip_addr();
+
     if (cli_ip && !f->get_cli_host())
       cli_pool_found = f->getInterface()->getHostPools()->findIpPool(
           cli_ip, f->get_vlan_id(), &cli_pool, &cli_target_node);
@@ -6381,8 +6382,8 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
   struct flowHostRetriever* r = (struct flowHostRetriever*)user_data;
   Host* h = (Host*)he;
   u_int32_t prev_actNumEntries = r->actNumEntries;
-  const char* ipstr = h->get_ip()->print(ipbuf, sizeof(ipbuf));
-  const char* namestr = h->get_visual_name(namebuf, sizeof(namebuf));
+  const char *ipstr, *namestr;
+
   if (r->actNumEntries >= r->maxNumEntries) return (true); /* Limit reached */
 
   if (!h || h->idle() || !h->match(r->allowed_nets)
@@ -6398,6 +6399,9 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
 #endif
   )
     return (false);
+
+  ipstr = h->get_ip()->print(ipbuf, sizeof(ipbuf));
+  namestr = h->get_visual_name(namebuf, sizeof(namebuf));
 
 #ifdef HAVE_NEDGE
   Mac* h_mac = (h->getMac() ? h->getMac() : NULL);
