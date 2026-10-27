@@ -175,7 +175,8 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, flow_verdict;
   u_int16_t flow_score;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
-      shapers_profile_set : 1, iface_flow_accounted : 1, _notused : 5;
+      shapers_profile_set : 1, iface_flow_accounted : 1,
+      l7_direction_checked : 1 /* See checkL7Direction() */, _notused : 4;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
    * parked here, and it is set on the host of the view by the view itself (see
@@ -316,7 +317,6 @@ class Flow : public GenericHashEntry {
           last_query_update_time; /* The time when the last query was updated */
       u_int16_t last_query_type;
       u_int16_t last_return_code;
-      bool last_pkt_src2dst; /* Direction of the last packet dissected by nDPI */
     } dns;
 
     struct {
@@ -860,6 +860,8 @@ class Flow : public GenericHashEntry {
   void addPostNATPort(u_int32_t _src_port_post_nat,
                       u_int32_t _dst_port_post_nat);
   void check_swap();
+  void checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
+                        const u_int8_t* payload, u_int16_t payload_len);
 
   bool isThreeWayHandshakeOK() const;
 

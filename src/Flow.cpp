@@ -92,7 +92,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
   extra_dissection_completed = 0,
   has_malicious_cli_signature = has_malicious_srv_signature = 0,
-  iface_flow_accounted = 0, periodicity = 0;
+  iface_flow_accounted = 0, l7_direction_checked = 0, periodicity = 0;
   memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol));
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
@@ -475,16 +475,7 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
-    if (isDNS()) {
-      if (ndpiFlow && iface->isPacketInterface()) {
-        if ((stats.get_cli2srv_packets() > 0) &&
-            (stats.get_srv2cli_packets() == 0) &&
-            (ndpiFlow->metadata.protos.dns.is_query == 0)) {
-          request_swap(); /* This flow will be swapped */
-          swap();
-        }
-      }
-    } else if (/* !isDNS() */ ntop->getPrefs()->is_dns_cache_enabled()) {
+    if ((!isDNS()) && ntop->getPrefs()->is_dns_cache_enabled()) {
       if (srv_host) {
         /* Standard Interface */
         updateServerName(srv_host);
@@ -835,7 +826,6 @@ u_int16_t Flow::getStatsProtocol() const {
  * NOTE: does NOT need ndpiFlow
  */
 void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
-  u_int16_t l7proto;
   u_int16_t stats_protocol;
   Host *cli_h = NULL, *srv_h = NULL;
   char* domain_name = NULL;
@@ -853,8 +843,6 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
   if (srv_h) srv_h->incnDPIFlows(stats_protocol);
   iface->incnDPIFlows(stats_protocol);
 
-  l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol.proto);
-
   /* Domain Concats Alert */
   if (ndpiFlow)
     domain_name = ndpi_get_flow_name(&ndpiFlow->core),
@@ -863,46 +851,9 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
   if (cli_h && domain_name && domain_name[0] != '\0')
     cli_h->addContactedDomainName(domain_name);
 
-  /* NOTE: UDP flows are updated when the flow ends */
-  if (tcp != NULL)
-    updateTCPHostServices(cli_h, srv_h);
-  else if (isUDP()) {
-    /* Check direction first */
-    if (payload && (get_packets() == 1)) {
-      switch (l7proto) {
-        case NDPI_PROTOCOL_NTP:
-          if (payload_len > 1) {
-            u_int8_t mode = payload[0] & 0x07;
-
-            if (mode == 4 /* server -> client */) {
-              request_swap(); /* This flow will be swapped */
-              swap();
-            }
-          }
-          break;
-
-        case NDPI_PROTOCOL_DNS:
-          if (payload_len > 4) {
-            if ((payload[2] & 0x80) == 0x80) {
-              /* QR bit set: server -> client */
-              request_swap(); /* This flow will be swapped */
-              swap();
-            }
-          }
-          break;
-      }
-    }
-  } else if (isICMP()) {
-    if (payload_len > 0) {
-      u_int8_t icmp_type = payload[0];
-
-      if (icmp_type == 0 /* ICMP Echo Reply */) {
-        /* server -> client */
-        request_swap(); /* This flow will be swapped */
-        swap();
-      }
-    }
-  }
+  /* NOTE: UDP flows are updated when the flow ends. The direction of DNS, NTP
+   * and ICMP flows is checked by checkL7Direction() */
+  if (tcp != NULL) updateTCPHostServices(cli_h, srv_h);
 
   if (ndpiFlow && (ndpiFlow->metadata.l4.tcp.os_hint != ndpi_os_unknown))
     setClientOSHint(ndpiFlow->metadata.l4.tcp.os_hint);
@@ -1342,6 +1293,11 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
     ndpi_flow_risk_bitmap = 0;
   }
 
+  /* Before completing the detection, so that it gets the actual peers */
+  if (!l7_direction_checked)
+    checkL7Direction(src2dst_direction, ndpi_get_lower_proto(proto_id.proto),
+                     payload, payload_len);
+
   if ((proto_id.state != NDPI_STATE_CLASSIFIED) &&
       hasDissectedTooManyPackets()) {
     /*
@@ -1419,12 +1375,9 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
     performed and later used by checks.
   */
 
-  if (isDNS()) {
-    /* Direction of the packet the nDPI DNS metadata (e.g. is_query) refer to,
-     * see updateUDPHostServices() */
-    protos.dns.last_pkt_src2dst = src2dst_direction;
+  if (isDNS())
     processDNSPacket(ip_packet, ip_len, packet_time);
-  } else if (isIEC60870())
+  else if (isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
                           payload_len, h);
 
@@ -9356,6 +9309,78 @@ void Flow::check_swap() {
 
 /* *************************************** */
 
+/* The client and the server of DNS (over UDP), NTP and ICMP flows are decided
+ * once, by the first packet whose payload tells whether it is a request (sent
+ * by the client) or a reply (sent by the server):
+ * - DNS: QR bit of the header;
+ * - NTP: mode 3 (client) or 4 (server);
+ * - ICMP: echo, timestamp and information request/reply; ICMPv6: echo
+ *   request/reply.
+ * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
+ * errors) leave the decision to a later packet. When the flow is reversed it
+ * is swapped at once, before the detection is completed and anything else
+ * (checks, services, dumps, the view) relies on its peers. */
+void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
+                            const u_int8_t* payload, u_int16_t payload_len) {
+  bool is_reply;
+
+  if ((payload == NULL) || (payload_len == 0)) return;
+
+  if (protocol == IPPROTO_ICMP) {
+    switch (payload[0] /* Type */) {
+      case ICMP_ECHO:
+      case ICMP_TIMESTAMP:
+      case ICMP_INFO_REQUEST:
+        is_reply = false;
+        break;
+      case ICMP_ECHOREPLY:
+      case ICMP_TIMESTAMPREPLY:
+      case ICMP_INFO_REPLY:
+        is_reply = true;
+        break;
+      default:
+        return;
+    }
+  } else if (protocol == IPPROTO_ICMPV6) {
+    switch (payload[0] /* Type */) {
+      case ICMP6_ECHO_REQUEST:
+        is_reply = false;
+        break;
+      case ICMP6_ECHO_REPLY:
+        is_reply = true;
+        break;
+      default:
+        return;
+    }
+  } else if ((protocol == IPPROTO_UDP) && (l7proto == NDPI_PROTOCOL_DNS)) {
+    if (payload_len < 12 /* DNS header */) return;
+
+    is_reply = ((payload[2] & 0x80) == 0x80);
+  } else if (l7proto == NDPI_PROTOCOL_NTP) {
+    switch (payload[0] & 0x07 /* Mode */) {
+      case 3 /* Client */:
+        is_reply = false;
+        break;
+      case 4 /* Server */:
+        is_reply = true;
+        break;
+      default:
+        return;
+    }
+  } else
+    return;
+
+  l7_direction_checked = 1;
+
+  /* A reply sent client to server or a request sent server to client */
+  if (is_reply == src2dst_direction) {
+    request_swap(); /* This flow will be swapped */
+    swap();
+  }
+}
+
+/* *************************************** */
+
 void Flow::setJSONRiskInfo(char* r) {
   if (!r) return;
 
@@ -9774,36 +9799,7 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
       }
       break;
 
-    case NDPI_PROTOCOL_DNS:
-      /* Swap check. Skipped when the flow has already been swapped (see
-       * processDetectedProtocol): the direction of the last DNS packet was
-       * stored before that swap, so the check would swap the flow back */
-      if ((!swap_requested) && (!swap_done) && (ndpiFlow != NULL) &&
-          iface->isPacketInterface()) {
-        /* NOTE: src2dst_direction cannot be used here. When the dissection is
-         * ended without a packet (flow idle or deleted) it is not the
-         * direction of a packet, whereas is_query is about the last DNS packet
-         * that has been dissected: use the direction of that packet */
-        bool dns_src2dst_direction = protos.dns.last_pkt_src2dst;
-
-        if (ndpiFlow->metadata.protos.dns.is_query) {
-          if (dns_src2dst_direction) {
-            ;
-          } else {
-            request_swap();
-            // ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** SWAP ***");
-          }
-        } else {
-          /* Response */
-          if (dns_src2dst_direction) {
-            request_swap();
-            // ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** SWAP ***");
-          } else {
-            ;
-          }
-        }
-      }
-      break;
+    /* NOTE: the direction of DNS flows is checked by checkL7Direction() */
 
     default:
       break;
