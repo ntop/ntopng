@@ -8066,6 +8066,15 @@ local lang = {
     ["user_role"] = "User Role",
     ["web_captive_users"] = "Web/Captive Portal Users",
   },
+  ["topology_graph"] = {
+    ["title"] = "Topology Graph",
+    ["empty"] = "No topology data to display",
+    ["fit"] = "Fit to view",
+    ["relayout"] = "Recompute layout",
+    ["sample_tab"] = "Sample Topology",
+    ["service_map_tab"] = "Service Map",
+    ["loading_error"] = "Unable to load the service map",
+  },
   ["map_page"] = {
     ["alerted_view"] = "Alerted View",
     ["allowed"] = "Allowed",
@@ -8916,6 +8925,7 @@ local lang = {
       ["description"] = "Traffic recorded with continuous recording which is matching alerts delivered to this endpoint will be stored to a second level storage. This requires Smart Recording to be enabled under the Traffic Recording page.",
     },
     ["syslog"] = {
+      ["configure"] = "Syslog Configuration",
       ["alert_format"] = "Format",
       ["content"] = "Content",
       ["description"] = "Host, Port and Protocol should be specified for remote syslog servers only.",
