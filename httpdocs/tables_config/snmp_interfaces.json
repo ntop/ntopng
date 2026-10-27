@@ -1,6 +1,7 @@
 {
 	"id": "snmp_interfaces",
 	"data_url": "lua/pro/rest/v2/get/snmp/metric/interfaces.lua",
+	"filters_url": "lua/pro/rest/v2/get/snmp/metric/interfaces_filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
