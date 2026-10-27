@@ -176,7 +176,8 @@ end
 
 -- Merge pro sections:
 --   existing key  -> append entries (or insert right after the entry named by
---                    e.after, when the pro entry sets it)
+--                    e.after / right before the one named by e.before, when
+--                    the pro entry sets it)
 --   new key       -> insert right after the section named by ps.after (or append)
 for _, ps in ipairs(pro_sections) do
    if section_map[ps.key] then
@@ -186,6 +187,12 @@ for _, ps in ipairs(pro_sections) do
             local insert_at = #target + 1
             for i, existing in ipairs(target) do
                if existing.key == e.after then insert_at = i + 1; break end
+            end
+            table.insert(target, insert_at, e)
+         elseif e.before then
+            local insert_at = #target + 1
+            for i, existing in ipairs(target) do
+               if existing.key == e.before then insert_at = i; break end
             end
             table.insert(target, insert_at, e)
          else

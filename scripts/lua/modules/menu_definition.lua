@@ -104,7 +104,7 @@ return function(f)
             i18n = "details.alerts_list",
             icon = "fas fa-list",
             url = "/lua/alert_stats.lua"
-        }, -- pro entries appended by menu_definition_pro: alerts_graph, alerts_analysis
+        }, -- pro entries appended by menu_definition_pro: alerts_groups (before alerts_list), alerts_graph, alerts_analysis
         {
             key = "divider",
             i18n = "menu_group.notifications",
