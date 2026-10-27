@@ -4,8 +4,9 @@
 /* Stores table definition for syslog ingestion */
 
 /*
-   Rules are evaluated by the collector before writing to the DB.
-   First matching rule wins; if no rule matches the message is kept.
+   Rules are evaluated by the collector before writing to the DB, and reloaded every 10 seconds.
+   Enabled rules are an allowlist: a message is stored only if it matches at least one of them
+   (when there are no enabled rules every message is stored).
    A rule matches when min_severity <= severity <= max_severity and, if set, source matches the sender IP
    (single IP or CIDR network) and, if set, pattern (RE2) matches the message.
 */

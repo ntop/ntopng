@@ -11918,7 +11918,7 @@ local lang = {
     ["source"] = "Source",
     ["source_hint"] = "Optional sender IP address or network (CIDR). Only messages coming from it match the rule. Leave empty to match any sender.",
     ["source_placeholder"] = "e.g. 192.168.1.10 or 10.0.0.0/24",
-    ["severity_hint"] = "A rule matches messages whose severity is within the min/max range (0 = Emergency, 7 = Debug). The first matching rule wins; messages matching no rule are kept.",
+    ["severity_hint"] = "A rule matches messages whose severity is within the min/max range (0 = Emergency, 7 = Debug). Only messages matching at least one enabled rule are stored; when no rule is enabled all messages are stored.",
     ["updated_at"] = "Last Update",
     ["write_failed"] = "Unable to write to the database",
   },

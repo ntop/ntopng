@@ -82,7 +82,7 @@ class DB {
   virtual void checkIdle(time_t when, bool flush_on_pcap_done = true) { ; }
   virtual bool dumpSyslogEntry(const char* producer,
 			       const char* message, const char* host,
-			       int priority) { return(false); }
+			       const char* hostname, int priority) { return(false); }
 
 };
 

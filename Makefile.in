@@ -167,6 +167,13 @@ $(PRO_BUILD_KEYS):
 pro/src/LuaHandler.o pro/src/NtopPro.o: $(PRO_BUILD_KEYS) pro/utils/key_obfuscation.h
 endif
 
+ifneq ($(wildcard pro/src/SyslogRegex.cpp),)
+# RE2 (abseil) headers conflict with the abseil bundled in clickhouse-cpp:
+# compile the RE2 wrapper without the clickhouse-cpp include paths
+pro/src/SyslogRegex.o: pro/src/SyslogRegex.cpp pro/include/SyslogRegex.h include/config.h Makefile
+	$(CXX) $(CPPFLAGS) $(CFLAGS) -std=c++17 @RE2_CFLAGS@ -I./include -I./pro/include @MFLAGS@ -c $< -o $@
+endif
+
 unit_test: $(TEST_FILES) $(OBJECTS_NO_MAIN) ${TEST_HEADERS} $(LIB_TARGETS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(TEST_FILES) $(OBJECTS_NO_MAIN) -lm -lgtest $(LIBS) -o ./tests/unit_tests
 

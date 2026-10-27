@@ -1561,11 +1561,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   virtual bool dumpSyslogEntry(const char* producer,
 			       const char* message, const char* host,
-			       int priority) {
+			       const char* hostname, int priority) {
     DB* actual_db = db ? db : clickhouse_db;
 
     if(actual_db)
-      return(actual_db->dumpSyslogEntry(producer, message, host, priority));
+      return(actual_db->dumpSyslogEntry(producer, message, host, hostname, priority));
     else
       return false;
   }

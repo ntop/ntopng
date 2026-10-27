@@ -317,9 +317,10 @@ detect_producer:
                     prio ? atoi(prio) : 0);
 
 #ifdef NTOPNG_PRO
+  /* Without <PRIO> (e.g. JSON) use the RFC 3164 default <13> (user.notice) */
   dumpSyslogEntry(producer_name, content,
 		  parsed_client_ip ? parsed_client_ip : client_ip,
-		  prio ? atoi(prio) : 0);
+		  device, prio ? atoi(prio) : 13);
 #endif
   
 exit:
