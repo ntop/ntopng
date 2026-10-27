@@ -28,6 +28,9 @@ class Recipients {
  private:
   /* Per-recipient queues */
   RecipientQueue* recipient_queues[MAX_NUM_RECIPIENTS];
+  /* Notifications dequeued (e.g. by the Lua endpoints, see dequeue()) and
+     not yet processed, until the batch is reported as done (batchDone()) */
+  u_int32_t num_in_flight[MAX_NUM_RECIPIENTS];
   Mutex m;
 
   AlertLevel default_recipient_minimum_severity;
@@ -44,6 +47,13 @@ class Recipients {
    * @return AlertFifoItem on success, NULL on empty queue
    */
   AlertFifoItem* dequeue(u_int16_t recipient_id);
+
+  /**
+   * @brief Reports that the notifications dequeued for `recipient_id` have
+   * been processed (e.g. stored, delivered or discarded)
+   * @param recipient_id An integer recipient identifier
+   */
+  void batchDone(u_int16_t recipient_id);
 
   /**
    * @brief Enqueues a notification to a `recipient_id` queue, depending on the

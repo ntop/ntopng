@@ -28,6 +28,7 @@ Recipients::Recipients() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   memset(&recipient_queues, 0, sizeof(recipient_queues));
+  memset(&num_in_flight, 0, sizeof(num_in_flight));
   default_recipient_minimum_severity = alert_level_none;
 }
 
@@ -53,11 +54,24 @@ AlertFifoItem* Recipients::dequeue(u_int16_t recipient_id) {
       Dequeue the notification
     */
     notification = recipient_queues[recipient_id]->dequeue();
+
+    /* In flight until the batch is reported as done (see empty()) */
+    if (notification) num_in_flight[recipient_id]++;
   }
 
   m.unlock(__FILE__, __LINE__);
 
   return notification;
+}
+
+/* *************************************** */
+
+void Recipients::batchDone(u_int16_t recipient_id) {
+  if (recipient_id >= MAX_NUM_RECIPIENTS) return;
+
+  m.lock(__FILE__, __LINE__);
+  num_in_flight[recipient_id] = 0;
+  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
@@ -231,6 +245,12 @@ bool Recipients::empty() {
 
   for (int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS;
        recipient_id++) {
+    /* Not empty also while dequeued notifications are being processed */
+    if (num_in_flight[recipient_id] > 0) {
+      res = false;
+      break;
+    }
+
     if (recipient_queues[recipient_id]) {
       if (!recipient_queues[recipient_id]->empty()) {
         res = false;

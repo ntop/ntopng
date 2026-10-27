@@ -1331,6 +1331,12 @@ AlertFifoItem* Ntop::recipient_dequeue(u_int16_t recipient_id) {
 
 /* ******************************************* */
 
+void Ntop::recipient_batch_done(u_int16_t recipient_id) {
+  recipients.batchDone(recipient_id);
+}
+
+/* ******************************************* */
+
 void Ntop::recipient_stats(u_int16_t recipient_id, lua_State* vm) {
   recipients.lua(recipient_id, vm);
 }

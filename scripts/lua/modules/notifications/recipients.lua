@@ -1399,7 +1399,16 @@ local function process_notifications(ready_recipients, now, deadline, periodic_f
             end
 
             if m.dequeueRecipientAlerts and (now > MIN_ERROR_DELAY + last_error_notification) then
-                local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
+                -- The notifications dequeued by the endpoint are in flight until
+                -- the batch is reported as done (see Recipients::batchDone): report
+                -- it also when the endpoint raises an error, then raise it again
+                local ok, rv = pcall(m.dequeueRecipientAlerts, recipient, budget_per_iter)
+
+                ntop.recipient_batch_done(recipient.recipient_id)
+
+                if not ok then
+                    error(rv, 0)
+                end
 
                 -- Update recipient stats
                 local delivered = rv.delivered or 0

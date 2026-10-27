@@ -8296,6 +8296,19 @@ static int ntop_recipient_dequeue(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Reports that the notifications dequeued for a recipient have been processed (see Recipients::batchDone).  Lua: ntop.recipient_batch_done(recipient_id) → nil */
+static int ntop_recipient_batch_done(lua_State* vm) {
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  ntop->recipient_batch_done(lua_tointeger(vm, 1));
+
+  lua_pushnil(vm);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Returns queue length and throughput statistics for all recipient channels.  Lua: ntop.recipient_stats() → table */
 static int ntop_recipient_stats(lua_State* vm) {
   u_int16_t recipient_id;
@@ -9601,6 +9614,7 @@ static luaL_Reg _ntop_reg[] = {
     /* Recipient queues */
     {"recipient_enqueue", ntop_recipient_enqueue},
     {"recipient_dequeue", ntop_recipient_dequeue},
+    {"recipient_batch_done", ntop_recipient_batch_done},
     {"recipient_stats", ntop_recipient_stats},
     {"recipient_inc_stats", ntop_recipient_inc_stats},
     {"recipient_last_use", ntop_recipient_last_use},

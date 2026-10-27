@@ -798,6 +798,7 @@ class Ntop {
   bool recipient_enqueue(u_int16_t recipient_id,
                          const AlertFifoItem* const notification);
   AlertFifoItem* recipient_dequeue(u_int16_t recipient_id);
+  void recipient_batch_done(u_int16_t recipient_id);
   void recipient_stats(u_int16_t recipient_id, lua_State* vm);
   time_t recipient_last_use(u_int16_t recipient_id);
   void inc_recipient_stats(u_int16_t recipient_id, u_int64_t delivered,
