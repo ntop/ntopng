@@ -785,6 +785,8 @@ Flow::~Flow() {
   } else if (isSMTP()) {
     if (protos.smtp.mail_from) free(protos.smtp.mail_from);
     if (protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
+  } else if (isSMB()) {
+    if(protos.smb.filename) free(protos.smb.filename);
   }
 
   if (ndpiFlowRiskName) free(ndpiFlowRiskName);
@@ -967,6 +969,15 @@ void Flow::processDetectedProtocolData() {
 
       break;
   } /* switch */
+
+  l7proto = ndpi_get_upper_proto(ndpiDetectedProtocol.proto);
+
+  switch(l7proto) {
+  case NDPI_PROTOCOL_SMBV23:
+    if((protos.smb.filename == NULL) && (ndpiFlow->metadata.protos.smb.filename != NULL))
+      protos.smb.filename = strdup(ndpiFlow->metadata.protos.smb.filename);
+    break;
+  }
 }
 
 /* *************************************** */
@@ -3580,10 +3591,11 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
     if (!mask_flow) {
       if (isHTTP()) lua_get_http_info(vm);
-      if (isDNS()) lua_get_dns_info(vm);
-      if (isSSH()) lua_get_ssh_info(vm);
-      if (isTLS()) lua_get_tls_info(vm);
-      if (isSIP()) lua_get_sip_info(vm);
+      if (isDNS())  lua_get_dns_info(vm);
+      if (isSSH())  lua_get_ssh_info(vm);
+      if (isTLS())  lua_get_tls_info(vm);
+      if (isSIP())  lua_get_sip_info(vm);
+      if (isSMB())  lua_push_str_table_entry(vm, "protos.smb.filename", protos.smb.filename);
     }
 
     if (!getInterface()->isPacketInterface()) lua_snmp_info(vm);
@@ -3597,6 +3609,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
     if (collection) {
       char *c = getClientBGPInfo(), *s = getServerBGPInfo();
+      
       if(c || s) {
 	lua_newtable(vm);
 
@@ -3710,6 +3723,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
     }
 
     lua_confidence(vm);
+    
     lua_get_risk_info(vm);
     if (riskInfo) lua_push_str_table_entry(vm, "riskInfo", riskInfo);
 
@@ -6330,6 +6344,9 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
       info_field = std::string("Desktop Sharing");
     } else if (isMining() && protos.mining.currency) {
       info_field = std::string(protos.mining.currency);
+    } else if (isSMB()) {
+      if(protos.smb.filename != NULL)
+	info_field = std::string(protos.smb.filename);
     } else if (isIGMP()) {
       char str[16];
 
@@ -8331,8 +8348,6 @@ void Flow::lua_get_ssh_info(lua_State* vm) const {
 void Flow::getSSHInfo(ndpi_serializer* serializer) const {
   if (isSSH()) {
     if (protos.ssh.client_signature)
-      ndpi_serialize_string_string(serializer, "client_signature",
-                                   protos.ssh.client_signature);
     if (protos.ssh.server_signature)
       ndpi_serialize_string_string(serializer, "server_signature",
                                    protos.ssh.server_signature);
@@ -8823,6 +8838,15 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
       ndpi_serialize_start_of_block(serializer, "ssh");
       getSSHInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
+      break;
+
+    case NDPI_PROTOCOL_SMBV23:
+      if(protos.smb.filename != NULL) {
+	ndpi_serialize_start_of_block(serializer, "smb");
+	ndpi_serialize_string_string(serializer, "filename",
+				     protos.smb.filename);
+	ndpi_serialize_end_of_block(serializer);
+      }
       break;
 
 #ifdef NTOPNG_PRO

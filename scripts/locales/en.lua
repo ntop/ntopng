@@ -4456,6 +4456,7 @@ local lang = {
     ["exporter_site"] = "Exporter Site",
     ["external_alert"] = "Detected %{scope} alert: %{msg} [%{maker}]",
     ["first_last_flow_sequence"] = "First / Last Flow Sequence",
+    ["filename"] = "Filename",
     ["flow_active_msg"] = "Flow is active.",
     ["flow_alerted"] = "Alert",
     ["flow_anomalies"] = "Detected Flow Risks",

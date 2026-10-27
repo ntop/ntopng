@@ -383,6 +383,10 @@ class Flow : public GenericHashEntry {
       char* mail_from;
       char* rcpt_to;
     } smtp;
+
+    struct {
+      char *filename;
+    } smb;
   } protos;
 
   /* eBPF Information */
@@ -625,31 +629,32 @@ class Flow : public GenericHashEntry {
     return (ndpi_is_encrypted_proto(iface->get_ndpi_struct(),
                                     ndpiDetectedProtocol.proto));
   }
-  inline bool isSSH() const { return (isProto(NDPI_PROTOCOL_SSH)); }
+  inline bool isSSH() const { return (isProto(NDPI_PROTOCOL_SSH));       }
   inline bool isMining() const { return (isProto(NDPI_PROTOCOL_MINING)); }
-  inline bool isDNS() const { return (isProto(NDPI_PROTOCOL_DNS)); }
-  inline bool isSTUN() const { return (isProto(NDPI_PROTOCOL_STUN)); }
-  inline bool isQUIC() const { return (isProto(NDPI_PROTOCOL_QUIC)); }
+  inline bool isDNS() const { return (isProto(NDPI_PROTOCOL_DNS));       }
+  inline bool isSTUN() const { return (isProto(NDPI_PROTOCOL_STUN));     }
+  inline bool isQUIC() const { return (isProto(NDPI_PROTOCOL_QUIC));     }
+  inline bool isSMB() const { return (isProto(NDPI_PROTOCOL_SMBV23));    }
   inline bool isZoomRTP() const {
     return (isProto(NDPI_PROTOCOL_ZOOM) &&
             (isProto(NDPI_PROTOCOL_RTP) || isProto(NDPI_PROTOCOL_SRTP)));
   }
   inline bool isIEC60870() const { return (isProto(NDPI_PROTOCOL_IEC60870)); }
-  inline bool isModbus() const { return (isProto(NDPI_PROTOCOL_MODBUS)); }
-  inline bool isS7Comm() const { return (isProto(NDPI_PROTOCOL_S7COMM)); }
+  inline bool isModbus() const { return (isProto(NDPI_PROTOCOL_MODBUS));     }
+  inline bool isS7Comm() const { return (isProto(NDPI_PROTOCOL_S7COMM));     }
   inline bool isProfinet() const {
     return (isProto(NDPI_PROTOCOL_PROFINET_IO));
   }
-  inline bool isMDNS() const { return (isProto(NDPI_PROTOCOL_MDNS)); }
-  inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP)); }
-  inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
-  inline bool isSIP() const { return (isProto(NDPI_PROTOCOL_SIP)); }
-  inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP)); }
-  inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP)); }
-  inline bool isSMTPorSMTPS() const { return (isSMTP() || isSMTPS()); }
-  inline bool isSMTP() const { return (isProto(NDPI_PROTOCOL_MAIL_SMTP)); }
+  inline bool isMDNS() const { return (isProto(NDPI_PROTOCOL_MDNS));        }
+  inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP));        }
+  inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS));  }
+  inline bool isSIP() const { return (isProto(NDPI_PROTOCOL_SIP));          }
+  inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP));        }
+  inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP));          }
+  inline bool isSMTPorSMTPS() const { return (isSMTP() || isSMTPS());       }
+  inline bool isSMTP() const { return (isProto(NDPI_PROTOCOL_MAIL_SMTP));   }
   inline bool isSMTPS() const { return (isProto(NDPI_PROTOCOL_MAIL_SMTPS)); }
-  inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP));        }
   inline bool isHTTP_PROXY() const {
     return (isProto(NDPI_PROTOCOL_HTTP_PROXY));
   }

@@ -1892,6 +1892,11 @@ local function print_flow_overview_page()
 	       flow["bittorrent_hash"] .. "\">" .. flow["bittorrent_hash"] .. "</A></td></tr>\n")
       end
 
+      if (flow["protos.smb.filename"] ~= nil) then
+         print("<tr><th>" .. i18n("flow_details.filename") .. "</th><td colspan=4>" ..
+	       flow["protos.smb.filename"] .. "</td></tr>\n")
+      end
+
       if (flow["protos.http.last_url"] ~= nil) then
          local rowspan = 2
          if (not isEmptyString(flow["protos.http.last_method"])) then
