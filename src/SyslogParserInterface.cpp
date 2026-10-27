@@ -174,8 +174,8 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
   }
 
   /* Event parsing */
-
-  if (log_line == NULL || strlen(log_line) == 0) goto exit;
+  if (log_line == NULL || strlen(log_line) == 0)
+    goto exit;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s",
@@ -316,6 +316,12 @@ detect_producer:
                     parsed_client_ip ? parsed_client_ip : client_ip,
                     prio ? atoi(prio) : 0);
 
+#ifdef NTOPNG_PRO
+  dumpSyslogEntry(producer_name, content,
+		  parsed_client_ip ? parsed_client_ip : client_ip,
+		  prio ? atoi(prio) : 0);
+#endif
+  
 exit:
   incSyslogStats(num_total_events, num_malformed, 0, 0, 0, 0, 0);
   return 0;

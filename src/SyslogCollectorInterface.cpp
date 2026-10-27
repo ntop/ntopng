@@ -383,9 +383,11 @@ int SyslogCollectorInterface::receive(int socket, char* client_ip,
       inet_ntop(AF_INET, &client_addr.sin_addr, ip_str, sizeof(ip_str));
       client_ip = ip_str;
     }
+
     received_total += len;
     buffer[len] = '\0';
     line = strtok_r(buffer, "\n", &pos);
+
     while (line) {
       recvStats.num_flows += parseLog(line, client_ip);
       line = strtok_r(NULL, "\n", &pos);
