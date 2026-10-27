@@ -1,0 +1,87 @@
+{
+	"id": "syslog_rules",
+	"data_url": "lua/pro/rest/v2/get/syslog/rules.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "updated_at",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": ["text-nowrap", "text-center"],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"class": [],
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa fa-trash",
+					"title_i18n": "delete",
+					"class": [],
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"title_i18n": "syslog_rules.updated_at",
+			"data_field": "updated_at",
+			"sortable": true,
+			"min-width": "150px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_rules.enabled",
+			"data_field": "enabled",
+			"sortable": true,
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
+		},
+		{
+			"title_i18n": "syslog_rules.min_severity",
+			"data_field": "min_severity",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_rules.max_severity",
+			"data_field": "max_severity",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_rules.source",
+			"data_field": "source",
+			"sortable": true,
+			"min-width": "150px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_rules.pattern",
+			"data_field": "pattern",
+			"sortable": true,
+			"min-width": "220px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "comment",
+			"data_field": "comment",
+			"sortable": true,
+			"min-width": "180px",
+			"class": ["text-nowrap"]
+		}
+	]
+}

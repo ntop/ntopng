@@ -2541,6 +2541,15 @@ local known_parameters = {
    ["wazuh_available"] = validateNumber,
    ["toggle_wazuh_automerge"] = validateBool,
 
+   -- Syslog rules
+   ["syslog_rule_id"] = validateSingleWord,
+   ["syslog_rule_enabled"] = validateBool,
+   ["syslog_rule_min_severity"] = validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"}),
+   ["syslog_rule_max_severity"] = validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"}),
+   ["syslog_rule_source"] = validateEmptyOr(validateNetwork),
+   ["syslog_rule_pattern"] = validateEmptyOr(validateMessage),
+   ["syslog_rule_comment"] = validateEmptyOr(validateMessage),
+
    -- WAZUH Alert Rules / Alert Exceptions (private config)
    ["wazuh_rule_id"] = validateSingleWord,
    ["wazuh_rule_new_id"] = validateSingleWord,
@@ -2828,6 +2837,7 @@ local known_parameters = {
    ["reports_data_retention_days"] = validateNumber,
    ["ts_and_stats_data_retention_days"] = validateNumber,
    ["wazuh_alerts_data_retention_days"] = validateNumber,
+   ["syslog_events_retention_days"] = validateNumber,
    ["clickhouse_max_size_gb"] = validateNumber,
    ["rrd_files_retention_days"] = validateNumber,
    ["max_entity_alerts"] = validateNumber,

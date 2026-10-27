@@ -50,13 +50,255 @@
       "name": "nEdge",
       "description": "Everything about nEdge REST API calls"
     },
-    {"name": "AI Dashboards", "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"}
+    {"name": "AI Dashboards", "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"},
+    {"name": "Syslog Rules", "description": "Rules filtering the syslog messages stored by the collector"}
   ],
   "schemes": [
     "https",
     "http"
   ],
   "paths": {
+    "/lua/pro/rest/v2/get/syslog/rules.lua": {
+      "get": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "List the syslog rules",
+        "description": "Syslog collector rules, evaluated before a message is stored: the first matching rule wins and a message matching no rule is kept. Returns an array of { id, enabled, min_severity, max_severity, source, pattern, comment, updated_at }. Enterprise XL and administrators only.",
+        "operationId": "get_syslog_rules",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise XL and administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/syslog/rule.lua": {
+      "post": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Add a syslog rule",
+        "description": "Adds a syslog rule. Fails if a rule with the same id already exists. Enterprise XL and administrators only.",
+        "operationId": "add_syslog_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "syslog_rule_id",
+            "in": "formData",
+            "description": "Rule id (UUID, e.g. generated client side). For edit and delete it must identify an existing rule",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "syslog_rule_enabled",
+            "in": "formData",
+            "description": "1 = rule enabled, 0 = disabled",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 1
+          },
+          {
+            "name": "syslog_rule_min_severity",
+            "in": "formData",
+            "description": "Inclusive lower severity bound: 0 = Emergency, 1 = Alert, 2 = Critical, 3 = Error, 4 = Warning, 5 = Notice, 6 = Informational, 7 = Debug",
+            "required": true,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          {
+            "name": "syslog_rule_max_severity",
+            "in": "formData",
+            "description": "Inclusive upper severity bound, same scale as syslog_rule_min_severity. Must be greater than or equal to it",
+            "required": true,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          {
+            "name": "syslog_rule_source",
+            "in": "formData",
+            "description": "Sender IPv4/IPv6 address or network in CIDR notation (e.g. 10.0.0.0/24): only messages coming from it match the rule. Empty (default) matches any sender",
+            "required": false,
+            "type": "string",
+            "maxLength": 49
+          },
+          {
+            "name": "syslog_rule_pattern",
+            "in": "formData",
+            "description": "RE2 regular expression the message must match. Empty (default) matches any message. Max 512 characters, no control characters",
+            "required": false,
+            "type": "string",
+            "maxLength": 512
+          },
+          {
+            "name": "syslog_rule_comment",
+            "in": "formData",
+            "description": "Free-text description. Max 255 characters, no control characters",
+            "required": false,
+            "type": "string",
+            "maxLength": 255
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome of the operation is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise XL and administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/syslog/rule.lua": {
+      "post": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Edit a syslog rule",
+        "description": "Replaces all the fields of an existing syslog rule. Fails if the rule does not exist. Enterprise XL and administrators only.",
+        "operationId": "edit_syslog_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "syslog_rule_id",
+            "in": "formData",
+            "description": "Rule id (UUID, e.g. generated client side). For edit and delete it must identify an existing rule",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "syslog_rule_enabled",
+            "in": "formData",
+            "description": "1 = rule enabled, 0 = disabled",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "default": 1
+          },
+          {
+            "name": "syslog_rule_min_severity",
+            "in": "formData",
+            "description": "Inclusive lower severity bound: 0 = Emergency, 1 = Alert, 2 = Critical, 3 = Error, 4 = Warning, 5 = Notice, 6 = Informational, 7 = Debug",
+            "required": true,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          {
+            "name": "syslog_rule_max_severity",
+            "in": "formData",
+            "description": "Inclusive upper severity bound, same scale as syslog_rule_min_severity. Must be greater than or equal to it",
+            "required": true,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          {
+            "name": "syslog_rule_source",
+            "in": "formData",
+            "description": "Sender IPv4/IPv6 address or network in CIDR notation (e.g. 10.0.0.0/24): only messages coming from it match the rule. Empty (default) matches any sender",
+            "required": false,
+            "type": "string",
+            "maxLength": 49
+          },
+          {
+            "name": "syslog_rule_pattern",
+            "in": "formData",
+            "description": "RE2 regular expression the message must match. Empty (default) matches any message. Max 512 characters, no control characters",
+            "required": false,
+            "type": "string",
+            "maxLength": 512
+          },
+          {
+            "name": "syslog_rule_comment",
+            "in": "formData",
+            "description": "Free-text description. Max 255 characters, no control characters",
+            "required": false,
+            "type": "string",
+            "maxLength": 255
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome of the operation is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise XL and administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/syslog/rule.lua": {
+      "post": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Delete a syslog rule",
+        "description": "Deletes a syslog rule. Fails if the rule does not exist. Enterprise XL and administrators only.",
+        "operationId": "delete_syslog_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "syslog_rule_id",
+            "in": "formData",
+            "description": "Rule id (UUID, e.g. generated client side). For edit and delete it must identify an existing rule",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome of the operation is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise XL and administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/set/active_monitoring/measurement.lua": {
       "post": {
         "tags": [
