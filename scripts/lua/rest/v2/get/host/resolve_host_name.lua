@@ -6,7 +6,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
 
 
-require "lua_utils"
+-- http_lint (validates _GET/_POST) + the light modules of rest_utils, not the whole lua_utils
+require "http_lint"
 local rest_utils = require "rest_utils"
 
 local host = _GET["host"]

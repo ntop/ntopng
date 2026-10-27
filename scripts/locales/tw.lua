@@ -7585,7 +7585,7 @@ local lang = {
     ["device_label"] = "裝置標籤",
     ["enter_credentials"] = "請輸入存取此網路所需的認證資訊。",
     ["generate_token"] = "產生 Token",
-    ["generate_token_help"] = "有關 ntopng API 呼叫中的<A target='_blank' href='https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html?utm_source=ntopng#token-based-authentication'>基於權杖的身分驗證</A><i class='fas fa-external-link-alt'></i>的更多資訊。",
+    ["generate_token_help"] = "有關 ntopng API 呼叫中的<A target='_blank' href='https://www.ntop.org/guides/ntopng/authentication.html#token-based-authentication'>基於權杖的身分驗證</A><i class='fas fa-external-link-alt'></i>的更多資訊。",
     ["informative_captive_join"] = "存取網際網路",
     ["informative_captive_portal_tos"] = "我已閱讀並同意<a target='_blank' href='%{url}'>服務條款</a>。",
     ["internet_redirecting"] = "我們正在將您重新導向到 網際網路...",

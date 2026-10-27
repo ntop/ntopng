@@ -223,9 +223,6 @@ function graph_utils.getNewGraphsContext(source_value_object)
     end
 
     -- Checking the available timeseries
-    local interface_ts_enabled = ntop.getCache(
-                                     "ntopng.prefs.interface_ndpi_timeseries_creation") ==
-                                     "1"
     local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation") ~=
                                  nil
     local host_ts_enabled = ntop.getCache(
@@ -264,13 +261,8 @@ function graph_utils.getNewGraphsContext(source_value_object)
     local container_ts_enabled = ifstats.has_seen_containers
 
     -- Checking which top timeseries are available
-    local interface_has_top_protocols = (interface_ts_enabled == "both" or
-                                            interface_ts_enabled ==
-                                            "per_protocol" or
-                                            interface_ts_enabled == "full")
-    local interface_has_top_categories =
-        (interface_ts_enabled == "both" or interface_ts_enabled ==
-            "per_category" or interface_ts_enabled == "full")
+    local interface_has_top_protocols = areInterfaceL7TimeseriesEnabled(ifid)
+    local interface_has_top_categories = areInterfaceCategoriesTimeseriesEnabled(ifid)
     local host_has_top_protocols =
         (host_ts_enabled == "both" or host_ts_enabled == "per_protocol")
     local host_has_top_categories = (host_ts_enabled == "both" or
@@ -306,8 +298,8 @@ function graph_utils.getNewGraphsContext(source_value_object)
 
     local sources_types_top_enabled = {
         interface = {
-            top_protocols = interface_has_top_protocols or true,
-            top_categories = interface_has_top_categories or true,
+            top_protocols = interface_has_top_protocols,
+            top_categories = interface_has_top_categories,
             top_senders = topk_heuristic ~= "disabled" or true,
             top_receivers = topk_heuristic ~= "disabled" or true
         },

@@ -7505,7 +7505,7 @@ local lang = {
     ["device_label"] = "Rótulo do Dispositivo",
     ["enter_credentials"] = "Por favor insira suas credenciais para acessar esta rede.",
     ["generate_token"] = "Gerar token",
-    ["generate_token_help"] = "Mais informações sobre <A target='_blank' href='https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html?utm_source=ntopng#token-based-authentication'>autenticação baseada em token</A> <i class='fas fa-external-link-alt'></i> em chamadas de API ntopng.",
+    ["generate_token_help"] = "Mais informações sobre <A target='_blank' href='https://www.ntop.org/guides/ntopng/authentication.html#token-based-authentication'>autenticação baseada em token</A> <i class='fas fa-external-link-alt'></i> em chamadas de API ntopng.",
     ["informative_captive_join"] = "Acessar a internet",
     ["informative_captive_portal_tos"] = "Eu li e concordei com o <a target='_blank' href='%{url}'>termos de serviço</a>.",
     ["internet_redirecting"] = "Estamos redirecionando você para a Internet...",

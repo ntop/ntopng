@@ -7505,7 +7505,7 @@ local lang = {
     ["device_label"] = "デバイスラベル",
     ["enter_credentials"] = "このネットワークへのアクセスに必要な資格情報を入力してください。",
     ["generate_token"] = "トークンを生成",
-    ["generate_token_help"] = "nTOPngのAPIコールでの <A target='_blank' href='https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html?utm_source=ntopng#token-based-authentication'>トークンベースの認証</A> についての詳細情報<i class='fas fa-external-link-alt'></i>。",
+    ["generate_token_help"] = "nTOPngのAPIコールでの <A target='_blank' href='https://www.ntop.org/guides/ntopng/authentication.html#token-based-authentication'>トークンベースの認証</A> についての詳細情報<i class='fas fa-external-link-alt'></i>。",
     ["informative_captive_join"] = "インターネットへのアクセス",
     ["informative_captive_portal_tos"] = "利用規約を読んで同意しました。<a target='_blank' href='%{url}'>利用規約</a>。",
     ["internet_redirecting"] = "インターネットにリダイレクトしています...",

@@ -49,13 +49,693 @@
     {
       "name": "nEdge",
       "description": "Everything about nEdge REST API calls"
-    }
+    },
+    {"name": "AI Dashboards", "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"}
   ],
   "schemes": [
     "https",
     "http"
   ],
   "paths": {
+    "/lua/rest/v2/set/active_monitoring/measurement.lua": {
+      "post": {
+        "tags": [
+          "Active Monitoring"
+        ],
+        "summary": "Add or edit an Active Monitoring measurement",
+        "description": "Adds (action=add) or changes (action=edit, identified by old_host and old_measurement) a measurement. POST (form data, CSRF checked). Requires the Active Monitoring capability.",
+        "operationId": "set_am_measurement",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "formData",
+            "description": "add or edit",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "am_host",
+            "in": "formData",
+            "description": "Host or URL to measure",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "measurement",
+            "in": "formData",
+            "description": "Measurement type (e.g. icmp, cicmp, http, https, throughput, speedtest)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ifname",
+            "in": "formData",
+            "description": "Interface used for the measurement",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "threshold",
+            "in": "formData",
+            "description": "Alert threshold (unit of the measurement)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "granularity",
+            "in": "formData",
+            "description": "How often to measure (e.g. min, 5mins, hour)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "old_host",
+            "in": "formData",
+            "description": "With action=edit: the current host",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "old_measurement",
+            "in": "formData",
+            "description": "With action=edit: the current measurement",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/set/snmp/auto_assign_role.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Set the role of the SNMP interfaces by name",
+        "description": "Gives a role to every interface whose name contains the filter, on all the SNMP devices; returns how many were changed. POST with a JSON body (CSRF checked), never from the query string. Requires the SNMP capability.",
+        "operationId": "set_snmp_interfaces_role",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "payload",
+            "in": "body",
+            "description": "JSON body: { \"interface_name_filter\": \"eth\", \"role\": \"uplink\", \"csrf\": \"...\" }",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-59": {
+            "description": "MISSING_PARAMETERS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/similarity.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Get the SNMP devices similar to a device",
+        "description": "Devices with a similar traffic behaviour. Enterprise.",
+        "operationId": "get_snmp_device_similarity",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not available)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/topology_map.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Get the SNMP topology map",
+        "description": "Nodes and links of the network topology learned from the SNMP devices; with host only the part around that device. Enterprise.",
+        "operationId": "get_snmp_topology_map",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of an SNMP device (optional)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not available)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/topology.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Get the neighbours of an SNMP device",
+        "description": "The devices connected to an SNMP device (LLDP/CDP and bridge tables). Enterprise.",
+        "operationId": "get_snmp_device_topology",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not available)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/snmp/import_devices.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Import SNMP devices",
+        "description": "Adds the devices of a configuration export (devices, JSON as produced by export/snmp/config.lua) or of a CSV (devices_csv, one device per line: ip, read_community, write_community, version, level, username, auth_protocol, auth_passphrase, privacy_protocol, privacy_passphrase, context). POST (form data, CSRF checked). Administrators only.",
+        "operationId": "import_snmp_devices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "devices",
+            "in": "formData",
+            "description": "JSON configuration to import",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "devices_csv",
+            "in": "formData",
+            "description": "CSV of the devices to import",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/check/snmp/ping_all_devices.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Poll all the SNMP devices now",
+        "description": "Starts a poll of every SNMP device without waiting for the next periodic one. Administrators only, Enterprise M.",
+        "operationId": "ping_all_snmp_devices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/snmp/unresponsive_devices.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Delete the unresponsive SNMP devices",
+        "description": "Deletes the devices that do not answer to SNMP. POST only (CSRF checked). Administrators only, Enterprise M.",
+        "operationId": "delete_unresponsive_snmp_devices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (not a POST)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/snmp/all_devices.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Delete all the SNMP devices",
+        "description": "Deletes every configured SNMP device. POST only (CSRF checked). Administrators only.",
+        "operationId": "delete_all_snmp_devices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (not a POST)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/snmp/device/config.lua": {
+      "post": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Edit the polling options of an SNMP device",
+        "description": "Sets the options of a device. POST (form data, CSRF checked). Administrators only.",
+        "operationId": "edit_snmp_device_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "toggle_snmp_qos_mib_polling",
+            "in": "formData",
+            "description": "1 to poll the Cisco QoS MIB, 0 not to",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not an administrator)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/config.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Get the polling options of an SNMP device",
+        "description": "Options of a device: { toggle_snmp_qos_mib_polling }. Administrators only.",
+        "operationId": "get_snmp_device_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not an administrator)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/device/available_interfaces.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "List the interfaces of an SNMP device",
+        "description": "The interfaces of a device ([{ id, name }]), from the SNMP cache. Requires the SNMP capability.",
+        "operationId": "get_snmp_device_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP address of the SNMP device",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/snmp/list.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "List the SNMP devices",
+        "description": "The configured SNMP devices with their polling status (name, description, version, last poll, interfaces with errors, unreachable). Requires the SNMP capability.",
+        "operationId": "get_snmp_devices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "device_responsiveness",
+            "in": "query",
+            "description": "Only the 'responsive' or the 'unresponsive' devices",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "verbose",
+            "in": "query",
+            "description": "More details per device",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "rsp_format",
+            "in": "query",
+            "description": "Response in the table format",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/dashboard/list.lua": {
+      "get": {
+        "tags": [
+          "AI Dashboards"
+        ],
+        "summary": "List the AI dashboards",
+        "description": "List of the saved AI dashboards: [{ id, name, description }]. Administrators only.",
+        "operationId": "get_ai_dashboards",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/dashboard/dashboard.lua": {
+      "get": {
+        "tags": [
+          "AI Dashboards"
+        ],
+        "summary": "Get an AI dashboard",
+        "description": "Definition of a dashboard: { id, name, description, widgets: [{ id, type, title, config: { sql_query, unit, label_field, value_field, ... }, layout: { x, y, w, h } }] }. Administrators only.",
+        "operationId": "get_ai_dashboard",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "query",
+            "description": "Dashboard id (letters, digits, '_' and '-'), as returned by get/dashboard/list.lua",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/dashboard/widget_data.lua": {
+      "get": {
+        "tags": [
+          "AI Dashboards"
+        ],
+        "summary": "Get the data of a widget",
+        "description": "Runs the SQL query of a saved widget on ClickHouse and returns its result, shaped for the widget type (e.g. stat: { value }). The placeholders $EPOCH_BEGIN$, $EPOCH_END$, $IFID$ and $FILTERS$ of the query are replaced with the parameters below; on the flows tables the flow filters (same parameters as the Historical Flows explorer, e.g. l7proto=7;eq) are applied too. Administrators only.",
+        "operationId": "get_ai_dashboard_widget_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dashboard_id",
+            "in": "query",
+            "description": "Dashboard id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "widget_id",
+            "in": "query",
+            "description": "Widget id, as in the dashboard definition",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the time range (epoch, seconds). Default: epoch_end - 24 hours",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch, seconds). Default: now",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id. Default: the current interface",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (query failed: the error is in rsp.error)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/set/dashboard/dashboard.lua": {
+      "post": {
+        "tags": [
+          "AI Dashboards"
+        ],
+        "summary": "Create or update an AI dashboard",
+        "description": "Creates a dashboard (id derived from the name) or, when dashboard_id matches an existing one, replaces it. Returns { success, id, dashboard }. The field names differ from the stored ones: dashboard_name (not name), widget_id (not id) and layout { pos_x, pos_y, grid_w, grid_h }. Widget types: timeseries, table, bar_chart, pie_chart, stat, heatmap, bubble_chart, sankey, chord. Administrators only.",
+        "operationId": "set_ai_dashboard",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "payload",
+            "in": "body",
+            "description": "JSON body, e.g. { \"dashboard_name\": \"Network overview\", \"description\": \"\", \"widgets\": [{ \"widget_id\": \"w1\", \"type\": \"stat\", \"title\": \"Flows\", \"config\": { \"sql_query\": \"SELECT count() AS value FROM flows WHERE FIRST_SEEN >= $EPOCH_BEGIN$ AND FIRST_SEEN <= $EPOCH_END$ AND INTERFACE_ID = $IFID$ AND $FILTERS$\", \"value_field\": \"value\", \"unit\": \"number\" }, \"layout\": { \"pos_x\": 0, \"pos_y\": 0, \"grid_w\": 4, \"grid_h\": 3 } }] }. Add \"dashboard_id\" to update an existing dashboard.",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-59": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-8": {
+            "description": "BAD_CONTENT (invalid definition, the reason is in rsp.error)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/dashboard/dashboard.lua": {
+      "post": {
+        "tags": [
+          "AI Dashboards"
+        ],
+        "summary": "Delete an AI dashboard",
+        "description": "Deletes a dashboard. Returns { success }. Administrators only.",
+        "operationId": "delete_ai_dashboard",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "payload",
+            "in": "body",
+            "description": "JSON body: { \"dashboard_id\": \"network-overview\" } (dashboard_id is also accepted as query parameter)",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-59": {
+            "description": "MISSING_PARAMETERS"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/acknowledge/snmp/device/alerts.lua": {
       "get": {
         "tags": [
@@ -455,12 +1135,12 @@
       }
     },
     "/lua/pro/rest/v2/add/snmp/device.lua": {
-      "get": {
+      "post": {
         "tags": [
           "SNMP"
         ],
         "summary": "Add SNMP devices",
-        "description": "Add devices to the monitored SNMP devices",
+        "description": "Add devices to the monitored SNMP devices. POST (form data, CSRF checked). Administrators only.",
         "operationId": "add_snmp_device",
         "produces": [
           "application/json"
@@ -468,71 +1148,85 @@
         "parameters": [
           {
             "name": "snmp_host",
-            "in": "query",
+            "in": "formData",
             "description": "IP address or symbolic name of and an SNMP device",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_read_community",
-            "in": "query",
+            "in": "formData",
             "description": "The SNMP read community to use (SNMP v1/v2c only)",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_write_community",
-            "in": "query",
+            "in": "formData",
             "description": "The SNMP write community to use (SNMP v1/v2c only)",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_version",
-            "in": "query",
+            "in": "formData",
             "description": "The SNMP version to use: 2 (SNMP v3), 1 (v2c) or 0 (v1)",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_level",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3: noAuthNoPriv, authNoPriv, or authPriv)",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_auth_protocol",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: MD5 or SHA",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_auth_passphrase",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_privacy_protocol",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level set to autPriv: DES or AES",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_privacy_passphrase",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level set to autPriv: 8 chars+ passphrase",
             "required": false,
             "type": "string"
           },
           {
             "name": "cidr",
-            "in": "query",
+            "in": "formData",
             "description": "Either 24 or 32. If 32, snmp_host is treated as single host. If 24 snmp_host is treated as as CIDR address",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_username",
+            "in": "formData",
+            "description": "SNMP v3 username",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_context",
+            "in": "formData",
+            "description": "SNMP v3 context name",
             "required": false,
             "type": "string"
           }
@@ -1074,12 +1768,12 @@
       }
     },
     "/lua/pro/rest/v2/delete/snmp/device.lua": {
-      "get": {
+      "post": {
         "tags": [
           "SNMP"
         ],
         "summary": "Delete an SNMP device",
-        "description": "Delete an SNMP device from the monitored SNMP devices",
+        "description": "Delete an SNMP device from the monitored SNMP devices. POST (form data, CSRF checked). Administrators only.",
         "operationId": "delete_snmp_device",
         "produces": [
           "application/json"
@@ -1087,7 +1781,7 @@
         "parameters": [
           {
             "name": "host",
-            "in": "query",
+            "in": "formData",
             "description": "IP address of an SNMP device",
             "required": true,
             "type": "string"
@@ -1388,12 +2082,12 @@
       }
     },
     "/lua/pro/rest/v2/edit/snmp/device/device.lua": {
-      "get": {
+      "post": {
         "tags": [
           "SNMP"
         ],
         "summary": "Edit a SNMP device",
-        "description": "Edit an existing monitored SNMP device",
+        "description": "Edit an existing monitored SNMP device. POST (form data, CSRF checked).",
         "operationId": "add_snmp_device",
         "produces": [
           "application/json"
@@ -1401,64 +2095,78 @@
         "parameters": [
           {
             "name": "snmp_host",
-            "in": "query",
+            "in": "formData",
             "description": "IP address or symbolic name of and an SNMP device",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_read_community",
-            "in": "query",
+            "in": "formData",
             "description": "The SNMP read community to use (SNMP v1/v2c only)",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_write_community",
-            "in": "query",
+            "in": "formData",
             "description": "The SNMP write community to use (SNMP v1/v2c only)",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_version",
-            "in": "query",
+            "in": "formData",
             "description": "The SNMP version to use: 2 (SNMP v3), 1 (v2c) or 0 (v1)",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_level",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3: noAuthNoPriv, authNoPriv, or authPriv)",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_auth_protocol",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: MD5 or SHA",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_auth_passphrase",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_privacy_protocol",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level set to autPriv: DES or AES",
             "required": false,
             "type": "string"
           },
           {
             "name": "snmp_privacy_passphrase",
-            "in": "query",
+            "in": "formData",
             "description": "Used only with SNMP v3 and level set to autPriv: 8 chars+ passphrase",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_username",
+            "in": "formData",
+            "description": "SNMP v3 username",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_context",
+            "in": "formData",
+            "description": "SNMP v3 context name",
             "required": false,
             "type": "string"
           }

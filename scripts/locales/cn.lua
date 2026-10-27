@@ -7505,7 +7505,7 @@ local lang = {
     ["device_label"] = "设备标签",
     ["enter_credentials"] = "请输入您访问此网络的凭据。",
     ["generate_token"] = "生成Token",
-    ["generate_token_help"] = "有关 ntopng API 调用中的<A target='_blank' href='https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html?utm_source=ntopng#token-based-authentication'>基于令牌的身份验证</A><i class='fas fa-external-link-alt'></i>的更多信息。",
+    ["generate_token_help"] = "有关 ntopng API 调用中的<A target='_blank' href='https://www.ntop.org/guides/ntopng/authentication.html#token-based-authentication'>基于令牌的身份验证</A><i class='fas fa-external-link-alt'></i>的更多信息。",
     ["informative_captive_join"] = "访问Internet",
     ["informative_captive_portal_tos"] = "我已阅读并同意<a target='_blank' href='%{url}'>服务条款</a>。",
     ["internet_redirecting"] = "我们正在将您重定向到 Internet...",

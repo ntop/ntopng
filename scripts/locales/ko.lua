@@ -7505,7 +7505,7 @@ local lang = {
     ["device_label"] = "장치 라벨",
     ["enter_credentials"] = "이 네트워크에 액세스하려면 자격 증명을 입력하세요.",
     ["generate_token"] = "토큰 생성",
-    ["generate_token_help"] = "<A target='_blank' href='https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html?utm_source=ntopng#token-based-authentication'>토큰 기반 인증</에 대한 추가 정보 A> ntopng API 호출의 <i class='fas fa-external-link-alt'></i>.",
+    ["generate_token_help"] = "<A target='_blank' href='https://www.ntop.org/guides/ntopng/authentication.html#token-based-authentication'>토큰 기반 인증</에 대한 추가 정보 A> ntopng API 호출의 <i class='fas fa-external-link-alt'></i>.",
     ["informative_captive_join"] = "인터넷에 접속",
     ["informative_captive_portal_tos"] = "<a target='_blank' href='%{url}'>서비스 약관</a>을 읽었으며 이에 동의합니다.",
     ["internet_redirecting"] = "인터넷으로 리디렉션 중입니다...",

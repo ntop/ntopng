@@ -7505,7 +7505,7 @@ local lang = {
     ["device_label"] = "Štítek zařízení",
     ["enter_credentials"] = "Zadejte prosím své přihlašovací údaje pro přístup k této síti.",
     ["generate_token"] = "Generovat token",
-    ["generate_token_help"] = "Další informace o <A target='_blank' href='https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html?utm_source=ntopng#token-based-authentication'>ověření založeném na tokenech</A> <i class='fas fa-external-link-alt'></i> v ntopng API volání.",
+    ["generate_token_help"] = "Další informace o <A target='_blank' href='https://www.ntop.org/guides/ntopng/authentication.html#token-based-authentication'>ověření založeném na tokenech</A> <i class='fas fa-external-link-alt'></i> v ntopng API volání.",
     ["informative_captive_join"] = "Přístup na internet",
     ["informative_captive_portal_tos"] = "Přečetl jsem a souhlasil s <a target='_blank' href='%{url}'>podmínky služby</a>.",
     ["internet_redirecting"] = "Přesměrujeme vás na internet...",
