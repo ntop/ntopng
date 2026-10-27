@@ -1267,6 +1267,21 @@ bool Ntop::alerts_pipeline_drained() {
 
 /* ******************************************* */
 
+/* True when every view interface has processed all the flows enqueued by the
+ * interfaces it views (e.g. the flows propagated at the end of a pcap file,
+ * with the data set when they end) */
+bool Ntop::views_drained() {
+  for (int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface* iface = getInterface(i);
+
+    if (iface && !iface->viewQueuesDrained()) return (false);
+  }
+
+  return (true);
+}
+
+/* ******************************************* */
+
 /*
   Polls alerts_pipeline_drained() until every alert queue (per-interface,
   internal and recipient) is drained, instead of guessing a fixed delay.
@@ -4634,6 +4649,15 @@ void Ntop::checkShutdownWhenDone() {
     }
 
     /* Here all interface reading from pcap files are done. */
+
+    if (!views_drained()) {
+      /* The view interfaces have not yet processed all the flows of the
+       * interfaces they view (e.g. the data set when the flows end): wait,
+       * as their processing can also trigger alerts. */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                   "Waiting for view interfaces..");
+      return;
+    }
 
     if (!alerts_pipeline_drained()) {
       /* Alerts are still flowing through the checks -> per-interface queues ->

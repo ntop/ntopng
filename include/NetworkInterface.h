@@ -991,6 +991,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     return (!flowAlertsQueue || flowAlertsQueue->isEmpty()) &&
            (!hostAlertsQueue || hostAlertsQueue->isEmpty());
   }
+  /* True when a view interface has processed every flow enqueued by the
+     interfaces it views (see ViewInterface). Always true for the other
+     interfaces. */
+  virtual bool viewQueuesDrained() { return (true); }
 
   bool alert_store_query(lua_State* vm, const char* sql, bool limit_rows);
   bool alert_store_write(const char* sql);
