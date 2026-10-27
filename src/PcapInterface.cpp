@@ -265,12 +265,50 @@ static bool idle_flow_account(GenericHashEntry* h, void* user_data,
 /*
   Run flow-end housekeeping (flow-end checks + stats propagation to hosts/ASes/networks)
   on all flows in the hash as soon as the pcap file(s) have been fully processed,
-  without purging them from memory
+  without purging them from memory.
+  The flows are then propagated to the view interface (if any), as Flow::housekeep
+  does when a flow ends, so that it gets what has been set on them at their end
+  (e.g. the services of their peers). The enqueue is retried when the view queue
+  is full, as no other housekeeping will propagate them afterwards, until the
+  deadline of the walk: then an error is logged (once) and the remaining flows
+  are enqueued only if there is room (e.g. the view is paused or stuck).
  */
+#define VIEW_ENQUEUE_TIMEOUT_SEC 60
+
+typedef struct {
+  time_t view_enqueue_deadline;
+  bool view_enqueue_timed_out;
+} flow_end_housekeeping_walker_data;
+
 static bool flow_end_housekeeping_walker(GenericHashEntry* h, void* user_data,
                                          bool* matched) {
   Flow* f = (Flow*)h;
+  NetworkInterface* iface = f->getInterface();
+  flow_end_housekeeping_walker_data* data =
+      (flow_end_housekeeping_walker_data*)user_data;
+
   f->flow_end_housekeeping();
+
+  if (iface->isViewed()) {
+    while (!iface->viewEnqueue(time(NULL), f) &&
+           !ntop->getGlobals()->isShutdownRequested()) {
+      if (time(NULL) > data->view_enqueue_deadline) {
+        if (!data->view_enqueue_timed_out) {
+          ntop->getTrace()->traceEvent(
+              TRACE_ERROR,
+              "The view interface is not processing the flows of %s: flows "
+              "not propagated to the view",
+              iface->get_name());
+          data->view_enqueue_timed_out = true;
+        }
+
+        break;
+      }
+
+      _usleep(100);
+    }
+  }
+
   return (false);
 }
 
@@ -547,10 +585,15 @@ static void* packetPollLoop(void* ptr) {
 
   if (iface->read_from_pcap_dump()) {
     u_int32_t begin_slot = 0;
+    flow_end_housekeeping_walker_data data;
+
+    data.view_enqueue_deadline = time(NULL) + VIEW_ENQUEUE_TIMEOUT_SEC;
+    data.view_enqueue_timed_out = false;
+
     /* Run the flow-end housekeeping without purging them to keep them browsable) */
     iface->get_flows_hash()->walk(&begin_slot, true /* walk_all */,
                                   flow_end_housekeeping_walker,
-                                  NULL /* user_data */);
+                                  &data /* user_data */);
   }
 
   iface->set_pcap_dump_processing_done();
