@@ -1274,6 +1274,18 @@ end
 
 -- ##############################################
 
+function format_smb_info(smb_info)
+   local formatted_smb_info = {}
+
+   if not isEmptyString(smb_info["filename"]) then
+      formatted_smb_info["filename"] = string.format('<span>%s</span>',smb_info["filename"])
+   end
+
+   return formatted_smb_info
+end
+
+-- ##############################################
+
 function format_ssh_info(ssh_info)
    local formatted_ssh_info = {}
 
@@ -1408,6 +1420,8 @@ function format_proto_info(flow_details, proto_info)
 	 break
       elseif proto == "ssh" then
 	 proto_details[proto] = format_ssh_info(info)
+      elseif proto == "smb" then
+	 proto_details[proto] = format_smb_info(info)
       end
    end
 
