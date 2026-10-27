@@ -6,6 +6,7 @@ local DEFAULT_AGGREGATED_ASN_DATA_RETENTION_DAYS = 60
 local DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS = 60
 local DEFAULT_VS_REPORTS_DATA_RETENTION_DAYS = 30
 local DEFAULT_WAZUH_ALERTS_DATA_RETENTION_DAYS = 365
+local DEFAULT_SYSLOG_EVENTS_DATA_RETENTION_DAYS = 30
 local DEFAULT_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.data_retention_days"
 local FLOWS_AND_ALERTS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.flows_and_alerts_data_retention_days"
@@ -20,6 +21,7 @@ local TS_AND_STATS_DATA_RETENTION_DAYS_KEY =
 local WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.wazuh_alerts_data_retention_days"
 local CLICKHOUSE_MAX_SIZE_GB_KEY = "ntopng.prefs.clickhouse_max_size_gb"
+local SYSLOG_EVENTS_RETENTION_DAYS_KEY = "ntopng.prefs.syslog_events_retention_days"
 
 local data_retention_utils = {}
 
@@ -107,6 +109,11 @@ end
 function data_retention_utils.getWazuhAlertsRetentionDays()
     local data_retention = ntop.getCache(WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY)
     return tonumber(data_retention) or data_retention_utils.getWazuhAlertsDataRetention()
+end
+
+function data_retention_utils.getSyslogEventsRetentionDays()
+    local data_retention = ntop.getCache(SYSLOG_EVENTS_RETENTION_DAYS_KEY)
+    return tonumber(data_retention) or DEFAULT_SYSLOG_EVENTS_DATA_RETENTION_DAYS
 end
 
 -- ########################################################

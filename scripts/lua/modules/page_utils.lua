@@ -542,6 +542,11 @@ page_utils.menu_entries = {
         section = "if_stats",
         help_link = "https://www.ntop.org?utm_source=ntopng"
     },
+    syslog_config = {
+        key = "syslog_config",
+        i18n_title = "notification_endpoint.syslog.configure",
+        section = "admin"
+    },
 
     -- Map
     analysis_map = {

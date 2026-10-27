@@ -1270,6 +1270,8 @@ typedef enum {
 #define DB_SCHEMA_WAZUH_ALERT_RULES_DATA_FNAME "db_schema_wazuh_alert_rules_data.sql"
 #define ALERTS_STORE_SCHEMA_FILE_NAME "alert_store_schema.sql"
 #define ALERTS_VIEW_STORE_SCHEMA_FILE_NAME "alert_view_store_schema.sql"
+#define DB_SCHEMA_SYSLOG_FNAME "db_schema_syslog.sql"
+#define DB_SCHEMA_SYSLOG_CLUSTER_FNAME "db_schema_syslog_cluster.sql"
 #define ALERTS_STORE_DB_FILE_NAME "alert_store_v11.db"
 
 #define NTOPNG_DATASOURCE_KEY "ntopng.datasources"

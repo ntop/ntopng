@@ -2513,6 +2513,19 @@ function M.get_sections(flags)
             hidden = (not wazuh_enabled),
             locked = lock_ch_enabled
         }, {
+            key = "syslog_messages_data_retention",
+            title = i18n("prefs.syslog_events_retention_title"),
+            description = i18n("prefs.syslog_events_retention_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.syslog_events_retention_days",
+            default = "30",
+            attrs = {
+                min = "1"
+            },
+            --hidden = (not wazuh_enabled),
+            locked = lock_ch_enabled
+        }, {
             key = "toggle_flow_aggregated_limit",
             title = i18n("prefs.toggle_flow_aggregated_limit_title"),
             description = i18n("prefs.toggle_flow_aggregated_limit_description"),
