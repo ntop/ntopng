@@ -9332,12 +9332,14 @@ void Flow::check_swap() {
 
 /* *************************************** */
 
-/* The client and the server of DNS (over UDP), NTP, DHCP and ICMP flows are
- * decided once, by the first packet whose payload tells whether it is a
- * request (sent by the client) or a reply (sent by the server):
+/* The client and the server of DNS (over UDP), NTP, DHCP, DHCPv6 and ICMP
+ * flows are decided once, by the first packet whose payload tells whether it
+ * is a request (sent by the client) or a reply (sent by the server):
  * - DNS: QR bit of the header;
  * - NTP: mode 3 (client) or 4 (server);
  * - DHCP: BOOTREQUEST or BOOTREPLY (op);
+ * - DHCPv6: message type (RECONFIGURE, sent by the server unsolicited, is on
+ *   the server side as a reply);
  * - ICMP: echo, timestamp and information request/reply; ICMPv6: echo
  *   request/reply.
  * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
@@ -9399,6 +9401,28 @@ void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
         is_reply = false;
         break;
       case 2 /* BOOTREPLY */:
+        is_reply = true;
+        break;
+      default:
+        return;
+    }
+  } else if (l7proto == NDPI_PROTOCOL_DHCPV6) {
+    switch (payload[0] /* Message type */) {
+      case 1 /* SOLICIT */:
+      case 3 /* REQUEST */:
+      case 4 /* CONFIRM */:
+      case 5 /* RENEW */:
+      case 6 /* REBIND */:
+      case 8 /* RELEASE */:
+      case 9 /* DECLINE */:
+      case 11 /* INFORMATION-REQUEST */:
+      case 12 /* RELAY-FORW */:
+        is_reply = false;
+        break;
+      case 2 /* ADVERTISE */:
+      case 7 /* REPLY */:
+      case 10 /* RECONFIGURE */:
+      case 13 /* RELAY-REPL */:
         is_reply = true;
         break;
       default:
@@ -9817,7 +9841,7 @@ void Flow::refreshHostsTags() {
 
 /* *************************************** */
 
-/* Whether the DHCP server of the flow is its client:
+/* Whether the DHCP (or DHCPv6) server of the flow is its client:
  * - replies sent to broadcast are not swapped (see checkL7Direction()): the
  *   server is the client when it sends from the server port;
  * - otherwise, when the direction has been decided by the requests and
@@ -9829,7 +9853,8 @@ bool Flow::isDHCPServerClient() const {
       get_srv_ip_addr()->isNonEmptyUnicastAddress())
     return (false);
 
-  return (get_cli_port() == 67 /* Server port (bootps) */);
+  return ((get_cli_port() == 67 /* DHCP server port (bootps) */) ||
+          (get_cli_port() == 547 /* DHCPv6 server port */));
 }
 
 /* *************************************** */
@@ -9841,14 +9866,19 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
 
   switch (ndpi_get_lower_proto(ndpiDetectedProtocol.proto)) {
     case NDPI_PROTOCOL_DHCP:
+    case NDPI_PROTOCOL_DHCPV6:
       if (getConfidence() == NDPI_CONFIDENCE_DPI) {
         if (isDHCPServerClient()) {
           /* Server -> Client */
           setCliService(HOST_SERVICE_DHCP);
         } else {
-          setSrvService(HOST_SERVICE_DHCP);
+          /* Not on the broadcast/multicast address of a request (e.g. a
+           * DISCOVER or a SOLICIT) */
+          if (get_srv_ip_addr() &&
+              get_srv_ip_addr()->isNonEmptyUnicastAddress())
+            setSrvService(HOST_SERVICE_DHCP);
 
-          /* Only from the DHCP client (not from a relay agent, whose
+          /* Only from the DHCP (v4) client (not from a relay agent, whose
            * requests carry the fingerprint of the client they relay) */
           if (ndpiFlow && cli_host && (get_cli_port() == 68 /* bootpc */))
             cli_host->offlineSetDhcpFingerprint(

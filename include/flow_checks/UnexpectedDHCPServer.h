@@ -35,8 +35,10 @@ class UnexpectedDHCPServer : public UnexpectedServer {
   bool isAllowedProto(Flow* f) {
     const IpAddress* server = f->get_dhcp_srv_ip_addr();
 
-    /* Flows whose DHCP server is known (e.g. not a request to broadcast) */
-    return (f->isDHCP() && server && server->isNonEmptyUnicastAddress());
+    /* Flows whose DHCP server is known (e.g. not a request to broadcast or
+     * multicast) */
+    return ((f->isDHCP() || f->isDHCPv6()) && server &&
+            server->isNonEmptyUnicastAddress());
   }
   const IpAddress* getServerIP(Flow* f) { return (f->get_dhcp_srv_ip_addr()); }
   /* Whether the DHCP server of the flow has sent at least a packet (a reply) */
