@@ -4921,12 +4921,13 @@ void Flow::formatGenericFlow(json_object* my_object) {
         Utils::jsonLabel(DNS_QUERY, "DNS_QUERY", jsonbuf, sizeof(jsonbuf)),
         json_object_new_string(protos.dns.last_query));
 
-  json_object_object_add(
-      my_object,
-      Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_string(
-          (char*)getCommunityId(community_id, sizeof(community_id))));
+  char *comm = (char*)getCommunityId(community_id, sizeof(community_id));
 
+  if((comm != NULL) && (comm[0] != '\0'))
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(comm));
+  
   json_object_object_add(my_object,
                          Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE",
                                           jsonbuf, sizeof(jsonbuf)),
