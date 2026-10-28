@@ -3836,11 +3836,54 @@
           {
             "name": "ifid",
             "in": "query",
-            "description": "Interface identifier",
-            "required": true,
+            "description": "Interface identifier (required unless any_interface=true)",
+            "required": false,
             "type": "integer",
             "format": "int32"
-          },          
+          },
+          {
+            "name": "any_interface",
+            "in": "query",
+            "description": "Search the flows of all the interfaces (ifid is ignored)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "query_preset",
+            "in": "query",
+            "description": "Query preset id (preset/consts.lua), empty for the raw flows",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "aggregated",
+            "in": "query",
+            "description": "Search the hourly aggregated flows (Enterprise XL)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "visible_columns",
+            "in": "query",
+            "description": "Comma separated list of the columns to return",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order",
+            "required": false,
+            "type": "string",
+            "enum": ["asc", "desc"]
+          },
           {
             "name": "start",
             "in": "query",

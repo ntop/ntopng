@@ -422,7 +422,7 @@ page_utils.menu_entries = {
         section = "views"
     },
     historical_flows_asn_mode = {
-        key = "historical_flows_asn_mode",
+        key = "db_explorer_asn_mode",
         i18n_title = "historical_flows",
         section = "views"
     },

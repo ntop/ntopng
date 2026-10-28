@@ -5,7 +5,8 @@
 	"enable_search": false,
 	"paging": true,
 	"rsp_records_field": "records",
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.historical_flows",
 	"rsp_query_info_field": "stats",
 	"columns": [
 		{
@@ -18,7 +19,7 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "info",
@@ -124,9 +125,9 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.alert_id",
+			"title_i18n": "flow_alerts_filter",
 			"data_field": "alert_id",
-			"min-width": "80px",
+			"min-width": "140px",
 			"sortable": true,
 			"render_generic": "alert_id",
 			"class": [
@@ -137,6 +138,7 @@
 			"title_i18n": "flow",
 			"data_field": "flow",
 			"min-width": "300px",
+			"auto_max_width": false,
 			"render_type": "formatFlowTuple",
 			"sortable": false,
 			"class": [

@@ -1127,6 +1127,49 @@ end
 
 -- #####################################
 
+-- All the alerts of the flow for the Status column (as the live flows alerts column):
+-- ALERT_JSON.alerts has them with their score, STATUS is the predominant one.
+-- shortcut: rows stored before ALERT_JSON.alerts existed show only the predominant alert
+local alert_label_cache = {} -- alert_id -> label, same for every row of the request
+local function dt_add_alerts(processed_record, record)
+   local status = processed_record.alert_id
+   if type(status) ~= "table" or tonumber(status.value or 0) == 0 or isEmptyString(record.ALERT_JSON) then
+      return
+   end
+
+   local alert_json = require("dkjson").decode(record.ALERT_JSON)
+   if type(alert_json) ~= "table" or type(alert_json.alerts) ~= "table" then
+      return
+   end
+
+   local flow_entity_id = require("alert_entities").flow.entity_id
+   local predominant = tonumber(status.value)
+   local alerts = {}
+   for id, info in pairs(alert_json.alerts) do
+      local alert_id = tonumber(id)
+      if alert_id then
+         local score = tonumber(type(info) == "table" and info.score) or 0
+         local severity = alert_consts.alertSeverityById(map_score_to_severity(score))
+         local label = alert_label_cache[alert_id]
+         if not label then
+            label = alert_consts.alertTypeLabel(alert_id, true, flow_entity_id)
+            alert_label_cache[alert_id] = label
+         end
+         alerts[#alerts + 1] = {
+            alert_id = alert_id,
+            alert_label = label,
+            is_predominant = (alert_id == predominant),
+            score = score,
+            badge = severity and severity.label,
+            severity = severity and i18n(severity.i18n_title),
+         }
+      end
+   end
+   status.alerts = alerts
+end
+
+-- #####################################
+
 local function dt_format_flow(processed_record, record)
    local cli = processed_record["cli_ip"]
    local srv = processed_record["srv_ip"]
@@ -1995,6 +2038,7 @@ function historical_flow_utils.format_clickhouse_record(record, csv_format, form
       dt_format_asn(processed_record, record)
       dt_unify_l7_proto(processed_record)
       dt_add_alerts_url(processed_record, record, is_aggregated)
+      dt_add_alerts(processed_record, record)
       dt_format_flow(processed_record, record)
    end
 
