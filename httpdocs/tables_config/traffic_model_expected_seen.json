@@ -1,26 +1,12 @@
 {
 	"id": "traffic_model_expected_seen",
 	"data_url": "lua/pro/rest/v2/get/traffic_model/expected.lua",
+	"filters_url": "lua/pro/rest/v2/get/traffic_model/expected_filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
 	"selection": {
-		"key": "ip",
-		"row_filter": {
-			"status": [
-				"UNEXPECTED"
-			]
-		},
-		"not_selectable_tooltip_i18n": "traffic_model.already_expected",
-		"actions": [
-			{
-				"id": "mark_expected",
-				"label_i18n": "traffic_model.mark_expected",
-				"icon": "fa-check",
-				"class": "btn-primary",
-				"confirm": true
-			}
-		]
+		"key": "ip"
 	},
 	"display_empty_rows": true,
 	"empty_message_i18n": "table_empty.traffic_model_expected_seen",
@@ -43,7 +29,7 @@
 			"id": "network",
 			"title_i18n": "traffic_model.col.network",
 			"data_field": "network",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "140px",
 			"class": [
 				"text-nowrap"
@@ -59,6 +45,17 @@
 				"text-nowrap"
 			],
 			"title_i18n": "traffic_model.col.status"
+		},
+		{
+			"id": "seen",
+			"data_field": "seen",
+			"sortable": false,
+			"min-width": "90px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.seen"
 		},
 		{
 			"id": "days_seen",

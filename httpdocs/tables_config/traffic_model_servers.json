@@ -25,7 +25,7 @@
 			"id": "network",
 			"title_i18n": "traffic_model.col.network",
 			"data_field": "network",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "140px",
 			"class": [
 				"text-nowrap"
