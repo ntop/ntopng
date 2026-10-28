@@ -5129,6 +5129,7 @@ local lang = {
     ["open_as_details"] = "Apri i dettagli dell'Autonomous System",
     ["open_exporter_details"] = "Apri i dettagli del flow exporter",
     ["open_flow_page"] = "Apri la pagina del flusso",
+    ["show_all_alerts"] = "Mostra tutti i %{n} allarmi del flusso",
     ["open_host_details"] = "Apri i dettagli dell'host",
     ["open_interface_details"] = "Apri i dettagli dell'interfaccia dell'exporter",
     ["open_process_details"] = "Apri i dettagli del processo",

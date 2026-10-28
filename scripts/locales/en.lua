@@ -5426,6 +5426,7 @@ local lang = {
     ["open_as_details"] = "Open the Autonomous System details",
     ["open_exporter_details"] = "Open the flow exporter details",
     ["open_flow_page"] = "Open the flow page",
+    ["show_all_alerts"] = "Show all the %{n} alerts of the flow",
     ["open_host_details"] = "Open the host details",
     ["open_interface_details"] = "Open the exporter interface details",
     ["open_process_details"] = "Open the process details",
