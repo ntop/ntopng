@@ -9348,12 +9348,17 @@ void Flow::check_swap() {
  * is swapped at once, before the detection is completed and anything else
  * (checks, services, dumps, the view) relies on its peers, unless the client
  * would be a non-unicast address (e.g. a DHCP reply sent to broadcast), as in
- * check_swap(). */
+ * check_swap(). Nothing is done when the flow swap heuristic is disabled. */
 void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
                             const u_int8_t* payload, u_int16_t payload_len) {
   bool is_reply;
 
+  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
+
   if ((payload == NULL) || (payload_len == 0)) return;
+
+  if ((ndpiFlow == NULL) || (ndpiFlow->core.confidence != NDPI_CONFIDENCE_DPI))
+    return;
 
   if (protocol == IPPROTO_ICMP) {
     switch (payload[0] /* Type */) {
