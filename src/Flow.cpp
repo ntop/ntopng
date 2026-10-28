@@ -9674,8 +9674,8 @@ void Flow::swap() {
     TCPStats t;
 
     memcpy(&ts, &tcp->tcp_seq_s2d, sizeof(TCPSeqNum));
-    memcpy(&tcp->tcp_seq_d2s, &tcp->tcp_seq_s2d, sizeof(TCPSeqNum));
-    memcpy(&tcp->tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
+    memcpy(&tcp->tcp_seq_s2d, &tcp->tcp_seq_d2s, sizeof(TCPSeqNum));
+    memcpy(&tcp->tcp_seq_d2s, &ts, sizeof(TCPSeqNum));
     Utils::swap16(&tcp->cli2srv_window, &tcp->srv2cli_window);
 
     memcpy(&t, &tcp_stats.cli2srv, sizeof(TCPStats));
