@@ -2161,6 +2161,7 @@ local known_parameters = {
    ["sortOrder"] = validateSortOrder, -- A sort order
    ["sortColumn"] = validateSortColumn, -- A sort column
    ["currentPage"] = validateNumber, -- The currently displayed page number (used for pagination)
+   ["table_page"] = validateNumber, -- Page of the table, kept in the url by table.vue (sent with every table request)
    ["totalRows"] = validateNumber, -- The total number of rows
 
    -- AGGREGATION
@@ -3384,6 +3385,7 @@ local known_parameters = {
     ["instance_name"] = validateSingleWord, -- used in flow explorer
     ["hide_exporters_name"] = validateBool,
     ["append_only"] = validateBool,
+    ["remove_only"] = validateBool,
     ["dns_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["ntp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["dhcp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
