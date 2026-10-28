@@ -7321,8 +7321,7 @@ local lang = {
   ["traffic_model"] = {
     ["intro_calendar"] = "Giorni in cui sono comparsi o scomparsi dei server, una riga per tipo di server: clicca un giorno per confrontarlo con il giorno prima",
     ["intro_compare"] = "Server di un giorno confrontati con un giorno precedente: nuovi, scomparsi e con più o meno traffico. Clicca un conteggio per vedere solo quei server",
-    ["intro_expected"] = "Server visti nell'intervallo confrontati con quelli attesi della Configurazione di rete: a sinistra quelli inattesi, a destra quelli mancanti",
-    ["intro_servers"] = "Server del tipo scelto (DNS, NTP...) visti nell'intervallo di tempo, dal modello giornaliero costruito sui flussi storici",
+    ["intro_servers"] = "Server visti nell'intervallo confrontati con quelli attesi della Configurazione di rete: a sinistra i server visti (attesi o no), a destra quelli attesi mai visti",
   },
   ["chat_page"] = {
     ["debug_dump"] = "Scarica il dump della chat (JSON) per support@ntop.org",
