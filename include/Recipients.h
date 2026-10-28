@@ -28,6 +28,10 @@ class Recipients {
  private:
   /* Per-recipient queues */
   RecipientQueue* recipient_queues[MAX_NUM_RECIPIENTS];
+  /* Notifications dequeued (e.g. by the Lua endpoints, see dequeue()) and
+     possibly still being processed, until the next pass of the notifications
+     (see last_use()) */
+  bool dequeued[MAX_NUM_RECIPIENTS];
   Mutex m;
 
   AlertLevel default_recipient_minimum_severity;
@@ -107,6 +111,10 @@ class Recipients {
 
   /**
    * @brief Returns the last use (i.e., successful dequeue) of a given recipient
+   * NOTE: called only by the processing of the notifications
+   * (process_notifications() in recipients.lua), at the beginning of each pass
+   * over the recipients: the notifications dequeued in the previous pass have
+   * been processed (see empty())
    * @param recipient_id An integer recipient identifier
    *
    * @return An epoch with the last use, or 0 if never used.
