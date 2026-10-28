@@ -26,6 +26,16 @@
 			"title_i18n": "traffic_model.col.server"
 		},
 		{
+			"id": "name",
+			"data_field": "name",
+			"sortable": false,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.name"
+		},
+		{
 			"id": "network",
 			"title_i18n": "traffic_model.col.network",
 			"data_field": "network",

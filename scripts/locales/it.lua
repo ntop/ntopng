@@ -10892,7 +10892,6 @@ local lang = {
     ["tags_list"] = "Nessun tag da mostrare",
     ["traffic_model_compare"] = "Nessun dato da mostrare",
     ["traffic_model_expected_seen"] = "Nessun dato da mostrare",
-    ["traffic_model_servers"] = "Nessun dato da mostrare",
     ["traffic_profiles"] = "Nessun profilo di traffico. Aggiungine uno per misurare il traffico che corrisponde a un filtro",
     ["users_list"] = "Nessun utente trovato",
     ["vlans_stats"] = "Nessuna VLAN rilevata",
