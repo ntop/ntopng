@@ -14,7 +14,7 @@ If instead of source code you prefer to use a pre-built package, please go to ht
 
 We build binary packages for the following platforms:
 * Debian/Ubuntu LTS x64
-* CentOS/RedHat/RockyLinux/AlmaLinux Linux x64
+* CentOS/RedHat/RockyLinux/AlmaLinux x64
 * Windows x64
 * RaspberryPI/Debian ARM
 * FreeBSD/OPNsense/pfSense
