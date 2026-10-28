@@ -51,7 +51,8 @@
       "description": "Everything about nEdge REST API calls"
     },
     {"name": "AI Dashboards", "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"},
-    {"name": "Syslog Rules", "description": "Rules filtering the syslog messages stored by the collector"}
+    {"name": "Syslog Rules", "description": "Rules filtering the syslog messages stored by the collector"},
+    {"name": "Wazuh", "description": "Wazuh alerts and the rules/exceptions choosing which ones are notified"}
   ],
   "schemes": [
     "https",
@@ -295,6 +296,626 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/wazuh/alerts.lua": {
+      "get": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Get the Wazuh alerts",
+        "description": "Page of the Wazuh alerts stored in ClickHouse, newest first by default. Enterprise M, ClickHouse.",
+        "operationId": "get_wazuh_alerts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 50, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by (e.g. timestamp, rule_level, agent_name)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in description, agent, IPs, user name, domain and command",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Only alerts from this time (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Only alerts up to this time (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "min_level",
+            "in": "query",
+            "description": "Only alerts with a rule level >= this",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. rsp: the alerts; recordsTotal/recordsFiltered: number of alerts matching the filters"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/wazuh/alert.lua": {
+      "get": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Get a Wazuh alert",
+        "description": "All the fields of one Wazuh alert. Enterprise M, ClickHouse.",
+        "operationId": "get_wazuh_alert",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "wazuh_alert_id",
+            "in": "query",
+            "description": "alert_id of the alert",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/wazuh/alert_rules.lua": {
+      "get": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Get the Wazuh alert rules",
+        "description": "The rules choosing which Wazuh alerts are notified, by priority. Enterprise M, ClickHouse.",
+        "operationId": "get_wazuh_alert_rules",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/wazuh/alert_rule.lua": {
+      "post": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Add a Wazuh alert rule",
+        "description": "Adds a rule. Enterprise M, administrators only.",
+        "operationId": "add_wazuh_alert_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "wazuh_rule_id",
+            "in": "formData",
+            "description": "Rule id (letters, digits and dashes)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_priority",
+            "in": "formData",
+            "description": "Priority, lower first (default 100)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_min_level",
+            "in": "formData",
+            "description": "Minimum Wazuh rule level (0-15) of the alerts matched",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_groups",
+            "in": "formData",
+            "description": "Comma separated Wazuh rule groups matched (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_pattern",
+            "in": "formData",
+            "description": "Lua pattern matched against the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_immediate",
+            "in": "formData",
+            "description": "1: notify immediately, 0: in the digest",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_subject",
+            "in": "formData",
+            "description": "Subject of the notification",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_enabled",
+            "in": "formData",
+            "description": "1: enabled (default), 0: disabled",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_comment",
+            "in": "formData",
+            "description": "Free comment",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/wazuh/alert_rule.lua": {
+      "post": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Edit a Wazuh alert rule",
+        "description": "Changes a rule, and renames it when wazuh_rule_new_id is set. Enterprise M, administrators only.",
+        "operationId": "edit_wazuh_alert_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "wazuh_rule_id",
+            "in": "formData",
+            "description": "Id of the rule to change",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_new_id",
+            "in": "formData",
+            "description": "New id of the rule",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_priority",
+            "in": "formData",
+            "description": "Priority, lower first (default 100)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_min_level",
+            "in": "formData",
+            "description": "Minimum Wazuh rule level (0-15) of the alerts matched",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_groups",
+            "in": "formData",
+            "description": "Comma separated Wazuh rule groups matched (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_pattern",
+            "in": "formData",
+            "description": "Lua pattern matched against the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_immediate",
+            "in": "formData",
+            "description": "1: notify immediately, 0: in the digest",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_subject",
+            "in": "formData",
+            "description": "Subject of the notification",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_rule_enabled",
+            "in": "formData",
+            "description": "1: enabled (default), 0: disabled",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_comment",
+            "in": "formData",
+            "description": "Free comment",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/wazuh/alert_rule.lua": {
+      "post": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Delete a Wazuh alert rule",
+        "description": "Enterprise M, administrators only.",
+        "operationId": "delete_wazuh_alert_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "wazuh_rule_id",
+            "in": "formData",
+            "description": "Id of the rule",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/wazuh/alert_exceptions.lua": {
+      "get": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Get the Wazuh alert exceptions",
+        "description": "The Wazuh alerts matching an exception are not notified. Enterprise M, ClickHouse.",
+        "operationId": "get_wazuh_alert_exceptions",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/wazuh/alert_exception.lua": {
+      "post": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Add a Wazuh alert exception",
+        "description": "Adds an exception. Fails if the id is already used. Enterprise M, administrators only.",
+        "operationId": "add_wazuh_alert_exception",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "wazuh_exception_id",
+            "in": "formData",
+            "description": "Exception id (e.g. a UUID generated by the client)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_rule_id",
+            "in": "formData",
+            "description": "Wazuh rule id (0: any)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_exception_agent_name",
+            "in": "formData",
+            "description": "Agent name (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_src_ip",
+            "in": "formData",
+            "description": "Source IP (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_dst_ip",
+            "in": "formData",
+            "description": "Destination IP (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_username",
+            "in": "formData",
+            "description": "User name (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_process",
+            "in": "formData",
+            "description": "Process (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_rule_group",
+            "in": "formData",
+            "description": "Rule group (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_pattern",
+            "in": "formData",
+            "description": "Lua pattern matched against the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_enabled",
+            "in": "formData",
+            "description": "1: enabled (default), 0: disabled",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_exception_comment",
+            "in": "formData",
+            "description": "Free comment",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/wazuh/alert_exception.lua": {
+      "post": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Edit a Wazuh alert exception",
+        "description": "Changes an exception, and renames it when old_wazuh_exception_id differs from wazuh_exception_id. Enterprise M, administrators only.",
+        "operationId": "edit_wazuh_alert_exception",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "old_wazuh_exception_id",
+            "in": "formData",
+            "description": "Current id of the exception (default: wazuh_exception_id)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_id",
+            "in": "formData",
+            "description": "(New) id of the exception",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_rule_id",
+            "in": "formData",
+            "description": "Wazuh rule id (0: any)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_exception_agent_name",
+            "in": "formData",
+            "description": "Agent name (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_src_ip",
+            "in": "formData",
+            "description": "Source IP (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_dst_ip",
+            "in": "formData",
+            "description": "Destination IP (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_username",
+            "in": "formData",
+            "description": "User name (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_process",
+            "in": "formData",
+            "description": "Process (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_rule_group",
+            "in": "formData",
+            "description": "Rule group (empty: any)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_pattern",
+            "in": "formData",
+            "description": "Lua pattern matched against the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_exception_enabled",
+            "in": "formData",
+            "description": "1: enabled (default), 0: disabled",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_exception_comment",
+            "in": "formData",
+            "description": "Free comment",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/wazuh/alert_exception.lua": {
+      "post": {
+        "tags": [
+          "Wazuh"
+        ],
+        "summary": "Delete a Wazuh alert exception",
+        "description": "Enterprise M, administrators only.",
+        "operationId": "delete_wazuh_alert_exception",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "wazuh_exception_id",
+            "in": "formData",
+            "description": "Id of the exception",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The outcome is in the 'result' field of the response: 'ok' on success, otherwise the error message"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
           }
         }
       }
