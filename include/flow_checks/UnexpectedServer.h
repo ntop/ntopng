@@ -40,12 +40,12 @@ class UnexpectedServer : public FlowCheck {
   }
 
  public:
-  UnexpectedServer()
+  UnexpectedServer(bool has_flow_end = false)
       : FlowCheck(ntopng_edition_community, false /* All interfaces */,
                   false /* Don't exclude for nEdge */,
                   false /* NOT only for nEdge */,
                   true /* has_protocol_detected */,
-                  false /* has_periodic_update */, false /* has_flow_end */) {
+                  false /* has_periodic_update */, has_flow_end) {
     whitelist_automa = NULL;
     if ((whitelist_ptree = ndpi_ptree_create()) == NULL) throw "Out of memory";
   };
