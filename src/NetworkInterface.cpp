@@ -12770,6 +12770,25 @@ bool NetworkInterface::resetHostTopSites(AddressTree* allowed_nets,
 
 bool NetworkInterface::matchAggregatedFlow(Flow* flow,
                                            struct aggregated_stats* stats) {
+  if (stats->srv_port && (flow->get_srv_port() != stats->srv_port))
+    return (false);
+
+  if (stats->l4_proto && (flow->get_protocol() != stats->l4_proto))
+    return (false);
+
+  if (stats->l7_filter) {
+    ndpi_protocol p = flow->get_detected_protocol();
+    u_int16_t m = p.proto.master_protocol, a = p.proto.app_protocol;
+
+    /* Same canonical form of the "proto_id" of the flows stats */
+    if ((m == a) || (a == NDPI_PROTOCOL_UNKNOWN))
+      a = NDPI_PROTOCOL_UNKNOWN;
+    else if (m == NDPI_PROTOCOL_UNKNOWN)
+      m = a, a = NDPI_PROTOCOL_UNKNOWN;
+
+    if ((m != stats->l7_master) || (a != stats->l7_app)) return (false);
+  }
+
   if (stats->ip_addr != NULL) {
     if (!flow->matchFlowIP(stats->ip_addr, stats->vlan_id)) return (false);
   }
@@ -13738,6 +13757,17 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   /* Lua passes nil (and not a negative value) when no site is requested, so
    * that NO_SITE_ID is never obtained through a negative-to-unsigned cast */
   if (lua_type(vm, 16) == LUA_TNUMBER) site_id = lua_tonumber(vm, 16);
+  stats.srv_port = (lua_type(vm, 17) == LUA_TNUMBER) ? lua_tonumber(vm, 17) : 0;
+  stats.l4_proto = (lua_type(vm, 18) == LUA_TNUMBER) ? lua_tonumber(vm, 18) : 0;
+  stats.l7_filter = false;
+  stats.l7_master = stats.l7_app = NDPI_PROTOCOL_UNKNOWN;
+  if (lua_type(vm, 19) == LUA_TSTRING) {
+    /* "M.A" or "X" */
+    unsigned int m = 0, a = 0;
+
+    if (sscanf(lua_tostring(vm, 19), "%u.%u", &m, &a) >= 1)
+      stats.l7_filter = true, stats.l7_master = m, stats.l7_app = a;
+  }
   stats.vlan_id = vlan_id;
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
 

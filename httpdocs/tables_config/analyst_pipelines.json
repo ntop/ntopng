@@ -5,7 +5,7 @@
   "enable_search": true,
   "paging": false,
   "display_empty_rows": false,
-  "empty_message_i18n": "table_empty.analyst_pipelines",
+  "empty_message_i18n": "analyst_pipeline_page.empty",
   "default_sort": {
     "column_id": "created_at",
     "sort": 1
@@ -17,27 +17,27 @@
       "sortable": false,
       "sticky": true,
       "class": ["text-nowrap", "text-center"],
-      "render_v_node_type": "button_list",
+      "min-width": "90px",
+      "max-width": "90px",
+      "render_v_node_type": "split_button",
       "button_def_array": [
         {
           "id": "open_pipeline",
           "icon": "fas fa-play",
           "title_i18n": "llm.analyst_pipeline.run_playbook",
-          "class": ["btn-primary"],
           "event_id": "open_pipeline"
         },
         {
           "id": "view_definition",
           "icon": "fas fa-code",
           "title_i18n": "llm.analyst_pipeline.view_definition",
-          "class": ["btn-secondary"],
           "event_id": "view_definition"
         },
         {
           "id": "delete_pipeline",
           "icon": "fas fa-trash",
           "title_i18n": "delete",
-          "class": ["btn-danger"],
+          "danger": true,
           "event_id": "delete_pipeline"
         }
       ]

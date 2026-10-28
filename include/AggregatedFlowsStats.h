@@ -189,6 +189,13 @@ struct aggregated_stats {
   u_int8_t host_locality;
   /* NO_SITE_ID = any site */
   u_int16_t site_id;
+  /* 0 = any server port / L4 protocol */
+  u_int16_t srv_port;
+  u_int8_t l4_proto;
+  /* Application as the "M.A" / "X" id of the flows stats (X: master and app
+   * equal or one unknown, stored as master) */
+  bool l7_filter;
+  u_int16_t l7_master, l7_app;
 };
 
 #endif /* _FLOWS_STATS_H_ */

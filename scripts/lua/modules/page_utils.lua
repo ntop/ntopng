@@ -296,23 +296,15 @@ page_utils.menu_entries = {
         section = "flows",
         help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/historical_flows.html?utm_source=ntopng"
     },
-    server_ports = {
-        key = "server_ports",
-        i18n_title = "server_ports.server_ports",
-        section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html?utm_source=ntopng"
-    },
     bgp_looking_glass = {
         key = "bgp_looking_glass",
         i18n_title = "bgp_looking_glass",
         section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html?utm_source=ntopng"
     },
     bgp_looking_glass_asn = {
         key = "bgp_looking_glass_asn",
         i18n_title = "bgp_looking_glass",
         section = "views",
-        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html?utm_source=ntopng"
     },
 
     -- Hosts
@@ -424,11 +416,6 @@ page_utils.menu_entries = {
     historical_flows_asn_mode = {
         key = "db_explorer_asn_mode",
         i18n_title = "historical_flows",
-        section = "views"
-    },
-    server_ports_asn_mode = {
-        key = "server_ports",
-        i18n_title = "server_ports.server_ports",
         section = "views"
     },
 

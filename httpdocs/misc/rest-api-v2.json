@@ -50,9 +50,26 @@
       "name": "nEdge",
       "description": "Everything about nEdge REST API calls"
     },
-    {"name": "AI Dashboards", "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"},
-    {"name": "Syslog Rules", "description": "Rules filtering the syslog messages stored by the collector"},
-    {"name": "Wazuh", "description": "Wazuh alerts and the rules/exceptions choosing which ones are notified"}
+    {
+      "name": "AI Dashboards",
+      "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"
+    },
+    {
+      "name": "Syslog Rules",
+      "description": "Rules filtering the syslog messages stored by the collector"
+    },
+    {
+      "name": "Wazuh",
+      "description": "Wazuh alerts and the rules/exceptions choosing which ones are notified"
+    },
+    {
+      "name": "nAnalyst",
+      "description": "nAnalyst: AI audit log, LLM usage and model prices, AI policies, analyst playbooks"
+    },
+    {
+      "name": "Traffic Model",
+      "description": "Traffic model: the servers (DNS, NTP...) seen day by day, against the expected ones and between days"
+    }
   ],
   "schemes": [
     "https",
@@ -17085,6 +17102,27 @@
             "type": "integer"
           },
           {
+            "name": "srv_port",
+            "in": "query",
+            "description": "Only the flows with this server port",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Only the flows with this L4 protocol ID (e.g. 6 = TCP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "description": "Only the flows with this nDPI protocol: 'master.app' IDs (e.g. 7.26) or a single ID",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "inIfIdx",
             "in": "query",
             "description": "Exporter input interface index",
@@ -17324,6 +17362,1233 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/server_ports.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the server ports of the live flows",
+        "description": "The server ports seen in the live flows of the interface for a layer 4 protocol: srv_port, l4_proto, proto_id (nDPI <master>.<app> or <master>), l7_proto_name and n_hosts (servers using it). Enterprise L.",
+        "operationId": "get_live_server_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "Layer 4 protocol: 6 (TCP) or 17 (UDP)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "VLAN id (default: all the VLANs)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (no Enterprise L)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/hosts_details_by_port.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the hosts serving a port",
+        "description": "The hosts serving a server port in the live flows (ip, name, vlan_id, mac, mac_manufacturer, flows, score, tot_traffic), paged (recordsTotal). A missing or stale application/port falls back to the first available one: the answer has the values used (protocol, application, port) and the options of the page filters, counted on all the hosts of the port: applications [{id, name}], ports [{port, n_hosts}] of the application, vlans [{id, name, count}], manufacturers [{name, count}]. Enterprise L.",
+        "operationId": "get_hosts_by_server_port",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "Layer 4 protocol: 6 (TCP, default) or 17 (UDP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "description": "nDPI application, <master>.<app> or <master> (e.g. 7.26, 91); default: the first one by name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "port",
+            "in": "query",
+            "description": "Server port; default: the first port of the application",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "Only the hosts of this VLAN",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Only the hosts with this MAC manufacturer",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: ip, name, vlan_id, mac, mac_manufacturer, score, flows, tot_traffic",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First row (paging)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of rows (paging, default 10)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (no Enterprise L)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/vlan/live_ports.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the server ports by VLAN (live)",
+        "description": "Sankey of the live flows: nodes (node_id vlan_<id> / port_<port>, label, link) and links (VLAN -> server port, label = application, value = bytes, l4_proto, l7_proto, optional_info.link to the live flows), the links with the most traffic first; vlans [{id, name}]: all the VLANs with flows; max_entries_reached when cut at limit.",
+        "operationId": "get_vlan_live_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "Only this VLAN",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Layer 4 protocol number (default TCP and UDP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max number of links (default 35)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/vlan/historical_ports.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the server ports by VLAN (historical)",
+        "description": "Same answer of get/vlan/live_ports.lua from the historical flows (ClickHouse) of the last timeframe seconds, at most 35 links; links open the historical flows. vlans [{id, name}]: the VLANs of the links.",
+        "operationId": "get_vlan_historical_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "description": "Seconds before now (e.g. 3600)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "Only this VLAN",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Layer 4 protocol number; empty or -1: TCP and UDP",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/flow/bgp/looking_glass.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the BGP routes of an IP address",
+        "description": "The routes of the BGP RIB entry of an IP address (BGP feed), one row per prefix and peer: prefix, asn (of the IP), peer, peer_name and peer_site (when known), is_best_path, peer_asn { asn, name }, origin, as_path [{ asn, name }], next_hop, med, local_pref and communities. An empty list when the IP is missing, invalid or has no route.",
+        "operationId": "get_bgp_looking_glass",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IPv4 or IPv6 address",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/llm/audit_log.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the AI audit log",
+        "description": "Actions done by the nAnalyst agent and by the users from the AI features, newest first (at most 500 rows). Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_ai_audit_log",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Only actions from this time (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Only actions up to this time (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Only the actions of this user",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tool_name",
+            "in": "query",
+            "description": "Only this tool (e.g. create_ai_policy)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "triggered_by",
+            "in": "query",
+            "description": "llm (agent) or user (direct action)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/llm/token_usage.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the LLM token usage",
+        "description": "Calls, tokens and response times of the LLM calls in a time range: summary, by model, by call type, by user and timeline. Non administrators get only their own usage. Enterprise, ClickHouse, nAnalyst license.",
+        "operationId": "get_llm_token_usage",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Range begin (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Range end (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "description": "Only this provider (e.g. llm_openai)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Only this model",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Only this user (administrators only)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/llm/model_prices.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the LLM model prices",
+        "description": "Price per million tokens (input and output, USD) of each model, used to compute the costs. Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_llm_model_prices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/post/llm/upsert_model_price.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Add or edit an LLM model price",
+        "description": "Sets the price per million tokens of a model. Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "upsert_llm_model_price",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "formData",
+            "description": "Provider id (e.g. llm_openai)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "formData",
+            "description": "Model name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input_price_usd",
+            "in": "formData",
+            "description": "USD per million input tokens",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "output_price_usd",
+            "in": "formData",
+            "description": "USD per million output tokens",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "edit",
+            "in": "formData",
+            "description": "true to edit an existing price",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/post/llm/delete_model_price.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Delete an LLM model price",
+        "description": "Removes the price of a model. Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "delete_llm_model_price",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "formData",
+            "description": "Provider id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "formData",
+            "description": "Model name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/get/ai_policy/list.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the AI policies",
+        "description": "Policies: SQL queries on the historical data run at a fixed frequency, a non empty result raises an alert. With trigger and run counts. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_ai_policies",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "periodicity",
+            "in": "query",
+            "description": "Only this frequency: min, 5min, hourly, daily",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/post/ai_policy/upsert.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Add an AI policy",
+        "description": "Saves a new policy. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "add_ai_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ai_policy_name",
+            "in": "formData",
+            "description": "Policy name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sql_query",
+            "in": "formData",
+            "description": "ClickHouse query: a non empty result is a violation",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "periodicity",
+            "in": "formData",
+            "description": "min, 5min, hourly or daily",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_description",
+            "in": "formData",
+            "description": "Description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_description",
+            "in": "formData",
+            "description": "Message shown in the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "custom_score",
+            "in": "formData",
+            "description": "Alert score (1, 10, 50, 100, 150, 200, 250)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "explanation",
+            "in": "formData",
+            "description": "How the query works",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_template",
+            "in": "formData",
+            "description": "Alert message template",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_variables",
+            "in": "formData",
+            "description": "JSON array of the template variables",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-4": {
+            "description": "BAD_FORMAT"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/post/ai_policy/update.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Edit an AI policy",
+        "description": "Changes an existing policy (same fields of the add, plus its id). Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "edit_ai_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "formData",
+            "description": "Policy id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "ai_policy_name",
+            "in": "formData",
+            "description": "Policy name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sql_query",
+            "in": "formData",
+            "description": "ClickHouse query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "periodicity",
+            "in": "formData",
+            "description": "min, 5min, hourly or daily",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_description",
+            "in": "formData",
+            "description": "Description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_description",
+            "in": "formData",
+            "description": "Message shown in the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "custom_score",
+            "in": "formData",
+            "description": "Alert score",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "explanation",
+            "in": "formData",
+            "description": "How the query works",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_template",
+            "in": "formData",
+            "description": "Alert message template",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_variables",
+            "in": "formData",
+            "description": "JSON array of the template variables (omitted: kept)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/delete/ai_policy/delete.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Delete an AI policy",
+        "description": "Removes a policy. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "delete_ai_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "formData",
+            "description": "Policy id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/get/analyst_pipeline/list.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the analyst playbooks",
+        "description": "Saved playbooks (multi step investigations, SQL queries on the historical data) with name, description, provider and date. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_analyst_playbooks",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/analyst_pipeline/get.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get an analyst playbook",
+        "description": "One playbook with its definition (params, stages and their SQL templates). Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_analyst_playbook",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "query",
+            "description": "Playbook id (UUID)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/analyst_pipeline/delete.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Delete an analyst playbook",
+        "description": "Removes a playbook. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "delete_analyst_playbook",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "formData",
+            "description": "Playbook id (UUID)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/server_types.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the server types",
+        "description": "Server types of the traffic model (DNS, NTP, ...): id, label, application protocols. Enterprise XL, ClickHouse.",
+        "operationId": "get_traffic_model_server_types",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/servers.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the servers of a day range",
+        "description": "Servers of a type seen in a day range, from the daily model built on the historical flows, one page per request. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_servers",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id (see server_types)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "query",
+            "description": "Last day (YYYY-MM-DD), default: day",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 10, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the server address",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the query fails)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/expected.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the servers against the expected ones",
+        "description": "Servers seen in a day range against the expected ones of the Network Configuration: EXPECTED, UNEXPECTED, MISSING, with a summary. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_expected",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "query",
+            "description": "Last day (YYYY-MM-DD)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "section",
+            "in": "query",
+            "description": "seen (servers seen) or configured (expected ones)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Only this status",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 10, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the server address",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the query fails)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/compare.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Compare the servers of two days",
+        "description": "Servers of a day against an earlier one: NEW, GONE, UP, DOWN, SAME, with a summary and the days without data. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_compare",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day_old",
+            "in": "query",
+            "description": "Reference day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_new",
+            "in": "query",
+            "description": "Day to check (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "CHANGES (default, all but SAME), ALL, NEW, GONE, UP, DOWN, SAME",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 10, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the server address",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the query fails)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/calendar.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the days with server changes",
+        "description": "For each day of a range: nodata, baseline, same or changed (servers appeared and disappeared). Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_calendar",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day_from",
+            "in": "query",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "query",
+            "description": "Last day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }

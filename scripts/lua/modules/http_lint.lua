@@ -2552,7 +2552,7 @@ local known_parameters = {
    ["params"]                = {jsonCleanup, validateJSON},
    ["columns"]               = {jsonCleanup, validateJSON},
    ["post_hook"]             = {jsonCleanup, validateJSON},
-   ["pipeline_id"]           = validateUnquoted,
+   ["pipeline_id"]           = validateUUID,
    ["pipeline_name"]         = validateUnquoted,             -- pipeline human-readable name (may contain spaces)
    ["pipeline_description"]  = {jsonCleanup, validatePcap}, -- pipeline description, may contain special chars / UTF-8
    
@@ -2668,6 +2668,7 @@ local known_parameters = {
 
    -- AI Audit Log deep-link filter (page-ai-audit.vue)
    ["tool_name"] = validateSingleWord,
+   ["triggered_by"] = validateChoiceInline({"llm", "user"}),
    ["stats"] = validateBool,
    ["rtt_threshold"] = validateNumber,
    ["bandwidth_threshold"] = validateNumber,

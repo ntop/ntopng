@@ -40,6 +40,13 @@ local site_id = tonumber(_GET["site_id"])
 if (site_id == nil) or (site_id < 0) then
     site_id = nil
 end
+-- Flows of a server port / L4 protocol / application ("M.A" or "X" id, as the Server Ports chart)
+local srv_port = tonumber(_GET["srv_port"])
+local l4proto = tonumber(_GET["l4proto"])
+local application = _GET["application"]
+if isEmptyString(application) then
+    application = nil
+end
 local rc = rest_utils.consts.success.ok
 local filters = {}
 
@@ -138,7 +145,7 @@ local x = 0
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
     filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]),
-        filters["map_search"], nil), ternary(filters["host"] ~= "", filters["host"], nil), vlan, device_ip, inIfIdx, outIfIdx, ifIdx, status, host_locality, site_id)
+        filters["map_search"], nil), ternary(filters["host"] ~= "", filters["host"], nil), vlan, device_ip, inIfIdx, outIfIdx, ifIdx, status, host_locality, site_id, srv_port, l4proto, application)
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
     local bytes_sent = data.bytes_sent or 0

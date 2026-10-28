@@ -132,7 +132,7 @@ return function(f)
             url = "/lua/flows_stats.lua",
             hidden = f.lightview,
             reason = { f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil },
-        } -- pro entries appended by menu_definition_pro: db_explorer, server_ports, bgp_looking_glass
+        } -- pro entries appended by menu_definition_pro: db_explorer, bgp_looking_glass
         }
     },
     {

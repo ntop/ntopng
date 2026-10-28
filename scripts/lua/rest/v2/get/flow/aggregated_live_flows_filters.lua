@@ -351,6 +351,29 @@ local function build_response(criteria)
         end
     end
 
+    -- Server port / L4 protocol / application (e.g. from the Server Ports chart): shown
+    -- only when set, so they appear as active filters that can be removed
+    local function add_set_filter(key, label_i18n, value_label)
+        local value = _GET[key]
+        if isEmptyString(value) then return end
+        rsp[#rsp + 1] = {
+            action = key,
+            label = i18n(label_i18n),
+            name = key,
+            value = {
+                {key = key, value = "", label = i18n("all")},
+                {key = key, value = value, label = value_label(value)}
+            }
+        }
+    end
+
+    add_set_filter("srv_port", "db_search.flowfilters.srv_port", function(v) return v end)
+    add_set_filter("l4proto", "protocol", function(v) return l4_proto_to_string(tonumber(v)) or v end)
+    add_set_filter("application", "application", function(v)
+        local m, a = v:match("^(%d+)%.?(%d*)$")
+        return m and interface.getnDPIFullProtoName(tonumber(m), tonumber(a) or 0) or v
+    end)
+
     return rsp
 end
 

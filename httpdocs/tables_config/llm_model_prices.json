@@ -2,7 +2,7 @@
 	"id": "llm_model_prices",
 	"paging": false,
 	"display_empty_rows": false,
-	"empty_message_i18n": "table_empty.llm_model_prices",
+	"empty_message_i18n": "ai_stats_page.empty_prices",
 	"enable_search": true,
 	"columns": [
 		{
@@ -14,9 +14,9 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"min-width" : "80px",
-			"max-width" : "80px",
-			"render_v_node_type": "button_list",
+			"min-width" : "90px",
+			"max-width" : "90px",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "edit",
@@ -28,6 +28,7 @@
 					"id": "delete",
 					"icon": "fas fa-trash",
 					"title_i18n": "delete",
+					"danger": true,
 					"event_id": "click_button_delete"
 				}
 			]
