@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS `syslog_rules` (
     source       String        DEFAULT ''  COMMENT 'If not empty, sender IP address or CIDR network (e.g. 10.0.0.1 or 10.0.0.0/24) the message must come from',
     pattern      String        DEFAULT ''  COMMENT 'If not empty, RE2 regular expression that must match the message',
     comment      String        DEFAULT ''  COMMENT 'Free-text description',
-    is_deleted   UInt8         DEFAULT 0   COMMENT '1 = rule deleted (query with FINAL)',
     discard      UInt8         DEFAULT 0   COMMENT '1 = if case of match this rule discards the message (i.e. it is not logged to the DB)'
 )
 ENGINE = ReplacingMergeTree(updated_at, is_deleted)
