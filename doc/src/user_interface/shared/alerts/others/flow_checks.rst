@@ -1453,7 +1453,11 @@ Checks for unusual DHCP.
 A DHCP server setup on a network by a hacker called Rogue DHCP server, can lead to Man in the Middle, Sniffing, and Reconnaissance attacks. By placing a rogue DHCP server on the network, an attacker can supply the clients with fake addresses and other network information to snoop into the data packets.
 
 
-The alert is sent when the system identifies an unexpected DHCP server.
+The alert is sent when the system identifies an unexpected DHCP server, i.e. a host replying to DHCP requests that is not in the DHCP servers list of the Network Configuration (the check does nothing when the list is empty). Only hosts that actually reply are reported: a request with no reply (e.g. a client renewing its lease with a server that no longer answers) does not trigger the alert. The DHCP server is reported as the attacker and gets most of the score.
+
+.. note::
+
+  DHCP relay agents delivering the replies to the clients act as DHCP servers for them: add them to the DHCP servers list too. The relay agents forwarding the requests to a DHCP server of the list are allowed.
 
 *Interface: Packet & ZMQ*
 

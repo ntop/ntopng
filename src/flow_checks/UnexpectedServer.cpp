@@ -29,13 +29,19 @@ void UnexpectedServer::protocolDetected(Flow* f) {
 
   if (!isAllowedHost(f)) {
     FlowAlertType alert_type = getAlertType();
+    FlowAlert* alert = buildAlert(f);
     u_int8_t c_score, s_score;
-    risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+    /* Most of the score goes to the host to blame, i.e. the attacker set by
+     * buildAlert(): usually the client of the flow, which contacts a server
+     * not allowed (e.g. DNS, NTP, SMTP), but the server of the flow when it is
+     * the unexpected server itself (e.g. a DHCP server answering a client) */
+    risk_percentage cli_score_pctg = alert->isSrvAttacker()
+                                         ? CLIENT_LOW_RISK_PERCENTAGE
+                                         : CLIENT_HIGH_RISK_PERCENTAGE;
 
     computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg,
                        &c_score, &s_score);
 
-    FlowAlert* alert = buildAlert(f);
     alert->setCliSrvScores(c_score, s_score);
     f->triggerAlert(alert);
   }

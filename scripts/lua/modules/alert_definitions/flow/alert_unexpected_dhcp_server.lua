@@ -50,11 +50,25 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_unexpected_dhcp_server.format(ifid, alert, alert_type_params)
+    -- The DHCP server can be the client of the flow (e.g. a reply sent to
+    -- broadcast): use the server IP of the alert when available
+    local ip, name = alert.srv_ip, alert.srv_name
+
+    if alert_type_params and alert_type_params.server_ip then
+        ip = alert_type_params.server_ip
+
+        if ip == alert.cli_ip then
+            name = alert.cli_name
+        elseif ip ~= alert.srv_ip then
+            name = nil
+        end
+    end
+
     return (i18n("flow_alerts_explorer.status_unexpected_dhcp_description", {
         server = hostinfo2label({
-            ip = alert.srv_ip,
+            ip = ip,
             vlan = alert.vlan_id,
-            name = alert.srv_name
+            name = name
         }, true, false, true)
     }))
 end

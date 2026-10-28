@@ -33,18 +33,43 @@ class UnexpectedDHCPServer : public UnexpectedServer {
  protected:
   bool isAllowedHost(Flow* f);
   bool isAllowedProto(Flow* f) {
-    return (f->isDHCP() &&
-            (f->get_cli_port() == 67 /* Server port (bootps) */));
+    const IpAddress* server = f->get_dhcp_srv_ip_addr();
+
+    /* Flows whose DHCP server is known (e.g. not a request to broadcast) */
+    return (f->isDHCP() && server && server->isNonEmptyUnicastAddress());
   }
   const IpAddress* getServerIP(Flow* f) { return (f->get_dhcp_srv_ip_addr()); }
+  /* Whether the DHCP server of the flow has sent at least a packet (a reply) */
+  bool serverReplied(Flow* f) {
+    return (f->isDHCPServerClient() ? (f->get_packets_cli2srv() > 0)
+                                    : (f->get_packets_srv2cli() > 0));
+  }
 
  public:
-  UnexpectedDHCPServer() : UnexpectedServer() {};
+  UnexpectedDHCPServer() : UnexpectedServer(true /* has_flow_end */) {};
   ~UnexpectedDHCPServer() {};
+
+  /* A host is an unexpected DHCP server only when it replies: the flows are
+   * checked as soon as the protocol is detected, if the server has already
+   * replied (e.g. the reply is the first packet), and again when they end,
+   * for the replies that follow a request (e.g. a renew). A flow alerted
+   * twice keeps the first alert only (see Flow::triggerAlert()). */
+  void protocolDetected(Flow* f) {
+    if (serverReplied(f)) UnexpectedServer::protocolDetected(f);
+  }
+  void flowEnd(Flow* f) {
+    if (serverReplied(f)) UnexpectedServer::protocolDetected(f);
+  }
 
   FlowAlert* buildAlert(Flow* f) {
     UnexpectedDHCPServerAlert* alert = new UnexpectedDHCPServerAlert(this, f);
-    alert->setCliAttacker();
+
+    /* The DHCP server is the one to blame, client or server of the flow */
+    if (f->isDHCPServerClient())
+      alert->setCliAttacker();
+    else
+      alert->setSrvAttacker();
+
     return alert;
   }
 

@@ -1027,8 +1027,11 @@ class Flow : public GenericHashEntry {
   inline IpAddress* get_dns_srv_ip_addr() const {
     return ((get_cli_port() == 53) ? get_cli_ip_addr() : get_srv_ip_addr());
   };
+  /* Whether the DHCP server of the flow is its client (e.g. a reply sent to
+   * broadcast) rather than its server: see Flow.cpp */
+  bool isDHCPServerClient() const;
   inline IpAddress* get_dhcp_srv_ip_addr() const {
-    return ((get_cli_port() == 67) ? get_cli_ip_addr() : get_srv_ip_addr());
+    return (isDHCPServerClient() ? get_cli_ip_addr() : get_srv_ip_addr());
   };
 
   inline json_object* get_json_info() const { return (json_info); };
