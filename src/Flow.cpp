@@ -9333,14 +9333,53 @@ void Flow::check_swap() {
 
 /* *************************************** */
 
-/* The client and the server of DNS (over UDP), NTP, DHCP, DHCPv6 and ICMP
- * flows are decided once, by the first packet whose payload tells whether it
- * is a request (sent by the client) or a reply (sent by the server):
+/* Returns the PDU type of an SNMPv1/v2c message (0 = GetRequest ... 8 =
+ * Report, the low nibble of its tag), or -1 for SNMPv3 or malformed messages:
+ * SEQUENCE { version INTEGER, community OCTET STRING, PDU } */
+static int getSNMPPDUType(const u_int8_t* payload, u_int32_t payload_len) {
+  struct ndpi_asn1_ber_tlv msg, version, community;
+  int32_t v;
+  int version_len, community_len;
+  u_int8_t tag;
+
+  if ((ndpi_asn1_ber_decode_tlv(payload, payload_len, &msg) < 0) ||
+      (msg.tag != 0x30 /* SEQUENCE */))
+    return (-1);
+
+  /* Version: 0 (SNMPv1) or 1 (SNMPv2c) */
+  if (((version_len =
+            ndpi_asn1_ber_decode_tlv(msg.value, msg.length, &version)) < 0) ||
+      (ndpi_asn1_ber_decode_int(msg.value, version_len, &v) != 0) ||
+      (v < 0) || (v > 1))
+    return (-1);
+
+  /* Community */
+  if (((community_len = ndpi_asn1_ber_decode_tlv(
+            &msg.value[version_len], msg.length - version_len, &community)) <
+       0) ||
+      (community.tag != 0x04 /* OCTET STRING */) ||
+      ((u_int32_t)(version_len + community_len) >= msg.length))
+    return (-1);
+
+  /* PDU */
+  tag = msg.value[version_len + community_len];
+
+  return (((tag >= 0xA0) && (tag <= 0xA8)) ? (tag & 0x0F) : -1);
+}
+
+/* *************************************** */
+
+/* The client and the server of DNS (over UDP), NTP, DHCP, DHCPv6, SNMP and
+ * ICMP flows are decided once, by the first packet whose payload tells
+ * whether it is a request (sent by the client) or a reply (sent by the
+ * server):
  * - DNS: QR bit of the header;
  * - NTP: mode 3 (client) or 4 (server);
  * - DHCP: BOOTREQUEST or BOOTREPLY (op);
  * - DHCPv6: message type (RECONFIGURE, sent by the server unsolicited, is on
  *   the server side as a reply);
+ * - SNMP (v1/v2c): PDU type (traps and informs are on the client side: their
+ *   receiver, port 162, is the server);
  * - ICMP: echo, timestamp and information request/reply; ICMPv6: echo
  *   request/reply.
  * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
@@ -9429,6 +9468,26 @@ void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
       case 7 /* REPLY */:
       case 10 /* RECONFIGURE */:
       case 13 /* RELAY-REPL */:
+        is_reply = true;
+        break;
+      default:
+        return;
+    }
+  } else if (l7proto == NDPI_PROTOCOL_SNMP) {
+    /* SNMPv1/v2c only: the PDU of SNMPv3 messages is usually encrypted, and
+     * the reportable flag of their header does not tell a reply from a trap */
+    switch (getSNMPPDUType(payload, payload_len)) {
+      case 0 /* GetRequest */:
+      case 1 /* GetNextRequest */:
+      case 3 /* SetRequest */:
+      case 4 /* Trap (v1) */:
+      case 5 /* GetBulkRequest */:
+      case 6 /* InformRequest */:
+      case 7 /* SNMPv2-Trap */:
+        is_reply = false;
+        break;
+      case 2 /* Response */:
+      case 8 /* Report */:
         is_reply = true;
         break;
       default:
