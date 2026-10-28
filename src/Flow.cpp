@@ -9323,16 +9323,32 @@ void Flow::check_swap() {
 
 /* *************************************** */
 
+/* Whether an SNMP PDU is a reply (1), a request (0) or cannot tell (-1), by
+ * its type (the low nibble of its tag): Response (2) and Report (8) are
+ * replies; the requests, the traps and the informs are sent by the client */
+static int isSNMPReplyPDU(u_int8_t tag) {
+  u_int8_t pdu_type = tag & 0x0F;
+
+  if ((tag < 0xA0) || (tag > 0xA8)) return (-1);
+
+  return (((pdu_type == 2 /* Response */) || (pdu_type == 8 /* Report */))
+              ? 1
+              : 0);
+}
+
+/* *************************************** */
+
 /* Whether an SNMP message is a reply (1), a request (0) or cannot tell (-1):
- * - SNMPv1/v2c: by the PDU type (the low nibble of its tag): Response (2) and
- *   Report (8) are replies; the requests, the traps and the informs are sent
- *   by the client;
- * - SNMPv3: its PDU is usually encrypted, so by the header: the reportable
- *   flag is set in the requests and in the informs; otherwise the message is
- *   a reply (Response, Report), or a trap when sent to the trap port (162).
+ * - SNMPv1/v2c: by the PDU type (see isSNMPReplyPDU());
+ * - SNMPv3: by the PDU type when the scoped PDU is not encrypted (privacy flag
+ *   of the header clear); otherwise by the header: the reportable flag is set
+ *   in the requests and in the informs; otherwise the message is a reply
+ *   (Response, Report), or a trap when sent to the trap port (162).
  * SNMPv1/v2c: SEQUENCE { version, community, PDU }
  * SNMPv3:     SEQUENCE { version, SEQUENCE { msgID, msgMaxSize, msgFlags,
- *             msgSecurityModel }, ... } */
+ *             msgSecurityModel }, msgSecurityParameters, scopedPDU }, where the
+ *             scopedPDU is SEQUENCE { contextEngineID, contextName, PDU }, or
+ *             an OCTET STRING when encrypted */
 static int isSNMPReply(const u_int8_t* payload, u_int32_t payload_len,
                        u_int16_t dst_port) {
   struct ndpi_asn1_ber_tlv msg, field;
@@ -9351,8 +9367,6 @@ static int isSNMPReply(const u_int8_t* payload, u_int32_t payload_len,
   offset = len;
 
   if ((version == 0 /* SNMPv1 */) || (version == 1 /* SNMPv2c */)) {
-    u_int8_t pdu_type;
-
     /* Community */
     if (((len = ndpi_asn1_ber_decode_tlv(&msg.value[offset],
                                          msg.length - offset, &field)) < 0) ||
@@ -9361,35 +9375,59 @@ static int isSNMPReply(const u_int8_t* payload, u_int32_t payload_len,
       return (-1);
 
     /* PDU */
-    if ((msg.value[offset + len] < 0xA0) || (msg.value[offset + len] > 0xA8))
-      return (-1);
-
-    pdu_type = msg.value[offset + len] & 0x0F;
-
-    return (((pdu_type == 2 /* Response */) || (pdu_type == 8 /* Report */))
-                ? 1
-                : 0);
+    return (isSNMPReplyPDU(msg.value[offset + len]));
   } else if (version == 3 /* SNMPv3 */) {
-    struct ndpi_asn1_ber_tlv header;
-    int i;
+    struct ndpi_asn1_ber_tlv header, scoped;
+    u_int32_t header_offset;
+    u_int8_t msg_flags;
+    int header_len, i;
 
-    if ((ndpi_asn1_ber_decode_tlv(&msg.value[offset], msg.length - offset,
-                                  &header) < 0) ||
+    if (((header_len = ndpi_asn1_ber_decode_tlv(
+              &msg.value[offset], msg.length - offset, &header)) < 0) ||
         (header.tag != 0x30 /* SEQUENCE */))
       return (-1);
 
     /* msgID, msgMaxSize and msgFlags */
-    for (i = 0, offset = 0; i < 3; i++) {
-      if ((len = ndpi_asn1_ber_decode_tlv(&header.value[offset],
-                                          header.length - offset, &field)) < 0)
+    for (i = 0, header_offset = 0; i < 3; i++) {
+      if ((len = ndpi_asn1_ber_decode_tlv(&header.value[header_offset],
+                                          header.length - header_offset,
+                                          &field)) < 0)
         return (-1);
-      offset += len;
+      header_offset += len;
     }
 
     if ((field.tag != 0x04 /* OCTET STRING */) || (field.length != 1))
       return (-1);
 
-    if (field.value[0] & 0x04 /* Reportable */) return (0);
+    msg_flags = field.value[0];
+
+    if ((msg_flags & 0x02 /* Privacy */) == 0) {
+      /* The scoped PDU is not encrypted: by its PDU type */
+      offset += header_len;
+
+      /* msgSecurityParameters, then the scoped PDU */
+      if (((len = ndpi_asn1_ber_decode_tlv(
+                &msg.value[offset], msg.length - offset, &field)) >= 0) &&
+          (field.tag == 0x04 /* OCTET STRING */) &&
+          (ndpi_asn1_ber_decode_tlv(&msg.value[offset + len],
+                                    msg.length - offset - len, &scoped) >= 0) &&
+          (scoped.tag == 0x30 /* SEQUENCE */)) {
+        /* contextEngineID and contextName, then the PDU */
+        for (i = 0, offset = 0; i < 2; i++) {
+          if (((len = ndpi_asn1_ber_decode_tlv(&scoped.value[offset],
+                                               scoped.length - offset,
+                                               &field)) < 0) ||
+              (field.tag != 0x04 /* OCTET STRING */))
+            break;
+          offset += len;
+        }
+
+        if ((i == 2) && (offset < scoped.length))
+          return (isSNMPReplyPDU(scoped.value[offset]));
+      }
+    }
+
+    if (msg_flags & 0x04 /* Reportable */) return (0);
 
     return ((dst_port == 162 /* Trap port */) ? 0 : 1);
   }
@@ -9516,9 +9554,10 @@ void Flow::checkTCPDirectionByProtocol() {
  * - DHCP: BOOTREQUEST or BOOTREPLY (op);
  * - DHCPv6: message type (RECONFIGURE, sent by the server unsolicited, is on
  *   the server side as a reply);
- * - SNMP: PDU type (SNMPv1/v2c), reportable flag of the header (SNMPv3): the
- *   traps and the informs are on the client side, their receiver (port 162)
- *   is the server (see isSNMPReply());
+ * - SNMP: PDU type (SNMPv1/v2c, SNMPv3 not encrypted), reportable flag of the
+ *   header (SNMPv3 encrypted): the traps and the informs are on the client
+ *   side, their receiver (usually port 162) is the server (see
+ *   isSNMPReply());
  * - ICMP: echo, timestamp and information request/reply; ICMPv6: echo
  *   request/reply.
  * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
