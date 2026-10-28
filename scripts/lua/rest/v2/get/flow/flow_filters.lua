@@ -8,7 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require("label_utils")
 require("http_lint")
 require("lua_utils_get")
-require("flow_utils")
+-- lua_utils, not flow_utils: none of its functions is used here (~15 modules less)
+require("lua_utils")
 require("check_redis_prefs")
 
 local tcp_flow_state_utils = require("tcp_flow_state_utils")

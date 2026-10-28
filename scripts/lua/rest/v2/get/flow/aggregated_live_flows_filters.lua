@@ -359,10 +359,10 @@ end
 
 if isEmptyString(ifid) then ifid = interface.getId() end
 
+-- Same access as the aggregated table (aggregated_live_flows.lua) and the live flows filters:
+-- any user, on the interfaces they are allowed to see. It was admin only, and for the other
+-- users it printed an HTML error, then the JSON error, then the filters anyway (no return)
 interface.select(ifid)
-if not isAdministratorOrPrintErr() then
-    rest_utils.answer(rest_utils.consts.err.not_granted)
-end
 
 local respose = build_response(criteria)
 

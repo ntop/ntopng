@@ -35,7 +35,8 @@ if _GET["host_locality"] == "local" then
 elseif _GET["host_locality"] == "remote" then
     host_locality = 2
 end
--- Site filter, applied by the same per-host aggregation
+-- Site filter, applied by the same per-host aggregation (it was never read: the filter had no effect)
+local site_id = tonumber(_GET["site_id"])
 if (site_id == nil) or (site_id < 0) then
     site_id = nil
 end
@@ -62,6 +63,18 @@ end
 
 local debugger = false
 
+-- Badges of a host as raw flags (the page draws them): the HTML version called i18n for each
+-- badge and loaded the whole locale, most of the time of this REST
+local function host_flags(h)
+    h = h or {}
+    local flags = format_utils.formatMainAddressCategoryNoHTML(h, {})
+    flags.is_broadcast = (h["is_broadcast"] == true) or nil
+    flags.broadcast_domain_host = (h["broadcast_domain_host"] == true) or nil
+    flags.privatehost = (h["privatehost"] == true) or nil
+    flags.dhcp_host = (h["dhcpHost"] == true) or nil
+    return flags
+end
+
 local function set_host_info(host_vlan_id, host_ip, host_name, is_host_in_mem, flow_vlan_id)
     local host_info = {}
     local vlan_id_to_use = host_vlan_id
@@ -86,7 +99,7 @@ end
 -- ############################################
 
 if isEmptyString(ifid) then
-    ifid = inteface.getId()
+    ifid = interface.getId()
 end
 
 interface.select(ifid)
@@ -183,11 +196,10 @@ for _, data in pairs(aggregated_info or {}) do
         response = get_output_flags(criteria_type_id)
     end
 
-    if (add_app_proto or (response ~= {} and response.add_app_proto)) then
+    if (add_app_proto or response.add_app_proto) then
         application = {
             label = data.proto_name,
-            id = data.proto_id,
-            label_with_icons = getApplicationLabel(data.proto_name, 256)
+            id = data.proto_id
         }
     end
 
@@ -203,7 +215,7 @@ for _, data in pairs(aggregated_info or {}) do
     end
 
     -- Format the client and server info
-    if (add_client or (response ~= {} and response.add_client)) then
+    if (add_client or response.add_client) then
         local host = interface.getHostInfo(data.client_ip, data.cli_vlan_id or data.vlan_id)
         local in_memory = (host ~= nil)
         local is_alerted = (in_memory) and (host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)
@@ -229,11 +241,11 @@ for _, data in pairs(aggregated_info or {}) do
             is_alerted = is_alerted,
             in_memory = in_memory,
             is_local = is_local,
-            extra_labels = format_utils.formatFullAddressCategory(host or {})
+            flags = host_flags(host)
         }
     end
 
-    if (add_server or (response ~= {} and response.add_server)) then
+    if (add_server or response.add_server) then
         local host = interface.getHostInfo(data.server_ip, data.srv_vlan_id or data.vlan_id)
         local in_memory = (host ~= nil)
         local is_alerted = (in_memory) and (host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)
@@ -254,11 +266,11 @@ for _, data in pairs(aggregated_info or {}) do
             is_alerted = is_alerted,
             in_memory = in_memory,
             is_local = is_local,
-            extra_labels = format_utils.formatFullAddressCategory(host or {})
+            flags = host_flags(host)
         }
     end
 
-    if (add_host or (response ~= {} and response.add_host)) then
+    if (add_host or response.add_host) then
         local host_info = interface.getHostInfo(data.ip, data.vlan_id)
         host = {
             vlan_id = data.srv_vlan_id or data.vlan_id,
@@ -268,7 +280,7 @@ for _, data in pairs(aggregated_info or {}) do
             }),
             ip = data.ip,
             in_memory = (host_info ~= nil),
-            extra_labels = format_utils.formatFullAddressCategory(host_info or {})
+            flags = host_flags(host_info)
         }
     end
 
@@ -346,8 +358,8 @@ for _, data in pairs(aggregated_info or {}) do
     end
     if criteria_type_id == 1 or criteria_type_id == 5 or criteria_type_id == 8 then
         item.app_proto_is_not_guessed = data.is_not_guessed
-        item.confidence_name = get_confidence(ternary(application.id == "0", "-1",
-            ternary(data.is_not_guessed, "1", "0")))
+        -- -1 unknown, 0 guessed, 1 DPI (the page translates it)
+        item.confidence_id = ternary(application.id == "0", -1, ternary(data.is_not_guessed, 1, 0))
         item.confidence = ternary(data.is_not_guessed, 1, 0)
     end
 

@@ -16258,6 +16258,411 @@
           }
         }
       }
+    },
+    "/lua/pro/rest/v2/get/flow/geomap.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the active flows on the map",
+        "description": "The hosts of the active flows placed by GeoIP (nodes: ip, label, lat, lng, country, protocols, connectionCount, status) and the flows between them (edges), at most 512 flows. Same filters of get/flow/active_list.lua (e.g. application, l4proto, flowhosts_type, status, vlan, host). Enterprise L with the GeoIP database.",
+        "operationId": "get_active_flows_geomap",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "flowhosts_type",
+            "in": "query",
+            "description": "Host filter, also ip_version_4 / ip_version_6 or a host (IP[@vlan])",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "description": "Application (nDPI id)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Layer 4 protocol number",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Flow status / alert type",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN id",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (no Enterprise L or no GeoIP)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/flow/aggregated_live_flows.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the active flows grouped by a criteria",
+        "description": "The active flows of the interface grouped by application, client, server, client/server/port, host, AS... Each row has flows, tot_score, bytes_sent, bytes_rcvd, tot_traffic, num_clients, num_servers and the grouping keys (application { id, label }, client/server/host { ip, label, vlan_id, in_memory, is_alerted, flags }, srv_port, src_as/dst_as/transit_as, info). The criteria besides application_protocol, client, server, client_server_srv_port, client_server_srv_port_app_proto and host need Enterprise M.",
+        "operationId": "get_aggregated_live_flows",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "aggregation_criteria",
+            "in": "query",
+            "description": "application_protocol (default), client, server, client_server, app_client_server_criteria, info, client_server_srv_port, client_server_srv_port_app_proto, src_as_dst_as, src_as_transit_as_dst_as, host",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Index of the first row (paging)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of rows (paging)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by (e.g. flows, tot_traffic, tot_score)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text to search",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the flows of this host",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "VLAN id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Flow status / alert filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Flow exporter IP",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ifIdx",
+            "in": "query",
+            "description": "Exporter interface index",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "inIfIdx",
+            "in": "query",
+            "description": "Exporter input interface index",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "outIfIdx",
+            "in": "query",
+            "description": "Exporter output interface index",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "host_locality",
+            "in": "query",
+            "description": "With aggregation_criteria=host: local or remote",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "site_id",
+            "in": "query",
+            "description": "With aggregation_criteria=host: site id",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/flow/active_list.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the active flows",
+        "description": "The flows currently active on the interface, with paging, sorting and the same filters of the Live Flows page. Each flow carries client and server (ip, name, port, vlan, asn, country...), application, l4_proto, bytes, throughput, score, alerts, first_seen/last_seen and, on flow-based interfaces, the exporter (the router/switch that exported the flow) and its input/output interfaces; on view interfaces seen_on_interface { id, name } is the interface of the view where ntopng saw the flow. recordsTotal is the number of flows matching the filters.",
+        "operationId": "get_active_flows_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Index of the first flow (paging)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of flows to return (paging)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by (e.g. bytes, throughput, score, first_seen, last_seen, duration)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text to search in the flows",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "description": "Application (nDPI id, or <master>.<app>)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Layer 4 protocol number (e.g. 6 TCP, 17 UDP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "flowhosts_type",
+            "in": "query",
+            "description": "local_only, remote_only, local_origin_remote_target, remote_origin_local_target, ip_version_4, ip_version_6",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "normal, alerted, connecting, closed, error, or an alert type id",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "traffic_type",
+            "in": "query",
+            "description": "unicast, broadcast_multicast, one_way_unicast, one_way_broadcast_multicast",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Flows of this host (IP[@vlan])",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "client",
+            "in": "query",
+            "description": "Flows with this client",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "server",
+            "in": "query",
+            "description": "Flows with this server",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "port",
+            "in": "query",
+            "description": "Flows with this port",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Local network id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "host_pool_id",
+            "in": "query",
+            "description": "Host pool id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "site_id",
+            "in": "query",
+            "description": "Site id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "dst_asn",
+            "in": "query",
+            "description": "Destination AS number",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "qoe",
+            "in": "query",
+            "description": "Quality of Experience class, 0 (worst) to 5 (best)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Flow exporter IP",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "inIfIdx",
+            "in": "query",
+            "description": "Exporter input interface index",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "outIfIdx",
+            "in": "query",
+            "description": "Exporter output interface index",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "interface_filter",
+            "in": "query",
+            "description": "Sub-interface (view interfaces)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "flow_risk",
+            "in": "query",
+            "description": "nDPI flow risk id",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
     }
   },
   "definitions": {

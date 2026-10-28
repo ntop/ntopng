@@ -5,7 +5,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "flow_utils"
+-- getFlowsFilter() only: not the whole flow_utils (~15 more modules)
+require "live_flows_filter"
 local http_utils = require "http_utils"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
@@ -333,12 +334,15 @@ for _, value in ipairs(flows_stats.flows) do
          }
       }
 
-      if interface.isView() then
-         record.flow_exporter.seen_on_interface = {
-            name = getInterfaceName(value["iface_index"], true),
-            id = value["iface_index"]
-         }
-      end
+   end
+
+   -- View interfaces: the interface (of the view) where ntopng saw the flow. Not the exporter:
+   -- that is the router/switch that exported it (flow_exporter.device)
+   if interface.isView() and value["iface_index"] then
+      record.seen_on_interface = {
+         name = getInterfaceName(value["iface_index"], true),
+         id = value["iface_index"]
+      }
    end
 
    if value["predominant_alert"] then
