@@ -314,6 +314,8 @@ Makefile: configure Makefile.in
 #  nullPointer in the Lua engine files - false positives from the
 #    `getLuaVMContext(a) (a ? ... : NULL)` macro; the lua_State* is never NULL
 #    inside a Lua C function (scoped so real null derefs elsewhere still show)
+#  everything in third-party/ - vendored code (mongoose.c is #included by
+#    HTTPserver.cpp, clickhouse-cpp headers), not maintained here
 CPPCHECK_SUPPRESS = --suppress=useInitializationList --suppress=duplInheritedMember \
                     --suppress=noCopyConstructor --suppress=noOperatorEq \
                     --suppress=postfixOperator --suppress=memsetClassFloat \
@@ -322,7 +324,8 @@ CPPCHECK_SUPPRESS = --suppress=useInitializationList --suppress=duplInheritedMem
                     --suppress=nullPointer:src/LuaEngineInterface.cpp \
                     --suppress=nullPointer:src/LuaEngineNetwork.cpp \
                     --suppress=nullPointer:src/LuaEngineNtop.cpp \
-                    --suppress=nullPointer:src/SNMP.cpp
+                    --suppress=nullPointer:src/SNMP.cpp \
+                    --suppress='*:*third-party/*'
 
 cppcheck:
 	@mkdir -p .cppcheck-build

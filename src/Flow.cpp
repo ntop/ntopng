@@ -2370,8 +2370,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
     cli_host->incCliContactedHosts(srv_host->get_ip());
     srv_host->incSrvHostContacts(cli_host->get_ip());
 
-    if (iface &&
-        (vl = iface->getVLAN(vlanId, false, false /* NOT an inline call */))) {
+    if ((vl = iface->getVLAN(vlanId, false, false /* NOT an inline call */))) {
       /* Note: source and destination hosts have, by definition, the same VLAN
        * so the increase is done only one time. */
       /* Note: vl will never be null as we're in a flow with that vlan. Hence,
@@ -4169,7 +4168,7 @@ void Flow::formatECSInterface(json_object* my_object) {
     json_object_object_add(interface_object, "id",
                            json_object_new_int(iface->get_id()));
 
-    if (iface && iface->get_name())
+    if (iface->get_name())
       json_object_object_add(interface_object, "name",
                              json_object_new_string(iface->get_name()));
 
