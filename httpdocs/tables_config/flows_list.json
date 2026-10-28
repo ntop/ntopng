@@ -116,6 +116,7 @@
 			"data_field": "flow",
 			"sortable": false,
 			"min-width" : "200px",
+			"auto_max_width": false,
 			"class": [
 				"text-nowrap"
 			]
