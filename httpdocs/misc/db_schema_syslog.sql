@@ -1,4 +1,4 @@
-/* Keep table definitions in sync with: */
+ /* Keep table definitions in sync with: */
 /* - httpdocs/misc/db_schema_syslog_cluster.sql */
 
 /* Stores table definition for syslog ingestion */
