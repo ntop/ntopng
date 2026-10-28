@@ -2409,17 +2409,7 @@ pre_get_flow:
 #endif
         flow->updateTcpFlags(when, tcp_flags, src2dst_direction, *new_flow);
 
-        /*
-          This is the heuristic "For TCP flows for which the 3WH has not been
-          observed..." at https://github.com/ntop/ntopng/issues/5058
-
-          So, only for the first packet check if this flow is a swap candidate.
-          The only condition that should NOT be checked for swap is when there's
-          a SYN and not an ACK, i.e., when we see the first packet of the TWH
-          that allows to reliably determine the direction.
-        */
-        if ((*new_flow) && (!(tcp_flags & TH_SYN) || (tcp_flags & TH_ACK)))
-          flow->check_swap();
+        flow->checkTCPDirection(src2dst_direction, tcp_flags, *new_flow);
 
         if ((tcp_flags & (TH_RST | TH_FIN)) == 0) {
           /*
