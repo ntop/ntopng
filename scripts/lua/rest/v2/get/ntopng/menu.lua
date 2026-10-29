@@ -271,6 +271,7 @@ for _, sec_key in ipairs(section_order) do
                url              = resolve_url(entry),
                is_external      = (entry.is_external == true),
                is_divider       = is_divider,
+               experimental     = (entry.experimental == true) or nil,
                disabled         = disabled,
                disabled_reasons = disabled and merge_reasons(
                   sec_disabled and section.reason or nil,

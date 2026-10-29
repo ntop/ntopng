@@ -531,8 +531,8 @@ page_utils.menu_entries = {
     },
     syslog_config = {
         key = "syslog_config",
-        i18n_title = "notification_endpoint.syslog.configure",
-        section = "admin"
+        i18n_title = "syslog.syslog",
+        section = "if_stats"
     },
 
     -- Map

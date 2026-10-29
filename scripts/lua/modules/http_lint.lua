@@ -2572,10 +2572,19 @@ local known_parameters = {
    ["syslog_rule_id"] = validateSingleWord,
    ["syslog_rule_enabled"] = validateBool,
    ["syslog_rule_min_severity"] = validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"}),
-   ["syslog_rule_max_severity"] = validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"}),
+   ["syslog_rule_discard"] = validateBool,
    ["syslog_rule_source"] = validateEmptyOr(validateNetwork),
    ["syslog_rule_pattern"] = validateEmptyOr(validateMessage),
    ["syslog_rule_comment"] = validateEmptyOr(validateMessage),
+   ["syslog_test_pattern"] = validateMessage,
+   ["syslog_test_message"] = validateMessage,
+
+   -- Syslog events
+   ["syslog_ip"] = validateEmptyOr(validateIpAddress),
+   ["syslog_severity"] = validateEmptyOr(validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"})),
+   ["syslog_hostname"] = validateMessage,
+   ["syslog_app_name"] = validateMessage,
+   ["syslog_facility"] = validateMessage,
 
    -- WAZUH Alert Rules / Alert Exceptions (private config)
    ["wazuh_rule_id"] = validateSingleWord,
