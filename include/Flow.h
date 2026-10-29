@@ -176,7 +176,8 @@ class Flow : public GenericHashEntry {
   u_int16_t flow_score;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1,
-      direction_decided : 1 /* See checkTCPDirection(), checkL7Direction() */,
+      direction_decided : 1 /* See checkTCPDirection(), checkL7Direction(),
+                               checkDirectionByProtocol() */,
       _notused : 4;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
@@ -872,17 +873,21 @@ class Flow : public GenericHashEntry {
    *    seen, whatever came before it: final (checkTCPDirection());
    * 2. no handshake seen: once the protocol is detected, the side using one of
    *    its default ports (nDPI) is the server, when only one side uses one
-   *    (checkTCPDirectionByProtocol());
+   *    (checkDirectionByProtocol());
    * 3. otherwise the guess made on the first packet: the lower port is the
    *    server (check_swap()).
    * Once the protocol is detected on a flow that has carried payload, the
    * direction is final: a later SYN or SYN-ACK belongs to another connection.
    * A swap is requested, and performed by the next packet or when the flow
-   * ends. Nothing is done when the flow swap heuristic is disabled. */
+   * ends. Nothing is done when the flow swap heuristic is disabled.
+   * Client and server of UDP and ICMP flows: the first request or reply seen
+   * (checkL7Direction()); otherwise, for UDP, once the protocol is detected by
+   * DPI, the side using one of its default ports, as above, final
+   * (checkDirectionByProtocol()). */
   void check_swap();
   void checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
                          bool new_flow);
-  void checkTCPDirectionByProtocol();
+  void checkDirectionByProtocol();
   void checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
                         const u_int8_t* payload, u_int16_t payload_len);
 

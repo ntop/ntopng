@@ -26,8 +26,8 @@ The direction is decided by different functions, depending on the L4 protocol:
 
 | L4 protocol | Function | Evidence |
 |-------------|----------|----------|
-| TCP | `checkTCPDirection()`, `checkTCPDirectionByProtocol()`, `check_swap()` | handshake, default ports of the protocol, port order |
-| UDP | `checkL7Direction()` | request or reply (DNS, NTP, DHCP, DHCPv6, SNMP) |
+| TCP | `checkTCPDirection()`, `checkDirectionByProtocol()`, `check_swap()` | handshake, default ports of the protocol, port order |
+| UDP | `checkL7Direction()`, `checkDirectionByProtocol()` | request or reply (DNS, NTP, DHCP, DHCPv6, SNMP), default ports of the protocol detected by DPI |
 | ICMP, ICMPv6 | `checkL7Direction()` | request or reply (echo, timestamp, information) |
 | Others | `check_swap()` | port order, on the first packet |
 
@@ -44,7 +44,7 @@ The evidence, from the strongest to the weakest:
    whatever came before it, e.g. a stray ACK/RST/FIN of a previous connection,
    or a SYN-ACK captured before its SYN. The decision is final.
 2. **Default ports of the detected protocol**
-   (`Flow::checkTCPDirectionByProtocol()`, called at the beginning of
+   (`Flow::checkDirectionByProtocol()`, called at the beginning of
    `Flow::processDetectedProtocol()`, i.e. once, when the detection is
    completed, either by nDPI or by the giveup). When no handshake has been
    seen, the side using one of the default TCP ports of the detected protocol
@@ -106,6 +106,14 @@ Notes:
   so that checks, services, dumps and the view get the actual peers.
 * The flow is not swapped when the client would be a non-unicast address (e.g.
   a DHCP reply sent to broadcast).
+* UDP flows not decided by their requests and replies (e.g. SIP, QUIC):
+  once the protocol is detected, the side using one of its default UDP ports
+  is the server, when only one side uses one (`checkDirectionByProtocol()`,
+  as for TCP). The direction is then final: requests or replies seen later
+  (extra dissection) do not change it. Only when the protocol is detected by DPI
+  (`NDPI_CONFIDENCE_DPI`): when it is guessed by the ports, the port of the
+  guess is a default port by definition, and the packets of any protocol sent
+  to a known port (e.g. not DNS on port 53) would be swapped.
 * There is no guess by the port order for UDP (`check_swap()` ignores UDP, as
   it would be often wrong, e.g. RTP or probing) and ICMP (no ports).
 
@@ -201,7 +209,8 @@ without a view interface (`*_view_*`):
 
 * `tcp_direction_01`: TCP handshake orders, stray packets, mid-stream flows,
   SSH, TLS, SMTP default ports, late handshake packets;
-* `flow_direction_l7_01`: NTP and ICMP requests and replies;
+* `flow_direction_l7_01`: NTP and ICMP requests and replies, SIP and QUIC
+  default ports;
 * `flow_direction_guessed_01`: no swap when the protocol is not detected by
   DPI;
 * `flow_direction_dhcp_01`, `flow_direction_dhcp_02`,
