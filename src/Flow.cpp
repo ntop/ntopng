@@ -676,7 +676,7 @@ Flow::~Flow() {
     c_mac->decUses();
     c_mac = NULL;
   }
-  
+
   if (s_mac) {
     s_mac->decUses();
     s_mac = NULL;
@@ -3632,7 +3632,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
     if (collection) {
       char *c = getClientBGPInfo(), *s = getServerBGPInfo();
-      
+
       if(c || s) {
 	lua_newtable(vm);
 
@@ -3746,7 +3746,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
     }
 
     lua_confidence(vm);
-    
+
     lua_get_risk_info(vm);
     if (riskInfo) lua_push_str_table_entry(vm, "riskInfo", riskInfo);
 
@@ -4951,7 +4951,7 @@ void Flow::formatGenericFlow(json_object* my_object) {
     json_object_object_add(my_object,
 			   Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(comm));
-  
+
   json_object_object_add(my_object,
                          Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE",
                                           jsonbuf, sizeof(jsonbuf)),
@@ -10997,7 +10997,7 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
 
   if (it == exporterStats.end()) {
     // Not present: build a new entry and insert it
-    ExporterFlowInfo d;
+    ExporterFlowInfo d, *e;
 
     d.exporter_ip = *exporter_ip, d.mapped_exporter_ip = *mapped_exporter_ip,
       d.next_hop = *next_hop, d.mapped_next_hop = *mapped_next_hop,
@@ -11012,9 +11012,15 @@ void Flow::addExporterInfo(struct ndpi_in6_addr *exporter_ip,
       d.in_role = d.out_role = role_other;
 #endif
 
-    ExporterFlowInfo *e = &exporterStats.emplace(key, d).first->second;
+      e = &exporterStats.emplace(key, d).first->second;
 
-    if(!primary_exporter) primary_exporter = e;
+      if(!primary_exporter)
+	primary_exporter = e;
+
+#ifdef NTOPNG_PRO
+      if(get_cli_ip_addr()->isLocalHost())
+	iface->mapFlowTopology(get_cli_ip_addr(), mapped_exporter_ip, in_index, mapped_next_hop, out_index);
+#endif
   } else {
     // Present: nothing to do
   }

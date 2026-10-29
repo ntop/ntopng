@@ -530,3 +530,15 @@ void IpAddress::set(const struct ipAddress* const ip) {
 };
 
 /* ****************************** */
+
+struct ndpi_in6_addr IpAddress::get_ip() {
+  if(addr.ipVersion == 6)
+    return(addr.ipType.ipv6);
+  else {
+    struct ndpi_in6_addr v6;
+    
+    Utils::convertIPv4ToIPv6(addr.ipType.ipv4, &v6);
+
+    return(v6);
+  }
+}

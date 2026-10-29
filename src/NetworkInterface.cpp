@@ -7302,6 +7302,7 @@ void NetworkInterface::getLiveASNStats(ASNStats* asn_stats,
 
   lua_newtable(vm);
   lua_newtable(vm);
+
   for (std::unordered_map<u_int32_t, std::string>::iterator it =
            asn_names.begin();
        it != asn_names.end(); ++it) {
@@ -7310,9 +7311,11 @@ void NetworkInterface::getLiveASNStats(ASNStats* asn_stats,
     snprintf(buf, sizeof(buf), "%u", it->first);
     lua_push_str_table_entry(vm, buf, it->second.c_str());
   }
+
   lua_pushstring(vm, "asn_names");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
   asn_stats->lua(vm, true);
 }
 

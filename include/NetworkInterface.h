@@ -62,6 +62,30 @@ class FlowDevicesStats;
 class TrafficShaper;
 class NetworkInterfacePro;
 class Sites;
+
+// 1. Overload the operator== for ndpi_in6_addr
+// This must be in the same namespace as the struct or global namespace
+inline bool operator==(const ndpi_in6_addr& lhs, const ndpi_in6_addr& rhs) {
+  // Assuming ndpi_in6_addr mimics in6_addr with a 16-byte array
+  return std::memcmp(&lhs, &rhs, sizeof(ndpi_in6_addr)) == 0;
+}
+
+// 2. Create a custom hasher or inject it into the std namespace
+namespace std {
+  template <>
+  struct hash<ndpi_in6_addr> {
+    std::size_t operator()(const ndpi_in6_addr& addr) const noexcept {
+      // A simple and fast FNV-1a hash implementation for raw bytes
+      const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&addr);
+      std::size_t hash = 2166136261U;
+      for (std::size_t i = 0; i < sizeof(ndpi_in6_addr); ++i) {
+	hash ^= bytes[i];
+	hash *= 16777619U;
+      }
+      return hash;
+    }
+  };
+}
 #endif
 
 /** @class NetworkInterface
@@ -108,13 +132,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
   AlertsQueue* alertsQueue;
-#if defined(NTOPNG_PRO)
+#ifdef NTOPNG_PRO
   Sites *sites;
   PeriodicityMap* pMap;
   ServiceMap* sMap;
   ACLFlow* acl_flow;
-#endif
-#ifdef NTOPNG_PRO
+  std::unordered_map<struct ndpi_in6_addr /* host */, std::tuple<struct ndpi_in6_addr /* exporter IP */, u_int16_t /* ifIdx */> > host_to_exporter;
+  std::unordered_map<struct ndpi_in6_addr /* exporter */, std::tuple<struct ndpi_in6_addr /* next_hop IP */,  u_int16_t /* ifIdx */> > exporter_to_exporter;
   QoEStats qoe_stats;
 #endif
 
@@ -1569,6 +1593,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     else
       return false;
   }
+
+#ifdef NTOPNG_PRO
+  void mapFlowTopology(IpAddress *host,
+		       struct ndpi_in6_addr *exporter_ip, u_int16_t host_in_exporter_index,
+		       struct ndpi_in6_addr *next_hop_ip, u_int16_t host_out_exporter_index);
+  void dumpFlowTopology(lua_State* vm);
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

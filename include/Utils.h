@@ -387,6 +387,9 @@ class Utils {
             addr->u6_addr.u6_addr32[1] == 0 &&
             addr->u6_addr.u6_addr32[2] == htonl(0x0000ffff));
   }
+  static inline bool isIPv6LocalLinkAddress(const struct ndpi_in6_addr *addr) {
+    return((addr->u6_addr.u6_addr8[0] == 0xFE) && ((addr->u6_addr.u6_addr8[1] & 0xC0) == 0x80));
+  }
   static bool parseIPv4v6Address(const char *ip_str,
 				 struct ndpi_in6_addr *out_addr);
   static bool isNullAddress(struct ndpi_in6_addr *ip);
