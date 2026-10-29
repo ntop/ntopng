@@ -141,6 +141,136 @@ the same interface (the syslog interface should be used otherwise) where network
 traffic for the corresponding host is analysed. This is possible by configuring
 the syslog interface as companion interface under *Interface* -> *Settings* -> *Companion Interface*.
 
+Network Syslog Ingestion
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+ntopng can ingest syslog messages from network devices and hosts, including
+routers, switches, firewalls, servers, and other syslog-capable applications.
+The collector receives messages, evaluates configured ingestion rules, and
+stores accepted events in ClickHouse (thus an enterprise M or greater license, and clickhouse are needed. Start ntopng with `-F clickhouse`). By navigating to the menu entry Network and clicking on**Syslog** page lets operators
+configure those rules and inspect the ingested events.
+
+Architecture and setup
+----------------------
+
+The syslog collector listens on the configured syslog interface. For example,
+the interface shown in the UI is ``syslog://*:5140``. Configure the collector
+to use the intended address and port for the deployment, then configure
+routers, switches, hosts, and other syslog senders to forward their messages
+to that ntopng endpoint. 
+
+The collector evaluates ingestion rules before writing accepted messages to
+ClickHouse. Rules are reloaded every 10 seconds, so rule changes are picked
+up without requiring a collector restart.
+
+
+Ingestion rules
+---------------
+
+Rules are configured in the **Syslog → Ingestion Rules** tab. Use **Add
+Syslog Rule** to create a rule. The editor exposes these fields:
+
+* **Enabled** — enables or disables the rule.
+* **Discard** — when enabled, a matching message is dropped instead of being
+  stored. Discard rules are evaluated before the other rules.
+* **Severity** — the least severe level matched by the rule. A message matches
+  when its numeric severity is less than or equal to this value. For example,
+  selecting Warning matches Emergency, Alert, Critical, Error, and Warning.
+  Selecting Debug (7) matches every severity.
+* **Source** — optional sender IP address or CIDR network, such as
+  ``10.0.0.1`` or ``10.0.0.0/24``. Leave empty to match any sender.
+* **Pattern** — optional RE2 regular expression that must match the message.
+  Leave empty to match any message.
+* **Comment** — a free text description to help operators identify the rule's
+  purpose.
+
+A rule matches only when all of its configured conditions match: severity,
+source (if specified), and pattern (if specified).
+
+.. figure:: ../img/syslog_ingestion_rules_page.png
+  :align: center
+  :alt: Syslog Ingestion Rules List
+
+  Visualize all syslog ingestion rules configured, and add new ones
+
+
+.. figure:: ../img/syslog_add_ingestion_rule.png
+  :align: center
+  :alt: Add Syslog Ingestion Rule
+
+  Add a rule for syslog ingestion
+
+Rule evaluation
+~~~~~~~~~~~~~~~
+
+Enabled rules act as an allowlist: when at least one enabled rule exists, a
+message is stored only if it matches an enabled non discard rule and is not
+dropped by a matching discard rule. Discard rules are evaluated first. If no
+rules are enabled, all messages are stored.
+
+The collector reloads the rules every 10 seconds. Allow for this interval
+when verifying a change.
+
+
+Events view
+-----------
+
+The **Syslog → Events** tab displays messages received by the collector and
+stored in ClickHouse. Select a group in the filter panel to narrow the event
+table. Available groups include:
+
+* **Severity**
+* **Source IP**
+* **Hostname**
+* **Application**
+* **Facility**
+
+The counts shown beside each group value indicate the number of matching
+events in the current result set. Selecting a value filters the table to that
+group.
+
+.. figure:: ../img/syslog_events_list.png
+  :align: center
+  :alt: Syslog Events Visualization Table
+
+  Visualize all collected syslog events in a table with filters
+
+The page provides the following controls:
+
+* **Time range** — select a preset range or specify start and end times, then
+  select **Apply** to refresh the results.
+* **Source IP** — filter by a sender IP address.
+* **Search** — search within the full message text.
+* **Table controls** — adjust the number of rows displayed per page, refresh
+  the results, and navigate between pages.
+
+The event table includes:
+
+* **Time** — time associated with the displayed event.
+* **Severity** — numeric severity and its label.
+* **Source IP** — sender address.
+* **Hostname** — hostname reported in the syslog header.
+* **Facility** — syslog facility, such as ``auth``, ``kern``, ``daemon``, or
+  ``user``.
+* **Application** — application name reported in the message, such as
+  ``sshd``, ``nginx``, or ``cron``.
+* **Message** — the syslog message text.
+
+Use the time range and group filters to isolate events from a device or
+application, then use message search to find a particular error, identifier,
+or text fragment.
+
+Alert correlation
+-----------------
+
+Syslog ingestion establishes the event data needed for future alert
+correlation. A planned follow up is to correlate stored syslog events with
+ntopng alerts, allowing operators to investigate network activity alongside
+device and application logs. Until that correlation is implemented, the
+Events page should be treated as a searchable view of ingested syslog
+messages, rather than as proof that a syslog event has triggered or been
+linked to an ntopng alert.
+
 nBox Log Ingestion
 ~~~~~~~~~~~~~~~~~~
 
