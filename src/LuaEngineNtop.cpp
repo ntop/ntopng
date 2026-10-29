@@ -1114,10 +1114,8 @@ static int ntop_match_custom_category(lua_State* vm) {
                        iface->get_ndpi_struct(), host_to_match,
                        strlen(host_to_match), &match, &breed) != 0))
     lua_pushnil(vm);
-  else {
-    /* Remember to unshift `match` (see Ntop::nDPILoadHostnameCategory) */
-    lua_pushinteger(vm, ((int)match) & 0xFF);
-  }
+  else
+    lua_pushinteger(vm, Utils::unpackCustomCategory(&match));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }

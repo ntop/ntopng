@@ -8446,3 +8446,44 @@ u_int16_t Utils::getHostSiteId(NetworkInterface *iface, struct ndpi_in6_addr *ho
 
   return(iface->getNetworkSiteId(host_network_id));
 }
+
+/* ******************************************* */
+
+/* The custom lists of ntopng are loaded into nDPI with the list id and the
+ * category packed in the category, (list_id << 8) + category, so that the
+ * list that matched is known (see Ntop::nDPILoadHostnameCategory and
+ * Ntop::nDPILoadIPCategory). The packed value is not a valid
+ * ndpi_protocol_category_t: loading it as a ndpi_protocol_category_t is
+ * undefined behavior (e.g. reading a variable of that type), so it is kept as
+ * an integer until it is passed to nDPI (packCustomCategory()), and read as
+ * an integer from what nDPI returns (unpackCustomCategory()). */
+
+/* Returns the category and the list id packed together, see above */
+u_int16_t Utils::packCustomCategory(ndpi_protocol_category_t category,
+                                    u_int8_t list_id) {
+  return ((((u_int16_t)list_id) << 8) | (u_int8_t)category);
+}
+
+/* ******************************************* */
+
+/* Returns the category packed (see packCustomCategory()) in the value
+ * returned by nDPI as a ndpi_protocol_category_t (e.g. the category of the
+ * flows, the custom category matches), also setting the list id when list_id
+ * is not NULL. Categories not packed are returned as they are (list id 0). */
+ndpi_protocol_category_t Utils::unpackCustomCategory(
+    const ndpi_protocol_category_t* category, u_int8_t* list_id) {
+  u_int32_t value;
+
+  static_assert(sizeof(value) == sizeof(ndpi_protocol_category_t),
+                "value must have the size of ndpi_protocol_category_t");
+
+  memcpy(&value, category, sizeof(value));
+
+  if (list_id) *list_id = (value >> 8) & 0xFF;
+
+  value &= 0xFF;
+
+  return ((value < NDPI_PROTOCOL_NUM_CATEGORIES)
+              ? static_cast<ndpi_protocol_category_t>(value)
+              : NDPI_PROTOCOL_CATEGORY_UNSPECIFIED);
+}

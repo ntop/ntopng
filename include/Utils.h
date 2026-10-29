@@ -349,6 +349,10 @@ class Utils {
   static void swap64(u_int64_t* a, u_int64_t* b);
   static void swapfloat(float* a, float* b);
   static void swapLen(void* a, void* b, u_int len);
+  static u_int16_t packCustomCategory(ndpi_protocol_category_t category,
+                                      u_int8_t list_id);
+  static ndpi_protocol_category_t unpackCustomCategory(
+      const ndpi_protocol_category_t* category, u_int8_t* list_id = NULL);
   static char* createRandomString(char* buf, size_t buf_len);
   static IpAddress* parseHostString(char* host_ip,
                                     u_int16_t* vlan_id /* out */);

@@ -668,6 +668,8 @@ bool NetworkInterface::nDPILoadIPCategory(char* what, u_int16_t id,
                            missed */
 
     if (ndpi_struct_shadow)
+      /* id is packed (see Utils::packCustomCategory): converted only here, as
+       * nDPI takes the category by value */
       success = (ndpi_load_ip_category(ndpi_struct_shadow, what,
                                        (ndpi_protocol_category_t)id,
                                        (void*)list_name) == 0);
@@ -700,6 +702,8 @@ bool NetworkInterface::nDPILoadHostnameCategory(char* what, u_int16_t id,
     ntop->getTrace()->traceEvent(
         TRACE_WARNING, "Internal error [%s]: invalid nDPI state", ifname);
   else
+    /* id is packed (see Utils::packCustomCategory): converted only here, as
+     * nDPI takes the category by value */
     success = (ndpi_load_hostname_category(ndpi_struct_shadow, what,
                                            (ndpi_protocol_category_t)id,
                                            NDPI_PROTOCOL_UNRATED) == 0);

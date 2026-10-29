@@ -1292,7 +1292,8 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
 
   proto_id = ndpi_detection_process_packet(
       iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
-  flow_category = proto_id.category, flow_breed = proto_id.breed;
+  flow_category = Utils::unpackCustomCategory(&proto_id.category);
+  flow_breed = proto_id.breed;
 
   if ((ndpi_flow_risk_bitmap != 0) && (ndpiFlow->core.risk == 0)) {
     /*
@@ -1595,7 +1596,7 @@ void Flow::setExtraDissectionCompleted(bool src2dst_direction) {
         make sure custom cateories are properly populated, function
         ndpi_fill_ip_protocol_category must be called explicitly.
       */
-      u_int16_t p, *p_ptr;
+      u_int8_t list_id;
 
       if (get_cli_ip_addr()->get_ipv4() /* && get_srv_ip_addr()->get_ipv4() */)
         ndpi_fill_ip_protocol_category(
@@ -1608,22 +1609,14 @@ void Flow::setExtraDissectionCompleted(bool src2dst_direction) {
             (struct in6_addr*)get_srv_ip_addr()->get_ipv6(),
             &ndpiDetectedProtocol);
 
-      p_ptr = (u_int16_t*)&ndpiDetectedProtocol.category;
-      p = (*p_ptr) & 0xFF; /* See Ntop::nDPILoadHostnameCategory */
+      /* The category and the list id are packed together (see
+       * Utils::unpackCustomCategory) */
+      ndpiDetectedProtocol.category = Utils::unpackCustomCategory(
+          &ndpiDetectedProtocol.category, &list_id);
 
-      ndpiDetectedProtocol.category = (ndpi_protocol_category_t)p;
-
-      /* We have used the trick to save in the protocolId both the list name and
-       * the protocol */
-      if (ndpiDetectedProtocol.custom_category_userdata == NULL) {
-        u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >>
-                           8; /* See Ntop::nDPILoadHostnameCategory */
-
-        ndpiDetectedProtocol.category =
-            (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF);
+      if (ndpiDetectedProtocol.custom_category_userdata == NULL)
         ndpiDetectedProtocol.custom_category_userdata =
             (void*)ntop->getPersistentCustomListNameById(list_id);
-      }
 
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
     }
@@ -1709,7 +1702,7 @@ void Flow::updateHostBlacklists() {
 /* *************************************** */
 
 void Flow::updateProtocol(ndpi_protocol proto_id) {
-  u_int16_t* ptr16;
+  ndpi_protocol_category_t category;
 
   ndpiDetectedProtocol.state = proto_id.state;
 
@@ -1722,36 +1715,14 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
 
   /* NOTE: only overwrite the category if it was not set.
    * This prevents overwriting already determined category (e.g. by IP or Host)
-   */
-  if (ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED) {
-    /*
-      In Ntop::nDPILoadIPCategory
-       u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
-    */
-    // 1. Safely extract the masked integer value
-    u_int16_t masked_c;
-    ndpi_protocol_category_t cat_id;
+   * The categories of the custom lists are packed with the list id (see
+   * Utils::unpackCustomCategory) */
+  category = Utils::unpackCustomCategory(&ndpiDetectedProtocol.category);
 
-    memcpy(&masked_c, &proto_id.category, sizeof(u_int16_t)); /* Avoid runtime errors */
-    masked_c &= 0xFF;
+  if (category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
+    category = Utils::unpackCustomCategory(&proto_id.category);
 
-    if (masked_c < NDPI_PROTOCOL_NUM_CATEGORIES) {
-      cat_id = static_cast<ndpi_protocol_category_t>(masked_c);
-    } else {
-      // Fallback value for an unknown/invalid category
-      cat_id = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-    }
-
-    ndpiDetectedProtocol.category = cat_id;
-  }
-
-  /* trick to avoid runtime errors with custom categories */
-  ptr16 = (u_int16_t*)&ndpiDetectedProtocol.category;
-
-  if ((*ptr16 > 1024) && ((*ptr16 - 1024) == NDPI_PROTOCOL_CATEGORY_MALWARE))
-    ndpiDetectedProtocol.category = NDPI_PROTOCOL_CATEGORY_MALWARE;
-
-  flow_category = ndpiDetectedProtocol.category;
+  ndpiDetectedProtocol.category = flow_category = category;
 }
 
 /* *************************************** */

@@ -5077,7 +5077,7 @@ bool Ntop::nDPILoadIPCategory(char* what, ndpi_protocol_category_t cat_id,
   u_int8_t list_id;
   char* persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
-  u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
+  u_int16_t id = Utils::packCustomCategory(cat_id, list_id);
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
     if (getInterface(i)) {
@@ -5096,8 +5096,7 @@ bool Ntop::nDPILoadHostnameCategory(char* what, ndpi_protocol_category_t cat_id,
   u_int8_t list_id;
   char* persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
-  u_int16_t id = (((u_int16_t)list_id) << 8) +
-                 (u_int8_t)cat_id; /* Merge list_id and cat_id on a u_int16_t */
+  u_int16_t id = Utils::packCustomCategory(cat_id, list_id);
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
     if (getInterface(i)) {
