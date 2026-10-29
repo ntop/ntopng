@@ -1,0 +1,64 @@
+{
+	"id": "syslog_messages",
+	"data_url": "lua/pro/rest/v2/get/syslog/messages.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "syslog_events.empty_messages",
+	"default_sort": {
+		"column_id": "ts",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"title_i18n": "syslog_events.time",
+			"data_field": "ts",
+			"sortable": true,
+			"min-width": "150px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_events.severity",
+			"data_field": "severity",
+			"sortable": true,
+			"min-width": "110px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_events.source_ip",
+			"data_field": "ip",
+			"sortable": true,
+			"min-width": "130px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_events.hostname",
+			"data_field": "hostname",
+			"sortable": true,
+			"min-width": "120px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_events.facility",
+			"data_field": "facility",
+			"sortable": true,
+			"min-width": "90px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_events.app_name",
+			"data_field": "app_name",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"title_i18n": "syslog_events.message",
+			"data_field": "message",
+			"sortable": true,
+			"min-width": "400px",
+			"class": ["text-break"]
+		}
+	]
+}

@@ -4,9 +4,10 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "syslog_rules.empty_rules",
 	"default_sort": {
-		"column_id": "updated_at",
+		"column_id": "comment",
 		"sort": 1
 	},
 	"columns": [
@@ -35,13 +36,6 @@
 			]
 		},
 		{
-			"title_i18n": "syslog_rules.updated_at",
-			"data_field": "updated_at",
-			"sortable": true,
-			"min-width": "150px",
-			"class": ["text-nowrap"]
-		},
-		{
 			"title_i18n": "syslog_rules.enabled",
 			"data_field": "enabled",
 			"sortable": true,
@@ -49,18 +43,18 @@
 			"class": ["text-nowrap", "text-center"]
 		},
 		{
-			"title_i18n": "syslog_rules.min_severity",
+			"title_i18n": "syslog_rules.severity",
 			"data_field": "min_severity",
 			"sortable": true,
 			"min-width": "120px",
 			"class": ["text-nowrap"]
 		},
 		{
-			"title_i18n": "syslog_rules.max_severity",
-			"data_field": "max_severity",
+			"title_i18n": "syslog_rules.discard",
+			"data_field": "discard",
 			"sortable": true,
-			"min-width": "120px",
-			"class": ["text-nowrap"]
+			"min-width": "80px",
+			"class": ["text-nowrap", "text-center"]
 		},
 		{
 			"title_i18n": "syslog_rules.source",
