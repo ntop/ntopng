@@ -833,7 +833,7 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
   char* domain_name = NULL;
 
   /* Before anything below relies on the peers */
-  checkTCPDirectionByProtocol();
+  checkDirectionByProtocol();
 
   /*
     If peers should be swapped, then pointers are inverted.
@@ -1305,7 +1305,7 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
   }
 
   /* Before completing the detection (also by the giveup below), see
-   * checkTCPDirectionByProtocol() */
+   * checkDirectionByProtocol() */
   if (payload_len > 0) non_zero_payload_observed = 1;
 
   /* Before completing the detection, so that it gets the actual peers */
@@ -9415,7 +9415,7 @@ static int isSNMPReply(const u_int8_t* payload, u_int32_t payload_len,
  * the sender of a SYN-ACK is the server. Until then, the first packet of the
  * flow only makes a guess by the ports (check_swap()), corrected by the
  * detected protocol and then final when the flow has carried payload (see
- * checkTCPDirectionByProtocol()). The swap is requested and then performed by
+ * checkDirectionByProtocol()). The swap is requested and then performed by
  * the next packet (or when the flow ends), as the direction of the current
  * packet is still used after this check. Nothing is done when the flow swap
  * heuristic is disabled. */
@@ -9447,9 +9447,9 @@ void Flow::checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
 
 /* *************************************** */
 
-/* Whether port is one of the default TCP ports of the nDPI protocol */
-static bool isDefaultTCPPort(struct ndpi_detection_module_struct* ndpi_struct,
-                             u_int16_t proto_id, u_int16_t port) {
+/* Whether port is one of the default TCP (or UDP) ports of the nDPI protocol */
+static bool isDefaultPort(struct ndpi_detection_module_struct* ndpi_struct,
+                          u_int16_t proto_id, u_int16_t port, bool tcp) {
   ndpi_proto_defaults_t* defaults;
 
   if ((proto_id == NDPI_PROTOCOL_UNKNOWN) || (ndpi_struct == NULL) ||
@@ -9458,7 +9458,9 @@ static bool isDefaultTCPPort(struct ndpi_detection_module_struct* ndpi_struct,
     return (false);
 
   for (int i = 0; i < MAX_DEFAULT_PORTS; i++) {
-    const ndpi_port_range* range = &defaults[proto_id].tcp_default_ports[i];
+    const ndpi_port_range* range =
+        tcp ? &defaults[proto_id].tcp_default_ports[i]
+            : &defaults[proto_id].udp_default_ports[i];
 
     if ((range->port_low != 0) && (port >= range->port_low) &&
         (port <= range->port_high))
@@ -9470,31 +9472,48 @@ static bool isDefaultTCPPort(struct ndpi_detection_module_struct* ndpi_struct,
 
 /* *************************************** */
 
-/* A better guess for the TCP flows whose direction has not been decided by
- * the handshake (see checkTCPDirection()): once the protocol is detected, the
+/* A better guess for the flows whose direction has not been decided by their
+ * packets (TCP: the handshake, see checkTCPDirection(); UDP: the requests and
+ * the replies, see checkL7Direction()): once the protocol is detected, the
  * side using one of its default ports (nDPI) is the server, e.g. SMTP on port
- * 587 from port 515. Nothing is changed when both sides or neither use a
- * default port.
- * The direction is then final when the flow has carried payload: any
- * handshake of the connection came before it, so a later SYN or SYN-ACK
- * belongs to another one (e.g. the 5-tuple reused), and the checks, the
- * alerts and the stats of the detected flow already rely on the peers.
- * Without payload (e.g. the detection given up on the first packet, with the
- * traffic sampled or nDPI disabled) the handshake still decides. */
-void Flow::checkTCPDirectionByProtocol() {
+ * 587 from port 515, QUIC on port 443. Nothing is changed when both sides or
+ * neither use a default port.
+ * UDP: only when the protocol is detected by DPI. When it is guessed by the
+ * ports, the port of the guess is a default port by definition: the side using
+ * it would always be the server, a guess by the ports (not done for UDP, see
+ * check_swap()), and the packets of any protocol sent to a known port (e.g.
+ * not DNS on port 53) would be swapped.
+ * The direction is then final: the checks, the alerts and the stats of the
+ * detected flow already rely on the peers.
+ * TCP: when the flow has carried payload, as any handshake of the connection
+ * came before it, so a later SYN or SYN-ACK belongs to another one (e.g. the
+ * 5-tuple reused). Without payload (e.g. the detection given up on the first
+ * packet, with the traffic sampled or nDPI disabled) the handshake still
+ * decides.
+ * UDP: when the protocol is detected by DPI, as the requests and the replies
+ * seen later (extra dissection) would swap the flow late (see
+ * checkL7Direction()). The flows guessed by the ports cannot be decided later
+ * anyway (DPI only), and their direction_decided stays clear (see
+ * isDHCPServerClient()). */
+void Flow::checkDirectionByProtocol() {
   u_int16_t protos[2] = {ndpiDetectedProtocol.proto.master_protocol,
                          ndpiDetectedProtocol.proto.app_protocol};
+  bool tcp_flow = (protocol == IPPROTO_TCP);
 
-  if ((protocol != IPPROTO_TCP) || direction_decided ||
-      !iface->isPacketInterface() ||
+  if (((protocol != IPPROTO_TCP) && (protocol != IPPROTO_UDP)) ||
+      direction_decided || !iface->isPacketInterface() ||
       !ntop->getPrefs()->isFlowSwapHeuristicEnabled())
     return;
 
+  if ((!tcp_flow) && ((ndpiFlow == NULL) ||
+                      (ndpiFlow->core.confidence != NDPI_CONFIDENCE_DPI)))
+    return;
+
   for (int i = 0; i < 2; i++) {
-    bool cli_default =
-        isDefaultTCPPort(iface->get_ndpi_struct(), protos[i], get_cli_port());
-    bool srv_default =
-        isDefaultTCPPort(iface->get_ndpi_struct(), protos[i], get_srv_port());
+    bool cli_default = isDefaultPort(iface->get_ndpi_struct(), protos[i],
+                                     get_cli_port(), tcp_flow);
+    bool srv_default = isDefaultPort(iface->get_ndpi_struct(), protos[i],
+                                     get_srv_port(), tcp_flow);
 
     if (cli_default != srv_default) {
       /* The client must not use the default port, taking into account the
@@ -9510,7 +9529,8 @@ void Flow::checkTCPDirectionByProtocol() {
     }
   }
 
-  if (non_zero_payload_observed) direction_decided = 1;
+  /* Final (see above). UDP: the protocol has been detected by DPI */
+  if ((!tcp_flow) || non_zero_payload_observed) direction_decided = 1;
 }
 
 /* *************************************** */
@@ -9532,11 +9552,13 @@ void Flow::checkTCPDirectionByProtocol() {
  * - ICMP: echo, timestamp and information request/reply; ICMPv6: echo
  *   request/reply.
  * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
- * errors) leave the decision to a later packet. When the flow is reversed it
- * is swapped at once, before the detection is completed and anything else
- * (checks, services, dumps, the view) relies on its peers, unless the client
- * would be a non-unicast address (e.g. a DHCP reply sent to broadcast), as in
- * check_swap(). Nothing is done when the flow swap heuristic is disabled. */
+ * errors) leave the decision to a later packet (the UDP flows not decided are
+ * guessed when the protocol is detected, see checkDirectionByProtocol()).
+ * When the flow is reversed it is swapped at once, before the detection is
+ * completed and anything else (checks, services, dumps, the view) relies on
+ * its peers, unless the client would be a non-unicast address (e.g. a DHCP
+ * reply sent to broadcast), as in check_swap(). Nothing is done when the flow
+ * swap heuristic is disabled. */
 void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
                             const u_int8_t* payload, u_int16_t payload_len) {
   bool is_reply;
@@ -9817,7 +9839,7 @@ void Flow::request_swap() {
 void Flow::performPendingSwap() {
   /* NOTE: also when the flow has already been swapped, e.g. by the guess by
    * the ports, then corrected by the protocol (see
-   * checkTCPDirectionByProtocol()) */
+   * checkDirectionByProtocol()) */
   if (!is_swap_requested()) return;
 
   swap();
