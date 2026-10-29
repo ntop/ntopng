@@ -1852,6 +1852,7 @@ local lang = {
     ["episodes_short"] = "ep.",
     ["exclusion_added"] = "Exclusion added: the check no longer triggers these alerts",
     ["exclusion_failed"] = "Unable to add the exclusion",
+    ["load_failed"] = "Unable to load the alert groups",
     ["expand"] = "Expand",
     ["explorer_hint"] = "The Explorer also lists the flows where this alert type is not the main one.",
     ["facet_category"] = "Category",
