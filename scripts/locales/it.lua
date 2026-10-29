@@ -11135,6 +11135,7 @@ local lang = {
     ["intro_active_monitoring"] = "Misura raggiungibilità, latenza e velocità di host e servizi: ntopng genera un allarme quando una misurazione supera la soglia",
     ["intro_aggregated_live_flows"] = "Flussi attivi raggruppati per il criterio scelto (applicazione, host, porte, AS...), aggiornati ogni 10 secondi",
     ["intro_ai_dashboards"] = "Le tue dashboard di grafici e tabelle costruite sui flussi e sugli allarmi storici (ClickHouse): scegline una e l'intervallo di tempo",
+    ["intro_alerts_analysis"] = "Allarmi di flusso raggruppati per client, server o tipo di allarme nel periodo scelto: la dimensione della bolla è lo score, clicca una bolla per aprire i suoi allarmi",
     ["intro_alert_exclusions"] = "Ferma gli allarmi che non ti servono per host, domini o certificati TLS fidati: gli allarmi esclusi non vengono più generati",
     ["intro_blacklists"] = "Liste di host e domini malevoli o indesiderati usate per classificare il traffico: abilita quelle che ti servono e scegli ogni quanto aggiornarle",
     ["intro_device_protocols"] = "Scegli quali applicazioni può usare ogni tipo di dispositivo: ntopng genera un allarme quando un dispositivo ne usa una non consentita",

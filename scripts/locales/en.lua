@@ -11381,6 +11381,7 @@ local lang = {
     ["intro_active_monitoring"] = "Measure the reachability, latency and speed of hosts and services: ntopng raises an alert when a measurement exceeds its threshold",
     ["intro_aggregated_live_flows"] = "Active flows grouped by the chosen criteria (application, hosts, ports, AS...), updated every 10 seconds",
     ["intro_ai_dashboards"] = "Your dashboards of charts and tables built on the historical flows and alerts (ClickHouse): pick one and choose the time range",
+    ["intro_alerts_analysis"] = "Flow alerts grouped by client, server or alert type in the chosen timeframe: bubble size is the score, click a bubble to open its alerts",
     ["intro_alert_exclusions"] = "Stop the alerts you do not need for trusted hosts, domains or TLS certificates: the excluded alerts are no longer generated",
     ["intro_blacklists"] = "Lists of malicious or unwanted hosts and domains used to categorize the traffic: enable the ones you need and choose how often they are updated",
     ["intro_device_protocols"] = "Choose which applications each type of device is expected to use: ntopng raises an alert when a device uses one that is not allowed",

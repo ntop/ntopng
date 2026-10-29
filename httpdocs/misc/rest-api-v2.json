@@ -5264,6 +5264,210 @@
         }
       }
     },
+    "/lua/pro/rest/v2/charts/alert/analysis.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts bubble chart data",
+        "description": "Flow alerts of the last timeframe grouped by client/server/alert type (at most 100 groups): one series per alert type (or one series for the score modes), each point x/y/z (z = bubble radius) with meta.label and meta.url_query (filters for /lua/alert_stats.lua). Enterprise, requires the alerts capability",
+        "operationId": "get_chart_alert_analysis",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "bubble_mode",
+            "in": "query",
+            "description": "Grouping: 0 score client/server, 1 alert type client/server, 2 alert type client, 3 alert type server, 4 score client, 5 score server (default 0)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "description": "Seconds back from now (default 3600)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN ID (empty: all VLANs)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/alert/graph/alerts.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts graph edges",
+        "description": "Historical flow alerts aggregated by client, server and alert type (ClickHouse, at most 10000 rows, ordered by average score): src/dst IP, name, country, ASN, local flag, alert, alerts_count, avg_alert_score, L4/L7 protocol and info. Enterprise L or nEdge Enterprise, requires the historical flows capability",
+        "operationId": "get_alert_graph_alerts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cli_ip",
+            "in": "query",
+            "description": "Client IP (format: 'ip;eq', op: 'eq', 'neq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "srv_ip",
+            "in": "query",
+            "description": "Server IP (format: 'ip;eq', op: 'eq', 'neq')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (ClickHouse not enabled)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/alert/graph/host_info.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts summary of a host",
+        "description": "Historical flow alerts of a host (ClickHouse): host_info.info (ip, name, country, ASN) and host_info.client / host_info.server (first/last seen, alerts_count, total_score, total_traffic_bytes); severity_info.client / severity_info.server: severity distribution in percent. Enterprise L or nEdge Enterprise, requires the historical flows capability",
+        "operationId": "get_alert_graph_host_info",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "description": "Host IP address",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-59": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (ClickHouse not enabled)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/host/alert/top.lua": {
       "get": {
         "tags": [
