@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `syslog_rules` (
     comment      String        DEFAULT ''  COMMENT 'Free-text description',
     discard      UInt8         DEFAULT 0   COMMENT '1 = if case of match this rule discards the message (i.e. it is not logged to the DB)'
 )
-ENGINE = ReplacingMergeTree(updated_at, is_deleted)
+ENGINE = ReplacingMergeTree(min_severity)
 ORDER BY id;
 
 @
