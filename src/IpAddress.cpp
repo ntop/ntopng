@@ -85,24 +85,13 @@ void IpAddress::set(union usa* ip) {
 void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
   char ipbuf[64];
   char* ip_str = print(ipbuf, sizeof(ipbuf));
-  u_int16_t id;
+  ndpi_protocol_category_t match;
   ndpi_protocol_breed_t breed;
 
-  if (ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
-				     (ndpi_protocol_category_t*)&id, &breed) == 0) {
-    ndpi_protocol_category_t category;
-    u_int16_t masked_id = ((u_int16_t)id) & 0xFF; /* See Ntop::nDPILoadHostnameCategory */
-
-    if (masked_id < NDPI_PROTOCOL_NUM_CATEGORIES) {
-      category = (ndpi_protocol_category_t)masked_id;
-      category = static_cast<ndpi_protocol_category_t>(masked_id);
-    } else {
-      // Fallback if the extracted ID is not a valid enum member
-      category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-    }
-
-    if (category == NDPI_PROTOCOL_CATEGORY_MALWARE) addr.blacklistedIP = true;
-  }
+  if ((ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
+                                      &match, &breed) == 0) &&
+      (Utils::unpackCustomCategory(&match) == NDPI_PROTOCOL_CATEGORY_MALWARE))
+    addr.blacklistedIP = true;
 }
 
 /* ******************************************* */
