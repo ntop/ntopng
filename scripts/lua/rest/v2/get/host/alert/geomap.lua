@@ -40,6 +40,12 @@ end
 
 interface.select(ifid)
 
+-- interface.select() falls back to an allowed interface: refuse the others
+if tostring(interface.getId()) ~= tostring(ifid) then
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
+   return
+end
+
 host_alert_store:add_request_filters()
 local where_clause = host_alert_store:build_where_clause()
 

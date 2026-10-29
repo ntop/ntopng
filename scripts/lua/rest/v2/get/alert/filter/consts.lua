@@ -7,10 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
 local rest_utils = require("rest_utils")
+local auth = require "auth"
 local alert_entities = require "alert_entities"
-local alert_store_utils = require "alert_store_utils"
-local alert_store_instances = alert_store_utils.all_instances_factory()
-local alert_consts = require "alert_consts"
 local flowfilter_utils = require "flowfilter_utils"
 
 --
@@ -18,17 +16,24 @@ local flowfilter_utils = require "flowfilter_utils"
 -- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/get/alert/filter/consts.lua?page=flow
 --
 
+-- Same access as the alert lists
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local page = _GET["page"] or 'all'
 
-local rc = rest_utils.consts.success.ok
 local res = {}
 
+-- Only the store of the page (<alert_store_name>_alert_store.lua), not all of them;
+-- the snmp one is pro only. Otherwise the filters of all the alerts
+local entity = alert_entities[page]
 local alert_store_instance
-local all_alert_types = {}
 
-if alert_entities[page] and alert_store_instances[alert_entities[page].alert_store_name] then
-   alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
-   all_alert_types = alert_consts.getAlertTypesInfo(alert_entities[page].entity_id)
+if entity and entity.alert_store_name
+   and (entity.alert_store_name ~= "snmp_device" or (ntop.isPro and ntop.isPro())) then
+   alert_store_instance = require(entity.alert_store_name .. "_alert_store").new()
 else
    alert_store_instance = require "all_alert_store".new()
 end
@@ -39,8 +44,8 @@ for id, v in pairs(filters) do
    -- FIXX rename l7_proto to l7proto in flow alert store for consistency
    if id == "l7_proto" then id = "l7proto" end
 
-   local filter = flowfilter_utils.get_flowfilter_info(id, alert_entities[page])
-   
+   local filter = flowfilter_utils.get_flowfilter_info(id, entity)
+
    res[#res+1] = filter
 end
 

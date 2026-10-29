@@ -6,7 +6,8 @@
 	"paging": true,
 	"rsp_records_field": "records",
 	"rsp_query_info_field": "stats",
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.alerts",
 	"columns": [
 		{
 			"id": "actions",
@@ -18,7 +19,7 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "info",
@@ -54,7 +55,8 @@
 					"id": "remove",
 					"icon": "fas fa fa-trash",
 					"title_i18n": "remove",
-					"event_id": "click_button_remove"
+					"event_id": "click_button_remove",
+					"danger": true
 				}
 			]
 		},

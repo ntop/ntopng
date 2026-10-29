@@ -252,7 +252,8 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert_id, alert_entity)
 					"<a href='%s/lua/active_monitoring.lua?host=%s%s&page=overview'><i class='fas fa-cog' title='%s'></i></a>",
 					ntop_http_prefix,
 					host,
-					ternary(measurement, "&measurement=" .. measurement, ""),
+					-- not ternary(): its arguments are evaluated, a nil measurement would raise
+					measurement and ("&measurement=" .. measurement) or "",
 					i18n("edit_configuration")
 				)
 			else

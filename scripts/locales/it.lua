@@ -10320,6 +10320,15 @@ local lang = {
     ["weekly_traffic_quota"] = "Quota di traffico mensile",
   },
   ["show_alerts"] = {
+    ["require_attention"] = "Richiedono attenzione",
+    ["action_reason"] = {
+      ["no_details"] = "Nessuna pagina di dettaglio per questo tipo di alert",
+      ["snmp_trap"] = "Gli alert delle trap SNMP non hanno una pagina del dispositivo",
+      ["no_clickhouse"] = "Richiede la licenza Enterprise M e ClickHouse",
+      ["engaged"] = "L'alert è ancora attivo (engaged)",
+      ["not_require_attention"] = "Solo gli alert che richiedono attenzione possono essere confermati",
+      ["no_enterprise_m"] = "Richiede la licenza Enterprise M",
+    },
     ["1_day"] = "1 giorno",
     ["1_hour"] = "1 ora",
     ["1_month"] = "1 mese",
@@ -11071,6 +11080,7 @@ local lang = {
     ["more_actions"] = "Altre azioni",
   },
   ["table_empty"] = {
+    ["alerts"] = "Nessun alert nell'intervallo selezionato con questi filtri",
     ["bgp_looking_glass"] = "Nessuna rotta BGP da mostrare: cerca un indirizzo IP qui sopra",
     ["access_control_list"] = "Nessuna regola di controllo accessi. Aggiungine una per consentire o bloccare il traffico tra host",
     ["active_monitoring"] = "Nessuna misurazione. Aggiungine una per monitorare la raggiungibilità e la velocità di un host",
@@ -11117,6 +11127,7 @@ local lang = {
     ["vlans_stats"] = "Nessuna VLAN rilevata",
   },
   ["table_page"] = {
+    ["intro_alerts"] = "Alert generati dai controlli di ntopng sull'interfaccia selezionata: attivi (engaged), che richiedono attenzione o tutti, nell'intervallo selezionato",
     ["intro_ai_audit"] = "Azioni eseguite da nAnalyst e dagli utenti tramite le funzioni AI (policy, esclusioni, pipeline), dalla più recente: al massimo 500 righe dell'intervallo scelto",
     ["intro_bgp_looking_glass"] = "Le rotte BGP di un indirizzo IP, dal feed BGP: una riga per prefisso e peer, l'icona ⤢ apre i dettagli dell'host o dell'AS",
     ["add_acl_rule"] = "Aggiungi regola",

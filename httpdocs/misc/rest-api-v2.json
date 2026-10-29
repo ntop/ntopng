@@ -5169,6 +5169,39 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/alert/preset/consts.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get the alert query presets",
+        "description": "The query presets of an alert page: [{id: 'builtin', list}, {id: 'queries', list}] (empty when the page has none). Enterprise L.",
+        "operationId": "get_alert_preset_consts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Alert page (all, host, flow, ...)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: no Enterprise L license or no alerts capability"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: unknown page"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/flowdevices/stats.lua": {
       "get": {
         "tags": [
@@ -10628,14 +10661,17 @@
           {
             "name": "page",
             "in": "query",
-            "description": "Alert Page (interface, flow, host, network, snmp_device, mac, user, am_host, system)",
-            "required": true,
+            "description": "Alert Page (all, interface, flow, host, network, as, snmp_device, mac, user, am_host, system), default all",
+            "required": false,
             "type": "string"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user has no alerts capability"
           }
         }
       }
@@ -10942,7 +10978,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11089,7 +11125,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11170,7 +11206,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11564,7 +11600,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11799,7 +11835,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11983,6 +12019,101 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/flow/alert/geomap.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts by country",
+        "description": "Flow alerts aggregated per host (client and server) and per country (GeoIP), with the same filters as the flow alerts list. Requires GeoIP and ClickHouse.",
+        "operationId": "get_flow_alert_geomap",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cli_ip",
+            "in": "query",
+            "description": "Client IP (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "srv_ip",
+            "in": "query",
+            "description": "Server IP (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: no alerts capability or GeoIP not available"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR: ClickHouse not enabled"
           }
         }
       }
@@ -12223,7 +12354,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -12346,7 +12477,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -12418,6 +12549,94 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/alert/geomap.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get host alerts by country",
+        "description": "Host alerts aggregated per host and per country (GeoIP), with the same filters as the host alerts list. Requires GeoIP and ClickHouse.",
+        "operationId": "get_host_alert_geomap",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "description": "Host IP (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: no alerts capability or GeoIP not available"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR: ClickHouse not enabled"
           }
         }
       }
@@ -13148,7 +13367,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13236,7 +13455,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13868,7 +14087,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13949,7 +14168,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -14039,7 +14258,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -14127,7 +14346,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -14164,6 +14383,199 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/as/alert/list.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get AS alerts list",
+        "description": "Get the alerts of the Autonomous Systems",
+        "operationId": "get_as_alert_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting record",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Maximum number of records to get",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "description": "Autonomous System number (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Format of the return data: 'json' (default) or 'txt' (CSV)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user has no alerts capability"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/as/alert/ts.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get AS alerts timeseries",
+        "description": "Get the number of AS alerts over time, by severity",
+        "operationId": "get_as_alert_ts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "description": "Autonomous System number (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user has no alerts capability"
           }
         }
       }
@@ -14727,7 +15139,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -14808,7 +15220,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -15255,7 +15667,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -15336,7 +15748,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },

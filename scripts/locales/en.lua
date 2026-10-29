@@ -10560,6 +10560,15 @@ local lang = {
     ["weekly_traffic_quota"] = "Weekly Traffic Quota",
   },
   ["show_alerts"] = {
+    ["require_attention"] = "Require Attention",
+    ["action_reason"] = {
+      ["no_details"] = "No details page for this kind of alert",
+      ["snmp_trap"] = "SNMP trap alerts have no device page",
+      ["no_clickhouse"] = "Requires the Enterprise M license and ClickHouse",
+      ["engaged"] = "The alert is still engaged (active)",
+      ["not_require_attention"] = "Only the alerts that require attention can be acknowledged",
+      ["no_enterprise_m"] = "Requires the Enterprise M license",
+    },
     ["1_day"] = "1 Day",
     ["1_hour"] = "1 Hour",
     ["1_month"] = "1 Month",
@@ -11317,6 +11326,7 @@ local lang = {
     ["select_row"] = "Select %s",
   },
   ["table_empty"] = {
+    ["alerts"] = "No alerts in the selected time range with these filters",
     ["bgp_looking_glass"] = "No BGP routes to show: search an IP address above",
     ["access_control_list"] = "No access control rules. Add one to allow or deny traffic between hosts",
     ["active_monitoring"] = "No measurements. Add one to monitor the reachability and the speed of a host",
@@ -11363,6 +11373,7 @@ local lang = {
     ["vlans_stats"] = "No VLANs seen yet",
   },
   ["table_page"] = {
+    ["intro_alerts"] = "Alerts raised by the ntopng checks on the selected interface: engaged (still active), requiring attention or all of them, in the selected time range",
     ["intro_ai_audit"] = "Actions done by nAnalyst and by the users from the AI features (policies, exclusions, pipelines), newest first: at most 500 rows of the chosen time range",
     ["intro_bgp_looking_glass"] = "BGP routes of an IP address, from the BGP feed: one row per prefix and peer, the ⤢ icon opens the host or AS details",
     ["add_acl_rule"] = "Add rule",
