@@ -818,6 +818,8 @@ class Flow : public GenericHashEntry {
                      u_int16_t payload_len, u_int16_t src_port);
   void processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
+  void checkSMBFileName();
+  void processSMBPacket(const u_char* payload, u_int16_t payload_len);
   void processIEC60870Packet(bool tx_direction, const u_char* payload,
                              u_int16_t payload_len,
                              const struct pcap_pkthdr* h);

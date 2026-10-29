@@ -973,8 +973,11 @@ void Flow::processDetectedProtocolData() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_SMBV23:
-    if((protos.smb.filename == NULL) && (ndpiFlow->metadata.protos.smb.filename != NULL))
+    if(ndpiFlow->metadata.protos.smb.filename != NULL) {
+      if(protos.smb.filename != NULL) free(protos.smb.filename);
       protos.smb.filename = strdup(ndpiFlow->metadata.protos.smb.filename);
+      checkSMBFileName();
+    }
     break;
   }
 }
@@ -1390,6 +1393,8 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
 
   if (isDNS())
     processDNSPacket(ip_packet, ip_len, packet_time);
+  else if (isSMB())
+    processSMBPacket(payload, payload_len);
   else if (isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
                           payload_len, h);
@@ -1526,6 +1531,54 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
 			       !Utils::isEmptyString(ndpiFlow->core.host_server_name) ? ndpiFlow->core.host_server_name : (unsigned char*)"",
 			       print(buf, sizeof(buf)));
 #endif
+}
+
+/* *************************************** */
+
+void Flow::checkSMBFileName() {
+  /*
+    Placeholder
+     will be used to process
+     protos.smb.filename
+
+     TODO TODO TODO TODO TODO
+  */
+     
+}
+
+/* *************************************** */
+
+/* Special handling of SMB which is always performed. */
+void Flow::processSMBPacket(const u_char* payload, u_int16_t payload_len) {
+  /* Exits if the flow isn't SMB or it the interface is not a packet-interface */
+  if ((!isSMB())
+      || (!getInterface()->isPacketInterface())
+      || (ndpiFlow == NULL)
+      || (payload_len < 64)
+     )
+    return;
+
+  /* Let's check if it's a create request */
+  if((payload[0] == '\0') /* NetBIOS session message */
+     && (payload[16] == 0x5) && (payload[17] == 0) /* SMB Create */) {
+    if(ndpiFlow->metadata.protos.smb.filename != NULL) {
+      char *old = protos.smb.filename;
+      
+      if((old == NULL)
+	 || strcmp(old, ndpiFlow->metadata.protos.smb.filename)) {
+	char *f = strdup(ndpiFlow->metadata.protos.smb.filename);
+
+	/* ntop->getTrace()->traceEvent(TRACE_INFO, "%s", f); */
+	
+	if(f != NULL) {
+	  protos.smb.filename = f;
+	  if(old != NULL) free(old);
+	}
+
+	checkSMBFileName();
+      }
+    }
+  }
 }
 
 /* *************************************** */

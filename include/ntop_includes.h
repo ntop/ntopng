@@ -119,6 +119,8 @@ extern "C" {
 #include <pcap/bpf.h> /* Used for bpf_filter() */
 #endif
 
+#include <regex.h> /* Syslog Rules */
+  
 #ifdef HAVE_DYNAMIC_NDPI
 #include <ndpi/ndpi_api.h>
 #else
@@ -439,7 +441,6 @@ using namespace std;
 #include <iomanip> /* std::setfill */
 using namespace clickhouse;
 #include "FlowsTable.h"
-#include "SyslogRegex.h"
 #include "ClickHouseDB.h"
 #endif
 #ifdef NTOPNG_PRO
