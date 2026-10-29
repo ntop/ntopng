@@ -6,6 +6,7 @@ require "ntop_utils"
 local sys_utils = require "sys_utils"
 
 local dhcp_enabled_key = "ntopng.nedge.dhcp.kea.enabled"
+local isc_service = "isc-dhcp-server"
 
 local dhcp_server_utils = {}
 
@@ -36,7 +37,6 @@ function dhcp_server_utils.getDhcpServerHandler()
 
   local kea_service = "kea-dhcp4-server"
   local kea_service_alias = "isc-kea-dhcp4-server"
-  local isc_service = "isc-dhcp-server"
 
   -- Check if kea-dhcp4-server systemd service exists
   local kea_exists = serviceExists(kea_service)
@@ -69,11 +69,26 @@ end
 
 -- ###############################################################
 
+-- When Kea is in use, make sure the ISC DHCP server is not running
+-- Note: ISC DHCP is installed as nEdge dependency (default dhcp server)
+local function stopIscDhcpServiceOnKea(dhcp_handler)
+  if dhcp_handler.service_name ~= isc_service then
+    if sys_utils.isActiveService(isc_service) or sys_utils.isEnabledService(isc_service) then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Disabling " .. isc_service .. " as Kea is in use")
+      sys_utils.disableService(isc_service)
+      sys_utils.stopService(isc_service)
+    end
+  end
+end
+
+-- ###############################################################
+
 -- This function is used to check if the DHCP server status is up
 -- and if not, restart it.
 function dhcp_server_utils.checkRestartDHCPService()
   if ntop.isnEdge and ntop.isnEdge() then
     local dhcp_handler = dhcp_server_utils.getDhcpServerHandler()
+    stopIscDhcpServiceOnKea(dhcp_handler)
     if (ntop.getCache(dhcp_enabled_key) or '0') == '1' then
       if not sys_utils.isActiveService(dhcp_handler.service_name) then
         sys_utils.restartService(dhcp_handler.service_name)
@@ -88,6 +103,7 @@ end
 function dhcp_server_utils.startDHCPService()
   if ntop.isnEdge and ntop.isnEdge() then
     local dhcp_handler = dhcp_server_utils.getDhcpServerHandler()
+    stopIscDhcpServiceOnKea(dhcp_handler)
     ntop.setCache(dhcp_enabled_key, '1')
     sys_utils.enableService(dhcp_handler.service_name)
     sys_utils.restartService(dhcp_handler.service_name)
@@ -100,9 +116,14 @@ end
 function dhcp_server_utils.stopDHCPService()
   if ntop.isnEdge and ntop.isnEdge() then
     local dhcp_handler = dhcp_server_utils.getDhcpServerHandler()
+    local was_enabled = ((ntop.getCache(dhcp_enabled_key) or '0') == '1')
+    stopIscDhcpServiceOnKea(dhcp_handler)
     ntop.setCache(dhcp_enabled_key, '0')
-    sys_utils.disableService(dhcp_handler.service_name)
-    sys_utils.stopService(dhcp_handler.service_name)
+    -- Do not touch a Kea server not enabled by nEdge (e.g. managed by the user)
+    if was_enabled or (dhcp_handler.service_name == isc_service) then
+      sys_utils.disableService(dhcp_handler.service_name)
+      sys_utils.stopService(dhcp_handler.service_name)
+    end
   end
 end
 
