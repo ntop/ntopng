@@ -547,6 +547,11 @@ page_utils.menu_entries = {
         section = "if_stats",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/maps/geo_map.html?utm_source=ntopng"
     },
+    network_topology = {
+        key = "network_topology",
+        i18n_title = "network_topology",
+        section = "if_stats",
+    },
     hosts_map = {
         key = "hosts_map",
         i18n_title = "flows_page.hosts",

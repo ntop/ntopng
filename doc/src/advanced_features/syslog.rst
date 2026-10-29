@@ -145,10 +145,11 @@ Network Syslog Ingestion
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ntopng can ingest syslog messages from network devices and hosts, including
-routers, switches, firewalls, servers, and other syslog-capable applications.
+routers, switches, firewalls, servers, and other syslog capable applications.
 The collector receives messages, evaluates configured ingestion rules, and
 stores accepted events in ClickHouse (thus an enterprise M or greater license, and clickhouse are needed. Start ntopng with `-F clickhouse`). By navigating to the menu entry Network and clicking on**Syslog** page lets operators
 configure those rules and inspect the ingested events.
+ntopng Enterprise XL and clickhouse are required.
 
 Architecture and setup
 ----------------------
