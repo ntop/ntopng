@@ -8166,8 +8166,10 @@ local lang = {
     ["service_map_tab"] = "Service Map",
     ["loading_error"] = "Unable to load the service map",
     ["hosts_cluster"] = "%{n} hosts",
-    ["all_routers"] = "All routers",
-    ["focus_hint"] = "Double click a router or its hosts to show them",
+    ["intro_routers"] = "Routers seen in the flows, with the hosts behind them. Click a node to open its details, double click a router to show its hosts.",
+    ["intro_router"] = "Hosts seen by router %{router}. Click a node to open its details.",
+    ["hint_details"] = "Click: open details",
+    ["hint_zoom"] = "Double click: show its hosts",
   },
   ["map_page"] = {
     ["alerted_view"] = "Alerted View",
