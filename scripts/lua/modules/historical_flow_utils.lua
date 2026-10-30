@@ -2233,8 +2233,7 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
   local label = ""
 
   local info = historical_flow_utils.format_clickhouse_record(record)
-  local alert_json = json.decode(info["json"] or '') or {}
-  
+
   if info.l4proto then
     label = label ..historical_flow_utils.get_historical_url(info.l4proto.label, "l4proto", info.l4proto.value, add_hyperlinks)
   end
@@ -2256,8 +2255,10 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
     label = label .. " (" ..historical_flow_utils.get_historical_url(info.l7cat.label, "l7cat", info.l7cat.value, add_hyperlinks) .. blacklist_name .. ")"
   end
 
-  if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
-   label = label .. "[Confidence: " .. format_confidence_badge(alert_json.proto.confidence) .. "]"
+  local protocol_info_json = json.decode(record["PROTOCOL_INFO_JSON"] or '') or {}
+
+  if (protocol_info_json.proto) and (protocol_info_json.proto.confidence) and (not isEmptyString(protocol_info_json.proto.confidence)) then
+   label = label .. "[Confidence: " .. format_confidence_badge(protocol_info_json.proto.confidence) .. "]"
   end
 
   return label

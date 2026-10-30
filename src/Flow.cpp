@@ -8891,21 +8891,12 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
   if (getErrorCode() != 0)
     ndpi_serialize_string_uint32(serializer, "l7_error_code", getErrorCode());
 
-  if (getConfidence() != NDPI_CONFIDENCE_UNKNOWN) {
-    switch (getConfidence()) {
-      case NDPI_CONFIDENCE_DPI_CACHE:
-      case NDPI_CONFIDENCE_DPI:
-      case NDPI_CONFIDENCE_NBPF:
-        ndpi_serialize_string_uint32(serializer, "confidence",
-                                     (ndpiConfidence)confidence_dpi);
-        break;
-
-      default:
-        ndpi_serialize_string_uint32(serializer, "confidence",
-                                     (ndpiConfidence)confidence_guessed);
-        break;
-    }
-  }
+  /* Same DPI/guessed split as lua_confidence(), used by live flows */
+  if (getConfidence() != NDPI_CONFIDENCE_UNKNOWN)
+    ndpi_serialize_string_uint32(serializer, "confidence",
+                                 isDPIDetectedFlow()
+                                     ? (ndpiConfidence)confidence_dpi
+                                     : (ndpiConfidence)confidence_guessed);
 
   /* fingerprints block*/
   if (isFingerprintAvailable()) {
