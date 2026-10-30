@@ -951,7 +951,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
 
   switch (list_type) {
     case list_type_hosts:
-      format = "%s\t%s";
+      format = "%255s\t%255s";
       break;
 
     case list_type_ip_csv:
@@ -959,7 +959,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
       break;
 
     case list_type_ip_occurrencies:
-      format = "%s\t%d";
+      format = "%255s\t%d";
       break;
 
     case list_type_ip:
@@ -994,7 +994,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
           127.0.0.1       domainname
           127.0.0.1,domainname
         */
-        char host[256], ignore[64];
+        char host[256], ignore[256];
         bool loaded = false, success;
         double f;
 
@@ -1035,7 +1035,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
           Format
           127.0.0.1       occurrencies
         */
-        char host[64];
+        char host[256];
         int occurrencies;
         bool loaded = false;
 
