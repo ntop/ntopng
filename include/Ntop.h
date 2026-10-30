@@ -580,7 +580,7 @@ class Ntop {
   bool isInterfaceAllowed(lua_State* vm, const char* ifname) const;
   bool isInterfaceAllowed(lua_State* vm, int ifid) const;
   bool isPcapDownloadAllowed(lua_State* vm, const char* ifname);
-  char* preparePcapDownloadFilter(lua_State* vm, char* filter);
+  char* preparePcapDownloadFilter(lua_State* vm, char* filter, int datalink);
   bool isLocalAuthEnabled() const;
   bool isLocalUser(lua_State* vm);
   bool checkCaptiveUserPassword(const char* user, const char* password,

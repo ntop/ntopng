@@ -1576,7 +1576,8 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char* ifname) {
 
 /* ******************************************* */
 
-char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter) {
+char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter,
+                                      int datalink) {
   char* username;
   char* restricted_filter = NULL;
   char key[CONST_MAX_LEN_REDIS_KEY], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
@@ -1609,6 +1610,34 @@ char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter) {
   }
 
   if (num_nets == 0) goto no_restriction;
+
+  /* validate the user filter */
+
+  if (filter_len > 0) {
+    /*
+      The user filter is enclosed in parentheses and and-ed with the allowed
+      networks below: make sure it is a valid expression on its own, otherwise
+      a filter such as "udp) or (udp" closes the parentheses and escapes the
+      networks restriction.
+    */
+    pcap_t* pcap_handle = pcap_open_dead(datalink, 65535);
+    struct bpf_program fcode;
+    int rc;
+
+    if (pcap_handle == NULL) return (NULL);
+
+    if ((rc = pcap_compile(pcap_handle, &fcode, filter, 0,
+                           PCAP_NETMASK_UNKNOWN)) == 0)
+      pcap_freecode(&fcode);
+
+    pcap_close(pcap_handle);
+
+    if (rc != 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid capture filter %s",
+                                   filter);
+      return (NULL);
+    }
+  }
 
   /* build final/restricted filter */
 
