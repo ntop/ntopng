@@ -375,6 +375,9 @@ class Flow : public GenericHashEntry {
       char* mail_from;
       char* rcpt_to;
     } smtp;
+
+    /* If you add new structs here, please update getProtosUnionMember() also */
+
   } protos;
 
   /* eBPF Information */
