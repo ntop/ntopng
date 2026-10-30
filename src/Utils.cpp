@@ -8373,7 +8373,14 @@ bool Utils::parseIPv4v6Address(const char *ip_str,
 /* ******************************************* */
 
 bool Utils::isNullAddress(struct ndpi_in6_addr *ip) {
-  if((ip->u6_addr.u6_addr64[0] == 0) && (ip->u6_addr.u6_addr64[1] == 0))
+  if(
+     ((ip->u6_addr.u6_addr64[0] == 0) && (ip->u6_addr.u6_addr64[1] == 0))
+     || ((ip->u6_addr.u6_addr8[10] == 0xff) /* 0.0.0.0 in IPv6 format */
+	 && (ip->u6_addr.u6_addr8[11] == 0xff)
+	 && (ip->u6_addr.u6_addr8[12] == 0x0)
+	 && (ip->u6_addr.u6_addr8[13] == 0x0)
+	 && (ip->u6_addr.u6_addr8[14] == 0x0)
+	 && (ip->u6_addr.u6_addr8[15] == 0x0)))
     return(true);
   else
     return(false);
