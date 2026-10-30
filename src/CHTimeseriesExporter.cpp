@@ -108,6 +108,7 @@ bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
   lua_table_to_vector<std::string>(vm, 3, point->tags, lua_val_to_string);
   lua_table_to_vector<double>(vm, 4, point->metrics, lua_val_to_double);
   point->ifid = (int16_t)lua_tonumber(vm, 5);
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queueing [Timeseries: %s][ifid: %d]", point->schema_name.c_str(), point->ifid);
 
   if (!ts_queue->enqueue(point)) {
     delete point;
