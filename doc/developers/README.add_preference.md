@@ -72,6 +72,7 @@ Every entry inside `entries` shares these fields:
 | `type` | string | yes | Control type — see **Types** below |
 | `redis_key` | string | yes | Full Redis key path (e.g. `ntopng.prefs.foo`) |
 | `default` | string | yes | Always a string, even for numbers/booleans |
+| `dynamic_default` | bool | no | Set it when `default` is computed at runtime (e.g. a detected IP address) |
 | `hidden` | bool/expr | no | Hides this individual entry |
 | `section` | string | no | Inserts a group-label divider above this entry in the UI |
 

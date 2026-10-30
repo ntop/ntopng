@@ -63,7 +63,7 @@ Here is an overview of the features ntopng provides:
 InfluxDB is really suitable to export high frequency data due to the high insertion
 throughput. For this reason it's possible to increase the timeseries resolution to
 get more detailed historical data. This can be configured from the
-"L7 Application Resolution" preference.
+"Timeseries Resolution" preference, which defaults to 5 minutes.
 
 .. warning::
 
