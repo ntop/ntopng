@@ -2,7 +2,7 @@
 	"id": "syslog_messages",
 	"data_url": "lua/pro/rest/v2/get/syslog/messages.lua",
 	"use_current_page": false,
-	"enable_search": true,
+	"enable_search": false,
 	"paging": true,
 	"display_empty_rows": false,
 	"empty_message_i18n": "syslog_events.empty_messages",

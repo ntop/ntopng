@@ -1599,5 +1599,10 @@ end
 
 -- ##############################################
 
+function page_utils.showSyslog()
+    return isAdministrator() and hasClickHouseSupport() and
+      (ntop.getPref("ntopng.prefs.menu_entries.experimental_features") == "1")
+end
+
 return page_utils
 

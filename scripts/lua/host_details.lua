@@ -16,6 +16,7 @@ local sites_granularities = {}
 local auth = require "auth"
 local ts_utils = require "ts_utils_core"
 local site_utils = require "site_utils"
+local page_utils = require "page_utils"
 
 local is_pro = ntop.isPro and ntop.isPro()
 local random_csrf = ntop.getRandomCSRFValue()
@@ -120,6 +121,11 @@ if(host == nil) then
    return
 end
 
+local is_localhost = host["localhost"]
+local show_syslog = page_utils.showSyslog()
+local syslog_events_url = "<a href='" .. http_prefix .. "/lua/pro/syslog_config.lua?tab=events&ip=" .. host_ip ..
+   "' target='_blank' rel='noopener' data-bs-toggle='tooltip' data-bs-placement='top' title='" .. i18n("syslog.host_details_message") ..
+   "'><i class='fas fa-scroll'></i> <span>" .. i18n("syslog.syslog") .. "</span></a>"
 local mac_info = interface.getMacInfo(host["mac"])
 local tskey
 
@@ -297,7 +303,7 @@ end
 local host_pool_id = nil
 
 if (host ~= nil) then
-   charts_available = charts_available and host["localhost"] and not host["is_multicast"]
+   charts_available = charts_available and is_localhost and not host["is_multicast"]
    if (host_pool_id == nil) then
       host_pool_id = tostring(host["host_pool_id"])
    end
@@ -512,7 +518,7 @@ else
       page_name = "ndpi",
       label = i18n("applications")
    }, {
-      hidden = have_nedge or only_historical or not host["localhost"],
+      hidden = have_nedge or only_historical or not is_localhost,
       active = page == "dns",
       page_name = "dns",
       label = i18n("dns")
@@ -527,7 +533,7 @@ else
       page_name = "ssh",
       label = i18n("ssh")
    }, {
-      hidden = only_historical or have_nedge or not host["localhost"] or not host["http"] or
+      hidden = only_historical or have_nedge or not is_localhost or not host["http"] or
          (host["http"]["sender"]["query"]["total"] == 0 and host["http"]["receiver"]["response"]["total"] == 0 and
             table.len(host["http"]["virtual_hosts"] or {}) == 0),
       active = page == "http",
@@ -535,7 +541,7 @@ else
       label = i18n("http"),
       badge_num = host["active_http_hosts"]
    }, {
-      hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
+      hidden = only_historical or not is_localhost or (table.len(sites_granularities) == 0),
       active = page == "sites",
       page_name = "sites",
       label = i18n("sites_page.sites")
@@ -588,7 +594,7 @@ else
       page_name = "historical",
       label = "<i class='fas fa-lg fa-chart-area' title='" .. i18n("historical") .. "'></i>"
    }, {
-      hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
+      hidden = only_historical or (not is_localhost) or (not hasTrafficReport()),
       active = page == "traffic_report",
       page_name = "traffic_report",
       label = "<i class='fas fa-lg fa-file-alt report-icon' title='" .. i18n("report.traffic_report") .. "'></i>"
@@ -623,7 +629,7 @@ else
       label = "<i class='fas fa-lg fa-cog' title='" .. i18n("settings") .. "'></i></a></li>"
    }})
 
-   if (((host["bytes.sent"] == 0) or (host["bytes.rcvd"] == 0)) and host["localhost"] and not host["is_multicast"] and
+   if (((host["bytes.sent"] == 0) or (host["bytes.rcvd"] == 0)) and is_localhost and not host["is_multicast"] and
       not host["is_broadcast"]) then
       print("<div class=\"alert alert alert-warning\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
                i18n("host_details.unidirectional_traffic") .. "</div>")
@@ -696,8 +702,8 @@ else
             print("<strike>")
          end
          print(host["ip"])
-
-         if host["localhost"] and assetsInventoryEnabled() then
+         if show_syslog then print(" " .. syslog_events_url) end
+         if is_localhost and assetsInventoryEnabled() then
             local asset_utils = require "asset_utils"
             -- The asset is looked up by IP and VLAN, as the same IP can be on different VLANs
             local asset_serial_key = asset_utils.getHostAssetKey(ifId, host_ip, host_vlan)
@@ -875,7 +881,7 @@ else
                      '" target=_blank><small>IPinfo</small> <i class=\"fas fa-external-link-alt\"></i></A>')
          end
 
-         if (ifstats.inline and ((host["localhost"] == true) and (host["is_multicast"] == false) and (host["is_broadcast"] == false))) then
+         if (ifstats.inline and ((is_localhost == true) and (host["is_multicast"] == false) and (host["is_broadcast"] == false))) then
             print('<br><form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
             print('<input type="hidden" name="drop_host_traffic_policy" value="true">')
             print('<button type="submit" class="btn ')
@@ -898,7 +904,7 @@ else
          end
 
          
-         if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and host["localhost"] then
+         if (ntop.isEnterpriseL and ntop.isEnterpriseL()) and hasClickHouseSupport() and isWazuhEnabled() and is_localhost then
             local epoch_begin = os.time() - 3600 * 24 -- Last day
             print([[
                <button class='btn btn-sm btn-light' style='background-color: var(--bs-btn-hover-bg)'>
@@ -1569,7 +1575,7 @@ setInterval(update_icmp_table, 5000);
          },
          view = "applications",
          is_ch_enabled = hasClickHouseSupport(),
-         is_locale = ternary(host["localhost"], "1", "0"),
+         is_locale = ternary(is_localhost, "1", "0"),
          ts_l7_enabled = timeseries_l7_enabled,
          ts_cat_enabled = timeseries_cat_enabled
       }
@@ -1969,7 +1975,7 @@ setInterval(update_icmp_table, 5000);
       -- template render
       local json_context = json.encode({
          host = host_ip,
-         is_local = host["localhost"]
+         is_local = is_localhost
       })
       template.render("pages/vue_page.template", {
          vue_page_name = "PageHostDetailsFlowSankey",
