@@ -889,7 +889,8 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow* const flow,
 	 we set the vlan_id only if there is no inner vlan
 	 value set
       */
-      flow->vlan_id = value->int_num;
+      if ((flow->vlan_id = value->int_num) > 4095) /* Sanity check */
+	flow->vlan_id = 0;
     }
     break;
   case PROTOCOL:
