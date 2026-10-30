@@ -213,20 +213,32 @@ static void redirect_to_ssl(struct mg_connection* conn,
 
 /* ****************************************** */
 
+static int get_secure_random(void *dest, size_t size);
+
 /* Generates a random token to protect against CSRF attacks.
  * See ntop_get_csrf_value for more details. */
 static void generate_csrf_token(char* csrf) {
+#ifdef __OpenBSD__
   char random_a[32], random_b[32];
 
-#ifdef __OpenBSD__
   snprintf(random_a, sizeof(random_a), "%d", arc4random());
   snprintf(random_b, sizeof(random_b), "%lu", time(NULL) * arc4random());
-#else
-  snprintf(random_a, sizeof(random_a), "%d", rand());
-  snprintf(random_b, sizeof(random_b), "%lu", time(NULL) * rand());
-#endif
 
   mg_md5(csrf, random_a, random_b, (char *) NULL);
+#else
+  unsigned char random_data[16]; /* 128 bits of entropy */
+  char random_str[(sizeof(random_data) * 2) + 1];
+
+  if (get_secure_random(random_data, sizeof(random_data)) == 0) {
+    for (u_int i = 0; i < sizeof(random_data); i++)
+      snprintf(&random_str[i * 2], 3, "%02x", random_data[i]);
+  } else {
+    snprintf(random_str, sizeof(random_str), "%d-%lu", rand(),
+             (unsigned long)time(NULL));
+  }
+
+  mg_md5(csrf, random_str, (char *) NULL);
+#endif
 }
 
 /* ****************************************** */
