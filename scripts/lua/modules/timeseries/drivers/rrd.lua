@@ -174,13 +174,15 @@ local function schema_get_path(schema, tags)
       -- tag2:already handled as host_or_network
       -- last tag must be handled separately
       for i = 3, #schema._tags - 1 do
-         intermediate_tags[#intermediate_tags + 1] = tags[schema._tags[i]]
+         local path = string.gsub(tags[schema._tags[i]], "%.%./", "")
+         intermediate_tags[#intermediate_tags + 1] = path
       end
 
       local last_tag = schema._tags[#schema._tags]
 
       if (not WILDCARD_TAGS[last_tag]) then
-         intermediate_tags[#intermediate_tags + 1] = tags[last_tag]
+         local path = string.gsub(tags[last_tag], "%.%./", "")
+         intermediate_tags[#intermediate_tags + 1] = path
       end
 
       if intermediate_tags[1] ~= nil then
