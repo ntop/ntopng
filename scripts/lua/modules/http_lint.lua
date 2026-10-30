@@ -1314,6 +1314,18 @@ local function validateIpAddressOrNetwork(p)
 end
 
 local function validateHost(p)
+   -- traffic rules wildcardp
+   if p == "*" then
+      return true
+   end
+
+   -- hostkey2hostinfo removes everything after "/", validate the CIDR part
+   -- to not accept "8.8.8.8/;payload"
+   local address = p:match("^([^@]*)")
+   if address and address:find("/", 1, true) and not (address:match("^[^/]+/%d+$") and validateNetwork(address)) then
+      return false
+   end
+
    local host = hostkey2hostinfo(p)
 
    if (host.host ~= nil) and (host.vlan ~= nil) and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
@@ -2423,6 +2435,7 @@ local known_parameters = {
    ["enabled"] = validateBool,
    ["showGraph"] = validateBool,
    ["range"] = validateUnquoted,
+   ["threshold_sign"] = validateNumber,
 
    -- CLASSIFICAION
    ["classification_user_id"] = validateUnquoted,
