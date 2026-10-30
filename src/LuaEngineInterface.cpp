@@ -798,7 +798,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   c->live_capture.stopped = c->live_capture.pcaphdr_sent = false;
   c->live_capture.bpfFilterSet = false;
 
-  bpf = ntop->preparePcapDownloadFilter(vm, bpf);
+  bpf = ntop->preparePcapDownloadFilter(vm, bpf, iface->get_datalink());
 
   if (bpf == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -815,11 +815,17 @@ static int ntop_interface_live_capture(lua_State* vm) {
       if (pcap_compile(pcap_handle, &c->live_capture.fcode, bpf, 0,
                        PCAP_NETMASK_UNKNOWN) == -1)
         ntop->getTrace()->traceEvent(
-            TRACE_WARNING, "Unable to set capture filter %s. Filter ignored.",
-            bpf);
+            TRACE_WARNING, "Unable to set capture filter %s", bpf);
       else
         c->live_capture.bpfFilterSet = true;
       pcap_close(pcap_handle);
+    }
+
+    if (!c->live_capture.bpfFilterSet) {
+      /* Never fall back to an unfiltered capture: the filter also enforces
+       * the user allowed networks */
+      free(bpf);
+      return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
     }
   }
 
