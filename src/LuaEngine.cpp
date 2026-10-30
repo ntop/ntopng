@@ -1350,7 +1350,8 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
         }
       } else if ((post_data = (char*)malloc(content_len * sizeof(char))) ==
                      NULL ||
-                 (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
+                 (post_data_len = mg_read(conn, post_data, content_len)) <= 0) {
+        /* Allocation failure, empty body, or read error/timeout (< 0) */
         valid_csrf = 0;
       } else {
         post_data[post_data_len] = '\0';

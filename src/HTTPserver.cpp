@@ -652,6 +652,7 @@ static int getAuthorizedUser(struct mg_connection* conn,
         int post_data_len = mg_read(conn, post_data, sizeof(post_data));
         bool success;
 
+        if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
         label[0] = '\0';
 
         mg_get_var(post_data, post_data_len, "username", username,
@@ -1216,6 +1217,7 @@ static void authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
 
     mg_get_var(post_data, post_data_len, "user", user, sizeof(user));
     mg_get_var(post_data, post_data_len, "password", password,
@@ -1299,6 +1301,7 @@ static void mfa_authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[512];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
     mg_get_var(post_data, post_data_len, "token", token, sizeof(token));
     mg_get_var(post_data, post_data_len, "totp_code", code, sizeof(code));
   } else {
@@ -1361,6 +1364,7 @@ static void webauthn_authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[32768];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data) - 1);
+    if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
     post_data[post_data_len] = '\0';
     mg_get_var(post_data, post_data_len, "token",       token,   sizeof(token));
     mg_get_var(post_data, post_data_len, "cred_id",     cred_id, sizeof(cred_id));
