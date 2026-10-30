@@ -10975,6 +10975,7 @@ local lang = {
     ["title"] = "Suricata",
   },
   ["syslog"] = {
+    ["host_details_message"] = "Mostra gli eventi Syslog dell'host",
     ["add"] = "Aggiungi Produttore Log",
     ["bad_action_param"] = "\"action\" non valida",
     ["confirm_delete"] = "Eliminare questo produttore?",

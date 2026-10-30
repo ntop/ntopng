@@ -8088,6 +8088,10 @@ local lang = {
     ["query_failed"] = "Query failed: %{error}",
     ["tables_load_failed"] = "Cannot load the list of tables",
     ["table_info"] = "%{engine}, %{rows} rows, %{size}",
+    ["filter_columns"] = "Filter columns",
+    ["columns_count"] = "%{n} columns",
+    ["columns_hint"] = "Click a column to add it to the query",
+    ["columns_load_failed"] = "Cannot load the columns of the table",
   },
   ["manage_data"] = {
     ["all_hosts"] = "All",
@@ -11226,6 +11230,7 @@ local lang = {
     ["title"] = "Suricata",
   },
   ["syslog"] = {
+    ["host_details_message"] = "Show Syslog events for host",
     ["add"] = "Add Log Producer",
     ["bad_action_param"] = "Bad \"action\" paramater",
     ["confirm_delete"] = "Do you really want to remove this producer?",
