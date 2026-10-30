@@ -156,7 +156,7 @@ FlowAlertsLoader::~FlowAlertsLoader() {}
 
 void FlowAlertsLoader::registerAlert(FlowAlertType alert_type,
                                      u_int8_t alert_score) {
-  if (alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE)
+  if ((alert_type.id < 0) || (alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE))
     ntop->getTrace()->traceEvent(
         TRACE_ERROR, "Ignoring alert with unknown id %u", alert_type.id);
   else
@@ -167,7 +167,7 @@ void FlowAlertsLoader::registerAlert(FlowAlertType alert_type,
 
 void FlowAlertsLoader::registerRisk(FlowAlertType alert_type,
                                     ndpi_risk_enum risk) {
-  if (alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE)
+  if ((alert_type.id < 0) || (alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE))
     ntop->getTrace()->traceEvent(
         TRACE_ERROR, "Ignoring alert with unknown id %u", alert_type.id);
   else
@@ -177,7 +177,9 @@ void FlowAlertsLoader::registerRisk(FlowAlertType alert_type,
 /* **************************************************** */
 
 u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
-  if (alert_id < MAX_DEFINED_FLOW_ALERT_TYPE) return alert_to_score[alert_id];
+  /* alert_id may come from Lua: check both bounds (the comparison is signed) */
+  if ((alert_id >= 0) && (alert_id < MAX_DEFINED_FLOW_ALERT_TYPE))
+    return alert_to_score[alert_id];
 
   return 0;
 }
@@ -186,7 +188,8 @@ u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
 
 ndpi_risk_enum FlowAlertsLoader::getAlertRisk(
     FlowAlertTypeEnum alert_id) const {
-  if (alert_id < MAX_DEFINED_FLOW_ALERT_TYPE) return alert_to_risk[alert_id];
+  if ((alert_id >= 0) && (alert_id < MAX_DEFINED_FLOW_ALERT_TYPE))
+    return alert_to_risk[alert_id];
 
   return NDPI_NO_RISK;
 }
