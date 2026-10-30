@@ -76,6 +76,10 @@ bool SyslogLuaEngine::pcall(int num_args, int num_results) {
   if (lua_pcall(L, num_args, num_results, 0)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]",
                                  lua_tostring(L, -1));
+    /* Pop the error object: this VM is reused for every event received
+       on the interface, so anything left on the lua stack piles up until
+       it overflows */
+    lua_pop(L, 1);
     return false;
   }
 
@@ -91,6 +95,9 @@ void SyslogLuaEngine::handleEvent(const char* producer, const char* message,
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "Producer = %s Host = %s
   // Message = %s",
   //   producer ? producer : "", host ? host : "", message ? message : "");
+
+  /* Reset the stack in case anything was left by a previous event */
+  lua_settop(L, 0);
 
   lua_getglobal(L, SYSLOG_SCRIPT_CALLBACK_EVENT);
   lua_pushstring(L, producer ? producer : "");
