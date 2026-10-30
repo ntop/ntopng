@@ -4507,7 +4507,7 @@ static int ntop_run_live_extraction(lua_State* vm) {
   live_extraction_num_lock.unlock(__FILE__, __LINE__);
 
   if (allow) {
-    bpf = ntop->preparePcapDownloadFilter(vm, bpf);
+    bpf = ntop->preparePcapDownloadFilter(vm, bpf, iface->get_datalink());
 
     if (bpf) {
 
@@ -4516,12 +4516,13 @@ static int ntop_run_live_extraction(lua_State* vm) {
       success = timeline.extractLive(c->conn, iface, time_from, time_to, bpf,
                                      timeline_path);
 
-      live_extraction_num_lock.lock(__FILE__, __LINE__);
-      live_extraction_num--;
-      live_extraction_num_lock.unlock(__FILE__, __LINE__);
-
       free(bpf);
     }
+
+    /* Release the slot also when the filter has been rejected */
+    live_extraction_num_lock.lock(__FILE__, __LINE__);
+    live_extraction_num--;
+    live_extraction_num_lock.unlock(__FILE__, __LINE__);
   }
 
   lua_pushboolean(vm, success);
