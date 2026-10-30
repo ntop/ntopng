@@ -505,8 +505,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
   if (zflow->getL7JSON()) flow->setL7JSON(zflow->getL7JSON());
 
-  if (zflow->getSIPCallId()) flow->setSIPCallId(zflow->getSIPCallId());
-
   if (zflow->isSwapped()) flow->set_swap_done();
 
   flow->setFlowSource(zflow->getFlowSource());
@@ -774,6 +772,10 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       if (zflow->getDHCPClientName()) {
         flow->setDHCPHostName(zflow->getDHCPClientName());
       }
+    }
+
+    if (flow->isSIP()) {
+      if (zflow->getSIPCallId()) flow->setSIPCallId(zflow->getSIPCallId());
     }
 
     if (zflow->getRiskName()) flow->setFlowRiskName(zflow->getRiskName());
