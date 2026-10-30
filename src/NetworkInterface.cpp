@@ -1979,8 +1979,8 @@ bool NetworkInterface::processPacket(
   if (iph != NULL) {
     u_int16_t ip_len, ip_tot_len;
 
-    /* IPv4 */
-    if ((trusted_ip_len < 20) || ((ip_len = iph->ihl * 4) == 0)) {
+    if ((trusted_ip_len < 20) || ((ip_len = iph->ihl * 4) == 0) ||
+        (iph->version != 4) /* This is not IPv4 */) {
       incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1, srcMac, dstMac);
@@ -2040,7 +2040,9 @@ bool NetworkInterface::processPacket(
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
     u_int32_t* tos_ptr = (u_int32_t*)ip6;
 
-    if (trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) {
+    if ((trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) ||
+        ((ntohl(ip6->ip6_hdr.ip6_un1_flow) & 0xF0000000) !=
+         0x60000000) /* This is not IPv6 */) {
       incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1, srcMac, dstMac);
