@@ -1230,13 +1230,11 @@ static void authorize(struct mg_connection* conn,
     get_qsvar(request_info, "ref", referer, sizeof(referer));
 
     if (referer[0] == '\0') {
-      for (int i = 0; request_info->http_headers[i].name != NULL; i++) {
-        if (strcmp(request_info->http_headers[i].name, "Referer") == 0) {
-          snprintf(referer, sizeof(referer), "%s",
-                   request_info->http_headers[i].value);
-          break;
-        }
-      }
+      /* Only the first num_headers entries are valid: the table is not
+         NULL-terminated and may hold stale pointers from previous requests */
+      const char* referer_hdr = mg_get_header(conn, "Referer");
+
+      if (referer_hdr) snprintf(referer, sizeof(referer), "%s", referer_hdr);
     }
   }
 

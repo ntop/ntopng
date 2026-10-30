@@ -1517,9 +1517,7 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
   origin_header = mg_get_header(conn, "Origin");
   if (origin_header) lua_push_str_table_entry(L, "Origin", origin_header);
 
-  for (int i = 0; ((request_info->http_headers[i].name != NULL) &&
-                   request_info->http_headers[i].name[0] != '\0');
-       i++)
+  for (int i = 0; i < request_info->num_headers; i++)
     lua_push_str_table_entry(L, request_info->http_headers[i].name,
                              (char*)request_info->http_headers[i].value);
 
