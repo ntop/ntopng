@@ -5564,7 +5564,6 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
     int32_t i32;
     u_int64_t v64;
     int64_t i64;
-    u_int8_t bkp;
 
     if (et == ndpi_serialization_end_of_record) {
       ndpi_deserialize_next(&deserializer);
@@ -5579,10 +5578,7 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
 
       case ndpi_serialization_string:
         ndpi_deserialize_key_string(&deserializer, &ks);
-        bkp = ks.str[ks.str_len];
-        ks.str[ks.str_len] = '\0';
-        snprintf(key, sizeof(key), "%s", ks.str);
-        ks.str[ks.str_len] = bkp;
+        snprintf(key, sizeof(key), "%.*s", ks.str_len, ks.str);
         break;
 
       default:
@@ -5613,12 +5609,11 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
 
       case ndpi_serialization_string:
         ndpi_deserialize_value_string(&deserializer, &vs);
-        if (vs.str) {
-          bkp = vs.str[vs.str_len];
-          vs.str[vs.str_len] = '\0';
-          ndpi_serialize_string_string(serializer, key, vs.str);
-          vs.str[vs.str_len] = bkp;
-        }
+        /* vs.str is not NUL-terminated and, for the last item of a full
+           buffer, vs.str[vs.str_len] is past the end of the TLV buffer:
+           do not terminate it in place, pass the length instead */
+        if (vs.str)
+          ndpi_serialize_string_string_len(serializer, key, vs.str, vs.str_len);
         break;
 
       default:
@@ -5654,7 +5649,6 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
     float f = 0;
     u_int64_t v64;
     int64_t i64;
-    u_int8_t bkp;
 
     if (et == ndpi_serialization_end_of_record) {
       ndpi_deserialize_next(&deserializer);
@@ -5669,10 +5663,7 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
 
       case ndpi_serialization_string:
         ndpi_deserialize_key_string(&deserializer, &ks);
-        bkp = ks.str[ks.str_len];
-        ks.str[ks.str_len] = '\0';
-        snprintf(key, sizeof(key), "%s", ks.str);
-        ks.str[ks.str_len] = bkp;
+        snprintf(key, sizeof(key), "%.*s", ks.str_len, ks.str);
         break;
 
       default:
@@ -5708,10 +5699,9 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
 
       case ndpi_serialization_string:
         ndpi_deserialize_value_string(&deserializer, &vs);
-        bkp = vs.str[vs.str_len];
-        vs.str[vs.str_len] = '\0';
-        lua_push_str_table_entry(vm, key, vs.str);
-        vs.str[vs.str_len] = bkp;
+        /* See tlv2serializer(): vs.str cannot be terminated in place */
+        if (vs.str)
+          lua_push_str_len_table_entry(vm, key, vs.str, vs.str_len);
         break;
 
       default:
