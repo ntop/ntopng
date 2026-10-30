@@ -1616,8 +1616,73 @@ void Flow::endProtocolDissection(bool src2dst_direction) {
 
 /* *************************************** */
 
+/* Return the protocol identifying the member of the Flow::protos union used
+ * by the specified protocol (NDPI_PROTOCOL_UNKNOWN if it uses none). Keep in
+ * sync with the is<Proto>() methods and with Flow::~Flow() */
+static u_int16_t getProtosUnionMember(u_int16_t proto_id) {
+  switch (proto_id) {
+    case NDPI_PROTOCOL_HTTP:
+    case NDPI_PROTOCOL_HTTP_PROXY:
+    case NDPI_PROTOCOL_HTTP_CONNECT:
+      return (NDPI_PROTOCOL_HTTP);
+
+    case NDPI_PROTOCOL_TLS: /* See Flow::isTLS() */
+    case NDPI_PROTOCOL_MAIL_IMAPS:
+    case NDPI_PROTOCOL_MAIL_SMTPS:
+    case NDPI_PROTOCOL_MAIL_POPS:
+    case NDPI_PROTOCOL_QUIC:
+      return (NDPI_PROTOCOL_TLS);
+
+    case NDPI_PROTOCOL_IP_ICMP:
+    case NDPI_PROTOCOL_IP_ICMPV6:
+      return (NDPI_PROTOCOL_IP_ICMP);
+
+    case NDPI_PROTOCOL_DNS:
+    case NDPI_PROTOCOL_MDNS:
+    case NDPI_PROTOCOL_SSDP:
+    case NDPI_PROTOCOL_NETBIOS:
+    case NDPI_PROTOCOL_DHCP:
+    case NDPI_PROTOCOL_SIP:
+    case NDPI_PROTOCOL_SSH:
+    case NDPI_PROTOCOL_IP_IGMP:
+    case NDPI_PROTOCOL_MINING:
+    case NDPI_PROTOCOL_MAIL_SMTP:
+    case NDPI_PROTOCOL_SMBV23:
+      return (proto_id);
+
+    default:
+      return (NDPI_PROTOCOL_UNKNOWN);
+  }
+}
+
+/* *************************************** */
+
 /* Manually set a protocol on the flow and terminate the dissection. */
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool src2dst_direction) {
+
+  /*
+    The member of the protos union in use is selected with isProto(), that
+    matches both the master and the application protocol. nDPI never combines
+    protocols that use different members (e.g. DNS.TLS) but here the pair can
+    come from a remote exporter: make sure it selects one member at most,
+    otherwise the same bytes would be read and written with different types.
+  */
+
+  u_int16_t master = getProtosUnionMember(proto_id.proto.master_protocol);
+  u_int16_t app = getProtosUnionMember(proto_id.proto.app_protocol);
+
+  if ((protocol == IPPROTO_ICMP) || (protocol == IPPROTO_ICMPV6)) {
+    /* protos.icmp is used whatever the L7 protocol is */
+    if ((master != NDPI_PROTOCOL_UNKNOWN) && (master != NDPI_PROTOCOL_IP_ICMP))
+      proto_id.proto.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+
+    if ((app != NDPI_PROTOCOL_UNKNOWN) && (app != NDPI_PROTOCOL_IP_ICMP))
+      proto_id.proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+  } else if ((master != NDPI_PROTOCOL_UNKNOWN) &&
+             (app != NDPI_PROTOCOL_UNKNOWN) && (master != app)) {
+    proto_id.proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+  }
+
   updateProtocol(proto_id);
   setProtocolDetectionCompleted(NULL, 0, iface->getTimeLastPktRcvd());
 

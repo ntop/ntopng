@@ -389,6 +389,9 @@ class Flow : public GenericHashEntry {
     struct {
       char *filename;
     } smb;
+
+    /* If you add new structs here, please update getProtosUnionMember() also */
+
   } protos;
 
   /* eBPF Information */
