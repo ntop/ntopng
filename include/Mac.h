@@ -38,7 +38,7 @@ class Mac : public GenericHashEntry {
   u_int32_t num_remote_hosts; 
   bool special_mac, lockDeviceTypeChanges, broadcast_mac, empty_mac;
   std::atomic<bool> asset_map_updated;
-  bool stats_reset_requested, data_delete_requested;
+  bool stats_reset_requested, data_delete_requested, is_router;
   const char* manuf;
   MacStats *stats, *stats_shadow;
   time_t last_stats_reset;
@@ -88,7 +88,7 @@ class Mac : public GenericHashEntry {
      it. This is what tells a real default gateway apart from a plain
      networking device (switch/AP) or from a local host that merely shares
      the gateway MAC because its own MAC was never observed. */
-  inline bool isRouterMac() { return (num_remote_hosts > 0); }
+  inline bool isRouterMac() { return (is_router || (num_remote_hosts > 0)); }
   void setDeviceType(DeviceType devtype);
   inline void incUses() {
     GenericHashEntry::incUses();
@@ -253,6 +253,7 @@ class Mac : public GenericHashEntry {
 #ifdef HAVE_NEDGE
   void logMacEvent(char* msg);
 #endif
+  inline void setRouter() { is_router = true; };
 };
 
 #endif /* _MAC_H_ */

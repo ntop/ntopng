@@ -353,6 +353,13 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
         if (iface->is_ndpi_enabled()) allocDPIMemory();
 
         set_hash_entry_state_flow_notyetdetected();
+
+	/* ICMPv6 Router Advertisement */
+	if((srv_mac[0] == 0x33) || (srv_mac[1] == 0x33) || (srv_mac[2] == 0x0)
+	   || (srv_mac[3] == 0x0) || (srv_mac[4] == 0x0) || (srv_mac[5] == 0x1)) {
+	  c_mac->setRouter();
+	  c_mac->setDeviceType(device_networking);
+	}
         break;
 
       default:

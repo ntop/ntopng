@@ -28,7 +28,7 @@ Mac::Mac(NetworkInterface* _iface, u_int8_t _mac[6])
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   memcpy(mac, _mac, 6);
-
+  is_router = false;
   broadcast_mac = Utils::isBroadcastMac(mac);
   special_mac = Utils::isSpecialMac(mac);
   empty_mac = Utils::isEmptyMac(mac);
