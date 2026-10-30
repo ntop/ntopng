@@ -1339,11 +1339,11 @@ bool Host::isUserTagSet(u_int tag_idx) {
  * bits 32-63 are user-defined tags.
  * This must be called every time the tags are observed, even when the host
  * already has them, as it also refreshes the tags (see setTagsRefreshed) */
-void Host::addTags(u_int64_t bitmap) {
+void Host::addTags(u_int64_t bitmap, Flow* f, const char* evidence) {
   u_int64_t user_tags = bitmap & HOST_USER_TAGS_MASK;
   u_int64_t computed_tags = bitmap & ~HOST_USER_TAGS_MASK;
 
-  setTagsRefreshed(bitmap);
+  setTagsRefreshed(bitmap, f, evidence);
 
   if (user_tags) addUserTags(user_tags);
 
@@ -2112,7 +2112,7 @@ void Host::setServerName(const char* server_n) {
 
 /* *************************************** */
 
-void Host::setResolvedName(const char* resolved_name) {
+void Host::setResolvedName(const char* resolved_name, Flow* f) {
   /* Multiple threads can set this so we must lock */
   if (resolved_name && resolved_name[0] != '\0') {
     m.lock(__FILE__, __LINE__);
@@ -2279,13 +2279,13 @@ void Host::checkStatsReset() {
   to set on the original host, the services and the tags
   that have been observed on the shadow IP address
 */
-void Host::updateView(IpAddress* ipa) {
+void Host::updateView(IpAddress* ipa, Flow* f) {
   for (int i = 1; i <= NUM_HOST_SERVICES; i++) {
     HostService s = (HostService)i;
-    if (ipa->providesService(s)) setService(s);
+    if (ipa->providesService(s)) setService(s, f);
   }
 
-  if (ipa->getTagsMap() != 0) addTags(ipa->getTagsMap());
+  if (ipa->getTagsMap() != 0) addTags(ipa->getTagsMap(), f);
 }
 
 /* *************************************** */
@@ -2400,7 +2400,7 @@ char* Host::get_mac_based_tskey(Mac* mac, char* buf, size_t bufsize,
 
 /* *************************************** */
 
-bool Host::setOS(ndpi_os _os, OSLearningMode mode) {
+bool Host::setOS(ndpi_os _os, OSLearningMode mode, Flow* f) {
   Mac* cur_mac;
   char msg[64];
 
@@ -2428,6 +2428,8 @@ bool Host::setOS(ndpi_os _os, OSLearningMode mode) {
   }
 
   /* Tag of the Operating System: the previous one (if any) is replaced */
+  /* NOTE: the causes of these tags (journal of the assets) are set by
+   * LocalHost::setOS, with the evidence of the OS */
   if (os_type != _os) setTagsRemoved(getOSTag(os_type));
   setTagsRefreshed(getOSTag(_os));
 
@@ -3035,10 +3037,10 @@ void Host::visit(std::vector<ActiveHostWalkerInfo>* v, HostWalkMode mode) {
 /* This must be called every time the service is observed, even when the host
  * already provides it, as it also refreshes the tag of the service (see
  * setTagsRefreshed). Return true when the service is new for the host */
-bool Host::setService(HostService service_enum) {
+bool Host::setService(HostService service_enum, Flow* f) {
   if ((service_enum > 0) && (service_enum < HOST_SERVICE_MAX) &&
       (host_service_to_host_tag[service_enum] != -1))
-    setTagsRefreshed(1ULL << host_service_to_host_tag[service_enum]);
+    setTagsRefreshed(1ULL << host_service_to_host_tag[service_enum], f);
 
   if (!providesService(service_enum)) {
     host_services_bitmap |= 1 << service_enum;
@@ -3196,7 +3198,7 @@ void Host::toggleRxOnlyHost(bool rx_only) {
 /* when: time of the flow the OS has been learnt from. The view interfaces do
  * not process their flows in time order: an OS learnt from a flow older than
  * the one that has set the current OS must not replace it */
-void Host::setnDPIOS(ndpi_os _os, time_t when) {
+void Host::setnDPIOS(ndpi_os _os, time_t when, Flow* f) {
   if (when < os_hint_time) return;
 
   os_hint_time = when;
@@ -3206,7 +3208,16 @@ void Host::setnDPIOS(ndpi_os _os, time_t when) {
 
     if (os_type == _os) {
       /* Nothing changed: the OS has been observed again, refresh its tag */
-      setTagsRefreshed(getOSTag(_os));
+#ifdef NTOPNG_PRO
+      if (isLocalHost()) {
+        char evidence[64]; /* Journal of the assets */
+
+        snprintf(evidence, sizeof(evidence), "%s (%s)", Utils::OS2Str(_os),
+                 Utils::learningMode2str(os_learning_tcp_fingerprint));
+        setTagsRefreshed(getOSTag(_os), f, evidence);
+      } else
+#endif
+        setTagsRefreshed(getOSTag(_os), f);
       return;
     } else {
       /* ntop->getTrace()->traceEvent(TRACE_WARNING, "OS change detected [%u ->
@@ -3217,7 +3228,7 @@ void Host::setnDPIOS(ndpi_os _os, time_t when) {
       /* NOTE: os_type must not be set here but by setOS(), that otherwise
        * finds the OS already set and does not handle it as a change (e.g. the
        * OS of the asset is not updated, see LocalHost::setOS) */
-      if (setOS(_os, os_learning_tcp_fingerprint)) alt_os_type = prev_os_type;
+      if (setOS(_os, os_learning_tcp_fingerprint, f)) alt_os_type = prev_os_type;
     }
   }
 }
