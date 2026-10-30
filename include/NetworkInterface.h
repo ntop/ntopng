@@ -63,29 +63,44 @@ class TrafficShaper;
 class NetworkInterfacePro;
 class Sites;
 
-// 1. Overload the operator== for ndpi_in6_addr
-// This must be in the same namespace as the struct or global namespace
+
+// ============================================================================
+// 1. EQUALITY OPERATOR (Required for std::unordered_map)
+// ============================================================================
 inline bool operator==(const ndpi_in6_addr& lhs, const ndpi_in6_addr& rhs) {
-  // Assuming ndpi_in6_addr mimics in6_addr with a 16-byte array
+  // Compare the entire 16-byte internal structures directly
   return std::memcmp(&lhs, &rhs, sizeof(ndpi_in6_addr)) == 0;
 }
 
-// 2. Create a custom hasher or inject it into the std namespace
+// ============================================================================
+// 2. LESS-THAN OPERATOR (Required for std::set)
+// ============================================================================
+inline bool operator<(const ndpi_in6_addr& lhs, const ndpi_in6_addr& rhs) {
+  // memcmp returns < 0 if lhs is smaller, defining strict weak ordering
+  return std::memcmp(&lhs, &rhs, sizeof(ndpi_in6_addr)) < 0;
+}
+
+// ============================================================================
+// 3. CUSTOM HASH FUNCTION (Required for std::unordered_map)
+// ============================================================================
 namespace std {
   template <>
   struct hash<ndpi_in6_addr> {
-    std::size_t operator()(const ndpi_in6_addr& addr) const noexcept {
-      // A simple and fast FNV-1a hash implementation for raw bytes
-      const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&addr);
-      std::size_t hash = 2166136261U;
-      for (std::size_t i = 0; i < sizeof(ndpi_in6_addr); ++i) {
-	hash ^= bytes[i];
-	hash *= 16777619U;
+    size_t operator()(const ndpi_in6_addr& addr) const {
+      // An IPv6 address is 16 bytes long. We treat it as an array of four 32-bit integers
+      // and combine them using a standard hash-combine formula (similar to boost::hash_combine).
+      const uint32_t* p = reinterpret_cast<const uint32_t*>(&addr);
+
+      size_t seed = 0;
+      for (int i = 0; i < 4; ++i) {
+	// Combine the four 32-bit chunks into a single size_t hash seed
+	seed ^= std::hash<uint32_t>{}(p[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
       }
-      return hash;
+      return seed;
     }
   };
 }
+
 #endif
 
 /** @class NetworkInterface
@@ -137,8 +152,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   PeriodicityMap* pMap;
   ServiceMap* sMap;
   ACLFlow* acl_flow;
-  std::unordered_map<struct ndpi_in6_addr /* host */, std::tuple<struct ndpi_in6_addr /* exporter IP */, u_int16_t /* ifIdx */> > host_to_exporter;
-  std::unordered_map<struct ndpi_in6_addr /* exporter */, std::tuple<struct ndpi_in6_addr /* next_hop IP */,  u_int16_t /* ifIdx */> > exporter_to_exporter;
+  std::unordered_map<struct ndpi_in6_addr /* host */, std::set<struct ndpi_in6_addr /* exporter IP */> > host_to_exporter;
+  std::unordered_map<struct ndpi_in6_addr /* exporter */, std::set<struct ndpi_in6_addr /* next_hop IP */> > exporter_to_exporter;
   QoEStats qoe_stats;
 #endif
 

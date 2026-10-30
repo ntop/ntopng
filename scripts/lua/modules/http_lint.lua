@@ -3473,7 +3473,8 @@ local special_parameters = { --[[Suffix validator]]
     ["gw_id_"] = {validateNumber, validateGatewayName},
     ["pol_id_"] = {validateNumber, validateRoutingPolicyName},
     ["routing_"] = {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
-
+    ["router"] = validateIpAddress,
+    
     -- DHCP Configuration
     ["dhcp_server_enabled_"] = {validateNetworkInterface, validateBool},
     ["dhcp_first_ip_"] = {validateNetworkInterface, validateIPV4},
@@ -3595,7 +3596,8 @@ local function validateSpecialParameter(param, value)
     for k, v in pairs(special_parameters) do
         if starts(param, k) and not known_parameters[param] --[[ make sure this is not a known, non-special param --]] then
             local suffix = split(param, k)[2]
-            value = ntop.httpPurifyParam(value)
+
+	    value = ntop.httpPurifyParam(value)
 
             if not v[1](suffix) then
                 return false, "Special Validation, parameter key", nil

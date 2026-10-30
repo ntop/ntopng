@@ -205,6 +205,7 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <typeinfo>
 #include <thread>
 #include <cstring> // For std::memcmp
+#include <cstdint>    // For uint8_t, size_t
 
 extern const ndpi_protocol getConstNdpiUnknownProtocol();
 
