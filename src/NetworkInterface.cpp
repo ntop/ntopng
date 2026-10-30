@@ -3426,7 +3426,8 @@ decode_packet_eth:
                            NULL /* srcMac */, NULL /* dstMac */);
                   goto dissect_packet_end;
                 }
-                iph = (struct ndpi_iphdr*)&packet[offset];
+                ip_offset = offset;
+                iph = (struct ndpi_iphdr*)&packet[ip_offset];
               } else if (proto == 0x0057) {
                 /* IPv6 */
                 eth_type = ETHERTYPE_IPV6;
@@ -3436,7 +3437,9 @@ decode_packet_eth:
                            NULL /* srcMac */, NULL /* dstMac */);
                   goto dissect_packet_end;
                 }
-                ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
+                ip_offset = offset;
+                ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
+                iph = NULL;
               } else if (proto == 0x003d /* PPP Multi-Link */) {
                 offset += 4;
                 if (offset + 3 >= h->caplen) {
@@ -3456,7 +3459,8 @@ decode_packet_eth:
                              NULL /* srcMac */, NULL /* dstMac */);
                     goto dissect_packet_end;
                   }
-                  iph = (struct ndpi_iphdr*)&packet[offset];
+                  ip_offset = offset;
+                  iph = (struct ndpi_iphdr*)&packet[ip_offset];
                   ip6 = NULL;
                 } else if (proto == 0x0057) {
                   eth_type = ETHERTYPE_IPV6;
@@ -3466,7 +3470,8 @@ decode_packet_eth:
                              NULL /* srcMac */, NULL /* dstMac */);
                     goto dissect_packet_end;
                   }
-                  ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
+                  ip_offset = offset;
+                  ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
                   iph = NULL;
                 }
               } else {
