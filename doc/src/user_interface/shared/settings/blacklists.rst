@@ -54,8 +54,8 @@ Under `/usr/share/ntopng/httpdocs/misc/lists/builtin` you can find the blacklist
 
 .. code:: bash
 	  
-   $:/usr/share/ntopng/httpdocs/misc/lists/builtin# cat abuse_ch.list
-   {"name":"Abuse.ch URLhaus","format":"hosts","enabled":true,"update_interval":86400,"url":"https://urlhaus.abuse.ch/downloads/hostfile/","category":"malware"}
+   $:/usr/share/ntopng/httpdocs/misc/lists/builtin# cat nocoin.list
+   {"name":"NoCoin Filter List","format":"hosts","enabled":true,"update_interval":86400,"url":"https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt","category":"mining"}
 
 There are various formats supported (field "format" in the list configuration file) including:
 
