@@ -27,6 +27,32 @@ alert_blacklisted_server_contact.meta = {
 
 -- ##############################################
 
+-- @brief Return the name of the blacklist that matched the flow
+-- @param alert_json The decoded alert JSON. Since the alert serialization rework the
+--        check info (custom_cat_file) is under alerts.<alert_key>; the flow-level
+--        "blacklist" field and the old top-level custom_cat_file are used as fallbacks
+-- @return The blacklist name, or an empty string when unknown
+local function get_blacklist_name(alert_json)
+    if not alert_json then
+        return ""
+    end
+
+    local alert_key = tostring(alert_blacklisted_server_contact.meta.alert_key)
+    local check_info = alert_json.alerts and alert_json.alerts[alert_key]
+
+    if check_info and not isEmptyString(check_info.custom_cat_file) then
+        return check_info.custom_cat_file
+    elseif not isEmptyString(alert_json.custom_cat_file) then
+        return alert_json.custom_cat_file
+    elseif not isEmptyString(alert_json.blacklist) then
+        return alert_json.blacklist
+    end
+
+    return ""
+end
+
+-- ##############################################
+
 -- @brief Prepare an alert table used to generate the alert
 -- @param info A flow info table fetched with `flow.getBlacklistedInfo()`
 -- @return A table with the alert built
@@ -38,8 +64,10 @@ end
 -- ##############################################
 
 function alert_blacklisted_server_contact:add_extra_info(alert_json)
-   if alert_json and alert_json.custom_cat_file and not isEmptyString(alert_json.custom_cat_file) then
-        return " [ " .. i18n("flow_details.blacklist", { blacklist = alert_json.custom_cat_file or "" }) .. " ] "
+    local blacklist = get_blacklist_name(alert_json)
+
+    if not isEmptyString(blacklist) then
+        return " [ " .. i18n("flow_details.blacklist", { blacklist = blacklist }) .. " ] "
     end
     return ""
 end
@@ -52,10 +80,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_blacklisted_server_contact.format(ifid, alert, alert_type_params)
-    local blacklist = ""
-    if not isEmptyString(alert_type_params["custom_cat_file"]) then
-        blacklist = alert_type_params["custom_cat_file"]
-    end
+    local blacklist = get_blacklist_name(alert_type_params)
     -- The client is blacklisted, so simply use the Client as who description    
     local res = i18n("flow_details.blacklisted_flow_detailed", {
         who = i18n("server"),
