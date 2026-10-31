@@ -2231,13 +2231,13 @@ static void readExtendedGateway(SFSample *sample)
 
   if(segments > 0) {
     sf_log("dst_as_path ");
-    for(seg = 0; seg < segments; seg++) {
+    for(seg = 0; seg < segments && (u_char *)sample->datap < sample->endp; seg++) {
       u_int32_t seg_type;
       u_int32_t seg_len;
       u_int32_t i;
       seg_type = getData32(sample);
       seg_len = getData32(sample);
-      for(i = 0; i < seg_len; i++) {
+      for(i = 0; i < seg_len && (u_char *)sample->datap < sample->endp; i++) {
 	u_int32_t asNumber;
 	asNumber = getData32(sample);
 	/* mark the first one as the dst_peer_as */
@@ -3190,7 +3190,7 @@ static int readFlowSample(SFSample *sample, int expanded)
   num_elements = getData32(sample);
   {
     u_int32_t el;
-    for(el = 0; el < num_elements; el++) {
+    for(el = 0; el < num_elements && (u_char *)sample->datap < sample->endp; el++) {
       u_int32_t tag, length;
       u_char *start;
       char buf[51];
@@ -3450,12 +3450,12 @@ static void readCounters_adaptors(SFSample *sample)
 {
   u_char *mac;
   u_int32_t i, j, ifindex, num_macs, num_adaptors = getData32(sample);
-  for(i = 0; i < num_adaptors; i++) {
+  for(i = 0; i < num_adaptors && (u_char *)sample->datap < sample->endp; i++) {
     ifindex = getData32(sample);
     sf_log("adaptor_%u_ifIndex %u\n", i, ifindex);
     num_macs = getData32(sample);
     sf_log("adaptor_%u_MACs %u\n", i, num_macs);
-    for(j = 0; j < num_macs; j++) {
+    for(j = 0; j < num_macs && (u_char *)sample->datap < sample->endp; j++) {
       mac = (u_char *)sample->datap;
       sf_log("adaptor_%u_MAC_%u %02x%02x%02x%02x%02x%02x\n",
 	     i, j,
@@ -3788,7 +3788,7 @@ static void readCountersSample(SFSample *sample, int expanded)
   num_elements = getData32(sample);
   {
     u_int32_t el;
-    for(el = 0; el < num_elements; el++) {
+    for(el = 0; el < num_elements && (u_char *)sample->datap < sample->endp; el++) {
       u_int32_t tag, length;
       u_char *start;
       char buf[51];
