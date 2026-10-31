@@ -347,7 +347,9 @@ function ts_data.get_timeseries(http_context)
    if (serialize_by_mac) and (options.tags.mac) then
       local ts_utils = require("ts_utils")
       options.schema = "host:" .. tmp[2] -- Change to host schema
-      options.tags.host = options.tags.mac .. "_v4" -- Use MAC as host identifier
+      -- Use MAC as host identifier. The suffix must match the one used by
+      -- Host::get_mac_based_tskey(), which differentiates v4 and v6 hosts
+      options.tags.host = options.tags.mac .. (isIPv6(options.tags.host_ip) and "_v6" or "_v4")
 
       -- InfluxDB-specific handling: remove certain tags
       if ts_utils.getDriverName() == "influxdb" then
