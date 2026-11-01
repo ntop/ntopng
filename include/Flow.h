@@ -176,8 +176,8 @@ class Flow : public GenericHashEntry {
   u_int16_t flow_score;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1,
-      direction_decided : 1 /* See checkTCPDirection(), checkL7Direction(),
-                               checkDirectionByProtocol() */,
+      direction_decided : 1 /* The direction is final, see checkDirection()
+                             */,
       _notused : 4;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
@@ -815,7 +815,7 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void setDetectedProtocol(ndpi_protocol proto_id, bool src2dst_direction);
-  void processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
+  void processPacket(bool* src2dst_direction, const struct pcap_pkthdr* h,
                      const u_char* ip_packet, u_int16_t ip_len,
                      u_int64_t packet_time, u_int8_t* payload,
                      u_int16_t payload_len, u_int16_t src_port);
@@ -848,7 +848,8 @@ class Flow : public GenericHashEntry {
   void serializeQoEInfo(ndpi_serializer* serializer);
   QoEType getQoEType();
 #endif
-  void endProtocolDissection(bool src2dst_direction);
+  bool endProtocolDissection(bool src2dst_direction,
+                             bool apply_direction = true);
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
   };
@@ -872,29 +873,21 @@ class Flow : public GenericHashEntry {
   void addPostNATPort(u_int32_t _src_port_post_nat,
                       u_int32_t _dst_port_post_nat);
 
-  /* Client and server of TCP flows (packet interfaces), from the strongest
-   * evidence to the weakest:
-   * 1. the first SYN (sent by the client) or SYN-ACK (sent by the server)
-   *    seen, whatever came before it: final (checkTCPDirection());
-   * 2. no handshake seen: once the protocol is detected, the side using one of
-   *    its default ports (nDPI) is the server, when only one side uses one
-   *    (checkDirectionByProtocol());
-   * 3. otherwise the guess made on the first packet: the lower port is the
-   *    server (check_swap()).
-   * Once the protocol is detected on a flow that has carried payload, the
-   * direction is final: a later SYN or SYN-ACK belongs to another connection.
-   * A swap is requested, and performed by the next packet or when the flow
-   * ends. Nothing is done when the flow swap heuristic is disabled.
-   * Client and server of UDP and ICMP flows: the first request or reply seen
-   * (checkL7Direction()); otherwise, for UDP, once the protocol is detected by
-   * DPI, the side using one of its default ports, as above, final
-   * (checkDirectionByProtocol()). */
-  void check_swap();
-  void checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
-                         bool new_flow);
-  void checkDirectionByProtocol();
-  void checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
-                        const u_int8_t* payload, u_int16_t payload_len);
+  /* Client and server of the flows of packet interfaces: decided by nDPI
+   * (see ndpi_is_flow_reversed() and doc/developers/README.flow_direction.md)
+   * on every packet it processes and at its giveup (checkDirection()), then,
+   * once nDPI has been freed, by the SYN or SYN-ACK of TCP flows not final
+   * yet (checkTCPDirection(), see ndpi_is_flow_reversed_by_tcp_flags()). A
+   * reversed flow is swapped at once, and the direction of the current packet
+   * reversed (src2dst_direction), unless the client would become a
+   * non-unicast address known only by ntopng (isSwapToNonUnicast()). Nothing
+   * is done when the flow swap heuristic is disabled. */
+  bool checkDirection(bool* src2dst_direction);
+  bool checkTCPDirection(bool* src2dst_direction, u_int8_t tcp_flags);
+  void getDirectionEndpoint(bool actual_client, ndpi_address_port* ep) const;
+  bool canChangeDirection() const;
+  bool isSwapToNonUnicast() const;
+  void swapNow(bool* src2dst_direction);
 
   bool isThreeWayHandshakeOK() const;
 
@@ -1130,7 +1123,6 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_goodput_bytes_srv2cli() const;
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
-  void request_swap();
   void performPendingSwap();
   inline bool is_swap_requested() const {
     return (swap_requested ? true : false);
@@ -1802,7 +1794,7 @@ class Flow : public GenericHashEntry {
   void setBittorrentHash(char* hash, u_int len);
   inline bool isFlowAccounted() { return iface_flow_accounted; };
   inline void setFlowAccounted() { iface_flow_accounted = 1; };
-  void accountFlowTraffic(bool src2dst_direction);
+  void accountFlowTraffic(bool src2dst_direction, bool apply_direction = true);
   void setICMPTypeCode(u_int16_t icmp_type_code);
   inline void setQoE(u_int8_t c2s, u_int8_t s2c) {
     if ((c2s != NTOP_QOE_UNKNOWN) || (s2c != NTOP_QOE_UNKNOWN))

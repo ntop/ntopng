@@ -569,7 +569,8 @@ Flow::~Flow() {
        it != triggered_alerts.end(); it++)
     delete it->second;
 
-  accountFlowTraffic(true);
+  /* No swap: the flow is being deleted (see endProtocolDissection()) */
+  accountFlowTraffic(true, false /* Don't apply the direction */);
 
 #ifdef ALERTED_FLOWS_DEBUG
   if (iface_alert_inc && !iface_alert_dec) {
@@ -840,9 +841,6 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
   u_int16_t stats_protocol;
   Host *cli_h = NULL, *srv_h = NULL;
   char* domain_name = NULL;
-
-  /* Before anything below relies on the peers */
-  checkDirectionByProtocol();
 
   /*
     If peers should be swapped, then pointers are inverted.
@@ -1292,7 +1290,7 @@ bool Flow::needsExtraDissection() {
 /* *************************************** */
 
 /* Process a packet and advance the flow detection state. */
-void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
+void Flow::processPacket(bool* src2dst_direction, const struct pcap_pkthdr* h,
                          const u_char* ip_packet, u_int16_t ip_len,
                          u_int64_t packet_time, u_int8_t* payload,
                          u_int16_t payload_len, u_int16_t src_port) {
@@ -1316,14 +1314,10 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
     ndpi_flow_risk_bitmap = 0;
   }
 
-  /* Before completing the detection (also by the giveup below), see
-   * checkDirectionByProtocol() */
   if (payload_len > 0) non_zero_payload_observed = 1;
 
   /* Before completing the detection, so that it gets the actual peers */
-  if (!direction_decided)
-    checkL7Direction(src2dst_direction, ndpi_get_lower_proto(proto_id.proto),
-                     payload, payload_len);
+  checkDirection(src2dst_direction);
 
   if ((proto_id.state != NDPI_STATE_CLASSIFIED) &&
       hasDissectedTooManyPackets()) {
@@ -1331,7 +1325,8 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
       Perform a giveup and finalize all additional operations such as
       the processing of extra dissection data.
     */
-    endProtocolDissection(src2dst_direction);
+    if (endProtocolDissection(*src2dst_direction))
+      *src2dst_direction = !*src2dst_direction;
   }
 
 #if 0
@@ -1408,9 +1403,13 @@ void Flow::processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
                           payload_len, h);
 
+  /* The packets of the extra dissection (e.g. processDNSPacket()) also
+   * update the direction, until nDPI is freed below */
+  checkDirection(src2dst_direction);
+
   if (detection_completed) {
     if (!needsExtraDissection()) {
-      setExtraDissectionCompleted(src2dst_direction);
+      setExtraDissectionCompleted(*src2dst_direction);
       updateProtocol(proto_id);
     }
   }
@@ -1611,16 +1610,29 @@ void Flow::processIEC60870Packet(bool tx_direction, const u_char* payload,
 /* *************************************** */
 
 /* End the nDPI dissection on a flow. Guess the protocol if not already
- * detected. It is safe to call endProtocolDissection() multiple times. */
-void Flow::endProtocolDissection(bool src2dst_direction) {
+ * detected. It is safe to call endProtocolDissection() multiple times.
+ * Returns true when the flow has been swapped (see checkDirection()): the
+ * direction of the current packet, if any, is then reversed. The swap is not
+ * done when apply_direction is false (i.e. when the flow is being deleted). */
+bool Flow::endProtocolDissection(bool src2dst_direction, bool apply_direction) {
+  bool swapped = false;
+
   if (!detection_completed) {
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow));
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->core.risk);
+
+    /* The giveup can decide the direction (by the default ports of the
+     * guessed protocol): before completing the detection, so that it gets the
+     * actual peers */
+    if (apply_direction) swapped = checkDirection(&src2dst_direction);
+
     setProtocolDetectionCompleted(NULL, 0, iface->getTimeLastPktRcvd());
   }
 
   if (!extra_dissection_completed)
     setExtraDissectionCompleted(src2dst_direction);
+
+  return (swapped);
 }
 
 /* *************************************** */
@@ -9373,434 +9385,6 @@ void Flow::luaRetrieveExternalAlert(lua_State* vm) {
 
 /* *************************************** */
 
-/* *************************************** */
-
-void Flow::check_swap() {
-  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
-
-  /* NOTE: keep in sync with  ZMQParserInterface::preprocessFlow() */
-
-  if (((protocol == IPPROTO_TCP) &&
-       ((src2dst_tcp_flags & TH_SYN) ==
-        TH_SYN) /* Ignore in case we have seen a SYN */) ||
-      (get_cli_port() == 0) || (get_srv_port() == 0))
-    return;
-
-  if (!(get_cli_ip_addr()->isNonEmptyUnicastAddress()
-        /* Everything that is NOT unicast-to-non-unicast needs to be checked */
-        && (!get_srv_ip_addr()->isNonEmptyUnicastAddress()))
-      // && get_cli_port() < 1024 /* Relax this constraint and also apply to
-      // non-well-known ports such as 8080 */
-  ) {
-    if (get_cli_port() < get_srv_port()) {
-      if (protocol == IPPROTO_UDP) /* && (get_cli_port() > 32768) &&
-                                      (get_srv_port() > 32768) */
-      {
-        /* We disable UDP swap that might be wrong in particular for probing
-         * attempts */
-        ; /* Don't do anything: this might be RTP or similar */
-      } else {
-        request_swap(); /* This flow will be swapped */
-      }
-    } else {
-      /* The RDP port is > 1024 hence we need this extra logic */
-      if ((ndpiDetectedProtocol.proto.app_protocol == NDPI_PROTOCOL_RDP) &&
-          (get_cli_port() == 3389))
-        request_swap(); /* This flow will be swapped */
-    }
-  }
-}
-
-/* *************************************** */
-
-/* Whether an SNMP PDU is a reply (1), a request (0) or cannot tell (-1), by
- * its type (the low nibble of its tag): Response (2) and Report (8) are
- * replies; the requests, the traps and the informs are sent by the client */
-static int isSNMPReplyPDU(u_int8_t tag) {
-  u_int8_t pdu_type = tag & 0x0F;
-
-  if ((tag < 0xA0) || (tag > 0xA8)) return (-1);
-
-  return (((pdu_type == 2 /* Response */) || (pdu_type == 8 /* Report */))
-              ? 1
-              : 0);
-}
-
-/* *************************************** */
-
-/* Whether an SNMP message is a reply (1), a request (0) or cannot tell (-1):
- * - SNMPv1/v2c: by the PDU type (see isSNMPReplyPDU());
- * - SNMPv3: by the PDU type when the scoped PDU is not encrypted (privacy flag
- *   of the header clear); otherwise by the header: the reportable flag is set
- *   in the requests and in the informs; otherwise the message is a reply
- *   (Response, Report), or a trap when sent to the trap port (162).
- * SNMPv1/v2c: SEQUENCE { version, community, PDU }
- * SNMPv3:     SEQUENCE { version, SEQUENCE { msgID, msgMaxSize, msgFlags,
- *             msgSecurityModel }, msgSecurityParameters, scopedPDU }, where the
- *             scopedPDU is SEQUENCE { contextEngineID, contextName, PDU }, or
- *             an OCTET STRING when encrypted */
-static int isSNMPReply(const u_int8_t* payload, u_int32_t payload_len,
-                       u_int16_t dst_port) {
-  struct ndpi_asn1_ber_tlv msg, field;
-  int32_t version;
-  u_int32_t offset;
-  int len;
-
-  if ((ndpi_asn1_ber_decode_tlv(payload, payload_len, &msg) < 0) ||
-      (msg.tag != 0x30 /* SEQUENCE */))
-    return (-1);
-
-  /* Version */
-  if (((len = ndpi_asn1_ber_decode_tlv(msg.value, msg.length, &field)) < 0) ||
-      (ndpi_asn1_ber_decode_int(msg.value, len, &version) != 0))
-    return (-1);
-  offset = len;
-
-  if ((version == 0 /* SNMPv1 */) || (version == 1 /* SNMPv2c */)) {
-    /* Community */
-    if (((len = ndpi_asn1_ber_decode_tlv(&msg.value[offset],
-                                         msg.length - offset, &field)) < 0) ||
-        (field.tag != 0x04 /* OCTET STRING */) ||
-        (offset + len >= msg.length))
-      return (-1);
-
-    /* PDU */
-    return (isSNMPReplyPDU(msg.value[offset + len]));
-  } else if (version == 3 /* SNMPv3 */) {
-    struct ndpi_asn1_ber_tlv header, scoped;
-    u_int32_t header_offset;
-    u_int8_t msg_flags;
-    int header_len, i;
-
-    if (((header_len = ndpi_asn1_ber_decode_tlv(
-              &msg.value[offset], msg.length - offset, &header)) < 0) ||
-        (header.tag != 0x30 /* SEQUENCE */))
-      return (-1);
-
-    /* msgID, msgMaxSize and msgFlags */
-    for (i = 0, header_offset = 0; i < 3; i++) {
-      if ((len = ndpi_asn1_ber_decode_tlv(&header.value[header_offset],
-                                          header.length - header_offset,
-                                          &field)) < 0)
-        return (-1);
-      header_offset += len;
-    }
-
-    if ((field.tag != 0x04 /* OCTET STRING */) || (field.length != 1))
-      return (-1);
-
-    msg_flags = field.value[0];
-
-    if ((msg_flags & 0x02 /* Privacy */) == 0) {
-      /* The scoped PDU is not encrypted: by its PDU type */
-      offset += header_len;
-
-      /* msgSecurityParameters, then the scoped PDU */
-      if (((len = ndpi_asn1_ber_decode_tlv(
-                &msg.value[offset], msg.length - offset, &field)) >= 0) &&
-          (field.tag == 0x04 /* OCTET STRING */) &&
-          (ndpi_asn1_ber_decode_tlv(&msg.value[offset + len],
-                                    msg.length - offset - len, &scoped) >= 0) &&
-          (scoped.tag == 0x30 /* SEQUENCE */)) {
-        /* contextEngineID and contextName, then the PDU */
-        for (i = 0, offset = 0; i < 2; i++) {
-          if (((len = ndpi_asn1_ber_decode_tlv(&scoped.value[offset],
-                                               scoped.length - offset,
-                                               &field)) < 0) ||
-              (field.tag != 0x04 /* OCTET STRING */))
-            break;
-          offset += len;
-        }
-
-        if ((i == 2) && (offset < scoped.length))
-          return (isSNMPReplyPDU(scoped.value[offset]));
-      }
-    }
-
-    if (msg_flags & 0x04 /* Reportable */) return (0);
-
-    return ((dst_port == 162 /* Trap port */) ? 0 : 1);
-  }
-
-  return (-1);
-}
-
-/* *************************************** */
-
-/* The client and the server of TCP flows (packet interfaces) are decided
- * once, by the first packet of the three-way handshake that is seen, whatever
- * came before it (e.g. a stray packet of a previous connection, or a SYN-ACK
- * captured before its SYN): the sender of a SYN (without ACK) is the client,
- * the sender of a SYN-ACK is the server. Until then, the first packet of the
- * flow only makes a guess by the ports (check_swap()), corrected by the
- * detected protocol and then final when the flow has carried payload (see
- * checkDirectionByProtocol()). The swap is requested and then performed by
- * the next packet (or when the flow ends), as the direction of the current
- * packet is still used after this check. Nothing is done when the flow swap
- * heuristic is disabled. */
-void Flow::checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
-                             bool new_flow) {
-  u_int8_t flags_3wh = tcp_flags & TCP_3WH_MASK;
-  bool sent_by_client;
-
-  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled() || direction_decided)
-    return;
-
-  if (flags_3wh == TH_SYN)
-    sent_by_client = true;
-  else if (flags_3wh == (TH_SYN | TH_ACK))
-    sent_by_client = false;
-  else {
-    /* Not a handshake packet: guess by the ports, on the first packet only
-     * (see https://github.com/ntop/ntopng/issues/5058) */
-    if (new_flow) check_swap();
-    return;
-  }
-
-  direction_decided = 1;
-
-  /* A packet sent by the client goes client to server */
-  if (sent_by_client != src2dst_direction)
-    request_swap(); /* This flow will be swapped */
-}
-
-/* *************************************** */
-
-/* Whether port is one of the default TCP (or UDP) ports of the nDPI protocol */
-static bool isDefaultPort(struct ndpi_detection_module_struct* ndpi_struct,
-                          u_int16_t proto_id, u_int16_t port, bool tcp) {
-  ndpi_proto_defaults_t* defaults;
-
-  if ((proto_id == NDPI_PROTOCOL_UNKNOWN) || (ndpi_struct == NULL) ||
-      (proto_id >= ndpi_get_num_protocols(ndpi_struct)) ||
-      ((defaults = ndpi_get_proto_defaults(ndpi_struct)) == NULL))
-    return (false);
-
-  for (int i = 0; i < MAX_DEFAULT_PORTS; i++) {
-    const ndpi_port_range* range =
-        tcp ? &defaults[proto_id].tcp_default_ports[i]
-            : &defaults[proto_id].udp_default_ports[i];
-
-    if ((range->port_low != 0) && (port >= range->port_low) &&
-        (port <= range->port_high))
-      return (true);
-  }
-
-  return (false);
-}
-
-/* *************************************** */
-
-/* A better guess for the flows whose direction has not been decided by their
- * packets (TCP: the handshake, see checkTCPDirection(); UDP: the requests and
- * the replies, see checkL7Direction()): once the protocol is detected, the
- * side using one of its default ports (nDPI) is the server, e.g. SMTP on port
- * 587 from port 515, QUIC on port 443. Nothing is changed when both sides or
- * neither use a default port.
- * UDP: only when the protocol is detected by DPI. When it is guessed by the
- * ports, the port of the guess is a default port by definition: the side using
- * it would always be the server, a guess by the ports (not done for UDP, see
- * check_swap()), and the packets of any protocol sent to a known port (e.g.
- * not DNS on port 53) would be swapped.
- * The direction is then final: the checks, the alerts and the stats of the
- * detected flow already rely on the peers.
- * TCP: when the flow has carried payload, as any handshake of the connection
- * came before it, so a later SYN or SYN-ACK belongs to another one (e.g. the
- * 5-tuple reused). Without payload (e.g. the detection given up on the first
- * packet, with the traffic sampled or nDPI disabled) the handshake still
- * decides.
- * UDP: when the protocol is detected by DPI, as the requests and the replies
- * seen later (extra dissection) would swap the flow late (see
- * checkL7Direction()). The flows guessed by the ports cannot be decided later
- * anyway (DPI only), and their direction_decided stays clear (see
- * isDHCPServerClient()). */
-void Flow::checkDirectionByProtocol() {
-  u_int16_t protos[2] = {ndpiDetectedProtocol.proto.master_protocol,
-                         ndpiDetectedProtocol.proto.app_protocol};
-  bool tcp_flow = (protocol == IPPROTO_TCP);
-
-  if (((protocol != IPPROTO_TCP) && (protocol != IPPROTO_UDP)) ||
-      direction_decided || !iface->isPacketInterface() ||
-      !ntop->getPrefs()->isFlowSwapHeuristicEnabled())
-    return;
-
-  if ((!tcp_flow) && ((ndpiFlow == NULL) ||
-                      (ndpiFlow->core.confidence != NDPI_CONFIDENCE_DPI)))
-    return;
-
-  for (int i = 0; i < 2; i++) {
-    bool cli_default = isDefaultPort(iface->get_ndpi_struct(), protos[i],
-                                     get_cli_port(), tcp_flow);
-    bool srv_default = isDefaultPort(iface->get_ndpi_struct(), protos[i],
-                                     get_srv_port(), tcp_flow);
-
-    if (cli_default != srv_default) {
-      /* The client must not use the default port, taking into account the
-       * swap still pending (e.g. requested by the guess by the ports) */
-      if (cli_default != is_swap_requested()) {
-        if (cli_default)
-          request_swap(); /* This flow will be swapped */
-        else
-          swap_requested = 0; /* The pending swap was wrong */
-      }
-
-      break;
-    }
-  }
-
-  /* Final (see above). UDP: the protocol has been detected by DPI */
-  if ((!tcp_flow) || non_zero_payload_observed) direction_decided = 1;
-}
-
-/* *************************************** */
-
-/* The client and the server of DNS (over UDP), NTP, DHCP, DHCPv6, SNMP and
- * ICMP flows are decided once, by the first packet whose payload tells
- * whether it is a request (sent by the client) or a reply (sent by the
- * server):
- * - DNS: QR bit of the header;
- * - NTP: mode 3 (client) or 4 (server); R (response) bit of the control (6)
- *   and private (7) messages;
- * - DHCP: BOOTREQUEST or BOOTREPLY (op);
- * - DHCPv6: message type (RECONFIGURE, sent by the server unsolicited, is on
- *   the server side as a reply);
- * - SNMP: PDU type (SNMPv1/v2c, SNMPv3 not encrypted), reportable flag of the
- *   header (SNMPv3 encrypted): the traps and the informs are on the client
- *   side, their receiver (usually port 162) is the server (see
- *   isSNMPReply());
- * - ICMP: echo, timestamp and information request/reply; ICMPv6: echo
- *   request/reply.
- * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
- * errors) leave the decision to a later packet (the UDP flows not decided are
- * guessed when the protocol is detected, see checkDirectionByProtocol()).
- * When the flow is reversed it is swapped at once, before the detection is
- * completed and anything else (checks, services, dumps, the view) relies on
- * its peers, unless the client would be a non-unicast address (e.g. a DHCP
- * reply sent to broadcast), as in check_swap(). Nothing is done when the flow
- * swap heuristic is disabled. */
-void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
-                            const u_int8_t* payload, u_int16_t payload_len) {
-  bool is_reply;
-
-  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
-
-  if ((payload == NULL) || (payload_len == 0)) return;
-
-  if ((ndpiFlow == NULL) || (ndpiFlow->core.confidence != NDPI_CONFIDENCE_DPI))
-    return;
-
-  if (protocol == IPPROTO_ICMP) {
-    switch (payload[0] /* Type */) {
-      case ICMP_ECHO:
-      case ICMP_TIMESTAMP:
-      case ICMP_INFO_REQUEST:
-        is_reply = false;
-        break;
-      case ICMP_ECHOREPLY:
-      case ICMP_TIMESTAMPREPLY:
-      case ICMP_INFO_REPLY:
-        is_reply = true;
-        break;
-      default:
-        return;
-    }
-  } else if (protocol == IPPROTO_ICMPV6) {
-    switch (payload[0] /* Type */) {
-      case 128: /* ICMP6_ECHO_REQUEST */
-        is_reply = false;
-        break;
-      case 129: /* ICMP6_ECHO_REPLY */
-        is_reply = true;
-        break;
-      default:
-        return;
-    }
-  } else if ((protocol == IPPROTO_UDP) && (l7proto == NDPI_PROTOCOL_DNS)) {
-    if (payload_len < 12 /* DNS header */) return;
-
-    is_reply = ((payload[2] & 0x80) == 0x80);
-  } else if (l7proto == NDPI_PROTOCOL_NTP) {
-    switch (payload[0] & 0x07 /* Mode */) {
-      case 3 /* Client */:
-        is_reply = false;
-        break;
-      case 4 /* Server */:
-        is_reply = true;
-        break;
-      case 6 /* Control: R bit in the second byte */:
-        if (payload_len < 2) return;
-        is_reply = ((payload[1] & 0x80) != 0);
-        break;
-      case 7 /* Private: R bit in the first byte */:
-        is_reply = ((payload[0] & 0x80) != 0);
-        break;
-      default:
-        return;
-    }
-  } else if (l7proto == NDPI_PROTOCOL_DHCP) {
-    switch (payload[0] /* op */) {
-      case 1 /* BOOTREQUEST */:
-        is_reply = false;
-        break;
-      case 2 /* BOOTREPLY */:
-        is_reply = true;
-        break;
-      default:
-        return;
-    }
-  } else if (l7proto == NDPI_PROTOCOL_DHCPV6) {
-    switch (payload[0] /* Message type */) {
-      case 1 /* SOLICIT */:
-      case 3 /* REQUEST */:
-      case 4 /* CONFIRM */:
-      case 5 /* RENEW */:
-      case 6 /* REBIND */:
-      case 8 /* RELEASE */:
-      case 9 /* DECLINE */:
-      case 11 /* INFORMATION-REQUEST */:
-      case 12 /* RELAY-FORW */:
-      case 14 /* LEASEQUERY */:
-      case 18 /* RECONFIGURE-REQUEST */:
-      case 20 /* DHCPV4-QUERY */:
-      case 36 /* ADDR-REG-INFORM */:
-        is_reply = false;
-        break;
-      case 2 /* ADVERTISE */:
-      case 7 /* REPLY */:
-      case 10 /* RECONFIGURE */:
-      case 13 /* RELAY-REPL */:
-      case 15 /* LEASEQUERY-REPLY */:
-      case 19 /* RECONFIGURE-REPLY */:
-      case 21 /* DHCPV4-RESPONSE */:
-      case 37 /* ADDR-REG-REPLY */:
-        is_reply = true;
-        break;
-      default:
-        return;
-    }
-  } else if (l7proto == NDPI_PROTOCOL_SNMP) {
-    int rc = isSNMPReply(payload, payload_len,
-                         src2dst_direction ? get_srv_port() : get_cli_port());
-
-    if (rc < 0) return;
-
-    is_reply = (rc == 1);
-  } else
-    return;
-
-  direction_decided = 1;
-
-  /* A reply sent client to server or a request sent server to client, unless
-   * the client would be a non-unicast address */
-  if ((is_reply == src2dst_direction) && get_srv_ip_addr() &&
-      get_srv_ip_addr()->isNonEmptyUnicastAddress()) {
-    request_swap(); /* This flow will be swapped */
-    swap();
-  }
-}
-
-/* *************************************** */
-
 void Flow::setJSONRiskInfo(char* r) {
   if (!r) return;
 
@@ -9940,25 +9524,144 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char* msg) {
 
 /* *************************************** */
 
-void Flow::request_swap() {
-  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
+/* The client (or the server) of the flow as an nDPI endpoint, taking into
+ * account a swap still pending */
+void Flow::getDirectionEndpoint(bool actual_client,
+                                ndpi_address_port* ep) const {
+  bool use_cli = (actual_client != is_swap_requested());
+  const IpAddress* ip = use_cli ? cli_ip_addr : srv_ip_addr;
 
-  swap_requested = true;
+  memset(ep, 0, sizeof(*ep));
+  ep->port = use_cli ? get_cli_port() : get_srv_port();
+
+  if (ip && ip->isIPv4())
+    ep->address.v4 = ip->get_ipv4();
+  else if (ip && ip->get_ipv6())
+    memcpy(ep->address.v6, ip->get_ipv6(), sizeof(ep->address.v6)),
+        ep->is_ipv6 = 1;
 }
 
 /* *************************************** */
 
-/* A requested swap is performed by the next packet of the flow, in either
- * direction (see FlowHash::find). When no packet follows the request it is
- * never performed: flows with a single packet, or requests made after the last
- * packet of the flow (e.g. by the DNS swap check when the dissection is ended
+/* Whether the direction of the flow can be changed (packet interfaces) */
+bool Flow::canChangeDirection() const {
+  return (!direction_decided && iface->isPacketInterface() &&
+          ntop->getPrefs()->isFlowSwapHeuristicEnabled());
+}
+
+/* *************************************** */
+
+/* Whether the swap would make a non-unicast address the client of a flow
+ * whose client is unicast (e.g. a DHCP reply sent to 192.168.1.255): a
+ * non-unicast address never sends, it is never the client. nDPI checks it with
+ * the addresses that are non-unicast everywhere (e.g. 255.255.255.255, the
+ * multicast addresses); only ntopng knows the network and broadcast addresses
+ * of the local networks (IpAddress::isNonEmptyUnicastAddress()). */
+bool Flow::isSwapToNonUnicast() const {
+  IpAddress *actual_cli, *actual_srv;
+
+  get_actual_peers_ip(&actual_cli, &actual_srv);
+
+  return (actual_cli && actual_srv &&
+          actual_cli->isNonEmptyUnicastAddress() &&
+          (!actual_srv->isNonEmptyUnicastAddress()));
+}
+
+/* *************************************** */
+
+/* Swap the flow at once, reversing the direction of the current packet. On
+ * nEdge the swap is requested, and performed when the MAC address of the
+ * server is known (see NetworkInterface::getFlow()). */
+void Flow::swapNow(bool* src2dst_direction) {
+#ifdef HAVE_NEDGE
+  /* A swap still pending was wrong */
+  swap_requested = !swap_requested;
+#else
+  swap();
+
+  if (src2dst_direction) *src2dst_direction = !*src2dst_direction;
+#endif
+}
+
+/* *************************************** */
+
+/* Apply the direction decided by nDPI (see ndpi_is_flow_reversed() and
+ * doc/developers/README.flow_direction.md), while nDPI processes the packets
+ * of the flow. Returns true when the flow has been swapped. */
+bool Flow::checkDirection(bool* src2dst_direction) {
+  struct ndpi_flow_direction d;
+  ndpi_address_port my_client;
+  bool reversed;
+  int rc;
+
+  if ((ndpiFlow == NULL) || !canChangeDirection()) return (false);
+
+  getDirectionEndpoint(true, &my_client);
+  rc = ndpi_is_flow_reversed(iface->get_ndpi_struct(), ndpiFlow, &my_client, &d);
+
+  /* Not one of the endpoints seen by nDPI: its verdict is not about this flow */
+  if (rc < 0) return (false);
+
+  reversed = (rc == 1);
+
+  if (d.state == NDPI_DIRECTION_FINAL) direction_decided = 1;
+
+  if (reversed && isSwapToNonUnicast()) reversed = false;
+
+  if (reversed) swapNow(src2dst_direction);
+
+  return (reversed);
+}
+
+/* *************************************** */
+
+/* The TCP packets seen after nDPI has been freed: a SYN or a SYN-ACK still
+ * decides the direction, when not final yet (e.g. one-way traffic, whose
+ * handshake comes after the detection). Returns true when the flow has been
+ * swapped. */
+bool Flow::checkTCPDirection(bool* src2dst_direction, u_int8_t tcp_flags) {
+  struct ndpi_flow_direction d;
+  ndpi_address_port my_client;
+  bool reversed;
+  int rc;
+
+  if (ndpiFlow /* nDPI sees the packet */ || !canChangeDirection())
+    return (false);
+
+  /* The last direction: the flow, as already swapped by it */
+  memset(&d, 0, sizeof(d));
+  getDirectionEndpoint(true, &d.client), getDirectionEndpoint(false, &d.server);
+  d.state = NDPI_DIRECTION_GUESSED;
+  my_client = d.client;
+
+  /* src2dst_direction refers to the client before any pending swap */
+  rc = ndpi_is_flow_reversed_by_tcp_flags(
+      tcp_flags, (*src2dst_direction != is_swap_requested()) ? 1 : 0,
+      &my_client, &d);
+
+  if (rc < 0) return (false); /* Never: my_client is the client of d */
+
+  reversed = (rc == 1);
+
+  if (d.state == NDPI_DIRECTION_FINAL) direction_decided = 1;
+
+  if (reversed && isSwapToNonUnicast()) reversed = false;
+
+  if (reversed) swapNow(src2dst_direction);
+
+  return (reversed);
+}
+
+/* *************************************** */
+
+/* A requested swap (nEdge, see swapNow()) is performed by the next packet of
+ * the flow, in either direction (see FlowHash::find). When no packet follows
+ * the request it is never performed: flows with a single packet, or requests
+ * made after the last packet of the flow (e.g. when the dissection is ended
  * by housekeep). Perform it here, so that checks, dumps and the view get the
  * actual client and server. NOTE: to be called by the thread processing the
  * packets (e.g. housekeep), like the swap done by a packet */
 void Flow::performPendingSwap() {
-  /* NOTE: also when the flow has already been swapped, e.g. by the guess by
-   * the ports, then corrected by the protocol (see
-   * checkDirectionByProtocol()) */
   if (!is_swap_requested()) return;
 
   swap();
@@ -10180,11 +9883,12 @@ void Flow::refreshHostsTags() {
 /* *************************************** */
 
 /* Whether the DHCP (or DHCPv6) server of the flow is its client:
- * - replies sent to broadcast are not swapped (see checkL7Direction()): the
- *   server is the client when it sends from the server port;
- * - otherwise, when the direction has been decided by the requests and
- *   replies (checkL7Direction()), the server is the server of the flow: the
- *   ports cannot tell it, as relay agents also send from the server port;
+ * - replies sent to broadcast are not swapped (by nDPI, see
+ *   checkDirection()): the server is the client when it sends from the server
+ *   port;
+ * - otherwise, when the direction is final (e.g. decided by the requests and
+ *   the replies, see checkDirection()), the server is the server of the flow:
+ *   the ports cannot tell it, as relay agents also send from the server port;
  * - otherwise (direction not decided, e.g. collected flows) by the ports. */
 bool Flow::isDHCPServerClient() const {
   if (direction_decided && get_srv_ip_addr() &&
@@ -10225,7 +9929,8 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
       }
       break;
 
-    /* NOTE: the direction of DNS flows is checked by checkL7Direction() */
+    /* NOTE: the direction of DNS flows is decided by nDPI (see
+     * checkDirection()) */
 
     default:
       break;
@@ -10592,7 +10297,7 @@ void Flow::accountBidirectionalUDPProtocolServices() {
 /*
   Account flow traffic in interface traffic if not yet done
 */
-void Flow::accountFlowTraffic(bool src2dst_direction) {
+void Flow::accountFlowTraffic(bool src2dst_direction, bool apply_direction) {
   if (!isFlowAccounted()) {
 #ifdef DEBUG
     char buf[256];
@@ -10601,7 +10306,7 @@ void Flow::accountFlowTraffic(bool src2dst_direction) {
                                  print(buf, sizeof(buf)));
 #endif
 
-    endProtocolDissection(src2dst_direction);
+    endProtocolDissection(src2dst_direction, apply_direction);
 
     /*
       Increment interface counters for those flows that have not

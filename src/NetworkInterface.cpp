@@ -2413,7 +2413,8 @@ pre_get_flow:
 #endif
         flow->updateTcpFlags(when, tcp_flags, src2dst_direction, *new_flow);
 
-        flow->checkTCPDirection(src2dst_direction, tcp_flags, *new_flow);
+        /* After nDPI has been freed (see Flow::checkDirection()) */
+        flow->checkTCPDirection(&src2dst_direction, tcp_flags);
 
         if ((tcp_flags & (TH_RST | TH_FIN)) == 0) {
           /*
@@ -2448,11 +2449,6 @@ pre_get_flow:
         break;
 
       default:
-        /*
-          NOTE: for non TCP-flows, the swap heuristic is always checked on the
-          first packet
-        */
-        if (*new_flow) flow->check_swap();
         break;
     }
 
@@ -2532,7 +2528,8 @@ pre_get_flow:
         || (fragment_offset == 0)
 #endif
     ) {
-      flow->processPacket(src2dst_direction, h, ip, trusted_ip_len, packet_time,
+      /* NOTE: the flow can be swapped, reversing src2dst_direction */
+      flow->processPacket(&src2dst_direction, h, ip, trusted_ip_len, packet_time,
                           payload, trusted_payload_len, src_port);
     } else {
       // FIX - only handle unfragmented packets

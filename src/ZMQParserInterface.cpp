@@ -2197,7 +2197,9 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
 	flow->swap();
 #endif
     } else {
-      /* NOTE: keep in sync with Flow::check_swap() */
+      /* NOTE: similar to the guess by the ports made by nDPI on the first
+         packet of the flows of packet interfaces (see
+         Flow::checkDirection()) */
 
       if (flow->src_ip.isBroadMulticastAddress() ||
           flow->dst_ip.isBroadMulticastAddress())

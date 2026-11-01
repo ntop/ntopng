@@ -16,66 +16,55 @@ Preference
 Everything below is done only when the flow swap heuristic is enabled
 (`ntopng.prefs.enable_flow_swap_heuristic`, enabled by default,
 `Prefs::isFlowSwapHeuristicEnabled()`). When it is disabled, every function
-involved returns immediately (including `Flow::request_swap()` and
-`Flow::swap()`), and the client is always the sender of the first packet.
+involved returns immediately (including `Flow::swap()`), and the client is
+always the sender of the first packet.
 
 Packet interfaces
 -----------------
 
-The direction is decided by different functions, depending on the L4 protocol:
+The direction is decided by nDPI (`src/lib/ndpi_direction.c`, configuration
+`flow.direction`, enabled by default): ntopng asks it whether the flow is
+reversed and, when it is, swaps the flow **at once**.
 
-| L4 protocol | Function | Evidence |
-|-------------|----------|----------|
-| TCP | `checkTCPDirection()`, `checkDirectionByProtocol()`, `check_swap()` | handshake, default ports of the protocol, port order |
-| UDP | `checkL7Direction()`, `checkDirectionByProtocol()` | request or reply (DNS, NTP, DHCP, DHCPv6, SNMP), default ports of the protocol detected by DPI |
-| ICMP, ICMPv6 | `checkL7Direction()` | request or reply (echo, timestamp, information) |
-| Others | `check_swap()` | port order, on the first packet |
+| ntopng function | Called by | nDPI API |
+|-----------------|-----------|----------|
+| `Flow::checkDirection()` | `Flow::processPacket()`, after each packet processed by nDPI (also the extra dissection), and `Flow::endProtocolDissection()`, after the giveup | `ndpi_is_flow_reversed()` |
+| `Flow::checkTCPDirection()` | `NetworkInterface::processPacket()`, for each TCP packet seen after nDPI has been freed | `ndpi_is_flow_reversed_by_tcp_flags()` |
 
-The `direction_decided` bit of the flow is set once the direction is final:
-from then on it does not change.
+The `direction_decided` bit of the flow is set once nDPI says the direction is
+final (`NDPI_DIRECTION_FINAL`): from then on it does not change.
 
-### TCP
+When the client of the flow is not one of the endpoints seen by nDPI (the APIs
+return -1: never expected, as ntopng passes nDPI the packets of the flow), the
+verdict is ignored: no swap, and `direction_decided` is not set.
 
-The evidence, from the strongest to the weakest:
+### Rules (nDPI)
 
-1. **Handshake** (`Flow::checkTCPDirection()`, called by
-   `NetworkInterface::processPacket()` for every packet). The first SYN (sent by
-   the client) or SYN-ACK (sent by the server) seen decides the direction,
-   whatever came before it, e.g. a stray ACK/RST/FIN of a previous connection,
-   or a SYN-ACK captured before its SYN. The decision is final.
-2. **Default ports of the detected protocol**
-   (`Flow::checkDirectionByProtocol()`, called at the beginning of
-   `Flow::processDetectedProtocol()`, i.e. once, when the detection is
-   completed, either by nDPI or by the giveup). When no handshake has been
-   seen, the side using one of the default TCP ports of the detected protocol
-   (nDPI, `ndpi_get_proto_defaults()`, master protocol first, then app
-   protocol) is the server, e.g. SMTP on port 587 from port 515. Nothing is
-   changed when both sides or neither use a default port. It takes into
-   account a swap still pending: it requests a swap, or cancels the pending one
-   when it was wrong.
-3. **Port order** (`Flow::check_swap()`, called by `checkTCPDirection()` on the
-   first packet of the flow, when it is not a handshake packet). The lower port
-   is the server. Nothing is done when the client would be a non-unicast
-   address.
+nDPI updates the direction with every packet passed to
+`ndpi_detection_process_packet()` and at `ndpi_detection_giveup()`, until it is
+final. The evidence, from the strongest to the weakest:
 
-Steps 3 and 2 happen first in time: step 3 on the first packet, step 2 at the
-detection, step 1 whenever a SYN or SYN-ACK is seen.
+1. **TCP handshake**. The first SYN (sent by the client) or SYN-ACK (sent by
+   the server) seen decides the direction, whatever came before it, e.g. a
+   stray ACK/RST/FIN of a previous connection, or a SYN-ACK captured before its
+   SYN. Final.
+2. **Requests and replies**, only when the protocol is detected by DPI (a
+   protocol guessed by the port is not trusted to read the payload). Final.
+3. **Default ports of the detected protocol**, once the protocol is detected:
+   the side using one of its default ports (master protocol first, then app
+   protocol) is the server, when only one side uses one, e.g. SMTP on port 587
+   from port 515. TCP with any confidence; UDP only by DPI (when guessed by the
+   ports, the port of the guess is a default port by definition, and the
+   packets of any protocol sent to a known port would be swapped). Final for
+   UDP; for TCP once the flow has carried payload (any handshake of the
+   connection came before it).
+4. **Port order**, on the first packet (when it is not a TCP packet with the
+   SYN flag): the lower port is the server. Not for UDP (it would be often
+   wrong, e.g. RTP or probing). Nothing is done when the client would be a
+   non-unicast address.
+5. Otherwise the sender of the first packet is the client.
 
-The direction is also final once the protocol is detected on a flow that has
-carried payload (`non_zero_payload_observed`, set by `Flow::processPacket()`
-before the detection can be completed).
-
-Flows with neither a handshake nor a default port (e.g. mid-stream flows of an
-unknown protocol, or TLS on a non-default port) can only be guessed by the
-port order: with the client port lower than the server port they stay
-reversed.
-
-### UDP and ICMP
-
-`Flow::checkL7Direction()` is called by `Flow::processPacket()` for each
-packet processed by nDPI, until the direction is decided. The first packet
-whose payload tells whether it is a request (sent by the client) or a reply
-(sent by the server) decides the direction:
+The requests and the replies:
 
 | Protocol | Request | Reply |
 |----------|---------|-------|
@@ -89,51 +78,58 @@ whose payload tells whether it is a request (sent by the client) or a reply
 
 Notes:
 
-* Only with DPI confidence (`ndpiFlow->core.confidence ==
-  NDPI_CONFIDENCE_DPI`): a protocol guessed by the port is not trusted to read
-  the payload.
 * Packets that do not tell it (e.g. NTP symmetric or broadcast modes, ICMP
   errors, SNMP messages that cannot be decoded) leave the decision to a later
   packet.
 * RECONFIGURE (DHCPv6) is sent by the server unsolicited: it is on the server
-  side, as a reply.
-* SNMP traps and informs are sent by the client: their receiver (usually port
-  162) is the server. The PDU type is read also in SNMPv3 messages, when not
-  encrypted (privacy flag clear); for the encrypted ones the header is used
-  (`isSNMPReply()`, with the BER helpers of nDPI).
-* Once decided (`direction_decided`), a reversed flow is swapped **at once**
-  (`request_swap()` followed by `swap()`), before the detection is completed,
-  so that checks, services, dumps and the view get the actual peers.
-* The flow is not swapped when the client would be a non-unicast address (e.g.
-  a DHCP reply sent to broadcast).
-* UDP flows not decided by their requests and replies (e.g. SIP, QUIC):
-  once the protocol is detected, the side using one of its default UDP ports
-  is the server, when only one side uses one (`checkDirectionByProtocol()`,
-  as for TCP). The direction is then final: requests or replies seen later
-  (extra dissection) do not change it. Only when the protocol is detected by DPI
-  (`NDPI_CONFIDENCE_DPI`): when it is guessed by the ports, the port of the
-  guess is a default port by definition, and the packets of any protocol sent
-  to a known port (e.g. not DNS on port 53) would be swapped.
-* There is no guess by the port order for UDP (`check_swap()` ignores UDP, as
-  it would be often wrong, e.g. RTP or probing) and ICMP (no ports).
+  side, as a reply. SNMP traps and informs are sent by the client: their
+  receiver (usually port 162) is the server.
+* A reply sent to a non-unicast address does not move the client (e.g. a DHCP
+  reply sent to broadcast). nDPI knows only the addresses that are non-unicast
+  everywhere: 0.0.0.0, 255.255.255.255, the multicast addresses, `::` and
+  `ff00::/8`. The network and broadcast addresses of the local networks are
+  known only by ntopng (`IpAddress::isNonEmptyUnicastAddress()`): ntopng does
+  not swap a flow when its client would become one of them, its client being
+  unicast (`Flow::isSwapToNonUnicast()`, e.g. a DHCP reply sent to
+  192.168.1.255). The direction is still final when nDPI says so.
+* L4 protocols other than TCP, UDP, ICMP and ICMPv6 (e.g. SCTP): the client is
+  the sender of the first packet.
+* Flows with neither a handshake nor a default port (e.g. mid-stream flows of
+  an unknown protocol, or TLS on a non-default port) can only be guessed by the
+  port order: with the client port lower than the server port they stay
+  reversed.
 
-### Other L4 protocols
+### After nDPI
 
-`Flow::check_swap()` on the first packet: the lower port is the server.
+ntopng frees nDPI once the detection (and the extra dissection) is completed,
+e.g. after 12 packets without a detection. A TCP flow whose direction is not
+final yet (no payload and no handshake seen, e.g. one-way traffic of RSTs) is
+still decided by a later SYN or SYN-ACK (`Flow::checkTCPDirection()`): nDPI is
+given only the flags of the packet and the current direction of the flow
+(`ndpi_is_flow_reversed_by_tcp_flags()`, stateless).
+
+The UDP and ICMP flows are not changed after nDPI.
+
+No swap is done when nDPI is given up while the flow is being deleted
+(`Flow::~Flow()`, `accountFlowTraffic()`).
 
 How a swap is performed
 -----------------------
 
-### Request
+### At once
 
-`Flow::request_swap()` only sets `swap_requested`. Until the swap is
-performed, the code that needs the actual peers uses
-`Flow::get_actual_peers()` and `Flow::get_actual_peers_ip()`, which take a
-pending swap into account (e.g. `processDetectedProtocol()`, the periodicity
-hash).
+When nDPI says the flow is reversed, `Flow::swapNow()` swaps it immediately
+(`Flow::swap()`) and reverses the direction of the current packet
+(`src2dst_direction`), which `Flow::processPacket()` and
+`Flow::checkTCPDirection()` return to `NetworkInterface::processPacket()` for
+the code following them (e.g. the HTTP, DNS and QUIC dissection, the DNS and
+SNMP flood counters). The traffic of the packet has already been accounted
+(`Flow::incStats()`, TCP flags, TOS) with the old direction, and it is swapped
+with the rest of the flow.
 
-The swap is not performed at once because the direction of the current packet
-(`src2dst_direction`) is still used by the code following the check.
+The swap happens before the detection is completed (also by the giveup), so
+that the protocol detected processing, the server ports of the hosts, the
+checks, the dumps and the view get the actual peers.
 
 ### Execution
 
@@ -149,26 +145,18 @@ The swap is not performed at once because the direction of the current packet
 L7 information and latency counters are not swapped. At the end `swap_done` is
 set and `swap_requested` is cleared.
 
-A requested swap is performed:
+A flow can be swapped more than once, e.g. by the port order on the first
+packet, then by the default ports at the detection.
 
-* by the next packet of the flow, in either direction (`FlowHash::find()`
-  returns the flow to swap, `NetworkInterface::getFlow()` swaps it and
-  recomputes the direction of the packet);
-* when there are no more packets (`Flow::performPendingSwap()`): when the flow
-  ends (`flow_end_housekeeping()`), and before dumping the active flows once a
-  pcap file has been read. This covers flows with a single packet, and swaps
-  requested after the last packet (e.g. at the detection completed by the
-  giveup).
+### Requested swaps (nEdge)
 
-A flow can be swapped more than once, e.g. a swap requested by the port order,
-performed by the next packet, then a swap requested at the detection by the
-default ports.
-
-### Protocol detected checks
-
-While a swap is pending the protocol detected checks are not run by
-`Flow::housekeep()`: they are run on the swapped flow, by
-`performPendingSwap()`.
+On nEdge the swap is only requested (`swap_requested`), as it waits for the MAC
+address of the server: `NetworkInterface::getFlow()` swaps the flow with the
+first packet sent by the server. Until then the code that needs the actual
+peers uses `Flow::get_actual_peers()` and `Flow::get_actual_peers_ip()`, which
+take a pending swap into account, the protocol detected checks are not run by
+`Flow::housekeep()`, and a swap still pending when there are no more packets is
+performed by `Flow::performPendingSwap()` (flow end, end of a pcap file).
 
 Collected flows (ZMQ)
 ---------------------
@@ -197,9 +185,12 @@ Related
 -------
 
 * `Flow::isDHCPServerClient()`: whether the DHCP (or DHCPv6) server is the
-  client of the flow. When the direction has been decided by the requests and
-  replies, the server of the flow is the DHCP server; otherwise (replies sent
-  to broadcast, direction not decided, collected flows) the ports tell it.
+  client of the flow. When the direction is final, the server of the flow is
+  the DHCP server; otherwise (replies sent to broadcast, direction not decided,
+  collected flows) the ports tell it.
+* nDPI: `ndpiReader` prints the direction of each flow (`[Client: ...]
+  [Direction: <state>, <evidence>]`), and its tests include the
+  `direction_*.pcap` captures of the cases above.
 
 Tests
 -----
@@ -208,7 +199,8 @@ The e2e tests (`tests/e2e/rest/tests/v2`) cover the cases above, with and
 without a view interface (`*_view_*`):
 
 * `tcp_direction_01`: TCP handshake orders, stray packets, mid-stream flows,
-  SSH, TLS, SMTP default ports, late handshake packets;
+  SSH, TLS, SMTP default ports, late handshake packets (also after nDPI has
+  been freed, e.g. one-way RSTs);
 * `flow_direction_l7_01`: NTP and ICMP requests and replies, SIP and QUIC
   default ports;
 * `flow_direction_guessed_01`: no swap when the protocol is not detected by
@@ -216,6 +208,6 @@ without a view interface (`*_view_*`):
 * `flow_direction_dhcp_01`, `flow_direction_dhcp_02`,
   `flow_direction_dhcpv6_01`: DHCP and DHCPv6 messages;
 * `flow_direction_snmp_01`: SNMPv1/v2c/v3 requests, replies, traps, informs;
-* `flow_direction_swap_01`: DNS and SSH flows, swaps performed when no packet
-  follows the request (dumped to ClickHouse);
+* `flow_direction_swap_01`: DNS and SSH flows, swapped flows dumped to
+  ClickHouse;
 * `peers_swap_heuristic_01`-`03`: SSH and TLS flows without the handshake.
