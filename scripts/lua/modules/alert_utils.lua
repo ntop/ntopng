@@ -342,6 +342,16 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, local_explorer,
 		return ""
 	end
 
+	-- Flow risks whose definition has no description (e.g. Susp. DGA Domain): use the risk info
+	-- (e.g. the domain name) before falling back to the alert title
+	if isEmptyString(msg) and tonumber(alert.entity_id) == alert_entities.flow.entity_id and tonumber(alert.alert_id) then
+		local alert_risk = tonumber(ntop.getFlowAlertRisk(tonumber(alert.alert_id)))
+
+		if alert_risk and alert_risk > 0 then
+			msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+		end
+	end
+
 	if isEmptyString(msg) then
 		msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert.entity_id)
 	end
