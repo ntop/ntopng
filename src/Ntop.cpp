@@ -5557,6 +5557,18 @@ u_int64_t Ntop::getNumActiveProbes() const {
 
 /* ******************************************* */
 
+/* Active Monitoring intentionally not started (e.g. analysing pcap file) */
+bool Ntop::isActiveMonitoringNotAvail() {
+#ifndef WIN32
+  return active_monitoring_not_avail;
+#else
+  return true;
+#endif
+}
+
+/* ******************************************* */
+
+
 #ifndef WIN32
 
 /* ******************************************* */
@@ -5675,17 +5687,6 @@ void Ntop::initPing() {
         break;
     }
   }
-}
-
-/* ******************************************* */
-
-/* Active Monitoring intentionally not started (e.g. analysing pcap file) */
-bool Ntop::isActiveMonitoringNotAvail() {
-#ifndef WIN32
-  return active_monitoring_not_avail;
-#else
-  return true;
-#endif
 }
 
 /* ******************************************* */

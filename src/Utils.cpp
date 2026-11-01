@@ -6428,6 +6428,10 @@ void Utils::swapLen(void* a, void* b, u_int len) {
 
 /* ******************************************* */
 
+#ifdef _WIN32
+#include <bcrypt.h> // Required for BCryptGenRandom
+#endif
+
 char* Utils::createRandomString(char* buf, size_t buf_len) {
   const char charset[] =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
@@ -6435,7 +6439,15 @@ char* Utils::createRandomString(char* buf, size_t buf_len) {
 
   if (buf_len == 0) return (buf);
 
-  if (RAND_bytes((unsigned char*)buf, (int)buf_len) == 1) {
+  #ifdef _WIN32
+  // Use Windows Native Cryptography API instead of OpenSSL's RAND_bytes
+  NTSTATUS status = BCryptGenRandom(NULL, (PUCHAR)buf, (ULONG)buf_len,
+                                    BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+  #else
+  int status = RAND_bytes((unsigned char*)buf, (int)buf_len);
+  #endif
+
+  if (status == 1) {
     for (u_int i = 0; i < buf_len; i++)
       buf[i] = charset[(unsigned char)buf[i] % charset_len];
   } else {

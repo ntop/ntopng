@@ -182,7 +182,9 @@ class Ntop {
   /* Threads info */
   struct ThreadInfo {
     std::string name;
+#ifndef _WIN32
     clockid_t cpu_clock_id; /* used to read CPU time */
+#endif
     bool cpu_clock_valid;
     struct timespec last_cpu_ts;     /* last CPU clock sample */
     struct timespec last_elapsed_ts; /* cpu time of last clock sample */

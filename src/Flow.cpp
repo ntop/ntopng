@@ -9706,10 +9706,10 @@ void Flow::checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
     }
   } else if (protocol == IPPROTO_ICMPV6) {
     switch (payload[0] /* Type */) {
-      case ICMP6_ECHO_REQUEST:
+      case 128: /* ICMP6_ECHO_REQUEST */
         is_reply = false;
         break;
-      case ICMP6_ECHO_REPLY:
+      case 129: /* ICMP6_ECHO_REPLY */
         is_reply = true;
         break;
       default:

@@ -51,7 +51,9 @@ const char* win_inet_ntop(int af, const void* src, char* dst, socklen_t size);
 #include <direct.h>  /* mkdir */
 
 #define INET_IPV6
+#ifndef NDPI_LIB_COMPILATION
 #define NDPI_LIB_COMPILATION
+#endif
 
 #ifndef ssize_t
 #define ssize_t SSIZE_T

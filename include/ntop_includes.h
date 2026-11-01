@@ -119,8 +119,10 @@ extern "C" {
 #include <pcap/bpf.h> /* Used for bpf_filter() */
 #endif
 
+#ifndef _WIN32
 #include <regex.h> /* Syslog Rules */
-  
+#endif
+
 #ifdef HAVE_DYNAMIC_NDPI
 #include <ndpi/ndpi_api.h>
 #else
