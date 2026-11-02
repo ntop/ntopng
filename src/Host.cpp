@@ -279,6 +279,7 @@ void Host::initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlanId,
   is_mac_meaningful = false;
 #ifndef HAVE_NEDGE
   listening_ports = listening_ports_shadow = NULL;
+  listening_ports_last_update = 0;
 #endif
   data_delete_requested = 0, stats_reset_requested = 0,
   name_reset_requested = 0, prefs_loaded = 0;
@@ -890,11 +891,13 @@ void Host::lua_blacklisted_flows(lua_State* vm) const {
 
 #ifndef HAVE_NEDGE
 void Host::lua_get_listening_ports(lua_State* vm) {
-  if (listening_ports == NULL) return;
+  ListeningPorts* lp = listening_ports.load();
+
+  if (lp == NULL) return;
 
   lua_newtable(vm);
 
-  listening_ports->lua(vm);
+  lp->lua(vm);
 
   lua_pushstring(vm, "listening_ports");
   lua_insert(vm, -2);

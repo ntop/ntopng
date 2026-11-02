@@ -173,7 +173,9 @@ class Host : public GenericHashEntry,
   time_t disabled_alerts_tstamp;
 
 #ifndef HAVE_NEDGE
-  ListeningPorts *listening_ports, *listening_ports_shadow;
+  std::atomic<ListeningPorts*> listening_ports;
+  ListeningPorts* listening_ports_shadow;
+  time_t listening_ports_last_update;
 #endif
 
   void initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlan_id,
@@ -866,15 +868,18 @@ class Host : public GenericHashEntry,
 #endif
 
 #ifndef HAVE_NEDGE
-  inline void setListeningPorts(ListeningPorts& lp) {
-    if (listening_ports_shadow) {
-      delete listening_ports_shadow;
-      listening_ports_shadow = NULL;
-    }
-    listening_ports_shadow = listening_ports;
-    listening_ports = new ListeningPorts(lp);
+  inline void setListeningPorts(ListeningPorts& lp, time_t now) {
+    ListeningPorts* new_ports;
+
+    if (now < listening_ports_last_update + 10 /* min update interval (sec) */)
+      return;
+
+    if ((new_ports = new (std::nothrow) ListeningPorts(lp)) == NULL) return;
+
+    if (listening_ports_shadow) delete listening_ports_shadow;
+    listening_ports_shadow = listening_ports.exchange(new_ports);
+    listening_ports_last_update = now;
   }
-  inline ListeningPorts* getListeningPorts() { return (listening_ports); }
 #endif
 
   /* Enqueues an alert to all available host recipients. */

@@ -3297,6 +3297,8 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char* payload,
           enum json_type o_type = json_object_get_type(z);
 
           if (o_type == json_type_array) {
+            time_t now = time(NULL);
+
             for (u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
               Host* h = NULL;
               json_object* host = json_object_array_get_idx(z, i);
@@ -3311,7 +3313,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char* payload,
               h = getHost((char*)ip_addr, vlan_id, 0 /* observationPointId */,
                           true /* inline */);
               if (h) {
-                h->setListeningPorts(pinfo);
+                h->setListeningPorts(pinfo, now);
               } else {
                 // ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find host
                 // %s", (char *)ip_addr);
