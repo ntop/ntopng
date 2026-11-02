@@ -4895,7 +4895,8 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
-
+    lua_push_uint64_table_entry(vm, "seed", ntop->getSeed());
+    
     lua_push_bool_table_entry(vm, "pro.release",                         false);
     lua_push_bool_table_entry(vm, "version.enterprise_edition",          false);
     lua_push_bool_table_entry(vm, "version.enterprise_m_edition",        false);
@@ -4913,7 +4914,7 @@ static int ntop_get_info(lua_State* vm) {
                                 MAX_NUM_POOL_MEMBERS);
     lua_push_uint64_table_entry(vm, "constants.max_num_profiles",
                                 MAX_NUM_PROFILES);
-
+    
 #ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
     zmq_version(&major, &minor, &patch);
