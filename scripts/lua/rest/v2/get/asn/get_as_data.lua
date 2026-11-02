@@ -17,13 +17,12 @@ local json = require("dkjson")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-local ifid = _GET["ifid"] or interface.getId()
+local ifid = _GET["ifid"]
 local epoch_begin = _GET["epoch_begin"] or 0
 local epoch_end = _GET["epoch_end"] or 0
 local is_live = toboolean(_GET["is_live"] or true)
 local selected_asn = _GET["show_as"]
 local interface_role = _GET["interface_role"]
-local ip_interface = _GET["ip_interface"]
 
 local ases_info = {}
 local res = {}
@@ -34,15 +33,23 @@ if not isEmptyString(perform_profiling) then
 else
     perform_profiling = false
 end
-interface.select(ifid)
+
+-- interface.select silently falls back to an allowed interface: check it
+if not isEmptyString(ifid) then
+    interface.select(tostring(ifid))
+    if tostring(interface.getId()) ~= tostring(ifid) then
+        rest_utils.answer(rest_utils.consts.err.invalid_interface)
+        return
+    end
+end
 
 local options = {
-    ifid = ifid,
+    -- The selected interface, never the raw parameter (used in the historical query)
+    ifid = interface.getId(),
     epoch_begin = epoch_begin,
     epoch_end = epoch_end,
     selected_asn = selected_asn,
     interface_role = interface_role,
-    ip_interface = ip_interface
 }
 
 if (perform_profiling) then
@@ -97,18 +104,14 @@ for key, value in pairs(ases_info or {}) do
     record["seen_since"] = tonumber(value["seen.first"])
     record["score"] = value["score"]
     record["throughput"] = value["throughput_bps"]
-    if value["asname"] then
-        if (asn == 0) then
-            value["asname"] = i18n('reserved_as')
-        end
+    -- ASN 0 (private hosts) has no name: the page shows its label
+    if asn == 0 then
+        record["asname"] = nil
+    elseif value["asname"] then
         record["asname"] = value["asname"]
     else
-        local as_info = ntop.getASNameFromASN(tonumber(record["asn"]))
+        local as_info = ntop.getASNameFromASN(asn)
         record["asname"] = as_info and (as_info.description or as_info.handle) or nil
-    end
-
-    if asn == 0 then
-        record["asname"] = "Private hosts"
     end
 
     if not is_live then
@@ -139,7 +142,7 @@ end
 
 local customer_asn, sub_customer_asn, remote_asn = as_utils.getAllConfigurations()
 for pos, value in pairs(res or {}) do
-    if value.asn ~= nil and value.asname ~= nil then
+    if value.asn ~= nil then
         local as = tostring(value.asn)
         if customer_asn[as] then
             value.is_customer_asn = true

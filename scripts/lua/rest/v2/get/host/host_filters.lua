@@ -10,6 +10,17 @@ require("lua_utils_gui")
 require("http_lint")
 require("lua_utils_get")
 local rest_utils = require("rest_utils")
+
+-- ?ifid= selects the interface; interface.select silently falls back to an allowed one: check it
+local ifid = _GET["ifid"]
+if not isEmptyString(ifid) then
+	interface.select(tostring(ifid))
+end
+if not isEmptyString(ifid) and tostring(interface.getId()) ~= tostring(ifid) then
+	rest_utils.answer(rest_utils.consts.err.invalid_interface)
+	return
+end
+
 local rsp = {}
 local country = _GET["country"]
 local mac = _GET["mac"]

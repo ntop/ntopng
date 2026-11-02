@@ -40,6 +40,9 @@ local exporters_utils = {}
 -- @param add_role_to_interfaces boolean Whether to enrich interfaces with SNMP role
 --
 local function formatInterfaceData(exporter_ip, new_ports_list, res, uuid_list, add_role_to_interfaces, filter_by_role)
+   -- Resolve exporter display name (once per exporter, not per interface)
+   local exporter_name = nil
+
    -- Iterate over all port groups
    for _, v in pairs(new_ports_list or {}) do
       -- Sort interfaces by total bytes (descending)
@@ -49,8 +52,9 @@ local function formatInterfaceData(exporter_ip, new_ports_list, res, uuid_list, 
          -- Resolve interface name from exporter IP and interface ID
          local interface_name = format_portidx_name(exporter_ip, tonumber(id), true)
 
-         -- Resolve exporter display name
-         local exporter_name = getExporterName(exporter_ip, true, true, false)
+         if not exporter_name then
+            exporter_name = getExporterName(exporter_ip, true, true, false)
+         end
 
          -- Optionally retrieve interface role via SNMP
          if (add_role_to_interfaces) then
@@ -89,9 +93,11 @@ end
 -- Retrieve the list of all exporter interfaces across all probes.
 --
 -- @param add_role_to_interfaces boolean Whether to add SNMP interface roles
+-- @param filter_by_role string Optional, only the interfaces with this SNMP role
+-- @param filter_by_exporter string Optional, only the interfaces of this exporter IP
 -- @return table List of exporter interfaces
 --
-function exporters_utils.getAllInterfacesList(add_role_to_interfaces, filter_by_role)
+function exporters_utils.getAllInterfacesList(add_role_to_interfaces, filter_by_role, filter_by_exporter)
    local list = {}
 
    -- Global interface statistics
@@ -107,24 +113,29 @@ function exporters_utils.getAllInterfacesList(add_role_to_interfaces, filter_by_
          if (source_id) then
             if (table.len(probe_info.exporters) == 0) then
                -- Packet probe (no exporters, traffic captured locally)
-               local ports_table = interface.getFlowDeviceInfo(source_id, true)
                local exporter_ip = probe_info["remote.if_addr"]
 
-               formatInterfaceData(exporter_ip, ports_table, list, {
-                  probe_source_id = source_id,
-                  exporter_source_id = source_id,
-                  ifid = ifid
-               }, add_role_to_interfaces, filter_by_role)
-            else
-               -- Collector probe (NetFlow / IPFIX / sFlow)
-               for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}) do
-                  local ports_table = interface.getFlowDeviceInfo(exporter_info.unique_source_id, true)
+               if isEmptyString(filter_by_exporter) or (exporter_ip == filter_by_exporter) then
+                  local ports_table = interface.getFlowDeviceInfo(source_id, true)
 
                   formatInterfaceData(exporter_ip, ports_table, list, {
                      probe_source_id = source_id,
-                     exporter_source_id = exporter_info.unique_source_id,
+                     exporter_source_id = source_id,
                      ifid = ifid
                   }, add_role_to_interfaces, filter_by_role)
+               end
+            else
+               -- Collector probe (NetFlow / IPFIX / sFlow)
+               for exporter_ip, exporter_info in pairsByKeys(probe_info.exporters or {}) do
+                  if isEmptyString(filter_by_exporter) or (exporter_ip == filter_by_exporter) then
+                     local ports_table = interface.getFlowDeviceInfo(exporter_info.unique_source_id, true)
+
+                     formatInterfaceData(exporter_ip, ports_table, list, {
+                        probe_source_id = source_id,
+                        exporter_source_id = exporter_info.unique_source_id,
+                        ifid = ifid
+                     }, add_role_to_interfaces, filter_by_role)
+                  end
                end
             end
          end

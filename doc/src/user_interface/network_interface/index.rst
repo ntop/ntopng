@@ -84,6 +84,8 @@ Interface
     interface/host_pools
     interface/autonomous_systems
     interface/countries
+    interface/vlans
+    interface/assets
     interface/operating_systems
 
 

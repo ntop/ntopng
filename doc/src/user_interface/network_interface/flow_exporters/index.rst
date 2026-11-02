@@ -29,8 +29,9 @@ detected from the traffic. Similarly, all the other ntopng pages will populate w
 sFlow Devices
 -------------
 
-When capturing sFlow traffic, ntopng displays aggregated information regarding the
-sFlow devices and their ports. This information is accessible from the `Collectors` menu, `sFlow Devices` entry:
+When nProbe forwards the sFlow counters of the devices (the sFlow agents), ntopng lists the
+devices and their ports. The list is in the `Network` menu, `sFlow Counter Exporters` entry,
+which appears once at least one device has been seen:
 
 .. figure:: ../img/advanced_features_sflow_devices_list.jpg
   :align: center
@@ -39,10 +40,11 @@ sFlow devices and their ports. This information is accessible from the `Collecto
   List of the Remote sFlow Devices
 
 Each row shows a single sFlow device. If the device is also configured as an
-`SNMP device`_, ntopng will show its name, description and location information.
-A chart of the device traffic is shown provided that the "Flow Devices" timeseries
-are enabled from the ntopng preferences. By clicking on the sFlow device IP address
-it's possible to inspect the per-interface statistics of the SNMP device.
+`SNMP device`_, ntopng shows its name, description and location. Click the ⤢ icon next to the
+IP address to see the per-interface statistics of the device. The `Actions` button opens the
+same interface list; its menu also opens the device traffic timeseries (`Historical Data` tab,
+they need the flow exporters timeseries enabled in `Settings > Preferences > Timeseries`) and
+the SNMP device, when there is one.
 
 .. figure:: ../img/advanced_features_sflow_interfaces_list.jpg
   :align: center
@@ -80,5 +82,60 @@ Ratio is only computed when the following conditions are met:
 
 - Flow Device and SNMP timeseries are enabled
 - The device selected must support SNMP and must be configured in the SNMP devices page
+
+nProbe Instances
+----------------
+
+The `Network` menu, `nProbe` entry, lists the nProbe instances that send flows to the selected
+interface, both the ones collecting NetFlow/IPFIX/sFlow from routers and switches (collector mode)
+and the ones capturing packets. The page refreshes every 10 seconds.
+
+- The diagram on top shows how the flows go from the exporters through the probes to ntopng.
+  `Total Flows` sizes the links by the flows, `Total Drops` by the flows lost. Click a probe or
+  an exporter in the diagram to open its details.
+- The table shows, for each probe, its version, license, the number of exporters and interfaces,
+  and the exported and lost flows and packets. An arrow next to a counter means it grew since
+  the previous refresh. Click the ⤢ icon next to a probe to open the details of its host.
+- The `Actions` button opens the flow exporters of the probe; its menu also opens their
+  interfaces and the probe host.
+- `All Flow Exporters` and `All Exporters Interfaces` above the table list the exporters and the
+  interfaces of every probe.
+- The `Historical Data` tab shows the probes timeseries.
+
+Exporters Interfaces
+--------------------
+
+The `Network` menu, `Exporters/Interfaces Stats` entry, lists the interfaces of all the
+flow exporters (the routers and switches that send NetFlow, IPFIX or sFlow flows through nProbe)
+seen on the selected interface, with the traffic each one sent and received since ntopng started.
+
+- Click an exporter name to show only its interfaces, or a role (e.g. Transit, Peering) to show
+  only the interfaces with that role. The roles are set in the SNMP interface settings. The
+  `Role` menu above the table does the same, and `Clear filters` shows everything again.
+- Click the ⤢ icon next to an exporter or an interface to open its details.
+- The `Actions` button opens the interface overview; its menu also opens the live flows and the
+  hosts that went through that interface, and the interface timeseries.
+
+With an Enterprise license a chart above the table shows the traffic of the 7 busiest interfaces
+in the last 24 hours, following the same filters. The chart and the timeseries need the flow
+exporters timeseries enabled in `Settings > Preferences > Timeseries`; until then the timeseries
+action is disabled.
+
+Observation Points
+------------------
+
+An observation point is a place of the network where nProbe collects flows, set with the nProbe
+option ``--observation-point-id``. The `Network` menu, `Observation Points` entry, appears when at
+least one observation point has been seen and lists them with the number of flow exporters, flows,
+hosts, the throughput of the last minute and the traffic since ntopng started. Click the number of
+exporters to see them.
+
+The `Actions` button of each row opens:
+
+- the timeseries of the observation point (`Historical Data` tab). They need the observation points
+  timeseries enabled in `Settings > Preferences > Timeseries`;
+- its historical flows. They need ClickHouse;
+- its settings (`Settings` tab, administrators only), where you can give the observation point a
+  name (alias), shown next to its id. Leave the name empty to remove it.
 
 .. _`SNMP device`: ../active_monitoring/snmp.html

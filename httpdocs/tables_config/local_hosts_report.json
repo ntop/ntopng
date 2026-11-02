@@ -4,7 +4,8 @@
 	"use_current_page": true,
 	"enable_search": false,
 	"paging": true,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.local_hosts_report",
 	"default_sort": {
 		"column_id": "total_traffic",
 		"sort": 2
@@ -19,13 +20,14 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"min-width" : "90px",
+			"max-width" : "90px",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "timeseries",
-					"icon": "fas fa-lg fa-chart-area",
+					"icon": "fas fa-chart-area",
 					"title_i18n": "chart",
-					"class": [],
 					"event_id": "click_button_timeseries"
 				},
 				{

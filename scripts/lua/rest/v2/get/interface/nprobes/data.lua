@@ -5,39 +5,40 @@ local dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+require "ntop_utils"
+require "lua_utils_get" -- getExporterName
+require "http_lint"
 local rest_utils = require("rest_utils")
 
 --
 -- Read information about the nprobes connected to an interface
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/interface/nprobes/data.lua
---
--- NOTE: in case of invalid login, no error is returned but redirected to login
+-- Example: curl -u admin:admin "http://localhost:3000/lua/rest/v2/get/interface/nprobes/data.lua?ifid=1"
 --
 
 local rc = rest_utils.consts.success.ok
 local res = {}
 
-local ifid = _GET["ifid"] or interface.getId()
-
-if isEmptyString(ifid) then
-    rc = rest_utils.consts.err.invalid_interface
-    rest_utils.answer(rc)
-    return
+-- ?ifid= selects the interface; interface.select silently falls back to an allowed one: check it
+local ifid = _GET["ifid"]
+if not isEmptyString(ifid) then
+    interface.select(tostring(ifid))
+    if tostring(interface.getId()) ~= tostring(ifid) then
+        rest_utils.answer(rest_utils.consts.err.invalid_interface)
+        return
+    end
 end
 
-interface.select(ifid)
 local if_names = interface.getIfNames()
 local ifstats = interface.getStats()
-local timeseries_enabled = areFlowdevTimeseriesEnabled()
-
---tprint(ifstats) io.write("-----------------------\n")
+-- Same pref as areFlowdevTimeseriesEnabled (check_redis_prefs)
+local timeseries_enabled = (ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
 
 for interface_id, probes_list in pairs(ifstats.probes or {}) do
     for source_id, probe_info in pairs(probes_list or {}) do
         local flow_drops = 0
         local exported_flows = 0
         local probe_interface
+        local is_collector = false
         local num_ports = 0
         local flow_exporters_num = table.len(probe_info.exporters or {})
         local is_probe_in_memory = false
@@ -71,7 +72,9 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
                 flow_drops = flow_drops + (values.num_drops or 0)
                 exported_flows = exported_flows + (values.num_netflow_flows or 0) + (values.num_sflow_flows or 0)
             end
-            probe_interface = i18n("if_stats_overview.remote_probe_collector_mode")
+            -- Flow collector: no capture interface (the page shows "collector mode")
+            probe_interface = ""
+            is_collector = true
         end
         
         if interface.getHostInfo(probe_ip) then
@@ -88,8 +91,10 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             probe_public_ip = probe_info["probe.public_ip"] or "",
             probe_edition = probe_info["probe.probe_edition"] or "",
             probe_instance_name = probe_info["probe.instance_name"] or "",
-            probe_license = probe_info["probe.probe_license"] or i18n("if_stats_overview.no_license"),
-            probe_maintenance = probe_info["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance"),
+            -- "" when the probe has no license / its maintenance expired
+            probe_license = probe_info["probe.probe_license"] or "",
+            probe_maintenance = probe_info["probe.probe_maintenance"] or "",
+            is_collector = is_collector,
             probe_last_update = (probe_info["probe.last_update"] or 0),
             flow_exporters = flow_exporters_num,
             exporters_interfaces = num_ports,
