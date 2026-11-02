@@ -76,6 +76,244 @@
     "http"
   ],
   "paths": {
+    "/lua/pro/rest/v2/charts/host/map.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the hosts map data of an interface",
+        "description": "Enterprise only. Up to 64 local and 64 remote active hosts placed by the chosen criteria. rsp.series: [{name: local|remote, base_url (host details page), data: [{x, y, z (bubble radius in px, 3-33, from the host traffic), meta: {label (host name or IP), url_query (host=<ip>@<vlan>)}}]}]. x/y per bubble_mode: 0 flows as server/client, 1 unreachable flows as server/client, 2 alerted flows as server/client, 3 DNS positive replies/sent queries, 4 SYN sent/received, 5 SYN sent/RST received, 6 SYN sent/SYN-ACK received, 7 TCP packets sent/received, 8 TCP bytes sent/received, 9 active alerted flows as server/client, 10 bytes/packets ratio, 11 client/server score, 12 blacklisted flows as client/server, 13 unidirectional TCP flows as client/server. Modes 4-6 need a packet interface.",
+        "operationId": "get_hosts_map",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "bubble_mode",
+            "in": "query",
+            "description": "Criteria, 0-13 (default 0)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 13
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/syslog/messages.lua": {
+      "get": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Get the syslog messages",
+        "description": "Syslog messages collected in ClickHouse, paginated: [{ ts, ip, hostname, facility, severity, app_name, message }], recordsTotal. Enterprise XL, administrators only",
+        "operationId": "get_syslog_messages",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_ip",
+            "in": "query",
+            "description": "Only the messages sent by this IP",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_severity",
+            "in": "query",
+            "description": "Only this severity (0-7)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_hostname",
+            "in": "query",
+            "description": "Only this hostname",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_app_name",
+            "in": "query",
+            "description": "Only this application",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_facility",
+            "in": "query",
+            "description": "Only this facility",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in message, IP, hostname, application, facility, severity",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First record",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of records (max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "ts, ip, hostname, facility, severity, app_name, message",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/syslog/facets.lua": {
+      "get": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Get the syslog facets",
+        "description": "Most frequent values (max 15) of every facet with their message count: [{ id: severity|ip|hostname|app_name|facility, items: [{ value, count }] }]. The filter of a facet is not applied to the facet itself. Enterprise XL, administrators only",
+        "operationId": "get_syslog_facets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_ip",
+            "in": "query",
+            "description": "Only the messages sent by this IP",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_severity",
+            "in": "query",
+            "description": "Only this severity (0-7)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_hostname",
+            "in": "query",
+            "description": "Only this hostname",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_app_name",
+            "in": "query",
+            "description": "Only this application",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_facility",
+            "in": "query",
+            "description": "Only this facility",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in message, IP, hostname, application, facility, severity",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/syslog/rules.lua": {
       "get": {
         "tags": [
@@ -145,11 +383,11 @@
             "maximum": 7
           },
           {
-            "name": "syslog_rule_max_severity",
+            "name": "syslog_rule_discard",
             "in": "formData",
-            "description": "Inclusive upper severity bound, same scale as syslog_rule_min_severity. Must be greater than or equal to it",
+            "description": "true: the matching messages are discarded, false: they are kept",
             "required": true,
-            "type": "integer",
+            "type": "boolean",
             "minimum": 0,
             "maximum": 7
           },
@@ -235,11 +473,11 @@
             "maximum": 7
           },
           {
-            "name": "syslog_rule_max_severity",
+            "name": "syslog_rule_discard",
             "in": "formData",
-            "description": "Inclusive upper severity bound, same scale as syslog_rule_min_severity. Must be greater than or equal to it",
+            "description": "true: the matching messages are discarded, false: they are kept",
             "required": true,
-            "type": "integer",
+            "type": "boolean",
             "minimum": 0,
             "maximum": 7
           },
@@ -313,6 +551,155 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/local_hosts_report.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the local hosts activity report",
+        "description": "Traffic of the local hosts (assets) in a time range, from the host timeseries (live data when epoch_begin = epoch_end). Each row: ip, vlan, host (ip@vlan), host_key, name, online, bytes_sent, bytes_rcvd, local_traffic, remote_traffic, total_traffic, availability (traffic per time slot) and max_value_per_point (max of each slot over the page). Enterprise M only.",
+        "operationId": "get_interface_local_hosts_report",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start of the time range (epoch seconds). Equal to epoch_end = live data",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch seconds)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "description": "Time range preset, sets the number of availability points: hour (12), day (24), week (7), month (30), year (12) (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host_visibility",
+            "in": "query",
+            "description": "Hosts listed: only_traffic (default), no_traffic, visible, hidden (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Pagination: index of the first host",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Pagination: number of hosts",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: ip, name, bytes_sent, bytes_rcvd, local_traffic, remote_traffic, total_traffic (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (optional)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not Enterprise M)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing time range, or an interface the user cannot access)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/host/visibility.lua": {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Hide or show a host in the local hosts activity report",
+        "description": "Hides a host from the local hosts activity report (listed again with host_visibility=hidden) or shows it again. Enterprise M and administrators only.",
+        "operationId": "edit_host_visibility",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "host"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "Host as in the report: IP, with @vlan for the VLAN hosts (e.g. 192.168.1.10@20)"
+                },
+                "hide": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ],
+                  "default": "true",
+                  "description": "true = hide the host, false = show it again"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M and administrators only)"
+          },
+          "-4": {
+            "description": "INVALID_HOST"
           }
         }
       }
@@ -5625,6 +6012,99 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/exporters/get_exporters_interfaces_stats.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the flow exporters interfaces",
+        "description": "Interfaces of the flow exporters (routers, switches) sending flows to the interface, with their traffic since startup. Pro only",
+        "operationId": "get_exporters_interfaces_stats",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Only the interfaces with this SNMP role (other, transit, ix, peering, customer_interface, internet_connectivity, internal_interface)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Only the interfaces of this flow exporter IP",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: list of { exporter_ip, exporter_name, interface_id, interface_name, role: { value, label }, probe_source_id, exporter_source_id, ifid, bytes_sent, bytes_rcvd, total_bytes }"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/flowdevices/get_top_exporters_interfaces.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the top flow exporters interfaces",
+        "description": "The 7 flow exporters interfaces with the most traffic, same filters and fields as get_exporters_interfaces_stats",
+        "operationId": "get_top_exporters_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Only the interfaces with this SNMP role (other, transit, ix, peering, customer_interface, internet_connectivity, internal_interface)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Only the interfaces of this flow exporter IP",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: list of at most 7 interfaces, by total_bytes desc"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/flowdevices/stats.lua": {
       "get": {
         "tags": [
@@ -6968,14 +7448,14 @@
           "Observation Point"
         ],
         "summary": "Get the alias of an Observation Point",
-        "description": "The alias of an Observation Point is returned",
+        "description": "The alias of an Observation Point (empty string when not set)",
         "operationId": "get_observation_point_alias",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "observation_point_id",
+            "name": "observation_point",
             "in": "query",
             "description": "Observation Point ID",
             "required": true,
@@ -6993,13 +7473,13 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/observation_points/stats.lua": {
+    "/lua/pro/rest/v2/get/interface/observation_points/stats.lua": {
       "get": {
         "tags": [
-          "Alerts"
+          "Observation Point"
         ],
-        "summary": "Get observation points alert stats",
-        "description": "Get observation points alert stats",
+        "summary": "Get the observation points stats",
+        "description": "Observation points seen on the interface: { observation_point, observation_point_alias, exporters, total_flows, hosts, throughput (bps), traffic (bytes) }. Pro only",
         "operationId": "get_observation_points_stats",
         "produces": [
           "application/json"
@@ -7066,6 +7546,40 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/sflowdevices/list.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the sFlow devices",
+        "description": "sFlow devices (agents exporting sFlow counters) seen on the interface: { ip, has_snmp, snmp_name, snmp_descr, snmp_location }. The SNMP fields need the SNMP capability. Pro only, needs the flow devices capability",
+        "operationId": "get_sflowdevices_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -7808,7 +8322,7 @@
           "Observation Point"
         ],
         "summary": "Set the alias of an Observation Point",
-        "description": "Set the alias of an Observation Point is returned",
+        "description": "Set the alias of an Observation Point. Administrators only",
         "operationId": "set_observation_point_alias",
         "produces": [
           "application/json"
@@ -7817,12 +8331,12 @@
           {
             "name": "alias",
             "in": "formData",
-            "description": "New Observation Point Alias",
+            "description": "New Observation Point Alias (empty: remove it)",
             "required": true,
             "type": "string"
           },
           {
-            "name": "observation_point_id",
+            "name": "observation_point",
             "in": "formData",
             "description": "Observation Point ID",
             "required": true,
@@ -8843,7 +9357,7 @@
           "Pools"
         ],
         "summary": "Add an host pool",
-        "description": "Add an host pool with members and configuration",
+        "description": "Add an host pool with its members. Needs the Pools capability; users restricted to some pools cannot add pools. rsp: {pool_id} of the new pool.",
         "operationId": "add_host_pool",
         "produces": [
           "application/json"
@@ -8852,29 +9366,21 @@
           {
             "name": "pool_name",
             "in": "formData",
-            "description": "Host Pool Name",
+            "description": "Host pool name",
             "required": true,
             "type": "string"
           },
           {
             "name": "pool_members",
             "in": "formData",
-            "description": "List of IPs separated by commas",
+            "description": "Members separated by commas, each <ip or network>/<prefix>@<vlan> or a MAC address (e.g. 192.168.1.10/32@0,10.0.0.0/24@0). Can be empty",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "confset_id",
-            "in": "formData",
-            "description": "Configuration ID",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "POOL_ADDED_SUCCESSFULLY"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -8884,6 +9390,12 @@
           },
           "-13": {
             "description": "ADD_POOL_FAILED"
+          },
+          "-53": {
+            "description": "ADD_POOL_FAILED_TOO_MANY_POOLS"
+          },
+          "-54": {
+            "description": "ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"
           }
         }
       }
@@ -9739,38 +10251,138 @@
         }
       }
     },
-    "/lua/pro/rest/v2/delete/host/asset.lua": {
+    "/lua/pro/rest/v2/add/assets/assets.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Import assets",
+        "description": "Import the assets of a CSV file (as exported by export/assets/assets.lua). Enterprise M, administrators only",
+        "operationId": "import_assets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assets",
+            "in": "formData",
+            "description": "CSV content",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-7": {
+            "description": "BAD_FORMAT"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/export/assets/assets.lua": {
       "get": {
         "tags": [
-          "Interfaces"
+          "Assets"
         ],
-        "summary": "Get ntopng actively monitored interfaces names and ids",
-        "description": "Interface name and integer interface id for each actively monitored ntopng interface",
-        "operationId": "get_ntopng_interfaces",
+        "summary": "Export assets",
+        "description": "The assets of every interface as CSV (is_snmp=true: the SNMP assets). Enterprise M, administrators only",
+        "operationId": "export_assets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "is_snmp",
+            "in": "query",
+            "description": "true for the SNMP assets",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/set/assets/wazuh_info.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Merge the Wazuh agents info into the assets",
+        "description": "Read the agents from the Wazuh API and update the matching assets of the interface. Enterprise M, administrators only, needs the Wazuh API configured",
+        "operationId": "merge_assets_wazuh_info",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
             "name": "ifid",
-            "in": "query",
+            "in": "formData",
             "description": "Interface identifier",
             "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "serial_key",
-            "in": "query",
-            "description": "Host identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/host/asset.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Delete assets",
+        "description": "Delete one asset (serial_key = its key), all the assets (serial_key = all) or the ones not seen since an epoch (serial_key = epoch). Administrators only",
+        "operationId": "delete_host_asset",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "serial_key",
+            "in": "formData",
+            "description": "Asset key, all, or an epoch",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
           }
         }
       }
@@ -9800,7 +10412,7 @@
           "Pools"
         ],
         "summary": "Delete an host pool",
-        "description": "Delete an host pool",
+        "description": "Delete an host pool. Needs the Pools capability and access to the pool.",
         "operationId": "delete_host_pool",
         "produces": [
           "application/json"
@@ -9808,15 +10420,16 @@
         "parameters": [
           {
             "name": "pool",
-            "in": "query",
-            "description": "Host Pool ID, required to delete the given pool",
+            "in": "formData",
+            "description": "Host pool id",
             "required": true,
-            "type": "number"
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "POOL_DELETED_SUCCESSFULLY"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -10468,7 +11081,7 @@
           "Pools"
         ],
         "summary": "Edit an host pool",
-        "description": "Edit an host pool with members and configuration",
+        "description": "Rename an host pool and replace its members. Needs the Pools capability and access to the pool.",
         "operationId": "edit_host_pool",
         "produces": [
           "application/json"
@@ -10477,7 +11090,7 @@
           {
             "name": "pool",
             "in": "formData",
-            "description": "Pool ID",
+            "description": "Host pool id",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -10485,29 +11098,21 @@
           {
             "name": "pool_name",
             "in": "formData",
-            "description": "Pool Name",
+            "description": "Host pool name",
             "required": true,
             "type": "string"
           },
           {
             "name": "pool_members",
             "in": "formData",
-            "description": "Comma separated list of IPs/MACs/Networks cidr",
+            "description": "Members separated by commas, each <ip or network>/<prefix>@<vlan> or a MAC address. They replace the current members",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "confset_id",
-            "in": "formData",
-            "description": "Configuration ID",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "POOL_EDITED_SUCCESSFULLY"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -11739,6 +12344,144 @@
         }
       }
     },
+    "/lua/rest/v2/get/asn/get_as_data.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the autonomous systems of an interface with their traffic",
+        "description": "Live: the active ASes of the interface (since startup). Historical (is_live=false, needs ClickHouse): the ASes of the flows in [epoch_begin, epoch_end]. rsp is an array of records: asn, asname (none for ASN 0, the private hosts), num_hosts, avg_host_score, score, alerted_flows, seen_since (epoch), bytes_sent, bytes_rcvd, traffic, throughput (bps), breakdown {bytes_sent, bytes_rcvd}, breakdown_role {bytes_other, bytes_transit, bytes_peering, bytes_ix}, is_customer_asn / is_sub_customer_asn / is_remote_asn (ASN configuration), is_in_memory (historical only: the AS has active hosts now).",
+        "operationId": "get_as_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "is_live",
+            "in": "query",
+            "description": "true (default) live data, false historical data (ClickHouse)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Historical only: start of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Historical only: end of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "show_as",
+            "in": "query",
+            "description": "all (default), my_as, my_customer_as, remote_as or other_as (ASN configuration)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Enterprise M: all (default), ix, peering or transit (SNMP interface role)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-61": {
+            "description": "CLICKHOUSE_MISSING (historical data without ClickHouse)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/asn/get_top_asn.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the top autonomous systems of an interface",
+        "description": "The top ASes by traffic, live or in [epoch_begin, epoch_end] (is_live=false, needs ClickHouse): used for the top ASN chart. rsp is an array of AS records (asn, asname, traffic and the per-role bytes).",
+        "operationId": "get_top_asn",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "is_live",
+            "in": "query",
+            "description": "true (default) live data, false historical data (ClickHouse)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Historical only: start of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Historical only: end of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "show_as",
+            "in": "query",
+            "description": "all (default), my_as, my_customer_as, remote_as or other_as",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Enterprise M: all (default), ix, peering or transit",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-61": {
+            "description": "CLICKHOUSE_MISSING"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/category/list.lua": {
       "get": {
         "tags": [
@@ -11830,6 +12573,37 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/country/list.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the countries of the active hosts",
+        "description": "The countries (from the geolocation database) of the hosts active on the interface. rsp is an array of records: name (ISO 3166 country code), hosts (active hosts), seen_since (epoch of the first packet), score, bytes_sent, bytes_rcvd, traffic (bytes), throughput (bps). recordsTotal/recordsFiltered: number of countries. Any user can call it (interface restrictions apply).",
+        "operationId": "get_country_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
@@ -12640,6 +13414,60 @@
         }
       }
     },
+    "/lua/rest/v2/get/geo_map/hosts.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the geolocated hosts of an interface",
+        "description": "The active hosts with a known location (latitude/longitude from the geolocation database), at most 512. rsp is an array of records: ip, name, vlan {id, name}, lat, lng, country (ISO 3166 alpha-3), country_code (alpha-2), country_id, city (when known), scoreClient, scoreServer, numAlerts (alerted active flows), isAlert (score > 0), isRoot. Any user can call it (interface and network restrictions apply).",
+        "operationId": "get_geo_map_hosts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "hosts_category",
+            "in": "query",
+            "description": "0 active hosts by traffic (default), 1 alerted hosts by score, 2 local hosts, 3 remote hosts",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "When set, the hosts the given host is talking with (active flows) instead of the category",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/host/active.lua": {
       "get": {
         "tags": [
@@ -12717,6 +13545,176 @@
           },
           "-6": {
             "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/active_list.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the active hosts list",
+        "description": "Active hosts of the interface, one page at a time, with the filters of the Hosts page. Each row: host (ip, vlan, mac, os, country and flags), hostname, first_seen, last_seen, throughput, bytes, alerts, num_flows, score, isBlocked (nEdge), location (nEdge). recordsTotal is the number of hosts matching the filters. Only the hosts of the networks the user is allowed to see are listed.",
+        "operationId": "get_host_active_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (optional, default: the selected one). An interface the user cannot access answers INVALID_INTERFACE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Pagination: index of the first host (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Pagination: number of hosts (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: ip_address, hostname, vlan, num_flows, alerts, score, first_seen, throughput, bytes (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text search on the hosts (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "Hosts filter: local, local_no_tx, local_no_tcp_tx, remote, remote_no_tx, remote_no_tcp_tx, broadcast_domain, broadcast_multicast, filtered, blacklisted, dhcp (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "IP version: 4 or 6 (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "traffic_type",
+            "in": "query",
+            "description": "Direction: one_way or bidirectional (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Local network id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network_cidr",
+            "in": "query",
+            "description": "Network in CIDR format (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pool",
+            "in": "query",
+            "description": "Host pool id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "description": "Autonomous System number (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "Country code, e.g. IT (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "os",
+            "in": "query",
+            "description": "Operating system id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "mac",
+            "in": "query",
+            "description": "MAC address (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "nDPI application protocol id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Flow exporter IP (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "nEdge only: lan, wan or unknown (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "description": "Host tag id (optional)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
@@ -13464,6 +14462,205 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/host/assets.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the assets inventory",
+        "description": "Assets of the interface (page=snmp: the SNMP assets of the system interface), paginated. Enterprise M only",
+        "operationId": "get_host_assets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "snmp: the SNMP assets",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First record",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of records",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column (ip_address, name, mac_address, vlan, network, device_type, manufacturer, first_seen, last_seen, os, model, status, switch_ip, switch_port)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "device_type",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "0 online, 1 offline",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "os_type",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "switch_ip",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "switch_port",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "description": "Tag id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in IP, name, MAC",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_available",
+            "in": "query",
+            "description": "0 with Wazuh info, 1 without",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "site_id",
+            "in": "query",
+            "description": "Site",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/assets_filters.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the assets inventory filters",
+        "description": "Filters of the assets table with their options (as the other *_filters REST). Enterprise M only",
+        "operationId": "get_host_assets_filters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "site_id",
+            "in": "query",
+            "description": "Adds the Site filter",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/host/inactive_asset.lua": {
       "get": {
         "tags": [
@@ -13537,6 +14734,37 @@
           },
           "-16": {
             "description": "POOL_NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/pool/list.lua": {
+      "get": {
+        "tags": [
+          "Pools"
+        ],
+        "summary": "Get the host pools of an interface with their traffic",
+        "description": "The host pools with live statistics on the interface, only the pools the user can access. rsp is an array of records: pool_id, pool_name, hosts (active hosts), seen_since (seconds since the first packet), bytes_sent, bytes_rcvd, traffic (bytes), throughput (bps), members (as stored: <address>/<prefix>@<vlan> or MAC), members_labels (members without the @<vlan> suffix). recordsTotal/recordsFiltered: number of pools.",
+        "operationId": "get_host_pool_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
@@ -14332,8 +15560,8 @@
           "Traffic"
         ],
         "summary": "Get interface nProbe data",
-        "description": "Get data for nProbe instances connected to an ntopng interface",
-        "operationId": "get_alert_type_counters",
+        "description": "nProbe instances connected to the interface: probe_ip, probe_name, probe_source_id, probe_uuid, probe_public_ip, probe_instance_name, probe_version, probe_edition, probe_license (\"\" when none), probe_maintenance (\"\" when expired), probe_last_update (epoch), probe_interface (\"\" in collector mode), is_collector, flow_exporters, exporters_interfaces, exported_flows, dropped_flows, captured_packets, dropped_packets, is_in_memory, ntopng_interface, ifid, timeseries_enabled",
+        "operationId": "get_interface_nprobes_data",
         "produces": [
           "application/json"
         ],
@@ -14341,8 +15569,8 @@
           {
             "name": "ifid",
             "in": "query",
-            "description": "Interface identifier",
-            "required": true,
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
             "type": "integer",
             "format": "int32"
           }
@@ -14447,6 +15675,100 @@
           },
           "-1": {
             "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/mac/macs_list.lua": {
+      "get": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get the active MAC addresses of an interface",
+        "description": "One page of the active MACs. rsp is an array of records: mac, manufacturer (with the [model] when known), device_type {id, device_type_label, <type name>: true}, name {has_name, name | num_hosts, host_label}, hosts, arp (ARP packets sent + received), seen_since (epoch of the first packet), bytes_sent, bytes_rcvd, traffic (bytes), throughput + throughput_type (bps or pps, per the throughput preference), location (nEdge only). recordsTotal/recordsFiltered: MACs matching the filters.",
+        "operationId": "get_macs_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Offset of the first MAC returned (default 0)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of MACs returned (default: all)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: mac, manufacturer, hosts, arp, seen_since, throughput, traffic (default mac)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (default asc)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Free-text search on the MAC address and manufacturer",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "devices_mode",
+            "in": "query",
+            "description": "source_macs_only: only the MACs that sent traffic (inactive_macs_only is handled as source_macs_only)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Manufacturer name (exact match)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "device_type",
+            "in": "query",
+            "description": "Device type id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "nEdge only: lan, wan or unknown",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
           },
           "-2": {
             "description": "INVALID_INTERFACE"
@@ -16201,6 +17523,107 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/vlan/alias.lua": {
+      "post": {
+        "tags": [
+          "VLANs"
+        ],
+        "summary": "Set the alias of a VLAN",
+        "description": "Set the alias of a VLAN; an empty alias removes it. Administrators only",
+        "operationId": "set_vlan_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "vlan",
+            "in": "formData",
+            "description": "VLAN id (1-4095)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "alias",
+            "in": "formData",
+            "description": "New alias (empty: remove it)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/vlan/alias.lua": {
+      "get": {
+        "tags": [
+          "VLANs"
+        ],
+        "summary": "Get the alias of a VLAN",
+        "description": "The alias of a VLAN (empty string when not set)",
+        "operationId": "get_vlan_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN id (1-4095)",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/vlan/list.lua": {
+      "get": {
+        "tags": [
+          "VLANs"
+        ],
+        "summary": "Get the VLANs of an interface",
+        "description": "The VLANs seen on the interface, untagged traffic (vlan_id 0) included. rsp is an array of records: vlan_id, vlan_alias (only when an alias is set), is_untagged, num_hosts (active hosts), score, seen_since (seconds since the first packet), bytes_sent, bytes_rcvd, traffic (bytes), throughput_bps, throughput_pps. recordsTotal/recordsFiltered: number of VLANs. Any user can call it (interface restrictions apply).",
+        "operationId": "get_vlan_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }

@@ -12,7 +12,29 @@ require "http_lint"
 require "lua_utils_get"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
+
+-- ?ifid= selects the interface; interface.select silently falls back to an allowed one: check it
+local ifid = _GET["ifid"]
+if not isEmptyString(ifid) then
+    interface.select(tostring(ifid))
+    if tostring(interface.getId()) ~= tostring(ifid) then
+        rest_utils.answer(rest_utils.consts.err.invalid_interface)
+        return
+    end
+end
+
 local rsp = {}
+
+-- All MACs or only the ones that sent traffic (the menu link of nEdge/pro sets source_macs_only)
+rsp[#rsp + 1] = {
+    action = "devices_mode",
+    label = i18n("mac_stats.filter_macs"),
+    name = "devices_mode",
+    value = {
+        { key = "devices_mode", value = "", label = i18n("all") },
+        { key = "devices_mode", value = "source_macs_only", label = i18n("mac_stats.source_macs") },
+    }
+}
 
 local manufacturers = interface.getMacManufacturers()
 if table.len(manufacturers) > 1 then

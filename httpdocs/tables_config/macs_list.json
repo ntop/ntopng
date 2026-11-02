@@ -1,6 +1,7 @@
 {
 	"id": "macs_list",
 	"data_url": "lua/rest/v2/get/mac/macs_list.lua",
+	"filters_url": "lua/rest/v2/get/mac/mac_filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
@@ -11,6 +12,33 @@
 		"sort": 0
 	},
 	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width" : "90px",
+			"max-width" : "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "mac_details",
+					"icon": "fa-solid fa-magnifying-glass-plus",
+					"title_i18n": "mac_stats.open_mac_details",
+					"event_id": "click_button_mac_details"
+				},
+				{
+					"id": "mac_hosts",
+					"icon": "fas fa-laptop",
+					"title_i18n": "mac_stats.hosts_with_mac",
+					"event_id": "click_button_mac_hosts"
+				}
+			]
+		},
 		{
 			"title_i18n": "mac_address",
 			"data_field": "mac",
@@ -24,6 +52,15 @@
 			"title_i18n": "manufacturer",
 			"data_field": "manufacturer",
 			"sortable": true,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "location",
+			"data_field": "location",
+			"sortable": false,
 			"min-width" : "120px",
 			"class": [
 				"text-nowrap"

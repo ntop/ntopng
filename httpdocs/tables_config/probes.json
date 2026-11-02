@@ -4,12 +4,46 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.probes",
 	"default_sort": {
 		"column_id": "probe_ip",
 		"sort": 1
 	},
 	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "exporters",
+					"icon": "fas fa-file-export",
+					"title_i18n": "flow_devices.flow_exporters",
+					"event_id": "click_button_exporters"
+				},
+				{
+					"id": "interfaces",
+					"icon": "fas fa-ethernet",
+					"title_i18n": "flow_devices.exporters_interfaces",
+					"event_id": "click_button_interfaces"
+				},
+				{
+					"id": "host",
+					"icon": "fas fa-laptop",
+					"title_i18n": "flow_devices.probe_host_details",
+					"event_id": "click_button_host"
+				}
+			]
+		},
 		{
 			"id": "probe_ip",
 			"title_i18n": "flow_devices.probe",
@@ -52,7 +86,7 @@
 		},
 		{
 			"id": "probe_interface",
-		    "title_i18n": "flow_devices.nprobe_interface",
+			"title_i18n": "flow_devices.nprobe_interface",
 			"data_field": "probe_interface",
 			"sortable": true,
 			"min-width": "30px",
@@ -164,7 +198,8 @@
 			"class": [
 				"text-nowrap"
 			]
-		},	    		{
+		},
+		{
 			"id": "probe_uuid",
 			"title_i18n": "if_stats_overview.probe_uuid",
 			"data_field": "probe_uuid",

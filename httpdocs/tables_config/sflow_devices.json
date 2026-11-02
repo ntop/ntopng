@@ -1,0 +1,78 @@
+{
+	"id": "sflow_devices",
+	"data_url": "lua/pro/rest/v2/get/sflowdevices/list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.sflow_devices",
+	"default_sort": {
+		"column_id": "ip",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "device_details",
+					"icon": "fas fa-ethernet",
+					"title_i18n": "flow_devices.sflow_device_interfaces",
+					"event_id": "click_button_device_details"
+				},
+				{
+					"id": "timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"event_id": "click_button_timeseries"
+				},
+				{
+					"id": "snmp_device",
+					"icon": "fas fa-server",
+					"title_i18n": "flow_devices.open_snmp_device",
+					"event_id": "click_button_snmp_device"
+				}
+			]
+		},
+		{
+			"id": "ip",
+			"title_i18n": "ip_address",
+			"data_field": "ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "snmp_name",
+			"title_i18n": "flow_devices.snmp_devname",
+			"data_field": "snmp_name",
+			"sortable": true,
+			"class": []
+		},
+		{
+			"id": "snmp_descr",
+			"title_i18n": "flow_devices.snmp_description",
+			"data_field": "snmp_descr",
+			"sortable": true,
+			"class": []
+		},
+		{
+			"id": "snmp_location",
+			"title_i18n": "flow_devices.snmp_location",
+			"data_field": "snmp_location",
+			"sortable": true,
+			"class": []
+		}
+	]
+}

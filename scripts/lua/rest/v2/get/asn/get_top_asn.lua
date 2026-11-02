@@ -4,26 +4,25 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "http_lint"
 local as_utils = require "as_utils"
 local rest_utils = require "rest_utils"
-local json = require("dkjson")
-require "lua_utils"
 
-local ifid = _GET["ifid"] or interface.getId()
-local as_filter = nil
-
-local ifid = _GET["ifid"] or interface.getId()
+local ifid = _GET["ifid"]
 local epoch_begin = _GET["epoch_begin"] or 0
 local epoch_end = _GET["epoch_end"] or 0
 local is_live = toboolean(_GET["is_live"] or true)
 local selected_asn = _GET["show_as"]
 local interface_role = _GET["interface_role"]
-local ip_interface = _GET["ip_interface"]
 
-local ases_info = {}
-local res = {}
-
-interface.select(ifid)
+-- interface.select silently falls back to an allowed interface: check it
+if not isEmptyString(ifid) then
+    interface.select(tostring(ifid))
+    if tostring(interface.getId()) ~= tostring(ifid) then
+        rest_utils.answer(rest_utils.consts.err.invalid_interface)
+        return
+    end
+end
 
 if not is_live and not hasClickHouseSupport() then
     rest_utils.answer(rest_utils.consts.err.clickhouse_missing)
@@ -31,12 +30,12 @@ if not is_live and not hasClickHouseSupport() then
 end
 
 local options = {
-    ifid = ifid,
+    -- The selected interface, never the raw parameter (used in the historical query)
+    ifid = interface.getId(),
     epoch_begin = epoch_begin,
     epoch_end = epoch_end,
     selected_asn = selected_asn,
     interface_role = interface_role,
-    ip_interface = ip_interface
 }
 
 local as_info = {}

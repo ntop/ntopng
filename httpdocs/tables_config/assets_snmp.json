@@ -1,10 +1,12 @@
 {
 	"id": "assets",
 	"data_url": "lua/pro/rest/v2/get/host/assets.lua",
+	"filters_url": "lua/pro/rest/v2/get/host/assets_filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.assets_snmp",
 	"columns": [
 		{
 			"id": "actions",
@@ -15,23 +17,23 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "details",
-					"icon": "fa-solid fa-magnifying-glass-plus",
+					"icon": "fas fa-boxes",
 					"title_i18n": "asset_details_tooltip",
-					"class": [],
 					"event_id": "click_button_host_details"
 				},
 				{
 					"id": "delete",
-					"icon": "fas fa fa-trash",
+					"icon": "fas fa-trash",
 					"title_i18n": "delete",
-					"class": [],
 					"event_id": "click_button_delete"
 				}
-			]
+			],
+			"min-width": "90px",
+			"max-width": "90px"
 		},
 		{
 			"id": "mac_address",
