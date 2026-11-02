@@ -248,7 +248,8 @@ end
 
 -- ##############################################
 
-function tag_badge_utils.deleteTag(id)
+-- who: name of the user deleting the tag (for the journal of the assets)
+function tag_badge_utils.deleteTag(id, who)
     local tags = get_tags_from_cache()
 
     -- Validate and normalize ID
@@ -259,6 +260,9 @@ function tag_badge_utils.deleteTag(id)
     end
     -- Check if tag exists before deletion
     if tags[id] then
+        -- Name of the tag, for the journal of the assets (see below)
+        local deleted_tag = require("dkjson").decode(tags[id] or "") or {}
+
         -- Remove tag from Redis
         ntop.delHashCache(get_redis_key(), id)
 
@@ -271,7 +275,7 @@ function tag_badge_utils.deleteTag(id)
             local ok, asset_utils = pcall(require, "asset_utils")
 
             if ok and asset_utils.removeTagFromAssets then
-                asset_utils.removeTagFromAssets(id)
+                asset_utils.removeTagFromAssets(id, who, deleted_tag.name)
             end
         end
     else

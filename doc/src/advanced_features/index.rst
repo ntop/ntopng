@@ -19,4 +19,5 @@ section.
     syslog
     clickhouse_timeseries
     high_resolution_timeseries
+    assets_journal
 

@@ -69,6 +69,25 @@ end
 
 if (_POST["host_tags_bitmap"] ~= nil) and isAdministrator() then
     local tags_bitmap = tonumber(_POST["host_tags_bitmap"]) or 0
+
+    -- Journal of the assets: the tags set/unset by the user on an active host
+    -- (that will reach its asset with the next snapshot of the host).
+    -- NOTE: same host as interface.setHostTags (VLAN in the host string only)
+    if ntop.isEnterpriseL and ntop.isEnterpriseL() then
+        local ip, vlan = string.match(host_info["host"], "^([^@]+)@?(%d*)$")
+
+        vlan = tonumber(vlan) or 0
+
+        if ip and interface.getHostInfo(ip, vlan) then
+            package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+            local asset_utils = require "asset_utils"
+            local assets_journal = require "assets_journal"
+
+            asset_utils.journalHostUserTags(interface.getId(), ip, vlan,
+                interface.getUserDefinedHostTags(host_info["host"]), tags_bitmap, assets_journal.currentUser())
+        end
+    end
+
     interface.setHostTags(host_info["host"], tags_bitmap)
 end
 

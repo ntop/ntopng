@@ -85,7 +85,7 @@ class Prefs {
   u_int s7comm_too_many_errors;
   u_int profinet_too_many_errors;
   bool data_archive_before_ttl_delete, asset_inventory_enabled,
-      snmp_trap_enabled;
+      assets_journal_enabled, snmp_trap_enabled;
 #endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
@@ -787,6 +787,9 @@ class Prefs {
 #ifdef NTOPNG_PRO
   inline bool isAssetInventoryEnabled() {
     return (asset_inventory_enabled && !isASNModeEnabled());
+  };
+  inline bool isAssetsJournalEnabled() {
+    return (assets_journal_enabled && isAssetInventoryEnabled());
   };
   inline bool isSNMPTrapEnabled() { return snmp_trap_enabled; };
   inline ndpi_bitmap* getModbusAllowedFunctionCodes() {

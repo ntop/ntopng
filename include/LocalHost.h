@@ -24,6 +24,17 @@
 
 #include "ntop_includes.h"
 
+#ifdef NTOPNG_PRO
+/* Journal of the assets: cause of a change of a host, not yet dumped with its
+ * asset (see LocalHost::journal_causes) */
+typedef struct asset_journal_cause {
+  u_int8_t what;   /* AssetJournalWhat */
+  u_int8_t tag_id; /* asset_journal_tag_*: the tag (0-63) */
+  char* cause;     /* e.g. "TCP 10.0.0.5:51234->1.2.3.4:443 eth0 (0) [TLS]" */
+  struct asset_journal_cause* next;
+} AssetJournalCause;
+#endif
+
 class LocalHost : public Host {
  protected:
   int32_t local_network_id;
@@ -41,6 +52,13 @@ class LocalHost : public Host {
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1,
       too_many_server_ports_logged : 1, _notused : 4;
   std::atomic<bool> asset_map_updated;
+#ifdef NTOPNG_PRO
+  /* The flow that has created the host has not been recorded yet (journal).
+   * NOTE: atomic and not in the bitfield above, as it is cleared by the
+   * threads processing the flows (setJournalCreatedBy) while the other bits
+   * are written by other threads */
+  std::atomic<bool> journal_created_pending;
+#endif
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail, *tcp_fingerprint;
   std::map<OSLearningMode, ndpi_os>
@@ -56,6 +74,13 @@ class LocalHost : public Host {
    * set manually by the user (rather than observed in the traffic) */
   std::atomic<u_int64_t> tags_refreshed_bitmap, tags_removed_bitmap,
       tags_assigned_bitmap;
+#ifdef NTOPNG_PRO
+  /* Journal of the assets (see doc/developers/README.assets_journal.md): the
+   * causes of the changes not yet dumped with the asset, NULL when none. They
+   * are written with the asset info and freed when it is dumped.
+   * NOTE: protected by Host::m, as the other asset data */
+  AssetJournalCause* journal_causes;
+#endif
 
 #ifdef NTOPNG_PRO
   struct {
@@ -71,6 +96,19 @@ class LocalHost : public Host {
   void deferredInitialization();
   void freeLocalHostData();
   virtual void deleteHostData();
+
+#ifdef NTOPNG_PRO
+  /* Journal of the assets: add to journal_causes the cause of a change (what,
+   * tag_id: see AssetJournalCause), made of the evidence and of the flow
+   * (Flow::print, not full_report), each one if any. Nothing is added when
+   * the assets journal is not available */
+  void addJournalCause(AssetJournalWhat what, u_int8_t tag_id, Flow* f,
+                       const char* evidence = NULL);
+  /* Takes (under m) the causes not yet dumped, leaving none */
+  AssetJournalCause* takeJournalCauses();
+  /* NOTE: m locked by the caller (or host being deleted) */
+  void freeJournalCauses();
+#endif
 
 #ifdef NTOPNG_PRO
   void resetLocalFlowStats();
@@ -250,27 +288,30 @@ class LocalHost : public Host {
     return (&contacted_server_ports);
   };
 
-  bool setService(HostService service_enum);
+  bool setService(HostService service_enum, Flow* f = NULL);
 
   void offlineSetMDNSInfo(char* const s);
   void offlineSetMDNSName(const char* n);
   void offlineSetDHCPName(const char* n);
-  void offlineSetDhcpFingerprint(const char* fingerprint);
+  void offlineSetDhcpFingerprint(const char* fingerprint, Flow* f = NULL);
   void offlineSetMDNSTXTName(const char* n);
   void offlineSetNetbiosName(const char* n);
   void offlineSetTLSName(const char* n);
   void offlineSetHTTPName(const char* n);
   void setServerName(const char* n);
-  void setResolvedName(const char* resolved_name);
+  void setResolvedName(const char* resolved_name, Flow* f = NULL);
 
-  virtual bool setOS(ndpi_os _os, OSLearningMode mode);
-  void setTCPfingerprint(char* tcp_fingerprint, ndpi_os os);
+  virtual bool setOS(ndpi_os _os, OSLearningMode mode, Flow* f = NULL);
+  void setTCPfingerprint(char* tcp_fingerprint, ndpi_os os, Flow* f = NULL);
+#ifdef NTOPNG_PRO
+  void setJournalCreatedBy(Flow* f);
+#endif
 
   virtual inline void setAssetUpdated() { asset_map_updated = true; }
-  virtual inline void setTagsRefreshed(u_int64_t bitmap) {
-    tags_refreshed_bitmap |= bitmap, tags_removed_bitmap &= ~bitmap,
-        tags_assigned_bitmap &= ~bitmap;
-  }
+  /* NOTE: the cause (journal) of a tag is recorded the first time it is
+   * refreshed after the asset info has been dumped */
+  virtual void setTagsRefreshed(u_int64_t bitmap, Flow* f = NULL,
+                                const char* evidence = NULL);
   /* NOTE: to be called after setTagsRefreshed */
   virtual inline void setTagsAssigned(u_int64_t bitmap) {
     tags_assigned_bitmap |= bitmap;
@@ -290,6 +331,8 @@ class LocalHost : public Host {
   bool addDataToAssets(char* field, char* value);
   bool removeDataFromAssets(char* field);
   void dumpAssetJson(ndpi_serializer* serializer);
+  /* Journal of the assets: the causes of the changes ("journal" block) */
+  void dumpAssetJournal(ndpi_serializer* serializer);
   void dumpAssetPortsJson(ndpi_serializer* serializer);
   void dumpAssetPortsJson(ndpi_serializer* serializer, const char* l4_proto,
                           std::unordered_map<u_int16_t, ndpi_protocol>* ports);
