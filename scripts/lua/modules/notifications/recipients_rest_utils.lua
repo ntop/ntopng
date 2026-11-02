@@ -167,4 +167,65 @@ function recipients_rest_utils.parse_minimum_severity(minimum_severity_id_string
 
 -- ##############################################
 
+-- @brief Parses the recipient filters of a v2 notification REST request
+-- @param post The request params (_POST)
+-- @return A table with the validated filters. An empty or missing category, entity or host
+--         pool list means "all": the C RecipientQueue drops every alert on an empty bitmap
+function recipients_rest_utils.parse_recipient_filters(post)
+   local categories = recipients_rest_utils.parse_check_categories(post["recipient_check_categories"])
+   local entities = recipients_rest_utils.parse_check_entities(post["recipient_check_entities"])
+   local pools = recipients_rest_utils.parse_host_pools(post["recipient_host_pools"])
+
+   if #categories == 0 then
+      for _, category in pairs(checks.check_categories) do
+         categories[#categories + 1] = category.id
+      end
+   end
+
+   if #entities == 0 then
+      for _, entity_info in pairs(alert_entities) do
+         entities[#entities + 1] = entity_info.entity_id
+      end
+   end
+
+   if #pools == 0 then
+      for _, pool in pairs(host_pools:get_all_pools()) do
+         pools[#pools + 1] = pool.pool_id
+      end
+   end
+
+   return {
+      categories = categories,
+      entities = entities,
+      host_pools = pools,
+      am_hosts = recipients_rest_utils.parse_am_hosts(post["recipient_am_hosts"]),
+      tags = recipients_rest_utils.parse_tags(post["recipient_labels"]),
+      minimum_severity = recipients_rest_utils.parse_minimum_severity(post["recipient_minimum_severity"]),
+   }
+end
+
+-- ##############################################
+
+-- @brief Extra checks on the channel params of a v2 notification REST request
+-- @return nil when valid, otherwise an error table { type = ..., param = ... }
+function recipients_rest_utils.check_channel_params(endpoint_key, post)
+   if endpoint_key ~= "shell" then return nil end
+
+   -- shell.runScript prepends its folders to the name and runs "<script> <options>":
+   -- no path components in the name, no shell metacharacters in the options
+   local script = post["shell_script"]
+   if script and (script:find("/", 1, true) or script:find("..", 1, true)) then
+      return { type = "invalid_param", param = "shell_script" }
+   end
+
+   local options = post["shell_script_options"]
+   if options and not options:match("^[%w%s%-%._=,:@]*$") then
+      return { type = "invalid_param", param = "shell_script_options" }
+   end
+
+   return nil
+end
+
+-- ##############################################
+
 return recipients_rest_utils

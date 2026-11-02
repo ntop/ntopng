@@ -2247,6 +2247,11 @@ local known_parameters = {
    ["discord_sender"] = http_lint.validateUnquoted,
    ["discord_username"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
 
+   ["flowtriq_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
+   ["flowtriq_api_key"] = http_lint.validateSingleWord,
+   -- delete/notification/recipient.lua: also delete its connection when no other recipient uses it
+   ["delete_endpoint"] = http_lint.validateBool,
+
    ["script_keys"] = validateUnquoted,
    ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
    ["shell_script_execution"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),

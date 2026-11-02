@@ -1,0 +1,120 @@
+{
+	"id": "notification_recipients",
+	"data_url": "",
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "notifications_page.empty_recipients",
+	"default_sort": {
+		"column_id": "recipient_name",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "test",
+					"icon": "fas fa-paper-plane",
+					"title_i18n": "notifications_page.send_test",
+					"event_id": "click_button_test"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"danger": true,
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"id": "recipient_name",
+			"title_i18n": "name",
+			"data_field": "recipient_name",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "channel",
+			"title_i18n": "notifications_page.channel",
+			"data_field": "endpoint_key",
+			"sortable": true,
+			"min-width": "130px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "destination",
+			"title_i18n": "notifications_page.destination",
+			"data_field": "destination",
+			"sortable": true,
+			"min-width": "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "sends",
+			"title_i18n": "notifications_page.sends",
+			"data_field": "minimum_severity",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_delivered",
+			"title_i18n": "endpoint_notifications.num_delivered",
+			"data_field": "num_delivered",
+			"sortable": true,
+			"min-width": "90px",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_failures",
+			"title_i18n": "endpoint_notifications.num_delivery_failures",
+			"data_field": "num_failures",
+			"sortable": true,
+			"min-width": "90px",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "last_use",
+			"title_i18n": "endpoint_notifications.time_since_last_use",
+			"data_field": "last_use",
+			"sortable": true,
+			"min-width": "120px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

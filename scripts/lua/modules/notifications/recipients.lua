@@ -840,10 +840,18 @@ function recipients.test_recipient(endpoint_id, recipient_params)
         return ec
     end
 
+    return recipients.test_recipient_conf(ec, recipient_params)
+end
+
+-- @brief Test a recipient against an endpoint config `ec` (saved or not yet saved)
+-- @param ec A table with endpoint_id, endpoint_conf_name, endpoint_key, endpoint_conf
+function recipients.test_recipient_conf(ec, recipient_params)
+    local endpoints = require "endpoints"
+
     -- Check recipient parameters
 
     local endpoint_key = ec["endpoint_key"]
-    ok, status = check_endpoint_recipient_params(endpoint_key, recipient_params)
+    local ok, status = check_endpoint_recipient_params(endpoint_key, recipient_params)
 
     if not ok then
         return status
@@ -982,17 +990,8 @@ function recipients.get_recipient(recipient_id, include_stats)
             if ec then
                 recipient_details["endpoint_conf"] = ec["endpoint_conf"]
                 recipient_details["endpoint_key"] = ec["endpoint_key"]
-
-                local modules_by_name = endpoints.get_types()
-                local cur_module = modules_by_name[recipient_details["endpoint_key"]]
-                if cur_module and cur_module.format_recipient_params then
-                    -- Add a formatted output of recipient params
-                    recipient_details["recipient_params_fmt"] =
-                        cur_module.format_recipient_params(recipient_details["recipient_params"])
-                else
-                    -- A default
-                    recipient_details["recipient_params_fmt"] = ""
-                end
+                -- No recipient_params_fmt any more (only the legacy templates showed it):
+                -- endpoints.get_types() loads every channel module and lua_utils (~30 ms)
             end
 
             if include_stats then

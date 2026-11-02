@@ -937,6 +937,429 @@
         }
       }
     },
+    "/lua/rest/v2/add/notification/recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Add a notification recipient",
+        "description": "Add a notification recipient on an existing connection (endpoint_id) or on a new connection created in the same call (endpoint_conf_type and its params). Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "operationId": "add_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "recipient_name",
+            "in": "formData",
+            "description": "Recipient name (unique)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Existing connection id (omit to create a new connection)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "endpoint_conf_type",
+            "in": "formData",
+            "description": "Channel type of the new connection (email, slack, telegram, webhook...)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endpoint_conf_name",
+            "in": "formData",
+            "description": "Name of the new connection (default: the recipient name)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_minimum_severity",
+            "in": "formData",
+            "description": "Minimum alert severity id (default: notice)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "recipient_check_categories",
+            "in": "formData",
+            "description": "Comma-separated alert category ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_check_entities",
+            "in": "formData",
+            "description": "Comma-separated alert entity ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_host_pools",
+            "in": "formData",
+            "description": "Comma-separated host pool ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_am_hosts",
+            "in": "formData",
+            "description": "Comma-separated Active Monitoring host ids (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_labels",
+            "in": "formData",
+            "description": "Comma-separated tag ids: only alerts with at least one of them (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_checks",
+            "in": "formData",
+            "description": "Comma-separated <alert_id>_<entity_id>: only these alerts (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_notifications_type",
+            "in": "formData",
+            "description": "alerts (default), reports, active_scans, wazuh_alerts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_silence_multiple_alerts",
+            "in": "formData",
+            "description": "true (default): the same alert is delivered at most once per hour",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/notification/endpoint.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Delete a notification connection",
+        "description": "Delete a notification connection and all the recipients using it. Admin only.",
+        "operationId": "delete_notification_endpoint",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Connection id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/notification/recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Delete a notification recipient",
+        "description": "Delete a notification recipient (not the builtin one). Admin only.",
+        "operationId": "delete_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "recipient_id",
+            "in": "formData",
+            "description": "Recipient id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "delete_endpoint",
+            "in": "formData",
+            "description": "true: also delete its connection when no other recipient uses it",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/notification/endpoint.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Edit a notification connection",
+        "description": "Edit name and params of a notification connection: all the params are replaced, missing optional ones are cleared. Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "operationId": "edit_notification_endpoint",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Connection id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "endpoint_conf_name",
+            "in": "formData",
+            "description": "Connection name",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/notification/recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Edit a notification recipient",
+        "description": "Edit name, filters and recipient params of a notification recipient. The builtin alert database recipient keeps its name. Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "operationId": "edit_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "recipient_id",
+            "in": "formData",
+            "description": "Recipient id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "recipient_name",
+            "in": "formData",
+            "description": "Recipient name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "recipient_minimum_severity",
+            "in": "formData",
+            "description": "Minimum alert severity id (default: notice)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "recipient_check_categories",
+            "in": "formData",
+            "description": "Comma-separated alert category ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_check_entities",
+            "in": "formData",
+            "description": "Comma-separated alert entity ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_host_pools",
+            "in": "formData",
+            "description": "Comma-separated host pool ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_am_hosts",
+            "in": "formData",
+            "description": "Comma-separated Active Monitoring host ids (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_labels",
+            "in": "formData",
+            "description": "Comma-separated tag ids: only alerts with at least one of them (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_checks",
+            "in": "formData",
+            "description": "Comma-separated <alert_id>_<entity_id>: only these alerts (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_notifications_type",
+            "in": "formData",
+            "description": "alerts (default), reports, active_scans, wazuh_alerts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_silence_multiple_alerts",
+            "in": "formData",
+            "description": "true (default): the same alert is delivered at most once per hour",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/exec/notification/test_recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Test a notification recipient",
+        "description": "Send a test message with an existing connection (endpoint_id) or a not yet saved one (endpoint_conf_type and its params), plus the recipient params. Nothing is saved. Admin only.",
+        "operationId": "test_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Existing connection id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "endpoint_conf_type",
+            "in": "formData",
+            "description": "Channel type of a not yet saved connection",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/notification/endpoints.lua": {
+      "get": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "List notification connections",
+        "description": "Notification connections (endpoints: SMTP server, bot token, webhook URL...) with their params, credentials included, and the number of recipients using them. Builtin connections are excluded. Admin only.",
+        "operationId": "get_notification_endpoints",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/notification/recipients.lua": {
+      "get": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "List notification recipients",
+        "description": "Notification recipients (builtin alert database recipient included) with channel type, connection, filters, recipient params and delivery stats. Admin only.",
+        "operationId": "get_notification_recipients",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/set/active_monitoring/measurement.lua": {
       "post": {
         "tags": [
