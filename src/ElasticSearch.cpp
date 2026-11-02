@@ -200,9 +200,17 @@ void ElasticSearch::indexESdata() {
 
       while (export_queue->isNotEmpty()) {
         char* str = export_queue->dequeue();
+        size_t needed = strlen(header) + strlen(str) + 5;
         num_queued_elems--;
 
-        if (len <= ES_BULK_BUFFER_SIZE - strlen(header) - strlen(str) - 5) {
+        if (needed > ES_BULK_BUFFER_SIZE) {
+          /* Larger than the whole bulk buffer: it can never be sent */
+          ntop->getTrace()->traceEvent(
+              TRACE_WARNING, "[ES] Flow too large (%u bytes): dropped",
+              (u_int)strlen(str));
+          incNumDroppedFlows();
+          free(str);
+        } else if (len + needed <= ES_BULK_BUFFER_SIZE) {
           len += snprintf(&postbuf[len], ES_BULK_BUFFER_SIZE - len, "%s\n%s\n",
                           header, str),
               num_flows++;
@@ -212,6 +220,8 @@ void ElasticSearch::indexESdata() {
           break;
         }
       } /* for */
+
+      if (num_flows == 0) continue; /* All the flows have been dropped */
 
       postbuf[len] = '\0';
 
