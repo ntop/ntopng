@@ -44,7 +44,9 @@ Each row shows a single sFlow device. If the device is also configured as an
 IP address to see the per-interface statistics of the device. The `Actions` button opens the
 same interface list; its menu also opens the device traffic timeseries (`Historical Data` tab,
 they need the flow exporters timeseries enabled in `Settings > Preferences > Timeseries`) and
-the SNMP device, when there is one.
+the SNMP device, when there is one. The interfaces page lists the ports with status, speed, duplex,
+traffic and errors and, when the device is also an SNMP device with the timeseries enabled, the
+Counters/SNMP ratio; the `Actions` button of a port opens its charts or its SNMP interface.
 
 .. figure:: ../img/advanced_features_sflow_interfaces_list.jpg
   :align: center
@@ -101,6 +103,28 @@ and the ones capturing packets. The page refreshes every 10 seconds.
 - `All Flow Exporters` and `All Exporters Interfaces` above the table list the exporters and the
   interfaces of every probe.
 - The `Historical Data` tab shows the probes timeseries.
+
+Flow Exporters
+--------------
+
+From the nProbe page, the `Actions` button of a probe (or `All Flow Exporters` above the table)
+opens the flow exporters: the routers and switches that send their flows through the probes. The
+tabs below the title switch between:
+
+- `Exporters`: the exporters with their flows, interfaces and the time of the last flow;
+- `Interfaces`: the interfaces of all the exporters;
+- `Exporters Map`: the exporters on a map (only in ASN mode);
+- `Sites`: the traffic exchanged between the sites of the exporters.
+
+Opening an exporter shows its interfaces, its traffic charts (`Historical Data`, they need the flow
+exporters timeseries enabled in `Settings > Preferences > Timeseries`) and, for administrators, its
+settings (alias and site). `SNMP` in the top right corner opens the SNMP device with the same IP.
+The path on top (`nProbe / Exporters / exporter`) leads back to the lists.
+
+Opening an interface of an exporter shows the autonomous systems its traffic goes to and comes from,
+its charts and, for administrators, its settings (alias and speeds). When the exporter is also an
+SNMP device, the settings are in the SNMP interface page. `Flows` in the top right corner opens the
+live flows of the interface.
 
 Exporters Interfaces
 --------------------

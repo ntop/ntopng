@@ -75,6 +75,13 @@ if not auth.is_allowed_host_pool(pool_id) then
     return
 end
 
+-- Outside nEdge the page is rendered by the Vue app shell (the charts of ?pool=, see router.js);
+-- nEdge keeps its server side quotas view below
+if not have_nedge then
+    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+    return
+end
+
 local base_url = ntop.getHttpPrefix() .. '/lua/pool_details.lua?pool=' ..
                      pool_id
 local page_params = {}

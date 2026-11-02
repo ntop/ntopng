@@ -7507,6 +7507,50 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/sflowdevice/interfaces.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the interfaces of an sFlow device",
+        "description": "Ports of an sFlow device from its sFlow counters, raw values: [{ ifindex, name (SNMP, null without it), has_snmp, has_timeseries, iftype, speed (bps), full_duplex, is_up, promisc, in_bytes, out_bytes, in_errors, out_errors, ratio (Counters/SNMP, null when not available, -1 not computable), ratio_status }], is_ratio_available. Pro only, needs the flow devices capability (SNMP fields: SNMP capability)",
+        "operationId": "get_sflowdevice_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "description": "sFlow device IP",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/sflowdevice/stats.lua": {
       "get": {
         "tags": [

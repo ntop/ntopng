@@ -11,7 +11,8 @@ local rest_utils = require "rest_utils"
 local as_utils = require "as_utils"
 
 --
--- Context of the AS overview page (as_overview.lua?asn=, PageAsOverviewRoute): the ASN configuration
+-- Context of the AS overview page (as_overview.lua?asn=, PageAsOverviewRoute) and of the exporter
+-- interface overview (PageExporterRoute): the ASN configuration
 -- (customer, sub-customer, remote) and the first epoch of the ClickHouse ASN data. Internal (page UI)
 -- Example: curl -u admin:admin "http://localhost:3000/lua/rest/v2/get/asn/page_context.lua?ifid=1&asn=3"
 --
@@ -26,11 +27,8 @@ if not isEmptyString(ifid) then
    end
 end
 
+-- Optional: without it only the ClickHouse fields (e.g. the exporter interface overview)
 local asn = tonumber(_GET["asn"])
-if not asn then
-   rest_utils.answer(rest_utils.consts.err.invalid_args)
-   return
-end
 
 local has_clickhouse = ntop.isClickHouseEnabled()
 local first_seen = 0
@@ -44,7 +42,7 @@ if has_clickhouse then
 end
 
 rest_utils.answer(rest_utils.consts.success.ok, {
-   configuration = as_utils.getASNConfiguration(tostring(asn)),
+   configuration = asn and as_utils.getASNConfiguration(tostring(asn)) or nil,
    has_clickhouse = has_clickhouse,
    first_date_epoch = first_seen,
 })

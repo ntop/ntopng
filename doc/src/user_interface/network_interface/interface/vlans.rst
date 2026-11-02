@@ -23,3 +23,7 @@ The button of the *Actions* column opens the list of the hosts in that VLAN. Its
   timeseries are enabled in *Settings* > *Preferences* > *Timeseries*.
 - *VLAN settings*, where the VLAN alias is set. Only administrators can use it, and it is not
   available for untagged traffic.
+
+Both open the page of the VLAN, with the path *VLANs* / *VLAN n* on top: the *Historical Data*
+tab shows the charts, the *Settings* tab the alias (leave it empty to remove it), and *Hosts* in
+the top right corner lists the hosts of the VLAN.
