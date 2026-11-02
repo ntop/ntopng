@@ -57,17 +57,6 @@
 			"title_i18n": "traffic_model.col.status"
 		},
 		{
-			"id": "seen",
-			"data_field": "seen",
-			"sortable": false,
-			"min-width": "90px",
-			"class": [
-				"text-center",
-				"text-nowrap"
-			],
-			"title_i18n": "traffic_model.col.seen"
-		},
-		{
 			"id": "days_seen",
 			"data_field": "days_seen",
 			"sortable": true,
