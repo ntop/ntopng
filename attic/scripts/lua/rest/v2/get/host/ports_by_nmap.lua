@@ -7,6 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. p
 
 require "lua_utils"
 local rest_utils = require "rest_utils"
+
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
 local ascan_utils = require "ascan_utils"
 
 if not ascan_utils.is_nmap_installed() then
@@ -18,6 +23,7 @@ local host = _GET["host"]
 
 if isEmptyString(host) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
+    return
 end
 
 -- Using pcall for error handling
