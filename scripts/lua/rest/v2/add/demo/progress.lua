@@ -29,6 +29,20 @@ if isEmptyString(demo_id) or isEmptyString(action) then
    return
 end
 
+-- Check that provided demo id is existing, and not injected
+local known_demo = false
+for _, demo in ipairs(demo_utils.get_registry().demos or {}) do
+   if demo.id == demo_id then
+      known_demo = true
+      break
+   end
+end
+
+if not known_demo then
+   rest_utils.answer(rest_utils.consts.err.invalid_args, res)
+   return
+end
+
 if isEmptyString(username) then
    rest_utils.answer(rest_utils.consts.err.not_granted, res)
    return
