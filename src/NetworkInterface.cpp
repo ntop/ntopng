@@ -11700,6 +11700,7 @@ void NetworkInterface::getPodsStats(lua_State* vm) {
 
 typedef struct {
   const ContainerInfo* info;
+  Flow* flow; /* The flow info points into */
   ContainerStats stats;
 } ContainerData;
 
@@ -11741,7 +11742,12 @@ static bool flow_get_container_stats(GenericHashEntry* entry, void* user_data,
     data.stats.accountLatency(client_tcp ? client_tcp->rtt : 0,
                               client_tcp ? client_tcp->rtt_var : 0,
                               true /* as_client */);
-    data.info = cli_cont;
+    if (!data.info) {
+      /* info is used after the walk, when the bucket lock is no longer held:
+       * inc uses so that the flow is not purged in the meantime */
+      flow->incUses();
+      data.info = cli_cont, data.flow = flow;
+    }
 
     /* Update */
     (*containers_data)[cli_cont_id] = data;
@@ -11757,7 +11763,10 @@ static bool flow_get_container_stats(GenericHashEntry* entry, void* user_data,
     data.stats.accountLatency(server_tcp ? server_tcp->rtt : 0,
                               server_tcp ? server_tcp->rtt_var : 0,
                               false /* as server */);
-    data.info = srv_cont;
+    if (!data.info) {
+      flow->incUses();
+      data.info = srv_cont, data.flow = flow;
+    }
 
     /* Update */
     (*containers_data)[srv_cont_id] = data;
@@ -11790,6 +11799,8 @@ void NetworkInterface::getContainersStats(lua_State* vm,
       lua_pushstring(vm, "info");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
+
+      it->second.flow->decUses(); /* incUses in flow_get_container_stats */
     }
 
     lua_pushstring(vm, it->first.c_str());
