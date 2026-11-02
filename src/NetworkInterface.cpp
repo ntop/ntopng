@@ -12758,6 +12758,34 @@ bool NetworkInterface::resetHostTopSites(AddressTree* allowed_nets,
 
 bool NetworkInterface::matchAggregatedFlow(Flow* flow,
                                            struct aggregated_stats* stats) {
+  /* User allowed networks */
+  if (!flow->match(stats->allowed_nets)) return (false);
+
+  /* User allowed host pools (same as in flow_matches()) */
+  if (stats->allowed_pools) {
+    IpAddress *cli_ip = flow->get_cli_ip_addr(),
+              *srv_ip = flow->get_srv_ip_addr();
+    u_int16_t cli_pool, srv_pool;
+    bool cli_pool_found = false, srv_pool_found = false;
+    ndpi_patricia_node_t *cli_target_node = NULL, *srv_target_node = NULL;
+
+    if (cli_ip && !flow->get_cli_host())
+      cli_pool_found = flow->getInterface()->getHostPools()->findIpPool(
+          cli_ip, flow->get_vlan_id(), &cli_pool, &cli_target_node);
+
+    if (srv_ip && !flow->get_srv_host())
+      srv_pool_found = flow->getInterface()->getHostPools()->findIpPool(
+          srv_ip, flow->get_vlan_id(), &srv_pool, &srv_target_node);
+
+    if (!((flow->get_cli_host() && stats->allowed_pools->isSetBit(
+                                       flow->get_cli_host()->get_host_pool())) ||
+          (flow->get_srv_host() && stats->allowed_pools->isSetBit(
+                                       flow->get_srv_host()->get_host_pool())) ||
+          (cli_pool_found && stats->allowed_pools->isSetBit(cli_pool)) ||
+          (srv_pool_found && stats->allowed_pools->isSetBit(srv_pool))))
+      return (false);
+  }
+
   if (stats->ip_addr != NULL) {
     if (!flow->matchFlowIP(stats->ip_addr, stats->vlan_id)) return (false);
   }
@@ -13740,6 +13768,9 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   stats.alert_status = alert_status;
   stats.host_locality = host_locality;
   stats.site_id = site_id;
+  /* Restrict the walk to what the requesting user is allowed to see */
+  stats.allowed_nets = get_allowed_nets(vm);
+  stats.allowed_pools = getLuaVMUservalue(vm, allowed_pools);
 
   switch (filter_type) {
     case AnalysisCriteria::application_criteria:
