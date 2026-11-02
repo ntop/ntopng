@@ -407,7 +407,9 @@ return function(f)
             key = "analyze_pcap",
             i18n = "upload_pcap",
             icon = "fas fa-file-upload",
-            url = "/lua/upload_pcap.lua"
+            url = "/lua/upload_pcap.lua",
+            hidden = f.no_admin,
+            reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") }
         }, {
             key = "manage_data",
             i18n = "manage_data.manage_data",
