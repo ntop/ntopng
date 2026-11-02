@@ -91,12 +91,6 @@ page_utils.print_navbar(title, nav_url, {
 		page_name = "traffic_report",
 		label = "<i class='fas fa-file-alt report-icon'></i>",
 	},
-	{
-		hidden = not network_id or not isAdministrator(),
-		active = page == "config",
-		page_name = "config",
-		label = '<i class="fas fa-cog fa-lg"></i>',
-	},
 })
 
 --[[
