@@ -1853,8 +1853,12 @@ static int ntop_register_runtime_interface(lua_State* vm) {
     create_new_interface = false;
   }
 
-  if (create_new_interface) {
-    if ((!ntop->isUserAdministrator(vm)) || (source == NULL) ||
+  if ((source == NULL) ||
+      /* Uploading a pcap is reserved to administrators */
+      ((strncmp(source, "pcap:", 5) == 0) && (!ntop->isUserAdministrator(vm)))) {
+    ; /* No way */
+  } else if (create_new_interface) {
+    if ((!ntop->isUserAdministrator(vm)) ||
         (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
       ; /* No way */
     } else {
@@ -1865,12 +1869,20 @@ static int ntop_register_runtime_interface(lua_State* vm) {
     }
   } else {
     /* Upload pcap on this interface */
+    NetworkInterface* old_iface;
 
-    if (if_id == -1) if_id = iface->get_id();
+    if ((if_id == -1) && iface) if_id = iface->get_id();
 
-    bool rc = ntop->createRuntimeInterface(name, source, &if_id);
+    old_iface = ntop->getInterfaceById(if_id);
 
-    if (rc) new_if_id = if_id;
+    /* Only runtime interfaces (pcap dump or db view) can be replaced,
+       never a live capture interface */
+    if (old_iface && (old_iface->read_from_pcap_dump() ||
+                      (old_iface->getIfType() == interface_type_DB_VIEW))) {
+      bool rc = ntop->createRuntimeInterface(name, source, &if_id);
+
+      if (rc) new_if_id = if_id;
+    }
   }
 
   lua_pushinteger(vm, new_if_id);

@@ -9,6 +9,16 @@ require "http_lint"
 local template = require "template_utils"
 local rest_utils = require "rest_utils"
 
+if not isAdministrator() then
+   -- Remove the file already stored by the web server
+   if _POST["uploaded_file"] then
+      ntop.unlink(_POST["uploaded_file"])
+   end
+
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local current_ifid = interface.getId()
 local ifid = _POST["ifid"] or interface.getId()
 local create_new_iface = _POST["create_new_interface"]
