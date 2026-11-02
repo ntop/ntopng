@@ -41,6 +41,22 @@ if not isIPv4(ip_part) and not isIPv6(ip_part) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
     return
 end
+
+-- Validate the scan types, as they are the names of the Lua modules loaded to perform the scans.
+if not ascan_utils.is_valid_scan_type(scan_type) then
+    rest_utils.answer(rest_utils.consts.err.bad_content)
+    return
+end
+
+if not isEmptyString(discovered_host_scan_type) then
+    for _, discovered_scan_type in ipairs(split(discovered_host_scan_type, ",")) do
+        if not ascan_utils.is_valid_scan_type(discovered_scan_type) then
+            rest_utils.answer(rest_utils.consts.err.bad_content)
+            return
+        end
+    end
+end
+
 local result = nil
 local id = nil
 
