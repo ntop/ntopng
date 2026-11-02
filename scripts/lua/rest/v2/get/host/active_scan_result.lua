@@ -9,6 +9,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. p
 
 require "lua_utils"
 local rest_utils = require "rest_utils"
+
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
 local ascan_utils = require "ascan_utils"
 
 local host = _GET["host"]
@@ -18,6 +23,7 @@ local epoch = _GET["epoch"]
 
 if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.invalid_args)
+    return
 end
 
 local result = ascan_utils.retrieve_hosts_scan_result(scan_type, host, epoch)

@@ -9,6 +9,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. p
 
 require "lua_utils"
 local rest_utils = require "rest_utils"
+
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+end
 local ascan_utils = require "ascan_utils"
 local total, total_in_progress = ascan_utils.check_in_progress_status()
 
