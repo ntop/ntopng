@@ -123,6 +123,14 @@ if not checks_flags_ok then
    checks_flags = { network_configuration_enabled = false, network_policy_enabled = false, acl_violation_enabled = false }
 end
 
+-- Assets page: journal of the assets enabled (license, assets inventory and preference)
+local is_assets_journal_enabled = false
+
+if ntop.isEnterpriseL and ntop.isEnterpriseL() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   is_assets_journal_enabled = require("assets_journal").isEnabled()
+end
+
 local dynamic_urls = {
    scripts_config_url = scripts_config_url,
 }
@@ -595,6 +603,8 @@ rest_utils.answer(rest_utils.consts.success.ok, {
       and not isEmptyString(ntop.getCache("ntopng.prefs.wazuh.wazuh_url"))
       and not isEmptyString(ntop.getCache("ntopng.prefs.wazuh.wazuh_username"))
       and not isEmptyString(ntop.getCache("ntopng.prefs.wazuh.wazuh_password"))) or false,
+   -- Assets page: Journal tab (see assets_journal.isEnabled)
+   is_assets_journal_enabled = is_assets_journal_enabled,
    -- page-active-monitoring.vue, page-infrastructure-monitoring.vue
    is_am_active = (prefs.active_monitoring == true),
    are_alerts_enabled = areAlertsEnabled(),

@@ -1,0 +1,69 @@
+{
+	"id": "assets_journal",
+	"data_url": "lua/pro/rest/v2/get/host/assets_journal.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"empty_message_i18n": "table_empty.assets_journal",
+	"default_sort": {
+		"column_id": "event_time",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "event_time",
+			"title_i18n": "assets_journal_page.event_time",
+			"data_field": "event_time",
+			"sortable": true,
+			"min-width": "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "asset",
+			"title_i18n": "assets_journal_page.asset",
+			"data_field": "asset",
+			"sortable": true,
+			"min-width": "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "action",
+			"title_i18n": "assets_journal_page.action",
+			"data_field": "action",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "subaction",
+			"title_i18n": "assets_journal_page.subaction",
+			"data_field": "subaction",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "who",
+			"title_i18n": "assets_journal_page.who",
+			"data_field": "who",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "message",
+			"title_i18n": "assets_journal_page.message",
+			"data_field": "message",
+			"sortable": false,
+			"min-width": "300px"
+		}
+	]
+}
