@@ -634,6 +634,7 @@ class Ntop {
   bool isTOTPEnabled(const char* username) const;
   bool setUserTOTPEnabled(const char* username, bool enabled) const;
   bool validateTOTPCode(const char* username, const char* code) const;
+  bool isTOTPLocked(const char* username) const;
   void getTOTPProvisioningUri(const char* username, char* uri,
                               size_t uri_len) const;
   bool createMFAPendingToken(const char* username, const char* referer,

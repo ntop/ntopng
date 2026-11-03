@@ -555,6 +555,12 @@ int Redis::incr(const char *key, int amount) {
   }
 }
 
+/* The stub keeps no expire (see expire()): an existing key has none */
+int Redis::ttl(const char *key) {
+  stats.num_ttl++;
+  return (this->store.find(std::string(key)) == this->store.end()) ? -2 : -1;
+}
+
 int Redis::flushDb() {
   stats.num_other++;
   this->store.clear();

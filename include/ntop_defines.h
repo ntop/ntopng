@@ -139,6 +139,7 @@
 #define MFA_VERIFY_URL "/lua/mfa_verify.lua"
 #define MFA_PENDING_PREFIX "mfa.pending"
 #define MFA_PENDING_TTL 300 /* 5 minutes */
+#define MFA_FAILED_PREFIX "mfa.failed"
 #define WEBAUTHN_AUTHORIZE_URL "/webauthn_authorize.html"
 #define WEBAUTHN_VERIFY_URL "/lua/webauthn_verify.lua"
 #define WEBAUTHN_PENDING_PREFIX "webauthn.pending"

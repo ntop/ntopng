@@ -1624,6 +1624,31 @@ int Redis::incr(const char* key, int amount) {
   return (num);
 }
 
+/* ******************************************* */
+
+/* Returns the TTL (seconds) of a key, as reported by Redis (not by the local
+   cache): -1 if the key has no expire, -2 if it does not exist, -3 on error */
+int Redis::ttl(const char* key) {
+  redisReply* reply;
+  int rc = -3;
+
+  l->lock(__FILE__, __LINE__);
+  stats.num_ttl++;
+  reply = (redisReply*)redisCommand(redis, "TTL %s", key);
+  if (!reply) reconnectRedis(true);
+  if (reply) {
+    if (reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s",
+                                   reply->str ? reply->str : "???");
+    else if (reply->type == REDIS_REPLY_INTEGER)
+      rc = (int)reply->integer;
+  }
+  l->unlock(__FILE__, __LINE__);
+  if (reply) freeReplyObject(reply);
+
+  return (rc);
+}
+
 /* **************************************** */
 
 void Redis::lua(lua_State* vm) {
