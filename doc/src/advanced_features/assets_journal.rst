@@ -14,7 +14,7 @@ added or removed), with **who** caused it and **why**.
   inventory enabled.
 
 The journal is disabled by default. It can be enabled from *Settings >
-Preferences > Behaviour* (section *Assets*), with the *Enable Assets Journal*
+Preferences > Behaviour Analysis* (section *Assets*), with the *Enable Assets Journal*
 preference. When it is enabled a *Baseline* entry is written for every asset
 already in the inventory; while it is disabled nothing is recorded, and when it
 is enabled again a new *Baseline* is written.
@@ -116,8 +116,12 @@ available, otherwise in the SQLite database of the interface. Entries are
 **never deleted**: not by the data retention, and not when their asset is
 deleted, so that the history of a deleted asset is still available.
 
-There is no page showing the journal yet. The entries of an asset can be read
-with SQL, e.g. with ClickHouse:
+The journal is shown in the *Journal* tab of the *Assets* page (the entries of
+all the assets of the interface) and of the details page of an asset (its own
+entries). The tabs are enabled only when the journal is enabled (see above):
+otherwise they are disabled, with a tooltip saying how to enable it.
+
+The entries of an asset can also be read with SQL, e.g. with ClickHouse:
 
 .. code-block:: sql
 

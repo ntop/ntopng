@@ -2627,6 +2627,7 @@ local lang = {
       ["os"] = "Operating System",
       ["tag"] = "Tag",
     },
+    ["tab_journal_disabled"] = "Enable the journal in Preferences > Behaviour Analysis > Enable Assets Journal",
     ["tab_no_enterprise_l"] = "Requires an upgrade to the Enterprise L license",
     ["who"] = "Who",
   },
