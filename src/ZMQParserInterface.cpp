@@ -2457,6 +2457,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
     char key_str[64];
     u_int8_t vbkp = 0;
     bool key_is_string = false, value_is_string = false;
+    int krc = 0, vrc = 0;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV key type = %u value type
     // = %u", kt, et);
@@ -2470,10 +2471,10 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
 
     switch (kt) {
       case ndpi_serialization_uint32:
-        ndpi_deserialize_key_uint32(deserializer, &key_id);
+        krc = ndpi_deserialize_key_uint32(deserializer, &key_id);
         break;
       case ndpi_serialization_string:
-        ndpi_deserialize_key_string(deserializer, &key);
+        krc = ndpi_deserialize_key_string(deserializer, &key);
         key_is_string = true;
         break;
       default:
@@ -2488,32 +2489,32 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
 
     switch (et) {
       case ndpi_serialization_uint32:
-        ndpi_deserialize_value_uint32(deserializer, &v32);
+        vrc = ndpi_deserialize_value_uint32(deserializer, &v32);
         value.double_num = value.int_num = v32;
         break;
 
       case ndpi_serialization_uint64:
-        ndpi_deserialize_value_uint64(deserializer, &v64);
+        vrc = ndpi_deserialize_value_uint64(deserializer, &v64);
         value.double_num = value.int_num = v64;
         break;
 
       case ndpi_serialization_int32:
-        ndpi_deserialize_value_int32(deserializer, &i32);
+        vrc = ndpi_deserialize_value_int32(deserializer, &i32);
         value.double_num = value.int_num = i32;
         break;
 
       case ndpi_serialization_int64:
-        ndpi_deserialize_value_int64(deserializer, &i64);
+        vrc = ndpi_deserialize_value_int64(deserializer, &i64);
         value.double_num = value.int_num = i64;
         break;
 
       case ndpi_serialization_float:
-        ndpi_deserialize_value_float(deserializer, &f);
+        vrc = ndpi_deserialize_value_float(deserializer, &f);
         value.double_num = f;
         break;
 
       case ndpi_serialization_string:
-        ndpi_deserialize_value_string(deserializer, &vs);
+        vrc = ndpi_deserialize_value_string(deserializer, &vs);
         value.string = vs.str;
         value_is_string = true;
         break;
@@ -2523,6 +2524,18 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
                                      et);
         ret = -1;
         goto error;
+    }
+
+    /* Untrusted input: a truncated item (e.g. a string whose length goes
+       past the end of the message) is reported by nDPI with rc < 0 and
+       str = NULL. Strings are NUL-terminated in place below, so drop the
+       rest of the message instead of using them */
+    if ((krc < 0) || (vrc < 0) || (key_is_string && (key.str == NULL)) ||
+        (value_is_string && (vs.str == NULL))) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Invalid TLV item (record #%u)", record_id);
+      ret = -1;
+      goto error;
     }
 
     if (key_is_string) {
@@ -2655,7 +2668,12 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer* deserializer,
     if (value_is_string) vs.str[vs.str_len] = vbkp;
 
     /* Move to the next element */
-    ndpi_deserialize_next(deserializer);
+    if (ndpi_deserialize_next(deserializer) < 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Invalid TLV item (record #%u)", record_id);
+      ret = -1;
+      goto error;
+    }
 
   } /* while */
 
@@ -2980,13 +2998,14 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char* payload,
     bool key_is_string = false;
     ndpi_string key;
     u_int32_t key_id = 0;
+    int krc = 0, vrc = 0;
 
     switch (kt) {
       case ndpi_serialization_uint32:
-        ndpi_deserialize_key_uint32(&deserializer, &key_id);
+        krc = ndpi_deserialize_key_uint32(&deserializer, &key_id);
         break;
       case ndpi_serialization_string:
-        ndpi_deserialize_key_string(&deserializer, &key);
+        krc = ndpi_deserialize_key_string(&deserializer, &key);
         key_is_string = true;
         break;
       default:
@@ -2996,6 +3015,12 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char* payload,
             "please update both ntopng and the probe to the same version",
             kt);
         goto error;
+    }
+
+    /* Untrusted input: see parseSingleTLVFlow() */
+    if ((krc < 0) || (key_is_string && (key.str == NULL))) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid TLV counter item");
+      goto error;
     }
 
     if (key_is_string) {
@@ -3021,17 +3046,17 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char* payload,
 
     switch (et) {
       case ndpi_serialization_uint32:
-        ndpi_deserialize_value_uint32(&deserializer, &v32);
+        vrc = ndpi_deserialize_value_uint32(&deserializer, &v32);
         value.int_num = v32;
         break;
 
       case ndpi_serialization_uint64:
-        ndpi_deserialize_value_uint64(&deserializer, &v64);
+        vrc = ndpi_deserialize_value_uint64(&deserializer, &v64);
         value.int_num = v64;
         break;
 
       case ndpi_serialization_string:
-        ndpi_deserialize_value_string(&deserializer, &vs);
+        vrc = ndpi_deserialize_value_string(&deserializer, &vs);
         value.string = vs.str;
         value_is_string = true;
         break;
@@ -3040,6 +3065,11 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char* payload,
         ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n",
                                      et);
         goto error;
+    }
+
+    if ((vrc < 0) || (value_is_string && (vs.str == NULL))) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid TLV counter item");
+      goto error;
     }
 
     u_int8_t vbkp;
@@ -3111,16 +3141,20 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char* payload,
      */
     if (value_is_string) vs.str[vs.str_len] = vbkp;
 
-    ndpi_deserialize_next(&deserializer);
+    if (ndpi_deserialize_next(&deserializer) < 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid TLV counter item");
+      goto error;
+    }
   }
 
   /* Process Flow */
   processInterfaceStats(&stats);
   ret = 0;
 
+error:
+  /* Also on error: SFLOW_IF_NAME may have been parsed already */
   if (stats.ifName) free(stats.ifName);
 
-error:
   return ret;
 }
 
