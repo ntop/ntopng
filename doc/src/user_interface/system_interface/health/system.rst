@@ -9,19 +9,17 @@ System
 
   System Interface
 
-Here a few information are available:
+The page has the tabs *Overview*, *Historical Data* and *Internals*.
 
-- CPU Load;
-- CPU State;
-- Memory Usage;
-- ntopng PID;
-- ntopng Memory Usage;
-- ntopng Alerts;
-- ntopng Storage Usage;
-- Log Trace (for debugging);
+The *Overview* is refreshed every 5 seconds and shows:
 
-By clicking on the chart icon, the `Historical Charts`_ page is going to be displayed.
-Clicking instead on the wrench, an other monitoring page is going to be shown with the state of ntopng queues, periodic activities and behavioral checks.
+- *System*: CPU load, CPU states (time waiting for the disk, active and idle) and memory usage of the machine;
+- *ntopng*: the process ID (PID), the memory used by ntopng, the alerts (queries, stored and dropped) and the storage usage. The storage bar shows how much of the disk each interface uses, how much the rest of the system uses and how much is available; click an interface name to open it. When the recorded traffic (pcap files) is on another disk, a second bar shows that disk;
+- *Last Log Trace*: the last lines of the ntopng log, with errors and warnings highlighted, useful for debugging. Administrators can download the log of the last day. The log is not shown in OEM versions.
+
+Click the chart icon next to a value to open its chart in the *Historical Data* tab (see `Historical Charts`_). The chart icons and the *Historical Data* tab are disabled when the system timeseries are disabled in the :ref:`ntopngPreferences` (*Timeseries->System Probes*).
+
+The *Internals* tab shows the state of the ntopng queues, periodic activities and behavioral checks of the system (see :ref:`Internals`).
 
 Historical Charts
 ^^^^^^^^^^^^^^^^^
@@ -46,7 +44,7 @@ Internals expose status and health of certain ntopng components. Internal compon
 - `Periodic Activities`
 - `Checks`
 
-Information exposed is accessible from the `wrench` icon of any interface - including the :ref:`BasicConceptSystemInterface` - and is discussed detail below for each component.
+Information exposed is accessible from the *Internals* tab of any interface - including the :ref:`BasicConceptSystemInterface` and the *Interfaces* page of the *Health* menu, which shows the internals of all the interfaces together - and is discussed in detail below for each component.
 
 Internals timeseries generation is of by default and can be enabled from  `Preferences->Timeseries->Internals`.
 

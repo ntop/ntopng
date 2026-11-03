@@ -87,6 +87,8 @@ Interface
     interface/vlans
     interface/assets
     interface/operating_systems
+    interface/containers
+    interface/live_captures
 
 
 

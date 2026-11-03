@@ -14,11 +14,10 @@ local timeseries_id = "ht"
 local timeseries_list = {{
    schema = "ht:state",
    id = timeseries_id,
-   label = i18n("about.cpu_load"),
-   description = i18n("graphs.metric_descr.ht_cpu_load"),
+   label = i18n("hash_table.CountriesHash"),
+   description = i18n("graphs.metric_descr.ht_CountriesHash"),
    priority = 0,
-   measure_unit = "percentage",
-   chart_type = "bar",
+   measure_unit = "number",
    ts_query = "CountriesHash",
    scale = i18n('graphs.metric_labels.hash_entries'),
    timeseries = {
@@ -156,6 +155,15 @@ local timeseries_list = {{
 },}
 
 function ts_hash_state.getTimeseries(tags, tsOptions)
+    -- The charts of one hash table (ht:state tagged by hash_table): only its entry
+    if tags and tags.hash_table then
+        for _, ts in ipairs(timeseries_list) do
+            if ts.ts_query == tags.hash_table then
+                return { ts }
+            end
+        end
+    end
+
     return timeseries_list
 end
 

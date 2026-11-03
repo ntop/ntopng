@@ -582,6 +582,8 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    are_country_ts_enabled = (areCountryTimeseriesEnabled and areCountryTimeseriesEnabled(current_ifid)) or false,
    are_vlan_ts_enabled = (areVlanTimeseriesEnabled and areVlanTimeseriesEnabled(current_ifid)) or false,
    are_system_ts_enabled = (areSystemTimeseriesEnabled and areSystemTimeseriesEnabled()) or false,
+   -- Health internals (page-internals.vue): timeseries driver (rrd, influxdb, clickhouse), as ts_utils.getDriverName
+   ts_driver = (ntop.getPref("ntopng.prefs.timeseries_driver") ~= "" and ntop.getPref("ntopng.prefs.timeseries_driver")) or "rrd",
    -- Flow exporters pages: timeseries of the exporters interfaces
    are_flowdev_ts_enabled = (areFlowdevTimeseriesEnabled and areFlowdevTimeseriesEnabled()) or false,
    -- Observation points page: timeseries of the observation points

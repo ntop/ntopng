@@ -28,6 +28,11 @@ to choose the number of flows displayed on each page.
 
 Flows have multiple information fields, namely, Application, Layer-4 Protocol, Client and Server hosts,
 Duration, Client and Server Breakdown, Current Throughput, Total Bytes, and Additional Information.
+
+When the flows carry process or container information (for example flows exported by nProbe with eBPF), the
+process and container names are shown next to the hosts: click one to see only the flows of that process or
+container. The :ref:`Containers` page opens the flows of a pod or container in the same way; the active filters
+are shown above the table and can be removed one by one.
 Information fields are briefly discussed below.
 
 Detailed Flow Information

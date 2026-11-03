@@ -4,31 +4,27 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-local script_manager = require("script_manager")
 local rest_utils = require("rest_utils")
 
 -- ################################################
 
-local cmd_ids_filter = _GET["custom_hosts"]
-
--- ################################################
-
-if (cmd_ids_filter) then
-    cmd_ids_filter = swapKeysValues(string.split(cmd_ids_filter, ",") or
-                                        {cmd_ids_filter})
+-- -1: the system interface (Health > Redis)
+if not ntop.isAllowedInterface(-1) then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
 end
 
 local commands_stats = ntop.getCacheStats() or {}
 local res = {}
-local charts_available = script_manager.systemTimeseriesEnabled()
+
 for command, hits in pairs(commands_stats) do
     res[#res + 1] = {
         command = {
             key = command,
+            -- "num_hget" -> "HGET"
             name = string.upper(string.sub(command, 5)),
         },
-        hits = formatValue(hits)
+        hits = hits
     }
 end
 

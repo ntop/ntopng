@@ -31,6 +31,9 @@ end
 
 -- ################################################
 
+-- Hash tables charts: written only with Preferences > Timeseries > Internals (ts_min_dump_utils.lua)
+local internals_ts_enabled = (ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1")
+
 local data = {}
 
 for _, entry in ipairs(ifaces) do
@@ -60,6 +63,7 @@ for _, entry in ipairs(ifaces) do
          idle_pct     = idle_pct,
          free_pct     = free_pct,
          high_idle    = (idle_ratio >= 50),
+         timeseries_enabled = internals_ts_enabled,
       }
       ::continue::
    end

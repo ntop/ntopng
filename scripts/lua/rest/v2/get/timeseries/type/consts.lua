@@ -25,6 +25,8 @@ local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
 local if_index = _GET["if_index"]
 local profile = _GET["profile"]
+-- ht query: only the hash table of the page (hash_table_details.lua)
+local hash_table = _GET["hash_table"]
 
 -- flow 5-tuple tags (used by flow:hr_traffic schema)
 local cli_ip     = _GET["cli_ip"]
@@ -58,6 +60,7 @@ local tags = {
     blacklist_name = blacklist_name,
     if_index   = if_index,
     profile    = profile,
+    hash_table = hash_table,
     epoch_begin = tonumber(epoch_begin),
     epoch_end  = tonumber(epoch_end),
     -- flow 5-tuple tags

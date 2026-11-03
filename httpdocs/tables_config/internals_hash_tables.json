@@ -8,6 +8,27 @@
 	"show_autorefresh": 5,
 	"columns": [
 		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"event_id": "click_button_timeseries"
+				}
+			]
+		},
+		{
 			"id": "iface_name",
 			"title_i18n": "interface",
 			"data_field": "iface_name",

@@ -1,0 +1,112 @@
+{
+	"id": "containers",
+	"data_url": "lua/rest/v2/get/container/list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.containers",
+	"show_autorefresh": 10,
+	"default_sort": {
+		"column_id": "name",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "live_flows",
+					"event_id": "click_button_flows"
+				},
+				{
+					"id": "timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"event_id": "click_button_timeseries"
+				}
+			]
+		},
+		{
+			"id": "name",
+			"title_i18n": "containers_stats.container",
+			"data_field": "name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "flows_as_client",
+			"title_i18n": "flows_page.flows_as_client",
+			"data_field": "flows_as_client",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "flows_as_server",
+			"title_i18n": "flows_page.flows_as_server",
+			"data_field": "flows_as_server",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_as_client",
+			"title_i18n": "containers_stats.avg_rtt_as_client",
+			"data_field": "rtt_as_client",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_as_server",
+			"title_i18n": "containers_stats.avg_rtt_as_server",
+			"data_field": "rtt_as_server",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_variance_as_client",
+			"title_i18n": "containers_stats.avg_rtt_variance_as_client",
+			"data_field": "rtt_variance_as_client",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_variance_as_server",
+			"title_i18n": "containers_stats.avg_rtt_variance_as_server",
+			"data_field": "rtt_variance_as_server",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}

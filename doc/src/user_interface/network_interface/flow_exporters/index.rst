@@ -100,16 +100,16 @@ and the ones capturing packets. The page refreshes every 10 seconds.
   the previous refresh. Click the ⤢ icon next to a probe to open the details of its host.
 - The `Actions` button opens the flow exporters of the probe; its menu also opens their
   interfaces and the probe host.
-- `All Flow Exporters` and `All Exporters Interfaces` above the table list the exporters and the
-  interfaces of every probe.
-- The `Historical Data` tab shows the probes timeseries.
+- The tabs below the title open, besides the probes, all the flow exporters and their interfaces,
+  the exporters map, the sites and the probes timeseries (`Historical Data`).
 
 Flow Exporters
 --------------
 
-From the nProbe page, the `Actions` button of a probe (or `All Flow Exporters` above the table)
-opens the flow exporters: the routers and switches that send their flows through the probes. The
-tabs below the title switch between:
+From the nProbe page, the `Actions` button of a probe opens the flow exporters of that probe (the
+`nProbe` filter above the table says which one; remove it to see all the exporters), the `Exporters`
+tab all of them: the routers and switches that send their flows through the probes. The tabs below
+the title switch between:
 
 - `Exporters`: the exporters with their flows, interfaces and the time of the last flow;
 - `Interfaces`: the interfaces of all the exporters;

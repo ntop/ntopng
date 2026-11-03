@@ -3,7 +3,7 @@
 InfluxDB
 --------
 
-ntopng features an :ref:`InfluxDB Driver` to export timeseries to `InfluxDB <https://www.influxdata.com/>`_. Using InfluxDB causes ntopng to enable and periodically execute the InfluxDB monitor. The InfluxDB monitor checks InfluxDB health and status. The home of the InfluxDB Monitor shows a brief overview
+ntopng features an :ref:`InfluxDB Driver` to export timeseries to `InfluxDB <https://www.influxdata.com/>`_. Using InfluxDB causes ntopng to enable and periodically execute the InfluxDB monitor. The InfluxDB monitor checks InfluxDB health and status. The page has two tabs: *Overview* and *Historical Data*. The overview, refreshed every 5 seconds, shows
 
 .. figure:: ../../../img/influxdb_monitor_home.png
   :align: center
@@ -11,15 +11,16 @@ ntopng features an :ref:`InfluxDB Driver` to export timeseries to `InfluxDB <htt
 
   The InfluxDB Monitor Home
 
-The overview has the following items:
+The *Status* card has the following items:
 
 - :code:`health`: A badge which is either green, yellow or red, depending on the status of InfluxDB. The badge is green when ntopng is correctly exporting to InfluxDB, yellow when there are export errors that are recoverable and didn't cause any data loss, red when export errors are persistent and data loss is occurring.
 - :code:`storage utilization`: Total disk space used by InfluxDB.
 - :code:`ram`: Total memory InfluxDB has obtained from the operating system.
 - :code:`total exports`. Total number of successful writes into InfluxDB. A single write writes multiple points at once.
 - :code:`total points`: Total number of points successfully written into InfluxDB.
-- :code:`dropped points`: Total number of points dropped due to InfluxDB write failures.
-- :code:`series cardinality`: An indication of how challenging is for InfluxDB to handle written points.
+- :code:`series cardinality`: An indication of how challenging is for InfluxDB to handle written points. A warning icon appears when it gets so high that it can slow down InfluxDB.
+
+Storage utilization, RAM and series cardinality are shown only when ntopng can read the InfluxDB internal monitoring database. The chart icon next to a value opens its chart.
 
 When InfluxDB is temporarily unable to export, the :code:`health` turns yellow.
 
@@ -41,7 +42,7 @@ When InfluxDB is temporarily unable to export, the :code:`health` turns yellow.
 
 ntopng keeps retrying even when the :code:`health` is red to recover as soon as InfluxDB becomes fully functional again.
 
-Timeseries of items shows in the overview are available as well from the *char* page.
+Timeseries of the items shown in the overview are available in the *Historical Data* tab.
 
 .. figure:: ../../../img/influxdb_monitor_timeseries.png
   :align: center
@@ -49,6 +50,4 @@ Timeseries of items shows in the overview are available as well from the *char* 
 
   InfluxDB Monitor Timeseries
 
-Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*.
-
-The InfluxDB monitor is implemented as an ntopng plugin. Source code is available on `GitHub <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/influxdb_monitor>`_.
+Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*: the *Historical Data* tab and the chart icons are then disabled.

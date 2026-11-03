@@ -46,7 +46,7 @@ local function get_interfaces_info()
             local item = {
                 engaged_alerts = ifstats.num_alerts_engaged,
                 alerted_flows = ifstats.num_alerted_flows,
-                local_hosts = ifstats.stats.local_host,
+                local_hosts = ifstats.stats.local_hosts,
                 remote_hosts = ifstats.stats.hosts - ifstats.stats.local_hosts,
                 devices = ifstats.stats.devices,
                 flows = ifstats.stats.flows,

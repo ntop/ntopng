@@ -1,0 +1,66 @@
+{
+	"id": "live_captures",
+	"data_url": "lua/rest/v2/get/pcap/live_captures.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.live_captures",
+	"show_autorefresh": 10,
+	"default_sort": {
+		"column_id": "capture_until",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "stop",
+					"icon": "fas fa-stop",
+					"title_i18n": "live_capture.stop",
+					"event_id": "click_button_stop",
+					"danger": true
+				}
+			]
+		},
+		{
+			"id": "host",
+			"title_i18n": "live_capture.capture_host",
+			"data_field": "host",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_captured_packets",
+			"title_i18n": "live_capture.captured_packets",
+			"data_field": "num_captured_packets",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "capture_until",
+			"title_i18n": "live_capture.capture_until",
+			"data_field": "capture_until",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

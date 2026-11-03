@@ -9,6 +9,12 @@ require "lua_utils"
 local ts_utils = require("ts_utils")
 local rest_utils = require("rest_utils")
 
+-- -1: the system interface (Health > InfluxDB)
+if not ntop.isAllowedInterface(-1) then
+  rest_utils.answer(rest_utils.consts.err.not_granted)
+  return
+end
+
 local influxdb = ts_utils.getQueryDriver()
 local info = {}
 

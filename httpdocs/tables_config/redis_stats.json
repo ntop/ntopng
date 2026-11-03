@@ -4,7 +4,8 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.redis_commands",
 	"default_sort": {
 		"column_id": "command",
 		"sort": 1
@@ -15,20 +16,18 @@
 			"title_i18n": "actions",
 			"sortable": false,
 			"sticky": true,
-			"max-width": "10px",
 			"class": [
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "timeseries",
-					"icon": "fas fa-lg fa-chart-area",
+					"icon": "fas fa-chart-area",
 					"title_i18n": "prefs.timeseries",
-					"class": [
-						"btn-info"
-					],
 					"event_id": "click_button_timeseries"
 				}
 			]

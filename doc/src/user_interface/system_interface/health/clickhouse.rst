@@ -14,8 +14,10 @@ ntopng features ClickHouse to export flows to `ClickHouse <https://clickhouse.co
 
   The ClickHouse Monitor Home
 
-The overview has the following items:
+The page shows a *Status* card, refreshed every 10 seconds, with the following items:
 
-- :code:`Health`: A badge which is either green, yellow or red, depending on the status of ClickHouse. The badge is green when ntopng is correctly exporting to ClickHouse, yellow when there are export errors that are recoverable and didn't cause any data loss, red when export errors are persistent and data loss is occurring.
-- :code:`Tables Size`: Total disk space used by ClickHouse.
-- :code:`Last Errors`: A log trace used to check if some error occurred during the export of the flows
+- :code:`Version`: The version of the ClickHouse server.
+- :code:`Health`: A badge which is either green or red. The badge is green when ntopng can query ClickHouse, red when it cannot: in this case expect the historical pages to malfunction.
+- :code:`Tables Size`: Disk space used by the flows table, the hourly flows table and the alert tables, with a bar comparing them. Flow alerts are counted in the flows table size.
+- :code:`Table Records`: The number of flows and hourly flows stored, with the average space used by one record, and the number of alerts (flow alerts excluded).
+- :code:`Last Errors`: The last errors reported by ClickHouse, useful to check if something went wrong while storing or querying the flows.

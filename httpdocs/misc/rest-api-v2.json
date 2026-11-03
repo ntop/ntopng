@@ -8181,7 +8181,7 @@
           "Health"
         ],
         "summary": "Get Clickhouse Stats",
-        "description": "Get all the available Clickhouse Statistics",
+        "description": "ClickHouse status: version, health (green when a query works, else red), status (UP or DISABLED), size in bytes and rows of the flows (flows_size, flows_number), hourly flows (hourly_flows_size, hourly_flows_number) and alert tables (alerts_size, alerts_number), system_errors (last errors, already formatted with their date). Needs access to the system interface",
         "operationId": "get_clickhouse_stats",
         "produces": [
           "application/json"
@@ -8190,6 +8190,9 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
           },
           "-6": {
             "description": "INTERNAL_ERROR"
@@ -16772,6 +16775,147 @@
         }
       }
     },
+    "/lua/rest/v2/get/pod/list.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the Kubernetes pods",
+        "description": "Kubernetes pods seen in the flows of the interface: pod, num_containers, flows_as_client, flows_as_server, rtt_as_client, rtt_as_server, rtt_variance_as_client, rtt_variance_as_server (RTT in ms)",
+        "operationId": "get_pods_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE: the user cannot access the interface"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/container/list.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the containers",
+        "description": "Containers (Docker or Kubernetes) seen in the flows of the interface: id, name, pod, flows_as_client, flows_as_server, rtt_as_client, rtt_as_server, rtt_variance_as_client, rtt_variance_as_server (RTT in ms)",
+        "operationId": "get_containers_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pod",
+            "in": "query",
+            "description": "Only the containers of this Kubernetes pod",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE: the user cannot access the interface"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/pcap/live_captures.lua": {
+      "get": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Get the running live captures",
+        "description": "Live captures (pcap downloads of live traffic) running on the interface: id, host (missing when the whole interface is captured), num_captured_packets, capture_max_pkts, capture_until (epoch). Needs the pcap download right",
+        "operationId": "get_live_captures",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot download pcap files"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE: the user cannot access the interface"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/pcap/live_capture.lua": {
+      "post": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Stop a live capture",
+        "description": "Stops a running live capture of the interface. Administrators only",
+        "operationId": "delete_live_capture",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "{ ifid, capture_id } (capture_id: id returned by get/pcap/live_captures.lua)",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: administrators only"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: ifid or capture_id missing"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE: the user cannot access the interface"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/pcap/live_traffic.lua": {
       "get": {
         "tags": [
@@ -17109,7 +17253,7 @@
           "Health"
         ],
         "summary": "Get InfluxDB Stats",
-        "description": "Get all the available InfluxDB Statistics",
+        "description": "InfluxDB export status. With InfluxDB as timeseries driver: status UP, version, health (green, yellow while retrying failed exports, red while dropping points), exports, points_exported and, when the InfluxDB internal monitoring database is available, db_bytes, memory, num_series. Otherwise status DISABLED. Needs access to the system interface",
         "operationId": "get_influxdb_stats",
         "produces": [
           "application/json"
@@ -17117,7 +17261,10 @@
         "parameters": [],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "OK: { status, version?, health?, exports?, points_exported?, db_bytes?, memory?, num_series? }"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
           },
           "-6": {
             "description": "INTERNAL_ERROR"
@@ -17147,14 +17294,83 @@
         }
       }
     },
+    "/lua/rest/v2/get/system/health/interfaces_list.lua": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Get the counters of every interface",
+        "description": "One record per monitored interface: ifid, name (alias if set), engaged_alerts, alerted_flows, local_hosts, remote_hosts, devices, flows and, since the last counters reset, bytes, packets, drops. Needs access to the system interface",
+        "operationId": "get_system_interfaces_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK: [{ ifid, name, engaged_alerts, alerted_flows, local_hosts, remote_hosts, devices, flows, bytes, packets, drops }]"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/system/health/log.lua": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Get the last ntopng log lines",
+        "description": "The last 33 lines of the ntopng log, newest first, as plain text. Needs access to the system interface; not available on OEM builds",
+        "operationId": "get_system_last_log",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK: [line]"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/system/health/redis.lua": {
       "get": {
         "tags": [
           "Health"
         ],
         "summary": "Get Redis Stats",
-        "description": "Get all the available Redis Statistics",
+        "description": "Redis status: used memory (resident set size, bytes), number of keys (dbsize) and health (green, or red when the last persistence to disk failed). On Windows dbsize is missing and health is always green. Needs access to the system interface",
         "operationId": "get_redis_stats",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK: { memory, dbsize, health }"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/redis/redis_stats.lua": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Get Redis calls per command",
+        "description": "Calls made by ntopng to Redis since startup, one record per command: { command: { key, name }, hits }. Needs access to the system interface",
+        "operationId": "get_redis_commands_stats",
         "produces": [
           "application/json"
         ],
@@ -17163,8 +17379,8 @@
           "0": {
             "description": "OK"
           },
-          "-6": {
-            "description": "INTERNAL_ERROR"
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
           }
         }
       }
@@ -17184,6 +17400,9 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
           },
           "-6": {
             "description": "INTERNAL_ERROR"
@@ -17383,6 +17602,13 @@
             "name": "mac",
             "in": "query",
             "description": "MAC address, REQUIRED in case of timeseries regarding MACs",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "hash_table",
+            "in": "query",
+            "description": "Hash table name (e.g. FlowHash), with query=ht: only the timeseries of that hash table",
             "required": false,
             "type": "string"
           }

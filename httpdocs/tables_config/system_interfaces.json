@@ -1,0 +1,115 @@
+{
+	"id": "system_interfaces",
+	"data_url": "lua/rest/v2/get/system/health/interfaces_list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.system_interfaces",
+	"show_autorefresh": 5,
+	"default_sort": {
+		"column_id": "name",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "name",
+			"title_i18n": "name",
+			"data_field": "name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "engaged_alerts",
+			"title_i18n": "show_alerts.engaged_alerts",
+			"data_field": "engaged_alerts",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "alerted_flows",
+			"title_i18n": "host_details.active_alerted_flows",
+			"data_field": "alerted_flows",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "local_hosts",
+			"title_i18n": "system_interfaces_stats.local_hosts",
+			"data_field": "local_hosts",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "remote_hosts",
+			"title_i18n": "system_interfaces_stats.remote_hosts",
+			"data_field": "remote_hosts",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "devices",
+			"title_i18n": "devices",
+			"data_field": "devices",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "flows",
+			"title_i18n": "flows",
+			"data_field": "flows",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "bytes",
+			"title_i18n": "details.total_traffic",
+			"data_field": "bytes",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "packets",
+			"title_i18n": "db_explorer.total_packets",
+			"data_field": "packets",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "drops",
+			"title_i18n": "if_stats_overview.dropped_packets",
+			"data_field": "drops",
+			"sortable": true,
+			"min-width": "120px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

@@ -1,0 +1,128 @@
+{
+	"id": "pods",
+	"data_url": "lua/rest/v2/get/pod/list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.pods",
+	"show_autorefresh": 10,
+	"default_sort": {
+		"column_id": "pod",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "live_flows",
+					"event_id": "click_button_flows"
+				},
+				{
+					"id": "containers",
+					"icon": "fas fa-ship",
+					"title_i18n": "containers_stats.containers",
+					"event_id": "click_button_containers"
+				},
+				{
+					"id": "timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"event_id": "click_button_timeseries"
+				}
+			]
+		},
+		{
+			"id": "pod",
+			"title_i18n": "containers_stats.pod",
+			"data_field": "pod",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_containers",
+			"title_i18n": "containers_stats.containers",
+			"data_field": "num_containers",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "flows_as_client",
+			"title_i18n": "flows_page.flows_as_client",
+			"data_field": "flows_as_client",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "flows_as_server",
+			"title_i18n": "flows_page.flows_as_server",
+			"data_field": "flows_as_server",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_as_client",
+			"title_i18n": "containers_stats.avg_rtt_as_client",
+			"data_field": "rtt_as_client",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_as_server",
+			"title_i18n": "containers_stats.avg_rtt_as_server",
+			"data_field": "rtt_as_server",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_variance_as_client",
+			"title_i18n": "containers_stats.avg_rtt_variance_as_client",
+			"data_field": "rtt_variance_as_client",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "rtt_variance_as_server",
+			"title_i18n": "containers_stats.avg_rtt_variance_as_server",
+			"data_field": "rtt_variance_as_server",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}
