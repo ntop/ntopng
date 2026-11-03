@@ -1353,6 +1353,18 @@ local function validateIpAddressOrNetwork(p)
 end
 
 local function validateHost(p)
+   -- traffic rules wildcardp
+   if p == "*" then
+      return true
+   end
+
+   -- hostkey2hostinfo removes everything after "/", validate the CIDR part
+   -- to not accept "8.8.8.8/;payload"
+   local address = p:match("^([^@]*)")
+   if address and address:find("/", 1, true) and not (address:match("^[^/]+/%d+$") and validateNetwork(address)) then
+      return false
+   end
+
    local host = hostkey2hostinfo(p)
 
    if (host.host ~= nil) and (host.vlan ~= nil) and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
@@ -2051,6 +2063,8 @@ local known_parameters = {
    ["vlan"] = validateEmptyOr(validateNumber), -- A VLAN id
    ["vlan_id"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A VLAN id
    ["vlan_label"] = validateEmptyOr(validateUnquoted),
+   ["target_label"] = validateEmptyOr(validateUnquoted), -- Traffic rules: the name shown for the target
+   ["rule_target"] = validateSingleWord, -- Traffic rules: host, interface id, pool id, VLAN, ASN or "*" (the "target" key is host only)
    ["input_snmp"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateSingleWord))),
    ["output_snmp"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateSingleWord))),
    ["snmp_interface"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateSingleWord))),
@@ -2161,6 +2175,7 @@ local known_parameters = {
    ["sortOrder"] = validateSortOrder, -- A sort order
    ["sortColumn"] = validateSortColumn, -- A sort column
    ["currentPage"] = validateNumber, -- The currently displayed page number (used for pagination)
+   ["table_page"] = validateNumber, -- Page of the table, kept in the url by table.vue (sent with every table request)
    ["totalRows"] = validateNumber, -- The total number of rows
 
    -- AGGREGATION
@@ -2231,6 +2246,11 @@ local known_parameters = {
    ["discord_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
    ["discord_sender"] = http_lint.validateUnquoted,
    ["discord_username"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+
+   ["flowtriq_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
+   ["flowtriq_api_key"] = http_lint.validateSingleWord,
+   -- delete/notification/recipient.lua: also delete its connection when no other recipient uses it
+   ["delete_endpoint"] = http_lint.validateBool,
 
    ["script_keys"] = validateUnquoted,
    ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
@@ -2481,6 +2501,7 @@ local known_parameters = {
    ["enabled"] = validateBool,
    ["showGraph"] = validateBool,
    ["range"] = validateUnquoted,
+   ["threshold_sign"] = validateNumber,
 
    -- CLASSIFICAION
    ["classification_user_id"] = validateUnquoted,
@@ -2551,7 +2572,7 @@ local known_parameters = {
    ["params"]                = {jsonCleanup, validateJSON},
    ["columns"]               = {jsonCleanup, validateJSON},
    ["post_hook"]             = {jsonCleanup, validateJSON},
-   ["pipeline_id"]           = validateUnquoted,
+   ["pipeline_id"]           = validateUUID,
    ["pipeline_name"]         = validateUnquoted,             -- pipeline human-readable name (may contain spaces)
    ["pipeline_description"]  = {jsonCleanup, validatePcap}, -- pipeline description, may contain special chars / UTF-8
    
@@ -2571,10 +2592,19 @@ local known_parameters = {
    ["syslog_rule_id"] = validateSingleWord,
    ["syslog_rule_enabled"] = validateBool,
    ["syslog_rule_min_severity"] = validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"}),
-   ["syslog_rule_max_severity"] = validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"}),
+   ["syslog_rule_discard"] = validateBool,
    ["syslog_rule_source"] = validateEmptyOr(validateNetwork),
    ["syslog_rule_pattern"] = validateEmptyOr(validateMessage),
    ["syslog_rule_comment"] = validateEmptyOr(validateMessage),
+   ["syslog_test_pattern"] = validateMessage,
+   ["syslog_test_message"] = validateMessage,
+
+   -- Syslog events
+   ["syslog_ip"] = validateEmptyOr(validateIpAddress),
+   ["syslog_severity"] = validateEmptyOr(validateChoiceInline({"0", "1", "2", "3", "4", "5", "6", "7"})),
+   ["syslog_hostname"] = validateMessage,
+   ["syslog_app_name"] = validateMessage,
+   ["syslog_facility"] = validateMessage,
 
    -- WAZUH Alert Rules / Alert Exceptions (private config)
    ["wazuh_rule_id"] = validateSingleWord,
@@ -2667,6 +2697,7 @@ local known_parameters = {
 
    -- AI Audit Log deep-link filter (page-ai-audit.vue)
    ["tool_name"] = validateSingleWord,
+   ["triggered_by"] = validateChoiceInline({"llm", "user"}),
    ["stats"] = validateBool,
    ["rtt_threshold"] = validateNumber,
    ["bandwidth_threshold"] = validateNumber,
@@ -3384,6 +3415,7 @@ local known_parameters = {
     ["instance_name"] = validateSingleWord, -- used in flow explorer
     ["hide_exporters_name"] = validateBool,
     ["append_only"] = validateBool,
+    ["remove_only"] = validateBool,
     ["dns_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["ntp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["dhcp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
@@ -3446,7 +3478,8 @@ local special_parameters = { --[[Suffix validator]]
     ["gw_id_"] = {validateNumber, validateGatewayName},
     ["pol_id_"] = {validateNumber, validateRoutingPolicyName},
     ["routing_"] = {validateRoutingPolicyGateway, validateEmptyOr(validateNumber)}, -- a routing policy
-
+    ["router"] = validateIpAddress,
+    
     -- DHCP Configuration
     ["dhcp_server_enabled_"] = {validateNetworkInterface, validateBool},
     ["dhcp_first_ip_"] = {validateNetworkInterface, validateIPV4},
@@ -3568,7 +3601,8 @@ local function validateSpecialParameter(param, value)
     for k, v in pairs(special_parameters) do
         if starts(param, k) and not known_parameters[param] --[[ make sure this is not a known, non-special param --]] then
             local suffix = split(param, k)[2]
-            value = ntop.httpPurifyParam(value)
+
+	    value = ntop.httpPurifyParam(value)
 
             if not v[1](suffix) then
                 return false, "Special Validation, parameter key", nil

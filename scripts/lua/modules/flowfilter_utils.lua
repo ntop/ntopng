@@ -1298,6 +1298,10 @@ flowfilter_utils.formatters = {
 
 -- ######################################
 
+-- Options of the network_id filters, see get_flowfilter_info
+local network_id_options = nil
+local network_id_options_ifid = nil
+
 function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, restrict_filters, ifid, is_aggregated)
     local alert_utils = require "alert_utils"
     local filter_def = flowfilter_utils.defined_filters[id]
@@ -1656,14 +1660,20 @@ function flowfilter_utils.get_flowfilter_info(id, entity, hide_exporters_name, r
             }
         end
     elseif filter_def.value_type == "network_id" then
-        filter.options = {}
-        local networks_stats = interface.getNetworksStats()
-        for n, ns in pairs(networks_stats) do
-            filter.options[#filter.options + 1] = {
-                value = ns.network_id,
-                label = getFullLocalNetworkName(ns.network_key)
-            }
+        -- network, cli_network, srv_network: getNetworksStats() (all the stats of the networks the
+        -- user can see) once per interface in a request, not once per filter
+        local cur_ifid = interface.getId()
+        if not network_id_options or network_id_options_ifid ~= cur_ifid then
+            network_id_options = {}
+            network_id_options_ifid = cur_ifid
+            for n, ns in pairs(interface.getNetworksStats() or {}) do
+                network_id_options[#network_id_options + 1] = {
+                    value = ns.network_id,
+                    label = getFullLocalNetworkName(ns.network_key)
+                }
+            end
         end
+        filter.options = { table.unpack(network_id_options) }
     elseif filter_def.value_type == "observation_point_id" then
         filter.value_type = 'array'
         filter.options = {}

@@ -296,23 +296,15 @@ page_utils.menu_entries = {
         section = "flows",
         help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/historical_flows.html?utm_source=ntopng"
     },
-    server_ports = {
-        key = "server_ports",
-        i18n_title = "server_ports.server_ports",
-        section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html?utm_source=ntopng"
-    },
     bgp_looking_glass = {
         key = "bgp_looking_glass",
         i18n_title = "bgp_looking_glass",
         section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html?utm_source=ntopng"
     },
     bgp_looking_glass_asn = {
         key = "bgp_looking_glass_asn",
         i18n_title = "bgp_looking_glass",
         section = "views",
-        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html?utm_source=ntopng"
     },
 
     -- Hosts
@@ -422,13 +414,8 @@ page_utils.menu_entries = {
         section = "views"
     },
     historical_flows_asn_mode = {
-        key = "historical_flows_asn_mode",
+        key = "db_explorer_asn_mode",
         i18n_title = "historical_flows",
-        section = "views"
-    },
-    server_ports_asn_mode = {
-        key = "server_ports",
-        i18n_title = "server_ports.server_ports",
         section = "views"
     },
 
@@ -544,8 +531,8 @@ page_utils.menu_entries = {
     },
     syslog_config = {
         key = "syslog_config",
-        i18n_title = "notification_endpoint.syslog.configure",
-        section = "admin"
+        i18n_title = "syslog.syslog",
+        section = "if_stats"
     },
 
     -- Map
@@ -559,6 +546,11 @@ page_utils.menu_entries = {
         i18n_title = "geo_map.geo_map",
         section = "if_stats",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/maps/geo_map.html?utm_source=ntopng"
+    },
+    network_topology = {
+        key = "network_topology",
+        i18n_title = "network_topology",
+        section = "if_stats",
     },
     hosts_map = {
         key = "hosts_map",
@@ -1606,6 +1598,11 @@ function page_utils.page_not_enabled(i18n_key)
 end
 
 -- ##############################################
+
+function page_utils.showSyslog()
+    return isAdministrator() and hasClickHouseSupport() and
+      (ntop.getPref("ntopng.prefs.menu_entries.experimental_features") == "1")
+end
 
 return page_utils
 

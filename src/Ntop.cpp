@@ -1638,7 +1638,8 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char* ifname) {
 
 /* ******************************************* */
 
-char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter) {
+char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter,
+                                      int datalink) {
   char* username;
   char* restricted_filter = NULL;
   char key[CONST_MAX_LEN_REDIS_KEY], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
@@ -1671,6 +1672,34 @@ char* Ntop::preparePcapDownloadFilter(lua_State* vm, char* filter) {
   }
 
   if (num_nets == 0) goto no_restriction;
+
+  /* validate the user filter */
+
+  if (filter_len > 0) {
+    /*
+      The user filter is enclosed in parentheses and and-ed with the allowed
+      networks below: make sure it is a valid expression on its own, otherwise
+      a filter such as "udp) or (udp" closes the parentheses and escapes the
+      networks restriction.
+    */
+    pcap_t* pcap_handle = pcap_open_dead(datalink, 65535);
+    struct bpf_program fcode;
+    int rc;
+
+    if (pcap_handle == NULL) return (NULL);
+
+    if ((rc = pcap_compile(pcap_handle, &fcode, filter, 0,
+                           PCAP_NETMASK_UNKNOWN)) == 0)
+      pcap_freecode(&fcode);
+
+    pcap_close(pcap_handle);
+
+    if (rc != 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid capture filter %s",
+                                   filter);
+      return (NULL);
+    }
+  }
 
   /* build final/restricted filter */
 
@@ -2948,8 +2977,13 @@ bool Ntop::createMFAPendingToken(const char* username, const char* referer,
                                  char* token, size_t token_len) const {
   char val[512], key[128];
   char random[64], tmp_token[33];
+  uint8_t raw[16];
 
-  snprintf(random, sizeof(random), "%d%s", rand(), username);
+  if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
+
+  for (u_int i = 0; i < sizeof(raw); i++)
+    snprintf(&random[i * 2], 3, "%02x", raw[i]);
+
   /* mg_md5 produces a 33-char (32 hex + NUL) string */
   mg_md5(tmp_token, random, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
@@ -3356,10 +3390,15 @@ bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
                                        char* challenge_b64,
                                        size_t challenge_len) const {
   char rand_str[64], tmp_token[33];
+  uint8_t raw[16];
 
   if (!generateWebAuthnChallenge(challenge_b64, challenge_len)) return false;
 
-  snprintf(rand_str, sizeof(rand_str), "%d%s", rand(), username);
+  if (RAND_bytes(raw, sizeof(raw)) != 1) return false;
+
+  for (u_int i = 0; i < sizeof(raw); i++)
+    snprintf(&rand_str[i * 2], 3, "%02x", raw[i]);
+
   mg_md5(tmp_token, rand_str, (char *) NULL);
   strncpy(token, tmp_token, token_len - 1);
   token[token_len - 1] = '\0';
@@ -5077,7 +5116,7 @@ bool Ntop::nDPILoadIPCategory(char* what, ndpi_protocol_category_t cat_id,
   u_int8_t list_id;
   char* persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
-  u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
+  u_int16_t id = Utils::packCustomCategory(cat_id, list_id);
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
     if (getInterface(i)) {
@@ -5096,8 +5135,7 @@ bool Ntop::nDPILoadHostnameCategory(char* what, ndpi_protocol_category_t cat_id,
   u_int8_t list_id;
   char* persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
-  u_int16_t id = (((u_int16_t)list_id) << 8) +
-                 (u_int8_t)cat_id; /* Merge list_id and cat_id on a u_int16_t */
+  u_int16_t id = Utils::packCustomCategory(cat_id, list_id);
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
     if (getInterface(i)) {
@@ -5519,6 +5557,18 @@ u_int64_t Ntop::getNumActiveProbes() const {
 
 /* ******************************************* */
 
+/* Active Monitoring intentionally not started (e.g. analysing pcap file) */
+bool Ntop::isActiveMonitoringNotAvail() {
+#ifndef WIN32
+  return active_monitoring_not_avail;
+#else
+  return true;
+#endif
+}
+
+/* ******************************************* */
+
+
 #ifndef WIN32
 
 /* ******************************************* */
@@ -5637,17 +5687,6 @@ void Ntop::initPing() {
         break;
     }
   }
-}
-
-/* ******************************************* */
-
-/* Active Monitoring intentionally not started (e.g. analysing pcap file) */
-bool Ntop::isActiveMonitoringNotAvail() {
-#ifndef WIN32
-  return active_monitoring_not_avail;
-#else
-  return true;
-#endif
 }
 
 /* ******************************************* */

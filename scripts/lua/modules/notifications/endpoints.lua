@@ -215,6 +215,9 @@ local function check_endpoint_config_params(endpoint_key, endpoint_params)
    return true, {status = "OK", safe_params = safe_params, builtin = endpoint.builtin or false}
 end
 
+-- Used by the notification REST to test a connection before saving it
+endpoints.check_config_params = check_endpoint_config_params
+
 -- #################################################################
 
 -- @brief Add a new configuration endpoint
@@ -460,21 +463,34 @@ function endpoints.add_configs_with_recipients(configs)
          if not ret or not ret.endpoint_id then
             rc = false
          else
+            local endpoint_id = ret.endpoint_id
+            local alert_entities = require "alert_entities"
+
             -- Restore Recipients
             for _, recipient_conf in ipairs(conf.recipients) do
                local endpoint_recipient_name = recipient_conf.recipient_name
                local check_categories = recipient_conf.check_categories
                local check_entities   = recipient_conf.check_entities
                local minimum_severity = recipient_conf.minimum_severity
-               local recipient_params = recipient_conf.recipient_params
                local host_pools       = recipient_conf.host_pools or {}
                local silence_duplicate_alerts = recipient_conf.silence_alerts
 
-               
-               ret = recipients.add_recipient(ret.endpoint_id, endpoint_recipient_name,
+               -- add_recipient reads the notification type and the alert ids from the params,
+               -- the alert ids as "<alert_id>_<entity_id>" (exported as { entity_key = { alert_id } })
+               local recipient_params = table.clone(recipient_conf.recipient_params or {})
+               recipient_params.recipient_notifications_type = recipient_conf.notifications_type
+               local checks = {}
+               for entity_key, alert_ids in pairs(recipient_conf.checks or {}) do
+                  local entity = alert_entities[entity_key]
+                  for _, alert_id in ipairs(entity and alert_ids or {}) do
+                     checks[#checks + 1] = string.format("%d_%d", alert_id, entity.entity_id)
+                  end
+               end
+               recipient_params.recipient_checks = table.concat(checks, ",")
+
+               ret = recipients.add_recipient(endpoint_id, endpoint_recipient_name,
                   check_categories, check_entities, minimum_severity,
-                  host_pools, -- Host pools - restore should take care of this automatically
-                  {}, -- Interface pools - restore should take care of this automatically
+                  host_pools, recipient_conf.am_hosts or {}, recipient_conf.tags or {},
                   recipient_params,
                   silence_duplicate_alerts
                )

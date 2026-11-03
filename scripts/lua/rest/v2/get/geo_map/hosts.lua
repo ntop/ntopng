@@ -4,34 +4,31 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils_gui"
-require "lua_utils_get"
+require "ntop_utils"
+require "http_lint"
+require "label_utils"
 local rest_utils = require("rest_utils")
 local country_code = require "country_keys"
 
 local ifid = _GET["ifid"]
 
 if isEmptyString(ifid) then
-    rc = rest_utils.consts.err.invalid_interface
-    rest_utils.answer(rc)
+    rest_utils.answer(rest_utils.consts.err.invalid_interface)
     return
 end
 
-interface.select(ifid)
+-- interface.select silently falls back to an allowed interface: check it
+interface.select(tostring(ifid))
+if tostring(interface.getId()) ~= tostring(ifid) then
+    rest_utils.answer(rest_utils.consts.err.invalid_interface)
+    return
+end
 
 local rsp = {}
 local data = {}
 local host_key = _GET["host"]
 local hosts_category = tonumber(_GET["hosts_category"] or 0)
-local host_info = url2hostinfo(_GET)
 local MAX_HOSTS = 512
-
--- ############################################################
-
-local function handlePeer(host_key)
-    local host_data = interface.getHostInfo(host_key)
-    return host_data
-end
 
 -- ##############
 
@@ -54,7 +51,8 @@ elseif (hosts_category == 3) then
     data = interface.getRemoteHostsInfo(false, "column_traffic", MAX_HOSTS, nil,
                                         false --[[ Desc order ]] )
 else
-    data = nil
+    rest_utils.answer(rest_utils.consts.err.invalid_args)
+    return
 end
 
 -- Get single host data (host_key is the requested IP)
@@ -65,7 +63,7 @@ if host_key then
                                                     nil, nil, nil)
 
     -- now only print the IPs inside "talking_with"
-    if flowstats["talking_with"] then
+    if flowstats and flowstats["talking_with"] then
         for ip, count in pairs(flowstats["talking_with"]) do
 
             local host_info = interface.getHostMinInfo(ip)

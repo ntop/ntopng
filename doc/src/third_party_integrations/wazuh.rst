@@ -162,8 +162,8 @@ Step 1: Merge Assets from Wazuh
  
 Once the credentials are saved, you can trigger the merge at any time from the asset inventory.
  
-1. Navigate to **Hosts → asset inventory**
-2. Click the **Merge Assets from Wazuh** button in the toolbar
+1. Navigate to **Network → Assets Inventory**
+2. Click the **Merge Assets from Wazuh** button above the table (administrators only)
 3. ntopng will authenticate against the Wazuh Manager API, retrieve the full list of registered agents, and update all matching assets
  
 .. figure:: ../img/wazuh_merge_check.png

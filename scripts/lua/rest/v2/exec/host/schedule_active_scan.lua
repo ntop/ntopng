@@ -29,8 +29,9 @@ local scan_id = _GET["scan_id"]
 local cidr = _GET["vs_cidr"]
 
 if single_host then 
-   if isEmptyString(host) or isEmptyString(scan_type) then
+   if isEmptyString(host) or not ascan_utils.is_valid_scan_type(scan_type) then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
    end
 
    local is_single_scan = single_host

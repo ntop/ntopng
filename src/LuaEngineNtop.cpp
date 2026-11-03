@@ -951,7 +951,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
 
   switch (list_type) {
     case list_type_hosts:
-      format = "%s\t%s";
+      format = "%255s\t%255s";
       break;
 
     case list_type_ip_csv:
@@ -959,7 +959,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
       break;
 
     case list_type_ip_occurrencies:
-      format = "%s\t%d";
+      format = "%255s\t%d";
       break;
 
     case list_type_ip:
@@ -994,7 +994,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
           127.0.0.1       domainname
           127.0.0.1,domainname
         */
-        char host[256], ignore[64];
+        char host[256], ignore[256];
         bool loaded = false, success;
         double f;
 
@@ -1035,7 +1035,7 @@ static int ntop_loadCustomCategoryFile(lua_State* vm) {
           Format
           127.0.0.1       occurrencies
         */
-        char host[64];
+        char host[256];
         int occurrencies;
         bool loaded = false;
 
@@ -1114,10 +1114,8 @@ static int ntop_match_custom_category(lua_State* vm) {
                        iface->get_ndpi_struct(), host_to_match,
                        strlen(host_to_match), &match, &breed) != 0))
     lua_pushnil(vm);
-  else {
-    /* Remember to unshift `match` (see Ntop::nDPILoadHostnameCategory) */
-    lua_pushinteger(vm, ((int)match) & 0xFF);
-  }
+  else
+    lua_pushinteger(vm, Utils::unpackCustomCategory(&match));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
@@ -1869,8 +1867,12 @@ static int ntop_register_runtime_interface(lua_State* vm) {
     create_new_interface = false;
   }
 
-  if (create_new_interface) {
-    if ((!ntop->isUserAdministrator(vm)) || (source == NULL) ||
+  if ((source == NULL) ||
+      /* Uploading a pcap is reserved to administrators */
+      ((strncmp(source, "pcap:", 5) == 0) && (!ntop->isUserAdministrator(vm)))) {
+    ; /* No way */
+  } else if (create_new_interface) {
+    if ((!ntop->isUserAdministrator(vm)) ||
         (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
       ; /* No way */
     } else {
@@ -1881,12 +1883,20 @@ static int ntop_register_runtime_interface(lua_State* vm) {
     }
   } else {
     /* Upload pcap on this interface */
+    NetworkInterface* old_iface;
 
-    if (if_id == -1) if_id = iface->get_id();
+    if ((if_id == -1) && iface) if_id = iface->get_id();
 
-    bool rc = ntop->createRuntimeInterface(name, source, &if_id);
+    old_iface = ntop->getInterfaceById(if_id);
 
-    if (rc) new_if_id = if_id;
+    /* Only runtime interfaces (pcap dump or db view) can be replaced,
+       never a live capture interface */
+    if (old_iface && (old_iface->read_from_pcap_dump() ||
+                      (old_iface->getIfType() == interface_type_DB_VIEW))) {
+      bool rc = ntop->createRuntimeInterface(name, source, &if_id);
+
+      if (rc) new_if_id = if_id;
+    }
   }
 
   lua_pushinteger(vm, new_if_id);
@@ -4509,7 +4519,7 @@ static int ntop_run_live_extraction(lua_State* vm) {
   live_extraction_num_lock.unlock(__FILE__, __LINE__);
 
   if (allow) {
-    bpf = ntop->preparePcapDownloadFilter(vm, bpf);
+    bpf = ntop->preparePcapDownloadFilter(vm, bpf, iface->get_datalink());
 
     if (bpf) {
 
@@ -4518,12 +4528,13 @@ static int ntop_run_live_extraction(lua_State* vm) {
       success = timeline.extractLive(c->conn, iface, time_from, time_to, bpf,
                                      timeline_path);
 
-      live_extraction_num_lock.lock(__FILE__, __LINE__);
-      live_extraction_num--;
-      live_extraction_num_lock.unlock(__FILE__, __LINE__);
-
       free(bpf);
     }
+
+    /* Release the slot also when the filter has been rejected */
+    live_extraction_num_lock.lock(__FILE__, __LINE__);
+    live_extraction_num--;
+    live_extraction_num_lock.unlock(__FILE__, __LINE__);
   }
 
   lua_pushboolean(vm, success);
@@ -4896,7 +4907,8 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
-
+    lua_push_uint64_table_entry(vm, "seed", ntop->getSeed());
+    
     lua_push_bool_table_entry(vm, "pro.release",                         false);
     lua_push_bool_table_entry(vm, "version.enterprise_edition",          false);
     lua_push_bool_table_entry(vm, "version.enterprise_m_edition",        false);
@@ -4914,7 +4926,7 @@ static int ntop_get_info(lua_State* vm) {
                                 MAX_NUM_POOL_MEMBERS);
     lua_push_uint64_table_entry(vm, "constants.max_num_profiles",
                                 MAX_NUM_PROFILES);
-
+    
 #ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
     zmq_version(&major, &minor, &patch);

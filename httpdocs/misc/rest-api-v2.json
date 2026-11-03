@@ -50,15 +50,270 @@
       "name": "nEdge",
       "description": "Everything about nEdge REST API calls"
     },
-    {"name": "AI Dashboards", "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"},
-    {"name": "Syslog Rules", "description": "Rules filtering the syslog messages stored by the collector"},
-    {"name": "Wazuh", "description": "Wazuh alerts and the rules/exceptions choosing which ones are notified"}
+    {
+      "name": "AI Dashboards",
+      "description": "Dashboards of widgets built on the ClickHouse historical data (nAnalyst)"
+    },
+    {
+      "name": "Syslog Rules",
+      "description": "Rules filtering the syslog messages stored by the collector"
+    },
+    {
+      "name": "Wazuh",
+      "description": "Wazuh alerts and the rules/exceptions choosing which ones are notified"
+    },
+    {
+      "name": "nAnalyst",
+      "description": "nAnalyst: AI audit log, LLM usage and model prices, AI policies, analyst playbooks"
+    },
+    {
+      "name": "Traffic Model",
+      "description": "Traffic model: the servers (DNS, NTP...) seen day by day, against the expected ones and between days"
+    }
   ],
   "schemes": [
     "https",
     "http"
   ],
   "paths": {
+    "/lua/pro/rest/v2/charts/host/map.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the hosts map data of an interface",
+        "description": "Enterprise only. Up to 64 local and 64 remote active hosts placed by the chosen criteria. rsp.series: [{name: local|remote, base_url (host details page), data: [{x, y, z (bubble radius in px, 3-33, from the host traffic), meta: {label (host name or IP), url_query (host=<ip>@<vlan>)}}]}]. x/y per bubble_mode: 0 flows as server/client, 1 unreachable flows as server/client, 2 alerted flows as server/client, 3 DNS positive replies/sent queries, 4 SYN sent/received, 5 SYN sent/RST received, 6 SYN sent/SYN-ACK received, 7 TCP packets sent/received, 8 TCP bytes sent/received, 9 active alerted flows as server/client, 10 bytes/packets ratio, 11 client/server score, 12 blacklisted flows as client/server, 13 unidirectional TCP flows as client/server. Modes 4-6 need a packet interface.",
+        "operationId": "get_hosts_map",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "bubble_mode",
+            "in": "query",
+            "description": "Criteria, 0-13 (default 0)",
+            "required": false,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 13
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/syslog/messages.lua": {
+      "get": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Get the syslog messages",
+        "description": "Syslog messages collected in ClickHouse, paginated: [{ ts, ip, hostname, facility, severity, app_name, message }], recordsTotal. Enterprise XL, administrators only",
+        "operationId": "get_syslog_messages",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_ip",
+            "in": "query",
+            "description": "Only the messages sent by this IP",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_severity",
+            "in": "query",
+            "description": "Only this severity (0-7)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_hostname",
+            "in": "query",
+            "description": "Only this hostname",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_app_name",
+            "in": "query",
+            "description": "Only this application",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_facility",
+            "in": "query",
+            "description": "Only this facility",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in message, IP, hostname, application, facility, severity",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First record",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of records (max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "ts, ip, hostname, facility, severity, app_name, message",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/syslog/facets.lua": {
+      "get": {
+        "tags": [
+          "Syslog Rules"
+        ],
+        "summary": "Get the syslog facets",
+        "description": "Most frequent values (max 15) of every facet with their message count: [{ id: severity|ip|hostname|app_name|facility, items: [{ value, count }] }]. The filter of a facet is not applied to the facet itself. Enterprise XL, administrators only",
+        "operationId": "get_syslog_facets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_ip",
+            "in": "query",
+            "description": "Only the messages sent by this IP",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_severity",
+            "in": "query",
+            "description": "Only this severity (0-7)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "syslog_hostname",
+            "in": "query",
+            "description": "Only this hostname",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_app_name",
+            "in": "query",
+            "description": "Only this application",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "syslog_facility",
+            "in": "query",
+            "description": "Only this facility",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in message, IP, hostname, application, facility, severity",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/syslog/rules.lua": {
       "get": {
         "tags": [
@@ -128,11 +383,11 @@
             "maximum": 7
           },
           {
-            "name": "syslog_rule_max_severity",
+            "name": "syslog_rule_discard",
             "in": "formData",
-            "description": "Inclusive upper severity bound, same scale as syslog_rule_min_severity. Must be greater than or equal to it",
+            "description": "true: the matching messages are discarded, false: they are kept",
             "required": true,
-            "type": "integer",
+            "type": "boolean",
             "minimum": 0,
             "maximum": 7
           },
@@ -218,11 +473,11 @@
             "maximum": 7
           },
           {
-            "name": "syslog_rule_max_severity",
+            "name": "syslog_rule_discard",
             "in": "formData",
-            "description": "Inclusive upper severity bound, same scale as syslog_rule_min_severity. Must be greater than or equal to it",
+            "description": "true: the matching messages are discarded, false: they are kept",
             "required": true,
-            "type": "integer",
+            "type": "boolean",
             "minimum": 0,
             "maximum": 7
           },
@@ -296,6 +551,155 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/local_hosts_report.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the local hosts activity report",
+        "description": "Traffic of the local hosts (assets) in a time range, from the host timeseries (live data when epoch_begin = epoch_end). Each row: ip, vlan, host (ip@vlan), host_key, name, online, bytes_sent, bytes_rcvd, local_traffic, remote_traffic, total_traffic, availability (traffic per time slot) and max_value_per_point (max of each slot over the page). Enterprise M only.",
+        "operationId": "get_interface_local_hosts_report",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start of the time range (epoch seconds). Equal to epoch_end = live data",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch seconds)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "description": "Time range preset, sets the number of availability points: hour (12), day (24), week (7), month (30), year (12) (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host_visibility",
+            "in": "query",
+            "description": "Hosts listed: only_traffic (default), no_traffic, visible, hidden (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Pagination: index of the first host",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Pagination: number of hosts",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: ip, name, bytes_sent, bytes_rcvd, local_traffic, remote_traffic, total_traffic (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (optional)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not Enterprise M)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing time range, or an interface the user cannot access)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/host/visibility.lua": {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Hide or show a host in the local hosts activity report",
+        "description": "Hides a host from the local hosts activity report (listed again with host_visibility=hidden) or shows it again. Enterprise M and administrators only.",
+        "operationId": "edit_host_visibility",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "host"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "Host as in the report: IP, with @vlan for the VLAN hosts (e.g. 192.168.1.10@20)"
+                },
+                "hide": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ],
+                  "default": "true",
+                  "description": "true = hide the host, false = show it again"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise M and administrators only)"
+          },
+          "-4": {
+            "description": "INVALID_HOST"
           }
         }
       }
@@ -916,6 +1320,429 @@
           },
           "-3": {
             "description": "NOT_GRANTED (Enterprise M; writes: administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/add/notification/recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Add a notification recipient",
+        "description": "Add a notification recipient on an existing connection (endpoint_id) or on a new connection created in the same call (endpoint_conf_type and its params). Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "operationId": "add_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "recipient_name",
+            "in": "formData",
+            "description": "Recipient name (unique)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Existing connection id (omit to create a new connection)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "endpoint_conf_type",
+            "in": "formData",
+            "description": "Channel type of the new connection (email, slack, telegram, webhook...)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endpoint_conf_name",
+            "in": "formData",
+            "description": "Name of the new connection (default: the recipient name)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_minimum_severity",
+            "in": "formData",
+            "description": "Minimum alert severity id (default: notice)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "recipient_check_categories",
+            "in": "formData",
+            "description": "Comma-separated alert category ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_check_entities",
+            "in": "formData",
+            "description": "Comma-separated alert entity ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_host_pools",
+            "in": "formData",
+            "description": "Comma-separated host pool ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_am_hosts",
+            "in": "formData",
+            "description": "Comma-separated Active Monitoring host ids (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_labels",
+            "in": "formData",
+            "description": "Comma-separated tag ids: only alerts with at least one of them (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_checks",
+            "in": "formData",
+            "description": "Comma-separated <alert_id>_<entity_id>: only these alerts (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_notifications_type",
+            "in": "formData",
+            "description": "alerts (default), reports, active_scans, wazuh_alerts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_silence_multiple_alerts",
+            "in": "formData",
+            "description": "true (default): the same alert is delivered at most once per hour",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/notification/endpoint.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Delete a notification connection",
+        "description": "Delete a notification connection and all the recipients using it. Admin only.",
+        "operationId": "delete_notification_endpoint",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Connection id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/notification/recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Delete a notification recipient",
+        "description": "Delete a notification recipient (not the builtin one). Admin only.",
+        "operationId": "delete_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "recipient_id",
+            "in": "formData",
+            "description": "Recipient id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "delete_endpoint",
+            "in": "formData",
+            "description": "true: also delete its connection when no other recipient uses it",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/notification/endpoint.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Edit a notification connection",
+        "description": "Edit name and params of a notification connection: all the params are replaced, missing optional ones are cleared. Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "operationId": "edit_notification_endpoint",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Connection id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "endpoint_conf_name",
+            "in": "formData",
+            "description": "Connection name",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/notification/recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Edit a notification recipient",
+        "description": "Edit name, filters and recipient params of a notification recipient. The builtin alert database recipient keeps its name. Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "operationId": "edit_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "recipient_id",
+            "in": "formData",
+            "description": "Recipient id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "recipient_name",
+            "in": "formData",
+            "description": "Recipient name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "recipient_minimum_severity",
+            "in": "formData",
+            "description": "Minimum alert severity id (default: notice)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "recipient_check_categories",
+            "in": "formData",
+            "description": "Comma-separated alert category ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_check_entities",
+            "in": "formData",
+            "description": "Comma-separated alert entity ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_host_pools",
+            "in": "formData",
+            "description": "Comma-separated host pool ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_am_hosts",
+            "in": "formData",
+            "description": "Comma-separated Active Monitoring host ids (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_labels",
+            "in": "formData",
+            "description": "Comma-separated tag ids: only alerts with at least one of them (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_checks",
+            "in": "formData",
+            "description": "Comma-separated <alert_id>_<entity_id>: only these alerts (empty: no filter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_notifications_type",
+            "in": "formData",
+            "description": "alerts (default), reports, active_scans, wazuh_alerts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipient_silence_multiple_alerts",
+            "in": "formData",
+            "description": "true (default): the same alert is delivered at most once per hour",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/exec/notification/test_recipient.lua": {
+      "post": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "Test a notification recipient",
+        "description": "Send a test message with an existing connection (endpoint_id) or a not yet saved one (endpoint_conf_type and its params), plus the recipient params. Nothing is saved. Admin only.",
+        "operationId": "test_notification_recipient",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint_id",
+            "in": "formData",
+            "description": "Existing connection id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "endpoint_conf_type",
+            "in": "formData",
+            "description": "Channel type of a not yet saved connection",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/notification/endpoints.lua": {
+      "get": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "List notification connections",
+        "description": "Notification connections (endpoints: SMTP server, bot token, webhook URL...) with their params, credentials included, and the number of recipients using them. Builtin connections are excluded. Admin only.",
+        "operationId": "get_notification_endpoints",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/notification/recipients.lua": {
+      "get": {
+        "tags": [
+          "Notification Recipients"
+        ],
+        "summary": "List notification recipients",
+        "description": "Notification recipients (builtin alert database recipient included) with channel type, connection, filters, recipient params and delivery stats. Admin only.",
+        "operationId": "get_notification_recipients",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
           }
         }
       }
@@ -3836,11 +4663,54 @@
           {
             "name": "ifid",
             "in": "query",
-            "description": "Interface identifier",
-            "required": true,
+            "description": "Interface identifier (required unless any_interface=true)",
+            "required": false,
             "type": "integer",
             "format": "int32"
-          },          
+          },
+          {
+            "name": "any_interface",
+            "in": "query",
+            "description": "Search the flows of all the interfaces (ifid is ignored)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "query_preset",
+            "in": "query",
+            "description": "Query preset id (preset/consts.lua), empty for the raw flows",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "aggregated",
+            "in": "query",
+            "description": "Search the hourly aggregated flows (Enterprise XL)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "visible_columns",
+            "in": "query",
+            "description": "Comma separated list of the columns to return",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order",
+            "required": false,
+            "type": "string",
+            "enum": ["asc", "desc"]
+          },
           {
             "name": "start",
             "in": "query",
@@ -5109,6 +5979,132 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/alert/preset/consts.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get the alert query presets",
+        "description": "The query presets of an alert page: [{id: 'builtin', list}, {id: 'queries', list}] (empty when the page has none). Enterprise L.",
+        "operationId": "get_alert_preset_consts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Alert page (all, host, flow, ...)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: no Enterprise L license or no alerts capability"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: unknown page"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/exporters/get_exporters_interfaces_stats.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the flow exporters interfaces",
+        "description": "Interfaces of the flow exporters (routers, switches) sending flows to the interface, with their traffic since startup. Pro only",
+        "operationId": "get_exporters_interfaces_stats",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Only the interfaces with this SNMP role (other, transit, ix, peering, customer_interface, internet_connectivity, internal_interface)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Only the interfaces of this flow exporter IP",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: list of { exporter_ip, exporter_name, interface_id, interface_name, role: { value, label }, probe_source_id, exporter_source_id, ifid, bytes_sent, bytes_rcvd, total_bytes }"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/flowdevices/get_top_exporters_interfaces.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the top flow exporters interfaces",
+        "description": "The 7 flow exporters interfaces with the most traffic, same filters and fields as get_exporters_interfaces_stats",
+        "operationId": "get_top_exporters_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Only the interfaces with this SNMP role (other, transit, ix, peering, customer_interface, internet_connectivity, internal_interface)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Only the interfaces of this flow exporter IP",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: list of at most 7 interfaces, by total_bytes desc"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/flowdevices/stats.lua": {
       "get": {
         "tags": [
@@ -5200,6 +6196,210 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/charts/alert/analysis.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts bubble chart data",
+        "description": "Flow alerts of the last timeframe grouped by client/server/alert type (at most 100 groups): one series per alert type (or one series for the score modes), each point x/y/z (z = bubble radius) with meta.label and meta.url_query (filters for /lua/alert_stats.lua). Enterprise, requires the alerts capability",
+        "operationId": "get_chart_alert_analysis",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "bubble_mode",
+            "in": "query",
+            "description": "Grouping: 0 score client/server, 1 alert type client/server, 2 alert type client, 3 alert type server, 4 score client, 5 score server (default 0)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "description": "Seconds back from now (default 3600)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN ID (empty: all VLANs)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/alert/graph/alerts.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts graph edges",
+        "description": "Historical flow alerts aggregated by client, server and alert type (ClickHouse, at most 10000 rows, ordered by average score): src/dst IP, name, country, ASN, local flag, alert, alerts_count, avg_alert_score, L4/L7 protocol and info. Enterprise L or nEdge Enterprise, requires the historical flows capability",
+        "operationId": "get_alert_graph_alerts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cli_ip",
+            "in": "query",
+            "description": "Client IP (format: 'ip;eq', op: 'eq', 'neq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "srv_ip",
+            "in": "query",
+            "description": "Server IP (format: 'ip;eq', op: 'eq', 'neq')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (ClickHouse not enabled)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/alert/graph/host_info.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts summary of a host",
+        "description": "Historical flow alerts of a host (ClickHouse): host_info.info (ip, name, country, ASN) and host_info.client / host_info.server (first/last seen, alerts_count, total_score, total_traffic_bytes); severity_info.client / severity_info.server: severity distribution in percent. Enterprise L or nEdge Enterprise, requires the historical flows capability",
+        "operationId": "get_alert_graph_host_info",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "description": "Host IP address",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-59": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (ClickHouse not enabled)"
           }
         }
       }
@@ -6248,14 +7448,14 @@
           "Observation Point"
         ],
         "summary": "Get the alias of an Observation Point",
-        "description": "The alias of an Observation Point is returned",
+        "description": "The alias of an Observation Point (empty string when not set)",
         "operationId": "get_observation_point_alias",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "observation_point_id",
+            "name": "observation_point",
             "in": "query",
             "description": "Observation Point ID",
             "required": true,
@@ -6273,13 +7473,13 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/observation_points/stats.lua": {
+    "/lua/pro/rest/v2/get/interface/observation_points/stats.lua": {
       "get": {
         "tags": [
-          "Alerts"
+          "Observation Point"
         ],
-        "summary": "Get observation points alert stats",
-        "description": "Get observation points alert stats",
+        "summary": "Get the observation points stats",
+        "description": "Observation points seen on the interface: { observation_point, observation_point_alias, exporters, total_flows, hosts, throughput (bps), traffic (bytes) }. Pro only",
         "operationId": "get_observation_points_stats",
         "produces": [
           "application/json"
@@ -6303,6 +7503,50 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/sflowdevice/interfaces.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the interfaces of an sFlow device",
+        "description": "Ports of an sFlow device from its sFlow counters, raw values: [{ ifindex, name (SNMP, null without it), has_snmp, has_timeseries, iftype, speed (bps), full_duplex, is_up, promisc, in_bytes, out_bytes, in_errors, out_errors, ratio (Counters/SNMP, null when not available, -1 not computable), ratio_status }], is_ratio_available. Pro only, needs the flow devices capability (SNMP fields: SNMP capability)",
+        "operationId": "get_sflowdevice_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "description": "sFlow device IP",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -6346,6 +7590,40 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/sflowdevices/list.lua": {
+      "get": {
+        "tags": [
+          "Flow Exporters"
+        ],
+        "summary": "Get the sFlow devices",
+        "description": "sFlow devices (agents exporting sFlow counters) seen on the interface: { ip, has_snmp, snmp_name, snmp_descr, snmp_location }. The SNMP fields need the SNMP capability. Pro only, needs the flow devices capability",
+        "operationId": "get_sflowdevices_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -7088,7 +8366,7 @@
           "Observation Point"
         ],
         "summary": "Set the alias of an Observation Point",
-        "description": "Set the alias of an Observation Point is returned",
+        "description": "Set the alias of an Observation Point. Administrators only",
         "operationId": "set_observation_point_alias",
         "produces": [
           "application/json"
@@ -7097,12 +8375,12 @@
           {
             "name": "alias",
             "in": "formData",
-            "description": "New Observation Point Alias",
+            "description": "New Observation Point Alias (empty: remove it)",
             "required": true,
             "type": "string"
           },
           {
-            "name": "observation_point_id",
+            "name": "observation_point",
             "in": "formData",
             "description": "Observation Point ID",
             "required": true,
@@ -8123,7 +9401,7 @@
           "Pools"
         ],
         "summary": "Add an host pool",
-        "description": "Add an host pool with members and configuration",
+        "description": "Add an host pool with its members. Needs the Pools capability; users restricted to some pools cannot add pools. rsp: {pool_id} of the new pool.",
         "operationId": "add_host_pool",
         "produces": [
           "application/json"
@@ -8132,29 +9410,21 @@
           {
             "name": "pool_name",
             "in": "formData",
-            "description": "Host Pool Name",
+            "description": "Host pool name",
             "required": true,
             "type": "string"
           },
           {
             "name": "pool_members",
             "in": "formData",
-            "description": "List of IPs separated by commas",
+            "description": "Members separated by commas, each <ip or network>/<prefix>@<vlan> or a MAC address (e.g. 192.168.1.10/32@0,10.0.0.0/24@0). Can be empty",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "confset_id",
-            "in": "formData",
-            "description": "Configuration ID",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "POOL_ADDED_SUCCESSFULLY"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -8164,6 +9434,12 @@
           },
           "-13": {
             "description": "ADD_POOL_FAILED"
+          },
+          "-53": {
+            "description": "ADD_POOL_FAILED_TOO_MANY_POOLS"
+          },
+          "-54": {
+            "description": "ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"
           }
         }
       }
@@ -9019,38 +10295,138 @@
         }
       }
     },
-    "/lua/pro/rest/v2/delete/host/asset.lua": {
+    "/lua/pro/rest/v2/add/assets/assets.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Import assets",
+        "description": "Import the assets of a CSV file (as exported by export/assets/assets.lua). Enterprise M, administrators only",
+        "operationId": "import_assets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "assets",
+            "in": "formData",
+            "description": "CSV content",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-7": {
+            "description": "BAD_FORMAT"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/export/assets/assets.lua": {
       "get": {
         "tags": [
-          "Interfaces"
+          "Assets"
         ],
-        "summary": "Get ntopng actively monitored interfaces names and ids",
-        "description": "Interface name and integer interface id for each actively monitored ntopng interface",
-        "operationId": "get_ntopng_interfaces",
+        "summary": "Export assets",
+        "description": "The assets of every interface as CSV (is_snmp=true: the SNMP assets). Enterprise M, administrators only",
+        "operationId": "export_assets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "is_snmp",
+            "in": "query",
+            "description": "true for the SNMP assets",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/set/assets/wazuh_info.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Merge the Wazuh agents info into the assets",
+        "description": "Read the agents from the Wazuh API and update the matching assets of the interface. Enterprise M, administrators only, needs the Wazuh API configured",
+        "operationId": "merge_assets_wazuh_info",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
             "name": "ifid",
-            "in": "query",
+            "in": "formData",
             "description": "Interface identifier",
             "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "serial_key",
-            "in": "query",
-            "description": "Host identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/host/asset.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Delete assets",
+        "description": "Delete one asset (serial_key = its key), all the assets (serial_key = all) or the ones not seen since an epoch (serial_key = epoch). Administrators only",
+        "operationId": "delete_host_asset",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "serial_key",
+            "in": "formData",
+            "description": "Asset key, all, or an epoch",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
           }
         }
       }
@@ -9080,7 +10456,7 @@
           "Pools"
         ],
         "summary": "Delete an host pool",
-        "description": "Delete an host pool",
+        "description": "Delete an host pool. Needs the Pools capability and access to the pool.",
         "operationId": "delete_host_pool",
         "produces": [
           "application/json"
@@ -9088,15 +10464,16 @@
         "parameters": [
           {
             "name": "pool",
-            "in": "query",
-            "description": "Host Pool ID, required to delete the given pool",
+            "in": "formData",
+            "description": "Host pool id",
             "required": true,
-            "type": "number"
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "POOL_DELETED_SUCCESSFULLY"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -9748,7 +11125,7 @@
           "Pools"
         ],
         "summary": "Edit an host pool",
-        "description": "Edit an host pool with members and configuration",
+        "description": "Rename an host pool and replace its members. Needs the Pools capability and access to the pool.",
         "operationId": "edit_host_pool",
         "produces": [
           "application/json"
@@ -9757,7 +11134,7 @@
           {
             "name": "pool",
             "in": "formData",
-            "description": "Pool ID",
+            "description": "Host pool id",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -9765,29 +11142,21 @@
           {
             "name": "pool_name",
             "in": "formData",
-            "description": "Pool Name",
+            "description": "Host pool name",
             "required": true,
             "type": "string"
           },
           {
             "name": "pool_members",
             "in": "formData",
-            "description": "Comma separated list of IPs/MACs/Networks cidr",
+            "description": "Members separated by commas, each <ip or network>/<prefix>@<vlan> or a MAC address. They replace the current members",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "confset_id",
-            "in": "formData",
-            "description": "Configuration ID",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "POOL_EDITED_SUCCESSFULLY"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -10364,14 +11733,17 @@
           {
             "name": "page",
             "in": "query",
-            "description": "Alert Page (interface, flow, host, network, snmp_device, mac, user, am_host, system)",
-            "required": true,
+            "description": "Alert Page (all, interface, flow, host, network, as, snmp_device, mac, user, am_host, system), default all",
+            "required": false,
             "type": "string"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user has no alerts capability"
           }
         }
       }
@@ -10678,7 +12050,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -10825,7 +12197,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -10906,7 +12278,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11016,6 +12388,144 @@
         }
       }
     },
+    "/lua/rest/v2/get/asn/get_as_data.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the autonomous systems of an interface with their traffic",
+        "description": "Live: the active ASes of the interface (since startup). Historical (is_live=false, needs ClickHouse): the ASes of the flows in [epoch_begin, epoch_end]. rsp is an array of records: asn, asname (none for ASN 0, the private hosts), num_hosts, avg_host_score, score, alerted_flows, seen_since (epoch), bytes_sent, bytes_rcvd, traffic, throughput (bps), breakdown {bytes_sent, bytes_rcvd}, breakdown_role {bytes_other, bytes_transit, bytes_peering, bytes_ix}, is_customer_asn / is_sub_customer_asn / is_remote_asn (ASN configuration), is_in_memory (historical only: the AS has active hosts now).",
+        "operationId": "get_as_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "is_live",
+            "in": "query",
+            "description": "true (default) live data, false historical data (ClickHouse)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Historical only: start of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Historical only: end of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "show_as",
+            "in": "query",
+            "description": "all (default), my_as, my_customer_as, remote_as or other_as (ASN configuration)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Enterprise M: all (default), ix, peering or transit (SNMP interface role)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-61": {
+            "description": "CLICKHOUSE_MISSING (historical data without ClickHouse)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/asn/get_top_asn.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the top autonomous systems of an interface",
+        "description": "The top ASes by traffic, live or in [epoch_begin, epoch_end] (is_live=false, needs ClickHouse): used for the top ASN chart. rsp is an array of AS records (asn, asname, traffic and the per-role bytes).",
+        "operationId": "get_top_asn",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "is_live",
+            "in": "query",
+            "description": "true (default) live data, false historical data (ClickHouse)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Historical only: start of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Historical only: end of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "show_as",
+            "in": "query",
+            "description": "all (default), my_as, my_customer_as, remote_as or other_as",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Enterprise M: all (default), ix, peering or transit",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-61": {
+            "description": "CLICKHOUSE_MISSING"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/category/list.lua": {
       "get": {
         "tags": [
@@ -11107,6 +12617,37 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/country/list.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the countries of the active hosts",
+        "description": "The countries (from the geolocation database) of the hosts active on the interface. rsp is an array of records: name (ISO 3166 country code), hosts (active hosts), seen_since (epoch of the first packet), score, bytes_sent, bytes_rcvd, traffic (bytes), throughput (bps). recordsTotal/recordsFiltered: number of countries. Any user can call it (interface restrictions apply).",
+        "operationId": "get_country_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
@@ -11300,7 +12841,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11535,7 +13076,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -11723,6 +13264,101 @@
         }
       }
     },
+    "/lua/rest/v2/get/flow/alert/geomap.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get flow alerts by country",
+        "description": "Flow alerts aggregated per host (client and server) and per country (GeoIP), with the same filters as the flow alerts list. Requires GeoIP and ClickHouse.",
+        "operationId": "get_flow_alert_geomap",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cli_ip",
+            "in": "query",
+            "description": "Client IP (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "srv_ip",
+            "in": "query",
+            "description": "Server IP (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: no alerts capability or GeoIP not available"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR: ClickHouse not enabled"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/flow/l4/counters.lua": {
       "get": {
         "tags": [
@@ -11822,6 +13458,60 @@
         }
       }
     },
+    "/lua/rest/v2/get/geo_map/hosts.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the geolocated hosts of an interface",
+        "description": "The active hosts with a known location (latitude/longitude from the geolocation database), at most 512. rsp is an array of records: ip, name, vlan {id, name}, lat, lng, country (ISO 3166 alpha-3), country_code (alpha-2), country_id, city (when known), scoreClient, scoreServer, numAlerts (alerted active flows), isAlert (score > 0), isRoot. Any user can call it (interface and network restrictions apply).",
+        "operationId": "get_geo_map_hosts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "hosts_category",
+            "in": "query",
+            "description": "0 active hosts by traffic (default), 1 alerted hosts by score, 2 local hosts, 3 remote hosts",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "When set, the hosts the given host is talking with (active flows) instead of the category",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/host/active.lua": {
       "get": {
         "tags": [
@@ -11903,6 +13593,176 @@
         }
       }
     },
+    "/lua/rest/v2/get/host/active_list.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the active hosts list",
+        "description": "Active hosts of the interface, one page at a time, with the filters of the Hosts page. Each row: host (ip, vlan, mac, os, country and flags), hostname, first_seen, last_seen, throughput, bytes, alerts, num_flows, score, isBlocked (nEdge), location (nEdge). recordsTotal is the number of hosts matching the filters. Only the hosts of the networks the user is allowed to see are listed.",
+        "operationId": "get_host_active_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (optional, default: the selected one). An interface the user cannot access answers INVALID_INTERFACE",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Pagination: index of the first host (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Pagination: number of hosts (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: ip_address, hostname, vlan, num_flows, alerts, score, first_seen, throughput, bytes (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text search on the hosts (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "Hosts filter: local, local_no_tx, local_no_tcp_tx, remote, remote_no_tx, remote_no_tcp_tx, broadcast_domain, broadcast_multicast, filtered, blacklisted, dhcp (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "IP version: 4 or 6 (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "traffic_type",
+            "in": "query",
+            "description": "Direction: one_way or bidirectional (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Local network id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network_cidr",
+            "in": "query",
+            "description": "Network in CIDR format (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pool",
+            "in": "query",
+            "description": "Host pool id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "description": "Autonomous System number (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "Country code, e.g. IT (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "os",
+            "in": "query",
+            "description": "Operating system id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "mac",
+            "in": "query",
+            "description": "MAC address (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "nDPI application protocol id (optional)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "deviceIP",
+            "in": "query",
+            "description": "Flow exporter IP (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "nEdge only: lan, wan or unknown (optional)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "description": "Host tag id (optional)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/host/alert/list.lua": {
       "get": {
         "tags": [
@@ -11959,7 +13819,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -12082,7 +13942,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -12154,6 +14014,94 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/alert/geomap.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get host alerts by country",
+        "description": "Host alerts aggregated per host and per country (GeoIP), with the same filters as the host alerts list. Requires GeoIP and ClickHouse.",
+        "operationId": "get_host_alert_geomap",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "description": "Host IP (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: no alerts capability or GeoIP not available"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR: ClickHouse not enabled"
           }
         }
       }
@@ -12558,6 +14506,205 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/host/assets.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the assets inventory",
+        "description": "Assets of the interface (page=snmp: the SNMP assets of the system interface), paginated. Enterprise M only",
+        "operationId": "get_host_assets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "snmp: the SNMP assets",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First record",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of records",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column (ip_address, name, mac_address, vlan, network, device_type, manufacturer, first_seen, last_seen, os, model, status, switch_ip, switch_port)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "device_type",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "0 online, 1 offline",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "os_type",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "switch_ip",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "switch_port",
+            "in": "query",
+            "description": "Filter",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "description": "Tag id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in IP, name, MAC",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "wazuh_available",
+            "in": "query",
+            "description": "0 with Wazuh info, 1 without",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "site_id",
+            "in": "query",
+            "description": "Site",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/assets_filters.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the assets inventory filters",
+        "description": "Filters of the assets table with their options (as the other *_filters REST). Enterprise M only",
+        "operationId": "get_host_assets_filters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "site_id",
+            "in": "query",
+            "description": "Adds the Site filter",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/host/inactive_asset.lua": {
       "get": {
         "tags": [
@@ -12631,6 +14778,37 @@
           },
           "-16": {
             "description": "POOL_NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/pool/list.lua": {
+      "get": {
+        "tags": [
+          "Pools"
+        ],
+        "summary": "Get the host pools of an interface with their traffic",
+        "description": "The host pools with live statistics on the interface, only the pools the user can access. rsp is an array of records: pool_id, pool_name, hosts (active hosts), seen_since (seconds since the first packet), bytes_sent, bytes_rcvd, traffic (bytes), throughput (bps), members (as stored: <address>/<prefix>@<vlan> or MAC), members_labels (members without the @<vlan> suffix). recordsTotal/recordsFiltered: number of pools.",
+        "operationId": "get_host_pool_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
@@ -12884,7 +15062,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -12972,7 +15150,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13426,8 +15604,8 @@
           "Traffic"
         ],
         "summary": "Get interface nProbe data",
-        "description": "Get data for nProbe instances connected to an ntopng interface",
-        "operationId": "get_alert_type_counters",
+        "description": "nProbe instances connected to the interface: probe_ip, probe_name, probe_source_id, probe_uuid, probe_public_ip, probe_instance_name, probe_version, probe_edition, probe_license (\"\" when none), probe_maintenance (\"\" when expired), probe_last_update (epoch), probe_interface (\"\" in collector mode), is_collector, flow_exporters, exporters_interfaces, exported_flows, dropped_flows, captured_packets, dropped_packets, is_in_memory, ntopng_interface, ifid, timeseries_enabled",
+        "operationId": "get_interface_nprobes_data",
         "produces": [
           "application/json"
         ],
@@ -13435,8 +15613,8 @@
           {
             "name": "ifid",
             "in": "query",
-            "description": "Interface identifier",
-            "required": true,
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
             "type": "integer",
             "format": "int32"
           }
@@ -13548,6 +15726,100 @@
         }
       }
     },
+    "/lua/rest/v2/get/mac/macs_list.lua": {
+      "get": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get the active MAC addresses of an interface",
+        "description": "One page of the active MACs. rsp is an array of records: mac, manufacturer (with the [model] when known), device_type {id, device_type_label, <type name>: true}, name {has_name, name | num_hosts, host_label}, hosts, arp (ARP packets sent + received), seen_since (epoch of the first packet), bytes_sent, bytes_rcvd, traffic (bytes), throughput + throughput_type (bps or pps, per the throughput preference), location (nEdge only). recordsTotal/recordsFiltered: MACs matching the filters.",
+        "operationId": "get_macs_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Offset of the first MAC returned (default 0)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of MACs returned (default: all)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: mac, manufacturer, hosts, arp, seen_since, throughput, traffic (default mac)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (default asc)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Free-text search on the MAC address and manufacturer",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "devices_mode",
+            "in": "query",
+            "description": "source_macs_only: only the MACs that sent traffic (inactive_macs_only is handled as source_macs_only)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Manufacturer name (exact match)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "device_type",
+            "in": "query",
+            "description": "Device type id",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "nEdge only: lan, wan or unknown",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/mac/alert/list.lua": {
       "get": {
         "tags": [
@@ -13604,7 +15876,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13685,7 +15957,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13775,7 +16047,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13863,7 +16135,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -13900,6 +16172,199 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/as/alert/list.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get AS alerts list",
+        "description": "Get the alerts of the Autonomous Systems",
+        "operationId": "get_as_alert_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting record",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Maximum number of records to get",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "description": "Autonomous System number (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Format of the return data: 'json' (default) or 'txt' (CSV)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user has no alerts capability"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/as/alert/ts.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Get AS alerts timeseries",
+        "description": "Get the number of AS alerts over time, by severity",
+        "operationId": "get_as_alert_ts",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alerts status: 'historical' (require attention, default), 'engaged' or 'any'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "score",
+            "in": "query",
+            "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "asn",
+            "in": "query",
+            "description": "Autonomous System number (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user has no alerts capability"
           }
         }
       }
@@ -14463,7 +16928,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -14544,7 +17009,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -14991,7 +17456,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -15072,7 +17537,7 @@
             "name": "alert_id",
             "in": "query",
             "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -15102,6 +17567,107 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/vlan/alias.lua": {
+      "post": {
+        "tags": [
+          "VLANs"
+        ],
+        "summary": "Set the alias of a VLAN",
+        "description": "Set the alias of a VLAN; an empty alias removes it. Administrators only",
+        "operationId": "set_vlan_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "vlan",
+            "in": "formData",
+            "description": "VLAN id (1-4095)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "alias",
+            "in": "formData",
+            "description": "New alias (empty: remove it)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/vlan/alias.lua": {
+      "get": {
+        "tags": [
+          "VLANs"
+        ],
+        "summary": "Get the alias of a VLAN",
+        "description": "The alias of a VLAN (empty string when not set)",
+        "operationId": "get_vlan_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN id (1-4095)",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/vlan/list.lua": {
+      "get": {
+        "tags": [
+          "VLANs"
+        ],
+        "summary": "Get the VLANs of an interface",
+        "description": "The VLANs seen on the interface, untagged traffic (vlan_id 0) included. rsp is an array of records: vlan_id, vlan_alias (only when an alias is set), is_untagged, num_hosts (active hosts), score, seen_since (seconds since the first packet), bytes_sent, bytes_rcvd, traffic (bytes), throughput_bps, throughput_pps. recordsTotal/recordsFiltered: number of VLANs. Any user can call it (interface restrictions apply).",
+        "operationId": "get_vlan_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
@@ -17042,6 +19608,27 @@
             "type": "integer"
           },
           {
+            "name": "srv_port",
+            "in": "query",
+            "description": "Only the flows with this server port",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Only the flows with this L4 protocol ID (e.g. 6 = TCP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "description": "Only the flows with this nDPI protocol: 'master.app' IDs (e.g. 7.26) or a single ID",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "inIfIdx",
             "in": "query",
             "description": "Exporter input interface index",
@@ -17281,6 +19868,1233 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/server_ports.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the server ports of the live flows",
+        "description": "The server ports seen in the live flows of the interface for a layer 4 protocol: srv_port, l4_proto, proto_id (nDPI <master>.<app> or <master>), l7_proto_name and n_hosts (servers using it). Enterprise L.",
+        "operationId": "get_live_server_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "Layer 4 protocol: 6 (TCP) or 17 (UDP)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "VLAN id (default: all the VLANs)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (no Enterprise L)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/hosts_details_by_port.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the hosts serving a port",
+        "description": "The hosts serving a server port in the live flows (ip, name, vlan_id, mac, mac_manufacturer, flows, score, tot_traffic), paged (recordsTotal). A missing or stale application/port falls back to the first available one: the answer has the values used (protocol, application, port) and the options of the page filters, counted on all the hosts of the port: applications [{id, name}], ports [{port, n_hosts}] of the application, vlans [{id, name, count}], manufacturers [{name, count}]. Enterprise L.",
+        "operationId": "get_hosts_by_server_port",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "Layer 4 protocol: 6 (TCP, default) or 17 (UDP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "description": "nDPI application, <master>.<app> or <master> (e.g. 7.26, 91); default: the first one by name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "port",
+            "in": "query",
+            "description": "Server port; default: the first port of the application",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "Only the hosts of this VLAN",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Only the hosts with this MAC manufacturer",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: ip, name, vlan_id, mac, mac_manufacturer, score, flows, tot_traffic",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First row (paging)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of rows (paging, default 10)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (no Enterprise L)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/vlan/live_ports.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the server ports by VLAN (live)",
+        "description": "Sankey of the live flows: nodes (node_id vlan_<id> / port_<port>, label, link) and links (VLAN -> server port, label = application, value = bytes, l4_proto, l7_proto, optional_info.link to the live flows), the links with the most traffic first; vlans [{id, name}]: all the VLANs with flows; max_entries_reached when cut at limit.",
+        "operationId": "get_vlan_live_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "Only this VLAN",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Layer 4 protocol number (default TCP and UDP)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max number of links (default 35)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/vlan/historical_ports.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the server ports by VLAN (historical)",
+        "description": "Same answer of get/vlan/live_ports.lua from the historical flows (ClickHouse) of the last timeframe seconds, at most 35 links; links open the historical flows. vlans [{id, name}]: the VLANs of the links.",
+        "operationId": "get_vlan_historical_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "description": "Seconds before now (e.g. 3600)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "Only this VLAN",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l4proto",
+            "in": "query",
+            "description": "Layer 4 protocol number; empty or -1: TCP and UDP",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/flow/bgp/looking_glass.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the BGP routes of an IP address",
+        "description": "The routes of the BGP RIB entry of an IP address (BGP feed), one row per prefix and peer: prefix, asn (of the IP), peer, peer_name and peer_site (when known), is_best_path, peer_asn { asn, name }, origin, as_path [{ asn, name }], next_hop, med, local_pref and communities. An empty list when the IP is missing, invalid or has no route.",
+        "operationId": "get_bgp_looking_glass",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IPv4 or IPv6 address",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/llm/audit_log.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the AI audit log",
+        "description": "Actions done by the nAnalyst agent and by the users from the AI features, newest first (at most 500 rows). Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_ai_audit_log",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Only actions from this time (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Only actions up to this time (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Only the actions of this user",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tool_name",
+            "in": "query",
+            "description": "Only this tool (e.g. create_ai_policy)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "triggered_by",
+            "in": "query",
+            "description": "llm (agent) or user (direct action)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/llm/token_usage.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the LLM token usage",
+        "description": "Calls, tokens and response times of the LLM calls in a time range: summary, by model, by call type, by user and timeline. Non administrators get only their own usage. Enterprise, ClickHouse, nAnalyst license.",
+        "operationId": "get_llm_token_usage",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Range begin (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Range end (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "description": "Only this provider (e.g. llm_openai)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Only this model",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Only this user (administrators only)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/llm/model_prices.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the LLM model prices",
+        "description": "Price per million tokens (input and output, USD) of each model, used to compute the costs. Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_llm_model_prices",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/post/llm/upsert_model_price.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Add or edit an LLM model price",
+        "description": "Sets the price per million tokens of a model. Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "upsert_llm_model_price",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "formData",
+            "description": "Provider id (e.g. llm_openai)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "formData",
+            "description": "Model name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input_price_usd",
+            "in": "formData",
+            "description": "USD per million input tokens",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "output_price_usd",
+            "in": "formData",
+            "description": "USD per million output tokens",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "edit",
+            "in": "formData",
+            "description": "true to edit an existing price",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/post/llm/delete_model_price.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Delete an LLM model price",
+        "description": "Removes the price of a model. Enterprise, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "delete_llm_model_price",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "formData",
+            "description": "Provider id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "formData",
+            "description": "Model name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/get/ai_policy/list.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the AI policies",
+        "description": "Policies: SQL queries on the historical data run at a fixed frequency, a non empty result raises an alert. With trigger and run counts. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_ai_policies",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "periodicity",
+            "in": "query",
+            "description": "Only this frequency: min, 5min, hourly, daily",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/post/ai_policy/upsert.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Add an AI policy",
+        "description": "Saves a new policy. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "add_ai_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ai_policy_name",
+            "in": "formData",
+            "description": "Policy name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sql_query",
+            "in": "formData",
+            "description": "ClickHouse query: a non empty result is a violation",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "periodicity",
+            "in": "formData",
+            "description": "min, 5min, hourly or daily",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_description",
+            "in": "formData",
+            "description": "Description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_description",
+            "in": "formData",
+            "description": "Message shown in the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "custom_score",
+            "in": "formData",
+            "description": "Alert score (1, 10, 50, 100, 150, 200, 250)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "explanation",
+            "in": "formData",
+            "description": "How the query works",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_template",
+            "in": "formData",
+            "description": "Alert message template",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_variables",
+            "in": "formData",
+            "description": "JSON array of the template variables",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-4": {
+            "description": "BAD_FORMAT"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/post/ai_policy/update.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Edit an AI policy",
+        "description": "Changes an existing policy (same fields of the add, plus its id). Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "edit_ai_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "formData",
+            "description": "Policy id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "ai_policy_name",
+            "in": "formData",
+            "description": "Policy name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sql_query",
+            "in": "formData",
+            "description": "ClickHouse query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "periodicity",
+            "in": "formData",
+            "description": "min, 5min, hourly or daily",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_description",
+            "in": "formData",
+            "description": "Description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_description",
+            "in": "formData",
+            "description": "Message shown in the alert",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "custom_score",
+            "in": "formData",
+            "description": "Alert score",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "explanation",
+            "in": "formData",
+            "description": "How the query works",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_template",
+            "in": "formData",
+            "description": "Alert message template",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message_variables",
+            "in": "formData",
+            "description": "JSON array of the template variables (omitted: kept)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/delete/ai_policy/delete.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Delete an AI policy",
+        "description": "Removes a policy. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "delete_ai_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "formData",
+            "description": "Policy id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/get/analyst_pipeline/list.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get the analyst playbooks",
+        "description": "Saved playbooks (multi step investigations, SQL queries on the historical data) with name, description, provider and date. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_analyst_playbooks",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/analyst_pipeline/get.lua": {
+      "get": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Get an analyst playbook",
+        "description": "One playbook with its definition (params, stages and their SQL templates). Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "get_analyst_playbook",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "query",
+            "description": "Playbook id (UUID)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/analyst_pipeline/delete.lua": {
+      "post": {
+        "tags": [
+          "nAnalyst"
+        ],
+        "summary": "Delete an analyst playbook",
+        "description": "Removes a playbook. Enterprise XL, ClickHouse, nAnalyst license, administrators only.",
+        "operationId": "delete_analyst_playbook",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "formData",
+            "description": "Playbook id (UUID)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-6": {
+            "description": "MISSING_PARAMETERS"
+          }
+        },
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ]
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/server_types.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the server types",
+        "description": "Server types of the traffic model (DNS, NTP, ...): id, label, application protocols. Enterprise XL, ClickHouse.",
+        "operationId": "get_traffic_model_server_types",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/servers.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the servers of a day range",
+        "description": "Servers of a type seen in a day range, from the daily model built on the historical flows, one page per request. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_servers",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id (see server_types)",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "query",
+            "description": "Last day (YYYY-MM-DD), default: day",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 10, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the server address",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the query fails)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/expected.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the servers against the expected ones",
+        "description": "Servers seen in a day range against the expected ones of the Network Configuration: EXPECTED, UNEXPECTED, MISSING, with a summary. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_expected",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "query",
+            "description": "Last day (YYYY-MM-DD)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "section",
+            "in": "query",
+            "description": "seen (servers seen) or configured (expected ones)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Only this status",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 10, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the server address",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the query fails)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/compare.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Compare the servers of two days",
+        "description": "Servers of a day against an earlier one: NEW, GONE, UP, DOWN, SAME, with a summary and the days without data. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_compare",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day_old",
+            "in": "query",
+            "description": "Reference day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_new",
+            "in": "query",
+            "description": "Day to check (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "CHANGES (default, all but SAME), ALL, NEW, GONE, UP, DOWN, SAME",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size (default 10, max 500)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the server address",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the query fails)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/calendar.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the days with server changes",
+        "description": "For each day of a range: nodata, baseline, same or changed (servers appeared and disappeared). Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_calendar",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "server_type",
+            "in": "query",
+            "description": "Server type id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day_from",
+            "in": "query",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "query",
+            "description": "Last day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }

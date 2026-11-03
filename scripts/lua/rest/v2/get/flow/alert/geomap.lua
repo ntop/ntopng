@@ -41,6 +41,12 @@ end
 
 interface.select(ifid)
 
+-- interface.select() falls back to an allowed interface: refuse the others
+if tostring(interface.getId()) ~= tostring(ifid) then
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
+   return
+end
+
 flow_alert_store:add_request_filters()
 local where_clause = flow_alert_store:build_where_clause()
 local table_name = flow_alert_store:get_table_name()

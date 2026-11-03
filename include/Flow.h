@@ -176,7 +176,9 @@ class Flow : public GenericHashEntry {
   u_int16_t flow_score;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1,
-      l7_direction_checked : 1 /* See checkL7Direction() */, _notused : 4;
+      direction_decided : 1 /* See checkTCPDirection(), checkL7Direction(),
+                               checkDirectionByProtocol() */,
+      _notused : 4;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
    * parked here, and it is set on the host of the view by the view itself (see
@@ -387,6 +389,9 @@ class Flow : public GenericHashEntry {
     struct {
       char *filename;
     } smb;
+
+    /* If you add new structs here, please update getProtosUnionMember() also */
+
   } protos;
 
   /* eBPF Information */
@@ -497,7 +502,6 @@ class Flow : public GenericHashEntry {
   void updateServerPortsStats(Host* server_host, ndpi_protocol* proto,
                               time_t when_seen);
   void updateClientContactedPorts(Host* client, ndpi_protocol* proto);
-  void updateTCPHostServices(Host* cli_h, Host* srv_h);
   void updateUDPHostServices(bool src2dst_direction);
   void updateServerName(Host* h);
   void allocateCollection();
@@ -650,6 +654,7 @@ class Flow : public GenericHashEntry {
   inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS));  }
   inline bool isSIP() const { return (isProto(NDPI_PROTOCOL_SIP));          }
   inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP));        }
+  inline bool isDHCPv6() const { return (isProto(NDPI_PROTOCOL_DHCPV6));    }
   inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP));          }
   inline bool isSMTPorSMTPS() const { return (isSMTP() || isSMTPS());       }
   inline bool isSMTP() const { return (isProto(NDPI_PROTOCOL_MAIL_SMTP));   }
@@ -816,6 +821,8 @@ class Flow : public GenericHashEntry {
                      u_int16_t payload_len, u_int16_t src_port);
   void processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
+  void checkSMBFileName();
+  void processSMBPacket(const u_char* payload, u_int16_t payload_len);
   void processIEC60870Packet(bool tx_direction, const u_char* payload,
                              u_int16_t payload_len,
                              const struct pcap_pkthdr* h);
@@ -864,7 +871,28 @@ class Flow : public GenericHashEntry {
 
   void addPostNATPort(u_int32_t _src_port_post_nat,
                       u_int32_t _dst_port_post_nat);
+
+  /* Client and server of TCP flows (packet interfaces), from the strongest
+   * evidence to the weakest:
+   * 1. the first SYN (sent by the client) or SYN-ACK (sent by the server)
+   *    seen, whatever came before it: final (checkTCPDirection());
+   * 2. no handshake seen: once the protocol is detected, the side using one of
+   *    its default ports (nDPI) is the server, when only one side uses one
+   *    (checkDirectionByProtocol());
+   * 3. otherwise the guess made on the first packet: the lower port is the
+   *    server (check_swap()).
+   * Once the protocol is detected on a flow that has carried payload, the
+   * direction is final: a later SYN or SYN-ACK belongs to another connection.
+   * A swap is requested, and performed by the next packet or when the flow
+   * ends. Nothing is done when the flow swap heuristic is disabled.
+   * Client and server of UDP and ICMP flows: the first request or reply seen
+   * (checkL7Direction()); otherwise, for UDP, once the protocol is detected by
+   * DPI, the side using one of its default ports, as above, final
+   * (checkDirectionByProtocol()). */
   void check_swap();
+  void checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
+                         bool new_flow);
+  void checkDirectionByProtocol();
   void checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
                         const u_int8_t* payload, u_int16_t payload_len);
 
@@ -1813,8 +1841,10 @@ class Flow : public GenericHashEntry {
 
   void setCliService(HostService service_enum);
   void setSrvService(HostService service_enum);
-  void setCliTag(int tag_idx);
-  void setSrvTag(int tag_idx);
+  /* evidence: why the tag is set, beside the flow (journal of the assets),
+   * e.g. "risk <name>" */
+  void setCliTag(int tag_idx, const char* evidence = NULL);
+  void setSrvTag(int tag_idx, const char* evidence = NULL);
 #ifdef NTOPNG_PRO
   void refreshHostsTags();
 #endif

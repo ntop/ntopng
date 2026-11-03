@@ -25,6 +25,7 @@
 #include "ntop_includes.h"
 
 class HostAlert;
+class Flow;
 
 class Host : public GenericHashEntry,
              public Score,
@@ -150,6 +151,12 @@ class Host : public GenericHashEntry,
     char* msg;
   } customHostAlert;
 
+  /* Protects the host data used by different threads (names, asset_map, ...).
+   * NOTE: it is not recursive, so, to avoid deadlocks:
+   * - lock it only around operations on the data (copy, assign, free, ...)
+   * - never call, with m locked, a method that can lock it itself (e.g.
+   *   get_name() and the names getters, print(), addDataToAssets(),
+   *   removeDataFromAssets()) or that can lock other mutexes */
   Mutex m;
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
@@ -174,7 +181,9 @@ class Host : public GenericHashEntry,
   time_t disabled_alerts_tstamp;
 
 #ifndef HAVE_NEDGE
-  ListeningPorts *listening_ports, *listening_ports_shadow;
+  std::atomic<ListeningPorts*> listening_ports;
+  ListeningPorts* listening_ports_shadow;
+  time_t listening_ports_last_update;
 #endif
 
   void initialize(Mac* _mac, int32_t _iface_idx, u_int16_t _vlan_id,
@@ -267,7 +276,8 @@ class Host : public GenericHashEntry,
     return (host_services_bitmap & (1 << service_enum));
   }
 
-  virtual bool setService(HostService service_enum);
+  /* f: the flow where the host provides the service (journal of the assets) */
+  virtual bool setService(HostService service_enum, Flow* f = NULL);
 
   inline u_int32_t getServicesMap() { return (host_services_bitmap); }
   /*
@@ -550,12 +560,17 @@ class Host : public GenericHashEntry,
   void lua_get_listening_ports(lua_State* vm);
   void lua_get_tags(lua_State* vm) const;
 
-  void addTags(u_int64_t bitmap);
+  /* f, evidence: the flow the tags come from, and why (journal of the
+   * assets), if any */
+  void addTags(u_int64_t bitmap, Flow* f = NULL, const char* evidence = NULL);
   /* Tags set because the host is in one of the configured servers lists */
   u_int64_t getConfiguredTags();
   /* Tags observed (set or confirmed) / assigned / removed by the user: used to keep the
-   * tags of the assets up to date, see LocalHost */
-  virtual void setTagsRefreshed(u_int64_t bitmap) { ; }
+   * tags of the assets up to date, see LocalHost.
+   * f, evidence: the flow the tags have been observed in, and why (journal of
+   * the assets), if any */
+  virtual void setTagsRefreshed(u_int64_t bitmap, Flow* f = NULL,
+                                const char* evidence = NULL) { ; }
   /* Tag (as a bitmap) of the specified Operating System, 0 if it has no tag */
   static u_int64_t getOSTag(ndpi_os os);
   virtual void setTagsAssigned(u_int64_t bitmap) { ; }
@@ -808,7 +823,8 @@ class Host : public GenericHashEntry,
   void checkNameReset();
   void checkDataReset();
   void checkBroadcastDomain();
-  void updateView(IpAddress* ipa);
+  /* f: the flow of the viewed interface ipa belongs to (journal of the assets) */
+  void updateView(IpAddress* ipa, Flow* f);
   void housekeep(time_t t); /* Virtual method, called in the datapath from
                                GenericHash::purgeIdle */
   virtual void inlineSetOSDetail(const char* detail) {}
@@ -821,9 +837,11 @@ class Host : public GenericHashEntry,
   virtual void offlineSetMDNSName(const char* n);
   virtual void offlineSetMDNSTXTName(const char* n);
   virtual void offlineSetDHCPName(const char* n);
-  virtual void offlineSetDhcpFingerprint(const char* fingerprint) { ; }
   virtual void setServerName(const char* n);
-  virtual void setResolvedName(const char* resolved_name);
+  /* f (setters below): the flow the value comes from (journal of the
+   * assets), if any */
+  virtual void offlineSetDhcpFingerprint(const char* fingerprint, Flow* f = NULL) { ; }
+  virtual void setResolvedName(const char* resolved_name, Flow* f = NULL);
   virtual Fingerprint* getJA4Fingerprint() { return (NULL); }
   virtual Fingerprint* getHASSHFingerprint() { return (NULL); }
 
@@ -840,7 +858,8 @@ class Host : public GenericHashEntry,
   bool isHostAlertDisabled(HostAlertType alert_type);
   bool isFlowAlertDisabled(FlowAlertType alert_type);
 
-  virtual bool setOS(ndpi_os _os, OSLearningMode mode);
+  /* f: the flow the OS has been learnt from (journal of the assets), if any */
+  virtual bool setOS(ndpi_os _os, OSLearningMode mode, Flow* f = NULL);
   ndpi_os getOS() const { return os_type; }
   ndpi_os getAltOS() const { return alt_os_type; }
 
@@ -879,15 +898,18 @@ class Host : public GenericHashEntry,
 #endif
 
 #ifndef HAVE_NEDGE
-  inline void setListeningPorts(ListeningPorts& lp) {
-    if (listening_ports_shadow) {
-      delete listening_ports_shadow;
-      listening_ports_shadow = NULL;
-    }
-    listening_ports_shadow = listening_ports;
-    listening_ports = new ListeningPorts(lp);
+  inline void setListeningPorts(ListeningPorts& lp, time_t now) {
+    ListeningPorts* new_ports;
+
+    if (now < listening_ports_last_update + 10 /* min update interval (sec) */)
+      return;
+
+    if ((new_ports = new (std::nothrow) ListeningPorts(lp)) == NULL) return;
+
+    if (listening_ports_shadow) delete listening_ports_shadow;
+    listening_ports_shadow = listening_ports.exchange(new_ports);
+    listening_ports_last_update = now;
   }
-  inline ListeningPorts* getListeningPorts() { return (listening_ports); }
 #endif
 
   /* Enqueues an alert to all available host recipients. */
@@ -1054,12 +1076,17 @@ class Host : public GenericHashEntry,
              iface->get_id(), ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
     return buf;
   };
-  virtual void setTCPfingerprint(char* tcp_fingerprint, ndpi_os os) { ; }
+  virtual void setTCPfingerprint(char* tcp_fingerprint, ndpi_os os, Flow* f = NULL) { ; }
 #ifdef NTOPNG_PRO
   void incQoEStats(QoEType qoe_type) { qoe_stats.incQoEStats(qoe_type); };
 #endif
 
-  void setnDPIOS(ndpi_os hint, time_t when);
+  void setnDPIOS(ndpi_os hint, time_t when, Flow* f = NULL);
+#ifdef NTOPNG_PRO
+  /* Journal of the assets: a flow of the host, to report the flow that has
+   * created it (see LocalHost) */
+  virtual void setJournalCreatedBy(Flow* f) { ; }
+#endif
   virtual void setMACmeaningful() { is_mac_meaningful = true; }
   inline bool isMACmeaningful() {
     return (is_mac_meaningful || isSystemHost());

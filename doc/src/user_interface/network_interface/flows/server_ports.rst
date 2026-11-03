@@ -3,7 +3,7 @@
 Server Ports
 ------------
 
-This page is accessible from the Flows menu, Server ports entry.
+This view is the Server Ports tab of the Live Flows page (Flows menu, Live Flows entry).
 
 .. note::
   Server Ports is available only with Enterprise L license
@@ -27,6 +27,5 @@ Moreover if ClickHouse is enabled, it's possible to change the timeframe and not
 
 |
 
-When clicking on the port, protocol or VLAN names available in the map, the user is going to be redirected to the requested flow page with the requested filter.
-
-(e.g. The user click on the QUIC.Youtube protocol, the user is going to be redirected to the live traffic with QUIC.Youtube traffic; if the user was instead taking a look at historical data, the user was going to be redirected to the historical page with the selected timeframe and protocol).
+When clicking on a port or VLAN name in the map, the user is redirected to the live (or, with a timeframe, historical) flows with the requested filter.
+When clicking on a link (VLAN, protocol, port), the flows of that link are shown aggregated by client and server: the Aggregation tab of the live flows, or the "Server Contacts" query of the historical flows with the selected timeframe, filtered by VLAN, L4 protocol, application and server port.

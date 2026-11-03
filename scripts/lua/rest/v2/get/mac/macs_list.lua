@@ -3,7 +3,6 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
 require "label_utils"
 require "ntop_utils"
@@ -13,7 +12,16 @@ require "lua_utils_gui"
 local discover = require "discover_utils"
 
 local rest_utils = require "rest_utils"
-local ascan_utils = require "ascan_utils"
+
+-- ?ifid= selects the interface; interface.select silently falls back to an allowed one: check it
+local ifid = _GET["ifid"]
+if not isEmptyString(ifid) then
+   interface.select(tostring(ifid))
+   if tostring(interface.getId()) ~= tostring(ifid) then
+      rest_utils.answer(rest_utils.consts.err.invalid_interface)
+      return
+   end
+end
 
 -- Table parameters
 local all = _GET["all"]
@@ -73,12 +81,31 @@ local function pick_representative_ip(ip_tbl)
          if (best_v4 == nil) or (ip < best_v4) then best_v4 = ip end
          -- vlan
          local addr = ip:match("^([^@]+)") or ip
-         if isLocal(addr) and ((best_local_v4 == nil) or (ip < best_local_v4)) then
+         if ntop.isLocalAddress(addr) and ((best_local_v4 == nil) or (ip < best_local_v4)) then
             best_local_v4 = ip
          end
       end
    end
    return best_local_v4 or best_v4 or best_any
+end
+
+-- ########################################
+
+-- Name of a MAC from one of its hosts (<ip>[@<vlan>]), as getDeviceName():
+-- the host name only for hosts of the broadcast domain (a router MAC must not
+-- take the name of a remote host), else the custom/resolved name of the IP
+local function host_name(hostkey)
+   local host = interface.getHostMinInfo(hostkey)
+   local name
+   if host and host.broadcast_domain_host and not isEmptyString(host.name) and
+      host.name ~= host.ip and host.name ~= "NoIP" then
+      name = host.name
+   elseif host and host.ip and host.ip ~= "0.0.0.0" then
+      name = ip2label(host.ip)
+      if name == host.ip then name = nil end
+   end
+   if isEmptyString(name) then return nil end
+   return name
 end
 
 -- ########################################
@@ -114,10 +141,6 @@ if device_type == "" then device_type = nil end
 
 -- ########################################
 -- Retrieve only the page we need
-
--- array of MAC records to actually render (the page)
-local page_macs
-local effective_total
 
 local maxHits = (page_length > 0) and page_length or nil  -- nil => all
 local macs_stats = interface.getMacsInfo(sort_column, maxHits, start_offset,
@@ -157,6 +180,7 @@ for _, value in ipairs(page_macs) do
    local device_type_string = discover.devtype2stringId(value["devtype"])
    local device_type_label = discover.devtype2string(value["devtype"])
    local device_type = {
+      id = value["devtype"],
       device_type_label = device_type_label
    }
    if known_device_types[device_type_string] then
@@ -165,11 +189,13 @@ for _, value in ipairs(page_macs) do
    record["device_type"] = device_type
 
    -- Name resolution.
-   -- Fast path: a symbolic device name is available -> no host lookup needed.
+   -- Fast path: a user alias or DHCP name of the MAC -> no host lookup needed.
    -- Slow path (no name): defer to the bulk IP resolution below, and only
-   -- when the MAC actually has associated hosts (num_hosts > 0).
-   local name_device = {name = getDeviceName(value["mac"], true), has_name = true}
-   if (isEmptyString(name_device.name)) then
+   -- when the MAC actually has associated hosts (num_hosts > 0). Same result as
+   -- getDeviceName(), without its hosts table walk per MAC.
+   local mac_label = mac2label(value["mac"])
+   local name_device = {name = mac_label, has_name = true}
+   if (mac_label == value["mac"]) then
       local num_hosts = value["num_hosts"] or 0
       name_device = {has_name = false, num_hosts = num_hosts, host_label = ""}
 
@@ -185,8 +211,8 @@ for _, value in ipairs(page_macs) do
    if (value["arp_requests.sent"] == None) then
       record["arp"] = 0
    else
-      record["arp"] = formatValue(value["arp_requests.sent"] + value["arp_replies.sent"] +
-                       value["arp_requests.rcvd"] + value["arp_replies.rcvd"])
+      record["arp"] = value["arp_requests.sent"] + value["arp_replies.sent"] +
+                       value["arp_requests.rcvd"] + value["arp_replies.rcvd"]
    end
 
    record["seen_since"] = value["seen.first"]
@@ -196,8 +222,6 @@ for _, value in ipairs(page_macs) do
       value["throughput_bps"] = 0
    end
 
-   record["breakdown"] = ""
-   local total_bytes = value["bytes.sent"] + value["bytes.rcvd"]
    record["bytes_sent"] = value["bytes.sent"]
    record["bytes_rcvd"] = value["bytes.rcvd"]
 
@@ -224,9 +248,26 @@ if next(macs_needing_ip) ~= nil then
       local ip = entry and entry.ip and pick_representative_ip(entry.ip)
 
       if ip ~= nil then
-         p.name_device.host_label = ip
+         local name = host_name(ip)
+         if name ~= nil then
+            p.name_device.has_name = true
+            p.name_device.name = name
+            p.name_device.num_hosts = nil
+            p.name_device.host_label = nil
+         else
+            p.name_device.host_label = ip
+         end
       else
-         p.name_device.num_hosts = 0
+         -- Multicast/broadcast MACs are skipped by the bulk walk: per MAC lookup (rare)
+         local name = getDeviceName(p.mac, true)
+         if not isEmptyString(name) then
+            p.name_device.has_name = true
+            p.name_device.name = name
+            p.name_device.host_label = nil
+            p.name_device.num_hosts = nil
+         else
+            p.name_device.num_hosts = 0
+         end
       end
    end
 end

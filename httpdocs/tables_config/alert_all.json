@@ -6,7 +6,8 @@
     "paging": true,
     "rsp_records_field": "records",
     "rsp_query_info_field": "stats",
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.alerts",
     "columns": [
 	{
 	    "data_field": "entity",

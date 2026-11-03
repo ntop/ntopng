@@ -82,7 +82,13 @@ class PcapInterface : public NetworkInterface {
     return (emulate_traffic_directions);
   };
   inline void set_pcap_handle(pcap_t* p, u_int8_t id) {
-    if (id < num_ifaces) pcap_handle[id] = p;
+    if (id < num_ifaces) {
+      /* Next file of a playlist or directory: close the previous one */
+      if (pcap_handle[id] && (pcap_handle[id] != p))
+        pcap_close(pcap_handle[id]);
+
+      pcap_handle[id] = p;
+    }
   };
   inline std::vector<std::string>* get_pcap_files_queue() {
     return (&pcap_files_queue);

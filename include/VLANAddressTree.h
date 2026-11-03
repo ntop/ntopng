@@ -49,7 +49,7 @@ class VLANAddressTree {
                              void* user_data);
 
   inline AddressTree* getAddressTree(u_int16_t vlan_id) {
-    return tree[vlan_id];
+    return tree[vlan_id & 0xFFF]; /* Make sure we use 12 bits */
   };
 };
 

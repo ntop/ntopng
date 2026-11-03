@@ -5,7 +5,7 @@
   "enable_search": true,
   "paging": false,
   "display_empty_rows": false,
-  "empty_message_i18n": "table_empty.ai_policies_list",
+  "empty_message_i18n": "ai_policy_page.empty",
   "default_sort": {
     "column_id": "created_at",
     "sort": 1
@@ -17,20 +17,19 @@
       "sortable": false,
       "sticky": true,
       "class": ["text-nowrap", "text-center"],
-      "render_v_node_type": "button_list",
+      "render_v_node_type": "split_button",
       "button_def_array": [
         {
           "id": "edit_policy",
           "icon": "fas fa-edit",
           "title_i18n": "edit",
-          "class": ["btn-info"],
           "event_id": "click_button_edit_policy"
         },
         {
           "id": "delete_policy",
           "icon": "fas fa-trash",
           "title_i18n": "delete",
-          "class": ["btn-danger"],
+          "danger": true,
           "event_id": "click_button_delete_policy"
         }
       ]

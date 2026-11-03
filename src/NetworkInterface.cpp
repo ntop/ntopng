@@ -668,6 +668,8 @@ bool NetworkInterface::nDPILoadIPCategory(char* what, u_int16_t id,
                            missed */
 
     if (ndpi_struct_shadow)
+      /* id is packed (see Utils::packCustomCategory): converted only here, as
+       * nDPI takes the category by value */
       success = (ndpi_load_ip_category(ndpi_struct_shadow, what,
                                        (ndpi_protocol_category_t)id,
                                        (void*)list_name) == 0);
@@ -700,6 +702,8 @@ bool NetworkInterface::nDPILoadHostnameCategory(char* what, u_int16_t id,
     ntop->getTrace()->traceEvent(
         TRACE_WARNING, "Internal error [%s]: invalid nDPI state", ifname);
   else
+    /* id is packed (see Utils::packCustomCategory): converted only here, as
+     * nDPI takes the category by value */
     success = (ndpi_load_hostname_category(ndpi_struct_shadow, what,
                                            (ndpi_protocol_category_t)id,
                                            NDPI_PROTOCOL_UNRATED) == 0);
@@ -1975,8 +1979,8 @@ bool NetworkInterface::processPacket(
   if (iph != NULL) {
     u_int16_t ip_len, ip_tot_len;
 
-    /* IPv4 */
-    if ((trusted_ip_len < 20) || ((ip_len = iph->ihl * 4) == 0)) {
+    if ((trusted_ip_len < 20) || ((ip_len = iph->ihl * 4) == 0) ||
+        (iph->version != 4) /* This is not IPv4 */) {
       incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1, srcMac, dstMac);
@@ -2036,7 +2040,9 @@ bool NetworkInterface::processPacket(
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
     u_int32_t* tos_ptr = (u_int32_t*)ip6;
 
-    if (trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) {
+    if ((trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) ||
+        ((ntohl(ip6->ip6_hdr.ip6_un1_flow) & 0xF0000000) !=
+         0x60000000) /* This is not IPv6 */) {
       incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1, srcMac, dstMac);
@@ -2409,17 +2415,7 @@ pre_get_flow:
 #endif
         flow->updateTcpFlags(when, tcp_flags, src2dst_direction, *new_flow);
 
-        /*
-          This is the heuristic "For TCP flows for which the 3WH has not been
-          observed..." at https://github.com/ntop/ntopng/issues/5058
-
-          So, only for the first packet check if this flow is a swap candidate.
-          The only condition that should NOT be checked for swap is when there's
-          a SYN and not an ACK, i.e., when we see the first packet of the TWH
-          that allows to reliably determine the direction.
-        */
-        if ((*new_flow) && (!(tcp_flags & TH_SYN) || (tcp_flags & TH_ACK)))
-          flow->check_swap();
+        flow->checkTCPDirection(src2dst_direction, tcp_flags, *new_flow);
 
         if ((tcp_flags & (TH_RST | TH_FIN)) == 0) {
           /*
@@ -3425,7 +3421,8 @@ decode_packet_eth:
                            NULL /* srcMac */, NULL /* dstMac */);
                   goto dissect_packet_end;
                 }
-                iph = (struct ndpi_iphdr*)&packet[offset];
+                ip_offset = offset;
+                iph = (struct ndpi_iphdr*)&packet[ip_offset];
               } else if (proto == 0x0057) {
                 /* IPv6 */
                 eth_type = ETHERTYPE_IPV6;
@@ -3435,7 +3432,9 @@ decode_packet_eth:
                            NULL /* srcMac */, NULL /* dstMac */);
                   goto dissect_packet_end;
                 }
-                ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
+                ip_offset = offset;
+                ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
+                iph = NULL;
               } else if (proto == 0x003d /* PPP Multi-Link */) {
                 offset += 4;
                 if (offset + 3 >= h->caplen) {
@@ -3455,7 +3454,8 @@ decode_packet_eth:
                              NULL /* srcMac */, NULL /* dstMac */);
                     goto dissect_packet_end;
                   }
-                  iph = (struct ndpi_iphdr*)&packet[offset];
+                  ip_offset = offset;
+                  iph = (struct ndpi_iphdr*)&packet[ip_offset];
                   ip6 = NULL;
                 } else if (proto == 0x0057) {
                   eth_type = ETHERTYPE_IPV6;
@@ -3465,7 +3465,8 @@ decode_packet_eth:
                              NULL /* srcMac */, NULL /* dstMac */);
                     goto dissect_packet_end;
                   }
-                  ip6 = (struct ndpi_ipv6hdr*)&packet[offset];
+                  ip_offset = offset;
+                  ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
                   iph = NULL;
                 }
               } else {
@@ -7308,6 +7309,7 @@ void NetworkInterface::getLiveASNStats(ASNStats* asn_stats,
 
   lua_newtable(vm);
   lua_newtable(vm);
+
   for (std::unordered_map<u_int32_t, std::string>::iterator it =
            asn_names.begin();
        it != asn_names.end(); ++it) {
@@ -7316,9 +7318,11 @@ void NetworkInterface::getLiveASNStats(ASNStats* asn_stats,
     snprintf(buf, sizeof(buf), "%u", it->first);
     lua_push_str_table_entry(vm, buf, it->second.c_str());
   }
+
   lua_pushstring(vm, "asn_names");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
   asn_stats->lua(vm, true);
 }
 
@@ -11696,6 +11700,7 @@ void NetworkInterface::getPodsStats(lua_State* vm) {
 
 typedef struct {
   const ContainerInfo* info;
+  Flow* flow; /* The flow info points into */
   ContainerStats stats;
 } ContainerData;
 
@@ -11737,7 +11742,12 @@ static bool flow_get_container_stats(GenericHashEntry* entry, void* user_data,
     data.stats.accountLatency(client_tcp ? client_tcp->rtt : 0,
                               client_tcp ? client_tcp->rtt_var : 0,
                               true /* as_client */);
-    data.info = cli_cont;
+    if (!data.info) {
+      /* info is used after the walk, when the bucket lock is no longer held:
+       * inc uses so that the flow is not purged in the meantime */
+      flow->incUses();
+      data.info = cli_cont, data.flow = flow;
+    }
 
     /* Update */
     (*containers_data)[cli_cont_id] = data;
@@ -11753,7 +11763,10 @@ static bool flow_get_container_stats(GenericHashEntry* entry, void* user_data,
     data.stats.accountLatency(server_tcp ? server_tcp->rtt : 0,
                               server_tcp ? server_tcp->rtt_var : 0,
                               false /* as server */);
-    data.info = srv_cont;
+    if (!data.info) {
+      flow->incUses();
+      data.info = srv_cont, data.flow = flow;
+    }
 
     /* Update */
     (*containers_data)[srv_cont_id] = data;
@@ -11786,6 +11799,8 @@ void NetworkInterface::getContainersStats(lua_State* vm,
       lua_pushstring(vm, "info");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
+
+      it->second.flow->decUses(); /* incUses in flow_get_container_stats */
     }
 
     lua_pushstring(vm, it->first.c_str());
@@ -12770,6 +12785,53 @@ bool NetworkInterface::resetHostTopSites(AddressTree* allowed_nets,
 
 bool NetworkInterface::matchAggregatedFlow(Flow* flow,
                                            struct aggregated_stats* stats) {
+  /* User allowed networks */
+  if (!flow->match(stats->allowed_nets)) return (false);
+
+  /* User allowed host pools (same as in flow_matches()) */
+  if (stats->allowed_pools) {
+    IpAddress *cli_ip = flow->get_cli_ip_addr(),
+              *srv_ip = flow->get_srv_ip_addr();
+    u_int16_t cli_pool, srv_pool;
+    bool cli_pool_found = false, srv_pool_found = false;
+    ndpi_patricia_node_t *cli_target_node = NULL, *srv_target_node = NULL;
+
+    if (cli_ip && !flow->get_cli_host())
+      cli_pool_found = flow->getInterface()->getHostPools()->findIpPool(
+          cli_ip, flow->get_vlan_id(), &cli_pool, &cli_target_node);
+
+    if (srv_ip && !flow->get_srv_host())
+      srv_pool_found = flow->getInterface()->getHostPools()->findIpPool(
+          srv_ip, flow->get_vlan_id(), &srv_pool, &srv_target_node);
+
+    if (!((flow->get_cli_host() && stats->allowed_pools->isSetBit(
+                                       flow->get_cli_host()->get_host_pool())) ||
+          (flow->get_srv_host() && stats->allowed_pools->isSetBit(
+                                       flow->get_srv_host()->get_host_pool())) ||
+          (cli_pool_found && stats->allowed_pools->isSetBit(cli_pool)) ||
+          (srv_pool_found && stats->allowed_pools->isSetBit(srv_pool))))
+      return (false);
+  }
+
+  if (stats->srv_port && (flow->get_srv_port() != stats->srv_port))
+    return (false);
+
+  if (stats->l4_proto && (flow->get_protocol() != stats->l4_proto))
+    return (false);
+
+  if (stats->l7_filter) {
+    ndpi_protocol p = flow->get_detected_protocol();
+    u_int16_t m = p.proto.master_protocol, a = p.proto.app_protocol;
+
+    /* Same canonical form of the "proto_id" of the flows stats */
+    if ((m == a) || (a == NDPI_PROTOCOL_UNKNOWN))
+      a = NDPI_PROTOCOL_UNKNOWN;
+    else if (m == NDPI_PROTOCOL_UNKNOWN)
+      m = a, a = NDPI_PROTOCOL_UNKNOWN;
+
+    if ((m != stats->l7_master) || (a != stats->l7_app)) return (false);
+  }
+
   if (stats->ip_addr != NULL) {
     if (!flow->matchFlowIP(stats->ip_addr, stats->vlan_id)) return (false);
   }
@@ -13738,6 +13800,17 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   /* Lua passes nil (and not a negative value) when no site is requested, so
    * that NO_SITE_ID is never obtained through a negative-to-unsigned cast */
   if (lua_type(vm, 16) == LUA_TNUMBER) site_id = lua_tonumber(vm, 16);
+  stats.srv_port = (lua_type(vm, 17) == LUA_TNUMBER) ? lua_tonumber(vm, 17) : 0;
+  stats.l4_proto = (lua_type(vm, 18) == LUA_TNUMBER) ? lua_tonumber(vm, 18) : 0;
+  stats.l7_filter = false;
+  stats.l7_master = stats.l7_app = NDPI_PROTOCOL_UNKNOWN;
+  if (lua_type(vm, 19) == LUA_TSTRING) {
+    /* "M.A" or "X" */
+    unsigned int m = 0, a = 0;
+
+    if (sscanf(lua_tostring(vm, 19), "%u.%u", &m, &a) >= 1)
+      stats.l7_filter = true, stats.l7_master = m, stats.l7_app = a;
+  }
   stats.vlan_id = vlan_id;
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
 
@@ -13752,6 +13825,9 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
   stats.alert_status = alert_status;
   stats.host_locality = host_locality;
   stats.site_id = site_id;
+  /* Restrict the walk to what the requesting user is allowed to see */
+  stats.allowed_nets = get_allowed_nets(vm);
+  stats.allowed_pools = getLuaVMUservalue(vm, allowed_pools);
 
   switch (filter_type) {
     case AnalysisCriteria::application_criteria:

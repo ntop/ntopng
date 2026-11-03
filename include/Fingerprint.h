@@ -42,6 +42,7 @@ class Fingerprint {
 
   void update(const char* fp, const char* app_name, bool is_malicious);
   void lua(const char* key, lua_State* vm);
+  void reset();
 };
 
 typedef struct {

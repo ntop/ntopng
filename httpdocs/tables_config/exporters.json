@@ -45,6 +45,13 @@
 					"event_id": "click_button_live_hosts"
 				},
 				{
+					"id": "syslog",
+					"icon": "fas fa-scroll",
+					"title_i18n": "syslog.syslog",
+					"class": [],
+					"event_id": "click_button_syslog"
+				},
+				{
 					"id": "configuration",
 					"icon": "fas fa-cog",
 					"title_i18n": "configuration",

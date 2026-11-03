@@ -968,6 +968,25 @@ typedef enum {
   os_learning_dhcp
 } OSLearningMode;
 
+#ifdef NTOPNG_PRO
+/* Journal of the assets (see doc/developers/README.assets_journal.md): what
+ * a cause of a change of a host, not yet dumped with its asset, refers to.
+ * Keep in sync with asset_journal_what_names (LocalHostPro.cpp): the name of the
+ * field in the asset */
+typedef enum {
+  asset_journal_created = 0, /* The host has been created (also the cause of
+                                ip, mac and vlan of a new asset) */
+  asset_journal_tcp_fingerprint,
+  asset_journal_dhcp_fingerprint,
+  asset_journal_dns_name,
+  /* Add here the other fields of the asset (os_type, dhcp_name, mdns_name,
+   * server ports, ...) */
+  asset_journal_tag_refreshed, /* Tag observed (tag_id) */
+  asset_journal_tag_removed,   /* Tag removed by the host (tag_id) */
+  asset_journal_num_what
+} AssetJournalWhat;
+#endif
+
 /* Keep in sync with hosts_map_utils.lua */
 typedef enum {
   ALL_FLOWS = 0,

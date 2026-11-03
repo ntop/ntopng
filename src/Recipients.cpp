@@ -28,6 +28,7 @@ Recipients::Recipients() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   memset(&recipient_queues, 0, sizeof(recipient_queues));
+  memset(&dequeued, 0, sizeof(dequeued));
   default_recipient_minimum_severity = alert_level_none;
 }
 
@@ -53,6 +54,9 @@ AlertFifoItem* Recipients::dequeue(u_int16_t recipient_id) {
       Dequeue the notification
     */
     notification = recipient_queues[recipient_id]->dequeue();
+
+    /* Possibly being processed until the next pass (see last_use()) */
+    if (notification) dequeued[recipient_id] = true;
   }
 
   m.unlock(__FILE__, __LINE__);
@@ -199,6 +203,10 @@ time_t Recipients::last_use(u_int16_t recipient_id) {
 
   m.lock(__FILE__, __LINE__);
 
+  /* Beginning of a new pass of the notifications: the notifications dequeued
+     in the previous pass have been processed */
+  dequeued[recipient_id] = false;
+
   if (recipient_queues[recipient_id])
     res = recipient_queues[recipient_id]->get_last_use();
 
@@ -231,6 +239,12 @@ bool Recipients::empty() {
 
   for (int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS;
        recipient_id++) {
+    /* Not empty also while dequeued notifications are being processed */
+    if (dequeued[recipient_id]) {
+      res = false;
+      break;
+    }
+
     if (recipient_queues[recipient_id]) {
       if (!recipient_queues[recipient_id]->empty()) {
         res = false;

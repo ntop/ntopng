@@ -213,20 +213,32 @@ static void redirect_to_ssl(struct mg_connection* conn,
 
 /* ****************************************** */
 
+static int get_secure_random(void *dest, size_t size);
+
 /* Generates a random token to protect against CSRF attacks.
  * See ntop_get_csrf_value for more details. */
 static void generate_csrf_token(char* csrf) {
+#ifdef __OpenBSD__
   char random_a[32], random_b[32];
 
-#ifdef __OpenBSD__
   snprintf(random_a, sizeof(random_a), "%d", arc4random());
   snprintf(random_b, sizeof(random_b), "%lu", time(NULL) * arc4random());
-#else
-  snprintf(random_a, sizeof(random_a), "%d", rand());
-  snprintf(random_b, sizeof(random_b), "%lu", time(NULL) * rand());
-#endif
 
   mg_md5(csrf, random_a, random_b, (char *) NULL);
+#else
+  unsigned char random_data[16]; /* 128 bits of entropy */
+  char random_str[(sizeof(random_data) * 2) + 1];
+
+  if (get_secure_random(random_data, sizeof(random_data)) == 0) {
+    for (u_int i = 0; i < sizeof(random_data); i++)
+      snprintf(&random_str[i * 2], 3, "%02x", random_data[i]);
+  } else {
+    snprintf(random_str, sizeof(random_str), "%d-%lu", rand(),
+             (unsigned long)time(NULL));
+  }
+
+  mg_md5(csrf, random_str, (char *) NULL);
+#endif
 }
 
 /* ****************************************** */
@@ -684,6 +696,7 @@ static int getAuthorizedUser(struct mg_connection* conn,
         int post_data_len = mg_read(conn, post_data, sizeof(post_data));
         bool success;
 
+        if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
         label[0] = '\0';
 
         mg_get_var(post_data, post_data_len, "username", username,
@@ -1247,6 +1260,7 @@ static void authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
 
     mg_get_var(post_data, post_data_len, "user", user, sizeof(user));
     mg_get_var(post_data, post_data_len, "password", password,
@@ -1259,13 +1273,11 @@ static void authorize(struct mg_connection* conn,
     get_qsvar(request_info, "ref", referer, sizeof(referer));
 
     if (referer[0] == '\0') {
-      for (int i = 0; i < request_info->num_headers; i++) {
-        if (strcmp(request_info->http_headers[i].name, "Referer") == 0) {
-          snprintf(referer, sizeof(referer), "%s",
-                   request_info->http_headers[i].value);
-          break;
-        }
-      }
+      /* Only the first num_headers entries are valid: the table is not
+         NULL-terminated and may hold stale pointers from previous requests */
+      const char* referer_hdr = mg_get_header(conn, "Referer");
+
+      if (referer_hdr) snprintf(referer, sizeof(referer), "%s", referer_hdr);
     }
   }
 
@@ -1330,6 +1342,7 @@ static void mfa_authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[512];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
     mg_get_var(post_data, post_data_len, "token", token, sizeof(token));
     mg_get_var(post_data, post_data_len, "totp_code", code, sizeof(code));
   } else {
@@ -1392,7 +1405,7 @@ static void webauthn_authorize(struct mg_connection* conn,
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[32768];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data) - 1);
-    if (post_data_len < 0) post_data_len = 0;
+    if (post_data_len < 0) post_data_len = 0; /* Read error or timeout */
     post_data[post_data_len] = '\0';
     mg_get_var(post_data, post_data_len, "token",       token,   sizeof(token));
     mg_get_var(post_data, post_data_len, "cred_id",     cred_id, sizeof(cred_id));

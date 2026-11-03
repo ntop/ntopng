@@ -286,7 +286,7 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
       num_collected_flows = num_collected_flows + 1
    --]]
 
-   elseif event.event_type == "fileinfo" then
+   elseif event.event_type == "fileinfo" and event.fileinfo ~= nil then
       if event.app_proto == "http" and event.http ~= nil then
          parseHTTPMetadata(event.http, flow)
       end

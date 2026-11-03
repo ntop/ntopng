@@ -185,10 +185,20 @@ struct aggregated_stats {
   u_int32_t out_if_index;
   u_int32_t if_index;
   u_int32_t alert_status;
+  /* Restrictions of the requesting user (NULL = unrestricted) */
+  AddressTree* allowed_nets;
+  Bitmap4096* allowed_pools;
   /* NO_HOST_LOCALITY / HOST_LOCALITY_LOCAL / HOST_LOCALITY_REMOTE */
   u_int8_t host_locality;
   /* NO_SITE_ID = any site */
   u_int16_t site_id;
+  /* 0 = any server port / L4 protocol */
+  u_int16_t srv_port;
+  u_int8_t l4_proto;
+  /* Application as the "M.A" / "X" id of the flows stats (X: master and app
+   * equal or one unknown, stored as master) */
+  bool l7_filter;
+  u_int16_t l7_master, l7_app;
 };
 
 #endif /* _FLOWS_STATS_H_ */

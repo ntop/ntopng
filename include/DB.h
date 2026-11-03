@@ -83,7 +83,7 @@ class DB {
   virtual bool dumpSyslogEntry(const char* producer,
 			       const char* message, const char* host,
 			       const char* hostname, int priority) { return(false); }
-
+  virtual void forceSyslogRulesReload() { ; }
 };
 
 #endif /* _DB_CLASS_H_ */

@@ -19,6 +19,6 @@ end
 local post_data = _POST or {}
 local tag_id = post_data["tag_id"]
 
-tag_badge_utils.deleteTag(tag_id)
+tag_badge_utils.deleteTag(tag_id, _SESSION and _SESSION["user"])
 
 rest_utils.answer(rest_utils.consts.success.ok)

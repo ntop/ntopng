@@ -440,9 +440,11 @@ local function getN2diskInterfaceName(ifid)
 end
 
 -- Encode an interface name in a string that can be used in the n2disk configuration file name
+-- and as an argument on the ntopctl command line (the name goes through the shell unquoted,
+-- see os_utils.ntopctlCmd, and ntopctl only accepts [a-zA-Z0-9:_,-] as interface name)
 local function getConfigInterfaceName(ifid)
   local ifname = getN2diskInterfaceName(ifid)
-  return ifname:gsub("%,", "_")
+  return (ifname:gsub("[^%w:_%-]", "_"))
 end
 
 function recording_utils.getN2diskInstanceName(ifid)

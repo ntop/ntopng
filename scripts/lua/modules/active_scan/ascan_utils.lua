@@ -1900,8 +1900,26 @@ function ascan_utils.list_scan_modules()
 end
 
 -- **********************************************************
+-- Function to check if a scan type is the name of one of the scan engines
+-- available in modules/active_scan/modules
+-- NOTE: the scan type is passed to require(), which is not confined to that
+-- directory as it also accepts paths and (with ';') additional search templates
+function ascan_utils.is_valid_scan_type(scan_type)
+   if (type(scan_type) ~= "string") or not scan_type:match("^[%w_]+$") then
+      return false
+   end
+
+   return ntop.exists(dirs.installdir .. "/scripts/lua/modules/active_scan/modules/" .. scan_type .. ".lua")
+end
+
+-- **********************************************************
 -- Function to load VS module by name
 function ascan_utils.load_module(name)
+   if not ascan_utils.is_valid_scan_type(name) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "load_module: invalid scan type rejected: " .. tostring(name))
+      return nil
+   end
+
    package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/modules/?.lua;".. package.path
 
    return(require(name):new())
@@ -1924,6 +1942,11 @@ function ascan_utils.scan_host(scan_type, host, ports, scan_id, use_coroutines, 
    if(ntop.isShuttingDown()) then return(false) end
 
    if(use_coroutines == nil) then use_coroutines = false end
+
+   if not ascan_utils.is_valid_scan_type(scan_type) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "scan_host: invalid scan type rejected: " .. tostring(scan_type))
+      return false
+   end
 
    if debug_me then
       if (ports ~= nil) then

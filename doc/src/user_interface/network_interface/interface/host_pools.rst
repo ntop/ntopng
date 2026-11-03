@@ -12,24 +12,29 @@ this document. This page show the list of defined and currently active Host Pool
 
   The Host Pools List Hosts Page
 
-Each row of the table shows, for each pool, the following information:
+Each row of the table shows, for each pool:
 
-- The Pool Name as defined by the user during Host Pool creation
-- A Chart icon to access historical pool traffic timeseries. Historical pool traffic charts must be enabled
-  from the preferences page and are a feature that is only supported in the Professional version.
-- The number of active hosts in the pool
-- The number of alerts detected as the sum of host alerts for each host in the pool
-- Seen Since, with the amount of time it has lapsed since the first packet sent/received by any of the
-  hosts in the pool has been observed
-- Breakdown, showing a bar that gives visual insights in the use of both pool traffic directions
-- Throughput, with the overall actual throughput of the pool
-- Traffic, with the total traffic exchanged by the pool
+- The pool name, as defined when the pool was created
+- Hosts, the number of active hosts in the pool
+- Seen Since, the time since the first packet of a host of the pool
+- Traffic Breakdown, a bar with the share of sent and received traffic
+- Throughput, the current throughput of the pool
+- Traffic, the total traffic exchanged by the pool
+- Members, the addresses, networks and MAC addresses that belong to the pool
 
-Pools can be created or managed from the *System* interface, 
-*Pools* menu. It is possible to add new pools using the “plus” button in the same page.
+The button of the *Actions* column opens the list of the active hosts of the pool. Its menu also has:
 
-Once an Host Pool is created, it is possible to add members to it. Host Pool members can be added 
-from the *Pools* > *Host Pool Members* page, using the “plus” button.
+- *Timeseries*, the historical traffic charts of the pool. It is disabled until host pool timeseries
+  are enabled in *Settings* > *Preferences* > *Timeseries*.
+- *Manage Members*, the page to add and remove members (administrators only; not available for the
+  *Default* pool, which holds all the hosts not assigned to another pool)
+- *Edit Name*, to rename the pool and change its members
+- *Edit Traffic Policy*, the traffic policy of the pool (administrators only, needs ntopng Pro)
+- *Delete*, to remove the pool. The built-in *Default* and *Jailed Hosts* pools cannot be deleted.
+
+Pools are added with the *Add pool* button above the table. Adding, editing and deleting pools needs the
+Pools capability of the user (administrators always have it). Unavailable actions are shown greyed out
+with the reason.
 
 .. figure:: ../../../img/web_gui_interfaces_edit_host_pool.png
   :align: center

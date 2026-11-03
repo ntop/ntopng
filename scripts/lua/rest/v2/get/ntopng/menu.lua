@@ -271,6 +271,7 @@ for _, sec_key in ipairs(section_order) do
                url              = resolve_url(entry),
                is_external      = (entry.is_external == true),
                is_divider       = is_divider,
+               experimental     = (entry.experimental == true) or nil,
                disabled         = disabled,
                disabled_reasons = disabled and merge_reasons(
                   sec_disabled and section.reason or nil,
@@ -569,13 +570,29 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    has_protos_file = (protos_utils_ok and protos_utils.hasProtosFile()) or false,
    is_pro = is_pro or false,
    is_enterprise = (ntop.isEnterprise and ntop.isEnterprise()) or false,
+   is_enterprise_m = (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false,
    is_enterprise_l = (ntop.isEnterpriseL and ntop.isEnterpriseL()) or false,
    is_enterprise_xl = (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false,
+   -- pool_stats.lua: add/edit/delete/export of the pools (pools_rest_utils)
+   can_manage_pools = auth.has_capability(auth.capabilities.pools),
    are_host_pools_ts_enabled = (areHostPoolsTimeseriesEnabled and areHostPoolsTimeseriesEnabled(current_ifid)) or false,
+   has_vlans = interface.hasVLANs(),
+   are_host_ts_enabled = (areHostTimeseriesEnabled and areHostTimeseriesEnabled()) or false,
    are_as_ts_enabled = (areASTimeseriesEnabled and areASTimeseriesEnabled(current_ifid)) or false,
    are_country_ts_enabled = (areCountryTimeseriesEnabled and areCountryTimeseriesEnabled(current_ifid)) or false,
    are_vlan_ts_enabled = (areVlanTimeseriesEnabled and areVlanTimeseriesEnabled(current_ifid)) or false,
    are_system_ts_enabled = (areSystemTimeseriesEnabled and areSystemTimeseriesEnabled()) or false,
+   -- Flow exporters pages: timeseries of the exporters interfaces
+   are_flowdev_ts_enabled = (areFlowdevTimeseriesEnabled and areFlowdevTimeseriesEnabled()) or false,
+   -- Observation points page: timeseries of the observation points
+   are_obs_points_ts_enabled = (ntop.getPref("ntopng.prefs.observation_points_rrd_creation") == "1"),
+   -- network_details.lua: Traffic Report view (Enterprise M, RRD driver)
+   has_traffic_report = (hasTrafficReport and hasTrafficReport()) or false,
+   -- Assets page: Wazuh API configured (same keys as wazuh_utils.has_wazuh_support, without loading it)
+   has_wazuh_api = (ntop.isEnterpriseM and ntop.isEnterpriseM()
+      and not isEmptyString(ntop.getCache("ntopng.prefs.wazuh.wazuh_url"))
+      and not isEmptyString(ntop.getCache("ntopng.prefs.wazuh.wazuh_username"))
+      and not isEmptyString(ntop.getCache("ntopng.prefs.wazuh.wazuh_password"))) or false,
    -- page-active-monitoring.vue, page-infrastructure-monitoring.vue
    is_am_active = (prefs.active_monitoring == true),
    are_alerts_enabled = areAlertsEnabled(),

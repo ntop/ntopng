@@ -1,10 +1,12 @@
 {
   "id": "ai_audit_log",
   "data_url": "lua/pro/rest/v2/get/llm/audit_log.lua",
+  "filters_url": "lua/pro/rest/v2/get/llm/audit_log_filters.lua",
   "use_current_page": false,
   "enable_search": true,
   "paging": false,
-  "display_empty_rows": true,
+  "display_empty_rows": false,
+  "empty_message_i18n": "llm.audit_empty",
   "default_sort": {
     "column_id": "timestamp",
     "sort": 2

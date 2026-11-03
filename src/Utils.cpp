@@ -5564,7 +5564,6 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
     int32_t i32;
     u_int64_t v64;
     int64_t i64;
-    u_int8_t bkp;
 
     if (et == ndpi_serialization_end_of_record) {
       ndpi_deserialize_next(&deserializer);
@@ -5579,10 +5578,7 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
 
       case ndpi_serialization_string:
         ndpi_deserialize_key_string(&deserializer, &ks);
-        bkp = ks.str[ks.str_len];
-        ks.str[ks.str_len] = '\0';
-        snprintf(key, sizeof(key), "%s", ks.str);
-        ks.str[ks.str_len] = bkp;
+        snprintf(key, sizeof(key), "%.*s", ks.str_len, ks.str);
         break;
 
       default:
@@ -5613,12 +5609,11 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
 
       case ndpi_serialization_string:
         ndpi_deserialize_value_string(&deserializer, &vs);
-        if (vs.str) {
-          bkp = vs.str[vs.str_len];
-          vs.str[vs.str_len] = '\0';
-          ndpi_serialize_string_string(serializer, key, vs.str);
-          vs.str[vs.str_len] = bkp;
-        }
+        /* vs.str is not NUL-terminated and, for the last item of a full
+           buffer, vs.str[vs.str_len] is past the end of the TLV buffer:
+           do not terminate it in place, pass the length instead */
+        if (vs.str)
+          ndpi_serialize_string_string_len(serializer, key, vs.str, vs.str_len);
         break;
 
       default:
@@ -5654,7 +5649,6 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
     float f = 0;
     u_int64_t v64;
     int64_t i64;
-    u_int8_t bkp;
 
     if (et == ndpi_serialization_end_of_record) {
       ndpi_deserialize_next(&deserializer);
@@ -5669,10 +5663,7 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
 
       case ndpi_serialization_string:
         ndpi_deserialize_key_string(&deserializer, &ks);
-        bkp = ks.str[ks.str_len];
-        ks.str[ks.str_len] = '\0';
-        snprintf(key, sizeof(key), "%s", ks.str);
-        ks.str[ks.str_len] = bkp;
+        snprintf(key, sizeof(key), "%.*s", ks.str_len, ks.str);
         break;
 
       default:
@@ -5708,10 +5699,9 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
 
       case ndpi_serialization_string:
         ndpi_deserialize_value_string(&deserializer, &vs);
-        bkp = vs.str[vs.str_len];
-        vs.str[vs.str_len] = '\0';
-        lua_push_str_table_entry(vm, key, vs.str);
-        vs.str[vs.str_len] = bkp;
+        /* See tlv2serializer(): vs.str cannot be terminated in place */
+        if (vs.str)
+          lua_push_str_len_table_entry(vm, key, vs.str, vs.str_len);
         break;
 
       default:
@@ -6428,12 +6418,31 @@ void Utils::swapLen(void* a, void* b, u_int len) {
 
 /* ******************************************* */
 
+#ifdef _WIN32
+#include <bcrypt.h> // Required for BCryptGenRandom
+#endif
+
 char* Utils::createRandomString(char* buf, size_t buf_len) {
   const char charset[] =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
   int charset_len = (int)(sizeof(charset) - 1);
 
-  for (u_int i = 0; i < buf_len; i++) buf[i] = charset[rand() % charset_len];
+  if (buf_len == 0) return (buf);
+
+  #ifdef _WIN32
+  // Use Windows Native Cryptography API instead of OpenSSL's RAND_bytes
+  NTSTATUS status = BCryptGenRandom(NULL, (PUCHAR)buf, (ULONG)buf_len,
+                                    BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+  #else
+  int status = RAND_bytes((unsigned char*)buf, (int)buf_len);
+  #endif
+
+  if (status == 1) {
+    for (u_int i = 0; i < buf_len; i++)
+      buf[i] = charset[(unsigned char)buf[i] % charset_len];
+  } else {
+    for (u_int i = 0; i < buf_len; i++) buf[i] = charset[rand() % charset_len];
+  }
 
   buf[buf_len - 1] = '\0';
 
@@ -8366,7 +8375,14 @@ bool Utils::parseIPv4v6Address(const char *ip_str,
 /* ******************************************* */
 
 bool Utils::isNullAddress(struct ndpi_in6_addr *ip) {
-  if((ip->u6_addr.u6_addr64[0] == 0) && (ip->u6_addr.u6_addr64[1] == 0))
+  if(
+     ((ip->u6_addr.u6_addr64[0] == 0) && (ip->u6_addr.u6_addr64[1] == 0))
+     || ((ip->u6_addr.u6_addr8[10] == 0xff) /* 0.0.0.0 in IPv6 format */
+	 && (ip->u6_addr.u6_addr8[11] == 0xff)
+	 && (ip->u6_addr.u6_addr8[12] == 0x0)
+	 && (ip->u6_addr.u6_addr8[13] == 0x0)
+	 && (ip->u6_addr.u6_addr8[14] == 0x0)
+	 && (ip->u6_addr.u6_addr8[15] == 0x0)))
     return(true);
   else
     return(false);
@@ -8445,4 +8461,45 @@ u_int16_t Utils::getHostSiteId(NetworkInterface *iface, struct ndpi_in6_addr *ho
   host_ip.isLocalHost(&host_network_id);
 
   return(iface->getNetworkSiteId(host_network_id));
+}
+
+/* ******************************************* */
+
+/* The custom lists of ntopng are loaded into nDPI with the list id and the
+ * category packed in the category, (list_id << 8) + category, so that the
+ * list that matched is known (see Ntop::nDPILoadHostnameCategory and
+ * Ntop::nDPILoadIPCategory). The packed value is not a valid
+ * ndpi_protocol_category_t: loading it as a ndpi_protocol_category_t is
+ * undefined behavior (e.g. reading a variable of that type), so it is kept as
+ * an integer until it is passed to nDPI (packCustomCategory()), and read as
+ * an integer from what nDPI returns (unpackCustomCategory()). */
+
+/* Returns the category and the list id packed together, see above */
+u_int16_t Utils::packCustomCategory(ndpi_protocol_category_t category,
+                                    u_int8_t list_id) {
+  return ((((u_int16_t)list_id) << 8) | (u_int8_t)category);
+}
+
+/* ******************************************* */
+
+/* Returns the category packed (see packCustomCategory()) in the value
+ * returned by nDPI as a ndpi_protocol_category_t (e.g. the category of the
+ * flows, the custom category matches), also setting the list id when list_id
+ * is not NULL. Categories not packed are returned as they are (list id 0). */
+ndpi_protocol_category_t Utils::unpackCustomCategory(
+    const ndpi_protocol_category_t* category, u_int8_t* list_id) {
+  u_int32_t value;
+
+  static_assert(sizeof(value) == sizeof(ndpi_protocol_category_t),
+                "value must have the size of ndpi_protocol_category_t");
+
+  memcpy(&value, category, sizeof(value));
+
+  if (list_id) *list_id = (value >> 8) & 0xFF;
+
+  value &= 0xFF;
+
+  return ((value < NDPI_PROTOCOL_NUM_CATEGORIES)
+              ? static_cast<ndpi_protocol_category_t>(value)
+              : NDPI_PROTOCOL_CATEGORY_UNSPECIFIED);
 }

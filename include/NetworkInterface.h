@@ -62,6 +62,45 @@ class FlowDevicesStats;
 class TrafficShaper;
 class NetworkInterfacePro;
 class Sites;
+
+
+// ============================================================================
+// 1. EQUALITY OPERATOR (Required for std::unordered_map)
+// ============================================================================
+inline bool operator==(const ndpi_in6_addr& lhs, const ndpi_in6_addr& rhs) {
+  // Compare the entire 16-byte internal structures directly
+  return std::memcmp(&lhs, &rhs, sizeof(ndpi_in6_addr)) == 0;
+}
+
+// ============================================================================
+// 2. LESS-THAN OPERATOR (Required for std::set)
+// ============================================================================
+inline bool operator<(const ndpi_in6_addr& lhs, const ndpi_in6_addr& rhs) {
+  // memcmp returns < 0 if lhs is smaller, defining strict weak ordering
+  return std::memcmp(&lhs, &rhs, sizeof(ndpi_in6_addr)) < 0;
+}
+
+// ============================================================================
+// 3. CUSTOM HASH FUNCTION (Required for std::unordered_map)
+// ============================================================================
+namespace std {
+  template <>
+  struct hash<ndpi_in6_addr> {
+    size_t operator()(const ndpi_in6_addr& addr) const {
+      // An IPv6 address is 16 bytes long. We treat it as an array of four 32-bit integers
+      // and combine them using a standard hash-combine formula (similar to boost::hash_combine).
+      const uint32_t* p = reinterpret_cast<const uint32_t*>(&addr);
+
+      size_t seed = 0;
+      for (int i = 0; i < 4; ++i) {
+	// Combine the four 32-bit chunks into a single size_t hash seed
+	seed ^= std::hash<uint32_t>{}(p[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+      }
+      return seed;
+    }
+  };
+}
+
 #endif
 
 /** @class NetworkInterface
@@ -108,13 +147,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
   AlertsQueue* alertsQueue;
-#if defined(NTOPNG_PRO)
+#ifdef NTOPNG_PRO
   Sites *sites;
   PeriodicityMap* pMap;
   ServiceMap* sMap;
   ACLFlow* acl_flow;
-#endif
-#ifdef NTOPNG_PRO
+  std::unordered_map<struct ndpi_in6_addr /* host */, std::set<struct ndpi_in6_addr /* exporter IP */> > host_to_exporter;
+  std::unordered_map<struct ndpi_in6_addr /* exporter */, std::set<struct ndpi_in6_addr /* next_hop IP */> > exporter_to_exporter;
   QoEStats qoe_stats;
 #endif
 
@@ -1569,6 +1608,13 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     else
       return false;
   }
+
+#ifdef NTOPNG_PRO
+  void mapFlowTopology(IpAddress *host,
+		       struct ndpi_in6_addr *exporter_ip, u_int16_t host_in_exporter_index,
+		       struct ndpi_in6_addr *next_hop_ip, u_int16_t host_out_exporter_index);
+  void dumpFlowTopology(lua_State* vm);
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

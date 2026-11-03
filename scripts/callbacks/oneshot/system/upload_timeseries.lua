@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local callback_utils = require "callback_utils"
 local scripts_triggers = require "scripts_triggers"
 
-local ifnames = interface.getIfNames()
 
 -- ###########################################
 
@@ -22,6 +21,8 @@ local traceme = false
 
 while(not(ntop.isShuttingDown())) do
    local total
+   -- Needs here the ifnames, otherwise dynamic interfaces won't be accounted
+   local ifnames = interface.getIfNames()
 
    total = 0
    

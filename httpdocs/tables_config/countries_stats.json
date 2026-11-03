@@ -1,20 +1,41 @@
 {
-	"id": "device_exclusions",
-	"data_url": "lua/get_countries_data.lua",
+	"id": "countries_stats",
+	"data_url": "lua/rest/v2/get/country/list.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.countries_stats",
+	"default_sort": {
+		"column_id": "traffic",
+		"sort": 2
+	},
 	"columns": [
 		{
-			"title_i18n": "chart",
-			"data_field": "charts_enabled",
+			"id": "actions",
+			"title_i18n": "actions",
 			"sortable": false,
 			"sticky": true,
 			"class": [
-				"text-center",
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "country_hosts",
+					"icon": "fas fa-laptop",
+					"title_i18n": "country_stats.country_hosts",
+					"event_id": "click_button_country_hosts"
+				},
+				{
+					"id": "country_timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "country_stats.country_timeseries",
+					"event_id": "click_button_country_timeseries"
+				}
 			]
 		},
 		{
@@ -22,7 +43,6 @@
 			"title_i18n": "name",
 			"data_field": "name",
 			"sortable": true,
-			"sticky": false,
 			"class": [
 				"text-nowrap"
 			]
@@ -32,46 +52,50 @@
 			"data_field": "hosts",
 			"sortable": true,
 			"class": [
-                "text-center",
+				"text-center",
 				"text-nowrap"
-			]
+			],
+			"id": "hosts"
 		},
 		{
 			"title_i18n": "seen_since",
 			"data_field": "seen_since",
 			"sortable": true,
 			"class": [
-                "text-center",
+				"text-center",
 				"text-nowrap"
-			]
+			],
+			"id": "seen_since"
 		},
 		{
 			"title_i18n": "score",
 			"data_field": "score",
 			"sortable": true,
 			"class": [
-                "text-center",
+				"text-center",
 				"text-nowrap"
-			]
+			],
+			"id": "score"
 		},
 		{
-			"title_i18n": "breakdown",
+			"title_i18n": "if_stats_overview.traffic_breakdown",
 			"data_field": "breakdown",
 			"sortable": false,
 			"class": [
 				"text-nowrap",
 				"text-center"
-			]
+			],
+			"id": "breakdown"
 		},
-
 		{
 			"title_i18n": "throughput",
 			"data_field": "throughput",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
-				"text-center"
-			]
+				"text-end"
+			],
+			"id": "throughput"
 		},
 		{
 			"title_i18n": "traffic",
@@ -79,8 +103,9 @@
 			"sortable": true,
 			"class": [
 				"text-nowrap",
-				"text-center"
-			]
+				"text-end"
+			],
+			"id": "traffic"
 		}
 	]
 }

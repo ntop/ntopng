@@ -51,7 +51,7 @@ The rules can be set for each timeseries currently available in ntopng. The rule
 Configure Rules
 ^^^^^^^^^^^^^^^
 
-To add a new rule, click the '+' symbol above the table
+To add a new rule, click the 'Add rule' button at the top right of the page
 
 .. figure:: ../../../img/add_traffic_rule.png
   :align: center
@@ -60,20 +60,38 @@ To add a new rule, click the '+' symbol above the table
   Add a Traffic Rule
 
 At this point, fill the fields with the correct informations:
-  - Target: insert the subject (Local Host, Interface, Subnet, ...) to be analyzed or a * , meaning that everyone has to be analyzed (e.g. All Local Hosts);
-  - Metric: select the metric to be analyzed (e.g. DNS -> the DNS traffic);
-  - Frequency: select the frequency of the analysis (e.g. 5 Min -> analyzed every 5 minutes)
-  - Threshold: select the type of threshold (Volume, Throughput or Percentage), lowerbound or upperbound, and the threshold that, if exceeded, is going to trigger an alert
-  - Percentage Threshold: is calculcated beetwen the last two frequency checks (e.g. <1% with frequency 5 Min -> if the difference between precedent frequency and the last 5 minutes check is lower than 1% trigger and alert)
+  - Type: select the kind of subject to be analyzed (Interface, Host, Host pool, Network, VLAN, Traffic profile, Autonomous system or Flow exporter);
+  - Interface / Host / Network / ...: select the subject to be analyzed (e.g. the interface enp1s0, or the IP address of a Host);
+  - All local hosts: available for the Host type, tick this checkbox to analyze every active local host at once (e.g. All local hosts). This replaces the previous * wildcard target, which is no longer used;
+  - Metric: select the metric to be analyzed (e.g. Traffic (RX + TX), Score or an application such as DNS -> the DNS traffic);
+  - Measured as: select how the metric is measured: Average bandwidth (bits per second, averaged over the period), Total traffic (bytes exchanged during the period) or Change (increase or decrease compared to the previous period);
+  - Alert when the value is: select Above or Below, then the threshold value and its unit, that, if exceeded, is going to trigger an alert;
+  - Check every: select the frequency of the analysis (e.g. 5 minutes -> analyzed every 5 minutes, hour, day or month).
+
+A Summary box at the bottom of the form describes the rule in plain words before it is added.
 
 .. note::
   The available metrics to be analyzed depend on the available timeseries; this means that if the Application Timeseries are not enabled from the preferences, it's not possible to configure/trigger a rule based on Applications
 
 .. figure:: ../../../img/add_traffic_rule_modal.png
   :align: center
-  :alt: Example of Traffic Rule, triggering an alert when BitTorrent traffic is seen
+  :alt: Example of Traffic Rule, triggering an alert when the traffic of an interface is above 1 Mbps
 
-  Example of Traffic Rule, triggering an alert when BitTorrent traffic is seen
+  Example of Traffic Rule on an interface, triggering an alert when the traffic is above 1 Mbps
+
+Monitor All Local Hosts
+^^^^^^^^^^^^^^^^^^^^^^^
+
+To apply a rule to every local host, select the Host type and tick the 'All local hosts' checkbox: the rule is then checked on every active local host, and the Host field is disabled.
+
+.. figure:: ../../../img/traffic_rules_all_local_hosts.png
+  :align: center
+  :alt: Selecting All local hosts to monitor every local host
+
+  Selecting All local hosts to monitor every local host
+
+.. note::
+  The * wildcard used in previous versions in the Target field is no longer available: use the 'All local hosts' checkbox instead.
 
 From now on, a new entry with the configured fields is going to be added to the table and whenever the threshold is exceeded a new alert is going to be triggered.
 

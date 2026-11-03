@@ -102,7 +102,7 @@
 			]
 		},
 		{
-			"title_i18n": "qoe",
+			"title_i18n": "db_search.flowfilters.qoe",
 			"data_field": "qoe",
 			"sortable": true,
 			"min-width" : "70px",

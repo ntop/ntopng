@@ -119,6 +119,10 @@ extern "C" {
 #include <pcap/bpf.h> /* Used for bpf_filter() */
 #endif
 
+#ifndef _WIN32
+#include <regex.h> /* Syslog Rules */
+#endif
+
 #ifdef HAVE_DYNAMIC_NDPI
 #include <ndpi/ndpi_api.h>
 #else
@@ -202,6 +206,8 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <queue>
 #include <typeinfo>
 #include <thread>
+#include <cstring> // For std::memcmp
+#include <cstdint>    // For uint8_t, size_t
 
 extern const ndpi_protocol getConstNdpiUnknownProtocol();
 
@@ -439,7 +445,6 @@ using namespace std;
 #include <iomanip> /* std::setfill */
 using namespace clickhouse;
 #include "FlowsTable.h"
-#include "SyslogRegex.h"
 #include "ClickHouseDB.h"
 #endif
 #ifdef NTOPNG_PRO

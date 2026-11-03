@@ -153,7 +153,7 @@ function kea_dhcp_server.writeDhcpServerConfiguration(dhcp_config, all_interface
       ["lease-database"] = {
         type = "memfile",
         ["persist"] = true,
-        name = "/var/lib/kea/dhcp4.leases"
+        name = "/var/lib/kea/kea-leases4.csv"
       },
       ["expired-leases-processing"] = {
         ["reclaim-timer-wait-time"] = 10,

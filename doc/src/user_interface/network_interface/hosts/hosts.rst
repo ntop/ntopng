@@ -3,7 +3,7 @@
 Hosts
 #####
 
-Hosts is a dropdown menu always reachable from the top toolbar that contains a bunch of links to host-
+Hosts is a menu of the sidebar that contains a bunch of links to host-
 related information pages. The dropdown is as follows:
 
 .. figure:: ../../../img/web_gui_hosts_dropdown.png
@@ -21,42 +21,83 @@ Host-related information pages available have the following content
 Hosts
 -----
 
-All hosts that have been seen monitoring network interfaces are show here. Column headers can be
-clicked to sort results in descending (ascending) order of the clicked header (Additional sort options, if available, can be found in the top right corner of the table).
+The Hosts page shows the devices (hosts) that ntopng sees on the selected network interface.
+It has two tabs:
+
+- *Active Hosts*: the hosts that are exchanging traffic right now.
+- *Local Hosts Activity*: how much traffic your local hosts made over a period of time.
+
+If you open the page from an Autonomous System (for example from the AS list), an *AS Info*
+link appears at the top right: it opens the details of that Autonomous System.
+
+Active Hosts
+^^^^^^^^^^^^
 
 .. figure:: ../../../img/web_gui_hosts_all.png
   :align: center
-  :alt: Alls Hosts
+  :alt: Active Hosts
 
-  The All Hosts Page
+  The Active Hosts Tab
 
-Any host can be clicked to be redirected to its page, which is discussed below.
+This tab lists all the hosts that are active now, both inside your network (local) and
+outside it (remote). The list refreshes by itself every 10 seconds. Click a column title to
+sort the list by that column.
 
+For each host you can see:
 
-Live Hosts
-^^^^^^^^^^
+- its IP address, with small icons that describe it: the operating system, the country flag,
+  **L** for a local host, **R** for a remote host, and others (for example a blacklisted host)
+- its name
+- its VLAN (shown only if your network uses VLANs)
+- how many connections (flows) and alerts it has, and its score (the higher, the more
+  suspicious its traffic)
+- how long ago it was first seen
+- how much traffic it sends and receives, its current speed and its total traffic
 
-.. figure:: ../../../img/web_gui_hosts_all.png
-  :align: center
-  :alt: Live Hosts
+To open all the details of a host, click the button in the *Actions* column, or the small
+arrow icon next to its IP address. The menu next to the button also shows the connections
+(flows) of the host.
 
-  The Live Hosts Page
+Finding hosts
+"""""""""""""
 
-Here all currently active hosts can be found, both local and remote.
+Use the filters above the list to see only some hosts, for example only the local ones, only
+those of a VLAN or of a group (host pool). When there are many filters, they are inside the
+*Filters* button. Each active filter is shown above the list: click the **x** to remove it,
+or *Clear filters* to see all the hosts again.
 
-The table shown has several columns, including
+You can also filter by clicking a value in the list: for example click a country flag to see
+only the hosts of that country, or the **L** badge to see only the local hosts.
 
-- IP address, with optional country flag and OS logo (if detected)
-- Location, either Local (the host belongs to a local network) or Remote (the host belongs to a remote
-  network) — please note that this is not a geographical location
-- Alerts, with the number of alerts associated to the host
-- Name, having the resolved hostname (or a custom name, if set in any Host Details page)
-- Seen Since, with the amount of time it has lapsed since the first packet sent/received by the host has
-  been observed
-- ASN, with the AS number (if available)
-- Breakdown, showing a bar that gives visual insights in the use of both traffic directions
-- Throughput, with the overall actual throughput of the host
-- Traffic, with the total traffic exchanged by the host
+The filters you choose are kept in the address of the page, so you can bookmark it or send it
+to a colleague.
+
+Local Hosts Activity
+^^^^^^^^^^^^^^^^^^^^
+
+.. note::
+
+   This tab needs an Enterprise M license (or higher), and the host timeseries must be
+   enabled in the Preferences. If one of them is missing, the tab is greyed out: move the
+   mouse over it to see what is needed.
+
+This tab shows how much traffic each local host made in the period you choose with the time
+selector above the list (*Live* shows the traffic right now).
+
+For each host you can see the traffic sent and received, the traffic with other local hosts
+and with remote hosts, and the total. The *Availability* column shows one square for each part
+of the period: grey means no traffic, and the darker the green, the more traffic the host made.
+
+With *Hosts Type* you choose which hosts to list: those with traffic (the default), those
+without traffic, all the visible ones or the hidden ones.
+
+From the *Actions* column you can:
+
+- see the traffic chart of the host (only for the hosts that are active now)
+- hide a host you are not interested in, so it no longer appears in the list
+- show a hidden host again (first choose *Hidden* in *Hosts Type* to find it)
+
+Only administrators can hide or show hosts.
 
 Host Details
 ^^^^^^^^^^^^
@@ -413,3 +454,32 @@ Host Configuration
 
 In this page a user is able to give an Alias to an Host (an alternative name for an host that's going to be used in all ntopng), give a description to an host, 
 assign this host to an host pool or hide this host from the Top Talkers computation.
+
+MAC Addresses
+-------------
+
+The MAC Addresses page lists the network cards (MAC addresses) that ntopng sees on the
+selected network interface. Devices that are idle are not listed.
+
+For each MAC address you can see:
+
+- the MAC address
+- its manufacturer, and the model when ntopng recognizes it
+- the device type (for example laptop, phone, printer), with an icon
+- its name; when it has none, the first host (IP address) that uses it and how many other
+  hosts use it
+- how many hosts use it and how many ARP packets (the messages that link an IP address to
+  a MAC address) it sent and received
+- how long ago it was first seen
+- how much traffic it sends and receives, its current speed and its total traffic
+
+On nEdge a *Location* column also shows whether the device is on the LAN or on the WAN.
+
+Use the filters above the table to show only the MAC addresses that sent traffic (*Source
+Only*), or the ones of a manufacturer or of a device type. You can also click a manufacturer,
+a device type or a location in the table to filter by it. *Clear filters* removes all the
+filters.
+
+To open all the details of a MAC address, click the button in the *Actions* column, or the
+small arrow icon next to the MAC address. The menu next to the button also lists the hosts
+that use that MAC address.

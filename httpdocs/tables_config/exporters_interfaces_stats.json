@@ -4,10 +4,11 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.exporters_interfaces_stats",
 	"default_sort": {
-		"column_id": "traffic",
-		"sort": 1
+		"column_id": "total_bytes",
+		"sort": 2
 	},
 	"columns": [
 		{
@@ -15,78 +16,74 @@
 			"title_i18n": "actions",
 			"sortable": false,
 			"sticky": true,
-			"min-width" : "80px",
-			"max-width" : "80px",
+			"min-width": "90px",
+			"max-width": "90px",
 			"class": [
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
+				{
+					"id": "interface_overview",
+					"icon": "fas fa-ethernet",
+					"title_i18n": "flow_devices.interface_overview",
+					"event_id": "click_button_interface_overview"
+				},
+				{
+					"id": "flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "active_flows",
+					"event_id": "click_button_flows"
+				},
+				{
+					"id": "hosts",
+					"icon": "fas fa-laptop",
+					"title_i18n": "active_hosts",
+					"event_id": "click_button_hosts"
+				},
 				{
 					"id": "timeseries",
 					"icon": "fas fa-chart-area",
 					"title_i18n": "prefs.timeseries",
-					"class": [],
 					"event_id": "click_button_timeseries"
-				},
-				{
-					"id": "exporters_stats",
-					"icon": "fas fa-file-export",
-					"title_i18n": "exporters_stats",
-					"class": [],
-					"event_id": "click_button_exporters_stats"
-				},
-                {
-					"id": "flows",
-					"icon": "fas fa-stream",
-					"title_i18n": "active_flows",
-					"class": [],
-					"event_id": "click_button_flows"
-				},
-                {
-					"id": "hosts",
-					"icon": "fas fa-laptop",
-					"title_i18n": "active_hosts",
-					"class": [],
-					"event_id": "click_button_hosts"
 				}
 			]
 		},
-        {
-            "id": "exporter_ip",
-            "title_i18n": "flows_page.device_ip",
-            "data_field": "exporter_ip",
-            "sortable": true,
-            "min-width": "30px",
-            "class": [
-                "text-nowrap"
-            ]
-        },
-        {
-            "id": "interface_name",
-            "title_i18n": "interface_name",
-            "data_field": "interface_name",
-            "sortable": true,
-            "min-width": "80px",
-            "class": [
-                "text-left",
-                "text-nowrap"
-            ]
-        },
-        {
-            "id": "role",
-            "title_i18n": "snmp.interface_role",
-            "data_field": "role",
-            "sortable": true,
-            "min-width": "80px",
-            "class": [
-                "text-left",
-                "text-nowrap"
-            ]
-        },
 		{
-            "id": "bytes_sent",
+			"id": "exporter_ip",
+			"title_i18n": "flows_page.device_ip",
+			"data_field": "exporter_ip",
+			"sortable": true,
+			"min-width": "30px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "interface_name",
+			"title_i18n": "interface_name",
+			"data_field": "interface_name",
+			"sortable": true,
+			"min-width": "80px",
+			"class": [
+				"text-left",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "role",
+			"title_i18n": "snmp.interface_role",
+			"data_field": "role",
+			"sortable": true,
+			"min-width": "80px",
+			"class": [
+				"text-left",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "bytes_sent",
 			"title_i18n": "bytes_sent",
 			"data_field": "bytes_sent",
 			"sortable": true,
@@ -97,7 +94,7 @@
 			]
 		},
 		{
-            "id": "bytes_rcvd",
+			"id": "bytes_rcvd",
 			"title_i18n": "bytes_rcvd",
 			"data_field": "bytes_rcvd",
 			"sortable": true,
@@ -108,7 +105,7 @@
 			]
 		},
 		{
-            "id": "total_bytes",
+			"id": "total_bytes",
 			"title_i18n": "total_bytes",
 			"data_field": "total_bytes",
 			"sortable": true,

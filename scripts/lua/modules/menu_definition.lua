@@ -82,8 +82,9 @@ return function(f)
             icon = "fas fa-shield-alt",
             url = "/lua/active_scan.lua",
             hard_hidden = f.is_zmq_interface,
-            hidden = f.no_active_scan,
-            reason = { reason("feature", "menu.reason.no_active_scan", "menu.suggestion.no_active_scan") }
+            hidden = f.no_active_scan or f.no_admin,
+            reason = { reason("feature", "menu.reason.no_active_scan", "menu.suggestion.no_active_scan"), 
+                        f.no_admin and reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") or nil  }
         } -- pro entries appended by menu_definition_pro: infrastructure_dashboard, snmp_monitoring
         }
     },
@@ -132,7 +133,7 @@ return function(f)
             url = "/lua/flows_stats.lua",
             hidden = f.lightview,
             reason = { f.lightview and reason("iface", "menu.reason.lightview", "menu.suggestion.lightview") or nil },
-        } -- pro entries appended by menu_definition_pro: db_explorer, server_ports, bgp_looking_glass
+        } -- pro entries appended by menu_definition_pro: db_explorer, bgp_looking_glass
         }
     },
     {
@@ -406,7 +407,9 @@ return function(f)
             key = "analyze_pcap",
             i18n = "upload_pcap",
             icon = "fas fa-file-upload",
-            url = "/lua/upload_pcap.lua"
+            url = "/lua/upload_pcap.lua",
+            hidden = f.no_admin,
+            reason = { reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") }
         }, {
             key = "manage_data",
             i18n = "manage_data.manage_data",

@@ -1,0 +1,72 @@
+{
+	"id": "notification_connections",
+	"data_url": "",
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "notifications_page.empty_connections",
+	"default_sort": {
+		"column_id": "endpoint_conf_name",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"danger": true,
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"id": "endpoint_conf_name",
+			"title_i18n": "name",
+			"data_field": "endpoint_conf_name",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "channel",
+			"title_i18n": "notifications_page.channel",
+			"data_field": "endpoint_key",
+			"sortable": true,
+			"min-width": "130px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_recipients",
+			"title_i18n": "notifications_page.used_by",
+			"data_field": "num_recipients",
+			"sortable": true,
+			"min-width": "200px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

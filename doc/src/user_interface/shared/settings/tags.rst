@@ -234,6 +234,8 @@ of a misconfigured or outdated mail client.
    from every fixed host, or could not tell the fixed hosts from the ones
    still to be fixed.
 
+.. _AssetTagsTTL:
+
 Asset Tag Expiration (TTL)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -279,6 +281,8 @@ If a tag is not refreshed for longer than its TTL, it is removed from the
 asset. For example, with a TTL of 30 days on the *DNS Server* tag, an
 asset that has not been seen answering DNS queries for 30 days is no
 longer listed as a DNS server; if it starts again, the tag is back.
+Every tag added to or removed from an asset, with its cause, is recorded in
+the :ref:`assets journal <AssetsJournal>`.
 
 Things worth knowing:
 

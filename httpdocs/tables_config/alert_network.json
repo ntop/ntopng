@@ -6,7 +6,8 @@
     "paging": true,
     "rsp_records_field": "records",
     "rsp_query_info_field": "stats",
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.alerts",
     "columns": [
 	{
 	    "id": "actions",
@@ -15,13 +16,13 @@
 	    "sticky": true,
 		 "min-width" : "80px",
 	    "class": ["text-nowrap", "text-center"],
-	    "render_v_node_type": "button_list",
+	    "render_v_node_type": "split_button",
 	    "button_def_array": [
 		{ "id": "info", "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" },
 		{ "id": "acknowledge", "icon": "fas fa fa-user-check", "title_i18n": "acknowledge", "event_id": "click_button_acknowledge" },
 		{ "id": "disable", "icon": "fas fa fa-bell-slash", "title_i18n": "disable", "event_id": "click_button_disable" },
 		{ "id": "settings", "icon": "fas fa fa-cog", "title_i18n": "settings", "event_id": "click_button_settings" },
-		{ "id": "remove", "icon": "fas fa fa-trash", "title_i18n": "remove", "event_id": "click_button_remove" }
+		{ "id": "remove", "icon": "fas fa fa-trash", "title_i18n": "remove", "event_id": "click_button_remove", "danger": true }
 	    ]
 	},
 	{

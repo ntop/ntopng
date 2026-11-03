@@ -622,6 +622,10 @@ u_int32_t PcapInterface::getNumDroppedPackets() {
 #ifndef WIN32
   u_int32_t tot = 0;
 
+  /* No statistics from pcap files, whose handles are also closed by the
+   * packet thread when moving to the next file (see set_pcap_handle()) */
+  if (read_pkts_from_pcap_dump) return (0);
+
   for (u_int8_t i = 0; i < get_num_ifaces(); i++) {
     /* It seems this leads to crashes on Windows */
     struct pcap_stat pcapStat;

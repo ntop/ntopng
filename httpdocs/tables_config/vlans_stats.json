@@ -1,6 +1,6 @@
 {
 	"id": "vlans_stats",
-	"data_url": "lua/get_vlans_data.lua",
+	"data_url": "lua/rest/v2/get/vlan/list.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
@@ -11,6 +11,39 @@
 		"sort": 1
 	},
 	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "vlan_hosts",
+					"icon": "fas fa-laptop",
+					"title_i18n": "vlan_stats.vlan_hosts",
+					"event_id": "click_button_vlan_hosts"
+				},
+				{
+					"id": "vlan_timeseries",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "vlan_stats.vlan_timeseries",
+					"event_id": "click_button_vlan_timeseries"
+				},
+				{
+					"id": "vlan_config",
+					"icon": "fas fa-cog",
+					"title_i18n": "vlan_stats.vlan_config",
+					"event_id": "click_button_vlan_config"
+				}
+			]
+		},
 		{
 			"id": "vlan_id",
 			"title_i18n": "vlan_stats.vlan_id",
@@ -51,7 +84,7 @@
 		},
 		{
 			"id": "breakdown",
-			"title_i18n": "breakdown",
+			"title_i18n": "if_stats_overview.traffic_breakdown",
 			"data_field": "breakdown",
 			"sortable": false,
 			"class": [

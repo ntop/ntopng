@@ -49,6 +49,14 @@ void Fingerprint::update(const char* _fprint, const char* app_name,
 
 /* *************************************** */
 
+void Fingerprint::reset() {
+  m.lock(__FILE__, __LINE__);
+  fp.clear();
+  m.unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
 void Fingerprint::lua(const char* key, lua_State* vm) {
   lua_newtable(vm);
 

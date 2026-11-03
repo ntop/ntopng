@@ -182,7 +182,9 @@ class Ntop {
   /* Threads info */
   struct ThreadInfo {
     std::string name;
+#ifndef _WIN32
     clockid_t cpu_clock_id; /* used to read CPU time */
+#endif
     bool cpu_clock_valid;
     struct timespec last_cpu_ts;     /* last CPU clock sample */
     struct timespec last_elapsed_ts; /* cpu time of last clock sample */
@@ -584,7 +586,7 @@ class Ntop {
   bool isInterfaceAllowed(lua_State* vm, const char* ifname) const;
   bool isInterfaceAllowed(lua_State* vm, int ifid) const;
   bool isPcapDownloadAllowed(lua_State* vm, const char* ifname);
-  char* preparePcapDownloadFilter(lua_State* vm, char* filter);
+  char* preparePcapDownloadFilter(lua_State* vm, char* filter, int datalink);
   bool isLocalAuthEnabled() const;
   bool isLocalUser(lua_State* vm);
   bool checkCaptiveUserPassword(const char* user, const char* password,
