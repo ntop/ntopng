@@ -141,6 +141,7 @@ class Redis {
   int lpop(const char* queue_name, char** buf);
   int rpop(const char* queue_name, char** buf);
   int incr(const char* key, int amount);
+  int ttl(const char* key);
   int flushDb();
   void flushCache();
   void lua(lua_State* vm);
