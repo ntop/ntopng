@@ -81,7 +81,7 @@ return function(f)
             i18n = "scan_hosts",
             icon = "fas fa-shield-alt",
             url = "/lua/active_scan.lua",
-            hard_hidden = f.is_zmq_interface,
+            hard_hidden = f.is_zmq_interface or f.is_nedge,
             hidden = f.no_active_scan or f.no_admin,
             reason = { reason("feature", "menu.reason.no_active_scan", "menu.suggestion.no_active_scan"), 
                         f.no_admin and reason("perm", "menu.reason.no_admin", "menu.suggestion.no_admin") or nil  }
