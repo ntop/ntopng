@@ -303,6 +303,7 @@ schema:addMetric("bytes_rcvd")
 schema = ts_utils.newSchema("blacklist_v2:hits", {
 	step = 300,
 	metrics_type = ts_utils.metrics.gauge,
+	is_system_schema = true, -- written every 5 min by callbacks/5minute/system/blacklist.lua, also with high resolution timeseries
 })
 schema:addTag("ifid")
 schema:addTag("blacklist_name")

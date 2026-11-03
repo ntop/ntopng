@@ -49,3 +49,18 @@ Alerts that require human attention and should be manually handled (e.g. related
   :alt: Important Past Alerts Page
 
   Important Past Alerts Page
+
+Alert Details
+^^^^^^^^^^^^^
+
+The **Details** action of a flow alert opens its details (alert, flow peers, protocol, traffic and
+detected issues) in a side card. Turn off the **Details card** switch above the table to open the
+full details page instead. Alerts of an Autonomous System always open the full page. The page title
+shows the path *Alerts Explorer / Alert*: click **Alerts Explorer** to go back to the alerts.
+
+Alerts Map
+^^^^^^^^^^
+
+On the **Flow** and **Host** tabs, the globe button next to the chart button replaces the chart with
+a world map that colors each country by the number of alerts of its hosts. The map needs ClickHouse
+and the GeoIP databases.

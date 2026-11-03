@@ -251,11 +251,6 @@ page_utils.menu_entries = {
         i18n_title = "details.alerts_graph",
         section = "alerts"
     },
-    alerts_geomap = {
-        key = "alerts_geomap",
-        i18n_title = "details.alerts_geomap",
-        section = "alerts"
-    },
     alerts_groups = {
         key = "alerts_groups",
         i18n_title = "details.alerts_groups",

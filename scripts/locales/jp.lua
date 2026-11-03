@@ -3186,7 +3186,6 @@ local lang = {
     ["ago"] = "前",
     ["alerts"] = "アラート",
     ["alerts_analysis"] = "フローアラート分析",
-    ["alerts_geomap"] = "アラート地理マップ",
     ["alerts_graph"] = "アラートグラフ",
     ["alerts_list"] = "エクスプローラー",
     ["arp_replies"] = "ARP応答",

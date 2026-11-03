@@ -3186,7 +3186,6 @@ local lang = {
     ["ago"] = "vor",
     ["alerts"] = "Warnmeldungen",
     ["alerts_analysis"] = "Durchflusswarn-Analysator",
-    ["alerts_geomap"] = "Warnungen Geomap",
     ["alerts_graph"] = "Warnungsdiagramm",
     ["alerts_list"] = "Forscher",
     ["arp_replies"] = "ARP-Antworten",

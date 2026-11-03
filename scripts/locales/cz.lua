@@ -3186,7 +3186,6 @@ local lang = {
     ["ago"] = "před",
     ["alerts"] = "Upozornění",
     ["alerts_analysis"] = "Analyzátor výstrah toku",
-    ["alerts_geomap"] = "Geomapa upozornění",
     ["alerts_graph"] = "Upozornění Graf",
     ["alerts_list"] = "Badatel",
     ["arp_replies"] = "ARP Replies",

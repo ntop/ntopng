@@ -21,6 +21,7 @@ local timeseries_list = {{
     label = i18n('graphs.metric_labels.top_blacklist_hits'),
     description = i18n("graphs.metric_descr.top_blacklist_hits"),
     type = "top",
+    disable_default_ago_ts = true,
     draw_stacked = true,
     priority = 2,
     measure_unit = "number",

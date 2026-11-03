@@ -203,6 +203,16 @@ For Networks, there will be displayed:
   Dashboard Sites Details
 
 
+Site Charts
+^^^^^^^^^^^
+
+The traffic history of a site (incoming, outgoing and internal traffic) is shown in its chart page.
+Open it from the chart icon of a site in the **Sites** list, or from the open icon of the
+**Traffic Time Series** card while a site is selected. The page title shows the path
+*Sites / <site name>*: click **Sites** to go back to the dashboard. As in the other chart pages, you
+can change the time range, the metric and the chart layout.
+
+
 Exploring an Exporter
 ^^^^^^^^^^^^^^^^^^^^^^
 

@@ -7115,6 +7115,28 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/sites/list.lua": {
+      "get": {
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Get the sites",
+        "description": "List of the configured sites (id, name, description, latitude, longitude, networks, reserved). Needs an Enterprise M license (or higher).",
+        "operationId": "get_sites_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/interface/top/sites.lua": {
       "get": {
         "tags": [
@@ -13008,6 +13030,13 @@
             "name": "l7_error_id",
             "in": "query",
             "description": "Application layer error identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "custom_script",
+            "in": "query",
+            "description": "Title of a custom flow script that triggered the alert, with operator: <title>;eq, <title>;neq, <text>;in (title contains it), <text>;nin. Matches any of the scripts of the custom alert, also when it is not the main alert of the flow",
             "required": false,
             "type": "string"
           },

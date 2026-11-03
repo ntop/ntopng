@@ -58,6 +58,10 @@ Details page can be opened for each profile simply by clicking on the |chart_ico
 
   The Traffic Profiles Summary Page
 
+Administrators can also open it from the chart action of each profile in *Settings → Traffic Profiles*.
+The page title shows the path *Traffic Profiles / <profile name>*: click **Traffic Profiles** to go
+back to the list.
+
 Profile Details page shows historical profile traffic. An optional table with historical flow details — for flows
 matching the selected profile — is shown below the chart if ntopng was started with the -F modifier.
 

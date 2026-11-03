@@ -3186,7 +3186,6 @@ local lang = {
     ["ago"] = "~ 전에",
     ["alerts"] = "경고",
     ["alerts_analysis"] = "흐름 경고 분석기",
-    ["alerts_geomap"] = "경고 지리지도",
     ["alerts_graph"] = "경고 그래프",
     ["alerts_list"] = "탐침",
     ["arp_replies"] = "ARP 응답",

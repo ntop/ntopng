@@ -170,6 +170,13 @@ source port, destination port, L4 protocol, L7 application protocol, VLAN,
 ASN, etc.)
 
 A **high-resolution chart** aggregates the HR counters of all flows matching the active filters.
+The **Group By** menu at the start of the filter bar splits the traffic by application, application
+category, L4 protocol, client ASN or server ASN (*Aggregate all* shows the total). The time range is
+selected above the chart.
+
+The menu entry is greyed out, with the reason, when the selected interface has no flows with HR
+counters or when the license or ClickHouse is missing. When the selected interface is part of a
+view interface, the page shows the charts of the view.
 
 .. figure:: ../img/hr_timeseries_aggregation.png
 

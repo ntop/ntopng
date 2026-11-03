@@ -3255,7 +3255,6 @@ local lang = {
     ["ago"] = "前",
     ["alerts"] = "警示",
     ["alerts_analysis"] = "流量警示分析器",
-    ["alerts_geomap"] = "警示地理地圖",
     ["alerts_graph"] = "警示圖",
     ["alerts_list"] = "瀏覽",
     ["arp_replies"] = "ARP 回覆",

@@ -3186,7 +3186,6 @@ local lang = {
     ["ago"] = "atrás",
     ["alerts"] = "Alertas",
     ["alerts_analysis"] = "Analizador de alertas de flujo",
-    ["alerts_geomap"] = "Alertas Geomapa",
     ["alerts_graph"] = "Gráfico de alertas",
     ["alerts_list"] = "Explorador",
     ["arp_replies"] = "Respuestas ARP",
