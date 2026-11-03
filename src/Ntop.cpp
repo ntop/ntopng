@@ -2762,7 +2762,9 @@ static const char* base32_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 static int base32_encode(const uint8_t* src, int src_len, char* dst,
                          int dst_len) {
   int i, written = 0;
-  int bits = 0, val = 0;
+  int bits = 0;
+  uint32_t val = 0; /* Only the low bits are used: unsigned, so that the
+                       shifts of the older bits can't overflow */
 
   for (i = 0; i < src_len && written < dst_len - 1; i++) {
     val = (val << 8) | src[i];
@@ -2781,7 +2783,8 @@ static int base32_encode(const uint8_t* src, int src_len, char* dst,
 /* Decode Base32 string to binary. Returns number of bytes decoded, or -1 on
  * error. */
 static int base32_decode(const char* src, uint8_t* dst, int dst_len) {
-  int val = 0, bits = 0, written = 0;
+  int bits = 0, written = 0;
+  uint32_t val = 0; /* See base32_encode() */
   for (int i = 0; src[i] != '\0'; i++) {
     char c = toupper((unsigned char)src[i]);
     const char* p = strchr(base32_alphabet, c);
@@ -2789,7 +2792,7 @@ static int base32_decode(const char* src, uint8_t* dst, int dst_len) {
       if (c == '=') break; /* padding */
       return -1;           /* invalid character */
     }
-    val = (val << 5) | (int)(p - base32_alphabet);
+    val = (val << 5) | (uint32_t)(p - base32_alphabet);
     bits += 5;
     if (bits >= 8) {
       if (written >= dst_len) return -1;
@@ -2938,22 +2941,79 @@ bool Ntop::setUserTOTPEnabled(const char* username, bool enabled) const {
 
 /* ******************************************* */
 
+/* The TOTP attempts counter of a locked user must not get a longer lock at
+   each new attempt, but it must not last forever either, in case the expire
+   set by a previous attempt got lost */
+static void ensureTOTPLockExpires(char* key) {
+  if (ntop->getRedis()->ttl(key) == -1)
+    ntop->getRedis()->expire(key, FAILED_LOGIN_ATTEMPTS_INTERVAL);
+}
+
+/* ******************************************* */
+
 bool Ntop::validateTOTPCode(const char* username, const char* code) const {
-  char secret[64];
+  char secret[64], key[CONST_MAX_LEN_REDIS_KEY];
+  int cur_attempts;
+
   if (!getUserTOTPSecret(username, secret, sizeof(secret))) return false;
   if (strlen(code) != 6) return false;
   for (int i = 0; code[i]; i++)
     if (!isdigit((unsigned char)code[i])) return false;
+
+  /* Account the attempt (atomically) before evaluating the code, so that
+     concurrent guesses cannot exceed the limit. The counter is per user (not
+     per client address or pending token) so that it can't be reset by
+     spreading the guesses or by logging in again with the password. The key
+     is outside "ntopng.cache." so that its TTL reaches Redis (see
+     Redis::isCacheable()) */
+  snprintf(key, sizeof(key), "%s.%s", MFA_FAILED_PREFIX, username);
+  cur_attempts = ntop->getRedis()->incr(key, 1);
+
+  if (cur_attempts <= 0) return false; /* Redis error: fail closed */
+
+  if (cur_attempts > MAX_FAILED_LOGIN_ATTEMPTS) {
+    ensureTOTPLockExpires(key);
+    return false;
+  }
+
+  ntop->getRedis()->expire(key, FAILED_LOGIN_ATTEMPTS_INTERVAL);
 
   int input_code = atoi(code);
   uint64_t counter = (uint64_t)(time(NULL) / 30);
 
   /* Allow ±1 window (90 seconds total) to handle clock skew */
   for (int delta = -1; delta <= 1; delta++) {
-    if (compute_totp(secret, counter + (uint64_t)delta) == input_code)
+    if (compute_totp(secret, counter + (uint64_t)delta) == input_code) {
+      ntop->getRedis()->del(key);
       return true;
+    }
   }
+
+  if (cur_attempts == MAX_FAILED_LOGIN_ATTEMPTS)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                 "Too many wrong TOTP codes for user '%s': MFA "
+                                 "verification locked for %d seconds",
+                                 username, FAILED_LOGIN_ATTEMPTS_INTERVAL);
+
   return false;
+}
+
+/* ******************************************* */
+
+/* True when the user has used up the TOTP attempts: validateTOTPCode()
+   refuses any code until the counter expires */
+bool Ntop::isTOTPLocked(const char* username) const {
+  char key[CONST_MAX_LEN_REDIS_KEY], val[16];
+
+  snprintf(key, sizeof(key), "%s.%s", MFA_FAILED_PREFIX, username);
+
+  if ((ntop->getRedis()->get(key, val, sizeof(val)) < 0) || (val[0] == '\0'))
+    return false;
+
+  if (atoi(val) < MAX_FAILED_LOGIN_ATTEMPTS) return false;
+
+  ensureTOTPLockExpires(key);
+  return true;
 }
 
 /* ******************************************* */

@@ -1356,12 +1356,32 @@ static void mfa_authorize(struct mg_connection* conn,
     got_token = true;
   }
 
+  if (got_token && ntop->isTOTPLocked(user)) {
+    /* Too many wrong codes: drop the pending token and send the client back
+       to the login page. Not traced as a failed login, so that a locked-out
+       client can't flood the failed-login alerts */
+    ntop->deleteMFAPendingToken(token);
+    mg_printf(conn,
+              "HTTP/1.1 302 Found\r\nLocation: %s/lua/login.lua?reason=mfa-locked"
+              "\r\n\r\n",
+              ntop->getPrefs()->get_http_prefix());
+    return;
+  }
+
   if (!got_token || !ntop->validateTOTPCode(user, code)) {
     /* Invalid or expired token / wrong code */
     char url[256];
     if (got_token) {
-      snprintf(url, sizeof(url), "%s%s?token=%s&reason=wrong-code",
-               ntop->getPrefs()->get_http_prefix(), MFA_VERIFY_URL, token);
+      HTTPserver::traceLogin(user, NULL, false);
+
+      if (ntop->isTOTPLocked(user)) {
+        /* This was the last allowed attempt */
+        ntop->deleteMFAPendingToken(token);
+        snprintf(url, sizeof(url), "%s/lua/login.lua?reason=mfa-locked",
+                 ntop->getPrefs()->get_http_prefix());
+      } else
+        snprintf(url, sizeof(url), "%s%s?token=%s&reason=wrong-code",
+                 ntop->getPrefs()->get_http_prefix(), MFA_VERIFY_URL, token);
     } else {
       snprintf(url, sizeof(url), "%s/lua/login.lua?reason=session-expired",
                ntop->getPrefs()->get_http_prefix());

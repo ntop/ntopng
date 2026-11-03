@@ -8109,6 +8109,7 @@ local lang = {
     ["logout"] = "Logout",
     ["logout_message"] = "Are you sure you want to logout?",
     ["logout_user_x"] = "Logout %{user}",
+    ["mfa-locked"] = "Too many wrong verification codes. Please try again later.",
     ["mfa_passkey"] = "<A HREF='https://www.ntop.org/guides/ntopng/authentication.html?utm_source=ntopng'> <i class='fas fa-shield-alt'></i> |  <i class='fas fa-fingerprint'></i> | <i class='fa-brands fa-openid'></i> </A>",
     ["must_change_password"] = "Default admin password must be changed. Please enter a new password below.",
     ["oidc-error"] = "SSO authentication failed. Please try again or use local login.",
