@@ -5571,7 +5571,9 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
         break;
 
       case ndpi_serialization_string:
-        ndpi_deserialize_key_string(&deserializer, &ks);
+        if ((ndpi_deserialize_key_string(&deserializer, &ks) < 0) ||
+            (ks.str == NULL))
+          return; /* Truncated item */
         snprintf(key, sizeof(key), "%.*s", ks.str_len, ks.str);
         break;
 
@@ -5618,7 +5620,7 @@ void Utils::tlv2serializer(ndpi_serializer* tvl_serializer,
     }
 
     /* Move to the next element */
-    ndpi_deserialize_next(&deserializer);
+    if (ndpi_deserialize_next(&deserializer) < 0) return;
   }
 }
 
@@ -5656,7 +5658,9 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
         break;
 
       case ndpi_serialization_string:
-        ndpi_deserialize_key_string(&deserializer, &ks);
+        if ((ndpi_deserialize_key_string(&deserializer, &ks) < 0) ||
+            (ks.str == NULL))
+          return; /* Truncated item */
         snprintf(key, sizeof(key), "%.*s", ks.str_len, ks.str);
         break;
 
@@ -5704,7 +5708,7 @@ void Utils::tlv2lua(lua_State* vm, ndpi_serializer* serializer) {
     }
 
     /* Move to the next element */
-    ndpi_deserialize_next(&deserializer);
+    if (ndpi_deserialize_next(&deserializer) < 0) return;
   }
 }
 
