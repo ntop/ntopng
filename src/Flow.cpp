@@ -7451,6 +7451,8 @@ void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
         // return; /* It's enough to decode the first name */
     }
 
+    if ((i + sizeof(rsp) + data_len) >= payload_len) return; /* no more records */
+
     i += sizeof(rsp) + data_len, answers--;
   }
 }
