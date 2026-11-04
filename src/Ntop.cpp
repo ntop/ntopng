@@ -2293,40 +2293,56 @@ bool Ntop::resetUserPassword(char* username, char* old_password,
 
 /* ******************************************* */
 
-/* Remove all HTTP sessions of the specified user, except keep_session_id */
+/* Remove all HTTP sessions of the specified user, except keep_session_id, and
+   the logins of the user still waiting for the second factor (MFA or Passkey):
+   they were started with a password that may no longer be valid, or by a user
+   that no longer exists */
 void Ntop::invalidateUserSessions(const char* username,
                                   const char* keep_session_id) {
-  char **keys = NULL, val[128];
-  const char* prefix = "ntopng.cache.sessions.";
-  size_t prefix_len = strlen(prefix), user_len;
-  int num_keys;
+  const char* prefixes[] = {"ntopng.cache.sessions.", MFA_PENDING_PREFIX ".",
+                            WEBAUTHN_PENDING_PREFIX "."};
+  char pattern[64], val[512];
+  size_t user_len;
 
   if ((username == NULL) || (username[0] == '\0')) return;
 
   user_len = strlen(username);
-  num_keys = ntop->getRedis()->keys("ntopng.cache.sessions.*", &keys);
 
-  for (int i = 0; i < num_keys; i++) {
-    if (keys[i] == NULL) continue;
+  for (u_int p = 0; p < sizeof(prefixes) / sizeof(prefixes[0]); p++) {
+    const char* prefix = prefixes[p];
+    size_t prefix_len = strlen(prefix);
+    char** keys = NULL;
+    int num_keys;
 
-    if ((keep_session_id != NULL) && (keep_session_id[0] != '\0') &&
-        (strncmp(keys[i], prefix, prefix_len) == 0) &&
-        (strcmp(&keys[i][prefix_len], keep_session_id) == 0)) {
+    snprintf(pattern, sizeof(pattern), "%s*", prefix);
+    num_keys = ntop->getRedis()->keys(pattern, &keys);
+
+    for (int i = 0; i < num_keys; i++) {
+      if (keys[i] == NULL) continue;
+
+      if ((p == 0) && (keep_session_id != NULL) &&
+          (keep_session_id[0] != '\0') &&
+          (strncmp(keys[i], prefix, prefix_len) == 0) &&
+          (strcmp(&keys[i][prefix_len], keep_session_id) == 0)) {
+        free(keys[i]);
+        continue;
+      }
+
+      /* Value format: user|... (session: user|group|csrf|localuser,
+         pending MFA: user|referer, pending Passkey: user|referer|challenge) */
+      if ((ntop->getRedis()->get(keys[i], val, sizeof(val)) == 0) &&
+          (strncmp(val, username, user_len) == 0) && (val[user_len] == '|')) {
+        ntop->getTrace()->traceEvent(TRACE_INFO,
+                                     "[HTTP] Invalidating %s of user %s",
+                                     keys[i], username);
+        ntop->getRedis()->del(keys[i]);
+      }
+
       free(keys[i]);
-      continue;
     }
 
-    /* Session value format: user|group|csrf|localuser */
-    if ((ntop->getRedis()->get(keys[i], val, sizeof(val)) == 0) &&
-        (strncmp(val, username, user_len) == 0) && (val[user_len] == '|')) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Invalidating session %s of user %s", keys[i], username);
-      ntop->getRedis()->del(keys[i]);
-    }
-
-    free(keys[i]);
+    if (keys) free(keys);
   }
-
-  if (keys) free(keys);
 }
 
 /* ******************************************* */
@@ -2671,6 +2687,11 @@ bool Ntop::addUser(char* username, char* full_name, char* password,
     users_m.unlock(__FILE__, __LINE__);
     return (false);
   }
+
+  /* Leftovers of a deleted user with the same name: only the granted
+     permissions are set below, and the second factor must not be inherited */
+  deleteUserKeys(username);
+  invalidateUserSessions(username);
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->set(key, full_name, 0);
@@ -3902,23 +3923,12 @@ bool Ntop::isCaptivePortalUser(const char* username) {
 
 /* ******************************************* */
 
-bool Ntop::deleteUser(char* username) {
-  char user_id_buf[8];
+/* Delete all the per-user keys of the specified user: account, preferences,
+   permissions, API token, second factor (MFA and Passkeys). Also called before
+   adding a user, as older versions left some of them when deleting a user,
+   and a new user with the same name would inherit them. */
+void Ntop::deleteUserKeys(const char* username) const {
   char key[CONST_MAX_LEN_REDIS_KEY];
-
-  users_m.lock(__FILE__, __LINE__);
-
-  if (!existsUser(username)) {
-    users_m.unlock(__FILE__, __LINE__);
-    return (false);
-  }
-
-  snprintf(key, sizeof(key), CONST_STR_USER_ID, username);
-
-  /* Dispose the currently assigned user id so that it can be recycled */
-  if ((ntop->getRedis()->get(key, user_id_buf, sizeof(user_id_buf)) >= 0)) {
-    ntop->getRedis()->srem(PREF_NTOP_USER_IDS, user_id_buf);
-  }
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->del(key);
@@ -3991,13 +4001,37 @@ bool Ntop::deleteUser(char* username) {
   snprintf(key, sizeof(key), CONST_STR_USER_TOTP_ENABLED, username);
   ntop->getRedis()->del(key);
 
-  for (int i = 0, num_creds = getWebAuthnCredentialCount(username); i < num_creds; i++) {
+  for (int i = 0; i < WEBAUTHN_MAX_CREDS; i++) {
     snprintf(key, sizeof(key), CONST_STR_USER_WEBAUTHN_CRED, username, i);
     ntop->getRedis()->del(key);
   }
 
   snprintf(key, sizeof(key), CONST_STR_USER_WEBAUTHN_CRED_COUNT, username);
   ntop->getRedis()->del(key);
+
+}
+
+/* ******************************************* */
+
+bool Ntop::deleteUser(char* username) {
+  char user_id_buf[8];
+  char key[CONST_MAX_LEN_REDIS_KEY];
+
+  users_m.lock(__FILE__, __LINE__);
+
+  if (!existsUser(username)) {
+    users_m.unlock(__FILE__, __LINE__);
+    return (false);
+  }
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ID, username);
+
+  /* Dispose the currently assigned user id so that it can be recycled */
+  if ((ntop->getRedis()->get(key, user_id_buf, sizeof(user_id_buf)) >= 0)) {
+    ntop->getRedis()->srem(PREF_NTOP_USER_IDS, user_id_buf);
+  }
+
+  deleteUserKeys(username);
 
   invalidateUserSessions(username);
 

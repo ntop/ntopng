@@ -695,6 +695,7 @@ class Ntop {
   bool addUserAPIToken(const char* username, const char* api_token);
   bool isCaptivePortalUser(const char* username);
   bool deleteUser(char* username);
+  void deleteUserKeys(const char* username) const;
   bool getUserHostPool(char* username, u_int16_t* host_pool_id);
   bool getUserAllowedIfname(const char* username, char* buf,
                             size_t buflen) const;
