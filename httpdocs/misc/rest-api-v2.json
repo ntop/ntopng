@@ -14626,7 +14626,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "Column (ip_address, name, mac_address, vlan, network, device_type, manufacturer, first_seen, last_seen, os, model, status, switch_ip, switch_port)",
+            "description": "Column (ip_address, name, mac_address, vlan, network, device_type, manufacturer, first_seen, last_seen, os (the OS tag), model, status, switch_ip, switch_port)",
             "required": false,
             "type": "string"
           },
@@ -14675,7 +14675,7 @@
           {
             "name": "os_type",
             "in": "query",
-            "description": "Filter",
+            "description": "Filter on the OS learnt by the host (not the OS tag: see label)",
             "required": false,
             "type": "string"
           },
