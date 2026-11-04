@@ -4,7 +4,8 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.active_scan_open_ports",
 	"default_sort": {
 		"column_id": "port",
 		"sort": 1
@@ -19,7 +20,7 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "show_hosts",

@@ -2611,10 +2611,11 @@ elseif (page == "unassigned_pool_devices") then
 elseif (page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
 elseif page == "traffic_report" then
-    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
-    local traffic_report = require "traffic_report"
-
-    traffic_report.generate_traffic_report()
+    -- Drawn by page-traffic-report.vue (pro/rest/v2/get/traffic_report/data.lua)
+    template.render("pages/vue_page.template", {
+        vue_page_name = "PageTrafficReport",
+        page_context = json.encode({ ifid = ifid, csrf = ntop.getRandomCSRFValue() })
+    })
 end
 
 print("<script>\n")

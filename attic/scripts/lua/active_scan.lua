@@ -1,0 +1,201 @@
+--
+-- (C) 2013-26 - ntop.org
+--
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
+
+if(ntop.isPro and ntop.isPro()) then
+    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+ end
+
+require "lua_utils"
+local page_utils = require("page_utils")
+local template = require("template_utils")
+local graph_utils = require("graph_utils")
+local json = require("dkjson")
+local auth = require "auth"
+local ascan_utils = require "ascan_utils"
+local format_utils = require "format_utils"
+
+
+if not isAllowedSystemInterface() then return end
+
+sendHTTPContentTypeHeader('text/html')
+
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.active_scan)
+
+local base_url = ntop.getHttpPrefix() .. "/lua/active_scan.lua"
+local charts_available = areHostTimeseriesEnabled(ifId, nil)
+
+local page = _GET["page"] or ('overview')
+local host_ip = _GET["host"]
+local printable = toboolean(_GET["printable"])
+local scan_type = _GET["scan_type"]
+local scan_date = _GET["scan_date"]
+local ifid = _GET["ifid"]
+local epoch = tonumber(_GET["epoch"] or 0)
+
+local navbar_title = i18n("scan_hosts")
+
+if host_ip ~= nil then
+    navbar_title = "<a href='" .. base_url .. "'>" .. navbar_title .. ": " .. "</a>"  .. host_ip 
+end
+
+local is_host_defined = host_ip ~= nil
+
+if isEmptyString(ifid) then
+    ifid = interface.getId()
+end
+
+if not printable then
+    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+    page_utils.print_navbar(navbar_title, base_url .. "?", {{
+      active = page == "overview" or page == nil,
+      page_name = "overview",
+      label = "<i class=\"fas fa-lg fa-home\"></i>"
+    },{
+      hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts) or is_host_defined,
+      active = page == "alerts",
+      page_name = "alerts",
+      label = "<i class='fas fa-lg fa-exclamation-triangle' title='" .. i18n("alerts_dashboard.alerts") .. "'></i>",
+      url = ntop.getHttpPrefix() .."/lua/alert_stats.lua?page=am_host&alert_id=4184%3Beq&is_va=true"
+    }, {
+      hidden = not (ntop.isPro and ntop.isPro()) or is_host_defined,--not charts_available or page == "overview" or page == nil,
+      active = page == "va_historical",
+      page_name = "va_historical",
+      label = "<i class='fas fa-lg fa-chart-area' title='" .. i18n("historical") .. "'></i>"
+    }, {
+      active = page == "open_ports",
+      hidden = not (ntop.isEnterpriseL and ntop.isEnterpriseL()) or is_host_defined, -- disable the entry when the user is in the overview page
+      page_name = "open_ports",
+      label = i18n('hosts_stats.page_scan_hosts.num_open_ports')
+    },
+    {
+      active = page == "show_result",
+      hidden = page ~= "show_result", -- disable the entry when the user is in the overview page, host's ip is needed to jump to this page
+      page_name = "show_result",
+      label = i18n('scan_details')
+    }, 
+    {
+        active = page == "report",
+        page_name = "report",
+        hidden = not(ntop.isEnterpriseL and ntop.isEnterpriseL() and not ntop.isClickHouseEnabled()) or not is_host_defined,
+        url = ntop.getHttpPrefix() .."/lua/active_scan.lua?page=report&report_template=ascan_result&ifid="..ifid,
+        label = i18n('hosts_stats.page_scan_hosts.download_page')
+      },
+    {
+      active = page == "reports",
+      hidden = not(ntop.isEnterpriseL and ntop.isEnterpriseL() and ntop.isClickHouseEnabled()) or is_host_defined,
+      page_name = "reports",
+      label = i18n('hosts_stats.page_scan_hosts.reports_page.reports')
+    }
+    })
+
+    if not ascan_utils.is_nmap_installed() then
+        print("<div class=\"alert alert alert-warning\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " ..
+                 i18n("hosts_stats.page_scan_hosts.nmap_not_installed") .. "</div>")
+    end
+end
+
+-- #######################################################
+
+if (page == "scan_hosts" or page == "overview") then
+    local json_context = {
+        csrf = ntop.getRandomCSRFValue(),
+        ifid = ifid,
+        is_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL(),
+        host = host_ip,
+        is_clickhouse_enabled = ntop.isClickHouseEnabled()
+    }
+    template.render("pages/vue_page.template", { vue_page_name = "PageActiveScan", page_context = json.encode(json_context) })
+    
+elseif (page == "show_result") then 
+    
+    interface.select(ifid)
+
+    local is_in_mem = interface.getHostInfo(host_ip) ~= nil
+
+    local json_context = {
+        csrf = ntop.getRandomCSRFValue(),
+        ifid = ifid,
+        host = host_ip,
+        scan_type = scan_type,
+        date = scan_date,
+        is_in_mem = is_in_mem,
+        epoch = epoch
+    }
+    template.render("pages/vue_page.template", { vue_page_name = "PageHostVsResult", page_context = json.encode(json_context) })
+
+elseif (page == "add_notification_rec") then
+    local json_context = {
+        csrf = ntop.getRandomCSRFValue(),
+        ifid = ifid,
+        host = host_ip
+    }
+    template.render("pages/vue_page.template", { vue_page_name = "PageHostsVARecipient", page_context = json.encode(json_context) })
+elseif (page == "open_ports") then
+    local json_context = {
+        csrf = ntop.getRandomCSRFValue(),
+        ifid = ifid,
+        is_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL()
+
+    }
+    template.render("pages/vue_page.template", { vue_page_name = "PageOpenPorts", page_context = json.encode(json_context) })
+
+
+elseif (page == "va_historical") then
+
+    local source_value_object = {
+        ifid = ifid,
+        is_va = true
+        --host = host_ip
+    }
+
+    graph_utils.drawNewGraphs(source_value_object)
+elseif (page == 'reports') then
+    local context = {
+        ifid = tonumber(ifid),
+        csrf = ntop.getRandomCSRFValue(),
+    }
+
+    local json_context = json.encode(context)
+
+    template.render("pages/vue_page.template", { vue_page_name = "PageActiveScanReport", page_context = json_context })
+
+elseif (page == "report") then
+    local scan_dates_json_string = ascan_utils.get_scan_all_dates()
+    local title = i18n("hosts_stats.page_scan_hosts.report.title")
+
+    if (not isEmptyString(scan_dates_json_string)) then
+        local scan_dates = json.decode(scan_dates_json_string)
+        if (scan_dates) then
+           local start_date = scan_dates.start_date
+           local end_date   = scan_dates.end_date
+
+           title = string.format("%s (%s - %s)",title,start_date, end_date)
+        end
+    end
+
+    local context = {
+        ifid = ifid,
+        page = "vs-report",
+        title = title,
+        template = "ascan_result",
+        printable = printable,
+        csrf = ntop.getRandomCSRFValue(),
+        template_endpoint = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/report/template/data.lua",
+        template_list_endpoint = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/report/template/list.lua",
+    }
+
+    local json_context = json.encode(context)
+
+    template.render("pages/vue_page.template", { vue_page_name = "Dashboard", page_context = json_context })
+
+end
+-- #######################################################
+
+if not printable then
+    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+end

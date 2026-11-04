@@ -157,7 +157,8 @@
 				{
 					"i18n_name": "hosts_stats.page_scan_hosts.report.count",
 					"id": "count_host",
-					"data_type": "count_score"
+					"data_type": "count_score",
+					"class": "text-center"
 
 				},
 				{
@@ -201,7 +202,8 @@
 				{
 					"i18n_name": "hosts_stats.page_scan_hosts.report.count",
 					"id": "count_host",
-					"data_type": "count_score"
+					"data_type": "count_score",
+					"class": "text-center"
 
 				},
 				{

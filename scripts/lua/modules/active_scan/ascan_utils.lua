@@ -1534,7 +1534,7 @@ function ascan_utils.notify_scan_results(exec_type, periodicity)
       notification_message = notification_message .. no_longer_down_now .. net_scan_without_hosts_discovered .. discovered_hosts_list .. possible_discrepancies_info
    end
    local report_link_line = i18n("hosts_stats.page_scan_hosts.email.report_link_line",
-				 {url = string.format(getHttpHost() .. ntop.getHttpPrefix() .. "/lua/enterprise/active_scan_report.lua?epoch_end=%u&epoch_begin=%u",
+				 {url = string.format(getHttpHost() .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/active_scan_report.lua?epoch_end=%u&epoch_begin=%u",
 						      report_date,report_date), add_br = add_br})
 
    notification_message = notification_message .. report_link_line
@@ -1872,7 +1872,8 @@ function ascan_utils.retrieve_scan_types()
    local ret = {}
 
    for _,scan_type in ipairs(scan_types) do
-      ret[#ret + 1] = { id = scan_type, label = i18n("hosts_stats.page_scan_hosts.scan_type_list."..scan_type) }
+      -- Raw id: the page builds the label (hosts_stats.page_scan_hosts.scan_type_list.<id>)
+      ret[#ret + 1] = { id = scan_type }
    end
 
    return ret
@@ -1910,6 +1911,14 @@ function ascan_utils.is_valid_scan_type(scan_type)
    end
 
    return ntop.exists(dirs.installdir .. "/scripts/lua/modules/active_scan/modules/" .. scan_type .. ".lua")
+end
+
+-- **********************************************************
+-- Periodicity of a scan: none, every night, every week (see update_all_periodicity)
+local scan_frequencies = { disabled = true, ["1day"] = true, ["1week"] = true }
+
+function ascan_utils.is_valid_scan_frequency(scan_frequency)
+   return scan_frequencies[scan_frequency] == true
 end
 
 -- **********************************************************

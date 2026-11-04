@@ -1,0 +1,150 @@
+{
+	"id": "network_map_service",
+	"data_url": "lua/pro/rest/v2/get/interface/map/table.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.service_map",
+	"default_sort": {
+		"column_id": "num_uses",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "70px",
+			"max-width": "70px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows_page.live_flows",
+					"event_id": "click_button_live_flows"
+				},
+				{
+					"id": "historical_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "db_explorer.historical_data",
+					"event_id": "click_button_historical_flows"
+				},
+				{
+					"id": "set_allowed",
+					"icon": "fas fa-check",
+					"title_i18n": "map_page.set_allowed",
+					"event_id": "click_button_set_allowed"
+				},
+				{
+					"id": "set_denied",
+					"icon": "fas fa-times",
+					"title_i18n": "map_page.set_denied",
+					"event_id": "click_button_set_denied"
+				},
+				{
+					"id": "set_undecided",
+					"icon": "fas fa-hourglass-half",
+					"title_i18n": "map_page.set_undecided",
+					"event_id": "click_button_set_undecided"
+				}
+			]
+		},
+		{
+			"id": "client",
+			"title_i18n": "map_page.client",
+			"data_field": "client",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "server",
+			"title_i18n": "map_page.server",
+			"data_field": "server",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "port",
+			"title_i18n": "map_page.port",
+			"data_field": "port",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "l7proto",
+			"title_i18n": "map_page.protocol",
+			"data_field": "l7_proto",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "vlan",
+			"title_i18n": "vlan",
+			"data_field": "vlan_id",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "num_uses",
+			"title_i18n": "map_page.num_uses",
+			"data_field": "num_uses",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "first_seen",
+			"title_i18n": "map_page.first_seen",
+			"data_field": "first_seen",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "last_seen",
+			"title_i18n": "map_page.last_seen",
+			"data_field": "last_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "info",
+			"title_i18n": "map_page.info",
+			"data_field": "info",
+			"sortable": true
+		},
+		{
+			"id": "status",
+			"title_i18n": "map_page.status",
+			"data_field": "acceptance",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

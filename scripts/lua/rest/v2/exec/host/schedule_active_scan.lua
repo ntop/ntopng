@@ -7,8 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
+require "http_lint"
 local rest_utils = require "rest_utils"
-local json = require("dkjson")
 local ascan_utils = require "ascan_utils"
 
 if not isAdministrator() then
@@ -21,15 +21,17 @@ if not ascan_utils.is_nmap_installed() then
    return
 end
 
-local host = _GET["host"]
-local scan_type = _GET["scan_type"]
-local ports = _GET["scan_ports"]
-local single_host = toboolean(_GET["scan_single_host"]) or false
-local scan_id = _GET["scan_id"]
-local cidr = _GET["vs_cidr"]
+-- A write (it runs nmap): _POST, filled only with a valid CSRF
+local host = _POST["host"]
+local scan_type = _POST["scan_type"]
+local ports = _POST["scan_ports"]
+local single_host = toboolean(_POST["scan_single_host"]) or false
+local scan_id = _POST["scan_id"]
+local cidr = _POST["vs_cidr"]
 
 if single_host then 
-   if isEmptyString(host) or not ascan_utils.is_valid_scan_type(scan_type) then
+   -- The host goes to the nmap command line: a plain IP address (as add/host/to_scan.lua)
+   if isEmptyString(host) or not (isIPv4(host) or isIPv6(host)) or not ascan_utils.is_valid_scan_type(scan_type) then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end

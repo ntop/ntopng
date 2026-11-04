@@ -16,6 +16,12 @@ local format_utils = require("format_utils")
 -- ####################################################################################
 
 local ascan_db_utils = {}
+
+-- A value between single quotes in a ClickHouse query: the backslash is an escape there
+local function sql_string(value)
+    local str = tostring(value or ""):gsub("\\", "\\\\")
+    return (str:gsub("'", "''"))
+end
 local debug_me = false
 
 local data_table_name               = "vulnerability_scan_data"
@@ -50,13 +56,16 @@ end
 -- ####################################################################################
 -- Function to retrieve nmap result from DB
 function ascan_db_utils.retrieve_scan_result(scan_type, host, end_epoch) 
+    end_epoch = tonumber(end_epoch)
     if not ntop.isClickHouseEnabled() then return end
+    -- No scan time (e.g. an old alert link): no row, the caller reads the result file
+    if not end_epoch then return "" end
     local sql = "SELECT VS_RESULT_FILE FROM %s WHERE HOST = '%s' AND SCAN_TYPE = '%s' AND LAST_SCAN = %u;"
-    sql = string.format(sql, data_table_name, host, scan_type, tonumber(end_epoch))
+    sql = string.format(sql, data_table_name, sql_string(host), sql_string(scan_type), end_epoch)
     local res,err = interface.execSQLQuery(sql)
     local response = ""
     -- replace back all the "|" with "'"
-    for _, item in ipairs(res) do
+    for _, item in ipairs(res or {}) do
         if (isEmptyString(item.VS_RESULT_FILE)) then
             response = "Empty response"
         else
@@ -87,7 +96,7 @@ function ascan_db_utils.retrieve_reports(sort_item, epoch)
                 "FROM %s "
 
     if (not isEmptyString(epoch)) then
-        local WHERE = "WHERE position('"..epoch.."' IN REPORT_NAME) > 0 "
+        local WHERE = "WHERE position('"..sql_string(epoch).."' IN REPORT_NAME) > 0 "
         sql = sql .. WHERE
     end
     sql = sql .. " ORDER BY %s;"
@@ -98,7 +107,7 @@ function ascan_db_utils.retrieve_reports(sort_item, epoch)
     local result = {}
 
     -- format data
-    for _,item in ipairs(query_result) do
+    for _,item in ipairs(query_result or {}) do
         local report_name = item.REPORT_NAME
         report_name = report_name:gsub("_"," ")
         result[#result+1] = {
@@ -149,22 +158,23 @@ end
 -- ####################################################################################
 -- Function to retrieve single report name from DB
 function ascan_db_utils.retrieve_report_name(epoch)
-    if not ntop.isClickHouseEnabled() then return end
-    local sql = "SELECT REPORT_NAME ".. 
+    epoch = tonumber(epoch)
+    if not ntop.isClickHouseEnabled() or not epoch then return end
+    local sql = "SELECT REPORT_NAME "..
                 "FROM %s " ..
                 "WHERE REPORT_DATE = %u"
-    sql = string.format(sql,report_table_name, tonumber(epoch))
+    sql = string.format(sql,report_table_name, epoch)
 
     local query_result,err = interface.execSQLQuery(sql)
     local report_name
 
     -- format data
-    for _,item in ipairs(query_result) do
+    for _,item in ipairs(query_result or {}) do
         report_name = item.REPORT_NAME
     end
-    report_name = report_name:gsub("_"," ")
 
-    return report_name
+    -- No report with that date: nil (it raised an error)
+    return report_name and (report_name:gsub("_"," "))
 end
 
 -- ####################################################################################
@@ -192,16 +202,18 @@ end
 -- ####################################################################################
 -- Function to delete single report from DB
 function ascan_db_utils.delete_report(epoch)
-    if not ntop.isClickHouseEnabled() then return end
-    local sql = string.format("DELETE FROM %s WHERE REPORT_DATE = %u;",report_table_name, tonumber(epoch))
+    epoch = tonumber(epoch)
+    if not ntop.isClickHouseEnabled() or not epoch then return end
+    local sql = string.format("DELETE FROM %s WHERE REPORT_DATE = %u;",report_table_name, epoch)
     return(interface.execSQLWrite(sql))
 end
 
 -- ####################################################################################
 -- Function to edit single report from DB
 function ascan_db_utils.edit_report(epoch, report_name)
-    if not ntop.isClickHouseEnabled() then return end
-    local sql = string.format("ALTER TABLE %s UPDATE REPORT_NAME = '%s' WHERE REPORT_DATE = %u;",report_table_name,report_name, tonumber(epoch))
+    epoch = tonumber(epoch)
+    if not ntop.isClickHouseEnabled() or not epoch then return end
+    local sql = string.format("ALTER TABLE %s UPDATE REPORT_NAME = '%s' WHERE REPORT_DATE = %u;",report_table_name,sql_string(report_name), epoch)
     return(interface.execSQLWrite(sql))
 end
 

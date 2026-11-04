@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/host/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/active_scan/?.lua;" .. package.path
 
+require "http_lint"
 local rest_utils = require "rest_utils"
 local ascan_utils = require "ascan_utils"
 
@@ -20,14 +21,14 @@ if not ascan_utils.is_nmap_installed() then
     return
 end
 
-local host = _GET["host"]
-local scan_type = _GET["scan_type"]
-local scan_ports = _GET["scan_ports"]
-local discovered_host_scan_type = _GET["discovered_host_scan_type"]
-local scan_frequency = _GET["scan_frequency"]
-local scan_id = _GET["scan_id"] or nil
-local is_edit = toboolean(_GET["is_edit"])
-local cidr = _GET["vs_cidr"]
+-- A write: _POST (filled only with a valid CSRF)
+local host = _POST["host"]
+local scan_type = _POST["scan_type"]
+local scan_ports = _POST["scan_ports"]
+local discovered_host_scan_type = _POST["discovered_host_scan_type"]
+local scan_frequency = _POST["scan_frequency"]
+local is_edit = toboolean(_POST["is_edit"])
+local cidr = _POST["vs_cidr"]
 
 if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
@@ -44,6 +45,12 @@ end
 
 -- Validate the scan types, as they are the names of the Lua modules loaded to perform the scans.
 if not ascan_utils.is_valid_scan_type(scan_type) then
+    rest_utils.answer(rest_utils.consts.err.bad_content)
+    return
+end
+
+-- Periodicity: none, every night, every week (modal-add-vs-host.vue)
+if not isEmptyString(scan_frequency) and not ascan_utils.is_valid_scan_frequency(scan_frequency) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
     return
 end

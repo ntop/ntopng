@@ -19,9 +19,10 @@ local ascan_utils = require "ascan_utils"
 local host = _GET["host"]
 local scan_type = _GET["scan_type"]
 local scan_return_result = toboolean(_GET["scan_return_result"]) or false
-local epoch = _GET["epoch"]
+local epoch = tonumber(_GET["epoch"])
 
-if isEmptyString(host) or isEmptyString(scan_type) then
+-- The scan type is a module name (and goes into the ClickHouse query)
+if isEmptyString(host) or not ascan_utils.is_valid_scan_type(scan_type) then
     rest_utils.answer(rest_utils.consts.err.invalid_args)
     return
 end

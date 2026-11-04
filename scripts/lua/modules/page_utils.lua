@@ -766,18 +766,8 @@ page_utils.menu_entries = {
     },
 
     -- Tools
-    export_data = {
-        key = "export_data",
-        i18n_title = "manage_data.export",
-        section = "admin"
-    },
 
     -- Pools
-    host_members = {
-        key = "host_members",
-        i18n_title = "host_pools.host_members",
-        section = "admin"
-    },
     manage_pools = {
         key = "manage_pools",
         i18n_title = "pools.pools",
@@ -797,12 +787,6 @@ page_utils.menu_entries = {
         i18n_title = "about.catalog",
         section = "dev",
         help_link = "https://www.ntop.org/guides/ntopng/scripts/checks.html?utm_source=ntopng"
-    },
-    analyze_db = {
-        key = "analyze_db",
-        i18n_title = "about.analyze_db",
-        section = "dev",
-        help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html?utm_source=ntopng"
     },
     analyze_pcap = {
         key = "analyze_pcap",

@@ -89,6 +89,7 @@ Interface
     interface/operating_systems
     interface/containers
     interface/live_captures
+    interface/traffic_report
 
 
 

@@ -361,22 +361,6 @@ P2P traffic or packets, in a fixed time interval. Available time intervals are 1
 and 1 day. Two columns are available for configuration. The first affects only the selected local host,
 whereas the second affects all local hosts. Alerts can be configured from the host :ref:`WebUIUserScripts`.
 
-Asset Map
-^^^^^^^^^
-
-.. note::
-
-   This page is only available with an Enterprise L License.
-
-.. figure:: ../../../img/web_gui_host_details_asset_map_entry.png
-  :align: center
-  :alt: Asset Map button
-
-  The Asset Map link on the Host Details Page
-
-The Asset Map is used to understand the assets in a network (DNS, NTP,... servers) and which 'Assets' a specific host uses.
-More information can be found at :ref:`Asset Map`.
-
 Statistics
 ^^^^^^^^^^
 

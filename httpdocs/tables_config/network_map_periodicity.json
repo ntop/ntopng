@@ -1,0 +1,132 @@
+{
+	"id": "network_map_periodicity",
+	"data_url": "lua/pro/rest/v2/get/interface/map/table.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.periodicity_map",
+	"default_sort": {
+		"column_id": "observations",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "70px",
+			"max-width": "70px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows_page.live_flows",
+					"event_id": "click_button_live_flows"
+				},
+				{
+					"id": "historical_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "db_explorer.historical_data",
+					"event_id": "click_button_historical_flows"
+				}
+			]
+		},
+		{
+			"id": "client",
+			"title_i18n": "map_page.client",
+			"data_field": "client",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "server",
+			"title_i18n": "map_page.server",
+			"data_field": "server",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "port",
+			"title_i18n": "map_page.port",
+			"data_field": "port",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "l7proto",
+			"title_i18n": "map_page.protocol",
+			"data_field": "l7_proto",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "vlan",
+			"title_i18n": "vlan",
+			"data_field": "vlan_id",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "observations",
+			"title_i18n": "map_page.observations",
+			"data_field": "observations",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "frequency",
+			"title_i18n": "map_page.frequency",
+			"data_field": "frequency",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "first_seen",
+			"title_i18n": "map_page.first_seen",
+			"data_field": "first_seen",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "last_seen",
+			"title_i18n": "map_page.last_seen",
+			"data_field": "last_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "info",
+			"title_i18n": "map_page.info",
+			"data_field": "info",
+			"sortable": true
+		}
+	]
+}

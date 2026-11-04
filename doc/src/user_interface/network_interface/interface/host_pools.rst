@@ -65,3 +65,17 @@ limit Facebook traffic at 1 Mbps for the “Guests” pool). This feature is ava
 used inline as described in the “Advanced Features” section of this document), or when ntopng is used in 
 combination with `nFW <https://www.ntop.org/guides/nFW>`_ (see :ref:`UsingNtopngWithNFW`).
 
+
+The *Edit Traffic Policy* action of a pool opens its traffic policy (administrators only, needs
+ntopng Pro; not on nEdge, which has its own user policies):
+
+- **Default Policy**: what happens to the traffic of the pool that matches no rule, *Pass* or *Drop*.
+- **Rules**: the exceptions to the default policy, by application protocol, application category,
+  host name (or IP address), country, continent and flow risk. *Add Rule* chooses the value and
+  the action (*Pass*, *Slow Pass*, *Slower Pass* or *Drop*); click a rule to change its action,
+  the ✕ removes it. The flows with one of the selected risks are always dropped.
+- **Save** applies the changes (it is disabled until something changes).
+- **Auto Configure** replaces the rules with the ones suggested by the traffic of the hosts of the
+  pool (the protocols and the sites they use are allowed) and sets the default policy to *Drop*,
+  after a confirmation. It needs the *Top Visited Sites* option enabled in Preferences >
+  Applications, ideally a day before.

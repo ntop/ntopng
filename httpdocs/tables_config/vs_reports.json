@@ -4,7 +4,8 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.active_scan_reports",
 	"default_sort": {
 		"column_id": "report_date",
 		"sort": 0
@@ -19,7 +20,7 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
                 {
 					"id": "edit",
@@ -31,7 +32,8 @@
 					"id": "delete",
 					"icon": "fas fa fa-trash",
 					"title_i18n": "delete",
-					"event_id": "click_button_delete"
+					"event_id": "click_button_delete",
+					"danger": true
 				}
 			]
 		},

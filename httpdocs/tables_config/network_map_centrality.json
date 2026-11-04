@@ -1,0 +1,96 @@
+{
+	"id": "network_map_centrality",
+	"data_url": "lua/pro/rest/v2/get/interface/map/table.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.centrality_map",
+	"default_sort": {
+		"column_id": "rank",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "70px",
+			"max-width": "70px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows_page.live_flows",
+					"event_id": "click_button_live_flows"
+				},
+				{
+					"id": "historical_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "db_explorer.historical_data",
+					"event_id": "click_button_historical_flows"
+				}
+			]
+		},
+		{
+			"id": "host",
+			"title_i18n": "map_page.host",
+			"data_field": "host",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "vlan",
+			"title_i18n": "vlan",
+			"data_field": "vlan_id",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"id": "rank",
+			"title_i18n": "map_page.rank",
+			"data_field": "rank",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "total_edges",
+			"title_i18n": "map_page.total_edges",
+			"data_field": "total_edges",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "in_edges",
+			"title_i18n": "map_page.in_edges",
+			"data_field": "in_edges",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "out_edges",
+			"title_i18n": "map_page.out_edges",
+			"data_field": "out_edges",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		}
+	]
+}

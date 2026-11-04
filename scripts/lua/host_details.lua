@@ -434,7 +434,6 @@ else
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
 
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
-   local has_assets = ntop.isEnterpriseXL and ntop.isEnterpriseXL() and (host.asset_key ~= nil) and (ntop.getHashKeysCache(host.asset_key) ~= nil)
    local periodicity_map_available = false
    local service_map_available = false
    local num_periodicity = 0
@@ -585,18 +584,6 @@ else
       url = hostinfo2detailsurl(host, {
          page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")
       })
-   }, {
-      -- Issues of the host and flow issues about it (Enterprise XXL+)
-      hidden = not issues_enabled or not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts) or
-         not (isIPv4(host_info.host) or isIPv6(host_info.host)),
-      active = page == "issues",
-      page_name = "issues",
-      label = "<i class='fas fa-lg fa-fire-alt' title='" .. i18n("issues.issues") .. "'></i>"
-   }, {
-      hidden = not has_assets,
-      active = page == "assets",
-      page_name = "assets",
-      label = "<i class='fas fa-lg fa-compass' title='" .. i18n("assets") .. "'></i>"
    }, {
       hidden = not charts_available,
       active = page == "historical",
@@ -1239,12 +1226,7 @@ else
       if (host.server_contacts ~= nil) then
          print("<tr><th>")
 
-         if (has_assets) then
-            print("<a href=\"" .. http_prefix .. "/lua/host_details.lua?host=" .. host_ip .. "&page=assets\">" ..
-                     i18n("details.server_contacts") .. "</A>")
-         else
-            print(i18n("details.server_contacts"))
-         end
+         print(i18n("details.server_contacts"))
 
          print("</th><td colspan=2>")
          print("<b>DNS</b>: " .. formatContacts(host.server_contacts.dns) .. " / ")
@@ -1594,12 +1576,6 @@ setInterval(update_icmp_table, 5000);
          vue_page_name = "PageHostDetailsApplications",
          page_context = json_context
       })
-   elseif (page == "assets") then
-      if (is_enterprise_L) then
-         local asset_map_utils = require "asset_map_utils"
-
-         asset_map_utils.printHostAssets(host.asset_key)
-      end
    elseif (page == "dns") then
       if ((host.DoH_DoT ~= nil) or (host["dns"] ~= nil)) then
          print("<table class=\"table table-bordered table-striped\">\n")
@@ -2174,10 +2150,11 @@ setInterval(update_icmp_table, 5000);
       }
       graph_utils.drawNewGraphs(source_value_object)
    elseif (page == "traffic_report") then
-      package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
-      local traffic_report = require "traffic_report"
-
-      traffic_report.generate_traffic_report(tskey)
+      -- Drawn by page-traffic-report.vue (pro/rest/v2/get/traffic_report/data.lua, which finds the tskey)
+      template.render("pages/vue_page.template", {
+         vue_page_name = "PageTrafficReport",
+         page_context = json.encode({ ifid = ifId, host = hostinfo2hostkey(host_info), csrf = ntop.getRandomCSRFValue() })
+      })
    end
 end
 

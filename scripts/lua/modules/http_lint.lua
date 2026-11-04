@@ -740,12 +740,6 @@ local function validatePolicyPreset(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateAssetFamily(mode)
-   local modes = {"gateway", "dns", "ntp", "imap", "smtp", "pop", "http", "ssh", "rdp"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateStatsType(mode)
    local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins", "top_targets", "duration_pie",
 		  "longest_engaged", "counts_pie", "counts_plain", "top_talkers", "top_applications"}
@@ -3220,7 +3214,6 @@ local known_parameters = {
    ["flush_dynamic_blacklist"] = validateEmpty, -- users
    ["device_protocols_policing"] = validateBool, -- users
    ["forge_global_dns"] = validateBool, -- users
-   ["asset_family"] = validateAssetFamily, -- network_maps.lua
    ["lan_interfaces"] = validateListOfTypeInline(validateNetworkInterface),
    ["wan_interfaces"] = validateListOfTypeInline(validateNetworkInterface),
    ["static_route_name"] = validateStaticRouteName,

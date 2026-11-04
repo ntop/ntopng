@@ -126,6 +126,43 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/host/scan_port_list.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Open ports found by the scans",
+        "description": "Open ports found by the last scans, with the hosts that have them open. Enterprise L. Admin only.",
+        "operationId": "get_scan_port_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Report time: the ports as they were in that report",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "description": "Only this L4 protocol (id)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/syslog/messages.lua": {
       "get": {
         "tags": [
@@ -1445,6 +1482,63 @@
         }
       }
     },
+    "/lua/rest/v2/delete/host/delete_host_to_scan.lua": {
+      "post": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Remove hosts to scan",
+        "description": "Remove one host (host + scan_type), all the hosts (delete_all_scan_hosts=true) or the hosts whose last scan failed (delete_failed_scan_hosts=true). Write: JSON POST body with the csrf (or Basic auth), parameters in the query string are ignored. Admin only.",
+        "operationId": "delete_host_to_scan",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "Host address",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "scan_type",
+            "in": "formData",
+            "description": "Scan type: tcp_portscan, udp_portscan, ipv4_netscan (the ids of get/host/active_scan_type_list.lua)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "delete_all_scan_hosts",
+            "in": "formData",
+            "description": "true: remove every host",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "delete_failed_scan_hosts",
+            "in": "formData",
+            "description": "true: remove the hosts whose last scan failed",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/delete/notification/endpoint.lua": {
       "post": {
         "tags": [
@@ -1697,6 +1791,82 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/active_scan_result.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Result of a host scan",
+        "description": "The nmap output of the last scan of a host: as JSON (rsp.rsp) with scan_return_result=true, else as a text file download. Admin only.",
+        "operationId": "get_active_scan_result",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "scan_type",
+            "in": "query",
+            "description": "Scan type: tcp_portscan, udp_portscan, ipv4_netscan (the ids of get/host/active_scan_type_list.lua)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "epoch",
+            "in": "query",
+            "description": "Time of the scan (with ClickHouse the result is read from the database)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "scan_return_result",
+            "in": "query",
+            "description": "true: JSON answer, false: file download",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/active_scan_status.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Scans in progress",
+        "description": "rsp.rsp: { total: hosts to scan, total_in_progress: scheduled or being scanned, total_in_success }. Admin only.",
+        "operationId": "get_active_scan_status",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
           }
         }
       }
@@ -3581,32 +3751,37 @@
       }
     },
     "/lua/pro/rest/v2/delete/vs/report.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Vulnerability Scan"
         ],
-        "summary": "Delete a vulnerability scan report",
-        "description": "Delete a vulnerability scan report",
+        "summary": "Delete a stored report",
+        "description": "Delete a report (ClickHouse). Write: JSON POST body with the csrf (or Basic auth), parameters in the query string are ignored. Admin only.",
         "operationId": "delete_vs_report",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "epoch_end",
-            "in": "query",
-            "description": "Epoch of vulnerability scan report to delete",
+            "name": "epoch",
+            "in": "formData",
+            "description": "Report time (epoch of the list)",
             "required": true,
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -3895,12 +4070,12 @@
       }
     },
     "/lua/pro/rest/v2/edit/vs/report.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Vulnerability Scan"
         ],
-        "summary": "Edit a Vulnerability Scan report",
-        "description": "Edit an existing Vulnerability Scan report",
+        "summary": "Rename a stored report",
+        "description": "Rename a report (ClickHouse). Write: JSON POST body with the csrf (or Basic auth), parameters in the query string are ignored. Admin only.",
         "operationId": "edit_vs_report",
         "produces": [
           "application/json"
@@ -3908,16 +4083,15 @@
         "parameters": [
           {
             "name": "epoch_end",
-            "in": "query",
-            "description": "Epoch of vulnerability scan report to edit",
+            "in": "formData",
+            "description": "Report time (epoch of the list)",
             "required": true,
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           {
             "name": "report_title",
-            "in": "query",
-            "description": "The new report name",
+            "in": "formData",
+            "description": "New name: spaces as _",
             "required": true,
             "type": "string"
           }
@@ -3926,8 +4100,166 @@
           "0": {
             "description": "OK"
           },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/pool/policy.lua": {
+      "get": {
+        "tags": [
+          "Pools"
+        ],
+        "summary": "Get the traffic policy of a host pool",
+        "description": "Default policy and rules (nDPI markers) of a host pool, with the values usable in the rules (options: [{ value, label }] per kind) and the markers. Rules by kind: l7_proto (nDPI protocol id), l7_category (nDPI category id), host (host name or IP), country (ISO code), continent (code), risk (flow risk id), each [{ value, marker }]; marker = pass | 3 (slow) | 2 (slower) | drop (risks always drop). Pro (not nEdge), pools capability.",
+        "operationId": "get_pool_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "pool",
+            "in": "query",
+            "description": "Host pool identifier",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-16": {
+            "description": "POOL_NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/asset_details.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the details of an asset",
+        "description": "Details of an asset of the inventory as raw values: ip, vlan, mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online, dhcp, snmp_name, network { id, name }, tags [{ id, name, color }], names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown.",
+        "operationId": "get_host_asset_details",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "serial_key",
+            "in": "query",
+            "description": "Asset key (key field of rest/v2/get/host/assets.lua)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (no serial_key)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/interface/db_flows.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Analyse historical flows as live flows",
+        "description": "Loads the historical flows matching the time range and the flow filters (the same parameters of the Historical Flows page) into a runtime interface named Database, limited by the flow cache size. Answers { new_ifid, max_num_flows }. Administrators only, ClickHouse.",
+        "operationId": "add_interface_db_flows",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "ifid",
+                "epoch_begin",
+                "epoch_end"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface of the historical flows"
+                },
+                "epoch_begin": {
+                  "type": "integer",
+                  "description": "Begin of the time range"
+                },
+                "epoch_end": {
+                  "type": "integer",
+                  "description": "End of the time range"
+                },
+                "cli_ip": {
+                  "type": "string",
+                  "description": "Any Historical Flows filter, e.g. cli_ip=1.2.3.4;eq"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE or NOT_ENABLED (no ClickHouse)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (the interface could not be created)"
           }
         }
       }
@@ -7314,14 +7646,14 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/maps/periodicity_map.lua": {
+    "/lua/pro/rest/v2/get/traffic_report/data.lua": {
       "get": {
         "tags": [
-          "Maps"
+          "Interfaces"
         ],
-        "summary": "Get the periodicity map of an interface",
-        "description": "Get the periodicity map of an interface",
-        "operationId": "get_maps_periodicity_map",
+        "summary": "Get the traffic report of an interface, network or host",
+        "description": "Traffic of each hour (report=daily) or day (weekly, monthly) of the period containing epoch_begin, next to the same bucket of the previous period: rows [{ tstamp, bytes, activity (active seconds), prev_bytes, prev_activity }], with epoch_begin/epoch_end of the period and the start of the previous/next period. Reads the RRD timeseries: Enterprise M, RRD timeseries driver, not on pcap files.",
+        "operationId": "get_traffic_report_data",
         "produces": [
           "application/json"
         ],
@@ -7333,32 +7665,69 @@
             "required": true,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host (IP, with @vlan for the VLAN hosts); default the interface",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Local network identifier; default the interface",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "report",
+            "in": "query",
+            "description": "Period",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly"
+            ],
+            "default": "monthly"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "An epoch inside the period (default now)",
+            "required": false,
+            "type": "integer"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
+          "-1": {
+            "description": "NOT_FOUND (no traffic timeseries for the entity)"
+          },
           "-2": {
-            "description": "INVALID_INTERFACE"
+            "description": "INVALID_INTERFACE (missing ifid, or an interface the user cannot see) or NOT_ENABLED (no RRD driver, or pcap file)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (license, or a host/network outside the allowed networks of the user)"
           },
           "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
+            "description": "INVALID_ARGUMENTS (unknown report or network)"
           }
         }
       }
     },
-    "/lua/pro/rest/v2/get/maps/service_map.lua": {
+    "/lua/pro/rest/v2/get/interface/map/data.lua": {
       "get": {
         "tags": [
           "Maps"
         ],
-        "summary": "Get the service map of an interface",
-        "description": "Get the service map of an interface",
-        "operationId": "get_maps_service_map",
+        "summary": "Get the graph of a service or periodicity map",
+        "description": "Nodes (hosts, MACs: id, label, type local|remote|multicast|broadcast|mac, is_active, device group) and edges (from, to, value = number of services, bidirectional, protocols = up to 3 application names, num_protocols, status = worst service status) of the map, at most 2500 services (max_entry_reached).",
+        "operationId": "get_interface_map_data",
         "produces": [
           "application/json"
         ],
@@ -7370,6 +7739,91 @@
             "required": true,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "map",
+            "in": "query",
+            "description": "Map",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "service_map",
+              "periodicity_map"
+            ]
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the services of this host: IP or MAC, with @vlan for the VLAN hosts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "VLAN identifier",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "host_pool_id",
+            "in": "query",
+            "description": "Host pool identifier",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l7proto",
+            "in": "query",
+            "description": "Application protocol name (e.g. DNS)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Local network identifier",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "service_status",
+            "in": "query",
+            "description": "Service map only: 0 authorized, 1 unauthorized, 2 undecided",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "name": "traffic_direction",
+            "in": "query",
+            "description": "Periodicity map only: 0 local only, 1 remote only, 2 local client and remote server, 3 remote client and local server",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "name": "unicast_only",
+            "in": "query",
+            "description": "Only unicast hosts",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "first_seen",
+            "in": "query",
+            "description": "Only the services seen after this epoch",
+            "required": false,
+            "type": "integer"
           }
         ],
         "responses": {
@@ -7377,13 +7831,391 @@
             "description": "OK"
           },
           "-2": {
-            "description": "INVALID_INTERFACE"
+            "description": "INVALID_INTERFACE (missing ifid, or an interface the user cannot see) or NOT_ENABLED (behaviour analysis disabled on the interface)"
           },
           "-5": {
-            "description": "INVALID_ARGUMENTS"
+            "description": "INVALID_ARGUMENTS (unknown map)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/map/table.lua": {
+      "get": {
+        "tags": [
+          "Maps"
+        ],
+        "summary": "Get the services of a service or periodicity map",
+        "description": "One page of the services (view=standard: client, server, port, protocols, uses/observations, frequency, first/last seen, status) or of the hosts ranked by centrality (view=centrality: host, rank, edges). Peers are objects { host, ip, vlan, is_mac, name, active }. recordsTotal is the number of entries.",
+        "operationId": "get_interface_map_table",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
           },
-          "-6": {
-            "description": "INTERNAL_ERROR"
+          {
+            "name": "map",
+            "in": "query",
+            "description": "Map",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "service_map",
+              "periodicity_map"
+            ]
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "description": "Services or hosts ranking",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "standard",
+              "centrality"
+            ],
+            "default": "standard"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the services of this host: IP or MAC, with @vlan for the VLAN hosts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "VLAN identifier",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "host_pool_id",
+            "in": "query",
+            "description": "Host pool identifier",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "l7proto",
+            "in": "query",
+            "description": "Application protocol name (e.g. DNS)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "description": "Local network identifier",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "service_status",
+            "in": "query",
+            "description": "Service map only: 0 authorized, 1 unauthorized, 2 undecided",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "name": "traffic_direction",
+            "in": "query",
+            "description": "Periodicity map only: 0 local only, 1 remote only, 2 local client and remote server, 3 remote client and local server",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "name": "unicast_only",
+            "in": "query",
+            "description": "Only unicast hosts",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "first_seen",
+            "in": "query",
+            "description": "Only the services seen after this epoch",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Row offset",
+            "required": false,
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Rows per page",
+            "required": false,
+            "type": "integer",
+            "default": 10
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "l7proto",
+              "client",
+              "server",
+              "vlan",
+              "port",
+              "num_uses",
+              "last_seen",
+              "observations",
+              "frequency",
+              "info",
+              "in_edges",
+              "out_edges",
+              "total_edges",
+              "host",
+              "rank"
+            ]
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text to search in the hosts",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid, or an interface the user cannot see) or NOT_ENABLED (behaviour analysis disabled on the interface)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown map)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/map/filters.lua": {
+      "get": {
+        "tags": [
+          "Maps"
+        ],
+        "summary": "Get the filter values of a service or periodicity map",
+        "description": "VLANs, application protocols, host pools ({ id, name }) and local networks ({ id, name }) seen by the map, optionally only for one host.",
+        "operationId": "get_interface_map_filters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "map",
+            "in": "query",
+            "description": "Map",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "service_map",
+              "periodicity_map"
+            ]
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Only the services of this host: IP or MAC, with @vlan for the VLAN hosts",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "VLAN identifier",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid, or an interface the user cannot see) or NOT_ENABLED (behaviour analysis disabled on the interface)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown map)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/interface/map/service_status.lua": {
+      "post": {
+        "tags": [
+          "Maps"
+        ],
+        "summary": "Set the status of a service of the service map",
+        "description": "Marks a service of the service map as authorized (0), unauthorized (1) or undecided (2). Administrators only.",
+        "operationId": "edit_interface_map_service_status",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "ifid",
+                "service_id",
+                "service_status"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "service_id": {
+                  "type": "integer",
+                  "description": "hash_id of the service (get/interface/map/table.lua)"
+                },
+                "service_status": {
+                  "type": "integer",
+                  "enum": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "description": "0 authorized, 1 unauthorized, 2 undecided"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid, or an interface the user cannot see) or NOT_ENABLED (behaviour analysis disabled on the interface)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown map)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/interface/map/data.lua": {
+      "post": {
+        "tags": [
+          "Maps"
+        ],
+        "summary": "Delete the services of a service or periodicity map",
+        "description": "Deletes all the services learnt by the map of the interface: the map learns them again from the new traffic. Administrators only.",
+        "operationId": "delete_interface_map_data",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "ifid",
+                "map"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "map": {
+                  "type": "string",
+                  "enum": [
+                    "service_map",
+                    "periodicity_map"
+                  ],
+                  "description": "Map to delete"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid, or an interface the user cannot see) or NOT_ENABLED (behaviour analysis disabled on the interface)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown map)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
           }
         }
       }
@@ -8422,15 +9254,27 @@
         "tags": [
           "Vulnerability Scan"
         ],
-        "summary": "Get all vulnerability scan reports",
-        "description": "Get VS reports",
+        "summary": "List the stored reports",
+        "description": "Reports saved at the end of each periodic scan (ClickHouse): name, epoch, report_date, tcp_ports, udp_ports, num_hosts. Admin only.",
         "operationId": "get_vs_report_list",
         "produces": [
           "application/json"
         ],
+        "parameters": [
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Only the reports whose name contains this text",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
           }
         }
       }
@@ -8477,70 +9321,109 @@
       }
     },
     "/lua/pro/rest/v2/set/pool/policy.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Pools"
         ],
-        "summary": "Set pool policy",
-        "description": "Set pool policy",
+        "summary": "Set the traffic policy of a host pool",
+        "description": "Replaces the traffic policy (nDPI markers) of a host pool. Pro (not nEdge), pools capability, pool allowed to the user.",
         "operationId": "set_pool_policy",
         "produces": [
           "application/json"
         ],
+        "consumes": [
+          "application/json"
+        ],
         "parameters": [
           {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "integer",
-            "format": "int32"
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "JSON"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "JSON": {
+                  "type": "string",
+                  "description": "JSON string: { pool_id, default_policy = pass | drop, rules }. Rules by kind: l7_proto (nDPI protocol id), l7_category (nDPI category id), host (host name or IP), country (ISO code), continent (code), risk (flow risk id), each [{ value, marker }]; marker = pass | 3 (slow) | 2 (slower) | drop (risks always drop)"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
-          "-2": {
-            "description": "INVALID_INTERFACE"
+          "-3": {
+            "description": "NOT_GRANTED"
           },
           "-5": {
-            "description": "INVALID_ARGUMENTS"
+            "description": "INVALID_ARGUMENTS (no JSON)"
           },
           "-6": {
             "description": "INTERNAL_ERROR"
           },
           "-7": {
-            "description": "BAD_FORMAT"
+            "description": "BAD_FORMAT (not an object, or no pool_id)"
           }
         }
       }
     },
     "/lua/pro/rest/v2/set/pool/policy_autoconf.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Pools"
         ],
-        "summary": "Set a pool policy from autoconfiguration",
-        "description": "Set a pool policy from autoconfiguration",
+        "summary": "Configure the traffic policy of a host pool from its traffic",
+        "description": "Replaces the traffic policy of a host pool with one built from the traffic seen by its hosts (default drop, the protocols and the top visited sites allowed). Pro (not nEdge), pools capability.",
         "operationId": "set_pool_policy_autoconf",
         "produces": [
           "application/json"
         ],
+        "consumes": [
+          "application/json"
+        ],
         "parameters": [
           {
-            "pool": "int32",
-            "pool_name": "string",
-            "pool_members": "string",
-            "confset_id": "int32"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "pool_id"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "pool_id": {
+                  "type": "integer",
+                  "description": "Host pool identifier"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
-          "-2": {
-            "description": "INVALID_INTERFACE"
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           },
           "-6": {
             "description": "INTERNAL_ERROR"
@@ -9530,10 +10413,10 @@
     "/lua/rest/v2/add/host/to_scan.lua": {
       "post": {
         "tags": [
-          "Hosts"
+          "Vulnerability Scan"
         ],
-        "summary": "Add host to vulnerability scan hosts list",
-        "description": "Add Host to Scan",
+        "summary": "Add a host to scan",
+        "description": "Add a host (or the active hosts of a network with vs_cidr, or a network scan with ipv4_netscan) to the Active Scan list and schedule its first scan; is_edit=true changes an entry. rsp.rsp: 1 added/updated, 2 already in the list, 3 no active host in the network. Write: JSON POST body with the csrf (or Basic auth), parameters in the query string are ignored. Admin only.",
         "operationId": "add_host_to_scan",
         "produces": [
           "application/json"
@@ -9542,55 +10425,68 @@
           {
             "name": "host",
             "in": "formData",
-            "description": "Host address",
+            "description": "Host IP address (IPv4 or IPv6)",
             "required": true,
             "type": "string"
           },
           {
             "name": "scan_type",
             "in": "formData",
-            "description": "Vulnerability Scan Type",
+            "description": "Scan type: tcp_portscan, udp_portscan, ipv4_netscan (the ids of get/host/active_scan_type_list.lua)",
             "required": true,
             "type": "string"
           },
           {
             "name": "scan_ports",
             "in": "formData",
-            "description": "Comma separeted ports list",
+            "description": "Ports to scan, comma separated or ranges (e.g. 22,80,1000-2000); empty: all",
             "required": false,
             "type": "string"
           },
           {
             "name": "scan_frequency",
             "in": "formData",
-            "description": "Available only from Pro License. Automatic scanning, one option between: disabled, 1day (scan once per day), 1week (scan once a week)",
+            "description": "Periodic scan (Enterprise L): disabled, 1day (every night), 1week (every week)",
             "required": false,
             "type": "string"
           },
           {
-            "name": "scan_id",
+            "name": "vs_cidr",
             "in": "formData",
-            "description": "Scan ID",
+            "description": "Network prefix length: 24-30, 32 or 128",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "discovered_host_scan_type",
+            "in": "formData",
+            "description": "ipv4_netscan: scan types to run on the discovered hosts, comma separated",
             "required": false,
             "type": "string"
           },
           {
-            "name": "cidr",
+            "name": "is_edit",
             "in": "formData",
-            "description": "Network CIDR",
+            "description": "true: change an existing entry",
             "required": false,
-            "type": "string"
+            "type": "boolean"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
           "-6": {
             "description": "INTERNAL_ERROR"
           },
           "-8": {
             "description": "BAD_CONTENT"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (nmap is not installed)"
           }
         }
       }
@@ -11254,12 +12150,12 @@
       }
     },
     "/lua/rest/v2/edit/host/update_va_scan_period.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Vulnerability Scan"
         ],
-        "summary": "Update Vulnerability Scan",
-        "description": "Update Vulnerability Scan Frequency",
+        "summary": "Change the periodicity of every scan",
+        "description": "Set the same periodic scan on all the hosts of the list (Enterprise L). Write: JSON POST body with the csrf (or Basic auth), parameters in the query string are ignored. Admin only.",
         "operationId": "update_va_scan_frequency",
         "produces": [
           "application/json"
@@ -11267,8 +12163,8 @@
         "parameters": [
           {
             "name": "scan_frequency",
-            "in": "query",
-            "description": "Auto scan frequency, can be: disabled, 1day, 1week",
+            "in": "formData",
+            "description": "disabled, 1day (every night) or 1week (every week)",
             "required": true,
             "type": "string"
           }
@@ -11278,7 +12174,13 @@
             "description": "OK"
           },
           "-3": {
-            "description": "NOT_GRANTED"
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -11518,53 +12420,73 @@
     "/lua/rest/v2/exec/host/schedule_active_scan.lua": {
       "post": {
         "tags": [
-          "Hosts"
+          "Vulnerability Scan"
         ],
-        "summary": "Delete host from vulnerability scan hosts list",
-        "description": "Delete Host to Scan",
-        "operationId": "delete_host_to_scan",
+        "summary": "Scan now",
+        "description": "Schedule the scan of one host of the list (scan_single_host=true) or of all of them. Write: JSON POST body with the csrf (or Basic auth), parameters in the query string are ignored. Admin only.",
+        "operationId": "schedule_active_scan",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
+            "name": "scan_single_host",
+            "in": "formData",
+            "description": "true: one host, false: every host",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "host",
             "in": "formData",
-            "description": "Host address",
+            "description": "Host IP address (scan_single_host=true)",
             "required": false,
             "type": "string"
           },
           {
             "name": "scan_type",
             "in": "formData",
-            "description": "Vulnerability Scan Type",
+            "description": "Scan type: tcp_portscan, udp_portscan, ipv4_netscan (the ids of get/host/active_scan_type_list.lua) (scan_single_host=true)",
             "required": false,
             "type": "string"
           },
           {
             "name": "scan_ports",
             "in": "formData",
-            "description": "Comma separeted ports list",
+            "description": "Ports to scan",
             "required": false,
             "type": "string"
           },
           {
-            "name": "scan_single_host",
+            "name": "scan_id",
             "in": "formData",
-            "description": "Boolean to a single or all hosts",
+            "description": "Id of the list entry",
             "required": false,
-            "type": "boolean"
+            "type": "string"
+          },
+          {
+            "name": "vs_cidr",
+            "in": "formData",
+            "description": "Network prefix length",
+            "required": false,
+            "type": "integer"
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
           "-6": {
             "description": "INTERNAL_ERROR"
           },
-          "-8": {
-            "description": "BAD_CONTENT"
+          "-2": {
+            "description": "NOT_ENABLED (nmap is not installed)"
           }
         }
       }
@@ -15170,23 +16092,50 @@
     "/lua/rest/v2/get/host/to_scan_list.lua": {
       "get": {
         "tags": [
-          "Hosts"
+          "Vulnerability Scan"
         ],
-        "summary": "Retrieves vulnerability scan hosts list",
-        "description": "Get Hosts to Scan",
+        "summary": "List the hosts to scan",
+        "description": "Hosts and networks of the Active Scan list, with the status and result (open ports) of their last scan. Admin only.",
         "operationId": "get_hosts_to_scan",
         "produces": [
           "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "port",
+            "in": "query",
+            "description": "Only the hosts with this port open",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Report time: the hosts as they were in that report",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "was_down",
+            "in": "query",
+            "description": "Only the hosts that were down and are now up",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "netscan_report",
+            "in": "query",
+            "description": "Hosts discovered by the network scans",
+            "required": false,
+            "type": "boolean"
+          }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-8": {
-            "description": "BAD_CONTENT"
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
           }
         }
       }
@@ -15194,17 +16143,21 @@
     "/lua/rest/v2/get/host/active_scan_type_list.lua": {
       "get": {
         "tags": [
-          "Hosts"
+          "Vulnerability Scan"
         ],
-        "summary": "Retrieves vulnerability scan types list",
-        "description": "Get Scan Types List",
+        "summary": "List the scan types",
+        "description": "Scan types available on this system (they need nmap). rsp.rsp: [{ id }]: the page builds the labels. Admin only.",
         "operationId": "get_scan_types_list",
         "produces": [
           "application/json"
         ],
+        "parameters": [],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
           }
         }
       }
