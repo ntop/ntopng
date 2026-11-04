@@ -16,7 +16,8 @@ change (the difference), not the state of the asset.
 - Entries can also be written by other code (e.g. external integration) and,
   manually, by the users (free text).
 - The entries are never deleted (no retention for now).
-- The entries are read by asset and time interval only.
+- The entries are read by time interval: of one asset, or of all the assets of
+  an interface, optionally filtered by action, who and subaction (see "GUI").
 - ClickHouse and SQLite.
 
 Decisions:
@@ -32,7 +33,7 @@ Decisions:
 | Flows | Every event caused by traffic reports the flow and the interface that saw it, and the evidence of the change (see "Causes") |
 | Interfaces | Packet and ZMQ interfaces, with and without view interfaces |
 | Writers | A generic Lua function (single entry and batch), used by the assets code, by the REST handlers, and by any other code (e.g. Wazuh). Concurrent calls are supported |
-| Queries | By asset and time interval |
+| Queries | By time interval, of one asset or of all the assets of an interface; optional filters (action, who, subaction) |
 | Retention | None: entries are never deleted |
 | License | Enterprise L or above |
 | Preference | "Enable Assets Journal", disabled by default (it also requires the assets inventory) |
@@ -117,7 +118,7 @@ Notes:
 
 | Action | When | Who |
 |---|---|---|
-| `Baseline` | The journal starts (first time, or enabled again): one entry per asset already there. Message: e.g. "Asset recorded when the journal has been enabled", no details | `ntopng` |
+| `Baseline` | The journal starts (first time, or enabled again): one entry per asset already there. Message: "Asset already in the inventory when the journal has been enabled", no details | `ntopng` |
 | `New` | An asset is created. One entry for the creation itself, with the flow that created the host of the asset (see "Causes"), then one entry for each field with a value and for each tag of the new asset, with their details (`Update` action, same event time) | `ntopng` |
 | `Update` | A field of an asset changes, automatically or by a user | `ntopng` or the user |
 | `Delete` | An asset is deleted: by ntopng (e.g. not seen for too long) or by a user | `ntopng` or the user |
@@ -262,7 +263,7 @@ A Lua module (`pro/scripts/lua/modules/assets_journal.lua`):
 |---|---|
 | `add(entry)` | Write an entry |
 | `addBatch(entries)` | Write many entries with a single statement (e.g. the baseline) |
-| `get(ifid, key, from, to)` | The entries of an asset in a time interval (epochs in seconds), oldest first, with the messages localized |
+| `get(ifid, key, from, to, filters)` | The entries in a time interval (epochs in seconds), oldest first, with the messages localized: of an asset, or of all the assets of the interface when `key` is nil or empty; `filters` (optional): `{ action, who, subaction }`, exact match |
 
 An entry: `{ ifid, asset_type, key, event_time, who, action, subaction,
 message_id, message_values }` or `{ ..., message }` for a plain text; `created_time` is
@@ -282,10 +283,11 @@ standalone and on real databases.
 |---|---|
 | `normalizeEntry(entry, now)` | Check an entry and fill in its defaults (`asset_type` `host`, `who` `ntopng`, `event_time` now, epoch in seconds). Return `nil` and the reason when the entry is not valid |
 | `buildInserts(entries, is_clickhouse, instance_name, created)` | The `INSERT` statements, at most 500 entries each |
-| `buildQuery(params, is_clickhouse)` | The query of the entries of an asset in an interval (`ifid`, `key`, `from`, `to`), ordered by event time and then by the time they have been written |
+| `buildQuery(params, is_clickhouse)` | The query of the entries in an interval (`ifid`, `key`, `from`, `to`; `key` nil or empty: all the assets of the interface; `action`, `who`, `subaction`: optional filters, exact match), ordered by event time and then by the time they have been written |
 | `toEntries(rows, translate)` | The rows read back, as entries with `text`: the template rendered with its values (a value can itself be a template, e.g. the cause), or the plain text. An unknown template gives its key and values, so that nothing is lost |
 | `render(message_id, values, translate)` | Render a template |
 | `template(id, values)` | A value that is itself a template (e.g. a cause) |
+| `tagValues(tag_id, tag_names)` | The values of a tag in a message (`tag_id`, `tag_hex`, `tag_name`) |
 | `fieldEntries(base, fields, old, new, causes, default_cause)` | One `Update` entry per changed field (`subaction`: the name of the field) |
 | `tagEntries(base, events, tag_names, extra, details)` | One `Update` entry per tag added or removed (`subaction`: `os` or `tag`); `details(event, events)` adds the cause sent by the host |
 | `newEntries(base, cause, fields, asset, field_cause, tag_events, tag_names, field_causes, tag_extra, tag_details)` | `New` entry, then the fields (except the ones in the key) and the tags of the new asset |
@@ -297,7 +299,7 @@ interface, as the rest of the assets code):
 | Function | Use |
 |---|---|
 | `add(entry)`, `addBatch(entries)` | Write. Nothing when the journal is disabled (license, or preference `ntopng.prefs.assets_journal_enabled` not set to `1`); invalid entries are skipped and logged; a failure is logged, never raised |
-| `get(ifid, key, from, to)` | Read, with the messages localized (`i18n`) |
+| `get(ifid, key, from, to, filters)` | Read, with the messages localized (`i18n`) |
 | `isEnabled()` | Enterprise L or above, the assets inventory, and the preference |
 | `currentUser()` | The user of the current request (`_SESSION`), `ntopng` when there is none |
 
@@ -554,7 +556,8 @@ flow).
   previous one (`LocalHost::addJournalCause`), so the list is bounded.
 - The causes are freed also when the host is not dumped (e.g. not a unicast
   host, see `LocalHost::dumpAssetInfo`) and with the other data of the host.
-- `LocalHost` grows by 8 bytes (the pointer).
+- `LocalHost` grows by a pointer (`journal_causes`) and an atomic flag
+  (`journal_created_pending`).
 - A tag observed in the traffic: the cause sent by the host only, e.g.
   "Add tag 0 (0x00) DNS Server: UDP 192.168.1.93:52340->192.168.1.1:53 eth0 (0) [DNS]".
   Other reasons: the reason, then the cause (`cause_detail`: "<reason>,
@@ -587,8 +590,14 @@ Known limits:
   (their asset keeps its MAC, see "Host assets"). To be fixed: do not create
   hosts there.
 - The last snapshots of the hosts at shutdown are dumped after the queue has
-  been drained: they are written at the next start (entries dated before the
-  restart, after the entries written at startup).
+  been drained: the hosts still referenced by a flow when the interface stops
+  (most of the active ones) are deleted, and dumped, only when the interface
+  is deleted, after `shutdown.lua`. On live interfaces they are written at the
+  next start (entries dated before the restart, after the entries written at
+  startup); on pcap interfaces they are lost (the queue is deleted at the next
+  boot with the other Redis data of the interface). Not fixed yet: the fix
+  proposed is a final dump of all the hosts and MACs after the interfaces have
+  stopped and before `shutdown.lua` drains the queue.
 - `mac`, `ip`, `vlan` have the cause of the flow that has created the host:
   a MAC changing later (`Host::set_mac`) has no cause ("reported by the host").
 - The flow that has created the host is printed without application (not yet
@@ -604,8 +613,8 @@ New templates: the cause string is shown as it is.
 
 ## Preference
 
-"Enable Assets Journal" (Settings > Preferences > Behaviour, section Assets,
-`toggle_assets_journal`): disabled by default, Enterprise L or above.
+"Enable Assets Journal" (Settings > Preferences > Behaviour Analysis, section
+Assets, `toggle_assets_journal`): disabled by default, Enterprise L or above.
 
 - Redis key `ntopng.prefs.assets_journal_enabled` ("1" enabled, disabled when
   not set): `assets_journal.isEnabled()` in Lua,
@@ -617,6 +626,41 @@ New templates: the cause string is shown as it is.
   one-minute callback of the assets).
 - Enabled again: a new baseline is written by the next run of the one-minute
   callback.
+- The *Journal* tabs of the GUI are disabled while the journal is not enabled
+  (see "GUI").
+
+## GUI
+
+The journal is shown (user guide: `doc/src/advanced_features/assets_journal.rst`,
+section "Viewing the Journal") in:
+
+- the *Journal* tab of the Assets Inventory page (`pro/assets.lua?page=journal`,
+  route in `router.js`: `componentByQuery`, `page=journal` ->
+  `PageAssetsJournal`): the entries of all the assets of the interface, with
+  the *Asset* column (IP, VLAN and name of the asset, link to its details);
+- the *Journal* tab of the details page of an asset
+  (`pro/asset_details.lua?page=journal`): the entries of that asset.
+
+Both use the Vue page `pro/http_src/vue/page-assets-journal.vue` and the table
+`httpdocs/tables_config/assets_journal.json` (columns: Time, Asset, Action,
+About, Who, Event; labels in `assets_journal_page.*` of `en.lua`: `Manual` is
+shown as "Note", the subaction as "About", with the label of the field).
+
+| REST (`pro/scripts/lua/rest/v2/get/host/`) | Use |
+|---|---|
+| `assets_journal.lua` | The entries in `epoch_begin`..`epoch_end` (default: the last day), newest first, of the asset `serial_key` or, without it, of all the assets of the interface `ifid`; optional filters `action`, `who`, `subaction`. Each entry with its asset (one lookup for all the keys, `asset_utils.getAssetsByKeys`) and its rendered message |
+| `assets_journal_filters.lua` | The values of `action`, `who` and `subaction` found in the same interval (and asset), with their labels, for the filters of the table |
+
+Both are documented in `httpdocs/misc/rest-api-v2.json`. They answer
+`not_granted` when the journal is not enabled (`assets_journal.isEnabled()`),
+and `invalid_interface` when the interface cannot be selected. The system
+interface (-1) is read as 255, as in the assets table.
+
+When the journal is not enabled the tabs are disabled, with a tooltip
+(`tab_journal_disabled`, or `tab_no_enterprise_l` without the license): the
+Assets Inventory page gets the flag from `rest/v2/get/ntopng/menu.lua`
+(`is_assets_journal_enabled`), the asset details page from `asset_details.lua`;
+`assets.lua?page=journal` redirects to the asset list.
 
 ## Implementation steps
 
@@ -630,6 +674,7 @@ New templates: the cause string is shown as it is.
 | 6 | Flows: C++ (including views), see "Flows" | ntopng, pro | Done (causes reviewed) |
 | 7 | Preference | ntopng, pro | Done |
 | 8 | Documentation (`doc/src/advanced_features/assets_journal.rst`), live tests | ntopng, pro | Done (see "Tests") |
+| 9 | GUI: *Journal* tabs (all the assets, one asset), REST, filters; user guide with screenshots | ntopng, pro | Done (see "GUI") |
 
 ## Tests
 
@@ -641,9 +686,9 @@ New templates: the cause string is shown as it is.
 
 ### Showing the entries
 
-`pro/tools/assets_journal/show.sh` prints the entries of the journal with the
-full English message (rendered by `assets_journal.lua` with `en.lua`), in the
-order they have been written:
+Besides the GUI (see "GUI"), `pro/tools/assets_journal/show.sh` prints the
+entries of the journal with the full English message (rendered by
+`assets_journal.lua` with `en.lua`), in the order they have been written:
 
 ```
 pro/tools/assets_journal/show.sh                         # ClickHouse, database ntopng
@@ -696,17 +741,29 @@ from a PTR response, the Non-PQC risk (not exported by nProbe), an OS change.
 
 e2e test: `view_host_mac_01` (hosts of a view with their MAC).
 
+### Live tests on a real interface (2026-11-02)
+
+Packet interface (`enp0s3`), seen in the *Journal* tabs of the GUI (the
+screenshots of the user guide):
+
+- New with the creating flow, then MAC address, TCP fingerprint and DNS name
+  ("reverse DNS lookup by ntopng") of the new asset;
+- OS tag from the HTTP User-Agent: "Add tag 28 (0x1c) Linux: HTTP User-Agent
+  "..." (Linux) - TCP ... [HTTP]";
+- tag bound to an application, with its flow ("... [TLS.ntop]"), and its TTL
+  expiration (TTL in minutes, test mode);
+- user tags set and unset from the GUI ("manually set", "manually unset",
+  who: the user), a tag deleted ("the tag has been deleted").
+
 ### Live tests still to be done (real interfaces)
 
-1. Packet interface (root), Enterprise L, journal enabled: new hosts give New
-   with the creating flow; a DNS server gives "Add tag 0 (0x00) DNS Server:
-   <flow> [DNS]"; a Windows/Linux host gives the OS tag with "TCP fingerprint
-   <fp> (<OS>) - <flow>".
+1. Packet interface: a DNS server gives "Add tag 0 (0x00) DNS Server: <flow>
+   [DNS]"; a Windows/Linux host gives the OS tag with "TCP fingerprint <fp>
+   (<OS>) - <flow>".
 2. Same with a view interface on top of it: the causes report the viewed
    interface.
 3. Change of OS of a host (e.g. `host_os_change.pcap` replayed with
    tcpreplay): "Remove tag 31 ... replaced by tag 28 ..., <evidence> - <flow>".
-4. GUI: set/unset user tags on a host (who = the user), delete a tag, delete
-   assets, import assets; disable/enable the preference (Baseline after the
-   next minute).
+4. GUI: delete assets, import assets; disable/enable the preference (Baseline
+   after the next minute).
 5. A DNS PTR response for a local host: "Set DNS name to ...: <DNS flow>".
