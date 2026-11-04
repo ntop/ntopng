@@ -14737,6 +14737,156 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/host/assets_journal.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the assets journal entries",
+        "description": "Entries of the assets journal in a time interval, newest first: event_time and created_time (epochs), asset (key, type, ip, vlan, name), who, action, subaction, message. Enterprise L, assets inventory and journal preference enabled",
+        "operationId": "get_host_assets_journal",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "serial_key",
+            "in": "query",
+            "description": "Key of an asset: only its entries (default: all the assets of the interface)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the interval, on the time of the events (epoch, default: epoch_end - 1 day)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the interval, on the time of the events (epoch, default: now)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Only the entries with this action (Baseline, New, Update, Delete, Manual)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "who",
+            "in": "query",
+            "description": "Only the entries caused by this user (ntopng for the automatic events)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subaction",
+            "in": "query",
+            "description": "Only the entries about this subaction (e.g. os, tag, mac)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/host/assets_journal_filters.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the assets journal filters",
+        "description": "Filters of the assets journal table (action, who, subaction) with their options, as the other *_filters REST: the values of the entries in the interval. Enterprise L, assets inventory and journal preference enabled",
+        "operationId": "get_host_assets_journal_filters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "serial_key",
+            "in": "query",
+            "description": "Key of an asset: only its entries (default: all the assets of the interface)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Begin of the interval, on the time of the events (epoch, default: epoch_end - 1 day)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the interval, on the time of the events (epoch, default: now)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Only the entries with this action (Baseline, New, Update, Delete, Manual)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "who",
+            "in": "query",
+            "description": "Only the entries caused by this user (ntopng for the automatic events)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subaction",
+            "in": "query",
+            "description": "Only the entries about this subaction (e.g. os, tag, mac)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/host/inactive_asset.lua": {
       "get": {
         "tags": [

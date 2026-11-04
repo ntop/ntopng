@@ -1,6 +1,7 @@
 {
 	"id": "assets_journal",
 	"data_url": "lua/pro/rest/v2/get/host/assets_journal.lua",
+	"filters_url": "lua/pro/rest/v2/get/host/assets_journal_filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
@@ -15,6 +16,16 @@
 			"id": "event_time",
 			"title_i18n": "assets_journal_page.event_time",
 			"data_field": "event_time",
+			"sortable": true,
+			"min-width": "150px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "created_time",
+			"title_i18n": "assets_journal_page.created_time",
+			"data_field": "created_time",
 			"sortable": true,
 			"min-width": "150px",
 			"class": [
