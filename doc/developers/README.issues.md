@@ -91,6 +91,12 @@ Lua bindings (`pro/src/LuaEngineNtopPro.cpp`):
 
 ## Data Flow
 
+![Alerts to issues pipeline](img/issues_alerts_pipeline.png)
+
+The path of every alert family (flow and host alerts from C++, the other entities
+from Lua), from the check that triggers it to the `issues` and `issue_events`
+tables, with the functions called and the queues in between. In short:
+
 ```
 C++ / Lua checks
    │  alerts (engage / release / store)
