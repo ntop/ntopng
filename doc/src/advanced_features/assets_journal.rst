@@ -19,6 +19,52 @@ preference. When it is enabled a *Baseline* entry is written for every asset
 already in the inventory; while it is disabled nothing is recorded, and when it
 is enabled again a new *Baseline* is written.
 
+Viewing the Journal
+-------------------
+
+The journal is shown in two places:
+
+- The *Journal* tab of the *Assets Inventory* page (*Network* menu, see
+  :ref:`Assets`): the events of all the assets of the selected interface.
+- The *Journal* tab of the details page of an asset: the events of that asset
+  only.
+
+.. figure:: ../img/assets_journal_inventory.png
+  :align: center
+  :target: ../_images/assets_journal_inventory.png
+  :alt: Journal tab of the Assets Inventory page
+
+  The Journal tab of the Assets Inventory page
+
+.. figure:: ../img/assets_journal_asset_details.png
+  :align: center
+  :target: ../_images/assets_journal_asset_details.png
+  :alt: Journal of a single asset
+
+  The Journal tab of the details page of an asset
+
+Each row is an event, newest first:
+
+- **Time**: when the event happened.
+- **Asset**: the asset (only in the *Assets Inventory* page). Click it to open
+  its details.
+- **Action**: *Baseline*, *New*, *Update*, *Delete* or *Note* (see below).
+- **About**: what has changed, e.g. *MAC address*, *DNS name*,
+  *TCP fingerprint*, *Operating System* or *Tag*. Empty when the event is
+  about the asset as a whole.
+- **Who**: ``ntopng`` for the events detected automatically, otherwise the
+  user that caused the event (e.g. ``admin`` for a tag set by hand).
+- **Event**: what happened and why (see `Causes`_). For an event seen in the
+  traffic, it shows the flow (connection) where it has been seen.
+
+By default the last month is shown: choose another time interval with the
+selector above the table and click *Apply*. The table can be searched, and the
+columns shown can be chosen with the eye icon.
+
+The tabs are enabled only when the journal is enabled (see above): otherwise
+they are disabled, and a tooltip says how to enable it. Without an Enterprise L
+license the tooltip says that an upgrade is needed.
+
 Entries
 -------
 
@@ -29,7 +75,7 @@ Every entry has:
 - **Who**: ``ntopng`` for the events detected automatically, otherwise the
   name of the user that caused the event from the GUI or the REST API.
 - **Action**: see below.
-- **Subaction**: what the entry is about: ``os`` (the
+- **Subaction** (*About* in the GUI): what the entry is about: ``os`` (the
   Operating System tags), ``tag`` (the other tags), the name of the field
   (``ip``, ``mac``, ``vlan``, ``tcp_fingerprint``, ``dhcp_fingerprint``,
   ``dns_name``), empty for the asset as a whole (Baseline, New, Delete,
@@ -48,7 +94,7 @@ Actions:
 - **Update**: one property of the asset changed or has been added/removed (i.e.
   a new tag has been set or a fingerprint changed).
 - **Delete**: the asset has been deleted.
-- **Manual**: a free text note, written by a user or by an integration.
+- **Manual** (*Note* in the GUI): a free text note, written by a user or by an integration.
 
 The fields of the host assets currently recorded are: IP address, MAC
 address, VLAN, TCP fingerprint, DHCP fingerprint, DNS name and the tags. The
@@ -116,12 +162,8 @@ available, otherwise in the SQLite database of the interface. Entries are
 **never deleted**: not by the data retention, and not when their asset is
 deleted, so that the history of a deleted asset is still available.
 
-The journal is shown in the *Journal* tab of the *Assets* page (the entries of
-all the assets of the interface) and of the details page of an asset (its own
-entries). The tabs are enabled only when the journal is enabled (see above):
-otherwise they are disabled, with a tooltip saying how to enable it.
-
-The entries of an asset can also be read with SQL, e.g. with ClickHouse:
+Besides the *Journal* tabs (see `Viewing the Journal`_), the entries of an
+asset can also be read with SQL, e.g. with ClickHouse:
 
 .. code-block:: sql
 
