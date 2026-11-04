@@ -33,6 +33,14 @@ if (not isAdministrator()) and (curr_user ~= username) then
    return
 end
 
+-- A passkey takes precedence over TOTP at login: registering one while MFA is
+-- enabled would replace the second factor without the current TOTP code
+if (action == "get_registration_options" or action == "complete_registration")
+   and ntop.isTOTPEnabled(username) then
+   print(json.encode({ result = -1, message = "Passkey cannot be registered while MFA is enabled" }))
+   return
+end
+
 if action == "get_registration_options" then
    local opts = ntop.generateWebAuthnRegistrationOptions(username)
    if not opts then
