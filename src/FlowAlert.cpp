@@ -71,6 +71,13 @@ const char* FlowAlert::getSerializedAlert() {
 
   ndpi_serialize_string_uint32(&serializer, "score", getAlertScore());
 
+  /* Roles of this alert: the flow alert notification reports the ones of the
+   * predominant alert only (used to group alerts into issues) */
+  ndpi_serialize_string_boolean(&serializer, "is_cli_attacker", isCliAttacker());
+  ndpi_serialize_string_boolean(&serializer, "is_cli_victim", isCliVictim());
+  ndpi_serialize_string_boolean(&serializer, "is_srv_attacker", isSrvAttacker());
+  ndpi_serialize_string_boolean(&serializer, "is_srv_victim", isSrvVictim());
+
   getAlertJSON(&serializer);
 
   json = ndpi_serializer_get_buffer(&serializer, &json_len);

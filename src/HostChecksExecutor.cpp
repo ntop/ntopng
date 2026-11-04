@@ -64,13 +64,21 @@ void HostChecksExecutor::releaseAllDisabledAlerts(Host* h, time_t now) {
     HostAlert* alert = h->getCheckEngagedAlert(t);
 
     if (alert) {
-      if (/* Check max engage time (24h) required to optimize DB queries */
-          (now - alert->getEngageTime() > CONST_MAX_ALERT_ENGAGE_TIME)
-          /* Check disabled or not a C++ check: check engaged alerts with auto
-           * release */
-          || (!cb && (!alert->getTimeout() || now > alert->getTimeout()) &&
-              (alert->hasAutoRelease() ||
-               ntop->getPrefs()->dontEmitHostAlerts() /* alerts disabled */))) {
+      /* Check max engage time (24h) required to optimize DB queries */
+      bool max_engage_time =
+          (now - alert->getEngageTime() > CONST_MAX_ALERT_ENGAGE_TIME);
+      /* Check disabled or not a C++ check: check engaged alerts with auto
+       * release */
+      bool disabled =
+          (!cb && (!alert->getTimeout() || now > alert->getTimeout()) &&
+           (alert->hasAutoRelease() ||
+            ntop->getPrefs()->dontEmitHostAlerts() /* alerts disabled */));
+
+      if (max_engage_time || disabled) {
+        /* The condition may still be active: let the issue manager keep the
+         * issue open, the alert is engaged again at the next check */
+        if (!disabled) alert->setForcedRelease();
+
         h->releaseAlert(alert);
       }
     }

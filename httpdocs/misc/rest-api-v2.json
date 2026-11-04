@@ -19,6 +19,10 @@
       "description": "Everything about alerts"
     },
     {
+      "name": "Issues",
+      "description": "Problems built on top of the alerts (Enterprise XXL+)"
+    },
+    {
       "name": "Flows",
       "description": "Everything about flows"
     },
@@ -1421,11 +1425,11 @@
             "type": "string"
           },
           {
-            "name": "recipient_silence_multiple_alerts",
+            "name": "recipient_delivery_mode",
             "in": "formData",
-            "description": "true (default): the same alert is delivered at most once per hour",
+            "description": "Alerts recipients: alerts (default, each alert) or issues (a notification when an issue is opened, escalated, reopened or resolved; Enterprise XXL+ with the Issues preference on). Edit: the stored mode is kept when not set",
             "required": false,
-            "type": "boolean"
+            "type": "string"
           }
         ],
         "responses": {
@@ -1637,11 +1641,11 @@
             "type": "string"
           },
           {
-            "name": "recipient_silence_multiple_alerts",
+            "name": "recipient_delivery_mode",
             "in": "formData",
-            "description": "true (default): the same alert is delivered at most once per hour",
+            "description": "Alerts recipients: alerts (default, each alert) or issues (a notification when an issue is opened, escalated, reopened or resolved; Enterprise XXL+ with the Issues preference on). Edit: the stored mode is kept when not set",
             "required": false,
-            "type": "boolean"
+            "type": "string"
           }
         ],
         "responses": {
@@ -1728,7 +1732,7 @@
           "Notification Recipients"
         ],
         "summary": "List notification recipients",
-        "description": "Notification recipients (builtin alert database recipient included) with channel type, connection, filters, recipient params and delivery stats. Admin only.",
+        "description": "Notification recipients (builtin alert database recipient included) with channel type, connection, filters, delivery_mode (alerts or issues), recipient params and delivery stats. Admin only.",
         "operationId": "get_notification_recipients",
         "produces": [
           "application/json"
@@ -2432,8 +2436,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge SNMP device alerts",
-        "description": "Acknowledge SNMP device historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge SNMP device historical alerts",
         "operationId": "acknowledge_snmp_device_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -3036,7 +3041,7 @@
           "-43": {
             "description": "INFRASTRUCTURE_INSTANCE_CHECK_FAILED"
           },
-          "-44": {
+          "-24": {
             "description": "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"
           },
           "-45": {
@@ -8549,8 +8554,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge Active Monitoring alerts",
-        "description": "Acknowledge Active Monitoring historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge Active Monitoring historical alerts",
         "operationId": "acknowledge_active_monitoring_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -8638,8 +8644,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge flow alerts",
-        "description": "Acknowledge flow historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge flow historical alerts",
         "operationId": "acknowledge_flow_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -8881,8 +8888,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge host alerts",
-        "description": "Acknowledge host historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge host historical alerts",
         "operationId": "acknowledge_host_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -9012,8 +9020,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge interface alerts",
-        "description": "Acknowledge interface historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge interface historical alerts",
         "operationId": "acknowledge_interface_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -9108,8 +9117,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge MAC alerts",
-        "description": "Acknowledge MAC historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge MAC historical alerts",
         "operationId": "acknowledge_mac_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -9197,8 +9207,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge network alerts",
-        "description": "Acknowledge network historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge network historical alerts",
         "operationId": "acknowledge_network_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -9293,8 +9304,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge system alerts",
-        "description": "Acknowledge system historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge system historical alerts",
         "operationId": "acknowledge_system_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -9382,8 +9394,9 @@
           "Alerts"
         ],
         "summary": "Acknowledge user alerts",
-        "description": "Acknowledge user historical alerts",
+        "description": "DEPRECATED: alerts are acknowledged through the issues (edit/issue/acknowledge.lua, Enterprise XXL+). Acknowledge user historical alerts",
         "operationId": "acknowledge_user_alerts",
+        "deprecated": true,
         "produces": [
           "application/json"
         ],
@@ -19892,6 +19905,1165 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/list.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "List issues",
+        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, peers_count, peers_sample, reopen_count, resolve_policy, resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "description": "problems (open issues, default), recent (resolved in the last 24 hours) or history (all the issues active in epoch_begin..epoch_end)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch, view history only)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch, view history only)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity identifiers, comma separated (e.g. '5' or '5;eq,6;eq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type identifiers, comma separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "entity_id",
+            "in": "query",
+            "description": "Alert entity identifiers, comma separated (e.g. 1 host, 4 flow)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "description": "Users the issues are assigned to, comma-separated (~: unassigned)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "suppressed",
+            "in": "query",
+            "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "opened_within",
+            "in": "query",
+            "description": "Only the issues first seen in the last seconds (e.g. 3600). Heatmap: also its time window (3600, 86400 or 172800, the default)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the entity and in the description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host (IP or IP@VLAN): only the issues of the host and the flow issues about it",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_category",
+            "in": "query",
+            "description": "Alert categories, comma-separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mitre_tactic",
+            "in": "query",
+            "description": "MITRE tactic ids of the alert types, comma-separated (0: no tactic)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "problem",
+            "in": "query",
+            "description": "Alert types as <alert entity id>:<alert id>, comma-separated (e.g. 4:102,1:3)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "issue_entity",
+            "in": "query",
+            "description": "Entity of the issues as <alert entity id>|<entity value> (e.g. 0|12 for interface 12)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "show_suppressed",
+            "in": "query",
+            "description": "View problems: include the suppressed issues (default false)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "only_suppressed",
+            "in": "query",
+            "description": "View problems: only the suppressed issues (default false)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First record (default 0)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of records (default 10, max 500)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: issue_id, severity, score, first_seen, last_seen (default), resolved_at, signal_count, peers_count, alert_id, entity_val",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc (default)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown view)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/counters.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue counters",
+        "description": "Number of open (not suppressed) problems (problems) and by severity (problems_by_severity), of the issues of each view (views.problems, views.recent) and of the suppressed problems (suppressed). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_counters",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host (IP or IP@VLAN): only the issues of the host and the flow issues about it",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/stats.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue manager statistics",
+        "description": "Internal statistics of the issue manager: loaded, issues in memory (num_open, num_recent, num_in_memory), pending writes (num_dirty, num_pending_events, num_pending_notifications), num_signals, num_tracked_flows, dropped events and notifications, writer_since, and the queue of the ClickHouse flow alerts (flow_alert_queue_len, flow_alert_queue_bytes, num_flow_alerts_queued, num_flow_alert_drops, num_flow_alerts_processed, last_flow_alert_batch_alerts, last_flow_alert_batch_msec). Enterprise XXL+ only, requires alerts enabled. Administrators only.",
+        "operationId": "get_issue_stats",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (not an administrator)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/facets.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue facets",
+        "description": "For each facet (entity_id, severity, alert_category, mitre_tactic, problem), the number of issues of each value (at most 12, the largest first; severities the most severe first) among the issues matching the filters of the other facets. Values have a label, or a label_key to translate. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_facets",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "description": "problems (open issues, default), recent (resolved in the last 24 hours) or history (all the issues active in epoch_begin..epoch_end)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch, view history only)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch, view history only)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity identifiers, comma separated (e.g. '5' or '5;eq,6;eq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type identifiers, comma separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "entity_id",
+            "in": "query",
+            "description": "Alert entity identifiers, comma separated (e.g. 1 host, 4 flow)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "description": "Users the issues are assigned to, comma-separated (~: unassigned)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "suppressed",
+            "in": "query",
+            "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "opened_within",
+            "in": "query",
+            "description": "Only the issues first seen in the last seconds (e.g. 3600). Heatmap: also its time window (3600, 86400 or 172800, the default)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the entity and in the description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host (IP or IP@VLAN): only the issues of the host and the flow issues about it",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_category",
+            "in": "query",
+            "description": "Alert categories, comma-separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mitre_tactic",
+            "in": "query",
+            "description": "MITRE tactic ids of the alert types, comma-separated (0: no tactic)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "problem",
+            "in": "query",
+            "description": "Alert types as <alert entity id>:<alert id>, comma-separated (e.g. 4:102,1:3)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "show_suppressed",
+            "in": "query",
+            "description": "View problems: include the suppressed issues (default false)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "only_suppressed",
+            "in": "query",
+            "description": "View problems: only the suppressed issues (default false)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown view)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/groups.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue groups",
+        "description": "Issues grouped by problem (alert type) or by host (host and flow issues by IP@VLAN, the other issues by entity), the most severe groups first, then the largest. Each group has key, label, entity (entity type label), count, max_severity, last_seen, signal_count and params: the parameters to add to list.lua to get the issues of the group. has_more tells if there are more groups. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_groups",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "group_by",
+            "in": "query",
+            "description": "problem or host",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "description": "problems (open issues, default), recent (resolved in the last 24 hours) or history (all the issues active in epoch_begin..epoch_end)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch, view history only)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch, view history only)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity identifiers, comma separated (e.g. '5' or '5;eq,6;eq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type identifiers, comma separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "entity_id",
+            "in": "query",
+            "description": "Alert entity identifiers, comma separated (e.g. 1 host, 4 flow)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "description": "Users the issues are assigned to, comma-separated (~: unassigned)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "suppressed",
+            "in": "query",
+            "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "opened_within",
+            "in": "query",
+            "description": "Only the issues first seen in the last seconds (e.g. 3600). Heatmap: also its time window (3600, 86400 or 172800, the default)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the entity and in the description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host (IP or IP@VLAN): only the issues of the host and the flow issues about it",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_category",
+            "in": "query",
+            "description": "Alert categories, comma-separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mitre_tactic",
+            "in": "query",
+            "description": "MITRE tactic ids of the alert types, comma-separated (0: no tactic)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "problem",
+            "in": "query",
+            "description": "Alert types as <alert entity id>:<alert id>, comma-separated (e.g. 4:102,1:3)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "issue_entity",
+            "in": "query",
+            "description": "Entity of the issues as <alert entity id>|<entity value> (e.g. 0|12 for interface 12)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "show_suppressed",
+            "in": "query",
+            "description": "View problems: include the suppressed issues (default false)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "only_suppressed",
+            "in": "query",
+            "description": "View problems: only the suppressed issues (default false)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "First record (default 0)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of records (default 10, max 500)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort column: severity (most severe issue of the group, default), count (number of issues), signal_count (number of alerts)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "asc or desc (default)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown view)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/heatmap.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue heatmap",
+        "description": "Issue activity in a time window (opened_within: 1 hour, 24 hours, or 48 hours by default), in slots of 1, 15 or 30 minutes: slot (seconds), begin and end (epochs) and cells, a list of { tstamp, severity, value, issues } where value is the number of issues opened, reopened or escalated to that severity in the slot (events) and issues the number of distinct issues. Same filters of the issue list, except the view and its time range. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_heatmap",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "severity",
+            "in": "query",
+            "description": "Severity identifiers, comma separated (e.g. '5' or '5;eq,6;eq')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert type identifiers, comma separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "entity_id",
+            "in": "query",
+            "description": "Alert entity identifiers, comma separated (e.g. 1 host, 4 flow)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "description": "Users the issues are assigned to, comma-separated (~: unassigned)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "suppressed",
+            "in": "query",
+            "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "opened_within",
+            "in": "query",
+            "description": "Only the issues first seen in the last seconds (e.g. 3600). Heatmap: also its time window (3600, 86400 or 172800, the default)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Text searched in the entity and in the description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host (IP or IP@VLAN): only the issues of the host and the flow issues about it",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alert_category",
+            "in": "query",
+            "description": "Alert categories, comma-separated",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mitre_tactic",
+            "in": "query",
+            "description": "MITRE tactic ids of the alert types, comma-separated (0: no tactic)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "problem",
+            "in": "query",
+            "description": "Alert types as <alert entity id>:<alert id>, comma-separated (e.g. 4:102,1:3)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "issue_entity",
+            "in": "query",
+            "description": "Entity of the issues as <alert entity id>|<entity value> (e.g. 0|12 for interface 12)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown view)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/details.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue details",
+        "description": "Details of an issue (same fields as get/issue/list.lua). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_details",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "query",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/events.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue timeline",
+        "description": "Events of an issue, oldest first: tstamp, event (open, escalate, resolve, reopen, acknowledge, assign, comment, suppress), user, info (e.g. severities, resolution, assignee, comment text). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_events",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "query",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/signals.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue alerts",
+        "description": "Latest alerts (signals) of an issue, newest first. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_signals",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "query",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of alerts (default 20, max 100)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/issue/assignees.lua": {
+      "get": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Issue assignees",
+        "description": "Users an issue can be assigned to. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "get_issue_assignees",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/acknowledge.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Acknowledge an issue",
+        "description": "Records that the current user is handling the issue. The acknowledgement is cleared when the severity rises or the issue is reopened. POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "acknowledge_issue",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/assign.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Assign an issue",
+        "description": "Assigns the issue to a user (empty: unassigned). POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "assign_issue",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "assignee",
+            "in": "formData",
+            "description": "Usernames, comma-separated (the issue is assigned to all of them), empty to unassign",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
+          },
+          "-24": {
+            "description": "USER_DOES_NOT_EXIST"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/comment.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Comment an issue",
+        "description": "Adds a comment to the issue timeline. POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "comment_issue",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "comment",
+            "in": "formData",
+            "description": "Comment text (max 4096 characters)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/severity.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Change the severity of an issue",
+        "description": "Set the severity of an open issue (3=notice, 4=warning, 5=error, 6=critical, 8=emergency), e.g. to escalate it. A higher severity is an escalation: the acknowledgement is cleared and the recipients of the issues are notified. Later alerts more severe than the chosen severity still raise it. Recorded in the issue events (severity) with the user. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "edit_issue_severity",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "severity",
+            "in": "formData",
+            "description": "The severity: 3=notice, 4=warning, 5=error, 6=critical, 8=emergency",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/suppress.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Suppress an issue",
+        "description": "Suppresses the issue notifications for a time: the issue is hidden from the problems unless show_suppressed is set. POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "suppress_issue",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "duration",
+            "in": "formData",
+            "description": "Seconds, 0 removes the suppression",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/resolve.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Resolve an issue",
+        "description": "Resolves an open issue (resolution manual). POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "resolve_issue",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/issue/reopen.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Reopen an issue",
+        "description": "Reopens a resolved issue: from then on it is resolved only by a user. POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "reopen_issue",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "formData",
+            "description": "Issue identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
           }
         }
       }

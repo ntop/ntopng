@@ -583,8 +583,59 @@ function alert_utils.severity_rev(a, b)
 end
 
 -- #################################
+
+-- Emoji of the issue events (see issue_notifications.lua)
+local ISSUE_EVENT_EMOJI = {
+	open = "\xE2\x9D\x97 ",
+	escalate = "\xE2\xAC\x86 ",
+	reopen = "\xE2\x86\xA9 ",
+	resolve = "\xE2\x9C\x94 ",
+}
+
+-- @brief Label of the event of an issue notification, e.g. [Issue #12 Opened]
+local function issueNotificationEventLabel(issue, use_emoji)
+	local emoji = ternary(use_emoji, ISSUE_EVENT_EMOJI[issue.event] or "", "")
+
+	return string.format("[%s%s]", emoji, i18n("issues.notification." .. issue.event, { id = issue.issue_id }) or "")
+end
+
+-- @brief Message of an issue notification: the description of the alert causing
+--        the event (if any), the alerts and peers of the issue, the resolution and the link
+local function formatIssueNotificationMessage(notif)
+	local issue = notif.issue
+	local parts = {}
+
+	if notif.alert then
+		-- The alert formatter may expect fields missing in old notifications
+		local ok, alert_message = pcall(alert_utils.formatAlertMessage, notif.alert.ifid, notif.alert)
+
+		if ok and not isEmptyString(alert_message) then
+			parts[#parts + 1] = alert_message
+		end
+	end
+
+	if issue.event == "resolve" then
+		parts[#parts + 1] = i18n("issues.resolution." .. issue.resolution) or issue.resolution
+	end
+
+	parts[#parts + 1] = i18n("issues.notification.summary", {
+		alerts = format_utils.formatValue(issue.signal_count or 0),
+		since = format_utils.formatEpoch(issue.first_seen or 0),
+	})
+
+	if (tonumber(issue.peers_count) or 0) > 0 then
+		parts[#parts + 1] = i18n("issues.notification.peers", { peers = format_utils.formatValue(issue.peers_count) })
+	end
+
+	parts[#parts + 1] = i18n("issues.notification.details", { url = issue.url })
+
+	return table.concat(parts, " - ")
+end
+
+-- #################################
 --
 -- Returns a summary of the alert as readable text
+-- Issue notifications (notif.issue, see issue_notifications.lua) tell what happened to the issue
 function alert_utils.formatAlertNotification(notif, options)
 	-- Otherwise format the alert
 	local defaults = {
@@ -651,7 +702,14 @@ function alert_utils.formatAlertNotification(notif, options)
 	if notif.entity_id and notif.entity_val then
 		local ev = notif.entity_val
 
-		if notif.entity_id == alert_entities.flow.entity_id then
+		if notif.issue and (notif.entity_id == alert_entities.flow.entity_id) then
+			-- Flow issues are about a host (IP@VLAN), with its role in the flows
+			ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_val))
+
+			if not isEmptyString(notif.issue.role) then
+				ev = string.format("%s (%s)", ev, i18n("issues.role." .. notif.issue.role) or notif.issue.role)
+			end
+		elseif notif.entity_id == alert_entities.flow.entity_id then
 			ev = noHtml(alert_utils.formatRawFlow(notif, options.nohtml))
 		elseif notif.entity_id == alert_entities.host.entity_id then
 			-- suppress @0 when the vlan is zero
@@ -666,10 +724,16 @@ function alert_utils.formatAlertNotification(notif, options)
 		msg = msg .. " [" .. (ev or "") .. "]"
 	end
 
-	-- add the label, that is, engaged or released
-	msg = msg .. " " .. alertNotificationActionToLabel(notif.action, options.emoji) .. " "
+	-- add the label, that is, engaged or released (issues: the event)
+	local alert_message
 
-	local alert_message = alert_utils.formatAlertMessage(notif.ifid, notif)
+	if notif.issue then
+		msg = msg .. " " .. issueNotificationEventLabel(notif.issue, options.emoji) .. " "
+		alert_message = formatIssueNotificationMessage(notif)
+	else
+		msg = msg .. " " .. alertNotificationActionToLabel(notif.action, options.emoji) .. " "
+		alert_message = alert_utils.formatAlertMessage(notif.ifid, notif)
+	end
 
 	if options.add_cr then
 		msg = msg .. "\n"
@@ -976,76 +1040,6 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 	end
 
 	return other_alerts_by_score, additional_alerts
-end
-
--- ##############################################
-
-function alert_utils.filter_notification(notification, recipient_id)
-	local alert_info = json.decode(notification.alert)
-	local alert_key = alert_info.alert_id
-	local entity_id = alert_info.entity_id
-	local entity_val = alert_info.entity_val
-
-	if notification.score == 0 then
-		return true
-	end
-
-	local alert_id = alert_consts.getAlertType(alert_key, entity_id)
-
-	return alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id)
-end
-
--- ##############################################
-
--- Function to filter duplicate alerts
-function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id)
-	local alert_key = ""
-	local alert_key_fields = {}
-	local not_set = true
-	local silence_alerts = ntop.getCache("ntopng.prefs.silence_multiple_alerts." .. recipient_id) or "1"
-
-	-- In case the alerts have to be silenced for the endpoint then silence them, otherwise skip
-	if silence_alerts == "1" then
-		if alert_consts.alert_types[alert_id].alert_retention_policy_key then
-			alert_key_fields = alert_consts.alert_types[alert_id].alert_retention_policy_key(alert_info)
-
-			for _, field in ipairs(alert_key_fields) do
-				alert_key = alert_key .. "." .. alert_info[field]
-			end
-		else
-			if not alert_entities[entity_val] then
-				entity_val = alert_consts.alertEntityRaw(entity_id)
-			end
-			alert_key_fields = alert_entities[entity_val].alert_key_fields
-			if alert_key_fields then
-				for _, field in ipairs(alert_key_fields) do
-					alert_key = alert_key .. "." .. alert_info[field]
-				end
-			else
-				return not_set
-			end
-		end
-
-		if isEmptyString(alert_key) then
-			return not_set
-		end
-
-		-- Check if the key is set in redis for this recipient_id, entity_id and alert_id
-		local redis_key =
-			string.format("ntopng.cache.alert.retention.%s.%s.%s%s", recipient_id, entity_id, alert_id, alert_key)
-		local redis_value = ntop.getCache(redis_key)
-
-		not_set = isEmptyString(redis_value)
-
-		if not_set then
-			-- Set key with expiration on redis to filter out the same alert for some time
-			-- TODO: 3600 must be update with a user preference
-			-- 3600 is in seconds, do not send duplicate alerts if they appear more than once in an hour
-			ntop.setCache(redis_key, "1", 3600)
-		end
-	end
-
-	return not_set -- true to send the alert, false to suppress this alert until the key expires
 end
 
 -- ##############################################

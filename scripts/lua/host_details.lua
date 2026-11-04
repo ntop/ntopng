@@ -26,6 +26,8 @@ local is_admin = isAdministrator()
 local http_prefix = ntop.getHttpPrefix()
 local is_enterprise_L = ntop.isEnterpriseL and ntop.isEnterpriseL()
 local is_enterprise_M = ntop.isEnterpriseM and ntop.isEnterpriseM()
+-- Issues tab: Enterprise XXL+ with the Issues preference on (see issue_utils.is_enabled)
+local issues_enabled = (ntop.issuesIsEnabled and ntop.issuesIsEnabled()) and areAlertsEnabled()
 
 if (is_pro) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -583,6 +585,13 @@ else
       url = hostinfo2detailsurl(host, {
          page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")
       })
+   }, {
+      -- Issues of the host and flow issues about it (Enterprise XXL+)
+      hidden = not issues_enabled or not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts) or
+         not (isIPv4(host_info.host) or isIPv6(host_info.host)),
+      active = page == "issues",
+      page_name = "issues",
+      label = "<i class='fas fa-lg fa-fire-alt' title='" .. i18n("issues.issues") .. "'></i>"
    }, {
       hidden = not has_assets,
       active = page == "assets",
@@ -2136,6 +2145,15 @@ setInterval(update_icmp_table, 5000);
       }
       host_pools_nedge.printQuotas(host_pool_id, host, page_params)
 
+   elseif (page == "issues") and issues_enabled then
+      template.render("pages/vue_page.template", {
+         vue_page_name = "PageIssues",
+         page_context = json.encode({
+            csrf = random_csrf,
+            username = _SESSION["user"],
+            host = hostkey
+         })
+      })
    elseif (page == "periodicity_map") then
       dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
 

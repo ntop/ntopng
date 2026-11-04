@@ -19,6 +19,7 @@ local alert_fail2ban_executed = classes.class(alert)
 
 alert_fail2ban_executed.meta = {
   alert_key = other_alert_keys.alert_fail2ban_executed,
+  issue = false, -- Informational: does not open issues (see issues/issue_manager.lua)
   i18n_title = "alerts_dashboard.fail2ban",
   icon = "fas fa-fw fa-info-circle",
   entities = {},

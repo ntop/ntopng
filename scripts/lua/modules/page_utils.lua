@@ -251,6 +251,16 @@ page_utils.menu_entries = {
         i18n_title = "details.alerts_graph",
         section = "alerts"
     },
+    issues = {
+        key = "issues",
+        i18n_title = "issues.issues",
+        section = "alerts"
+    },
+    issue_details = {
+        key = "issues",
+        i18n_title = "issues.issue_details",
+        section = "alerts"
+    },
     alerts_groups = {
         key = "alerts_groups",
         i18n_title = "details.alerts_groups",

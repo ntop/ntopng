@@ -19,6 +19,7 @@ local alert_local_host_blacklisted = classes.class(alert)
 
 alert_local_host_blacklisted.meta = {
    alert_key = other_alert_keys.alert_local_host_blacklisted,
+   issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
    i18n_title = "alerts_dashboard.local_host_blacklisted",
    icon = "fas fa-fw fa-sticky-note",
    entities = {

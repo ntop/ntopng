@@ -1088,6 +1088,12 @@ function alert_store:insert(alert)
             extra_values = string.format("generateUUIDv4(), '%s', ", self:_escape(prefs.instance_name))
         end
 
+        -- Linked to an issue (set by the issue manager, Enterprise XXL+), else the column default (0)
+        if (tonumber(alert.issue_id) or 0) > 0 then
+            extra_columns = extra_columns .. "issue_id, "
+            extra_values = extra_values .. string.format("%u, ", alert.issue_id)
+        end
+
         -- Note: alert.require_attention depends on HostAlert::autoAck() for
         -- host alerts, for all other families the default is set to false in 
         -- OtherAlertableEntity::triggerAlert()
@@ -1132,6 +1138,12 @@ function alert_store:insert_engaged(alert)
         else
             extra_columns = "rowid, "
             extra_values = string.format("%u, ", alert.rowid)
+        end
+
+        -- Linked to an issue (set by the issue manager, Enterprise XXL+), else the column default (0)
+        if (tonumber(alert.issue_id) or 0) > 0 then
+            extra_columns = extra_columns .. "issue_id, "
+            extra_values = extra_values .. string.format("%u, ", alert.issue_id)
         end
 
         local alert_status = alert_consts.alert_status.engaged.alert_status_id
@@ -2217,6 +2229,7 @@ function alert_store:add_request_filters(is_write)
     local tstamp = _GET["tstamp"]
     local info = _GET["info"]
     local description = _GET["description"]
+    local issue_id = _GET["issue_id"]
 
     -- Remember the score filter (see also alert_stats.lua)
     local alert_score_cached = string.format(ALERT_SCORE_FILTER_KEY, self:ifid_2_db_ifid(self:get_ifid()))
@@ -2240,6 +2253,10 @@ function alert_store:add_request_filters(is_write)
 
     self:add_filter_condition_list('description', description)
 
+    if self:_has_issue_id_column() then
+        self:add_filter_condition_list('issue_id', issue_id, 'number')
+    end
+
     if (ntop_clickhouse_enabled) then
         -- Clickhouse db has the column 'interface_id', filter by that per interface
         -- (no filter in lightview: alerts of any interface)
@@ -2252,6 +2269,14 @@ function alert_store:add_request_filters(is_write)
     end
 
     self:_add_additional_request_filters()
+end
+
+-- ##############################################
+
+-- @brief Whether the alerts of this store are linked to issues with the issue_id column
+--        Possibly overridden in subclasses
+function alert_store:_has_issue_id_column()
+    return true
 end
 
 -- ##############################################
@@ -2274,6 +2299,11 @@ function alert_store:get_available_filters()
         score = flowfilter_utils.defined_filters.score,
         description = flowfilter_utils.defined_filters.description
     }
+
+    -- Issues: Enterprise XXL+ with the issues enabled
+    if self:_has_issue_id_column() and ntop.issuesIsEnabled and ntop.issuesIsEnabled() then
+        filters.issue_id = flowfilter_utils.defined_filters.issue_id
+    end
 
     return table.merge(filters, additional_filters)
 end

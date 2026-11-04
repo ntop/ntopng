@@ -1,0 +1,60 @@
+{
+	"id": "issue_signals",
+	"data_url": "lua/pro/rest/v2/get/issue/signals.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.issue_signals",
+	"columns": [
+		{
+			"id": "tstamp",
+			"title_i18n": "issues.col.signal_time",
+			"data_field": "tstamp",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "140px"
+		},
+		{
+			"id": "tstamp_end",
+			"title_i18n": "issues.col.signal_end",
+			"data_field": "tstamp_end",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "140px"
+		},
+		{
+			"id": "score",
+			"title_i18n": "issues.col.score",
+			"data_field": "score",
+			"sortable": false,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "flow",
+			"title_i18n": "issues.col.flow",
+			"data_field": "flow",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "260px"
+		},
+		{
+			"id": "l7_proto_name",
+			"title_i18n": "issues.col.application",
+			"data_field": "l7_proto_name",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

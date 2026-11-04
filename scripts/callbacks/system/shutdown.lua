@@ -30,6 +30,9 @@ alert_utils.notify_ntopng_stop()
 -- Check and possibly dump preferences to disk
 prefs_dump_utils.check_dump_prefs_to_disk()
 
+-- Alerts are released on shutdown even if the condition is still active
+alerts_api.setForcedReleases(true)
+
 -- First of all release the alert of the system interface (current one)
 alerts_api.releaseAllAlerts()
 -- Then release the alerts of all other interfaces
@@ -37,6 +40,8 @@ for _, ifname in pairs(ifnames) do
   interface.select(ifname)
   alerts_api.releaseAllAlerts()
 end
+
+alerts_api.setForcedReleases(false)
 
 recipients.process_notifications(now, now + 10 --[[ deadline ]], 0 --[[ periodicity ]], true)
 

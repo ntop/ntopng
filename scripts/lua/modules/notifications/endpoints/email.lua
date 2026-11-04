@@ -179,23 +179,18 @@ function email.dequeueRecipientAlerts(recipient, budget)
                     tprint(notification)
                 end
 
-                if alert_utils.filter_notification(notification,
-                                                   recipient.recipient_id) then
-                    local notif = json.decode(notification.alert)
+                local notif = json.decode(notification.alert)
 
-                    if debug_endpoint then
-                        tprint("Email: notification matched the filter")
-                    end
+                if debug_endpoint then
+                    tprint("Email: notification matched the filter")
+                end
 
-                    notifications[#notifications + 1] = notif
-                    i = i + 1
+                notifications[#notifications + 1] = notif
+                i = i + 1
 
-                    if not notif.score then
-                        -- Not an alert (e.g. report), send out
-                        goto send_out
-                    end
-                else
-                    discarded = discarded + 1
+                if not notif.score then
+                    -- Not an alert (e.g. report), send out
+                    goto send_out
                 end
             else
                 break

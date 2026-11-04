@@ -15,6 +15,15 @@ local Alert = classes.class()
 
 -- ##############################################
 
+-- Issues (Enterprise XXL+, see doc/developers/README.issues.md): alerts are grouped
+-- into issues (by entity, entity value, alert type and subtype) according to these
+-- optional settings of the alert definitions, read once at startup:
+-- - meta.issue = false: the alert does not open issues (e.g. informational alerts)
+-- - meta.issue_resolve_policy = "on_release" | "quiet_period" | "manual": how the
+--   issue is resolved (default: on_release for engaged alerts, quiet_period otherwise)
+
+-- ##############################################
+
 function Alert:init()
 end
 

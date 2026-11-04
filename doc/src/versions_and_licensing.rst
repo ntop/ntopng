@@ -806,6 +806,14 @@ Versions Comparison Table
      - ✓
      - ✓
      - ✓
+   * - :ref:`Issues <Issues>`: group alerts of the same kind into tickets to track, assign and resolve
+     - ✗
+     - ✗
+     - ✗
+     - ✗
+     - ✗
+     - ✓
+     - ✓
 
 
 ✓ = Feature available, ✗ = Feature NOT available

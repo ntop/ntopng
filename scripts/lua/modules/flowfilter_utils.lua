@@ -469,6 +469,13 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'lte', 'gte', 'neq'},
         hourly_available = false
     },
+    issue_id = {
+        -- Alerts linked to an issue (Enterprise XXL+, see pro/scripts/lua/modules/issues)
+        value_type = 'score',
+        i18n_label = i18n('db_search.flowfilters.issue_id'),
+        operators = {'eq', 'neq'},
+        hourly_available = false
+    },
     score = {
         value_type = 'score',
         i18n_label = i18n('db_search.flowfilters.score'),

@@ -18,6 +18,7 @@ local alert_data_exfiltration = classes.class(alert)
 
 alert_data_exfiltration.meta = {
    alert_key = flow_alert_keys.flow_alert_data_exfiltration,
+   issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
    i18n_title = "flow_details.data_exfiltration",
    icon = "fas fa-fw fa-exclamation",
    status_keep_increasing_scores = true, -- Keep increasing the score so the longer the flow, the higher the score

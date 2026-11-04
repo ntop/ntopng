@@ -173,8 +173,16 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
       /*
         Do not store flow alerts on ClickHouse as they are retrieved using a
         view on historical flows (i.e. flow alerts are not stored but read from
-        flows) But still increment the number of uses
+        flows) But still increment the number of uses.
+        On Enterprise XXL+, with the issues enabled, they feed the issue manager
+        through its own queue (not this one, kept for the alerts to be stored)
       */
+#ifdef NTOPNG_PRO
+      if (ntop->getPro()->is_enterprise_xxl_edition() &&
+          ntop->getPrefs()->are_issues_enabled())
+        ntop->getIssueManager()->enqueueFlowAlert(notification->alert);
+#endif
+
       enqueued++;
       delivered++;
 #ifdef DEBUG_RECIPIENT_QUEUE

@@ -11,6 +11,9 @@
 			"inactive_color" : "secondary",
 			"width" : 4,
 			"height" : 2,
+			"requires" : {
+				"modules" : [ "!issues" ]
+			},
 			"params" : {
 				"url" : "/lua/rest/v2/get/interface/data.lua",
 				"url_params" : {
@@ -76,6 +79,36 @@
 				},
 				"counter_path" : "num_flows",
 				"counter_formatter" : "number"
+			}
+		},
+		{
+			"component" : "issues-badge",
+			"id" : "open_problems",
+			"datasource_id" : "issue_counters",
+			"i18n_name" : "",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"requires" : {
+				"modules" : [ "issues" ]
+			},
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/issue/counters.lua",
+				"url_params" : {},
+				"icon" : "fas fa-fire-alt",
+				"i18n_name" : "issues.view.problems",
+				"link" : {
+					"url" : "/lua/pro/issues.lua",
+					"url_params" : {
+						"view" : "problems"
+					}
+				},
+				"severities" : [
+					{ "id" : 8, "i18n_name" : "alerts_dashboard.emergency", "color" : "danger" },
+					{ "id" : 6, "i18n_name" : "alerts_dashboard.critical", "color" : "danger" },
+					{ "id" : 5, "i18n_name" : "alerts_dashboard.error", "color" : "orange" },
+					{ "id" : 4, "i18n_name" : "alerts_dashboard.warning", "color" : "warning" }
+				]
 			}
 		},
 		{

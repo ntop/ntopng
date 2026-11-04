@@ -27,13 +27,17 @@ json TEXT NULL,
 user_label TEXT NULL, -- A label that can be set by the user
 user_label_tstamp DATETIME NULL DEFAULT 0, -- Timestamp of the last user_label change
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE active_monitoring_alerts ADD alert_category INTEGER NULL;
 @
 ALTER TABLE active_monitoring_alerts ADD require_attention INTEGER NULL;
 @
+ALTER TABLE active_monitoring_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS am_alerts_i_issue_id ON active_monitoring_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS am_alerts_i_id ON active_monitoring_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS am_alerts_i_alert_status ON active_monitoring_alerts(alert_status);
 CREATE INDEX IF NOT EXISTS am_alerts_i_severity ON active_monitoring_alerts(severity);
@@ -99,7 +103,8 @@ probe_ip TEXT NULL,
 input_snmp INTEGER NULL,
 output_snmp INTEGER NULL,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE flow_alerts ADD alerts_map_h INTEGER NULL;
@@ -135,6 +140,9 @@ ALTER TABLE flow_alerts ADD srv_network INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE flow_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE flow_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS flow_alerts_i_issue_id ON flow_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS flow_alerts_i_id ON flow_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS flow_alerts_i_alert_status ON flow_alerts(alert_status);
 CREATE INDEX IF NOT EXISTS flow_alerts_i_severity ON flow_alerts(severity);
@@ -178,7 +186,8 @@ user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
 require_attention INTEGER NULL DEFAULT 0,
-tags_map TEXT DEFAULT '' -- A HEX bitmap of host tags active at alert time
+tags_map TEXT DEFAULT '', -- A HEX bitmap of host tags active at alert time
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE host_alerts ADD require_attention INTEGER NULL;
@@ -196,6 +205,9 @@ ALTER TABLE host_alerts ADD interface_id INTEGER NULL;
 @
 ALTER TABLE host_alerts ADD tags_map TEXT DEFAULT '';
 @
+ALTER TABLE host_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS host_alerts_i_issue_id ON host_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS host_alerts_i_id ON host_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS host_alerts_i_alert_status ON host_alerts(alert_status);
 CREATE INDEX IF NOT EXISTS host_alerts_i_severity ON host_alerts(severity);
@@ -233,7 +245,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE mac_alerts ADD require_attention INTEGER NULL;
@@ -243,6 +256,9 @@ ALTER TABLE mac_alerts ADD alert_category INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE mac_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE mac_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS mac_alerts_i_issue_id ON mac_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS mac_alerts_i_id ON mac_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS mac_alerts_i_alert_status ON mac_alerts(alert_status);
 CREATE INDEX IF NOT EXISTS mac_alerts_i_severity ON mac_alerts(severity);
@@ -276,7 +292,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE snmp_alerts ADD require_attention INTEGER NULL;
@@ -286,6 +303,9 @@ ALTER TABLE snmp_alerts ADD alert_category INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE snmp_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE snmp_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS snmp_alerts_i_issue_id ON snmp_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS snmp_alerts_i_id ON snmp_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS snmp_alerts_i_alert_status ON snmp_alerts(alert_status);
 CREATE INDEX IF NOT EXISTS snmp_alerts_i_severity ON snmp_alerts(severity);
@@ -316,7 +336,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE network_alerts ADD require_attention INTEGER NULL;
@@ -326,6 +347,9 @@ ALTER TABLE network_alerts ADD alert_category INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE network_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE network_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS network_alerts_i_issue_id ON network_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS network_alerts_i_id ON network_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS network_alerts_i_severity ON network_alerts(severity);
 CREATE INDEX IF NOT EXISTS network_alerts_i_tstamp ON network_alerts(tstamp);
@@ -355,8 +379,14 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
+
+@
+ALTER TABLE as_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS as_alerts_i_issue_id ON as_alerts(issue_id);
 
 @
 
@@ -383,7 +413,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE interface_alerts ADD require_attention INTEGER NULL;
@@ -393,6 +424,9 @@ ALTER TABLE interface_alerts ADD alert_category INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE interface_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE interface_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS interface_alerts_i_issue_id ON interface_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS interface_alerts_i_id ON interface_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS interface_alerts_i_severity ON interface_alerts(severity);
 CREATE INDEX IF NOT EXISTS interface_alerts_i_tstamp ON interface_alerts(tstamp);
@@ -420,7 +454,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE user_alerts ADD require_attention INTEGER NULL;
@@ -430,6 +465,9 @@ ALTER TABLE user_alerts ADD alert_category INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE user_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE user_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS user_alerts_i_issue_id ON user_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS user_alerts_i_id ON user_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS user_alerts_i_severity ON user_alerts(severity);
 CREATE INDEX IF NOT EXISTS user_alerts_i_tstamp ON user_alerts(tstamp);
@@ -457,7 +495,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 @
 ALTER TABLE system_alerts ADD require_attention INTEGER NULL;
@@ -467,6 +506,9 @@ ALTER TABLE system_alerts ADD alert_category INTEGER NULL;
 -- Added for compatibility reasons but not used by SQLite
 ALTER TABLE system_alerts ADD interface_id INTEGER NULL;
 @
+ALTER TABLE system_alerts ADD issue_id INTEGER NULL DEFAULT 0;
+@
+CREATE INDEX IF NOT EXISTS system_alerts_i_issue_id ON system_alerts(issue_id);
 CREATE INDEX IF NOT EXISTS system_alerts_i_id ON system_alerts(alert_id);
 CREATE INDEX IF NOT EXISTS system_alerts_i_severity ON system_alerts(severity);
 CREATE INDEX IF NOT EXISTS system_alerts_i_tstamp ON system_alerts(tstamp);
@@ -527,6 +569,59 @@ ALTER TABLE assets_journal ADD subaction TEXT NULL;
 @
 
 -- -----------------------------------------------------
+-- Table issues
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS issues (
+issue_id INTEGER PRIMARY KEY,
+version INTEGER NOT NULL DEFAULT 0,
+fingerprint TEXT NOT NULL,
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+entity_id INTEGER NOT NULL CHECK(entity_id >= 0),
+entity_val TEXT NULL,
+ifids TEXT NULL, -- Comma-separated list of interface ids
+status INTEGER NOT NULL DEFAULT 0, -- open [0], resolved [1]
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+alert_category INTEGER NULL,
+resolve_policy INTEGER NOT NULL DEFAULT 0,
+resolution INTEGER NOT NULL DEFAULT 0,
+first_seen DATETIME NOT NULL,
+last_seen DATETIME NOT NULL,
+resolved_at DATETIME NULL DEFAULT 0,
+signal_count INTEGER NOT NULL DEFAULT 0,
+peers_count INTEGER NOT NULL DEFAULT 0,
+peers_sample TEXT NULL, -- JSON array
+reopen_count INTEGER NOT NULL DEFAULT 0,
+ack_user TEXT NULL,
+ack_tstamp DATETIME NULL DEFAULT 0,
+assignee TEXT NULL,
+suppressed_until DATETIME NULL DEFAULT 0,
+description TEXT NULL,
+json TEXT NULL
+);
+@
+CREATE INDEX IF NOT EXISTS issues_i_status ON issues(status);
+CREATE INDEX IF NOT EXISTS issues_i_first_seen ON issues(first_seen);
+CREATE INDEX IF NOT EXISTS issues_i_last_seen ON issues(last_seen);
+CREATE INDEX IF NOT EXISTS issues_i_fingerprint ON issues(fingerprint);
+@
+
+-- -----------------------------------------------------
+-- Table issue_events
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS issue_events (
+rowid INTEGER PRIMARY KEY AUTOINCREMENT,
+issue_id INTEGER NOT NULL,
+tstamp DATETIME NOT NULL,
+event INTEGER NOT NULL,
+user TEXT NULL,
+json TEXT NULL
+);
+@
+CREATE INDEX IF NOT EXISTS issue_events_i_issue_id ON issue_events(issue_id, tstamp);
+@
+
+-- -----------------------------------------------------
 -- -----------------------------------------------------
 -- In-Memory DataBase
 -- -----------------------------------------------------
@@ -559,7 +654,8 @@ json TEXT NULL,
 user_label TEXT NULL, -- A label that can be set by the user
 user_label_tstamp DATETIME NULL DEFAULT 0, -- Timestamp of the last user_label change
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -588,7 +684,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -616,7 +713,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -643,7 +741,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -670,7 +769,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -698,7 +798,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -723,7 +824,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -748,7 +850,8 @@ json TEXT NULL,
 user_label TEXT NULL,
 user_label_tstamp DATETIME NULL DEFAULT 0,
 alert_category INTEGER NULL,
-require_attention INTEGER NULL DEFAULT 0
+require_attention INTEGER NULL DEFAULT 0,
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -784,7 +887,8 @@ network INTEGER NULL,
 host_pool_id INTEGER NULL,
 alert_category INTEGER NULL,
 require_attention INTEGER NULL DEFAULT 0,
-tags_map TEXT DEFAULT '' -- A HEX bitmap of host tags active at alert time
+tags_map TEXT DEFAULT '', -- A HEX bitmap of host tags active at alert time
+issue_id INTEGER NULL DEFAULT 0 -- Identifier of the issue this alert is linked to (0 if none)
 );
 
 @
@@ -882,7 +986,8 @@ SELECT
     host_pool_id,
     alert_category,
     require_attention,
-    tags_map
+    tags_map,
+    issue_id
 FROM host_alerts
 UNION ALL
 SELECT
@@ -913,5 +1018,6 @@ SELECT
     host_pool_id,
     alert_category,
     require_attention,
-    tags_map
+    tags_map,
+    issue_id
 FROM mem_db.engaged_host_alerts;

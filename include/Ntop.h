@@ -222,6 +222,7 @@ class Ntop {
 
 #ifdef NTOPNG_PRO
   TagsMapping* tagsMapping;
+  IssueManager* issue_manager; /* Issues (Enterprise XXL+), see pro/include/IssueManager.h */
 #endif
 
   /* For local network */
@@ -758,6 +759,7 @@ class Ntop {
   }
 
   inline NtopPro* getPro() { return ((NtopPro*)pro); };
+  inline IssueManager* getIssueManager() { return issue_manager; };
 
   void loadTrackers();
   bool isATrackerHost(char* host);

@@ -215,6 +215,17 @@ if entry_key == "toggle_logging_level" then
    ntop.setLoggingLevel(new_value)
 end
 
+-- Issues: apply at once (the in-memory preferences are otherwise reloaded within a few
+-- seconds) and register the recipients again, as those delivering issues receive the
+-- alerts while the issues are disabled
+if entry_key == "toggle_issues" then
+   package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+   local recipients = require "recipients"
+
+   ntop.reloadPreferences()
+   recipients.register_all()
+end
+
 -- In case of Radius changes, force a backend update (a restart is required otherwise)
 if string.find(redis_key, "ntopng%.prefs%.radius%.") then
    ntop.updateRadiusLoginInfo()

@@ -46,6 +46,13 @@ end
 
 -- ##############################################
 
+-- @brief The all_alerts views do not include the issue_id column
+function all_alert_store:_has_issue_id_column()
+    return false
+end
+
+-- ##############################################
+
 function all_alert_store:delete()
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Unsupported!")
 end

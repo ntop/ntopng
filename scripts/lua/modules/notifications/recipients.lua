@@ -50,6 +50,12 @@ local default_builtin_minimum_severity = alert_severities.notice.severity_id -- 
 -- from redis with recipients.get_all_recipients()
 local cached_recipients
 
+-- How a recipient of alerts (notifications_type alerts) receives them
+recipients.DELIVERY_MODES = {
+    alerts = "alerts", -- Each alert (raw alerts)
+    issues = "issues", -- Each change of the issue status (Enterprise XXL+, see issue_notifications.lua)
+}
+
 -- ##############################################
 
 function recipients.get_notification_types()
@@ -199,6 +205,47 @@ end
 
 -- ##############################################
 
+-- @brief Whether the issues can be delivered (Enterprise XXL+ with the issues enabled):
+--        otherwise the recipients delivering issues receive the alerts
+function recipients.can_deliver_issues()
+    return ntop.issuesIsEnabled and ntop.issuesIsEnabled() or false
+end
+
+-- ##############################################
+
+-- @brief Read the delivery mode from the recipient params (recipient_delivery_mode)
+local function get_delivery_mode(recipient_params)
+    local mode = recipient_params["recipient_delivery_mode"]
+
+    if mode == recipients.DELIVERY_MODES.issues then
+        return mode
+    end
+
+    return recipients.DELIVERY_MODES.alerts
+end
+
+-- ##############################################
+
+-- @brief Whether C++ must not enqueue alerts to the recipient: recipients of other
+--        notifications, and recipients delivering issues (the issue notifications are
+--        enqueued from Lua, see recipients.dispatch_notification)
+local function skip_alerts(notifications_type, delivery_mode)
+    return ((notifications_type or "alerts") ~= "alerts") or
+        ((delivery_mode == recipients.DELIVERY_MODES.issues) and recipients.can_deliver_issues())
+end
+
+-- ##############################################
+
+-- @brief Whether the recipient receives the issue notifications instead of the alerts
+--        (see issue_notifications.lua)
+function recipients.delivers_issues(recipient)
+    return ((recipient.notifications_type or "alerts") == "alerts") and
+        (recipient.delivery_mode == recipients.DELIVERY_MODES.issues) and
+        not recipients.isBuiltinRecipient(recipient) and recipients.can_deliver_issues()
+end
+
+-- ##############################################
+
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
     local endpoints = require "endpoints"
@@ -270,6 +317,14 @@ function recipients.initialize()
         print("WARNING Please factory reset the recipient and endpoint configuration\n")
         alert_store_db_recipient.recipient_id = 0 -- setting it to the default value
     end
+    recipients.register_all()
+end
+
+-- ##############################################
+
+-- @brief Register (again) all the recipients in C++, e.g. when the issues preference
+--        changes (recipients delivering issues skip the alerts only while it is on)
+function recipients.register_all()
     for _, recipient in pairs(recipients.get_all_recipients()) do
         local flow_alert_types = nil
         local host_alert_types = nil
@@ -297,8 +352,11 @@ function recipients.initialize()
         ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity,
             table.concat(recipient.check_categories, ','), table.concat(recipient.host_pools, ','),
             table.concat(recipient.check_entities, ','), flow_alert_types, host_alert_types, other_alert_types,
-                ternary((notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ),
+                skip_alerts(notifications_type, recipient.delivery_mode),
                 table.concat(recipient.tags or {}, ','))
+
+        -- Leftover of the removed "Silence Duplicated Alerts" preference
+        ntop.delCache("ntopng.prefs.silence_multiple_alerts." .. recipient.recipient_id)
     end
 end
 
@@ -479,9 +537,6 @@ local function _set_endpoint_recipient_params(recipient_data, safe_params)
 
    if(k == nil) then return end
    
-    -- Add the preference to silence the same alerts for a specific recipient, by default is set to true (1)
-    ntop.setCache("ntopng.prefs.silence_multiple_alerts." .. recipient_data.recipient_id,
-        ternary(recipient_data.silence_alerts and recipient_data.silence_alerts == "false", '0', '1'))
     ntop.setCache(k, json.encode({
         endpoint_id = recipient_data.endpoint_id,
         recipient_name = recipient_data.endpoint_recipient_name,
@@ -492,7 +547,7 @@ local function _set_endpoint_recipient_params(recipient_data, safe_params)
         am_hosts = recipient_data.am_hosts_ids,
         tags = recipient_data.tags_ids or {},
         checks = recipient_data.checks,
-        silence_alerts = recipient_data.silence_alerts,
+        delivery_mode = recipient_data.delivery_mode,
         notifications_type = recipient_data.notifications_type,
         recipient_params = safe_params
     }))
@@ -546,7 +601,7 @@ end
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
 function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, check_entities,
-    minimum_severity, host_pools_ids, am_hosts_ids, tags_ids, recipient_params, silence_duplicate_alerts)
+    minimum_severity, host_pools_ids, am_hosts_ids, tags_ids, recipient_params)
     local endpoints = require "endpoints"
     local locked = _lock()
     local res = {
@@ -580,6 +635,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                     -- Get the list of checks to deliver the alerts
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
                     local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
+                    local delivery_mode = get_delivery_mode(recipient_params)
                     local flow_alert_types = nil
                     local host_alert_types = nil
                     local other_alert_types = nil
@@ -615,7 +671,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                         host_pools_ids = host_pools_ids,
                         am_hosts_ids = am_hosts_ids,
                         tags_ids = tags_ids or {},
-                        silence_alerts = silence_duplicate_alerts,
+                        delivery_mode = delivery_mode,
                         checks = checks,
                         notifications_type = notifications_type
                     }, safe_params)
@@ -626,7 +682,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                         flow_alert_types, -- Flow Alerts bitmap
                         host_alert_types, -- Host Alerts bitmap
                         other_alert_types, -- Other Alerts bitmap
-                        ternary((notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ),
+                        skip_alerts(notifications_type, delivery_mode),
                         table.concat(tags_ids or {}, ','))
 
                     -- Set a flag to indicate that a recipient has been created
@@ -700,9 +756,10 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                 else
                     local safe_params = status["safe_params"]
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
-                    -- true silences duplicate alerts, false does not
-                    local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                     local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
+                    -- Not sent when it cannot be chosen (issues disabled): keep the stored one
+                    local delivery_mode = ternary(recipient_params["recipient_delivery_mode"] ~= nil,
+                        get_delivery_mode(recipient_params), rc.delivery_mode or recipients.DELIVERY_MODES.alerts)
                     local flow_alert_types = nil
                     local host_alert_types = nil
                     local other_alert_types = nil
@@ -735,7 +792,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                         host_pools_ids = host_pools_ids,
                         am_hosts_ids = am_hosts_ids,
                         tags_ids = tags_ids or {},
-                        silence_alerts = silence_alerts,
+                        delivery_mode = delivery_mode,
                         checks = checks,
                         notifications_type = notifications_type
                     }, safe_params)
@@ -745,8 +802,8 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                     ntop.recipient_register(tonumber(recipient_id), minimum_severity,
                         table.concat(check_categories, ','), table.concat(host_pools_ids, ','),
                         table.concat(check_entities, ','), flow_alert_types, host_alert_types, other_alert_types,
-                            ternary((notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ),
-                            table.concat(tags_ids or {}, ','))
+                        skip_alerts(notifications_type, delivery_mode),
+                        table.concat(tags_ids or {}, ','))
 
                     res = {
                         status = "OK"
@@ -1061,7 +1118,10 @@ local function get_notification_category(notification, current_script)
     local entity_id = notification.entity_id
 
     local cur_category_id
-    if current_script and current_script.category and current_script.category.id then
+    if notification.issue and notification.alert_category then
+        -- Issue notifications: category of the alerts of the issue
+        cur_category_id = notification.alert_category
+    elseif current_script and current_script.category and current_script.category.id then
         -- Found in the script
         cur_category_id = current_script.category.id
     else
@@ -1193,6 +1253,12 @@ function recipients.dispatch_notification(notification, current_script, notifica
                     end
                 end
 
+                recipient_ok = false
+            end
+
+            -- Check the delivery mode: recipients delivering issues receive
+            -- the issue notifications, the other recipients the alerts
+            if recipient_ok and ((notification.issue ~= nil) ~= recipients.delivers_issues(recipient)) then
                 recipient_ok = false
             end
 
@@ -1337,9 +1403,11 @@ function recipients.dispatch_notification(notification, current_script, notifica
                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: enqueueing notification to recipient")
                 end
 
+                -- Issue notifications are enqueued with no score, as the other notifications
+                -- (not alerts) as C++ skips the alerts for the recipients delivering issues
                 ntop.recipient_enqueue(recipient.recipient_id,
                     json_notification --[[ alert --]] , 
-                    notification.score,
+                    ternary(notification.issue ~= nil, 0, notification.score),
                     notification.alert_id,
                     notification.entity_id,
                     notification_category)

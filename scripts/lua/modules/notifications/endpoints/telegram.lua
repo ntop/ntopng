@@ -152,12 +152,8 @@ function telegram.dequeueRecipientAlerts(recipient, budget)
         while i < max_alerts_per_request do
             local notification = ntop.recipient_dequeue(recipient.recipient_id)
             if notification then
-                if alert_utils.filter_notification(notification, recipient.recipient_id) then
-                    notifications[#notifications + 1] = notification.alert
-                    i = i + 1
-                else
-                    discarded = discarded + 1
-                end
+                notifications[#notifications + 1] = notification.alert
+                i = i + 1
             else
                 break
             end

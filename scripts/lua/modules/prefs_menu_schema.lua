@@ -32,6 +32,7 @@ function M.get_flags()
     local is_enterprise_m = ntop.isEnterpriseM and ntop.isEnterpriseM() or false
     local is_enterprise_l = ntop.isEnterpriseL and ntop.isEnterpriseL() or false
     local is_enterprise_xl = ntop.isEnterpriseXL and ntop.isEnterpriseXL() or false
+    local is_enterprise_xxl = ntop.isEnterpriseXXL and ntop.isEnterpriseXXL() or false
     local is_nedge_enterprise = ntop.isnEdgeEnterprise and ntop.isnEdgeEnterprise() or false
     local has_ch_support = (hasClickHouseSupport and hasClickHouseSupport()) and true or false
 
@@ -56,6 +57,7 @@ function M.get_flags()
         is_enterprise_m = is_enterprise_m,
         is_enterprise_l = is_enterprise_l,
         is_enterprise_xl = is_enterprise_xl,
+        is_enterprise_xxl = is_enterprise_xxl,
         is_nedge_enterprise = is_nedge_enterprise,
         has_ch_support = has_ch_support,
         has_nanalyst = has_nanalyst,
@@ -105,6 +107,8 @@ function M.get_sections(flags)
                                   i18n("prefs.locked_requires_enterprise_l", { product = product }) or nil
     local lock_enterprise_xl = (not flags.is_enterprise_xl) and
                                    i18n("prefs.locked_requires_enterprise_xl", { product = product }) or nil
+    local lock_enterprise_xxl = (not flags.is_enterprise_xxl) and
+                                    i18n("prefs.locked_requires_enterprise_xxl", { product = product }) or nil
     local lock_nanalyst = locks((not flags.has_nanalyst) and i18n("prefs.locked_requires_nanalyst") or nil,
                                 (not flags.has_nanalyst_engine) and
                                     i18n("prefs.locked_nanalyst_needs_flow_source", { product = product }) or nil)
@@ -151,7 +155,19 @@ function M.get_sections(flags)
                 on_value = "0",
                 off_value = "1",
                 to_switch = {"toggle_emit_flow_alerts", "toggle_emit_host_alerts", "max_entity_alerts",
-                             "max_num_secs_before_delete_alert", "alert_page_refresh_rate_enabled"}
+                             "max_num_secs_before_delete_alert", "alert_page_refresh_rate_enabled",
+                             "toggle_issues"}
+            }, {
+                -- Issues (Enterprise XXL+, experimental): off by default
+                key = "toggle_issues",
+                title = i18n("prefs.toggle_issues_title"),
+                description = i18n("prefs.toggle_issues_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.issues_enabled",
+                default = "0",
+                on_value = "1",
+                off_value = "0",
+                locked = lock_enterprise_xxl
             }, {
                 key = "toggle_emit_flow_alerts",
                 title = i18n("prefs.toggle_emit_flow_alerts_title"),

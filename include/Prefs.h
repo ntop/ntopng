@@ -63,7 +63,7 @@ class Prefs {
       asset_tags_ttl_test_mode,
       enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
       enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
-      enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
+      enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts, issues_enabled,
       dump_flows_on_clickhouse, readonly_flows_dump, 
       do_reforge_timestamps, add_vlan_tags_to_cloud_exporters,
       collect_blacklist_stats, fail_on_invalid_license, limited_resources_mode,
@@ -837,6 +837,8 @@ class Prefs {
   inline bool dontEmitHostAlerts() {
     return (disable_alerts || !emit_host_alerts);
   };
+  /* Issues (Enterprise XXL+): the edition is checked by the callers */
+  inline bool are_issues_enabled() { return (issues_enabled && !disable_alerts); };
   inline void dontUseClickHouse() { dump_flows_on_clickhouse = false; };
   inline char* getZMQPublishEventsURL() { return (zmq_publish_events_url); };
   inline const char* getClickHouseClusterName() {

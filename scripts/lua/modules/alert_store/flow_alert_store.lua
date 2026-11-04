@@ -260,6 +260,12 @@ function flow_alert_store:insert(alert)
 		hex_prefix = "X"
 	end
 
+	-- Linked to an issue (set by the issue manager, Enterprise XXL+), else the column default (0)
+	if (tonumber(alert.issue_id) or 0) > 0 then
+		extra_columns = extra_columns .. "issue_id, "
+		extra_values = extra_values .. string.format("%u, ", alert.issue_id)
+	end
+
 	local alert_status = 0
 	if not alert.require_attention then
 		alert_status = alert_consts.alert_status.acknowledged.alert_status_id
@@ -669,6 +675,14 @@ end
 -- @brief Add domain (info) filter
 function flow_alert_store:add_domain_filter(domain)
 	self:add_filter_condition("info", "in", domain)
+end
+
+-- ##############################################
+
+-- @brief On ClickHouse flow alerts are read from the flows table (written by C++),
+--        which has no issue_id: flow issues are linked to their alerts by fingerprint
+function flow_alert_store:_has_issue_id_column()
+	return not ntop_clickhouse_enabled
 end
 
 -- ##############################################

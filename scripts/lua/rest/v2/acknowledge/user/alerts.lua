@@ -1,6 +1,9 @@
 --
 -- (C) 2013-26 - ntop.org
 --
+-- DEPRECATED: alerts are no longer acknowledged from the GUI. The problems are tracked
+-- as issues (Enterprise XXL+), acknowledged with rest/v2/edit/issue/acknowledge.lua
+--
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path

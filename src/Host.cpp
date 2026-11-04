@@ -2555,6 +2555,8 @@ void Host::alert2JSON(HostAlert* alert, bool released, ndpi_serializer* s) {
 
   ndpi_serialize_string_int32(s, "ifid", getInterface()->get_id());
   ndpi_serialize_string_string(s, "action", released ? "release" : "engage");
+  if (released && alert->isForcedRelease())
+    ndpi_serialize_string_boolean(s, "forced_release", true);
   ndpi_serialize_string_int32(s, "alert_id", alert->getAlertType().id);
   ndpi_serialize_string_int32(s, "alert_category",
                               alert->getAlertType().category);

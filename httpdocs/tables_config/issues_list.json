@@ -1,0 +1,211 @@
+{
+	"id": "issues_list",
+	"data_url": "lua/pro/rest/v2/get/issue/list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": true,
+	"display_empty_rows": true,
+	"empty_message_i18n": "table_empty.issues_list",
+	"default_sort": {
+		"column_id": "severity",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "details",
+					"icon": "fas fa-search-plus",
+					"title_i18n": "issues.action.details",
+					"class": [],
+					"event_id": "click_button_details"
+				},
+				{
+					"id": "alerts",
+					"icon": "fas fa-exclamation-triangle",
+					"title_i18n": "issues.action.alerts",
+					"class": [],
+					"event_id": "click_button_alerts"
+				},
+				{
+					"id": "acknowledge",
+					"icon": "fas fa-user-check",
+					"title_i18n": "issues.action.acknowledge",
+					"class": [],
+					"event_id": "click_button_acknowledge"
+				},
+				{
+					"id": "assign",
+					"icon": "fas fa-user-tag",
+					"title_i18n": "issues.action.assign",
+					"class": [],
+					"event_id": "click_button_assign"
+				},
+				{
+					"id": "severity",
+					"icon": "fas fa-level-up-alt",
+					"title_i18n": "issues.action.severity",
+					"class": [],
+					"event_id": "click_button_severity"
+				},
+				{
+					"id": "suppress",
+					"icon": "fas fa-bell-slash",
+					"title_i18n": "issues.action.suppress",
+					"class": [],
+					"event_id": "click_button_suppress"
+				},
+				{
+					"id": "resolve",
+					"icon": "fas fa-check-circle",
+					"title_i18n": "issues.action.resolve",
+					"class": [],
+					"event_id": "click_button_resolve"
+				},
+				{
+					"id": "reopen",
+					"icon": "fas fa-undo",
+					"title_i18n": "issues.action.reopen",
+					"class": [],
+					"event_id": "click_button_reopen"
+				}
+			]
+		},
+		{
+			"id": "severity",
+			"title_i18n": "issues.col.severity",
+			"data_field": "severity",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			],
+			"min-width": "90px"
+		},
+		{
+			"id": "issue_id",
+			"title_i18n": "issues.col.issue_id",
+			"data_field": "issue_id",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"min-width": "60px"
+		},
+		{
+			"id": "alert_id",
+			"title_i18n": "issues.col.alert_id",
+			"data_field": "alert",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "220px"
+		},
+		{
+			"id": "entity_val",
+			"title_i18n": "issues.col.entity_val",
+			"data_field": "entity",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "240px"
+		},
+		{
+			"id": "status",
+			"title_i18n": "issues.col.status",
+			"data_field": "status",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "110px"
+		},
+		{
+			"id": "first_seen",
+			"title_i18n": "issues.col.first_seen",
+			"data_field": "first_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "140px"
+		},
+		{
+			"id": "last_seen",
+			"title_i18n": "issues.col.last_seen",
+			"data_field": "last_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "140px"
+		},
+		{
+			"id": "duration",
+			"title_i18n": "issues.col.duration",
+			"data_field": "duration",
+			"sortable": false,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"min-width": "90px"
+		},
+		{
+			"id": "interfaces",
+			"title_i18n": "issues.col.interfaces",
+			"data_field": "interfaces",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "100px"
+		},
+		{
+			"id": "signal_count",
+			"title_i18n": "issues.col.signal_count",
+			"data_field": "signal_count",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"min-width": "80px",
+			"render_type": "number"
+		},
+		{
+			"id": "peers_count",
+			"title_i18n": "issues.col.peers_count",
+			"data_field": "peers_count",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"min-width": "80px",
+			"render_type": "number"
+		},
+		{
+			"id": "assignee",
+			"title_i18n": "issues.col.assignee",
+			"data_field": "assignee",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "100px"
+		}
+	]
+}

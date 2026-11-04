@@ -34,12 +34,6 @@
 					"event_id": "click_button_historical_flows"
 				},
 				{
-					"id": "acknowledge",
-					"icon": "fas fa fa-user-check",
-					"title_i18n": "acknowledge",
-					"event_id": "click_button_acknowledge"
-				},
-				{
 					"id": "disable",
 					"icon": "fas fa fa-bell-slash",
 					"title_i18n": "disable",

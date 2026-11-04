@@ -20,6 +20,7 @@ local alert_web_mining = classes.class(alert)
 
 alert_web_mining.meta = {
    alert_key = flow_alert_keys.flow_alert_web_mining,
+   issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
    i18n_title = "alerts_dashboard.web_mining",
    icon = "fab fa-bitcoin",
 

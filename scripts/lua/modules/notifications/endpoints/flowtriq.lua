@@ -136,12 +136,8 @@ function flowtriq.dequeueRecipientAlerts(recipient, budget)
       while i < MAX_ALERTS_PER_REQUEST do
          local notification = ntop.recipient_dequeue(recipient.recipient_id)
          if notification then
-            if alert_utils.filter_notification(notification, recipient.recipient_id) then
-               notifications[#notifications + 1] = notification.alert
-               i = i + 1
-            else
-               discarded = discarded + 1
-            end
+            notifications[#notifications + 1] = notification.alert
+            i = i + 1
          else
             break
          end

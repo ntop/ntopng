@@ -10,7 +10,8 @@ Note that the database (built-in recipient) is directly connected to one of the 
 first one). There is a "alert_store_db" endpoint which is taking care of inserting alerts into the
 database (see the alert_store.lua and subclasses). The only exception is with flow alerts when clickhouse 
 is enabled: in this case flow alerts are no longer enqueues to the recipient queue for the database, 
-as they are a view on the flows table (historical flows stored on clickhouse).
+as they are a view on the flows table (historical flows stored on clickhouse). On Enterprise XXL+
+they are pushed instead to a dedicated queue of the issue manager (see README.issues.md).
 
 ![Alerts architecture big picture](../img/alerts-architecture.png)
 
@@ -57,4 +58,4 @@ JSON messages are queued/dequeued. The format of the JSON is contains variable f
 ## Notifications
 Alerts can be sent to external receivers via notifications (Alerts -> Notifications menu).
 
-To check duplicate alerts you can see: `function alert_utils.check_alert_policy` in `scripts/lua/modules/alert_utils.lua`. A new redis key is added for each alert where the key is: `ntopng.cache.alert.retention.{RECIPIENT_ID}.{ENTITY_ID}.{ALERT_ID}{ALERT_KEY}`. ALERT_KEY is built by concatenating srcIP dstIP srcPort dstPort. If the key is set in redis, the alert is not sent for an hour (3600 seconds as defined by the constant at line 929)
+Duplicated alerts are no longer silenced per recipient (the former `alert_utils.check_alert_policy`, with its `ntopng.cache.alert.retention.*` redis keys, has been removed). On Enterprise XXL+ the alerts of the same problem are grouped into issues (see `pro/scripts/lua/modules/issues/`), and a recipient can be configured to deliver issues instead of raw alerts: it is notified when an issue is opened, escalated, reopened or resolved, not for every alert.

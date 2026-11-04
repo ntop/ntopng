@@ -112,6 +112,9 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    categories = categories,
    entities = entities,
    notification_types = notification_types,
+   -- Alerts recipients can deliver issues instead (Enterprise XXL+ with the issues enabled)
+   delivery_modes = recipients.can_deliver_issues() and
+      { recipients.DELIVERY_MODES.alerts, recipients.DELIVERY_MODES.issues } or nil,
    host_pools = pools,
    am_hosts = am_hosts,
    tags = tags,

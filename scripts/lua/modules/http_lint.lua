@@ -1584,6 +1584,16 @@ local function validateListOfTypeInline(t)
    end
 end
 
+-- An alert type of an issue: <alert entity id>:<alert id> (see pro/scripts/lua/modules/issues)
+local function validateIssueProblem(p)
+   return (p:match("^%d+:%d+$") ~= nil)
+end
+
+-- An assignee of the issues: a user, or ~ for the unassigned issues
+local function validateIssueAssignee(p)
+   return (p == "~") or validateUsername(p)
+end
+
 local function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
       return true
@@ -2232,7 +2242,7 @@ local known_parameters = {
    ["recipient_labels"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_interface_pools"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_minimum_severity"] = validateNumber,
-   ["recipient_silence_multiple_alerts"] = validateBool,
+   ["recipient_delivery_mode"] = validateEmptyOr(validateChoiceInline({ "alerts", "issues" })),
    ["recipient_checks"] = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
    ["recipient_notifications_type"] = validateEmptyOr(validateSingleWord),
    ["endpoint_conf_name"] = validateUnquoted,
@@ -2350,6 +2360,17 @@ local known_parameters = {
    ["delete_profile"] = http_lint.validateTrafficProfile, -- A Traffic Profile to delete
    ["delete_vlan"] = validateSingleWord, -- A Traffic Profile to delete
    ["alert_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert type enum
+   ["issue_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An issue id (see pro/scripts/lua/modules/issues)
+   ["entity_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert entity id
+   ["assignee"] = validateListOfTypeInline(validateIssueAssignee), -- Users the issues are assigned to (~: unassigned, empty: unassign)
+   ["suppressed"] = validateListOfTypeInline(validateNumber), -- Suppressed issues (1) or not (0)
+   ["opened_within"] = validateNumber, -- Issues first seen in the last seconds
+   ["opened"] = validateSingleWord, -- Issues page: time window of the issues first seen (all, 48h, 24h, 1h)
+   ["comment"] = validateMessage, -- A comment of an issue (escaped when stored)
+   ["show_suppressed"] = validateBool, -- Include the suppressed issues
+   ["only_suppressed"] = validateBool, -- Only the suppressed issues
+   ["problem"] = validateListOfTypeInline(validateIssueProblem), -- Alert types of the issues (entity id:alert id)
+   ["issue_entity"] = validateUnquoted, -- The entity of the issues (entity id|entity value)
    ["alert_category"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert category enum
    ["mitre_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["mitre_tactic"] = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -3027,6 +3048,7 @@ local known_parameters = {
    ["lbd_hosts_as_macs"] = validateBool,
    ["toggle_emit_flow_alerts"] = validateBool,
    ["toggle_emit_host_alerts"] = validateBool,
+   ["toggle_issues"] = validateBool,
    ["toggle_date_type"] = validateSingleWord,
 
    ["exporters_ts_resolution"] = validateNumber,

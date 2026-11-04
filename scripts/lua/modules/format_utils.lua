@@ -778,6 +778,7 @@ end
 -- ######################################################
 
 local function format_notification_subject(notifications)
+   local subject
 
    if not notifications or #notifications < 1 then
       subject = ""
@@ -794,8 +795,12 @@ local function format_notification_subject(notifications)
       elseif notification.notification_type == "wazuh_alerts" then
          subject = notification.title or i18n("wazuh_alert_config.wazuh_alerts")
 
+      elseif notification.issue and (#notifications == 1) then
+         -- Issue notification (see issue_notifications.lua), e.g. Issue #12 Opened
+         subject = i18n("issues.notification." .. notification.issue.event, { id = notification.issue.issue_id })
+
       else
-         local subject = i18n("alert_messages.alert")
+         subject = i18n("alert_messages.alert")
          if #notifications > 1 then
             subject = i18n("alert_messages.x_alerts", {num=#notifications})
          end

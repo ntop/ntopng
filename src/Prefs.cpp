@@ -66,6 +66,7 @@ Prefs::Prefs(Ntop* _ntop) {
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   emit_flow_alerts = emit_host_alerts = true;
+  issues_enabled = false;
   fail_on_invalid_license = false;
   zmq_publish_events_url = NULL;
   custom_geoip_dir = NULL;
@@ -1224,6 +1225,8 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
   emit_host_alerts =
     getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
+  issues_enabled =
+    getDefaultBoolPrefsValue(CONST_PREFS_ISSUES_ENABLED, false);
   tls_quic_hostnaming =
     getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);
 

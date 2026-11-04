@@ -29,12 +29,26 @@ local function is_l7_timeseries_available()
    return areInterfaceL7TimeseriesEnabled()
 end
 
+-- Issues (Enterprise XXL+, Issues preference on), for users allowed to see the alerts
+local function is_issues_available()
+   if not (ntop.issuesIsEnabled and ntop.issuesIsEnabled()) then
+      return false
+   end
+
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/issues/?.lua;" .. package.path
+   local auth = require "auth"
+   local issue_utils = require "issue_utils"
+
+   return issue_utils.is_enabled() and auth.has_capability(auth.capabilities.alerts)
+end
+
 dashboard_utils.module_available = {
    ['historical_flows']   = is_clickhouse_available,
    ['active_scan'] = ascan_status_utils.is_available,
    ['l7_timeseries'] = is_l7_timeseries_available,
    ['packet_interface'] = interface.isPacketInterface,
    ['zmq_interface'] = interface.isZMQInterface,
+   ['issues'] = is_issues_available,
 }
 
 -- ##############################################

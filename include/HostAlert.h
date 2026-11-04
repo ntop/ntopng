@@ -33,6 +33,9 @@ class HostAlert {
   bool last_released_for_host; /* there no other engaged alert at the time this
                                   has been released */
   bool expiring;               /* engaged, under re-evaluation */
+  bool forced_release;         /* released only as engaged for too long
+                                  (CONST_MAX_ALERT_ENGAGE_TIME), the condition
+                                  may still be active */
   HostCheckID check_id;
   std::string check_name;
   u_int64_t rowid; /* row id used by engaged alert in the in-memory table */
@@ -109,6 +112,8 @@ class HostAlert {
     release_time = time(NULL);
   }
   inline bool isReleased() { return released; }
+  inline void setForcedRelease() { forced_release = true; }
+  inline bool isForcedRelease() { return forced_release; }
 
   inline void setLastReleased() { last_released_for_host = true; }
   inline bool isLastReleased() { return last_released_for_host; }

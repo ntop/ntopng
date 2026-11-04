@@ -39,6 +39,8 @@ for _, r in ipairs(list) do
       endpoint_conf_name = r.endpoint_conf_name,
       builtin = endpoint_conf.builtin or false,
       notifications_type = r.notifications_type or "alerts",
+      -- Alerts recipients: alerts, or issues (Enterprise XXL+, see recipients.delivers_issues)
+      delivery_mode = r.delivery_mode or recipients.DELIVERY_MODES.alerts,
       minimum_severity = r.minimum_severity,
       check_categories = r.check_categories,
       check_entities = r.check_entities,
@@ -46,8 +48,6 @@ for _, r in ipairs(list) do
       am_hosts = r.am_hosts,
       tags = r.tags,
       checks = r.checks,
-      -- Default on: see _set_endpoint_recipient_params
-      silence_alerts = ntop.getCache("ntopng.prefs.silence_multiple_alerts." .. recipient_id) ~= "0",
       recipient_params = r.recipient_params or {},
       stats = r.stats,
    }

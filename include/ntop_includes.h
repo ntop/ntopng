@@ -453,6 +453,8 @@ using namespace clickhouse;
 #include "TrafficShaper.h"
 #include "L7Policer.h"
 #include "LuaHandler.h"
+#include "Issue.h"
+#include "IssueManager.h"
 #ifdef HAVE_NEDGE
 #include "HwBypass.h"
 #include "SilicomHwBypass.h"

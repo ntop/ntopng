@@ -21,6 +21,7 @@ local alert_lateral_movement = classes.class(alert)
 
 alert_lateral_movement.meta = {
    alert_key = flow_alert_keys.flow_alert_lateral_movement,
+   issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
    i18n_title = "alerts_dashboard.lateral_movement",
    icon = "fas fa-fw fa-arrows-alt-h",
 

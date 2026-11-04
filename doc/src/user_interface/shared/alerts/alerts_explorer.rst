@@ -23,10 +23,14 @@ certain period of time (in the *engaged* state). This period of time starts when
 *past* state). For this reason, such alerts are said to be *engaged* or *past*, depending on whether the 
 triggering threshold is still met or not. Alerts on flows are always one-shot.
 
+The Alerts Explorer shows the *Engaged* alerts and *All* the alerts. In ntopng Enterprise XXL and
+above, alerts are also grouped into :ref:`Issues`, which track each problem with a status.
+
 
 .. toctree::
     :maxdepth: 2
 
+    issues
     others/alerts_graph
     alerts_type/engaged_alerts
     alerts_type/past_alerts

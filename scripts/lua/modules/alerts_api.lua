@@ -19,6 +19,9 @@ local do_trace = false
 
 local alerts_api = {}
 
+-- Releases are forced (see alerts_api.setForcedReleases)
+local forced_releases = false
+
 -- #################################################
 
 -- For backwards compatibility, redefine these alerts as part of alerts_api
@@ -480,6 +483,10 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
     released.ifid = ifid
     released.action = "release"
 
+    if forced_releases then
+        released.forced_release = true
+    end
+
     addAlertPoolAndNetworkInfo(entity_info, released)
 
     mark_release_notified(released)
@@ -487,6 +494,14 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
     recipients.dispatch_notification(released, current_script)
 
     return (true)
+end
+
+-- ##############################################
+
+-- @brief Mark the next releases as forced: alerts released while the condition
+--        may still be active (e.g. on shutdown), the issues of the alerts are kept open
+function alerts_api.setForcedReleases(enabled)
+    forced_releases = enabled
 end
 
 -- ##############################################

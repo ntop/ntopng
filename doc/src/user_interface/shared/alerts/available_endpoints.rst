@@ -104,6 +104,42 @@ whose host carries at least one of the selected tags are delivered to the
 recipient. If no tag is selected, alerts are not filtered by tag.
 
 
+.. _IssuesDeliveryMode:
+
+Delivery Mode
+-------------
+
+In ntopng Enterprise XXL and above, the recipients of alerts have a *Deliver* option:
+
+- **Raw Alerts** (default): the recipient receives every alert.
+- **Issues**: the recipient receives a notification when an :ref:`issue <Issues>` is opened,
+  escalated (its severity is raised), reopened or resolved, instead of one notification per alert.
+  When the same problem generates thousands of alerts, the recipient is notified once.
+
+The delivery criteria above (severity, category, entity, pools, tags) apply to the issues too. The
+severity of an issue is the highest severity of its alerts: a recipient with a minimum severity can
+receive the escalation of an issue whose opening was below that severity. Suppressed issues are not
+notified.
+
+.. figure:: ../../../img/alerts_recipient_delivery_mode.png
+  :align: center
+  :alt: Delivery Mode
+
+The notification tells what happened to the issue, the alert that caused it (if any), the number of
+alerts and peers of the issue and the link to the issue details, for example:
+
+.. code:: text
+
+   [Interface: eth0] [Severity: Notice] [Flow] [Unsafe Protocol] [192.168.1.58 (Attacker)] [Issue #3 Opened]
+   Insecure protocol used - Alerts: 1 since 28/10/2026 07:05:22 - Peers: 1 - Details: https://ntopng:3000/lua/pro/issue_details.lua?issue_id=3
+
+Webhook and other JSON endpoints receive the alert fields with ``"action": "issue"`` and an ``issue``
+object with ``issue_id``, ``event`` (open, escalate, reopen, resolve), ``status``, ``severity``,
+``first_seen``, ``last_seen``, ``resolution``, ``signal_count``, ``peers_count``, ``role`` and ``url``.
+
+The link uses the *Host Address* preference, when set.
+
+
 Available Endpoints
 -------------------
 

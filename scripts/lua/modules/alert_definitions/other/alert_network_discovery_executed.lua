@@ -21,6 +21,7 @@ local alert_network_discovery_executed = classes.class(alert)
 
 alert_network_discovery_executed.meta = {  
    alert_key = other_alert_keys.alert_network_discovery_executed,
+   issue = false, -- Informational: does not open issues (see issues/issue_manager.lua)
    i18n_title = "checks.network_discovery_title",
    icon = "fas fa-fw fa-arrow-circle-up",
    entities = {

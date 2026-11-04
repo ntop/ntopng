@@ -21,6 +21,7 @@ local alert_ndpi_malicious_fingerprint = classes.class(alert)
 
 alert_ndpi_malicious_fingerprint.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_malicious_fingerprint,
+  issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
   i18n_title = "flow_checks_config.malicious_fingerprint",
   icon = "fas fa-fw fa-info-circle",
 

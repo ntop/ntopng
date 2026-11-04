@@ -19,6 +19,7 @@ local alert_process_notification = classes.class(alert)
 
 alert_process_notification.meta = {
   alert_key = other_alert_keys.alert_process_notification,
+  issue = false, -- Informational: does not open issues (see issues/issue_manager.lua)
   i18n_title = "alerts_dashboard.process",
   icon = "fas fa-fw fa-truck",
   entities = {

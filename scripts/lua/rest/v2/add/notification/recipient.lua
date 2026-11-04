@@ -95,8 +95,7 @@ end
 
 local filters = recipients_rest_utils.parse_recipient_filters(_POST)
 local res = recipients.add_recipient(endpoint_id, recipient_name, filters.categories, filters.entities,
-   filters.minimum_severity, filters.host_pools, filters.am_hosts, filters.tags, _POST,
-   _POST["recipient_silence_multiple_alerts"])
+   filters.minimum_severity, filters.host_pools, filters.am_hosts, filters.tags, _POST)
 
 if res.status ~= "OK" then
    if new_endpoint then

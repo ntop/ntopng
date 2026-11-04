@@ -212,6 +212,8 @@ Ntop::Ntop(const char* appName) {
 
 #ifdef NTOPNG_PRO
   pro = new (std::nothrow) NtopPro();
+  /* Allocated in all the editions (empty until used): the edition is known only later */
+  issue_manager = new IssueManager();
 #else
   pro = NULL;
 #endif
@@ -381,6 +383,8 @@ Ntop::~Ntop() {
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
   if(tagsMapping) delete tagsMapping;
+  /* After the interfaces: their threads enqueue the flow alerts */
+  if (issue_manager) delete issue_manager;
 #endif
 
   if (resolvedHostsBloom) delete resolvedHostsBloom;

@@ -473,12 +473,12 @@ function endpoints.add_configs_with_recipients(configs)
                local check_entities   = recipient_conf.check_entities
                local minimum_severity = recipient_conf.minimum_severity
                local host_pools       = recipient_conf.host_pools or {}
-               local silence_duplicate_alerts = recipient_conf.silence_alerts
 
                -- add_recipient reads the notification type and the alert ids from the params,
                -- the alert ids as "<alert_id>_<entity_id>" (exported as { entity_key = { alert_id } })
                local recipient_params = table.clone(recipient_conf.recipient_params or {})
                recipient_params.recipient_notifications_type = recipient_conf.notifications_type
+               recipient_params.recipient_delivery_mode = recipient_conf.delivery_mode
                local checks = {}
                for entity_key, alert_ids in pairs(recipient_conf.checks or {}) do
                   local entity = alert_entities[entity_key]
@@ -491,8 +491,7 @@ function endpoints.add_configs_with_recipients(configs)
                ret = recipients.add_recipient(endpoint_id, endpoint_recipient_name,
                   check_categories, check_entities, minimum_severity,
                   host_pools, recipient_conf.am_hosts or {}, recipient_conf.tags or {},
-                  recipient_params,
-                  silence_duplicate_alerts
+                  recipient_params
                )
 
                if not ret or not ret.status or ret.status ~= "OK" then

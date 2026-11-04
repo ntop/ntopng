@@ -19,6 +19,7 @@ local alert_ndpi_malicious_sha1_certificate = classes.class(alert)
 
 alert_ndpi_malicious_sha1_certificate.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_malicious_sha1_certificate,
+  issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
   i18n_title = "flow_checks_config.malicious_sha1_certificate",
   icon = "fas fa-fw fa-info-circle",
 }

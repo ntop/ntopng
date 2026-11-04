@@ -20,6 +20,7 @@ local alert_dns_data_exfiltration = classes.class(alert)
 
 alert_dns_data_exfiltration.meta = {
    alert_key = flow_alert_keys.flow_alert_dns_data_exfiltration,
+   issue_resolve_policy = "manual", -- Indicator of compromise: the issue is resolved by the user only
    i18n_title = "flow_details.dns_data_exfiltration",
    icon = "fas fa-fw fa-exclamation",
 

@@ -70,6 +70,28 @@ end
 
 -- ##############################################
 
+-- Issue manager (Enterprise XXL+): groups the alerts into issues, nil if not available.
+-- Used only while the issues are enabled (preference, ntop.issuesIsEnabled)
+local issue_manager = nil
+local last_issue_error = 0
+
+if ntop.isEnterpriseXXL and ntop.isEnterpriseXXL() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/issues/?.lua;" .. package.path
+   issue_manager = require "issue_manager"
+end
+
+-- @brief Call an issue manager function: errors must not prevent alerts from being stored
+local function call_issue_manager(fn, ...)
+   local ok, err = pcall(fn, ...)
+
+   if not ok and (os.time() - last_issue_error >= 60) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Issue manager error: " .. tostring(err))
+      last_issue_error = os.time()
+   end
+end
+
+-- ##############################################
+
 function alert_store_db.dequeueRecipientAlerts(recipient, budget)
    local more_available = true
    local budget_used = 0
@@ -79,6 +101,8 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
    local delivered = 0
    local discarded = 0
    local failures = 0
+   -- Issues preference (read once per call: changes apply at the next one)
+   local issues_on = (issue_manager ~= nil) and ntop.issuesIsEnabled()
 
    -- Now also check for alerts pushed by checks from Lua
    -- Dequeue alerts up to budget
@@ -111,6 +135,11 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
 
                interface.select(string.format("%d", alert.ifid or 0))
 
+               if issues_on then
+                  -- Sets alert.issue_id, stored with the alert
+                  call_issue_manager(issue_manager.process, alert, json_message)
+               end
+
                if alert.action == "engage" then
                   -- Add to the in-memory table (in addition to the C++ data structures)
                   alert_store:insert_engaged(alert)
@@ -140,6 +169,13 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
    end
 
  ::done::
+   if issues_on then
+      call_issue_manager(issue_manager.flush)
+   elseif issue_manager and ntop.issuesIsLoaded() then
+      -- Issues just disabled: write the pending changes and free the memory
+      call_issue_manager(issue_manager.unload)
+   end
+
    return {
       success = success,
       error_message = error_message,
