@@ -955,6 +955,7 @@ local lang = {
   ["table_view"] = "Table View",
   ["talkers"] = "Talkers",
   ["tcp"] = "TCP",
+  ["tcp_fingerprint"] = "TCP Fingerprint",
   ["tcp_flags"] = "TCP Flags and Connection State",
   ["tcp_flow_state"] = "TCP Flow State",
   ["tcp_processes"] = "TCP Processes",

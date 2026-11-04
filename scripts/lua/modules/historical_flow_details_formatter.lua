@@ -360,21 +360,6 @@ end
 
 -- ###############################################
 
-local function format_historical_tcp_fingerprint(flow, tcp_ft)
-	local label
-	if flow["TCP_FINGERPRINT"] then
-		label = flow["TCP_FINGERPRINT"]
-	else
-		label = tcp_ft
-	end
-	return {
-		name = i18n("details.tcp_fingerprint"),
-		values = { { label } },
-	}
-end
-
--- ###############################################
-
 local function format_historical_tcp_flags(flow, info)
 	local client_to_server_flags = ""
 	local server_to_client_flags = ""
@@ -1293,11 +1278,15 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 		end
 
 		if info["l4proto"] and (info["l4proto"]["label"] == "TCP") then
-			if
-				not isEmptyString(flow["TCP_FINGERPRINT"]) or not isEmptyString(protocol_info_json["tcp_fingerprint"])
-			then
-				flow_details[#flow_details + 1] =
-					format_historical_tcp_fingerprint(flow, protocol_info_json["tcp_fingerprint"])
+			-- The TCP fingerprint is shown with the other fingerprints (proto block)
+			local tcp_fingerprint = flow["TCP_FINGERPRINT"]
+			if isEmptyString(tcp_fingerprint) then
+				tcp_fingerprint = protocol_info_json["tcp_fingerprint"]
+			end
+			if not isEmptyString(tcp_fingerprint) then
+				protocol_info_json.proto = protocol_info_json.proto or {}
+				protocol_info_json.proto.fingerprints = protocol_info_json.proto.fingerprints or {}
+				protocol_info_json.proto.fingerprints.tcp_fingerprint = tcp_fingerprint
 			end
 			flow_details[#flow_details + 1] = format_historical_tcp_flags(flow, info)
 
