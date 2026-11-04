@@ -2931,8 +2931,75 @@ bool Ntop::generateTOTPSecret(char* secret, size_t secret_len) const {
 
 /* ******************************************* */
 
+/* A TOTP code is accepted only once and, after it, only the codes of later
+   steps (RFC 6238, section 5.2): the steps accepted are recorded in keys
+   outside "ntopng.cache." so that their TTL reaches Redis (see
+   Redis::isCacheable()) */
+
+/* Last step accepted for the user, 0 if none */
+static uint64_t getTOTPLastStep(const char* username) {
+  char key[CONST_MAX_LEN_REDIS_KEY], val[32];
+
+  snprintf(key, sizeof(key), "%s.%s", MFA_LAST_STEP_PREFIX, username);
+
+  if ((ntop->getRedis()->get(key, val, sizeof(val)) < 0) || (val[0] == '\0'))
+    return 0;
+
+  return strtoull(val, NULL, 10);
+}
+
+/* Records the step of an accepted code. False when the step has already
+   been accepted (e.g. by a concurrent request with the same code) */
+static bool useTOTPStep(const char* username, uint64_t step,
+                        uint64_t last_step) {
+  char key[CONST_MAX_LEN_REDIS_KEY], val[32];
+  int uses;
+
+  /* Atomic: only one request gets the step */
+  snprintf(key, sizeof(key), "%s.%s.%llu", MFA_USED_PREFIX, username,
+           (unsigned long long)step);
+  uses = ntop->getRedis()->incr(key, 1);
+
+  if (uses <= 0) return false; /* Redis error: fail closed */
+
+  ntop->getRedis()->expire(key, MFA_USED_TTL);
+
+  if (uses != 1) return false;
+
+  if (step > last_step) {
+    snprintf(key, sizeof(key), "%s.%s", MFA_LAST_STEP_PREFIX, username);
+    snprintf(val, sizeof(val), "%llu", (unsigned long long)step);
+    ntop->getRedis()->set(key, val, MFA_USED_TTL);
+  }
+
+  return true;
+}
+
+/* Forgets the steps accepted: they belong to the secret being replaced
+   (or deleted), whose codes are no longer accepted anyway */
+static void resetTOTPSteps(const char* username) {
+  char key[CONST_MAX_LEN_REDIS_KEY];
+  uint64_t counter = (uint64_t)(time(NULL) / 30);
+
+  snprintf(key, sizeof(key), "%s.%s", MFA_LAST_STEP_PREFIX, username);
+  ntop->getRedis()->del(key);
+
+  /* Steps that can still be accepted (see validateTOTPCode()); older keys
+     only wait for their TTL */
+  for (int delta = -1; delta <= 1; delta++) {
+    snprintf(key, sizeof(key), "%s.%s.%llu", MFA_USED_PREFIX, username,
+             (unsigned long long)(counter + (uint64_t)delta));
+    ntop->getRedis()->del(key);
+  }
+}
+
+/* ******************************************* */
+
 bool Ntop::setUserTOTPSecret(const char* username, const char* secret) const {
   char key[CONST_MAX_LEN_REDIS_KEY];
+
+  resetTOTPSteps(username);
+
   snprintf(key, sizeof(key), CONST_STR_USER_TOTP_SECRET, username);
   return (ntop->getRedis()->set(key, (char*)secret, 0) >= 0);
 }
@@ -3005,10 +3072,19 @@ bool Ntop::validateTOTPCode(const char* username, const char* code) const {
 
   int input_code = atoi(code);
   uint64_t counter = (uint64_t)(time(NULL) / 30);
+  uint64_t last_step = getTOTPLastStep(username);
 
-  /* Allow ±1 window (90 seconds total) to handle clock skew */
+  /* Allow ±1 window (90 seconds total) to handle clock skew. The steps up to
+     the last one accepted are refused: a code already used (or older than
+     it) counts as a wrong code */
   for (int delta = -1; delta <= 1; delta++) {
-    if (compute_totp(secret, counter + (uint64_t)delta) == input_code) {
+    uint64_t step = counter + (uint64_t)delta;
+
+    if (step <= last_step) continue;
+
+    if (compute_totp(secret, step) == input_code) {
+      if (!useTOTPStep(username, step, last_step)) break;
+
       ntop->getRedis()->del(key);
       return true;
     }
@@ -4004,6 +4080,8 @@ void Ntop::deleteUserKeys(const char* username) const {
 
   snprintf(key, sizeof(key), CONST_STR_USER_TOTP_ENABLED, username);
   ntop->getRedis()->del(key);
+
+  resetTOTPSteps(username);
 
   for (int i = 0; i < WEBAUTHN_MAX_CREDS; i++) {
     snprintf(key, sizeof(key), CONST_STR_USER_WEBAUTHN_CRED, username, i);

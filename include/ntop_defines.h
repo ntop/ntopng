@@ -140,6 +140,11 @@
 #define MFA_PENDING_PREFIX "mfa.pending"
 #define MFA_PENDING_TTL 300 /* 5 minutes */
 #define MFA_FAILED_PREFIX "mfa.failed"
+/* TOTP steps already accepted: a code is accepted once, then only codes of
+   later steps (RFC 6238, 5.2). The TTL outlives the ±1 step window */
+#define MFA_USED_PREFIX "mfa.used"
+#define MFA_LAST_STEP_PREFIX "mfa.last_step"
+#define MFA_USED_TTL 120 /* seconds */
 #define WEBAUTHN_AUTHORIZE_URL "/webauthn_authorize.html"
 #define WEBAUTHN_VERIFY_URL "/lua/webauthn_verify.lua"
 #define WEBAUTHN_PENDING_PREFIX "webauthn.pending"
