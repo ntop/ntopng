@@ -3,9 +3,9 @@ Device rules
 
 .. note::
 
-  This feature is available only from Enterprise L license.
+  This feature needs ntopng Enterprise L and the SNMP timeseries enabled in Preferences. To receive the alerts, the 'SNMP Threshold Crossed' check must be enabled: the page shows a warning when it is not. Only administrators can add, edit or delete the rules.
 
-Using SNMP Device rules, ntopng can generate an alert when an interface of a SNMP device crosses a threshold (either absolute or in percentage).
+With the SNMP device rules (SNMP Devices -> Rules tab), ntopng triggers an alert when a metric of an interface of an SNMP device goes above or below a limit you choose. The page works like the Traffic Rules page, but only for SNMP devices.
 
 .. figure:: ../../../img/snmp_devices_rules.png
   :align: center
@@ -13,15 +13,20 @@ Using SNMP Device rules, ntopng can generate an alert when an interface of a SNM
 
   SNMP Devices Rules
 
-The idea is to compare the metric value with respect to a period of time and check the difference. If you use the percantage (%) you can easily spot situations where a host/interface doubles its traffic for instance.
-  
-Thresholds can be configured for SNMP metrics such as packets, bytes, and errors. 
-When selecting packets or errors as the metric. The threshold can be specified as a percentage or absolute value with respect to the check frequency. Example if you set a traffic threshold of > 1 MB and 5 minutes frequency, an alert is triggered when the value of traffic in the last 5 minutes is greater then 1 MB. If instead you set the threshold to > 20% and 1 day frequency, an alert is triggered when the counter value with respect of the previous day is 20% (or more) bigger.
+The table lists the rules: what is monitored (device / interface), the measure, when the alert is triggered (e.g. > 5 Gbps) and how often the rule is checked. The button of each row edits the rule; the arrow next to it opens the menu with Delete.
 
-On the other hand, if bytes is chosen as the metric, the threshold can also be expressed in terms of volume (KB, MB, GB).
-These checks are performed at frequencies of every 5 minutes, every hour, and every day.
+Click Add rule to create one. The dialog asks three questions and shows a summary of the rule in plain words:
 
-These checks are useful for spotting misbehaving interfaces that instead would not have been noticed otherwise.
+  - What do you want to monitor: an SNMP device (or all of them) and one of its interfaces (or all of them);
+  - What should be measured:
+
+    - Traffic, measured as average bandwidth (bits per second during the period), total traffic (bytes exchanged during the period) or change (increase or decrease compared to the previous period, in %);
+    - Errors: the number of interface errors during the period (alert only above the limit);
+    - Port usage: the percentage of the interface speed used during the period (uplink or downlink);
+
+  - When should you be alerted: above or below the limit (a whole number, with its unit: Kbps/Mbps/Gbps, KB/MB/GB or %), checked every 5 minutes, hour or day. Each check measures the period that has just ended.
+
+For example, "Traffic (total traffic) above 1 GB, checked every 5 minutes" triggers an alert when the interface exchanges more than 1 GB in 5 minutes; "Traffic (change) above 20%, checked every day" triggers it when the traffic of the last day is at least 20% more than the day before.
 
 .. figure:: ../../../img/add_snmp_device_rule.png
   :align: center
@@ -29,6 +34,6 @@ These checks are useful for spotting misbehaving interfaces that instead would n
 
   Add SNMP Device Rule
 
-When selecting the 'Percentage Change' threshold type, ntopng will check if the percentage change calculated between the last two frequency checks has crossed the specified threshold (e.g., <1% with a frequency of 5 minutes; if the difference between the preceding frequency and the last 5-minute check is lower than 1%, trigger an alert).
+Two rules with the same device, interface, metric, frequency and direction (above/below) cannot exist: the dialog says so when you try to save the second one.
 
-When selecting the 'Absolute Percentage' threshold type, ntopng will check if the percentage usage (uplink or downlink) of an interface on a device during the last period of time has crossed the specified threshold.
+These checks are useful for spotting misbehaving interfaces that instead would not have been noticed otherwise.

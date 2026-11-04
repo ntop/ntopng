@@ -65,8 +65,8 @@ At this point, fill the fields with the correct informations:
   - All local hosts: available for the Host type, tick this checkbox to analyze every active local host at once (e.g. All local hosts). This replaces the previous * wildcard target, which is no longer used;
   - Metric: select the metric to be analyzed (e.g. Traffic (RX + TX), Score or an application such as DNS -> the DNS traffic);
   - Measured as: select how the metric is measured: Average bandwidth (bits per second, averaged over the period), Total traffic (bytes exchanged during the period) or Change (increase or decrease compared to the previous period);
-  - Alert when the value is: select Above or Below, then the threshold value and its unit, that, if exceeded, is going to trigger an alert;
-  - Check every: select the frequency of the analysis (e.g. 5 minutes -> analyzed every 5 minutes, hour, day or month).
+  - Alert when the value is: choose Above or Below, then type the threshold value and choose its unit (e.g. Kbps, Mbps or Gbps), that, if exceeded, is going to trigger an alert;
+  - Check every: choose the frequency of the analysis: 5 minutes, Hour, Day or Month.
 
 A Summary box at the bottom of the form describes the rule in plain words before it is added.
 
@@ -100,7 +100,7 @@ Edit/Delete Rules
 
 It is moreover possible to edit or delete an already created rule.
 
-To do so, click on the action button of the rule that needs changes and select the desired action:
+To do so, use the button of the rule that needs changes: the button itself opens Edit, the arrow next to it opens the menu with Delete:
 
   - :code:`Edit`: It is possible to change the rule of an already existing one; the modal is the same as the one used to add a new rule, so please refer to the above section;
   - :code:`Delete`: It is possible to remove a rule; when removed the alert is not going to be triggered anymore;

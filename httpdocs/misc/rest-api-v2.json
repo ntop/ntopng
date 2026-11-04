@@ -2787,38 +2787,50 @@
       }
     },
     "/lua/pro/rest/v2/add/device/exclusion.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Alerts"
         ],
-        "summary": "Add a device to exclude",
-        "description": "Add a device to exclude to the MAC tracking (see for more info: Device/MAC Address Tracking)",
+        "summary": "Authorize devices",
+        "description": "Set to authorized the listed devices (MAC addresses) already seen by the Device/MAC Address Tracking. Enterprise M, administrators only.",
         "operationId": "add_device_exclusion",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "mac_list",
-            "in": "query",
-            "description": "List of MAC addresses to exclude separated by commas",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "trigger_alerts",
-            "in": "query",
-            "description": "Trigger the Unexpected Device Connected/Disconnected alert if set to true, otherwise not",
-            "required": true,
-            "type": "boolean"
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "mac_list"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier (default: the current interface)"
+                },
+                "mac_list": {
+                  "type": "string",
+                  "description": "MAC addresses separated by commas",
+                  "example": "00:11:22:33:44:55,66:77:88:99:AA:BB"
+                },
+                "trigger_alerts": {
+                  "type": "string",
+                  "enum": [
+                    "1",
+                    "0"
+                  ],
+                  "description": "1: trigger the alert when the device disconnects"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -2828,11 +2840,11 @@
           "-2": {
             "description": "INVALID_INTERFACE"
           },
+          "-3": {
+            "description": "NOT_GRANTED (not an administrator or no Enterprise M license)"
+          },
           "-5": {
             "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -3348,31 +3360,41 @@
       }
     },
     "/lua/pro/rest/v2/delete/device/exclusion.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Alerts"
         ],
-        "summary": "Remove a device to exclude",
-        "description": "Remove a device to exclude to the MAC tracking (see for more info: Device/MAC Address Tracking)",
+        "summary": "Remove a device",
+        "description": "Remove a device (or all of them) from the Device/MAC Address Tracking: if it connects again it is unauthorized. Enterprise M, administrators only.",
         "operationId": "delete_device_exclusion",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "device",
-            "in": "query",
-            "description": "MAC addresses to remove from the exclusions, or 'all' to delete all the MAC addresses excluded until now",
-            "required": true,
-            "type": "string"
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "device"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier (default: the current interface)"
+                },
+                "device": {
+                  "type": "string",
+                  "description": "MAC address, or 'all' to remove all the devices (and restart the learning period)"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -3382,11 +3404,11 @@
           "-2": {
             "description": "INVALID_INTERFACE"
           },
+          "-3": {
+            "description": "NOT_GRANTED (not an administrator or no Enterprise M license)"
+          },
           "-5": {
             "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -3787,52 +3809,62 @@
       }
     },
     "/lua/pro/rest/v2/edit/device/exclusion.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Alerts"
         ],
-        "summary": "Edit a device to exclude",
-        "description": "Edit a device to exclude to the MAC tracking (see for more info: Device/MAC Address Tracking)",
+        "summary": "Edit a device",
+        "description": "Edit the status of a device (or of all of them) of the Device/MAC Address Tracking. Enterprise M, administrators only.",
         "operationId": "edit_device_exclusion",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "mac",
-            "in": "query",
-            "description": "MAC address to edit",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "mac_alias",
-            "in": "query",
-            "description": "Alias used to rename the MAC address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "mac_status",
-            "in": "query",
-            "description": "MAC address status",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "trigger_alerts",
-            "in": "query",
-            "description": "Trigger the Unexpected Device Connected/Disconnected alert if set to true, otherwise not",
-            "required": true,
-            "type": "boolean"
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "device",
+                "mac_status"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier (default: the current interface)"
+                },
+                "device": {
+                  "type": "string",
+                  "description": "MAC address, or 'all' to edit all the devices"
+                },
+                "mac_status": {
+                  "type": "string",
+                  "enum": [
+                    "allowed",
+                    "denied"
+                  ],
+                  "description": "allowed: no alert when the device connects; denied: alert when it connects"
+                },
+                "trigger_alerts": {
+                  "type": "string",
+                  "enum": [
+                    "1",
+                    "0"
+                  ],
+                  "description": "1: trigger the alert when the device disconnects"
+                },
+                "mac_alias": {
+                  "type": "string",
+                  "description": "Name of the device, one word (only with a single device; empty: removed)"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -3842,11 +3874,11 @@
           "-2": {
             "description": "INVALID_INTERFACE"
           },
+          "-3": {
+            "description": "NOT_GRANTED (not an administrator or no Enterprise M license)"
+          },
           "-5": {
             "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -5994,8 +6026,8 @@
         "tags": [
           "Alerts"
         ],
-        "summary": "List of excluded devices",
-        "description": "Return the list of the excluded devices (see for more info: Device/MAC Address Tracking)",
+        "summary": "List of tracked devices",
+        "description": "Devices (MAC addresses) seen by the Device/MAC Address Tracking, with their status. Enterprise M, administrators only.",
         "operationId": "get_device_exclusion",
         "produces": [
           "application/json"
@@ -6004,21 +6036,65 @@
           {
             "name": "ifid",
             "in": "query",
-            "description": "Interface identifier",
-            "required": true,
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "description": "First row (paging)"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "description": "Number of rows (default: all)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "mac_address",
+              "last_ip",
+              "manufacturer",
+              "first_seen",
+              "last_seen"
+            ]
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Text searched in the MAC address and manufacturer"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "OK: rsp = [{ mac, name?, ip? (first host with this MAC), num_hosts, manufacturer, status (allowed|denied|undecided), trigger_alert (bool), first_seen, last_seen (epoch), is_online }], recordsTotal"
           },
           "-2": {
             "description": "INVALID_INTERFACE"
           },
-          "-6": {
-            "description": "INTERNAL_ERROR"
+          "-3": {
+            "description": "NOT_GRANTED (not an administrator or no Enterprise M license)"
           }
         }
       }
@@ -20378,7 +20454,7 @@
           "SNMP"
         ],
         "summary": "List the SNMP interface rules",
-        "description": "Threshold rules on the metrics of SNMP interfaces. Requires the SNMP capability and access to the system interface.",
+        "description": "Threshold rules on the metrics of SNMP interfaces. Enterprise, requires the SNMP capability and access to the system interface.",
         "operationId": "get_snmp_device_rules",
         "produces": [
           "application/json"
@@ -20394,7 +20470,7 @@
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "OK: rsp = [{ id, device { id, label }, interface { id, label }, metric { id, label, type }, frequency, threshold { value, sign, label, unit } }]"
           },
           "-2": {
             "description": "INVALID_INTERFACE"
@@ -20410,121 +20486,132 @@
         "tags": [
           "SNMP"
         ],
-        "summary": "Add an SNMP interface rule",
-        "description": "Adds a threshold rule on a metric of an SNMP interface; parameters in the JSON body (CSRF checked). Administrators only.",
+        "summary": "Add or edit an SNMP interface rule",
+        "description": "Alert when a metric of an SNMP interface crosses a limit. With rule_id the rule is replaced (edit). Enterprise, administrators only.",
         "operationId": "add_snmp_device_rule",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "ifid",
-            "in": "formData",
-            "description": "Interface ID",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "snmp_device",
-            "in": "formData",
-            "description": "IP address of the SNMP device, * for all",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "snmp_device_port",
-            "in": "formData",
-            "description": "SNMP ifIndex of the interface",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "snmp_device_port_label",
-            "in": "formData",
-            "description": "Label of the interface",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "metric",
-            "in": "formData",
-            "description": "Metric (e.g. bytes, errors, usage)",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "metric_label",
-            "in": "formData",
-            "description": "Label of the metric",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "metric_type",
-            "in": "formData",
-            "description": "Threshold type (e.g. volume, throughput, percentage_change)",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "frequency",
-            "in": "formData",
-            "description": "Check frequency: 5min, hour or day",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "threshold",
-            "in": "formData",
-            "description": "Threshold",
-            "required": true,
-            "type": "number"
-          },
-          {
-            "name": "rule_threshold_sign",
-            "in": "formData",
-            "description": "1: greater than, -1: lower than",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "snmp_device_label",
-            "in": "formData",
-            "description": "Label of the device",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "snmp_threshold_value",
-            "in": "formData",
-            "description": "Threshold as typed by the user",
-            "required": false,
-            "type": "number"
-          },
-          {
-            "name": "snmp_threshold_unit",
-            "in": "formData",
-            "description": "Unit of the threshold",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "snmp_metric_type_label",
-            "in": "formData",
-            "description": "Label of the threshold type",
-            "required": false,
-            "type": "string"
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "snmp_device",
+                "snmp_device_port",
+                "metric",
+                "metric_type",
+                "frequency",
+                "threshold",
+                "rule_threshold_sign"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "rule_id": {
+                  "type": "string",
+                  "description": "Id of the rule to replace (edit); empty: new rule"
+                },
+                "snmp_device": {
+                  "type": "string",
+                  "description": "IP of the SNMP device, or 'all' for all the devices"
+                },
+                "snmp_device_port": {
+                  "type": "string",
+                  "description": "Interface index, or '*' for all the interfaces"
+                },
+                "metric": {
+                  "type": "string",
+                  "enum": [
+                    "bytes",
+                    "errors",
+                    "usage"
+                  ]
+                },
+                "metric_type": {
+                  "type": "string",
+                  "enum": [
+                    "throughput",
+                    "volume",
+                    "percentage_change",
+                    "packets",
+                    "percentage_absolute"
+                  ],
+                  "description": "bytes: throughput|volume|percentage_change; errors: packets; usage: percentage_absolute"
+                },
+                "frequency": {
+                  "type": "string",
+                  "enum": [
+                    "5min",
+                    "hour",
+                    "day"
+                  ]
+                },
+                "threshold": {
+                  "type": "integer",
+                  "description": "Limit: bytes (volume), bytes per second (throughput), errors (packets), signed percentage (percentage_*)"
+                },
+                "rule_threshold_sign": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    -1
+                  ],
+                  "description": "1: alert above the limit, -1: below"
+                },
+                "snmp_device_label": {
+                  "type": "string",
+                  "description": "Name of the device (shown in the list)"
+                },
+                "snmp_device_port_label": {
+                  "type": "string",
+                  "description": "Name of the interface (shown in the list)"
+                },
+                "metric_label": {
+                  "type": "string",
+                  "description": "Name of the metric (alert text)"
+                },
+                "snmp_metric_type_label": {
+                  "type": "string",
+                  "description": "Name of the measure (alert text)"
+                },
+                "snmp_threshold_value": {
+                  "type": "integer",
+                  "description": "Limit as typed by the user (alert text)"
+                },
+                "snmp_threshold_unit": {
+                  "type": "string",
+                  "description": "Unit of snmp_threshold_value, e.g. Gbps (alert text)"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "OK: rsp = { id } (the id of the saved rule)"
+          },
+          "-1": {
+            "description": "NOT_FOUND: rsp.error = rule_not_found (rule_id of an edit not found)"
           },
           "-2": {
             "description": "INVALID_INTERFACE"
           },
           "-3": {
-            "description": "NOT_GRANTED"
+            "description": "NOT_GRANTED (not an administrator or no Enterprise license)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp.error = invalid_rule (missing or not valid fields) or duplicate_rule (same device, port, metric, frequency and direction)"
           }
         }
       }
@@ -20535,36 +20622,54 @@
           "SNMP"
         ],
         "summary": "Delete an SNMP interface rule",
-        "description": "Removes a threshold rule; parameters in the JSON body (CSRF checked). Administrators only.",
+        "description": "Enterprise, administrators only.",
         "operationId": "delete_snmp_device_rule",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "ifid",
-            "in": "formData",
-            "description": "Interface ID",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "rule_id",
-            "in": "formData",
-            "description": "ID of the rule",
-            "required": true,
-            "type": "string"
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "rule_id"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "rule_id": {
+                  "type": "string",
+                  "description": "Id of the rule (from get/snmp/device/rules.lua)"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
           },
+          "-1": {
+            "description": "NOT_FOUND: rsp.error = rule_not_found"
+          },
           "-2": {
             "description": "INVALID_INTERFACE"
           },
           "-3": {
-            "description": "NOT_GRANTED"
+            "description": "NOT_GRANTED (not an administrator or no Enterprise license)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }

@@ -137,6 +137,7 @@ Developer
   shared/developer/rest_api
   shared/developer/analyze_pcap_file
   shared/developer/manage_data
+  shared/developer/clickhouse_explorer
   shared/developer/behavioural_checks
   shared/developer/alert_flow_status_definitions
   shared/developer/directories

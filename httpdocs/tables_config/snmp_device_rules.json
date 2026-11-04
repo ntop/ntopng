@@ -2,13 +2,13 @@
 	"id": "snmp_device_rules",
 	"data_url": "lua/pro/rest/v2/get/snmp/device/rules.lua",
 	"use_current_page": false,
-	"enable_search": false,
+	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.snmp_device_rules",
 	"default_sort": {
-		"column_id": "id",
-		"sort": 0
+		"column_id": "target",
+		"sort": 1
 	},
 	"columns": [
 		{
@@ -16,64 +16,68 @@
 			"title_i18n": "actions",
 			"sortable": false,
 			"sticky": true,
+			"min-width": "90px",
+			"max-width": "90px",
 			"class": [
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "edit_rule",
 					"icon": "fas fa-edit",
 					"title_i18n": "edit",
-					"event_id": "click_button_edit"
+					"class": [],
+					"event_id": "click_button_edit_rule"
 				},
 				{
-					"id": "delete_host",
+					"id": "delete_rule",
 					"icon": "fas fa-trash",
 					"title_i18n": "delete",
-					"event_id": "click_button_delete"
+					"class": [],
+					"event_id": "click_button_delete_rule"
 				}
 			]
 		},
 		{
-			"title_i18n": "if_stats_config.snmp_device",
+			"id": "target",
+			"title_i18n": "traffic_rules.monitored",
 			"data_field": "device",
 			"sortable": true,
+			"min-width": "200px",
 			"class": [
-				"text-left"
+				"text-nowrap"
 			]
 		},
 		{
-			"title_i18n": "if_stats_config.snmp_interface",
-			"data_field": "interface",
-			"sortable": true,
-			"class": [
-				"text-center"
-			]
-		},
-		{
-			"title_i18n": "if_stats_config.metric",
+			"id": "metric",
+			"title_i18n": "traffic_rules.measure",
 			"data_field": "metric",
 			"sortable": true,
+			"min-width": "160px",
 			"class": [
-				"text-center"
+				"text-nowrap"
 			]
 		},
 		{
-			"title_i18n": "if_stats_config.frequency",
+			"id": "condition",
+			"title_i18n": "traffic_rules.alert_when",
+			"data_field": "threshold",
+			"sortable": false,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "frequency",
+			"title_i18n": "traffic_rules.checked",
 			"data_field": "frequency",
 			"sortable": true,
+			"min-width": "120px",
 			"class": [
-				"text-center"
-			]
-		},
-		{
-			"title_i18n": "if_stats_config.threshold",
-			"data_field": "threshold",
-			"sortable": true,
-			"class": [
-				"text-center"
+				"text-nowrap"
 			]
 		}
 	]

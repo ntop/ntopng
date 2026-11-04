@@ -4,7 +4,8 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "edit_check.device_exclusion_empty",
 	"columns": [
 		{
 			"id": "actions",
@@ -15,46 +16,50 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "edit",
 					"icon": "fas fa-edit",
-					"title_i18n": "hosts_stats.page_scan_hosts.edit_host",
+					"title_i18n": "edit",
 					"event_id": "click_button_edit_device"
 				},
-				{ 
-					"id": "historical_data", 
-					"icon": "fas fa-stream", 
-					"title_i18n": "db_explorer.historical_data", 
-					"event_id": "click_button_historical_flows" 
+				{
+					"id": "historical_flows",
+					"icon": "fas fa-history",
+					"title_i18n": "db_explorer.historical_data",
+					"event_id": "click_button_historical_flows"
 				},
 				{
 					"id": "delete",
-					"icon": "fas fa fa-trash",
+					"icon": "fas fa-trash",
 					"title_i18n": "delete",
 					"event_id": "click_button_delete"
 				}
-			]
+			],
+			"min-width": "90px",
+			"max-width": "90px"
 		},
 		{
+			"id": "mac_address",
 			"title_i18n": "edit_check.device",
-			"data_field": "mac_address",
+			"data_field": "mac",
 			"sortable": true,
 			"class": [
-				"applyCellStyle",
 				"text-nowrap"
 			]
 		},
 		{
+			"id": "last_ip",
 			"title_i18n": "ip_address",
-			"data_field": "last_ip",
+			"data_field": "ip",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
 			]
 		},
 		{
+			"id": "manufacturer",
 			"title_i18n": "mac_stats.manufacturer",
 			"data_field": "manufacturer",
 			"sortable": true,
@@ -63,6 +68,7 @@
 			]
 		},
 		{
+			"id": "first_seen",
 			"title_i18n": "first_seen",
 			"data_field": "first_seen",
 			"sortable": true,
@@ -71,8 +77,8 @@
 				"text-center"
 			]
 		},
-
 		{
+			"id": "last_seen",
 			"title_i18n": "last_seen",
 			"data_field": "last_seen",
 			"sortable": true,
@@ -81,8 +87,8 @@
 				"text-center"
 			]
 		},
-
 		{
+			"id": "status",
 			"title_i18n": "edit_check.device_status",
 			"data_field": "status",
 			"sortable": false,
@@ -92,6 +98,7 @@
 			]
 		},
 		{
+			"id": "trigger_alert",
 			"title_i18n": "edit_check.trigger_alert",
 			"data_field": "trigger_alert",
 			"sortable": false,

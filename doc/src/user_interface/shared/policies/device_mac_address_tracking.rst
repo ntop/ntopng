@@ -3,18 +3,15 @@
 Device/MAC Address Tracking
 ---------------------------
 
-ntopng is able to detect devices (identified with MAC addresses) that connect to a network. On closed networks, only certain devices can connect, and a whenever a MAC address other than those authorized explicitly is considered a threat. This in particular holds on networks such as a datacenters or industrial IoT. 
+ntopng detects the devices (identified by their MAC addresses) that connect to a network. On closed networks, such as datacenters or industrial IoT networks, only some devices are allowed to connect, and any other device is a threat.
 
-The `Unexpected Device Connected/Disconnected` alert (check `here <../alerts/others/interface_checks.html#unexpected-device-connected-disconnected>`_ for additional information) triggers and alert whenever an unknown MAC is detected.
+The `Unexpected Device Connected/Disconnected` alert (see `here <../alerts/others/interface_checks.html#unexpected-device-connected-disconnected>`_) is triggered when an unauthorized device connects to the network and, optionally, when an authorized device disconnects.
 
 .. note::
 
-  This feature is available only with ntopng Enterprise M license or better, and with the 'Device/MAC Address Tracking' behavioural check enabled.
+  This feature needs ntopng Enterprise M or better and the 'Device/MAC Address Tracking' behavioural check enabled. Only administrators can open the page. When the check is disabled the page says so and tells how to enable it.
 
-As described below in this page (left sidebar menu: Policies -> Device/MAC Address Tracking), you can add a list of MAC addresses that are authorized on your network, and instruct ntopng to trigger alerts whenever:
-
-  - An unknown MAC (i.e. a device) connects to the network
-  - (Optionally) A MAC (i.e. a device) disconnects from the network
+The page (left sidebar menu: Settings -> Device/MAC Address Tracking) lists the devices seen on the selected interface.
 
 .. figure:: ../../../img/devices_exclusion.png
   :align: center
@@ -22,7 +19,17 @@ As described below in this page (left sidebar menu: Policies -> Device/MAC Addre
 
   Devices Exclusion
 
-In this page, users can handle authorized and unauthorized MAC addresses. Whenever an unauthorized (or not accounted in the list) MAC address appears in the Interface, the corresponding alert is going to be triggered; instead it's going to not be triggered (or released) when an authorized MAC address is going to appear.
+For each device the table shows:
+
+  - Device: its MAC address (and its name, if set), and whether it is online or offline. The icon next to it opens the device details;
+  - IP Address: the first host seen with this MAC address (the icon opens the host details; "+N more" lists all the hosts with this MAC address);
+  - Manufacturer, First Seen and Last Seen (empty while the device is online);
+  - Status: Authorized (no alert when it connects), Unauthorized (an alert is triggered when it connects) or Undecided;
+  - Trigger Alert on Disconnection: whether an alert is triggered when the device disconnects.
+
+Click a MAC address, an IP address or a manufacturer to search the table for that value. The search box finds MAC addresses and manufacturers.
+
+The button of each row edits the device; its menu also opens the Historical Flows of the device (it needs ClickHouse) and deletes it. A deleted device that connects again gets the status set in Preferences for new devices.
 
 .. figure:: ../../../img/devices_exclusion_alert.png
   :align: center
@@ -30,7 +37,12 @@ In this page, users can handle authorized and unauthorized MAC addresses. Whenev
 
   Devices Exclusion Alert
 
-Moreover, it is possible to configure the ability to trigger an alert when an authorized MAC address disappears from the Interface by editing the specific entry or when adding the MAC address, by enabling the `Trigger Disconnection Alert` option.
+Above the table:
+
+  - Add Authorized Devices: paste a list of MAC addresses (one per row). The devices already seen are set to authorized; invalid MAC addresses are shown before adding. You can also choose to trigger an alert when they disconnect;
+  - Edit All: set the status and the disconnection alert of all the devices at once.
+
+Editing one device you can also give it a name (one word, without spaces).
 
 .. figure:: ../../../img/devices_exclusion_add_modal.png
   :align: center
@@ -38,8 +50,6 @@ Moreover, it is possible to configure the ability to trigger an alert when an au
 
   Devices Exclusion Add Modal
 
-Other then that, when adding a new authorized MAC address, it is possible to add a list of MAC addresses (one per row) and if an already seen MAC address is added, then, that device, is going to be set to authorized.
+Below the table, Delete Devices removes all the devices: ntopng starts learning them again, and a message under the page description says so. The status given to a new device during and after the learning period (Authorized, Unauthorized or Undecided) is set in Preferences.
 
-.. note::
-
-  All newly added MAC addresses, using the modal, are going to be set automatically to authorized. When a MAC address not added before, using the modal, is connecting to the interface, it will be set automatically to unauthorized.
+The link in the alert of an unexpected device opens this page already searching for that device.
