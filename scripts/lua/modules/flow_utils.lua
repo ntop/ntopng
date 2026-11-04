@@ -144,7 +144,7 @@ function handleCustomFlowField(key, value, snmpdevice)
    elseif key == 'EXPORTER_IPV4_ADDRESS' or key == 'NPROBE_IPV4_ADDRESS' then
 
       if ntop.isPro and ntop.isPro() then
-	 return ("<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. value ..
+	 return ("<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. value ..
 		 "\">" .. value .. "</A>")
       else
 	 return (value)

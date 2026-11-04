@@ -492,11 +492,6 @@ page_utils.menu_entries = {
     },
 
     -- exporters
-    event_exporters = {
-        key = "event_exporters",
-        i18n_title = "event_exporters.event_exporters",
-        section = "if_stats"
-    },
     sflow_exporters = {
         key = "sflow_exporters",
         i18n_title = "flows_page.sflow_devices",

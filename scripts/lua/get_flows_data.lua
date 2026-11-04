@@ -306,19 +306,19 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
         local idx_name_in = i18n("span_with_title", {
             shorten_name = format_portidx_name(device_ip, value["in_index"], true),
-            url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/flowdevice_details.lua?ip=' .. value["device_ip"] ..
-                '&snmp_port_idx=' .. value["in_index"]
+            url = ntop.getHttpPrefix() .. '/lua/pro/exporter_interface_overview.lua?deviceIP=' .. value["device_ip"] ..
+                '&ifIdx=' .. value["in_index"]
         })
 
         local idx_name_out = i18n("span_with_title", {
             shorten_name = format_portidx_name(device_ip, value["out_index"], true),
-            url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/flowdevice_details.lua?ip=' .. value["device_ip"] ..
-                '&snmp_port_idx=' .. value["out_index"]
+            url = ntop.getHttpPrefix() .. '/lua/pro/exporter_interface_overview.lua?deviceIP=' .. value["device_ip"] ..
+                '&ifIdx=' .. value["out_index"]
         })
 
         record["column_device_ip"] = i18n("span_with_title", {
             shorten_name = getExporterName(value["device_ip"]),
-            url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/flowdevice_details.lua?ip=' .. value["device_ip"]
+            url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/exporter_interfaces.lua?ip=' .. value["device_ip"]
         })
 
         record["column_in_index"] = idx_name_in

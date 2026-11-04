@@ -208,7 +208,7 @@ end
 function graph_utils.getNewGraphsContext(source_value_object)
     local recording_utils = require "recording_utils"
 
-    -- Some callers pass nothing (e.g. flowdevices_stats.lua)
+    -- Some callers pass nothing
     if source_value_object == nil then source_value_object = {} end
 
     -- Interface stats

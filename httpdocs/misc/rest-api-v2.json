@@ -7510,7 +7510,49 @@
           {
             "name": "ifid",
             "in": "query",
-            "description": "Interface identifier",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/observation_points/flowexporter_list.lua": {
+      "get": {
+        "tags": [
+          "Observation Point"
+        ],
+        "summary": "Get the flow exporters of an observation point",
+        "description": "Flow exporters seen on an observation point: [{ exporter_ip, exporter_name (SNMP name with the SNMP capability, else the host name; null when it is the IP) }]. Empty list for an unknown observation point. Pro only",
+        "operationId": "get_observation_point_flowexporter_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "obs_point",
+            "in": "query",
+            "description": "Observation point identifier",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -7525,6 +7567,9 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }

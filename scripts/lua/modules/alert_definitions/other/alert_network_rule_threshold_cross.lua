@@ -98,7 +98,7 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       }))
   elseif (alert_type_params.metric == "flowdev:traffic") then 
       return(i18n("alert_messages.traffic_flowdev_volume_alert", {
-         url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
+         url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. alert_type_params.host,
          host = alert_type_params.host,
          metric = alert_type_params.metric,
          value = alert_type_params.value,
@@ -108,7 +108,7 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       }))
   else
       return(i18n("alert_messages.traffic_flowdev_port_volume_alert", {
-            url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
+            url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/exporter_interfaces.lua?ip=" .. alert_type_params.host,
             iface = ifname,
             host = alert_type_params.host,
             metric = alert_type_params.metric,
