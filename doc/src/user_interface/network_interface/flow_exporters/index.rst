@@ -151,8 +151,13 @@ Observation Points
 An observation point is a place of the network where nProbe collects flows, set with the nProbe
 option ``--observation-point-id``. The `Network` menu, `Observation Points` entry, appears when at
 least one observation point has been seen and lists them with the number of flow exporters, flows,
-hosts, the throughput of the last minute and the traffic since ntopng started. Click the number of
-exporters to see them.
+hosts, the throughput of the last minute and the traffic since ntopng started.
+
+Click the number of exporters to see them (`Exporters` tab): the IP address of each flow exporter
+and its name, taken from SNMP when the exporter is also an SNMP device and you are allowed to see the
+SNMP data. Click the ⤢ icon next to the IP address to open the exporter interfaces. The `Actions`
+button of each row opens the exporter interfaces or the historical flows of that exporter on this
+observation point (they need ClickHouse).
 
 The `Actions` button of each row opens:
 

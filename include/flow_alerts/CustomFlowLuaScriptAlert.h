@@ -26,7 +26,11 @@
 
 class CustomFlowLuaScriptAlert : public FlowAlert {
  private:
-  std::string msg;
+  /* Scripts that triggered this alert on the flow (one alert per type and flow) */
+  struct Script {
+    std::string name, title, msg;
+  };
+  std::vector<Script> scripts;
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
@@ -36,7 +40,6 @@ class CustomFlowLuaScriptAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
-  inline std::string get_msg() { return msg; };
 
   CustomFlowLuaScriptAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {
     setAlertScore(SCORE_LEVEL_ERROR);
@@ -44,7 +47,8 @@ class CustomFlowLuaScriptAlert : public FlowAlert {
   ~CustomFlowLuaScriptAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); };
-  void setAlertMessage(const std::string &m) { msg = m; };
+  /* False when the script is already in the alert (re-triggered by a later hook) */
+  bool addScript(const std::string &name, const std::string &title, const std::string &msg);
   bool autoAck() const { return false; };
 };
 

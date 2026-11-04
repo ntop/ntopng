@@ -704,6 +704,7 @@ function flow_alert_store:_add_additional_request_filters()
 	local community_id = _GET["community_id"]
 	local ja4_client = _GET["ja4_client"]
 	local alert_domain = _GET["alert_domain"]
+	local custom_script = _GET["custom_script"]
 	local l4_proto = _GET["l4proto"]
 
 	local srv2cli_bytes = _GET["srv2cli_bytes"]
@@ -766,6 +767,8 @@ function flow_alert_store:_add_additional_request_filters()
 		alert_domain,
 		"string"
 	)
+	-- Title of a custom flow script that triggered the alert (alert_store:build_sql_cond)
+	self:add_filter_condition_list("custom_script", custom_script, "string")
 end
 
 -- ##############################################
@@ -800,6 +803,9 @@ function flow_alert_store:_get_additional_available_filters()
 		ja4_client = flowfilter_utils.defined_filters.ja4_client,
 		traffic_direction = flowfilter_utils.defined_filters.traffic_direction,
 		alert_domain = flowfilter_utils.defined_filters.alert_domain,
+		-- In development: only with the custom flow scripts enabled (check_definitions/flow/custom_lua_script.lua)
+		custom_script = (ntop.getCache("ntopng.devel.custom_flow_scripts_enabled") == "1")
+			and flowfilter_utils.defined_filters.custom_script or nil,
 
 		exporter_ip = flowfilter_utils.defined_filters.exporter_ip,
 		input_snmp = flowfilter_utils.defined_filters.input_snmp,

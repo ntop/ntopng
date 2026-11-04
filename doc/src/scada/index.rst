@@ -19,3 +19,4 @@ In addition to the above services, specific protocols are supported in detail. T
     s7comm
     profinet
     IEC60870-5-104
+    custom_detections

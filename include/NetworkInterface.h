@@ -31,6 +31,7 @@
 
 class Flow;
 class FlowHash;
+class CustomFlowScripts;
 class Host;
 class HostHash;
 class Mac;
@@ -186,10 +187,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                              been enqueued for dump */
 
   /* CustomScript VMs */
-  LuaEngine *customFlowLuaScript_proto, /* Called when nDPI has detected the
-                                           protocol */
-      *customFlowLuaScript_periodic,    /* Called periodically on flows    */
-      *customFlowLuaScript_end;         /* Called when the flow ends       */
+  CustomFlowScripts* customFlowScripts; /* Custom flow scripts, one VM each (CustomFlowLuaScript) */
   LuaEngine* customHostLuaScript;       /* Called periodically on hosts */
 
   /* Queues for the execution of flow user scripts */
@@ -1480,23 +1478,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                          u_int16_t vlan_id, u_int16_t observationPointId);
   void localHostsServerPorts(lua_State* vm);
 
-  inline void setCustomFlowLuaScriptProtoDetected(LuaEngine* vm) {
-    customFlowLuaScript_proto = vm;
+  inline void setCustomFlowScripts(CustomFlowScripts* s) {
+    customFlowScripts = s;
   }
-  inline void setCustomFlowLuaScriptPeriodic(LuaEngine* vm) {
-    customFlowLuaScript_periodic = vm;
-  }
-  inline void setCustomFlowLuaScriptEnd(LuaEngine* vm) {
-    customFlowLuaScript_end = vm;
-  }
-  inline LuaEngine* getCustomFlowLuaScriptProtoDetected() {
-    return (customFlowLuaScript_proto);
-  }
-  inline LuaEngine* getCustomFlowLuaScriptPeriodic() {
-    return (customFlowLuaScript_periodic);
-  }
-  inline LuaEngine* getCustomFlowLuaScriptEnd() {
-    return (customFlowLuaScript_end);
+  inline CustomFlowScripts* getCustomFlowScripts() {
+    return (customFlowScripts);
   }
 
   inline void setCustomHostLuaScript(LuaEngine* vm) {

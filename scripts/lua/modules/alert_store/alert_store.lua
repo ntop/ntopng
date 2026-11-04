@@ -385,6 +385,38 @@ function alert_store:build_sql_cond(cond, is_write)
             sql_cond = string.format(" (%s %s %u) ", self:get_column_name('alert_id', is_write), sql_op, cond.value)
         end
 
+        -- Special case: custom flow script title, any of the scripts of the custom alert
+        -- (json alerts.<id>.custom_script.scripts.<file>.title, CustomFlowLuaScriptAlert.cpp),
+        -- also when it is not the predominant alert of the flow
+    elseif cond.field == 'custom_script' and self._alert_entity == alert_entities.flow then
+        local json = self:get_column_name('json', is_write)
+        local id = tostring(require("flow_alert_keys").flow_alert_custom_lua_script)
+        local v = string.gsub(tostring(cond.value), "'", "''")
+        local negate = (cond.op == 'neq' or cond.op == 'nin')
+
+        if ntop_clickhouse_enabled then
+            local titles = string.format(
+                "arrayMap(k -> JSONExtractString(%s, 'alerts', '%s', 'custom_script', 'scripts', k, 'title'), " ..
+                "JSONExtractKeys(%s, 'alerts', '%s', 'custom_script', 'scripts'))", json, id, json, id)
+
+            if cond.op == 'in' or cond.op == 'nin' then
+                sql_cond = string.format("arrayExists(t -> positionCaseInsensitive(t, '%s') > 0, %s)", v, titles)
+            else
+                sql_cond = string.format("has(%s, '%s')", titles, v)
+            end
+        else
+            local title_cond = ternary(cond.op == 'in' or cond.op == 'nin',
+                string.format("json_extract(j.value, '$.title') LIKE '%%%s%%'", v),
+                string.format("json_extract(j.value, '$.title') = '%s'", v))
+
+            sql_cond = string.format(
+                "EXISTS (SELECT 1 FROM json_each(%s, '$.alerts.\"%s\".custom_script.scripts') j WHERE %s)",
+                json, id, title_cond)
+        end
+
+        if negate then sql_cond = "NOT " .. sql_cond end
+        sql_cond = "(" .. sql_cond .. ")"
+
         -- Special case: ip (with vlan)
     elseif cond.field == 'ip' or cond.field == 'cli_ip' or cond.field == 'srv_ip' then
         local host = hostkey2hostinfo(cond.value)

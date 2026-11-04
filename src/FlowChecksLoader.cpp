@@ -79,11 +79,16 @@ void FlowChecksLoader::registerCheck(FlowCheck* cb) {
 void FlowChecksLoader::registerChecks() {
   /* TODO: implement dynamic loading */
   FlowCheck* fcb;
+  char custom_scripts_enabled[8];
 
   if ((fcb = new BlacklistedFlow())) registerCheck(fcb);
   if ((fcb = new BlacklistedCountry())) registerCheck(fcb);
   if ((fcb = new BroadcastNonUDPTraffic())) registerCheck(fcb);
-  if ((fcb = new CustomFlowLuaScript())) registerCheck(fcb);
+  /* In development: off unless CUSTOM_FLOW_SCRIPTS_ENABLED_KEY is set */
+  if ((ntop->getRedis()->get((char*)CUSTOM_FLOW_SCRIPTS_ENABLED_KEY, custom_scripts_enabled,
+                             sizeof(custom_scripts_enabled)) == 0) &&
+      (custom_scripts_enabled[0] == '1') && (fcb = new CustomFlowLuaScript()))
+    registerCheck(fcb);
   if ((fcb = new DeviceProtocolNotAllowed())) registerCheck(fcb);
 #ifndef NTOPNG_PRO
   if ((fcb = new ExternalAlertCheck())) registerCheck(fcb);

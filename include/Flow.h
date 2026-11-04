@@ -1758,6 +1758,13 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getCustomFlowAlertScore() { return (customFlowAlert.score); }
   inline char* getCustomFlowAlertMessage() { return (customFlowAlert.msg); }
   void triggerCustomFlowAlert(u_int8_t score, char* msg);
+  /* Before each custom script: an alert of a script must not be re-triggered by the next one */
+  inline void resetCustomFlowAlert() { customFlowAlert.alertTriggered = false; }
+  /* Alerts already enqueued (stored) and an updated one must be stored again (custom scripts) */
+  inline bool hasPendingAlerts() const { return (pending_alerts); }
+  /* OT protocols dissected by ntopng: { iec104 = {...}, modbus = {...}, s7comm = {...}, profinet = {...} } */
+  void luaOTInfo(lua_State* vm);
+  inline void setPendingAlerts() { pending_alerts = true; }
   inline void setRTPStreamType(u_int8_t s) { rtp_stream_type = s; }
   inline u_int8_t getRTPStreamType() { return (rtp_stream_type); }
   inline void setPeriodicFlow(u_int32_t _periodicity) {

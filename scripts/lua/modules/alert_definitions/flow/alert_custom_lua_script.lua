@@ -39,8 +39,22 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
+-- Titles and messages are written by the user scripts, often with flow data (names, URLs): shown as text
+local HTML_ESCAPES = { ["&"] = "&amp;", ["<"] = "&lt;", [">"] = "&gt;", ['"'] = "&quot;", ["'"] = "&#39;" }
+local function escape_html(s)
+   return (string.gsub(tostring(s), "[&<>\"']", HTML_ESCAPES))
+end
+
 function alert_custom_lua_script.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.custom_lua_script", { message = alert_type_params["alert.message"] } )
+   local message = i18n("flow_details.custom_lua_script", { message = escape_html(alert_type_params["alert.message"] or "") })
+   local cs = alert_type_params["custom_script"]
+
+   -- The titles of the scripts that triggered it (CustomFlowLuaScriptAlert.cpp)
+   if type(cs) == "table" and cs.title and cs.title ~= "" then
+      return string.format("[%s] %s", escape_html(cs.title), message)
+   end
+
+   return message
 end
 
 -- #######################################################

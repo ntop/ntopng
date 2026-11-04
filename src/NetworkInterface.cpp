@@ -20,6 +20,7 @@
  */
 
 #include "ntop_includes.h"
+#include "flow_checks_includes.h" /* CustomFlowScripts, deleted in the destructor */
 
 #ifdef __APPLE__
 #include <uuid/uuid.h>
@@ -426,8 +427,7 @@ void NetworkInterface::init(const char* interface_name) {
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka = NULL;
 #endif
-  customFlowLuaScript_proto = customFlowLuaScript_periodic =
-      customFlowLuaScript_end = NULL;
+  customFlowScripts = NULL;
   customHostLuaScript = NULL;
 
   INTERFACE_PROFILING_INIT();
@@ -1164,9 +1164,7 @@ NetworkInterface::~NetworkInterface() {
   }
   if (interfaceStats) delete interfaceStats;
 
-  if (customFlowLuaScript_proto) delete customFlowLuaScript_proto;
-  if (customFlowLuaScript_periodic) delete customFlowLuaScript_periodic;
-  if (customFlowLuaScript_end) delete customFlowLuaScript_end;
+  if (customFlowScripts) delete customFlowScripts;
 
   if (customHostLuaScript) delete customHostLuaScript;
 

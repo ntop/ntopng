@@ -23,4 +23,11 @@ local script = {
 
 -- #################################################################
 
+-- In development: hidden unless enabled (same key as CUSTOM_FLOW_SCRIPTS_ENABLED_KEY in ntop_defines.h)
+function script.setup()
+   return(ntop.getCache("ntopng.devel.custom_flow_scripts_enabled") == "1")
+end
+
+-- #################################################################
+
 return script

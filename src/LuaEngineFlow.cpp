@@ -297,6 +297,89 @@ static int ntop_flow_get_l7_proto_dns(lua_State* vm) {
 
 /* **************************************************************** */
 
+/* json-c value -> Lua value on the stack (objects and arrays as tables, arrays 1-based) */
+static void lua_push_json_value(lua_State* vm, json_object* o, u_int depth) {
+  /* Bounded: the JSON comes from the probe */
+  if (o == NULL || depth > 16) {
+    lua_pushnil(vm);
+    return;
+  }
+
+  switch (json_object_get_type(o)) {
+    case json_type_boolean:
+      lua_pushboolean(vm, json_object_get_boolean(o));
+      break;
+    case json_type_int:
+      lua_pushinteger(vm, (lua_Integer)json_object_get_int64(o));
+      break;
+    case json_type_double:
+      lua_pushnumber(vm, json_object_get_double(o));
+      break;
+    case json_type_string:
+      lua_pushlstring(vm, json_object_get_string(o), json_object_get_string_len(o));
+      break;
+    case json_type_array: {
+      size_t n = json_object_array_length(o);
+
+      lua_createtable(vm, (int)n, 0);
+      for (size_t i = 0; i < n; i++) {
+        lua_push_json_value(vm, json_object_array_get_idx(o, i), depth + 1);
+        lua_rawseti(vm, -2, (lua_Integer)i + 1);
+      }
+      break;
+    }
+    case json_type_object: {
+      lua_newtable(vm);
+      json_object_object_foreach(o, key, val) {
+        lua_push_json_value(vm, val, depth + 1);
+        lua_setfield(vm, -2, key);
+      }
+      break;
+    }
+    case json_type_null:
+    default:
+      lua_pushnil(vm);
+  }
+}
+
+/* **************************************************************** */
+
+/* @brief Returns the additional fields of the flow sent by the probe (e.g. nProbe plugins), {} when none.  Lua: flow.json_info() → table */
+static int ntop_flow_get_json_info(lua_State* vm) {
+  NtopngLuaContext* c = getLuaVMContext(vm);
+  Flow* f = c ? c->flow : NULL;
+  json_object* info = f ? f->get_json_info() : NULL;
+
+  if (info) {
+    /* Hold a reference while reading it: the collector may replace it (Flow::setJSONInfo) */
+    json_object_get(info);
+    lua_push_json_value(vm, info, 0);
+    json_object_put(info);
+  } else if (f)
+    lua_newtable(vm);
+  else
+    lua_pushnil(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* **************************************************************** */
+
+/* @brief Returns the OT protocols dissected by ntopng for this flow (function codes uses and transitions, registers...), {} when none.  Lua: flow.ot() → table */
+static int ntop_flow_get_ot_info(lua_State* vm) {
+  NtopngLuaContext* c = getLuaVMContext(vm);
+  Flow* f = c ? c->flow : NULL;
+
+  if (f)
+    f->luaOTInfo(vm);
+  else
+    lua_pushnil(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* **************************************************************** */
+
 /* @brief Returns a table with SSH-specific flow metadata (client/server hassh fingerprints, etc.).  Lua: flow.ssh() → table */
 static int ntop_flow_get_l7_proto_ssh(lua_State* vm) {
   NtopngLuaContext* c = getLuaVMContext(vm);
@@ -329,7 +412,7 @@ static int ntop_flow_get_l7_proto_tls_quic(lua_State* vm) {
 
 /* **************************************************************** */
 
-/* @brief Triggers a custom alert on the current flow with a numeric value and message string.  Lua: flow.triggerAlert(value, msg) → nil */
+/* @brief Triggers a custom alert on the current flow with a numeric value and message string.  Lua: flow.triggerAlert([score,] msg) → nil */
 static int ntop_trigger_flow_alert(lua_State* vm) {
   NtopngLuaContext* c = getLuaVMContext(vm);
   Flow* f = c ? c->flow : NULL;
@@ -338,13 +421,21 @@ static int ntop_trigger_flow_alert(lua_State* vm) {
     u_int32_t value;
     char* msg;
 
-    if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-      return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-    value = (u_int32_t)lua_tointeger(vm, 1);
+    /* flow.triggerAlert(msg): the default score of the custom script (score 0) */
+    if (lua_type(vm, 1) == LUA_TSTRING) {
+      value = 0, msg = (char*)lua_tostring(vm, 1);
+    } else {
+      if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+        return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+      value = (u_int32_t)lua_tointeger(vm, 1);
 
-    if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
-      return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-    msg = (char*)lua_tostring(vm, 2);
+      if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
+        return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+      msg = (char*)lua_tostring(vm, 2);
+    }
+
+    /* The flow keeps a u_int8_t score */
+    if (value > 255) value = 255;
 
     f->triggerCustomFlowAlert(value, msg);
   } else
@@ -381,6 +472,8 @@ static luaL_Reg _ntop_flow_reg[] = {
 
     {"direction", ntop_flow_get_direction},
 
+    {"json_info", ntop_flow_get_json_info},
+    {"ot", ntop_flow_get_ot_info},
     {"triggerAlert", ntop_trigger_flow_alert},
 
     {NULL, NULL}};

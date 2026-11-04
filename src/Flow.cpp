@@ -9965,6 +9965,20 @@ void Flow::setFlowRiskName(char* r) {
 char* Flow::getFlowRiskName() { return (ndpiFlowRiskName); }
 
 /* *************************************** */
+void Flow::luaOTInfo(lua_State* vm) {
+  lua_newtable(vm);
+
+  /* Each one adds its table, keyed by its protocol name */
+  if (iec104) iec104->lua(vm);
+#ifdef NTOPNG_PRO
+  if (modbus) modbus->lua(vm);
+  if (s7comm) s7comm->lua(vm);
+  if (profinet) profinet->lua(vm);
+#endif
+}
+
+/* *************************************** */
+
 /* The alert will be triggered by src/flow_checks/CustomFlowLuaScript.cpp */
 void Flow::triggerCustomFlowAlert(u_int8_t score, char* msg) {
   customFlowAlert.alertTriggered = true, customFlowAlert.score = score;

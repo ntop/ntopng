@@ -28,3 +28,7 @@ For instance, a single Flow could have issues like 'Susp Device Protocol,' 'Clea
 
 Typically, the 'Alert Type' filter in ntopng searches for the main issue (the one with the highest score indicated in the 'Description' column of the Alerts Explorer page) emitted for a Flow, Host, or other alert entities. 
 However, if ClickHouse is enabled and the 'Alert Type' filter is used, ntopng can search for the specified 'Alert Type' across all issues (also secondary) emitted for every Flow, Host, etc.
+
+In the *Flow* tab, the *Custom Script* filter selects the alerts raised by the custom flow scripts (see :ref:`CustomDetections`) by script title:
+use *=* for the exact title (e.g. :code:`Modbus custom function code rate`) or *contains* for a part of it. The filter searches all the scripts that
+raised an alert on the flow, also when the main alert of the flow is a different one.

@@ -2474,6 +2474,7 @@ local known_parameters = {
    ["host_alert_key"] = validateNumber,
    ["alert_addr"] = validateSingleWord,
    ["alert_domain"] = validateSingleWord,
+   ["custom_script"] = validateUnquoted, -- Title of a custom flow script (alerts filter)
    ["alert_certificate"] = validateUnchecked,
    ["old_type"] = validateSingleWord,
    ["old_subdir"] = validateSingleWord,

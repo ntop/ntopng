@@ -146,12 +146,48 @@ Currently, the following views are implemented:
   - Top Receivers: the top local receiver hosts and their traffic.
 
   - Top Interfaces: the top interfaces of a SNMP device.
-   
+
+
+Error Page
+----------
+
+When a page cannot be shown, ntopng opens an error page instead. The page shows:
+
+  - The error code (e.g. *Error 404*) and what went wrong.
+
+  - What you can do to fix it.
+
+  - The address of the page you tried to open.
+
+These are the possible errors:
+
+  - *The requested page cannot be found* (404): the address is wrong or the page does not
+    exist in this ntopng version. Check the address.
+
+  - *Forbidden page* (403): your user is not allowed to open the page. Ask an administrator
+    to change your `user`_ permissions.
+
+  - *Professional/Enterprise edition license required* and *Enterprise edition license
+    required* (403): the page is part of an ntopng edition you do not have. See
+    :ref:`AvailableVersions` to know which edition you need.
+
+  - *The URL specified contains invalid/dangerous characters* (400): the address contains
+    characters that ntopng refuses for security reasons. Remove them and try again.
+
+  - *Internal server error* (500): ntopng could not build the page. Try again later; if the
+    problem persists, check the ntopng log.
+
+  - *Unable to serve requests at this time* (503): ntopng is starting up or shutting down.
+    Wait a few seconds, then reload the page.
+
+Click *Go Back* to return to the page you came from, or *Home* to open the ntopng dashboard.
+
 
 .. |permalink_icon| image:: ../../img/permalink_icon.png
 .. |pcap_download_icon| image:: ../../img/pcap_download_icon.png
 .. |snapshot_icon| image:: ../../img/snapshot_icon.png
 .. _`recorded timeseries data`: ../basic_concepts/timeseries.html
+.. _`user`: settings/users.html
 .. _`traffic recording`: ../traffic_recording.html
 .. _`manage snapshot`: ../advanced_features/snapshots.html
 .. _`Exponential Moving Average`: https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average

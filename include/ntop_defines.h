@@ -1774,12 +1774,13 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
 #define CHECKS_PROFINET_TOO_MANY_ERRORS \
   "ntopng.checks.profinet_too_many_errors_enabled"
 
-#define CUSTOM_FLOW_NDPI_SCRIPT \
-  "scripts/callbacks/checks/flows/custom_flow_protocol_detected_script.lua"
-#define CUSTOM_FLOW_PERIODIC_SCRIPT \
-  "scripts/callbacks/checks/flows/custom_flow_periodic_script.lua"
-#define CUSTOM_FLOW_END_SCRIPT \
-  "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
+/* User flow scripts (one per file, see CustomFlowLuaScript.cpp): outside the
+   install dir, not touched by package upgrades */
+#define CUSTOM_FLOW_SCRIPTS_DIR CONST_ETC_DIR "/ntopng/custom_checks/flows"
+#define CUSTOM_FLOW_SCRIPT_DEFAULT_SCORE 50
+/* In development: the check is registered (and shown in the GUI) only when this
+   key is "1". Not under ntopng.prefs. so that redis-cli changes are seen */
+#define CUSTOM_FLOW_SCRIPTS_ENABLED_KEY "ntopng.devel.custom_flow_scripts_enabled"
 
 #define OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME \
   "ntopng.assets_hosts_macs.queue.ifid_%d"

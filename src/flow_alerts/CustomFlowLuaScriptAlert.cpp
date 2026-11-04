@@ -21,12 +21,49 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* CustomFlowLuaScriptAlert::getAlertJSON(
-    ndpi_serializer* serializer) {
-  if (serializer) {
-    if (msg.size() > 0)
-      ndpi_serialize_string_string(serializer, "alert.message", msg.c_str());
+bool CustomFlowLuaScriptAlert::addScript(const std::string& name, const std::string& title,
+                                         const std::string& msg) {
+  for (const Script& sc : scripts)
+    if (sc.name == name) return (false);
+
+  scripts.push_back({name, title, msg});
+  return (true);
+}
+
+/* ***************************************************** */
+
+ndpi_serializer* CustomFlowLuaScriptAlert::getAlertJSON(ndpi_serializer* serializer) {
+  std::string msg, titles;
+
+  if (serializer == NULL) return (serializer);
+
+  for (const Script& sc : scripts) {
+    if (!msg.empty()) msg += " | ", titles += ", ";
+    msg += sc.msg, titles += sc.title;
   }
 
-  return serializer;
+  if (!msg.empty()) ndpi_serialize_string_string(serializer, "alert.message", msg.c_str());
+
+  /*
+    "custom_script": { "title": "ciao, pippo",
+                       "scripts": { "ciao.lua": { "title": "ciao", "message": "..." }, ... } }
+    titles: shown by the GUI; scripts: one entry per script, filtered by title
+  */
+  if (!scripts.empty()) {
+    ndpi_serialize_start_of_block(serializer, "custom_script");
+    ndpi_serialize_string_string(serializer, "title", titles.c_str());
+    ndpi_serialize_start_of_block(serializer, "scripts");
+
+    for (const Script& sc : scripts) {
+      ndpi_serialize_start_of_block(serializer, sc.name.c_str());
+      ndpi_serialize_string_string(serializer, "title", sc.title.c_str());
+      ndpi_serialize_string_string(serializer, "message", sc.msg.c_str());
+      ndpi_serialize_end_of_block(serializer);
+    }
+
+    ndpi_serialize_end_of_block(serializer);
+    ndpi_serialize_end_of_block(serializer);
+  }
+
+  return (serializer);
 }
