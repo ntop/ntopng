@@ -21081,7 +21081,7 @@
           "Issues"
         ],
         "summary": "Issue manager statistics",
-        "description": "Internal statistics of the issue manager: loaded, issues in memory (num_open, num_recent, num_in_memory), pending writes (num_dirty, num_pending_events, num_pending_notifications), num_signals, num_tracked_flows, dropped events and notifications, writer_since, and the queue of the ClickHouse flow alerts (flow_alert_queue_len, flow_alert_queue_bytes, num_flow_alerts_queued, num_flow_alert_drops, num_flow_alerts_processed, last_flow_alert_batch_alerts, last_flow_alert_batch_msec). Enterprise XXL+ only, requires alerts enabled. Administrators only.",
+        "description": "Internal statistics of the issue manager: loaded, issues in memory (num_open, num_recent, num_in_memory), pending writes (num_unsaved, num_pending_events, num_pending_notifications), num_signals, num_tracked_flows, dropped events and notifications, writer_since, and the queue of the ClickHouse flow alerts (flow_alert_queue_len, flow_alert_queue_bytes, num_flow_alerts_queued, num_flow_alert_drops, num_flow_alerts_processed, last_flow_alert_batch_alerts, last_flow_alert_batch_msec). Enterprise XXL+ only, requires alerts enabled. Administrators only.",
         "operationId": "get_issue_stats",
         "produces": [
           "application/json"

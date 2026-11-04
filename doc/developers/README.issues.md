@@ -120,7 +120,7 @@ from being stored.
 Writes are done by one writer at a time: `getPending` returns nil while
 another writer (the alerts VM or a REST call, see User Actions) has not
 committed yet. A writer not committing within 30 s (`ISSUES_WRITER_TIMEOUT`) is
-replaced. Issues changed after `getPending` stay dirty (`change_seq`) and are
+replaced. Issues changed after `getPending` stay unsaved (`change_seq`) and are
 written at the next flush.
 
 Issues belong to the ntopng instance, not to an interface. `issue.ifids` lists
@@ -284,7 +284,7 @@ Schemas: `httpdocs/misc/db_schema_clickhouse.sql` (and `_cluster`),
 Writes are batched in `flush()`. Status changes (`state_changed`) are written
 immediately; signal-only changes at most once per `ISSUES_UPDATE_WRITE_INTERVAL`
 (60 s) per issue, and all of them at shutdown. If a write fails, the issues
-stay dirty and the events stay pending (up to 10000).
+stay unsaved and the events stay pending (up to 10000).
 
 Keep the numeric ids in sync in `Issue.h`, `issue_consts.lua` and the column
 comments of the schemas, and the timings in `IssueManager.h` and
@@ -356,6 +356,6 @@ SELECT tstamp, alert_id, description FROM host_alerts_view WHERE issue_id = 42;
 
 - Manager statistics (admin): `curl -u admin:<pwd>
   http://localhost:3000/lua/pro/rest/v2/get/issue/stats.lua`: issues in
-  memory (`num_open`, `num_recent`), pending writes (`num_dirty`,
+  memory (`num_open`, `num_recent`), pending writes (`num_unsaved`,
   `num_pending_events`), `writer_since`, and the flow queue (`flow_alert_queue_len`,
   `num_flow_alert_drops`, `last_flow_alert_batch_alerts`, `last_flow_alert_batch_msec`).
