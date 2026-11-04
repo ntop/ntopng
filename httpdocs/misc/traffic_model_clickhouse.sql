@@ -116,6 +116,7 @@ WHERE SERVER_LOCATION = 1
   AND IP_PROTOCOL_VERSION = 4
   AND FIRST_SEEN >= toDateTime(yesterday())
   AND FIRST_SEEN <  toDateTime(today())
+  AND (SELECT count() FROM traffic_model_daily_v4 WHERE WHEN = yesterday()) = 0
 GROUP BY INTERFACE_ID, IPV4_SRC_ADDR, IPV4_DST_ADDR, L7_PROTO, IP_DST_PORT, PROTOCOL, MODEL_TYPE;
 
 @
@@ -146,6 +147,7 @@ WHERE SERVER_LOCATION = 1
   AND FIRST_SEEN <  toDateTime(today())
   AND NOT (IPV6_SRC_ADDR BETWEEN toIPv6('fe80::') AND toIPv6('febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff'))
   AND NOT (IPV6_DST_ADDR BETWEEN toIPv6('fe80::') AND toIPv6('febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff'))
+  AND (SELECT count() FROM traffic_model_daily_v6 WHERE WHEN = yesterday()) = 0
 GROUP BY INTERFACE_ID, IPV6_SRC_ADDR, IPV6_DST_ADDR, L7_PROTO, IP_DST_PORT, PROTOCOL, MODEL_TYPE;
 
 @
@@ -166,6 +168,7 @@ INSERT INTO server_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (5)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 1) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -184,6 +187,7 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (5)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 1) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -202,6 +206,7 @@ FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (9)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 2) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -220,6 +225,7 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (9)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 2) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -238,6 +244,7 @@ FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (18,103)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 3) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -256,6 +263,7 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (18,103)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 3) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -274,6 +282,7 @@ FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (3,29)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 4) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -292,6 +301,7 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (3,29)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 4) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -310,6 +320,7 @@ FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (1,175)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 5) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -328,6 +339,7 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (1,175)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 5) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -355,6 +367,7 @@ WHERE WHEN = yesterday()
       GROUP BY IPV4_DST_ADDR
       HAVING uniqExact(L7_PROTO) = 2
   )
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 6) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -382,6 +395,7 @@ WHERE WHEN = yesterday()
       GROUP BY IPV6_DST_ADDR
       HAVING uniqExact(L7_PROTO) = 2
   )
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 6) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -400,6 +414,7 @@ FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (92)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 7) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -418,6 +433,7 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (92)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 7) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -436,6 +452,7 @@ FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (496)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 8) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
 @
@@ -454,4 +471,5 @@ FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (496)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 8) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
