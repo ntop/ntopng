@@ -212,7 +212,7 @@ Ntop::Ntop(const char* appName) {
 
 #ifdef NTOPNG_PRO
   pro = new (std::nothrow) NtopPro();
-  /* Allocated in all the editions (empty until used): the edition is known only later */
+  /* Allocated in all the pro editions (empty until used): the edition is known only later */
   issue_manager = new IssueManager();
 #else
   pro = NULL;

@@ -760,7 +760,9 @@ class Ntop {
   }
 
   inline NtopPro* getPro() { return ((NtopPro*)pro); };
+#ifdef NTOPNG_PRO
   inline IssueManager* getIssueManager() { return issue_manager; };
+#endif
 
   void loadTrackers();
   bool isATrackerHost(char* host);
