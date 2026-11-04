@@ -82,6 +82,9 @@ Whenver you login to ntopng using username and passowrd with a user with MFA ena
 If you fail to enter the MFA code, login will not be completed.
 
 .. note::
+  As no OTP can be asked when username and password are sent along with a request (e.g. :code:`curl -u user:password` with the REST API), such requests are rejected for users with MFA or Passkey enabled. Please use the `Token based authentication`_ instead.
+
+.. note::
   MFA and Passkey cannot be enable at the same time. So if you enable MFA, you cannot enable Passkey and vice-versa.
 
 

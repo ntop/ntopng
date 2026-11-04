@@ -634,6 +634,33 @@ static bool ssl_client_x509_auth(
 
 /* ****************************************** */
 
+// Check a username/password pair sent along with a request (HTTP Basic auth or
+// user/password cookies) rather than through the login form. No second factor
+// can be asked here, so the password alone is not enough for users who enabled
+// MFA or a Passkey: they need a session (see authorize) or an API token.
+static int checkRequestUserPassword(struct mg_connection* conn, char* username,
+                                    const char* password, char* group,
+                                    bool* localuser) {
+  bool redirect_to_change_pwd;
+
+  if (!ntop->checkGuiUserPassword(conn, username, password, group, localuser,
+                                  &redirect_to_change_pwd))
+    return (0);
+
+  if (ntop->isWebAuthnEnabled(username) || ntop->isTOTPEnabled(username)) {
+    ntop->getTrace()->traceEvent(
+        TRACE_INFO, "[HTTP] Password-only login denied for %s (MFA enabled)",
+        username);
+    HTTPserver::traceLogin(username, NULL, false);
+    username[0] = '\0', group[0] = '\0', *localuser = false;
+    return (0);
+  }
+
+  return (1);
+}
+
+/* ****************************************** */
+
 // Return 1 if request is authorized, 0 otherwise.
 // If 1 is returned, the username parameter will contain the authenticated user,
 // which can also be "" or NTOP_NOLOGIN_USER .
@@ -649,7 +676,6 @@ static int getAuthorizedUser(struct mg_connection* conn,
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
                              HTTPserver::authorized_localhost_user_login(conn);
-  bool redirect_to_change_pwd;
 
   /* Default */
   username[0] = '\0';
@@ -754,8 +780,8 @@ static int getAuthorizedUser(struct mg_connection* conn,
 
     strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
-    return ntop->checkGuiUserPassword(conn, username, pword_s.c_str(), group,
-                                      localuser, &redirect_to_change_pwd);
+    return checkRequestUserPassword(conn, username, pword_s.c_str(), group,
+                                    localuser);
   } else if (auth_type == "Token" || auth_type == "Bearer") {
     getline(iss, auth_string, ' ');
 
@@ -795,8 +821,8 @@ static int getAuthorizedUser(struct mg_connection* conn,
     mg_get_cookie(conn, "password", password, sizeof(password));
 
     if (username[0] && password[0])
-      return (ntop->checkGuiUserPassword(conn, username, password, group,
-                                         localuser, &redirect_to_change_pwd));
+      return (checkRequestUserPassword(conn, username, password, group,
+                                       localuser));
   }
 
   /* Important: validate the session */
