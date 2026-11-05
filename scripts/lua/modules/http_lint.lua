@@ -1583,6 +1583,11 @@ local function validateIssueProblem(p)
    return (p:match("^%d+:%d+$") ~= nil)
 end
 
+-- A peer of the issues: an IP, * for the issues with several peers, ~ for those without
+local function validateIssuePeer(p)
+   return (p == "*") or (p == "~") or isIPv4(p) or isIPv6(p)
+end
+
 -- An assignee of the issues: a user, or ~ for the unassigned issues
 local function validateIssueAssignee(p)
    return (p == "~") or validateUsername(p)
@@ -1973,6 +1978,7 @@ local known_parameters = {
    ["episode_gap"] = validateNumber, -- Alert groups: max pause (seconds) between alerts of the same episode
    ["episodes"] = validateNumber, -- Alert groups: 0 to skip the episodes computation
    ["totals"] = validateNumber, -- Alert groups: 1 to also return the grouping totals
+   ["strict"] = validateNumber, -- Alert groups: 0 to match the flows where the alert type is only secondary too
    ["order_by_clause"] = validateUnquoted,
    ["alert_family"] = validateAlertFamily, -- Alert family validation
    ["where_clause"] = {whereCleanup, validateUnchecked}, -- previously defined as validateUnquoted
@@ -2365,6 +2371,8 @@ local known_parameters = {
    ["only_suppressed"] = validateBool, -- Only the suppressed issues
    ["problem"] = validateListOfTypeInline(validateIssueProblem), -- Alert types of the issues (entity id:alert id)
    ["issue_entity"] = validateUnquoted, -- The entity of the issues (entity id|entity value)
+   ["issue_peer"] = validateIssuePeer, -- The only peer of the issues (IP), * several peers, ~ none
+   ["group_levels"] = validateListOfTypeInline(validateSingleWord), -- Issues page: dimensions of the custom grouping
    ["alert_category"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert category enum
    ["mitre_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["mitre_tactic"] = validateListOfTypeInline(validateFilters(validateNumber)),

@@ -20,12 +20,21 @@
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"min-width" : "90px",
+			"max-width" : "90px",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
+					"id": "card",
+					"icon": "fa-solid fa-magnifying-glass-plus",
+					"title_i18n": "issues.issue_details",
+					"class": [],
+					"event_id": "click_button_card"
+				},
+				{
 					"id": "details",
-					"icon": "fas fa-search-plus",
-					"title_i18n": "issues.action.details",
+					"icon": "fas fa-file-lines",
+					"title_i18n": "issues.action.open_page",
 					"class": [],
 					"event_id": "click_button_details"
 				},

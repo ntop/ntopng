@@ -21087,6 +21087,13 @@
             "type": "string"
           },
           {
+            "name": "issue_peer",
+            "in": "query",
+            "description": "Peer of the issues: an IP (the issues whose only peer is it), * (the issues with several peers) or ~ (the issues without peers)",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "show_suppressed",
             "in": "query",
             "description": "View problems: include the suppressed issues (default false)",
@@ -21354,7 +21361,7 @@
           "Issues"
         ],
         "summary": "Issue groups",
-        "description": "Issues grouped by problem (alert type) or by host (host and flow issues by IP@VLAN, the other issues by entity), the most severe groups first, then the largest. Each group has key, label, entity (entity type label), count, max_severity, last_seen, signal_count and params: the parameters to add to list.lua to get the issues of the group. has_more tells if there are more groups. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "Issues grouped by one dimension (group_by), the most severe groups first, then the largest. Each group has key, label, entity (entity type label, problem and host groups only), count, max_severity, last_seen, signal_count and params: the parameters to add to list.lua to get the issues of the group, or to this endpoint for a further level. has_more tells if there are more groups. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_groups",
         "produces": [
           "application/json"
@@ -21363,7 +21370,17 @@
           {
             "name": "group_by",
             "in": "query",
-            "description": "problem or host",
+            "description": "Dimension of the groups: problem (alert type), host, peer (the only peer, * several peers, ~ none), severity, alert_category, entity_id (alert family), mitre_tactic or assignee (each user: an issue assigned to several users is in the group of each of them)",
+            "enum": [
+              "problem",
+              "host",
+              "peer",
+              "severity",
+              "alert_category",
+              "entity_id",
+              "mitre_tactic",
+              "assignee"
+            ],
             "required": true,
             "type": "string"
           },
@@ -21471,6 +21488,13 @@
             "name": "issue_entity",
             "in": "query",
             "description": "Entity of the issues as <alert entity id>|<entity value> (e.g. 0|12 for interface 12)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "issue_peer",
+            "in": "query",
+            "description": "Peer of the issues: an IP (the issues whose only peer is it), * (the issues with several peers) or ~ (the issues without peers)",
             "required": false,
             "type": "string"
           },
@@ -21630,6 +21654,13 @@
             "description": "Entity of the issues as <alert entity id>|<entity value> (e.g. 0|12 for interface 12)",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "issue_peer",
+            "in": "query",
+            "description": "Peer of the issues: an IP (the issues whose only peer is it), * (the issues with several peers) or ~ (the issues without peers)",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
@@ -21648,13 +21679,168 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/alert/groups.lua": {
+      "get": {
+        "tags": [
+          "Alerts"
+        ],
+        "summary": "Alert groups",
+        "description": "Alerts grouped by one dimension (Alerts Overview and issue preview), on the Alert Explorer stores (ClickHouse or SQLite) merged with the live alerts in memory (engaged host alerts, active flows with an alert). Any Alert Explorer filter (e.g. alert_id=79;eq, ip=192.168.1.1;eq, cli_ip, srv_ip) narrows the alerts; each group returns key, label, count, max_severity, max_score, first_seen, last_seen, families, the distinct hosts and the filters that select it in the Alert Explorer. Enterprise L+ only, with the Experimental Features preference or the issues enabled, and the alerts capability.",
+        "operationId": "get_alert_groups",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current one)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start of the time range (epoch seconds)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the time range (epoch seconds)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "group_by",
+            "in": "query",
+            "description": "Dimension of the groups (default alert_id)",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "alert_id",
+              "host",
+              "family",
+              "severity",
+              "alert_category",
+              "mitre_tactic",
+              "vlan_id",
+              "cli_ip",
+              "srv_ip",
+              "pair",
+              "srv_port",
+              "l7_proto",
+              "cli_network",
+              "srv_network",
+              "cli_country",
+              "srv_country",
+              "network"
+            ]
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Alert family: only its alerts (default: flow and host alerts)",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "flow",
+              "host"
+            ]
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alert status: historical (require attention, default), acknowledged or any",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "historical",
+              "acknowledged",
+              "any"
+            ]
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Order of the groups (default priority)",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "priority",
+              "count",
+              "score",
+              "last_seen"
+            ]
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of groups (default 50, max 500)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "episodes",
+            "in": "query",
+            "description": "0 to skip the episodes count (ClickHouse only, default 1)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "episode_gap",
+            "in": "query",
+            "description": "Maximum pause (seconds) between alerts of the same episode (default 900)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "totals",
+            "in": "query",
+            "description": "1 to also return the totals of the grouping",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "strict",
+            "in": "query",
+            "description": "0 to match also the flows where the alert_id filter type is only a secondary alert, as the Alert Explorer (default 1: predominant alert only, so that child groups add up to their parent). Live flows match their predominant alert only",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (not Enterprise L+, feature not enabled or no alerts capability)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (time range, page or group_by)"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/issue/details.lua": {
       "get": {
         "tags": [
           "Issues"
         ],
         "summary": "Issue details",
-        "description": "Details of an issue (same fields as get/issue/list.lua). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "Details of an issue (same fields as get/issue/list.lua, plus alert.description: what the alert type means, from the check that triggers it, when it has one). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_details",
         "produces": [
           "application/json"
