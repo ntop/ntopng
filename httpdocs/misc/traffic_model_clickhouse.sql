@@ -54,7 +54,7 @@ ORDER BY (WHEN, INTERFACE_ID, L7_PROTO, IP_DST_PORT, PROTOCOL, IPV6_SRC_ADDR, IP
 --
 -- MODEL_TYPE encoding (same as traffic_model_daily_*, bidirectional only):
 --   1 = working-hours bidirectional      2 = non-working-hours bidirectional
--- SERVER_TYPE: server_types.lua server_type_id (1 DNS, 2 NTP, 3 DHCP, 4 SMTP, 5 FTP, 6 Windows DC, 7 SSH, 8 PowerShell, 9 Gateway)
+-- SERVER_TYPE: server_types.lua server_type_id (1 DNS, 2 NTP, 3 DHCP, 4 SMTP, 5 FTP, 6 Windows DC, 7 SSH, 8 PowerShell, 9 Gateway, 10 HTTP(S))
 -- Insert each (WHEN, key) only once per day: the table is a SummingMergeTree.
 
 -- DROP TABLE `server_model_daily_v4`;
@@ -472,4 +472,42 @@ WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
   AND L7_PROTO IN (496)
   AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 8) = 0
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 10 HTTP(s) - IPv4
+INSERT INTO server_model_daily_v4
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV4_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(10) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v4
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (7, 91)
+  AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 10) = 0
+GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
+
+@
+
+-- 10 HTTP(s) - IPv6
+INSERT INTO server_model_daily_v6
+SELECT
+    WHEN,
+    INTERFACE_ID,
+    IPV6_DST_ADDR AS ADDR,
+    MODEL_TYPE,
+    toUInt8(10) AS SERVER_TYPE,
+    sum(NUM_FLOWS) AS FLOWS,
+    sum(TOT_KB) AS KB
+FROM traffic_model_daily_v6
+WHERE WHEN = yesterday()
+  AND MODEL_TYPE IN (1, 2)
+  AND L7_PROTO IN (7, 91)
+  AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 10) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;

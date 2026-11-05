@@ -3446,6 +3446,7 @@ local known_parameters = {
     ["ftp_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["ssh_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["powershell_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
+    ["http_list"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressWithOptionalVlan)),
     ["scope_filters"] = validateEmptyOr(validateListOfTypeInline(validateIpAddressOrNetwork)),
     ["customer_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
     ["sub_customer_asn"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
