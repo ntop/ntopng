@@ -1783,7 +1783,7 @@ function M.get_sections(flags)
                 key = "toggle_internals_rrds",
                 title = i18n("prefs.toggle_internals_rrds_title"),
                 description = i18n("prefs.toggle_internals_rrds_description", {
-                    url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=internals"
+                    url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
                 }),
                 type = "toggle",
                 redis_key = "ntopng.prefs.internals_rrd_creation",

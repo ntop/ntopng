@@ -16,7 +16,10 @@ The default login is
 | **password**     | admin |
 +------------------+-------+
 
-During the first access, a prompt will require the user to change the default password.
+During the first access, a page asks to change the default password: type the new password twice
+(from 5 to 128 characters, different from *admin*) and, if you want, choose the language of the
+interface. Until the password is changed every other page leads back here; after the change you go
+to the page you asked for. *Logout* leaves without changing it.
 
 Administrator privileges are granted to user *admin*. If an unauthenticated user attempts to access a specific ntopng URL, the system will redirect the browser to the login page and then, upon successful authentication, to the requested resource. Ntopng GUI web pages have a common structure the user will soon be familiar with. The pages are mostly composed of an always-on-top status bar and some body content.
 

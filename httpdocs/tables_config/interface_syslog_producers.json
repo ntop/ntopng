@@ -1,0 +1,56 @@
+{
+	"id": "interface_syslog_producers",
+	"data_url": "lua/rest/v2/get/syslog/producer/list.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "if_settings.syslog_producers_empty",
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"event_id": "click_button_delete"
+				}
+			],
+			"min-width": "90px",
+			"max-width": "90px"
+		},
+		{
+			"id": "host",
+			"title_i18n": "syslog.producer_host",
+			"data_field": "host",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "producer",
+			"title_i18n": "syslog.producer_type",
+			"data_field": "producer",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

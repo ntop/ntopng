@@ -4,20 +4,21 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "host_pools.members_empty",
 	"columns": [
 		{
 			"id": "actions",
 			"title_i18n": "actions",
 			"sortable": false,
 			"sticky": true,
-			"min-width" : "80px",
-			"max-width" : "80px",
+			"min-width" : "90px",
+			"max-width" : "90px",
 			"class": [
 				"text-nowrap",
 				"text-center"
 			],
-			"render_v_node_type": "button_list",
+			"render_v_node_type": "split_button",
 			"button_def_array": [
 				{
 					"id": "edit",

@@ -1,147 +1,142 @@
 --
 -- (C) 2013-26 - ntop.org
 --
+-- Forced change of the default admin password (HTTPserver.cpp redirects every page here,
+-- CHANGE_PASSWORD_URL, until it is changed). The form is a small Vue app
+-- (pro/http_src/vue/page-change-password.vue, in dist/logout.js): until the password is
+-- changed the REST APIs are redirected too, so the form posts to this page.
+--
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
--- io.write ("Session:".._SESSION["session"].."\n")
-require "lua_utils"
 
-local page_utils = require("page_utils")
-local locales_utils = require("locales_utils")
+-- No lua_utils: rest_utils has the headers and loads i18n (locales_utils)
+require "ntop_utils"
+require "http_lint"
+local rest_utils = require "rest_utils"
+local locales_utils = require "locales_utils"
+local json = require "dkjson"
+
+-- Same limits of the password input pattern (getPasswordInputPattern, MAX_PASSWORD_LEN)
+local MIN_PASSWORD_LEN = 5
+local MAX_PASSWORD_LEN = 128
+
+local user = _SESSION["user"]
+local http_prefix = ntop.getHttpPrefix()
+
+-- Back to the page that was asked (?referer= from HTTPserver.cpp): only a local path
+local function local_referer(r)
+  if type(r) ~= "string" or r:sub(1, 1) ~= "/" or r:sub(1, 2) == "//" or r:find("\\", 1, true) then
+    return http_prefix .. "/"
+  end
+  return r
+end
 
 local error_msg
 
-if not isEmptyString(_POST["user_language"]) then
-  ntop.changeUserLanguage(_SESSION["user"], _POST["user_language"])
-end
+if _POST["new_password"] ~= nil or not isEmptyString(_POST["user_language"]) then
+  -- validateUserLanguage: only the available locales
+  if not isEmptyString(_POST["user_language"]) then
+    ntop.changeUserLanguage(user, _POST["user_language"])
+  end
 
-if (_POST["new_password"] ~= nil) and (_SESSION["user"] == "admin") then
-  local new_password = _POST["new_password"]
-  local confirm_new_password = _POST["confirm_password"]
+  if _POST["new_password"] ~= nil and user == "admin" then
+    require "lua_utils_gui" -- unescapeHTML
+    local new_password = unescapeHTML(_POST["new_password"])
+    local confirm_new_password = unescapeHTML(_POST["confirm_password"] or "")
 
-  if new_password ~= confirm_new_password then
-    error_msg = i18n("login.password_mismatch")
-  elseif new_password == "admin" then
-    error_msg = i18n("login.password_not_valid")
-  else
-    ntop.resetUserPassword(_SESSION["user"], "admin", "", unescapeHTML(new_password))
-    ntop.setCache("ntopng.prefs.admin_password_changed", "1")
-
-    print(ntop.httpRedirect(_GET["referrer"] or "/"))
-    return
+    if new_password ~= confirm_new_password then
+      error_msg = i18n("login.password_mismatch")
+    elseif new_password == "admin" then
+      error_msg = i18n("login.password_not_valid")
+    elseif #new_password < MIN_PASSWORD_LEN or #new_password > MAX_PASSWORD_LEN then
+      error_msg = i18n("login.password_length", { min = MIN_PASSWORD_LEN, max = MAX_PASSWORD_LEN })
+    elseif not ntop.resetUserPassword(user, "admin", "", new_password) then
+      error_msg = i18n("login.password_change_failed")
+    else
+      ntop.setCache("ntopng.prefs.admin_password_changed", "1")
+      print(ntop.httpRedirect(local_referer(_GET["referer"])))
+      return
+    end
   end
 end
 
-sendHTTPContentTypeHeader('text/html')
+rest_utils.sendHTTPContentTypeHeader('text/html')
 
+local info = ntop.getInfo()
+local static_file_epoch = ntop.getStaticFileEpoch() .. ""
 
-page_utils.print_header(nil, true)
-
-info = ntop.getInfo()
-
-print [[
-
-  <div id="particles-js"></div>
-  <div class="container-narrow">
- <style type="text/css">
-      body {
-        padding-top: 40px;
-        padding-bottom: 40px;
-        background-color: #f5f5f5;
-   }
-
-      .form-signin {
-        max-width: 350px;
-        padding: 9px 29px 29px;
-        margin: 0 auto 20px;
-        background-color: #fff;
-        border: 1px solid #e5e5e5;
-        -webkit-border-radius: 5px;
-           -moz-border-radius: 5px;
-                border-radius: 5px;
-          -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
-       -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
-      box-shadow: 0 1px 2px rgba(0,0,0,.05);
-   }
-      .form-signin .form-signin-heading,
-      .form-signin .checkbox {
-        margin-bottom: 10px;
-      }
-      .form-signin input[type="text"],
-      .form-signin input[type="password"] {
-        font-size: 16px;
-        height: auto;
-        margin-bottom: 15px;
-        padding: 7px 9px;
-      }
-
-    </style>
-
-<div class="container input-group">
-
-	 <form role="form" data-bs-toggle="validator" class="form-signin" method="POST">
-	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.change_password")) print[[</h2>
-   <p>]] print(i18n("login.must_change_password")) print[[</p>
-]]
-
-if error_msg ~= nil then
-   print[[<div class="alert alert-danger alert-dismissable">
-            ]] print(error_msg) print[[.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>]]
+-- Same favicon of the login page (custom one in pro/nEdge)
+local favicon_url = http_prefix .. "/favicon.ico"
+if ((ntop.isPro and ntop.isPro()) or (ntop.isnEdge and ntop.isnEdge()))
+   and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
+  favicon_url = http_prefix .. "/img/custom_favicon.ico"
 end
 
-print[[
-  <div class="form-group mb-3 has-feedback">
-      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-      <input type="password" autocomplete="off" class="form-control" name="new_password" placeholder="]] print(js_str(i18n("login.password"))) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      <input type="password" autocomplete="off" class="form-control" name="confirm_password" placeholder="]] print(js_str(i18n("login.confirm_password"))) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
-  </div>
-
-  ]]
-
-print[[
-    <label class='form-label' for="user_language">]] print(i18n("language")) print[[</label>
-    <div class="input-group mb-6">
-	<span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
-      <select id="user_language" name="user_language" class="form-select">]]
-
+local current_language = ntop.getPref("ntopng.user." .. (user or "") .. ".language")
+local languages = {}
 for _, lang in ipairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
+  languages[#languages + 1] = { code = lang.code, label = i18n("locales." .. lang.code) }
 end
 
-print[[
-      </select>
-    </div>
-]]
+-- No JS i18n without the full GUI: the texts go translated in the context
+local context = {
+  csrf = ntop.getRandomCSRFValue(),
+  error = error_msg,
+  min_length = MIN_PASSWORD_LEN,
+  max_length = MAX_PASSWORD_LEN,
+  languages = languages,
+  language = isEmptyString(current_language) and "en" or current_language,
+  logout_url = http_prefix .. "/lua/ntopng_logout.lua",
+  -- Rendered as text by Vue: the HTML entity must become the character
+  copyright = ((info.copyright or ""):gsub("&copy;", "©")),
+  i18n = {
+    title = i18n("login.change_password"),
+    message = i18n("login.must_change_password"),
+    password = i18n("login.password"),
+    confirm_password = i18n("login.confirm_password"),
+    password_hint = i18n("login.password_length", { min = MIN_PASSWORD_LEN, max = MAX_PASSWORD_LEN }),
+    password_mismatch = i18n("login.password_mismatch"),
+    language = i18n("language"),
+    submit = i18n("login.change_password"),
+    logout = i18n("login.logout"),
+  },
+}
 
-print[[
-        <br>
-        <div class="d-grid gap-2">
-          <button class="btn btn-lg btn-primary disabled btn-block" type="submit">]] print(i18n("login.change_password")) print[[</button>
-        </div>
-  	<div class="row">
-      <div >&nbsp;</div>
-      <div class="col-lg-12">
-        <small>
-        <p><a href="]] print(ntop.getHttpPrefix()) print[[logout.lua">]] print(i18n("login.logout")) print[[</a></p>
+-- The JSON sits in a <script> element: "<" escaped (valid in JSON strings)
+-- so that a "</script>" inside a value cannot close it
+local context_json = (json.encode(context):gsub("<", "\\u003c"))
 
-      <p>]] print(info["copyright"]) print [[<br> ]] print(i18n("login.license", {product=info["product"], license="GPLv3", license_url="http://www.gnu.org/copyleft/gpl.html"})) print[[</p>
-        </small>
-      </div>
-    </div>
-  </form>
+print([[
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>]] .. i18n("login.change_password") .. " - " .. info.product .. [[</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="]] .. http_prefix .. "/dist/third-party.css?" .. static_file_epoch .. [[" rel="stylesheet">
+  <link href="]] .. http_prefix .. "/dist/white-mode.css?" .. static_file_epoch .. [[" rel="stylesheet">
+  <link href="]] .. http_prefix .. "/dist/ntopng.css?" .. static_file_epoch .. [[" rel="stylesheet">
+  <link href="]] .. favicon_url .. [[" rel="icon">
+  <script type="text/javascript" src="]] .. http_prefix .. "/dist/login.js?" .. static_file_epoch .. [["></script>
+  <style>
+    /* Same frame of the login page (login.lua) */
+    html, body {
+      height: 100vh;
+    }
 
-<script>
-particlesJS("particles-js", {"particles":{"number":{"value":20,"density":{"enable":true,"value_area":500}},"color":{"value":"#ccc"},"shape":{"type":"circle","stroke":{"width":0,"color":"#000000"},"polygon":{"nb_sides":5},"image":{"src":"img/github.svg","width":100,"height":100}},"opacity":{"value":1,"random":false,"anim":{"enable":false,"speed":1,"opacity_min":0.1,"sync":false}},"size":{"value":3,"random":true,"anim":{"enable":false,"speed":40,"size_min":0.1,"sync":false}},"line_linked":{"enable":true,"distance":150,"color":"#6e6e6e","opacity":0.4,"width":1},"move":{"enable":true,"speed":1,"direction":"none","random":false,"straight":false,"out_mode":"out","bounce":false,"attract":{"enable":false,"rotateX":600,"rotateY":1200}}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false,"mode":"repulse"},"onclick":{"enable":false,"mode":"push"},"resize":true},"modes":{"grab":{"distance":400,"line_linked":{"opacity":1}},"bubble":{"distance":400,"size":40,"duration":2,"opacity":8,"speed":3},"repulse":{"distance":200,"duration":0.4},"push":{"particles_nb":4},"remove":{"particles_nb":2}}},"retina_detect":true});
-/* This is done in order to be sure that jQuery is correctly loaded */
-  $("input:text:visible:first").focus();
-  $('#form_add_user').validator()
-</script>
-
-</div> <!-- /container -->
-
+    body {
+      display: flex;
+      align-items: center;
+      background-color: #f5f5f5;
+    }
+  </style>
+</head>
+<body class="body">
+  <div id="particles-js"></div>
+  <div id="change-password-app" class="w-100"></div>
+  <script type="application/json" id="change-password-context">]] .. context_json .. [[</script>
+  <script type="text/javascript" src="]] .. http_prefix .. "/dist/logout.js?" .. static_file_epoch .. [["></script>
 </body>
 </html>
-]]
+]])

@@ -7220,6 +7220,47 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/interface/top/sites.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the top visited sites of an interface",
+        "description": "Pro. The web sites most visited by the local hosts of the interface (at most 20), needs the Top Sites preference.",
+        "operationId": "get_interface_top_sites",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "hour",
+            "in": "query",
+            "description": "current, last_5_min, day (yesterday) or an hour of today (0-23)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ site, contacts, percentage }]"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Pro only)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid or interface not allowed)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/interface/alert/top.lua": {
       "get": {
         "tags": [
@@ -10486,6 +10527,64 @@
         }
       }
     },
+    "/lua/rest/v2/add/host/pool_member.lua": {
+      "post": {
+        "tags": [
+          "Pools"
+        ],
+        "summary": "Add a member to an host pool",
+        "description": "Administrators only. A member of the Default pool (0) is moved there from any other pool.",
+        "operationId": "add_host_pool_member",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "pool",
+                "member"
+              ],
+              "properties": {
+                "pool": {
+                  "type": "integer",
+                  "description": "Pool id"
+                },
+                "member": {
+                  "type": "string",
+                  "description": "IP/prefix@VLAN (e.g. 192.168.1.10/32@0, 10.0.0.0/24@5) or MAC address"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "POOL_MEMBER_BOUND_SUCCESSFULLY"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-17": {
+            "description": "BIND_POOL_MEMBER_FAILED"
+          },
+          "-18": {
+            "description": "BIND_POOL_MEMBER_ALREADY_BOUND: rsp = the pool that already has the member (remove it from there first)"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/add/host/to_scan.lua": {
       "post": {
         "tags": [
@@ -11542,6 +11641,56 @@
         }
       }
     },
+    "/lua/rest/v2/delete/host/pool_member.lua": {
+      "post": {
+        "tags": [
+          "Pools"
+        ],
+        "summary": "Remove a member from its host pool",
+        "description": "Administrators only. The member goes back to the Default pool.",
+        "operationId": "delete_host_pool_member",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "member"
+              ],
+              "properties": {
+                "member": {
+                  "type": "string",
+                  "description": "IP/prefix@VLAN (e.g. 192.168.1.10/32@0, 10.0.0.0/24@5) or MAC address"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "POOL_MEMBER_BOUND_SUCCESSFULLY"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-17": {
+            "description": "BIND_POOL_MEMBER_FAILED"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/delete/interface/alerts.lua": {
       "get": {
         "tags": [
@@ -12221,6 +12370,69 @@
           },
           "-14": {
             "description": "EDIT_POOL_FAILED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/host/pool/member.lua": {
+      "post": {
+        "tags": [
+          "Pools"
+        ],
+        "summary": "Replace a member of an host pool",
+        "description": "Administrators only. old_member goes back to the Default pool, member joins the pool; refused (old_member unchanged) when member already belongs to another pool.",
+        "operationId": "edit_host_pool_member",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "pool",
+                "old_member",
+                "member"
+              ],
+              "properties": {
+                "pool": {
+                  "type": "integer",
+                  "description": "Pool id"
+                },
+                "old_member": {
+                  "type": "string",
+                  "description": "IP/prefix@VLAN (e.g. 192.168.1.10/32@0, 10.0.0.0/24@5) or MAC address"
+                },
+                "member": {
+                  "type": "string",
+                  "description": "IP/prefix@VLAN (e.g. 192.168.1.10/32@0, 10.0.0.0/24@5) or MAC address"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "POOL_MEMBER_BOUND_SUCCESSFULLY"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-17": {
+            "description": "BIND_POOL_MEMBER_FAILED"
+          },
+          "-18": {
+            "description": "BIND_POOL_MEMBER_ALREADY_BOUND: rsp = the pool that already has the member (remove it from there first)"
           }
         }
       }
@@ -16714,6 +16926,40 @@
         }
       }
     },
+    "/lua/rest/v2/get/interface/config.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the settings of an interface",
+        "description": "Administrators only. The settings that apply to the interface and their values: custom_name, speed (Mbit/s), scaling_factor, lbd_by_mac (hosts of the local broadcast domain identified by MAC; lbd_locked when forced to IP), top_talkers, flow_dump, automatic_reports, mirrored and gw_macs, network_discovery, companion and companions, recording_provider and recording_providers, disaggregation and disaggregation_modes, show_dyn_traffic, push_host_filters. A setting missing from the answer does not apply to the interface. Not for pcap files.",
+        "operationId": "get_interface_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing, not allowed or a pcap file)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/interface/data.lua": {
       "get": {
         "tags": [
@@ -16894,6 +17140,530 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/interface/overview.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the interface overview",
+        "description": "Identity and configuration of an interface, as shown by its Overview page: name, type, MTU and speed, paused state, connected nProbe instances, flow export backends. Administrators also get the traffic recording windows, the disk usage and the ZMQ encryption public key. The live counters are returned by get/interface/data.lua. With view=lightview (all the interfaces together) only is_light_view, can_reset, show_alerts and timeseries_enabled are returned.",
+        "operationId": "get_interface_overview",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the interface of the session)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "description": "lightview: all the interfaces together",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: { ifid, name, label, description, mac, type, inline, has_traffic_directions, mtu, speed_mbps, is_view, is_sub_interface, is_packet_interface, is_pcap_dump, is_syslog, is_netfilter, is_paused, can_pause, can_reset, can_live_capture, num_probes, nprobe_page, show_alerts, timeseries_enabled, has_role_traffic, has_flow_collection, db_stats, dedup_enabled, exports: [{ id, label }], export_enabled, export_direct, zmq_encryption_key, recording, storage, external_stats, maps_available, is_asn_mode }"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/interface/icmp_stats.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the ICMP messages of an interface",
+        "description": "ICMP messages seen on the interface (or by a host): type, code and packets.",
+        "operationId": "get_interface_icmp_stats",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the interface of the session)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "4 (default) or 6",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host IP (optional): the counters of this host instead of the interface",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN of the host",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ icmp_type, icmp_code, packets, icmp_message: { label, url } }]"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid or interface not allowed)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/interface/pkt_distribution.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the packet size or IP version distribution",
+        "description": "Packets of the interface by size (sizes below 5% grouped as Other) or by IP version.",
+        "operationId": "get_interface_pkt_distribution",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "distr",
+            "in": "query",
+            "description": "size (default) or ipver",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ label, value }] (value: packets)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid or interface not allowed)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/interface/tcp_flags_distribution.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the TCP flags distribution",
+        "description": "TCP packets of the interface (or of a host) by flags: SYN, SYN/ACK, FIN/ACK, RST. Without TCP packets: [{ label: Other, value: 100 }].",
+        "operationId": "get_interface_tcp_flags_distribution",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the interface of the session)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host IP (optional): the counters of this host instead of the interface",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN of the host",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ label, value }] (value: packets)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (missing ifid or interface not allowed)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/internals/periodic_activities.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the periodic activities",
+        "description": "State and timings of the periodic activities (the Lua scripts run every second, minute, 5 minutes...) of an interface. Without ifid: the ones of the system interface and of every allowed interface, each row with iface_id and iface_name.",
+        "operationId": "get_internals_periodic_activities",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (-1: the system one; none: all)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "periodic_script",
+            "in": "query",
+            "description": "Only this activity (e.g. minute)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "periodic_script_issue",
+            "in": "query",
+            "description": "Only the activities with this issue (any_issue: any)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ iface_id, iface_name, script, state, periodicity, max_duration_secs, last_start_time, last_duration_ms, busy_pct, tot_not_executed, tot_running_slow, issues, ... }]"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE (ifid not allowed)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/syslog/producer/list.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the syslog producers",
+        "description": "Administrators only. The hosts that send their logs to a syslog interface and the type of their logs.",
+        "operationId": "get_syslog_producers",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ host, producer, producer_title }]"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/add/syslog/producer.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Add or change a syslog producer",
+        "description": "Administrators only, syslog interfaces. Adds a producer, or changes the one of old_syslog_producer_host.",
+        "operationId": "add_syslog_producer",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "syslog_producer_host",
+                "syslog_producer"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier (a syslog interface)"
+                },
+                "syslog_producer_host": {
+                  "type": "string",
+                  "description": "IP address or host name of the producer"
+                },
+                "syslog_producer": {
+                  "type": "string",
+                  "description": "Type of its logs: the name of a syslog check (e.g. suricata)"
+                },
+                "old_syslog_producer_host": {
+                  "type": "string",
+                  "description": "The producer to change (optional)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp = { field } the refused one (exists: true when the name/host is already used)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/syslog/producer.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Delete a syslog producer",
+        "description": "Administrators only, syslog interfaces.",
+        "operationId": "delete_syslog_producer",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "syslog_producer_host"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "syslog_producer_host": {
+                  "type": "string",
+                  "description": "IP address or host name of the producer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp = { field } the refused one (exists: true when the name/host is already used)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/sub_interfaces.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the sub-interfaces of an interface",
+        "description": "Administrators only, Enterprise M. The custom disaggregation: the sub-interfaces receiving the traffic matching a filter.",
+        "operationId": "get_interface_sub_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: [{ name, filter }]"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/interface/sub_interface.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Add or change a sub-interface",
+        "description": "Administrators only, Enterprise M. Adds a sub-interface, or changes the one of old_name. The filter is nBPF (packet interfaces) or xnBPF (flow interfaces).",
+        "operationId": "add_interface_sub_interface",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "custom_name",
+                "query"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "custom_name": {
+                  "type": "string",
+                  "description": "Name, at most 32 characters, no < > \" ' `"
+                },
+                "query": {
+                  "type": "string",
+                  "description": "Traffic filter"
+                },
+                "old_name": {
+                  "type": "string",
+                  "description": "The sub-interface to change (optional)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp = { field } the refused one (exists: true when the name/host is already used)"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/interface/sub_interface.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Delete a sub-interface",
+        "description": "Administrators only, Enterprise M.",
+        "operationId": "delete_interface_sub_interface",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "custom_name"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "custom_name": {
+                  "type": "string",
+                  "description": "Name of the sub-interface"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp = { field } the refused one (exists: true when the name/host is already used)"
           }
         }
       }
@@ -17947,13 +18717,364 @@
         }
       }
     },
+    "/lua/rest/v2/get/interface/recording/config.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Read the traffic recording (n2disk) settings of an interface",
+        "description": "Administrators only, with n2disk installed. managed: ntopng runs n2disk (else provider names the external one and there are no settings). enabled, jobs_available (Enterprise M), smart_available (Enterprise XL), reminder (external n2disk instances detected), max_pcap_mb (size extracted PCAPs are split at). settings: disk_space / smart_disk_space / max_space (GB), bpf_filter, snaplen (bytes), max_file_size (MB, null: auto) and max_file_size_auto, pcap_path, smart_pcap_path, smart_enabled; ZMQ collectors also ext_interfaces [{name, label}], ext_ifname, flow_export. storage (bytes): total, avail, system_used, if_used, extraction_used. A view returns viewed_interfaces [{ifid, name}] (the ones with recording) instead.",
+        "operationId": "get_interface_recording_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/interface/recording/config.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Save the traffic recording (n2disk) settings of an interface and start or stop n2disk",
+        "description": "Administrators only, with n2disk installed and managed by ntopng (not on views). All the fields are applied: a missing toggle is off, a missing number takes its default. An invalid value answers INVALID_ARGUMENTS with rsp.field. Answers enabled and started (n2disk configured and restarted).",
+        "operationId": "set_interface_recording_config",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "record_traffic": {
+                  "type": "string",
+                  "description": "1 / 0: continuous recording"
+                },
+                "disk_space": {
+                  "type": "integer",
+                  "description": "Max disk space (GB, >= 1, default 10)"
+                },
+                "bpf_filter": {
+                  "type": "string",
+                  "description": "Capture filter (nBPF), empty: all the traffic"
+                },
+                "snaplen": {
+                  "type": "integer",
+                  "description": "Capture length (14-16384 bytes, default 1536)"
+                },
+                "max_file_size": {
+                  "type": "integer",
+                  "description": "Max PCAP file size (MB, empty: computed from the link speed)"
+                },
+                "smart_record_traffic": {
+                  "type": "string",
+                  "description": "1 / 0: smart recording (Enterprise XL)"
+                },
+                "smart_disk_space": {
+                  "type": "integer",
+                  "description": "Max smart disk space (GB, Enterprise XL)"
+                },
+                "custom_name": {
+                  "type": "string",
+                  "description": "External interface to record (ZMQ collectors)"
+                },
+                "flow_export": {
+                  "type": "string",
+                  "description": "1 / 0: n2disk exports the flows to this interface (ZMQ collectors)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/interface/recording/status.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Read the traffic recording (n2disk) status of an interface",
+        "description": "Administrators only, with n2disk installed (not on views). enabled, running, external (n2disk run by another provider). When enabled: first_epoch / last_epoch (dump window), start_epoch, bytes, packets, dropped, smart {first_epoch, last_epoch}, log (last 32 lines of the n2disk log, most recent first); external and running: extraction {ok, status: OK | ERR_MISSING_TIMELINE | ERR_TIMELINE_PATH_NOT_EXISTING | ERR_UNABLE_TO_ACCESS_TIMELINE}.",
+        "operationId": "get_interface_recording_status",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/interface/recording/restart.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Restart the traffic recording (n2disk) of an interface",
+        "description": "Administrators only, with n2disk installed, the recording enabled and managed by ntopng (else INVALID_ARGUMENTS). Nothing is done when n2disk is already running.",
+        "operationId": "set_interface_recording_restart",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/pcap/extraction/jobs.lua": {
+      "get": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Read the PCAP extraction jobs of an interface (raw values)",
+        "description": "Administrators only, with n2disk installed. Newest first: id, time, status (waiting, waiting_nospace, processing, completed, stopped, failed), error_code (failed), time_from, time_to, filter, chart_url, files (PCAP files to download with /lua/rest/v2/get/pcap/extraction/data.lua), extracted_pkts and extracted_bytes (completed).",
+        "operationId": "get_pcap_extraction_jobs",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/pcap/extraction/job.lua": {
+      "post": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Delete a PCAP extraction job and its files",
+        "description": "Administrators only, with n2disk installed. job_id: a job of the interface; all=true instead: every job of the interface (the running ones are stopped).",
+        "operationId": "delete_pcap_extraction_job",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "job_id": {
+                  "type": "integer",
+                  "description": "Job ID"
+                },
+                "all": {
+                  "type": "string",
+                  "description": "true: all the jobs of the interface"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/pcap/extraction/stop_job.lua": {
+      "post": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Stop a running PCAP extraction job",
+        "description": "Administrators only, with n2disk installed. The PCAP extracted so far is kept (status stopped).",
+        "operationId": "set_pcap_extraction_stop_job",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "job_id"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "job_id": {
+                  "type": "integer",
+                  "description": "Job ID"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/pcap/extraction/tasks.lua": {
       "get": {
         "tags": [
           "PCAP"
         ],
         "summary": "Read PCAP extraction jobs (scheduled with /lua/rest/v2/create/pcap/extraction/task.lua) information",
-        "description": "All jobs status is returned",
+        "description": "DataTables format with formatted values (perPage, currentPage, sortColumn, sortOrder): {data, totalRows, ...}, no rc. Administrators only, with n2disk installed (else an empty answer). Raw values: /lua/rest/v2/get/pcap/extraction/jobs.lua",
         "operationId": "get_pcap_extraction_tasks",
         "produces": [
           "application/json"
@@ -19764,6 +20885,171 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/interface/config.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Save settings of an interface",
+        "description": "Administrators only. Only the fields in the body are changed (the others are kept), and only the ones that apply to the interface. Nothing is saved when a value is refused.",
+        "operationId": "set_interface_config",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "custom_name": {
+                  "type": "string",
+                  "description": "Custom name (empty: none), at most 64 characters, no < > \" ' `"
+                },
+                "ifSpeed": {
+                  "type": "integer",
+                  "description": "Speed in Mbit/s (empty: the detected one)"
+                },
+                "scaling_factor": {
+                  "type": "integer",
+                  "description": "Scaling factor of sampled traffic (>= 1)"
+                },
+                "lbd_hosts_as_macs": {
+                  "type": "string",
+                  "description": "1: identify the local broadcast domain hosts by MAC, 0: by IP"
+                },
+                "interface_top_talkers_creation": {
+                  "type": "string",
+                  "description": "1 / 0"
+                },
+                "interface_flow_dump": {
+                  "type": "string",
+                  "description": "1 / 0: store the flows of the interface (needs a restart)"
+                },
+                "automatic_reports_creation": {
+                  "type": "string",
+                  "description": "1 / 0 (Enterprise L)"
+                },
+                "is_mirrored_traffic": {
+                  "type": "string",
+                  "description": "1 / 0"
+                },
+                "gw_macs": {
+                  "type": "string",
+                  "description": "Comma separated gateway MAC addresses (mirrored traffic)"
+                },
+                "interface_network_discovery": {
+                  "type": "string",
+                  "description": "1 / 0"
+                },
+                "companion_interface": {
+                  "type": "string",
+                  "description": "Interface id of the companion (empty: none)"
+                },
+                "traffic_recording_provider": {
+                  "type": "string",
+                  "description": "ntopng or an n2disk instance"
+                },
+                "disaggregation_criterion": {
+                  "type": "string",
+                  "description": "none, vlan (flow interfaces also exporter_ip, iface_idx, ingress_iface_idx, ingress_vrf_id, exporter_ip_and_ingress_iface_idx)"
+                },
+                "show_dyn_iface_traffic": {
+                  "type": "string",
+                  "description": "1 / 0"
+                },
+                "push_host_filters": {
+                  "type": "string",
+                  "description": "1 / 0"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: { restart_required }"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS: rsp = { field } the refused one"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/interface/idle_state.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Pause or resume an interface",
+        "description": "Administrators only. Pauses (active=false) or resumes (active=true) the monitoring of an interface: while paused its traffic is not processed. Not available for pcap files and nEdge netfilter queues.",
+        "operationId": "set_interface_idle_state",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "JSON object (with the csrf of the web session, not needed with API tokens)",
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "active"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "active": {
+                  "type": "boolean",
+                  "description": "true to resume, false to pause"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: { is_paused }"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"

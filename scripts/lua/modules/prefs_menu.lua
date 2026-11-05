@@ -829,7 +829,7 @@ local menu_subpages = {{
 	 toggle_internals_rrds = {
             title = i18n("prefs.toggle_internals_rrds_title") .. " <i class=\"fas fa-sm fa-wrench\"></i>",
             description = i18n("prefs.toggle_internals_rrds_description", {
-				  url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=internals"
+				  url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
             })
 	 },
 	 multiple_timeseries_database = {

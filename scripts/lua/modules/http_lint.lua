@@ -837,12 +837,6 @@ local function validateDeviceType(tp)
    return (discover.isValidDevtype(tp))
 end
 
-local function validateUnassignedDevicesMode(mode)
-   local modes = {"active_only", "inactive_only"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateSnmpAction(mode)
    local modes = {"delete", "delete_all", "add", "addNewDevice", "startPolling", "prune", "ping_all"}
 
@@ -3214,7 +3208,7 @@ local known_parameters = {
    ["members_filter"] = validateMembersFilter, -- host_pools.lua
    ["devices_mode"] = validateDevicesMode, -- macs_stats.lua
    ["flow_mode"] = validateFlowMode, -- if_stats.lua
-   ["unassigned_devices"] = validateUnassignedDevicesMode, -- unknown_device.lua
+   ["by"] = validateChoiceInline({"application", "category"}), -- if_stats.lua?page=ndpi grouping (page-interface-applications.vue)
    ["delete_all_policies"] = validateEmpty, -- traffic policies
    ["safe_search"] = validateBool, -- users
    ["block_blacklisted"] = validateBool, -- users

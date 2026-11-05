@@ -29,6 +29,11 @@ if isEmptyString(ifid) then
 end
 
 interface.select(ifid)
+-- interface.select() silently keeps the interface of the user when this one is not allowed
+if tostring(interface.getId()) ~= tostring(ifid) then
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
+   return
+end
 
 local stats = interface.getStats()
 

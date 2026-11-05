@@ -13,10 +13,10 @@ local format_utils = require "format_utils"
 
 -- ################################################
 
+-- ?ifid= one interface (the system one: -1), none: the system and every allowed interface, each
+-- row with the interface it belongs to (Health > Interfaces Status)
 local ifid = _GET["ifid"]
-if isEmptyString(ifid) then ifid = getSystemInterfaceId() end
-
-interface.select(tostring(ifid))
+local all_ifaces = isEmptyString(ifid)
 
 -- ################################################
 
@@ -25,8 +25,29 @@ local filter_issue  = _GET["periodic_script_issue"]
 
 local now = os.time()
 local ts_driver = ts_utils.getDriverName()
-local scripts_stats = interface.getPeriodicActivitiesStats()
 local data = {}
+
+local ifaces = {}
+if all_ifaces then
+   ifaces[#ifaces + 1] = getSystemInterfaceId()
+   for id, _ in pairsByKeys(interface.getIfNames() or {}, asc) do ifaces[#ifaces + 1] = tostring(id) end
+else
+   ifaces[1] = tostring(ifid)
+end
+
+for _, cur_ifid in ipairs(ifaces) do
+interface.select(cur_ifid)
+-- interface.select() silently keeps the interface of the user when this one is not allowed
+if tostring(interface.getId()) ~= cur_ifid then
+   if not all_ifaces then
+      rest_utils.answer(rest_utils.consts.err.invalid_interface)
+      return
+   end
+   goto next_iface
+end
+
+local iface_name = getHumanReadableInterfaceName(getInterfaceName(cur_ifid))
+local scripts_stats = interface.getPeriodicActivitiesStats()
 
 for script, stats in pairsByKeys(scripts_stats, asc) do
    if not isEmptyString(filter_script) and script ~= filter_script then goto continue end
@@ -85,6 +106,8 @@ for script, stats in pairsByKeys(scripts_stats, asc) do
    end
 
    data[#data + 1] = {
+      iface_id          = tonumber(cur_ifid),
+      iface_name        = iface_name,
       script            = script,
       state             = state,
       periodicity       = stats.periodicity or 0,
@@ -123,6 +146,9 @@ for script, stats in pairsByKeys(scripts_stats, asc) do
    end
 
    ::continue::
+end
+
+::next_iface::
 end
 
 rest_utils.extended_answer(rest_utils.consts.success.ok, data, {

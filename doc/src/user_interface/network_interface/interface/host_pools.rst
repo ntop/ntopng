@@ -36,6 +36,23 @@ Pools are added with the *Add pool* button above the table. Adding, editing and 
 Pools capability of the user (administrators always have it). Unavailable actions are shown greyed out
 with the reason.
 
+Pool Members
+^^^^^^^^^^^^
+
+*Manage Members* opens the members of the pool; the page title shows the path *Host Pools / pool name*,
+click *Host Pools* to go back to the list. Each row shows the member (an IP address, a network or a
+MAC address), its type and its VLAN.
+
+- *Add Host Pool Member* asks the type of member (IPv4/IPv6 address, network or MAC address), the
+  address and, for addresses and networks, the VLAN (empty or 0: no VLAN).
+- The button of each row edits the member; the arrow next to it opens the menu with *Delete*. A
+  removed member goes back to the *Default* pool.
+- A member can belong to one pool only: adding (or changing to) a member that is already in another
+  pool is refused, and the message tells which pool has it. Remove it from that pool first.
+- *Import Host Pools Members* opens *Settings* > *Manage Configuration*, to load the members from a file.
+
+Only administrators can open this page.
+
 .. figure:: ../../../img/web_gui_interfaces_edit_host_pool.png
   :align: center
   :alt: Edit Host Pool

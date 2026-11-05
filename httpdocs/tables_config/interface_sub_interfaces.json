@@ -1,0 +1,56 @@
+{
+	"id": "interface_sub_interfaces",
+	"data_url": "lua/pro/rest/v2/get/interface/sub_interfaces.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "if_settings.sub_interfaces_empty",
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"event_id": "click_button_delete"
+				}
+			],
+			"min-width": "90px",
+			"max-width": "90px"
+		},
+		{
+			"id": "name",
+			"title_i18n": "sub_interfaces.sub_if_name",
+			"data_field": "name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "filter",
+			"title_i18n": "if_settings.traffic_filter",
+			"data_field": "filter",
+			"sortable": true,
+			"class": [
+				"font-monospace"
+			]
+		}
+	]
+}

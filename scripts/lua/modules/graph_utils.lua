@@ -557,7 +557,7 @@ function graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
 
     local edit_pools_link = ternary(have_nedge,
                                     "/lua/pro/nedge/admin/nf_list_users.lua",
-                                    "/lua/admin/manage_pools.lua?page=host")
+                                    "/lua/pool_stats.lua")
 
     output[#output + 1] = [[
             </select>

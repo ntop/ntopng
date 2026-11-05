@@ -1,56 +1,23 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-26 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "ntop_utils"
-
 local page_utils = require "page_utils"
-local json = require "dkjson"
-local template_utils = require("template_utils")
-local host_pools = require "host_pools"
-
--- Instantiate host pools
-local host_pools_instance = host_pools:create()
-
-local pool_id = _GET["pool"]
-local pool_name = host_pools_instance:get_pool_name(pool_id)
 
 sendHTTPContentTypeHeader('text/html')
 
--- only enable this page in administrator
-if not isAdministratorOrPrintErr() then 
+-- The pool member REST APIs are for administrators only (before the header: it prints its own page)
+if not isAdministratorOrPrintErr() then
     return
 end
 
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.host_pools)
-
-
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local url = ntop.getHttpPrefix() .. "/lua/admin/manage_host_members.lua"
-page_utils.print_navbar(i18n("host_pools.manage_pool") .. ": " .. pool_name, url, {{
-    active = page == "overview" or not page,
-    page_name = "overview",
-    label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
-        i18n("host_pools.host_members") .. "\"></i>"
-}})
-
-local context = {
-    csrf = ntop.getRandomCSRFValue(),
-    ifid = interface.getId(),
-    pool_id = pool_id,
-    pool_name = pool_name
-}
-
-local json_context = json.encode(context)
-
-template_utils.render("pages/vue_page.template", {
-    vue_page_name = "PageManageHostPoolMembers",
-    page_context = json_context
-})
+-- pro/http_src/vue/page-manage-host-members.vue (SPA route, see router.js)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -74,16 +74,32 @@ to the *ntopng* configuration file.
 
   For Continuous Traffic Recording with ZC or FPGA adapters please read the `ZC/FPGA Support`_ section.
 
-In order to actually start recording traffic, you need to select an interface from 
-the *Interfaces* menu, click on the disk icon, and configure the recording instance:
+In order to actually start recording traffic, you need to select an interface from
+the *Interfaces* menu, open its *Recording* tab, choose *Settings* and configure the
+recording instance:
 
-1. Toggle " Traffic Recording"
-2. Configure the desired "Max Disk Space" value. This lets you control the maximum 
+1. Toggle "Continuous Traffic Recording"
+2. Configure the desired "Max Disk Space" value (GB, the suggested maximum is said under
+   the field). This lets you control the maximum
    disk space to be used for pcap files, which also affects the data retention time
    (when the maximum disk space is exceeded, the oldest pcap file is overwritten).
    Please note that the data retention time also depends on the traffic throughput 
    of the networks being monitored.
-3. Press the "Save Settings" button to actually start recording.
+   Optionally set a "Capture Filter" (nBPF) and, under *Advanced Settings*, the
+   "Packet Capture Length" and the "Max PCAP File Size" (empty: computed from the
+   interface link speed).
+3. Press "Save changes" in the bar that appears after a change to actually start
+   recording (or to stop it, when the recording is turned off).
+
+The *Storage Utilization* bar shows how the volume of the pcap directory is used: by
+the system, by the packet dumps of the interface, by the extracted packets and free.
+On a ZMQ collector interface the same page also lets you choose the *External Interface*
+recorded by n2disk and enable the *Flow Export* of its traffic to ntopng.
+
+The *Recording* tab has three views: *Status*, *Settings* and *Jobs* (the extraction
+jobs, Enterprise M). *Status* and *Jobs* are available once the recording is enabled,
+and *Status* opens by default then. When n2disk is run by an external provider (see
+below) there are no settings: only the status and the jobs.
 
 .. figure:: ../img/web_gui_interfaces_recording.png
   :align: center
@@ -102,8 +118,11 @@ the badge is red, it means that there is a failure.
   The Traffic Recording Badge in the Footer
 
 It is possible to get more information about the *n2disk* service status by 
-clicking on the badge. The status page provides information including the uptime
-of the recording service, statistics about processed traffic, the log trace.
+clicking on the badge, which opens the *Status* view of the *Recording* tab. It shows
+whether n2disk is recording (or failed: a *Restart the service* button restarts it),
+the dump window (the time range available on disk), since when it is active, the
+recorded traffic, the dropped packets, the smart recording window and the last lines
+of the n2disk log (most recent first). The refresh button in its header reads them again.
 
 .. figure:: ../img/web_gui_interfaces_recording_status.png
   :align: center
@@ -151,7 +170,7 @@ enabled as described in the previous page, and in the same page it is required t
 1. Toggle "Smart Traffic Recording"
 2. Configure the desired "Max Smart Disk Space" to control the maximum disk space 
    to be used for pcap files in the second level storage (events traffic only).
-3. Press the "Save Settings" button to actually enable it.
+3. Press "Save changes" to actually enable it.
 
 .. figure:: ../img/web_gui_interfaces_smart_recording.png
   :align: center
@@ -275,11 +294,18 @@ ntopng extracts the traffic and creates new *pcap* files with the traffic. This 
 seconds, depending on a few factors, including: the time interval, the amount of recorded data, the 
 extraction filter. 
 
-A reference for the extraction job (a link to the *Traffic Extraction Jobs* page with the list of 
-scheduled extractions, and the extraction *ID*) is provided after starting the extraction, in order 
-to control the status and download the pcap file(s) as soon as the extraction is completed.
-Extraction jobs can be stopped anytime using the *Stop* button, in case of extractions taking too 
-long, or removed using the *Delete* button (this will also delete the corresponding pcap files).
+A reference for the extraction job (a link to the *Jobs* view of the interface *Recording* tab, with
+the list of scheduled extractions, and the extraction *ID*) is provided after starting the extraction,
+in order to control the status and download the pcap file(s) as soon as the extraction is completed.
+The list, newest first and refreshed every 10 seconds (auto refresh switch), shows for each job its
+ID, creation time, status (failed jobs also say why), the extracted time range, the filter and the
+extracted packets and bytes. The action button of each row downloads the pcap file (a job split in
+several files opens a dialog with one link each); its menu opens the chart the job was scheduled
+from, stops a running job (in case of extractions taking too long) or deletes it (this also deletes
+the corresponding pcap files). Unavailable actions stay in the menu, disabled with the reason.
+*Delete All Jobs*, below the list, deletes every job of the interface (the running ones are stopped).
+On a view interface the *Recording* tab shows only the jobs, extracted from its viewed interfaces
+that record traffic.
 
 .. figure:: ../img/web_gui_interfaces_extraction_jobs.png
   :align: center

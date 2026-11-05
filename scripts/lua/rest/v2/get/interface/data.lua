@@ -173,6 +173,8 @@ function dumpInterfaceStats(ifid)
 
       res["throughput_bps"] = ifstats.stats.throughput_bps;
       res["throughput_pps"] = ifstats.stats.throughput_pps;
+      -- Flows created since startup (a counter: the GUI computes the new flows per second)
+      res["new_flows"] = ifstats.stats.new_flows
       res["num_deduplicated_flows"] = ifstats.stats.num_deduplicated_flows
       local function getExportStats(db_type)
          local s = {}

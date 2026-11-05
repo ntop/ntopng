@@ -8,6 +8,14 @@
 	"show_autorefresh": 5,
 	"columns": [
 		{
+			"id": "iface_name",
+			"title_i18n": "interface",
+			"data_field": "iface_name",
+			"sortable": true,
+			"min-width": "150px",
+			"class": []
+		},
+		{
 			"id": "script",
 			"title_i18n": "internals.periodic_activity",
 			"data_field": "script",

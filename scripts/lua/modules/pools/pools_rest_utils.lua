@@ -254,7 +254,6 @@ end
 -- @brief Edit a member (move from old pool to new pool)
 function pools_rest_utils.edit_member()
    local pools = require "host_pools"
-   local old_pool_name = _GET["pool_name"]
    local pool_id = _GET["pool"]
    local member = fixPoolMemberFormat(_POST["member"])
    local old_member = _POST["old_member"]
@@ -276,6 +275,18 @@ function pools_rest_utils.edit_member()
    local s = pools:create()
    local res, err
 
+   -- Refuse before touching the old member: a new member already bound to another pool would
+   -- leave the old one unbound (moved to the default pool)
+   local bound_pool = s:get_pool_by_member(member)
+   if member ~= old_member and pool_id ~= s.DEFAULT_POOL_ID and bound_pool
+      and bound_pool.pool_id ~= s.DEFAULT_POOL_ID and bound_pool.pool_id ~= pool_id then
+      rest_utils.answer(rest_utils.consts.err.bind_pool_member_already_bound, bound_pool)
+      return
+   end
+
+   -- The pool the old member leaves (server side, not a client supplied pool_name)
+   local old_pool = s:get_pool_by_member(old_member)
+
    -- First, bind the old member to default pool (remove from current pool)
    res, err = s:bind_member(old_member, s.DEFAULT_POOL_ID)
    
@@ -288,7 +299,7 @@ function pools_rest_utils.edit_member()
       -- Because default pool must always contain all hosts seen on the network
       -- Always bind the member to the default pool id (possibly removing it from any other pool)
       res, err = s:bind_member(member, pool_id)
-      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro and ntop.isPro() then
+      if old_pool and old_pool.pool_id == host_pools.DROP_HOST_POOL_ID and ntop.isPro and ntop.isPro() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local policy_utils = require "policy_utils"
          policy_utils.broadcast_ips_rules()
@@ -322,7 +333,6 @@ end
 -- @brief Delete a member (move to default pool)
 function pools_rest_utils.delete_member()
    local pools = require "host_pools"
-   local old_pool_name = _GET["pool_name"]
    local member = fixPoolMemberFormat(_POST["member"])
    
    if not isAdministrator() then
@@ -339,10 +349,13 @@ function pools_rest_utils.delete_member()
    local s = pools:create()
    local res, err
 
+   -- The pool the member leaves (server side, not a client supplied pool_name)
+   local old_pool = s:get_pool_by_member(member)
+
    -- Always bind the member to the default pool (removing it from any other pool)
    res, err = s:bind_member(member, s.DEFAULT_POOL_ID)
    
-   if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro and ntop.isPro() then
+   if old_pool and old_pool.pool_id == host_pools.DROP_HOST_POOL_ID and ntop.isPro and ntop.isPro() then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
       local policy_utils = require "policy_utils"
       policy_utils.broadcast_ips_rules()

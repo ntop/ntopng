@@ -35,7 +35,7 @@ if isAdministrator() and (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) the
   host_pools_instance:bind_member(_POST["member"], _POST["pool"])
 end
 
-print("<h3>"..i18n("unknown_devices.unassigned_devices").." <small><a title='".. i18n("host_pools.manage_pools") .."' href='".. ntop.getHttpPrefix() .."/lua/admin/manage_pools.lua'><i class='fas fa-cog'></i></a></small></h3>")
+print("<h3>"..i18n("unknown_devices.unassigned_devices").." <small><a title='".. i18n("host_pools.manage_pools") .."' href='".. ntop.getHttpPrefix() .."/lua/pool_stats.lua'><i class='fas fa-cog'></i></a></small></h3>")
 
 print(
   template.gen("modal_confirm_dialog.html", {

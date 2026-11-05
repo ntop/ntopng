@@ -14,7 +14,18 @@ local icmp_utils = require "icmp_utils"
 local rc = rest_utils.consts.success.ok
 local res = {}
 
-interface.select(ifname)
+-- ?ifid= (the interface pages), else the interface of the session
+local ifid = _GET["ifid"]
+if isEmptyString(ifid) then
+   interface.select(ifname)
+else
+   interface.select(ifid)
+   -- interface.select() silently keeps the interface of the user when this one is not allowed
+   if tostring(interface.getId()) ~= tostring(ifid) then
+      rest_utils.answer(rest_utils.consts.err.invalid_interface)
+      return
+   end
+end
 
 local host_info = url2hostinfo(_GET)
 local ip_version = _GET["version"] or "4"

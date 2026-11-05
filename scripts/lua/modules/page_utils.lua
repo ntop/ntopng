@@ -786,7 +786,7 @@ page_utils.menu_entries = {
         key = "catalog",
         i18n_title = "about.catalog",
         section = "dev",
-        help_link = "https://www.ntop.org/guides/ntopng/scripts/checks.html?utm_source=ntopng"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/developer/behavioural_checks.html?utm_source=ntopng"
     },
     analyze_pcap = {
         key = "analyze_pcap",

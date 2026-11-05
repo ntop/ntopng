@@ -1094,7 +1094,8 @@ function recording_utils.checkExtraction(ifid, use_smart)
       end
    end
 
-   return res["status"] == "OK", i18n(extraction_checks_to_i18n(res["status"]))
+   -- The status code too (3rd value), for the REST answers (no labels)
+   return res["status"] == "OK", i18n(extraction_checks_to_i18n(res["status"])), res["status"]
 end
 
 --! @brief Start (or restart) the traffic recording service

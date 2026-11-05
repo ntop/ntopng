@@ -42,18 +42,12 @@ end
 
 -- ##############################################
 
--- @brief Returns the pool url for a pool with a given `pool_key`
--- @param pool_key A pool key string as found inside `create` method of any pools instance.
---                 If no pool key is found, the home of the pool url is returned.
+-- @brief Returns the url of the pools list
+-- @param pool_key A pool key string as found inside `create` method of any pools instance
+--                 (unused: the host pools are the only pools left)
 -- @return The pool url
 function pools_lua_utils.get_pool_url(pool_key)
-   local pool_url = ntop.getHttpPrefix().."/lua/admin/manage_pools.lua"
-
-   if pool_key then
-      pool_url = pool_url.."?page="..pool_key
-   end
-
-   return pool_url
+   return ntop.getHttpPrefix().."/lua/pool_stats.lua"
 end
 
 -- ##############################################

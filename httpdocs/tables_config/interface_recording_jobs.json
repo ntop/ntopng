@@ -1,0 +1,127 @@
+{
+	"id": "interface_recording_jobs",
+	"data_url": "lua/rest/v2/get/pcap/extraction/jobs.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"show_autorefresh": 10,
+	"display_empty_rows": false,
+	"empty_message_i18n": "traffic_recording.jobs_empty",
+	"default_sort": {
+		"column_id": "id",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "download",
+					"icon": "fas fa-download",
+					"title_i18n": "traffic_recording.download",
+					"event_id": "click_button_download"
+				},
+				{
+					"id": "chart",
+					"icon": "fas fa-chart-area",
+					"title_i18n": "traffic_recording.open_chart",
+					"event_id": "click_button_chart"
+				},
+				{
+					"id": "stop",
+					"icon": "fas fa-stop",
+					"title_i18n": "traffic_recording.stop_job",
+					"event_id": "click_button_stop"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "traffic_recording.delete_job",
+					"event_id": "click_button_delete",
+					"danger": true
+				}
+			],
+			"min-width": "90px",
+			"max-width": "90px"
+		},
+		{
+			"id": "id",
+			"title_i18n": "traffic_recording.job_id",
+			"data_field": "id",
+			"sortable": true,
+			"class": [
+				"text-end"
+			]
+		},
+		{
+			"id": "time",
+			"title_i18n": "traffic_recording.job_date_time",
+			"data_field": "time",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "status",
+			"title_i18n": "status",
+			"data_field": "status",
+			"sortable": true
+		},
+		{
+			"id": "time_from",
+			"title_i18n": "report.begin_date_time",
+			"data_field": "time_from",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "time_to",
+			"title_i18n": "report.end_date_time",
+			"data_field": "time_to",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "filter",
+			"title_i18n": "traffic_recording.filter_bpf",
+			"data_field": "filter",
+			"sortable": false,
+			"class": [
+				"font-monospace"
+			]
+		},
+		{
+			"id": "extracted_pkts",
+			"title_i18n": "packets",
+			"data_field": "extracted_pkts",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "extracted_bytes",
+			"title_i18n": "bytes",
+			"data_field": "extracted_bytes",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			]
+		}
+	]
+}

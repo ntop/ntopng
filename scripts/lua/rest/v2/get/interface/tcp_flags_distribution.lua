@@ -20,7 +20,14 @@ local host_info = url2hostinfo(_GET)
 local ifid = _GET["ifid"]
 local what = {}
 
-interface.select(ifid)
+if not isEmptyString(ifid) then
+   interface.select(ifid)
+   -- interface.select() silently keeps the interface of the user when this one is not allowed
+   if tostring(interface.getId()) ~= tostring(ifid) then
+      rest_utils.answer(rest_utils.consts.err.invalid_interface)
+      return
+   end
+end
 local rc = rest_utils.consts.success.ok
 
 local pkt_distribution = {
