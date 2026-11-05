@@ -33,6 +33,8 @@ network_config_utils.servers = {
      i18n_title = "network_configuration.powershell_servers_title", i18n_description = "network_configuration.powershell_servers_description" },
    { key = "gateway_list", redis_key = "ntopng.prefs.nw_config_gateway_list",
      i18n_title = "network_configuration.gateway_servers_title", i18n_description = "network_configuration.gateway_servers_description" },
+   { key = "http_list", redis_key = "ntopng.prefs.nw_config_http_list",
+     i18n_title = "network_configuration.http_servers_title", i18n_description = "network_configuration.http_servers_description" },
 }
 
 return network_config_utils
