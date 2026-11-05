@@ -136,7 +136,12 @@ class LocalHost : public Host {
   };
   virtual bool isSystemHost() const { return (systemHost); };
   virtual bool serializeByMac() const {
-    return (iface->serializeLbdHostsAsMacs() || is_dhcp_host);
+    /* Honour the "Local Broadcast Domain Hosts Identifier" preference:
+       hosts in the DHCP range are keyed by MAC only when the user asked
+       for it. Keying them by MAC unconditionally made the timeseries key
+       of a host flip from IP to MAC as soon as it was flagged as a DHCP
+       host, splitting its timeseries in two (see #9223). */
+    return (iface->serializeLbdHostsAsMacs());
   }
 
   virtual void updateNetworkRTT(u_int32_t rtt_msecs) {
