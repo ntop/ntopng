@@ -65,10 +65,16 @@ void RoundTripStats::luaRTStats(lua_State* vm, const char* stats_name) {
 
 /* **************************************** */
 
+// Add the points of this ring to _stats, the newest to the newest: each ring has its own last
+// item (stats_it), summing them slot by slot mixed points of different times
 void RoundTripStats::sum(RoundTripStats* _stats) {
   u_int32_t* _viewed_stats = _stats->getStats();
+  /* Shadow copies: addPoint() may run meanwhile in another thread (as in luaRTStats) */
+  u_int8_t src_it = stats_it, dst_it = _stats->stats_it;
 
-  for (int i = 0; i < ROUND_TRIP_LENGTH; i++) _viewed_stats[i] += stats[i];
+  for (int k = 0; k < ROUND_TRIP_LENGTH; k++)
+    _viewed_stats[(dst_it + ROUND_TRIP_LENGTH - k) % ROUND_TRIP_LENGTH] +=
+        stats[(src_it + ROUND_TRIP_LENGTH - k) % ROUND_TRIP_LENGTH];
 }
 
 /* **************************************** */
