@@ -271,6 +271,9 @@ class HostStats : public GenericTrafficElement {
     return (as_client ? score_cli.getLastUpperBound()
                       : score_srv.getLastUpperBound());
   }
+  inline DESCounter* getScoreAnomalyCounter(bool as_client) {
+    return (as_client ? &score_cli : &score_srv);
+  }
 
   inline PacketStats* getSentStats() { return (&sent_stats); }
   inline PacketStats* getRecvStats() { return (&recv_stats); }

@@ -28,12 +28,16 @@ class BehaviouralCounter {
  protected:
   bool is_anomaly;
   u_int64_t tot_num_anomalies, last_lower, last_upper, last_value;
+  /* Number of consecutive observations found above/below the expected range
+   * (used by ScoreAnomaly check) */
+  u_int32_t consecutive_above, consecutive_below;
 
  public:
   /* Number of points to be used by the algorithm in the learning phase */
   BehaviouralCounter() {
     is_anomaly = false,
     tot_num_anomalies = last_lower = last_upper = last_value = 0;
+    consecutive_above = consecutive_below = 0;
   }
   virtual ~BehaviouralCounter() {};
 
@@ -54,6 +58,8 @@ class BehaviouralCounter {
   inline u_int64_t getTotAnomalies() { return (tot_num_anomalies); };
   inline u_int64_t getLastLowerBound() { return (last_lower); };
   inline u_int64_t getLastUpperBound() { return (last_upper); };
+  inline u_int32_t getConsecutiveAbove() { return (consecutive_above); };
+  inline u_int32_t getConsecutiveBelow() { return (consecutive_below); };
 };
 
 #endif /* _BEHAVIOURAL_COUNTER_H_ */

@@ -951,6 +951,9 @@ class Host : public GenericHashEntry,
   inline u_int32_t upper_bound_score_anomaly(bool as_client) {
     return (stats->upper_bound_score_anomaly(as_client));
   }
+  inline DESCounter* getScoreAnomalyCounter(bool as_client) {
+    return (stats->getScoreAnomalyCounter(as_client));
+  }
 
   inline void inc_num_blacklisted_flows(bool as_client) {
     if (as_client)

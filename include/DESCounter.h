@@ -61,13 +61,25 @@ class DESCounter : public BehaviouralCounter {
 
       if (is_anomaly) tot_num_anomalies++;
 
+      /* Count how long the series has been out of range */
+      if (value > last_upper)      consecutive_above++, consecutive_below = 0;
+      else if (value < last_lower) consecutive_below++, consecutive_above = 0;
+      else                         consecutive_above =  consecutive_below = 0;
+
       return (is_anomaly);
     }
+
+    is_anomaly = false, consecutive_above = consecutive_below = 0;
 
     return (rc);
   }
 
-  inline void resetStats() { ndpi_des_reset(&des); }
+  inline u_int32_t getNumObservations() { return (des.num_values); }
+
+  inline void resetStats() {
+    ndpi_des_reset(&des);
+    consecutive_above = consecutive_below = 0;
+  }
   inline DESCounter* clone() { return (new (std::nothrow) DESCounter(&des)); }
   inline void set(DESCounter* c) {
     memcpy(&des, &c->des, sizeof(struct ndpi_des_struct));
