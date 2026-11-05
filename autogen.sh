@@ -41,7 +41,7 @@ MINOR_RELEASE="1"
 SHORT_VERSION="$MAJOR_RELEASE.$MINOR_RELEASE"
 VERSION="$SHORT_VERSION.$TODAY"
 
-if test -d ".git"; then
+if test -e ".git"; then
 GIT_TAG=`git rev-parse HEAD`
 GIT_DATE=`date +%Y%m%d`
 GIT_RELEASE="$GIT_TAG:$GIT_DATE"
@@ -75,7 +75,7 @@ cat configure.ac.in | sed \
 
 rm -f config.h config.h.in *~ #*
 
-if test -d ".git"; then
+if test -e ".git"; then
   git submodule init
   git submodule sync --quiet
 
