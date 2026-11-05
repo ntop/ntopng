@@ -7578,6 +7578,18 @@ local lang = {
     ["intro_calendar"] = "Giorni in cui sono comparsi o scomparsi dei server, una riga per tipo di server: clicca un giorno per confrontarlo con il giorno prima",
     ["intro_compare"] = "Server di un giorno confrontati con un giorno precedente: nuovi, scomparsi e con più o meno traffico. Clicca un conteggio per vedere solo quei server",
     ["intro_servers"] = "Server visti nell'intervallo confrontati con quelli attesi della Configurazione di rete: a sinistra i server visti (attesi o no), a destra quelli attesi mai visti",
+    ["status"] = {
+      ["EXPECTED"] = "Configurato in ntopng",
+      ["UNEXPECTED"] = "Non configurato in ntopng",
+      ["MISSING"] = "Configurato, nessun traffico",
+    },
+    ["col"] = {
+      ["flows_as_type"] = "Flussi a cui ha risposto come %{type}",
+      ["traffic_as_type"] = "Traffico come %{type}",
+    },
+    ["days_active_of"] = "Attivo %{n} giorni su %{total}",
+    ["day_active"] = "attivo come server",
+    ["day_inactive"] = "nessun traffico come server",
   },
   ["chat_page"] = {
     ["debug_dump"] = "Scarica il dump della chat (JSON) per support@ntop.org",
