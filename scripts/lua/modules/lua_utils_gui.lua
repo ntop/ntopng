@@ -1301,6 +1301,13 @@ function format_fingerprints_info(fingerprint_info)
          name = fingerprint_info["ndpi_fingerprint"]
 	    })
    end
+   if fingerprint_info["tcp_fingerprint"] then
+      formatted_fingerprints_info["tcp_fingerprint"] =
+         i18n("copy_button", {
+            full_name = fingerprint_info["tcp_fingerprint"],
+            name = fingerprint_info["tcp_fingerprint"]
+         })
+   end
    return formatted_fingerprints_info
 end
 
