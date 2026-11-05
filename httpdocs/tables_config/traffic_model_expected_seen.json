@@ -60,10 +60,9 @@
 			"id": "days_seen",
 			"data_field": "days_seen",
 			"sortable": true,
-			"min-width": "100px",
+			"min-width": "170px",
 			"render_type": "number",
 			"class": [
-				"text-end",
 				"text-nowrap"
 			],
 			"title_i18n": "traffic_model.col.days_active"
@@ -78,7 +77,7 @@
 				"text-end",
 				"text-nowrap"
 			],
-			"title_i18n": "traffic_model.col.flows_as_server"
+			"title_i18n": "traffic_model.col.flows_as_type"
 		},
 		{
 			"id": "bytes",
@@ -90,7 +89,7 @@
 				"text-end",
 				"text-nowrap"
 			],
-			"title_i18n": "traffic_model.col.traffic_as_server"
+			"title_i18n": "traffic_model.col.traffic_as_type"
 		}
 	]
 }
