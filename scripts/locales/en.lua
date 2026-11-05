@@ -11933,6 +11933,8 @@ local lang = {
       ["score"] = "Score",
       ["flow"] = "Flow",
       ["application"] = "Application",
+      ["description"] = "Description",
+      ["other_alerts"] = "Other Alerts",
     },
     ["action"] = {
       ["open_page"] = "Open Issue Page",

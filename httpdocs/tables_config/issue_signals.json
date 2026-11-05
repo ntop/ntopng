@@ -48,6 +48,20 @@
 			"min-width": "260px"
 		},
 		{
+			"id": "description",
+			"title_i18n": "issues.col.description",
+			"data_field": "description",
+			"sortable": false,
+			"min-width": "250px"
+		},
+		{
+			"id": "other_alerts",
+			"title_i18n": "issues.col.other_alerts",
+			"data_field": "other_alerts",
+			"sortable": false,
+			"min-width": "150px"
+		},
+		{
 			"id": "l7_proto_name",
 			"title_i18n": "issues.col.application",
 			"data_field": "l7_proto_name",
