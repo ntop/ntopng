@@ -144,6 +144,9 @@ function interface_utils.getLightViewStats(ifstats)
 
         for k, v in pairs(tmp.probes or {}) do
             info.probes_stats[k] = v
+            -- The nProbe page shows the probes of one interface: the first one that has them
+            -- (an interface can list an empty set of probes)
+            if not info.probe_ifid and next(v or {}) then info.probe_ifid = tmp.id end
         end
         for k, v in pairs(tmp.exporters or {}) do
             if not exporters_stats[k] then

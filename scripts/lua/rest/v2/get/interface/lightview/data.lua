@@ -56,9 +56,11 @@ res["num_deduplicated_flows"] = ifstats.stats.num_deduplicated_flows
 
 local tot_pkt = 0
 local tot_pkt_drops = 0
+local num_probes = 0
 
 for _, probes_list in pairs(ifstats.probes or {}) do
    for _, probe_info in pairs(probes_list or {}) do
+      num_probes = num_probes + 1
       tot_pkt = tot_pkt + (probe_info["packets.total"] or 0)
       tot_pkt_drops = tot_pkt_drops + (probe_info["packets.drops"] or 0)
    end
@@ -66,6 +68,11 @@ end
 
 res["tot_nprobe_pkts"] = tot_pkt
 res["tot_pkt_drops"] = tot_pkt_drops
+res["num_probes"] = num_probes
+res["probe_ifid"] = info.probe_ifid
+-- Aggregated only when some interface has records (getLightViewStats)
+res["db_stats"] = ifstats.dbStats
+res["has_traffic_directions"] = ifstats.has_traffic_directions
 
 if ifstats.stats.discarded_probing_packets then
    res["discarded_probing_packets"] = ifstats.stats.discarded_probing_packets

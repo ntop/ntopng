@@ -16788,6 +16788,22 @@
                   "type": "integer",
                   "description": "Packets dropped by the nProbe instances"
                 },
+                "num_probes": {
+                  "type": "integer",
+                  "description": "nProbe instances sending flows"
+                },
+                "probe_ifid": {
+                  "type": "integer",
+                  "description": "First interface receiving flows from an nProbe instance (its nProbe page)"
+                },
+                "db_stats": {
+                  "type": "object",
+                  "description": "Records processed and discarded (flows, dropped_flows), only when some interface has records"
+                },
+                "has_traffic_directions": {
+                  "type": "boolean",
+                  "description": "At least one interface tells sent from received traffic"
+                },
                 "discarded_probing_packets": {
                   "type": "integer"
                 },
@@ -17150,7 +17166,7 @@
           "Interfaces"
         ],
         "summary": "Get the interface overview",
-        "description": "Identity and configuration of an interface, as shown by its Overview page: name, type, MTU and speed, paused state, connected nProbe instances, flow export backends. Administrators also get the traffic recording windows, the disk usage and the ZMQ encryption public key. The live counters are returned by get/interface/data.lua. With view=lightview (all the interfaces together) only is_light_view, can_reset, show_alerts and timeseries_enabled are returned.",
+        "description": "Identity and configuration of an interface, as shown by its Overview page: name, type, MTU and speed, paused state, connected nProbe instances, flow export backends. Administrators also get the traffic recording windows, the disk usage and the ZMQ encryption public key. The live counters are returned by get/interface/data.lua. With view=lightview (all the interfaces together) only is_light_view, can_reset, show_alerts, timeseries_enabled, exports, export_enabled, dedup_enabled and nprobe_page are returned (the aggregated counters are in get/interface/lightview/data.lua).",
         "operationId": "get_interface_overview",
         "produces": [
           "application/json"

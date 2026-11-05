@@ -42,19 +42,36 @@ end
 local is_light_view = isLightView()
 local prefs = ntop.getPrefs()
 
+-- Flow export backends (counters in data.lua / lightview/data.lua under the same id)
+local function export_backends()
+   local exports = {}
+   if ntop.isClickHouseEnabled() then exports[#exports + 1] = { id = "db", label = "ClickHouse" } end
+   if prefs.is_dump_flows_to_es_enabled then exports[#exports + 1] = { id = "es", label = "ElasticSearch" } end
+   if prefs.is_dump_flows_to_kafka_enabled then exports[#exports + 1] = { id = "kafka", label = "Kafka" } end
+   if prefs.is_dump_flows_to_syslog_enabled then exports[#exports + 1] = { id = "syslog", label = "Syslog" } end
+   return exports
+end
+local dedup_enabled = ntop.isFlowDedupEnabled() and (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false
+local nprobe_page = (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false
+
 -- All the interfaces together: the page reads the counters from lightview/data.lua
--- (none of the properties below belongs to one interface)
+-- (also db_stats, has_traffic_directions, num_probes: none of the properties below belongs to one interface)
 if is_light_view then
    rest_utils.answer(rest_utils.consts.success.ok, {
       is_light_view = true,
       can_reset = is_admin,
       show_alerts = not has_allowed_networks,
       timeseries_enabled = areInterfaceTimeseriesEnabled(ifid),
+      exports = export_backends(),
+      export_enabled = prefs.is_dump_flows_runtime_enabled or false,
+      dedup_enabled = dedup_enabled,
+      nprobe_page = nprobe_page,
    })
    return
 end
 
 local ifstats = interface.getStats()
+local exports = ifstats.isViewed and {} or export_backends()
 local is_view = interface.isView()
 local is_packet = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
@@ -82,14 +99,6 @@ for _ in pairs(probes) do num_probes = num_probes + 1 end
 -- Speed in Mbit/s: the one set in the interface settings, else the detected one
 local speed = tonumber(ntop.getCache("ntopng.prefs.ifid_" .. ifid .. ".speed")) or ifstats.speed
 
--- Flow export backends of the interface (counters in data.lua under the same id)
-local exports = {}
-if not ifstats.isViewed then
-   if ntop.isClickHouseEnabled() then exports[#exports + 1] = { id = "db", label = "ClickHouse" } end
-   if prefs.is_dump_flows_to_es_enabled then exports[#exports + 1] = { id = "es", label = "ElasticSearch" } end
-   if prefs.is_dump_flows_to_kafka_enabled then exports[#exports + 1] = { id = "kafka", label = "Kafka" } end
-   if prefs.is_dump_flows_to_syslog_enabled then exports[#exports + 1] = { id = "syslog", label = "Syslog" } end
-end
 
 -- Administrators: traffic recording windows and disk usage (cached, no disk access here)
 local recording, storage = nil, nil
@@ -149,13 +158,13 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    can_reset = is_admin,
    can_live_capture = ntop.isPcapDownloadAllowed() and not is_view and not is_sub_interface and is_packet,
    num_probes = num_probes,
-   nprobe_page = (ntop.isEnterpriseM and ntop.isEnterpriseM()) or false,
+   nprobe_page = nprobe_page,
    show_alerts = not has_allowed_networks,
    timeseries_enabled = areInterfaceTimeseriesEnabled(ifid),
    has_role_traffic = ifstats.iface_role_traffic ~= nil,
    has_flow_collection = ifstats.zmqRecvStats ~= nil and next(ifstats.zmqRecvStats) ~= nil,
    db_stats = ifstats.dbStats,
-   dedup_enabled = ntop.isFlowDedupEnabled() and (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false,
+   dedup_enabled = dedup_enabled,
    exports = exports,
    export_enabled = prefs.is_dump_flows_runtime_enabled or false,
    export_direct = (not is_packet) and (prefs.is_dump_flows_direct_enabled or false) or nil,
