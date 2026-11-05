@@ -3948,8 +3948,6 @@ void Ntop::deleteUserKeys(const char* username) const {
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
   ntop->getRedis()->del(key);
 
-<<<<<<< HEAD
-=======
   /*
      Permissions, MFA and passkeys: left in redis, a user created again with
      the same name would inherit them (e.g. the passkeys of the deleted user
@@ -4010,7 +4008,6 @@ bool Ntop::deleteUser(char* username) {
 
   deleteUserKeys(username);
 
->>>>>>> 43b9ee0117 (Users: cancel the pending logins and clear the leftovers of deleted users (#11191))
   invalidateUserSessions(username);
 
   users_m.unlock(__FILE__, __LINE__);
