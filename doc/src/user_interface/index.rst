@@ -142,7 +142,7 @@ Developer
   shared/developer/manage_data
   shared/developer/clickhouse_explorer
   shared/developer/behavioural_checks
-  shared/developer/alert_flow_status_definitions
+  shared/developer/alert_and_flow_status_definitions
   shared/developer/directories
 
 

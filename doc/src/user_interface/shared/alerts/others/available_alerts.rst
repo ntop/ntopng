@@ -42,5 +42,6 @@ Below, the list of all the available alerts divided per family and which license
     system_checks
     active_monitoring_checks
     syslog_checks
+    as_checks
     
 

@@ -6,6 +6,34 @@ System checks are designed to spot ntopng problems and thus make sure the applic
 ____________________
 
 
+BGP Prefix Update
+~~~~~~~~~~~~~~~~~
+
+Checks for BGP prefix updates.
+
+The alert is sent for every BGP prefix update notification received by ntopng (announcements and withdrawals of prefixes).
+
+*Interface: Packet & ZMQ*
+
+*Category: Internals*
+
+*Not Enabled by Default*
+
+
+Disk Space Low
+~~~~~~~~~~~~~~
+
+Checks the free disk space.
+
+The alert is sent when the used space on the ntopng data volume (or on the traffic recording volume, when it is separate) exceeds the configured threshold (default: 90%). The alert is released when the used space goes back under the threshold. Not available on Windows.
+
+*Interface: Packet & ZMQ*
+
+*Category: System*
+
+*Enabled by Default*
+
+
 Exporters Limit Exceeded
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -46,6 +74,20 @@ Checks for periodic activity execution.
 The system sends an alert when a periodic activity is queuing and is not getting executed.
 
 The alert is sent when the worker threads are busy.
+
+*Interface: Packet & ZMQ*
+
+*Category: Internals*
+
+*Enabled by Default*
+
+
+Redis Reads Writes Exceeded
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks the number of Redis operations.
+
+The alert is sent when the number of Redis read and write operations in the last 24 hours is anomalous compared to the rest of the week.
 
 *Interface: Packet & ZMQ*
 

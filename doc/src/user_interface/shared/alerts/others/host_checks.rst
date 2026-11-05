@@ -353,3 +353,58 @@ The alert is sent when the number of sent/received SYNs/sec exceeds the threshol
 
 *Not Enabled by Default*
 
+
+Too Many RX-only Host Contacts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for hosts contacting RX-only hosts.
+
+An RX-only host only receives traffic and never answers (e.g. an unused address). The alert is sent when a client host contacts too many RX-only hosts, a typical behavior of a host scanning the network.
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+Unexpected Gateway
+~~~~~~~~~~~~~~~~~~
+
+Checks for unexpected gateways.
+
+The alert is sent when a gateway not allowed in Policies -> Network Configuration is detected.
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
+
+
+VPN Detection
+~~~~~~~~~~~~~
+
+Checks for hosts connected through a VPN.
+
+The alert is sent when a host is detected as connected through a VPN tunnel.
+
+*Interface: Packet & ZMQ*
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
+Wazuh Info Changed
+~~~~~~~~~~~~~~~~~~
+
+Checks the host information exported by Wazuh.
+
+The alert is sent when an information exported by Wazuh about a host changes, for example a new port is opened or a new network interface is added. See :ref:`WazuhIntegration` for the integration.
+
+*Interface: Packet & ZMQ*
+
+*Category: System*
+
+*Not Enabled by Default*

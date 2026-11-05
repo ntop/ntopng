@@ -6,6 +6,20 @@ Flow checks are performed on live flows.
 ________________________
 
 
+ACL Violation (ICMP/TCP/UDP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks the ICMP, TCP and UDP flows against the Access Control List.
+
+The alert is sent when a flow does not follow the rules configured in the Access Control List page (Policies -> Access Control List). The check does not block the traffic, it only triggers the alert.
+
+*Interface: Packet & ZMQ*
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
 ALPN/SNI Mismatch
 ~~~~~~~~~~~~~~~~~
 
@@ -337,6 +351,20 @@ Trigger an alert when a fully encrypted flow is detected.
 *Category: Cybersecurity*
 
 *Enabled by Default*
+
+
+Host Policy
+~~~~~~~~~~~
+
+Checks the flows against the network policies.
+
+The alert is sent when a flow does not respect the host policies configured in Policies -> Network Configuration, for example a restricted host contacting a public IP address not whitelisted. See :ref:`NetworkConfiguration` for the configuration.
+
+*Interface: Packet & ZMQ*
+
+*Category: Network*
+
+*Not Enabled by Default*
 
 
 HTTP Obsolete Server
@@ -681,6 +709,20 @@ The alert is sent in case minor packet/flow issues (e.g. DNS traffic with zero T
 *Enabled by Default*
 
 
+Mismatching Protocol with IP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks that the protocol of a flow matches the server IP address.
+
+The alert is sent when the protocol detected by nDPI does not match the protocol expected for the server IP address (e.g. a flow towards an IP address known to belong to a service, carrying a different protocol).
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
 Missing SNI TLS Extn
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -751,6 +793,48 @@ Sends the alert in case of bugs in the flow pure logic.
 
 *Enabled by Default*
  
+
+Obfuscated Traffic
+~~~~~~~~~~~~~~~~~~
+
+Checks for obfuscated traffic.
+
+The alert is sent when nDPI detects obfuscated traffic, i.e. traffic disguised or tunneled to evade detection.
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+Obsolete non-PQC Flow
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for flows that are not Post-Quantum Cryptography (PQC) compliant.
+
+The alert is sent when an SSH, TLS, QUIC or IPSEC flow does not use a PQC compliant key exchange, so the traffic could be decrypted in the future by a quantum computer.
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+Obsolete non-PQC Host
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for hosts that are not Post-Quantum Cryptography (PQC) compliant.
+
+The alert is sent when a host offering SSH, TLS, QUIC or IPSEC does not support a PQC compliant key exchange.
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
 
 Obsolete SSH Client Version or Cipher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -827,6 +911,20 @@ The alert is sent when periodicity change is detected.
 *Interface: Packet & ZMQ*
 
 *Category:Network*
+
+*Enabled by Default*
+
+
+Possible AI Inference Traffic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for traffic towards AI services.
+
+The alert is sent when a flow is possibly carrying traffic towards an AI inference service (e.g. requests to a hosted Large Language Model).
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
 
 *Enabled by Default*
 
@@ -1073,6 +1171,20 @@ Checks for unusual traffic behaviour.
 A lateral movement is a common way for attackers to discover the network structure and plan the attack. It usually starts by infecting a device and then it spreads to all other devices in a network.
 
 The alert is sent in case a lateral movement is detected.
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+Slow DoS
+~~~~~~~~
+
+Checks for Slow DoS attacks.
+
+A Slow DoS attack (e.g. Slowloris) keeps many connections open towards a server by sending data very slowly, until the server cannot accept new connections. The alert is sent when nDPI detects this behavior in a flow.
 
 *Interface: Packet & ZMQ*
 
@@ -1535,6 +1647,20 @@ The system sends a notification when detects in and out going data flows.
 *Category: Cybersecurity*
 
 *Enabled by Default*
+
+
+Unresolved Hostname
+~~~~~~~~~~~~~~~~~~~
+
+Checks for hostnames not resolved via DNS.
+
+The alert is sent when a TLS, QUIC or HTTP flow connects to a hostname that was not previously resolved via DNS. This may indicate a hardcoded server (e.g. malware) or the use of an alternative resolver.
+
+*Interface: Packet*
+
+*Category: Cybersecurity*
+
+*Not Enabled by Default*
 
 
 Unsafe protocol

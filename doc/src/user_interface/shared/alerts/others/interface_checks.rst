@@ -6,6 +6,20 @@ These checks are performed per network interface monitored by ntopng.
 ____________________
 
 
+ACL Violation (ARP)
+~~~~~~~~~~~~~~~~~~~
+
+Checks the ARP traffic against the Access Control List.
+
+The alert is sent when a device (MAC address) not allowed in the Access Control List page (Policies -> Access Control List) sends ARP requests or replies. The check does not block the traffic, it only triggers the alert.
+
+*Interface: Packet & ZMQ*
+
+*Category: Network*
+
+*Not Enabled by Default*
+
+
 Device/MAC Address Tracking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
