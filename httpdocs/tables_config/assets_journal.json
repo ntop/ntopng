@@ -74,7 +74,8 @@
 			"title_i18n": "assets_journal_page.message",
 			"data_field": "message",
 			"sortable": false,
-			"min-width": "300px"
+			"min-width": "300px",
+			"auto_max_width": false
 		}
 	]
 }
