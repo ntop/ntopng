@@ -2526,6 +2526,18 @@ function M.get_sections(flags)
             },
             locked = lock_ch_enabled
         }, {
+            key = "traffic_model_data_retention",
+            title = i18n("prefs.traffic_model_data_retention_title"),
+            description = i18n("prefs.traffic_model_data_retention_descr"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.traffic_model_retention_days",
+            default = "30",
+            attrs = {
+                min = "1"
+            },
+            locked = lock_ch_enabled
+        }, {
             key = "wazuh_alerts_data_retention",
             title = i18n("prefs.wazuh_alerts_data_retention_title"),
             description = i18n("prefs.wazuh_alerts_data_retention_descr"),

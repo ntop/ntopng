@@ -5,6 +5,7 @@ local DEFAULT_DATA_RETENTION_DAYS = 30
 local DEFAULT_AGGREGATED_ASN_DATA_RETENTION_DAYS = 60
 local DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS = 60
 local DEFAULT_VS_REPORTS_DATA_RETENTION_DAYS = 30
+local DEFAULT_TRAFFIC_MODEL_DATA_RETENTION_DAYS = 30
 local DEFAULT_WAZUH_ALERTS_DATA_RETENTION_DAYS = 365
 local DEFAULT_SYSLOG_EVENTS_DATA_RETENTION_DAYS = 30
 local DEFAULT_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.data_retention_days"
@@ -20,6 +21,7 @@ local TS_AND_STATS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.ts_and_stats_data_retention_days"
 local WAZUH_ALERTS_DATA_RETENTION_DAYS_KEY =
     "ntopng.prefs.wazuh_alerts_data_retention_days"
+local TRAFFIC_MODEL_RETENTION_DAYS_KEY = "ntopng.prefs.traffic_model_retention_days"
 local CLICKHOUSE_MAX_SIZE_GB_KEY = "ntopng.prefs.clickhouse_max_size_gb"
 local SYSLOG_EVENTS_RETENTION_DAYS_KEY = "ntopng.prefs.syslog_events_retention_days"
 
@@ -96,6 +98,19 @@ function data_retention_utils.getTSAndStatsDataRetentionDays()
 
     return tonumber(data_retention) or
                data_retention_utils.getDefaultRetention()
+end
+
+-- ########################################################
+
+-- Days of the daily Traffic Model kept (traffic_model_daily_*, server_model_daily_*)
+function data_retention_utils.getTrafficModelRetentionDays()
+    local days = tonumber(ntop.getCache(TRAFFIC_MODEL_RETENTION_DAYS_KEY))
+
+    if days and days >= 1 then
+        return days
+    end
+
+    return DEFAULT_TRAFFIC_MODEL_DATA_RETENTION_DAYS
 end
 
 -- ########################################################

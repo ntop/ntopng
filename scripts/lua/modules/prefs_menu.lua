@@ -279,6 +279,10 @@ local menu_subpages = {{
             title = i18n("prefs.vs_reports_data_retention_title"),
             description = i18n("prefs.vs_reports_data_retention_descr")
 	 },
+	 traffic_model_data_retention = {
+            title = i18n("prefs.traffic_model_data_retention_title"),
+            description = i18n("prefs.traffic_model_data_retention_descr")
+	 },
 	 toggle_flow_aggregated_alerted_flows = {
             title = i18n("prefs.toggle_flow_aggregated_alerted_flows_title"),
             description = i18n("prefs.toggle_flow_aggregated_alerted_flows_description")
