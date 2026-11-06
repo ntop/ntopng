@@ -30,7 +30,7 @@ class TCPConnectionNoAnswerAlert : public FlowAlert {
   static FlowAlertType getClassType() {
     return {NDPI_NO_RISK, flow_alert_connection_failed, alert_category_network};
   }
-  static u_int8_t getDefaultScore() { return SCORE_LEVEL_WARNING; };
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
   TCPConnectionNoAnswerAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {
     setAlertScore(getDefaultScore());
