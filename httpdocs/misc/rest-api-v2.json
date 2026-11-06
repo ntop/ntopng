@@ -23080,6 +23080,17 @@
             ]
           },
           {
+            "name": "order",
+            "in": "query",
+            "description": "Direction of the sort (default desc)",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Maximum number of groups (default 50, max 500)",
