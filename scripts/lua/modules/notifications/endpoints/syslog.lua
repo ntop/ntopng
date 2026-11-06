@@ -112,6 +112,14 @@ function syslog.sendMessage(settings, notif, severity)
       else 
          return false
       end
+   elseif syslog_format and syslog_format == "cef" then
+      if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
+         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+         local cef_utils = require "cef_utils"
+         msg = cef_utils.format(json.decode(notif))
+      else
+         return false
+      end
    else -- syslog_format == "plaintext" or "plaintextrfc"
       -- prepare a plain text message
       msg = format_utils.formatMessage(json.decode(notif), {
@@ -135,7 +143,11 @@ function syslog.sendMessage(settings, notif, severity)
       local info = ntop.getInfo()
       local pid = info.pid
 
-      if syslog_format and (syslog_format == "plaintextrfc" or syslog_format == "checkmk") then
+      if syslog_format == "cef" then
+         -- CEF: syslog header
+         local iso_time = format_utils.formatEpochISO8601()
+         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
+      elseif syslog_format and (syslog_format == "plaintextrfc" or syslog_format == "checkmk") then
          local iso_time = format_utils.formatEpochISO8601() -- "2020-11-19T18:31:21.003Z" (UTC)
 
          -- RFC5424 Format:

@@ -196,7 +196,7 @@ end
 -- ##############################################
 
 local function validateSyslogFormat(p)
-   if p == "plaintext" or p == "plaintextrfc" or p == "json" or p == "ecs" or p == "checkmk" then
+   if p == "plaintext" or p == "plaintextrfc" or p == "json" or p == "ecs" or p == "checkmk" or p == "cef" then
       return true
    end
 

@@ -229,6 +229,17 @@ end
 -- @brief Whether C++ must not enqueue alerts to the recipient: recipients of other
 --        notifications, and recipients delivering issues (the issue notifications are
 --        enqueued from Lua, see recipients.dispatch_notification)
+-- The CEF syslog format can only export alerts
+local function get_notifications_type(endpoint_config, recipient_params)
+    local conf = endpoint_config["endpoint_conf"] or {}
+
+    if endpoint_config["endpoint_key"] == "syslog" and conf["syslog_alert_format"] == "cef" then
+        return "alerts"
+    end
+
+    return recipient_params["recipient_notifications_type"] or "alerts"
+end
+
 local function skip_alerts(notifications_type, delivery_mode)
     return ((notifications_type or "alerts") ~= "alerts") or
         ((delivery_mode == recipients.DELIVERY_MODES.issues) and recipients.can_deliver_issues())
@@ -634,7 +645,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                     local safe_params = status["safe_params"]
                     -- Get the list of checks to deliver the alerts
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
-                    local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
+                    local notifications_type = get_notifications_type(ec, recipient_params)
                     local delivery_mode = get_delivery_mode(recipient_params)
                     local flow_alert_types = nil
                     local host_alert_types = nil
@@ -756,7 +767,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                 else
                     local safe_params = status["safe_params"]
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
-                    local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
+                    local notifications_type = get_notifications_type(ec, recipient_params)
                     -- Not sent when it cannot be chosen (issues disabled): keep the stored one
                     local delivery_mode = ternary(recipient_params["recipient_delivery_mode"] ~= nil,
                         get_delivery_mode(recipient_params), rc.delivery_mode or recipients.DELIVERY_MODES.alerts)
