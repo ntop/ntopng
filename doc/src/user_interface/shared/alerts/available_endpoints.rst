@@ -174,6 +174,8 @@ Currently available Endpoints and license required are:
 +----------------+-----------+-----+--------------+-----------------+
 | Syslog checkmk |           |     | x            | x               |
 +----------------+-----------+-----+--------------+-----------------+
+| Syslog CEF     |           |     |              | XL only         |
++----------------+-----------+-----+--------------+-----------------+
 | Telegram       | x         | x   | x            | x               |
 +----------------+-----------+-----+--------------+-----------------+
 | Webhook        | x         | x   | x            | x               |
@@ -503,7 +505,7 @@ ntopng alert severities are mapped to standard syslog severities as follow:
 - *Warning* becomes syslog :code:`LOG_WARNING` equal to the integer 4
 - *Error* becomes syslog :code:`LOG_ERR` equal to the integer 3
 
-A few formats are available when sending alerts to syslog: Text (plaintext), JSON (Raw), ECS, Checkmk.
+A few formats are available when sending alerts to syslog: Text (plaintext), JSON (Raw), ECS, Checkmk, CEF.
 The default format is Text and can be changed from the ntopng preferences page.
 
 **Text**
@@ -589,6 +591,91 @@ The service level values have to be manualy mapped inside Checkmk under `Setup -
 The final result should look like the one showed in the image below.
 
 .. figure:: ../../../img/checkmk_service_level_association.png
+
+CEF (Common Event Format) for SIEM
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ntopng can export its alerts to a SIEM (Security Information and Event Management) in the Common Event Format (CEF), over syslog.
+CEF is understood by Splunk, ArcSight, Microsoft Sentinel, IBM QRadar, Elastic and most other SIEMs and log management platforms,
+so network and security alerts detected by ntopng can be correlated with the events of the rest of the infrastructure.
+This feature requires an Enterprise XL license.
+
+To export alerts to a SIEM, create a *Syslog* endpoint, set the *Format* to *CEF (Common Event Format, for SIEM)*, and set the host, port and protocol (UDP or TCP)
+on which the SIEM receives syslog. Then create a recipient for the endpoint. As for any other recipient, the *Minimum Severity* and the other
+delivery criteria can be used to send only the alerts that are of interest, instead of all the alerts.
+
+.. note::
+        A recipient that uses the CEF format can send only alerts. Reports and other notification types are not available.
+
+All the alert types are exported (flow, host, network, interface, SNMP device, MAC, user, active monitoring, AS and system alerts).
+Each alert is sent as a syslog message that contains a CEF event:
+
+.. code:: bash
+
+   CEF:0|ntop|ntopng|Version|Alert id|Alert name|Severity|key=value key=value ...
+
+The header fields are:
+
+- :code:`Version`: the ntopng version.
+- :code:`Alert id`: the numeric identifier of the alert type. The same id is used by different entities, so the alert type is identified together with the entity (:code:`ntopEntity`) or by the :code:`ntopAlertKey` field.
+- :code:`Alert name`: the readable name of the alert, for example *Low Goodput Ratio*.
+- :code:`Severity`: a number from 0 to 10, computed from the alert score.
+
+After the header there is a list of :code:`key=value` fields. The main ones are the following:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+   * - :code:`start`, :code:`end`
+     - Start and end time of the alert, in milliseconds since the epoch.
+   * - :code:`src`, :code:`spt`
+     - Source (client) IP address and port.
+   * - :code:`dst`, :code:`dpt`
+     - Destination (server) IP address and port.
+   * - :code:`shost`, :code:`dhost`
+     - Names of the source and destination hosts, as known by ntopng.
+   * - :code:`proto`, :code:`app`
+     - Transport protocol (TCP, UDP...) and application protocol (nDPI).
+   * - :code:`in`, :code:`out`
+     - Bytes from the server to the client and from the client to the server.
+   * - :code:`msg`
+     - The description of the alert, as shown in the ntopng alerts page.
+   * - :code:`cat`
+     - The name of the alert.
+   * - :code:`deviceInboundInterface`
+     - The name of the ntopng interface that generated the alert.
+   * - :code:`ntopCliNetwork`, :code:`ntopSrvNetwork`
+     - Name given to the network of the client and of the server (flow alerts). Host alerts use ntopNetwork.
+   * - :code:`ntopAlertKey`
+     - A text that identifies the alert type, for example alert_flow_low_goodput.
+
+Alerts that are not about flows are about a single entity, so they have different fields. For example, SNMP device alerts have :code:`dvc` (device address)
+and :code:`dvchost` (device name), MAC alerts have :code:`smac`, and user alerts have :code:`suser`.
+
+All the other information that ntopng has about the alert (autonomous system, geolocation, blacklists, attacker and victim flags, flow risks, the details specific to the alert type, and so on)
+is sent as additional fields, whose name starts with :code:`ntop` followed by the name of the field, for example :code:`ntopCliAsn`. Fields with no value are not sent.
+
+Splunk
+~~~~~~
+
+ntopng alerts in CEF format are indexed by Splunk and can be searched, charted and used in dashboards and Splunk alerts, like the events of any other SIEM data source.
+
+.. figure:: ../../../img/splunk_ntopng_CEF.png
+  :align: center
+  :alt: ntopng alerts received in Splunk using the CEF format
+
+  ntopng alerts received in Splunk using the CEF format
+
+By expanding an event, all the fields of the alert are available, and can be used in searches, dashboards and Splunk alerts.
+
+.. figure:: ../../../img/splunk_ntopng_CEF_details.png
+  :align: center
+  :alt: Fields of an ntopng alert in Splunk
+
+  Fields of an ntopng alert in Splunk
 
 Telegram
 ^^^^^^^^
