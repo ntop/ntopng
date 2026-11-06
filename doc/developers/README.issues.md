@@ -337,6 +337,9 @@ A recipient (not the builtin one) can have the delivery mode `issues`
 (`recipients.DELIVERY_MODES.issues`, `recipients.delivers_issues`). It then
 receives issue notifications instead of alerts; the check is in
 `recipients.dispatch_notification`.
+The recipient modal shows it as the *Issues* item of the *Send* select,
+after *Alerts*: it saves `recipient_notifications_type=alerts` and
+`recipient_delivery_mode=issues` (stored and REST API unchanged).
 
 - Notified events: open, escalate, reopen and resolve. A reopen by a signal is
   notified as reopen; a reopen by a user is notified too.

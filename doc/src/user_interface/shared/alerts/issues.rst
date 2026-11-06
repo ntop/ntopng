@@ -13,7 +13,7 @@ once.
     This feature is available from the Enterprise XXL license. It is an experimental
     feature, off by default: enable *Issues* in *Settings > Preferences > Alerts*.
     When it is off, no issue is built, the Issues pages and REST API are not
-    available, and the recipients with the *Issues* delivery mode receive the alerts.
+    available, and the recipients sending *Issues* receive the alerts.
     The issues built before are kept, and shown again when it is turned on.
 
 An issue is either *Open* (a problem) or *Resolved*. Its alerts are called

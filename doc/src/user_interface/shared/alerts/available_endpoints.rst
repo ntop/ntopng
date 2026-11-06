@@ -106,24 +106,28 @@ recipient. If no tag is selected, alerts are not filtered by tag.
 
 .. _IssuesDeliveryMode:
 
-Delivery Mode
--------------
+Sending Issues
+--------------
 
-In ntopng Enterprise XXL and above, the recipients of alerts have a *Deliver* option:
+In ntopng Enterprise XXL and above, with the :ref:`issues <Issues>` enabled, the *Send* option of a
+recipient has, next to *Alerts*, the *Issues* item:
 
-- **Raw Alerts** (default): the recipient receives every alert.
-- **Issues**: the recipient receives a notification when an :ref:`issue <Issues>` is opened,
-  escalated (its severity is raised), reopened or resolved, instead of one notification per alert.
-  When the same problem generates thousands of alerts, the recipient is notified once.
+- **Alerts**: the recipient receives every alert.
+- **Issues**: the recipient receives a notification when an issue is opened, escalated (its
+  severity is raised), reopened or resolved, instead of one notification per alert. When the same
+  problem generates thousands of alerts, the recipient is notified once.
 
 The delivery criteria above (severity, category, entity, pools, tags) apply to the issues too. The
 severity of an issue is the highest severity of its alerts: a recipient with a minimum severity can
 receive the escalation of an issue whose opening was below that severity. Suppressed issues are not
 notified.
 
+When the issues are turned off, a recipient sending issues receives the alerts (*Issues
+(disabled: the alerts are sent)*), and the issues again when they are turned on.
+
 .. figure:: ../../../img/alerts_recipient_delivery_mode.png
   :align: center
-  :alt: Delivery Mode
+  :alt: Sending Issues
 
 The notification tells what happened to the issue, the alert that caused it (if any), the number of
 alerts and peers of the issue and the link to the issue details, for example:
