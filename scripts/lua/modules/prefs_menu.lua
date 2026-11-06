@@ -130,6 +130,14 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_wazuh_automerge_title"),
             description = i18n("prefs.toggle_wazuh_automerge_description")
 	 },
+	 mosaic_url = {
+	    title = i18n("prefs.mosaic_url_title"),
+	    description = i18n("prefs.mosaic_url_description")
+	 },
+	 mosaic_api_key = {
+	    title = i18n("prefs.mosaic_api_key_title"),
+	    description = i18n("prefs.mosaic_api_key_description")
+	 },
       }
 				 }, {
       id = "assets_inventory",

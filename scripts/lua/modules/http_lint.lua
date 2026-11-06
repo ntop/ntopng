@@ -2607,6 +2607,10 @@ local known_parameters = {
    ["wazuh_available"] = validateNumber,
    ["toggle_wazuh_automerge"] = validateBool,
 
+   -- MOSAIC
+   ["mosaic_url"] = validateUnquoted,
+   ["mosaic_api_key"] = {passwordCleanup, validatePassword},
+
    -- Syslog rules
    ["syslog_rule_id"] = validateSingleWord,
    ["syslog_rule_enabled"] = validateBool,
