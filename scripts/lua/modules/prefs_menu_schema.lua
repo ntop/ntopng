@@ -156,7 +156,7 @@ function M.get_sections(flags)
                 off_value = "1",
                 to_switch = {"toggle_emit_flow_alerts", "toggle_emit_host_alerts", "max_entity_alerts",
                              "max_num_secs_before_delete_alert", "alert_page_refresh_rate_enabled",
-                             "toggle_issues"}
+                             "toggle_issues", "issues_min_severity"}
             }, {
                 -- Issues (Enterprise XXL+, experimental): off by default
                 key = "toggle_issues",
@@ -167,6 +167,23 @@ function M.get_sections(flags)
                 default = "0",
                 on_value = "1",
                 off_value = "0",
+                to_switch = {"issues_min_severity"},
+                locked = lock_enterprise_xxl
+            }, {
+                -- Issues: minimum severity (AlertLevel) of the alerts opening issues
+                key = "issues_min_severity",
+                title = i18n("prefs.issues_min_severity_title"),
+                description = i18n("prefs.issues_min_severity_description"),
+                type = "select",
+                redis_key = "ntopng.prefs.issues_min_severity",
+                default = "4",
+                options = {
+                    { value = "3", label = i18n("alerts_dashboard.notice") },
+                    { value = "4", label = i18n("alerts_dashboard.warning") },
+                    { value = "5", label = i18n("alerts_dashboard.error") },
+                    { value = "6", label = i18n("alerts_dashboard.critical") },
+                    { value = "8", label = i18n("alerts_dashboard.emergency") },
+                },
                 locked = lock_enterprise_xxl
             }, {
                 key = "toggle_emit_flow_alerts",

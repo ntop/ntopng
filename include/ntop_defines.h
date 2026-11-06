@@ -884,6 +884,8 @@ typedef enum {
 #define CONST_PREFS_EMIT_HOST_ALERTS NTOPNG_PREFS_PREFIX ".emit_host_alerts"
 /* Issues (Enterprise XXL+, experimental): off by default */
 #define CONST_PREFS_ISSUES_ENABLED NTOPNG_PREFS_PREFIX ".issues_enabled"
+/* Minimum severity (AlertLevel) of the alerts opening issues */
+#define CONST_PREFS_ISSUES_MIN_SEVERITY NTOPNG_PREFS_PREFIX ".issues_min_severity"
 #define CONST_PREFS_TLS_QUIC_HOSTNAMING \
   NTOPNG_PREFS_PREFIX ".tls_quic_hostnaming"
 

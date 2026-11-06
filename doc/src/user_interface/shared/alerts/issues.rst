@@ -20,6 +20,10 @@ An issue is either *Open* (a problem) or *Resolved*. Its alerts are called
 *signals*: they are still stored and shown in the Alerts Explorer, and each of
 them is linked to its issue.
 
+Only alerts at least as severe as *Issues Minimum Severity* (in *Settings >
+Preferences > Alerts*, *Warning* by default) open or reopen an issue. Less
+severe alerts still update the issues already open.
+
 .. figure:: ../../../img/issues_list.png
   :align: center
   :alt: Issues
@@ -84,7 +88,7 @@ seen (open since) in that time.
 
 Above the issues, a heatmap shows the selected time (the last 48 hours for
 *All*) in slots of 30 minutes (48 hours), 15 minutes (24 hours) or 1 minute, one
-row per severity: the color of a slot is the number of issues opened, reopened
+row per severity (only those from *Issues Minimum Severity*): the color of a slot is the number of issues opened, reopened
 or escalated to that severity in it (move the mouse over a slot for the number).
 Issues active for a long time are counted when they start, not over all their
 life. The heatmap takes into account the filters.

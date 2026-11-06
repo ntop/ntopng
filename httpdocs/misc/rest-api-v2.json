@@ -22888,7 +22888,7 @@
           "Issues"
         ],
         "summary": "Issue heatmap",
-        "description": "Issue activity in a time window (opened_within: 1 hour, 24 hours, or 48 hours by default), in slots of 1, 15 or 30 minutes: slot (seconds), begin and end (epochs) and cells, a list of { tstamp, severity, value, issues } where value is the number of issues opened, reopened or escalated to that severity in the slot (events) and issues the number of distinct issues. Same filters of the issue list, except the view and its time range. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "Issue activity in a time window (opened_within: 1 hour, 24 hours, or 48 hours by default), in slots of 1, 15 or 30 minutes: slot (seconds), begin and end (epochs) and cells, a list of { tstamp, severity, value, issues } where value is the number of issues opened, reopened or escalated to that severity in the slot (events) and issues the number of distinct issues, only for the severities from min_severity (the minimum severity of the alerts opening issues, Preferences > Alerts). Same filters of the issue list, except the view and its time range. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_heatmap",
         "produces": [
           "application/json"

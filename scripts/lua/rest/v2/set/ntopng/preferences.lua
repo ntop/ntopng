@@ -192,6 +192,23 @@ if target_entry.redis_key == RAW_KEY or target_entry.redis_key == AGG_KEY then
    end
 end
 
+-- Choices (select, button group): only one of the options
+if target_entry.options and (target_entry.type == "select" or target_entry.type == "button_group") then
+   local valid = false
+
+   for _, option in ipairs(target_entry.options) do
+      if tostring(option.value) == tostring(new_value) then
+         valid = true
+         break
+      end
+   end
+
+   if not valid then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+end
+
 -- Resolve user-scoped keys
 local redis_key = target_entry.redis_key
 if target_entry.user_pref then
@@ -218,7 +235,9 @@ end
 -- Issues: apply at once (the in-memory preferences are otherwise reloaded within a few
 -- seconds) and register the recipients again, as those delivering issues receive the
 -- alerts while the issues are disabled
-if entry_key == "toggle_issues" then
+if entry_key == "issues_min_severity" then
+   ntop.reloadPreferences()
+elseif entry_key == "toggle_issues" then
    package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
    local recipients = require "recipients"
 

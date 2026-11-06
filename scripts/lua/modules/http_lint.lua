@@ -3046,6 +3046,7 @@ local known_parameters = {
    ["toggle_emit_flow_alerts"] = validateBool,
    ["toggle_emit_host_alerts"] = validateBool,
    ["toggle_issues"] = validateBool,
+   ["issues_min_severity"] = validateNumber,
    ["toggle_date_type"] = validateSingleWord,
 
    ["exporters_ts_resolution"] = validateNumber,
