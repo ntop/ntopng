@@ -56,7 +56,8 @@
       "title_i18n": "llm.content",
       "data_field": "content",
       "sortable": false,
-      "min-width": "180px"
+      "min-width": "180px",
+      "auto_max_width": false
     }
   ]
 }

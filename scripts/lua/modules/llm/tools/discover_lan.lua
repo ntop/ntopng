@@ -2,7 +2,6 @@
 -- (C) 2013-26 - ntop.org
 --
 
-local json     = require("dkjson")
 local discover = require("discover_utils")
 
 return {
@@ -13,6 +12,14 @@ return {
       "MAC table that ntopng builds from observed traffic. " ..
       "Returns an error if the interface does not support discovery. " ..
       "Required arguments: ifid (integer) and ifname (string) — interface id and name as provided in the system prompt.",
+   parameters = {
+      type = "object",
+      properties = {
+         ifid   = { type = "integer", description = "Interface id as provided in the system prompt" },
+         ifname = { type = "string", description = "Interface name as provided in the system prompt" },
+      },
+      required = { "ifid", "ifname" },
+   },
    handler = function(args)
       if not args or not args.ifid then
          return nil, "Missing required argument: ifid"

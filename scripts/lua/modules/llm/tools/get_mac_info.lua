@@ -9,6 +9,13 @@ return {
    description = "Return details for a given MAC address: manufacturer, device type, host pool, " ..
       "and the list of IP addresses currently associated with it. " ..
       "Required argument: mac (string, e.g. '00:11:22:33:44:55').",
+   parameters = {
+      type = "object",
+      properties = {
+         mac = { type = "string", description = "MAC address, e.g. '00:11:22:33:44:55'" },
+      },
+      required = { "mac" },
+   },
    handler = function(args)
       if not args or not args.mac then
          return nil, "Missing required argument: mac"

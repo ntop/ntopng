@@ -10,6 +10,17 @@ return {
       "Required argument: ip (string). " ..
       "Optional: vlan (integer, default 0), max_flows (integer, default 25), " ..
       "role ('any'|'client'|'server', default 'any'), alerted_only (boolean, default false).",
+   parameters = {
+      type = "object",
+      properties = {
+         ip           = { type = "string", description = "Host IP address" },
+         vlan         = { type = "integer", description = "VLAN id, no vlan is default 0" },
+         max_flows    = { type = "integer", description = "Maximum flows, default 25" },
+         role         = { type = "string", description = "Host role in the flow, default any", enum = { "any", "client", "server" } },
+         alerted_only = { type = "boolean", description = "Only alerted flows, default false" },
+      },
+      required = { "ip" },
+   },
    handler = function(args)
       if not args or not args.ip then
          return nil, "Missing required argument: ip"

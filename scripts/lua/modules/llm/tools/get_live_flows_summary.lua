@@ -9,6 +9,17 @@ return {
       "role ('any'|'client'|'server', default 'any'), " ..
       "group_by ('country'|'destination'|'application'|'protocol'|'source', default 'country'), " ..
       "alerted_only (boolean, default false), max_flows (integer, default 500).",
+   parameters = {
+      type = "object",
+      properties = {
+         ip           = { type = "string", description = "Filter by host IP" },
+         vlan         = { type = "integer", description = "VLAN id of the host, default 0" },
+         role         = { type = "string", description = "Host role in the flow, default any", enum = { "any", "client", "server" } },
+         group_by     = { type = "string", description = "Aggregation key, default country", enum = { "country", "destination", "application", "protocol", "source" } },
+         alerted_only = { type = "boolean", description = "Only alerted flows, default false" },
+         max_flows    = { type = "integer", description = "Maximum flows scanned, default 500" },
+      },
+   },
    handler = function(args)
       local host_ip     = args and args.ip
       local role        = ((args and args.role) or "any"):lower()

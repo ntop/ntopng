@@ -144,19 +144,7 @@ local function handle_tools_list(id, _params)
       list[#list + 1] = {
          name        = name,
          description = entry.description,
-         inputSchema = {
-            type       = "object",
-            properties = {
-               content = {
-                  type        = "string",
-                  description = "Tool input. "
-                     .. "For 'query': a plain SQL string. "
-                     .. "For all other tools: a JSON object encoded as a string "
-                     .. "(e.g. '{\"ip\":\"192.168.1.1\"}').",
-               },
-            },
-            required = { "content" },
-         },
+         inputSchema = entry.parameters,
          annotations = {
             readOnlyHint        = (entry.read_only == true),
             destructiveHint     = false,
@@ -170,7 +158,7 @@ local function handle_tools_list(id, _params)
    return rpc_ok(id, { tools = list })
 end
 
--- MCP method: tools/call -> Dispatches to tools.dispatch(name, content).
+-- MCP method: tools/call -> Dispatches to tools.dispatch(name, arguments).
 local function handle_tools_call(id, params)
    if type(params) ~= "table" then
       return rpc_err(id, -32602, "params must be an object")
@@ -190,26 +178,8 @@ local function handle_tools_call(id, params)
       return rpc_err(id, -32602, "params.arguments must be an object")
    end
 
-   -- Derive content from arguments:
-   --   {content: "..."}   -> pass content value directly (like agentic loop)
-   --   {sql: "..."}       -> shorthand for query tool
-   --   {any other keys}   -> JSON-encode and pass as content (dispatch decodes it)
-   --   {}                 -> empty string
-   local content
-
-   if arguments.content ~= nil then
-      content = arguments.content
-   elseif arguments.sql ~= nil then
-      -- Convenience: {sql: "SELECT ..."} for the query tool
-      content = arguments.sql
-   elseif next(arguments) ~= nil then
-      content = json.encode(arguments)
-   else
-      content = ""
-   end
-
-   -- call tool
-   local result, tool_err, artifact = tools.dispatch(tool_name, content)
+   -- call tool: arguments follow the tool's inputSchema
+   local result, tool_err, artifact = tools.dispatch(tool_name, arguments)
 
    -- Tool execution failures are reported inside the result with isError=true
    local is_error = (tool_err ~= nil and result == nil)
