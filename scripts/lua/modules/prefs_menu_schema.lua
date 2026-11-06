@@ -2257,6 +2257,7 @@ function M.get_sections(flags)
 
     -- External connectors
     local wazuh_enabled = (isWazuhEnabled and isWazuhEnabled())
+    local experimental_enabled = (ntop.getPref("ntopng.prefs.menu_entries.experimental_features") == "1")
     sections[#sections + 1] = {
         id = "connectors",
         label = i18n("prefs.external_integrations"),
@@ -2264,6 +2265,42 @@ function M.get_sections(flags)
         pro_only = true,
         hidden = false,
         entries = {{
+            key = "mosaic_url",
+            title = i18n("prefs.mosaic_url_title"),
+            description = i18n("prefs.mosaic_url_description"),
+            type = "input",
+            input_type = "text",
+            redis_key = "ntopng.prefs.mosaic.mosaic_url",
+            default = "https://mosaic.ntop.org/api/",
+            test_endpoint = "/lua/rest/v2/get/ntopng/test_mosaic_connectivity.lua",
+            test_params = { mosaic_api_key = "mosaic_api_key" },
+            attrs = {
+                spellcheck = "false",
+                maxlength = "255",
+                pattern = "https?://.+"
+            },
+            section = i18n("prefs.mosaic"),
+            section_id = "mosaic",
+            hidden = (not experimental_enabled),
+            locked = lock_enterprise_m
+        }, {
+            key = "mosaic_api_key",
+            title = i18n("prefs.mosaic_api_key_title"),
+            description = i18n("prefs.mosaic_api_key_description"),
+            type = "input",
+            input_type = "password",
+            redis_key = "ntopng.prefs.mosaic.mosaic_api_key",
+            default = "",
+            password = true,
+            attrs = {
+                spellcheck = "false",
+                maxlength = "255"
+            },
+            section = i18n("prefs.mosaic"),
+            section_id = "mosaic",
+            hidden = (not experimental_enabled),
+            locked = lock_enterprise_m
+        }, {
             key = "toggle_wazuh_enabled",
             title = i18n("prefs.toggle_wazuh_enabled_title"),
             description = i18n("prefs.toggle_wazuh_enabled_description"),
