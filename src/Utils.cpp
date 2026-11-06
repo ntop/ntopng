@@ -1357,11 +1357,24 @@ bool Utils::isValidUTF8(const u_char* param, size_t length) {
 
 bool Utils::purifyHTTPparam(char* const param, bool strict, bool allowURL,
                             bool allowDots) {
-  if (((u_char)param[0]) >= 0x80) {
-    /* UTF8 string */
-    bool ret = Utils::isValidUTF8((const u_char*)param, strlen(param));
+  if ((!strict) && (((u_char)param[0]) >= 0x80) &&
+      Utils::isValidUTF8((const u_char*)param, strlen(param))) {
+    /* Valid UTF-8: keep the multi-byte chars but still purge the unsafe ASCII */
+    for (int i = 0; param[i] != '\0'; i++) {
+      if (((u_char)param[i]) < 0x80) {
+        if ((!Utils::isPrintableChar(param[i])) || (param[i] == '<') ||
+            (param[i] == '>') || (param[i] == '"'))
+          param[i] = '_';
 
-    if (ret) return (true);
+        if ((i > 0) &&
+            (((!allowDots) && (param[i] == '.') && (param[i - 1] == '.')) ||
+             ((!allowURL) && ((param[i] == '/') && (param[i - 1] == '/'))) ||
+             ((param[i] == '\\') && (param[i - 1] == '\\'))))
+          param[i - 1] = '_', param[i] = '_';
+      }
+    }
+
+    return (false);
   }
 
   if (strict) {
