@@ -8471,6 +8471,8 @@ void Flow::lua_get_ssh_info(lua_State* vm) const {
 void Flow::getSSHInfo(ndpi_serializer* serializer) const {
   if (isSSH()) {
     if (protos.ssh.client_signature)
+      ndpi_serialize_string_string(serializer, "client_signature",
+                                   protos.ssh.client_signature);
     if (protos.ssh.server_signature)
       ndpi_serialize_string_string(serializer, "server_signature",
                                    protos.ssh.server_signature);
