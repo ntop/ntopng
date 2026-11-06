@@ -787,7 +787,7 @@ class Prefs {
   };
 #ifdef NTOPNG_PRO
   inline bool isAssetInventoryEnabled() {
-    return (asset_inventory_enabled && !isASNModeEnabled());
+    return (asset_inventory_enabled);
   };
   inline bool isAssetsJournalEnabled() {
     return (assets_journal_enabled && isAssetInventoryEnabled());

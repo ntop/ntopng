@@ -2333,7 +2333,9 @@ function M.get_sections(flags)
             type = "toggle",
             redis_key = "ntopng.prefs.enable_asset_inventory",
             default = "1",
-            section = i18n("assets")
+            section = i18n("assets"),
+            -- assetsInventoryEnabled() is always false on Windows
+            hidden = is_windows
         }, {
             -- Journal of the assets (see doc/developers/README.assets_journal.md)
             key = "toggle_assets_journal",
@@ -2343,7 +2345,8 @@ function M.get_sections(flags)
             redis_key = "ntopng.prefs.assets_journal_enabled",
             default = "0",
             section = i18n("assets"),
-            locked = lock_enterprise_l
+            locked = lock_enterprise_l,
+            hidden = is_windows
         },
             -- Service Map
             -- tformat="hd": value stored in seconds; UI shows number + Hours/Days selector

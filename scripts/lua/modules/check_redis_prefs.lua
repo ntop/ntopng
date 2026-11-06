@@ -390,23 +390,14 @@ end
 -- ##############################################
 
 -- This preference checks all the conditions to enable the assets inventory;
--- Enterprise M license, preference enabled and not Windows
+-- Enterprise M license, preference enabled and not Windows.
+-- Views where the assets pages make no sense (viewed interface, Overview,
+-- infrastructure view) are handled by the menu, not here
 function assetsInventoryEnabled()
     if not (ntop.isEnterpriseM and ntop.isEnterpriseM()) then
         return false
     end
     if (ntop.isWindows()) then
-        return false
-    end
-    if interface.isViewed() then
-        return false
-    end
-    if isLightView() then
-        return false
-    end
-    -- isInfrastructureView loads infrastructure_utils and its dependencies:
-    -- call it only when the infrastructure view is actually requested
-    if _GET["view"] == 'infrastructure' and isInfrastructureView() then
         return false
     end
     return ntop.assetsEnabled()
