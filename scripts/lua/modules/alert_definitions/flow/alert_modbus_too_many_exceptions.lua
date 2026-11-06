@@ -51,7 +51,14 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_modbus_too_many_exceptions.format(ifid, alert, alert_type_params)
-   local rsp = alert_type_params.num_exceptions .. " Exceptions"
+   local info = alert_type_params
+
+   -- Notifications carry the alert params nested in alerts[<alert_key>]
+   if not info.num_exceptions and info.alerts then
+      info = info.alerts[tostring(flow_alert_keys.flow_alert_modbus_too_many_exceptions)] or info
+   end
+
+   local rsp = (info.num_exceptions or i18n("unknown")) .. " Exceptions"
 
    -- tprint(alert_type_params)
    
