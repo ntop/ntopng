@@ -1942,12 +1942,16 @@ local lang = {
   },
   ["group_levels"] = {
     ["add_level"] = "+ Add level",
+    ["change_level"] = "Change level",
     ["group_by"] = "Group by",
-    ["hint"] = "Each level splits the rows of the previous one. Use the arrows to change the order.",
+    ["hide_level"] = "Hide level",
+    ["hint"] = "Each level splits the rows of the previous one. Click a name to change it, use the arrows to change the order.",
+    ["hint_hide"] = "Each level splits the rows of the previous one. Click a name to change it, use the arrows to change the order and the eye to hide a level for a moment.",
     ["max_levels"] = "Max 3 levels",
     ["move_after"] = "Move after",
     ["move_before"] = "Move before",
     ["remove_level"] = "Remove level",
+    ["show_level"] = "Show level",
   },
   ["alerts_dashboard"] = {
     ["access_control_list"] = "ACL Violation (ICMP/TCP/UDP)",
