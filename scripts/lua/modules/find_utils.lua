@@ -747,7 +747,9 @@ end
 local function find_asset(query, tot_results, ifid, add_interface_name)
    local results = {}
 
-   if not assetsInventoryEnabled() then
+   -- Interfaces that are part of a view keep no local hosts, hence no assets:
+   -- skip the query (find_on_interface has already selected this interface)
+   if not assetsInventoryEnabled() or interface.isViewed() then
       return results
    end
 
