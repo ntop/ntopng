@@ -328,6 +328,7 @@ void FlowChecksLoader::loadConfiguration() {
             strcmp(check_key, "tcp_connection_refused") &&
             strcmp(check_key, "ndpi_tls_suspicious_esni_usage") &&
             strcmp(check_key, "ndpi_fully_encrypted") &&
+            strcmp(check_key, "custom_lua_script") && // Not currently available
             strcmp(check_key,
                    "ndpi_unresolved_hostname") /* Handled in
                                                   UnresolvedHostname.cpp */
