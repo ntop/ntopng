@@ -22275,7 +22275,7 @@
           "Issues"
         ],
         "summary": "List issues",
-        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, peers_count, peers_sample, reopen_count, resolve_policy, resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, tags [{id, name, color}] (union of the tags of the alerts of the issue, host and flow alerts only), alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, peers_count, peers_sample, reopen_count, resolve_policy (on_release|quiet_period|manual), auto_resolve_at (open quiet_period issues: when resolved unless new alerts arrive), resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, tags [{id, name, color}] (union of the tags of the alerts of the issue, host and flow alerts only), alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_list",
         "produces": [
           "application/json"
@@ -22343,6 +22343,13 @@
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "resolve_policy",
+            "in": "query",
+            "description": "Open issues: comma-separated ways they are resolved: 0 when the alert ends, 1 after 24 hours without alerts, 2 only by a user",
             "required": false,
             "type": "string"
           },
@@ -22527,7 +22534,7 @@
           "Issues"
         ],
         "summary": "Issue facets",
-        "description": "For each facet (entity_id, severity, alert_category, mitre_tactic, problem, assignee, tag: all the tags, those without issues last with count 0, suppressed: problems view only), the number of issues of each value (at most 12 except tag, the largest first; severities the most severe first) among the issues matching the filters of the other facets. Values have a label, or a label_key to translate. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "For each facet (entity_id, severity, alert_category, mitre_tactic, problem, assignee, tag: all the tags, those without issues last with count 0, suppressed and resolve_policy: problems view only), the number of issues of each value (at most 12 except tag, the largest first; severities the most severe first) among the issues matching the filters of the other facets. Values have a label, or a label_key to translate. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_facets",
         "produces": [
           "application/json"
@@ -22595,6 +22602,13 @@
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "resolve_policy",
+            "in": "query",
+            "description": "Open issues: comma-separated ways they are resolved: 0 when the alert ends, 1 after 24 hours without alerts, 2 only by a user",
             "required": false,
             "type": "string"
           },
@@ -22766,6 +22780,13 @@
             "type": "string"
           },
           {
+            "name": "resolve_policy",
+            "in": "query",
+            "description": "Open issues: comma-separated ways they are resolved: 0 when the alert ends, 1 after 24 hours without alerts, 2 only by a user",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "opened_within",
             "in": "query",
             "description": "Only the issues first seen in the last seconds (e.g. 3600). Heatmap: also its time window (3600, 86400 or 172800, the default)",
@@ -22933,6 +22954,13 @@
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "resolve_policy",
+            "in": "query",
+            "description": "Open issues: comma-separated ways they are resolved: 0 when the alert ends, 1 after 24 hours without alerts, 2 only by a user",
             "required": false,
             "type": "string"
           },

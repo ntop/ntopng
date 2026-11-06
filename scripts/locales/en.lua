@@ -12045,6 +12045,7 @@ local lang = {
       ["assignee"] = "Assignee",
       ["tag"] = "Tag",
       ["suppressed"] = "Suppression",
+      ["resolve_policy"] = "Resolved",
     },
     ["suppression"] = {
       ["0"] = "Not suppressed",
@@ -12172,6 +12173,15 @@ local lang = {
       ["on_release"] = "When the alert ends",
       ["quiet_period"] = "After 24 hours without alerts",
       ["manual"] = "Only by a user",
+    },
+    -- Status flags of the open issues
+    ["policy_hint"] = {
+      ["on_release"] = "Resolve automatically when its alert ends",
+      ["quiet_period"] = "Resolve automatically at %{time} if no new alert arrives",
+      ["manual"] = "Resolve it manually when the problem is fixed",
+    },
+    ["policy_short"] = {
+      ["manual"] = "Manual",
     },
     ["role"] = {
       ["attacker"] = "Attacker",

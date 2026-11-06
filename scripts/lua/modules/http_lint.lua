@@ -2358,6 +2358,7 @@ local known_parameters = {
    ["entity_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert entity id
    ["assignee"] = validateListOfTypeInline(validateIssueAssignee), -- Users the issues are assigned to (~: unassigned, empty: unassign)
    ["suppressed"] = validateListOfTypeInline(validateNumber), -- Suppressed issues (1) or not (0)
+   ["resolve_policy"] = validateListOfTypeInline(validateNumber), -- How issues are resolved (issue_consts.resolve_policy)
    ["opened_within"] = validateNumber, -- Issues first seen in the last seconds
    ["opened"] = validateSingleWord, -- Issues page: time window of the issues first seen (all, 48h, 24h, 1h)
    ["comment"] = validateMessage, -- A comment of an issue (escaped when stored)

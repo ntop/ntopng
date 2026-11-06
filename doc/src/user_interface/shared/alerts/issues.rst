@@ -67,6 +67,12 @@ Each alert type resolves its issues in one of these ways:
   *Malicious SHA1 Certificate*, *Data Exfiltration*, *DNS Data Exfiltration*,
   *Lateral Movement*, *Web Mining* and *Local Host Blacklisted*.
 
+In the issues list and in the details, an open issue shows how it is resolved: a
+*Manual* badge when only a user can resolve it, otherwise an icon whose tooltip tells
+it is resolved automatically when its alert ends (spinner icon) or at what time, if no
+new alert arrives (hourglass icon). The *Resolved* filter shows the open issues
+resolved in each way: select *Only by a user* for the issues waiting for a user.
+
 A new signal within 30 minutes of the resolution reopens the issue instead of
 opening a new one, so that flapping problems are tracked as one issue.
 
@@ -109,7 +115,7 @@ text (e.g. part of an IP address). It also finds an issue by its ID: type
 the number, with or without ``#`` (e.g. ``1573`` or ``#1573``).
 
 The *Filters* box on the left counts the issues by family (entity type, e.g. host, flow, interface), severity, category,
-MITRE tactic, problem (alert type), assignee, tag and suppression: click on a value to show only its issues,
+MITRE tactic, problem (alert type), assignee, tag, suppression and how open issues are resolved: click on a value to show only its issues,
 again to remove it. The selected values are shown as badges above the table
 (click on a badge to remove it, or on *Clear filters*). Values of the same
 filter are alternatives (e.g. two severities), different filters must all
