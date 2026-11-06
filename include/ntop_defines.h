@@ -886,6 +886,11 @@ typedef enum {
 #define CONST_PREFS_ISSUES_ENABLED NTOPNG_PREFS_PREFIX ".issues_enabled"
 /* Minimum severity (AlertLevel) of the alerts opening issues */
 #define CONST_PREFS_ISSUES_MIN_SEVERITY NTOPNG_PREFS_PREFIX ".issues_min_severity"
+/* Maximum number of open issues: no issue is opened above it (bounds the memory) */
+#define CONST_PREFS_ISSUES_MAX_OPEN NTOPNG_PREFS_PREFIX ".issues_max_open"
+#define CONST_DEFAULT_ISSUES_MAX_OPEN 50000
+#define CONST_MIN_ISSUES_MAX_OPEN 100
+#define CONST_MAX_ISSUES_MAX_OPEN 1000000
 #define CONST_PREFS_TLS_QUIC_HOSTNAMING \
   NTOPNG_PREFS_PREFIX ".tls_quic_hostnaming"
 

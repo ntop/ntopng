@@ -209,6 +209,19 @@ if target_entry.options and (target_entry.type == "select" or target_entry.type 
    end
 end
 
+-- Numbers: within the bounds of the field, when set (attrs min/max; empty values
+-- are left as before)
+if (target_entry.input_type == "number") and target_entry.attrs and (tostring(new_value) ~= "") then
+   local num = tonumber(new_value)
+   local min = tonumber(target_entry.attrs.min)
+   local max = tonumber(target_entry.attrs.max)
+
+   if (min or max) and ((not num) or (min and num < min) or (max and num > max)) then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+end
+
 -- Resolve user-scoped keys
 local redis_key = target_entry.redis_key
 if target_entry.user_pref then
@@ -235,7 +248,7 @@ end
 -- Issues: apply at once (the in-memory preferences are otherwise reloaded within a few
 -- seconds) and register the recipients again, as those delivering issues receive the
 -- alerts while the issues are disabled
-if entry_key == "issues_min_severity" then
+if (entry_key == "issues_min_severity") or (entry_key == "issues_max_open") then
    ntop.reloadPreferences()
 elseif entry_key == "toggle_issues" then
    package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path

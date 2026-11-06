@@ -68,6 +68,7 @@ Prefs::Prefs(Ntop* _ntop) {
   emit_flow_alerts = emit_host_alerts = true;
   issues_enabled = false;
   issues_min_severity = alert_level_warning;
+  issues_max_open = CONST_DEFAULT_ISSUES_MAX_OPEN;
   fail_on_invalid_license = false;
   zmq_publish_events_url = NULL;
   custom_geoip_dir = NULL;
@@ -1233,6 +1234,13 @@ void Prefs::reloadPrefsFromRedis() {
 
     issues_min_severity = ((sev > alert_level_none) && (sev < ALERT_LEVEL_MAX_LEVEL))
                               ? (u_int8_t)sev : (u_int8_t)alert_level_warning;
+  }
+  {
+    int32_t max_open =
+        getDefaultPrefsValue(CONST_PREFS_ISSUES_MAX_OPEN, CONST_DEFAULT_ISSUES_MAX_OPEN);
+
+    issues_max_open = (u_int32_t)std::min(std::max(max_open, (int32_t)CONST_MIN_ISSUES_MAX_OPEN),
+                                          (int32_t)CONST_MAX_ISSUES_MAX_OPEN);
   }
   tls_quic_hostnaming =
     getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);

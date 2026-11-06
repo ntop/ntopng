@@ -24,6 +24,10 @@ Only alerts at least as severe as *Issues Minimum Severity* (in *Settings >
 Preferences > Alerts*, *Warning* by default) open or reopen an issue. Less
 severe alerts still update the issues already open.
 
+At most *Issues Maximum Open* issues (same page, 50000 by default) are open at
+the same time: above it no new issue is opened, the alerts are still stored, and
+a warning is logged. Open issues are kept in memory, so raise it with care.
+
 .. figure:: ../../../img/issues_list.png
   :align: center
   :alt: Issues

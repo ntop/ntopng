@@ -156,7 +156,7 @@ function M.get_sections(flags)
                 off_value = "1",
                 to_switch = {"toggle_emit_flow_alerts", "toggle_emit_host_alerts", "max_entity_alerts",
                              "max_num_secs_before_delete_alert", "alert_page_refresh_rate_enabled",
-                             "toggle_issues", "issues_min_severity"}
+                             "toggle_issues", "issues_min_severity", "issues_max_open"}
             }, {
                 -- Issues (Enterprise XXL+, experimental): off by default
                 key = "toggle_issues",
@@ -167,7 +167,7 @@ function M.get_sections(flags)
                 default = "0",
                 on_value = "1",
                 off_value = "0",
-                to_switch = {"issues_min_severity"},
+                to_switch = {"issues_min_severity", "issues_max_open"},
                 locked = lock_enterprise_xxl
             }, {
                 -- Issues: minimum severity (AlertLevel) of the alerts opening issues
@@ -183,6 +183,20 @@ function M.get_sections(flags)
                     { value = "5", label = i18n("alerts_dashboard.error") },
                     { value = "6", label = i18n("alerts_dashboard.critical") },
                     { value = "8", label = i18n("alerts_dashboard.emergency") },
+                },
+                locked = lock_enterprise_xxl
+            }, {
+                -- Issues: maximum number of open issues (bounds the memory, see Prefs.cpp)
+                key = "issues_max_open",
+                title = i18n("prefs.issues_max_open_title"),
+                description = i18n("prefs.issues_max_open_description"),
+                type = "input",
+                input_type = "number",
+                redis_key = "ntopng.prefs.issues_max_open",
+                default = "50000",
+                attrs = {
+                    min = "100",
+                    max = "1000000"
                 },
                 locked = lock_enterprise_xxl
             }, {

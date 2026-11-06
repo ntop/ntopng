@@ -69,6 +69,7 @@ class Prefs {
       collect_blacklist_stats, fail_on_invalid_license, limited_resources_mode,
       fingerprint_stats, tls_quic_hostnaming;
   u_int8_t issues_min_severity; /* AlertLevel: alerts less severe open no issue */
+  u_int32_t issues_max_open;    /* No issue is opened above it */
 #ifndef HAVE_NEDGE
   bool use_mac_in_flow_key;
 #endif
@@ -841,6 +842,7 @@ class Prefs {
   /* Issues (Enterprise XXL+): the edition is checked by the callers */
   inline bool are_issues_enabled() { return (issues_enabled && !disable_alerts); };
   inline u_int8_t get_issues_min_severity() const { return (issues_min_severity); };
+  inline u_int32_t get_issues_max_open() const { return (issues_max_open); };
   inline void dontUseClickHouse() { dump_flows_on_clickhouse = false; };
   inline char* getZMQPublishEventsURL() { return (zmq_publish_events_url); };
   inline const char* getClickHouseClusterName() {
