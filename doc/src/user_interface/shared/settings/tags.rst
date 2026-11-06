@@ -327,6 +327,9 @@ several places across the UI:
   column. Since alerts are historical records, the tags shown are the ones
   that were active on the host/flow at the time the alert was generated,
   not the current ones.
+- On the **Issues** page (Enterprise XXL), in the *Tags* column and in the
+  issue details: the tags of an issue are all the tags of its alerts, and
+  the issues can be filtered by tag.
 - On the **Assets** page, as part of each asset's details: the tags of a
   host, built-in and user-defined (assigned manually or through
   `Application- and Risk-Based Tagging`_), are propagated to its

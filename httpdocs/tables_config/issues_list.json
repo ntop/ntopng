@@ -132,6 +132,16 @@
 			"min-width": "240px"
 		},
 		{
+			"id": "tags",
+			"title_i18n": "issues.col.tags",
+			"data_field": "tags",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			],
+			"min-width": "90px"
+		},
+		{
 			"id": "status",
 			"title_i18n": "issues.col.status",
 			"data_field": "status",

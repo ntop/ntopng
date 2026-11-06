@@ -22275,7 +22275,7 @@
           "Issues"
         ],
         "summary": "List issues",
-        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, peers_count, peers_sample, reopen_count, resolve_policy, resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, peers_count, peers_sample, reopen_count, resolve_policy, resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, tags [{id, name, color}] (union of the tags of the alerts of the issue, host and flow alerts only), alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_list",
         "produces": [
           "application/json"
@@ -22333,6 +22333,13 @@
             "type": "string"
           },
           {
+            "name": "tag",
+            "in": "query",
+            "description": "Tag ids (0-63), comma-separated: the issues with one of the tags (tags of their alerts)",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
@@ -22349,7 +22356,7 @@
           {
             "name": "map_search",
             "in": "query",
-            "description": "Text searched in the entity and in the description",
+            "description": "Text searched in the entity (e.g. part of an IP), or an issue ID (e.g. 1573 or #1573)",
             "required": false,
             "type": "string"
           },
@@ -22520,7 +22527,7 @@
           "Issues"
         ],
         "summary": "Issue facets",
-        "description": "For each facet (entity_id, severity, alert_category, mitre_tactic, problem), the number of issues of each value (at most 12, the largest first; severities the most severe first) among the issues matching the filters of the other facets. Values have a label, or a label_key to translate. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "For each facet (entity_id, severity, alert_category, mitre_tactic, problem, assignee, tag: all the tags, those without issues last with count 0, suppressed: problems view only), the number of issues of each value (at most 12 except tag, the largest first; severities the most severe first) among the issues matching the filters of the other facets. Values have a label, or a label_key to translate. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_facets",
         "produces": [
           "application/json"
@@ -22578,6 +22585,13 @@
             "type": "string"
           },
           {
+            "name": "tag",
+            "in": "query",
+            "description": "Tag ids (0-63), comma-separated: the issues with one of the tags (tags of their alerts)",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
@@ -22594,7 +22608,7 @@
           {
             "name": "map_search",
             "in": "query",
-            "description": "Text searched in the entity and in the description",
+            "description": "Text searched in the entity (e.g. part of an IP), or an issue ID (e.g. 1573 or #1573)",
             "required": false,
             "type": "string"
           },
@@ -22738,6 +22752,13 @@
             "type": "string"
           },
           {
+            "name": "tag",
+            "in": "query",
+            "description": "Tag ids (0-63), comma-separated: the issues with one of the tags (tags of their alerts)",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
@@ -22754,7 +22775,7 @@
           {
             "name": "map_search",
             "in": "query",
-            "description": "Text searched in the entity and in the description",
+            "description": "Text searched in the entity (e.g. part of an IP), or an issue ID (e.g. 1573 or #1573)",
             "required": false,
             "type": "string"
           },
@@ -22902,6 +22923,13 @@
             "type": "string"
           },
           {
+            "name": "tag",
+            "in": "query",
+            "description": "Tag ids (0-63), comma-separated: the issues with one of the tags (tags of their alerts)",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "suppressed",
             "in": "query",
             "description": "Open issues: 1 the suppressed issues, 0 the not suppressed ones (default), 0,1 both",
@@ -22918,7 +22946,7 @@
           {
             "name": "map_search",
             "in": "query",
-            "description": "Text searched in the entity and in the description",
+            "description": "Text searched in the entity (e.g. part of an IP), or an issue ID (e.g. 1573 or #1573)",
             "required": false,
             "type": "string"
           },

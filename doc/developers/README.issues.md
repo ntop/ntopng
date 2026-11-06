@@ -171,8 +171,9 @@ opening a new one.
 - **Open**: first signal of a fingerprint. No issue is opened above
   `MAX_OPEN_ISSUES` (50000); a warning is logged at most once an hour.
 - **Update**: each signal increments `signal_count`, extends `last_seen`, raises
-  `score`, adds the interface and the peer, and records `host_pool_id` and
-  `tags_bitmap` in `issue.json` for the recipient filters.
+  `score`, adds the interface and the peer, adds the tags of the alert to
+  `tags_bitmap` (union of the tags of all the alerts), and records
+  `host_pool_id` in `issue.json` for the recipient filters.
 - **Escalate**: a signal with a higher severity (`ntop.mapScoreToSeverity`)
   raises the issue severity. This clears the acknowledgement and notifies.
 - **Resolve**, by resolve policy:
@@ -270,6 +271,10 @@ Schemas: `httpdocs/misc/db_schema_clickhouse.sql` (and `_cluster`),
   Every change inserts a new row, and reads use `FINAL`. On SQLite it is
   `INSERT OR REPLACE` on `issue_id` in the database of the system interface.
   `version` is `max(version + 1, now_ms)`.
+  `tags_bitmap` (UInt64 / INTEGER) is the union of the tags of the alerts (bit N
+  = tag id N). Only host and flow alerts carry tags (flow alerts only the tags
+  of the flow, not of its hosts, see `Flow::getTags`). It is passed to Lua as a
+  signed integer and written as a hex literal, so that bit 63 is kept.
 - **`issue_events`**: append-only audit log, used for the timeline:
   - 1 open
   - 2 update

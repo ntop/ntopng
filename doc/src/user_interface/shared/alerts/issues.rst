@@ -96,8 +96,12 @@ The page has three views:
   spot problems that keep coming back.
 - **History**: all the issues active in the selected time range.
 
+The search box above the table finds the issues whose entity contains the
+text (e.g. part of an IP address). It also finds an issue by its ID: type
+the number, with or without ``#`` (e.g. ``1573`` or ``#1573``).
+
 The *Filters* box on the left counts the issues by family (entity type, e.g. host, flow, interface), severity, category,
-MITRE tactic, problem (alert type), assignee and suppression: click on a value to show only its issues,
+MITRE tactic, problem (alert type), assignee, tag and suppression: click on a value to show only its issues,
 again to remove it. The selected values are shown as badges above the table
 (click on a badge to remove it, or on *Clear filters*). Values of the same
 filter are alternatives (e.g. two severities), different filters must all
@@ -113,6 +117,14 @@ by number of issues, and take into account the filters.
 
 Click on the entity of an issue (e.g. a host) to show only the issues of that
 entity: for a host, its issues and the flow issues about it.
+
+The *Tags* column shows the tags of the issue: all the tags its alerts carried
+when they were triggered (see :doc:`../settings/tags`). Only host and flow alerts have tags, so
+the issues of the other entities have none; a flow alert carries the tags of
+the flow (e.g. those bound to its application or to its risks), not the tags
+of its hosts. Click on a tag to show only the issues with that tag. The *Tag*
+filter on the left lists the tags of the issues with their counts; the other
+tags are under *Other tags*, so that any tag can be chosen.
 
 The *Assignee* filter shows the users the issues are assigned to (the current
 user first, marked as *me*) and the unassigned issues: an issue assigned to
@@ -130,7 +142,7 @@ Issue Details
 Clicking on an issue opens its details:
 
 - the summary: first and last seen, duration, how the issue is resolved, the
-  number of signals, the peers, the assignee;
+  number of signals, the peers, the tags, the assignee;
 - the timeline: what happened to the issue (opened, escalated, resolved,
   reopened) and who did what, with the comments of the users;
 - the latest alerts of the issue. The *Alerts* button opens the Alerts Explorer
