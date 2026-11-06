@@ -41,7 +41,7 @@ is turned on again, the first alert loads them from the database.
 | `pro/include/Issue.h`, `pro/src/Issue.cpp` | An issue: stored and runtime fields, conversion from/to Lua tables, status/policy/resolution/event enums |
 | `pro/src/LuaEngineNtopPro.cpp` | `ntop.issues*` bindings |
 | `pro/scripts/lua/modules/issues/issue_consts.lua` | Status, resolve policies, resolutions, event ids, the timings used by Lua |
-| `pro/scripts/lua/modules/issues/issue_manager.lua` | Lua side of the engine: initial load, `process()`, `flush()`, engaged alerts checks, writes, notifications, `apply_action()` |
+| `pro/scripts/lua/modules/issues/issue_manager.lua` | Lua side of the engine: initial load, `process()`, `flush()`, engaged alerts checks, writes, notifications, user actions (`acknowledge()`, `assign()`, `suppress()`, `set_severity()`, `resolve()`, `reopen()`) |
 | `pro/scripts/lua/modules/issues/issue_store.lua` | Database access (SQLite and ClickHouse): write, load, list, facets, groups, signals, events |
 | `pro/scripts/lua/modules/issues/issue_notifications.lua` | Issue notifications to the recipients |
 | `pro/scripts/lua/modules/issues/issue_utils.lua` | REST helpers: filters, formatting, facets, heatmap, groups, alerts URL, gating |
@@ -85,7 +85,12 @@ Lua bindings (`pro/src/LuaEngineNtopPro.cpp`):
 | `ntop.issuesSetEngaged(issue_id, engaged)` | Result of an engaged alerts check |
 | `ntop.issuesGetPending(now, all)` | Issues, events and notifications to write/send (nil while another writer is active) |
 | `ntop.issuesCommit(issues_ok, events_ok, now)` | Confirm the writes |
-| `ntop.issuesAction(issue_id, action, user, params)` | Apply a user action |
+| `ntop.issuesAcknowledge(issue_id, user)` | Acknowledge an issue |
+| `ntop.issuesAssign(issue_id, user, assignee)` | Assign an issue (comma-separated users, empty to unassign) |
+| `ntop.issuesSuppress(issue_id, user, duration)` | Suppress an issue for duration seconds (0 removes the suppression) |
+| `ntop.issuesSetSeverity(issue_id, user, severity)` | Set the severity of an open issue |
+| `ntop.issuesResolve(issue_id, user)` | Resolve an open issue |
+| `ntop.issuesReopen(issue_id, user)` | Reopen a resolved issue |
 | `ntop.issuesGet(issue_id)` | The issue, if in memory |
 | `ntop.issuesStats()` | Statistics (also `rest/v2/get/issue/stats.lua`) |
 
@@ -303,9 +308,10 @@ comments of the schemas, and the timings in `IssueManager.h` and
 
 ## User Actions
 
-The edit endpoints (`issue_utils.answer_action` → `issue_manager.apply_action`)
-apply the action directly in C++ (`ntop.issuesAction`, thread-safe) from the
-REST VM:
+The edit endpoints (`issue_utils.answer_action` → `issue_manager.<action>`, e.g.
+`issue_manager.resolve`) apply the action directly in C++ (one binding per action,
+e.g. `ntop.issuesResolve`, thread-safe) from the REST VM; the steps below are shared
+by all the actions (`run_action` in Lua):
 
 1. An issue not in memory (`not_found`, e.g. resolved more than
    `REOPEN_WINDOW` ago) is read from the database, loaded
