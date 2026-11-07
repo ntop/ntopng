@@ -2268,6 +2268,21 @@ bool Flow::dump(time_t now, bool last_dump_before_free) {
         (!timeToPeriodicDump(now)) || last_db_dump.in_progress) {
       return (rc); /* Don't call too often periodic flow dump */
     }
+
+#ifdef NTOPNG_PRO
+    /*
+      On a viewed interface the flow is dumped with the hosts of the view (see
+      ClickHouseDB::dumpFlow()), set at the first visit of the view: until
+      then the dump would be dropped, with the traffic it accounts for (e.g.
+      the dump done when the processing of a pcap file is completed, or the
+      first dump of a collected flow with an old first seen, both racing with
+      the first visit of the view). Postpone it to the next dump, that will
+      account for that traffic too.
+    */
+    if (getInterface()->isViewed() &&
+        ((getViewSharedClient() == NULL) || (getViewSharedServer() == NULL)))
+      return (rc);
+#endif
   }
 
   /* Add protocol information in the JSON field (if not already set by alerts)
