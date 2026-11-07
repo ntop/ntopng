@@ -4150,7 +4150,6 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
 /* This method finally dumps a flow */
 bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
   char* json = NULL;
-  bool rc = true;
 
   /* Checkpoint flow traffic counters for the dump */
   if (f->update_partial_traffic_stats_db_dump() == false) return (false);
@@ -4178,7 +4177,8 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
       if (kafka_exporter) generate_json = true;
 #endif
 
-      if (ch_dump_enabled) rc = clickhouse_db->dumpFlow(now, f, NULL);
+      /* A flow not dumped is accounted as dropped by ClickHouseDB::dumpFlow() */
+      if (ch_dump_enabled) clickhouse_db->dumpFlow(now, f, NULL);
 
       if (generate_json) {
         json = f->serialize(export_format_GENERIC);
@@ -4218,8 +4218,6 @@ bool NetworkInterface::dumpFlowOut(Flow* f, time_t now) {
 #endif
 #endif
   } /* get_partial_bytes > 0 */
-
-  if (!rc) incDBNumDroppedFlows(clickhouse_db);
 
   f->set_dump_done();
   f->decUses(); /* Add done, decrease the reference counter */
