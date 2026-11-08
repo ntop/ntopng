@@ -2516,6 +2516,9 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
     if (opts.extra_header != NULL && opts.extra_header[0] != '\0')
       headers = curl_slist_append(headers, opts.extra_header);
 
+    for (u_int i = 0; i < opts.num_extra_headers; i++)
+      headers = curl_slist_append(headers, opts.extra_headers[i]);
+
     if (headers != NULL) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     switch (method) {

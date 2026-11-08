@@ -489,7 +489,8 @@ SELECT
 FROM traffic_model_daily_v4
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
-  AND L7_PROTO IN (7, 91)
+  -- HTTP on any port, HTTPS only on 443
+  AND (L7_PROTO IN (7) OR (L7_PROTO = 91 AND IP_DST_PORT = 443))
   AND (SELECT count() FROM server_model_daily_v4 WHERE WHEN = yesterday() AND SERVER_TYPE = 10) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;
 
@@ -508,6 +509,7 @@ SELECT
 FROM traffic_model_daily_v6
 WHERE WHEN = yesterday()
   AND MODEL_TYPE IN (1, 2)
-  AND L7_PROTO IN (7, 91)
+  -- HTTP on any port, HTTPS only on 443
+  AND (L7_PROTO IN (7) OR (L7_PROTO = 91 AND IP_DST_PORT = 443))
   AND (SELECT count() FROM server_model_daily_v6 WHERE WHEN = yesterday() AND SERVER_TYPE = 10) = 0
 GROUP BY WHEN, INTERFACE_ID, ADDR, MODEL_TYPE;

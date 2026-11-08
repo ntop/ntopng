@@ -2718,6 +2718,16 @@ local known_parameters = {
    ["provider_token"] = validateEmptyOr(validateUnquoted),
    ["timeout_sec"] = validateNumber,
 
+   -- nAnalyst MCP client servers (mcp_servers.lua checks the values again before saving)
+   ["mcp_server_id"] = validateSingleWord,
+   ["mcp_name"] = validateUnquoted,
+   ["mcp_url"] = validateUnquoted,
+   ["mcp_enabled"] = validateBool,
+   ["mcp_header_name"] = validateEmptyOr(validateSingleWord),
+   ["mcp_header_value"] = validateUnchecked, -- secret, only sent as an HTTP header (control chars refused)
+   ["mcp_timeout"] = validateNumber,
+   ["mcp_enabled_tools"] = validateUnchecked, -- comma separated tool names, only compared with the cached list
+
    -- AI Audit Log deep-link filter (page-ai-audit.vue)
    ["tool_name"] = validateSingleWord,
    ["triggered_by"] = validateChoiceInline({"llm", "user"}),

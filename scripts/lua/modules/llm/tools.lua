@@ -251,6 +251,8 @@ function tools.list_all()
          read_only          = t.read_only == true,
          artifact           = t.artifact == true,
          requires_clickhouse = t.requires_clickhouse == true,
+         -- name of the external MCP server for tools registered by mcp_client.lua
+         mcp_server         = t.mcp_server,
       }
    end
    table.sort(out, function(a, b) return a.name < b.name end)
