@@ -25333,6 +25333,70 @@
           }
         }
       }
+    },
+    "/lua/pro/rest/v2/delete/traffic_model/servers.lua": {
+      "post": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Remove servers from the server model",
+        "description": "Removes misclassified servers of a type from the server model of a day range (the traffic model is kept). Enterprise XL, ClickHouse, checks capability, administrator.",
+        "operationId": "delete_traffic_model_servers",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "server_type",
+                "hosts",
+                "day"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface id"
+                },
+                "server_type": {
+                  "type": "integer",
+                  "description": "Server type id"
+                },
+                "hosts": {
+                  "type": "string",
+                  "description": "Comma separated IPv4/IPv6 addresses"
+                },
+                "day": {
+                  "type": "string",
+                  "description": "First day (YYYY-MM-DD)"
+                },
+                "day_to": {
+                  "type": "string",
+                  "description": "Last day (YYYY-MM-DD), default: day"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: { removed: number of valid addresses }"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the delete fails)"
+          }
+        }
+      }
     }
   },
   "definitions": {

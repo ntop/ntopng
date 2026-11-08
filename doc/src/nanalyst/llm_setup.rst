@@ -36,6 +36,17 @@ Supported backends
 .. _vllm: https://docs.vllm.ai/
 .. _sglang: https://docs.sglang.ai/
 
+Tool calling requirement
+------------------------
+
+nAnalyst fetches data through the provider's native tool calling (function calling). The model and the server must support it, otherwise every request fails with a provider error.
+
+- **llama-cpp**: start ``llama-server`` with ``--jinja``.
+- **vllm**: start ``vllm serve`` with ``--enable-auto-tool-choice --tool-call-parser <parser>``, using the parser that matches the model family (see the vllm tool calling documentation).
+- **sglang**: start the server with ``--tool-call-parser <parser>``.
+
+Cloud providers (Anthropic, OpenAI, Qwen, AWS Bedrock) support tool calling with their current models.
+
 Configuration
 -------------
 

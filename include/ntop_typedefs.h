@@ -1328,6 +1328,8 @@ struct HttpGetPostOptions {
   int               ip_version;
   char*             x_api_key;
   char*             extra_header;
+  const char**      extra_headers; /* "Name: value" lines, num_extra_headers entries */
+  u_int             num_extra_headers;
 };
 
 typedef enum {

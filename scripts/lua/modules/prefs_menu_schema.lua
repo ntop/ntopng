@@ -2993,6 +2993,14 @@ function M.get_sections(flags)
             full_width = true,
             section = i18n("prefs.llm_custom"),
             locked = lock_nanalyst
+        }, {
+            key = "llm_mcp_servers",
+            title = i18n("prefs.llm_mcp_servers_title"),
+            description = i18n("prefs.llm_mcp_servers_description"),
+            type = "llm_mcp_servers",
+            full_width = true,
+            section = i18n("prefs.llm_mcp"),
+            locked = lock_nanalyst
         }}
     }
 

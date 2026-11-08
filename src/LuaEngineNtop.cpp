@@ -3379,6 +3379,9 @@ static int ntop_http_post(lua_State* vm) {
   char *url, *form_data;
   HTTPTranferStats stats;
   HttpGetPostOptions opts;
+  static const u_int MAX_EXTRA_HEADERS = 16;
+  const char* extra_headers[MAX_EXTRA_HEADERS];
+  u_int num_extra_headers = 0;
 
   memset(&opts, 0, sizeof(opts));
   opts.follow_redirects = true;
@@ -3437,6 +3440,31 @@ static int ntop_http_post(lua_State* vm) {
     if (lua_type(vm, -1) == LUA_TSTRING)
       opts.extra_header = (char*)lua_tostring(vm, -1);
     lua_pop(vm, 1);
+
+    lua_getfield(vm, 3, "max_duration");
+    if (lua_type(vm, -1) == LUA_TNUMBER)
+      opts.max_duration_timeout = (int)lua_tonumber(vm, -1);
+    lua_pop(vm, 1);
+
+    /* { "Name: value", ... }: the strings stay alive as they belong to the table at index 3 */
+    lua_getfield(vm, 3, "extra_headers");
+    if (lua_type(vm, -1) == LUA_TTABLE) {
+      int n = (int)lua_rawlen(vm, -1);
+
+      for (int i = 1; (i <= n) && (num_extra_headers < MAX_EXTRA_HEADERS); i++) {
+        lua_rawgeti(vm, -1, i);
+        const char* h = (lua_type(vm, -1) == LUA_TSTRING) ? lua_tostring(vm, -1) : NULL;
+
+        /* A CR/LF would inject further headers */
+        if (h && h[0] != '\0' && !strpbrk(h, "\r\n"))
+          extra_headers[num_extra_headers++] = h;
+        lua_pop(vm, 1);
+      }
+    }
+    lua_pop(vm, 1);
+
+    opts.extra_headers     = extra_headers;
+    opts.num_extra_headers = num_extra_headers;
   }
 
   Utils::httpGetPostPutPatch(vm, url, method_post,
