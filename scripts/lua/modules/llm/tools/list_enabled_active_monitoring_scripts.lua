@@ -11,6 +11,14 @@ return {
       "Parameters:\n" ..
       "1. interface_id (number, required): ID of the interface used for monitoring\n" ..
       "2. measurement (string, optional): filter by measurement key (e.g. http, icmp)\n",
+   parameters = {
+      type = "object",
+      properties = {
+         interface_id = { type = "integer", description = "Interface id used for monitoring" },
+         measurement  = { type = "string", description = "Filter by measurement key, e.g. http, icmp" },
+      },
+      required = { "interface_id" },
+   },
    handler = function(params)
       local pcall_ok, active_monitoring = pcall(function() return require("active_monitoring") end)
 

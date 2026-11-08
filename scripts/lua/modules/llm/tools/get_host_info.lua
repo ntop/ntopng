@@ -11,14 +11,17 @@ return {
       "Data reflects real-time state: active flows, bytes/packets, protocol breakdown, scores, and alerts. " ..
       "Use this when asking about what a host is doing RIGHT NOW. " ..
       "If the host is offline, no data will be returned. " ..
-      'content = JSON {"ip":"<ip>","vlan":"<vlan>"}. ' ..
-      "ip is required. vlan defaults to 0 if omitted.",
+            "ip is required. vlan defaults to 0 if omitted.",
+   parameters = {
+      type = "object",
+      properties = {
+         ip   = { type = "string", description = "Host IP address" },
+         vlan = { type = "integer", description = "VLAN id, default 0" },
+      },
+      required = { "ip" },
+   },
    handler = function(content)
-      local req = type(content) == "table" and content
-	 or (type(content) == "string" and json.decode(content))
-      if type(req) ~= "table" then
-         return nil, "content must be JSON {ip, vlan}"
-      end
+      local req = content
       local host_ip  = req.ip
       local host_key = hostkey2hostinfo(host_ip)
       local info     = interface.getHostInfo(host_key["host"], host_key["vlan"])

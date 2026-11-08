@@ -52,12 +52,18 @@ function tools.edition_allows(min_edition)
    end
 end
 
-function tools.register(name, description, handler, opts, tier)
+-- JSON schema of a tool. Properties must encode as {} not []
+local function no_args_schema()
+   return { type = "object", properties = setmetatable({}, { __jsontype = "object" }) }
+end
+
+function tools.register(name, description, handler, opts, tier, parameters)
    opts = opts or {}
    local min_edition = opts.min_edition
 
    tools._registry[name] = {
       description         = description,
+      parameters          = parameters or no_args_schema(),
       handler             = handler,
       artifact            = (opts.artifact == true) or false,
       read_only           = (opts.read_only == true) or false,
@@ -96,18 +102,115 @@ function tools.register_catalog(name, description, opts, tier)
    }
 end
 
-function tools.dispatch(action, content)
+-- Function calling definitions for the tool names
+-- Returns an array of { name, description, parameters } sorted by name.
+function tools.definitions(names)
+   if not names then
+      names = {}
+      for name in pairs(tools._registry) do names[#names + 1] = name end
+   end
+   table.sort(names)
+   local defs = {}
+   for _, name in ipairs(names) do
+      local t = tools._registry[name]
+      if t then
+         defs[#defs + 1] = { name = name, description = t.description, parameters = t.parameters }
+      end
+   end
+   return defs
+end
+
+-- Coerce one argument to its schema type. Models often send "5" for 5 or 0 for "0":
+-- convert those instead of failing the call. Returns the value or nil when it does not fit.
+local function coerce(v, typ)
+   if typ == "string" then
+      if type(v) == "string" then return v end
+      -- 1.0 -> "1", not "1.0"
+      if type(v) == "number" then return tostring(math.tointeger(v) or v) end
+
+   elseif typ == "integer" then
+      local n = tonumber(v)
+      if n and n % 1 == 0 then return math.tointeger(n) end
+
+   elseif typ == "number" then
+      return tonumber(v)
+
+   elseif typ == "boolean" then
+      if type(v) == "boolean" then return v end
+      if v == "true" or v == 1 then return true end
+      if v == "false" or v == 0 then return false end
+
+   elseif typ == "array" then
+      if type(v) == "table" then return v end
+      -- a single value where a list is expected (e.g. sankey sql)
+      if type(v) == "string" then return { v } end
+
+   elseif typ == "object" then
+      if type(v) == "table" then return v end
+
+   else
+      return v
+   end
+
+   return nil
+end
+
+-- Check args against the tool schema: required fields present, types coerced, enums respected.
+-- Returns nil on success or an error string for the model.
+local function validate_args(name, schema, args)
+   local props = schema.properties or {}
+   for _, key in ipairs(schema.required or {}) do
+      if args[key] == nil or args[key] == "" then
+         return string.format("[invalid_arguments] tool '%s': missing required argument '%s'", name, key)
+      end
+   end
+   for key, p in pairs(props) do
+      local v = args[key]
+      if v ~= nil then
+         local c = coerce(v, p.type)
+         if c == nil then
+            return string.format("[invalid_arguments] tool '%s': argument '%s' must be of type %s",
+               name, key, tostring(p.type))
+         end
+         if p.enum then
+            local found = false
+            for _, e in ipairs(p.enum) do if e == c then found = true break end end
+            if not found then
+               return string.format("[invalid_arguments] tool '%s': argument '%s' must be one of: %s",
+                  name, key, table.concat(p.enum, ", "))
+            end
+         end
+         args[key] = c
+      end
+   end
+   return nil
+end
+
+-- args: the decoded arguments object of a native tool call
+function tools.dispatch(action, args)
    local tool = tools._registry[action]
    if not tool then
       return nil, "unknown tool: " .. tostring(action), nil
    end
 
-   if type(content) == "string" and content:match("^%s*[%[{]") then
-      local decoded = json.decode(content)
-      if decoded ~= nil then content = decoded end
+   if type(args) == "string" then
+      if args:match("^%s*$") then
+         args = {}
+      else
+         local decoded = json.decode(args)
+         if type(decoded) ~= "table" then
+            return nil, "[invalid_arguments] tool '" .. action .. "' arguments must be a JSON object", nil
+         end
+         args = decoded
+      end
+   elseif type(args) ~= "table" then
+      args = {}
    end
 
-   local ok, result, err, artifact = pcall(tool.handler, content)
+   local arg_err = validate_args(action, tool.parameters, args)
+   if arg_err then return nil, arg_err, nil end
+
+   local ok, result, err, artifact = pcall(tool.handler, args)
    if not ok then
       -- Crash: classify so the LLM can pick a sane recovery (retry vs narrow args vs give up)
       -- instead of just seeing an opaque Lua stack fragment.
@@ -154,17 +257,6 @@ function tools.list_all()
    return out
 end
 
-function tools.hint_block()
-   local lines = { "AVAILABLE TOOLS" }
-   local names = {}
-   for name in pairs(tools._registry) do names[#names + 1] = name end
-   table.sort(names)
-   for _, name in ipairs(names) do
-      lines[#lines + 1] = "  " .. name .. " — " .. tools._registry[name].description
-   end
-   return table.concat(lines, "\n")
-end
-
 ----------------------------------------------------------------------------------------
 -- Load tools from tools/ directory
 
@@ -186,7 +278,7 @@ local function load_tools_from_directory(tool_dir)
          end)
 
          if ok and type(tool_def) == "table" and tool_def.name and tool_def.handler then
-            tools.register(tool_def.name, tool_def.description or "", tool_def.handler, tool_def.opts or {}, "community")
+            tools.register(tool_def.name, tool_def.description or "", tool_def.handler, tool_def.opts or {}, "community", tool_def.parameters)
             -- tprint("[tools] loaded: " .. tool_def.name)
          else
             if not ok then

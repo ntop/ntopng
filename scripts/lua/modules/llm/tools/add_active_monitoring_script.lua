@@ -15,11 +15,18 @@ return {
       "4. threshold (number): alert threshold value\n" ..
       "5. granularity (string): e.g. min, 5mins, hour\n\n" ..
       "Returns: {success: true/false, error: '...'}",
+   parameters = {
+      type = "object",
+      properties = {
+         host        = { type = "string", description = "Target hostname or IP. For HTTP use http://HOST:80, for HTTPS https://HOST:443" },
+         measurement = { type = "string", description = "Measurement key, e.g. cicmp, http, icmp, speedtest, throughput" },
+         ifid        = { type = "integer", description = "Interface id" },
+         threshold   = { type = "number", description = "Alert threshold value" },
+         granularity = { type = "string", description = "Check granularity, e.g. min, 5mins, hour" },
+      },
+      required = { "host", "measurement", "ifid", "threshold", "granularity" },
+   },
    handler = function(params)
-      if type(params) ~= "table" then
-         return json.encode({ success = false, error = "invalid parameters: expected JSON object" })
-      end
-
       local pcall_ok, active_monitoring = pcall(function() return require("active_monitoring") end)
       if not pcall_ok then
          return json.encode({ success = false, error = "Could not load active_monitoring module" })

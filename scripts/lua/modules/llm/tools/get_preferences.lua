@@ -19,6 +19,13 @@ return {
       "timeseries, retention, SNMP, etc.). " ..
       "Optional args: section (string, filter to a single section id), " ..
       "search (string, case-insensitive substring match on key or redis_key).",
+   parameters = {
+      type = "object",
+      properties = {
+         section = { type = "string", description = "Filter to a single section id" },
+         search  = { type = "string", description = "Case-insensitive substring match on key or redis_key" },
+      },
+   },
    handler = function(args)
       local section_filter = args and args.section
       local search = args and args.search

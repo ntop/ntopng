@@ -8,6 +8,13 @@ return {
       "Each entry contains the country code, number of hosts, bytes sent, bytes received, " ..
       "reputation score, and first-seen timestamp. " ..
       "Optional args: limit (integer, default 20), sort_by ('bytes'|'hosts'|'score', default 'bytes').",
+   parameters = {
+      type = "object",
+      properties = {
+         limit   = { type = "integer", description = "Number of countries, default 20" },
+         sort_by = { type = "string", description = "Sort key, default bytes", enum = { "bytes", "hosts", "score" } },
+      },
+   },
    handler = function(args)
       local limit   = tonumber(args and args.limit) or 20
       local sort_by = (args and args.sort_by) or "bytes"
