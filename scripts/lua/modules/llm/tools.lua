@@ -240,8 +240,9 @@ function tools.list_all()
    local out = {}
    for name, t in pairs(tools._catalog) do
       out[#out + 1] = {
-         name                = name,
-         description         = t.description or "",
+         -- MCP tools: the server's own name and description, not the prefixed ones sent to the model
+         name                = t.mcp_tool or name,
+         description         = t.mcp_description or t.description or "",
          tier               = t.tier or "community",
          license            = t.license or "community",
          min_edition        = t.min_edition,
