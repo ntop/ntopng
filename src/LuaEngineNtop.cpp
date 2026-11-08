@@ -3379,7 +3379,7 @@ static int ntop_http_post(lua_State* vm) {
   char *url, *form_data;
   HTTPTranferStats stats;
   HttpGetPostOptions opts;
-  static const u_int MAX_EXTRA_HEADERS = 16;
+  const u_int MAX_EXTRA_HEADERS = 16;
   const char* extra_headers[MAX_EXTRA_HEADERS];
   u_int num_extra_headers = 0;
 
@@ -3458,6 +3458,7 @@ static int ntop_http_post(lua_State* vm) {
         /* A CR/LF would inject further headers */
         if (h && h[0] != '\0' && !strpbrk(h, "\r\n"))
           extra_headers[num_extra_headers++] = h;
+	
         lua_pop(vm, 1);
       }
     }
