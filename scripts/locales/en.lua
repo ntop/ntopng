@@ -10402,6 +10402,8 @@ local lang = {
     ["issues_min_severity_title"] = "Issues Minimum Severity",
     ["issues_max_open_title"] = "Issues Maximum Open",
     ["issues_max_open_description"] = "Maximum number of open issues (kept in memory). Above it no new issue is opened (the alerts are still stored) and a warning is logged. Raise it with care, each open issue takes from about 1 KB to a few tens of KB. Default: 50000.",
+    ["issues_reopen_window_title"] = "Issues Reopen Window",
+    ["issues_reopen_window_description"] = "An alert arriving within this time after an issue is resolved reopens the issue, instead of opening a new one, so that a problem coming back is tracked as one issue. The resolved issues are kept in memory for this time. From 5 minutes to 24 hours. Default: 60 minutes.",
     ["issues_min_severity_description"] = "Alerts less severe than this do not open (or reopen) issues. They still update the issues already open. Default: Warning.",
     ["toggle_enable_automatic_reports_descr"] = "Toggle the generation of periodic (daily) reports. Reports are generated for all the interfaces and can be disabled individually in the interface settings page.",
     ["toggle_enable_automatic_reports_title"] = "Daily Reports Generation",
@@ -12211,7 +12213,7 @@ local lang = {
       ["suppress_body"] = "Hide the issue %{issue} from the problems for",
       ["resolve_all_title"] = "Resolve All Issues",
       ["resolve_all_body"] = "Resolve the %{n} open issues matching the filters?",
-      ["resolve_all_help"] = "The recipients of the issues are notified of each resolution. A new alert within 30 minutes reopens an issue.",
+      ["resolve_all_help"] = "The recipients of the issues are notified of each resolution. A new alert within the Issues Reopen Window (Preferences > Alerts) reopens an issue.",
       ["resolve_all_none"] = "No open issue matches the filters.",
     },
     ["suppress_for"] = {

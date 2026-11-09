@@ -3063,6 +3063,7 @@ local known_parameters = {
    ["toggle_issues"] = validateBool,
    ["issues_min_severity"] = validateNumber,
    ["issues_max_open"] = validateNumber,
+   ["issues_reopen_window"] = validateNumber,
    ["toggle_date_type"] = validateSingleWord,
 
    ["exporters_ts_resolution"] = validateNumber,

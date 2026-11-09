@@ -69,6 +69,7 @@ Prefs::Prefs(Ntop* _ntop) {
   issues_enabled = false;
   issues_min_severity = alert_level_warning;
   issues_max_open = CONST_DEFAULT_ISSUES_MAX_OPEN;
+  issues_reopen_window = CONST_DEFAULT_ISSUES_REOPEN_WINDOW;
   fail_on_invalid_license = false;
   zmq_publish_events_url = NULL;
   custom_geoip_dir = NULL;
@@ -1241,6 +1242,14 @@ void Prefs::reloadPrefsFromRedis() {
 
     issues_max_open = (u_int32_t)std::min(std::max(max_open, (int32_t)CONST_MIN_ISSUES_MAX_OPEN),
                                           (int32_t)CONST_MAX_ISSUES_MAX_OPEN);
+  }
+  {
+    int32_t reopen_window =
+        getDefaultPrefsValue(CONST_PREFS_ISSUES_REOPEN_WINDOW, CONST_DEFAULT_ISSUES_REOPEN_WINDOW);
+
+    issues_reopen_window =
+        (u_int32_t)std::min(std::max(reopen_window, (int32_t)CONST_MIN_ISSUES_REOPEN_WINDOW),
+                            (int32_t)CONST_MAX_ISSUES_REOPEN_WINDOW);
   }
   tls_quic_hostnaming =
     getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);
@@ -3043,6 +3052,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_interface_name_only",
                             enable_interface_name_only);
   lua_push_uint64_table_entry(vm, "http_port", http_port);
+  /* Issues: the issues resolved within it are loaded at startup (issue_manager.lua) */
+  lua_push_uint64_table_entry(vm, "issues_reopen_window", issues_reopen_window);
   lua_push_str_table_entry(vm, "http_index_page", http_index_page);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);

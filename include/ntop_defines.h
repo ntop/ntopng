@@ -882,6 +882,7 @@ typedef enum {
   NTOPNG_PREFS_PREFIX ".is_client_x509_auth_enabled"
 #define CONST_PREFS_EMIT_FLOW_ALERTS NTOPNG_PREFS_PREFIX ".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS NTOPNG_PREFS_PREFIX ".emit_host_alerts"
+
 /* Issues (Enterprise XXL+, experimental): off by default */
 #define CONST_PREFS_ISSUES_ENABLED NTOPNG_PREFS_PREFIX ".issues_enabled"
 /* Minimum severity (AlertLevel) of the alerts opening issues */
@@ -891,6 +892,13 @@ typedef enum {
 #define CONST_DEFAULT_ISSUES_MAX_OPEN 50000
 #define CONST_MIN_ISSUES_MAX_OPEN 100
 #define CONST_MAX_ISSUES_MAX_OPEN 1000000
+/* Timeout (seconds) for reopening as issue after resolution instead of opening a new one)
+ * Keep in sync with prefs_menu_schema.lua issues_reopen_window */
+#define CONST_PREFS_ISSUES_REOPEN_WINDOW NTOPNG_PREFS_PREFIX ".issues_reopen_window"
+#define CONST_DEFAULT_ISSUES_REOPEN_WINDOW 3600
+#define CONST_MIN_ISSUES_REOPEN_WINDOW 300
+#define CONST_MAX_ISSUES_REOPEN_WINDOW 86400
+
 #define CONST_PREFS_TLS_QUIC_HOSTNAMING \
   NTOPNG_PREFS_PREFIX ".tls_quic_hostnaming"
 
