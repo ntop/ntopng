@@ -2141,6 +2141,60 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
 
 /* **************************************************** */
 
+/*
+  Whether a collected flow has been exported with the server as source (1),
+  with the client as source (0), or nothing can be told (-1), by the default
+  ports of the detected protocol: the server is the peer using a default port
+  of the protocol, when the other one does not (e.g. a DNS reply whose request
+  has not been seen, exported as 8.8.8.8:53 -> client:56696). Same rule as
+  Flow::checkDirectionByProtocol() for the flows of the packet interfaces:
+  UDP only when the protocol has been detected with DPI. Nothing can be told
+  when both or no ports are default ports (e.g. DNS 53 <-> 53).
+*/
+static int isServerFirstByDefaultPort(
+    struct ndpi_detection_module_struct* ndpi_struct, ParsedFlow* flow) {
+  u_int16_t protos[2] = {flow->l7_proto.proto.master_protocol,
+                         flow->l7_proto.proto.app_protocol};
+  bool tcp = (flow->l4_proto == IPPROTO_TCP);
+
+  if ((!tcp) && (flow->getConfidence() != NDPI_CONFIDENCE_DPI)) return (-1);
+
+  for (int i = 0; i < 2; i++) {
+    bool src_default = Utils::isDefaultPort(ndpi_struct, protos[i],
+                                            ntohs(flow->src_port), tcp);
+    bool dst_default = Utils::isDefaultPort(ndpi_struct, protos[i],
+                                            ntohs(flow->dst_port), tcp);
+
+    if (src_default != dst_default) return (src_default ? 1 : 0);
+  }
+
+  return (-1);
+}
+
+/* **************************************************** */
+
+/*
+  Whether a collected TCP flow has been exported with the server as source (1),
+  with the client as source (0), or nothing can be told (-1), by the TCP flags
+  sent by each peer (in OR): the peer that sent a SYN and never an ACK has
+  only sent the SYN of the three-way handshake, so it is the client. A SYN
+  with an ACK cannot be told apart from a SYN followed by other packets (e.g.
+  a client whose packets in the other direction have not been seen) or from
+  a SYN-ACK (e.g. a server whose client SYN has not been seen).
+*/
+static int isTCPServerFirstByFlags(ParsedFlow* flow) {
+  u_int8_t src_flags = flow->tcp.client_tcp_flags,
+           dst_flags = flow->tcp.server_tcp_flags;
+  bool src_syn_only = ((src_flags & (TH_SYN | TH_ACK)) == TH_SYN),
+       dst_syn_only = ((dst_flags & (TH_SYN | TH_ACK)) == TH_SYN);
+
+  if (src_syn_only != dst_syn_only) return (dst_syn_only ? 1 : 0);
+
+  return (-1);
+}
+
+/* **************************************************** */
+
 bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
   bool invalid_flow = false;
   bool rc = false;
@@ -2198,7 +2252,9 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
 	flow->swap();
 #endif
     } else {
-      /* NOTE: keep in sync with Flow::check_swap() */
+      /* NOTE: same rules as the flows of the packet interfaces (see
+       * Flow::checkTCPDirection(), Flow::checkDirectionByProtocol() and
+       * Flow::check_swap()), as far as the exported fields allow */
 
       if (flow->src_ip.isBroadMulticastAddress() ||
           flow->dst_ip.isBroadMulticastAddress())
@@ -2206,35 +2262,39 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
       else {
         u_int16_t cli_port = ntohs(flow->src_port),
                   srv_port = ntohs(flow->dst_port);
-        bool do_swap = (cli_port < srv_port) ? true : false;
+        int server_first = -1;
 
-        if (do_swap) {
-          if (flow->l4_proto == IPPROTO_TCP) {
+        if (flow->l4_proto == IPPROTO_TCP) {
+          /* The handshake, then the default ports of the protocol */
+          server_first = isTCPServerFirstByFlags(flow);
+
+          if (server_first < 0)
+            server_first = isServerFirstByDefaultPort(get_ndpi_struct(), flow);
+
+          if (server_first < 0) {
             /*
-              Don't swap if the client has sent a SYN. Unfortunately as TCP
-              flags are in OR we cannot see if this is a initiator or a
-              responder so better to be conservative rather than swapping
-              wrongly
+              The server uses the lower port. Don't swap if the client has
+              sent a SYN. Unfortunately as TCP flags are in OR we cannot see
+              if this is a initiator or a responder so better to be
+              conservative rather than swapping wrongly
 
               See also https://github.com/ntop/ntopng/issues/1978
             */
-
-            if ((flow->tcp.client_tcp_flags & TH_SYN) == TH_SYN)
-              do_swap = false;
-          } else if (flow->l4_proto == IPPROTO_UDP) {
-#if 1
-            /* We disable UDP swap that might be wrong in particular for probing
-             * attempts */
-            do_swap = false;
-#else
-            if ((cli_port > 32768) && (srv_port > 32768))
-              do_swap =
-                  false; /* Don't do anything: this might be RTP or similar */
-#endif
+            server_first =
+                ((cli_port < srv_port) &&
+                 ((flow->tcp.client_tcp_flags & TH_SYN) != TH_SYN))
+                    ? 1
+                    : 0;
           }
+        } else if (flow->l4_proto == IPPROTO_UDP) {
+          /* The swap by the ports might be wrong, in particular for probing
+           * attempts: only the default ports of the protocol detected with
+           * DPI */
+          server_first = isServerFirstByDefaultPort(get_ndpi_struct(), flow);
+        } else
+          server_first = (cli_port < srv_port) ? 1 : 0;
 
-          if (do_swap) flow->swap();
-        }
+        if (server_first == 1) flow->swap();
       }
     }
 

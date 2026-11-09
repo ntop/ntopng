@@ -9414,7 +9414,8 @@ void Flow::luaRetrieveExternalAlert(lua_State* vm) {
 void Flow::check_swap() {
   if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
 
-  /* NOTE: keep in sync with  ZMQParserInterface::preprocessFlow() */
+  /* NOTE: the collected flows are checked by
+   * ZMQParserInterface::preprocessFlow() */
 
   if (((protocol == IPPROTO_TCP) &&
        ((src2dst_tcp_flags & TH_SYN) ==
@@ -9602,31 +9603,6 @@ void Flow::checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
 
 /* *************************************** */
 
-/* Whether port is one of the default TCP (or UDP) ports of the nDPI protocol */
-static bool isDefaultPort(struct ndpi_detection_module_struct* ndpi_struct,
-                          u_int16_t proto_id, u_int16_t port, bool tcp) {
-  ndpi_proto_defaults_t* defaults;
-
-  if ((proto_id == NDPI_PROTOCOL_UNKNOWN) || (ndpi_struct == NULL) ||
-      (proto_id >= ndpi_get_num_protocols(ndpi_struct)) ||
-      ((defaults = ndpi_get_proto_defaults(ndpi_struct)) == NULL))
-    return (false);
-
-  for (int i = 0; i < MAX_DEFAULT_PORTS; i++) {
-    const ndpi_port_range* range =
-        tcp ? &defaults[proto_id].tcp_default_ports[i]
-            : &defaults[proto_id].udp_default_ports[i];
-
-    if ((range->port_low != 0) && (port >= range->port_low) &&
-        (port <= range->port_high))
-      return (true);
-  }
-
-  return (false);
-}
-
-/* *************************************** */
-
 /* A better guess for the flows whose direction has not been decided by their
  * packets (TCP: the handshake, see checkTCPDirection(); UDP: the requests and
  * the replies, see checkL7Direction()): once the protocol is detected, the
@@ -9665,10 +9641,12 @@ void Flow::checkDirectionByProtocol() {
     return;
 
   for (int i = 0; i < 2; i++) {
-    bool cli_default = isDefaultPort(iface->get_ndpi_struct(), protos[i],
-                                     get_cli_port(), tcp_flow);
-    bool srv_default = isDefaultPort(iface->get_ndpi_struct(), protos[i],
-                                     get_srv_port(), tcp_flow);
+    bool cli_default = Utils::isDefaultPort(iface->get_ndpi_struct(),
+                                            protos[i], get_cli_port(),
+                                            tcp_flow);
+    bool srv_default = Utils::isDefaultPort(iface->get_ndpi_struct(),
+                                            protos[i], get_srv_port(),
+                                            tcp_flow);
 
     if (cli_default != srv_default) {
       /* The client must not use the default port, taking into account the

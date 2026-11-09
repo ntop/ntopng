@@ -173,14 +173,71 @@ While a swap is pending the protocol detected checks are not run by
 Collected flows (ZMQ)
 ---------------------
 
-Collected flows are not checked by the functions above. The direction is set
-when the flow is parsed (`ZMQParserInterface::preprocessFlow()`):
+Collected flows are not checked by the functions above: there are no packets,
+only the fields exported by the probe (e.g. nProbe), and a flow is created
+with the source of the exported record as the client. The direction is
+decided when the record is parsed, before the flow is created or updated
+(`ZMQParserInterface::preprocessFlow()`), following the rules of the packet
+interfaces as far as the exported fields allow. A reversed record is swapped
+with `ParsedFlow::swap()` (all the fields: addresses, ports, MAC addresses,
+traffic counters, TCP flags, latencies, interface indexes, AS numbers, QoE),
+and the flow is marked with `swap_done` (`ParsedFlow::isSwapped()`).
 
-* flows swapped by nProbe (`ParsedFlow::isSwapped()`) are marked with
-  `swap_done`;
-* otherwise the lower port is the server, except for UDP, non-unicast
-  addresses, and TCP flows whose client has sent a SYN (the TCP flags are in OR,
-  so the handshake order is not known).
+Nothing is done for non-unicast addresses (the client is never a broadcast or
+multicast address) and for eBPF events (their direction is reliable).
+
+### TCP
+
+The evidence, from the strongest to the weakest (the first one that tells
+decides):
+
+1. **Handshake** (`isTCPServerFirstByFlags()`). The TCP flags are exported in
+   OR for each direction (`CLIENT_TCP_FLAGS`, `SERVER_TCP_FLAGS`), so the
+   order of the packets is not known: only a peer that has sent a SYN and
+   never an ACK is known to be the client (it only sent the SYN of the
+   handshake, e.g. a connection refused or not answered). A SYN together with
+   an ACK can be both a SYN followed by other packets (e.g. a client whose
+   packets in the other direction have not been captured) and a SYN-ACK (e.g.
+   a server whose client SYN has not been captured).
+2. **Default ports of the detected protocol**
+   (`isServerFirstByDefaultPort()`): as `Flow::checkDirectionByProtocol()`,
+   with the protocol exported by the probe (`L7_PROTO`, master protocol first,
+   then app protocol) and `Utils::isDefaultPort()`. Not limited to the DPI
+   confidence, as for the packet interfaces.
+3. **Port order**, as `Flow::check_swap()`: the lower port is the server,
+   unless the source has sent a SYN.
+
+### UDP
+
+Only the default ports of the protocol detected **with DPI** (`L7_CONFIDENCE`
+exported as `NDPI_CONFIDENCE_DPI`, `isServerFirstByDefaultPort()`): e.g. a DNS
+reply whose request has not been captured, exported as `8.8.8.8:53 ->
+client:56696`, is swapped. There is no port order, as for the packet
+interfaces. The requests and replies cannot be told (the payload is not
+exported).
+
+Records without the confidence (e.g. older probes) or with the protocol
+guessed by the ports, and flows where both or no ports are default ports (e.g.
+DNS 53 <-> 53), keep the direction of the probe.
+
+### Other L4 protocols
+
+The lower port is the server (ICMP flows have no ports).
+
+### Notes
+
+* The protocol ids exported by the probe are looked up in the nDPI of ntopng
+  (`ndpi_get_proto_defaults()`): with different nDPI versions the ids of the
+  less common protocols might not match.
+* Each record of a flow (e.g. the periodic records of a long flow) is checked
+  on its own; the records of a flow carry the same protocol and flags in OR,
+  so they get the same direction. `getFlow()` finds the flow in both
+  directions anyway.
+* The direction is not checked again once the flow is created: there is no
+  pending swap and no race with the view interfaces (see below).
+* The probe is the best place to decide the direction (it sees the packets,
+  e.g. the nDPI of nProbe knows the client of a DNS reply): these rules fix
+  the records that the probe exports reversed.
 
 View interfaces
 ---------------
@@ -219,3 +276,8 @@ without a view interface (`*_view_*`):
 * `flow_direction_swap_01`: DNS and SSH flows, swaps performed when no packet
   follows the request (dumped to ClickHouse);
 * `peers_swap_heuristic_01`-`03`: SSH and TLS flows without the handshake.
+
+The collected flows are not covered by the e2e tests (they replay pcap files
+only): they can be checked by exporting a pcap file with nProbe to a ZMQ
+collector interface (`nprobe -i <pcap> --ntopng zmq://127.0.0.1:<port>
+--zmq-probe-mode -T "@NTOPNG@"` and `ntopng -i tcp://127.0.0.1:<port>c`).

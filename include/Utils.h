@@ -202,6 +202,8 @@ class Utils {
   static u_int32_t roundTime(u_int32_t now, u_int32_t rounder,
                              int32_t offset_from_utc);
   static bool isCriticalNetworkProtocol(u_int16_t protocol_id);
+  static bool isDefaultPort(struct ndpi_detection_module_struct* ndpi_struct,
+                            u_int16_t proto_id, u_int16_t port, bool tcp);
   static u_int32_t stringHash(const char* s);
   static const char* policySource2Str(L7PolicySource_t policy_source);
   static const char* captureDirection2Str(pcap_direction_t dir);
