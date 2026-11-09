@@ -73,8 +73,12 @@ it is resolved automatically when its alert ends (spinner icon) or at what time,
 new alert arrives (hourglass icon). The *Resolved* filter shows the open issues
 resolved in each way: select *Only by a user* for the issues waiting for a user.
 
-A new signal within 30 minutes of the resolution reopens the issue instead of
-opening a new one, so that flapping problems are tracked as one issue.
+A new signal within *Issues Reopen Window* (in *Settings > Preferences >
+Alerts*, 60 minutes by default, from 5 minutes to 24 hours) of the resolution
+reopens the issue instead of opening a new one, so that flapping problems are
+tracked as one issue. The reopened issue keeps its history: severity (the
+highest reached), assignee, suppression, first seen and counters. The resolved
+issues are kept in memory for this time: a longer window takes more memory.
 
 Informational alerts that do not report a problem (e.g. *User Activity*,
 *Process Notification*, *List Download Succeeded*, *Cloud Reconnected*,
@@ -193,6 +197,6 @@ resolves all the open issues matching the filters, on all the pages of the list,
 after a confirmation with their number (e.g. select *Notice* in the *Severity*
 filter to close all the notice issues). Each issue is resolved as by its
 *Resolve* action: the recipients of the issues are notified, and a new alert
-within 30 minutes reopens it. The suppressed issues are resolved only when
+within *Issues Reopen Window* reopens it. The suppressed issues are resolved only when
 shown (*Suppressed* selected in the *Suppression* filter).
 

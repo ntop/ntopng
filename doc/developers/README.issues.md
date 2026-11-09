@@ -123,7 +123,7 @@ alert_store_db.lua (endpoint VM)
 (`scripts/lua/modules/notifications/endpoints/alert_store_db.lua`), which
 receives the alerts of all the entities and interfaces. The first call loads
 the issues (`ensure_loaded`): the alert types settings, the issue_id counter
-sync, the open issues and those resolved within `REOPEN_WINDOW`. Until then
+sync, the open issues and those resolved within the reopen window. Until then
 C++ ignores the flow alerts. Errors in the manager are caught
 (`call_issue_manager`) and logged at most once a minute. They never stop alerts
 from being stored.
@@ -161,7 +161,10 @@ the fallbacks of `alert_consts.getAlertType`).
 The manager keeps two maps in memory, keyed by fingerprint:
 
 - `open_issues`: the issues with status open.
-- `recent_issues`: issues resolved less than `REOPEN_WINDOW` ago (30 min).
+- `recent_issues`: issues resolved less than the reopen window ago (*Issues
+  Reopen Window* preference, `ntopng.prefs.issues_reopen_window` in seconds, 1 hour
+  by default, 5 minutes to 24 hours: `Prefs::get_issues_reopen_window()`, and
+  `ntop.getPrefs().issues_reopen_window` in Lua). At most one per fingerprint.
 
 A signal whose fingerprint matches a recent issue reopens that issue instead of
 opening a new one.
@@ -198,7 +201,7 @@ opening a new one.
   - `manual` (2): only by a user. Used by compromise alerts (malware contacted,
     malicious fingerprint/SHA1, exfiltration, lateral movement, web mining,
     blacklisted host).
-- **Reopen**: a signal within `REOPEN_WINDOW` of the resolution, or a user
+- **Reopen**: a signal within the reopen window of the resolution, or a user
   action. An issue a user reopens switches to the `manual` policy. Reopen fails
   with `newer_issue_open` if a newer issue already has the same fingerprint.
 
@@ -206,7 +209,7 @@ opening a new one.
 period, 3 manual.
 
 At startup (`ensure_loaded`), the open issues and those resolved within
-`REOPEN_WINDOW` are read back from the database, and the issue_id counter is
+the reopen window are read back from the database, and the issue_id counter is
 synced (`sync_issue_id_counter`). Engaged alerts are not notified again after a
 reload, so every `on_release` issue gets `resolve_after = now + grace`; the
 housekeeping then checks C++ before resolving it.
@@ -305,7 +308,8 @@ stay unsaved and the events stay pending (up to 10000).
 
 Keep the numeric ids in sync in `Issue.h`, `issue_consts.lua` and the column
 comments of the schemas, and the timings in `IssueManager.h` and
-`issue_consts.lua` (`QUIET_PERIOD`, `REOPEN_WINDOW`).
+`issue_consts.lua` (`QUIET_PERIOD`), and the default and range of the preferences
+in `ntop_defines.h` and `prefs_menu_schema.lua`.
 
 ## User Actions
 
@@ -315,7 +319,7 @@ e.g. `ntop.issuesResolve`, thread-safe) from the REST VM; the steps below are sh
 by all the actions (`run_action` in Lua):
 
 1. An issue not in memory (`not_found`, e.g. resolved more than
-   `REOPEN_WINDOW` ago) is read from the database, loaded
+   the reopen window ago) is read from the database, loaded
    (`ntop.issuesLoad(..., false)`) and the action retried.
 2. The change is written at once (`write_pending`, waiting up to 2 s for
    another writer), so the lists, read from the database, show it when the
