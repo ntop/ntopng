@@ -447,10 +447,10 @@ typedef enum {
   flow_alert_low_goodput = 12,
   flow_alert_blacklisted_server_contact = 13,
   flow_alert_internals = 14,
-  flow_alert_notused_3 = 15,
+  flow_alert_notused_3 = 15, // No longer used
   flow_alert_remote_to_remote = 16,
-  flow_alert_notused_4 = 17,
-  flow_alert_notused_5 = 18,
+  flow_alert_notused_4 = 17, // No longer used
+  flow_alert_notused_5 = 18, // No longer used
   flow_alert_tcp_packets_issues = 19,
   flow_alert_notused_6 = 20,
   flow_alert_notused_7 = 21,
@@ -483,7 +483,7 @@ typedef enum {
   flow_alert_ndpi_malformed_packet = 48,
   flow_alert_ndpi_ssh_obsolete_server = 49,
   flow_alert_ndpi_smb_insecure_version = 50,
-  flow_alert_ndpi_not_used_anymore = 51,
+  flow_alert_ndpi_not_used_anymore = 51, // No longer used
   flow_alert_ndpi_unsafe_protocol = 52,
   flow_alert_ndpi_dns_suspicious_traffic = 53,
   flow_alert_ndpi_tls_missing_sni = 54,
@@ -509,7 +509,7 @@ typedef enum {
   flow_alert_iec_invalid_command_transition = 74,
   flow_alert_connection_failed = 75,
   flow_alert_ndpi_anonymous_subscriber = 76,
-  flow_alert_unidirectional_traffic = 77,
+  flow_alert_unidirectional_traffic = 77, // No longer used
   flow_alert_ndpi_desktop_or_file_sharing_session = 78,
   flow_alert_ndpi_malicious_fingerprint = 79,
   flow_alert_ndpi_malicious_sha1_certificate = 80,

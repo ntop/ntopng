@@ -3,7 +3,8 @@
 --   3 = working-hours unidirectional     4 = non-working-hours unidirectional
 -- Working hours = 09:00 <= t < 18:00 (yesterday); non-working = the rest of yesterday.
 -- Bidirectional = traffic in both directions AND no server RST (DST2SRC_TCP_FLAGS & 4)
---   AND no alert bit 56 = flow_alert_tcp_no_data_exchanged, 75 = flow_alert_connection_failed, 101 = flow_alert_ndpi_probing_attempt
+--   AND no alert bit 26 = flow_alert_ndpi_unidirectional_traffic, 56 = flow_alert_tcp_no_data_exchanged,
+--   75 = flow_alert_connection_failed, 101 = flow_alert_ndpi_probing_attempt
 -- AVG_KB_PER_FLOW / STDDEV_KB_PER_FLOW are plain Float64 (population stddev), computed once per key at insert time.
 -- They are NOT summed by SummingMergeTree: insert each (WHEN, key) only once per day.
 
@@ -100,11 +101,19 @@ SELECT
     L7_PROTO,
     IP_DST_PORT,
     PROTOCOL,
-    -- (bidirectional ? 0 : 2) + (working hours ? 1 : 2)
-    -- bidirectional: no server RST, no no data or connection failed or probing alert
+    -- MODEL_TYPE is set to (bidirectional ? 0 : 2) + (working hours ? 1 : 2)
+    -- A flow is bidirectional when all the below are true:
+    -- - packets seen in both directions
+    -- - no RST sent by the server
+    -- - alerts do not contain:
+    --   - flow_alert_ndpi_unidirectional_traffic (26)
+    --   - flow_alert_tcp_no_data_exchanged       (56)
+    --   - flow_alert_connection_failed           (75)
+    --   - flow_alert_ndpi_probing_attempt       (101)
     toUInt8(if(SRC2DST_PACKETS > 0 AND DST2SRC_PACKETS > 0
                AND bitAnd(DST2SRC_TCP_FLAGS, 4) = 0
                AND bitAnd(reinterpretAsUInt128(reverse(unhex(ALERTS_MAP))),
+                          bitShiftLeft(toUInt128(1), 26) +
                           bitShiftLeft(toUInt128(1), 56) + bitShiftLeft(toUInt128(1), 75) + bitShiftLeft(toUInt128(1), 101)) = 0, 0, 2)
            + if(toHour(FIRST_SEEN) BETWEEN 9 AND 17, 1, 2)) AS MODEL_TYPE,
     count() AS NUM_FLOWS,
@@ -134,6 +143,7 @@ SELECT
     toUInt8(if(SRC2DST_PACKETS > 0 AND DST2SRC_PACKETS > 0
                AND bitAnd(DST2SRC_TCP_FLAGS, 4) = 0
                AND bitAnd(reinterpretAsUInt128(reverse(unhex(ALERTS_MAP))),
+                          bitShiftLeft(toUInt128(1), 26) +
                           bitShiftLeft(toUInt128(1), 56) + bitShiftLeft(toUInt128(1), 75) + bitShiftLeft(toUInt128(1), 101)) = 0, 0, 2)
            + if(toHour(FIRST_SEEN) BETWEEN 9 AND 17, 1, 2)) AS MODEL_TYPE,
     count() AS NUM_FLOWS,
