@@ -29,7 +29,7 @@ local INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH = 20
 local INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN = 30 -- This edge should never be crossed. If it does, queue is manually trimmed
 
 -- InfluxDB TOP() always requires a limit: this is the one used when the caller asks
--- for an unlimited topk (options.unlimited_top)
+-- for an unlimited top (options.unlimited_top)
 local INFLUX_UNLIMITED_TOP = 1000000
 
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
@@ -1390,151 +1390,6 @@ end
 
 -- ##############################################
 
-function driver:topk(schema, tags, tstart, tend, options, top_tags)
-    if #top_tags ~= 1 then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
-        return nil
-    end
-
-    local top_tag = top_tags[1]
-    local retention_policy = getSchemaRetentionPolicy(schema, tstart, tend, options)
-    local query_schema, raw_step, data_type = retentionPolicyToSchema(schema, retention_policy, self.db)
-    tend = fixTendForRetention(tend, retention_policy)
-
-    -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
-    local unaligned_offset = raw_step - 1
-
-    local derivate_metrics = {}
-    local sum_metrics = {}
-    local all_metrics = table.concat(schema._metrics, ", ")
-
-    for idx, metric in ipairs(schema._metrics) do
-        if data_type == "counter" then
-            derivate_metrics[idx] = 'NON_NEGATIVE_DIFFERENCE(' .. metric .. ') as ' .. metric
-        else -- derivative
-            derivate_metrics[idx] = '(' .. metric .. ' * ' .. raw_step .. ') as ' .. metric
-        end
-        sum_metrics[idx] = 'SUM(' .. metric .. ') as ' .. metric
-    end
-
-    --[[
-    SELECT TOP(value,protocol,10) FROM
-      (SELECT SUM(value) AS value FROM
-        (SELECT NON_NEGATIVE_DIFFERENCE(value) as value FROM
-          (SELECT protocol, (bytes_sent + bytes_rcvd) AS "value" FROM "host:ndpi" WHERE host='192.168.1.1'
-            AND ifid='1' AND time >= 1537540320000000000 AND time <= 1537540649000000000)
-          GROUP BY protocol)
-        GROUP BY protocol)
-  ]]
-    -- Aggregate into 1 metric and filter
-    local base_query = '(SELECT ' .. top_tag .. ', (' .. table.concat(schema._metrics, " + ") .. ') AS "value", ' ..
-                           all_metrics .. ' FROM ' .. query_schema .. ' ' .. getWhereClause(tags, tstart, tend, -1) ..
-                           ')'
-
-    -- Calculate difference between counter values
-    if data_type == "counter" then
-        base_query = '(SELECT NON_NEGATIVE_DIFFERENCE(value) as value, ' .. table.concat(derivate_metrics, ", ") ..
-                         ' FROM ' .. base_query .. " GROUP BY " .. top_tag .. ")"
-    else
-        -- derivative
-        base_query = '(SELECT (value * ' .. raw_step .. ') as value, ' .. table.concat(derivate_metrics, ", ") ..
-                         ' FROM ' .. base_query .. " GROUP BY " .. top_tag .. ")"
-    end
-
-    -- Sum the traffic
-    base_query = '(SELECT SUM(value) AS value, ' .. table.concat(sum_metrics, ", ") .. ' FROM ' .. base_query ..
-                     ' GROUP BY ' .. top_tag .. ')'
-
-    -- Calculate TOPk. options.unlimited_top asks for every item with data, not just
-    -- the top ones: InfluxDB TOP() always wants a limit, so a very high one is used.
-    local top_limit = options.unlimited_top and INFLUX_UNLIMITED_TOP or options.top
-    local query = 'SELECT TOP(value,' .. top_tag .. ',' .. top_limit .. '), ' .. all_metrics .. ' FROM ' .. base_query
-
-    local url = self.url
-    local data =
-        influx_query(url .. "/query?db=" .. self.db .. "&epoch=s", query, self.username, self.password, options)
-
-    if table.empty(data) then
-        return data
-    end
-
-    if table.empty(data.series) then
-        return {}
-    end
-
-    data = data.series[1]
-
-    local res = {}
-
-    for idx, value in pairs(data.values) do
-        -- top value
-        res[idx] = value[2]
-    end
-
-    local sorted = {}
-
-    for idx in pairsByValues(res, rev) do
-        local value = data.values[idx]
-
-        if value[2] > 0 then
-            local partials = {}
-
-            for idx = 4, #value do
-                partials[data.columns[idx]] = value[idx]
-            end
-
-            sorted[#sorted + 1] = {
-                tags = table.merge(tags, {
-                    [top_tag] = value[3]
-                }),
-                value = value[2],
-                partials = partials
-            }
-        end
-    end
-
-    local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
-    local label = nil
-    local total_serie = self:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, tags, options, url,
-        time_step, label, unaligned_offset, data_type)
-    local stats = nil
-
-    if options.calculate_stats and total_serie then
-        stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, data_type)
-
-        if stats.total ~= nil then
-            -- override total and average
-            -- NOTE: sum must be calculated on individual top_tag fields to avoid
-            -- calculating DIFFERENCE on a decreasing serie (e.g. this can happend on a top hosts query
-            -- when a previously seen host becomes idle, which causes its traffic contribution on the total to become zero on next points)
-            local stats_query = "SELECT SUM(value) as value FROM " .. base_query
-            stats = table.merge(stats, self:_performStatsQuery(stats_query, tstart, tend))
-        end
-    end
-
-    if options.initial_point and total_serie then
-        local additional_pt = self:_makeTotalSerie(schema, query_schema, raw_step, tstart - time_step, tstart, tags,
-            options, url, time_step, label, unaligned_offset, data_type) or {options.fill_value}
-        table.insert(total_serie, 1, additional_pt[1])
-
-        -- shift tstart as we added one point
-        tstart = tstart - time_step
-    end
-
-    if options.calculate_stats and total_serie then
-        stats = table.merge(stats, ts_common.calculateMinMax(total_serie))
-    end
-
-    return {
-        topk = sorted,
-        statistics = stats,
-        source_aggregation = retention_policy or "raw",
-        additional_series = {
-            total = total_serie
-        }
-    }
-end
-
 function driver:timeseries_top(options, top_tags)
     if (not top_tags) or (#top_tags < 1) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects at least one top tag")
@@ -1585,8 +1440,10 @@ function driver:timeseries_top(options, top_tags)
     base_query = '(SELECT SUM(value) AS value, ' .. table.concat(sum_metrics, ", ") .. ' FROM ' .. base_query ..
                      ' GROUP BY ' .. tags_list .. ')'
 
-    -- Calculate TOPk over the tags combination: TOP(value, tag1, tag2, ..., k)
-    local query = 'SELECT TOP(value,' .. tags_list .. ',' .. options.top .. '), ' .. all_metrics .. ' FROM ' ..
+    -- Calculate TOPk over the tags combination: TOP(value, tag1, tag2, ..., k).
+    -- options.unlimited_top asks for every item with data: TOP() always wants a limit
+    local top_limit = options.unlimited_top and INFLUX_UNLIMITED_TOP or options.top
+    local query = 'SELECT TOP(value,' .. tags_list .. ',' .. top_limit .. '), ' .. all_metrics .. ' FROM ' ..
                       base_query
 
     local url = self.url
@@ -1650,6 +1507,17 @@ function driver:timeseries_top(options, top_tags)
             end
 
             local query_tag = table.merge(options.tags, top_tags_values)
+
+            -- options.totals_only: only the total of each item, no per item data query
+            if options.totals_only then
+                sorted[#sorted + 1] = {
+                    tags = query_tag,
+                    name = table.concat(name_parts, " - "),
+                    value = value[2]
+                }
+                goto continue
+            end
+
             options_merged.tags = query_tag
             options_merged.top = nil
 
@@ -1680,9 +1548,12 @@ function driver:timeseries_top(options, top_tags)
                 -- With multiple tags the name is the values joined (e.g. "uuid - ifname")
                 name = table.concat(name_parts, " - "),
                 ext_label = ext_label,
-                data = total_serie
+                data = total_serie,
+                value = value[2]
             }
         end
+
+        ::continue::
     end
 
     return {

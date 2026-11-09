@@ -456,8 +456,9 @@ end
 
 -- ##############################################
 
---! @brief Top-k query: find the top items by total metric value.
-function driver:topk(schema, tags, tstart, tend, options, top_tags)
+--! @brief Find the top items by total metric value, with a single grouped query.
+--! @return the items {tags, value} sorted by value descending, nil on error.
+local function query_top_items(self, schema, tags, tstart, tend, options, top_tags)
 
    if #top_tags < 1 then
       traceError(TRACE_ERROR, TRACE_CONSOLE,
@@ -515,13 +516,10 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
    local data = ch_query(sql)
 
    if (not data) or (#data == 0) then
-      return { topk = {}, statistics = nil,
-               source_aggregation = "raw",
-               additional_series  = { total = nil } }
+      return {}
    end
 
-   local sorted     = {}
-   local total_vals = {}
+   local sorted = {}
 
    for _, row in ipairs(data) do
       local val = tonumber(row["value"])
@@ -533,37 +531,19 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
          end
 
          sorted[#sorted + 1] = {
-            tags     = item_tags,
-            value    = val,
-            partials = {},
+            tags  = item_tags,
+            value = val,
          }
-         total_vals[#total_vals + 1] = val
       end
    end
 
-   local time_step = ts_common.calculateSampledTimeStep(schema.options.step, tstart, tend, options)
-   local stats
-
-   if options.calculate_stats and #total_vals > 0 then
-      stats = ts_common.calculateStatistics(total_vals, time_step, tend - tstart,
-                 schema.options.metrics_type)
-      if stats then
-         stats = table.merge(stats, ts_common.calculateMinMax(total_vals))
-      end
-   end
-
-   return {
-      topk               = sorted,
-      statistics         = stats,
-      source_aggregation = "raw",
-      additional_series  = { total = nil },
-   }
+   return sorted
 end
 
 -- ##############################################
 
 --! @brief Top query entry-point called by ts_utils_core (timeseries_query_top).
---! Delegates to driver:topk and converts the result to the standard
+--! Delegates to query_top_items and converts the result to the standard
 --! {metadata, series} format that the other drivers (RRD, InfluxDB) return.
 function driver:timeseries_top(options, top_tags)
    local schema   = options.schema_info
@@ -577,8 +557,8 @@ function driver:timeseries_top(options, top_tags)
    local tend     = options.epoch_end
    local time_step = ts_common.calculateSampledTimeStep(schema.options.step, tstart, tend, options)
 
-   local topk_result = self:topk(schema, tags, tstart, tend, options, top_tags)
-   if not topk_result or table.empty(topk_result.topk) then
+   local top_items = query_top_items(self, schema, tags, tstart, tend, options, top_tags)
+   if not top_items or table.empty(top_items) then
       return nil
    end
 
@@ -587,9 +567,16 @@ function driver:timeseries_top(options, top_tags)
    local count      = 0
 
    -- For each top item, fetch its full time-series and aggregate all metrics.
-   for _, item in ipairs(topk_result.topk) do
-      local serie_data = self:query(schema, tstart, tend, item.tags, options)
-      if serie_data and serie_data.series and #serie_data.series > 0 then
+   for _, item in ipairs(top_items) do
+      -- options.totals_only: only the total of each item, no per item data query
+      local serie_data = (not options.totals_only) and self:query(schema, tstart, tend, item.tags, options)
+      if options.totals_only then
+         top_series[#top_series + 1] = {
+            tags  = item.tags,
+            name  = item.tags[top_tag] or "",
+            value = item.value,
+         }
+      elseif serie_data and serie_data.series and #serie_data.series > 0 then
          local n = (serie_data.metadata and serie_data.metadata.num_point) or 0
          local agg = {}
          for i = 1, n do
@@ -613,6 +600,7 @@ function driver:timeseries_top(options, top_tags)
             tags       = item.tags,
             name       = top_val,
             ext_label  = ext_label,
+            value      = item.value,
          }
       end
    end

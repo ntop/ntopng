@@ -908,33 +908,38 @@ function ts_utils.queryTotalByTag(schema_name, tstart, tend, tags_filter, group_
 
 	local query_options = ts_utils.getQueryOptions(options)
 
-	-- Every series with data is needed here, not just the top ones, and neither the
-	-- statistics nor the total serie are used
-	query_options.unlimited_top = true
-	query_options.calculate_stats = false
-	query_options.initial_point = false
-
 	ts_common.clearLastError()
 
 	local res = {}
 
-	if driver.topk then
-		local topk_res = driver:topk(schema, filter_tags, tstart, tend, query_options, wildcard_tags)
+	if driver.timeseries_top then
+		local top_options = table.merge(query_options, {
+			schema = schema_name,
+			schema_info = schema,
+			tags = filter_tags,
+			epoch_begin = tstart,
+			epoch_end = tend,
+			-- Every series with data is needed here, not just the top ones, and only
+			-- its total: no per item data query
+			unlimited_top = true,
+			totals_only = true,
+			initial_point = false,
+		})
+		-- nil when there is no data (or on error, already logged by the driver)
+		local top_res = driver:timeseries_top(top_options, wildcard_tags)
 
-		if topk_res then
-			-- topk already drops the items whose value is zero and sorts by value descending
-			for _, item in ipairs(topk_res.topk or {}) do
-				if item.tags then
-					res[#res + 1] = { tags = item.tags, value = item.value or 0 }
-				end
+		-- Items are sorted by value descending
+		for _, item in ipairs((top_res and top_res.series) or {}) do
+			if item.tags and (item.value or 0) > 0 then
+				res[#res + 1] = { tags = item.tags, value = item.value }
 			end
-
-			return res
 		end
+
+		return res
 	end
 
-	-- Fallback for the drivers not implementing topk (or unable to group on the
-	-- requested tags): enumerate the series and total them one by one
+	-- Fallback for the drivers not implementing timeseries_top: enumerate the series
+	-- and total them one by one
 	local series = driver:listSeries(schema, filter_tags, wildcard_tags, tstart, tend) or {}
 
 	for _, serie_tags in pairs(series) do
