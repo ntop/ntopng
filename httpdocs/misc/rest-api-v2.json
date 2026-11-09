@@ -23673,6 +23673,52 @@
         }
       }
     },
+    "/lua/pro/rest/v2/edit/issue/resolve_all.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Resolve all the issues matching the filters",
+        "description": "Resolves all the open issues matching the filters of the issue list (view problems; same filters as get/issue/list.lua: entity_id, severity, alert_category, mitre_tactic, problem, assignee, tag, suppressed, resolve_policy, opened_within, map_search, host, issue_entity, issue_peer), as the Resolve All button of the issues page. Each one is resolved as by edit/issue/resolve.lua (resolution manual, recipients notified). Answer: resolved (issues resolved) and matching (issues matching the filters; the others were resolved meantime). POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "resolve_all_issues",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "view",
+            "in": "formData",
+            "description": "problems (default, the only one accepted)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "in": "formData",
+            "description": "Comma-separated severity ids (e.g. 4,5); the other filters as in get/issue/list.lua",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (view other than problems, invalid filters)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/edit/issue/reopen.lua": {
       "post": {
         "tags": [

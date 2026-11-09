@@ -188,3 +188,11 @@ The following actions are available from the issues list and from the details:
 - **Reopen**: reopens a resolved issue. An issue reopened by a user is then
   resolved only by a user.
 
+In the *Open Issues* view, the *Resolve All* button (next to the active filters)
+resolves all the open issues matching the filters, on all the pages of the list,
+after a confirmation with their number (e.g. select *Notice* in the *Severity*
+filter to close all the notice issues). Each issue is resolved as by its
+*Resolve* action: the recipients of the issues are notified, and a new alert
+within 30 minutes reopens it. The suppressed issues are resolved only when
+shown (*Suppressed* selected in the *Suppression* filter).
+

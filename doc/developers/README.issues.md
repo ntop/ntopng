@@ -46,7 +46,7 @@ is turned on again, the first alert loads them from the database.
 | `pro/scripts/lua/modules/issues/issue_notifications.lua` | Issue notifications to the recipients |
 | `pro/scripts/lua/modules/issues/issue_utils.lua` | REST helpers: filters, formatting, facets, heatmap, groups, alerts URL, gating |
 | `pro/scripts/lua/rest/v2/get/issue/*.lua` | list, details, signals, events, counters, facets, groups, heatmap, assignees, stats (admin) |
-| `pro/scripts/lua/rest/v2/edit/issue/*.lua` | acknowledge, assign, comment, reopen, resolve, severity, suppress |
+| `pro/scripts/lua/rest/v2/edit/issue/*.lua` | acknowledge, assign, comment, reopen, resolve, resolve_all, severity, suppress |
 | `pro/scripts/lua/issues.lua`, `issue_details.lua` | Page entry points |
 | `pro/http_src/vue/page-issues.vue`, `page-issue-details.vue`, `modal-issue-action.vue`, `dashboard-issues-badge.vue` | UI |
 | `httpdocs/tables_config/issues_list.json`, `issue_signals.json` | Table definitions |
@@ -320,6 +320,13 @@ by all the actions (`run_action` in Lua):
 2. The change is written at once (`write_pending`, waiting up to 2 s for
    another writer), so the lists, read from the database, show it when the
    page reloads them.
+
+`edit/issue/resolve_all.lua` (Resolve All of the issues page) reads the ids of the
+open issues matching the list filters (`issue_store.list_issue_ids`, at most
+`issues_max_open`) and resolves them with `issue_manager.resolve_list`: no reload
+from the database (the open issues are all in memory), changes written every 500
+issues resolved, so that the pending events and notifications stay below their
+limits.
 3. The answer is sent after the write: no polling, no pending answers.
 
 Actions: `acknowledge`, `assign` (comma-separated users, sorted; empty
