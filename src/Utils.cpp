@@ -4680,6 +4680,31 @@ bool Utils::isCriticalNetworkProtocol(u_int16_t protocol_id) {
 
 /* ****************************************************** */
 
+/* Whether port is one of the default TCP (or UDP) ports of the nDPI protocol */
+bool Utils::isDefaultPort(struct ndpi_detection_module_struct* ndpi_struct,
+                          u_int16_t proto_id, u_int16_t port, bool tcp) {
+  ndpi_proto_defaults_t* defaults;
+
+  if ((proto_id == NDPI_PROTOCOL_UNKNOWN) || (ndpi_struct == NULL) ||
+      (proto_id >= ndpi_get_num_protocols(ndpi_struct)) ||
+      ((defaults = ndpi_get_proto_defaults(ndpi_struct)) == NULL))
+    return (false);
+
+  for (int i = 0; i < MAX_DEFAULT_PORTS; i++) {
+    const ndpi_port_range* range =
+        tcp ? &defaults[proto_id].tcp_default_ports[i]
+            : &defaults[proto_id].udp_default_ports[i];
+
+    if ((range->port_low != 0) && (port >= range->port_low) &&
+        (port <= range->port_high))
+      return (true);
+  }
+
+  return (false);
+}
+
+/* ****************************************************** */
+
 u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder,
                            int32_t offset_from_utc) {
   /* Align result to rounder. Operations intrinsically work in UTC. */
