@@ -1165,9 +1165,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #endif
 
   void getFlowsStatus(lua_State* vm);
-  inline void incDBNumDroppedFlows(FlowDB* actual_db, u_int num = 1) {
-    if (actual_db) actual_db->incNumDroppedFlows(num);
-  };
 #ifdef NTOPNG_PRO
   void updateBehaviorStats(const struct timeval* tv);
 
