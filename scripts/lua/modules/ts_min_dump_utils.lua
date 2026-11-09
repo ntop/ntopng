@@ -481,6 +481,18 @@ function ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
     }, when)
 end
 
+-- Syslog messages received by the collector
+function ts_dump.iface_update_syslog_stats(when, ifstats, verbose)
+    local db = ifstats.stats.db
+    if not db or db.syslog_received == nil then return end
+
+    ts_utils.append("iface:syslog_messages", {
+        ifid = ifstats.id,
+        received = db.syslog_received,
+        stored = db.syslog_export_count or 0
+    }, when)
+end
+
 function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
     ts_utils.append("iface:tcp_stats", {
         ifid = ifstats.id,
@@ -717,6 +729,8 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     if config.is_dump_flows_enabled and ifstats.isFlowDumpDisabled == false then
         ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
     end
+
+    ts_dump.iface_update_syslog_stats(when, ifstats, verbose)
 
     if not ifstats.has_seen_ebpf_events and not ifstats.isSampledTraffic then
         ts_dump.iface_update_tcp_flags(when, ifstats, verbose)

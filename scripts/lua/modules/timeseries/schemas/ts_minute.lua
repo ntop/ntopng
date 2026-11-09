@@ -600,6 +600,16 @@ schema:addMetric("dropped_flows")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:syslog_messages", {
+   step = 60,
+   is_critical_ts = true
+})
+schema:addTag("ifid")
+schema:addMetric("received")
+schema:addMetric("stored")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:hosts_anomalies", {
    step = 60,
    is_critical_ts = true
