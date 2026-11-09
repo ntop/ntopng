@@ -58,8 +58,10 @@ Each row is an event, newest first:
   traffic, it shows the flow (connection) where it has been seen.
 
 By default the last month is shown: choose another time interval with the
-selector above the table and click *Apply*. The table can be searched, and the
-columns shown can be chosen with the eye icon.
+selector above the table and click *Apply*. The table can be searched (the
+IP of the asset, the user, the action, the subaction and the values of the
+event), and the columns shown can be
+chosen with the eye icon.
 
 The tabs are enabled only when the journal is enabled (see above): otherwise
 they are disabled, and a tooltip says how to enable it. Without an Enterprise L
