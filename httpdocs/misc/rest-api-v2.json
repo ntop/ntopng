@@ -16065,11 +16065,46 @@
             "description": "Only the entries about this subaction (e.g. os, tag, mac)",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Offset of the first entry of the page (default: 0)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Number of entries of the page (default: all the entries)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Column to sort by: event_time (default), created_time, asset, action, subaction, who",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order: asc or desc (default)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Free text (case insensitive): key (IP of the asset), who, action, subaction and message of the entries",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
           "0": {
-            "description": "OK"
+            "description": "OK: the entries of the page in rsp, the number of the entries matching (all the pages) in recordsTotal and recordsFiltered"
           },
           "-2": {
             "description": "INVALID_INTERFACE"

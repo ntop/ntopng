@@ -4,7 +4,7 @@
 	"filters_url": "lua/pro/rest/v2/get/host/assets_journal_filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
-	"paging": false,
+	"paging": true,
 	"display_empty_rows": true,
 	"empty_message_i18n": "table_empty.assets_journal",
 	"default_sort": {
