@@ -60,7 +60,8 @@ if is_light_view then
    rest_utils.answer(rest_utils.consts.success.ok, {
       is_light_view = true,
       can_reset = is_admin,
-      show_alerts = not has_allowed_networks,
+      -- Alwais disabled
+      show_alerts = false, -- not has_allowed_networks,
       timeseries_enabled = areInterfaceTimeseriesEnabled(ifid),
       exports = export_backends(),
       export_enabled = prefs.is_dump_flows_runtime_enabled or false,
