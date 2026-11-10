@@ -30,8 +30,6 @@ bool UnexpectedDHCPServer::isAllowedHost(Flow* f) {
   }
 
   IpAddress* ip = f->get_dhcp_srv_ip_addr();
-  IpAddress* peer =
-      f->isDHCPServerClient() ? f->get_srv_ip_addr() : f->get_cli_ip_addr();
 
   if (ip == NULL || ip->isBroadcastAddress()) {
     return (true);
@@ -43,11 +41,6 @@ bool UnexpectedDHCPServer::isAllowedHost(Flow* f) {
       
   if (ntop->getPrefs()->isServer(HOST_SERVICE_DHCP, ip, 0 /* Check VLAN 0 (no vlan) too */)) {
     /* Backward compatibility - now VLAN configuration is allowed */
-    return (true);
-  }
-
-  if (peer && ntop->getPrefs()->isServer(HOST_SERVICE_DHCP, peer, f->get_vlan_id())) {
-    /* DHCP relay? Relay agent (port 67) talking to a configured DHCP server */
     return (true);
   }
 

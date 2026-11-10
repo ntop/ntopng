@@ -30,6 +30,9 @@ class UnexpectedServer : public FlowCheck {
   void* whitelist_automa;
 
   virtual FlowAlertType getAlertType() const = 0;
+  /* Service of the servers configuration checked by the subclass */
+  virtual HostService getHostService() const = 0;
+  bool isPeerConfiguredServer(Flow* f);
 
  protected:
   virtual bool isAllowedHost(Flow* f) { return (false); }

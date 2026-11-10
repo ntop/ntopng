@@ -24,10 +24,31 @@
 
 /* ***************************************************** */
 
+/* Whether the host asking the server (the other peer of the flow) is a
+ * configured server of the same service: e.g. a local DNS server forwarding
+ * a query to an upstream server, an NTP server syncing with an upstream one, an
+ * SMTP relay or a DHCP relay agent. Such flows are expected */
+bool UnexpectedServer::isPeerConfiguredServer(Flow* f) {
+  const IpAddress* server = getServerIP(f);
+  /* The server is not always the server of the flow: DNS and DHCP override
+   * getServerIP() and return the client of the flow when it is swapped (e.g.
+   * DNS from port 53, DHCP replies or relays). The peer is the other side 
+   * See Flow.h:get_dns_srv_ip_addr */
+  IpAddress* peer =
+      (server == f->get_cli_ip_addr()) ? f->get_srv_ip_addr() : f->get_cli_ip_addr();
+  HostService service = getHostService();
+
+  return (peer &&
+          (ntop->getPrefs()->isServer(service, peer, f->get_vlan_id()) ||
+           ntop->getPrefs()->isServer(service, peer, 0 /* Check for the VLAN 0 (no vlan) too */)));
+}
+
+/* ***************************************************** */
+
 void UnexpectedServer::protocolDetected(Flow* f) {
   if (!isAllowedProto(f)) return;
 
-  if (!isAllowedHost(f)) {
+  if (!isAllowedHost(f) && !isPeerConfiguredServer(f)) {
     FlowAlertType alert_type = getAlertType();
     FlowAlert* alert = buildAlert(f);
     u_int8_t c_score, s_score;

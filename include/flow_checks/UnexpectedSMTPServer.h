@@ -29,6 +29,7 @@ class UnexpectedSMTPServer : public UnexpectedServer {
   FlowAlertType getAlertType() const {
     return UnexpectedSMTPServerAlert::getClassType();
   }
+  HostService getHostService() const { return (HOST_SERVICE_SMTP); }
 
  protected:
   bool isAllowedHost(Flow* f);
