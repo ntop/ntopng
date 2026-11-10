@@ -79,10 +79,17 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_modbus_invalid_transition.format(ifid, alert, alert_type_params)
-   local from = function_code_to_string(alert_type_params.from) or alert_type_params.from or i18n('unknown')
-   local to   = function_code_to_string(alert_type_params.to) or alert_type_params.to or i18n('unknown')
+   local info = alert_type_params
 
-   local rsp = from .. " -> ".. to 
+   -- Notifications carry the alert params nested in alerts[<alert_key>]
+   if not info.from and info.alerts then
+      info = info.alerts[tostring(flow_alert_keys.flow_alert_modbus_invalid_transition)] or info
+   end
+
+   local from = function_code_to_string(info.from) or i18n('unknown')
+   local to   = function_code_to_string(info.to) or i18n('unknown')
+
+   local rsp = i18n("alert_messages.invalid_transition", { from = from, to = to })
 
    -- tprint(alert_type_params)
    

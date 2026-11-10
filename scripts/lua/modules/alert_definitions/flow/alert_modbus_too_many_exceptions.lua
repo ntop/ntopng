@@ -58,7 +58,7 @@ function alert_modbus_too_many_exceptions.format(ifid, alert, alert_type_params)
       info = info.alerts[tostring(flow_alert_keys.flow_alert_modbus_too_many_exceptions)] or info
    end
 
-   local rsp = (info.num_exceptions or i18n("unknown")) .. " Exceptions"
+   local rsp = i18n("alert_messages.too_many_exceptions", { num_exceptions = (info.num_exceptions or i18n("unknown")) })
 
    -- tprint(alert_type_params)
    

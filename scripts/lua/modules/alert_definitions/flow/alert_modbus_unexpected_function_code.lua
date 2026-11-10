@@ -79,9 +79,14 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_modbus_unexpected_function_code.format(ifid, alert, alert_type_params)
-   local rsp = "Function Code '".. function_code_to_string(alert_type_params.function_code) .. "' detected"
+   local info = alert_type_params
 
-   -- tprint(alert_type_params)
+   -- Notifications carry the alert params nested in alerts[<alert_key>]
+   if not info.function_code and info.alerts then
+      info = info.alerts[tostring(flow_alert_keys.flow_alert_modbus_unexpected_function_code)] or info
+   end
+
+   local rsp = i18n("alert_messages.unexpected_function_code", { fun_code = function_code_to_string(info.function_code) })
    
    return(rsp)
 end
