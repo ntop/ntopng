@@ -56,9 +56,9 @@ SyslogParserInterface::~SyslogParserInterface() {
 
 /*
  * Check if log line is in RFC 5424 format
- * <PRIO>VERSION TIMESTAMP HOSTNAME APP-NAME PROCID MSGID [STRUCTURED-DATA] CONTENT
- * Example:
- * <13>1 2026-08-03T15:09:00+02:00 suricata suricata - - CONTENT
+ * <PRIO>VERSION TIMESTAMP HOSTNAME APP-NAME PROCID MSGID [STRUCTURED-DATA]
+ * CONTENT Example: <13>1 2026-08-03T15:09:00+02:00 suricata suricata - -
+ * CONTENT
  */
 bool SyslogParserInterface::isRFC5424Header(const char* log_line) {
   const char *v = log_line, *ts, *ts_end;
@@ -82,9 +82,12 @@ bool SyslogParserInterface::isRFC5424Header(const char* log_line) {
 /* **************************************************** */
 
 /*
- * Parse RFC 5424 header, assuming <PRIO> has already been stripped by the caller.
+ * Parse RFC 5424 header, assuming <PRIO> has already been stripped by the
+ * caller.
  */
-bool SyslogParserInterface::parseRFC5424Header(char* log_line, char** device, char** application, char** content) {
+bool SyslogParserInterface::parseRFC5424Header(char* log_line, char** device,
+                                               char** application,
+                                               char** content) {
   char* tmp;
 
   /* Version */
@@ -174,8 +177,7 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
   }
 
   /* Event parsing */
-  if (log_line == NULL || strlen(log_line) == 0)
-    goto exit;
+  if (log_line == NULL || strlen(log_line) == 0) goto exit;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s",
@@ -195,7 +197,8 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
    * <128>Jan 11 09:57:56 dev-box suricata[3282]: [MESSAGE]
    *
    * Also supported RFC 5424:
-   * <PRIO>VERSION TIMESTAMP HOSTNAME APP-NAME PROCID MSGID {STRUCTURED-DATA} CONTENT
+   * <PRIO>VERSION TIMESTAMP HOSTNAME APP-NAME PROCID MSGID {STRUCTURED-DATA}
+   * CONTENT
    */
 
   /* Look for <PRIO> */
@@ -209,7 +212,7 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
     prio[0] = '\0';
 
     parsed_client_ip = strchr(log_line, ';');
-    
+
     if (parsed_client_ip != NULL) {
       parsed_client_ip++;
       tmp = strchr(parsed_client_ip, ';');
@@ -237,40 +240,54 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
     /* Parse custom Fortinet format */
     producer_name = "fortinet"; /* fortinet detected */
     content = log_line;
-  } else if ((tmp = strstr(log_line, "]: ")) != NULL) {
-    /* Parse APPLICATION[PID]: */
-    content = &tmp[3];
-    tmp[1] = '\0';
-    tmp = strrchr(log_line, '[');
-    if (tmp != NULL) {
-      tmp[0] = '\0';
+  } else {
+    /*
+     * DEVICE: first token after "Mmm dd hh:mm:ss ". Cisco prepends the sender
+     * IP, in that case the device is the next token ("IP NAME: ..." or "IP NAME
+     * TAG:..."). It is NUL-terminated below, after the content/application
+     * cuts.
+     */
+    char *dev_end = NULL, *dev = log_line;
 
-      /* Parse APPLICATION */
-      tmp = strrchr(log_line, ' ');
+    if (strlen(dev) > 16 && dev[3] == ' ' && dev[9] == ':') dev += 16;
+
+    if ((dev_end = strchr(dev, ' ')) != NULL) {
+      if (dev_end > dev &&
+          strspn(dev, "0123456789.") == (size_t)(dev_end - dev) &&
+          dev_end[1] != '%' && dev_end[1] != '\0') {
+        dev = dev_end + 1;
+        dev_end = strchr(dev, ' ');
+      }
+      if (dev_end != NULL && dev_end[-1] == ':') dev_end--;
+    }
+
+    if ((tmp = strstr(log_line, "]: ")) != NULL) {
+      /* Parse APPLICATION[PID]: */
+      content = &tmp[3];
+      tmp[1] = '\0';
+      tmp = strrchr(log_line, '[');
       if (tmp != NULL) {
         tmp[0] = '\0';
-        application = &tmp[1];
 
-        /* Parse DEVICE */
+        /* Parse APPLICATION */
         tmp = strrchr(log_line, ' ');
-        if (tmp != NULL) device = &tmp[1];
+        if (tmp != NULL) {
+          tmp[0] = '\0';
+          application = &tmp[1];
+        }
       }
-    }
-  } else if ((tmp = strstr(log_line, ": ")) != NULL) {
-    /* Parse APPLICATION: */
-    content = &tmp[2];
-    tmp[0] = '\0';
-
-    tmp = strrchr(log_line, ' ');
-    if (tmp != NULL) {
+    } else if ((tmp = strstr(log_line, ": ")) != NULL) {
+      /* Parse APPLICATION: */
+      content = &tmp[2];
       tmp[0] = '\0';
-
-      /* Parse DEVICE */
-      tmp = strrchr(log_line, ' ');
-      if (tmp != NULL) device = &tmp[1];
+    } else { /* Ignore ':' as last resort  */
+      content = (dev_end != NULL) ? dev_end + 1 : log_line;
     }
-  } else { /* Ignore ':' as last resort  */
-    content = log_line;
+
+    if (dev_end > dev && dev_end < content) {
+      *dev_end = '\0';
+      device = dev;
+    }
   }
 
   num_total_events++;
@@ -320,10 +337,10 @@ detect_producer:
 #ifdef NTOPNG_PRO
   /* Without <PRIO> (e.g. JSON) use the RFC 3164 default <13> (user.notice) */
   dumpSyslogEntry(producer_name, content,
-		  parsed_client_ip ? parsed_client_ip : client_ip,
-		  device, prio ? atoi(prio) : 13);
+                  parsed_client_ip ? parsed_client_ip : client_ip, device,
+                  prio ? atoi(prio) : 13);
 #endif
-  
+
 exit:
   incSyslogStats(num_total_events, num_malformed, 0, 0, 0, 0, 0);
   return 0;

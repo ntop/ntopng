@@ -2630,6 +2630,8 @@ local known_parameters = {
    ["syslog_hostname"] = validateMessage,
    ["syslog_app_name"] = validateMessage,
    ["syslog_facility"] = validateMessage,
+   ["syslog_facet_id"] = validateChoiceInline({"severity", "ip", "hostname", "app_name", "facility"}),
+   ["syslog_facet_search"] = validateMessage,
 
    -- WAZUH Alert Rules / Alert Exceptions (private config)
    ["wazuh_rule_id"] = validateSingleWord,

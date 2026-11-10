@@ -13028,6 +13028,13 @@ local lang = {
     ["severity_hint"] = "The rule matches messages with this severity or a more severe one (e.g. Warning matches Emergency to Warning); Debug matches any severity. Only messages matching at least one enabled rule are stored; when no rule is enabled all messages are stored.",
     ["write_failed"] = "Unable to write to the database",
   },
+  ["facet_cards"] = {
+    ["no_match"] = "No value matches",
+    ["search_placeholder"] = "Search values",
+    ["clear_search"] = "Clear search",
+    ["show_less"] = "Show less",
+    ["show_more"] = "Show more (%{count})",
+  },
   ["syslog_events"] = {
     ["details_title"] = "Syslog Message Details",
     ["stats_link"] = "Message statistics",
