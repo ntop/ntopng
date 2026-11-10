@@ -28,7 +28,7 @@
 		{
 			"id": "name",
 			"data_field": "name",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "160px",
 			"class": [
 				"text-nowrap"

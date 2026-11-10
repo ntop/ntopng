@@ -89,7 +89,24 @@ Keep `CONTEXT.md` under 20 lines total. Do NOT summarize the full conversation â
 
 ## Frontend conventions (Vue pages in `pro/http_src/vue`)
 
+- **Plain strings in code are forbidden** (see `pro/.claude/rules/code-style.md`): dictionaries/enums hold full i18n keys (`label_i18n`, `tooltip_i18n`), never texts or keys built by concatenation.
 - Never write plain strings in the UI (templates, toasts, tooltips, table titles, chart messages): add every string to `scripts/locales/en.lua` (under the page namespace, e.g. `traffic_model.*`) and read it with `i18n()`. Table JSON definitions use `title_i18n`, `label_i18n`, `*_tooltip_i18n`. Dynamic values use `%{name}` placeholders, replaced in JS.
 - Put all the static dictionaries and enums (ids, status/style maps, option lists, URLs, constants) together at the very beginning of the `<script setup>` block, as the single source of truth of the page. Labels are derived from i18n keys, never repeated next to the dictionary. See `page-traffic-model.vue`.
 - Show results and errors of an action with the toast (`useToast().show()` from `utilities/toast-store.js`, stack mounted in `app-shell.vue`), not with inline bootstrap alert banners.
 
+
+## Reuse before writing
+
+Reuse before writing: never add a custom/from-scratch helper (JSON pretty-print, markdown, escaping,
+formatting, parsing...) when the platform (`JSON.stringify`, `Intl`, ...), an installed library
+(markdown-it/`renderMarkdown`, highlight.js, DOMPurify...) or an existing ntopng util already does it.
+Grep the codebase and `package.json` first.
+
+## Code style (all code, all users, all agents)
+
+Read `pro/.claude/rules/code-style.md` before writing or reviewing any code. In short: simple and
+explicit code in the style of `pro/attic/http_src/vue/page-alerts-geomap.vue`; no boilerplate; no
+custom aliases/wrappers of existing functions (use `i18n(...)` directly, not `T(...)`); reuse existing
+utilities/components or extend them so every page benefits; nothing hardcoded (constants, i18n keys,
+standard `httpdocs/tables_config` table definitions); do not post-process in Lua/JS what the database
+already returns; clean indentation, descriptive names, no dead code.
