@@ -39,12 +39,12 @@ The number of tools grows sharply with the edition:
 |                 |       |            | ``list_networks``); ``chart`` limited to **pie**    |
 |                 |       |            | and **line** chart types                            |
 +-----------------+-------+------------+----------------------------------------------------+
-| Enterprise L    | +8    | 24         | Host alert-exclusion; multi-probe / infrastructure  |
+| Enterprise L    | +9    | 25         | Host alert-exclusion; multi-probe / infrastructure  |
 |                 |       |            | tools (flow exporters, observation points, infra    |
 |                 |       |            | stats, top exporter interfaces); asset DB; flow     |
-|                 |       |            | ACL; site Sankey                                    |
+|                 |       |            | ACL; site Sankey; ``add_expected_server``           |
 +-----------------+-------+------------+----------------------------------------------------+
-| Enterprise XL   | +31   | 55         | Everything else: live host inspection; historical   |
+| Enterprise XL   | +31   | 56         | Everything else: live host inspection; historical   |
 | (and up)        |       |            | flow; timeseries; protocol lookup; SNMP device      |
 |                 |       |            | inventory; the remaining chart types (bar, bubble,  |
 |                 |       |            | heatmap) and the Sankey / chord / geomap artifacts; |
@@ -155,6 +155,10 @@ Tool reference
      - Execute arbitrary ClickHouse SQL against ntopng tables
      - Enterprise M
      - read-only, clickhouse
+   * - ``add_expected_server``
+     - Add an IP to the approved servers of a type (DNS/NTP/DHCP/...)
+     - Enterprise L
+     - write
    * - ``add_host_alert_exclusion``
      - Suppress alerts for a host IP (reason mandatory)
      - Enterprise L

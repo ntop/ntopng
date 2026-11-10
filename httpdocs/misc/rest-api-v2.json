@@ -745,6 +745,28 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/syslog/stats.lua": {
+      "get": {
+        "tags": [
+          "Syslog"
+        ],
+        "summary": "Get the syslog message counters",
+        "description": "Counters since ntopng started, summed over the syslog interfaces: messages received by the collector and messages stored in ClickHouse. The history is the iface:syslog_messages timeseries. Enterprise XL, administrators only.",
+        "operationId": "get_syslog_stats",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK. rsp: { received, stored, ifids: [interfaces with the counters] }"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (Enterprise XL, administrators only)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/wazuh/alerts.lua": {
       "get": {
         "tags": [

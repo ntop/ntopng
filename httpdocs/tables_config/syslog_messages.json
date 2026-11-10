@@ -12,6 +12,23 @@
 	},
 	"columns": [
 		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": ["text-nowrap", "text-center"],
+			"render_v_node_type": "button_auto",
+			"button_def_array": [
+				{
+					"id": "info",
+					"icon": "fa-solid fa-magnifying-glass-plus",
+					"title_i18n": "info",
+					"class": [],
+					"event_id": "click_button_info"
+				}
+			]
+		},
+		{
 			"title_i18n": "syslog_events.time",
 			"data_field": "ts",
 			"sortable": true,
@@ -58,6 +75,7 @@
 			"data_field": "message",
 			"sortable": true,
 			"min-width": "400px",
+			"auto_max_width": false,
 			"class": ["text-break"]
 		}
 	]

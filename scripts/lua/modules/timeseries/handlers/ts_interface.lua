@@ -403,6 +403,24 @@ local timeseries_list = {{
 	 }
       }
 											      }, {
+      schema = "iface:syslog_messages",
+      id = timeseries_id,
+      label = i18n("graphs.syslog_messages"),
+      description = i18n("graphs.metric_descr.iface_syslog_messages"),
+      priority = 0,
+      measure_unit = "number",
+      scale = i18n('graphs.metric_labels.messages'),
+      timeseries = {
+	 received = {
+            label = i18n('graphs.syslog_received'),
+            color = ts_gui_utils.get_timeseries_color('flows')
+	 },
+	 stored = {
+            label = i18n('graphs.syslog_stored'),
+            color = ts_gui_utils.get_timeseries_color('flows')
+	 }
+      }
+											      }, {
       schema = "iface:zmq_recv_flows",
       id = timeseries_id,
       label = i18n("graphs.zmq_received_flows"),
