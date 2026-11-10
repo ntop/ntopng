@@ -23528,6 +23528,99 @@
         }
       }
     },
+    "/lua/pro/rest/v2/edit/issue/group.lua": {
+      "post": {
+        "tags": [
+          "Issues"
+        ],
+        "summary": "Apply an action to a group of issues",
+        "description": "Applies the same user action to all the issues matching the filters of get/issue/list.lua (e.g. the params of a group of get/issue/groups.lua), written once. The issues the action does not apply to (e.g. resolve on a resolved issue) are skipped and counted in skipped by error id (not_found, not_open, not_resolved, newer_issue_open). An optional comment is added to each changed issue; with action comment only the comment is added, to all the matching issues. The changes are written in batches of 500. A group larger than the maximum number of open issues (preference issues_max_open, 50000 by default, as resolve_all.lua) is refused (error too_many, rsp.max), never changed in part. POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "operationId": "edit_issue_group",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "formData",
+            "description": "The action: acknowledge, assign, suppress, severity, resolve, reopen or comment",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "acknowledge",
+              "assign",
+              "suppress",
+              "severity",
+              "resolve",
+              "reopen",
+              "comment"
+            ]
+          },
+          {
+            "name": "issue_assignee",
+            "in": "formData",
+            "description": "assign: comma-separated users, empty to unassign (assignee is the filter of the issues)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "duration",
+            "in": "formData",
+            "description": "suppress: seconds, 0 to remove the suppression",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "issue_severity",
+            "in": "formData",
+            "description": "severity: 3=notice, 4=warning, 5=error, 6=critical, 8=emergency (severity is the filter of the issues)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "comment",
+            "in": "formData",
+            "description": "Comment added to each changed issue (max 4096 characters), required with action comment",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "view",
+            "in": "formData",
+            "description": "problems (default), recent or history (with epoch_begin, epoch_end)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "formData",
+            "description": "Filter: IP or IP@VLAN. The other filters of get/issue/list.lua (problem, severity, entity_id, alert_category, mitre_tactic, assignee, tag, suppressed, resolve_policy, issue_peer, issue_entity, opened_within) are accepted too",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: { matched (issues of the group), done (issues changed), skipped (error id -> number of issues) }"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (not Enterprise XXL+, alerts disabled or Issues preference off)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.error too_many: more than rsp.max issues)"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (the comment could not be written)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/edit/issue/severity.lua": {
       "post": {
         "tags": [
