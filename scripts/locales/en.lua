@@ -7456,6 +7456,7 @@ local lang = {
   },
   ["flow_details_views"] = {
     ["needs_enterprise_l"] = "Needs Enterprise L",
+    ["needs_enterprise_m"] = "Needs Enterprise M",
     ["no_data_historical"] = "This flow was stored without its %{proto} details",
     ["no_data_modbus"] = "No %{proto} messages decoded yet for this flow",
     ["no_data_nprobe"] = "No %{proto} details: they are exported by nProbe, for the flows it collects (not for the traffic captured by ntopng)",
@@ -8393,6 +8394,10 @@ local lang = {
   },
   ["host_details_views"] = {
     ["alerts_disabled"] = "Alerts are disabled: enable them in the preferences",
+    ["intro_icmp"] = "ICMP messages sent and received by this host, with the last peers and the packets.",
+    ["intro_listening_ports"] = "Ports this host listens on, with process and package, as reported by the nProbe agent on the host.",
+    ["intro_sites"] = "Web sites visited by this host in the time range, with the number of contacts and their share.",
+    ["no_dns"] = "No DNS traffic seen for this host",
     ["more_actions"] = "More actions",
     ["needs_enterprise_m"] = "Needs Enterprise M",
     ["needs_pro"] = "Needs ntopng Pro",

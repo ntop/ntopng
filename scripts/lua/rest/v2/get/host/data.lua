@@ -362,6 +362,11 @@ end
 
 -- Select the specified network interface for subsequent operations
 interface.select(ifid)
+if tostring(interface.getId()) ~= tostring(ifid) then
+   -- interface.select falls back to the interface the user is allowed to see
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
+   return
+end
 
 -- Retrieve host information from ntopng monitoring engine
 -- Parameters: host IP address, VLAN ID (optional, defaults to 0)

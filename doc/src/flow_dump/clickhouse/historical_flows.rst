@@ -67,7 +67,17 @@ Historical flows data can be also accessed from the `Historical Charts`_ .
 Details
 -------
 
-By clicking the info button on an flow (inside the action button) the details of the flow will be displayed
+By clicking the info button of a flow (inside the action button) its details open in a side panel next
+to the table; the expand icon of the panel opens them as a full page. The details show the hosts and
+ports (click them to search the historical flows of that host, port, application or AS), the protocol,
+when the flow started and ended, its traffic in each direction, network quality, latencies, TCP flags,
+the issues with their score, MITRE ATT&CK technique and remediation guide, and the information of the
+application protocol (DNS, HTTP, TLS, ICMP...).
+
+Flows of industrial protocols (Modbus, S7Comm, Profinet: Enterprise L), flows with BGP information and,
+when high resolution timeseries are enabled, the charts of the flow have their own tabs next to
+*Overview*. The tab of an industrial protocol is greyed out when the flow was stored without its
+details: move the mouse over it to see why.
 
 .. figure:: ../../img/historical_flow_details.png
   :align: center

@@ -48,13 +48,14 @@ end
 
 -- ##############################################
 
-local function get_default_tags_table()
+-- no_i18n: the built-in tags carry their i18n key (name_i18n) instead of the name (i18n loads the locale)
+local function get_default_tags_table(no_i18n)
     local tags = {}
 
     -- Bits 0-31: ntop built-in tags (read-only, auto-assigned by ntopng)
     for id, entry in pairs(tag_badge_utils.builtin_tags) do
-        local name = i18n(entry.i18n)
-        if name == nil then
+        local name = (not no_i18n) and i18n(entry.i18n) or nil
+        if name == nil and not no_i18n then
             traceError(TRACE_WARNING, TRACE_CONSOLE,
                 "tag_badge_utils: i18n key not found: " .. entry.i18n)
         end
@@ -63,6 +64,7 @@ local function get_default_tags_table()
             color       = "#0d6efd",
             description = "",
             name        = name,
+            name_i18n   = no_i18n and entry.i18n or nil,
             reserved    = "true",
             protocols   = {},
             risks       = {},
@@ -126,9 +128,9 @@ end
 
 -- ##############################################
 
-local function get_tags()
+local function get_tags(no_i18n)
     local json = require "dkjson"
-    local tags = get_default_tags_table()
+    local tags = get_default_tags_table(no_i18n)
     local existing_tags = get_tags_from_cache()
     for _, tag_json in pairs(existing_tags) do
         local tag = json.decode(tag_json)
@@ -173,8 +175,9 @@ end
 -- ##############################################
 
 -- Returns all the tags
-function tag_badge_utils.getTags()
-    local tags = get_tags()
+-- no_i18n: see get_default_tags_table (for the REST, the page translates name_i18n)
+function tag_badge_utils.getTags(no_i18n)
+    local tags = get_tags(no_i18n)
 
     local result = {}
     for _,tag in pairs(tags) do

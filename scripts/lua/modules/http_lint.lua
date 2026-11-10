@@ -586,12 +586,6 @@ local function validateAlertValue(value)
    return validateEmpty(value) or validateNumber(value) or validateOnOff(value)
 end
 
-local function validateHttpMode(mode)
-   local modes = {"responses", "queries"}
-
-   return validateChoice(modes, mode)
-end
-
 local function validateEBPFData(mode)
    local modes = {"categories", "breeds", "applications", "processes"}
 
@@ -2192,7 +2186,11 @@ local known_parameters = {
    -- NAVIGATION
    ["gui"] = validateBool, -- Return data in html format (backward compatibility)
    ["page"] = validateSingleWord, -- Currently active subpage tab
-   ["capture_output"] = validateBool, -- Return the rendered table HTML as JSON instead of the full page (used by the flow-details card)
+   ["category_id"] = validateNumber, -- rest/v2/add/category/host_rule.lua: nDPI category id
+   ["application_id"] = validateNumber, -- rest/v2/add/category/host_rule.lua: nDPI application id
+   ["bgp"] = validateBool, -- rest/v2/get/flow/live/overview.lua: also the BGP info of the flow
+   ["llm"] = validateBool, -- rest/v2/get/flow/historical/overview.lua: also the flow for the nAnalyst assistant
+   ["counters"] = validateBool, -- Detail pages overview REST: only the live counters (polling)
    ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
    ["template"] = validateSingleWord, -- Currently selected template
    ["template_name"] = validateUnquoted,
@@ -3164,7 +3162,6 @@ local known_parameters = {
    ["host_stats_flows"] = validateBool, -- True if host_get_json should return statistics regarding host flows
    ["showall"] = validateBool, -- report.lua
    ["addvlan"] = validateBool, -- True if VLAN must be added to the result
-   ["http_mode"] = validateHttpMode, -- HTTP mode for host_http_breakdown.lua
    ["refresh"] = validateNumber, -- top flow refresh in seconds, index.lua
    ["always_show_hist"] = validateBool, -- host_details.lua
    ["host_stats"] = validateBool, -- host_get_json
