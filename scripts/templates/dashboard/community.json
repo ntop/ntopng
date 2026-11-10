@@ -5,6 +5,8 @@
 		{
 			"component" : "sankey",
 			"id" : "top_flow_talkers",
+			"time_reference" : "live",
+			"metric" : "volume",
 			"i18n_name" : "index_page.top_flow_talkers",
 			"width" : 6,
 			"height" : 4,
@@ -16,6 +18,8 @@
 		{
 			"component" : "pie",
 			"id" : "top_hosts",
+			"time_reference" : "live",
+			"metric" : "volume",
 			"i18n_name" : "top_hosts.top_hosts",
 			"width" : 6,
 			"height" : 4,
@@ -28,6 +32,8 @@
 		{
 			"component" : "pie",
 			"id" : "top_l7_proto",
+			"time_reference" : "live",
+			"metric" : "flows",
 			"i18n_name" : "top_l7_proto",
 			"width" : 6,
 			"height" : 4,
@@ -43,6 +49,8 @@
 		{
 			"component" : "pie",
 			"id" : "traffic_classification",
+			"time_reference" : "since_startup",
+			"metric" : "volume",
 			"i18n_name" : "classification",
 			"width" : 6,
 			"height" : 4,

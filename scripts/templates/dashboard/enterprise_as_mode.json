@@ -111,6 +111,8 @@
 		{
 			"component" : "pie",
 			"id" : "top_l7_proto",
+			"time_reference" : "live",
+			"metric" : "flows",
 			"i18n_name" : "top_l7_proto",
 			"width" : 4,
 			"height" : 4,
@@ -130,6 +132,8 @@
 		{
 			"component" : "pie",
 			"id" : "traffic_classification",
+			"time_reference" : "since_startup",
+			"metric" : "volume",
 			"i18n_name" : "dashboard.classification",
 			"width" : 4,
 			"height" : 4,
@@ -149,6 +153,8 @@
 		{
 			"component": "pie",
 			"id": "traffic_role_distribution",
+			"time_reference": "since_startup",
+			"metric": "volume",
 			"i18n_name": "if_stats_overview.traffic_role_distribution",
 			"width": 4,
 			"height": 4,
@@ -162,6 +168,8 @@
         {
 			"component" : "top-timeseries",
 			"id" : "top_active_asn",
+			"time_reference" : "time_window",
+			"metric" : "throughput",
 			"i18n_name" : "graphs.top_customer_asn",
             "time_window" : "day",
 		    "time_offset" : "",
@@ -188,6 +196,8 @@
 		{
 			"component" : "pie",
 			"id" : "top_ix_exporters_interfaces",
+			"time_reference" : "since_startup",
+			"metric" : "volume",
 			"i18n_name" : "dashboard.asn_dashboard.top_ix_exporter_interfaces",
 			"width" : 4,
 			"height" : 4,
@@ -204,6 +214,8 @@
         {
 			"component" : "pie",
 			"id" : "top_peering_exporters_interfaces",
+			"time_reference" : "since_startup",
+			"metric" : "volume",
 			"i18n_name" : "dashboard.asn_dashboard.top_peering_exporter_interfaces",
 			"width" : 4,
 			"height" : 4,
@@ -220,6 +232,8 @@
         {
 			"component" : "pie",
 			"id" : "top_transit_exporters_interfaces",
+			"time_reference" : "since_startup",
+			"metric" : "volume",
 			"i18n_name" : "dashboard.asn_dashboard.top_transit_exporter_interfaces",
 			"width" : 4,
 			"height" : 4,

@@ -3,6 +3,7 @@
 	"widgets" : [
 	{
 		"id" : "top_l7_categories",
+		"metric" : "volume",
 		"component" : "pie",
 		"i18n_name" : "top_l7_cat",
 		"i18n_descr" : "top_l7_cat",
@@ -26,6 +27,7 @@
 	},
 	{
 		"id" : "top_l7_proto",
+		"metric" : "volume",
 		"component" : "pie",
 		"i18n_name" : "top_l7_proto",
 		"i18n_descr" : "top_l7_proto",
@@ -49,6 +51,7 @@
 	},
 	{
 		"id" : "top_l4_proto",
+		"metric" : "volume",
 		"component" : "pie",
 		"i18n_name" : "top_l4_proto",
 		"i18n_descr" : "top_l4_proto",
@@ -72,6 +75,7 @@
 	},
 	{
 		"id" : "top_local_talkers",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_local_hosts",
 		"i18n_descr" : "report.top_local_hosts",
@@ -99,6 +103,7 @@
 	},
 	{
 		"id" : "top_remote_hosts",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_remote_hosts",
 		"i18n_descr" : "report.top_remote_hosts",
@@ -126,6 +131,7 @@
 	},
 	{
 		"id" : "top_clients",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "db_search.top_clients",
 		"i18n_descr" : "db_search.top_clients",
@@ -153,6 +159,7 @@
 	},
 	{
 		"id" : "top_servers",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "db_search.top_servers",
 		"i18n_descr" : "db_search.top_servers",
@@ -180,6 +187,7 @@
 	},
 	{
 		"id" : "top_receiver_networks",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_receiver_networks",
 		"i18n_descr" : "report.top_receiver_networks",
@@ -207,6 +215,7 @@
 	},
 	{
 		"id" : "top_sender_networks",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_sender_networks",
 		"i18n_descr" : "report.top_sender_networks",
@@ -234,6 +243,7 @@
 	},
 	{
 		"id" : "top_receiver_as",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_receiver_as",
 		"i18n_descr" : "report.top_receiver_as",
@@ -261,6 +271,7 @@
 	},
 	{
 		"id" : "top_sender_as",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_sender_as",
 		"i18n_descr" : "report.top_sender_as",
@@ -288,6 +299,7 @@
 	},
 	{
 		"id" : "top_receiver_countries",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_receiver_countries",
 		"i18n_descr" : "report.top_receiver_countries",
@@ -315,6 +327,7 @@
 	},
 	{
 		"id" : "top_sender_countries",
+		"metric" : "volume",
 		"component" : "table",
 		"i18n_name" : "report.top_sender_countries",
 		"i18n_descr" : "report.top_sender_countries",
@@ -342,6 +355,7 @@
 	},
 	{
 		"id" : "traffic_chart",
+		"metric" : "throughput",
 		"component" : "timeseries",
 		"i18n_name" : "interface_traffic",
 		"i18n_descr" : "interface_traffic",
@@ -366,6 +380,7 @@
 	},
 	{
 		"id" : "top_alerted_hosts",
+		"metric" : "alerts",
 		"component" : "pie",
 		"i18n_name" : "top_alerted_hosts",
 		"i18n_descr" : "top_alerted_hosts",

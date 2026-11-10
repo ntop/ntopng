@@ -2833,6 +2833,7 @@ local lang = {
     ["top_remote_destinations"] = "Top Destinazioni Remote",
     ["top_remote_hosts"] = "I migliori host remoti",
     ["traffic_dashboard"] = "Dashboard di Traffico",
+    ["updated_at"] = "Aggiornato alle %{time}",
     ["waiting_assets_discovery"] = "In attesa che le risorse vengano rilevate sulla rete...",
     ["asn_dashboard"] = {
       ["top_ix_exporter_interfaces"] = "Principali interfacce di esportazione IX",
@@ -2844,6 +2845,15 @@ local lang = {
       ["large"] = "Grande",
       ["medium"] = "Medio",
       ["small"] = "Piccolo",
+    },
+    ["metric"] = {
+      ["alerts"] = "Allarmi",
+      ["devices"] = "Dispositivi",
+      ["flows"] = "Flussi",
+      ["latency"] = "Latenza",
+      ["throughput"] = "Throughput",
+      ["uptime"] = "Uptime",
+      ["volume"] = "Volume",
     },
     ["time_ago"] = {
       ["12_hours"] = "12 ore fa",
@@ -2872,6 +2882,11 @@ local lang = {
       ["now"] = " ",
       ["week"] = "-1 settimana",
       ["year"] = "-1 anno",
+    },
+    ["time_reference"] = {
+      ["last"] = "Ultimi %{time}",
+      ["live"] = "Live",
+      ["since_startup"] = "Dall'avvio",
     },
     ["time_window_list"] = {
       ["12_hours"] = "12 ore",

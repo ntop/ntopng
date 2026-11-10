@@ -64,6 +64,8 @@
 		{
 			"component" : "timeseries",
 			"id" : "traffic_chart",
+			"time_reference" : "time_window",
+			"metric" : "throughput",
 			"i18n_name" : "interfaces_traffic",
 			"width" : 12,
 			"height" : 4,
@@ -88,6 +90,8 @@
 		{
 			"component" : "table",
 			"id" : "top_local_talkers",
+			"time_reference" : "live",
+			"metric" : "throughput",
 			"i18n_name" : "report.top_local_hosts",
 			"width" : 6,
 			"height" : 4,
@@ -106,6 +110,8 @@
 		{
 			"component" : "table",
 			"id" : "top_remote_destinations",
+			"time_reference" : "live",
+			"metric" : "throughput",
 			"i18n_name" : "report.top_remote_hosts",
 			"width" : 6,
 			"height" : 4,
@@ -122,6 +128,8 @@
 		{
 			"component" : "pie",
 			"id" : "top_l7_proto",
+			"time_reference" : "live",
+			"metric" : "flows",
 			"i18n_name" : "top_l7_proto",
 			"width" : 6,
 			"height" : 4,
@@ -137,6 +145,8 @@
 		{
 			"component" : "pie",
 			"id" : "top_hosts",
+			"time_reference" : "live",
+			"metric" : "volume",
 			"i18n_name" : "top_hosts.top_hosts",
 			"width" : 6,
 			"height" : 4,

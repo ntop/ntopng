@@ -36,6 +36,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_alerted_hosts",
+		"metric" : "alerts",
 		"i18n_name" : "top_alerted_hosts",
 		"width" : 12,
 		"height" : 4,
@@ -52,6 +53,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_mitre_id",
+		"metric" : "alerts",
 		"i18n_name" : "report.top_mitre_id_flows",
 		"width" : 6,
 		"height" : 4,
@@ -68,6 +70,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_mitre_id",
+		"metric" : "alerts",
 		"i18n_name" : "report.top_mitre_id_hosts",
 		"width" : 6,
 		"height" : 4,
@@ -84,6 +87,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_mitre_tactic",
+		"metric" : "alerts",
 		"i18n_name" : "report.top_mitre_tactic_flows",
 		"width" : 6,
 		"height" : 4,
@@ -100,6 +104,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_mitre_tactic",
+		"metric" : "alerts",
 		"i18n_name" : "report.top_mitre_tactic_hosts",
 		"width" : 6,
 		"height" : 4,
@@ -116,6 +121,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_mitre_technique",
+		"metric" : "alerts",
 		"i18n_name" : "report.top_mitre_technique_flows",
 		"width" : 6,
 		"height" : 4,
@@ -132,6 +138,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_mitre_technique",
+		"metric" : "alerts",
 		"i18n_name" : "report.top_mitre_technique_hosts",
 		"width" : 6,
 		"height" : 4,
