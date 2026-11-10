@@ -156,7 +156,8 @@ function M.get_sections(flags)
                 off_value = "1",
                 to_switch = {"toggle_emit_flow_alerts", "toggle_emit_host_alerts", "max_entity_alerts",
                              "max_num_secs_before_delete_alert", "alert_page_refresh_rate_enabled",
-                             "toggle_issues", "issues_min_severity", "issues_max_open"}
+                             "toggle_issues", "issues_min_severity", "issues_max_open",
+                             "issues_reopen_window"}
             }, {
                 -- Issues (Enterprise XXL+, experimental): off by default
                 key = "toggle_issues",
@@ -167,7 +168,7 @@ function M.get_sections(flags)
                 default = "0",
                 on_value = "1",
                 off_value = "0",
-                to_switch = {"issues_min_severity", "issues_max_open"},
+                to_switch = {"issues_min_severity", "issues_max_open", "issues_reopen_window"},
                 locked = lock_enterprise_xxl
             }, {
                 -- Issues: minimum severity (AlertLevel) of the alerts opening issues
@@ -197,6 +198,25 @@ function M.get_sections(flags)
                 attrs = {
                     min = "100",
                     max = "1000000"
+                },
+                locked = lock_enterprise_xxl
+            }, {
+                -- Issues: a signal within it after the resolution reopens the issue, instead
+                -- of opening a new one. Stored in seconds, shown in minutes.
+                -- NOTE: keep default and range in sync with ntop_defines.h
+                -- CONST_DEFAULT_ISSUES_REOPEN_WINDOW, CONST_MIN_/CONST_MAX_ISSUES_REOPEN_WINDOW
+                key = "issues_reopen_window",
+                title = i18n("prefs.issues_reopen_window_title"),
+                description = i18n("prefs.issues_reopen_window_description"),
+                type = "input",
+                input_type = "number",
+                redis_key = "ntopng.prefs.issues_reopen_window",
+                default = "60",
+                display_multiplier = 60,
+                unit = i18n("metrics.minutes"),
+                attrs = {
+                    min = "5",
+                    max = "1440"
                 },
                 locked = lock_enterprise_xxl
             }, {

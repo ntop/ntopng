@@ -248,7 +248,8 @@ end
 -- Issues: apply at once (the in-memory preferences are otherwise reloaded within a few
 -- seconds) and register the recipients again, as those delivering issues receive the
 -- alerts while the issues are disabled
-if (entry_key == "issues_min_severity") or (entry_key == "issues_max_open") then
+if (entry_key == "issues_min_severity") or (entry_key == "issues_max_open") or
+   (entry_key == "issues_reopen_window") then
    ntop.reloadPreferences()
 elseif entry_key == "toggle_issues" then
    package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
