@@ -34,12 +34,11 @@ bool SyslogCollectorInterface::openSocket(syslog_socket* ss,
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "Starting %s syslog collector on %s:%d",
-      protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting %s syslog collector on %s:%d",
+			       protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
 
   ss->sock =
-      Utils::openSocket(AF_INET, protocol, 0, "SyslogCollectorInterface");
+    Utils::openSocket(AF_INET, protocol, 0, "SyslogCollectorInterface");
 
   if (ss->sock < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "socket error");
@@ -78,9 +77,8 @@ bool SyslogCollectorInterface::openSocket(syslog_socket* ss,
     memset(tcp_connections, 0, sizeof(tcp_connections));
   }
 
-  ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "Accepting %s connections on %s:%d",
-      protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Accepting %s connections on %s:%d",
+			       protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
 
   return true;
 }
@@ -100,7 +98,7 @@ void SyslogCollectorInterface::closeSocket(syslog_socket* ss, int protocol) {
 /* **************************************************** */
 
 SyslogCollectorInterface::SyslogCollectorInterface(const char* _endpoint)
-    : SyslogParserInterface(_endpoint) {
+  : SyslogParserInterface(_endpoint) {
   char *tmp, *pos, *port, *address, *protocol;
   const char* server_address;
   int server_port;
@@ -196,6 +194,7 @@ int SyslogCollectorInterface::initFDSetsSocket(syslog_socket* ss,
       if (tcp_connections[i].socket != 0) {
         FD_SET(tcp_connections[i].socket, read_fds);
         FD_SET(tcp_connections[i].socket, except_fds);
+	
         if (tcp_connections[i].socket > high_sock)
           high_sock = tcp_connections[i].socket;
       }
@@ -242,7 +241,7 @@ int SyslogCollectorInterface::handleNewConnection() {
   memset(&client_addr, 0, sizeof(client_addr));
 
   new_client_sock =
-      accept(tcp_socket.sock, (struct sockaddr*)&client_addr, &client_len);
+    accept(tcp_socket.sock, (struct sockaddr*)&client_addr, &client_len);
 
   if (new_client_sock < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "accept() failure");
@@ -265,8 +264,8 @@ int SyslogCollectorInterface::handleNewConnection() {
   }
 
   ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "Too many connections. Closing connection from %s:%d",
-      client_ipv4_str, client_addr.sin_port);
+			       TRACE_NORMAL, "Too many connections. Closing connection from %s:%d",
+			       client_ipv4_str, client_addr.sin_port);
 
   close(new_client_sock);
 
@@ -341,7 +340,7 @@ int SyslogCollectorInterface::receive(int socket, char* client_ip,
 #ifndef WIN32
                    (void*)
 #endif
-                       buffer,
+		   buffer,
                    buffer_size,
 #ifndef WIN32
                    MSG_DONTWAIT
@@ -355,13 +354,13 @@ int SyslogCollectorInterface::receive(int socket, char* client_ip,
     /* Read single line to avoid splitting lines across chunks */
     len = recvLine(socket, (char*)buffer, buffer_size);
 #else
-    len = recv(socket, (char*)buffer, buffer_size,
+  len = recv(socket, (char*)buffer, buffer_size,
 #ifndef WIN32
-               MSG_DONTWAIT
+	     MSG_DONTWAIT
 #else
-               0
+	     0
 #endif
-    );
+	    );
 #endif
 
   if (len < 0) {
@@ -396,7 +395,7 @@ int SyslogCollectorInterface::receive(int socket, char* client_ip,
 
   //} while (len > 0);
 
-done:
+ done:
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Total received bytes: %u",
                                received_total);
@@ -532,8 +531,8 @@ void SyslogCollectorInterface::shutdown() {
 
 bool SyslogCollectorInterface::set_packet_filter(char* filter) {
   ntop->getTrace()->traceEvent(
-      TRACE_ERROR, "No filter can be set on a collector interface. Ignored %s",
-      filter);
+			       TRACE_ERROR, "No filter can be set on a collector interface. Ignored %s",
+			       filter);
   return (false);
 }
 

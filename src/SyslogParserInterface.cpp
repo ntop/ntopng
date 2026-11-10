@@ -209,6 +209,7 @@ u_int8_t SyslogParserInterface::parseLog(char* log_line, char* client_ip) {
     prio[0] = '\0';
 
     parsed_client_ip = strchr(log_line, ';');
+    
     if (parsed_client_ip != NULL) {
       parsed_client_ip++;
       tmp = strchr(parsed_client_ip, ';');
