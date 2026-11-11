@@ -24812,7 +24812,7 @@
           "Issues"
         ],
         "summary": "Resolve an issue",
-        "description": "Resolves an open issue (resolution manual). POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "Resolves an open issue (resolution manual), with an optional comment added to its timeline. POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "resolve_issue",
         "consumes": [
           "application/json"
@@ -24828,6 +24828,13 @@
             "required": true,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "comment",
+            "in": "formData",
+            "description": "Comment added to the timeline of the issue when resolved (at most 4096 characters)",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
@@ -24845,6 +24852,9 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS: rsp.error tells why (not_open, not_resolved, newer_issue_open, expired)"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (the issue was resolved, the comment could not be written)"
           }
         }
       }
@@ -24855,7 +24865,7 @@
           "Issues"
         ],
         "summary": "Resolve all the issues matching the filters",
-        "description": "Resolves all the open issues matching the filters of the issue list (view problems; same filters as get/issue/list.lua: entity_id, severity, alert_category, mitre_tactic, problem, assignee, tag, suppressed, resolve_policy, opened_within, map_search, host, issue_entity, issue_peer), as the Resolve All button of the issues page. Each one is resolved as by edit/issue/resolve.lua (resolution manual, recipients notified). Answer: resolved (issues resolved) and matching (issues matching the filters; the others were resolved meantime). POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "Resolves all the open issues matching the filters of the issue list (view problems; same filters as get/issue/list.lua: entity_id, severity, alert_category, mitre_tactic, problem, assignee, tag, suppressed, resolve_policy, opened_within, map_search, host, issue_entity, issue_peer), as the Resolve All button of the issues page. Each one is resolved as by edit/issue/resolve.lua (resolution manual, recipients notified), with the optional comment added to its timeline. Answer: resolved (issues resolved) and matching (issues matching the filters; the others were resolved meantime). POST (JSON or form data, CSRF checked). Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "resolve_all_issues",
         "consumes": [
           "application/json"
@@ -24877,6 +24887,13 @@
             "description": "Comma-separated severity ids (e.g. 4,5); the other filters as in get/issue/list.lua",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "comment",
+            "in": "formData",
+            "description": "Comment added to the timeline of each issue resolved (at most 4096 characters)",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
@@ -24891,6 +24908,9 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS (view other than problems, invalid filters)"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (the issues were resolved, the comment could not be written)"
           }
         }
       }
