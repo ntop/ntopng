@@ -20,6 +20,7 @@ local alert_ndpi_non_pqc_flow = classes.class(alert)
 
 alert_ndpi_non_pqc_flow.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_non_pqc_flow,
+   issue = false, -- hosts are already covered by Obsolete non-PQC Host
    i18n_title = "flow_risk.ndpi_non_pqc_flow",
    icon = "fas fa-fw fa-exclamation",
 
