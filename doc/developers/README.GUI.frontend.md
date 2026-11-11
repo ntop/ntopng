@@ -35,4 +35,4 @@ When adding a new JS or SCSS file, the import of that file should be added in on
 
 (Check `http_src/components/components.js` as an example. The import should be done in the .scss if a new scss file is added or into the .js file if a new .js file is added).
 
-If a new module is added then the import should be done in `assets/third-party-npm.js` (or .scss depending on the import)
+A new external library imported by a Vue component is bundled in `ntopng.js` by that import. A library the legacy Lua pages use through a window global goes in `pro/assets/third-party.js`, its CSS in `pro/assets/third-party.scss`.

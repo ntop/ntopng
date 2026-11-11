@@ -2993,7 +2993,7 @@ static int ntop_is_public_bundle_file(const struct mg_connection *conn, const ch
 }
 
 /* NTOP: true for the build assets with a content hash in the name (e.g.
-   dist/assets/fa-solid-900-B4ZZ7kfP.woff2, see assetFileNames in vite.ntopng.config.js):
+   dist/assets/fa-solid-900-B4ZZ7kfP.woff2, see assetFileNames in pro/build.mjs):
    their content never changes for a given name */
 static int ntop_is_hashed_asset(const char *path) {
   const char *name, *dot, *p;
