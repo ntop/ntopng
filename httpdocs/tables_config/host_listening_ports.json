@@ -1,0 +1,52 @@
+{
+	"id": "host_listening_ports",
+	"data_url": "lua/rest/v2/get/host/processes/listening_ports.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "host_details_views.no_listening_ports",
+	"default_sort": {
+		"column_id": "port",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "tcp_udp",
+			"title_i18n": "tcp_udp",
+			"data_field": "tcp_udp",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "port",
+			"title_i18n": "port",
+			"data_field": "port",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "process",
+			"title_i18n": "process",
+			"data_field": "process",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "package",
+			"title_i18n": "package",
+			"data_field": "package",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

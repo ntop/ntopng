@@ -1191,6 +1191,17 @@ local function format_historical_flow_additional_exporter(exporters, cli_ip, srv
 	return flow_details
 end
 
+-- The graph of the path of a flow across its exporters (nodes and edges), nil with less than 3 nodes
+-- (rest/v2/get/flow/historical/overview.lua)
+function historical_flow_details_formatter.exporters_graph(exporters, cli_ip, srv_ip)
+	for _, row in ipairs(format_historical_flow_additional_exporter(exporters, cli_ip, srv_ip)) do
+		if row.graph then
+			return row.graph
+		end
+	end
+	return nil
+end
+
 -- ###############################################
 
 local function format_historical_flow_rtt(client_nw_latency, server_nw_latency)

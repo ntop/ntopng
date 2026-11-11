@@ -27,6 +27,10 @@ end
 
 if not isEmptyString(_GET["ifid"]) then
    interface.select(_GET["ifid"])
+   if tostring(interface.getId()) ~= tostring(_GET["ifid"]) then
+      rest_utils.answer(rest_utils.consts.err.invalid_interface)
+      return
+   end
 else
    interface.select(ifname)
 end

@@ -29,6 +29,7 @@ class UnexpectedDHCPServer : public UnexpectedServer {
   FlowAlertType getAlertType() const {
     return UnexpectedDHCPServerAlert::getClassType();
   }
+  HostService getHostService() const { return (HOST_SERVICE_DHCP); }
 
  protected:
   bool isAllowedHost(Flow* f);

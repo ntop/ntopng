@@ -38,7 +38,26 @@ Information fields are briefly discussed below.
 Detailed Flow Information
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By clicking the lens image at the beginning of the flow, it's possible to jump to the detailed flow information. Here all the information ntopng has about the flow, are going to be displayed.
+By clicking the details button at the beginning of the flow, its details open in a side panel next
+to the table; the expand icon of the panel opens them as a full page. Here all the information ntopng
+has about the flow is displayed, and it is updated every few seconds while the flow is active (an arrow
+next to the counters shows when they grow). When the flow is no longer in memory a message says so.
+
+Flows of industrial protocols (Modbus, S7Comm, Profinet: Enterprise L) and flows carrying BGP
+information have more tabs next to *Overview* with their protocol details. The tab is greyed out
+when the details are not available, and its tooltip says why: ntopng decodes Modbus from the traffic
+it captures, while the S7Comm and Profinet details are sent by nProbe for the flows it collects.
+
+From the details page you can also:
+
+- open the live flows of the same port, application or category, the client and server hosts and
+  their MAC addresses;
+- add the server name of the flow to a category or to an application (administrators): click the *+*
+  next to the name, choose the category or application and confirm. A category is applied at once,
+  an application after restarting ntopng;
+- in the *Issues* table, exclude a check for this flow (Enterprise M), open the configuration of the
+  check or the alerts of the flow;
+- on inline interfaces (nEdge), drop the traffic of the flow (administrators): a confirmation is asked.
 
 .. figure:: ../../../img/web_gui_flows_details.png
   :align: center

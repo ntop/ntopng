@@ -102,28 +102,41 @@ Only administrators can hide or show hosts.
 Host Details
 ^^^^^^^^^^^^
 
-The host details pages provide many insights on the information collected for an host.
+The host details page shows everything ntopng knows about one host. Its views are the tabs
+below the page title: a view that can never apply to the host is not shown (for example *DNS*
+for a remote host), a view that is not available yet is greyed out and its tooltip says why
+(no data seen for the host, a license or a preference needed). When there are many views the
+tab bar scrolls sideways.
 
-The navigation bar entries are discussed below. Since the entries are contextual,
-some of them may be hidden.
+Next to the tabs:
 
-Home
-^^^^
+- *Alerts Explorer*: the alerts of the host (engaged ones when the host has some).
+- *Historical Flows*: the flows of the host stored in ClickHouse.
+- the **⋮** menu: the *Periodicity Map* and the *Service Map* of the host (behaviour analysis).
 
-*Home* is the default view of the Host Details page and provides detailed information including host MAC
-Address (or the last router MAC address if the host is remote), IP Address (with network mask if detected),
-a toggle to activate/deactivate alerts for the host, a checkbox to enable packet dump for the specific host,
-symbolic hostname (or IP address), location (local or remote), date and time of first and last packet seen
-for the host, traffic breakdown, amount of traffic packets received/sent, number of flows as client/server
-host. All of this information is also available in JSON format by clicking on the ‘Download’ link. The heat
-map provides the Activity Map for each host. Each box represents one minute of traffic. By default, Activity
-Map shows the last six hours, but it is possible to set a different timeframe using the controls.
+Overview
+^^^^^^^^
+
+*Overview* is the default view of the Host Details page and provides detailed information including host MAC
+Address (or the last router MAC address if the host is remote) and its device type, IP Address (with network
+mask if detected), host pool, tags, operating system, Autonomous System, symbolic hostname (or IP address)
+with its badges (local or remote, private, blacklisted...), date and time of first and last packet seen
+for the host, traffic breakdown, amount of traffic packets received/sent, score, number of flows and peers
+as client/server, TCP problems and the further names of the host. The values update by themselves every
+3 seconds: the arrow next to a counter shows whether it grew since the last update. If the host becomes
+idle, a message says so and the values stop updating.
+
+Administrators can reset the counters of the host (all of them, or only the blacklisted hosts counters)
+and, on inline interfaces, drop the traffic or the active flows of a local host. The *Active Monitoring*
+row adds the host to the ICMP active monitoring, or shows its last round trip time. All of this
+information is also available in JSON format by clicking on the *JSON* link; on packet interfaces the
+*Download pcap* button downloads the live traffic of the host.
 
 .. figure:: ../../../img/web_gui_host_details.png
   :align: center
   :alt: Host Details
 
-  The Home View of the Host Details Page
+  The Overview of the Host Details Page
 
 
 Also in case Wazuh is integrated in ntopng (see `Wazuh Integration`_ for more details), a button with the possibility to jump to Wazuh alerts will appear, giving the
@@ -170,14 +183,23 @@ Packets page provides pie charts with packet size distribution, both for sent an
 Ports
 ^^^^^
 
-Ports page provides pie charts with traffic statistics grouped by port. A chart is available for client ports
-and another one is available for server ports.
+Ports page lists the server ports the host answered on and the server ports it contacted, split by UDP and
+TCP, each with its application. Click a server port of the host to open its historical flows (or the live
+flows of that port when ClickHouse is not enabled). Below, pie charts with traffic statistics grouped by port:
+a chart is available for client ports and another one is available for server ports.
 
 .. figure:: ../../../img/web_gui_host_details_ports.png
   :align: center
   :alt: Host Ports View
 
   The Ports View of the Host Details Page
+
+ICMP
+^^^^
+
+The ICMP messages (type and code) sent and received by the host, with the last peer of each direction and
+the packets. The table updates every 5 seconds. Click a message to see the live flows with that ICMP type
+and code.
 
 Applications
 ^^^^^^^^^^^^
@@ -196,7 +218,8 @@ DNS
 ^^^
 
 The chart and the table displayed on this page report DNS statistics, such as the number of queries, their
-type (e.g., A, AAAA, PTR, and so on), and possible errors.
+type (e.g., A, AAAA, PTR, and so on), and possible errors, plus the DoH/DoT servers used by the host. The
+values update every 3 seconds. The view is available only for local hosts.
 
 .. figure:: ../../../img/web_gui_host_details_dns.png
   :align: center
@@ -288,20 +311,22 @@ Minute Sites", and starts over with a clean "Current Sites".
 
 Column "Contacts" count the number of time a particular website has
 been visited. Every time the host visit a site, the corresponding
-"Contacts" counter is increased by one.
+"Contacts" counter is increased by one. The *Time range* selector shows
+the sites of another period (the hours of today, yesterday).
 
 .. note::
 
-   This page is only available in the Host Details page menu when
-   there is at least one visited website.
+   The Sites tab is greyed out until the preference is enabled and the
+   host has visited at least one website: its tooltip says which one.
 
 .. _Flows:
    
-Flows
-^^^^^
+Host Flows
+^^^^^^^^^^
 
-Flows page lists all active flows that have the selected host as an endpoint. A section of this manual
-discuss in greater detail the statistics shown for flows.
+The *Host Flows* tab lists all the active flows that have the selected host as an endpoint: the same list
+of the Live Flows page, always filtered by the host, with the other filters of the list (application,
+alerted flows...). A section of this manual discuss in greater detail the statistics shown for flows.
 
 .. figure:: ../../../img/web_gui_host_details_flows.png
   :align: center
@@ -309,36 +334,23 @@ discuss in greater detail the statistics shown for flows.
 
   The Flows View of the Host Details Page
 
-SMNP
+SNMP
 ^^^^
 
-SMNP page provides SNMP information for the selected host with all the standard SNMP traffic metrics.
+SNMP page shows the SNMP devices and ports where the MAC address of the host was seen and, when the host is a
+monitored SNMP device, its system information. Needs an Enterprise M License.
 
 .. figure:: ../../../img/web_gui_host_details_snmp.png
   :align: center
   :alt: Host SNMP View
 
-  The SMNP View of the Host Details Page
+  The SNMP View of the Host Details Page
 
-Talkers
-^^^^^^^
+Listening Ports
+^^^^^^^^^^^^^^^
 
-Talkers page provides top talkers having active flows with selected host. Similarly to the Community
-edition dashboard, top talkers are laid out in a Sankey Diagram.
-
-Host Flows
-^^^^^^^^^^
-.. note::
-
-   This page is only available with an Enterprise License.
-
-The Host Flows page provides an interactive map that shows the currently active flows of the interested host, its peers and protocols.
-
-.. figure:: ../../../img/web_gui_host_details_sankey.png
-  :align: center
-  :alt: Host Sankey
-
-  The Talks page of the Host Details Page
+The TCP/UDP ports the host listens on, with the process and the package, as reported by the nProbe agent
+running on the host. The tab is greyed out when no listening port was reported.
 
 Geomap
 ^^^^^^
@@ -352,19 +364,10 @@ peers. The map is zoomable, both using the mouse rotor or the buttons at the top
 
   The Geomap View of the Host Details Page
 
-Alerts Configuration
-^^^^^^^^^^^^^^^^^^^^
-
-Alerts Configuration page enables the user to set custom thresholds on multiple metrics, and to trigger
-alerts based on those thresholds. Alerts can be armed, among other metrics, per total bytes, DNS traffic,
-P2P traffic or packets, in a fixed time interval. Available time intervals are 1 and 5 minutes, 60 minutes,
-and 1 day. Two columns are available for configuration. The first affects only the selected local host,
-whereas the second affects all local hosts. Alerts can be configured from the host :ref:`WebUIUserScripts`.
-
 Statistics
 ^^^^^^^^^^
 
-Statistics page provides historical traffic statistics for the selected host. The user can choose to filter
+Statistics page (the *Charts* tab) provides historical traffic statistics for the selected host. The user can choose to filter
 statistics on a protocol basis and display data in several formats (e.g., bytes, packets, flows, and so on).
 
 .. figure:: ../../../img/web_gui_host_details_stats.png
@@ -390,7 +393,7 @@ Periodicity Map
   :align: center
   :alt: Periodicity Map button
 
-  The Periodicity Map link on the Host Details Page
+  The Periodicity Map entry of the **⋮** menu on the Host Details Page
 
 The Periodicity Map is used to understand the local communication between hosts in a network.
 More information can be found at :ref:`Periodicity Map`.
@@ -406,7 +409,7 @@ Service Map
   :align: center
   :alt: Service Map button
 
-  The Service Map link on the Host Details Page
+  The Service Map entry of the **⋮** menu on the Host Details Page
 
 The Service Map is used to understand the local communication between hosts in a network.
 More information can be found at :ref:`Service Map`.
@@ -467,3 +470,27 @@ filters.
 To open all the details of a MAC address, click the button in the *Actions* column, or the
 small arrow icon next to the MAC address. The menu next to the button also lists the hosts
 that use that MAC address.
+
+MAC Address Details
+^^^^^^^^^^^^^^^^^^^
+
+The details page of a MAC address has these views, shown as tabs below the page title. A view
+that is not available is greyed out: move the mouse over it to see why.
+
+- *Overview*: the MAC address and its manufacturer name, the device type (and model when
+  known), the hosts (IP addresses) that use it, where it was seen on the monitored SNMP
+  switches, its name and host pool, the DHCP fingerprint (a signature of the device built from
+  its DHCP requests), when it was first and last seen, the traffic it sent and received
+  (updated every few seconds, with an arrow when it grows), its DHCP and ARP packets and when
+  its counters were last reset. Administrators can reset its counters from here: the charts
+  may have a gap after the reset.
+- *Packets*: how its packets split between IPv4 and IPv6.
+- *SNMP*: the SNMP switches and ports where the MAC address was seen. It needs Enterprise M
+  and SNMP devices monitored by ntopng.
+- *Charts*: the traffic of the MAC address over time. Enable the MAC address timeseries in
+  *Preferences > Timeseries* to record them.
+- *Settings* (administrators only): the alias shown instead of the MAC address, the device
+  type and the host pool.
+
+The *Historical Flows* button next to the tabs opens the stored flows of the MAC address
+(it needs ClickHouse).

@@ -1,0 +1,44 @@
+{
+	"id": "host_top_sites",
+	"data_url": "lua/pro/rest/v2/get/host/top/local/sites.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "sites_page.top_sites_not_seen",
+	"default_sort": {
+		"column_id": "contacts",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "site",
+			"title_i18n": "sites_page.current_sites",
+			"data_field": "site",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "contacts",
+			"title_i18n": "sites_page.contacts",
+			"data_field": "contacts",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "percentage",
+			"title_i18n": "percentage",
+			"data_field": "percentage",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

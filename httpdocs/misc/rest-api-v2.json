@@ -2723,6 +2723,62 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/flow/nedge/block_flow.lua": {
+      "post": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Drop the traffic of a live flow",
+        "description": "Drops the traffic of an active flow (inline interfaces, e.g. nEdge). Administrators only. rsp.status: BLOCKED, NOTFOUND or NOTALLOWED.",
+        "operationId": "post_flow_nedge_block_flow",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "flow_key",
+                "flow_hash_id"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface of the flow (optional: the current one)"
+                },
+                "flow_key": {
+                  "type": "integer",
+                  "description": "Flow key"
+                },
+                "flow_hash_id": {
+                  "type": "integer",
+                  "description": "Flow hash id"
+                },
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token (not needed with HTTP authentication)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/add/alert/exclusion.lua": {
       "get": {
         "tags": [
@@ -4944,6 +5000,83 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/flow/historical/overview.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the details of a historical flow",
+        "description": "One flow stored in ClickHouse: rsp.flow is the record (raw columns, e.g. SRC2DST_BYTES, IPV4_SRC_ADDR, CLIENT_NW_LATENCY_US), rsp.proto_info the decoded PROTOCOL_INFO_JSON (protocol fields, TCP flags analysis, QoE, exporters, BGP), rsp.info the formatted fields (host names, ports, AS, countries, pools, connection states) and rsp.ext what the server resolves: tags, MAC manufacturers, AS/site/exporter/observation point names, the issues (alert id, nDPI risk id, source, score, title, info, MITRE id and tactic), the additional exported fields and the protocol views of the flow (views: modbus, s7comm, profinet, bgp, hr_charts; view_reasons: view -> license or no_data for the views shown disabled). Needs ClickHouse and the historical flows permission; flows of hosts outside the allowed networks of the user are not found.",
+        "operationId": "get_flow_historical_overview",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Row id of the flow (rowid of the historical flows list)",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "tstamp",
+            "in": "query",
+            "description": "Timestamp of the flow (tstamp of the historical flows list)",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "instance_name",
+            "in": "query",
+            "description": "ntopng instance that stored the flow (NTOPNG_INSTANCE_NAME)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "bgp",
+            "in": "query",
+            "description": "true: also rsp.ext.bgp_info (BGP/BMP information of the peers)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "llm",
+            "in": "query",
+            "description": "true: also rsp.ext.llm_flow_data (the flow for the nAnalyst assistant)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/db/flows.lua": {
       "get": {
         "tags": [
@@ -7060,6 +7193,20 @@
             "description": "The IP address of the host",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN of the host (default 0)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "hour",
+            "in": "query",
+            "description": "Time range: current, last_5_min, day (yesterday) or the hour of today (0-23)",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -7068,6 +7215,9 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (not ntopng Pro)"
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
@@ -13997,6 +14147,178 @@
         }
       }
     },
+    "/lua/rest/v2/get/flow/live/overview.lua": {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get the details of a live flow",
+        "description": "One active flow: rsp.flow is the flow as exported by the engine (raw keys, e.g. cli2srv.bytes, protos.tls.client_requested_server_name, tcp.nw_latency.3wh_client_rtt), rsp.ext what the server resolves: host names (cli_name, srv_name), VLAN alias, tags, AS/site/exporter/observation point names, the issues (alert id, nDPI risk id, source, score, i18n key of the title, info, MITRE id and tactic), SIP/RTP values, the additional exported fields with their description, the protocol views of the flow (views: modbus, bgp, s7comm, profinet) and the user capabilities (is_admin, can_disable_check). Flows of hosts outside the allowed networks of the user are not found.",
+        "operationId": "get_flow_live_overview",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "flow_key",
+            "in": "query",
+            "description": "Flow key (key of the live flows list)",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "flow_hash_id",
+            "in": "query",
+            "description": "Flow hash id (hash_id of the live flows list)",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "counters",
+            "in": "query",
+            "description": "true: only rsp.flow and rsp.now (for polling the live values)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "bgp",
+            "in": "query",
+            "description": "true: also rsp.ext.bgp_info (BGP/BMP information of the peers)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/category/host_rule_context.lua": {
+      "get": {
+        "tags": [
+          "Configurations"
+        ],
+        "summary": "Get the context of a custom host rule",
+        "description": "For a server name or URL: the host name suggested for a custom host rule, the custom category that already matches it, and the nDPI categories and applications (applications only with a protos file) it can be added to. Administrators only.",
+        "operationId": "get_category_host_rule_context",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Server name or URL (e.g. www.example.com)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/add/category/host_rule.lua": {
+      "post": {
+        "tags": [
+          "Configurations"
+        ],
+        "summary": "Add a custom host rule",
+        "description": "Adds a host to a custom category (applied at once) or to an application (written in the protos file, applied after a restart). Exactly one of category_id and application_id. rsp.restart_needed: true for an application. BAD_CONTENT: the host is already in the category. Administrators only.",
+        "operationId": "add_category_host_rule",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "host"
+              ],
+              "properties": {
+                "host": {
+                  "type": "string",
+                  "description": "Host name (no spaces)"
+                },
+                "category_id": {
+                  "type": "integer",
+                  "description": "nDPI category id"
+                },
+                "application_id": {
+                  "type": "integer",
+                  "description": "nDPI application id"
+                },
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token (not needed with HTTP authentication)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-8": {
+            "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/flow/active.lua": {
       "get": {
         "tags": [
@@ -15523,6 +15845,27 @@
             "description": "Host address (IP or IP@VLAN if traffic is tagged)",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "host_stats",
+            "in": "query",
+            "description": "false: without the host statistics (default: included)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "host_stats_flows",
+            "in": "query",
+            "description": "true: also the active flows of the host (default: not included)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of flows returned with host_stats_flows=true",
+            "required": false,
+            "type": "integer"
           }
         ],
         "responses": {
@@ -15555,6 +15898,233 @@
           },
           "-8": {
             "description": "BAD_CONTENT"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/used_ports.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the ports of a host",
+        "description": "The server ports an active host answered on (local_server_ports) and the server ports it contacted (remote_contacted_ports), each as \"<l4 proto>:<port>\" -> application.",
+        "operationId": "get_host_used_ports",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address (IP or IP@VLAN if traffic is tagged)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/icmp.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the ICMP messages of a host",
+        "description": "The ICMP messages of an active host per version (ICMPv4, ICMPv6): \"<type>,<code>\" -> packets sent and rcvd, last_host_sent_peer and last_host_rcvd_peer.",
+        "operationId": "get_host_icmp",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address (IP or IP@VLAN if traffic is tagged)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/dns.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the DNS counters of a host",
+        "description": "The DNS counters of an active host (dns.sent / dns.rcvd: num_queries, num_replies_ok, num_replies_error and the queries per type) and the DoH/DoT servers it used (doh_dot: ip, vlan_id, num_uses).",
+        "operationId": "get_host_dns",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address (IP or IP@VLAN if traffic is tagged)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/http.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the HTTP counters of a host",
+        "description": "The HTTP counters of an active host: requests sent per method (http.sender.query), responses received per code (http.receiver.response) and the virtual hosts it served (http.virtual_hosts: bytes sent/rcvd, requests).",
+        "operationId": "get_host_http",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address (IP or IP@VLAN if traffic is tagged)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/overview.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Get the overview of a host",
+        "description": "An active host as raw values (host): identity and flags (MAC, router, VLAN, OS, ASN, network, country, local/private/multicast/broadcast/blacklisted...), first/last seen, bytes and packets sent/rcvd, local/non-local bytes, score as client/server with its network/security breakdown, active/total/alerted/unreachable flows, blacklisted and unidirectional TCP flows, peers, unresponsive peers, contacted servers, TCP retransmissions/out of order/lost/keep-alive, alerts, names, OS learning, flow exporter. ext: pool, symbolic MAC and device type, local network alias and site, host tags (name, or name_i18n for the built-in ones), asset key, ICMP active monitoring state, notes, page flags. counters=true: only host.",
+        "operationId": "get_host_overview",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address (IP or IP@VLAN if traffic is tagged)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "counters",
+            "in": "query",
+            "description": "true: only the host values (no ext), for the live updates",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -17834,6 +18404,279 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/mac/overview.lua": {
+      "get": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get the overview of a MAC address",
+        "description": "An active MAC address: name, device type, model, DHCP fingerprint, host pool, first host and number of hosts, first observed, last counters reset, events, and the traffic counters (seen.first/last, bytes/packets/dhcp sent and rcvd, ARP requests/replies, flows.dropped). counters=true: only the counters.",
+        "operationId": "get_mac_overview",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "MAC address (e.g. AA:BB:CC:DD:EE:FF)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "counters",
+            "in": "query",
+            "description": "true: only the live counters",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/mac/snmp_location.lua": {
+      "get": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get where a MAC address was seen on the SNMP devices",
+        "description": "The access ports and the trunk ports of the monitored SNMP devices (Bridge MIB) where the MAC address was seen: device IP and name, port index and name, trunk. Enterprise M.",
+        "operationId": "get_mac_snmp_location",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "MAC address (e.g. AA:BB:CC:DD:EE:FF)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/mac/config.lua": {
+      "get": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get the settings of a MAC address",
+        "description": "Alias, device type and host pool of the MAC address, with the pools that can be chosen (none on view interfaces). Administrators only.",
+        "operationId": "get_mac_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "MAC address (e.g. AA:BB:CC:DD:EE:FF)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/mac/config.lua": {
+      "post": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Set the settings of a MAC address",
+        "description": "Saves alias (empty: removed), device type (0-12, see discover_utils) and host pool (not on view interfaces) of a MAC address. Administrators only.",
+        "operationId": "set_mac_config",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "host"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "MAC address"
+                },
+                "custom_name": {
+                  "type": "string",
+                  "description": "Alias (optional, empty: removed)"
+                },
+                "device_type": {
+                  "type": "integer",
+                  "description": "Device type id (optional)"
+                },
+                "pool": {
+                  "type": "integer",
+                  "description": "Host pool id (optional)"
+                },
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token (not needed with HTTP authentication)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (the pool member could not be bound)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/mac/reset_stats.lua": {
+      "post": {
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Reset the counters of a MAC address",
+        "description": "Resets the traffic counters of an active MAC address. Administrators only.",
+        "operationId": "set_mac_reset_stats",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "host"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "MAC address"
+                },
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token (not needed with HTTP authentication)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -21123,6 +21966,149 @@
           },
           "-3": {
             "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/host/reset_stats.lua": {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Reset the counters of a host",
+        "description": "Resets the counters of an active host: all of them (reset_all) or only the blacklisted flows/contacts counters (reset_blacklisted). Administrators only.",
+        "operationId": "set_host_reset_stats",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "host"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "Host address (IP or IP@VLAN if traffic is tagged)"
+                },
+                "resetstats_mode": {
+                  "type": "string",
+                  "enum": [
+                    "reset_all",
+                    "reset_blacklisted"
+                  ],
+                  "description": "What to reset (default reset_all)"
+                },
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token (not needed with HTTP authentication)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/host/traffic_policy.lua": {
+      "post": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Drop or allow the traffic of a host",
+        "description": "Traffic policy of a local host on an inline interface: block (drop all its traffic), allow (stop dropping it), drop_flows (drop its active flows once). Answers the current state (blocked). Administrators only.",
+        "operationId": "set_host_traffic_policy",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "ifid",
+                "host",
+                "action"
+              ],
+              "properties": {
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "Host address (IP or IP@VLAN if traffic is tagged)"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "block",
+                    "allow",
+                    "drop_flows"
+                  ],
+                  "description": "The policy to apply"
+                },
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token (not needed with HTTP authentication)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND (not an active local unicast host)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE, or NOT_ENABLED (not an inline interface)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"

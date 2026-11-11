@@ -29,6 +29,7 @@ class UnexpectedNTPServer : public UnexpectedServer {
   FlowAlertType getAlertType() const {
     return UnexpectedNTPServerAlert::getClassType();
   }
+  HostService getHostService() const { return (HOST_SERVICE_NTP); }
 
  protected:
   bool isAllowedHost(Flow* f);

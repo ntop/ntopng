@@ -99,6 +99,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_l7_categories",
+		"metric" : "volume",
 		"i18n_name" : "top_l7_cat",
 		"width" : 3,
 		"height" : 4,
@@ -113,6 +114,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_l7_proto",
+		"metric" : "volume",
 		"i18n_name" : "top_l7_proto",
 		"width" : 3,
 		"height" : 4,
@@ -127,6 +129,7 @@
 	{
 		"component" : "pie",
 		"id" : "top_l4_proto",
+		"metric" : "volume",
 		"i18n_name" : "top_l4_proto",
 		"width" : 3,
 		"height" : 4,
@@ -141,6 +144,7 @@
 	{
 		"component" : "pie",
 		"id" : "qoe_score",
+		"metric" : "flows",
 		"i18n_name" : "qoe",
 		"width" : 3,
 		"height" : 4,
@@ -155,6 +159,7 @@
 	{
 		"component" : "table",
 		"id" : "top_l7_inout",
+		"metric" : "volume",
 		"i18n_name" : "report.top_l7_inout",
 		"width" : 12,
 		"height" : 4,
@@ -178,6 +183,7 @@
 	{
 		"component" : "table",
 		"id" : "top_local_talkers",
+		"metric" : "volume",
 		"i18n_name" : "report.top_local_hosts",
 		"width" : 6,
 		"height" : 4,
@@ -199,6 +205,7 @@
 	{
 		"component" : "table",
 		"id" : "top_remote_hosts",
+		"metric" : "volume",
 		"i18n_name" : "report.top_remote_hosts",
 		"width" : 6,
 		"height" : 4,
@@ -220,6 +227,7 @@
 	{
 		"component" : "table",
 		"id" : "top_clients",
+		"metric" : "volume",
 		"i18n_name" : "db_search.top_clients",
 		"width" : 6,
 		"height" : 4,
@@ -241,6 +249,7 @@
 	{
 		"component" : "table",
 		"id" : "top_servers",
+		"metric" : "volume",
 		"i18n_name" : "db_search.top_servers",
 		"width" : 6,
 		"height" : 4,
@@ -262,6 +271,7 @@
 	{
 		"component" : "table",
 		"id" : "top_receiver_networks",
+		"metric" : "volume",
 		"i18n_name" : "report.top_receiver_networks",
 		"width" : 6,
 		"height" : 4,
@@ -283,6 +293,7 @@
 	{
 		"component" : "table",
 		"id" : "top_sender_networks",
+		"metric" : "volume",
 		"i18n_name" : "report.top_sender_networks",
 		"width" : 6,
 		"height" : 4,
@@ -304,6 +315,7 @@
 	{
 		"component" : "table",
 		"id" : "top_receiver_countries",
+		"metric" : "volume",
 		"i18n_name" : "report.top_receiver_countries",
 		"width" : 6,
 		"height" : 4,
@@ -325,6 +337,7 @@
 	{
 		"component" : "table",
 		"id" : "top_sender_countries",
+		"metric" : "volume",
 		"i18n_name" : "report.top_sender_countries",
 		"width" : 6,
 		"height" : 4,
@@ -346,6 +359,7 @@
 	{
 		"component" : "timeseries",
 		"id" : "traffic_chart",
+		"metric" : "throughput",
 		"i18n_name" : "interface_traffic",
 		"width" : 12,
 		"height" : 6,

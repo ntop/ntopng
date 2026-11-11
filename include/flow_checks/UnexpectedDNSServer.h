@@ -29,6 +29,7 @@ class UnexpectedDNSServer : public UnexpectedServer {
   FlowAlertType getAlertType() const {
     return UnexpectedDNSServerAlert::getClassType();
   }
+  HostService getHostService() const { return (HOST_SERVICE_DNS); }
 
  protected:
   bool isAllowedHost(Flow* f);

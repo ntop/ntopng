@@ -30,6 +30,7 @@
 	{
 		"component" : "timeseries",
 		"id" : "traffic_chart",
+		"metric" : "throughput",
 		"i18n_name" : "interface_traffic",
 		"width" : 12,
 		"height" : 4,
@@ -53,6 +54,7 @@
 	{
 		"component" : "timeseries",
 		"id" : "local_to_remote",
+		"metric" : "throughput",
 		"i18n_name" : "graphs.local2remote",
 		"width" : 12,
 		"height" : 4,
@@ -76,6 +78,7 @@
 	{
 		"component" : "timeseries",
 		"id" : "remote_to_local",
+		"metric" : "throughput",
 		"i18n_name" : "graphs.remote2local",
 		"width" : 12,
 		"height" : 4,

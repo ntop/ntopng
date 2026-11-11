@@ -45,6 +45,7 @@
 		{
 			"component": "pie",
 			"id": "top_l7_categories",
+			"metric": "volume",
 			"i18n_name": "top_l7_cat",
 			"width": 4,
 			"height": 4,
@@ -59,6 +60,7 @@
 		{
 			"component": "pie",
 			"id": "top_l7_proto",
+			"metric": "volume",
 			"i18n_name": "top_l7_proto",
 			"width": 4,
 			"height": 4,
@@ -73,6 +75,7 @@
 		{
 			"component": "pie",
 			"id": "traffic_role_distribution",
+			"metric": "volume",
 			"i18n_name": "if_stats_overview.traffic_role_distribution",
 			"width": 4,
 			"height": 4,
@@ -85,6 +88,7 @@
 		{
 			"component": "top-timeseries",
 			"id": "top_active_asn",
+			"metric": "throughput",
 			"i18n_name": "graphs.top_customer_asn",
 			"time_window": "day",
 			"time_offset": "",
@@ -111,6 +115,7 @@
 		{
 			"component": "table",
 			"id": "top_asn",
+			"metric": "volume",
 			"i18n_name": "report.top_asn",
 			"width": 12,
 			"height": 4,
@@ -142,6 +147,7 @@
 		{
 			"component": "table",
 			"id": "top_receiver_as",
+			"metric": "volume",
 			"i18n_name": "report.top_receiver_as",
 			"width": 6,
 			"height": 4,
@@ -171,6 +177,7 @@
 		{
 			"component": "table",
 			"id": "top_sender_as",
+			"metric": "volume",
 			"i18n_name": "report.top_sender_as",
 			"width": 6,
 			"height": 4,
@@ -200,6 +207,7 @@
 		{
 			"component": "table",
 			"id": "latency_by_as",
+			"metric": "latency",
 			"i18n_name": "queries.latency_by_as",
 			"width": 12,
 			"height": 4,
@@ -246,6 +254,7 @@
 		{
 			"component": "table",
 			"id": "top_as_exporter_if",
+			"metric": "volume",
 			"i18n_name": "report.top_as_exporter_if",
 			"width": 12,
 			"height": 4,
@@ -290,6 +299,7 @@
 		{
 			"component": "table",
 			"id": "top_sender_as_exporter_if",
+			"metric": "volume",
 			"i18n_name": "report.top_sender_as_exporter_if",
 			"width": 12,
 			"height": 4,
@@ -339,6 +349,7 @@
 		{
 			"component": "table",
 			"id": "top_receiver_as_exporter_if",
+			"metric": "volume",
 			"i18n_name": "report.top_receiver_as_exporter_if",
 			"width": 12,
 			"height": 4,
