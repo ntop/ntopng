@@ -31,10 +31,9 @@ if newline then
 end
 
 if temp_zoneinfo ~= nil then
-    zoneinfo = "( /^[\\x00-\\xFF]*$/.test('" .. temp_zoneinfo .. "') && moment.tz.zone('" .. temp_zoneinfo ..
-                   "') != null ? '" .. temp_zoneinfo ..
-                   "' : function() { console.warn('zoneinfo not valid:' + (/^[\\x00-\\xFF]*$/.test('" .. temp_zoneinfo ..
-                   "') ? '" .. temp_zoneinfo .. "' : 'Invalid string') ); return null; }())"
+    -- The zone is valid when the browser Intl knows it (null: the dates fall back to the browser time zone)
+    zoneinfo = "(function(zone) { try { new Intl.DateTimeFormat('en-US', { timeZone: zone }); return zone; }" ..
+                   " catch (e) { console.warn('zoneinfo not valid: ' + zone); return null; } })('" .. temp_zoneinfo .. "')"
 end
 
 -- #################################
