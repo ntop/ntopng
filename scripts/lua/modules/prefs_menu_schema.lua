@@ -125,7 +125,6 @@ function M.get_sections(flags)
         {
             id = "active_monitoring",
             label = i18n("active_monitoring_stats.active_monitoring"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = {{
@@ -142,7 +141,6 @@ function M.get_sections(flags)
         {
             id = "alerts",
             label = i18n("show_alerts.alerts"),
-            advanced = false,
             pro_only = false,
             locked = has_cmdl_disable_alerts and lock_cmdline or nil,
             entries = {{
@@ -288,7 +286,6 @@ function M.get_sections(flags)
         {
             id = "logging",
             label = i18n("prefs.logging"),
-            advanced = false,
             pro_only = false,
             locked = has_cmdl_trace_lvl and lock_cmdline or nil,
             entries = {{
@@ -368,7 +365,6 @@ function M.get_sections(flags)
         {
             id = "gui",
             label = i18n("prefs.gui"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = {{
@@ -571,7 +567,6 @@ function M.get_sections(flags)
         {
             id = "telemetry",
             label = i18n("prefs.telemetry"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = {{
@@ -595,7 +590,6 @@ function M.get_sections(flags)
         {
             id = "discovery",
             label = i18n("prefs.network_discovery"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = {{
@@ -640,7 +634,6 @@ function M.get_sections(flags)
         {
             id = "names",
             label = i18n("prefs.names"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = (function()
@@ -675,7 +668,6 @@ function M.get_sections(flags)
         {
             id = "misc",
             label = i18n("prefs.misc"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = {{
@@ -823,7 +815,6 @@ function M.get_sections(flags)
         {
             id = "updates",
             label = i18n("prefs.updates"),
-            advanced = false,
             pro_only = false,
             hidden = (is_windows or (not ntop.isPackage())),
             entries = {{
@@ -842,7 +833,6 @@ function M.get_sections(flags)
         {
             id = "auth",
             label = i18n("prefs.user_authentication"),
-            advanced = false,
             pro_only = false,
             hidden = (not is_users_login_enabled and not have_nedge),
             entries = {
@@ -1390,7 +1380,6 @@ function M.get_sections(flags)
         {
             id = "on_disk_ts",
             label = i18n("prefs.timeseries"),
-            advanced = false,
             pro_only = false,
             hidden = false,
             entries = {
@@ -1847,7 +1836,6 @@ function M.get_sections(flags)
         {
             id = "in_memory",
             label = i18n("prefs.cache_settings"),
-            advanced = true,
             pro_only = false,
             hidden = false,
             entries = {
@@ -1982,7 +1970,6 @@ function M.get_sections(flags)
         {
             id = "dump_settings",
             label = i18n("prefs.dump_settings"),
-            advanced = true,
             pro_only = false,
             hidden = (is_dump_flows_enabled == false),
             entries = {{
@@ -2041,7 +2028,6 @@ function M.get_sections(flags)
         {
             id = "ifaces",
             label = i18n("prefs.network_interfaces"),
-            advanced = true,
             pro_only = false,
             hidden = false,
             nedge_hidden = true,
@@ -2081,7 +2067,6 @@ function M.get_sections(flags)
         {
             id = "ot_protocols",
             label = i18n("prefs.ot_protocols"),
-            advanced = true,
             pro_only = false,
             hidden = false,
             entries = {{
@@ -2129,7 +2114,6 @@ function M.get_sections(flags)
         {
             id = "recording",
             label = i18n("prefs.recording"),
-            advanced = false,
             pro_only = false,
             hidden = (not flags.recording_available and not have_nedge),
             entries = {{
@@ -2177,7 +2161,6 @@ function M.get_sections(flags)
         {
             id = "asn_settings",
             label = i18n("prefs.asn_mode"),
-            advanced = true,
             pro_only = false,
             hidden = not flags.is_zmq_interface,
             entries = {{
@@ -2243,7 +2226,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "protocols",
         label = i18n("prefs.protocols"),
-        advanced = false,
         pro_only = true,
         hidden = false,
         entries = {{
@@ -2281,7 +2263,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "connectors",
         label = i18n("prefs.external_integrations"),
-        advanced = false,
         pro_only = true,
         hidden = false,
         entries = {{
@@ -2392,7 +2373,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "traffic_behaviour",
         label = i18n("prefs.behaviour"),
-        advanced = true,
         pro_only = true,
         locked = lock_enterprise,
         entries = {
@@ -2564,7 +2544,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "clickhouse",
         label = i18n("prefs.clickhouse"),
-        advanced = true,
         pro_only = true,
         hidden = false,
         entries = {{
@@ -2752,7 +2731,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "llm_providers",
         label = i18n("prefs.llm_providers"),
-        advanced = false,
         pro_only = true,
         locked = lock_nanalyst,
         entries = {{
@@ -3039,7 +3017,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "demo_tours",
         label = i18n("prefs.demo_tours"),
-        advanced = false,
         pro_only = false,
         hidden = false,
         entries = {{
@@ -3054,7 +3031,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "reports",
         label = i18n("prefs.reports"),
-        advanced = false,
         pro_only = true,
         hidden = false,
         entries = {{
@@ -3102,7 +3078,6 @@ function M.get_sections(flags)
     sections[#sections + 1] = {
         id = "snmp",
         label = i18n("prefs.snmp"),
-        advanced = true,
         pro_only = true,
         hidden = (not (is_enterprise_m or have_nedge)),
         entries = {{

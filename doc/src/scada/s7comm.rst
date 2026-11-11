@@ -149,7 +149,7 @@ Triggers an alert when the number of errors reported for a flow reaches the conf
 S7Comm Invalid Transition
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Triggers an alert when a flow reports a transition between two function codes that has never been observed before in the flow. For each flow, ntopng first learns the transitions between function codes for a *learning period*; once the learning period is over, any new transition triggers an alert. The learning period is configured in *Settings* → *Preferences* → *OT Protocols* → *S7Comm Learning Period* (the preference is visible in the *Expert View*); the default is 6 hours, and the minimum is 1 hour.
+Triggers an alert when a flow reports a transition between two function codes that has never been observed before in the flow. For each flow, ntopng first learns the transitions between function codes for a *learning period*; once the learning period is over, any new transition triggers an alert. The learning period is configured in *Settings* → *Preferences* → *OT Protocols* → *S7Comm Learning Period*; the default is 6 hours, and the minimum is 1 hour.
 
 .. figure:: ../img/ot_learning_period.png
   :target: ../_images/ot_learning_period.png

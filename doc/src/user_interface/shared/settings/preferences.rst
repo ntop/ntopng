@@ -3,7 +3,7 @@
 Preferences
 ###########
 
-Preferences menu entry enables the user to change runtime configurations. There are two types of settings (changeable by clicking the view at the end of the preferences menu) : `Expert View` and `Simple View`. The `Expert View` has all the configurable preferences, instead the `Simple View` only has the basic preferences.
+Preferences menu entry enables the user to change runtime configurations. The sections are listed in alphabetical order on the left, and all of them are always shown.
 
 .. figure:: ../../../img/web_gui_settings_list.png
   :align: center
@@ -12,6 +12,9 @@ Preferences menu entry enables the user to change runtime configurations. There 
   Preferences List
 
 A thorough help is reported below every preference directly into ntopng web GUI.
+
+The search box above the sections list looks for a text in the section names and in the name and description of every preference. While searching, the `Search results` entry at the top of the list shows the matching preferences of all the sections together, grouped by section, so they can be changed without opening each section. 
+Clicking a section in the list, or its name in the results, opens the whole section with the matching preferences highlighted; `Search results` brings back the results. Changes are kept when moving between sections or searches, and `Save changes` saves all of them at once.
 
 Change ntopng Index Page
 ========================

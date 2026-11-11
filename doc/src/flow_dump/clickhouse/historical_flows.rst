@@ -422,7 +422,7 @@ Enabling Flow Export
 Follow these steps to enable flow data export in the ntopng web interface:
 
 1. Log in to the ntopng web interface.
-2. From the **Left Sidebar**, navigate to: Settings → Preferences (Expert View) → ClickHouse
+2. From the **Left Sidebar**, navigate to: Settings → Preferences → ClickHouse
 
 3. Locate the export option (e.g., "Export Deleted Flows to File").
 4. Enable this option by toggling it on.
