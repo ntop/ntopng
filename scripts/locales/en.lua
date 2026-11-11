@@ -9320,7 +9320,7 @@ local lang = {
   },
   ["network_configuration"] = {
     ["networks_placeholder"] = "One network or host per line (or comma separated), e.g. 192.168.1.0/24 or 10.0.0.1",
-    ["tab_servers"] = "Known Hosts",
+    ["tab_known_hosts"] = "Known Hosts",
     ["tab_client"] = "Clients Allow List",
     ["client_ignore_intro"] = "Hosts ignored by the traffic model: no alert is triggered for their unexpected traffic. An empty application means any application. Only administrators can change the list.",
     ["client_ignore_ip"] = "IP",
