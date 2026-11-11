@@ -2418,6 +2418,17 @@ function M.get_sections(flags)
             section = i18n("assets"),
             locked = lock_enterprise_l,
             hidden = is_windows
+        }, {
+            -- Traffic model enabled state
+            key = "toggle_traffic_model",
+            title = i18n("prefs.toggle_traffic_model_title"),
+            description = i18n("prefs.toggle_traffic_model_description"),
+            type = "toggle",
+            redis_key = "ntopng.prefs.build_traffic_model",
+            default = "0",
+            section = i18n("traffic_model.traffic_model"),
+            locked = lock_enterprise_l,
+            hidden = is_windows
         },
             -- Service Map
             -- tformat="hd": value stored in seconds; UI shows number + Hours/Days selector
