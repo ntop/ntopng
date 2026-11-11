@@ -8,6 +8,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local blacklist_utils = require "blacklist_utils"
 local blacklist_debug = 'ntopng.debug.alerts.blacklisted_flow'
 
 -- ##############################################
@@ -38,8 +39,10 @@ end
 -- ##############################################
 
 function alert_blacklisted_server_contact:add_extra_info(alert_json)
-   if alert_json and alert_json.custom_cat_file and not isEmptyString(alert_json.custom_cat_file) then
-        return " [ " .. i18n("flow_details.blacklist", { blacklist = alert_json.custom_cat_file or "" }) .. " ] "
+    local blacklist = blacklist_utils.get_blacklist_name(alert_json, alert_blacklisted_server_contact.meta.alert_key)
+
+    if not isEmptyString(blacklist) then
+        return " [ " .. i18n("flow_details.blacklist", { blacklist = blacklist }) .. " ] "
     end
     return ""
 end
@@ -52,10 +55,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_blacklisted_server_contact.format(ifid, alert, alert_type_params)
-    local blacklist = ""
-    if not isEmptyString(alert_type_params["custom_cat_file"]) then
-        blacklist = alert_type_params["custom_cat_file"]
-    end
+    local blacklist = blacklist_utils.get_blacklist_name(alert_type_params, alert_blacklisted_server_contact.meta.alert_key)
     -- The client is blacklisted, so simply use the Client as who description    
     local res = i18n("flow_details.blacklisted_flow_detailed", {
         who = i18n("server"),
