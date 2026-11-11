@@ -1,0 +1,87 @@
+{
+	"id": "host_l4_traffic",
+	"data_url": "lua/rest/v2/get/host/l4/data.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "host_details_views.no_traffic",
+	"default_sort": {
+		"column_id": "total_percentage",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "protocol",
+			"title_i18n": "protocol",
+			"data_field": "protocol",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "historical",
+			"title_i18n": "chart",
+			"data_field": "historical",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "bytes_sent",
+			"title_i18n": "traffic_labels.bytes_sent",
+			"data_field": "bytes_sent",
+			"sortable": true,
+			"render_type": "bytes",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "bytes_rcvd",
+			"title_i18n": "traffic_labels.bytes_rcvd",
+			"data_field": "bytes_rcvd",
+			"sortable": true,
+			"render_type": "bytes",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "breakdown",
+			"title_i18n": "traffic_labels.breakdown",
+			"data_field": "breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "total_bytes",
+			"title_i18n": "traffic_labels.total_bytes",
+			"data_field": "total_bytes",
+			"sortable": true,
+			"render_type": "bytes",
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "total_percentage",
+			"title_i18n": "traffic_labels.total_percentage",
+			"data_field": "total_percentage",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

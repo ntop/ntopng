@@ -73,7 +73,6 @@ end
 
 if fingerprint_type == "ja4" then
    res = add_to_res(res, fingerprint_type, stats.ja4_fingerprint or {})
-   res = add_to_res(res, "ja4", stats.ja4_fingerprint or {})
 elseif fingerprint_type == "hassh" then
    res = add_to_res(res, fingerprint_type, stats.hassh_fingerprint or {})
 end

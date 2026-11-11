@@ -1,0 +1,85 @@
+{
+	"id": "nedge_repeaters",
+	"data_url": "lua/pro/rest/v2/get/nedge/forwarders.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.nedge_repeaters",
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit_repeater"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"event_id": "click_button_delete_repeater",
+					"danger": true
+				}
+			]
+		},
+		{
+			"id": "type",
+			"title_i18n": "nedge.page_repeater_config.type",
+			"data_field": "type",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "ip",
+			"title_i18n": "nedge.page_repeater_config.ip",
+			"data_field": "ip",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "port",
+			"title_i18n": "nedge.page_repeater_config.port",
+			"data_field": "port",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "details",
+			"title_i18n": "nedge.page_repeater_config.interfaces",
+			"data_field": "details",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "restricted_details",
+			"title_i18n": "nedge.page_repeater_config.restricted_interfaces",
+			"data_field": "restricted_details",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

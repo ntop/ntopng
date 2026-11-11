@@ -1,0 +1,54 @@
+{
+	"id": "host_ssh_fingerprints",
+	"data_url": "lua/rest/v2/get/host/fingerprint/data.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "host_details_views.no_hassh",
+	"default_sort": {
+		"column_id": "num_uses",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "hassh",
+			"title_i18n": "hassh_fingerprint",
+			"data_field": "hassh",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "is_malicious",
+			"title_i18n": "status",
+			"data_field": "is_malicious",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "app_name",
+			"title_i18n": "app_name",
+			"data_field": "app_name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "num_uses",
+			"title_i18n": "num_uses",
+			"data_field": "num_uses",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			],
+			"render_type": "number"
+		}
+	]
+}

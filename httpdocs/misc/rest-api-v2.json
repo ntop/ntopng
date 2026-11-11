@@ -16191,11 +16191,11 @@
     "/lua/rest/v2/get/host/fingerprint/data.lua": {
       "get": {
         "tags": [
-          "Alerts"
+          "Host"
         ],
-        "summary": "Get counters per type",
-        "description": "Number of alerts per alert type",
-        "operationId": "get_alert_type_counters",
+        "summary": "Get the client fingerprints of a host",
+        "description": "Given an host, return its JA4 (TLS) or HASSH (SSH) client fingerprints with the application name, the number of uses and the malicious flag",
+        "operationId": "get_host_fingerprints",
         "produces": [
           "application/json"
         ],
@@ -16216,16 +16216,34 @@
             "type": "string"
           },
           {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN ID",
+            "required": false,
+            "type": "integer",
+            "format": "int16"
+          },
+          {
             "name": "fingerprint_type",
             "in": "query",
-            "description": "The fingerprint type, either ja3 or hassh",
+            "description": "The fingerprint type",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "ja4",
+              "hassh"
+            ]
           }
         ],
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -16321,6 +16339,63 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/host/l7/data.lua": {
+      "get": {
+        "tags": [
+          "Host"
+        ],
+        "summary": "Get the nDPI applications or categories of a host",
+        "description": "Given an host, return its nDPI applications (bytes sent, received, duration, share) or its nDPI categories (with their applications)",
+        "operationId": "get_host_l7_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "Host address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "query",
+            "description": "VLAN ID",
+            "required": false,
+            "type": "integer",
+            "format": "int16"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "description": "applications, or categories (any other value)",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "applications",
+              "categories"
+            ]
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-4": {
+            "description": "INVALID_HOST"
           }
         }
       }

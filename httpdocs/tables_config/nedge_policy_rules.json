@@ -1,0 +1,85 @@
+{
+	"id": "nedge_policy_rules",
+	"data_url": "lua/pro/rest/v2/get/nedge/policy/rules.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.nedge_policy_rules",
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit_rule"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"event_id": "click_button_delete_rule",
+					"danger": true
+				}
+			]
+		},
+		{
+			"id": "rule_id",
+			"title_i18n": "nedge.page_rules_config.rule_id",
+			"data_field": "rule_id",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "source",
+			"title_i18n": "nedge.page_rules_config.source",
+			"data_field": "source",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "destination",
+			"title_i18n": "nedge.page_rules_config.dest",
+			"data_field": "destination",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "bidirectional",
+			"title_i18n": "nedge.page_rules_config.direction",
+			"data_field": "bidirectional",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "action",
+			"title_i18n": "nedge.page_rules_config.action",
+			"data_field": "action",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

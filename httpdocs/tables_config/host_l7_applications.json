@@ -1,0 +1,108 @@
+{
+	"id": "host_l7_applications",
+	"data_url": "lua/rest/v2/get/host/l7/data.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "host_details_views.no_applications",
+	"default_sort": {
+		"column_id": "percentage",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "90px",
+			"max-width": "90px",
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "historical_flows",
+					"icon": "fas fa-search-plus",
+					"title_i18n": "db_explorer.historical_data",
+					"event_id": "click_button_historical_flows"
+				}
+			]
+		},
+		{
+			"id": "application",
+			"title_i18n": "host_details.application",
+			"data_field": "application",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "duration",
+			"title_i18n": "host_details.duration",
+			"data_field": "duration",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "bytes_sent",
+			"title_i18n": "host_details.sent",
+			"data_field": "bytes_sent",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			],
+			"render_type": "bytes"
+		},
+		{
+			"id": "bytes_rcvd",
+			"title_i18n": "host_details.rcvd",
+			"data_field": "bytes_rcvd",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			],
+			"render_type": "bytes"
+		},
+		{
+			"id": "breakdown",
+			"title_i18n": "host_details.breakdown",
+			"data_field": "breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "tot_bytes",
+			"title_i18n": "host_details.tot_bytes",
+			"data_field": "tot_bytes",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			],
+			"render_type": "bytes"
+		},
+		{
+			"id": "percentage",
+			"title_i18n": "host_details.tot_percentage",
+			"data_field": "percentage",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

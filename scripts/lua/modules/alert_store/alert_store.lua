@@ -2402,7 +2402,7 @@ function alert_store:format_json_record_common(value, entity_id, no_html)
     local record = {}
 
     -- Note: this record is rendered by
-    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template
+    -- the alert tables (httpdocs/tables_config/alert_<family>.json)
 
     record[BASE_RNAME.FAMILY.name] = self:get_family()
 
