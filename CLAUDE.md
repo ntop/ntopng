@@ -110,3 +110,7 @@ custom aliases/wrappers of existing functions (use `i18n(...)` directly, not `T(
 utilities/components or extend them so every page benefits; nothing hardcoded (constants, i18n keys,
 standard `httpdocs/tables_config` table definitions); do not post-process in Lua/JS what the database
 already returns; clean indentation, descriptive names, no dead code.
+
+## Git commits
+
+Never add `Co-Authored-By` (or any Claude attribution) lines to commit messages or PR descriptions.
