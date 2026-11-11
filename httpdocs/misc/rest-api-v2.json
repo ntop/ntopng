@@ -6835,7 +6835,7 @@
           "Alerts"
         ],
         "summary": "Get flow alerts graph edges",
-        "description": "Historical flow alerts aggregated by client, server and alert type (ClickHouse, at most 10000 rows, ordered by average score): src/dst IP, name, country, ASN, local flag, alert, alerts_count, avg_alert_score, L4/L7 protocol and info. Enterprise L or nEdge Enterprise, requires the historical flows capability",
+        "description": "Historical flow alerts aggregated by client, server and alert type (ClickHouse, one table scan, the 2000 groups with the highest total score): src/dst IP, name, country, ASN, local flag, alert (id and label), alerts_count, total_score, severity_id and severity_color (highest severity of the group), first_seen and last_seen (epoch). Enterprise L or nEdge Enterprise, requires the historical flows capability",
         "operationId": "get_alert_graph_alerts",
         "produces": [
           "application/json"
@@ -6869,6 +6869,13 @@
             "name": "score",
             "in": "query",
             "description": "Score (format: 'value;op', op: 'eq', 'neq', 'lt', 'lte', 'gt', 'gte')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Alert status: 'any' to include all the alerts, otherwise only the ones requiring attention",
             "required": false,
             "type": "string"
           },
@@ -26561,6 +26568,25 @@
           "-5": {
             "description": "INVALID_ARGUMENTS (also when the query fails)"
           }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/graph.lua": {
+      "get": {
+        "tags": ["Traffic Model"],
+        "summary": "Get the traffic model graph of a day",
+        "description": "Busiest client to server communications of the interface in a day (IPv4 and IPv6), with the hosts as nodes. Servers carry server_type and role server. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_graph",
+        "produces": ["application/json"],
+        "parameters": [
+          { "name": "ifid", "in": "query", "description": "Interface id", "required": true, "type": "integer" },
+          { "name": "day", "in": "query", "description": "Day (YYYY-MM-DD)", "required": true, "type": "string" },
+          { "name": "max_edges", "in": "query", "description": "Max communications returned (default and max 2000)", "required": false, "type": "integer" }
+        ],
+        "responses": {
+          "0": { "description": "OK" },
+          "-3": { "description": "NOT_GRANTED" },
+          "-5": { "description": "INVALID_ARGUMENTS" }
         }
       }
     },
