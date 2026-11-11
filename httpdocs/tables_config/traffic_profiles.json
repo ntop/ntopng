@@ -15,9 +15,9 @@
             "id": "actions",
 			"title_i18n": "actions",
 			"sortable": false,
+            "min-width": "96px",
+            "max-width": "96px",
 			"sticky": true,
-			"min-width": "80px",
-			"max-width": "80px",
 			"class": [
 				"text-nowrap",
 				"text-center"

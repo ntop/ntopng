@@ -15,12 +15,13 @@
 			"id": "actions",
 			"title_i18n": "actions",
 			"sortable": false,
+			"min-width": "96px",
+			"max-width": "96px",
 			"sticky": true,
 			"class": [
 				"text-nowrap",
 				"text-center"
 			],
-			"min-width": "80px",
 			"render_v_node_type": "button_list",
 			"button_def_array": [
 				{

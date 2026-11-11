@@ -1,0 +1,84 @@
+{
+	"id": "client_ignore_list",
+	"data_url": "lua/pro/rest/v2/get/network/client_ignore_list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "network_configuration.client_ignore_empty",
+	"default_sort": {
+		"column_id": "added_at",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"min-width": "96px",
+			"max-width": "96px",
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "delete_entry",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"class": [],
+					"event_id": "click_button_delete_entry"
+				}
+			]
+		},
+		{
+			"id": "ip",
+			"title_i18n": "network_configuration.client_ignore_ip",
+			"data_field": "ip",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "application",
+			"title_i18n": "application",
+			"data_field": "application",
+			"sortable": true,
+			"min-width": "140px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "note",
+			"title_i18n": "network_configuration.client_ignore_note",
+			"data_field": "note",
+			"sortable": false,
+			"min-width": "300px"
+		},
+		{
+			"id": "added_by",
+			"title_i18n": "network_configuration.client_ignore_added_by",
+			"data_field": "added_by",
+			"sortable": true,
+			"min-width": "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "added_at",
+			"title_i18n": "network_configuration.client_ignore_added_at",
+			"data_field": "added_at",
+			"sortable": true,
+			"min-width": "170px",
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}
