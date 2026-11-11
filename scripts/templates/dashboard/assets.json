@@ -172,7 +172,7 @@
 		{
 			"component": "pie",
 			"id": "manufacturer_distribution",
-			"time_reference": "live",
+			"time_reference": "all_seen",
 			"metric": "devices",
 			"i18n_name": "asset_details.manufacturer_distribution",
 			"width": 4,
@@ -187,7 +187,7 @@
 		{
 			"component": "chart",
 			"id": "devices_distribution",
-			"time_reference": "live",
+			"time_reference": "all_seen",
 			"metric": "devices",
 			"i18n_name": "asset_details.devices_distribution",
 			"width": 4,
@@ -202,7 +202,7 @@
 		{
 			"component": "chart",
 			"id": "oses_distribution",
-			"time_reference": "live",
+			"time_reference": "all_seen",
 			"metric": "devices",
 			"i18n_name": "asset_details.os_distribution",
 			"width": 4,

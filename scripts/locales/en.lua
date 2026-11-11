@@ -3052,6 +3052,7 @@ local lang = {
       ["year"] = "-1 Year",
     },
     ["time_reference"] = {
+      ["all_seen"] = "All Seen",
       ["last"] = "Last %{time}",
       ["live"] = "Live",
       ["since_startup"] = "Since Startup",
