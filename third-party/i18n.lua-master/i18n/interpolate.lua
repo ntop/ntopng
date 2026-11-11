@@ -56,11 +56,14 @@ local function interpolate(pattern, variables)
   end
 
   variables = variables or {}
-  result = interpolateValue(result, variables)
-  result = interpolateField(result, variables)
+
+  -- Run string.format on the locale pattern only, before the named values
+  -- are substituted
   result = escapePercentages(result)
   result = string.format(result, unpack(variables))
   result = unescapePercentages(result)
+  result = interpolateValue(result, variables)
+  result = interpolateField(result, variables)
 
 return result
 end
