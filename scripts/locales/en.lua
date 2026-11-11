@@ -12445,6 +12445,13 @@ local lang = {
     },
   },
   ["traffic_model"] = {
+    ["report"] = {
+      ["title"] = "Traffic Model Daily Report",
+      ["description"] = "The traffic model of %{day} is available in ntopng. Compared with the day before:",
+      ["server_type_summary"] = "%{type}: %{new} new, %{gone} no longer seen, %{not_seen} of %{configured} configured with no traffic.",
+      ["no_changes"] = "No server changes",
+      ["link"] = "Go to Traffic Model",
+    },
     ["server_types"] = {
       ["dhcp"] = "DHCP Server",
       ["dns"] = "DNS Server",
