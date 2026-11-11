@@ -16,6 +16,7 @@ npm install        # once, or after package.json changes
 npm run build      # full production build -> httpdocs/dist/
 npm run build:dev  # full dev build (unminified, sourcemaps)
 npm run watch      # rebuilds ntopng.js on save (Vue app only)
+npm run build:js   # production build of ntopng.js/.css only (with .gz/.br)
 npm run js:lint    # eslint on pro/http_src
 npm run css:lint   # stylelint on pro/http_src
 ```
@@ -29,9 +30,9 @@ Requires `pro/` checked out. Node.js ≥ 18.15.0.
 | Thing | Path |
 |---|---|
 | Vue components / JS source | `pro/http_src/` |
-| Images, third-party JS/CSS, login script | `pro/assets/` |
+| External libraries (`third-party.js` + `third-party.scss`), login script, images | `pro/assets/` |
 | `package.json`, lockfile | `pro/` |
-| Build scripts | `pro/build.mjs`, `pro/vite.ntopng.config.mjs` |
+| Build script (the `BUNDLES` table lists every file of `dist/`) | `pro/build.mjs` |
 | Lint configs | `pro/.eslintrc.json`, `pro/.stylelintrc` |
 | Compiled output (commit this) | `httpdocs/dist/` (repo root, unchanged) |
 | Root `package.json` | thin proxy — just `cd pro && npm run <script>` |
@@ -41,7 +42,7 @@ Requires `pro/` checked out. Node.js ≥ 18.15.0.
 ## Daily workflow
 
 1. Edit files under `pro/http_src/` or `pro/assets/`
-2. `npm run watch` (from root) — rebuilds `ntopng.js` + `ntopng.css` on save
+2. `npm run watch` (from root) — rebuilds `ntopng.js` + `ntopng.css` on save (`cd pro && node build.mjs --watch --only <bundle>` for another bundle)
 3. First time in a session, run `npm run build` once (produces `third-party.js`, themes, images, `login.js` — watch mode preserves these after)
 4. Commit `httpdocs/dist/` changes alongside your source changes
 
