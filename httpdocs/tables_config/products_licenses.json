@@ -15,7 +15,8 @@
 			"id": "actions",
 			"title_i18n": "widgets_page.actions",
 			"sortable": false,
-			"min-width": "110px",
+			"min-width": "96px",
+			"max-width": "96px",
 			"class": [
 				"text-center",
 				"text-nowrap"

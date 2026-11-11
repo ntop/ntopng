@@ -13,10 +13,11 @@
 	    "id": "actions",
 	    "title_i18n": "actions",
 	    "sortable": false,
+	    "min-width": "96px",
+	    "max-width": "96px",
 	    "sticky": true,
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "split_button",
-		 "min-width" : "80px",
 	    "button_def_array": [
 		{ "id": "info", "icon": "fas fa fa-search-plus", "title_i18n": "info", "event_id": "click_button_info" },
 		{ "id": "historical_data", "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "event_id": "click_button_historical_flows" },

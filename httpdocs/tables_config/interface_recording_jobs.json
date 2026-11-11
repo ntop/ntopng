@@ -16,6 +16,8 @@
 			"id": "actions",
 			"title_i18n": "actions",
 			"sortable": false,
+			"min-width": "96px",
+			"max-width": "96px",
 			"sticky": true,
 			"class": [
 				"text-nowrap",
@@ -48,9 +50,7 @@
 					"event_id": "click_button_delete",
 					"danger": true
 				}
-			],
-			"min-width": "90px",
-			"max-width": "90px"
+			]
 		},
 		{
 			"id": "id",
