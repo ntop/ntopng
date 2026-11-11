@@ -2955,6 +2955,7 @@ local known_parameters = {
    ["day_to"] = validateISODay,
    ["day_old"] = validateISODay,
    ["day_new"] = validateISODay,
+   ["max_edges"] = validateNumber,
    ["switch_ip"] = validateIpAddress,
    ["switch_port"] = validateNumber,
    ["http_auth_url"] = validateSingleWord,
