@@ -10584,6 +10584,8 @@ local lang = {
     ["toggle_informative_captive_portal_title"] = "Informative",
     ["toggle_flow_details_card_description"] = "If enabled, clicking a live or historical flow (or a flow/alert row) opens the details in a side card. If disabled, the full details page is opened directly instead.",
     ["toggle_flow_details_card_title"] = "Flow Details Side Card",
+    ["toggle_traffic_model_description"] = "Controls if traffic model learning is enabled.",
+    ["toggle_traffic_model_title"] = "Traffic Model",
     ["flow_details_card_inline_label"] = "Details card",
     ["toggle_interface_name_only_description"] = "If enabled, show the interface name only into the dropdown menu.",
     ["toggle_interface_name_only_title"] = "Interface Name Only",
@@ -12445,13 +12447,7 @@ local lang = {
     },
   },
   ["traffic_model"] = {
-    ["report"] = {
-      ["title"] = "Traffic Model Daily Report",
-      ["description"] = "The traffic model of %{day} is available in ntopng. Compared with the day before:",
-      ["server_type_summary"] = "%{type}: %{new} new, %{gone} no longer seen, %{not_seen} of %{configured} configured with no traffic.",
-      ["no_changes"] = "No server changes",
-      ["link"] = "Go to Traffic Model",
-    },
+    ["traffic_model"] = "Traffic Model",
     ["server_types"] = {
       ["dhcp"] = "DHCP Server",
       ["dns"] = "DNS Server",
