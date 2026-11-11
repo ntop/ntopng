@@ -58,7 +58,7 @@ local function recipient2sendMessageSettings(recipient)
         use_startssl = toboolean(recipient.endpoint_conf.use_startssl),
         from_addr = recipient.endpoint_conf.email_sender,
         to_addr = recipient.recipient_params.email_recipient,
-        cc_addr = recipient.recipient_params.cc,
+        cc_addr = recipient.recipient_params.cc or "",
         username = recipient.endpoint_conf.smtp_username,
         password = recipient.endpoint_conf.smtp_password
     }
