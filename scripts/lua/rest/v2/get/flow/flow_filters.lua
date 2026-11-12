@@ -327,8 +327,12 @@ for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_
 end
 
 tmp_list = {}
+-- nDPI risks already listed through their flow alert, not to show them twice
+local alerted_risks = {}
 for status_key, status in pairs(flowstats["status"]) do
 	if status.count > 0 then
+		alerted_risks[ntop.getFlowAlertRisk(tonumber(status_key))] = true
+
 		-- Flow alerts: passing the entity loads only the flow alert definitions
 		local name = alert_consts.alertTypeLabel(status_key, true --[[ no html --]], alert_entities.flow.entity_id)
 		tmp_list[name] = {
@@ -341,7 +345,7 @@ for status_key, status in pairs(flowstats["status"]) do
 	end
 end
 for risk_key, status in pairs(flowstats["risk"]) do
-	if status.count > 0 then
+	if status.count > 0 and not alerted_risks[tonumber(risk_key)] then
 		tmp_list[status.name] = {
 			group = i18n("flow_details.alerted_flows"),
 			key = "status",
