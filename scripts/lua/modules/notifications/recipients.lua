@@ -1387,11 +1387,11 @@ function recipients.dispatch_notification(notification, current_script, notifica
 
             -- Check Tags
             if recipient_ok and recipient.tags and #recipient.tags > 0 then
-                local tags_bitmap = notification.tags_bitmap or 0
+                -- Integer bit operations: a bitmap with the tag 63 is a negative integer
+                local tags_bitmap = math.tointeger(notification.tags_bitmap) or 0
                 local match = false
                 for _, tag_id in pairs(recipient.tags) do
-                    local bit_val = 2 ^ tag_id
-                    if math.floor(tags_bitmap / bit_val) % 2 >= 1 then
+                    if ((tags_bitmap >> tonumber(tag_id)) & 1) == 1 then
                         match = true
                         break
                     end

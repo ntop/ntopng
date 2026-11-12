@@ -938,8 +938,49 @@ end
 
 -- ##############################################
 
+-- @brief Returns the ids of the tags assigned to a check (added to its alerts)
+--        Stored as a list of ids, not as a bitmap, as JSON numbers lose bit 63
+function checks.getCheckTags(configset, subdir, script_key)
+    local subdir_tags = configset.tags and configset.tags[subdir]
+
+    return (subdir_tags and subdir_tags[script_key]) or {}
+end
+
+-- ##############################################
+
+-- @brief Returns the bitmap of the tags assigned to a check (bit N = tag id N, bit 63 makes it negative)
+function checks.getCheckTagsBitmap(subdir, script_key)
+    local bitmap = 0
+
+    for _, tag_id in ipairs(checks.getCheckTags(checks.getConfigset(), subdir, script_key)) do
+        bitmap = bitmap | (1 << tag_id)
+    end
+
+    return bitmap
+end
+
+-- ##############################################
+
+-- @brief Removes a tag (e.g. a deleted one) from all the checks
+function checks.removeTagFromChecks(tag_id)
+    local configset = checks.getConfigset()
+
+    for _, subdir_tags in pairs(configset.tags or {}) do
+        for _, tag_ids in pairs(subdir_tags) do
+            for i = #tag_ids, 1, -1 do
+                if tag_ids[i] == tag_id then table.remove(tag_ids, i) end
+            end
+        end
+    end
+
+    return saveConfigset(configset)
+end
+
+-- ##############################################
+
 -- @brief Update the configuration of a specific script in a configset
-function checks.updateScriptConfig(script_key, subdir, new_config)
+-- @param tag_ids Ids of the tags assigned to the check, nil to keep the current ones
+function checks.updateScriptConfig(script_key, subdir, new_config, tag_ids)
     local configset = checks.getConfigset()
     local script_type = checks.getScriptType("flow")
     new_config = new_config or {}
@@ -1024,6 +1065,12 @@ function checks.updateScriptConfig(script_key, subdir, new_config)
     if table.len(applied_config) > 0 then
         -- Set the new configuration
         config[subdir][script_key] = applied_config
+    end
+
+    if tag_ids then
+        configset.tags = configset.tags or {}
+        configset.tags[subdir] = configset.tags[subdir] or {}
+        configset.tags[subdir][script_key] = tag_ids
     end
 
     return saveConfigset(configset)
@@ -1263,8 +1310,8 @@ function checks.initDefaultConfig()
         end
     end
 
-    -- This is the new configset with all defaults
-    configset = {config = default_conf, filters = default_filters}
+    -- This is the new configset with all defaults (tags have no defaults, kept as they are)
+    configset = {config = default_conf, filters = default_filters, tags = configset.tags}
 
     -- Save configuration (even if already present, as there may be new checks/risks)
     saveConfigset(configset)

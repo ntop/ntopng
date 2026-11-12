@@ -227,6 +227,27 @@ void HostChecksLoader::loadConfiguration() {
     json_object_iter_next(&it);
   } /* while */
 
+  /* Tags added to the alerts of the checks: 'tags' -> 'host' -> <check key> -> [tag ids] */
+  {
+    json_object *json_tags, *json_tags_host;
+
+    if (json_object_object_get_ex(json, "tags", &json_tags) &&
+        json_object_object_get_ex(json_tags, "host", &json_tags_host)) {
+      it = json_object_iter_begin(json_tags_host);
+      itEnd = json_object_iter_end(json_tags_host);
+
+      while (!json_object_iter_equal(&it, &itEnd)) {
+        std::map<std::string, HostCheck*>::const_iterator cb =
+            cb_all.find(json_object_iter_peek_name(&it));
+
+        if (cb != cb_all.end())
+          cb->second->loadTags(json_object_iter_peek_value(&it));
+
+        json_object_iter_next(&it);
+      }
+    }
+  }
+
 out:
   /* Free the json */
   if (json) json_object_put(json);

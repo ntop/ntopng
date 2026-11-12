@@ -316,6 +316,9 @@ bound to a tag (see `Application- and Risk-Based Tagging`_) is tagged
 directly as soon as it is detected, regardless of the client/server union
 described above.
 
+A flow that triggers an alert also gets the tags of the check that
+triggered it (see :ref:`Check Tags <CheckTags>`).
+
 Where Tags Are Shown
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -323,10 +326,12 @@ Tags (both built-in and user-defined) are displayed as colored badges in
 several places across the UI:
 
 - On the **Host Details** page, in the host summary table.
+- On the **Behavioural Checks** page, in the *Tags* column: the tags added
+  to the alerts of each check (see :ref:`Check Tags <CheckTags>`).
 - In the **Flow Alerts** and **Host Alerts** tables, in a dedicated *Tags*
   column. Since alerts are historical records, the tags shown are the ones
   that were active on the host/flow at the time the alert was generated,
-  not the current ones.
+  not the current ones, plus the tags of the check that triggered the alert.
 - On the **Issues** page (Enterprise XXL), in the *Tags* column and in the
   issue details: the tags of an issue are all the tags of its alerts, and
   the issues can be filtered by tag.
@@ -345,10 +350,11 @@ Using Tags for Notifications
 Tags can be used as an additional delivery criterion when configuring a
 notification :ref:`Recipient <AvailableEndpoints>`, alongside Severity,
 Alert Category, Check Entity and Host Pool. When one or more tags are
-selected for a recipient, only Flow and Host alerts whose related host (the
-client and/or server host, for flow alerts) carries at least one of the
+selected for a recipient, only the alerts carrying at least one of the
 selected tags are delivered to that recipient; all other alerts are
-filtered out for it. If no tag is selected (the default), no tag-based
+filtered out for it. The tags of an alert are those of its host or flow
+(for Flow and Host alerts) and those of the check that triggered it (for
+alerts of any kind, see :ref:`Check Tags <CheckTags>`). If no tag is selected (the default), no tag-based
 filtering is applied and alerts are delivered regardless of their tags.
 
 This makes it possible, for example, to tag a set of business-critical

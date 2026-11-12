@@ -182,6 +182,19 @@ end
 
 -- ##############################################
 
+-- ! @brief Adds the tags of the check generating the alert (used by the issues and by the recipients)
+local function addCheckTags(alert)
+    if not current_script then return end
+
+    local tags_bitmap = require("checks").getCheckTagsBitmap(current_script.subdir, current_script.key)
+
+    if tags_bitmap ~= 0 then
+        alert.tags_bitmap = tags_bitmap
+    end
+end
+
+-- ##############################################
+
 -- ! @brief Push filter matching the alert to Smart Recording if enabled
 -- ! See also Host::enqueueAlertToRecipients for alerts triggered from C++
 -- ! @param entity_info data returned by one of the entity_info building functions
@@ -248,6 +261,7 @@ function alerts_api.store(entity_info, type_info, when)
     }
 
     addAlertPoolAndNetworkInfo(entity_info, alert_to_store)
+    addCheckTags(alert_to_store)
 
     recipients.dispatch_notification(alert_to_store, current_script)
 
@@ -399,6 +413,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
         debug_print("Sending notification for alert " .. entity_info.entity_val)
 
         addAlertPoolAndNetworkInfo(entity_info, triggered)
+        addCheckTags(triggered)
 
         recipients.dispatch_notification(triggered, current_script)
         mark_trigger_notified(triggered)
@@ -488,6 +503,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
     end
 
     addAlertPoolAndNetworkInfo(entity_info, released)
+    addCheckTags(released)
 
     mark_release_notified(released)
 

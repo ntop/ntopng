@@ -2487,6 +2487,7 @@ local known_parameters = {
    ["script_type"] = validateSingleWord,
    ["check_subdir"] = validateSingleWord,
    ["script_key"] = validateSingleWord,
+   ["tag_ids"] = validateEmptyOr(validateListOfTypeInline(validateNumber)), -- comma-separated tag ids, empty for none
    ["alert_key"] = validateNumber,
    ["flow_alert_key"] = validateNumber,
    ["host_alert_key"] = validateNumber,

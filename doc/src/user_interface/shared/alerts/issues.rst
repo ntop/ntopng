@@ -139,10 +139,12 @@ Click on the entity of an issue (e.g. a host) to show only the issues of that
 entity: for a host, its issues and the flow issues about it.
 
 The *Tags* column shows the tags of the issue: all the tags its alerts carried
-when they were triggered (see :doc:`../settings/tags`). Only host and flow alerts have tags, so
-the issues of the other entities have none; a flow alert carries the tags of
-the flow (e.g. those bound to its application or to its risks), not the tags
-of its hosts. Click on a tag to show only the issues with that tag. The *Tag*
+when they were triggered (see :doc:`../settings/tags`). These are the tags of the
+check that triggered the alerts (see :ref:`Check Tags <CheckTags>`), for all the
+entities, and the tags of the host or of the flow, for host and flow alerts. A flow
+issue gets the tags of the flow (e.g. those bound to its application or to its
+risks), not the tags of its hosts, and only the tags of its own check, not those
+of the other checks that triggered alerts on the same flow. Click on a tag to show only the issues with that tag. The *Tag*
 filter on the left lists the tags of the issues with their counts; the other
 tags are under *Other tags*, so that any tag can be chosen.
 

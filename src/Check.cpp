@@ -33,6 +33,7 @@ Check::Check(NtopngEdition _edition, bool _packet_interface_only,
   nedge_exclude = _nedge_exclude;
   nedge_only = _nedge_only;
   enabled = false;
+  tags_bitmap = 0;
 };
 
 /* **************************************************** */
@@ -41,6 +42,20 @@ Check::~Check() {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
 };
+
+/* **************************************************** */
+
+void Check::loadTags(json_object* tag_ids) {
+  tags_bitmap = 0;
+
+  if (!json_object_is_type(tag_ids, json_type_array)) return;
+
+  for (size_t i = 0; i < json_object_array_length(tag_ids); i++) {
+    int tag_id = json_object_get_int(json_object_array_get_idx(tag_ids, i));
+
+    if ((tag_id >= 0) && (tag_id < 64)) tags_bitmap |= (1ULL << tag_id);
+  }
+}
 
 /* **************************************************** */
 

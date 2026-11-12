@@ -454,6 +454,7 @@ class Flow : public GenericHashEntry {
 
   /* 64-bit tag bitmap: bits 0-31 reserved for ntop, bits 32-63 user-defined */
   u_int64_t user_tags_bitmap; /* user-defined */
+  u_int64_t alert_tags_bitmap; /* Tags of the checks of the triggered alerts */
 
   MinorConnectionStates current_c_state;
   u_int counter = 0;

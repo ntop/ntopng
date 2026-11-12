@@ -73,6 +73,15 @@
 			"class": ["text-nowrap"]
 		},
 		{
+			"id": "tags",
+			"title_i18n": "tags_page.tags",
+			"data_field": "tags",
+			"render_type": "formatTagBadges",
+			"sortable": false,
+			"min-width": "100px",
+			"class": ["text-nowrap"]
+		},
+		{
 			"id": "description",
 			"title_i18n": "description",
 			"data_field": "description",

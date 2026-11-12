@@ -34,6 +34,7 @@ class FlowAlert {
   u_int8_t alert_score;
   char* json_alert;
   bool refresh_json_alert;
+  u_int64_t tags_bitmap; /* Tags of the check, copied as the check is deleted on reload */
 
   /*
      Adds to the passed `serializer` (generated with `getAlertSerializer`)
@@ -79,6 +80,7 @@ class FlowAlert {
 
   inline Flow* getFlow() const { return (flow); }
   inline std::string getCheckName() const { return (check_name); }
+  inline u_int64_t getTags() const { return (tags_bitmap); }
 
   /*
      Generates the JSON alert serializer with base information and per-check

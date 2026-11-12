@@ -3996,6 +3996,7 @@ local lang = {
     ["add_device_exclusion_message"] = "Authorized Devices List",
     ["add_device_exclusion_notes"] = "all devices set here are going to override the already know statuses (If a device was unauthorized, now is set to authorized)",
     ["author"] = "Author",
+    ["tags_description"] = "Tags added to the alerts of this check, and to the issues they open or update",
     ["authorized"] = "Authorized",
     ["comment"] = "Comment",
     ["delete_alert_exclusions"] = "Deleting alert exclusions will cause new alerts to be triggered again. Do you really want to delete alert exclusions for",

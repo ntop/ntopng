@@ -31,6 +31,7 @@ FlowAlert::FlowAlert(FlowCheck* c, Flow* f) {
   cli_victim = srv_victim = false;
   cli_score = srv_score = 0;
   if (c) check_name = c->getName();
+  tags_bitmap = c ? c->getTags() : 0;
   alert_score = SCORE_LEVEL_INFO;
   json_alert = NULL;
   refresh_json_alert = false;
@@ -77,6 +78,9 @@ const char* FlowAlert::getSerializedAlert() {
   ndpi_serialize_string_boolean(&serializer, "is_cli_victim", isCliVictim());
   ndpi_serialize_string_boolean(&serializer, "is_srv_attacker", isSrvAttacker());
   ndpi_serialize_string_boolean(&serializer, "is_srv_victim", isSrvVictim());
+
+  /* Tags of the check, per type for the issues (the flow alert has the union) */
+  if (tags_bitmap) ndpi_serialize_string_uint64(&serializer, "tags_bitmap", tags_bitmap);
 
   getAlertJSON(&serializer);
 

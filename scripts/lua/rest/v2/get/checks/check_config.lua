@@ -13,6 +13,7 @@ local checks           = require "checks"
 local alert_consts     = require "alert_consts"
 local alert_severities = require "alert_severities"
 local auth             = require "auth"
+local tag_badge_utils  = require "tag_badge_utils"
 
 --
 -- Return configuration for a single check (hooks, severities, gui metadata).
@@ -118,8 +119,16 @@ if script.default_value then
    end
 end
 
+-- Tags that can be added to the alerts of the check
+local available_tags = {}
+for _, tag in ipairs(tag_badge_utils.getTags()) do
+   available_tags[#available_tags + 1] = { id = tonumber(tag.id), name = tag.name, color = tag.color }
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, {
    hooks          = hooks,
+   tags           = checks.getCheckTags(configset, subdir, script_key),
+   available_tags = available_tags,
    severities     = severities,
    gui            = gui,
    default_value  = script.default_value,

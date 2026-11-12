@@ -281,6 +281,11 @@ function tag_badge_utils.deleteTag(id, who)
                 asset_utils.removeTagFromAssets(id, who, deleted_tag.name)
             end
         end
+
+        -- Remove the tag from the checks, otherwise a new tag reusing the id would inherit them
+        if not tag_badge_utils.isReservedTag(id) then
+            require("checks").removeTagFromChecks(tonumber(id))
+        end
     else
         return false, "Invalid ID"
     end

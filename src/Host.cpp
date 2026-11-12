@@ -2590,9 +2590,12 @@ void Host::alert2JSON(HostAlert* alert, bool released, ndpi_serializer* s) {
   ndpi_serialize_string_int32(s, "observation_point_id",
                               get_observation_point_id());
   serialize_geocoordinates(s, "");
-  ndpi_serialize_string_uint64(s, "tags_bitmap", getTags());
 
   HostCheck* cb = getInterface()->getCheck(alert->getCheckType());
+
+  /* Tags of the host and of the check that triggered the alert */
+  ndpi_serialize_string_uint64(s, "tags_bitmap",
+                               getTags() | (cb ? cb->getTags() : 0));
   ndpi_serialize_string_int32(s, "granularity", cb ? cb->getPeriod() : 0);
 
   alert_json_serializer = alert->getSerializedAlert();
@@ -2638,6 +2641,10 @@ bool Host::enqueueAlertToRecipients(HostAlert* alert, bool released) {
     notification->host.host_pool = get_host_pool();
     notification->alert_entity = alert_entity_host;
     notification->tags_bitmap = getTags();
+
+    /* Tags of the check that triggered the alert */
+    HostCheck* cb = iface->getCheck(alert->getCheckType());
+    if (cb) notification->tags_bitmap |= cb->getTags();
 
     rv = ntop->recipients_enqueue(notification);
 

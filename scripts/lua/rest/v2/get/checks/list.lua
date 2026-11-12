@@ -15,6 +15,7 @@ local alert_consts = require("alert_consts")
 local checks      = require("checks")
 local rest_utils  = require "rest_utils"
 local auth        = require "auth"
+local tag_badge_utils = require "tag_badge_utils"
 
 --
 -- Returns the list of checks for a given subdir with their enable/disable status.
@@ -51,6 +52,12 @@ else
 end
 
 local config_set = checks.getConfigset()
+
+-- Tags by id, to list the tags added to the alerts of each check
+local tags_by_id = {}
+for _, tag in ipairs(tag_badge_utils.getTags()) do
+   tags_by_id[tonumber(tag.id)] = { id = tonumber(tag.id), name = tag.name, color = tag.color }
+end
 local result     = {}
 
 for _, cur_subdir in ipairs(subdirs) do
@@ -97,6 +104,11 @@ for _, cur_subdir in ipairs(subdirs) do
 
       local is_enabled = not table.empty(enabled_hooks)
 
+      local tags = {}
+      for _, tag_id in ipairs(checks.getCheckTags(config_set, cur_subdir, script_name)) do
+         tags[#tags + 1] = tags_by_id[tag_id]
+      end
+
       -- Apply status filter
       if status == "enabled"  and not is_enabled then goto next_script end
       if status == "disabled" and     is_enabled then goto next_script end
@@ -112,6 +124,7 @@ for _, cur_subdir in ipairs(subdirs) do
          severity_icon = severity_icon,
          is_enabled    = is_enabled,
          enabled_hooks = enabled_hooks,
+         tags          = tags,
          is_editable   = (script.gui and not isEmptyString(script.gui.input_builder or "")) and true or false,
       }
 

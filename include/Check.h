@@ -29,6 +29,7 @@ class Check {
   NtopngEdition check_edition;
   bool packet_interface_only, nedge_exclude, nedge_only;
   bool enabled;
+  u_int64_t tags_bitmap; /* Tags added to the alerts of the check (bit N = tag id N) */
 
  public:
   Check(NtopngEdition _edition, bool _packet_interface_only,
@@ -46,6 +47,10 @@ class Check {
 
   inline void enable() { enabled = true; }
   inline bool isEnabled() const { return (enabled ? true : false); }
+
+  /* Tags: array of tag ids, from the checks configuration */
+  void loadTags(json_object* tag_ids);
+  inline u_int64_t getTags() const { return (tags_bitmap); }
 
   virtual std::string getName() const = 0;
 };

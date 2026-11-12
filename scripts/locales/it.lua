@@ -3764,6 +3764,7 @@ local lang = {
     ["add_device_exclusion_message"] = "Lista di Dispositivi Consentiti",
     ["add_device_exclusion_notes"] = "tutti i dispositivi impostati qui sovrascriveranno gli stati già noti (se un dispositivo è stato negato, ora è impostato su consentito)",
     ["author"] = "Autore",
+    ["tags_description"] = "Tag aggiunti agli alert di questo check e alle issue che aprono o aggiornano",
     ["authorized"] = "Autorizzato",
     ["comment"] = "Commento",
     ["delete_alert_exclusions"] = "Deleting alert exclusions will cause new alerts to be triggered again. Do you really want to delete alert exclusions for",

@@ -122,7 +122,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   external_alert.json = NULL, external_alert.source = NULL;
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
-  user_tags_bitmap = 0;
+  user_tags_bitmap = alert_tags_bitmap = 0;
 
   riskInfo = NULL, json_protocol_info = NULL;
   alerts_json = NULL, alerts_json_shadow = NULL;
@@ -4001,7 +4001,7 @@ u_int64_t Flow::getTags() {
   if (srv) bm |= srv->getTags(true /* transferrable_only */);
 #endif
 
-  bm |= user_tags_bitmap;
+  bm |= user_tags_bitmap | alert_tags_bitmap;
 
 #if 0
   Host *cli = getViewSharedClient();
@@ -5481,6 +5481,9 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
   ndpi_serialize_string_string(s, "info", getFlowInfo(false).c_str());
 
   ndpi_serialize_string_uint64(s, "tags_bitmap", getTags());
+  /* Tags of the flow without the ones of the checks: an issue opened for an alert type
+   * gets these and the ones of its check (in the type info), not the ones of the other types */
+  ndpi_serialize_string_uint64(s, "flow_tags_bitmap", user_tags_bitmap);
 
   char* json =
       alerts_json; /* Copying ref as it may be moved to the shadow meantime */
@@ -9402,6 +9405,7 @@ bool Flow::setAlertsMap(FlowAlert* alert) {
   alerts_map.setBit(alert_type.id);
   triggered_alerts[alert_type.id] = alert;
   setAlertInfo(alert);
+  alert_tags_bitmap |= alert->getTags();
 
   /* Update score */
   flow_score += flow_inc;
