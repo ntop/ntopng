@@ -1866,6 +1866,8 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
 #define NTOP_QOE_DEGRADED 50
 #define NTOP_QOE_POOR 30
 
+#define MAX_NUM_ARP_SCAN_IPS  4096
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

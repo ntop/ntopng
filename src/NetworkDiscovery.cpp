@@ -222,7 +222,6 @@ void NetworkDiscovery::sendArpNetwork(void* data, u_int32_t netp,
                                       u_int32_t maskp, u_int32_t sender_ip) {
   u_char mdnsreply[1500];
   u_int32_t first_ip, last_ip, host_ip;
-  const u_int max_num_ips = 1024;
   struct arp_packet* reply;
   struct pcap_pkthdr h;
   char macbuf[32], ipbuf[32];
@@ -238,7 +237,8 @@ void NetworkDiscovery::sendArpNetwork(void* data, u_int32_t netp,
   first_ip = netp & maskp, last_ip = netp + (~maskp);
   first_ip++, last_ip--;
 
-  if ((last_ip - first_ip) > max_num_ips) last_ip = first_ip + max_num_ips;
+  if ((last_ip - first_ip) > MAX_NUM_ARP_SCAN_IPS)
+    last_ip = first_ip + MAX_NUM_ARP_SCAN_IPS;
 
   if (debug_mode) {
     char buf0[32], buf1[32], buf2[32];
