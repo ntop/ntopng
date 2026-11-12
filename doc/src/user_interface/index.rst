@@ -34,7 +34,7 @@ The header bar show the ntopng status information, in particular:
 - The currently `selected interface <../basic_concepts/interfaces.html>`_.
 - The interface Up/Down throughput chart.
 - A series of coloured badges.
-- A search box.
+- The Search button (or :kbd:`Ctrl+F`), which finds pages, preferences, hosts and more (see :ref:`GlobalSearch`).
 - The notifications bell and the `user administration menu <../user_interface/shared/settings/users.html>`_.
 
 The coloured indicate the status of many components in ntopng. The badges in the above picture have the following meaning (from left to right):

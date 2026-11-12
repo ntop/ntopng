@@ -16,23 +16,57 @@ The notifications bell shows news from the `ntop blog`_.
 .. _`ntop blog`: https://www.ntop.org/blog
 
 
-Host Search
------------
+.. _GlobalSearch:
+
+Search
+------
 
 .. figure:: ../../img/web_gui_host_search.jpg
   :align: center
-  :alt: Host Search
+  :alt: Search
 
   The Search Box
 
-The search box provides a convenient way to search for many traffic elements in ntopng:
+The Search button at the top right of the header bar (or :kbd:`Ctrl+F` on any page) opens the search
+box. While typing, the results are listed in groups, with the searched text highlighted:
 
-- Hosts (both by address and name)
-- Mac addresses
-- Autonomous Systems
-- SNMP Devices
+- Menu pages: the entries of the menu, grouped by menu section (all of them while the search box is
+  empty). A page that is not available (missing license, preference or data) is greyed out with a lock
+  icon whose tooltip explains why.
+- Preferences: the preferences that can be switched on or off, up to 8, those whose name starts with
+  the searched text first.
+- Hosts, MACs, networks & more: hosts (by IP address or name), MAC addresses, local networks, Autonomous
+  Systems, SNMP devices and interfaces, and the assets of the Assets Inventory. The icons on the left
+  tell the type of the result, the badges add details such as the interface where the host was found,
+  IPv6 or Inactive. The icons on the right open the alerts and, with ClickHouse, the historical flows of
+  the host. When nothing matches exactly, a shortcut looks for the searched text in the historical flows.
 
-Dynamic auto completion enables users to check whether the searched host appears in the list while typing.
+The up and down arrows move through the results, :kbd:`Enter` opens the selected one and :kbd:`Esc`
+closes the search box.
+
+Clicking a preference (or pressing :kbd:`Enter` on it) switches it on or off at once, without leaving the
+current page. Preferences that cannot be changed (missing license, value set from the command line, or a 
+setting that depends on another one which is off) are shown greyed out with a lock icon whose tooltip 
+explains why. Preferences are listed only to users allowed to change them, and only while the Search 
+Preferences toggle (on by default) is enabled.
+
+Search Preferences
+^^^^^^^^^^^^^^^^^^
+
+The slider icon next to the search field shows the Search Preferences (also in *Settings* → *Preferences*
+→ *User Interface*), which choose what the search looks up. A change is saved at once and the results are
+refreshed:
+
+- *Search In All Interfaces*: looks for hosts on all the interfaces, not only on the selected one. Off by
+  default; always on in the Overview (see :ref:`Lightview`).
+- *Search Hosts*, *Search Networks*, *Search Autonomous Systems*: on by default.
+- *Search SNMP*: on by default, requires an Enterprise M license.
+- *Search Historical Flows*: on by default, requires ClickHouse.
+- *Search Assets*: off by default, as it queries the assets database at every search. Requires an
+  Enterprise M license.
+- *Search Preferences*: lists the preferences in the results, on by default.
+
+Users not allowed to change the preferences see them read-only.
 
 
 Historical Charts

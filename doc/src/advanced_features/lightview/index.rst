@@ -83,7 +83,7 @@ the traffic of a flow from the traffic recording, require jumping on the actual 
 Search
 ------
 
-In the light view, the search box in the top toolbar always looks for hosts on all the
+In the light view, the :ref:`GlobalSearch` always looks for hosts on all the
 interfaces, regardless of the *Search In All Interfaces* preference. Each result reports the
 interface where the host has been found:
 
