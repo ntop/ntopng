@@ -390,6 +390,18 @@ class Flow : public GenericHashEntry {
       char *filename;
     } smb;
 
+    struct {
+      /* Set when the dissection ends, from the nDPI metadata (packet
+       * interfaces only). Client principal ("user@realm", "host$@realm" for
+       * a machine) and, for a machine account, its name (e.g. ws1) */
+      char *client_name, *machine;
+      int32_t error_code; /* Of a KRB-ERROR reply */
+      u_int8_t reply_ok : 1, reply_error : 1,
+        delegation : 1, /* S4U: the client name is the impersonated user */
+        /* Names truncated by nDPI */
+        username_truncated : 1, hostname_truncated : 1, domain_truncated : 1;
+    } kerberos;
+
     /* If you add new structs here, please update getProtosUnionMember() also */
 
   } protos;
@@ -639,6 +651,14 @@ class Flow : public GenericHashEntry {
   inline bool isSTUN() const { return (isProto(NDPI_PROTOCOL_STUN));     }
   inline bool isQUIC() const { return (isProto(NDPI_PROTOCOL_QUIC));     }
   inline bool isSMB() const { return (isProto(NDPI_PROTOCOL_SMBV23));    }
+  inline bool isKerberos() const { return (isProto(NDPI_PROTOCOL_KERBEROS)); }
+  inline bool hasKerberosInfo() const {
+    return (isKerberos() && (protos.kerberos.client_name || protos.kerberos.reply_ok ||
+                             protos.kerberos.reply_error));
+  }
+  static inline bool isKerberosKDCPort(u_int16_t port) {
+    return ((port == 88) || (port == 464));
+  }
   inline bool isZoomRTP() const {
     return (isProto(NDPI_PROTOCOL_ZOOM) &&
             (isProto(NDPI_PROTOCOL_RTP) || isProto(NDPI_PROTOCOL_SRTP)));
@@ -1202,6 +1222,7 @@ class Flow : public GenericHashEntry {
   void lua_get_sip_info(lua_State* vm) const;
   void lua_get_tls_info(lua_State* vm) const;
   void lua_get_ssh_info(lua_State* vm) const;
+  void lua_get_kerberos_info(lua_State* vm) const;
   void lua_get_http_info(lua_State* vm) const;
   void lua_get_dns_info(lua_State* vm) const;
   void lua_get_tcp_info(lua_State* vm) const;

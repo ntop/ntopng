@@ -52,7 +52,7 @@ local KEYS = {
    "num_blacklisted_flows", "num_unidirectional_tcp_flows", "contacts.as_client", "contacts.as_server", "flows.dropped",
    "num_contacted_peers_with_tcp_udp_flows_no_response", "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
    "server_contacts", "tcp.packets.seq_problems", "tcpPacketStats.sent", "tcpPacketStats.rcvd", "os_learning",
-   "device_ip", "more_then_one_device", "ssdp", "inconsistent_host_os",
+   "device_ip", "more_then_one_device", "ssdp", "inconsistent_host_os", "usernames",
 }
 
 local host = {}

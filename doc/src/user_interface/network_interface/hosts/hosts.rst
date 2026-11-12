@@ -122,9 +122,10 @@ Address (or the last router MAC address if the host is remote) and its device ty
 mask if detected), host pool, tags, operating system, Autonomous System, symbolic hostname (or IP address)
 with its badges (local or remote, private, blacklisted...), date and time of first and last packet seen
 for the host, traffic breakdown, amount of traffic packets received/sent, score, number of flows and peers
-as client/server, TCP problems and the further names of the host. The values update by themselves every
-3 seconds: the arrow next to a counter shows whether it grew since the last update. If the host becomes
-idle, a message says so and the values stop updating.
+as client/server, TCP problems, the further names of the host and, for local hosts, the usernames seen in
+its traffic (each with a badge telling the protocol, e.g. Kerberos, and when it was first and last seen).
+The values update by themselves every 3 seconds: the arrow next to a counter shows whether it grew since
+the last update. If the host becomes idle, a message says so and the values stop updating.
 
 Administrators can reset the counters of the host (all of them, or only the blacklisted hosts counters)
 and, on inline interfaces, drop the traffic or the active flows of a local host. The *Active Monitoring*

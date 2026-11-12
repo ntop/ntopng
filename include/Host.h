@@ -1042,6 +1042,14 @@ class Host : public GenericHashEntry,
   /* Currently used only by LocalHost */
   virtual void setAssetUpdated() { ; }
   bool addDataToAssets(char* field, char* value) { return false; };
+  /* Kerberos client (local hosts only, see LocalHost) */
+  virtual void setKerberosClient(const char* principal, const char* machine,
+                                 Flow* f) {}
+  virtual char* getKerberosName(char* const buf, ssize_t buf_len,
+                                bool machine_only = false) {
+    if (buf && buf_len) buf[0] = '\0';
+    return (buf);
+  }
   bool removeDataFromAssets(char* field) { return false; };
 
   u_int32_t getNumContactedPeersAsClientTCPUDPNoTX();

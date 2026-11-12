@@ -126,6 +126,7 @@ void LocalHost::initialize() {
 
   local_network_id = -1;
   os_detail = NULL;
+  usernames = NULL, kerberos_machine = NULL;
   usedPorts = NULL;
   asset_map_updated = false, too_many_server_ports_logged = false;
   tags_refreshed_bitmap = tags_removed_bitmap = tags_assigned_bitmap = 0;
@@ -429,6 +430,8 @@ void LocalHost::lua(lua_State* vm, AddressTree* ptree, bool host_details,
 
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
+  lua_get_usernames(vm);
+
   local_net = ntop->getLocalNetworkName(local_network_id);
 
   if (local_net == NULL)
@@ -602,6 +605,16 @@ void LocalHost::freeLocalHostData() {
   if (tcp_fingerprint) {
     free(tcp_fingerprint);
     tcp_fingerprint = NULL;
+  }
+
+  if (usernames) {
+    free(usernames);
+    usernames = NULL;
+  }
+
+  if (kerberos_machine) {
+    free(kerberos_machine);
+    kerberos_machine = NULL;
   }
 
   /* So that the TCP fingerprint is learnt again */
@@ -825,6 +838,211 @@ void LocalHost::offlineSetHTTPName(const char* http_n) {
 
   Host::offlineSetHTTPName(http_n);
   addDataToAssets((char*)"http_name", (char*)http_n);
+}
+
+/* *************************************** */
+
+/*
+  Kerberos client of a flow (the host that is not the KDC), from reliable data
+  only (see Flow::hosts_periodic_stats_update): a machine account (machine
+  set) sets the machine name (the most recent one), a user is one of the
+  usernames of the host.
+  Called at every periodic update of the flow, in no particular order: the
+  times decide, so that the result does not depend on the order and does not
+  flap when more flows are active.
+*/
+void LocalHost::setKerberosClient(const char* principal, const char* machine,
+                                  Flow* f) {
+  time_t last_seen = f ? f->get_last_seen() : time(NULL);
+  bool changed = false;
+
+  if ((principal == NULL) || (principal[0] == '\0')) return;
+
+  if (machine == NULL) {
+    setUsername(principal, NDPI_PROTOCOL_KERBEROS, f);
+    return;
+  }
+
+  m.lock(__FILE__, __LINE__);
+
+  if (kerberos_machine == NULL)
+    kerberos_machine = (struct LocalHostKerberosMachine*)calloc(1, sizeof(*kerberos_machine));
+
+  if (kerberos_machine) {
+    if (strcmp(kerberos_machine->machine_name, principal) == 0) {
+      if (last_seen > kerberos_machine->last_seen)
+        kerberos_machine->last_seen = last_seen;
+    } else if ((kerberos_machine->machine_name[0] == '\0') ||
+               (last_seen > kerberos_machine->last_seen)) {
+      snprintf(kerberos_machine->machine_name, sizeof(kerberos_machine->machine_name), "%s",
+               principal);
+      snprintf(kerberos_machine->machine, sizeof(kerberos_machine->machine), "%s", machine);
+      kerberos_machine->last_seen = last_seen;
+      changed = true;
+    }
+  }
+
+  m.unlock(__FILE__, __LINE__);
+
+  /* NOTE: after unlocking m (see addDataToAssets) */
+  if (changed && addDataToAssets((char*)"kerberos_name", (char*)principal)) {
+#ifdef NTOPNG_PRO
+    addJournalCause(asset_journal_kerberos_name, 0, f);
+#endif
+  }
+}
+
+/* *************************************** */
+
+/* Sorts the usernames of the asset */
+static int cmp_username_tokens(const void* a, const void* b) {
+  return (strcmp((const char*)a, (const char*)b));
+}
+
+/*
+  A username seen in the traffic of the host with a protocol (e.g. a Kerberos
+  client): the same name with another protocol is another username. When
+  full, the new one replaces the one with the oldest last_seen, unless it is
+  even older. Nothing changes when the username is already there, but
+  last_seen.
+  Asset: usernames = "<name> (<protocol>), ..." (sorted, so that it changes
+  only with the set), journaled per username (added, and replaced if any).
+*/
+void LocalHost::setUsername(const char* name, u_int16_t protocol, Flow* f) {
+  char token[300], evicted[300], sorted[MAX_USERNAMES_PER_HOST][300],
+      tokens[MAX_USERNAMES_PER_HOST * 302];
+  time_t first_seen = f ? f->get_first_seen() : time(NULL);
+  time_t last_seen = f ? f->get_last_seen() : time(NULL);
+  bool changed = false;
+  int i, slot = -1;
+
+  /* The asset stores the usernames as a list separated by "," */
+  if ((name == NULL) || (name[0] == '\0') ||
+      (strlen(name) >= sizeof(usernames->users[0].name)) || strchr(name, ','))
+    return;
+
+  tokens[0] = '\0', evicted[0] = '\0';
+  snprintf(token, sizeof(token), "%s (%s)", name, iface->get_ndpi_proto_name(protocol));
+
+  m.lock(__FILE__, __LINE__);
+
+  if (usernames == NULL)
+    usernames = (struct LocalHostUsernames*)calloc(1, sizeof(*usernames));
+
+  if (usernames == NULL) {
+    m.unlock(__FILE__, __LINE__);
+    return;
+  }
+
+  for (i = 0; i < usernames->num_users; i++) {
+    if ((usernames->users[i].protocol == protocol) &&
+        (strcmp(usernames->users[i].name, name) == 0)) {
+      if (last_seen > usernames->users[i].last_seen)
+        usernames->users[i].last_seen = last_seen;
+      break;
+    }
+  }
+
+  if (i == usernames->num_users) {
+    /* New username */
+    if (usernames->num_users < MAX_USERNAMES_PER_HOST)
+      slot = usernames->num_users++;
+    else {
+      slot = 0;
+      for (i = 1; i < usernames->num_users; i++)
+        if (usernames->users[i].last_seen < usernames->users[slot].last_seen) slot = i;
+
+      /* Older than all the usernames: it would be the one to replace */
+      if (last_seen <= usernames->users[slot].last_seen) slot = -1;
+    }
+
+    if (slot >= 0) {
+      /* A new slot is empty: a name there is the username replaced */
+      if (usernames->users[slot].name[0] != '\0')
+        snprintf(evicted, sizeof(evicted), "%s (%s)", usernames->users[slot].name,
+                 iface->get_ndpi_proto_name(usernames->users[slot].protocol));
+
+      snprintf(usernames->users[slot].name, sizeof(usernames->users[slot].name), "%s", name);
+      usernames->users[slot].protocol = protocol;
+      usernames->users[slot].first_seen = first_seen,
+      usernames->users[slot].last_seen = last_seen;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    int n = usernames->num_users, len = 0;
+
+    for (i = 0; i < n; i++)
+      snprintf(sorted[i], sizeof(sorted[i]), "%s (%s)", usernames->users[i].name,
+               iface->get_ndpi_proto_name(usernames->users[i].protocol));
+
+    qsort(sorted, n, sizeof(sorted[0]), cmp_username_tokens);
+
+    for (i = 0; i < n; i++)
+      len += snprintf(&tokens[len], sizeof(tokens) - len, "%s%s", i ? ", " : "", sorted[i]);
+  }
+
+  m.unlock(__FILE__, __LINE__);
+
+  /* NOTE: after unlocking m (see addDataToAssets) */
+  if (changed && addDataToAssets((char*)"usernames", tokens)) {
+#ifdef NTOPNG_PRO
+    addJournalListCause(asset_journal_username_added, token, f);
+
+    if (evicted[0] != '\0') {
+      char evidence[320];
+
+      snprintf(evidence, sizeof(evidence), "replaced by %s", token);
+      addJournalListCause(asset_journal_username_removed, evicted, f, evidence);
+    }
+#endif
+  }
+}
+
+/* *************************************** */
+
+/* Machine account principal (e.g. ws1$@corp.local), or the machine name only
+ * (e.g. ws1) */
+char* LocalHost::getKerberosName(char* const buf, ssize_t buf_len,
+                                 bool machine_only) {
+  if (buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s",
+             kerberos_machine ? (machine_only ? kerberos_machine->machine
+                                              : kerberos_machine->machine_name)
+                              : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return (buf);
+}
+
+/* *************************************** */
+
+/* usernames = [{name, protocol (its name), first_seen, last_seen}, ...] */
+void LocalHost::lua_get_usernames(lua_State* vm) {
+  m.lock(__FILE__, __LINE__);
+
+  if (usernames && usernames->num_users) {
+    lua_newtable(vm);
+
+    for (int i = 0; i < usernames->num_users; i++) {
+      lua_newtable(vm);
+      lua_push_str_table_entry(vm, "name", usernames->users[i].name);
+      lua_push_str_table_entry(vm, "protocol",
+                               iface->get_ndpi_proto_name(usernames->users[i].protocol));
+      lua_push_uint64_table_entry(vm, "first_seen", usernames->users[i].first_seen);
+      lua_push_uint64_table_entry(vm, "last_seen", usernames->users[i].last_seen);
+      lua_rawseti(vm, -2, i + 1);
+    }
+
+    lua_pushstring(vm, "usernames");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
