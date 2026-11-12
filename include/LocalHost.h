@@ -30,6 +30,9 @@
 typedef struct asset_journal_cause {
   u_int8_t what;   /* AssetJournalWhat */
   u_int8_t tag_id; /* asset_journal_tag_*: the tag (0-63) */
+  char* key;       /* Elements of a list field (e.g.
+                      asset_journal_username_added): the element (e.g. the
+                      username), NULL otherwise */
   char* cause;     /* e.g. "TCP 10.0.0.5:51234->1.2.3.4:443 eth0 (0) [TLS]" */
   struct asset_journal_cause* next;
 } AssetJournalCause;
@@ -61,6 +64,23 @@ class LocalHost : public Host {
 #endif
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail, *tcp_fingerprint;
+  /* Usernames seen in the traffic of the host, whatever the protocol (e.g.
+   * the Kerberos clients), and the Kerberos machine account, each allocated
+   * at the first one. In memory only (not serialized).
+   * NOTE: protected by Host::m */
+  struct LocalHostUsernames {
+    struct {
+      char name[256];     /* e.g. user@realm */
+      u_int16_t protocol; /* nDPI protocol id (e.g. NDPI_PROTOCOL_KERBEROS) */
+      time_t first_seen, last_seen;
+    } users[MAX_USERNAMES_PER_HOST];
+    u_int8_t num_users;
+  } *usernames;
+  struct LocalHostKerberosMachine {
+    char machine[64];       /* Machine name (e.g. ws1) */
+    char machine_name[256]; /* Machine account principal (e.g. ws1$@corp.local) */
+    time_t last_seen;
+  } *kerberos_machine;
   std::map<OSLearningMode, ndpi_os>
       os_learning; /* How OS info has been learnt */
   /* For generic purposes, a <string, string> pair is done.
@@ -104,6 +124,13 @@ class LocalHost : public Host {
    * the assets journal is not available */
   void addJournalCause(AssetJournalWhat what, u_int8_t tag_id, Flow* f,
                        const char* evidence = NULL);
+  /* Same, for an element (key) of a list field (e.g. a Kerberos user): one
+   * cause per element */
+  void addJournalListCause(AssetJournalWhat what, const char* key, Flow* f,
+                           const char* evidence = NULL);
+  /* The implementation of both (key: NULL when not a list element) */
+  void addJournalCauseKey(AssetJournalWhat what, u_int8_t tag_id,
+                          const char* key, Flow* f, const char* evidence);
   /* Takes (under m) the causes not yet dumped, leaving none */
   AssetJournalCause* takeJournalCauses();
   /* NOTE: m locked by the caller (or host being deleted) */
@@ -301,6 +328,11 @@ class LocalHost : public Host {
   void offlineSetDhcpFingerprint(const char* fingerprint, Flow* f = NULL);
   void offlineSetMDNSTXTName(const char* n);
   void offlineSetNetbiosName(const char* n);
+  void setKerberosClient(const char* principal, const char* machine, Flow* f);
+  void setUsername(const char* name, u_int16_t protocol, Flow* f);
+  char* getKerberosName(char* const buf, ssize_t buf_len,
+                        bool machine_only = false);
+  void lua_get_usernames(lua_State* vm);
   void offlineSetTLSName(const char* n);
   void offlineSetHTTPName(const char* n);
   void setServerName(const char* n);

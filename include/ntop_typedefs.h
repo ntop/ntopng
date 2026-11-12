@@ -979,10 +979,14 @@ typedef enum {
   asset_journal_tcp_fingerprint,
   asset_journal_dhcp_fingerprint,
   asset_journal_dns_name,
+  asset_journal_kerberos_name, /* Kerberos machine account */
   /* Add here the other fields of the asset (os_type, dhcp_name, mdns_name,
    * server ports, ...) */
   asset_journal_tag_refreshed, /* Tag observed (tag_id) */
   asset_journal_tag_removed,   /* Tag removed by the host (tag_id) */
+  /* Elements of a list field of the asset, one cause each (key) */
+  asset_journal_username_added,   /* Username added (key: "<name> (<proto>)") */
+  asset_journal_username_removed, /* Username removed (key) */
   asset_journal_num_what
 } AssetJournalWhat;
 #endif

@@ -622,6 +622,9 @@ typedef enum {
 #define MAX_SHAPER_RATE_KBPS 10240
 #define HOUSEKEEPING_FREQUENCY 5
 #define MAX_NUM_HOST_CONTACTS 16
+/* Usernames of a local host, whatever the protocol (in memory only): when
+ * full, the one with the oldest last_seen is replaced */
+#define MAX_USERNAMES_PER_HOST 3
 #define CONST_DEFAULT_NTOP_PORT 3000
 #define CONST_DEFAULT_CLICKHOUSE_TCP_PORT 9000
 #define CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT 9004

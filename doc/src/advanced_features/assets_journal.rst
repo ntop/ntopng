@@ -80,8 +80,8 @@ Every entry has:
 - **Subaction** (*About* in the GUI): what the entry is about: ``os`` (the
   Operating System tags), ``tag`` (the other tags), the name of the field
   (``ip``, ``mac``, ``vlan``, ``tcp_fingerprint``, ``dhcp_fingerprint``,
-  ``dns_name``), empty for the asset as a whole (Baseline, New, Delete,
-  Manual).
+  ``dns_name``, ``kerberos_name``), ``usernames`` (the usernames of the
+  host), empty for the asset as a whole (Baseline, New, Delete, Manual).
 - **Asset**: the interface id, the type of the asset (``host``) and its key,
   as in the assets inventory.
 - **Message**: what happened, and its cause.
@@ -99,9 +99,15 @@ Actions:
 - **Manual** (*Note* in the GUI): a free text note, written by a user or by an integration.
 
 The fields of the host assets currently recorded are: IP address, MAC
-address, VLAN, TCP fingerprint, DHCP fingerprint, DNS name and the tags. The
-name of the host is not recorded, as it is derived from the other names of the
-host (DNS, DHCP, mDNS, ...).
+address, VLAN, TCP fingerprint, DHCP fingerprint, DNS name, Kerberos machine
+account, the usernames and the tags. The name of the host is not recorded, as
+it is derived from the other names of the host (DNS, DHCP, mDNS, ...).
+
+The usernames are the users seen in the traffic of the host, each with the
+protocol it has been seen with (e.g. ``alice@corp.local (Kerberos)``, the
+client of a Kerberos authentication accepted by the KDC). A host keeps the 3
+most recent ones: a new one replaces the one seen least recently. Each username
+added or removed has its own entry and cause.
 
 Causes
 ------
@@ -119,6 +125,8 @@ interface the flow belongs to):
   Add tag 13 (0x0d) Non-PQC Compliant: risk Non PQC Compliant Flow - TCP 192.168.1.93:61562->92.122.247.92:443 eth0 (0) [TLS]
   Update TCP fingerprint from "2_128_64240_47466ece" to "2_64_64240_789c1d1f": TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0) [HTTP.ntop]
   Remove tag 31 (0x1f) Windows: replaced by tag 28 (0x1c) Linux, Linux (TCP Fingerprint) - TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0)
+  Add username dave@corp.local (Kerberos): UDP 10.0.0.5:50012->10.0.0.1:88 eth0 (0) [Kerberos]
+  Remove username alice@corp.local (Kerberos): replaced by dave@corp.local (Kerberos) - UDP 10.0.0.5:50012->10.0.0.1:88 eth0 (0) [Kerberos]
 
 A flow is shown as ``<protocol> <client>-><server> <interface name> (<interface id>) [<application>]``,
 the application only when it is known. When the cause has an evidence other

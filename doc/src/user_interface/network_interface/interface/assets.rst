@@ -47,7 +47,8 @@ Asset details
 The asset details page shows everything known about one asset: whether it is online, its IP
 address and network, name, MAC address, device type, manufacturer, model and operating system,
 when it was first and last seen, its tags, the switch port where it is connected (learnt from
-SNMP), the other names it was seen with (DNS, DHCP, mDNS...) and the ports where it acts as a
+SNMP), the other names it was seen with (DNS, DHCP, mDNS, Kerberos...), the usernames seen in its
+traffic (each with a badge telling the protocol, e.g. Kerberos) and the ports where it acts as a
 server (click a port to see its live flows). Click the ⤢ icon next to the IP address to open the
 live host details when the host is online. When a Wazuh agent runs on the host, a second card
 shows the agent status, the operating system, CPU, RAM, the open ports and the network interfaces.

@@ -806,6 +806,9 @@ Flow::~Flow() {
     if (protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
   } else if (isSMB()) {
     if(protos.smb.filename) free(protos.smb.filename);
+  } else if (isKerberos()) {
+    if (protos.kerberos.client_name) free(protos.kerberos.client_name);
+    if (protos.kerberos.machine) free(protos.kerberos.machine);
   }
 
   if (ndpiFlowRiskName) free(ndpiFlowRiskName);
@@ -1219,6 +1222,28 @@ void Flow::processExtraDissectedInformation() {
                  ndpiFlow->metadata.stun.mapped_address.port);
         stun_mapped_address = strdup(tmp);
       }
+    } else if (isKerberos()) {
+      /* The metadata is final here (reply dissected or extra dissection
+       * ended): keep only the client principal and the outcome, as the nDPI
+       * flow is freed */
+      const struct ndpi_kerberos_metadata *krb = &ndpiFlow->metadata.protos.kerberos;
+      char name[256];
+
+      if ((protos.kerberos.client_name == NULL) &&
+          (ndpi_kerberos_client_name(krb, name, sizeof(name)) > 0)) {
+        protos.kerberos.client_name = strdup(name);
+
+        if ((krb->username[0] == '\0') && (krb->hostname[0] != '\0'))
+          protos.kerberos.machine = strdup(krb->hostname);
+      }
+
+      protos.kerberos.reply_ok = ndpi_kerberos_reply_ok(krb) ? 1 : 0;
+      protos.kerberos.reply_error = (ndpi_kerberos_reply_error(krb) != NULL) ? 1 : 0;
+      protos.kerberos.error_code = protos.kerberos.reply_error ? krb->error_code : 0;
+      protos.kerberos.delegation = (krb->s4u != NDPI_KERBEROS_S4U_NONE) ? 1 : 0;
+      protos.kerberos.username_truncated = krb->username_truncated ? 1 : 0;
+      protos.kerberos.hostname_truncated = krb->hostname_truncated ? 1 : 0;
+      protos.kerberos.domain_truncated = krb->domain_truncated ? 1 : 0;
     }
 
     updateSuspiciousDGADomain();
@@ -1668,6 +1693,7 @@ static u_int16_t getProtosUnionMember(u_int16_t proto_id) {
     case NDPI_PROTOCOL_MINING:
     case NDPI_PROTOCOL_MAIL_SMTP:
     case NDPI_PROTOCOL_SMBV23:
+    case NDPI_PROTOCOL_KERBEROS:
       return (proto_id);
 
     default:
@@ -2779,6 +2805,27 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       }
       break;
 
+    case NDPI_PROTOCOL_KERBEROS:
+      /* Only reliable data: an OK reply (the request is not authenticated),
+       * no delegation (the client name is the impersonated user, not a user
+       * of this host) and no truncated names */
+      if (protos.kerberos.client_name && protos.kerberos.reply_ok &&
+          !protos.kerberos.delegation && !protos.kerberos.username_truncated &&
+          !protos.kerberos.hostname_truncated && !protos.kerberos.domain_truncated) {
+        /* The Kerberos client is the host that is not the KDC (port 88, or
+         * 464 for kpasswd), whatever the direction of the flow: none when it
+         * cannot be told */
+        bool cli_kdc = isKerberosKDCPort(get_cli_port()),
+             srv_kdc = isKerberosKDCPort(get_srv_port());
+        Host* krb_cli = (srv_kdc && !cli_kdc) ? cli_host
+                        : ((cli_kdc && !srv_kdc) ? srv_host : NULL);
+
+        if (krb_cli && krb_cli->isLocalHost())
+          krb_cli->setKerberosClient(protos.kerberos.client_name,
+                                     protos.kerberos.machine, this);
+      }
+      break;
+
     case NDPI_PROTOCOL_DHCP:
       if (protos.dhcp.name) {
         /* DHCP name should be set to the actual DHCP client: checking the port
@@ -3740,6 +3787,7 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
       if (isTLS())  lua_get_tls_info(vm);
       if (isSIP())  lua_get_sip_info(vm);
       if (isSMB())  lua_push_str_table_entry(vm, "protos.smb.filename", protos.smb.filename);
+      if (isKerberos()) lua_get_kerberos_info(vm);
     }
 
     if (!getInterface()->isPacketInterface()) lua_snmp_info(vm);
@@ -6468,6 +6516,13 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
       info_field = std::string(protos.tls.client_requested_server_name);
     } else if (isBittorrent() && bt_hash) {
       info_field = std::string(bt_hash);
+    } else if (isKerberos() && protos.kerberos.client_name) {
+      const char* error = protos.kerberos.reply_error
+                              ? ndpi_kerberos_error2str(protos.kerberos.error_code)
+                              : NULL;
+
+      info_field = std::string(protos.kerberos.client_name);
+      if (error) info_field += std::string(" (") + error + ")";
     } else if (host_server_name) {
       info_field = std::string(host_server_name);
     } else if (isSSH()) {
@@ -8483,6 +8538,35 @@ void Flow::lua_get_ssh_info(lua_State* vm) const {
 
 /* ***************************************************** */
 
+void Flow::lua_get_kerberos_info(lua_State* vm) const {
+  const char* error;
+
+  if (!hasKerberosInfo()) return;
+
+  if (protos.kerberos.client_name)
+    lua_push_str_table_entry(vm, "protos.kerberos.client_name", protos.kerberos.client_name);
+  if (protos.kerberos.delegation)
+    lua_push_bool_table_entry(vm, "protos.kerberos.delegation", true);
+  if (protos.kerberos.username_truncated)
+    lua_push_bool_table_entry(vm, "protos.kerberos.username_truncated", true);
+  if (protos.kerberos.hostname_truncated)
+    lua_push_bool_table_entry(vm, "protos.kerberos.hostname_truncated", true);
+  if (protos.kerberos.domain_truncated)
+    lua_push_bool_table_entry(vm, "protos.kerberos.domain_truncated", true);
+
+  /* No response_ok: no reply */
+  if (protos.kerberos.reply_ok || protos.kerberos.reply_error)
+    lua_push_bool_table_entry(vm, "protos.kerberos.response_ok", protos.kerberos.reply_ok ? true : false);
+
+  if (protos.kerberos.reply_error) {
+    lua_push_int32_table_entry(vm, "protos.kerberos.error_code", protos.kerberos.error_code);
+    if ((error = ndpi_kerberos_error2str(protos.kerberos.error_code)) != NULL)
+      lua_push_str_table_entry(vm, "protos.kerberos.error", error);
+  }
+}
+
+/* ***************************************************** */
+
 void Flow::getSSHInfo(ndpi_serializer* serializer) const {
   if (isSSH()) {
     if (protos.ssh.client_signature)
@@ -8978,6 +9062,33 @@ void Flow::serializeProtocolJSONInfo(ndpi_serializer* serializer) {
       ndpi_serialize_start_of_block(serializer, "ssh");
       getSSHInfo(serializer);
       ndpi_serialize_end_of_block(serializer);
+      break;
+
+    case NDPI_PROTOCOL_KERBEROS:
+      /* Same fields as lua_get_kerberos_info */
+      if (hasKerberosInfo()) {
+        const char* error;
+
+        ndpi_serialize_start_of_block(serializer, "kerberos");
+        if (protos.kerberos.client_name)
+          ndpi_serialize_string_string(serializer, "client_name", protos.kerberos.client_name);
+        if (protos.kerberos.delegation)
+          ndpi_serialize_string_boolean(serializer, "delegation", 1);
+        if (protos.kerberos.username_truncated)
+          ndpi_serialize_string_boolean(serializer, "username_truncated", 1);
+        if (protos.kerberos.hostname_truncated)
+          ndpi_serialize_string_boolean(serializer, "hostname_truncated", 1);
+        if (protos.kerberos.domain_truncated)
+          ndpi_serialize_string_boolean(serializer, "domain_truncated", 1);
+        if (protos.kerberos.reply_ok || protos.kerberos.reply_error)
+          ndpi_serialize_string_boolean(serializer, "response_ok", protos.kerberos.reply_ok);
+        if (protos.kerberos.reply_error) {
+          ndpi_serialize_string_int32(serializer, "error_code", protos.kerberos.error_code);
+          if ((error = ndpi_kerberos_error2str(protos.kerberos.error_code)) != NULL)
+            ndpi_serialize_string_string(serializer, "error", error);
+        }
+        ndpi_serialize_end_of_block(serializer);
+      }
       break;
 
     case NDPI_PROTOCOL_SMBV23:

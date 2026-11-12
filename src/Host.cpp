@@ -560,6 +560,9 @@ void Host::lua_get_names(lua_State* const vm, char* const buf,
     getHTTPName(buf, buf_size);
     if (buf[0]) lua_push_str_table_entry(vm, "http", buf);
 
+    getKerberosName(buf, buf_size);
+    if (buf[0]) lua_push_str_table_entry(vm, "kerberos", buf);
+
     if (isBroadcastDomainHost() && cur_mac) {
       cur_mac->getDHCPName(buf, buf_size);
       if (buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
@@ -1144,6 +1147,10 @@ char* Host::get_name(char* buf, u_int buf_len,
   }
 
   getHTTPName(name_buf, sizeof(name_buf));
+  if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
+
+  /* Kerberos machine account (lowest priority) */
+  getKerberosName(name_buf, sizeof(name_buf), true /* machine name */);
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
   if (!skip_resolution) {
