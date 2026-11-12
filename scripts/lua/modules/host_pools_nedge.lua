@@ -266,25 +266,20 @@ end
 function host_pools_nedge.getMemberKey(member)
   -- handle vlan
   local is_network
-  local host_key
-  local address = hostkey2hostinfo(member)["host"]
+  -- hostkey2hostinfo strips the /prefix from the host and returns it as mask
+  local hostinfo = hostkey2hostinfo(member)
+  local host_key = hostinfo["host"]
+  local prefix = hostinfo["mask"]
 
-  if isMacAddress(address) then
-    host_key = address
+  if isMacAddress(host_key) or (prefix == nil) then
     is_network = false
+  elseif isIPv4(host_key) and (prefix ~= 32) then
+    is_network = true
+  elseif isIPv6(host_key) and (prefix ~= 128) then
+    is_network = true
   else
-    local network, prefix = splitNetworkPrefix(address)
-
-    if(((isIPv4(network)) and (prefix ~= 32)) or
-      ((isIPv6(network)) and (prefix ~= 128))) then
-      -- this is a network
-      host_key = address
-      is_network = true
-    else
-      -- this is an host
-      host_key = network
-      is_network = false
-    end
+    -- a /32 (IPv4) or /128 (IPv6) is an host
+    is_network = false
   end
 
   return host_key, is_network
