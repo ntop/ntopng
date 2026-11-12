@@ -83,7 +83,9 @@ issues are kept in memory for this time: a longer window takes more memory.
 Informational alerts that do not report a problem (e.g. *User Activity*,
 *Process Notification*, *List Download Succeeded*, *Cloud Reconnected*,
 *Shell Script Executed*, *Fail2Ban Executed*, *Network Discovery Executed*)
-do not open issues.
+do not open issues. Neither do some alerts raised for each flow when an alert of
+the hosts already reports the same problem, this includes for example 
+*Obsolete non-PQC Flow* (see *Obsolete non-PQC Host*).
 
 Issues are tracked per ntopng instance, across all its interfaces.
 
