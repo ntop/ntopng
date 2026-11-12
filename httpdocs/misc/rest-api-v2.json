@@ -14029,6 +14029,56 @@
         }
       }
     },
+    "/lua/rest/v2/get/checks/check_config.lua": {
+      "get": {
+        "tags": [
+          "Checks"
+        ],
+        "summary": "Get the configuration of a check",
+        "description": "Return the configuration of a check: per-hook configuration, available severities, GUI metadata and the tags added to its alerts (and to the issues they open or update), with the tags that can be assigned",
+        "operationId": "get_check_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "check_subdir",
+            "in": "query",
+            "description": "Family of the check (e.g. host, flow, interface)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "script_key",
+            "in": "query",
+            "description": "Key of the check",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "factory",
+            "in": "query",
+            "description": "true to return the factory defaults (no tags)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. rsp: hooks, severities, gui, default_value, field_metadata, tags (array of tag ids), available_tags (array of {id, name, color})"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/checks/config.lua": {
       "get": {
         "tags": [
@@ -14055,6 +14105,54 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/checks/list.lua": {
+      "get": {
+        "tags": [
+          "Checks"
+        ],
+        "summary": "List the checks",
+        "description": "Return the checks of a family with their status, severity and the tags added to their alerts",
+        "operationId": "get_checks_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "check_subdir",
+            "in": "query",
+            "description": "Family of the checks (e.g. host, flow), all for every family",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface ID",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "all (default), enabled or disabled",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. rsp: array of {key, subdir, title, description, category_key, category_icon, severity_key, severity_icon, is_enabled, enabled_hooks, tags (array of {id, name, color}), is_editable}"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -21705,6 +21803,66 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/checks/check_config.lua": {
+      "post": {
+        "tags": [
+          "Checks"
+        ],
+        "summary": "Set the configuration of a check",
+        "description": "Save the configuration of a check and the tags added to its alerts (and to the issues they open or update)",
+        "operationId": "set_check_config",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "check_subdir",
+            "in": "formData",
+            "description": "Family of the check (e.g. host, flow, interface)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "script_key",
+            "in": "formData",
+            "description": "Key of the check",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "JSON",
+            "in": "formData",
+            "description": "Per-hook configuration in JSON: {\"<hook>\": {\"enabled\": true, \"script_conf\": {...}}}",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tag_ids",
+            "in": "formData",
+            "description": "Comma-separated ids (0..63) of the tags added to the alerts of the check, empty for none. When missing, the current tags are kept",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-7": {
+            "description": "BAD_FORMAT"
           }
         }
       }
