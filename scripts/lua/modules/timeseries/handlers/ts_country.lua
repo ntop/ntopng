@@ -22,15 +22,15 @@ local timeseries_list = {{
     timeseries = {
         bytes_egress = {
             label = i18n('graphs.metrics_suffixes.egress'),
-            color = ts_gui_utils.get_timeseries_color('bytes')
+            color = ts_gui_utils.get_timeseries_color('bytes_sent')
         },
         bytes_ingress = {
             label = i18n('graphs.metrics_suffixes.ingress'),
-            color = ts_gui_utils.get_timeseries_color('bytes')
+            color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
         },
         bytes_inner = {
             label = i18n('graphs.metrics_suffixes.inner'),
-            color = ts_gui_utils.get_timeseries_color('bytes')
+            color = ts_gui_utils.get_timeseries_color('bytes_inner')
         }
     },
     always_visibile = true,

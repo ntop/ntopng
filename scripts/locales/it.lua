@@ -11730,6 +11730,7 @@ local lang = {
     ["autorefresh"] = "Abilita l'aggiornamento automatico della tabella ogni %time secondi",
     ["clear_filters"] = "Rimuovi filtri (%n)",
     ["filters"] = "Filtri",
+    ["more_filters"] = "Altri filtri",
     ["more_actions"] = "Altre azioni",
     ["showing_page"] = "Pagina %{active_page} di %{total_pages}: %{total_rows} righe in totale",
   },

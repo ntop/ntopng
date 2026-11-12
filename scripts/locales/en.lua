@@ -12036,6 +12036,7 @@ local lang = {
     ["clear_selection"] = "Clear selection",
     ["confirm_n"] = "Confirm (%n)",
     ["filters"] = "Filters",
+    ["more_filters"] = "More Filters",
     ["more_actions"] = "More actions",
     ["n_selected"] = "%n selected",
     ["select_all"] = "Select all rows",
