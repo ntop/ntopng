@@ -583,6 +583,9 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    is_enterprise_xl = (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) or false,
    -- pool_stats.lua: add/edit/delete/export of the pools (pools_rest_utils)
    can_manage_pools = auth.has_capability(auth.capabilities.pools),
+   -- Global search: list the preferences found, switched on/off in place (on by default)
+   search_preferences = auth.has_capability(auth.capabilities.preferences) and
+      (ntop.getPref("ntopng.prefs.search_preferences") ~= "0"),
    are_host_pools_ts_enabled = (areHostPoolsTimeseriesEnabled and areHostPoolsTimeseriesEnabled(current_ifid)) or false,
    has_vlans = interface.hasVLANs(),
    are_host_ts_enabled = (areHostTimeseriesEnabled and areHostTimeseriesEnabled()) or false,

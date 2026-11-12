@@ -560,6 +560,14 @@ function M.get_sections(flags)
                 default = "0",
                 section = i18n("prefs.search_preferences"),
                 locked = lock_enterprise_m
+            }, {
+                key = "toggle_search_preferences",
+                title = i18n("prefs.toggle_search_preferences_title"),
+                description = i18n("prefs.toggle_search_preferences_description"),
+                type = "toggle",
+                redis_key = "ntopng.prefs.search_preferences",
+                default = "1",
+                section = i18n("prefs.search_preferences")
             }}
         },
 

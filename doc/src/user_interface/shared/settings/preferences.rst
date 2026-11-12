@@ -13,8 +13,10 @@ Preferences menu entry enables the user to change runtime configurations. The se
 
 A thorough help is reported below every preference directly into ntopng web GUI.
 
+Some preferences are available only when another one is enabled (or set to a given value): they are shown indented below it, with a line on their left, one step for each level.
+
 The search box above the sections list looks for a text in the section names and in the name and description of every preference. While searching, the `Search results` entry at the top of the list shows the matching preferences of all the sections together, grouped by section, so they can be changed without opening each section. 
-Clicking a section in the list, or its name in the results, opens the whole section with the matching preferences highlighted; `Search results` brings back the results. Changes are kept when moving between sections or searches, and `Save changes` saves all of them at once.
+Clicking a section in the list, or its name in the results, opens the whole section with the matching preferences highlighted; `Search results` brings back the results. A matching preference that depends on a disabled one is shown anyway, read-only, with a lock icon whose tooltip says which preference to change to edit it. Changes are kept when moving between sections or searches, and `Save changes` saves all of them at once.
 
 Change ntopng Index Page
 ========================
