@@ -300,7 +300,7 @@ local country_filter = {
 		key = "country",
 		value = country,
 
-		label = country, -- .. " <img src='/dist/images/blank.gif' class='flag flag-" .. string.lower(country) .. "'>"
+		label = country, -- .. " <img src='/dist/images/blank.gif' class='flag flag-" .. string.lower(country) .. "' alt='" .. country .. "'>"
 	},
 }
 

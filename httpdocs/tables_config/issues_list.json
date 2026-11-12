@@ -4,7 +4,7 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.issues_list",
 	"default_sort": {
 		"column_id": "severity",
@@ -109,7 +109,7 @@
 				"text-end",
 				"text-nowrap"
 			],
-			"min-width": "60px"
+			"min-width": "80px"
 		},
 		{
 			"id": "alert_id",

@@ -67,7 +67,7 @@ print[[
        ]] print(i18n("mfa.enter_code_prompt") or "Enter the 6-digit code from your authenticator app.") print[[
      </p>
 
-     <div class="form-group mb-3">
+     <div class="mb-3">
        <input type="text"
               id="totp_code"
               name="totp_code"

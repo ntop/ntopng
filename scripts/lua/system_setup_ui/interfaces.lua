@@ -109,7 +109,7 @@ print_page_body = function()
       <input name="lan_interfaces" type="hidden">
       <input name="wan_interfaces" type="hidden">
 
-      <div class="form-group mb-3" style="width:40%; margin-left:5%; display:inline-block;">
+      <div class="mb-3" style="width:40%; margin-left:5%; display:inline-block;">
         <label class='form-label' for="lan_ifaces">]] print(lan_label) print[[</label>
         <select id="lan_ifaces" class="form-select" name="lan_ifaces" style="min-height: 150px;" multiple>]]
 
@@ -119,7 +119,7 @@ print_page_body = function()
 
   print[[</select>
       </div>
-      <div class="form-group mb-3" style="width:40%; margin-right:5%; display:inline-block; float:right;">
+      <div class="mb-3" style="width:40%; margin-right:5%; display:inline-block; float:right;">
         <label class='form-label' for="wan_ifaces" >]] print(wan_label) print[[</label>
         <select id="wan_ifaces" class="form-select" name="wan_ifaces" style="min-height: 150px;" multiple>]]
 

@@ -78,7 +78,7 @@ print[[
     <input type="hidden" class="form-control" name="referer" value="]] print(safeHtml(referer)) print [[">
 
     <h1 class="h3 mb-3 fw-normal">]] print(i18n("login.welcome_to", {product=info["product"]})) print[[</h1>
-    <div class="form-group mb-3 has-feedback mb-3">
+    <div class="mb-3 has-feedback mb-3">
       <div class='form-floating'>
         <input placeholder='admin' id='input-username' type="text" class="form-control" name="_username" required]] print(ternary(ntop.isLoginBlacklisted(), " disabled", "")) print[[>
         <label for="input-username">]] print(i18n("login.username_ph")) print[[

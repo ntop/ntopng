@@ -2130,7 +2130,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if info.cli_country and not isEmptyString(info.cli_country.value) then
-    label = label .. ' <img src="' .. ntop_http_prefix .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '">'
+    label = label .. ' <img src="' .. ntop_http_prefix .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '" alt="' .. info.cli_country.value .. '" >'
    end
 
    if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location) then
@@ -2183,7 +2183,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if info.srv_country and not isEmptyString(info.srv_country.value) then
-    label = label .. ' <img src="' .. ntop_http_prefix .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.srv_country.value) .. '">'
+    label = label .. ' <img src="' .. ntop_http_prefix .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.srv_country.value) .. '" alt="' .. info.srv_country.value .. '" >'
    end
 
    if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location) then

@@ -5,7 +5,7 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.assets_journal",
 	"default_sort": {
 		"column_id": "event_time",

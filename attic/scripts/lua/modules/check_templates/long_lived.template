@@ -36,24 +36,24 @@
 <div class="mb-3 row">
     <label class="col-sm-2 col-form-label">{{ i18n("enabled") }}</label>
     <div class="col-2">
-        <div class="custom-control custom-switch">
-            <input id="ds-checkbox" name="enabled" class="custom-control-input" type="checkbox" {{ (hook_conf.enabled and 'checked' or '') }}>
-            <label class="custom-control-label" for="ds-checkbox"></label>
+        <div class="form-check form-switch">
+            <input id="ds-checkbox" name="enabled" class="form-check-input" type="checkbox" {{ (hook_conf.enabled and 'checked' or '') }}>
+            <label class="form-check-label" for="ds-checkbox"></label>
         </div>
     </div>
 </div>
 <div class="mb-3 row">
     <label class="col-sm-2 col-form-label">{{ i18n("scripts_list.templates.flow_duration_threshold") }}</label>
     <div class="col-2">
-        <div id="time-toggles" class="btn-group btn-group-toggle w-100" data-toggle="buttons">
-            <label class="btn {{ (selected_measure.key == 'minutes' and 'btn-primary active' or 'btn-secondary') }}">
-                <input class="ignore" value="60" type="radio" {{ (selected_measure.key == 'minutes' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.minutes") }}
+        <div id="time-toggles" class="btn-group w-100" role="group">
+            <label class="btn {{ (selected_measure.key == 'minutes' and 'btn-primary active' or 'btn-outline-secondary') }}">
+                <input class="ignore visually-hidden" value="60" type="radio" {{ (selected_measure.key == 'minutes' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.minutes") }}
             </label>
-            <label class="btn {{ (selected_measure.key == 'hours' and 'btn-primary active' or 'btn-secondary') }}">
-                <input class="ignore" value="3600" type="radio" {{ (selected_measure.key == 'hours' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.hours") }}
+            <label class="btn {{ (selected_measure.key == 'hours' and 'btn-primary active' or 'btn-outline-secondary') }}">
+                <input class="ignore visually-hidden" value="3600" type="radio" {{ (selected_measure.key == 'hours' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.hours") }}
             </label>
-            <label class="btn {{ (selected_measure.key == 'days' and 'btn-primary active' or 'btn-secondary') }}">
-                <input class="ignore" value="86400" type="radio" {{ (selected_measure.key == 'days' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.days") }}
+            <label class="btn {{ (selected_measure.key == 'days' and 'btn-primary active' or 'btn-outline-secondary') }}">
+                <input class="ignore visually-hidden" value="86400" type="radio" {{ (selected_measure.key == 'days' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.days") }}
             </label>
         </div>
     </div>
@@ -93,11 +93,11 @@
 
         $timeToggles.find(`input[type='radio']`).on('click', function (e) {
             // remove active class from every button
-            $timeToggles.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-secondary');
+            $timeToggles.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-outline-secondary');
             // remove checked from buttons
             $timeToggles.find('input').removeAttr('checked');
             // add active class and btn-primary to the new one
-            $(this).prop('checked', '').parent().addClass('active btn-primary').removeClass('btn-secondary');
+            $(this).prop('checked', '').parent().addClass('active btn-primary').removeClass('btn-outline-secondary');
         });
 
         registerResetCallback('{{ hook_name }}', function(hookName, hook) {

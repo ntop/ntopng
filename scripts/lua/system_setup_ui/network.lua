@@ -311,29 +311,30 @@ system_setup_ui_utils.print_setup_page(print_page_body_callback, sys_config)
   local interface_name_pattern = "^[a-zA-Z0-9_]+$"
   print[[
   <!-- Modal -->
-  <div id="editInterfaceAliasModal" class="modal fade in" role="dialog">
+  <div id="editInterfaceAliasModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editInterfaceAliasModal_label" aria-hidden="true">
     <form method="post" data-bs-toggle="validator" id="editInterfaceAliasForm">
       <div class="modal-dialog">
 
 	<!-- Modal content-->
 	<div class="modal-content">
 	  <div class="modal-header">
-	    <h5 class="modal-title">]] print(i18n("nedge.edit_interface")) print[[</h3>
-	    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	    <h5 class="modal-title" id="editInterfaceAliasModal_label">]] print(i18n("nedge.edit_interface")) print[[</h5>
+	    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="]] print(i18n("close")) print[["></button>
 	  </div>
 
 	  <div class="modal-body container-fluid">
 	    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 	    <input type="hidden" name="old_interface_name" class="real_interface_name">
 
-	    <div class="row form-group mb-3 has-feedback">
+	    <div class="row mb-3 has-feedback">
 	      <label class="form-label">]] print(i18n("nedge.interface_name")) print[[</label>
 	      <input type="text" name="interface_name" class="form-control current_interface_name" pattern="]] print(interface_name_pattern) print[[" required>
 	    </div>
 	  </div>
 
 	  <div class="modal-footer">
-	    <button type="submit" class="btn btn-primary btn-block" disabled="disabled">]] print(i18n("nedge.edit_interface")) print[[</button>
+	    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">]] print(i18n("cancel")) print[[</button>
+	    <button type="submit" class="btn btn-primary" disabled="disabled">]] print(i18n("nedge.edit_interface")) print[[</button>
 
 	  </div>
 	</div>

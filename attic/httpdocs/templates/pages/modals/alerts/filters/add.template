@@ -18,7 +18,7 @@
             </div>
             <form autocomplete="off">
                 <div class="modal-body">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="dt-filter-type-select">
                             <b>{{ i18n("datatable.select_filter") }}</b>
                         </label>
@@ -52,7 +52,7 @@
 </div>
 
 <template id="ip_version-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.ip_version")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -75,7 +75,7 @@
 </template>
 
 <template id="ip-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("ip_address")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -95,7 +95,7 @@
 </template>
 
 <template id="hostname-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("hostname")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -115,7 +115,7 @@
 </template>
 
 <template id="port-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("port")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -135,7 +135,7 @@
 </template>
 
 <template id="severity-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("level")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -165,7 +165,7 @@
 </template>
 
 <template id="score-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("score")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -185,7 +185,7 @@
 </template>
 
 <template id="alert_id-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("alerts_dashboard.alert_type")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -213,7 +213,7 @@
 </template>
 
 <template id="l7_proto-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.l7proto")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -241,7 +241,7 @@
 </template>
 
 <template id="role-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.role")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -265,7 +265,7 @@
 </template>
 
 <template id="role_cli_srv-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.role_cli_srv")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -288,7 +288,7 @@
 </template>
 
 <template id="text-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("value")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -308,7 +308,7 @@
 </template>
 
 <template id="confidence-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.confidence")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
@@ -336,7 +336,7 @@
 </template>
 
 <template id="l7_error_id-filter-template">
-    <div class="form-group row">
+    <div class="mb-3 row">
         <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.error_code")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">

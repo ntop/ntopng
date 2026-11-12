@@ -61,7 +61,7 @@ print [[
 <br>
 <br>
 
-<div class="form-group mb-3">
+<div class="mb-3">
   <div class="form-check">]]
 
 print(template.gen("on_off_switch.html", {

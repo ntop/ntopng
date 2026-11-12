@@ -396,7 +396,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
 
    print [[
     <td align=right>
-      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
+      <table class="mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>]]
 

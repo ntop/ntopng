@@ -5,6 +5,7 @@
 	"enable_search": false,
 	"paging": false,
 	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.internals_hash_tables",
 	"show_autorefresh": 5,
 	"columns": [
 		{

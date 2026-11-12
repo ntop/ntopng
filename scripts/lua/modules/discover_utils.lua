@@ -465,7 +465,7 @@ end
 -- ################################################################################
 
 function discover.printDeviceTypeSelector(device_type, field_name)
-    print [[<div class="form-group mb-3"><select name="]]
+    print [[<div class="mb-3"><select name="]]
     print(field_name)
     print [[" class="form-select">\
    <option value="0"></option>]]

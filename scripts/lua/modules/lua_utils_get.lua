@@ -463,7 +463,7 @@ function getFlag(country)
                    "/lua/hosts_stats.lua?country=" .. country .. "'><img src='" ..
                    ntop.getHttpPrefix() ..
                    "/dist/images/blank.gif' class='flag flag-" ..
-                   string.lower(country) .. "'></a> ")
+                   string.lower(country) .. "' alt='" .. country .. "'></a> ")
     end
 end
 
@@ -841,7 +841,7 @@ function getNtopngRelease(ntopng_info, verbose)
         if vers and vers[2] then
             local ntopng_git_url =
                 "<A HREF=\"https://github.com/ntop/ntopng/commit/" .. vers[2] ..
-                    "\"><i class='fab fa-github'></i></A>"
+                    "\" aria-label=\"GitHub\" title=\"GitHub\"><i class='fab fa-github' aria-hidden='true'></i></A>"
 
             res = string.format("%s | %s", res, ntopng_git_url)
         end

@@ -1065,9 +1065,11 @@ function page_utils.print_header(title, addLoginJS)
         page_title = info.product .. " - " .. title
     end
 
+    local html_lang = require("locales_utils").getHtmlLang(language)
+
     print [[
    <!DOCTYPE html>
-   <html>
+   <html lang="]] print(html_lang) print [[">
    <head>
     <title>]]
     print(page_title)
@@ -1116,7 +1118,6 @@ function page_utils.print_header(title, addLoginJS)
       .flag {
         width: 16px;
         height: 11px;
-        margin-top: -5px;
         background:url(]]
     print(http_prefix)
     print [[/dist/images/flags.png) no-repeat
@@ -1201,9 +1202,11 @@ function page_utils.print_header_minimal(title, addLoginJS)
     local locale_when = ntop.fileLastChange(locale_path)
     local static_file_epoch = ntop.getStaticFileEpoch() .. ""
 
+    local html_lang = require("locales_utils").getHtmlLang(language)
+
     print [[
     <!DOCTYPE html>
-    <html>
+    <html lang="]] print(html_lang) print [[">
       <head>
         <title>]]
     print(page_title)
@@ -1241,7 +1244,6 @@ function page_utils.print_header_minimal(title, addLoginJS)
           .flag {
             width: 16px;
             height: 11px;
-            margin-top: -5px;
             background:url(]]
     print(http_prefix)
     print [[/dist/images/flags.png) no-repeat

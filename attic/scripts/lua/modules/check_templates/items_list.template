@@ -11,9 +11,9 @@
 <div class="form-group mb-3 row">
     <label class="col-sm-2 col-form-label">{{ i18n("enabled") }}</label>
     <div class="col-2">
-        <div class="custom-control custom-switch">
-            <input id="items-checkbox" name="enabled" class="custom-control-input" type="checkbox" {{ (hook_conf.enabled and 'checked' or '') }}>
-            <label class="custom-control-label" for="items-checkbox"></label>
+        <div class="form-check form-switch">
+            <input id="items-checkbox" name="enabled" class="form-check-input" type="checkbox" {{ (hook_conf.enabled and 'checked' or '') }}>
+            <label class="form-check-label" for="items-checkbox"></label>
         </div>
     </div>
 </div>

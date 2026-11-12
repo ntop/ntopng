@@ -305,7 +305,7 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
    print('<tr id="'..field_id..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
    print [[
     <td align=right>
-      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
+      <table class="mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr class='border-0'>
           <td class="local-ip-selector border-0 text-end" style="vertical-align:top; padding-left: 2em;">]]
 
@@ -441,7 +441,7 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
 
   print [[
     <td align=right>
-      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
+      <table class="mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>]]
 

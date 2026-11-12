@@ -4,7 +4,8 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
-	"display_empty_rows": true,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.s7comm_function_codes",
 	"default_sort": {
 		"column_id": "num_uses",
 		"sort": 2

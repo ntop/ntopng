@@ -33,7 +33,7 @@ if is_logged then
   print [[
    <form role="form" class="form-signin" action="]] print(ntop.getHttpPrefix()) print[[/lua/captive_portal.lua" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
-    <div class="form-group mb-3 has-feedback">
+    <div class="mb-3 has-feedback">
        <input type="hidden" class="form-control" name="action" value="logout" />
        <input type="hidden" class="form-control" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print [[" />
         <small>
@@ -78,7 +78,7 @@ end
 
 print[[" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
-  <div class="form-group mb-3 has-feedback">
+  <div class="mb-3 has-feedback">
       <input type="text" class="form-control" name="username" placeholder="]] print(js_str(i18n("login.username"))) print[[" pattern="^[\w\.%]{1,}$" required>
       <input type="password" autocomplete="off" class="form-control" name="password" placeholder="]] print(js_str(i18n("login.password"))) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
       <input type="text" class="form-control" name="label" placeholder="]] print(js_str(i18n("login.device_label"))) print[[" pattern="^[ \w\.%]{1,}$" required>

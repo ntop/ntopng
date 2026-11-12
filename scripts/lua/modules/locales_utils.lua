@@ -33,16 +33,15 @@ local locales_initialized = false
 
 local supported_locales = {
    {code = "en"},
-   {code = "cn"},
-   {code = "tw"},
+   {code = "cn", html_lang = "zh-CN"},
+   {code = "tw", html_lang = "zh-TW"},
    {code = "it"},
    {code = "de"},
-   {code = "jp"},
+   {code = "jp", html_lang = "ja"},
    {code = "pt"},
-   {code = "cz"},
+   {code = "cz", html_lang = "cs"},
    {code = "fr"},
    {code = "ko"},
-   {code = "fr"},
    {code = "es"}
 }
 
@@ -172,6 +171,19 @@ end
 -- ##############################################
 
 -- True when the locale files are already loaded for this request (i18n used)
+-- Returns the <html lang> value of a locale code (BCP 47: ntopng codes differ for cn, tw, jp, cz)
+function locales.getHtmlLang(code)
+   for _, locale in ipairs(supported_locales) do
+      if locale.code == code then
+         return locale.html_lang or locale.code
+      end
+   end
+
+   return default_locale
+end
+
+-- ##############################################
+
 function locales.isInitialized()
    return locales_initialized
 end
