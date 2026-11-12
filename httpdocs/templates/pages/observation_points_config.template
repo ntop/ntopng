@@ -1,6 +1,6 @@
 <form id="op_config" class="form-inline" style="margin-bottom: 0px;" method="post">
 <input id="csrf" name="csrf" type="hidden" value="{{ csrf }}"/>
-<table class="table table-bordered table-striped">
+<table class="table table-bordered ">
 
 <tr>
 <th> {{ i18n("observation_point_alias") }} </th>

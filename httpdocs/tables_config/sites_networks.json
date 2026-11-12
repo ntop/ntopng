@@ -1,0 +1,32 @@
+{
+	"id": "sites_networks",
+	"data_url": "",
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.sites_networks",
+	"default_sort": {
+		"column_id": "alias",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "alias",
+			"title_i18n": "sites_dashboard.network",
+			"data_field": "alias",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "cidr",
+			"title_i18n": "sites_dashboard.cidr",
+			"data_field": "cidr",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

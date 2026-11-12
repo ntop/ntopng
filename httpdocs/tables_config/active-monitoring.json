@@ -1,6 +1,7 @@
 {
 	"id": "active_monitoring",
 	"data_url": "lua/rest/v2/get/active_monitoring/list.lua",
+	"filters_url": "lua/rest/v2/get/active_monitoring/filters.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,

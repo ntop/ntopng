@@ -11,7 +11,9 @@ local lists_utils = require "lists_utils"
 
 local rsp = {}
 local category_filter = _GET["category"]
-local enabled_status = _GET["enabled_status"]
+-- Enabled lists by default: the first option of the Status filter (blacklists_filters.lua), the one
+-- the table shows when the filter is not set
+local enabled_status = _GET["enabled_status"] or "enabled"
 local lists = lists_utils.getCategoryLists()
 
 -- ################################################

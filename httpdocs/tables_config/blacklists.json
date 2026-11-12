@@ -1,6 +1,7 @@
 {
 	"id": "blacklists",
 	"data_url": "lua/rest/v2/get/system/blacklists/blacklists.lua",
+	"filters_url": "lua/rest/v2/get/system/blacklists/blacklists_filters.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,

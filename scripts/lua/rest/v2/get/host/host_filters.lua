@@ -60,6 +60,7 @@ if table.len(networks_stats) > 1 then
 		action = "network",
 		label = i18n("pools.pool_name.local_network"),
 		name = "network",
+		pinned = true,
 		value = network_filters,
 	}
 end
@@ -169,6 +170,7 @@ rsp[#rsp + 1] = {
 	action = "mode",
 	label = i18n("hosts_stats.filter_hosts"),
 	name = "mode",
+	pinned = true,
 	value = hosts_filters,
 }
 
@@ -229,6 +231,7 @@ if ntop.isPro and ntop.isPro() then
 			action = "deviceIP",
 			label = i18n("flows_page.device_ip"),
 			name = "deviceIP",
+			pinned = true,
 			value = exporter_filters,
 		}
 	end

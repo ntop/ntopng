@@ -692,7 +692,7 @@ local function dt_format_flow_alert_id(flow_status)
 
    if not isEmptyString(flow_status) then
       flow_status = tonumber(flow_status)
-      local stats_str = i18n("flow_details.normal")
+      local stats_str = '' -- Normal, no alerts, i18n("flow_details.normal")
 
       -- No status setted
       if (flow_status ~= 0) then

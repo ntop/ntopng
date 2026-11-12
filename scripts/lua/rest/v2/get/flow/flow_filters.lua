@@ -201,6 +201,7 @@ rsp[#rsp + 1] = {
 	label = i18n("application"),
 	name = "application",
 	value = application_filters,
+	pinned = true, -- one of the most used: always inline in the table toolbar (table-filters.vue)
 }
 
 if not isEmptyString(host) then
@@ -524,6 +525,7 @@ if table.len(networks_stats) > 1 then
 		label = i18n("flows_page.networks"),
 		name = "network",
 		value = networks_filter,
+		pinned = true,
 	}
 end
 
@@ -705,6 +707,7 @@ if ntop.isPro and ntop.isPro() and interface.isPacketInterface() == false then
 			label = i18n("flows_page.device_ip"),
 			name = "deviceIP",
 			value = exporter_filters,
+			pinned = true, -- only when flow exporters exist
 		}
 	end
 end

@@ -31,7 +31,10 @@ for key, entity in pairsByField(alert_entities, "entity_id", asc) do
 
    for alert_id, alert_key in pairs(alert_consts.getAlertTypes(entity_id) or {}) do
       local type_info = alert_consts.alert_types[alert_key]
-      if type_info then
+      -- Definitions under alert_definitions/other are registered also under their meta.entities
+      -- (e.g. disk space low under system): list them only there, not again under "other"
+      local shared = type_info and type_info.meta and type_info.meta.entities
+      if type_info and not (shared and entity_id == alert_entities.other.entity_id) then
          alerts[#alerts + 1] = {
             id = string.format("%d_%d", alert_id, entity_id),
             i18n_title = (type_info.meta and type_info.meta.i18n_title) or type_info.i18n_title or alert_key,

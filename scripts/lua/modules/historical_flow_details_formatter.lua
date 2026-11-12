@@ -529,7 +529,7 @@ function historical_flow_details_formatter.format_historical_issues(flow_details
 	local score = tonumber(flow["SCORE"]) or tonumber(flow["score"]) or 0
 	local alert_scores = {}
 	local alert_id = tonumber(flow["STATUS"] or flow["alert_id"] or 0)
-	local html = '<table class="table table-bordered table-striped" width=100%>\n'
+	local html = '<table class="table table-bordered " width=100%>\n'
 		.. "<tr><th>"
 		.. i18n("description")
 		.. "</th><th>"

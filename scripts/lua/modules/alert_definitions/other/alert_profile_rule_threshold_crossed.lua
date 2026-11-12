@@ -19,7 +19,7 @@ local alert_profile_rule_threshold_crossed = classes.class(alert)
 
 alert_profile_rule_threshold_crossed.meta = {
   alert_key = other_alert_keys.alert_profile_rule_threshold_crossed,
-  i18n_title = "show_alerts.host_pool_rule_threshold_cross",
+  i18n_title = "show_alerts.profile_rule_threshold_cross",
   icon = "fas fa-fw fa-exclamation-triangle",
   entities = {
      alert_entities.system,

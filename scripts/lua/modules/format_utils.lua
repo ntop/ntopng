@@ -31,7 +31,7 @@ function format_utils.formatBgpBmpInfo(bgp_data)
          peer_list[#peer_list + 1] = { id = bgp_id, info = info }
       end
 
-      out[#out + 1] = "<table class='table table-bordered table-striped' width='100%' height='100%'>"
+      out[#out + 1] = "<table class='table table-bordered ' width='100%' height='100%'>"
 
       -- Prefix
       out[#out + 1] = "<tr><td><b>" .. i18n("flow_details.bgp_prefix") .. "</b></th><td colspan=" .. (#peer_list) .. ">" .. prefix .. "</th></tr>"

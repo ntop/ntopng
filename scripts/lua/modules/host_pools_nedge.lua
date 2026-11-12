@@ -432,7 +432,7 @@ function host_pools_nedge.printQuotas(pool_id, host, page_params)
       ". " .. i18n("host_pools.create_new_quotas_here", {url=ntop.getHttpPrefix()..url}) .. "</div>")
   else
     print[[
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered ">
     <thead>
       <tr>
         <th>]] print(i18n("application")) print[[</th>

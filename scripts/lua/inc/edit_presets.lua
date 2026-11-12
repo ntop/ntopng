@@ -274,7 +274,7 @@ local function printDeviceProtocolsPage()
 
     $("#]] print(table_id) print[[").datatable({
       url: url_update ,
-      class: "table table-striped table-bordered table-sm",
+      class: "table table-bordered table-sm",
 ]]
 
    -- Table preferences
