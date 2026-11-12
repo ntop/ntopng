@@ -68,6 +68,18 @@
 			"title_i18n": "traffic_model.col.days_active"
 		},
 		{
+			"id": "clients",
+			"data_field": "clients",
+			"sortable": false,
+			"min-width": "100px",
+			"render_type": "number",
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.clients"
+		},
+		{
 			"id": "flows",
 			"data_field": "flows",
 			"sortable": true,

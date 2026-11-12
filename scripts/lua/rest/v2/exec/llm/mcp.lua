@@ -262,6 +262,13 @@ local http_method = (_SERVER and _SERVER["REQUEST_METHOD"]) or "GET"
 
 -- GET -> health / discovery 
 if http_method == "GET" then
+   -- MCP Streamable HTTP: a GET asking for an SSE stream must get 405 when the server
+   -- offers none, otherwise the client reconnects in a loop (about once per second)
+   if string.find(_SERVER["Accept"] or "", "text/event-stream", 1, true) then
+      send_json(rpc_err(nil, -32000, "SSE stream not supported, use POST"), 405)
+      return
+   end
+
    local tools, _ = get_tools()
    local tool_count = 0
 
