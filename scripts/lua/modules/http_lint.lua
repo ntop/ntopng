@@ -2957,6 +2957,7 @@ local known_parameters = {
    ["day_old"] = validateISODay,
    ["day_new"] = validateISODay,
    ["max_edges"] = validateNumber,
+   ["host_role"] = validateSingleWord, -- traffic model graph: client or server
    ["switch_ip"] = validateIpAddress,
    ["switch_port"] = validateNumber,
    ["http_auth_url"] = validateSingleWord,

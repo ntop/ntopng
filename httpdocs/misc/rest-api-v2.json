@@ -26732,14 +26732,40 @@
     "/lua/pro/rest/v2/get/traffic_model/graph.lua": {
       "get": {
         "tags": ["Traffic Model"],
-        "summary": "Get the traffic model graph of a day",
+        "summary": "Get the traffic model graph of a day or of a host",
         "description": "Busiest client to server communications of the interface in a day (IPv4 and IPv6), with the hosts as nodes. Servers carry server_type and role server. Enterprise XL, ClickHouse, checks capability.",
         "operationId": "get_traffic_model_graph",
         "produces": ["application/json"],
         "parameters": [
           { "name": "ifid", "in": "query", "description": "Interface id", "required": true, "type": "integer" },
           { "name": "day", "in": "query", "description": "Day (YYYY-MM-DD)", "required": true, "type": "string" },
-          { "name": "max_edges", "in": "query", "description": "Max communications returned (default and max 2000)", "required": false, "type": "integer" }
+          { "name": "max_edges", "in": "query", "description": "Max communications returned (default and max 2000)", "required": false, "type": "integer" },
+          { "name": "host", "in": "query", "description": "Return only the communications of this host (IPv4 or IPv6)", "required": false, "type": "string" },
+          { "name": "host_role", "in": "query", "description": "With host: client (the host is the source, default is server) or server (the host is the destination)", "required": false, "type": "string", "enum": ["client", "server"] }
+        ],
+        "responses": {
+          "0": { "description": "OK" },
+          "-3": { "description": "NOT_GRANTED" },
+          "-5": { "description": "INVALID_ARGUMENTS" }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/clients.lua": {
+      "get": {
+        "tags": ["Traffic Model"],
+        "summary": "Get the clients of the servers of a type",
+        "description": "Clients that used the servers of a type in a day range, from the daily model built on the historical flows: servers contacted, protocols, flows and bytes, one page per request. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_clients",
+        "produces": ["application/json"],
+        "parameters": [
+          { "name": "server_type", "in": "query", "description": "Server type id (see server_types)", "required": true, "type": "integer" },
+          { "name": "day", "in": "query", "description": "First day (YYYY-MM-DD)", "required": true, "type": "string" },
+          { "name": "day_to", "in": "query", "description": "Last day (YYYY-MM-DD), default is day", "required": false, "type": "string" },
+          { "name": "start", "in": "query", "description": "First row of the page", "required": false, "type": "integer" },
+          { "name": "length", "in": "query", "description": "Rows of the page (max 500)", "required": false, "type": "integer" },
+          { "name": "sort", "in": "query", "description": "ip, name, servers, protocols, days_seen, flows or bytes (default servers)", "required": false, "type": "string" },
+          { "name": "order", "in": "query", "description": "asc or desc (default)", "required": false, "type": "string" },
+          { "name": "map_search", "in": "query", "description": "Address or host name to search", "required": false, "type": "string" }
         ],
         "responses": {
           "0": { "description": "OK" },
