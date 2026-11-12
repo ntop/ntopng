@@ -1555,10 +1555,9 @@ void Flow::processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
               }
             }
           }
-
-          if (protos.dns.last_return_code == 0 /* NOERROR */)
-            setDNSQuery(ndpiFlow->core.host_server_name, (char*)addresses.c_str(),
-                        true);
+          /* Set the query even if it failed, to show what the client asked for */
+          setDNSQuery(ndpiFlow->core.host_server_name, (char*)addresses.c_str(),
+                      true);
         }
       }
 
@@ -7039,11 +7038,15 @@ bool Flow::setDNSQuery(char* query_value, char* rsp_addresses,
 void Flow::updateDNS(ParsedFlow* zflow) {
   if (isDNS()) {
     if (zflow->getDNSQuery()) {
-      if (setDNSQuery(zflow->getDNSQuery(true), NULL,
+      /* Set before setDNSQuery(), which reads it to skip failed queries */
+      setDNSRetCode(zflow->getDNSRetCode());
+
+      if (setDNSQuery(zflow->getDNSQuery(), NULL,
                       false /* No need to allocate memory */)) {
-        /* Set successful, query will be freed in the destructor */
+        /* Set successful: the flow now owns the query (freed in the
+           destructor), detach it from zflow. On failure zflow frees it */
+        zflow->getDNSQuery(true);
         setDNSQueryType(zflow->getDNSQueryType());
-        setDNSRetCode(zflow->getDNSRetCode());
       }
     }
 
