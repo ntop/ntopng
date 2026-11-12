@@ -25,7 +25,8 @@ function noHtml(s)
        return nil
    end
 
-   local cleaned = s:gsub("<[aA] .->(.-)</[aA]>", "%1"):gsub("<abbr .->(.-)</abbr>", "%1"):gsub("<span .->(.-)</span>",
+   -- callers may pass numbers (e.g. formatSNMPInterface returns the bare index when there is no name)
+   local cleaned = tostring(s):gsub("<[aA] .->(.-)</[aA]>", "%1"):gsub("<abbr .->(.-)</abbr>", "%1"):gsub("<span .->(.-)</span>",
        "%1"):gsub("<button .->(.-)</button>", "%1"):gsub("%s*<[iI].->(.-)</[iI]>", "%1"):gsub("<.->(.-)</.->", "%1") -- note: keep as last as this does not handle nested tags
    :gsub("^%s*(.-)%s*$", "%1"):gsub('&nbsp;', " ")
 
