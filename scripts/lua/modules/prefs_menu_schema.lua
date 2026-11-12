@@ -2393,6 +2393,7 @@ function M.get_sections(flags)
             redis_key = "ntopng.prefs.enable_asset_inventory",
             default = "1",
             section = i18n("assets"),
+            to_switch = {"toggle_assets_journal"},
             -- assetsInventoryEnabled() is always false on Windows
             hidden = is_windows
         }, {
