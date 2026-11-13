@@ -2362,6 +2362,7 @@ local known_parameters = {
    ["issue_severity"] = validateNumber, -- Group action: the severity to set (assignee and severity are filters there)
    ["opened"] = validateSingleWord, -- Issues page: time window of the issues first seen (all, 48h, 24h, 1h)
    ["comment"] = validateMessage, -- A comment of an issue (escaped when stored)
+   ["exclusion"] = validateChoiceInline({ "check", "entity" }), -- Resolve an issue: disable its check, or exclude its host from it
    ["show_suppressed"] = validateBool, -- Include the suppressed issues
    ["only_suppressed"] = validateBool, -- Only the suppressed issues
    ["problem"] = validateListOfTypeInline(validateIssueProblem), -- Alert types of the issues (entity id:alert id)
