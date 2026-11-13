@@ -149,7 +149,9 @@ lists all the available user-defined tags. The selection is stored
 persistently, keyed by the host MAC address (for hosts with a known/local
 MAC) or by IP address and VLAN otherwise, so the assignment survives
 ntopng restarts and, for MAC-keyed hosts, host IP address changes (e.g. via
-DHCP).
+DHCP). For a host seen with the same IP address on several VLANs (one asset,
+see :ref:`Assets`), the tags set or removed on one of them apply to the host
+on all its VLANs.
 
 Application- and Risk-Based Tagging
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -289,7 +291,8 @@ Things worth knowing:
 - Tags assigned because the host is listed in the `Network Configuration`_
   (DNS, NTP, DHCP, SMTP, SSH, RDP, PowerShell and FTP servers, Windows
   Domain Controllers, network gateway) never expire as long as the host is
-  listed there, whatever the TTL. If the
+  listed there, whatever the TTL: for a host seen on several VLANs, when it
+  is listed with any of them. If the
   host is removed from the configuration, the tag expires as any other.
 - The TTL is in days and the expiration is checked periodically: a tag can
   be removed up to half a day later than its TTL, never earlier.
@@ -299,7 +302,8 @@ Things worth knowing:
   Operating System reported for the asset is not changed. The tag is back
   as soon as the Operating System is detected again.
 - With a license below Enterprise L the TTL is not available, and the
-  tags of an asset simply are the tags of its host.
+  tags of an asset simply are the tags of its host (for a host seen on
+  several VLANs, the tags of the host on all of them).
 
 Tags on Flows
 ^^^^^^^^^^^^^

@@ -88,6 +88,9 @@ For each host you can see the traffic sent and received, the traffic with other 
 and with remote hosts, and the total. The *Availability* column shows one square for each part
 of the period: grey means no traffic, and the darker the green, the more traffic the host made.
 
+A host seen with the same IP address on several VLANs is one row (one asset, see
+:ref:`Assets`) with the traffic of the VLAN where it was seen last.
+
 With *Hosts Type* you choose which hosts to list: those with traffic (the default), those
 without traffic, all the visible ones or the hidden ones.
 
