@@ -29,7 +29,11 @@ alert_unexpected_dns_server.meta = {
         mitre_id = "T1071.004"
     },
 
-    has_attacker = true
+    has_attacker = true,
+
+    -- Triggered by the servers not in this list of the Network Configuration (network_config_utils.servers):
+    -- the host of the alert is the client contacting the server
+    network_config_list = "dns_list"
 }
 
 -- ##############################################

@@ -37,4 +37,32 @@ network_config_utils.servers = {
      i18n_title = "network_configuration.http_servers_title", i18n_description = "network_configuration.http_servers_description" },
 }
 
+-- @brief The server type of a key (e.g. dns_list), nil if none
+function network_config_utils.get_server(key)
+   for _, server in ipairs(network_config_utils.servers) do
+      if server.key == key then
+         return server
+      end
+   end
+
+   return nil
+end
+
+-- @brief Add servers (comma separated IP[@VLAN]) to the list saved in redis, skipping the
+--        duplicates. The core applies it on ntop.reloadServersConfiguration()
+function network_config_utils.add_servers(redis_key, value)
+   local merged, seen = {}, {}
+
+   for _, list in ipairs({ ntop.getCache(redis_key) or "", value }) do
+      for ip in list:gmatch("[^,]+") do
+         if not seen[ip] then
+            seen[ip] = true
+            merged[#merged + 1] = ip
+         end
+      end
+   end
+
+   ntop.setCache(redis_key, table.concat(merged, ","))
+end
+
 return network_config_utils

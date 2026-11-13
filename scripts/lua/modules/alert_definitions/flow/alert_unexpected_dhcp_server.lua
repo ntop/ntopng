@@ -28,7 +28,12 @@ alert_unexpected_dhcp_server.meta = {
         mitre_id = "T1207"
     },
 
-    has_attacker = true
+    has_attacker = true,
+
+    -- Triggered by the servers not in this list of the Network Configuration (network_config_utils.servers):
+    -- the host of the alert is the DHCP server itself (blames_server)
+    network_config_list = "dhcp_list",
+    blames_server = true
 }
 
 -- ##############################################

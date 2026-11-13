@@ -27,16 +27,8 @@ local function save_list(redis_key, value)
    local parsed = value:gsub("%s+", "")
 
    if append_only then
-      local merged, seen = {}, {}
-      for _, list in ipairs({ ntop.getCache(redis_key) or "", parsed }) do
-         for ip in list:gmatch("[^,]+") do
-            if not seen[ip] then
-               seen[ip] = true
-               merged[#merged + 1] = ip
-            end
-         end
-      end
-      parsed = table.concat(merged, ",")
+      network_config_utils.add_servers(redis_key, parsed)
+      return
    elseif remove_only then
       local removed, kept = {}, {}
       for ip in parsed:gmatch("[^,]+") do removed[ip:lower()] = true end

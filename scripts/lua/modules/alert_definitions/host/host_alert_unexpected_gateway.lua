@@ -31,6 +31,11 @@ host_alert_unexpected_gateway.meta = {
    },
 
    has_attacker = true,
+
+   -- Triggered by the gateways not in this list of the Network Configuration (network_config_utils.servers):
+   -- the host of the alert is the gateway itself (blames_server)
+   network_config_list = "gateway_list",
+   blames_server = true,
 }
 
 -- ##############################################
