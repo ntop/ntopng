@@ -2566,6 +2566,7 @@ function M.get_sections(flags)
             attrs = {
                 min = "1"
             },
+            storage_estimate_endpoint = "/lua/rest/v2/get/ntopng/flow_storage_estimate.lua",
             locked = lock_ch_enabled
         }, {
             key = "clickhouse_max_size",

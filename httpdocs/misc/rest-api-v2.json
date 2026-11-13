@@ -26625,6 +26625,13 @@
             "description": "Text searched in the server address",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "l7_proto",
+            "in": "query",
+            "description": "Only the servers that received traffic of this nDPI protocol id",
+            "required": false,
+            "type": "integer"
           }
         ],
         "responses": {
@@ -26754,7 +26761,7 @@
       "get": {
         "tags": ["Traffic Model"],
         "summary": "Get the clients of the servers of a type",
-        "description": "Clients that used the servers of a type in a day range, from the daily model built on the historical flows: servers contacted, protocols, flows and bytes, one page per request. Enterprise XL, ClickHouse, checks capability.",
+        "description": "Clients that used the servers of a type in a day range, from the daily model built on the historical flows: servers contacted (count and the busiest ones with their protocols), flows and bytes, one page per request. Enterprise XL, ClickHouse, checks capability.",
         "operationId": "get_traffic_model_clients",
         "produces": ["application/json"],
         "parameters": [
@@ -26763,9 +26770,58 @@
           { "name": "day_to", "in": "query", "description": "Last day (YYYY-MM-DD), default is day", "required": false, "type": "string" },
           { "name": "start", "in": "query", "description": "First row of the page", "required": false, "type": "integer" },
           { "name": "length", "in": "query", "description": "Rows of the page (max 500)", "required": false, "type": "integer" },
-          { "name": "sort", "in": "query", "description": "ip, name, servers, protocols, days_seen, flows or bytes (default servers)", "required": false, "type": "string" },
+          { "name": "sort", "in": "query", "description": "ip, name, servers, days_seen, flows or bytes (default servers)", "required": false, "type": "string" },
           { "name": "order", "in": "query", "description": "asc or desc (default)", "required": false, "type": "string" },
-          { "name": "map_search", "in": "query", "description": "Address or host name to search", "required": false, "type": "string" }
+          { "name": "map_search", "in": "query", "description": "Address or host name to search", "required": false, "type": "string" },
+          { "name": "server", "in": "query", "description": "Only the clients of this server address", "required": false, "type": "string" },
+          { "name": "l7_proto", "in": "query", "description": "Only the traffic of this nDPI protocol id", "required": false, "type": "integer" }
+        ],
+        "responses": {
+          "0": { "description": "OK" },
+          "-3": { "description": "NOT_GRANTED" },
+          "-5": { "description": "INVALID_ARGUMENTS" }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/client_servers.lua": {
+      "get": {
+        "tags": ["Traffic Model"],
+        "summary": "Get the servers of a type contacted by a client",
+        "description": "Servers of a type contacted by one client in a day range, from the daily model built on the historical flows: protocols, flows and bytes, one page per request. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_client_servers",
+        "produces": ["application/json"],
+        "parameters": [
+          { "name": "ifid", "in": "query", "description": "Interface id", "required": false, "type": "integer" },
+          { "name": "server_type", "in": "query", "description": "Server type id (see server_types)", "required": true, "type": "integer" },
+          { "name": "client", "in": "query", "description": "Client address (IPv4 or IPv6)", "required": true, "type": "string" },
+          { "name": "day", "in": "query", "description": "First day (YYYY-MM-DD)", "required": true, "type": "string" },
+          { "name": "day_to", "in": "query", "description": "Last day (YYYY-MM-DD), default is day", "required": false, "type": "string" },
+          { "name": "start", "in": "query", "description": "First row of the page", "required": false, "type": "integer" },
+          { "name": "length", "in": "query", "description": "Rows of the page (max 500)", "required": false, "type": "integer" },
+          { "name": "sort", "in": "query", "description": "ip, name, days_seen, flows or bytes (default flows)", "required": false, "type": "string" },
+          { "name": "order", "in": "query", "description": "asc or desc (default)", "required": false, "type": "string" },
+          { "name": "map_search", "in": "query", "description": "Server address or host name to search", "required": false, "type": "string" },
+          { "name": "l7_proto", "in": "query", "description": "Only the traffic of this nDPI protocol id", "required": false, "type": "integer" }
+        ],
+        "responses": {
+          "0": { "description": "OK" },
+          "-3": { "description": "NOT_GRANTED" },
+          "-5": { "description": "INVALID_ARGUMENTS" },
+          "-2": { "description": "INVALID_INTERFACE" }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/protocols.lua": {
+      "get": {
+        "tags": ["Traffic Model"],
+        "summary": "Get the protocols of the traffic towards the servers of a type",
+        "description": "Protocols (nDPI id and name) of the traffic towards the servers of a type in a day range, the busiest first: the values of the protocol filter. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_protocols",
+        "produces": ["application/json"],
+        "parameters": [
+          { "name": "server_type", "in": "query", "description": "Server type id (see server_types)", "required": true, "type": "integer" },
+          { "name": "day", "in": "query", "description": "First day (YYYY-MM-DD)", "required": true, "type": "string" },
+          { "name": "day_to", "in": "query", "description": "Last day (YYYY-MM-DD), default is day", "required": false, "type": "string" }
         ],
         "responses": {
           "0": { "description": "OK" },
@@ -26827,7 +26883,7 @@
           "Traffic Model"
         ],
         "summary": "Remove servers from the server model",
-        "description": "Removes misclassified servers of a type from the server model of a day range (the traffic model is kept). Enterprise XL, ClickHouse, checks capability, administrator.",
+        "description": "Removes misclassified servers of a type from the server model of a day range: the given hosts, or all the servers of the type with all (the traffic model is kept). Enterprise XL, ClickHouse, checks capability, administrator.",
         "operationId": "delete_traffic_model_servers",
         "consumes": [
           "application/json"
@@ -26844,7 +26900,6 @@
               "type": "object",
               "required": [
                 "server_type",
-                "hosts",
                 "day"
               ],
               "properties": {
@@ -26858,7 +26913,11 @@
                 },
                 "hosts": {
                   "type": "string",
-                  "description": "Comma separated IPv4/IPv6 addresses"
+                  "description": "Comma separated IPv4/IPv6 addresses (required unless all is 1)"
+                },
+                "all": {
+                  "type": "integer",
+                  "description": "1: remove all the servers of the type"
                 },
                 "day": {
                   "type": "string",

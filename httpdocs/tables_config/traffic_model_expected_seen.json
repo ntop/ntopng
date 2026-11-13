@@ -80,6 +80,16 @@
 			"title_i18n": "traffic_model.col.clients"
 		},
 		{
+			"id": "protocols",
+			"data_field": "protocols",
+			"sortable": false,
+			"min-width": "200px",
+			"class": [
+				"text-nowrap"
+			],
+			"title_i18n": "traffic_model.col.protocols"
+		},
+		{
 			"id": "flows",
 			"data_field": "flows",
 			"sortable": true,

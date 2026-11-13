@@ -4,6 +4,9 @@
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": true,
+	"expandable": {
+		"key": "ip"
+	},
 	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.traffic_model_clients",
 	"default_sort": {
@@ -54,14 +57,14 @@
 			"title_i18n": "traffic_model.col.servers"
 		},
 		{
-			"id": "protocols",
-			"data_field": "protocols",
-			"sortable": true,
-			"min-width": "200px",
+			"id": "servers_list",
+			"data_field": "servers_list",
+			"sortable": false,
+			"min-width": "320px",
 			"class": [
 				"text-nowrap"
 			],
-			"title_i18n": "traffic_model.col.protocols"
+			"title_i18n": "traffic_model.col.servers_contacted"
 		},
 		{
 			"id": "days_seen",
