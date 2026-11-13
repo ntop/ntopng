@@ -602,7 +602,7 @@
           "Hosts"
         ],
         "summary": "Get the local hosts activity report",
-        "description": "Traffic of the local hosts (assets) in a time range, from the host timeseries (live data when epoch_begin = epoch_end). Each row: ip, vlan, host (ip@vlan), host_key, name, online, bytes_sent, bytes_rcvd, local_traffic, remote_traffic, total_traffic, availability (traffic per time slot) and max_value_per_point (max of each slot over the page). Enterprise M only.",
+        "description": "Traffic of the local hosts (assets) in a time range, from the host timeseries (live data when epoch_begin = epoch_end): one row per asset, with the traffic of its host on the VLAN seen last (the VLAN is not part of the identity of an asset). Each row: ip, vlan (the VLAN seen last), host (ip@vlan, the host whose traffic is reported), host_key, name, online, bytes_sent, bytes_rcvd, local_traffic, remote_traffic, total_traffic, availability (traffic per time slot) and max_value_per_point (max of each slot over the page). Enterprise M only.",
         "operationId": "get_interface_local_hosts_report",
         "produces": [
           "application/json"
@@ -4262,7 +4262,7 @@
           "Hosts"
         ],
         "summary": "Get the details of an asset",
-        "description": "Details of an asset of the inventory as raw values: ip, vlan, mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online, dhcp, snmp_name, network { id, name }, tags [{ id, name, color }], names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown.",
+        "description": "Details of an asset of the inventory as raw values: ip, vlan (the VLAN seen last), vlans [{ id, name, online }] (the VLANs where the IP of a host asset has been seen: the VLAN is not part of its identity), mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online (the host of any of its VLANs is), dhcp, snmp_name, network { id, name }, tags [{ id, name, color }], names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown.",
         "operationId": "get_host_asset_details",
         "produces": [
           "application/json"
@@ -11730,7 +11730,7 @@
           "Assets"
         ],
         "summary": "Delete assets",
-        "description": "Delete one asset (serial_key = its key), all the assets (serial_key = all) or the ones not seen since an epoch (serial_key = epoch). The journal of the assets records the deletions: one entry for one asset, a single entry with their number (no asset key) for several assets deleted at once. Administrators only",
+        "description": "Delete one asset (serial_key = its key), all the assets (serial_key = all), or the ones not seen since an epoch (serial_key = epoch). The journal of the assets records the deletions: one entry for one asset, a single entry with their number (no asset key) for several assets deleted at once. Administrators only",
         "operationId": "delete_host_asset",
         "produces": [
           "application/json"
@@ -16584,7 +16584,7 @@
           "Assets"
         ],
         "summary": "Get the assets inventory",
-        "description": "Assets of the interface (page=snmp: the SNMP assets of the system interface), paginated. Enterprise M only",
+        "description": "Assets of the interface (page=snmp: the SNMP assets of the system interface), paginated. The VLAN is not part of the identity of a host asset: host.vlans [{ id, name, online }] lists the VLANs where its IP has been seen, with the state of the host of each one (the asset is online when any of them is); host.vlan is the VLAN seen last. Enterprise M only",
         "operationId": "get_host_assets",
         "produces": [
           "application/json"
@@ -16642,7 +16642,7 @@
           {
             "name": "vlan",
             "in": "query",
-            "description": "Filter",
+            "description": "Filter: one of the VLANs of the asset",
             "required": false,
             "type": "integer"
           },
@@ -16783,7 +16783,7 @@
           "Assets"
         ],
         "summary": "Get the assets journal entries",
-        "description": "Entries of the assets journal in a time interval, newest first: event_time and created_time (epochs), asset (key, type, ip, vlan, name; empty key for a Delete of several assets at once), who, action, subaction, message. Enterprise L, assets inventory and journal preference enabled",
+        "description": "Entries of the assets journal in a time interval, newest first: event_time and created_time (epochs), asset (key, type, ip, vlan, name; empty key for an event of several assets at once: a deletion, the conversion of the assets recorded per VLAN by an older version), who, action, subaction, message. Enterprise L, assets inventory and journal preference enabled",
         "operationId": "get_host_assets_journal",
         "produces": [
           "application/json"
