@@ -1028,6 +1028,16 @@ end
 
 -- ##############################################
 
+-- @brief HTML of the button that copies a value (IP address, community id...) to the clipboard,
+--        placed next to the value. The value is put in an HTML attribute: no quotes allowed
+function format_copy_button(value)
+   return '<button type="button" class="btn btn-sm border ms-1" data="' .. value ..
+      '" data-bs-toggle="tooltip" title="' .. i18n("copy") .. '" aria-label="' .. i18n("copy") ..
+      '" onclick="NtopUtils.copyToClipboard(this.getAttribute(\'data\'), this)"><i class="fas fa-copy" aria-hidden="true"></i></button>'
+end
+
+-- ##############################################
+
 -- function to format dns query to an HTML copy button and query value
 function format_dns_query_copy_btn(dns_query)
    return

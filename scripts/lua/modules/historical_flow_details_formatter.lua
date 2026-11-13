@@ -677,15 +677,7 @@ local function format_historical_community_id(flow, community_id)
 			"db_explorer.community_id"
 		) .. ' <i class="fas fa-external-link-alt"></i></A>',
 		values = {
-			cid
-				.. '<button style="" class="btn btn-sm border ms-1" data="'
-				.. cid
-				.. "\" onclick=\"NtopUtils.copyToClipboard(this.getAttribute('data'), '"
-				.. i18n("copied")
-				.. "', '"
-				.. i18n("request_failed_message")
-				.. "', this)\">"
-				.. '<i class="fas fa-copy"></i></button>',
+			cid .. format_copy_button(cid),
 		},
 	}
 end

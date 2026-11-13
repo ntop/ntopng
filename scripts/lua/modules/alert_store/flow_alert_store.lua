@@ -1602,6 +1602,9 @@ function flow_alert_store:get_flow_link(fmt, add_hyperlink)
 		tag = "cli_name"
 	end
 	label = label .. self.get_label_link(fmt["flow"]["cli_ip"]["label_long"], tag, value, add_hyperlink) .. cli_ip
+	if add_hyperlink then
+		label = label .. format_copy_button(fmt["flow"]["cli_ip"]["value"])
+	end
 
 	-- client is blacklisted, add block icon
 	if fmt["flow"]["cli_ip"]["blacklisted"] and fmt["flow"]["cli_ip"]["blacklisted"] == "1" then
@@ -1638,6 +1641,9 @@ function flow_alert_store:get_flow_link(fmt, add_hyperlink)
 		tag = "srv_name"
 	end
 	label = label .. self.get_label_link(fmt["flow"]["srv_ip"]["label_long"], tag, value, add_hyperlink) .. srv_ip
+	if add_hyperlink then
+		label = label .. format_copy_button(fmt["flow"]["srv_ip"]["value"])
+	end
 
 	-- server is blacklisted, add block icon
 	if fmt["flow"]["srv_ip"]["blacklisted"] and fmt["flow"]["srv_ip"]["blacklisted"] == "1" then
