@@ -590,6 +590,7 @@ last_seen DATETIME NOT NULL,
 resolved_at DATETIME NULL DEFAULT 0,
 signal_count INTEGER NOT NULL DEFAULT 0,
 tags_bitmap INTEGER NOT NULL DEFAULT 0, -- Union of the tags of the alerts (bit = tag id)
+total_score INTEGER NOT NULL DEFAULT 0, -- Sum of the scores of the alerts
 peers_count INTEGER NOT NULL DEFAULT 0,
 peers_sample TEXT NULL, -- JSON array
 reopen_count INTEGER NOT NULL DEFAULT 0,
@@ -607,6 +608,8 @@ CREATE INDEX IF NOT EXISTS issues_i_last_seen ON issues(last_seen);
 CREATE INDEX IF NOT EXISTS issues_i_fingerprint ON issues(fingerprint);
 @
 ALTER TABLE issues ADD tags_bitmap INTEGER NOT NULL DEFAULT 0;
+@
+ALTER TABLE issues ADD total_score INTEGER NOT NULL DEFAULT 0;
 @
 
 -- -----------------------------------------------------

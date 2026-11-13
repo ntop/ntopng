@@ -12533,6 +12533,7 @@ local lang = {
       ["resolved_at"] = "Resolved",
       ["resolve_policy"] = "Resolution Policy",
       ["signal_count"] = "Alerts",
+      ["total_score"] = "Score",
       ["interfaces"] = "Interfaces",
       ["peers"] = "Peers",
       ["reopen_count"] = "Reopened",

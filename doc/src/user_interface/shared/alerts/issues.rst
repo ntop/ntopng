@@ -49,7 +49,9 @@ Alerts of the same type and on the same entity belong to the same issue:
   alert types.
 
 The severity of an issue is the highest severity of its signals: when it is
-raised the issue is *escalated*.
+raised the issue is *escalated*. The score of an issue is the sum of the scores
+of its signals: a problem that keeps happening scores more than a single alert of
+the same severity.
 
 How Issues Are Resolved
 =======================
@@ -131,7 +133,8 @@ The *List*, *By Problem* and *By Host* tabs show the issues as a list, or groupe
 by problem (alert type) or by host
 (the issues of a host and the flow issues about it; the issues of the other
 entities, e.g. interfaces, by entity). Each group shows its number of issues,
-its highest severity, its alerts and when it was last seen, and expands into
+its highest severity, its alerts, its score (the sum of the scores of its issues)
+and when it was last seen, and expands into
 its issues, the most severe first. Groups are sorted by highest severity, then
 by number of issues, and take into account the filters.
 
@@ -164,7 +167,7 @@ Issue Details
 Clicking on an issue opens its details:
 
 - the summary: first and last seen, duration, how the issue is resolved, the
-  number of signals, the peers, the tags, the assignee;
+  number of signals, the score, the peers, the tags, the assignee;
 - the timeline: what happened to the issue (opened, escalated, resolved,
   reopened) and who did what, with the comments of the users;
 - the latest alerts of the issue. The *Alerts* button opens the Alerts Explorer

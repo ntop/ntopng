@@ -1640,6 +1640,7 @@ CREATE TABLE IF NOT EXISTS `issues` ON CLUSTER '$CLUSTER' (
 `resolved_at` DateTime COMMENT 'Time the issue was resolved (zero if open)',
 `signal_count` UInt64 COMMENT 'Number of signals (alerts) linked to this issue',
 `tags_bitmap` UInt64 DEFAULT 0 COMMENT 'Union of the tags of the alerts of the issue (bit N = tag id N)',
+`total_score` UInt64 DEFAULT 0 COMMENT 'Sum of the scores of the signals',
 `peers_count` UInt32 COMMENT 'Number of distinct peers seen in the signals (e.g. scanned or contacted hosts)',
 `peers_sample` String COMMENT 'JSON array with a sample of the peers',
 `reopen_count` UInt16 COMMENT 'Number of times the issue was reopened after being resolved',
@@ -1655,6 +1656,8 @@ CREATE TABLE IF NOT EXISTS `issues` ON CLUSTER '$CLUSTER' (
 ALTER TABLE `issues` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Issues (problems) built on top of alerts: alerts with the same fingerprint are grouped into one issue with a status (open/resolved), acknowledgement, assignee and suppression. Every change inserts a new row with a higher version (ReplacingMergeTree): use FINAL or argMax(..., version) to read the current state. Alerts link to their issue through the issue_id column.';
 @
 ALTER TABLE `issues` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `tags_bitmap` UInt64 DEFAULT 0 COMMENT 'Union of the tags of the alerts of the issue (bit N = tag id N)';
+@
+ALTER TABLE `issues` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `total_score` UInt64 DEFAULT 0 COMMENT 'Sum of the scores of the signals';
 @
 
 CREATE TABLE IF NOT EXISTS `issue_events` ON CLUSTER '$CLUSTER' (

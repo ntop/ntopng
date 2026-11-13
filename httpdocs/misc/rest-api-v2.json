@@ -23558,7 +23558,7 @@
           "Issues"
         ],
         "summary": "List issues",
-        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role, url (host and flow issues: the host page on the first interface where the issue has been seen)}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, peers_count, peers_sample, reopen_count, resolve_policy (on_release|quiet_period|manual), auto_resolve_at (open quiet_period issues: when resolved unless new alerts arrive), resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, tags [{id, name, color}] (union of the tags of the alerts of the issue, host and flow alerts only), alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "List the issues of a view, with filters, sorting and paging. Each record has issue_id, status (open|resolved), severity {id, label}, alert {id, name}, entity {id, label, value, name, host, role, url (host and flow issues: the host page on the first interface where the issue has been seen)}, ifids, interfaces [{id, name}] (where the issue has been seen), first_seen, last_seen, resolved_at, duration, signal_count, score (highest score of the alerts), total_score (sum of the scores of the alerts), peers_count, peers_sample, reopen_count, resolve_policy (on_release|quiet_period|manual), auto_resolve_at (open quiet_period issues: when resolved unless new alerts arrive), resolution, ack_user, ack_tstamp, assignee, suppressed, suppressed_until, tags [{id, name, color}] (union of the tags of the alerts of the issue, host and flow alerts only), alerts_url. The total is in recordsTotal. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_list",
         "produces": [
           "application/json"
@@ -23725,7 +23725,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "Sort column: issue_id, severity, score, first_seen, last_seen (default), resolved_at, signal_count, peers_count, alert_id, entity_val",
+            "description": "Sort column: issue_id, severity, score, first_seen, last_seen (default), resolved_at, signal_count, total_score, peers_count, alert_id, entity_val",
             "required": false,
             "type": "string"
           },
@@ -23974,7 +23974,7 @@
           "Issues"
         ],
         "summary": "Issue groups",
-        "description": "Issues grouped by one dimension (group_by), the most severe groups first, then the largest. Each group has key, label, entity (entity type label, problem and host groups only), count, max_severity, last_seen, signal_count and params: the parameters to add to list.lua to get the issues of the group, or to this endpoint for a further level. has_more tells if there are more groups. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
+        "description": "Issues grouped by one dimension (group_by), the most severe groups first, then the largest. Each group has key, label, entity (entity type label, problem and host groups only), count, max_severity, last_seen, signal_count, total_score (sum of the scores of the alerts) and params: the parameters to add to list.lua to get the issues of the group, or to this endpoint for a further level. has_more tells if there are more groups. Same filters of the issue list. Enterprise XXL+ only, requires alerts enabled and the alerts capability.",
         "operationId": "get_issue_groups",
         "produces": [
           "application/json"
@@ -24158,7 +24158,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "Sort column: severity (most severe issue of the group, default), count (number of issues), signal_count (number of alerts)",
+            "description": "Sort column: severity (most severe issue of the group, default), count (number of issues), signal_count (number of alerts), total_score (sum of the scores of the alerts)",
             "required": false,
             "type": "string"
           },

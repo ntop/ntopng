@@ -205,6 +205,18 @@
 			"render_type": "number"
 		},
 		{
+			"id": "total_score",
+			"title_i18n": "issues.col.score",
+			"data_field": "total_score",
+			"sortable": true,
+			"class": [
+				"text-end",
+				"text-nowrap"
+			],
+			"min-width": "80px",
+			"render_type": "number"
+		},
+		{
 			"id": "peers_count",
 			"title_i18n": "issues.col.peers_count",
 			"data_field": "peers_count",

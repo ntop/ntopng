@@ -180,7 +180,7 @@ opening a new one.
   *Issues Maximum Open* preference (`ntopng.prefs.issues_max_open`, 50000 by
   default, 100 to 1000000); a warning is logged at most once an hour.
 - **Update**: each signal increments `signal_count`, extends `last_seen`, raises
-  `score`, adds the interface and the peer, adds the tags of the alert to
+  `score` (highest score), adds its score to `total_score`, adds the interface and the peer, adds the tags of the alert to
   `tags_bitmap` (union of the tags of all the alerts), and records
   `host_pool_id` in `issue.json` for the recipient filters.
 - **Escalate**: a signal with a higher severity (`ntop.mapScoreToSeverity`)
