@@ -12385,6 +12385,7 @@ local lang = {
     ["reopened_times"] = "Reopened %{n} time(s)",
     ["not_found"] = "Issue %{id} not found",
     ["summary"] = "Summary",
+    ["last_alert"] = "Last alert",
     ["timeline"] = "Timeline",
     ["comment_placeholder"] = "Add a comment...",
     ["latest_signals"] = "Latest Alerts (up to %{n})",
