@@ -46,7 +46,7 @@ Decisions:
 |---|---|---|---|
 | `ifid` | `UInt8` | `INTEGER` | Interface of the asset |
 | `asset_type` | `LowCardinality(String)` | `TEXT` | Type of the asset (`host`, later `mac`, `snmp`, ...) |
-| `key` | `String` | `TEXT` | Key of the asset, as in the `assets` table (e.g. `2_192.168.1.20@0`) |
+| `key` | `String` | `TEXT` | Key of the asset, as in the `assets` table (e.g. `2_192.168.1.20@0`); empty for a `Delete` of several assets at once |
 | `event_time` | `DateTime` | `INTEGER` (epoch, seconds) | When the event happened |
 | `created_time` | `DateTime` | `INTEGER` (epoch, seconds) | When the entry has been written |
 | `who` | `String` | `TEXT` | `ntopng`, or the username |
@@ -121,7 +121,7 @@ Notes:
 | `Baseline` | The journal starts (first time, or enabled again): one entry per asset already there. Message: "Asset already in the inventory when the journal has been enabled", no details | `ntopng` |
 | `New` | An asset is created. One entry for the creation itself, with the flow that created the host of the asset (see "Causes"), then one entry for each field with a value and for each tag of the new asset, with their details (`Update` action, same event time) | `ntopng` |
 | `Update` | A field of an asset changes, automatically or by a user | `ntopng` or the user |
-| `Delete` | An asset is deleted: by ntopng (e.g. not seen for too long) or by a user | `ntopng` or the user |
+| `Delete` | An asset is deleted: by ntopng (e.g. not seen for too long) or by a user. Several assets deleted at once (all the host assets or SNMP devices of the interface, the ones not seen since a time) are a single entry with no key and their number ("Assets deleted (1250): all the host assets of the interface"), not one per asset, which would only flood the journal (issue #11206). The deletion of a single asset (by a user, a duplicate) keeps its own entry | `ntopng` or the user |
 | `Manual` | A free text written by a user (e.g. "Asset removed from the network because too old") | The user |
 
 ## Subactions
@@ -182,6 +182,7 @@ Examples (English, from live tests):
 | Tag from the configuration | Add tag 0 (0x00) DNS Server: from network configuration |
 | Name resolved by ntopng | Set DNS name to "precision-3591.lan": reverse DNS lookup by ntopng |
 | Asset deleted by a user | Asset deleted |
+| All the host assets deleted by a user | Assets deleted (1250): all the host assets of the interface |
 
 ## Causes
 
@@ -292,6 +293,7 @@ standalone and on real databases.
 | `tagEntries(base, events, tag_names, extra, details)` | One `Update` entry per tag added or removed (`subaction`: `os` or `tag`); `details(event, events)` adds the cause sent by the host |
 | `newEntries(base, cause, fields, asset, field_cause, tag_events, tag_names, field_causes, tag_extra, tag_details)` | `New` entry, then the fields (except the ones in the key) and the tags of the new asset |
 | `newEntry`, `baselineEntry`, `deleteEntry` | The entries about the asset as a whole |
+| `deletedAssetsEntry(base, count, cause)` | The single `Delete` entry (no key) of several assets deleted at once |
 
 Database functions (they need ntopng, and run on the database of the current
 interface, as the rest of the assets code):

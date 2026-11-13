@@ -47,7 +47,8 @@ Each row is an event, newest first:
 
 - **Time**: when the event happened.
 - **Asset**: the asset (only in the *Assets Inventory* page). Click it to open
-  its details.
+  its details. Several assets deleted at once (e.g. all of them) are a single
+  event, shown as *Host Assets* or *SNMP Devices*.
 - **Action**: *Baseline*, *New*, *Update*, *Delete* or *Note* (see below).
 - **About**: what has changed, e.g. *MAC address*, *DNS name*,
   *TCP fingerprint*, *Operating System* or *Tag*. Empty when the event is
@@ -95,7 +96,9 @@ Actions:
   i.e. IP address and VLAN) and for each tag of the new asset.
 - **Update**: one property of the asset changed or has been added/removed (i.e.
   a new tag has been set or a fingerprint changed).
-- **Delete**: the asset has been deleted.
+- **Delete**: the asset has been deleted. When several assets are deleted at
+  once (all the assets, the ones not seen for a while), there
+  is a single entry with their number, not one per asset.
 - **Manual** (*Note* in the GUI): a free text note, written by a user or by an integration.
 
 The fields of the host assets currently recorded are: IP address, MAC
@@ -157,8 +160,12 @@ The other causes:
      - ``Set DNS name to "www.example.com": reverse DNS lookup by ntopng``
    * - Asset deleted by a user
      - ``Asset deleted``
+   * - All the host assets deleted by a user
+     - ``Assets deleted (1250): all the host assets of the interface``
+   * - All the SNMP devices deleted by a user
+     - ``Assets deleted (12): all the SNMP devices``
    * - Assets not seen for a while deleted
-     - ``Asset deleted: not seen since 01/09/2026 00:00:00``
+     - ``Assets deleted (37): not seen since 01/09/2026 00:00:00``
    * - Duplicated asset deleted
      - ``Asset deleted: duplicate of asset 0_192.168.1.10@0 (same IP address and VLAN)``
    * - Assets imported
