@@ -22,6 +22,11 @@ local am_alert_store = require "am_alert_store".new()
 local rc = rest_utils.consts.success.ok
 local res = {}
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 interface.select(getSystemInterfaceId())
 
 -- Add filters
