@@ -2,7 +2,7 @@
 	"id": "traffic_model_client_servers",
 	"data_url": "lua/pro/rest/v2/get/traffic_model/client_servers.lua",
 	"use_current_page": false,
-	"enable_search": true,
+	"enable_search": false,
 	"paging": true,
 	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.traffic_model_client_servers",
