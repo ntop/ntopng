@@ -796,8 +796,10 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
     flow->setClientOSHint(zflow->getOSHint());
 
-    if (zflow->getTCPFingerprint()) {
-      flow->setTCPFingerprint(zflow->getTCPFingerprint());
+    /* Once per flow, as on the packet interfaces (see Flow::freeDPIMemory):
+     * the next updates of the flow carry the same fingerprint (nDPI computes
+     * it once per flow), see Flow::setTCPFingerprint */
+    if (zflow->getTCPFingerprint() && (flow->getTCPFingerprint() == NULL)) {
       flow->setHostTCPFingerprint(
           zflow->getTCPFingerprint(),
           ndpi_get_os_from_tcp_fingerprint(get_ndpi_struct(),
