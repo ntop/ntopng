@@ -11206,11 +11206,12 @@ void Flow::setTLSCertificateIssuerDN(char* issuer) {
 
 /* *************************************** */
 
+/* Set once: the fingerprint of a flow does not change (nDPI computes it once
+ * per flow, from its first SYN), and it is read without locks by the other
+ * threads (e.g. Flow::lua, the view, see updateViewClientOS): it must not be
+ * freed while the flow is alive */
 void Flow::setTCPFingerprint(char* fp) {
-  if (fp != NULL) {
-    if (tcp_fingerprint) free(tcp_fingerprint);
-    tcp_fingerprint = strdup(fp);
-  }
+  if ((fp != NULL) && (tcp_fingerprint == NULL)) tcp_fingerprint = strdup(fp);
 }
 
 /* *************************************** */
