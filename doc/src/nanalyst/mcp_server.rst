@@ -5,6 +5,10 @@ MCP Server
 
 nAnalyst exposes all of its network intelligence tools as a Model Context Protocol (MCP) server running on your ntopng instance. This allows any MCP-compatible AI client — such as Claude Code, Cursor, or a custom agent — to query ntopng data and take actions directly.
 
+.. note::
+
+  This page explains how external AI clients use ntopng. To let nAnalyst call external MCP servers instead, see :ref:`nAnalystMCPClient`.
+
 What is MCP?
 ------------
 
