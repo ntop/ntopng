@@ -27,5 +27,6 @@ Key capabilities at a glance:
    tools_and_licensing
    llm_setup
    mcp_server
+   mcp_client
    observability
    faq
