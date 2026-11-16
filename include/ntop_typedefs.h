@@ -983,6 +983,7 @@ typedef enum {
   asset_journal_dhcp_name,
   asset_journal_mdns_name,
   asset_journal_netbios_name,
+  asset_journal_mdns_txt_name,
   /* Add here the other fields of the asset (os_type, server ports, ...) */
   asset_journal_tag_refreshed, /* Tag observed (tag_id) */
   asset_journal_tag_removed,   /* Tag removed by the host (tag_id) */

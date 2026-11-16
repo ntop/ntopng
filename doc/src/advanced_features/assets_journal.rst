@@ -83,7 +83,7 @@ Every entry has:
   Operating System tags), ``tag`` (the other tags), ``vlan`` (a VLAN added
   to the asset, see below), the name of the field (``ip``, ``mac``,
   ``tcp_fingerprint``, ``dhcp_fingerprint``, ``dns_name``, ``kerberos_name``,
-  ``dhcp_name``, ``mdns_name``, ``netbios_name``),
+  ``dhcp_name``, ``mdns_name``, ``mdns_txt_name``, ``netbios_name``),
   ``usernames`` (the usernames of the host), empty for the asset as a whole
   (Baseline, New, Delete, Manual).
 - **Asset**: the interface id, the type of the asset (``host``) and its key,
@@ -106,7 +106,7 @@ Actions:
 
 The fields of the host assets currently recorded are: IP address, MAC
 address, TCP fingerprint, DHCP fingerprint, DNS name, Kerberos machine account,
-DHCP name, mDNS name, NetBIOS name, the usernames and the tags. The name of the
+DHCP name, mDNS name, mDNS TXT name, NetBIOS name, the usernames and the tags. The name of the
 host is not recorded, as it is derived from the other names of the host (DNS,
 DHCP, mDNS, ...).
 
@@ -115,8 +115,9 @@ The names of a host, as recorded by its asset:
 - **DHCP name**: the name sent by the host in its latest DHCP request, so a
   device renamed is seen with its new name, e.g.
   ``Update DHCP name from "old-name" to "new-name": <flow>``.
-- **mDNS name** and **NetBIOS name**: the name of the first flow of the host
-  that carries one, lowercased. ntopng keeps the first name as these names can
+- **mDNS name**, **mDNS TXT name** (the friendly name of the device, ``nm=``
+  key of an mDNS TXT record) and **NetBIOS name**: the name of the first flow
+  of the host that carries one, lowercased. ntopng keeps the first name as these names can
   also be learnt from replies about other hosts (e.g. a NetBIOS name server
   answering a query).
 

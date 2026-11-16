@@ -2688,6 +2688,7 @@ local lang = {
     ["field_mac"] = "MAC address",
     ["field_mdns_name"] = "mDNS name",
     ["field_netbios_name"] = "NetBIOS name",
+    ["field_mdns_txt_name"] = "mDNS TXT name",
     ["field_set"] = "Set %{field} to \"%{new}\": %{cause}",
     ["field_tcp_fingerprint"] = "TCP fingerprint",
     ["field_vlan"] = "VLAN",

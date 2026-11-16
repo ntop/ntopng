@@ -70,7 +70,8 @@ class Host : public GenericHashEntry,
         *mdns_info /* name from a TXT MDNS reply */;
     char* resolved;    /* The name as resolved by ntopng DNS requests */
     char* netbios;     /* The NetBIOS name */
-    time_t mdns_time, netbios_time; /* First seen of the flow of the name */
+    time_t mdns_time, mdns_txt_time,
+        netbios_time; /* First seen of the flow of the name */
     char* tls;         /* The TLS SNI or the name as dissected from other
                           TLS-transported protocols */
     char* http;        /* The HTTP Host: name */
@@ -839,7 +840,7 @@ class Host : public GenericHashEntry,
   void offlineSetSSDPLocation(const char* url);
   virtual void offlineSetMDNSInfo(char* const s);
   virtual void offlineSetMDNSName(const char* n, time_t when, Flow* f);
-  virtual void offlineSetMDNSTXTName(const char* n);
+  virtual void offlineSetMDNSTXTName(const char* n, time_t when, Flow* f);
   /* f, evidence: the cause of the name (journal of the assets), if any */
   virtual void offlineSetDHCPName(const char* n, time_t when, Flow* f,
                                   const char* evidence = NULL);

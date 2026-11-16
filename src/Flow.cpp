@@ -2788,7 +2788,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         if (protos.mdns.name)
           cli_host->offlineSetMDNSName(protos.mdns.name, get_first_seen(), this);
         if (protos.mdns.name_txt)
-          cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
+          cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt, get_first_seen(),
+                                          this);
       }
       break;
 

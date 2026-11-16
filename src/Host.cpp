@@ -1930,10 +1930,14 @@ void Host::offlineSetDHCPName(const char* dhcp_n, time_t when, Flow* f,
 
 /* *************************************** */
 
-void Host::offlineSetMDNSTXTName(const char* mdns_n_txt) {
+/* The mDNS TXT "nm=" name of the first mDNS flow of the host (see
+ * setNameByTime()) */
+void Host::offlineSetMDNSTXTName(const char* mdns_n_txt, time_t when, Flow* f) {
   if (!isValidMDNSTXTName(mdns_n_txt)) return;
-  if (!names.mdns_txt)
-    names.mdns_txt = Utils::toLowerResolvedNames(mdns_n_txt);
+
+  setNameByTime(&names.mdns_txt, &names.mdns_txt_time,
+                Utils::toLowerResolvedNames(mdns_n_txt), when,
+                true /* oldest */);
 }
 
 /* *************************************** */
@@ -2413,7 +2417,8 @@ void Host::freeHostNames() {
     names.dhcp = NULL;
   }
 
-  names.mdns_time = names.netbios_time = names.dhcp_time = 0;
+  names.mdns_time = names.mdns_txt_time = names.netbios_time =
+      names.dhcp_time = 0;
 }
 
 /* *************************************** */

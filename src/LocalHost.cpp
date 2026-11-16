@@ -834,11 +834,22 @@ void LocalHost::offlineSetDhcpFingerprint(const char* fingerprint, Flow* f) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
+void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt, time_t when,
+                                      Flow* f) {
+  char name[256];
+
   if (!isValidMDNSTXTName(mdns_n_txt)) return;
 
-  Host::offlineSetMDNSTXTName(mdns_n_txt);
-  addDataToAssets((char*)"mdns_txt_name", (char*)mdns_n_txt);
+  Host::offlineSetMDNSTXTName(mdns_n_txt, when, f);
+
+  /* The asset gets the name kept by the host (the one of its first flow,
+   * lowercased), so that they always agree */
+  getMDNSTXTName(name, sizeof(name));
+  if (name[0] && addDataToAssets((char*)"mdns_txt_name", name)) {
+#ifdef NTOPNG_PRO
+    addJournalCause(asset_journal_mdns_txt_name, 0, f);
+#endif
+  }
 }
 
 /* *************************************** */
