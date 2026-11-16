@@ -542,11 +542,17 @@ void Host::lua_get_names(lua_State* const vm, char* const buf,
   lua_newtable(vm);
 
   if (ntop->getPrefs()->is_name_decoding_enabled()) {
+    getServerName(buf, buf_size);
+    if (buf[0]) lua_push_str_table_entry(vm, "server_name", buf);
+
     getMDNSName(buf, buf_size);
     if (buf[0]) lua_push_str_table_entry(vm, "mdns", buf);
 
     getMDNSTXTName(buf, buf_size);
     if (buf[0]) lua_push_str_table_entry(vm, "mdns_txt", buf);
+
+    getMDNSInfo(buf, buf_size);
+    if (buf[0]) lua_push_str_table_entry(vm, "mdns_info", buf);
 
     getResolvedName(buf, buf_size);
     if (buf[0]) lua_push_str_table_entry(vm, "resolved", buf);
