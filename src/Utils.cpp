@@ -575,7 +575,11 @@ float Utils::msTimevalDiff(const struct timeval* end,
   else {
     struct timeval res;
 
-    res.tv_sec = end->tv_sec - begin->tv_sec;
+    if(end->tv_sec < begin->tv_sec)
+      return(0);
+    else
+      res.tv_sec = end->tv_sec - begin->tv_sec;
+
     if (begin->tv_usec > end->tv_usec) {
       res.tv_usec = end->tv_usec + 1000000 - begin->tv_usec;
       res.tv_sec--;
