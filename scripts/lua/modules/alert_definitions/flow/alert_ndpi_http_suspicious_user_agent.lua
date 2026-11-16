@@ -47,6 +47,14 @@ end
 -- #######################################################
 
 function alert_ndpi_http_suspicious_user_agent.format(ifid, alert, alert_type_params)
+   -- Report description from nDPI, when available
+   local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+   local risk_info = alert_type_params and alert_type_params.flow_risk_info and alert_type_params.flow_risk_info[tostring(alert_risk)]
+
+   if not isEmptyString(risk_info) then
+      return risk_info
+   end
+
    return i18n("alert_messages.ndpi_http_suspicious_user_agent")
 end
 
