@@ -25350,7 +25350,7 @@
           "Flows"
         ],
         "summary": "Get the active flows",
-        "description": "The flows currently active on the interface, with paging, sorting and the same filters of the Live Flows page. Each flow carries client and server (ip, name, port, vlan, asn, country...), application, l4_proto, bytes, throughput, score, alerts, first_seen/last_seen and, on flow-based interfaces, the exporter (the router/switch that exported the flow) and its input/output interfaces; on view interfaces seen_on_interface { id, name } is the interface of the view where ntopng saw the flow. recordsTotal is the number of flows matching the filters.",
+        "description": "The flows currently active on the interface, with paging, sorting and the same filters of the Live Flows page. Each flow carries client and server (ip, name, port, vlan, asn, country...), application, l4_proto, bytes, throughput, score, alerts, first_seen/last_seen, flow_swapped (true when the ntopng direction heuristics swapped client and server) and, on flow-based interfaces, the exporter (the router/switch that exported the flow) and its input/output interfaces; on view interfaces seen_on_interface { id, name } is the interface of the view where ntopng saw the flow. recordsTotal is the number of flows matching the filters.",
         "operationId": "get_active_flows_list",
         "produces": [
           "application/json"

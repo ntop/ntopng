@@ -3616,6 +3616,9 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
   lua_snmp_info(vm);
 
+  /* Client and server swapped by the direction heuristics (also in the list) */
+  if (swap_done) lua_push_bool_table_entry(vm, "flow_swapped", true);
+
   if (details_level >= details_high) {
     if (tcp_fingerprint)
       lua_push_str_table_entry(vm, "tcp_fingerprint", tcp_fingerprint);
@@ -3625,7 +3628,6 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
 
     if (tls_blocks) lua_push_str_table_entry(vm, "tls_blocks", tls_blocks);
 
-    if (swap_done) lua_push_bool_table_entry(vm, "flow_swapped", true);
     lua_push_uint32_table_entry(vm, "flow_source", flow_source);
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
@@ -10177,6 +10179,14 @@ void Flow::swap() {
   Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
       Utils::swap32(&srcPeerAS, &dstPeerAS);
   Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
+
+  if (collection) {
+    /* The NAT addresses follow the peers, so that src stays the client */
+    Utils::swap32(&collection->nat.src_ip_addr_post_nat,
+                  &collection->nat.dst_ip_addr_post_nat);
+    Utils::swap16(&collection->nat.src_port_post_nat,
+                  &collection->nat.dst_port_post_nat);
+  }
 
   memcpy(m, cli_mac, 6);
   memcpy(cli_mac, srv_mac, 6);
