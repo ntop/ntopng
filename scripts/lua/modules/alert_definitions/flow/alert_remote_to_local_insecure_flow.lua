@@ -52,25 +52,35 @@ end
 -- #######################################################
 
 function alert_remote_to_local_insecure_flow.format(ifid, alert, alert_type_params)
+   local breeds = {
+      [3] = "alerts_dashboard.ndpi_unsafe_protocol_title",
+      [4] = "alerts_dashboard.ndpi_potentially_dangerous_protocol_title",
+      [5] = "alerts_dashboard.ndpi_dangerous_protocol_title",
+   }
+   local categories = {
+      [100] = "ndpi_categories.Malware",
+      [102] = "ndpi_categories.Banned_Site",
+   }
 
-   local alert_message = ""
-
-   if (alert_type_params.ndpi_breed == 3) then
-      alert_message = alert_message .. i18n("alerts_dashboard.ndpi_unsafe_protocol_title")
-   elseif (alert_type_params.ndpi_breed == 4) then
-      alert_message = alert_message .. i18n("alerts_dashboard.ndpi_potentially_dangerous_protocol_title")
-   elseif (alert_type_params.ndpi_breed == 5) then
-      alert_message = alert_message .. i18n("alerts_dashboard.ndpi_dangerous_protocol_title")
+   local l7_proto = tonumber(alert.l7_proto) or 0
+   if l7_proto == 0 then
+      l7_proto = tonumber(alert.l7_master_proto) or 0
    end
+   local proto = interface.getnDPIProtoName(l7_proto)
+   local breed = breeds[alert_type_params.ndpi_breed]
+   local category = categories[alert_type_params.ndpi_category]
 
-   if (alert_type_params.ndpi_category == 100) then
-      alert_message = alert_message .. " [" .. i18n("ndpi_categories.Malware") .. "]"
-   elseif (alert_type_params.ndpi_category == 102) then
-      alert_message = alert_message .. " [" .. i18n("ndpi_categories.Banned_Site") .. "]"
+   local alert_message
+   if breed then
+      alert_message = i18n("alert_messages.remote_to_local_insecure_flow_breed", { proto = proto, breed = i18n(breed) })
+      if category then
+         alert_message = alert_message .. i18n("alert_messages.remote_to_local_insecure_proto_category_info", { ndpi_category = i18n(category) })
+      end
+   else
+      alert_message = i18n("alert_messages.remote_to_local_insecure_flow_category", { proto = proto, category = i18n(category or "ndpi_categories.Unspecified") })
    end
 
    return alert_message
-   
 end
 
 -- #######################################################
