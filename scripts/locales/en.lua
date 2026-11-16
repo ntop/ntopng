@@ -12585,6 +12585,13 @@ local lang = {
     },
   },
   ["traffic_model"] = {
+    ["report"] = {
+      ["title"] = "Traffic Model Daily Report",
+      ["description"] = "Changes in the traffic model servers on %{day} compared with the previous day:",
+      ["server_type_summary"] = "%{type}: %{new} new, %{gone} gone, %{not_seen} expected but not seen (%{configured} configured)",
+      ["no_changes"] = "No changes",
+      ["link"] = "Open the Traffic Model",
+    },
     ["graph"] = "Graph",
     ["intro_graph"] = "Communications of the selected host (client to server), grouped by server type. Move the slider or press play to see how they change day by day. A thicker line means more flows.",
     ["show_graph"] = "%{ip}: show the graph of its communications",
@@ -12668,6 +12675,9 @@ local lang = {
     ["live_host_tip"] = "Live host: open its details",
     ["flows_tip"] = "Historical flows",
     ["flows_tip_ip"] = "%{ip}: historical flows",
+    ["flows_tip_client"] = "%{flows} flows as client",
+    ["flows_tip_server"] = "%{flows} flows as server",
+    ["flows_tip_client_server"] = "%{flows} flows from %{client}",
     ["flows_on"] = "Flows on %{day}",
     ["days_active_of"] = "Active %{n} of %{total} days",
     ["day_active"] = "active as server",
