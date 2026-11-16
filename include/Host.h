@@ -70,6 +70,7 @@ class Host : public GenericHashEntry,
         *mdns_info /* name from a TXT MDNS reply */;
     char* resolved;    /* The name as resolved by ntopng DNS requests */
     char* netbios;     /* The NetBIOS name */
+    time_t mdns_time, netbios_time; /* First seen of the flow of the name */
     char* tls;         /* The TLS SNI or the name as dissected from other
                           TLS-transported protocols */
     char* http;        /* The HTTP Host: name */
@@ -201,6 +202,8 @@ class Host : public GenericHashEntry,
                               const char* entry);
   void freeHostNames();
   void resetHostNames();
+  void setNameByTime(char** name, time_t* name_time, char* new_name,
+                     time_t when, bool keep_oldest);
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac* mac, char* buf, size_t bufsize,
                             bool skip_prefix = false);
@@ -832,10 +835,10 @@ class Host : public GenericHashEntry,
   virtual const char* getOSDetail(char* const buf, ssize_t buf_len);
   void offlineSetTLSName(const char* n);
   virtual void offlineSetHTTPName(const char* n);
-  virtual void offlineSetNetbiosName(const char* n);
+  virtual void offlineSetNetbiosName(const char* n, time_t when);
   void offlineSetSSDPLocation(const char* url);
   virtual void offlineSetMDNSInfo(char* const s);
-  virtual void offlineSetMDNSName(const char* n);
+  virtual void offlineSetMDNSName(const char* n, time_t when);
   virtual void offlineSetMDNSTXTName(const char* n);
   virtual void offlineSetDHCPName(const char* n, time_t when);
   virtual void setServerName(const char* n);

@@ -1872,44 +1872,59 @@ void Host::offlineSetSSDPLocation(const char* url) {
 
 /* *************************************** */
 
-void Host::offlineSetMDNSName(const char* mdns_n) {
-  if (!isValidMDNSName(mdns_n)) return;
-  if (!names.mdns) names.mdns = Utils::toLowerResolvedNames(mdns_n);
-}
-
-/* *************************************** */
-
 /*
-  The name of the latest DHCP flow of the host: a device renamed keeps its
-  address. The flows set their name at every periodic update, in no particular
-  order: the time of the flow (when) decides, so that the name of an older flow
-  still active does not replace the one of a newer flow.
+  Set a name of the host (new_name, allocated by the caller and freed when not
+  used) seen at the time when, if the name is not set yet or when is older
+  (keep_oldest) or newer than the time of the current name (name_time). The
+  flows set their names at every periodic update, in no particular order: the
+  time of the flow decides, so that the result does not depend on the order.
 */
-void Host::offlineSetDHCPName(const char* dhcp_n, time_t when) {
-  char *new_name, *to_free;
+void Host::setNameByTime(char** name, time_t* name_time, char* new_name,
+                         time_t when, bool keep_oldest) {
+  char* to_free;
 
-  if (!isValidDHCPName(dhcp_n) || ((new_name = strdup(dhcp_n)) == NULL))
-    return;
+  if (new_name == NULL) return;
 
-  /* NOTE: replaced under m, as it is read by the other threads (see
-   * getDHCPName()) */
+  /* NOTE: replaced under m, as the names are read by the other threads (see
+   * e.g. getDHCPName()) */
   m.lock(__FILE__, __LINE__);
 
-  if ((names.dhcp == NULL) || (when > names.dhcp_time)) {
-    /* NOTE: host names are case insensitive (e.g. the name of the flow is
-     * lowercased by nDPI, the one of the MAC address is not) */
-    if (names.dhcp && (strcasecmp(names.dhcp, new_name) == 0))
+  if ((*name == NULL) || (keep_oldest ? (when < *name_time) : (when > *name_time))) {
+    /* NOTE: host names are case insensitive (e.g. the DHCP name of a flow is
+     * lowercased by nDPI, the one of a MAC address is not) */
+    if (*name && (strcasecmp(*name, new_name) == 0))
       to_free = new_name; /* Unchanged */
     else
-      to_free = names.dhcp, names.dhcp = new_name;
+      to_free = *name, *name = new_name;
 
-    names.dhcp_time = when;
+    *name_time = when;
   } else
-    to_free = new_name; /* Older than the current name */
+    to_free = new_name;
 
   m.unlock(__FILE__, __LINE__);
 
   free(to_free);
+}
+
+/* *************************************** */
+
+/* The name of the first mDNS flow of the host (see setNameByTime()) */
+void Host::offlineSetMDNSName(const char* mdns_n, time_t when) {
+  if (!isValidMDNSName(mdns_n)) return;
+
+  setNameByTime(&names.mdns, &names.mdns_time,
+                Utils::toLowerResolvedNames(mdns_n), when, true /* oldest */);
+}
+
+/* *************************************** */
+
+/* The name of the latest DHCP flow of the host (see setNameByTime()): a device
+ * renamed keeps its address */
+void Host::offlineSetDHCPName(const char* dhcp_n, time_t when) {
+  if (!isValidDHCPName(dhcp_n)) return;
+
+  setNameByTime(&names.dhcp, &names.dhcp_time, strdup(dhcp_n), when,
+                false /* latest */);
 }
 
 /* *************************************** */
@@ -1922,10 +1937,13 @@ void Host::offlineSetMDNSTXTName(const char* mdns_n_txt) {
 
 /* *************************************** */
 
-void Host::offlineSetNetbiosName(const char* netbios_n) {
+/* The name of the first NetBIOS flow of the host (see setNameByTime()) */
+void Host::offlineSetNetbiosName(const char* netbios_n, time_t when) {
   if (!isValidNetBIOSName(netbios_n)) return;
-  if (!names.netbios)
-    names.netbios = Utils::toLowerResolvedNames(netbios_n);
+
+  setNameByTime(&names.netbios, &names.netbios_time,
+                Utils::toLowerResolvedNames(netbios_n), when,
+                true /* oldest */);
 }
 
 /* *************************************** */
@@ -2393,7 +2411,7 @@ void Host::freeHostNames() {
     names.dhcp = NULL;
   }
 
-  names.dhcp_time = 0;
+  names.mdns_time = names.netbios_time = names.dhcp_time = 0;
 }
 
 /* *************************************** */

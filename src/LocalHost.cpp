@@ -770,11 +770,17 @@ void LocalHost::offlineSetMDNSInfo(char* const str) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetMDNSName(const char* mdns_n) {
+void LocalHost::offlineSetMDNSName(const char* mdns_n, time_t when) {
+  char name[256];
+
   if (!isValidMDNSName(mdns_n)) return;
 
-  Host::offlineSetMDNSName(mdns_n);
-  addDataToAssets((char*)"mdns_name", (char*)mdns_n);
+  Host::offlineSetMDNSName(mdns_n, when);
+
+  /* The asset gets the name kept by the host (the one of its first flow,
+   * lowercased), so that they always agree */
+  getMDNSName(name, sizeof(name));
+  if (name[0]) addDataToAssets((char*)"mdns_name", name);
 }
 
 /* *************************************** */
@@ -824,11 +830,17 @@ void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetNetbiosName(const char* netbios_n) {
+void LocalHost::offlineSetNetbiosName(const char* netbios_n, time_t when) {
+  char name[256];
+
   if (!isValidNetBIOSName(netbios_n)) return;
 
-  Host::offlineSetNetbiosName(netbios_n);
-  addDataToAssets((char*)"netbios_name", (char*)netbios_n);
+  Host::offlineSetNetbiosName(netbios_n, when);
+
+  /* The asset gets the name kept by the host (the one of its first flow,
+   * lowercased), so that they always agree */
+  getNetbiosName(name, sizeof(name));
+  if (name[0]) addDataToAssets((char*)"netbios_name", name);
 }
 
 /* *************************************** */
