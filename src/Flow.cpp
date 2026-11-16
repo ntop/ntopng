@@ -2785,7 +2785,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       if (cli_host) {
         if (protos.mdns.answer)
           cli_host->offlineSetMDNSInfo(protos.mdns.answer);
-        if (protos.mdns.name) cli_host->offlineSetMDNSName(protos.mdns.name);
+        if (protos.mdns.name)
+          cli_host->offlineSetMDNSName(protos.mdns.name, get_first_seen());
         if (protos.mdns.name_txt)
           cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
       }
@@ -2801,7 +2802,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
     case NDPI_PROTOCOL_NETBIOS:
       if (cli_host) {
         if (protos.netbios.name)
-          cli_host->offlineSetNetbiosName(protos.netbios.name);
+          cli_host->offlineSetNetbiosName(protos.netbios.name, get_first_seen());
       }
       break;
 
