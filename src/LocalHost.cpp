@@ -237,8 +237,12 @@ void LocalHost::syncMACMetadata(bool force_update) {
   cur_mac = getMac();
 
   if (cur_mac && (force_update || cur_mac->isAssetUpdated())) {
-    if (cur_mac->getDHCPNamePtr())
-      offlineSetDHCPName(cur_mac->getDHCPNamePtr());
+    char dhcp_name[256];
+    time_t dhcp_time;
+
+    /* NOTE: a copy, as the name of the MAC can be replaced meanwhile */
+    cur_mac->getDHCPNameNotLowerCase(dhcp_name, sizeof(dhcp_name), &dhcp_time);
+    if (dhcp_name[0]) offlineSetDHCPName(dhcp_name, dhcp_time);
 
     if (cur_mac->getDeviceOS() != ndpi_os_unknown)
       setOS(cur_mac->getDeviceOS(), os_learning_dhcp);
@@ -775,11 +779,16 @@ void LocalHost::offlineSetMDNSName(const char* mdns_n) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetDHCPName(const char* dhcp_n) {
+void LocalHost::offlineSetDHCPName(const char* dhcp_n, time_t when) {
+  char name[256];
+
   if (!isValidDHCPName(dhcp_n)) return;
 
-  Host::offlineSetDHCPName(dhcp_n);
-  addDataToAssets((char*)"dhcp_name", (char*)dhcp_n);
+  Host::offlineSetDHCPName(dhcp_n, when);
+
+  /* The asset gets the name kept by the host, so that they always agree */
+  getDHCPName(name, sizeof(name));
+  if (name[0]) addDataToAssets((char*)"dhcp_name", name);
 }
 
 /* *************************************** */

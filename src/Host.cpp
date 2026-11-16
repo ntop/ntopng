@@ -1879,9 +1879,37 @@ void Host::offlineSetMDNSName(const char* mdns_n) {
 
 /* *************************************** */
 
-void Host::offlineSetDHCPName(const char* dhcp_n) {
-  if (!isValidDHCPName(dhcp_n)) return;
-  if (!names.dhcp) names.dhcp = strdup(dhcp_n);
+/*
+  The name of the latest DHCP flow of the host: a device renamed keeps its
+  address. The flows set their name at every periodic update, in no particular
+  order: the time of the flow (when) decides, so that the name of an older flow
+  still active does not replace the one of a newer flow.
+*/
+void Host::offlineSetDHCPName(const char* dhcp_n, time_t when) {
+  char *new_name, *to_free;
+
+  if (!isValidDHCPName(dhcp_n) || ((new_name = strdup(dhcp_n)) == NULL))
+    return;
+
+  /* NOTE: replaced under m, as it is read by the other threads (see
+   * getDHCPName()) */
+  m.lock(__FILE__, __LINE__);
+
+  if ((names.dhcp == NULL) || (when > names.dhcp_time)) {
+    /* NOTE: host names are case insensitive (e.g. the name of the flow is
+     * lowercased by nDPI, the one of the MAC address is not) */
+    if (names.dhcp && (strcasecmp(names.dhcp, new_name) == 0))
+      to_free = new_name; /* Unchanged */
+    else
+      to_free = names.dhcp, names.dhcp = new_name;
+
+    names.dhcp_time = when;
+  } else
+    to_free = new_name; /* Older than the current name */
+
+  m.unlock(__FILE__, __LINE__);
+
+  free(to_free);
 }
 
 /* *************************************** */
@@ -2364,6 +2392,8 @@ void Host::freeHostNames() {
     free(names.dhcp);
     names.dhcp = NULL;
   }
+
+  names.dhcp_time = 0;
 }
 
 /* *************************************** */

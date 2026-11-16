@@ -921,7 +921,8 @@ void Flow::processDetectedProtocolData() {
 	Host *cli_u = getViewSharedClient();
 
 	if(cli_u)
-	  cli_u->offlineSetDHCPName((char*)ndpiFlow->core.host_server_name);
+	  cli_u->offlineSetDHCPName((char*)ndpiFlow->core.host_server_name,
+				    get_first_seen());
 
 	if(ndpiFlow->metadata.protos.dhcp.class_ident[0] != '\0') {
 	  char buf[256];
@@ -2832,7 +2833,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         Host *dhcp_cli_host = (get_cli_port() == 68) /* client */ ? cli_host :
                              ((get_srv_port() == 68) ? srv_host : NULL);
         if (dhcp_cli_host)
-          dhcp_cli_host->offlineSetDHCPName(protos.dhcp.name);
+          dhcp_cli_host->offlineSetDHCPName(protos.dhcp.name, get_first_seen());
       }
       break;
 

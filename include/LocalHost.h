@@ -324,7 +324,7 @@ class LocalHost : public Host {
 
   void offlineSetMDNSInfo(char* const s);
   void offlineSetMDNSName(const char* n);
-  void offlineSetDHCPName(const char* n);
+  void offlineSetDHCPName(const char* n, time_t when);
   void offlineSetDhcpFingerprint(const char* fingerprint, Flow* f = NULL);
   void offlineSetMDNSTXTName(const char* n);
   void offlineSetNetbiosName(const char* n);

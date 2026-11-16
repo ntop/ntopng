@@ -75,7 +75,8 @@ class Host : public GenericHashEntry,
     char* http;        /* The HTTP Host: name */
     char* server_name; /* TLS/HTTP or other protocols requesting the host with a
                           specific server name */
-    char* dhcp;        /* name from a DHCP reply */
+    char* dhcp;        /* name from the latest DHCP flow */
+    time_t dhcp_time;  /* First seen of the flow of the DHCP name */
   } names;
 
   char* ssdpLocation;
@@ -836,7 +837,7 @@ class Host : public GenericHashEntry,
   virtual void offlineSetMDNSInfo(char* const s);
   virtual void offlineSetMDNSName(const char* n);
   virtual void offlineSetMDNSTXTName(const char* n);
-  virtual void offlineSetDHCPName(const char* n);
+  virtual void offlineSetDHCPName(const char* n, time_t when);
   virtual void setServerName(const char* n);
   /* f (setters below): the flow the value comes from (journal of the
    * assets), if any */

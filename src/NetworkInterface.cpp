@@ -2545,12 +2545,17 @@ pre_get_flow:
       (!isSampledTraffic())) {
     switch (ndpi_get_lower_proto(flow->get_detected_protocol().proto)) {
       case NDPI_PROTOCOL_DHCP:
-        if (*srcHost) {
-          Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
+        if (trusted_payload_len > 240) {
+          struct dhcp_packet* dhcpp = (struct dhcp_packet*)payload;
+          /* The DHCP client: the MAC address in the payload (chaddr), not the
+           * destination of the packet (the DHCP server for a request sent to
+           * it). NOTE: no MAC addresses on viewed interfaces */
+          Mac *mac = (*srcHost) ? (*srcHost)->getMac() : NULL,
+              *payload_cli_mac = getMac(&payload[28], false /* Do not create if missing */,
+                                        true /* Inline call */);
+          char name[64] = "";
 
-          if (mac && (trusted_payload_len > 240)) {
-            struct dhcp_packet* dhcpp = (struct dhcp_packet*)payload;
-
+          if (mac) {
             if (dhcpp->msgType == 0x01) {
               /* Request */
               ;  // mac->setDhcpHost();
@@ -2561,60 +2566,55 @@ pre_get_flow:
               setDHCPAddressesSeen();
               mac->incNumDHCPReplies();
             }
+          }
 
-            for (u_int32_t i = 240; (i + 1) < trusted_payload_len;) {
-              u_int8_t id = payload[i], len = payload[i + 1];
+          for (u_int32_t i = 240; (i + 1) < trusted_payload_len;) {
+            u_int8_t id = payload[i], len = payload[i + 1];
 
-              if (len == 0) break;
+            if (len == 0) break;
 
 #ifdef DHCP_DEBUG
-              ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                           "[DHCP] [id=%u][len=%u]", id, len);
+            ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                         "[DHCP] [id=%u][len=%u]", id, len);
 #endif
 
-              if ((i + 2 + len) < trusted_payload_len) {
-                if (id == 12 /* Host Name */) {
-                  char name[64], buf[24], *client_mac, key[64];
-                  int j;
+            if ((i + 2 + len) < trusted_payload_len) {
+              if (id == 12 /* Host Name */) {
+                char buf[24], *client_mac, key[64];
+                int j;
 
-                  j = ndpi_min(len, sizeof(name) - 1);
-                  strncpy((char*)name, (char*)&payload[i + 2], j);
-                  name[j] = '\0';
+                j = ndpi_min(len, sizeof(name) - 1);
+                strncpy((char*)name, (char*)&payload[i + 2], j);
+                name[j] = '\0';
 
-                  client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
-                  ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'",
-                                               client_mac, name);
+                client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
+                ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'",
+                                             client_mac, name);
 
-                  snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
-                  ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
+                snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
+                ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
 
-                  if ((payload_cli_mac = getMac(
-                           &payload[28], false /* Do not create if missing */,
-                           true /* Inline call */)))
-                    payload_cli_mac->inlineSetDHCPName(name);
+                if (payload_cli_mac)
+                  payload_cli_mac->inlineSetDHCPName(name, when->tv_sec);
 
 #ifdef DHCP_DEBUG
-                  ntop->getTrace()->traceEvent(
-                      TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
+                ntop->getTrace()->traceEvent(
+                    TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
 #endif
-                } else if (id == 0xFF)
-                  break; /* End of options */
-              } else
-                break; /* Invalid lenght */
+              } else if (id == 0xFF)
+                break; /* End of options */
+            } else
+              break; /* Invalid lenght */
 
-              i += len + 2;
-            }
+            i += len + 2;
           }
-        }
 
-        if (*dstHost) {
-          char host_name[64];
-          Mac* dst_mac = (*dstHost)->getMac();
+          /* The name of the DHCP client: the one of the packet, otherwise
+           * the one of its MAC address (e.g. a reply) */
+          if ((name[0] == '\0') && payload_cli_mac)
+            payload_cli_mac->getDHCPNameNotLowerCase(name, sizeof(name));
 
-          if (dst_mac && !(dst_mac->isBroadcast())) {
-            flow->setDHCPHostName(
-                dst_mac->getDHCPNameNotLowerCase(host_name, sizeof(host_name)));
-          }
+          flow->setDHCPHostName(name);
         }
         break;
 
