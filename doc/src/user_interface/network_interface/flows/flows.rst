@@ -259,6 +259,12 @@ Flow Analysis
 
 The flow analysis page allows flows to be analysed in an aggregated fashion instead of the classical 5-tuple. Basic aggregation criteria are available in all ntopng versions, whereas advanced ones only on selected Enterprise editions.
 
+In every row:
+
+- Click a host, an application, a port or a VLAN to keep only the rows with that value. The filter is shown above the table and can be removed from there.
+- Click the icon next to a host or an Autonomous System to open its details page.
+- Click the button in the Actions column to see the single flows (connections) of that row in the Flows view.
+
 Application Protocol
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -276,7 +282,7 @@ Client
   :align: center
   :alt: Live Flows Analysis Client Criteria
 
-You can use this aggregation criteria to cluster all flows originated by a specific client. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows originated by a specific client.
 
 Server Criteria
 ^^^^^^^^^^^^^^^
@@ -285,7 +291,7 @@ Server Criteria
   :align: center
   :alt: Live Flows Analysis Server Criteria
 
-You can use this aggregation criteria to cluster all flows targeting a specific server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows targeting a specific server.
 
 Client / Server / Destination Port Criteria
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -294,7 +300,7 @@ Client / Server / Destination Port Criteria
   :align: center
   :alt: Live Flows Analysis Client Server Dst Port Criteria
 
-You can use this aggregation criteria to cluster all flows with the same Client/Server/DstPort. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same Client/Server/DstPort.
 
 .. note::
 
@@ -308,7 +314,7 @@ Client / Server Criteria
   :alt: Live Flows Analysis Client / Server Criteria
 
 
-You can use this aggregation criteria to cluster all flows with the same Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same Client/Server.
 
 App. Proto / Client / Server Criteria
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -317,7 +323,7 @@ App. Proto / Client / Server Criteria
   :align: center
   :alt: Live Flows Analysis App. Proto / Client / Server Criteria
 
-You can use this aggregation criteria to cluster all flows with the same Application Protocol/Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same Application Protocol/Client/Server.
 
 Info Criteria
 ^^^^^^^^^^^^^
@@ -326,7 +332,7 @@ Info Criteria
   :align: center
   :alt: Live Flows Analysis Info Criteria
 
-You can use this aggregation criteria to cluster all flows with the same information field (e.g. resolved host name in DNS flows). Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same information field (e.g. resolved host name in DNS flows).
 
 Geo Map View
 ------------

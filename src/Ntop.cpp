@@ -4003,6 +4003,72 @@ bool Ntop::isCaptivePortalUser(const char* username) {
 
 /* ******************************************* */
 
+/* Copy of `in` with the Redis glob characters escaped, for a KEYS pattern */
+static void escapeRedisGlob(const char* in, char* out, size_t out_len) {
+  size_t j = 0;
+
+  for (; *in && (j + 2 < out_len); in++) {
+    if (strchr("*?[]\\", *in)) out[j++] = '\\';
+    out[j++] = *in;
+  }
+
+  out[j] = '\0';
+}
+
+/* ******************************************* */
+
+/* Deletes the Redis keys matching `pattern` */
+static void deleteRedisKeys(const char* pattern) {
+  char** keys = NULL;
+  int num_keys = ntop->getRedis()->keys(pattern, &keys);
+
+  for (int i = 0; i < num_keys; i++) {
+    if (keys[i]) {
+      ntop->getRedis()->del(keys[i]);
+      free(keys[i]);
+    }
+  }
+
+  if (keys) free(keys);
+}
+
+/* ******************************************* */
+
+/* True when another user is named "<username>.<x>" or "<x>.<username>": user
+   names can contain dots, so a pattern on the keys of `username` would also
+   match the keys of that user */
+static bool otherUserNameOverlaps(const char* username) {
+  const size_t prefix_len = strlen(NTOPNG_USER_PREFIX "."), suffix_len = strlen(".group");
+  const size_t len = strlen(username);
+  char** keys = NULL;
+  bool overlaps = false;
+  int num_keys = ntop->getRedis()->keys(NTOPNG_USER_PREFIX ".*.group", &keys);
+
+  for (int i = 0; i < num_keys; i++) {
+    if (!keys[i]) continue;
+
+    size_t key_len = strlen(keys[i]);
+
+    if (!overlaps && (key_len > prefix_len + suffix_len + len + 1)) {
+      const char* name = keys[i] + prefix_len;
+      size_t name_len = key_len - prefix_len - suffix_len;
+
+      if (((strncmp(name, username, len) == 0) && (name[len] == '.')) /* <username>.<x> */
+          || ((name[name_len - len - 1] == '.') &&
+              (strncmp(&name[name_len - len], username, len) == 0)) /* <x>.<username> */)
+        overlaps = true;
+    }
+
+    free(keys[i]);
+  }
+
+  if (keys) free(keys);
+
+  return (overlaps);
+}
+
+/* ******************************************* */
+
 /* Delete all the per-user keys of the specified user: account, preferences,
    permissions, API token, second factor (MFA and Passkeys). Also called before
    adding a user, as older versions left some of them when deleting a user,
@@ -4091,6 +4157,41 @@ void Ntop::deleteUserKeys(const char* username) const {
   snprintf(key, sizeof(key), CONST_STR_USER_WEBAUTHN_CRED_COUNT, username);
   ntop->getRedis()->del(key);
 
+  /* GUI settings written by the Lua pages (getRedisPrefix() and others) */
+  snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.ifname", username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.iface", username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), "ntopng.sort.table.%s", username);
+  ntop->getRedis()->del(key);
+
+  /* GUI settings with a variable suffix (tours, dismissed toasts, filter
+     snapshots, dashboard drafts, table columns, favourites): by pattern, never
+     when it could match the keys of another user */
+  if (otherUserNameOverlaps(username)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                 "GUI settings of user %s left in redis: another user name contains it",
+                                 username);
+  } else {
+    char escaped[CONST_MAX_LEN_REDIS_KEY];
+
+    escapeRedisGlob(username, escaped, sizeof(escaped));
+
+    /* A truncated pattern could match the keys of another user: only complete ones */
+    if (snprintf(key, sizeof(key), NTOPNG_USER_PREFIX ".%s.*", escaped) < (int)sizeof(key))
+      deleteRedisKeys(key);
+
+    if (snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.*.historical_favourites.*", escaped) < (int)sizeof(key))
+      deleteRedisKeys(key);
+
+    if (snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".columns_config.*.%s", escaped) < (int)sizeof(key))
+      deleteRedisKeys(key);
+  }
 }
 
 /* ******************************************* */

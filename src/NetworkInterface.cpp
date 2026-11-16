@@ -12779,13 +12779,15 @@ bool NetworkInterface::resetHostTopSites(AddressTree* allowed_nets,
 
 /* **************************************************** */
 
-bool NetworkInterface::matchAggregatedFlow(Flow* flow,
-                                           struct aggregated_stats* stats) {
+/* True when the user restrictions (NULL = unrestricted) allow the flow: one of
+   its hosts in the allowed networks and in the allowed host pools */
+static bool flowMatchesUser(Flow* flow, AddressTree* allowed_nets,
+                            Bitmap4096* allowed_pools) {
   /* User allowed networks */
-  if (!flow->match(stats->allowed_nets)) return (false);
+  if (!flow->match(allowed_nets)) return (false);
 
   /* User allowed host pools (same as in flow_matches()) */
-  if (stats->allowed_pools) {
+  if (allowed_pools) {
     IpAddress *cli_ip = flow->get_cli_ip_addr(),
               *srv_ip = flow->get_srv_ip_addr();
     u_int16_t cli_pool, srv_pool;
@@ -12800,14 +12802,24 @@ bool NetworkInterface::matchAggregatedFlow(Flow* flow,
       srv_pool_found = flow->getInterface()->getHostPools()->findIpPool(
           srv_ip, flow->get_vlan_id(), &srv_pool, &srv_target_node);
 
-    if (!((flow->get_cli_host() && stats->allowed_pools->isSetBit(
+    if (!((flow->get_cli_host() && allowed_pools->isSetBit(
                                        flow->get_cli_host()->get_host_pool())) ||
-          (flow->get_srv_host() && stats->allowed_pools->isSetBit(
+          (flow->get_srv_host() && allowed_pools->isSetBit(
                                        flow->get_srv_host()->get_host_pool())) ||
-          (cli_pool_found && stats->allowed_pools->isSetBit(cli_pool)) ||
-          (srv_pool_found && stats->allowed_pools->isSetBit(srv_pool))))
+          (cli_pool_found && allowed_pools->isSetBit(cli_pool)) ||
+          (srv_pool_found && allowed_pools->isSetBit(srv_pool))))
       return (false);
   }
+
+  return (true);
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::matchAggregatedFlow(Flow* flow,
+                                           struct aggregated_stats* stats) {
+  if (!flowMatchesUser(flow, stats->allowed_nets, stats->allowed_pools))
+    return (false);
 
   if (stats->srv_port && (flow->get_srv_port() != stats->srv_port))
     return (false);
@@ -13934,6 +13946,10 @@ void NetworkInterface::getHostsPorts(lua_State* vm) {
     count.set_vlan_id(vlan_id);
   }
 
+  /* Only the flows the requesting user is allowed to see */
+  count.set_user_restrictions(get_allowed_nets(vm),
+                              getLuaVMUservalue(vm, allowed_pools));
+
   walker(&begin_slot, true, walker_flows, get_host_ports, &count);
 
   lua_push_ports(vm, &count, l4_protocol);
@@ -13974,6 +13990,10 @@ bool NetworkInterface::get_host_ports(GenericHashEntry* node, void* user_data,
 
   /* check l4_proto filter */
   if (flow_l4_proto != filter_l4_proto)
+    return (false); /* false = keep on walking */
+
+  if (!flowMatchesUser(f, hostsPorts->get_allowed_nets(),
+                       hostsPorts->get_allowed_pools()))
     return (false); /* false = keep on walking */
 
   /* check vlan filter */
@@ -14396,11 +14416,24 @@ void NetworkInterface::sort_hosts_details(lua_State* vm,
 
 /* **************************************************** */
 
+/* getVLANFlowsStats() walk: the aggregation and the user restrictions */
+struct vlan_flows_stats_info {
+  std::unordered_map<u_int64_t, AggregatedFlowsStats*>* count;
+  AddressTree* allowed_nets;
+  Bitmap4096* allowed_pools;
+};
+
 static bool compute_vlan_flow_stats(GenericHashEntry* node, void* user_data,
                                     bool* matched) {
   Flow* f = (Flow*)node;
+  struct vlan_flows_stats_info* info =
+      static_cast<struct vlan_flows_stats_info*>(user_data);
 
   if (!f) return false;
+
+  /* Only the flows the requesting user is allowed to see */
+  if (!flowMatchesUser(f, info->allowed_nets, info->allowed_pools))
+    return (false); /* false = keep on walking */
 
   ndpi_protocol detected_protocol = f->get_detected_protocol();
   u_int64_t vlan_id = f->get_vlan_id();
@@ -14411,9 +14444,7 @@ static bool compute_vlan_flow_stats(GenericHashEntry* node, void* user_data,
                   (((u_int64_t)detected_protocol.proto.app_protocol) << 16) +
                   (u_int64_t)detected_protocol.proto.master_protocol;
   std::unordered_map<u_int64_t, AggregatedFlowsStats*>::iterator it;
-  std::unordered_map<u_int64_t, AggregatedFlowsStats*>* count =
-      static_cast<std::unordered_map<u_int64_t, AggregatedFlowsStats*>*>(
-          user_data);
+  std::unordered_map<u_int64_t, AggregatedFlowsStats*>* count = info->count;
 
   it = count->find(key);
 
@@ -14445,8 +14476,11 @@ void NetworkInterface::getVLANFlowsStats(lua_State* vm) {
   std::unordered_map<u_int64_t, AggregatedFlowsStats*>::iterator it;
   u_int num = 0;
 
+  struct vlan_flows_stats_info info = {&count, get_allowed_nets(vm),
+                                       getLuaVMUservalue(vm, allowed_pools)};
+
   walker(&begin_slot, true /* walk_all */, walker_flows,
-         compute_vlan_flow_stats, &count);
+         compute_vlan_flow_stats, &info);
 
   lua_newtable(vm);
 

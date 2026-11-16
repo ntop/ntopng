@@ -773,7 +773,7 @@
           "Wazuh"
         ],
         "summary": "Get the Wazuh alerts",
-        "description": "Page of the Wazuh alerts stored in ClickHouse, newest first by default. Enterprise M, ClickHouse.",
+        "description": "Page of the Wazuh alerts stored in ClickHouse, newest first by default. Only the alerts whose agent, source or destination IP is in the user allowed networks. Enterprise L, ClickHouse, Wazuh integration enabled, alerts capability (and historical flows capability for non-admin users).",
         "operationId": "get_wazuh_alerts",
         "produces": [
           "application/json"
@@ -852,7 +852,7 @@
           "Wazuh"
         ],
         "summary": "Get a Wazuh alert",
-        "description": "All the fields of one Wazuh alert. Enterprise M, ClickHouse.",
+        "description": "All the fields of one Wazuh alert (NOT_FOUND outside the user allowed networks). Enterprise L, ClickHouse, Wazuh integration enabled, alerts capability (and historical flows capability for non-admin users).",
         "operationId": "get_wazuh_alert",
         "produces": [
           "application/json"
@@ -885,7 +885,7 @@
           "Wazuh"
         ],
         "summary": "Get the Wazuh alert rules",
-        "description": "The rules choosing which Wazuh alerts are notified, by priority. Enterprise M, ClickHouse.",
+        "description": "The rules choosing which Wazuh alerts are notified, by priority. Enterprise L, ClickHouse, Wazuh integration enabled, alerts capability (and historical flows capability for non-admin users).",
         "operationId": "get_wazuh_alert_rules",
         "produces": [
           "application/json"
@@ -1125,7 +1125,7 @@
           "Wazuh"
         ],
         "summary": "Get the Wazuh alert exceptions",
-        "description": "The Wazuh alerts matching an exception are not notified. Enterprise M, ClickHouse.",
+        "description": "The Wazuh alerts matching an exception are not notified. Enterprise L, ClickHouse, Wazuh integration enabled, alerts capability (and historical flows capability for non-admin users).",
         "operationId": "get_wazuh_alert_exceptions",
         "produces": [
           "application/json"
@@ -4083,16 +4083,23 @@
           {
             "name": "snmp_read_community",
             "in": "formData",
-            "description": "The SNMP read community to use (SNMP v1/v2c only)",
+            "description": "The SNMP read community to use (SNMP v1/v2c only). Empty keeps the saved one",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_write_community",
             "in": "formData",
-            "description": "The SNMP write community to use (SNMP v1/v2c only)",
+            "description": "The SNMP write community to use (SNMP v1/v2c only). Empty keeps the saved one",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "snmp_remove_write_community",
+            "in": "formData",
+            "description": "true removes the saved write community (an empty snmp_write_community keeps it)",
+            "required": false,
+            "type": "boolean"
           },
           {
             "name": "snmp_version",
@@ -4118,7 +4125,7 @@
           {
             "name": "snmp_auth_passphrase",
             "in": "formData",
-            "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase",
+            "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase. Empty keeps the saved one",
             "required": false,
             "type": "string"
           },
@@ -4132,7 +4139,7 @@
           {
             "name": "snmp_privacy_passphrase",
             "in": "formData",
-            "description": "Used only with SNMP v3 and level set to autPriv: 8 chars+ passphrase",
+            "description": "Used only with SNMP v3 and level set to authPriv: 8 chars+ passphrase. Empty keeps the saved one",
             "required": false,
             "type": "string"
           },
@@ -4262,7 +4269,7 @@
           "Hosts"
         ],
         "summary": "Get the details of an asset",
-        "description": "Details of an asset of the inventory as raw values: ip, vlan (the VLAN seen last), vlans [{ id, name, online }] (the VLANs where the IP of a host asset has been seen: the VLAN is not part of its identity), mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online (the host of any of its VLANs is), dhcp, snmp_name, network { id, name }, tags [{ id, name, color }], names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown.",
+        "description": "Details of an asset of the inventory as raw values: ip, vlan (the VLAN seen last), vlans [{ id, name, online }] (the VLANs where the IP of a host asset has been seen: the VLAN is not part of its identity), mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online (the host of any of its VLANs is), dhcp, snmp_name, network { id, name }, tags [{ id, name, color }], names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown. Needs the historical flows capability (non-admin users).",
         "operationId": "get_host_asset_details",
         "produces": [
           "application/json"
@@ -16584,7 +16591,7 @@
           "Assets"
         ],
         "summary": "Get the assets inventory",
-        "description": "Assets of the interface (page=snmp: the SNMP assets of the system interface), paginated. The VLAN is not part of the identity of a host asset: host.vlans [{ id, name, online }] lists the VLANs where its IP has been seen, with the state of the host of each one (the asset is online when any of them is); host.vlan is the VLAN seen last. Enterprise M only",
+        "description": "Assets of the interface (page=snmp: the SNMP assets of the system interface), paginated. The VLAN is not part of the identity of a host asset: host.vlans [{ id, name, online }] lists the VLANs where its IP has been seen, with the state of the host of each one (the asset is online when any of them is); host.vlan is the VLAN seen last. Enterprise M only. Needs the historical flows capability (non-admin users).",
         "operationId": "get_host_assets",
         "produces": [
           "application/json"
@@ -16737,13 +16744,67 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/host/assets_total_traffic.lua": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Get the traffic of the assets",
+        "description": "Local and remote traffic (bytes) of each asset with traffic in a time interval: host, name, online, local_traffic, remote_traffic. Enterprise: the assets of the inventory (needs the historical flows capability for non-admin users); Pro: the local hosts. epoch_begin equal to epoch_end reads the live counters.",
+        "operationId": "get_host_assets_total_traffic",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "ts_schema",
+            "in": "query",
+            "description": "Timeseries schema of the totals (default: host:local_traffic)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start of the interval, epoch (default: epoch_end - 3600)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End of the interval, epoch (default: now)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/host/assets_filters.lua": {
       "get": {
         "tags": [
           "Assets"
         ],
         "summary": "Get the assets inventory filters",
-        "description": "Filters of the assets table with their options (as the other *_filters REST). Enterprise M only",
+        "description": "Filters of the assets table with their options (as the other *_filters REST). Enterprise M only. Needs the historical flows capability (non-admin users).",
         "operationId": "get_host_assets_filters",
         "produces": [
           "application/json"
@@ -16783,7 +16844,7 @@
           "Assets"
         ],
         "summary": "Get the assets journal entries",
-        "description": "Entries of the assets journal in a time interval, newest first: event_time and created_time (epochs), asset (key, type, ip, vlan, name; empty key for an event of several assets at once: a deletion, the conversion of the assets recorded per VLAN by an older version), who, action, subaction, message. Enterprise L, assets inventory and journal preference enabled",
+        "description": "Entries of the assets journal in a time interval, newest first: event_time and created_time (epochs), asset (key, type, ip, vlan, name; empty key for an event of several assets at once: a deletion, the conversion of the assets recorded per VLAN by an older version), who, action, subaction, message. Enterprise L, assets inventory and journal preference enabled. Needs the historical flows capability (non-admin users).",
         "operationId": "get_host_assets_journal",
         "produces": [
           "application/json"
@@ -16893,7 +16954,7 @@
           "Assets"
         ],
         "summary": "Get the assets journal filters",
-        "description": "Filters of the assets journal table (action, who, subaction) with their options, as the other *_filters REST: the values of the entries in the interval. Enterprise L, assets inventory and journal preference enabled",
+        "description": "Filters of the assets journal table (action, who, subaction) with their options, as the other *_filters REST: the values of the entries in the interval. Enterprise L, assets inventory and journal preference enabled. Needs the historical flows capability (non-admin users).",
         "operationId": "get_host_assets_journal_filters",
         "produces": [
           "application/json"
@@ -25555,7 +25616,7 @@
           "Flows"
         ],
         "summary": "Get the server ports of the live flows",
-        "description": "The server ports seen in the live flows of the interface for a layer 4 protocol: srv_port, l4_proto, proto_id (nDPI <master>.<app> or <master>), l7_proto_name and n_hosts (servers using it). Enterprise L.",
+        "description": "The server ports seen in the live flows of the interface for a layer 4 protocol: srv_port, l4_proto, proto_id (nDPI <master>.<app> or <master>), l7_proto_name and n_hosts (servers using it). Enterprise L. Only the flows of the user allowed networks and host pools.",
         "operationId": "get_live_server_ports",
         "produces": [
           "application/json"
@@ -25586,6 +25647,9 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           },
           "-3": {
             "description": "NOT_GRANTED (no Enterprise L)"
@@ -25698,7 +25762,7 @@
           "Flows"
         ],
         "summary": "Get the server ports by VLAN (live)",
-        "description": "Sankey of the live flows: nodes (node_id vlan_<id> / port_<port>, label, link) and links (VLAN -> server port, label = application, value = bytes, l4_proto, l7_proto, optional_info.link to the live flows), the links with the most traffic first; vlans [{id, name}]: all the VLANs with flows; max_entries_reached when cut at limit.",
+        "description": "Sankey of the live flows: nodes (node_id vlan_<id> / port_<port>, label, link) and links (VLAN -> server port, label = application, value = bytes, l4_proto, l7_proto, optional_info.link to the live flows), the links with the most traffic first; vlans [{id, name}]: all the VLANs with flows; max_entries_reached when cut at limit. Only the flows of the user allowed networks and host pools.",
         "operationId": "get_vlan_live_ports",
         "produces": [
           "application/json"
@@ -25749,7 +25813,7 @@
           "Flows"
         ],
         "summary": "Get the server ports by VLAN (historical)",
-        "description": "Same answer of get/vlan/live_ports.lua from the historical flows (ClickHouse) of the last timeframe seconds, at most 35 links; links open the historical flows. vlans [{id, name}]: the VLANs of the links.",
+        "description": "Same answer of get/vlan/live_ports.lua from the historical flows (ClickHouse) of the last timeframe seconds, at most 35 links; links open the historical flows. vlans [{id, name}]: the VLANs of the links. Only the flows of the user allowed networks and host pools. Needs the historical flows capability (non-admin users).",
         "operationId": "get_vlan_historical_ports",
         "produces": [
           "application/json"
@@ -25787,6 +25851,9 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
           },
           "-2": {
             "description": "INVALID_INTERFACE"

@@ -2430,6 +2430,7 @@ local known_parameters = {
    ["community"] = validateSingleWord, -- SNMP community
    ["snmp_read_community"] = validateSingleWord, -- SNMP Read community
    ["snmp_write_community"] = validateSingleWord, -- SNMP Write community
+   ["snmp_remove_write_community"] = validateBool, -- Edit: remove the saved SNMP write community
    ["snmp_level"] = validateSnmpLevel, -- SNMP Level
    ["snmp_auth_protocol"] = validateSnmpAuthProtocol,
    ["snmp_auth_passphrase"] = validateSingleWord,
@@ -3603,12 +3604,9 @@ local function validateParameter(k, v)
             return success, nil, v
         else
             if (trace_failures) then
-	       error("[LINT] Validation error: Unknown key '" .. k .. "' [" .. tostring(v) .. "]: missing validation perhaps?\n")
-	       tprint("POST: ")
-	       tprint(_POST)
-	       tprint("GET: ")
-	       tprint(_GET)
-	       -- tprint(debug.traceback())
+	       -- Logged for developers, without the value (it may be a secret): the caller drops the key
+	       -- and the request goes on, as for invalid values (error() turned it into a 500)
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, "[LINT] Unknown key '" .. tostring(k) .. "' in " .. tostring(_SERVER and _SERVER["URI"]) .. ": missing validation perhaps?")
             end
             return false, nil
         end

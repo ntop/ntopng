@@ -7,7 +7,7 @@ With SNMP it is possible not only to detect what devices are connected to a swit
   :align: center
   :alt: SNMP Network Topology
 
-The devices that are interconneted are displayed graphically with link size wider or thin according to the link traffic. It is possible to click on a device in order to jump on the device page. The above graph can also be depicted as a table for better displaying the device adjacencies.
+The Topology tab of the SNMP devices page shows the connections in two views, chosen with the Table and Map buttons above them. The Map shows the connected devices, with thicker lines for the links with more traffic: click a device to open its page. The Table lists the same connections, one per row, to read which port of a device is connected to which port of another one. The tab is available when at least one device answered the LLDP or CDP MIB.
 
 .. figure:: ../../../img/SNMP_TabularTopology.png
   :align: center

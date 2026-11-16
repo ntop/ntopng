@@ -30,6 +30,9 @@ class HostsPorts {
   std::unordered_map<u_int64_t, PortDetails*> srv_ports;
   u_int8_t protocol = 0;
   u_int16_t vlan_id = (u_int16_t)-1;
+  /* Restrictions of the requesting user (NULL = unrestricted) */
+  AddressTree* allowed_nets = NULL;
+  Bitmap4096* allowed_pools = NULL;
 
  public:
   HostsPorts() {};
@@ -41,10 +44,15 @@ class HostsPorts {
   };
   inline u_int8_t get_protocol() { return (protocol); };
   inline u_int16_t get_vlan_id() { return (vlan_id); };
+  inline AddressTree* get_allowed_nets() { return (allowed_nets); };
+  inline Bitmap4096* get_allowed_pools() { return (allowed_pools); };
 
   /* Setters */
   void set_protocol(u_int8_t _protocol) { protocol = _protocol; };
   void set_vlan_id(u_int16_t _vlan_id) { vlan_id = _vlan_id; };
+  void set_user_restrictions(AddressTree* _allowed_nets, Bitmap4096* _allowed_pools) {
+    allowed_nets = _allowed_nets, allowed_pools = _allowed_pools;
+  };
   void add_srv_port(u_int64_t key, u_int64_t host_key);
 };
 
