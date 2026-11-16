@@ -488,6 +488,12 @@ void ParsedFlow::swap() {
   tmp_qoe_c2s = qoe.src_to_dst, tmp_qoe_s2c = qoe.dst_to_src;
   qoe.src_to_dst = tmp_qoe_s2c, qoe.dst_to_src = tmp_qoe_c2s;
 
+  /* The NAT addresses follow the peers, so that src stays the client */
+  Utils::swap32(&src_ip_addr_pre_nat, &dst_ip_addr_pre_nat);
+  Utils::swap32(&src_ip_addr_post_nat, &dst_ip_addr_post_nat);
+  Utils::swap16(&src_port_pre_nat, &dst_port_pre_nat);
+  Utils::swap16(&src_port_post_nat, &dst_port_post_nat);
+
   is_swapped = true;
 }
 

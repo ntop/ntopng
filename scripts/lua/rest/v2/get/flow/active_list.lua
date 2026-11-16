@@ -385,6 +385,7 @@ for _, value in ipairs(flows_stats.flows) do
       record["info"] = value["info"]
    end
    record["periodic_flow"] = value.periodic_flow
+   record["flow_swapped"] = value.flow_swapped
    record["client"] = client
    record["server"] = server
    record["cli_asn"] = cli_asn_data
