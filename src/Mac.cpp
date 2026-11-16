@@ -326,17 +326,27 @@ char* Mac::getDHCPName(char* const buf, ssize_t buf_size) {
 
 /* *************************************** */
 
-/* The DHCP name and, when requested, the time it has been seen */
-char* Mac::getDHCPNameNotLowerCase(char* const buf, ssize_t buf_size,
-                                   time_t* when) {
+char* Mac::getDHCPNameNotLowerCase(char* const buf, ssize_t buf_size) {
   if (buf && buf_size) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
-    if (when) *when = names.dhcp_time;
     m.unlock(__FILE__, __LINE__);
   }
 
   return ((char*)buf);
+}
+
+/* *************************************** */
+
+/* The DHCP name, the time it has been seen and its cause (empty if none), for
+ * the host of the MAC address (see LocalHost::syncMACMetadata) */
+void Mac::getDHCPNameInfo(char* const name, ssize_t name_len, time_t* when,
+                          char* const cause, ssize_t cause_len) {
+  m.lock(__FILE__, __LINE__);
+  snprintf(name, name_len, "%s", names.dhcp ? names.dhcp : "");
+  *when = names.dhcp_time;
+  snprintf(cause, cause_len, "%s", names.dhcp_cause ? names.dhcp_cause : "");
+  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
@@ -393,13 +403,27 @@ void Mac::inlineSetSSID(const char* s) {
 
 /* *************************************** */
 
-/* The name of the latest DHCP packet: a device renamed keeps its MAC */
-void Mac::inlineSetDHCPName(const char* dhcp_name, time_t when) {
-  char *new_name, *to_free;
+/* The name of the latest DHCP packet (of the flow f): a device renamed keeps
+ * its MAC */
+void Mac::inlineSetDHCPName(const char* dhcp_name, time_t when, Flow* f) {
+  char *new_name, *new_cause = NULL, *to_free, *cause_to_free;
 
   if ((dhcp_name == NULL) || (dhcp_name[0] == '\0') ||
       ((new_name = strdup(dhcp_name)) == NULL))
     return;
+
+#ifdef NTOPNG_PRO
+  /* Journal of the assets: the flow of the name is the cause of the DHCP name
+   * of the host of this MAC address (see LocalHost::syncMACMetadata), e.g. a
+   * request sent before the host had its address. NOTE: printed for each DHCP
+   * packet with a name, a few per lease */
+  if (f && ntop->getPro()->is_enterprise_l_edition() &&
+      ntop->getPrefs()->isAssetsJournalEnabled()) {
+    char buf[256];
+
+    new_cause = strdup(f->print(buf, sizeof(buf), false));
+  }
+#endif
 
   /* NOTE: replaced under m, as it is read by the other threads (see
    * getDHCPName()) */
@@ -407,9 +431,10 @@ void Mac::inlineSetDHCPName(const char* dhcp_name, time_t when) {
 
   /* NOTE: host names are case insensitive */
   if (names.dhcp && (strcasecmp(names.dhcp, new_name) == 0))
-    to_free = new_name; /* Unchanged */
+    to_free = new_name, cause_to_free = new_cause; /* Unchanged */
   else {
     to_free = names.dhcp, names.dhcp = new_name;
+    cause_to_free = names.dhcp_cause, names.dhcp_cause = new_cause;
     asset_map_updated = true;
   }
 
@@ -418,6 +443,7 @@ void Mac::inlineSetDHCPName(const char* dhcp_name, time_t when) {
   m.unlock(__FILE__, __LINE__);
 
   free(to_free);
+  free(cause_to_free);
 }
 
 /* *************************************** */
@@ -482,6 +508,11 @@ void Mac::freeMacData() {
   if (names.dhcp) {
     free(names.dhcp);
     names.dhcp = NULL;
+  }
+
+  if (names.dhcp_cause) {
+    free(names.dhcp_cause);
+    names.dhcp_cause = NULL;
   }
 
   names.dhcp_time = 0;

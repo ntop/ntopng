@@ -835,12 +835,14 @@ class Host : public GenericHashEntry,
   virtual const char* getOSDetail(char* const buf, ssize_t buf_len);
   void offlineSetTLSName(const char* n);
   virtual void offlineSetHTTPName(const char* n);
-  virtual void offlineSetNetbiosName(const char* n, time_t when);
+  virtual void offlineSetNetbiosName(const char* n, time_t when, Flow* f);
   void offlineSetSSDPLocation(const char* url);
   virtual void offlineSetMDNSInfo(char* const s);
-  virtual void offlineSetMDNSName(const char* n, time_t when);
+  virtual void offlineSetMDNSName(const char* n, time_t when, Flow* f);
   virtual void offlineSetMDNSTXTName(const char* n);
-  virtual void offlineSetDHCPName(const char* n, time_t when);
+  /* f, evidence: the cause of the name (journal of the assets), if any */
+  virtual void offlineSetDHCPName(const char* n, time_t when, Flow* f,
+                                  const char* evidence = NULL);
   virtual void setServerName(const char* n);
   /* f (setters below): the flow the value comes from (journal of the
    * assets), if any */

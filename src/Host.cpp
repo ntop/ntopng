@@ -1909,7 +1909,7 @@ void Host::setNameByTime(char** name, time_t* name_time, char* new_name,
 /* *************************************** */
 
 /* The name of the first mDNS flow of the host (see setNameByTime()) */
-void Host::offlineSetMDNSName(const char* mdns_n, time_t when) {
+void Host::offlineSetMDNSName(const char* mdns_n, time_t when, Flow* f) {
   if (!isValidMDNSName(mdns_n)) return;
 
   setNameByTime(&names.mdns, &names.mdns_time,
@@ -1920,7 +1920,8 @@ void Host::offlineSetMDNSName(const char* mdns_n, time_t when) {
 
 /* The name of the latest DHCP flow of the host (see setNameByTime()): a device
  * renamed keeps its address */
-void Host::offlineSetDHCPName(const char* dhcp_n, time_t when) {
+void Host::offlineSetDHCPName(const char* dhcp_n, time_t when, Flow* f,
+                              const char* evidence) {
   if (!isValidDHCPName(dhcp_n)) return;
 
   setNameByTime(&names.dhcp, &names.dhcp_time, strdup(dhcp_n), when,
@@ -1938,7 +1939,8 @@ void Host::offlineSetMDNSTXTName(const char* mdns_n_txt) {
 /* *************************************** */
 
 /* The name of the first NetBIOS flow of the host (see setNameByTime()) */
-void Host::offlineSetNetbiosName(const char* netbios_n, time_t when) {
+void Host::offlineSetNetbiosName(const char* netbios_n, time_t when,
+                                 Flow* f) {
   if (!isValidNetBIOSName(netbios_n)) return;
 
   setNameByTime(&names.netbios, &names.netbios_time,

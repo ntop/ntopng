@@ -137,7 +137,7 @@ of the Operating System or of the MAC address of an asset):
 | `os` | The Operating System: its tags (27-31, `asset_tags.os_tags`) |
 | `tag` | The other tags |
 | `vlan` | A VLAN added to the asset (`vlan_added`): the VLAN is not a field, see "VLANs" |
-| `<field>` | A field of the asset: its name (`ip`, `mac`, `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `mdns_name`, `dhcp_name`, `netbios_name`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
+| `<field>` | A field of the asset: its name (`ip`, `mac`, `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`, `kerberos_name`, `dhcp_name`, `mdns_name`, `netbios_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
 
 The field entries take the `name` of the field in `assets_journal.host_fields`
 (or its `subaction`, e.g. `os` for `os_type`), so a new field has its
@@ -184,6 +184,8 @@ Examples (English, from live tests):
 | Tag expired | Remove tag 8 (0x08) SSH Server: TTL (30 days) expiration, last seen on 01/10/2026 10:00:00 |
 | Tag from the configuration | Add tag 0 (0x00) DNS Server: from network configuration |
 | Name resolved by ntopng | Set DNS name to "precision-3591.lan": reverse DNS lookup by ntopng |
+| Device renamed (DHCP) | Update DHCP name from "old-name" to "new-name": UDP 192.168.4.60:68->255.255.255.255:67 eth0 (0) [DHCP] |
+| mDNS name | Set mDNS name to "my-laptop": UDP 192.168.5.10:5353->224.0.0.251:5353 eth0 (0) [MDNS] |
 | Asset deleted by a user | Asset deleted |
 | All the host assets deleted by a user | Assets deleted (1250): all the host assets of the interface |
 
@@ -226,10 +228,12 @@ host assets give events.
 |---|---|---|
 | `ip`, `mac` | Columns | Value changed (old and new value) |
 | Tags | `json_info.tags`, `tags_info` | One per tag added or removed, with the reason (observed, manual, configuration, seeding, TTL expiration, replaced, tag deleted) |
-| `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name` | `json_info` | Value changed |
+| `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`, `kerberos_name` | `json_info` | Value changed |
+| `dhcp_name`, `mdns_name`, `netbios_name` | `json_info` | Value changed, ignoring the case (see "Host names") |
 
 The code is meant for the whole list below: the list of the fields is a table
-(`assets_journal.host_fields`: name, where, `in_key`, `subaction`; the label is
+(`assets_journal.host_fields`: name, where, `in_key`, `subaction`,
+`case_insensitive`; the label is
 the template `assets_journal.field_<name>`), so that adding a field is adding
 an entry, and the code has comments at the points where the other fields will
 be added.
@@ -239,7 +243,6 @@ be added.
 | `network`, `gateway_mac` | Columns | |
 | `os_type`, `model`, `device_type`, `manufacturer` | Columns | |
 | `server_ports` (per protocol) | `json_info` | One event per port added or removed (the list is capped at 64) |
-| `mdns_name`, `dhcp_name`, `netbios_name` | `json_info` | |
 | `ssid`, `router` | `json_info` | |
 | `snmp_name`, `snmp_descr`, `switch_ip`, `switch_port` | `json_info` | From the SNMP data |
 | Custom fields | `json_info` | Set with `interface.addDataToLocalHostAssets()` |
@@ -255,7 +258,8 @@ Never journaled: `name` (column). It is not a value of its own but derived
 from other fields: the first one set among the server, DHCP, DNS, mDNS, TLS
 and HTTP names (`Host::get_name()`), computed when the host is dumped. A
 change of the name is caused by a change of one of them, journaled one by
-one instead (`dns_name` now, the others when they are added).
+one instead (`dns_name`, `kerberos_name`, `dhcp_name`, `mdns_name`,
+`netbios_name`; the TLS and HTTP names are never journaled, see above).
 
 ## Writing the entries
 
@@ -351,6 +355,38 @@ one asset. The VLAN is not a field: the asset keeps the list of its VLANs
 the cause being the flow that has created the host of that VLAN, sent with its
 first snapshot). The MAC of the asset is kept only when all its VLANs agree:
 otherwise it is cleared once ("Clear MAC address (was ...)").
+
+### Host names
+
+The DHCP, mDNS and NetBIOS names of a host (`json_info.dhcp_name`,
+`mdns_name`, `netbios_name`) are journaled as fields. The host and its asset
+always agree: the asset gets the name kept by the host (`LocalHost` reads it
+back with the locking getter before `addDataToAssets()`), not the value just
+received.
+
+| Name | Kept by the host | Why |
+|---|---|---|
+| `dhcp_name` | The one of the latest DHCP flow (and of the latest DHCP packet for the MAC address) | Sent by the client itself (option 12), found by the MAC address in the payload (`chaddr`): a device renamed keeps its address |
+| `mdns_name`, `netbios_name` | The one of the first flow of the host, lowercased, while the host is in memory | Not always given to the right host (see "Known limits"): the latest name would let a wrong name replace the right one at every flow |
+
+The flows set their names at every periodic update, in no particular order:
+the time of the flow (its first seen) decides (`Host::setNameByTime()`,
+newer for DHCP, older for mDNS and NetBIOS), so that the result does not
+depend on the order (an older DHCP flow still active does not set its name
+again; the same pcap gives the same names on a packet interface and on its
+view). The names are replaced under `Host::m` (and `Mac::m`), as they are
+read by other threads.
+
+The flow keeps the name of its first request (`protos.dhcp.name`, read by the
+view interface): a renewal is normally a flow of its own (renewals are hours
+apart). The name of a DHCP flow is the one of the packet (option 12),
+otherwise the one of the MAC address of the client (`chaddr`), also on the
+viewed interfaces, that have no hosts and MAC addresses.
+
+The names are compared ignoring the case (`case_insensitive` in
+`host_fields`): no entry for a change of case only, e.g. a name stored by an
+older version as received (the host now keeps mDNS and NetBIOS names
+lowercased), or the DHCP name of a flow lowercased by nDPI.
 
 ### Conversion of the assets recorded per VLAN
 
@@ -567,6 +603,10 @@ context.
 | Tag bound to a risk, Non-PQC Compliant | `setCliTag(tag, evidence)` -> `addTags(bitmap, flow, evidence)` | "risk <name>" + flow (the flow that matched); on views the flow only (the evidence does not go through the tags of the IP address) |
 | New asset, `ip`, `mac`, `vlan` | `setJournalCreatedBy(flow)`: the first flow of the host (`Flow` constructor; with a view, the view walker) | flow, printed when the host is created (no application yet; not refreshed later) |
 | Tag removed by the host (OS replaced) | `setOS` | the cause of the new OS tag |
+| `dhcp_name` | `offlineSetDHCPName(name, when, flow)`: at the detection and at the periodic updates of the DHCP flow | flow (the DHCP request, or the reply to the client) |
+| `dhcp_name` from the MAC address | `LocalHost::syncMACMetadata` -> `offlineSetDHCPName(name, when, NULL, evidence)` | the flow of the packet that has set the name of the MAC (`Mac::names.dhcp_cause`, printed by `Mac::inlineSetDHCPName` when the name changes), e.g. a request sent before the host had its address |
+| `mdns_name` | `offlineSetMDNSName(name, when, flow)` | flow (the mDNS response) |
+| `netbios_name` | `offlineSetNetbiosName(name, when, flow)` | flow (the NetBIOS registration or response) |
 
 The risk of a tag bound to a risk is given by the code setting the tag
 (`FlowPro`, Non-PQC): nothing is added to `Flow`.
@@ -631,7 +671,17 @@ Known limits:
 - `mac`, `ip`, `vlan` have the cause of the flow that has created the host:
   a MAC changing later (`Host::set_mac`) has no cause ("reported by the host").
 - The flow that has created the host is printed without application (not yet
-  detected).
+  detected). So is the cause of a DHCP name taken from the MAC address,
+  printed when the DHCP packet is dissected.
+- mDNS and NetBIOS names: given to the client of the flow, that is not always
+  the host the name belongs to (a unicast mDNS response, a Bonjour Sleep Proxy
+  answering for other hosts, a NetBIOS name server answering a query, a node
+  status response): kept "first seen" for this reason. To be done: give the
+  name to the host of its address record (mDNS A/AAAA, NetBIOS NB_ADDRESS) or
+  to the sender of the packet, then keep the latest name, as for DHCP.
+- Host names of an IP address seen on several VLANs: the hosts of the VLANs
+  update one asset, so different names (e.g. different devices in overlapping
+  address spaces) replace each other, an entry each time.
 
 #### Lua
 
@@ -707,6 +757,7 @@ Assets Inventory page gets the flag from `rest/v2/get/ntopng/menu.lua`
 | 8 | Documentation (`doc/src/advanced_features/assets_journal.rst`), live tests | ntopng, pro | Done (see "Tests") |
 | 9 | GUI: *Journal* tabs (all the assets, one asset), REST, filters; user guide with screenshots | ntopng, pro | Done (see "GUI") |
 | 10 | VLAN not part of the key of the host assets (issue #11208): VLAN entries, conversion of the assets recorded per VLAN (see `README.assets_vlan.md`) | ntopng, pro | Done (see "VLANs") |
+| 11 | Host names: DHCP (latest), mDNS and NetBIOS (first flow), host and asset agree, causes, fields of the journal | ntopng, pro, e2e | Done (see "Host names") |
 
 ## Tests
 
@@ -786,6 +837,19 @@ screenshots of the user guide):
   expiration (TTL in minutes, test mode);
 - user tags set and unset from the GUI ("manually set", "manually unset",
   who: the user), a tag deleted ("the tag has been deleted").
+
+### Tests of the host names (2026-11-16)
+
+- e2e: `flow_direction_dhcp_02` and `flow_direction_dhcp_view_01` (client
+  192.168.4.60 of `dhcp_v4_cases.pcap` renamed between a renewal and a
+  rebinding): the host keeps the latest DHCP name, on the view too.
+- By hand (the snapshots of the hosts of the pcap interfaces reach the Redis
+  queue only when the hosts are deleted, after the scripts of the e2e tests):
+  the snapshots left in the queue at shutdown, packet interface and view,
+  with the names of the host and their causes; synthetic snapshots pushed to a
+  ZMQ collector interface (SQLite) for the entries of the journal: New with
+  the names and their flows, Update of the DHCP name, no entry for a change
+  of case.
 
 ### Live tests still to be done (real interfaces)
 
