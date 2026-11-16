@@ -33,7 +33,7 @@ local function format_data(mac)
     res["last_seen"] = mac["seen.last"]
     res["num_hosts"] = mac["num_hosts"]
     res["tot_bytes_sent"] = mac["bytes.sent"]
-    res["tot_bytes_recv"] = mac["bytes.recv"]
+    res["tot_bytes_recv"] = mac["bytes.rcvd"]
     
     res["arp"] = {}
     res["arp"]["arp_replies.rcvd"]=mac["arp_replies.rcvd"]
