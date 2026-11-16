@@ -2595,7 +2595,7 @@ pre_get_flow:
                 ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
 
                 if (payload_cli_mac)
-                  payload_cli_mac->inlineSetDHCPName(name, when->tv_sec);
+                  payload_cli_mac->inlineSetDHCPName(name, when->tv_sec, flow);
 
 #ifdef DHCP_DEBUG
                 ntop->getTrace()->traceEvent(

@@ -50,6 +50,7 @@ class Mac : public GenericHashEntry {
   struct {
     char* dhcp; /* Extracted from DHCP dissection */
     time_t dhcp_time; /* When the DHCP name has been seen */
+    char* dhcp_cause; /* The flow of the DHCP name (journal of the assets) */
   } names;
 
   char* dhcpv4_fingerprint; /* Protected by m */
@@ -150,8 +151,9 @@ class Mac : public GenericHashEntry {
   }
   inline DeviceType getDeviceType() { return (device_type); }
   char* getDHCPName(char* const buf, ssize_t buf_size);
-  char* getDHCPNameNotLowerCase(char* const buf, ssize_t buf_size,
-                                time_t* when = NULL);
+  char* getDHCPNameNotLowerCase(char* const buf, ssize_t buf_size);
+  void getDHCPNameInfo(char* const name, ssize_t name_len, time_t* when,
+                       char* const cause, ssize_t cause_len);
   void set_hash_entry_state_idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   virtual char* get_string_key(char* buf, u_int buf_len) const {
@@ -167,7 +169,7 @@ class Mac : public GenericHashEntry {
   void inlineSetModel(const char* m);
   void setDHCPFingerprint(const char* f);
   void inlineSetSSID(const char* s);
-  void inlineSetDHCPName(const char* dhcp_name, time_t when);
+  void inlineSetDHCPName(const char* dhcp_name, time_t when, Flow* f);
   inline u_int16_t get_host_pool() { return (host_pool_id); }
 
   inline void requestStatsReset() { stats_reset_requested = true; };

@@ -922,7 +922,7 @@ void Flow::processDetectedProtocolData() {
 
 	if(cli_u)
 	  cli_u->offlineSetDHCPName((char*)ndpiFlow->core.host_server_name,
-				    get_first_seen());
+				    get_first_seen(), this);
 
 	if(ndpiFlow->metadata.protos.dhcp.class_ident[0] != '\0') {
 	  char buf[256];
@@ -2786,7 +2786,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         if (protos.mdns.answer)
           cli_host->offlineSetMDNSInfo(protos.mdns.answer);
         if (protos.mdns.name)
-          cli_host->offlineSetMDNSName(protos.mdns.name, get_first_seen());
+          cli_host->offlineSetMDNSName(protos.mdns.name, get_first_seen(), this);
         if (protos.mdns.name_txt)
           cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
       }
@@ -2802,7 +2802,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
     case NDPI_PROTOCOL_NETBIOS:
       if (cli_host) {
         if (protos.netbios.name)
-          cli_host->offlineSetNetbiosName(protos.netbios.name, get_first_seen());
+          cli_host->offlineSetNetbiosName(protos.netbios.name, get_first_seen(),
+                                          this);
       }
       break;
 
@@ -2834,7 +2835,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         Host *dhcp_cli_host = (get_cli_port() == 68) /* client */ ? cli_host :
                              ((get_srv_port() == 68) ? srv_host : NULL);
         if (dhcp_cli_host)
-          dhcp_cli_host->offlineSetDHCPName(protos.dhcp.name, get_first_seen());
+          dhcp_cli_host->offlineSetDHCPName(protos.dhcp.name, get_first_seen(),
+                                            this);
       }
       break;
 

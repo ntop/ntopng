@@ -237,12 +237,16 @@ void LocalHost::syncMACMetadata(bool force_update) {
   cur_mac = getMac();
 
   if (cur_mac && (force_update || cur_mac->isAssetUpdated())) {
-    char dhcp_name[256];
+    char dhcp_name[256], dhcp_cause[512];
     time_t dhcp_time;
 
-    /* NOTE: a copy, as the name of the MAC can be replaced meanwhile */
-    cur_mac->getDHCPNameNotLowerCase(dhcp_name, sizeof(dhcp_name), &dhcp_time);
-    if (dhcp_name[0]) offlineSetDHCPName(dhcp_name, dhcp_time);
+    /* NOTE: a copy, as the name of the MAC can be replaced meanwhile. Its
+     * cause: the flow of the name of the MAC address */
+    cur_mac->getDHCPNameInfo(dhcp_name, sizeof(dhcp_name), &dhcp_time,
+                             dhcp_cause, sizeof(dhcp_cause));
+    if (dhcp_name[0])
+      offlineSetDHCPName(dhcp_name, dhcp_time, NULL,
+                         dhcp_cause[0] ? dhcp_cause : NULL);
 
     if (cur_mac->getDeviceOS() != ndpi_os_unknown)
       setOS(cur_mac->getDeviceOS(), os_learning_dhcp);
@@ -770,31 +774,40 @@ void LocalHost::offlineSetMDNSInfo(char* const str) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetMDNSName(const char* mdns_n, time_t when) {
+void LocalHost::offlineSetMDNSName(const char* mdns_n, time_t when, Flow* f) {
   char name[256];
 
   if (!isValidMDNSName(mdns_n)) return;
 
-  Host::offlineSetMDNSName(mdns_n, when);
+  Host::offlineSetMDNSName(mdns_n, when, f);
 
   /* The asset gets the name kept by the host (the one of its first flow,
    * lowercased), so that they always agree */
   getMDNSName(name, sizeof(name));
-  if (name[0]) addDataToAssets((char*)"mdns_name", name);
+  if (name[0] && addDataToAssets((char*)"mdns_name", name)) {
+#ifdef NTOPNG_PRO
+    addJournalCause(asset_journal_mdns_name, 0, f);
+#endif
+  }
 }
 
 /* *************************************** */
 
-void LocalHost::offlineSetDHCPName(const char* dhcp_n, time_t when) {
+void LocalHost::offlineSetDHCPName(const char* dhcp_n, time_t when, Flow* f,
+                                   const char* evidence) {
   char name[256];
 
   if (!isValidDHCPName(dhcp_n)) return;
 
-  Host::offlineSetDHCPName(dhcp_n, when);
+  Host::offlineSetDHCPName(dhcp_n, when, f, evidence);
 
   /* The asset gets the name kept by the host, so that they always agree */
   getDHCPName(name, sizeof(name));
-  if (name[0]) addDataToAssets((char*)"dhcp_name", name);
+  if (name[0] && addDataToAssets((char*)"dhcp_name", name)) {
+#ifdef NTOPNG_PRO
+    addJournalCause(asset_journal_dhcp_name, 0, f, evidence);
+#endif
+  }
 }
 
 /* *************************************** */
@@ -830,17 +843,22 @@ void LocalHost::offlineSetMDNSTXTName(const char* mdns_n_txt) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetNetbiosName(const char* netbios_n, time_t when) {
+void LocalHost::offlineSetNetbiosName(const char* netbios_n, time_t when,
+                                      Flow* f) {
   char name[256];
 
   if (!isValidNetBIOSName(netbios_n)) return;
 
-  Host::offlineSetNetbiosName(netbios_n, when);
+  Host::offlineSetNetbiosName(netbios_n, when, f);
 
   /* The asset gets the name kept by the host (the one of its first flow,
    * lowercased), so that they always agree */
   getNetbiosName(name, sizeof(name));
-  if (name[0]) addDataToAssets((char*)"netbios_name", name);
+  if (name[0] && addDataToAssets((char*)"netbios_name", name)) {
+#ifdef NTOPNG_PRO
+    addJournalCause(asset_journal_netbios_name, 0, f);
+#endif
+  }
 }
 
 /* *************************************** */

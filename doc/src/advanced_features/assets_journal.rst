@@ -82,7 +82,8 @@ Every entry has:
 - **Subaction** (*About* in the GUI): what the entry is about: ``os`` (the
   Operating System tags), ``tag`` (the other tags), ``vlan`` (a VLAN added
   to the asset, see below), the name of the field (``ip``, ``mac``,
-  ``tcp_fingerprint``, ``dhcp_fingerprint``, ``dns_name``, ``kerberos_name``),
+  ``tcp_fingerprint``, ``dhcp_fingerprint``, ``dns_name``, ``kerberos_name``,
+  ``dhcp_name``, ``mdns_name``, ``netbios_name``),
   ``usernames`` (the usernames of the host), empty for the asset as a whole
   (Baseline, New, Delete, Manual).
 - **Asset**: the interface id, the type of the asset (``host``) and its key,
@@ -105,8 +106,21 @@ Actions:
 
 The fields of the host assets currently recorded are: IP address, MAC
 address, TCP fingerprint, DHCP fingerprint, DNS name, Kerberos machine account,
-the usernames and the tags. The name of the host is not recorded, as it is
-derived from the other names of the host (DNS, DHCP, mDNS, ...).
+DHCP name, mDNS name, NetBIOS name, the usernames and the tags. The name of the
+host is not recorded, as it is derived from the other names of the host (DNS,
+DHCP, mDNS, ...).
+
+The names of a host, as recorded by its asset:
+
+- **DHCP name**: the name sent by the host in its latest DHCP request, so a
+  device renamed is seen with its new name, e.g.
+  ``Update DHCP name from "old-name" to "new-name": <flow>``.
+- **mDNS name** and **NetBIOS name**: the name of the first flow of the host
+  that carries one, lowercased. ntopng keeps the first name as these names can
+  also be learnt from replies about other hosts (e.g. a NetBIOS name server
+  answering a query).
+
+Host names are case insensitive: a change of case only is not recorded.
 
 The usernames are the users seen in the traffic of the host, each with the
 protocol it has been seen with (e.g. ``alice@corp.local (Kerberos)``, the
@@ -138,6 +152,8 @@ interface the flow belongs to):
   Update TCP fingerprint from "2_128_64240_47466ece" to "2_64_64240_789c1d1f": TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0) [HTTP.ntop]
   Remove tag 31 (0x1f) Windows: replaced by tag 28 (0x1c) Linux, Linux (TCP Fingerprint) - TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0)
   Add username dave@corp.local (Kerberos): UDP 10.0.0.5:50012->10.0.0.1:88 eth0 (0) [Kerberos]
+  Update DHCP name from "old-name" to "new-name": UDP 192.168.4.60:68->255.255.255.255:67 eth0 (0) [DHCP]
+  Set mDNS name to "my-laptop": UDP 192.168.5.10:5353->224.0.0.251:5353 eth0 (0) [MDNS]
   Remove username alice@corp.local (Kerberos): replaced by dave@corp.local (Kerberos) - UDP 10.0.0.5:50012->10.0.0.1:88 eth0 (0) [Kerberos]
 
 A flow is shown as ``<protocol> <client>-><server> <interface name> (<interface id>) [<application>]``,

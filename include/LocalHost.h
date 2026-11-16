@@ -323,11 +323,12 @@ class LocalHost : public Host {
   bool setService(HostService service_enum, Flow* f = NULL);
 
   void offlineSetMDNSInfo(char* const s);
-  void offlineSetMDNSName(const char* n, time_t when);
-  void offlineSetDHCPName(const char* n, time_t when);
+  void offlineSetMDNSName(const char* n, time_t when, Flow* f);
+  void offlineSetDHCPName(const char* n, time_t when, Flow* f,
+                          const char* evidence = NULL);
   void offlineSetDhcpFingerprint(const char* fingerprint, Flow* f = NULL);
   void offlineSetMDNSTXTName(const char* n);
-  void offlineSetNetbiosName(const char* n, time_t when);
+  void offlineSetNetbiosName(const char* n, time_t when, Flow* f);
   void setKerberosClient(const char* principal, const char* machine, Flow* f);
   void setUsername(const char* name, u_int16_t protocol, Flow* f);
   char* getKerberosName(char* const buf, ssize_t buf_len,
