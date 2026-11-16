@@ -46,8 +46,10 @@ The journal is shown in two places:
 Each row is an event, newest first:
 
 - **Time**: when the event happened.
-- **Asset**: the asset (only in the *Assets Inventory* page). Click it to open
-  its details.
+- **Asset**: the asset (only in the *Assets Inventory* page): its name, or its
+  IP address. Click it to open its details. An event about several assets at
+  once (e.g. all of them deleted) is a single event, shown as *Host Assets* or
+  *SNMP Devices*.
 - **Action**: *Baseline*, *New*, *Update*, *Delete* or *Note* (see below).
 - **About**: what has changed, e.g. *MAC address*, *DNS name*,
   *TCP fingerprint*, *Operating System* or *Tag*. Empty when the event is
@@ -78,10 +80,11 @@ Every entry has:
   name of the user that caused the event from the GUI or the REST API.
 - **Action**: see below.
 - **Subaction** (*About* in the GUI): what the entry is about: ``os`` (the
-  Operating System tags), ``tag`` (the other tags), the name of the field
-  (``ip``, ``mac``, ``vlan``, ``tcp_fingerprint``, ``dhcp_fingerprint``,
-  ``dns_name``, ``kerberos_name``), ``usernames`` (the usernames of the
-  host), empty for the asset as a whole (Baseline, New, Delete, Manual).
+  Operating System tags), ``tag`` (the other tags), ``vlan`` (a VLAN added
+  to the asset, see below), the name of the field (``ip``, ``mac``,
+  ``tcp_fingerprint``, ``dhcp_fingerprint``, ``dns_name``, ``kerberos_name``),
+  ``usernames`` (the usernames of the host), empty for the asset as a whole
+  (Baseline, New, Delete, Manual).
 - **Asset**: the interface id, the type of the asset (``host``) and its key,
   as in the assets inventory.
 - **Message**: what happened, and its cause.
@@ -91,23 +94,32 @@ Actions:
 - **Baseline**: the asset was already in the inventory when the journal has
   been enabled (one entry per asset, no details).
 - **New**: the asset has been created. The entry is followed by one *Update*
-  entry for each field with a value (except the ones in the key of the asset,
-  i.e. IP address and VLAN) and for each tag of the new asset.
+  entry for each field with a value (except the IP address, the identity of
+  the asset) and for each tag of the new asset.
 - **Update**: one property of the asset changed or has been added/removed (i.e.
   a new tag has been set or a fingerprint changed).
-- **Delete**: the asset has been deleted.
+- **Delete**: the asset has been deleted. When several assets are deleted at
+  once (all the assets, the ones not seen for a while), there is a single
+  entry with their number, not one per asset.
 - **Manual** (*Note* in the GUI): a free text note, written by a user or by an integration.
 
 The fields of the host assets currently recorded are: IP address, MAC
-address, VLAN, TCP fingerprint, DHCP fingerprint, DNS name, Kerberos machine
-account, the usernames and the tags. The name of the host is not recorded, as
-it is derived from the other names of the host (DNS, DHCP, mDNS, ...).
+address, TCP fingerprint, DHCP fingerprint, DNS name, Kerberos machine account,
+the usernames and the tags. The name of the host is not recorded, as it is
+derived from the other names of the host (DNS, DHCP, mDNS, ...).
 
 The usernames are the users seen in the traffic of the host, each with the
 protocol it has been seen with (e.g. ``alice@corp.local (Kerberos)``, the
 client of a Kerberos authentication accepted by the KDC). A host keeps the 3
 most recent ones: a new one replaces the one seen least recently. Each username
-added or removed has its own entry and cause.
+added or removed has its own entry and cause. An asset seen on several VLANs
+has the usernames of the hosts of all its VLANs.
+
+The VLAN is not a field: an asset is one IP address, with all the VLANs where
+it has been seen. When the IP address is seen on a new VLAN, an *Update* entry
+(``vlan``) tells it, e.g. ``Add VLAN 188: <flow>``. When its VLANs report
+different MAC addresses, the MAC address of the asset is cleared
+(``Clear MAC address (was ...)``), see :ref:`Assets`.
 
 Causes
 ------
@@ -157,10 +169,16 @@ The other causes:
      - ``Set DNS name to "www.example.com": reverse DNS lookup by ntopng``
    * - Asset deleted by a user
      - ``Asset deleted``
+   * - All the host assets deleted by a user
+     - ``Assets deleted (1250): all the host assets of the interface``
+   * - All the SNMP devices deleted by a user
+     - ``Assets deleted (12): all the SNMP devices``
    * - Assets not seen for a while deleted
-     - ``Asset deleted: not seen since 01/09/2026 00:00:00``
+     - ``Assets deleted (37): not seen since 01/09/2026 00:00:00``
    * - Duplicated asset deleted
      - ``Asset deleted: duplicate of asset 0_192.168.1.10@0 (same IP address and VLAN)``
+   * - Assets of an older version converted at startup (see :ref:`Assets`)
+     - ``Assets recorded per VLAN by an older version (6) converted into one asset per IP address (3)``
    * - Assets imported
      - ``New asset: imported``
 
@@ -170,7 +188,9 @@ Storage
 The entries are stored in the ``assets_journal`` table, in ClickHouse when
 available, otherwise in the SQLite database of the interface. Entries are
 **never deleted**: not by the data retention, and not when their asset is
-deleted, so that the history of a deleted asset is still available.
+deleted, so that the history of a deleted asset is still available. When the
+assets recorded per VLAN by an older version are converted (see
+:ref:`Assets`), their entries move to the asset of their IP address.
 
 Besides the *Journal* tabs (see `Viewing the Journal`_), the entries of an
 asset can also be read with SQL, e.g. with ClickHouse:

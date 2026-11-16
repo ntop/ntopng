@@ -46,7 +46,7 @@ Decisions:
 |---|---|---|---|
 | `ifid` | `UInt8` | `INTEGER` | Interface of the asset |
 | `asset_type` | `LowCardinality(String)` | `TEXT` | Type of the asset (`host`, later `mac`, `snmp`, ...) |
-| `key` | `String` | `TEXT` | Key of the asset, as in the `assets` table (e.g. `2_192.168.1.20@0`) |
+| `key` | `String` | `TEXT` | Key of the asset, as in the `assets` table (e.g. `2_192.168.1.20@0`); empty for an entry about several assets at once (`Delete`, `Update`) |
 | `event_time` | `DateTime` | `INTEGER` (epoch, seconds) | When the event happened |
 | `created_time` | `DateTime` | `INTEGER` (epoch, seconds) | When the entry has been written |
 | `who` | `String` | `TEXT` | `ntopng`, or the username |
@@ -107,7 +107,9 @@ Notes:
   partition is on `created_time`, that never goes back in time, rather than
   on `event_time`.
 - The entries of an asset are never deleted, not even when the asset is
-  deleted (a `Delete` entry is written).
+  deleted (a `Delete` entry is written). The entries of the assets recorded
+  per VLAN by an older version move to the key of the asset of their IP when
+  those assets are converted (see "VLANs").
 - The cluster schema (`db_schema_clickhouse_cluster.sql`) has the same table
   with `ON CLUSTER` and `ReplicatedMergeTree`.
 - The times are in seconds (32 bits): milliseconds are not needed to read the
@@ -121,7 +123,7 @@ Notes:
 | `Baseline` | The journal starts (first time, or enabled again): one entry per asset already there. Message: "Asset already in the inventory when the journal has been enabled", no details | `ntopng` |
 | `New` | An asset is created. One entry for the creation itself, with the flow that created the host of the asset (see "Causes"), then one entry for each field with a value and for each tag of the new asset, with their details (`Update` action, same event time) | `ntopng` |
 | `Update` | A field of an asset changes, automatically or by a user | `ntopng` or the user |
-| `Delete` | An asset is deleted: by ntopng (e.g. not seen for too long) or by a user | `ntopng` or the user |
+| `Delete` | An asset is deleted: by ntopng (e.g. not seen for too long) or by a user. Several assets deleted at once (all the host assets or SNMP devices of the interface, the ones not seen since a time) are a single entry with no key and their number ("Assets deleted (1250): all the host assets of the interface"), not one per asset, which would only flood the journal (issue #11206). The deletion of a single asset (by a user, a duplicate) keeps its own entry | `ntopng` or the user |
 | `Manual` | A free text written by a user (e.g. "Asset removed from the network because too old") | The user |
 
 ## Subactions
@@ -134,7 +136,8 @@ of the Operating System or of the MAC address of an asset):
 | empty | The asset as a whole: Baseline, New (the creation), Delete, Manual |
 | `os` | The Operating System: its tags (27-31, `asset_tags.os_tags`) |
 | `tag` | The other tags |
-| `<field>` | A field of the asset: its name (`ip`, `mac`, `vlan`, `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `mdns_name`, `dhcp_name`, `netbios_name`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
+| `vlan` | A VLAN added to the asset (`vlan_added`): the VLAN is not a field, see "VLANs" |
+| `<field>` | A field of the asset: its name (`ip`, `mac`, `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `mdns_name`, `dhcp_name`, `netbios_name`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
 
 The field entries take the `name` of the field in `assets_journal.host_fields`
 (or its `subaction`, e.g. `os` for `os_type`), so a new field has its
@@ -182,6 +185,7 @@ Examples (English, from live tests):
 | Tag from the configuration | Add tag 0 (0x00) DNS Server: from network configuration |
 | Name resolved by ntopng | Set DNS name to "precision-3591.lan": reverse DNS lookup by ntopng |
 | Asset deleted by a user | Asset deleted |
+| All the host assets deleted by a user | Assets deleted (1250): all the host assets of the interface |
 
 ## Causes
 
@@ -220,7 +224,7 @@ host assets give events.
 
 | Field | Where | Events |
 |---|---|---|
-| `ip`, `mac`, `vlan` | Columns | Value changed (old and new value) |
+| `ip`, `mac` | Columns | Value changed (old and new value) |
 | Tags | `json_info.tags`, `tags_info` | One per tag added or removed, with the reason (observed, manual, configuration, seeding, TTL expiration, replaced, tag deleted) |
 | `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name` | `json_info` | Value changed |
 
@@ -292,6 +296,9 @@ standalone and on real databases.
 | `tagEntries(base, events, tag_names, extra, details)` | One `Update` entry per tag added or removed (`subaction`: `os` or `tag`); `details(event, events)` adds the cause sent by the host |
 | `newEntries(base, cause, fields, asset, field_cause, tag_events, tag_names, field_causes, tag_extra, tag_details)` | `New` entry, then the fields (except the ones in the key) and the tags of the new asset |
 | `newEntry`, `baselineEntry`, `deleteEntry` | The entries about the asset as a whole |
+| `deletedAssetsEntry(base, count, cause)` | The single `Delete` entry (no key) of several assets deleted at once |
+| `convertedAssetsEntry(base, count, assets)` | The single `Update` entry (no key) of the conversion of the assets recorded per VLAN |
+| `vlanEntries(base, vlans, cause)` | One `Update` entry (subaction `vlan`) per VLAN added to the asset |
 
 Database functions (they need ntopng, and run on the database of the current
 interface, as the rest of the assets code):
@@ -331,8 +338,29 @@ When a host snapshot is merged into its asset (`asset_utils.lua`,
 `Update` entry for each one that changed, and one per tag added or removed
 (with the reason given by `asset_tags.lua`). A new asset gives a `New` entry,
 then one `Update` entry for each field with a value ("Set ..."), except the
-ones in the key of the asset (`ip`, `vlan`), and for each of its tags ("Add
+ones in the key of the asset (`ip`), and for each of its tags ("Add
 tag ...").
+
+### VLANs
+
+The VLAN is not part of the key of a host asset (`<ifid>_<ip>@0`, see
+`README.assets_vlan.md`): the hosts with the same IP on several VLANs update
+one asset. The VLAN is not a field: the asset keeps the list of its VLANs
+(`json_info.vlans`, column `vlans`), and a VLAN added to the list gives an
+`Update` entry with subaction `vlan` (`vlan_added`: "Add VLAN 188: <cause>",
+the cause being the flow that has created the host of that VLAN, sent with its
+first snapshot). The MAC of the asset is kept only when all its VLANs agree:
+otherwise it is cleared once ("Clear MAC address (was ...)").
+
+### Conversion of the assets recorded per VLAN
+
+At startup the host assets recorded per VLAN by an older version
+(`<ifid>_<ip>@<vlan>`, VLAN other than 0) are converted into the asset of
+their IP (`asset_utils.convertLegacyAssets`, see `README.assets_vlan.md`):
+their entries move to the `@0` key, and the conversion is one `Update` entry
+(subaction `vlan`) with no key (`convertedAssetsEntry`, `assets_converted`:
+"Assets recorded per VLAN by an older version (N) converted into one asset
+per IP address (M)").
 
 The other places where the tags of an asset change write their entries too:
 expiration of the tags (`expireTags`), tag deleted (`removeTagFromAssets`),
@@ -374,6 +402,8 @@ ASSETS" for the helpers):
 | `Update` (tags) | `expireTags` | `cause_expired` (TTL, last seen) |
 | `Update` (tags) | `changeAssetsTags` / `removeTagFromAssets` | `cause_tag_deleted` |
 | `Update` (tags) | `seedOSTags` (only when the Baseline of the interface has already been written: otherwise the Baseline, written just after, tells the state with the seeded tags) | `cause_os_seed` (Operating System stored in the asset) |
+| `Update` (VLANs) | `updateData`, `assets_journal.vlanEntries` | `journal.created` of the host of the new VLAN, or `cause_snapshot` |
+| `Update` (conversion, no key) | `convertLegacyAssets` | none: `assets_converted` (the number of assets converted and of the assets they have become) |
 | `Delete` | `deleteHost`, `deleteAll` (host), `deleteAllEntriesSince` | none (`asset_deleted_plain`: "Asset deleted"), `cause_all_deleted`, `cause_not_seen_since`, `cause_duplicated` |
 
 The deletions and the tag changes take an optional `who` (default `ntopng`),
@@ -568,8 +598,8 @@ flow).
   Lua)"; "<OS> (TCP Fingerprint)" for the OS hint (nDPI, nProbe: the OS of the
   TCP fingerprint, `Host::setnDPIOS`), as the hint is applied before the flow
   has its fingerprint.
-- A new asset: the New entry, then its fields except `ip` and `vlan` (in the
-  key of the asset), and its tags.
+- A new asset: the New entry, then its fields except `ip` (in the key of the
+  asset), and its tags.
 - Other causes: "from network configuration", "manually set", "manually
   unset" (user in `who`); an asset deleted by a user: "Asset deleted" (no
   cause).
@@ -637,7 +667,8 @@ section "Viewing the Journal") in:
 - the *Journal* tab of the Assets Inventory page (`pro/assets.lua?page=journal`,
   route in `router.js`: `componentByQuery`, `page=journal` ->
   `PageAssetsJournal`): the entries of all the assets of the interface, with
-  the *Asset* column (IP, VLAN and name of the asset, link to its details);
+  the *Asset* column (name or IP of the asset, link to its details; *Host
+  Assets* or *SNMP Devices* for an entry with no key);
 - the *Journal* tab of the details page of an asset
   (`pro/asset_details.lua?page=journal`): the entries of that asset.
 
@@ -651,7 +682,7 @@ shown as "Note", the subaction as "About", with the label of the field).
 | `assets_journal.lua` | The entries in `epoch_begin`..`epoch_end` (default: the last day), newest first, of the asset `serial_key` or, without it, of all the assets of the interface `ifid`; optional filters `action`, `who`, `subaction`. Each entry with its asset (one lookup for all the keys, `asset_utils.getAssetsByKeys`) and its rendered message |
 | `assets_journal_filters.lua` | The values of `action`, `who` and `subaction` found in the same interval (and asset), with their labels, for the filters of the table |
 
-Both are documented in `httpdocs/misc/rest-api-v2.json`. They answer
+All are documented in `httpdocs/misc/rest-api-v2.json`. They answer
 `not_granted` when the journal is not enabled (`assets_journal.isEnabled()`),
 and `invalid_interface` when the interface cannot be selected. The system
 interface (-1) is read as 255, as in the assets table.
@@ -675,6 +706,7 @@ Assets Inventory page gets the flag from `rest/v2/get/ntopng/menu.lua`
 | 7 | Preference | ntopng, pro | Done |
 | 8 | Documentation (`doc/src/advanced_features/assets_journal.rst`), live tests | ntopng, pro | Done (see "Tests") |
 | 9 | GUI: *Journal* tabs (all the assets, one asset), REST, filters; user guide with screenshots | ntopng, pro | Done (see "GUI") |
+| 10 | VLAN not part of the key of the host assets (issue #11208): VLAN entries, conversion of the assets recorded per VLAN (see `README.assets_vlan.md`) | ntopng, pro | Done (see "VLANs") |
 
 ## Tests
 

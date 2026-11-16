@@ -22,8 +22,28 @@ if isEmptyString(host_info.host) then
     return
 end
 
-local ifstats = interface.getStats()
+-- The interface of the request (optional: otherwise the one of the session)
+local ifid = _POST["ifid"]
+
+if not isEmptyString(ifid) then
+    interface.select(tostring(ifid))
+
+    -- interface.select silently falls back to an allowed interface
+    if tostring(interface.getId()) ~= tostring(ifid) then
+        rest_utils.answer(rest_utils.consts.err.invalid_interface)
+        return
+    end
+end
+
 local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
+
+-- The host is not active on the interface
+if not host then
+    rest_utils.answer(rest_utils.consts.err.not_found)
+    return
+end
+
+local ifstats = interface.getStats()
 local host_key = hostinfo2hostkey(host_info)
 local drop_host_traffic = _POST["drop_host_traffic"]
 
@@ -69,26 +89,34 @@ end
 
 if (_POST["host_tags_bitmap"] ~= nil) and isAdministrator() then
     local tags_bitmap = tonumber(_POST["host_tags_bitmap"]) or 0
+    local ip, vlan = host_info["host"], tonumber(host_info["vlan"]) or 0
+    -- The host of the request (interface.setHostTags takes the VLAN in the
+    -- host string)
+    local host_key = hostinfo2hostkey({ host = ip, vlan = vlan })
+    -- The hosts with the same IP on the other VLANs of its asset are the same
+    -- device (the VLAN is not part of the key of the asset): their tags are
+    -- set as well, so that the asset and its hosts agree
+    local vlans = { vlan }
 
-    -- Journal of the assets: the tags set/unset by the user on an active host
-    -- (that will reach its asset with the next snapshot of the host).
-    -- NOTE: same host as interface.setHostTags (VLAN in the host string only)
-    if ntop.isEnterpriseL and ntop.isEnterpriseL() then
-        local ip, vlan = string.match(host_info["host"], "^([^@]+)@?(%d*)$")
+    if ntop.isEnterpriseM and ntop.isEnterpriseM() then
+        package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+        local asset_utils = require "asset_utils"
 
-        vlan = tonumber(vlan) or 0
+        vlans = asset_utils.getIpAssetVlans(interface.getId(), ip, vlan)
 
-        if ip and interface.getHostInfo(ip, vlan) then
-            package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-            local asset_utils = require "asset_utils"
+        -- Journal of the assets: the tags set/unset by the user on an active
+        -- host (that will reach its asset with the next snapshot of the host)
+        if ntop.isEnterpriseL and ntop.isEnterpriseL() and interface.getHostInfo(ip, vlan) then
             local assets_journal = require "assets_journal"
 
             asset_utils.journalHostUserTags(interface.getId(), ip, vlan,
-                interface.getUserDefinedHostTags(host_info["host"]), tags_bitmap, assets_journal.currentUser())
+                interface.getUserDefinedHostTags(host_key), tags_bitmap, assets_journal.currentUser())
         end
     end
 
-    interface.setHostTags(host_info["host"], tags_bitmap)
+    for _, v in ipairs(vlans) do
+        interface.setHostTags(hostinfo2hostkey({ host = ip, vlan = v }), tags_bitmap)
+    end
 end
 
 local rc = rest_utils.consts.success.ok
