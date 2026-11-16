@@ -45,10 +45,20 @@ end
 -- #######################################################
 
 function alert_ndpi_ssh_obsolete_client.format(ifid, alert, alert_type_params)
-   if alert_type_params and alert_type_params.proto and alert_type_params.proto.ssh then   
-      local client_signature = alert_type_params.proto.ssh.client_signature
-      return i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher_signature", { signature = client_signature }) 
+   -- Report the obsolete version or cipher found by nDPI, when available
+   local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+   local risk_info = alert_type_params and alert_type_params.flow_risk_info and alert_type_params.flow_risk_info[tostring(alert_risk)]
+
+   if not isEmptyString(risk_info) then
+      return i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher_info", { info = risk_info })
    end
+
+   local client_signature = alert_type_params and alert_type_params.proto and alert_type_params.proto.ssh and alert_type_params.proto.ssh.client_signature
+
+   if not isEmptyString(client_signature) then
+      return i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher_signature", { signature = client_signature })
+   end
+
    return i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher")
 end
 
