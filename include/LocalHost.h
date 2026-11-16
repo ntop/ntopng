@@ -327,7 +327,7 @@ class LocalHost : public Host {
   void offlineSetDHCPName(const char* n, time_t when, Flow* f,
                           const char* evidence = NULL);
   void offlineSetDhcpFingerprint(const char* fingerprint, Flow* f = NULL);
-  void offlineSetMDNSTXTName(const char* n);
+  void offlineSetMDNSTXTName(const char* n, time_t when, Flow* f);
   void offlineSetNetbiosName(const char* n, time_t when, Flow* f);
   void setKerberosClient(const char* principal, const char* machine, Flow* f);
   void setUsername(const char* name, u_int16_t protocol, Flow* f);
