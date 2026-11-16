@@ -326,10 +326,13 @@ char* Mac::getDHCPName(char* const buf, ssize_t buf_size) {
 
 /* *************************************** */
 
-char* Mac::getDHCPNameNotLowerCase(char* const buf, ssize_t buf_size) {
+/* The DHCP name and, when requested, the time it has been seen */
+char* Mac::getDHCPNameNotLowerCase(char* const buf, ssize_t buf_size,
+                                   time_t* when) {
   if (buf && buf_size) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
+    if (when) *when = names.dhcp_time;
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -390,9 +393,31 @@ void Mac::inlineSetSSID(const char* s) {
 
 /* *************************************** */
 
-void Mac::inlineSetDHCPName(const char* dhcp_name) {
-  if (!names.dhcp && dhcp_name && (names.dhcp = strdup(dhcp_name)))
+/* The name of the latest DHCP packet: a device renamed keeps its MAC */
+void Mac::inlineSetDHCPName(const char* dhcp_name, time_t when) {
+  char *new_name, *to_free;
+
+  if ((dhcp_name == NULL) || (dhcp_name[0] == '\0') ||
+      ((new_name = strdup(dhcp_name)) == NULL))
+    return;
+
+  /* NOTE: replaced under m, as it is read by the other threads (see
+   * getDHCPName()) */
+  m.lock(__FILE__, __LINE__);
+
+  /* NOTE: host names are case insensitive */
+  if (names.dhcp && (strcasecmp(names.dhcp, new_name) == 0))
+    to_free = new_name; /* Unchanged */
+  else {
+    to_free = names.dhcp, names.dhcp = new_name;
     asset_map_updated = true;
+  }
+
+  names.dhcp_time = when;
+
+  m.unlock(__FILE__, __LINE__);
+
+  free(to_free);
 }
 
 /* *************************************** */
@@ -458,6 +483,8 @@ void Mac::freeMacData() {
     free(names.dhcp);
     names.dhcp = NULL;
   }
+
+  names.dhcp_time = 0;
 }
 
 /* *************************************** */
