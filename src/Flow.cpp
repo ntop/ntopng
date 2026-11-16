@@ -10193,6 +10193,14 @@ void Flow::swap() {
   memcpy(cli_mac, srv_mac, 6);
   memcpy(srv_mac, m, 6);
 
+  /* The MACs the traffic of the peers is accounted to (see
+   * hosts_periodic_stats_update) */
+  Mac* mac = c_mac;
+  bool mac_updated = c_mac_updated;
+
+  c_mac = s_mac, c_mac_updated = s_mac_updated;
+  s_mac = mac, s_mac_updated = mac_updated;
+
   stats.swap();
 
   alert_info.is_cli_attacker = alert_info.is_srv_attacker,
