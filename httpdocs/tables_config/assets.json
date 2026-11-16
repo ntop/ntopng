@@ -52,6 +52,17 @@
 			]
 		},
 		{
+			"id": "vlans",
+			"title_i18n": "asset_details.vlans",
+			"data_field": "vlans",
+			"sortable": false,
+			"min-width": "100px",
+			"max-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "name",
 			"title_i18n": "name",
 			"data_field": "host_name",

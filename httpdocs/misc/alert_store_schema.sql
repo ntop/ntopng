@@ -536,12 +536,15 @@ last_seen DATETIME NOT NULL DEFAULT 0,
 gateway_mac TEXT NULL,
 json_info TEXT NULL, -- A json containing all other info
 os_type TEXT NULL,
-model TEXT NULL
+model TEXT NULL,
+vlans TEXT NULL -- VLANs of the asset (",15,188,"): the VLAN is not part of the key of a host asset
 );
 @
 ALTER TABLE assets ADD os_type TEXT NULL;
 @
 ALTER TABLE assets ADD model TEXT NULL;
+@
+ALTER TABLE assets ADD vlans TEXT NULL;
 @
 
 -- -----------------------------------------------------

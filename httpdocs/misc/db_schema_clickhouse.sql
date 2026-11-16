@@ -1515,13 +1515,18 @@ CREATE TABLE IF NOT EXISTS `assets` (
 `version` UInt64,
 `os_type` String DEFAULT '',
 `model` String DEFAULT '',
-`ntopng_instance_name` LowCardinality(String)
+`ntopng_instance_name` LowCardinality(String),
+`vlans` Array(UInt16) DEFAULT []
 ) ENGINE = ReplacingMergeTree(version) PRIMARY KEY (`type`, `key`) ORDER BY (`type`, `key`);
 @
 ALTER TABLE `assets`
   ADD COLUMN IF NOT EXISTS `ntopng_instance_name` LowCardinality(String),
   ADD COLUMN IF NOT EXISTS `os_type` String,
   ADD COLUMN IF NOT EXISTS `model` String;
+@
+ALTER TABLE `assets` ADD COLUMN IF NOT EXISTS `vlans` Array(UInt16) DEFAULT [];
+@
+ALTER TABLE `assets` MODIFY COLUMN `vlans` COMMENT 'VLANs on which the asset has been observed (the VLAN is not part of the key of a host asset, see vlan for the most recent one)';
 @
 ALTER TABLE `assets` MODIFY COMMENT 'Network asset inventory: one row per discovered or imported asset (host, MAC address, network device). Uses ReplacingMergeTree on version so that re-discovered assets update existing rows rather than creating duplicates. json_info holds additional metadata as a JSON blob.';
 @
@@ -1531,7 +1536,7 @@ ALTER TABLE `assets`
   MODIFY COLUMN `ifid` COMMENT 'ntopng interface on which this asset was observed',
   MODIFY COLUMN `ip` COMMENT 'IP address of the asset (empty if not applicable)',
   MODIFY COLUMN `mac` COMMENT 'MAC address of the asset',
-  MODIFY COLUMN `vlan` COMMENT 'VLAN on which the asset was observed (0 if untagged)',
+  MODIFY COLUMN `vlan` COMMENT 'VLAN on which the asset has been observed last (0 if untagged), see vlans',
   MODIFY COLUMN `network` COMMENT 'ntopng local-network ID the asset belongs to',
   MODIFY COLUMN `name` COMMENT 'Resolved hostname or user-defined name',
   MODIFY COLUMN `device_type` COMMENT 'Device category/type (maps to ntopng DeviceType enum)',
