@@ -1607,7 +1607,7 @@ CREATE TABLE IF NOT EXISTS `assets_journal` ON CLUSTER '$CLUSTER' (
 @
 ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS `subaction` LowCardinality(String) DEFAULT '' AFTER `action`;
 @
-ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Journal of the assets: one row per event (a change of a field of an asset, an asset created or deleted, a manual note), with the time of the event, who caused it, the action and a message. Entries are never deleted. See doc/developers/README.assets_journal.md.';
+ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER' MODIFY COMMENT 'Journal of the assets: one row per event (a change of a field of an asset, an asset created or deleted, a manual note), with the time of the event, who caused it, the action and a message. Entries are deleted only when a user deletes their assets. See doc/developers/README.assets_journal.md.';
 @
 ALTER TABLE `assets_journal` ON CLUSTER '$CLUSTER'
   MODIFY COLUMN `ifid` COMMENT 'ntopng interface of the asset',

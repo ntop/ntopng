@@ -216,11 +216,22 @@ Storage
 -------
 
 The entries are stored in the ``assets_journal`` table, in ClickHouse when
-available, otherwise in the SQLite database of the interface. Entries are
-**never deleted**: not by the data retention, and not when their asset is
-deleted, so that the history of a deleted asset is still available. When the
-assets recorded per VLAN by an older version are converted (see
-:ref:`Assets`), their entries move to the asset of their IP address.
+available, otherwise in the SQLite database of the interface. Entries are not
+deleted by the data retention: they are deleted only when a user deletes their
+assets, so that the journal tells about the assets of the inventory. When a
+user deletes assets from the inventory, their entries are deleted too, and
+only the entry reporting the deletion (with the user who did it) is kept:
+
+- deleting an asset deletes its entries;
+- deleting the assets not seen since a date deletes their entries;
+- deleting all the assets (or all the SNMP devices) deletes the whole journal
+  of those assets of the interface.
+
+The confirmation dialog of each deletion tells it. A duplicated asset deleted
+by ntopng keeps its entries, as its history is the one of the asset kept.
+When the assets recorded
+per VLAN by an older version are converted (see :ref:`Assets`), their entries
+move to the asset of their IP address.
 
 Besides the *Journal* tabs (see `Viewing the Journal`_), the entries of an
 asset can also be read with SQL, e.g. with ClickHouse:
