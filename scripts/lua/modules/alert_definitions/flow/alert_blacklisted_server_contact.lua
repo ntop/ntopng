@@ -57,13 +57,14 @@ end
 -- @return A human-readable string
 function alert_blacklisted_server_contact.format(ifid, alert, alert_type_params)
     local blacklist = blacklist_utils.get_blacklist_name(alert_type_params, alert_blacklisted_server_contact.meta.alert_key)
-    -- The client is blacklisted, so simply use the Client as who description    
-    local res = i18n("flow_details.blacklisted_flow_detailed", {
-        who = i18n("server"),
+    return i18n("flow_details.blacklisted_server_contact_detailed", {
+        server = hostinfo2label({
+            ip = alert.srv_ip,
+            vlan = alert.vlan_id,
+            name = alert.srv_name
+        }, true, false, true),
         blacklist = blacklist
     })
-
-    return res
 end
 
 -- #######################################################
