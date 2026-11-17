@@ -724,14 +724,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                      Mac* src_mac, IpAddress* _src_ip, Host** src, Mac* dst_mac,
                      IpAddress* _dst_ip, Host** dst);
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
-                                       AddressTree* allowed_nets);
+                                       AddressTree* allowed_nets,
+                                       Bitmap4096* allowed_pools);
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
                                 u_int16_t observation_domain_id,
                                 u_int32_t private_flow_id, Mac* src_mac,
                                 Mac* dst_mac, IpAddress* src_ip,
                                 IpAddress* dst_ip, u_int16_t src_port,
                                 u_int16_t dst_port, u_int8_t l4_proto,
-                                AddressTree* allowed_nets) const;
+                                AddressTree* allowed_nets,
+                                Bitmap4096* allowed_pools) const;
   bool findHostsByName(lua_State* vm, AddressTree* allowed_nets, char* key);
   bool findHostsByMac(lua_State* vm, u_int8_t* mac);
   Host* findHostByMac(u_int8_t* mac);
@@ -968,7 +970,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
                         u_int16_t observationPointId, bool is_inline_call);
   virtual Host* getHostByIP(IpAddress* ip, u_int16_t vlan_id,
                             u_int16_t observationPointId, bool is_inline_call);
-  bool isHostActive(AddressTree* allowed_nets, char* host_ip,
+  bool isHostActive(AddressTree* allowed_nets, Bitmap4096* allowed_pools,
+                    char* host_ip,
                     u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, AddressTree* allowed_nets, char* host_ip,
                    u_int16_t vlan_id);
@@ -1152,7 +1155,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     else
       lua_newtable(vm);
   };
-  int updateHostTrafficPolicy(AddressTree* allowed_networks, char* host_ip,
+  int updateHostTrafficPolicy(AddressTree* allowed_networks,
+                              Bitmap4096* allowed_pools, char* host_ip,
                               u_int16_t host_vlan);
 
   virtual void reloadCompanions() {};
@@ -1254,7 +1258,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decPoolNumL2Devices(u_int16_t id, bool is_inline_call) {
     if (host_pools) host_pools->decNumL2Devices(id, is_inline_call);
   };
-  Host* findHostByIP(AddressTree* allowed_nets, char* host_ip,
+  Host* findHostByIP(AddressTree* allowed_nets, Bitmap4096* allowed_pools,
+                     char* host_ip,
                      u_int16_t vlan_id, u_int16_t observationPointId);
   TimeseriesExporter* getInfluxDBTSExporter();
   TimeseriesExporter* getRRDTSExporter();
@@ -1424,7 +1429,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline u_int64_t getNewAlertSerial() {
     return alert_serial.fetch_add(1, std::memory_order_relaxed);
   }
-  bool resetHostTopSites(AddressTree* allowed_nets, char* host_ip,
+  bool resetHostTopSites(AddressTree* allowed_nets, Bitmap4096* allowed_pools,
+                         char* host_ip,
                          u_int16_t vlan_id, u_int16_t observationPointId);
   void localHostsServerPorts(lua_State* vm);
 

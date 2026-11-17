@@ -4470,6 +4470,10 @@ static int ntop_run_live_extraction(lua_State* vm) {
   if (!ntop->isPcapDownloadAllowed(vm, iface->get_name()))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
+  /* Extracted packets have no flow to match against the user host pools */
+  if (getLuaVMUservalue(vm, allowed_pools))
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
   live_extraction_num_lock.lock(__FILE__, __LINE__);
   if (live_extraction_num < CONST_MAX_NUM_LIVE_EXTRACTIONS) {
     allow = true;
@@ -6500,7 +6504,7 @@ static void ntop_reset_host_name(lua_State* vm, char* address) {
 
   for (int i = 0; i < ntop->get_num_interfaces(); i++) {
     if ((iface = ntop->getInterface(i)) != NULL) {
-      host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+      host = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                  getLuaVMUservalue(vm, observationPointId));
       if (host) host->requestNameReset();
     }
