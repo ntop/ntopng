@@ -1111,7 +1111,7 @@ function generateExporterInterfaceLink(ip, interface)
       exporter_source_id, exporter_ifid = exporters_utils.getExporterID(ip)
 
       return string.format(
-	 "%s/lua/pro/exporter_interface_overview?deviceIP=%s&ifIdx=%s&ifid=%s",
+	 "%s/lua/pro/exporter_interface_overview.lua?deviceIP=%s&ifIdx=%s&ifid=%s",
 	 ntop.getHttpPrefix(), ip, interface, exporter_ifid)
    end
 

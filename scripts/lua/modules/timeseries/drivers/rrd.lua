@@ -816,9 +816,15 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_p
       -- In case of multiple wildcard_tags this could happen
    end
 
-   local base, rrd = schema_get_path(schema, table.merge(tags_filter, {
-      [wildcard_tag] = ""
-   }))
+   -- Every wildcard tag must be set: an intermediate one (e.g. device with
+   -- device + if_index wildcards) is part of the directory path
+   local path_tags = table.clone(tags_filter)
+   for _, tag in ipairs(wildcard_tags) do
+      path_tags[tag] = ""
+   end
+   path_tags[wildcard_tag] = ""
+
+   local base, rrd = schema_get_path(schema, path_tags)
    local files = ntop.readdir(base)
    local res = {}
 

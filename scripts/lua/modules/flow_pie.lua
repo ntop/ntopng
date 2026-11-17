@@ -66,6 +66,10 @@ local function format_table(sections, query, table, max_sections)
 	for _, value in pairs(table or {}) do
 		local section_ref = value[query.section_ref]
 		local value_ref = tonumber(value[query.value_ref])
+		-- section_ref is nil when flow_data dropped it via remove_if_equal_to (e.g. ASN 0)
+		if section_ref == nil then
+			goto continue
+		end
 		if
 			query.only_custumers == nil
 			or query.only_custumers == false
@@ -79,6 +83,7 @@ local function format_table(sections, query, table, max_sections)
 				others.value = others.value + value_ref
 			end
 		end
+		::continue::
 	end
 	if others.value > 0 then
 		if values_table["others"] ~= nil then
