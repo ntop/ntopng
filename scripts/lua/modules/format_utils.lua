@@ -13,11 +13,13 @@ local function truncate(x)
    return x < 0 and math.ceil(x) or math.floor(x)
 end
 
--- Returns the AS display name (description, or handle as fallback)
-local function getASDisplayName(asn)
+-- Returns the AS display name (description, or handle as fallback), nil when unknown
+function format_utils.getASDisplayName(asn)
    local info = ntop.getASNameFromASN(asn)
    if not info then return nil end
-   return info.description or info.handle
+   if info.description ~= "" then return info.description end
+   if info.handle ~= "" then return info.handle end
+   return nil
 end
 
 function format_utils.formatBgpBmpInfo(bgp_data)
@@ -48,7 +50,7 @@ function format_utils.formatBgpBmpInfo(bgp_data)
       for _, peer in ipairs(peer_list) do
          out[#out + 1] = "<td>"
 	    .. "<A HREF=\"" .. ntop_http_prefix .. "/lua/hosts_stats.lua?asn=" .. peer.info.asn
-	    .. "\">" .. peer.info.asn .. " (" .. shortenString(getASDisplayName(tonumber(peer.info.asn)) or "", max_len) .. ")</A>"
+	    .. "\">" .. format_utils.formatASN(peer.info.asn, false, true) .. "</A></td>"
       end
       out[#out + 1] = "</tr>"
 
@@ -61,14 +63,13 @@ function format_utils.formatBgpBmpInfo(bgp_data)
 
       -- AS Path
       out[#out + 1] = "<tr><th>" .. i18n("flow_details.bgp_as_path") .. "</th>"
-      local max_len = (#peer_list > 2) and 8 or 32
       for _, peer in ipairs(peer_list) do
          local as_path_string = ""
          if peer.info["as_path"] and #peer.info["as_path"] > 0 then
             local parts = {}
             for _, asn in ipairs(peer.info["as_path"]) do
                parts[#parts + 1] = "<A HREF=\"" .. ntop_http_prefix .. "/lua/hosts_stats.lua?asn=" .. asn
-                  .. "\">" .. asn .. " (" .. shortenString(getASDisplayName(tonumber(asn)) or "", max_len) .. ")</A>"
+                  .. "\">" .. format_utils.formatASN(asn, false, true) .. "</A>"
             end
             as_path_string = (#parts == 0) and "Local" or table.concat(parts, "<li>")
          end
@@ -940,11 +941,11 @@ function format_utils.formatASN(asn, short_version, shorten_stringing)
 
 	 if (cached == nil) then
 	    local as_info = interface.getASInfo(asn)
-	    if (as_info) then
+	    if (as_info) and (as_info.asname ~= "") then
 	       cached = as_info.asname
 	    else
 	       -- if no asn info is present, curl to get ASN name
-	       cached = getASDisplayName(asn)
+	       cached = format_utils.getASDisplayName(asn)
 	    end
 
 	    -- No name available: fall back to the ASN itself, so that unresolvable
@@ -1002,7 +1003,7 @@ function format_utils.formatASN_transit(v, peer_as, ip, is_client_as)
    -- Process peer/transit ASN if valid, non-zero, and different from main ASN
    if peer_as and peer_as ~= 0 and v ~= peer_as then
       local peer_asn = string.format('<A HREF="%s/lua/hosts_stats.lua?asn=%s">%s', ntop_http_prefix, peer_as, peer_as)
-      local peer_as_name = shortenString(getASDisplayName(peer_as) or "", max_len)
+      local peer_as_name = shortenString(format_utils.getASDisplayName(peer_as) or "", max_len)
 
       local via = ""
       if peer_as_name and peer_as_name ~= "" then

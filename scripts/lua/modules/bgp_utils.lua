@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require("ntop_utils")
 require("lua_utils_gui")
+local format_utils = require("format_utils")
 
 -- ######################################
 
@@ -73,9 +74,8 @@ function bgp_utils.formatBgpBmpInfo(bgp_info)
 				is_best_path = (peer.info.best_entry or false),
 			}
 
-			local as_info = ntop.getASNameFromASN(tonumber(peer.info.asn))
 			asn_list[#asn_list + 1] = {
-				name = string.format("%s (%s)", peer.info.asn, as_info and (as_info.description or as_info.handle) or ""),
+				name = format_utils.formatASN(peer.info.asn, false, true),
 				url = string.format("%s/lua/hosts_stats.lua?asn=%s", ntop.getHttpPrefix(), peer.info.asn),
 				value = peer.info.asn,
 			}
@@ -101,9 +101,8 @@ function bgp_utils.formatBgpBmpInfo(bgp_info)
 			-- Format AS path entries as clickable ASN links.
 			if peer.info["as_path"] and #peer.info["as_path"] > 0 then
 				for _, asn in ipairs(peer.info["as_path"]) do
-					local as_info = ntop.getASNameFromASN(tonumber(asn))
 					as_path[#as_path + 1] = {
-						name = string.format("%d (%s)", tonumber(asn), as_info and (as_info.description or as_info.handle) or ""),
+						name = format_utils.formatASN(asn, false, true),
 						url = string.format("%s/lua/hosts_stats.lua?asn=%s", ntop.getHttpPrefix(), asn),
 						value = asn,
 					}
