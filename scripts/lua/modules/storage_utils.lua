@@ -105,8 +105,9 @@ function storage_utils.storageInfo(refresh_cache, timeout)
         local ifid = tonumber(id)
         local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache, timeout)
         if if_info then
-            info.interfaces[ifid] = if_info
-            info.interfaces[ifid]["name"] = name
+            -- String key: numeric ifids would be JSON-encoded as an array with null holes
+            if_info.name = name
+            info.interfaces[tostring(ifid)] = if_info
             info.total = info.total + if_info.total
             if if_info.pcap ~= nil then
                 info.pcap_total = info.pcap_total + if_info.pcap
