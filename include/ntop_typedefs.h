@@ -976,7 +976,6 @@ typedef enum {
 typedef enum {
   asset_journal_created = 0, /* The host has been created (also the cause of
                                 ip, mac and vlan of a new asset) */
-  asset_journal_tcp_fingerprint,
   asset_journal_dhcp_fingerprint,
   asset_journal_dns_name,
   asset_journal_kerberos_name, /* Kerberos machine account */
@@ -991,6 +990,7 @@ typedef enum {
    * NOTE: the last ones (see LocalHost::dumpAssetJournal) */
   asset_journal_username_added,   /* Username added (key: "<name> (<proto>)") */
   asset_journal_username_removed, /* Username removed (key) */
+  asset_journal_tcp_fingerprint_added, /* TCP fingerprint added (key) */
   asset_journal_num_what
 } AssetJournalWhat;
 #endif

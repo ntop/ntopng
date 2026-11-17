@@ -137,7 +137,8 @@ of the Operating System or of the MAC address of an asset):
 | `os` | The Operating System: its tags (27-31, `asset_tags.os_tags`) |
 | `tag` | The other tags |
 | `vlan` | A VLAN added to the asset (`vlan_added`): the VLAN is not a field, see "VLANs" |
-| `<field>` | A field of the asset: its name (`ip`, `mac`, `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`, `kerberos_name`, `dhcp_name`, `mdns_name`, `mdns_txt_name`, `netbios_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
+| `tcp_fingerprint` | A TCP fingerprint added to or removed from the asset (list field `tcp_fingerprints`), and the field `tcp_fingerprint` of the entries written before it was a list |
+| `<field>` | A field of the asset: its name (`ip`, `mac`, `dhcp_fingerprint`, `dns_name`, `kerberos_name`, `dhcp_name`, `mdns_name`, `mdns_txt_name`, `netbios_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
 
 The field entries take the `name` of the field in `assets_journal.host_fields`
 (or its `subaction`, e.g. `os` for `os_type`), so a new field has its
@@ -175,7 +176,8 @@ Examples (English, from live tests):
 |---|---|
 | New asset | New asset: UDP 192.168.1.93:51409->192.168.1.1:53 enp0s3 (0) |
 | Field of a new asset | Set MAC address to "10:13:31:F1:39:76": UDP 192.168.1.93:51409->192.168.1.1:53 enp0s3 (0) |
-| Field changed | Update TCP fingerprint from "old_fp" to "2_64_64240_789c1d1f": TCP 172.16.1.137:39970->116.203.142.127:80 enp0s3 (0) [HTTP.ntop] |
+| Field changed | Update DHCP name from "old-name" to "new-name": UDP 192.168.4.60:68->255.255.255.255:67 eth0 (0) [DHCP] |
+| Element of a list added | Add TCP fingerprint 2_64_64240_789c1d1f: TCP 172.16.1.137:39970->116.203.142.127:80 enp0s3 (0) [HTTP.ntop] |
 | Service tag | Add tag 0 (0x00) DNS Server: UDP 192.168.1.93:52340->192.168.1.1:53 enp0s3 (0) [DNS] |
 | Tag bound to a risk | Add tag 13 (0x0d) Non-PQC Compliant: risk Non PQC Compliant Flow - TCP 192.168.1.93:61562->92.122.247.92:443 enp0s3 (0) [TLS] |
 | OS tag | Add tag 28 (0x1c) Linux: HTTP User-Agent "Mozilla/5.0 (X11; ...)" (Linux) - TCP 10.0.2.15:45734->192.168.160.8:3000 enp0s3 (0) [HTTP] |
@@ -229,7 +231,8 @@ host assets give events.
 |---|---|---|
 | `ip`, `mac` | Columns | Value changed (old and new value) |
 | Tags | `json_info.tags`, `tags_info` | One per tag added or removed, with the reason (observed, manual, configuration, seeding, TTL expiration, replaced, tag deleted) |
-| `tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`, `kerberos_name` | `json_info` | Value changed |
+| `dhcp_fingerprint`, `dns_name`, `kerberos_name` | `json_info` | Value changed |
+| `usernames`, `tcp_fingerprints` (list fields, `asset_merge.LIST_FIELDS`) | `json_info` | One per element added or removed (the oldest one beyond the limit, or replaced by the host), see README.assets_vlan.md |
 | `dhcp_name`, `mdns_name`, `mdns_txt_name`, `netbios_name` | `json_info` | Value changed, ignoring the case (see "Host names") |
 
 The code is meant for the whole list below: the list of the fields is a table
@@ -529,7 +532,8 @@ nothing is pending. Each node is `{ what, tag_id, char *cause }`
 both, as all the new code, under `NTOPNG_PRO`):
 
 - `what` (`AssetJournalWhat`): "created" (also the cause of `ip`, `mac`,
-  `vlan`), a field (`tcp_fingerprint`, `dhcp_fingerprint`, `dns_name`), "tag
+  `vlan`), a field (`dhcp_fingerprint`, `dns_name`), an element of a list
+  field (`usernames_added`, `tcp_fingerprints_added`, with its key), "tag
   refreshed" or "tag removed" (the host does not know whether the asset has the tag: "Add tag"
   is decided in Lua);
 - `tag_id`: the tag, for the tag ones (kept out of the string: Lua finds the
@@ -549,7 +553,8 @@ key and freed:
 ```json
 "journal": {
   "created": "<cause>",
-  "fields":  { "tcp_fingerprint": "<cause>", "dhcp_fingerprint": "<cause>", "dns_name": "<cause>" },
+  "fields":  { "dhcp_fingerprint": "<cause>", "dns_name": "<cause>" },
+  "tcp_fingerprints_added": { "<fingerprint>": "<cause>" },
   "tags_refreshed": { "28": "<cause>", "0": "<cause>" },
   "tags_removed":   { "31": "<cause>" }
 }
@@ -590,7 +595,7 @@ context.
 
 | Event | Recorded in | Cause string |
 |---|---|---|
-| `tcp_fingerprint` | `LocalHost::setTCPfingerprint(fp, os, flow)` | flow |
+| TCP fingerprint (list `tcp_fingerprints`) | `LocalHost::setTCPfingerprint(fp, os, flow)`: the fingerprint of the latest flow of the host (time of the flow) | flow |
 | `dhcp_fingerprint` | `LocalHost::offlineSetDhcpFingerprint(fp, flow)` | flow (the DHCP request) |
 | `dns_name` from a DNS response | `setResolvedName(name, flow)` | flow (the PTR response) |
 | `dns_name` without flow (ntopng reverse lookup, name cached from another flow) | `setResolvedName(name, NULL)` | "reverse DNS lookup by ntopng" |

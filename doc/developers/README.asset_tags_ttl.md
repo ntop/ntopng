@@ -338,9 +338,9 @@ the one its current hint comes from (`Host::setnDPIOS`).
 - **Hosts seen with several Operating Systems** (virtual machines, NAT,
   hotspot): the tag changes at every change of the OS of the host. Each
   change is a `replaced` removal plus an `observed` addition.
-- **First TCP fingerprint of a host on a view:** it depends on the flow the
-  view walks first, so it can differ from the one reported without a view.
-  The OS, and so the tag, does not.
+- **TCP fingerprint of a host on a view:** the one of its latest flow by
+  time (`LocalHost::setTCPfingerprint`), whatever the order the view walks
+  its flows: the same as without a view.
 
 ---
 

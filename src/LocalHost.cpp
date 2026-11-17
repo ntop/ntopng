@@ -190,7 +190,7 @@ void LocalHost::initialize() {
   else
     fingerprints = NULL;
 
-  tcp_fingerprint_host_os = ndpi_os_unknown;
+  tcp_fingerprint_host_os = ndpi_os_unknown, tcp_fingerprint_time = 0;
 
   syncMACMetadata(true);
   gettimeofday(&last_periodic_asset_update, NULL);
@@ -626,7 +626,7 @@ void LocalHost::freeLocalHostData() {
   }
 
   /* So that the TCP fingerprint is learnt again */
-  tcp_fingerprint_host_os = ndpi_os_unknown;
+  tcp_fingerprint_host_os = ndpi_os_unknown, tcp_fingerprint_time = 0;
 
   /* NOTE: fingerprints is not deleted here, as it can be in use by the
    * threads processing the flows (see deleteHostData) */
@@ -1125,71 +1125,79 @@ void LocalHost::setResolvedName(const char* resolved_name, Flow* f) {
 
 /* *************************************** */
 
+/* The TCP fingerprint of the host: the one of its latest flow (time of the
+ * flow, as the view interfaces do not process their flows in time order), and
+ * the OS learnt from it. The asset keeps all the fingerprints of the host:
+ * the host reports its current one (list field tcp_fingerprints, see
+ * asset_merge.lua) */
 void LocalHost::setTCPfingerprint(char* _tcp_fingerprint, ndpi_os os,
                                   Flow* f) {
-  bool already_set;
+  time_t when = f ? f->get_first_seen() : time(NULL);
+  char *new_fingerprint, *old_fingerprint = NULL;
+  bool changed = false;
+
+  if ((_tcp_fingerprint == NULL) || (_tcp_fingerprint[0] == '\0')) return;
+
+  /* NOTE: allocated outside the lock */
+  if ((new_fingerprint = strdup(_tcp_fingerprint)) == NULL) return;
 
   /* NOTE: tcp_fingerprint is accessed under m, as it is freed by a data reset
    * and read by the Lua threads (lua_get_fingerprints) */
   m.lock(__FILE__, __LINE__);
-  already_set = ((tcp_fingerprint != NULL) &&
-                 (strcmp(_tcp_fingerprint, tcp_fingerprint) == 0));
-  m.unlock(__FILE__, __LINE__);
+  if (when >= tcp_fingerprint_time) {
+    tcp_fingerprint_time = when;
 
-  if (already_set) return;
-
-  if (_tcp_fingerprint && _tcp_fingerprint[0] != '\0') {
-    if (addDataToAssets((char*)"tcp_fingerprint", (char*)_tcp_fingerprint)) {
-#ifdef NTOPNG_PRO
-      addJournalCause(asset_journal_tcp_fingerprint, 0, f);
-#endif
+    if ((tcp_fingerprint == NULL) ||
+        (strcmp(tcp_fingerprint, _tcp_fingerprint) != 0)) {
+      old_fingerprint = tcp_fingerprint, tcp_fingerprint = new_fingerprint,
+      new_fingerprint = NULL, changed = true;
     }
   }
+  m.unlock(__FILE__, __LINE__);
 
-  if (tcp_fingerprint_host_os == ndpi_os_unknown) {
-    /* Not yet set the host fingerprint */
-    ndpi_os l_os_type = os;
+  if (new_fingerprint) free(new_fingerprint); /* Not set */
+  if (old_fingerprint) free(old_fingerprint);
 
-    if (l_os_type != ndpi_os_unknown) {
-      if (setOS(l_os_type, os_learning_tcp_fingerprint, f)) {
-#ifdef NTOPNG_PRO
-        u_int64_t os_tag = getOSTag(l_os_type);
-
-        /* Journal of the assets: the fingerprint is the evidence of the OS
-         * (replaces the cause set by setOS) */
-        if (os_tag && _tcp_fingerprint) {
-          char evidence[128];
-
-          snprintf(evidence, sizeof(evidence), "TCP fingerprint %s (%s)",
-                   _tcp_fingerprint, Utils::OS2Str(l_os_type));
-          addJournalCause(asset_journal_tag_refreshed,
-                          (u_int8_t)Utils::bitmapGetNext(os_tag, 0), f, evidence);
-        }
-#endif
-      }
-    }
-
-    tcp_fingerprint_host_os = os;
-
-    char* new_fingerprint = strdup(_tcp_fingerprint);
-
-    m.lock(__FILE__, __LINE__);
-    if (tcp_fingerprint == NULL)
-      tcp_fingerprint = new_fingerprint, new_fingerprint = NULL;
-    m.unlock(__FILE__, __LINE__);
-
-    if (new_fingerprint) free(new_fingerprint); /* Already set */
-  } else if ((os != ndpi_os_unknown) && (tcp_fingerprint_host_os != os)) {
+  /* Fingerprints of different OSes (also from an older flow, not set) */
+  if ((os != ndpi_os_unknown) && (tcp_fingerprint_host_os != ndpi_os_unknown) &&
+      (os != tcp_fingerprint_host_os) && (!inconsistent_host_os)) {
     char buf[64];
 
-    if (!inconsistent_host_os) {
-      inconsistent_host_os = true;
-      ntop->getTrace()->traceEvent(
-          TRACE_DEBUG, "Found OS inconsistency %s vs %s [%s][%s]",
-          ndpi_print_os_hint(tcp_fingerprint_host_os), ndpi_print_os_hint(os),
-          _tcp_fingerprint ? _tcp_fingerprint : "",
-          get_ip()->print(buf, sizeof(buf)));
+    inconsistent_host_os = true;
+    ntop->getTrace()->traceEvent(
+        TRACE_DEBUG, "Found OS inconsistency %s vs %s [%s][%s]",
+        ndpi_print_os_hint(tcp_fingerprint_host_os), ndpi_print_os_hint(os),
+        _tcp_fingerprint, get_ip()->print(buf, sizeof(buf)));
+  }
+
+  if (!changed) return;
+
+  addDataToAssets((char*)"tcp_fingerprints", _tcp_fingerprint);
+#ifdef NTOPNG_PRO
+  /* Journal of the assets: the cause of the fingerprint, if new in the asset */
+  addJournalListCause(asset_journal_tcp_fingerprint_added, _tcp_fingerprint,
+                      f);
+#endif
+
+  tcp_fingerprint_host_os = os;
+
+  if (os == ndpi_os_unknown) return;
+
+  if (setOS(os, os_learning_tcp_fingerprint, f)) {
+#ifdef NTOPNG_PRO
+    u_int64_t os_tag = getOSTag(os);
+
+    /* Journal of the assets: the fingerprint is the evidence of the OS
+     * (replaces the cause set by setOS) */
+    if (os_tag) {
+      char evidence[128];
+
+      snprintf(evidence, sizeof(evidence), "TCP fingerprint %s (%s)",
+               _tcp_fingerprint, Utils::OS2Str(os));
+      addJournalCause(asset_journal_tag_refreshed,
+                      (u_int8_t)Utils::bitmapGetNext(os_tag, 0), f, evidence);
     }
+#endif
   }
 }
 

@@ -48,7 +48,8 @@ class LocalHost : public Host {
    * check */
   SPSCQueue<std::pair<u_int16_t, u_int16_t>> contacted_server_ports;
   UsedPorts* usedPorts;            /* List of server+client-contacted ports */
-  ndpi_os tcp_fingerprint_host_os; /* Learnt from TCP Fingerprinting */
+  ndpi_os tcp_fingerprint_host_os; /* Of the current TCP fingerprint */
+  time_t tcp_fingerprint_time;     /* First seen of its flow */
   HostFingerprints* fingerprints;  /* Application fingerprints */
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */

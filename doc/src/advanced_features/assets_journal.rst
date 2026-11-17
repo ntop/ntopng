@@ -82,8 +82,9 @@ Every entry has:
 - **Subaction** (*About* in the GUI): what the entry is about: ``os`` (the
   Operating System tags), ``tag`` (the other tags), ``vlan`` (a VLAN added
   to the asset, see below), the name of the field (``ip``, ``mac``,
-  ``tcp_fingerprint``, ``dhcp_fingerprint``, ``dns_name``, ``kerberos_name``,
+  ``dhcp_fingerprint``, ``dns_name``, ``kerberos_name``,
   ``dhcp_name``, ``mdns_name``, ``mdns_txt_name``, ``netbios_name``),
+  ``tcp_fingerprint`` (the TCP fingerprints of the host),
   ``usernames`` (the usernames of the host), empty for the asset as a whole
   (Baseline, New, Delete, Manual).
 - **Asset**: the interface id, the type of the asset (``host``) and its key,
@@ -105,8 +106,8 @@ Actions:
 - **Manual** (*Note* in the GUI): a free text note, written by a user or by an integration.
 
 The fields of the host assets currently recorded are: IP address, MAC
-address, TCP fingerprint, DHCP fingerprint, DNS name, Kerberos machine account,
-DHCP name, mDNS name, mDNS TXT name, NetBIOS name, the usernames and the tags. The name of the
+address, DHCP fingerprint, DNS name, Kerberos machine account,
+DHCP name, mDNS name, mDNS TXT name, NetBIOS name, the TCP fingerprints, the usernames and the tags. The name of the
 host is not recorded, as it is derived from the other names of the host (DNS,
 DHCP, mDNS, ...).
 
@@ -130,6 +131,18 @@ most recent ones: a new one replaces the one seen least recently. Each username
 added or removed has its own entry and cause. An asset seen on several VLANs
 has the usernames of the hosts of all its VLANs.
 
+The TCP fingerprints describe the TCP/IP stack of the host, as seen in the
+connections it opens (the first packet, SYN). The same device can show more
+than one: the window or the options of its connections can change with the
+application, and an IP address shared by several devices (NAT, virtual
+machines) shows the stacks of all of them. The host shows the fingerprint of
+its latest connection, and its operating system is the one of that
+fingerprint; the asset keeps the fingerprints seen on the host over time, up
+to 6 per VLAN (a new one replaces the one seen least recently). Each
+fingerprint added or removed has its own entry and cause, e.g.
+``Add TCP fingerprint 2_64_64240_789c1d1f: <flow>``. A fingerprint seen only
+briefly, between two updates of the asset, can be missed.
+
 The VLAN is not a field: an asset is one IP address, with all the VLANs where
 it has been seen. When the IP address is seen on a new VLAN, an *Update* entry
 (``vlan``) tells it, e.g. ``Add VLAN 188: <flow>``. When its VLANs report
@@ -150,7 +163,7 @@ interface the flow belongs to):
   Set MAC address to "10:13:31:F1:39:76": UDP 192.168.1.93:51409->192.168.1.1:53 eth0 (0)
   Add tag 0 (0x00) DNS Server: UDP 192.168.1.93:52340->192.168.1.1:53 eth0 (0) [DNS]
   Add tag 13 (0x0d) Non-PQC Compliant: risk Non PQC Compliant Flow - TCP 192.168.1.93:61562->92.122.247.92:443 eth0 (0) [TLS]
-  Update TCP fingerprint from "2_128_64240_47466ece" to "2_64_64240_789c1d1f": TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0) [HTTP.ntop]
+  Add TCP fingerprint 2_64_64240_789c1d1f: TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0) [HTTP.ntop]
   Remove tag 31 (0x1f) Windows: replaced by tag 28 (0x1c) Linux, Linux (TCP Fingerprint) - TCP 172.16.1.137:39970->116.203.142.127:80 eth0 (0)
   Add username dave@corp.local (Kerberos): UDP 10.0.0.5:50012->10.0.0.1:88 eth0 (0) [Kerberos]
   Update DHCP name from "old-name" to "new-name": UDP 192.168.4.60:68->255.255.255.255:67 eth0 (0) [DHCP]
