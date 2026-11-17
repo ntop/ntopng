@@ -1842,10 +1842,12 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, max_duration_timeout);
 
 #if LIBCURL_VERSION_NUM >= 0x075500
-  // Modern libcurl (7.85.0+)
+  // Modern libcurl (7.85.0+): only HTTP(S), for the URL and its redirects
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
 #else
   // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
@@ -1949,10 +1951,12 @@ bool Utils::postHTTPJsonData(char* bearer_token, char* username, char* password,
       curl_easy_setopt(curl, CURLOPT_TIMEOUT, max_duration_timeout);
 
 #if LIBCURL_VERSION_NUM >= 0x075500
-  // Modern libcurl (7.85.0+)
+  // Modern libcurl (7.85.0+): only HTTP(S), for the URL and its redirects
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
 #else
   // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
@@ -2071,10 +2075,12 @@ bool Utils::postHTTPTextFile(lua_State* vm, char* username, char* password,
     if (vm) lua_newtable(vm);
 
 #if LIBCURL_VERSION_NUM >= 0x075500
-  // Modern libcurl (7.85.0+)
+  // Modern libcurl (7.85.0+): only HTTP(S), for the URL and its redirects
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
 #else
   // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
@@ -2213,10 +2219,12 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     }
 
 #if LIBCURL_VERSION_NUM >= 0x075500
-  // Modern libcurl (7.85.0+)
+  // Modern libcurl (7.85.0+): only SMTP(S) for the mail server
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "smtp,smtps");
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
 #else
   // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_SMTP | CURLPROTO_SMTPS);
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
@@ -2293,9 +2301,13 @@ static size_t curl_writefunc_to_lua(char* buffer, size_t size, size_t nitems,
     /* We need to parse the header as this is the first call for the body */
     char *tmp, *element;
 
-    state->outbuf[state->num_bytes] = 0;
-    element = strtok_r(state->outbuf, "\r\n", &tmp);
-    if (element) element = strtok_r(NULL, "\r\n", &tmp);
+    /* No header buffer when nothing came before the body */
+    if (state->outbuf) {
+      state->outbuf[state->num_bytes] = 0;
+      element = strtok_r(state->outbuf, "\r\n", &tmp);
+      if (element) element = strtok_r(NULL, "\r\n", &tmp);
+    } else
+      element = NULL;
 
     lua_newtable(state->vm);
 
@@ -2641,10 +2653,12 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
     if (vm) lua_newtable(vm);
 
 #if LIBCURL_VERSION_NUM >= 0x075500
-  // Modern libcurl (7.85.0+)
+  // Modern libcurl (7.85.0+): only HTTP(S), for the URL and its redirects
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
 #else
   // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
@@ -2790,10 +2804,12 @@ long Utils::httpGet(const char* url,
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
 
 #if LIBCURL_VERSION_NUM >= 0x075500
-  // Modern libcurl (7.85.0+)
+  // Modern libcurl (7.85.0+): only HTTP(S), for the URL and its redirects
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
 #else
   // Older libcurl fallback
+  curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
