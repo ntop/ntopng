@@ -19,6 +19,7 @@ local alert_blacklisted_server_contact = classes.class(alert)
 
 alert_blacklisted_server_contact.meta = {
     alert_key = flow_alert_keys.flow_alert_blacklisted_server_contact,
+    issue_resolve_policy = "manual", -- Issue is resolved by the user only
     i18n_title = "flow_checks_config.blacklist_server_contact",
     icon = "fas fa-fw fa-exclamation",
 
