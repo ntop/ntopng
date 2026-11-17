@@ -10,6 +10,14 @@ local checks = require("checks")
 local alert_consts = require("alert_consts")
 local alert_exclusions = require "alert_exclusions"
 
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+if not auth.has_capability(auth.capabilities.checks) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 sendHTTPContentTypeHeader('application/json')
 
 local subdir = _GET["check_subdir"] or "host"

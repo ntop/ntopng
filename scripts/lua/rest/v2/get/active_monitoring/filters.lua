@@ -11,6 +11,13 @@ require "check_redis_prefs"
 local rest_utils = require "rest_utils"
 local active_monitoring_utils = require "am_utils"
 
+local auth = require "auth"
+
+if not auth.has_capability(auth.capabilities.active_monitoring) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local rc = rest_utils.consts.success.ok
 local ifid = _GET["ifid"]
 local res = {}

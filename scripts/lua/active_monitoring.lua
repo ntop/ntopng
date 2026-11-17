@@ -19,6 +19,14 @@ if not isAllowedSystemInterface() then
     return
 end
 
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+if not auth.has_capability(auth.capabilities.active_monitoring) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.active_monitoring)

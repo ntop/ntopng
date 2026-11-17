@@ -8,6 +8,11 @@ require "lua_utils_get"
 local rest_utils = require "rest_utils"
 local lists_utils = require "lists_utils"
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local rsp = {}
 local lists = lists_utils.getCategoryLists()
 local list = {{

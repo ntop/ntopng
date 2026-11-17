@@ -10,6 +10,13 @@ local json = require("dkjson")
 local lists_utils = require("lists_utils")
 local format_utils = require("format_utils")
 
+local rest_utils = require "rest_utils"
+
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local category_filter = _GET["category"]
 local lists = lists_utils.getCategoryLists()
 local now = os.time()

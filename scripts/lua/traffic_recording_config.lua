@@ -8,6 +8,13 @@ require "lua_utils"
 local json = require("dkjson")
 local recording_utils = require "recording_utils"
 
+local rest_utils = require "rest_utils"
+
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 if _POST then
    local ifid = tonumber(_POST["ifid"])
    local dismiss_external_providers_reminder = _POST["dismiss_external_providers_reminder"]

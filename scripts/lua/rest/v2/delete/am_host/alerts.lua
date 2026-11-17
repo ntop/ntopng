@@ -19,6 +19,11 @@ local am_alert_store = require "am_alert_store".new()
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local rc = rest_utils.consts.success.ok
 local res = {}
 

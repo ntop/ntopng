@@ -41,6 +41,11 @@ local radius_handler = require "radius_handler"
    }
 --]]
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local synchronous = toboolean(_POST["sync"])
 local rc = rest_utils.consts.success.ok
 local host_pools_changed = false

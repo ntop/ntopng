@@ -265,11 +265,11 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- print(msg)
 
-if _SERVER["REQUEST_METHOD"] == "POST" and _POST["companion_interface"] ~= nil then
+if isAdministrator() and _SERVER["REQUEST_METHOD"] == "POST" and _POST["companion_interface"] ~= nil then
     companion_interface_utils.setCompanion(ifstats.id, _POST["companion_interface"])
 end
 
-if _SERVER["REQUEST_METHOD"] == "POST" and _POST["disaggregation_criterion"] ~= nil then
+if isAdministrator() and _SERVER["REQUEST_METHOD"] == "POST" and _POST["disaggregation_criterion"] ~= nil then
     if _POST["disaggregation_criterion"] == "none" then
         ntop.delCache(disaggregation_criterion_key)
     else
@@ -277,7 +277,7 @@ if _SERVER["REQUEST_METHOD"] == "POST" and _POST["disaggregation_criterion"] ~= 
     end
 end
 
-if _SERVER["REQUEST_METHOD"] == "POST" and _POST["host_threshold_rules"] ~= nil then
+if isAdministrator() and _SERVER["REQUEST_METHOD"] == "POST" and _POST["host_threshold_rules"] ~= nil then
     if _POST["host_threshold_rules"] == "none" then
         ntop.delCache(host_threshold_rules_key)
     else
@@ -285,7 +285,7 @@ if _SERVER["REQUEST_METHOD"] == "POST" and _POST["host_threshold_rules"] ~= nil 
     end
 end
 
-if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
+if isAdministrator() and _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
     local prev_provider = recording_utils.getCurrentTrafficRecordingProvider(ifstats.id)
 
     -- if the current provider is the builtin ntopng and we are changing to another provider
@@ -2373,7 +2373,7 @@ elseif (page == "snmp_bind") then
     local snmp_host = _POST["ip"]
     local snmp_interface = _POST["snmp_port_idx"] or ""
 
-    if (snmp_host ~= nil) then
+    if (snmp_host ~= nil) and isAdministrator() then
         -- snmp_host can be empty
         snmp_utils.set_snmp_bound_interface(ifstats.id, snmp_host, snmp_interface)
     else

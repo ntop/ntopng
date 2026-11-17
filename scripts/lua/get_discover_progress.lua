@@ -9,6 +9,11 @@ local json = require("dkjson")
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local ifId = _GET["ifid"]
 
 local discovery_requested = discover.networkDiscoveryRequested(ifId)

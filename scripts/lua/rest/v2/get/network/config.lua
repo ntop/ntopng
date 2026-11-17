@@ -9,6 +9,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local rest_utils = require "rest_utils"
 local json = require "dkjson"
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local res = {}
 
 -- Get data from redis: expected format, array of objects with keys: 
