@@ -41,6 +41,9 @@ Above the table:
   (administrators only).
 
 Below the table, administrators can delete all the assets or the ones not seen since a date.
+Deleting assets (one, all, or the ones not seen since a date) also deletes their entries in the
+journal (all of it, when all the assets are deleted): only the entry reporting the deletion, with
+the user who did it, is kept (see :ref:`AssetsJournal`).
 
 Hosts seen on several VLANs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

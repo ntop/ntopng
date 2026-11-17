@@ -11737,7 +11737,7 @@
           "Assets"
         ],
         "summary": "Delete assets",
-        "description": "Delete one asset (serial_key = its key), all the assets (serial_key = all), or the ones not seen since an epoch (serial_key = epoch). The journal of the assets records the deletions: one entry for one asset, a single entry with their number (no asset key) for several assets deleted at once. Administrators only",
+        "description": "Delete one asset (serial_key = its key), all the assets (serial_key = all), or the ones not seen since an epoch (serial_key = epoch). The journal entries of the deleted assets are deleted too (all the journal of the interface for all the assets), then the journal records the deletion: one entry for one asset, a single entry with their number (no asset key) for several assets deleted at once. Administrators only",
         "operationId": "delete_host_asset",
         "produces": [
           "application/json"

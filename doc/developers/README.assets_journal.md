@@ -15,7 +15,9 @@ change (the difference), not the state of the asset.
   the cause (TTL expiration, configuration, user, ...).
 - Entries can also be written by other code (e.g. external integration) and,
   manually, by the users (free text).
-- The entries are never deleted (no retention for now).
+- The entries are deleted only with their assets, when a user deletes them
+  (no retention for now): the journal tells about the assets of the
+  inventory (see "Deletion").
 - The entries are read by time interval: of one asset, or of all the assets of
   an interface, optionally filtered by action, who and subaction (see "GUI").
 - ClickHouse and SQLite.
@@ -34,7 +36,7 @@ Decisions:
 | Interfaces | Packet and ZMQ interfaces, with and without view interfaces |
 | Writers | A generic Lua function (single entry and batch), used by the assets code, by the REST handlers, and by any other code (e.g. Wazuh). Concurrent calls are supported |
 | Queries | By time interval, of one asset or of all the assets of an interface; optional filters (action, who, subaction) |
-| Retention | None: entries are never deleted |
+| Retention | None: entries are deleted only when a user deletes their assets (see "Deletion") |
 | License | Enterprise L or above |
 | Preference | "Enable Assets Journal", disabled by default (it also requires the assets inventory) |
 
@@ -106,8 +108,8 @@ Notes:
   retention of flows and alerts to every table partitioned by day. The
   partition is on `created_time`, that never goes back in time, rather than
   on `event_time`.
-- The entries of an asset are never deleted, not even when the asset is
-  deleted (a `Delete` entry is written). The entries of the assets recorded
+- The entries of an asset are deleted with the asset, apart from the
+  `Delete` entry of the deletion (see "Deletion"). The entries of the assets recorded
   per VLAN by an older version move to the key of the asset of their IP when
   those assets are converted (see "VLANs").
 - The cluster schema (`db_schema_clickhouse_cluster.sql`) has the same table
@@ -406,8 +408,36 @@ The other places where the tags of an asset change write their entries too:
 expiration of the tags (`expireTags`), tag deleted (`removeTagFromAssets`),
 seeding of the Operating System tags.
 
-`Delete`: before an asset is deleted (`deleteHost`, deletion of all the host
-assets of an interface, deletion of the assets not seen since a time).
+`Delete`: after an asset and its entries are deleted (`deleteHost`, deletion
+of all the host assets of an interface, deletion of the assets not seen since
+a time), see "Deletion".
+
+### Deletion
+
+The journal and the assets are kept in sync: when a user deletes assets, their
+entries are deleted too (`assets_journal.deleteEntries`, also when the
+journal is disabled), then the `Delete` entry of the deletion is written,
+the only one left:
+
+| Deletion | Entries deleted | Entry written |
+|---|---|---|
+| One asset by a user (`deleteHost`, `delete_journal`) | the entries of its key | `asset_deleted_plain` |
+| A duplicate by ntopng (`delete_duplicated_host_assets`, daily) | none: its history is the one of the asset kept | `cause_duplicated` |
+| The assets not seen since a time (`deleteAllEntriesSince`) | the entries of their keys (`key IN (<query of the assets>)`) | `assets_deleted` (no key), `cause_not_seen_since` |
+| All the host assets / SNMP devices (`deleteAll`) | all the entries of the type on the interface, the ones with no key too | `assets_deleted` (no key), `cause_all_host_assets` / `cause_all_snmp_devices` |
+
+Order: the assets to delete are read (keys, number), their entries are
+deleted, then the assets, then the `Delete` entry is written. No `TRUNCATE`
+or partition drop: on ClickHouse the table holds all the interfaces (and the
+instances sharing the database), and it is partitioned by `created_time`. The
+deletion is a mutation (`ALTER TABLE ... DELETE`) waited for on all the
+replicas (`mutations_sync = 2`), so that the query of the keys reads the
+assets before they are deleted; as it has a subquery, it needs
+`allow_nondeterministic_mutations = 1` on `ReplicatedMergeTree` (cluster).
+The entry written after the mutation is not touched by it. On ClickHouse the
+assets not seen since a time are the ones whose latest version is not seen
+since then (`argMax(last_seen, version)`): an older version, not merged yet,
+of an asset seen recently is older than the time too.
 
 `Baseline` (one entry per asset, no details): once per interface, when the
 journal is enabled (at startup, and by the one-minute callback of the assets,
@@ -444,7 +474,7 @@ ASSETS" for the helpers):
 | `Update` (tags) | `seedOSTags` (only when the Baseline of the interface has already been written: otherwise the Baseline, written just after, tells the state with the seeded tags) | `cause_os_seed` (Operating System stored in the asset) |
 | `Update` (VLANs) | `updateData`, `assets_journal.vlanEntries` | `journal.created` of the host of the new VLAN, or `cause_snapshot` |
 | `Update` (conversion, no key) | `convertLegacyAssets` | none: `assets_converted` (the number of assets converted and of the assets they have become) |
-| `Delete` | `deleteHost`, `deleteAll` (host), `deleteAllEntriesSince` | none (`asset_deleted_plain`: "Asset deleted"), `cause_all_deleted`, `cause_not_seen_since`, `cause_duplicated` |
+| `Delete` | `deleteHost`, `deleteAll` (host, SNMP), `deleteAllEntriesSince` | none (`asset_deleted_plain`: "Asset deleted"), `cause_all_deleted`, `cause_not_seen_since`, `cause_duplicated` |
 
 The deletions and the tag changes take an optional `who` (default `ntopng`),
 given by the REST handlers (see "User actions").
