@@ -2971,7 +2971,6 @@ local lang = {
       ["lost"] = "Ztracené pakety",
       ["mac"] = "MAC",
       ["major_connection_state"] = "Stav hlavního připojení",
-      ["mdns_answer"] = "Odpověď MDNS",
       ["mdns_name"] = "Název MDNS",
       ["mdns_name_txt"] = "Název MDNS TXT",
       ["mdns_ssid"] = "MDNS SSID",

@@ -2397,7 +2397,6 @@ local known_parameters = {
    ["http_url"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
    ["user_agent"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
    ["netbios_name"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
-   ["mdns_answer"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
    ["mdns_name"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
    ["mdns_name_txt"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
    ["mdns_ssid"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server

@@ -2976,7 +2976,6 @@ local lang = {
       ["lost"] = "封包丟失",
       ["mac"] = "MAC",
       ["major_connection_state"] = "主要連線狀態",
-      ["mdns_answer"] = "MDNS 答案",
       ["mdns_name"] = "MDNS 名稱",
       ["mdns_name_txt"] = "MDNS 名稱 TXT",
       ["mdns_ssid"] = "MDNS SSID",

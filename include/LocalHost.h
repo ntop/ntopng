@@ -322,7 +322,6 @@ class LocalHost : public Host {
 
   bool setService(HostService service_enum, Flow* f = NULL);
 
-  void offlineSetMDNSInfo(char* const s);
   void offlineSetMDNSName(const char* n, time_t when, Flow* f);
   void offlineSetDHCPName(const char* n, time_t when, Flow* f,
                           const char* evidence = NULL);

@@ -2971,7 +2971,6 @@ local lang = {
       ["lost"] = "Paquetes perdidos",
       ["mac"] = "MAC",
       ["major_connection_state"] = "Estado de conexión principal",
-      ["mdns_answer"] = "Respuesta MDNS",
       ["mdns_name"] = "Nombre MDNS",
       ["mdns_name_txt"] = "Nombre MDNS TXT",
       ["mdns_ssid"] = "SSID MDNS",

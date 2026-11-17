@@ -770,7 +770,6 @@ Flow::~Flow() {
     if (protos.dns.last_rsp) free(protos.dns.last_rsp);
     if (protos.dns.last_rsp_shadow) free(protos.dns.last_rsp_shadow);
   } else if (isMDNS()) {
-    if (protos.mdns.answer) free(protos.mdns.answer);
     if (protos.mdns.name) free(protos.mdns.name);
     if (protos.mdns.name_txt) free(protos.mdns.name_txt);
     if (protos.mdns.ssid) free(protos.mdns.ssid);
@@ -953,8 +952,8 @@ void Flow::processDetectedProtocolData() {
       break;
 
     case NDPI_PROTOCOL_MDNS:
-      /* protos.mdns.{answer,name} already propagated to hosts in
-       * Flow::hosts_periodic_stats_update  */
+      /* The names of protos.mdns (see dissectMDNS()) are given to the hosts in
+       * Flow::hosts_periodic_stats_update */
       break;
 
     case NDPI_PROTOCOL_TOR:
@@ -2783,8 +2782,6 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
 
     case NDPI_PROTOCOL_MDNS:
       if (cli_host) {
-        if (protos.mdns.answer)
-          cli_host->offlineSetMDNSInfo(protos.mdns.answer);
         if (protos.mdns.name)
           cli_host->offlineSetMDNSName(protos.mdns.name, get_first_seen(), this);
         if (protos.mdns.name_txt)
@@ -8711,7 +8708,6 @@ void Flow::getICMPInfo(ndpi_serializer* serializer) const {
 
 void Flow::getMDNSInfo(ndpi_serializer* serializer) const {
   if (isMDNS()) {
-    ndpi_serialize_string_string(serializer, "answer", protos.mdns.answer);
     ndpi_serialize_string_string(serializer, "name", protos.mdns.name);
     ndpi_serialize_string_string(serializer, "name_txt", protos.mdns.name_txt);
     ndpi_serialize_string_string(serializer, "ssid", protos.mdns.ssid);

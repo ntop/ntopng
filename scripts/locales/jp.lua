@@ -2971,7 +2971,6 @@ local lang = {
       ["lost"] = "パケット損失",
       ["mac"] = "MACアドレス",
       ["major_connection_state"] = "主要な接続状態",
-      ["mdns_answer"] = "MDNS応答",
       ["mdns_name"] = "MDNS名",
       ["mdns_name_txt"] = "MDNS名（TXT）",
       ["mdns_ssid"] = "MDNS SSID",

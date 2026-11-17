@@ -1783,7 +1783,6 @@ function historical_flow_utils.get_flowfilters()
    flow_defined_filters["netbios_name"] = flowfilter_utils.defined_filters["netbios_name"]
    flow_defined_filters["dns_query"] = flowfilter_utils.defined_filters["dns_query"]
    flow_defined_filters["dns_answer"] = flowfilter_utils.defined_filters["dns_answer"]
-   flow_defined_filters["mdns_answer"] = flowfilter_utils.defined_filters["mdns_answer"]
    flow_defined_filters["mdns_name"] = flowfilter_utils.defined_filters["mdns_name"]
    flow_defined_filters["mdns_name_txt"] = flowfilter_utils.defined_filters["mdns_name_txt"]
    flow_defined_filters["mdns_ssid"] = flowfilter_utils.defined_filters["mdns_ssid"]

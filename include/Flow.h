@@ -323,7 +323,6 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *name, *name_txt, *ssid;
-      char* answer;
     } mdns;
 
     struct {

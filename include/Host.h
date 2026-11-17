@@ -65,9 +65,8 @@ class Host : public GenericHashEntry,
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char *mdns /* name from a MDNS reply of any type */,
-        *mdns_txt, /* name from a TXT MDNS reply after "nm=" field (most
+        *mdns_txt; /* name from a TXT MDNS reply after "nm=" field (most
                       accurate) */
-        *mdns_info /* name from a TXT MDNS reply */;
     char* resolved;    /* The name as resolved by ntopng DNS requests */
     char* netbios;     /* The NetBIOS name */
     time_t mdns_time, mdns_txt_time,
@@ -442,7 +441,6 @@ class Host : public GenericHashEntry,
   char* getServerName(char* const buf, ssize_t buf_len);
   char* getMDNSName(char* const buf, ssize_t buf_len);
   char* getMDNSTXTName(char* const buf, ssize_t buf_len);
-  char* getMDNSInfo(char* const buf, ssize_t buf_len);
   char* getNetbiosName(char* const buf, ssize_t buf_len);
   char* getDHCPName(char* const buf, ssize_t buf_len);
   char* getTLSName(char* const buf, ssize_t buf_len);
@@ -838,7 +836,6 @@ class Host : public GenericHashEntry,
   virtual void offlineSetHTTPName(const char* n);
   virtual void offlineSetNetbiosName(const char* n, time_t when, Flow* f);
   void offlineSetSSDPLocation(const char* url);
-  virtual void offlineSetMDNSInfo(char* const s);
   virtual void offlineSetMDNSName(const char* n, time_t when, Flow* f);
   virtual void offlineSetMDNSTXTName(const char* n, time_t when, Flow* f);
   /* f, evidence: the cause of the name (journal of the assets), if any */
