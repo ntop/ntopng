@@ -31,7 +31,8 @@ for k,v in pairs(lc) do
    local capture_max_pkts = v.capture_max_pkts
    local diff = v.capture_until - os.time()
    local capture_until = format_utils.formatEpoch(v.capture_until).." [ - "..diff.." sec ]"
-   local stop_href = "<A HREF=".. ntop.getHttpPrefix() .."/lua/stop_live_capture.lua?capture_id="..v.id.."><span class=\"badge bg-danger\">Stop <i class=\"fas fa-download\"></i></span></A>"
+   -- POST with the CSRF token: a GET to stop_live_capture.lua is refused
+   local stop_href = "<form class=\"d-inline\" method=\"post\" action=\"".. ntop.getHttpPrefix() .."/lua/stop_live_capture.lua?capture_id="..v.id.."\"><input type=\"hidden\" name=\"csrf\" value=\""..ntop.getRandomCSRFValue().."\"><button type=\"submit\" class=\"badge bg-danger border-0\">Stop <i class=\"fas fa-download\"></i></button></form>"
 
    if(v.host ~= nil) then host = v.host end
    res[#res + 1] = { host = host, num_captured_packets = num_captured_packets, capture_until = capture_until, stop_href = stop_href }

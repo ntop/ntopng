@@ -410,7 +410,11 @@
 
         try {
 
-            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v2/delete/endpoints.lua`);
+            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v2/delete/endpoints.lua`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csrf: csrf })
+            });
             const result = await response.json();
             if (result.rc == 0) {
                 $endpointsTable.ajax.reload();
