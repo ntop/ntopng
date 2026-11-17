@@ -49,14 +49,22 @@ the IP or the MAC-keyed asset of that host.
   time, so that it does not change at every snapshot).
 - `json_info.vlans`: `{ "<vlan>": { last_seen, mac, router, tags, usernames } }`
   (`tags` with Enterprise M only), what the host of each VLAN reported last;
-  each list field (`asset_merge.LIST_FIELDS`, e.g. `usernames`) is
+  each list field (`asset_merge.LIST_FIELDS`: `usernames`, `tcp_fingerprints`) is
   `{ "<element>": <last_seen> }`, accumulated (see below). An older list
   `"<element>, ..."` is read as seen at the `last_seen` of its VLAN.
   A new list field is added to `asset_merge.LIST_FIELDS` (its journal entries
   follow: `assets_journal.host_list_fields`, templates `<name>_added` and
   `<name>_removed`), with its `asset_journal_<what>_added/_removed` in
   `AssetJournalWhat` (after the other list fields, the last ones) and their
-  names in `asset_journal_what_names` (LocalHostPro.cpp).
+  names in `asset_journal_what_names` (LocalHostPro.cpp). A list that
+  replaces a field of a single value names it as `legacy`: the value of an
+  asset stored before is its element (`asset_merge.legacyLists`, e.g. the
+  `tcp_fingerprint` of the assets written before `tcp_fingerprints`).
+- `tcp_fingerprints`: the host reports only its current fingerprint (the one
+  of its latest flow, `LocalHost::setTCPfingerprint`): the asset keeps the
+  ones of all its snapshots, up to 6 per VLAN. A fingerprint seen only
+  between two snapshots of the host (it changed again meanwhile) is not
+  recorded.
 - An asset with an empty `vlans` and no `json_info.vlans` has the VLAN of its
   column `vlan`.
 - CSV export/import: the list travels in `json_info`; the column is written
