@@ -1,11 +1,11 @@
 {
-	"id": "client_ignore_list",
-	"data_url": "lua/pro/rest/v2/get/network/client_ignore_list.lua",
+	"id": "client_rules",
+	"data_url": "lua/pro/rest/v2/get/network/client_rules.lua",
 	"use_current_page": false,
 	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": false,
-	"empty_message_i18n": "network_configuration.client_ignore_empty",
+	"empty_message_i18n": "traffic_model.client_rules.empty",
 	"default_sort": {
 		"column_id": "added_at",
 		"sort": 2
@@ -34,9 +34,19 @@
 			]
 		},
 		{
-			"id": "ip",
-			"title_i18n": "network_configuration.client_ignore_ip",
-			"data_field": "ip",
+			"id": "client",
+			"title_i18n": "traffic_model.client_rules.client",
+			"data_field": "client",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "server",
+			"title_i18n": "traffic_model.client_rules.server",
+			"data_field": "server",
 			"sortable": true,
 			"min-width": "160px",
 			"class": [
@@ -54,15 +64,25 @@
 			]
 		},
 		{
+			"id": "action",
+			"title_i18n": "traffic_model.client_rules.action",
+			"data_field": "action",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "note",
-			"title_i18n": "network_configuration.client_ignore_note",
+			"title_i18n": "traffic_model.client_rules.note",
 			"data_field": "note",
 			"sortable": false,
 			"min-width": "300px"
 		},
 		{
 			"id": "added_by",
-			"title_i18n": "network_configuration.client_ignore_added_by",
+			"title_i18n": "traffic_model.client_rules.added_by",
 			"data_field": "added_by",
 			"sortable": true,
 			"min-width": "120px",
@@ -72,7 +92,7 @@
 		},
 		{
 			"id": "added_at",
-			"title_i18n": "network_configuration.client_ignore_added_at",
+			"title_i18n": "traffic_model.client_rules.added_at",
 			"data_field": "added_at",
 			"sortable": true,
 			"min-width": "170px",

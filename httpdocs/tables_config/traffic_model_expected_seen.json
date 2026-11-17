@@ -63,6 +63,7 @@
 			"min-width": "170px",
 			"render_type": "number",
 			"class": [
+				"text-center",
 				"text-nowrap"
 			],
 			"title_i18n": "traffic_model.col.days_active"
