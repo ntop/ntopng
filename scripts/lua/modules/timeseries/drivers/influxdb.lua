@@ -96,9 +96,30 @@ end
 
 -- ##############################################
 
+-- Quote a string for use inside an InfluxQL query: quote is ' for a string
+-- literal, " for an identifier.
+local function influx_quote(s, quote)
+    s = tostring(s or "")
+    s = s:gsub("\\", "\\\\")
+    s = s:gsub(quote, "\\" .. quote)
+    s = s:gsub("\n", "\\n")
+    return quote .. s .. quote
+end
+
+-- Build the conditions for the supplied tags table.
+local function tags_conditions(tags)
+    local conds = {}
+
+    for k, v in pairs(tags) do
+        conds[#conds + 1] = influx_quote(k, '"') .. "=" .. influx_quote(v, "'")
+    end
+
+    return table.concat(conds, " AND ")
+end
+
 local function where_tags(tags)
     if not table.empty(tags) then
-        return ' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'") .. " AND"
+        return ' WHERE ' .. tags_conditions(tags) .. " AND"
     else
         return " WHERE"
     end
@@ -685,7 +706,7 @@ end
 
 local function getLastTsQuery(schema, query_schema, tags)
     return string.format('SELECT LAST(' .. schema._metrics[1] .. ') FROM %s WHERE 1=1 AND %s', query_schema,
-        table.tconcat(tags, "=", " AND ", nil, "'"))
+        tags_conditions(tags))
 end
 
 -- ##############################################
@@ -2024,7 +2045,7 @@ function driver:delete(schema_prefix, tags)
     local measurement_pattern = ternary(schema_prefix == "", '//', '/^' .. schema_prefix .. ':/')
     local query = 'DELETE FROM ' .. measurement_pattern
     if not table.empty(tags) then
-        query = query .. ' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'")
+        query = query .. ' WHERE ' .. tags_conditions(tags)
     end
     local full_url = url .. "/query?db=" .. self.db .. "&q=" .. urlencode(query)
 
