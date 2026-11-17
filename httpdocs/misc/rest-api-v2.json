@@ -4269,7 +4269,7 @@
           "Hosts"
         ],
         "summary": "Get the details of an asset",
-        "description": "Details of an asset of the inventory as raw values: ip, vlan (the VLAN seen last), vlans [{ id, name, online }] (the VLANs where the IP of a host asset has been seen: the VLAN is not part of its identity), mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online (the host of any of its VLANs is), dhcp, snmp_name, network { id, name }, tags [{ id, name, color }], names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown. Needs the historical flows capability (non-admin users).",
+        "description": "Details of an asset of the inventory as raw values: ifid, key, ip, vlan (the VLAN seen last), vlans [{ id, name, online }] (the VLANs where the IP of a host asset has been seen: the VLAN is not part of its identity), mac, name, title, device_type (id), manufacturer, model, os_id/os_name, first_seen/last_seen (epochs), online (the host of any of its VLANs is), dhcp, snmp_name, network { id, name }, tags [{ id, name, color, description, reserved, protocols, risks, ttl }] (the definition of the tags, see rest/v2/get/tag/tags_list.lua), names [{ source, name }], switch { ip, name, port, port_name, trunk, num_ports }, server_ports { tcp, udp: [{ port, name }] }, wazuh (agent: status, version, os, cpu, ram, open_ports, ifaces). Enterprise M; assets of hosts outside the allowed networks are not shown. Needs the historical flows capability (non-admin users).",
         "operationId": "get_host_asset_details",
         "produces": [
           "application/json"
@@ -11767,6 +11767,73 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/host/asset_tag.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Remove a tag from an asset",
+        "description": "Remove a user-defined tag (32-63) from an asset and from all its hosts (the hosts of its IP on every VLAN of the asset, also the inactive ones). The journal of the assets records the removal. The built-in tags (0-31) are set by the hosts and cannot be removed. Enterprise M, administrators only",
+        "operationId": "delete_host_asset_tag",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "ifid",
+                "serial_key",
+                "tag_id"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "serial_key": {
+                  "type": "string",
+                  "description": "Asset key (key field of rest/v2/get/host/assets.lua)"
+                },
+                "tag_id": {
+                  "type": "integer",
+                  "description": "Tag identifier (32-63)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND (no such asset, or the asset has not the tag)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
