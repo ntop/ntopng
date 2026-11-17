@@ -108,8 +108,14 @@ Host Details
 The host details page shows everything ntopng knows about one host. Its views are the tabs
 below the page title: a view that can never apply to the host is not shown (for example *DNS*
 for a remote host), a view that is not available yet is greyed out and its tooltip says why
-(no data seen for the host, a license or a preference needed). When there are many views the
-tab bar scrolls sideways.
+(no data seen for the host, a license or a preference needed). Related views share one tab
+and are chosen with the buttons below the tab bar:
+
+- *Traffic*: Traffic, Packets, Ports, Listening Ports.
+- *Apps*: Apps, Categories, Sites.
+- *Protocols*: ICMP, DNS, HTTP, TLS, SSH.
+
+The other tabs are *Overview*, *Host Flows*, *SNMP*, *Charts*, *Traffic Report* and *Settings*.
 
 Next to the tabs:
 
@@ -320,7 +326,7 @@ the sites of another period (the hours of today, yesterday).
 
 .. note::
 
-   The Sites tab is greyed out until the preference is enabled and the
+   The Sites view is greyed out until the preference is enabled and the
    host has visited at least one website: its tooltip says which one.
 
 .. _Flows:
@@ -354,19 +360,7 @@ Listening Ports
 ^^^^^^^^^^^^^^^
 
 The TCP/UDP ports the host listens on, with the process and the package, as reported by the nProbe agent
-running on the host. The tab is greyed out when no listening port was reported.
-
-Geomap
-^^^^^^
-
-Geomap page provides an interactive map that shows the selected hosts, its flows, and its
-peers. The map is zoomable, both using the mouse rotor or the buttons at the top right corner. Each dot on the map is a host, by hovering the mouse on a dot a tooltip opens and information about the given host are presented.
-
-.. figure:: ../../../img/web_gui_host_details_geo.png
-  :align: center
-  :alt: Host Geomap View
-
-  The Geomap View of the Host Details Page
+running on the host. The view is greyed out when no listening port was reported.
 
 Statistics
 ^^^^^^^^^^
@@ -443,8 +437,14 @@ Host Configuration
 
   The Host Configuration on the Host Details Page
 
-In this page a user is able to give an Alias to an Host (an alternative name for an host that's going to be used in all ntopng), give a description to an host, 
-assign this host to an host pool or hide this host from the Top Talkers computation.
+The *Settings* tab (administrators only) groups the settings of the host:
+
+- *General*: the alias (a name used for the host in all ntopng), a note, and the
+  user-defined tags. The pencil next to a tag in the list edits the tag.
+- *Traffic*: the host pool of the host (on nEdge, its user) and, on nEdge, *Drop All Host
+  Traffic*.
+
+When a value changes, a bar at the top shows *Save Changes* and *Discard*.
 
 MAC Addresses
 -------------

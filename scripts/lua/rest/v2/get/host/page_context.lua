@@ -57,7 +57,6 @@ local res = {
    periodicity_map = periodicity_map,
    is_pcap_dump = interface.isPcapDumpInterface(),
    has_ebpf = interface.hasEBPF(),
-   has_geoip = ntop.hasGeoIP(),
 }
 
 if h then
