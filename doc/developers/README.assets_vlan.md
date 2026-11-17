@@ -49,9 +49,14 @@ the IP or the MAC-keyed asset of that host.
   time, so that it does not change at every snapshot).
 - `json_info.vlans`: `{ "<vlan>": { last_seen, mac, router, tags, usernames } }`
   (`tags` with Enterprise M only), what the host of each VLAN reported last;
-  `usernames` is `{ "<name> (<protocol>)": <last_seen> }`, accumulated (see
-  below). An older list `"<name> (<protocol>), ..."` is read as seen at the
-  `last_seen` of its VLAN.
+  each list field (`asset_merge.LIST_FIELDS`, e.g. `usernames`) is
+  `{ "<element>": <last_seen> }`, accumulated (see below). An older list
+  `"<element>, ..."` is read as seen at the `last_seen` of its VLAN.
+  A new list field is added to `asset_merge.LIST_FIELDS` (its journal entries
+  follow: `assets_journal.host_list_fields`, templates `<name>_added` and
+  `<name>_removed`), with its `asset_journal_<what>_added/_removed` in
+  `AssetJournalWhat` (after the other list fields, the last ones) and their
+  names in `asset_journal_what_names` (LocalHostPro.cpp).
 - An asset with an empty `vlans` and no `json_info.vlans` has the VLAN of its
   column `vlan`.
 - CSV export/import: the list travels in `json_info`; the column is written
@@ -73,7 +78,7 @@ the IP or the MAC-keyed asset of that host.
 | Tags (`refreshed`, `assigned`, `removed`) | The changes reported by the host of any VLAN (see `asset_tags.lua`); the last seen time of a tag never moves back |
 | Tags `pinned` (network configuration, per `ip@vlan`) | With more VLANs, the tags configured for the IP with any VLAN of the asset (merge and `expireTags`): the source stays "configuration" and the tags do not expire |
 | `tags` with Enterprise M (the tags of an asset are the ones of its hosts) | `unionTags`: the union of the tags of its VLANs |
-| `usernames` (`"<name> (<protocol>), ..."`, `LocalHost::setUsername`) | `mergeUsernames` per VLAN, then `unionUsernames`: the union of the usernames of its VLANs, sorted. The usernames of a VLAN are accumulated, each one with the `last_seen` of the latest snapshot that reported it: a host created again (ntopng restarted, the host purged when idle, data reset) reports only the usernames seen since then, so a username it does not report has not gone away. A username goes away when the host has replaced it (its list full: `usernames_removed` in the journal block of the snapshot), or when the VLAN has more than `asset_merge.MAX_USERNAMES` (as `MAX_USERNAMES_PER_HOST`, 3): the ones seen least recently go away (same `last_seen`: the first by name), journal cause `cause_replaced_by`. A snapshot without usernames (or with an empty list) removes none |
+| `usernames` (`"<name> (<protocol>), ..."`, `LocalHost::setUsername`) | A list field (`asset_merge.LIST_FIELDS`): `mergeList` per VLAN, then `unionList`: the union of the usernames of its VLANs, sorted. The usernames of a VLAN are accumulated, each one with the `last_seen` of the latest snapshot that reported it: a host created again (ntopng restarted, the host purged when idle, data reset) reports only the usernames seen since then, so a username it does not report has not gone away. A username goes away when the host has replaced it (its list full: `usernames_removed` in the journal block of the snapshot), or when the VLAN has more than the `max` of the list field (usernames: 3, as `MAX_USERNAMES_PER_HOST`): the ones seen least recently go away (same `last_seen`: the first by name), journal cause `cause_replaced_by`. A snapshot without usernames (or with an empty list) removes none |
 
 Entries that are not snapshots of a host (the Wazuh update,
 `wazuh_utils.lua`: `entry.from_asset`) keep the stored VLANs and MAC.

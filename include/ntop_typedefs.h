@@ -987,7 +987,8 @@ typedef enum {
   /* Add here the other fields of the asset (os_type, server ports, ...) */
   asset_journal_tag_refreshed, /* Tag observed (tag_id) */
   asset_journal_tag_removed,   /* Tag removed by the host (tag_id) */
-  /* Elements of a list field of the asset, one cause each (key) */
+  /* Elements of a list field of the asset, one cause each (key).
+   * NOTE: the last ones (see LocalHost::dumpAssetJournal) */
   asset_journal_username_added,   /* Username added (key: "<name> (<proto>)") */
   asset_journal_username_removed, /* Username removed (key) */
   asset_journal_num_what
