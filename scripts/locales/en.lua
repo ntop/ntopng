@@ -2679,6 +2679,7 @@ local lang = {
     ["cause_os_seed"] = "Operating System (%{os}) stored in the asset",
     ["cause_reason"] = "%{reason}",
     ["cause_replaced"] = "replaced by tag %{tag_id} (%{tag_hex}) %{tag_name}",
+    ["cause_replaced_by"] = "replaced by %{element}",
     ["cause_replaced_unknown"] = "replaced by another tag",
     ["cause_seed"] = "already set on the host",
     ["cause_snapshot"] = "reported by the host",
