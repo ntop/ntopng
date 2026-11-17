@@ -1334,6 +1334,21 @@ local function validateIpAddressOrNetwork(p)
    return (validateIpAddress(p) or validateNetwork(p))
 end
 
+-- Traffic model client rules: "*" (any), an IP, a CIDR or an IPv4 range like 192.168.2.[1-254]
+local function validateHostRule(p)
+   if p == "*" then
+      return true
+   end
+
+   local prefix, first, last = p:match("^(%d+%.%d+%.%d+%.)%[(%d+)%-(%d+)%]$")
+
+   if prefix then
+      return validateIpAddress(prefix .. "0") and tonumber(first) <= tonumber(last) and tonumber(last) <= 255
+   end
+
+   return validateIpAddressOrNetwork(p)
+end
+
 local function validateHost(p)
    -- traffic rules wildcardp
    if p == "*" then
@@ -2951,6 +2966,9 @@ local known_parameters = {
    ["radius_acct_server_address"] = validateSingleWord,
    ["os_type"] = validateSingleWord,
    ["server_type"] = validateNumber,
+   ["rule_client"] = validateHostRule,
+   ["rule_server"] = validateHostRule,
+   ["rule_action"] = validateChoiceInline({ "pass", "drop" }),
    ["section"] = validateSingleWord,
    ["day"] = validateISODay,
    ["day_from"] = validateISODay,
