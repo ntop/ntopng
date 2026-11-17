@@ -1219,6 +1219,38 @@ static void flushBufferedHTTPResponse(
 
 /* ****************************************** */
 
+/* True when the script can change the status of ntopng: the REST API outside
+   its read-only sections, plus the scripts listed here. A session request to
+   such a script must be a POST with a valid CSRF token */
+static bool isStateChangingURI(const char* uri) {
+  static const char* state_changing_scripts[] = {
+      "/lua/install_update.lua",
+      "/lua/admin/service_restart.lua",
+      "/lua/reset_broadcast_domains.lua",
+      "/lua/rest/v2/get/ntopng/test_url_connectivity.lua",
+      "/lua/rest/v2/get/ntopng/test_wazuh_connectivity.lua",
+      "/lua/rest/v2/get/ntopng/test_llm_connectivity.lua",
+      "/lua/rest/v2/get/system/blacklists/update_blacklist.lua",
+      "/lua/rest/v2/get/system/reload_ndpi.lua",
+      "/lua/rest/v2/get/network/discovery/run_discovery.lua",
+      NULL};
+  static const char* rest_read_only_sections[] = {"/get/", "/export/",
+                                                  "/charts/", "/check/", NULL};
+
+  for (int i = 0; state_changing_scripts[i]; i++)
+    if (strstr(uri, state_changing_scripts[i])) return (true);
+
+  if (!strstr(uri, REST_API_PREFIX) && !strstr(uri, REST_API_PRO_PREFIX))
+    return (false);
+
+  for (int i = 0; rest_read_only_sections[i]; i++)
+    if (strstr(uri, rest_read_only_sections[i])) return (false);
+
+  return (true);
+}
+
+/* ****************************************** */
+
 int LuaEngine::handle_script_request(struct mg_connection* conn,
                                      const struct mg_request_info* request_info,
                                      char* script_path, bool* attack_attempt,
@@ -1240,6 +1272,7 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
   char ifid_buf[32], obs_id_buf[16], session_key[32];
   const char* origin_header;
   bool send_redirect = false;
+  bool state_changing = isStateChangingURI(request_info->uri);
   IpAddress client_addr;
   int num_uploaded_files = 0;
 
@@ -1375,7 +1408,7 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
             */
             if ((strstr(request_info->uri, REST_API_PREFIX) ||
                  strstr(request_info->uri, REST_API_PRO_PREFIX)) &&
-                strstr(request_info->uri, "/get/")) {
+                strstr(request_info->uri, "/get/") && !state_changing) {
               /*
                 REST API URI, GET, no CSRF required
               */
@@ -1466,6 +1499,18 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
   } else
     *attack_attempt =
         setParamsTable(L, request_info, "_POST", NULL /* Empty */);
+
+  /* With a session, a GET (e.g. a link on another site) carries the session
+     cookie only: the status can be changed only by a POST with a valid CSRF */
+  if (state_changing && strcmp(session_csrf, NTOP_CSRF_TOKEN_NO_SESSION) &&
+      !(!strcmp(request_info->request_method, "POST") && content_type &&
+        valid_csrf)) {
+    ntop->getTrace()->traceEvent(
+        TRACE_WARNING, "Missing or invalid CSRF, request refused [%s %s]",
+        request_info->request_method, request_info->uri);
+    return (send_error(conn, 403 /* Forbidden */, "Forbidden", "%s",
+                       "Missing or invalid CSRF token"));
+  }
 
   if (send_redirect) {
     char buf[2048], uri[512];
