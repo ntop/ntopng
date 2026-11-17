@@ -25,7 +25,11 @@
 /* ***************************************************** */
 
 void BlacklistedClientContact::protocolDetected(Flow* f) {
-  if (f->isBlacklistedClient() && f->isRemoteToLocal()) {
+  /* Trigger only when the server replies: a blacklisted remote client
+   * contacting a local host that does not reply is just noise. */
+  bool server_replied = (f->get_protocol() == IPPROTO_TCP) ? f->isThreeWayHandshakeOK() : (f->get_packets_srv2cli() > 0);
+
+  if (f->isBlacklistedClient() && f->isRemoteToLocal() && server_replied) {
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
 
@@ -62,18 +66,7 @@ FlowAlert* BlacklistedClientContact::buildAlert(Flow* f) {
     else if (is_client_bl && is_server_bl)
       alert->setCliAttacker(), alert->setSrvAttacker();
 
-    if (f->get_packets_srv2cli() == 0) {
-      /*
-        Nothing serious: the server did not reply (server port or traffic
-        filtered)
-       */
-      alert->setAlertScore(SCORE_LEVEL_NOTICE);
-    } else {
-      /*
-        Bad: the server port is open and it has replied
-      */
-      alert->setAlertScore(SCORE_LEVEL_WARNING);
-    }
+    alert->setAlertScore(SCORE_LEVEL_NOTICE);
   }
 
   return alert;
