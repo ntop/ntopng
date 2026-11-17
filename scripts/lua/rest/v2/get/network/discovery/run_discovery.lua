@@ -9,6 +9,11 @@ require "lua_utils"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local ifid = tostring(_GET["ifid"]) or interface.getId()
 
 discover.requestNetworkDiscovery(ifid)

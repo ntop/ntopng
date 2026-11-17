@@ -10,6 +10,13 @@ local json = require("dkjson")
 local datasources_utils = require("datasources_utils")
 -- local http_lint = require("http_lint")
 
+local rest_utils = require "rest_utils"
+
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local action = _POST["action"]
 
 local function reportError(msg)

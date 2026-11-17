@@ -14,6 +14,11 @@ local rest_utils = require "rest_utils"
 
 -- ################################################
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local ifid = _GET["ifid"] or interface.getId()
 interface.select(ifid)
 

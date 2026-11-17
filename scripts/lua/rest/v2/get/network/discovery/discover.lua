@@ -9,6 +9,11 @@ local json = require "dkjson"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local ifid = tostring(_GET["ifid"]) or ""
 local os_filter = tonumber(_GET["operating_system"])
 local devtype_filter = tonumber(_GET["device_type"])

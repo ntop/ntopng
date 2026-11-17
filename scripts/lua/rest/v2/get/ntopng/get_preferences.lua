@@ -12,4 +12,11 @@ local json = require "dkjson"
 local rest_utils = require "rest_utils"
 
 
+local auth = require "auth"
+
+if not auth.has_capability(auth.capabilities.preferences) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, prefs)

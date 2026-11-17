@@ -13,6 +13,11 @@ local categories_utils = require("categories_utils")
 local rest_utils = require("rest_utils")
 
 -- Table parameters
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local ifid = _GET["ifid"] or interface.getId()
 local proto_filter = _GET["l7proto"]
 local category_filter = _GET["category"]
