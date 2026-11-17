@@ -551,9 +551,6 @@ void Host::lua_get_names(lua_State* const vm, char* const buf,
     getMDNSTXTName(buf, buf_size);
     if (buf[0]) lua_push_str_table_entry(vm, "mdns_txt", buf);
 
-    getMDNSInfo(buf, buf_size);
-    if (buf[0]) lua_push_str_table_entry(vm, "mdns_info", buf);
-
     getResolvedName(buf, buf_size);
     if (buf[0]) lua_push_str_table_entry(vm, "resolved", buf);
 
@@ -1048,10 +1045,6 @@ void Host::lua(lua_State* vm, AddressTree* ptree, bool host_details,
       /* ifid is useful for example for view interfaces to detemine
          the actual, original interface the host is associated to. */
       lua_push_uint64_table_entry(vm, "ifid", iface->get_id());
-      if (!mask_host)
-        luaStrTableEntryLocked(
-            vm, "info",
-            names.mdns_info); /* locked to protect against data-reset changes */
 
       lua_get_names(vm, buf, sizeof(buf));
 
@@ -1142,9 +1135,6 @@ char* Host::get_name(char* buf, u_int buf_len,
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
   getMDNSName(name_buf, sizeof(name_buf));
-  if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
-
-  getMDNSInfo(name_buf, sizeof(name_buf));
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
   if (ntop->getPrefs()->do_tls_quic_hostnaming()) {
@@ -1421,18 +1411,6 @@ char* Host::getMDNSTXTName(char* const buf, ssize_t buf_len) {
   }
 
   return Utils::stringtolower(buf);
-}
-
-/* ***************************************** */
-
-char* Host::getMDNSInfo(char* const buf, ssize_t buf_len) {
-  if (buf && buf_len) {
-    m.lock(__FILE__, __LINE__);
-    snprintf(buf, buf_len, "%s", names.mdns_info ? names.mdns_info : "");
-    m.unlock(__FILE__, __LINE__);
-  }
-
-  return (buf);
 }
 
 /* ***************************************** */
@@ -1827,40 +1805,6 @@ void Host::splitHostVLAN(const char* at_sign_str, char* buf, int bufsize,
 
 void Host::reloadHostBlacklist() {
   ip.reloadBlacklist(iface->get_ndpi_struct());
-}
-
-/* *************************************** */
-
-void Host::offlineSetMDNSInfo(char* const str) {
-  char* cur_info;
-  const char* tokens[] = {"._http._tcp.local",
-                          "._sftp-ssh._tcp.local",
-                          "._smb._tcp.local",
-                          "._device-info._tcp.local",
-                          "._privet._tcp.local",
-                          "._afpovertcp._tcp.local",
-                          NULL};
-
-  if (names.mdns_info || !str || (str[0] == '_')) return; /* Already set */
-
-  if (strstr(str, ".ip6.arpa")) return; /* Ignored for the time being */
-
-  for (int i = 0; tokens[i] != NULL; i++) {
-    if (strstr(str, tokens[i])) {
-      str[strlen(str) - strlen(tokens[i])] = '\0';
-
-      if ((cur_info = strdup(str))) {
-        for (i = 0; cur_info[i] != '\0'; i++) {
-          if (!isascii(cur_info[i])) cur_info[i] = ' ';
-        }
-
-        /* Time to set the actual info */
-        names.mdns_info = cur_info;
-      }
-
-      return;
-    }
-  }
 }
 
 /* *************************************** */
@@ -2380,11 +2324,6 @@ void Host::freeHostNames() {
   if (names.mdns) {
     free(names.mdns);
     names.mdns = NULL;
-  }
-
-  if (names.mdns_info) {
-    free(names.mdns_info);
-    names.mdns_info = NULL;
   }
 
   if (names.mdns_txt) {

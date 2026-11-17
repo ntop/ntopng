@@ -2969,7 +2969,6 @@ local lang = {
       ["lost"] = "패킷 손실",
       ["mac"] = "맥",
       ["major_connection_state"] = "주요 연결 상태",
-      ["mdns_answer"] = "MDNS 답변",
       ["mdns_name"] = "MDNS 이름",
       ["mdns_name_txt"] = "MDNS 이름 TXT",
       ["mdns_ssid"] = "MDNS SSID",

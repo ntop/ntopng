@@ -768,12 +768,6 @@ bool LocalHost::setService(HostService service_enum, Flow* f) {
 
 /* *************************************** */
 
-void LocalHost::offlineSetMDNSInfo(char* const str) {
-  Host::offlineSetMDNSInfo(str);
-}
-
-/* *************************************** */
-
 void LocalHost::offlineSetMDNSName(const char* mdns_n, time_t when, Flow* f) {
   char name[256];
 

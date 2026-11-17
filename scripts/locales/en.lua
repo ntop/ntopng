@@ -3465,7 +3465,6 @@ local lang = {
       ["lost"] = "Packets Lost",
       ["mac"] = "MAC",
       ["major_connection_state"] = "Major Connection State",
-      ["mdns_answer"] = "MDNS Answer",
       ["mdns_name"] = "MDNS Name",
       ["mdns_name_txt"] = "MDNS Name TXT",
       ["mdns_ssid"] = "MDNS SSID",

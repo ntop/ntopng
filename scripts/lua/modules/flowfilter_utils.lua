@@ -744,12 +744,6 @@ flowfilter_utils.defined_filters = {
         operators = {'eq', 'neq', 'in', 'nin'},
         hourly_available = false
     },
-    mdns_answer = {
-        value_type = 'text',
-        i18n_label = i18n('db_search.flowfilters.mdns_answer'),
-        operators = {'eq', 'neq', 'empty', 'nempty'},
-        hourly_available = false
-    },
     mdns_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.flowfilters.mdns_name'),

@@ -2969,7 +2969,6 @@ local lang = {
       ["lost"] = "数据包丢失",
       ["mac"] = "苹果",
       ["major_connection_state"] = "主要连接状态",
-      ["mdns_answer"] = "MDNS 答案",
       ["mdns_name"] = "MDNS名称",
       ["mdns_name_txt"] = "MDNS 名称 TXT",
       ["mdns_ssid"] = "MDNS SSID",
