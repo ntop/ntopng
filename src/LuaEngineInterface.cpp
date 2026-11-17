@@ -663,7 +663,7 @@ static int ntop_add_data_to_assets(lua_State* vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!iface) ||
-        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+        ((h = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                   getLuaVMUservalue(vm, observationPointId))) ==
          NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
@@ -714,7 +714,7 @@ static int ntop_remove_data_from_assets(lua_State* vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!iface) ||
-        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+        ((h = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                   getLuaVMUservalue(vm, observationPointId))) ==
          NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
@@ -782,7 +782,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
     if ((!curr_iface) ||
         ((h = curr_iface->findHostByIP(
-              get_allowed_nets(vm), host_ip, vlan_id,
+              get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
               getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
@@ -959,7 +959,7 @@ static int ntop_interface_reset_host_stats(lua_State* vm, bool delete_data) {
   if (!curr_iface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  host = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  host = curr_iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                   getLuaVMUservalue(vm, observationPointId));
 
   if (host) {
@@ -2196,7 +2196,7 @@ static int ntop_set_host_operating_system(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   os = (ndpi_os)lua_tointeger(vm, 2);
 
-  host = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  host = curr_iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                   getLuaVMUservalue(vm, observationPointId));
 
 #if 0
@@ -2234,7 +2234,7 @@ static int ntop_set_host_resolved_name(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   host_name = (char*)lua_tostring(vm, 2);
 
-  host = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  host = curr_iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                   getLuaVMUservalue(vm, observationPointId));
 
 #if 0
@@ -3333,7 +3333,9 @@ static int ntop_is_host_active(lua_State* vm) {
   if (lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   lua_pushboolean(
-      vm, curr_iface->isHostActive(get_allowed_nets(vm), host_ip, vlan_id));
+      vm, curr_iface->isHostActive(get_allowed_nets(vm),
+                                   getLuaVMUservalue(vm, allowed_pools),
+                                   host_ip, vlan_id));
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
 }
 
@@ -3384,7 +3386,9 @@ static int ntop_reset_interface_host_top_sites(lua_State* vm) {
   if (lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if ((!curr_iface) ||
-      !curr_iface->resetHostTopSites(get_allowed_nets(vm), host_ip, vlan_id,
+      !curr_iface->resetHostTopSites(get_allowed_nets(vm),
+                                     getLuaVMUservalue(vm, allowed_pools),
+                                     host_ip, vlan_id,
                                      getLuaVMUservalue(vm, observationPointId)))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   else
@@ -3410,7 +3414,7 @@ static int ntop_get_interface_host_country(lua_State* vm) {
 
   if ((!curr_iface) ||
       ((h = curr_iface->findHostByIP(
-            get_allowed_nets(vm), host_ip, vlan_id,
+            get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
             getLuaVMUservalue(vm, observationPointId))) == NULL))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   else {
@@ -3754,7 +3758,8 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
 
   if (!curr_iface) return (false);
 
-  f = curr_iface->findFlowByKeyAndHashId(key, hash_id, ptree);
+  f = curr_iface->findFlowByKeyAndHashId(
+      key, hash_id, ptree, getLuaVMUservalue(vm, allowed_pools));
 
   if (f == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
@@ -3818,7 +3823,8 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
                                   getLuaVMUservalue(vm, observationPointId),
                                   private_flow_id, NULL, NULL, /* TODO MAC */
                                   &src_ip_addr, &dst_ip_addr, htons(src_port),
-                                  htons(dst_port), l4_proto, ptree);
+                                  htons(dst_port), l4_proto, ptree,
+                                  getLuaVMUservalue(vm, allowed_pools));
 
   if (f == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
@@ -3855,7 +3861,8 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
   if (!ntop->isUserAdministrator(vm))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
 
-  f = curr_iface->findFlowByKeyAndHashId(key, hash_id, ptree);
+  f = curr_iface->findFlowByKeyAndHashId(
+      key, hash_id, ptree, getLuaVMUservalue(vm, allowed_pools));
 
   if (f) {
     f->setDropVerdict(DROP_REASON_USER_ACTION);
@@ -4173,8 +4180,10 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 
   if (!curr_iface) return CONST_LUA_ERROR;
 
-  lua_pushboolean(vm, curr_iface->updateHostTrafficPolicy(get_allowed_nets(vm),
-                                                          host_ip, vlan_id));
+  lua_pushboolean(vm, curr_iface->updateHostTrafficPolicy(
+                              get_allowed_nets(vm),
+                              getLuaVMUservalue(vm, allowed_pools), host_ip,
+                              vlan_id));
   return CONST_LUA_OK;
 }
 
@@ -5305,7 +5314,7 @@ static int ntop_interface_get_host_tags(lua_State* vm) {
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf,
                      sizeof(buf));
 
-  host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  host = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                    getLuaVMUservalue(vm, observationPointId));
 
   if (host) { /* Host online - read from host */
@@ -5355,7 +5364,7 @@ static int ntop_interface_get_user_defined_host_tags(lua_State* vm) {
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf,
                      sizeof(buf));
 
-  host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  host = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                    getLuaVMUservalue(vm, observationPointId));
 
   if (host) {
@@ -5393,7 +5402,7 @@ static int ntop_interface_set_host_tags(lua_State* vm) {
                      sizeof(buf));
   bitmap = (u_int64_t)lua_tonumber(vm, 2);
 
-  host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  host = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                                    getLuaVMUservalue(vm, observationPointId));
 
   if (host) { /* Host online - set to the host (host will update redis) */
@@ -5426,7 +5435,7 @@ static int ntop_interface_get_host_attributes(lua_State* vm) {
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf,
                      sizeof(buf));
 
-  h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+  h = iface->findHostByIP(get_allowed_nets(vm), getLuaVMUservalue(vm, allowed_pools), host_ip, vlan_id,
                           getLuaVMUservalue(vm, observationPointId));
 
   if (h) {
@@ -6320,7 +6329,7 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
     ptree.addAddresses("0.0.0.0/0,::/0");
 
     /* Find the host in memory */
-    h = curr_iface->findHostByIP(&ptree, ipaddress, vlan_id,
+    h = curr_iface->findHostByIP(&ptree, NULL, ipaddress, vlan_id,
                                  observation_point_id);
 
     if (h != NULL) {

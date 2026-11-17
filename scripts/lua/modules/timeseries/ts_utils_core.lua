@@ -28,6 +28,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 -- ##############################################
 
@@ -312,6 +313,22 @@ local function isUserAccessAllowed(tags)
 	if tags.subnet and not ntop.isAllowedNetwork(tags.subnet) then
 		traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access subnet " .. tags.subnet)
 		return false
+	end
+
+	local auth = require("auth")
+
+	if auth.allowed_host_pools() then
+		local pool = tags.pool
+
+		-- Hosts are allowed by the pool they belong to (by MAC or by IP/VLAN)
+		if not pool and host then
+			pool = require("host_pools"):get_pool_id(host, isMacAddress(host))
+		end
+
+		if pool and not auth.is_allowed_host_pool(pool) then
+			traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access host pool " .. pool)
+			return false
+		end
 	end
 
 	return true

@@ -5358,11 +5358,12 @@ void NetworkInterface::updateFlowProfiles() {
 
 /* **************************************************** */
 
-bool NetworkInterface::isHostActive(AddressTree* allowed_nets, char* host_ip,
+bool NetworkInterface::isHostActive(AddressTree* allowed_nets,
+                                    Bitmap4096* allowed_pools, char* host_ip,
                                     u_int16_t vlan_id) {
   Host* h;
 
-  h = findHostByIP(allowed_nets, host_ip, vlan_id,
+  h = findHostByIP(allowed_nets, allowed_pools, host_ip, vlan_id,
                    0 /* any observation point */);
 
   return !!h;
@@ -5375,8 +5376,8 @@ bool NetworkInterface::getHostInfo(lua_State* vm, AddressTree* allowed_nets,
   Host* h;
   bool ret;
 
-  h = findHostByIP(allowed_nets, host_ip, vlan_id,
-                   getLuaVMUservalue(vm, observationPointId));
+  h = findHostByIP(allowed_nets, getLuaVMUservalue(vm, allowed_pools), host_ip,
+                   vlan_id, getLuaVMUservalue(vm, observationPointId));
 
   if (h) {
     h->lua(vm, allowed_nets, true, true, false, true, false);
@@ -5395,8 +5396,8 @@ bool NetworkInterface::getHostMinInfo(lua_State* vm, AddressTree* allowed_nets,
   Host* h;
   bool ret;
 
-  h = findHostByIP(allowed_nets, host_ip, vlan_id,
-                   getLuaVMUservalue(vm, observationPointId));
+  h = findHostByIP(allowed_nets, getLuaVMUservalue(vm, allowed_pools), host_ip,
+                   vlan_id, getLuaVMUservalue(vm, observationPointId));
 
   if (h) {
     lua_newtable(vm);
@@ -5427,7 +5428,8 @@ void NetworkInterface::checkReloadHostsBroadcastDomain() {
 
 /* **************************************************** */
 
-Host* NetworkInterface::findHostByIP(AddressTree* allowed_nets, char* host_ip,
+Host* NetworkInterface::findHostByIP(AddressTree* allowed_nets,
+                                     Bitmap4096* allowed_pools, char* host_ip,
                                      u_int16_t vlan_id,
                                      u_int16_t observationPointId) {
   Host* h = NULL;
@@ -5440,6 +5442,9 @@ Host* NetworkInterface::findHostByIP(AddressTree* allowed_nets, char* host_ip,
   if (h == NULL) return (NULL);
 
   if (allowed_nets && !h->match(allowed_nets)) return (NULL);
+
+  if (allowed_pools && !allowed_pools->isSetBit(h->get_host_pool()))
+    return (NULL);
 
   return h;
 }
@@ -7290,6 +7295,7 @@ void NetworkInterface::getLiveASNStats(ASNStats* asn_stats,
   retriever.actNumEntries = 0;
   retriever.maxNumEntries = getFlowsHashSize();
   retriever.allowed_nets = allowed_nets;
+  retriever.allowed_pools = getLuaVMUservalue(vm, allowed_pools);
   retriever.asn_stats = asn_stats;
   retriever.asn_names =
       &asn_names; /* Trick to enable C++ to initialize asn_names */
@@ -7351,6 +7357,7 @@ void NetworkInterface::getActiveFlowsStats(
   retriever.actNumEntries = 0;
   retriever.maxNumEntries = getFlowsHashSize();
   retriever.allowed_nets = allowed_nets;
+  retriever.allowed_pools = getLuaVMUservalue(vm, allowed_pools);
   retriever.ndpi_stats = ndpi_stats;
   retriever.stats = stats;
   retriever.totBytesSent = 0, retriever.totBytesRcvd = 0, retriever.totThpt = 0;
@@ -7502,6 +7509,7 @@ int NetworkInterface::getFlowsGroup(lua_State* vm, AddressTree* allowed_nets,
   }
 
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
+  retriever.allowed_pools = getLuaVMUservalue(vm, allowed_pools);
 
   if (sortFlows(&begin_slot, walk_all, &retriever, allowed_nets, NULL, NULL,
                 NULL, NULL, p, groupColumn, NULL) < 0) {
@@ -9308,15 +9316,19 @@ Country* NetworkInterface::getCountry(const char* country_name,
 
 /* **************************************************** */
 
+static bool flowMatchesUser(Flow* flow, AddressTree* allowed_nets,
+                            Bitmap4096* allowed_pools);
+
 Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
-                                               AddressTree* allowed_nets) {
+                                               AddressTree* allowed_nets,
+                                               Bitmap4096* allowed_pools) {
   Flow* f = NULL;
 
   if (!flows_hash) return (NULL);
 
   f = flows_hash->findByKeyAndHashId(key, hash_id);
 
-  if (f && (!f->match(allowed_nets))) f = NULL;
+  if (f && !flowMatchesUser(f, allowed_nets, allowed_pools)) f = NULL;
 
   return (f);
 }
@@ -9347,7 +9359,8 @@ Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
                                         Mac* dst_mac, IpAddress* src_ip,
                                         IpAddress* dst_ip, u_int16_t src_port,
                                         u_int16_t dst_port, u_int8_t l4_proto,
-                                        AddressTree* allowed_nets) const {
+                                        AddressTree* allowed_nets,
+                                        Bitmap4096* allowed_pools) const {
   bool src2dst;
   Flow *f, *unswapped_flow;
 
@@ -9358,7 +9371,7 @@ Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
                               private_flow_id, l4_proto, NULL, &src2dst,
                               false /* Not an inline call */, &unswapped_flow);
 
-  if (f && (!f->match(allowed_nets))) f = NULL;
+  if (f && !flowMatchesUser(f, allowed_nets, allowed_pools)) f = NULL;
 
   return (f);
 }
@@ -9370,6 +9383,7 @@ struct search_host_info {
   char* host_name_or_ip;
   u_int num_matches;
   AddressTree* allowed_nets;
+  Bitmap4096* allowed_pools;
 };
 
 /* **************************************************** */
@@ -9379,7 +9393,9 @@ static bool hosts_search_walker(GenericHashEntry* h, void* user_data,
   Host* host = (Host*)h;
   struct search_host_info* info = (struct search_host_info*)user_data;
 
-  if (host->addIfMatching(info->vm, info->allowed_nets,
+  if ((!info->allowed_pools ||
+       info->allowed_pools->isSetBit(host->get_host_pool())) &&
+      host->addIfMatching(info->vm, info->allowed_nets,
                           info->host_name_or_ip)) {
     info->num_matches++;
     *matched = true;
@@ -9486,7 +9502,8 @@ bool NetworkInterface::findHostsByName(lua_State* vm, AddressTree* allowed_nets,
   bool walk_all = true;
 
   info.vm = vm, info.host_name_or_ip = key, info.num_matches = 0,
-  info.allowed_nets = allowed_nets;
+  info.allowed_nets = allowed_nets,
+  info.allowed_pools = getLuaVMUservalue(vm, allowed_pools);
 
   lua_newtable(vm);
   walker(&begin_slot, walk_all, walker_hosts, hosts_search_walker,
@@ -10846,12 +10863,13 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
 /* **************************************** */
 
 int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
+                                              Bitmap4096* allowed_pools,
                                               char* host_ip,
                                               u_int16_t host_vlan) {
   Host* h;
   int rv;
 
-  if ((h = findHostByIP(allowed_networks, host_ip, host_vlan,
+  if ((h = findHostByIP(allowed_networks, allowed_pools, host_ip, host_vlan,
                         0 /* any observation point */)) != NULL) {
     h->updateHostTrafficPolicy(host_ip);
     rv = CONST_LUA_OK;
@@ -11215,6 +11233,11 @@ bool NetworkInterface::matchLiveCapture(NtopngLuaContext* const luactx,
                                         const struct pcap_pkthdr* const h,
                                         const u_char* const packet,
                                         Flow* const f) {
+  /* Packets without a flow cannot be matched against the user host pools */
+  if (luactx->allowed_pools &&
+      (!f || !flowMatchesUser(f, NULL, luactx->allowed_pools)))
+    return (false);
+
   if (!luactx->live_capture.matching_host /* No host filter set */
       || (f && (luactx->live_capture.matching_host == f->get_cli_host() ||
                 luactx->live_capture.matching_host == f->get_srv_host()))) {
@@ -12767,9 +12790,11 @@ void NetworkInterface::decNumHosts(Host* host, bool rxOnlyHost) {
 /* **************************************************** */
 
 bool NetworkInterface::resetHostTopSites(AddressTree* allowed_nets,
+                                         Bitmap4096* allowed_pools,
                                          char* host_ip, u_int16_t vlan_id,
                                          u_int16_t observationPointId) {
-  Host* h = findHostByIP(allowed_nets, host_ip, vlan_id, observationPointId);
+  Host* h = findHostByIP(allowed_nets, allowed_pools, host_ip, vlan_id,
+                         observationPointId);
 
   if (h)
     return (h->resetHostTopSites());
