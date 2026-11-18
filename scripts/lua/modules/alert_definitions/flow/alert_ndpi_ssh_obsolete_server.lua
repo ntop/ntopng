@@ -21,7 +21,7 @@ local alert_ndpi_ssh_obsolete_server = classes.class(alert)
 
 alert_ndpi_ssh_obsolete_server.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_ssh_obsolete_server,
-   i18n_title = "alerts_dashboard.ndpi_ssh_obsolete_server_title",
+   i18n_title = "flow_risk.ndpi_ssh_obsolete_server_version_or_cipher",
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
