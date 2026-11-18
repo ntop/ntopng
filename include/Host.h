@@ -74,6 +74,7 @@ class Host : public GenericHashEntry,
     char* tls;         /* The TLS SNI or the name as dissected from other
                           TLS-transported protocols */
     char* http;        /* The HTTP Host: name */
+    time_t tls_time, http_time; /* First seen of the flow of the name */
     char* server_name; /* TLS/HTTP or other protocols requesting the host with a
                           specific server name */
     char* dhcp;        /* name from the latest DHCP flow */
@@ -832,8 +833,8 @@ class Host : public GenericHashEntry,
                                GenericHash::purgeIdle */
   virtual void inlineSetOSDetail(const char* detail) {}
   virtual const char* getOSDetail(char* const buf, ssize_t buf_len);
-  void offlineSetTLSName(const char* n);
-  virtual void offlineSetHTTPName(const char* n);
+  void offlineSetTLSName(const char* n, time_t when);
+  virtual void offlineSetHTTPName(const char* n, time_t when);
   virtual void offlineSetNetbiosName(const char* n, time_t when, Flow* f);
   void offlineSetSSDPLocation(const char* url);
   virtual void offlineSetMDNSName(const char* n, time_t when, Flow* f);

@@ -334,8 +334,7 @@ class LocalHost : public Host {
   char* getKerberosName(char* const buf, ssize_t buf_len,
                         bool machine_only = false);
   void lua_get_usernames(lua_State* vm);
-  void offlineSetTLSName(const char* n);
-  void offlineSetHTTPName(const char* n);
+  void offlineSetHTTPName(const char* n, time_t when);
   void setServerName(const char* n);
   void setResolvedName(const char* resolved_name, Flow* f = NULL);
 
