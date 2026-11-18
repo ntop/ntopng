@@ -441,7 +441,8 @@ class Prefs {
   inline bool do_insecure_tls() { return (insecure_tls); };
   inline bool do_snmp_polling() { return (snmp_polling); };
   bool do_active_monitoring();
-  inline bool get_active_monitoring_pref() { return (active_monitoring); };
+  /* AS mode switches active monitoring off, keeping its preference */
+  inline bool get_active_monitoring_pref() { return (active_monitoring && !asn_mode_enabled); };
   inline bool do_tls_quic_hostnaming() { return (tls_quic_hostnaming); };
   inline bool email_starttls_enabled() { return (starttls); };
   inline bool dump_pcap_to_clickhouse_enabled() {
@@ -788,8 +789,9 @@ class Prefs {
     return (s7comm_learning_period);
   };
 #ifdef NTOPNG_PRO
+  /* AS mode switches the assets off, keeping their preference */
   inline bool isAssetInventoryEnabled() {
-    return (asset_inventory_enabled);
+    return (asset_inventory_enabled && !asn_mode_enabled);
   };
   inline bool isAssetsJournalEnabled() {
     return (assets_journal_enabled && isAssetInventoryEnabled());

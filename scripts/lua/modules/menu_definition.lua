@@ -62,6 +62,7 @@ return function(f)
             i18n = "active_monitoring_stats.active_monitoring",
             icon = "fas fa-heartbeat",
             url = "/lua/active_monitoring.lua",
+            hard_hidden = f.is_asn_mode_pref,
             hidden = f.is_windows,
             reason = { reason("platform", "menu.reason.is_windows", "menu.suggestion.is_windows") }
         }, {

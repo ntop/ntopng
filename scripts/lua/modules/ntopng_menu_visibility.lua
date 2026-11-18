@@ -172,6 +172,9 @@ function M.get_flags()
       no_discoverable_interface = not is_discoverable,
       is_asn_mode_enabled       = is_asn_mode,
       no_asn_mode               = not is_asn_mode,
+      -- The preference alone, whatever the selected interface: it switches off the
+      -- system-wide per-host/per-device features (assets, active monitoring, ACL)
+      is_asn_mode_pref          = prefs.is_asn_mode_enabled,
       infrastructure_view       = infrastructure_view,
       lightview                 = lightview,
       -- lightview aggregates alerts only with ClickHouse (single DB for all interfaces)

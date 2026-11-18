@@ -10360,6 +10360,7 @@ local lang = {
     ["llm_timeout_title"] = "Request Timeout (seconds)",
     ["llm_token_title"] = "API Token",
     ["llm_url_title"] = "API URL",
+    ["locked_asn_mode"] = "Disabled while AS Mode is enabled.",
     ["locked_nanalyst_needs_flow_source"] = "nAnalyst also needs a queryable flow source: start %{product} with -F clickhouse and a reachable ClickHouse server, or read from a pcap dump.",
     ["locked_requires_clickhouse"] = "Requires ClickHouse. Start %{product} with -F clickhouse and make sure the ClickHouse server is reachable.",
     ["locked_requires_enterprise"] = "Requires %{product} Enterprise.",

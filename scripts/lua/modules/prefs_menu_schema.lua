@@ -115,6 +115,9 @@ function M.get_sections(flags)
     local lock_clickhouse = (not flags.has_ch_support) and
                                 i18n("prefs.locked_requires_clickhouse", { product = product }) or nil
     local lock_cmdline = i18n("prefs.locked_set_from_cmdline")
+    -- AS mode switches off the per-host/per-device features
+    local lock_asn_mode = prefs.is_asn_mode_enabled and i18n("prefs.locked_asn_mode") or nil
+    local off_in_asn_mode = prefs.is_asn_mode_enabled and "0" or nil
 
     local ts_driver_ch_fallback_warning = (active_ts_driver == "clickhouse" and not flags.has_ch_support) and
                                                i18n("prefs.timeseries_driver_ch_fallback_warning", { product = product }) or
@@ -133,7 +136,9 @@ function M.get_sections(flags)
                 description = i18n("prefs.toggle_active_monitoring_description"),
                 type = "toggle",
                 redis_key = "ntopng.prefs.active_monitoring",
-                default = "0"
+                default = "0",
+                locked = lock_asn_mode,
+                forced_value = off_in_asn_mode
             }}
         },
 
@@ -2394,6 +2399,8 @@ function M.get_sections(flags)
             default = "1",
             section = i18n("assets"),
             to_switch = {"toggle_assets_journal"},
+            locked = lock_asn_mode,
+            forced_value = off_in_asn_mode,
             -- assetsInventoryEnabled() is always false on Windows
             hidden = is_windows
         }, {

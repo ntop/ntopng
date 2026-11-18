@@ -83,6 +83,11 @@ for _, section in ipairs(sections) do
                value = tostring(entry.default)
             end
 
+            -- Switched off by another preference (e.g. AS mode)
+            if entry.forced_value then
+               value = entry.forced_value
+            end
+
             -- Values no longer among the options (e.g. saved by older versions)
             -- are shown as the schema default
             if entry.type == "button_group" and entry.options and entry.default ~= nil then
