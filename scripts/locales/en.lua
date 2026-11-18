@@ -5529,6 +5529,7 @@ local lang = {
     ["ndpi_ai_inference_traffic"] = "Possible AI Inference Traffic",
     ["ndpi_ai_inference_traffic_descr"] = "Detects flows possibly carrying traffic towards AI inference services",
     ["ndpi_anonymous_subscriber"] = "Anonymous Subscriber",
+    ["ndpi_anonymous_subscriber_alert_descr"] = "The client IP address is a Tor exit node or an iCloud Private Relay address.",
     ["ndpi_anonymous_subscriber_descr"] = "Trigger an alert whenever the (source) IP address has been anonymized and it can’t be used to identify the subscriber (e.g. iCloud-private-relay)",
     ["ndpi_binary_application_transfer"] = "Binary App/.exe Transfer",
     ["ndpi_binary_application_transfer_descr"] = "Trigger an alert when an executable/application download/upload (attempt) is detected",

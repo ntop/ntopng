@@ -43,7 +43,7 @@ end
 -- #######################################################
 
 function alert_ndpi_anonymous_subscriber.format(ifid, alert, alert_type_params)
-   return ""
+   return i18n("flow_risk.ndpi_anonymous_subscriber_alert_descr")
 end
 
 -- #######################################################
