@@ -181,6 +181,12 @@ function driver:query(schema, tstart, tend, tags, options)
       -- diff against: it silently defaults to 0, turning the raw cumulative counter 
       -- value into the delta for that point (a huge bogus spike). Null it out 
       -- instead so it renders as a gap, same as any other missing sample.
+      --
+      -- A counter sample written at T closes the interval ending at T (e.g. the
+      -- per-minute ASN dump at 10:31:00 holds the traffic up to 10:31:00), so it
+      -- is bucketed at T - half raw step: otherwise sparse series (one sample per
+      -- bucket) are labelled one step later than dense ones (iface 1s samples).
+      local sample_offset = math.ceil(raw_step / 2)
       local inner_sel = {}
       local mid_sel   = { "t", "row_number() OVER (ORDER BY t) AS `__rn`" }
       local outer_sel = { "t" }
@@ -197,7 +203,7 @@ function driver:query(schema, tstart, tend, tags, options)
       sql = string.format(
          "SELECT %s FROM ("
          ..   "SELECT %s FROM ("
-         ..     "SELECT intDiv(toUnixTimestamp(tstamp), %d) * %d AS t, %s "
+         ..     "SELECT intDiv(toUnixTimestamp(tstamp) - %d, %d) * %d AS t, %s "
          ..     "FROM `%s`.`%s` "
          ..     "WHERE schema_name = '%s'%s "
          ..     "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
@@ -206,11 +212,11 @@ function driver:query(schema, tstart, tend, tags, options)
          .. ") WHERE t >= %d ORDER BY t ASC",
          table.concat(outer_sel, ", "),
          table.concat(mid_sel, ", "),
-         time_step, time_step,
+         sample_offset, time_step, time_step,
          table.concat(inner_sel, ", "),
          ch_escape(self.db), CH_TS_TABLE_NAME,
          ch_escape(schema.name), tw,
-         tstart - time_step, tend,
+         tstart - time_step, tend + sample_offset, -- + offset: closing sample of the last bucket
          tstart)
    else
       -- Gauge / derivative: aggregate within each bucket directly.

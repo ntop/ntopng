@@ -289,6 +289,47 @@ if queries and type(queries) == "table" then
 	       end
 	    end
 	 end
+	 -- Default source label (used as series prefix when a chart mixes sources)
+	 if res.metadata and isEmptyString(res.metadata.label) then
+	    if tags.asn then
+	       local as_info = interface.getASInfo(tonumber(tags.asn))
+	       res.metadata.label = "AS" .. tags.asn
+	       if as_info and not isEmptyString(as_info.asname) then
+		  res.metadata.label = res.metadata.label .. " (" .. as_info.asname .. ")"
+	       end
+	    elseif tags.ifid and table.len(tags) == 1 then
+	       res.metadata.label = getHumanReadableInterfaceName(tostring(tags.ifid))
+	    end
+	 end
+	 -- sum_series: collapse all the series of this query into a single "Total"
+	 -- (e.g. asn:traffic sent + rcvd), NaN only where every series is NaN
+	 if toboolean(q.sum_series) and type(res.series) == "table" and #res.series > 1 then
+	    local ts_common = require("ts_common")
+	    local ts_schema = require("ts_utils_core").getSchema(res.metadata and res.metadata.schema or schema_name)
+	    local len = 0
+	    for _, serie in ipairs(res.series) do
+	       if #serie.data > len then len = #serie.data end
+	    end
+	    local sum = {}
+	    for idx = 1, len do
+	       local acc
+	       for _, serie in ipairs(res.series) do
+		  local v = serie.data[idx]
+		  if v and v == v then acc = (acc or 0) + v end
+	       end
+	       sum[idx] = acc or (0/0)
+	    end
+	    local step = (res.metadata and res.metadata.epoch_step) or 1
+	    local stats = ts_common.calculateStatistics(sum, step, true,
+	       ts_schema and ts_schema.options.metrics_type or ts_common.metrics.counter)
+	    res.series = { {
+	       id = "total",
+	       label = i18n("total"),
+	       color = res.series[1].color,
+	       data = sum,
+	       statistics = table.merge(stats or {}, ts_common.calculateMinMax(sum)),
+	    } }
+	 end
 	 results[qid] = res
       else
 	 results[qid] = {
