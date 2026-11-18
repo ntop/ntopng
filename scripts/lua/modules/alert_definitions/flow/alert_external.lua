@@ -45,7 +45,9 @@ local function formatIDSAlert(alert)
    if maker and alert_consts.ids_rule_maker[maker] then
       maker = alert_consts.ids_rule_maker[maker]
    end
-   return i18n("flow_details.ids_alert", { scope=scope, msg=msg, maker=maker })
+   -- NOTE: the signature comes from an external source (e.g. a syslog line) and is rendered as HTML,
+   -- use safeHtml to protect against malicious IDS events trying to inject code
+   return i18n("flow_details.ids_alert", { scope=safeHtml(scope), msg=safeHtml(msg), maker=safeHtml(maker) })
 end
 
 -- #######################################################

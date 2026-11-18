@@ -48,11 +48,13 @@ end
 function host_alert_host_log.format(ifid, alert, alert_type_params)
   local hostinfo = hostkey2hostinfo(alert.entity_val)
 
+  -- NOTE: host and message come from the received syslog line, use safeHtml
+  -- to protect against malicious logs trying to inject code
   return(i18n("alert_messages.host_log", {
-    host = alert_type_params.host,
+    host = safeHtml(alert_type_params.host),
     url = getHostUrl(hostinfo["host"], hostinfo["vlan"]),
-    facility = alert_type_params.facility,
-    line = alert_type_params.message,
+    facility = safeHtml(alert_type_params.facility),
+    line = safeHtml(alert_type_params.message),
   }))
 end
 

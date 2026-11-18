@@ -61,9 +61,10 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
          reason = '[' .. event.exit_status .. ']'
       end
 
-      local message = i18n("alert_messages.nbox_service", {service=event.service_name, host=event.hostname, ip=host, reason=reason})
+      -- NOTE: the message is rendered as HTML, use safeHtml to protect against malicious events trying to inject code
+      local message = i18n("alert_messages.nbox_service", {service=safeHtml(event.service_name), host=safeHtml(event.hostname), ip=safeHtml(host), reason=safeHtml(reason)})
       if not isEmptyString(event.instance_name) then
-         message = i18n("alert_messages.nbox_service_instance", {service=event.service_name, instance=event.instance_name, host=event.hostname, ip=host, reason=reason})
+         message = i18n("alert_messages.nbox_service_instance", {service=safeHtml(event.service_name), instance=safeHtml(event.instance_name), host=safeHtml(event.hostname), ip=safeHtml(host), reason=safeHtml(reason)})
       end
 
       local is_alert = syslog_utils.handle_system_event(host, event.service_name, event_type, message, priority,
