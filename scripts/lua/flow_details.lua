@@ -1548,7 +1548,7 @@ local function print_flow_overview_page()
                   local alert_src = "nDPI"
 
                   if (riskLabel ~= nil) then
-                     riskLabel = shortenString(riskLabel, 64)
+                     riskLabel = safeHtml(shortenString(riskLabel, 64))
                   else
                      riskLabel = ""
                   end

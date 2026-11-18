@@ -418,7 +418,7 @@ function alert_utils.formatFlowAlertMessage(
 			and alert_json.flow_risk_info
 		then
 			-- Flow risks most of the times already have a default description, use this in case of emtpy descr
-			msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+			msg = safeHtml(alert_utils.get_flow_risk_info(alert_risk, alert_json))
 		else
 			-- Normal alerts
 			msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert.entity_id)
@@ -439,7 +439,7 @@ function alert_utils.formatFlowAlertMessage(
 	-- Add the link to the documentation
 	if alert_risk and alert_risk > 0 and not exclude_remediation_link then
 		if isEmptyString(msg) and not isEmptyString(alert.info) then
-			msg = alert.info
+			msg = safeHtml(alert.info)
 		end
 		msg = string.format("%s %s", msg, flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src))
 		local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
@@ -881,6 +881,9 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 								end
 								local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
 								if not isEmptyString(info_msg) then
+									if not no_html then
+										info_msg = safeHtml(info_msg)
+									end
 									message = string.format("%s [%s]", message, info_msg)
 								end
 							end
@@ -1028,7 +1031,8 @@ function alert_utils.formatFlowAlertDescription(alert, alert_info, alert_id)
 		end
 		-- Risk info present, now check if the alert requested has an info inside
 		if riskInfo and not isEmptyString(riskInfo[tostring(alert_risk)]) then
-			info = riskInfo[tostring(alert_risk)]
+			-- The risk info embeds strings copied from the traffic (e.g. URL, hostname, user agent)
+			info = safeHtml(riskInfo[tostring(alert_risk)])
 		end
 	end
 	-- Fallback, no info found in the flow_risk, use the standard formatting

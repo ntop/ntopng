@@ -974,6 +974,16 @@ end
 
 -- @brief Convert an alert coming from the DB (value) to a record returned by the REST API
 -- if verbose == true returns historical flow data info
+-- @brief Escape the names of a flow peer: they come from the network (e.g. MDNS)
+--        and the GUI places them into HTML (tag attributes included)
+local function escape_host_names(flow_ip)
+	for _, field in ipairs({ "name", "label", "label_long" }) do
+		if flow_ip[field] then
+			flow_ip[field] = safeHtml(flow_ip[field])
+		end
+	end
+end
+
 function flow_alert_store:format_record(value, no_html, verbose)
 	local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
 	local alert_info = alert_utils.getAlertInfo(value)
@@ -1144,9 +1154,16 @@ function flow_alert_store:format_record(value, no_html, verbose)
 		flow_domain = flow_server_name
 	end
 
+	-- The info field is copied from the traffic (e.g. HTTP URL) and rendered as HTML by the GUI
+	local flow_info = value["info"] or ""
+	if not no_html then
+		-- Keep '/': the alert exclusion dialog splits info.value on it, and it is harmless in HTML
+		flow_info = safeHtml(flow_info):gsub("&#47;", "/")
+	end
+
 	record[RNAME.INFO.name] = {
-		label = value["info"] or "",
-		value = value["info"] or "",
+		label = flow_info,
+		value = flow_info,
 		issuerdn = flow_tls_issuerdn, -- IssuerDN used for alert exclusion
 	}
 
@@ -1264,6 +1281,10 @@ function flow_alert_store:format_record(value, no_html, verbose)
 		flow_cli_ip["label_long"] = label
 	end
 
+	if not no_html then
+		escape_host_names(flow_cli_ip)
+	end
+
 	-- Format Server
 
 	local srv_ip = value["srv_ip"]
@@ -1314,6 +1335,10 @@ function flow_alert_store:format_record(value, no_html, verbose)
 		-- Shortened label if necessary for UI purposes
 		flow_srv_ip["label"] = label
 		flow_srv_ip["label_long"] = label
+	end
+
+	if not no_html then
+		escape_host_names(flow_srv_ip)
 	end
 
 	local vlan = {

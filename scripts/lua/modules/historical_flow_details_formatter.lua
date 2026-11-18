@@ -468,7 +468,7 @@ local function format_historical_issue_description(
 		end
 
 		if riskInfo and riskInfo[tostring(alert_risk)] then
-			riskLabel = riskInfo[tostring(alert_risk)]
+			riskLabel = safeHtml(riskInfo[tostring(alert_risk)])
 		end
 	end
 
