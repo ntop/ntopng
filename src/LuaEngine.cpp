@@ -1354,7 +1354,15 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
           if (!valid_csrf)
             ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing or invalid CSRF in file upload [URI: %s]",
                 request_info->uri);
-          else if (!Utils::mkdir_tree(upload_dir))
+          else if (strcmp(user, NTOP_NOLOGIN_USER) &&
+                   strcmp(group, CONST_USER_GROUP_ADMIN)) {
+            /* The file is written before the script (and its permission
+               checks) runs: only administrators, the only users of the
+               uploaded files, can upload */
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "File upload refused, not an administrator [URI: %s]",
+                request_info->uri);
+            valid_csrf = 0;
+          } else if (!Utils::mkdir_tree(upload_dir))
             ntop->getTrace()->traceEvent(
                 TRACE_WARNING, "Unable to create directory %s", upload_dir);
           else {
