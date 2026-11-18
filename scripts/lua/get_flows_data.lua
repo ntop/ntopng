@@ -80,6 +80,8 @@ for key, value in ipairs(flows_stats) do
     local italic = true
 
     if (not isEmptyString(flows_info["info"])) then
+        -- Dissected data (HTTP URL, SSH banner...) ends up in column_info as HTML
+        flows_info["info"] = safeHtml(flows_info["info"])
         info = flows_info["info"]
         italic = false
     elseif (not isEmptyString(flows_info["icmp"])) then
