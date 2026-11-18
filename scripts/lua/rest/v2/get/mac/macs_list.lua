@@ -150,7 +150,8 @@ for _, value in ipairs(page_macs) do
    end
    if (value["model"] ~= nil) then
       local _model = discover.apple_products[value["model"]] or value["model"]
-      mac_manufacturer = mac_manufacturer .. " [ " .. shortenString(_model) .. " ]"
+      -- The model comes from the traffic (mDNS) and the GUI renders it as HTML
+      mac_manufacturer = mac_manufacturer .. " [ " .. safeHtml(shortenString(_model)) .. " ]"
    end
    record["manufacturer"] = mac_manufacturer
 
@@ -168,7 +169,8 @@ for _, value in ipairs(page_macs) do
    -- Fast path: a symbolic device name is available -> no host lookup needed.
    -- Slow path (no name): defer to the bulk IP resolution below, and only
    -- when the MAC actually has associated hosts (num_hosts > 0).
-   local name_device = {name = getDeviceName(value["mac"], true), has_name = true}
+   -- The name comes from the traffic (e.g. DHCP) and the GUI renders it as HTML
+   local name_device = {name = safeHtml(getDeviceName(value["mac"], true)), has_name = true}
    if (isEmptyString(name_device.name)) then
       local num_hosts = value["num_hosts"] or 0
       name_device = {has_name = false, num_hosts = num_hosts, host_label = ""}

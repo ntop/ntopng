@@ -171,7 +171,8 @@ function mac2record(mac)
 
     if (mac["model"] ~= nil) then
         local _model = discover.apple_products[mac["model"]] or mac["model"]
-        manufacturer = manufacturer .. " [ " .. shortenString(_model) .. " ]"
+        -- The model comes from the traffic (mDNS) and the GUI renders it as HTML
+        manufacturer = manufacturer .. " [ " .. safeHtml(shortenString(_model)) .. " ]"
     end
 
     record["column_manufacturer"] = manufacturer
@@ -214,7 +215,8 @@ function mac2record(mac)
 
     record["column_traffic"] = bytesToSize(mac["bytes.sent"] + mac["bytes.rcvd"])
 
-    local name = getDeviceName(mac["mac"], true)
+    -- The name comes from the traffic (e.g. DHCP) and the GUI renders it as HTML
+    local name = safeHtml(getDeviceName(mac["mac"], true))
 
     if (isEmptyString(name)) then
         name = printMacHosts(mac.mac)

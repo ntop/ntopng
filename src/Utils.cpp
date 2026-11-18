@@ -8401,3 +8401,176 @@ u_int16_t Utils::getHostSiteId(NetworkInterface *iface, struct ndpi_in6_addr *ho
 
   return(iface->getNetworkSiteId(host_network_id));
 }
+
+/* *************************************** */
+
+/* Reverse-lookup (PTR) names are never names of the host itself */
+bool Utils::isReverseLookupName(const char* name) {
+  u_int ip4_0, ip4_1, ip4_2, ip4_3;
+
+  return (Utils::endsWith(name, ".in-addr.arpa") ||
+          Utils::endsWith(name, ".ip6.arpa") ||
+          (sscanf(name, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4));
+}
+
+/* *************************************** */
+
+/*
+  DNS host name (RFC 952/1123): dot-separated labels of letters, digits and
+  hyphens (no leading/trailing hyphen), 1-63 bytes per label, max 253 bytes.
+  Underscores are not legal in host names but are tolerated inside labels as
+  they are common in the wild; names beginning with '_' are service names
+  (e.g. _dmarc.example.com) and are rejected. IPv4 literals and reverse-lookup names are rejected.
+*/
+bool Utils::isValidDNSHostName(const char* name, bool allow_trailing_dot) {
+  u_int len, label_len = 0;
+
+  if ((name == NULL) || (name[0] == '\0') || (name[0] == '_')) return (false);
+
+  len = strlen(name);
+  if (allow_trailing_dot && (name[len - 1] == '.')) len--;
+  if ((len == 0) || (len > 253)) return (false);
+
+  for (u_int i = 0; i < len; i++) {
+    char c = name[i];
+
+    if (c == '.') {
+      if ((label_len == 0) || (name[i - 1] == '-')) return (false);
+      label_len = 0;
+    } else if (isalnum((u_char)c) || (c == '_') ||
+               ((c == '-') && (label_len > 0))) {
+      if (++label_len > 63) return (false);
+    } else
+      return (false);
+  }
+
+  if ((label_len == 0) || (name[len - 1] == '-')) return (false);
+
+  return (!isReverseLookupName(name));
+}
+
+/* *************************************** */
+
+/*
+  Human-readable UTF-8 name (e.g. "John's iPhone (2)"): must be well-formed
+  UTF-8 without control characters. Characters used for markup/quoting are
+  rejected as they never appear in legitimate device names.
+*/
+bool Utils::isValidUTF8DisplayName(const char* name, u_int max_len) {
+  const u_char* s = (const u_char*)name;
+  u_int len;
+
+  if ((name == NULL) || (name[0] == '\0') || (name[0] == ' ')) return (false);
+
+  len = strlen(name);
+  if ((len > max_len) || (name[len - 1] == ' ')) return (false);
+
+  for (u_int i = 0; i < len;) {
+    u_char c = s[i];
+    u_int n;
+
+    if (c < 0x80) {
+      if ((c < 0x20) || (c == 0x7F) || strchr("<>\"\\`", c)) return (false);
+      i++;
+      continue;
+    } else if ((c & 0xE0) == 0xC0 && (c >= 0xC2))
+      n = 1;
+    else if ((c & 0xF0) == 0xE0)
+      n = 2;
+    else if ((c & 0xF8) == 0xF0 && (c <= 0xF4))
+      n = 3;
+    else
+      return (false); /* Invalid UTF-8 lead byte */
+
+    if ((i + n) >= len) return (false); /* Truncated sequence */
+
+    for (u_int j = 1; j <= n; j++)
+      if ((s[i + j] & 0xC0) != 0x80) return (false);
+
+    i += n + 1;
+  }
+
+  return (true);
+}
+
+/* *************************************** */
+
+/*
+  mDNS (RFC 6762/6763): the dissector strips ".local" and the "._service._proto"
+  suffix, so we get either a host label (e.g. "Johns-MacBook") or a DNS-SD
+  service instance name (UTF-8, spaces allowed, max 63 bytes).
+*/
+bool Utils::isValidMDNSName(const char* name) {
+  if ((name == NULL) || (name[0] == '_') || isReverseLookupName(name) ||
+      strstr(name, "._"))
+    return (false);
+
+  return (isValidUTF8DisplayName(name, 63) && !Utils::isIPAddress(name));
+}
+
+/* *************************************** */
+
+/*
+  mDNS TXT "nm=" value (RFC 6763 section 6): device friendly name, UTF-8,
+  bounded by the 255-byte TXT string limit.
+*/
+bool Utils::isValidMDNSTXTName(const char* name) {
+  return (isValidUTF8DisplayName(name, 255));
+}
+
+/* *************************************** */
+
+/*
+  DHCP host name (option 12, RFC 2132) or FQDN (option 81, RFC 4702): must
+  follow the DNS host name syntax. A trailing dot is accepted for FQDNs.
+*/
+bool Utils::isValidDHCPName(const char* name) {
+  return (isValidDNSHostName(name, true));
+}
+
+/* *************************************** */
+
+/*
+  NetBIOS name (RFC 1001/1002): max 15 characters plus a 1-byte suffix that
+  the decoder may keep when printable. Any printable ASCII character is allowed
+  (e.g. '$' for machine accounts, '@', '(', ')', '&', '\'') with the exception
+  of \ / : * ? " < > | that are reserved. Names beginning with '.' are invalid.
+*/
+bool Utils::isValidNetBIOSName(const char* name) {
+  u_int len;
+
+  if ((name == NULL) || (name[0] == '\0') || (name[0] == '.') ||
+      (name[0] == ' '))
+    return (false);
+
+  len = strlen(name);
+  if (len > 16) return (false);
+
+  for (u_int i = 0; i < len; i++) {
+    u_char c = (u_char)name[i];
+
+    if ((c < 0x20) || (c > 0x7E) || strchr("\\/:*?\"<>|", c)) return (false);
+  }
+
+  return (!Utils::isIPAddress(name));
+}
+
+/* *************************************** */
+
+/*
+  TLS SNI (RFC 6066 section 3) and certificate dNSName: ASCII DNS host name
+  (IDNs as A-labels), without trailing dot, IP literals not allowed.
+*/
+bool Utils::isValidTLSName(const char* name) {
+  return (isValidDNSHostName(name, false));
+}
+
+/* *************************************** */
+
+/*
+  HTTP Host header (RFC 9110 section 7.2): the port is already stripped by nDPI,
+  IP literals are not names. An absolute FQDN (trailing dot) is legal.
+*/
+bool Utils::isValidHTTPName(const char* name) {
+  return (isValidDNSHostName(name, true));
+}

@@ -53,6 +53,16 @@ class Utils {
   static u_int8_t l4name2proto(const char* name);
   static u_int8_t queryname2type(const char* name);
   static bool isIPAddress(const char* ip);
+  /* Protocol-specific name validators (names learnt from the traffic) */
+  static bool isReverseLookupName(const char* name);
+  static bool isValidDNSHostName(const char* name, bool allow_trailing_dot);
+  static bool isValidUTF8DisplayName(const char* name, u_int max_len);
+  static bool isValidMDNSName(const char* name);
+  static bool isValidMDNSTXTName(const char* name);
+  static bool isValidDHCPName(const char* name);
+  static bool isValidNetBIOSName(const char* name);
+  static bool isValidTLSName(const char* name);
+  static bool isValidHTTPName(const char* name);
   static void splitAddressAndVlan(char* addr, u_int16_t* vlan_id);
   static const bool isIpEmpty(ipAddress addr);
 #ifdef __linux__

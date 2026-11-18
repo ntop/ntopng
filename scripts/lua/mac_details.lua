@@ -191,7 +191,7 @@ if((page == "overview") or (page == nil)) then
 
    if(not isEmptyString(mac_info.model)) then
       local _model = discover.apple_products[mac_info.model] or mac_info.model
-      print(" [ "..i18n("model")..": ".. _model .." ]")
+      print(" [ "..i18n("model")..": ".. safeHtml(_model) .." ]")
    end
 
    print("</td></tr>")
@@ -206,7 +206,7 @@ if((page == "overview") or (page == nil)) then
       snmp_location.print_host_snmp_location(mac, url .. [[&page=snmp]])
    end
 
-   print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
+   print("<tr><th>"..i18n("name").."</th><td><span id=name>"..safeHtml(label).."</span>")
 
    if isAdministrator() then
       print[[ <a href="]] print(http_prefix) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
@@ -239,7 +239,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " ")
       print(discover.devtype2string(mac_info.devtype))
       if(mac_info.ssid ~= nil) then
-	 print(' ( <i class="fas fa-wifi fa-lg devtype-icon" aria-hidden="true"></i> '..mac_info.ssid..' )')
+	 print(' ( <i class="fas fa-wifi fa-lg devtype-icon" aria-hidden="true"></i> '..safeHtml(mac_info.ssid)..' )')
       end
 
       print("</td><td></td></tr>\n")
@@ -449,7 +449,7 @@ elseif(page == "config") then
          <td>]]
 
       print[[<input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width:240px;display:inline;" value="]]
-      if(label ~= nil) then print(label) end
+      if(label ~= nil) then print(safeHtml(label)) end
       print("\"></input> &nbsp;<div style=\"width:240px;display:inline-block;\" >")
 
       discover.printDeviceTypeSelector(mac_info.devtype, "device_type")

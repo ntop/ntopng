@@ -391,7 +391,8 @@ void Mac::inlineSetSSID(const char* s) {
 /* *************************************** */
 
 void Mac::inlineSetDHCPName(const char* dhcp_name) {
-  if (!names.dhcp && dhcp_name && (names.dhcp = strdup(dhcp_name)))
+  if (!Utils::isValidDHCPName(dhcp_name)) return;
+  if (!names.dhcp && (names.dhcp = strdup(dhcp_name)))
     asset_map_updated = true;
 }
 
@@ -444,7 +445,9 @@ void Mac::readDHCPCache() {
 
     snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id(), mac_str);
 
-    if (ntop->getRedis()->get(key, buf, sizeof(buf)) == 0) {
+    /* Discard entries cached without validation by previous versions */
+    if ((ntop->getRedis()->get(key, buf, sizeof(buf)) == 0) &&
+        Utils::isValidDHCPName(buf)) {
       names.dhcp = strdup(buf);
     }
   }
