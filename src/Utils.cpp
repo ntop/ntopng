@@ -372,6 +372,67 @@ u_int8_t Utils::queryname2type(const char* name) {
 
 /* ****************************************************** */
 
+/*
+  The DNS name (RFC 1035, section 4.1.4) at *offset of the DNS message msg of
+  msg_len bytes (the offsets are from the start of the message, as the ones
+  of the compression pointers): the labels joined with '.' in name (truncated
+  to name_len, NULL to skip the name only), the compression pointers followed
+  backwards. *offset is moved past the name. False for an invalid name
+  (*offset unchanged).
+*/
+bool Utils::readDNSName(const u_int8_t* msg, u_int16_t msg_len,
+                        u_int16_t* offset, char* name, u_int name_len) {
+  u_int16_t pos = *offset, end = 0 /* After the first pointer, if any */;
+  u_int j = 0;
+
+  while (true) {
+    u_int8_t len;
+
+    if (pos >= msg_len) return (false);
+
+    len = msg[pos];
+
+    if (len == 0) {
+      pos++;
+      break;
+    } else if ((len & 0xC0) == 0xC0) {
+      u_int16_t target;
+
+      if ((pos + 1) >= msg_len) return (false);
+
+      target = ((len & 0x3F) << 8) | msg[pos + 1];
+
+      /* Backwards only, so that the pointers cannot loop */
+      if (target >= pos) return (false);
+
+      if (end == 0) end = pos + 2;
+
+      pos = target;
+    } else if (len & 0xC0)
+      return (false); /* Reserved label types */
+    else {
+      if ((pos + 1 + len) > msg_len) return (false);
+
+      if (name && name_len) {
+        if ((j > 0) && (j < (name_len - 1))) name[j++] = '.';
+
+        for (u_int k = 0; (k < len) && (j < (name_len - 1)); k++)
+          name[j++] = msg[pos + 1 + k];
+      }
+
+      pos += 1 + len;
+    }
+  }
+
+  if (name && name_len) name[j] = '\0';
+
+  *offset = end ? end : pos;
+
+  return (true);
+}
+
+/* ****************************************************** */
+
 bool Utils::isIPAddress(const char* ip) {
   struct in_addr addr4;
   struct in6_addr addr6;

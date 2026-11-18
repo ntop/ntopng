@@ -7394,7 +7394,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char* payload,
 /* *************************************** */
 
 void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
-  u_int16_t answers, i = 0;
+  u_int16_t questions, answers, i = 0;
 
   PACK_ON
   struct mdns_rsp_entry {
@@ -7406,103 +7406,39 @@ void Flow::dissectMDNS(u_int8_t* payload, u_int16_t payload_len) {
   if ((payload_len < 12) || ((payload[2] & 0x80) != 0x80))
     return; /* This is a not MDNS response */
 
+  questions = ntohs(*((u_int16_t*)&payload[4]));
   answers = ntohs(*((u_int16_t*)&payload[6])) +
             ntohs(*((u_int16_t*)&payload[8])) +
             ntohs(*((u_int16_t*)&payload[10]));
 
-  payload = &payload[12], payload_len -= 12;
+  /* The offsets (i) are from the start of the message, as the ones of the
+   * compression pointers of the names */
+  i = 12;
+
+  /* Skip the questions, echoed by the responses to legacy unicast queries
+   * (RFC 6762, section 6.7): the name, the type and the class */
+  for (; questions > 0; questions--) {
+    if (!Utils::readDNSName(payload, payload_len, &i, NULL, 0))
+      return; /* Invalid packet */
+
+    i += 4;
+  }
 
   while ((answers > 0) && (i < payload_len)) {
     char _name[256], *name;
     struct mdns_rsp_entry rsp;
-    u_int j;
     u_int16_t rsp_type, data_len;
     DeviceType dtype = device_unknown;
-    bool first_char = true;
 
-    memset(_name, 0, sizeof(_name));
-
-    for (j = 0; (i < payload_len) && (j < (sizeof(_name) - 1)); i++) {
-      if (payload[i] == 0x0) {
-        i++;
-        break;
-      } else if (payload[i] < 32) {
-        if (j > 0) _name[j++] = '.';
-      } else if (payload[i] == 0x22) {
-        /*
-          The loop guard only checks 'j' once per iteration, but this branch
-          writes 4 bytes: make sure they (and the reserved trailing '\0' at
-          _name[sizeof(_name)-1]) fit, otherwise stop to avoid a stack
-          buffer overflow (CWE-787).
-        */
-        if (j + 4 > sizeof(_name) - 1) break;
-        _name[j++] = 'a';
-        _name[j++] = 'r';
-        _name[j++] = 'p';
-        _name[j++] = 'a';
-        i++;
-        break;
-      } else if (payload[i] == 0xC0) {
-        u_int8_t offset;
-        u_int16_t i_save = i;
-        u_int8_t num_loops = 0;
-        const u_int8_t max_nested_loops = 8;
-
-      nested_dns_definition:
-        if (i + 1 >= payload_len)
-          return; /* Invalid packet */
-        offset = payload[i + 1] - 12;
-        i = offset;
-
-        if ((offset > i) || (i > payload_len) ||
-            (num_loops > max_nested_loops)) {
-#ifdef DEBUG_DISCOVERY
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid MDNS packet");
-#endif
-          return; /* Invalid packet */
-        } else {
-          /* Pointer back */
-          while ((i < payload_len) && (payload[i] != 0) &&
-                 (j < (sizeof(_name) - 1))) {
-            if (payload[i] == 0)
-              break;
-            else if (payload[i] == 0xC0) {
-              num_loops++;
-              goto nested_dns_definition;
-            } else if (payload[i] < 32) {
-              if (j > 0) _name[j++] = '.';
-              i++;
-            } else
-              _name[j++] = payload[i++];
-          }
-
-          if (i_save > 0) {
-            i = i_save;
-            i_save = 0;
-          }
-
-          i += 2;
-          /*  ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i,
-           * &payload[i-12]); */
-          break;
-        }
-      } else if (!first_char)
-        _name[j++] = payload[i];
-
-      first_char = false;
-    }
+    if (!Utils::readDNSName(payload, payload_len, &i, _name, sizeof(_name)))
+      return; /* Invalid packet */
 
     if ((i + sizeof(rsp)) >= payload_len) return; /* packet too short */
 
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
-#if 1
     name = _name;
-#else
-    /* Skip lenght for strings >= 32 with head length */
-    name = &_name[((data_len <= 32) || (_name[0] >= '0')) ? 0 : 1];
-#endif
 
 #ifdef DEBUG_DISCOVERY
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%u][%s][len=%u]",
