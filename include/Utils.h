@@ -53,6 +53,8 @@ class Utils {
   static u_int8_t l4name2proto(const char* name);
   static u_int8_t queryname2type(const char* name);
   static bool isIPAddress(const char* ip);
+  static bool readDNSName(const u_int8_t* msg, u_int16_t msg_len,
+                          u_int16_t* offset, char* name, u_int name_len);
   static void splitAddressAndVlan(char* addr, u_int16_t* vlan_id);
   static const bool isIpEmpty(ipAddress addr);
 #ifdef __linux__
