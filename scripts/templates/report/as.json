@@ -43,49 +43,6 @@
 	],
 	"components": [
 		{
-			"component": "pie",
-			"id": "top_l7_categories",
-			"metric": "volume",
-			"i18n_name": "top_l7_cat",
-			"width": 4,
-			"height": 4,
-			"params": {
-				"url": "/lua/pro/rest/v2/get/db/charts/top_l7_categories.lua",
-				"url_params": {
-					"length": 10
-				},
-				"unit": "bytes"
-			}
-		},
-		{
-			"component": "pie",
-			"id": "top_l7_proto",
-			"metric": "volume",
-			"i18n_name": "top_l7_proto",
-			"width": 4,
-			"height": 4,
-			"params": {
-				"url": "/lua/pro/rest/v2/get/db/charts/top_l7_proto.lua",
-				"url_params": {
-					"length": 10
-				},
-				"unit": "bytes"
-			}
-		},
-		{
-			"component": "pie",
-			"id": "traffic_role_distribution",
-			"metric": "volume",
-			"i18n_name": "if_stats_overview.traffic_role_distribution",
-			"width": 4,
-			"height": 4,
-			"params": {
-				"url": "/lua/pro/rest/v2/get/db/charts/top_interface_roles.lua",
-				"url_params": {},
-				"unit": "bytes"
-			}
-		},
-		{
 			"component": "top-timeseries",
 			"id": "top_active_asn",
 			"metric": "throughput",
