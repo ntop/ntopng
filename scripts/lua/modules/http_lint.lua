@@ -1012,7 +1012,7 @@ local function validateHostName(v)
    end
 
    if (not validateSingleWord(v)) then
-      for str in ipairs(split(v, " ")) do
+      for _, str in ipairs(split(v, " ")) do
 	 if (not validateSingleWord(str)) then
 	    return false
 	 end
