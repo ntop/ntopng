@@ -144,7 +144,9 @@ if(page == "overview") then
          msg = ntop.listIndexCache("ntopng.trace", i)
          if(msg ~= nil) then
 
-            local text = noHtml(msg)
+            -- Log lines may quote untrusted data (e.g. request parameters): escape
+            -- them as noHtml() only strips tags, it does not encode HTML entities
+            local text = safeHtml(noHtml(msg))
 
             -- encapsule the ERROR or WARNING string in a badge
             -- so the log are more visible
