@@ -7675,20 +7675,40 @@ void Flow::dissectNetBIOS(u_int8_t* payload, u_int16_t payload_len) {
                                    (u_char*)name, sizeof(name)) > 0) &&
       (!strstr(name, "__MSBROWSE__"))) {
     if (name[0] == '*') {
-      int limit = min_val(payload_len - 57, (int)sizeof(name) - 1);
-      int i = 0;
+      /* Node status response (RFC 1002, section 4.2.18): the number of names
+       * at offset 56, then one entry of 18 bytes per name: 15 characters
+       * padded with spaces, the suffix and 2 bytes of flags. The name of the
+       * host is the first unique (not group) name with the suffix 0x00
+       * (Workstation/Redirector) */
+      u_int8_t num_names = (payload_len > 56) ? payload[56] : 0;
 
-      while ((i < limit) && (payload[57 + i] != 0x20) &&
-             isprint(payload[57 + i])) {
-        name[i] = payload[57 + i];
-        i++;
+      name[0] = '\0';
+
+      for (u_int8_t n = 0; n < num_names; n++) {
+        u_int16_t offset = 57 + n * 18;
+        int len = 15;
+
+        if ((offset + 18) > payload_len) break;
+
+        if ((payload[offset + 15] != 0x00) /* Not a Workstation/Redirector */
+            || (payload[offset + 16] & 0x80) /* Group name */)
+          continue;
+
+        while ((len > 0) && (payload[offset + len - 1] == ' ')) len--;
+
+        for (int i = 0; i < len; i++) {
+          if (!isprint(payload[offset + i])) {
+            len = 0; /* Not a name */
+            break;
+          }
+        }
+
+        if (len > 0) {
+          memcpy(name, &payload[offset], len);
+          name[len] = '\0';
+          break;
+        }
       }
-
-      if ((i < limit) &&
-          (payload[57 + i] != 0x00 /* Not a Workstation/Redirector */))
-        name[0] = '\0'; /* ignore */
-      else
-        name[i] = '\0';
     }
 #if 0
     char buf[32];
