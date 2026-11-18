@@ -438,8 +438,13 @@ function host_alert_store:format_record(value, no_html)
             record[RNAME.IP.name]["label"] = host_label_long
         else
             local host_label_short = shortenString(host_label_long)
-            record[RNAME.IP.name]["label"] = host_label_short
-            record[RNAME.IP.name]["label_long"] = host_label_long
+
+            -- The GUI places these strings into HTML (tag attributes included) and they
+            -- come from the network (e.g. name learned via MDNS, ip from syslog)
+            record[RNAME.IP.name]["value"] = safeHtml(host)
+            record[RNAME.IP.name]["shown_label"] = safeHtml(host)
+            record[RNAME.IP.name]["label"] = safeHtml(host_label_short)
+            record[RNAME.IP.name]["label_long"] = safeHtml(host_label_long)
         end
     end
 
