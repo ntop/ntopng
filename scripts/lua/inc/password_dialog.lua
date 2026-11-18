@@ -811,8 +811,8 @@ $('#password_reset_submit').click(function() {
         _has_passkeys = true;
         syncAuthTabStates();
         data.credentials.forEach(function(c) {
-          html += '<tr><td>' + (c.name || 'Passkey') + '</td>' +
-                  '<td><button class="btn btn-sm btn-danger btn-del-passkey" data-cred-id="' + c.id + '">]] print(i18n("webauthn.remove_passkey")) print[[</button></td></tr>';
+          html += '<tr><td>' + NtopUtils.escapeHTML(c.name || 'Passkey') + '</td>' +
+                  '<td><button class="btn btn-sm btn-danger btn-del-passkey" data-cred-id="' + NtopUtils.escapeHTML(c.id) + '">]] print(i18n("webauthn.remove_passkey")) print[[</button></td></tr>';
         });
         html += '</tbody></table>';
         list.innerHTML = html;

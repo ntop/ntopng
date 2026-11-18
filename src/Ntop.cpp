@@ -3638,21 +3638,30 @@ bool Ntop::deleteWebAuthnCredential(const char* username,
 bool Ntop::getWebAuthnCredentialsJSON(const char* username,
                                        char* json_out, size_t len) const {
   int n = getWebAuthnCredentialCount(username);
-  std::string out = "[";
+  json_object* out = json_object_new_array();
+
+  if (!out) {
+    snprintf(json_out, len, "[]");
+    return false;
+  }
+
+  /* id and name are user-provided: build the document with json-c so
+   * that quotes, backslashes and escape sequences in them stay data */
   for (int i = 0; i < n; i++) {
     char id[512]; uint8_t x[32], y[32]; uint32_t sc; char nm[64];
+    json_object* entry;
     if (!getWebAuthnCredential(username, i, id, sizeof(id), x, y, &sc,
                                nm, sizeof(nm)))
       continue;
-    if (out.size() > 1) out += ",";
-    char entry[768];
-    snprintf(entry, sizeof(entry),
-             "{\"id\":\"%s\",\"name\":\"%s\",\"sign_count\":%u}", id, nm, sc);
-    out += entry;
+    if ((entry = json_object_new_object()) == NULL) continue;
+    json_object_object_add(entry, "id", json_object_new_string(id));
+    json_object_object_add(entry, "name", json_object_new_string(nm));
+    json_object_object_add(entry, "sign_count", json_object_new_int64(sc));
+    json_object_array_add(out, entry);
   }
-  out += "]";
-  strncpy(json_out, out.c_str(), len - 1);
+  strncpy(json_out, json_object_to_json_string(out), len - 1);
   json_out[len - 1] = '\0';
+  json_object_put(out); /* Free memory */
   return true;
 }
 
@@ -3873,7 +3882,11 @@ bool Ntop::verifyAndStoreWebAuthnRegistration(
   /* 6. Check UP flag */
   if (!(ad.flags & 0x01)) return false;
 
-  /* 7. Store the credential (cred_id comes from the client as b64url) */
+  /* 7. The client-provided cred_id must be the attested one (as b64url) */
+  if (webauthn_b64url_encode(ad.cred_id, ad.cred_id_len) != cred_id_b64url)
+    return false;
+
+  /* 8. Store the credential */
   return storeWebAuthnCredential(username, cred_id_b64url,
                                  ad.pk_x, ad.pk_y, ad.sign_count,
                                  cred_name && cred_name[0] ? cred_name : "Passkey");
