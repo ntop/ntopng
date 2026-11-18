@@ -5,7 +5,7 @@ Redis
 
 `Redis <https://redis.io/>`_ is a key-value store used by ntopng to cache data and preferences. Redis runs as an external service both on Linux and on Windows. ntopng connects to Redis using sockets. Failing to connect to Redis would cause ntopng to malfunction. Redis must always be up, running and reachable to ensure ntopng functionalities.
 
-Aim of this monitor is to check Redis health and resources used. The page has two tabs: *Overview* and *Historical Data*.
+Aim of this monitor is to check Redis health and resources used. The page has three tabs: *Overview*, *Historical Data* and *Queues*.
 
 .. figure:: ../../../img/redis_monitor_home.png
   :align: center
@@ -39,3 +39,12 @@ The *Historical Data* tab shows the charts:
 - Number of calls for a subset of Redis commands used.
 
 Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*: the *Historical Data* tab and the chart buttons are then disabled.
+
+The *Queues* tab, refreshed every 5 seconds, lists the Redis lists used by ntopng as queues: a component pushes entries (e.g. the updates of the assets of each interface) that another one processes later (e.g. writes them to the database once a minute). For each queue the table shows:
+
+- :code:`Queue` and :code:`Interface Name`: what the queue holds and the interface it belongs to (*System* for the queues not bound to an interface).
+- :code:`Redis Key`: the Redis list.
+- :code:`Length`: the number of entries waiting to be processed.
+- :code:`Max Length` and :code:`Fill %`: the length the queue is limited to and how full it is (empty when the queue is not limited).
+
+When a queue is full, entries are dropped (the newest or the oldest ones, depending on the queue). A fill level shown in red (90% or more) means that the entries are queued faster than they are processed. The queues are sorted by fill level, the fullest first.

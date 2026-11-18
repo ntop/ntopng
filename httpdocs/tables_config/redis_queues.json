@@ -1,0 +1,64 @@
+{
+	"id": "redis_queues",
+	"data_url": "lua/rest/v2/get/redis/queues.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.redis_queues",
+	"show_autorefresh": 5,
+	"default_sort": {
+		"column_id": "fill_pct",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "queue",
+			"title_i18n": "system_stats.redis.queue",
+			"data_field": "queue_i18n",
+			"sortable": true,
+			"min-width": "200px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "iface_name",
+			"title_i18n": "interface_name",
+			"data_field": "iface_name",
+			"sortable": true,
+			"min-width": "200px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "redis_key",
+			"title_i18n": "system_stats.redis.redis_key",
+			"data_field": "redis_key",
+			"sortable": true,
+			"min-width": "200px",
+			"class": ["text-nowrap"]
+		},
+		{
+			"id": "length",
+			"title_i18n": "system_stats.redis.queue_length",
+			"data_field": "length",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "max_length",
+			"title_i18n": "system_stats.redis.queue_max_length",
+			"data_field": "max_length",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		},
+		{
+			"id": "fill_pct",
+			"title_i18n": "system_stats.redis.queue_fill_pct",
+			"data_field": "fill_pct",
+			"sortable": true,
+			"min-width": "100px",
+			"class": ["text-end", "text-nowrap"]
+		}
+	]
+}
