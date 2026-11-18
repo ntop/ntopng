@@ -21225,6 +21225,10 @@
                       "sum_series": {
                         "type": "boolean",
                         "description": "Sum all the series of this query (e.g. bytes_sent + bytes_rcvd) into a single 'total' serie, statistics computed on the sum"
+                      },
+                      "align_group": {
+                        "type": "string",
+                        "description": "Queries with the same align_group (e.g. drawn in the same chart) are returned with the same step, the largest one among them, so that every point covers the same time for all the series"
                       }
                     }
                   }

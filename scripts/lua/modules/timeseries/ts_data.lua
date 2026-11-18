@@ -284,6 +284,7 @@ function ts_data.get_timeseries(http_context)
    local options = {
       min_num_points = 2, -- Minimum data points to return
       max_num_points = tonumber(http_context.limit) or 60, -- Maximum data points
+      min_step = tonumber(http_context.min_step), -- Step of the other series of the same chart
       initial_point = toboolean(http_context.initial_point), -- Include initial point
       epoch_begin = tonumber(http_context.epoch_begin) or (os.time() - 3600), -- Start time (default: 1 hour ago)
       epoch_end = tonumber(http_context.epoch_end) or os.time(), -- End time (default: now)

@@ -388,8 +388,8 @@ Things to know when combining timeseries:
 
 - Timeseries can be stored with different resolutions (e.g. every second for the
   interface traffic, every minute or every 5 minutes for an AS). In the same chart
-  all of them are shown with the coarsest one, averaging the finer values, so that
-  every point of the chart covers the same time for all the lines.
+  all of them are shown with the coarsest one: every point of the chart covers the
+  same time for all the lines, so their values can be compared.
 - "Sent" and "Received" do not mean the same thing everywhere: for an AS they are
   the traffic sent and received by the hosts of that AS, for an interface they
   are the outgoing and incoming traffic seen by the interface. To compare an AS

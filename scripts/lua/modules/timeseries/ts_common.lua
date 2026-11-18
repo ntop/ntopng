@@ -239,6 +239,11 @@ function ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
         time_step = num_samples * raw_step
     end
 
+    -- min_step: same step as the other series drawn in the same chart (a multiple of raw_step)
+    if options.min_step and (options.min_step > time_step) then
+        time_step = math.ceil(options.min_step / raw_step) * raw_step
+    end
+
     return time_step
 end
 

@@ -34,13 +34,15 @@ local function addTopTimeseries(tags, tsOptions)
                 measure_unit = "bps",
                 scale = i18n('graphs.metric_labels.traffic'),
                 timeseries = {
+                    -- Same as asn:traffic in ts_asn.lua: rcvd below the x axis
                     bytes_sent = {
                         label = asn .. " " .. i18n('graphs.metric_labels.sent'),
-                        color = ts_gui_utils.get_timeseries_color('bytes')
+                        color = ts_gui_utils.get_timeseries_color('bytes_sent')
                     },
                     bytes_rcvd = {
+                        invert_direction = true,
                         label = asn .. " " .. i18n('graphs.metric_labels.rcvd'),
-                        color = ts_gui_utils.get_timeseries_color('bytes')
+                        color = ts_gui_utils.get_timeseries_color('bytes_rcvd')
                     }
                 }
             }

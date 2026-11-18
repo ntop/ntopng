@@ -227,121 +227,144 @@ local meta = {
 -- process queries
 local results = {}
 
+-- Run one query of the request; min_step forces at least that step (see align_group)
+local function run_query(q, min_step)
+   local schema_name = tostring(q.ts_schema or "")
+   local tags = tsQueryToTags(tostring(q.ts_query or ""))
+
+   -- Select the correct interface so RRD paths resolve
+   if tags.ifid then
+      interface.select(tostring(tags.ifid))
+   end
+
+   local http_context = {
+      ts_schema = schema_name,
+      epoch_begin = tostring(epoch_begin),
+      epoch_end = tostring(epoch_end),
+      tags = tags,
+      ts_compare = q.compare or ts_compare,
+      zoom = q.zoom or zoom,
+      limit = tostring(q.limit or limit),
+      version = version,
+      initial_point = tostring(q.initial_point or false),
+      min_step = min_step,
+   }
+
+   if q.tskey ~= nil then
+      http_context.tskey = tostring(q.tskey)
+   end
+   if q.ts_unify ~= nil then
+      http_context.ts_unify = tostring(q.ts_unify)
+   end
+
+   local ok, res = pcall(ts_data.get_timeseries, http_context)
+   if ok then
+      res.error = nil
+      -- ts_data may resolve schema aliases (e.g. top:iface:ndpi -> top:iface:ndpi_full).
+      -- Re-attach the top: prefix so the handler lookup finds the right entry.
+      local resolved_schema = schema_name
+      if res.metadata and res.metadata.schema then
+	 local ms = res.metadata.schema
+	 if schema_name:sub(1, 4) == "top:" and ms:sub(1, 4) ~= "top:" then
+	    resolved_schema = "top:" .. ms
+	 else
+	    resolved_schema = ms
+	 end
+      end
+      local schema_info = get_schema_info(resolved_schema)
+      res.measure_unit = schema_info.measure_unit
+      -- Annotate each series with label + invert_direction from handler definition
+      if type(res.series) == "table" then
+	 for _, serie in ipairs(res.series) do
+	    local smeta = schema_info.series_meta[serie.id]
+	    if smeta then
+	       serie.label = smeta.label
+	       serie.invert_direction = smeta.invert_direction
+	       if smeta.color then
+		  serie.color = smeta.color
+	       end
+	    end
+	 end
+      end
+      -- Default source label (used as series prefix when a chart mixes sources)
+      if res.metadata and isEmptyString(res.metadata.label) then
+	 if tags.asn then
+	    local as_info = interface.getASInfo(tonumber(tags.asn))
+	    res.metadata.label = "AS" .. tags.asn
+	    if as_info and not isEmptyString(as_info.asname) then
+	       res.metadata.label = res.metadata.label .. " (" .. as_info.asname .. ")"
+	    end
+	 elseif tags.ifid and table.len(tags) == 1 then
+	    res.metadata.label = getHumanReadableInterfaceName(tostring(tags.ifid))
+	 end
+      end
+      -- sum_series: collapse all the series of this query into a single "Total"
+      -- (e.g. asn:traffic sent + rcvd), NaN only where every series is NaN
+      if toboolean(q.sum_series) and type(res.series) == "table" and #res.series > 1 then
+	 local ts_common = require("ts_common")
+	 local ts_schema = require("ts_utils_core").getSchema(res.metadata and res.metadata.schema or schema_name)
+	 local len = 0
+	 for _, serie in ipairs(res.series) do
+	    if #serie.data > len then len = #serie.data end
+	 end
+	 local sum = {}
+	 for idx = 1, len do
+	    local acc
+	    for _, serie in ipairs(res.series) do
+	       local v = serie.data[idx]
+	       if v and v == v then acc = (acc or 0) + v end
+	    end
+	    sum[idx] = acc or (0/0)
+	 end
+	 local step = (res.metadata and res.metadata.epoch_step) or 1
+	 local stats = ts_common.calculateStatistics(sum, step, true,
+	    ts_schema and ts_schema.options.metrics_type or ts_common.metrics.counter)
+	 res.series = { {
+	    id = "total",
+	    label = i18n("total"),
+	    color = res.series[1].color,
+	    data = sum,
+	    statistics = table.merge(stats or {}, ts_common.calculateMinMax(sum)),
+	 } }
+      end
+      return res
+   else
+      return {
+	 series = {},
+	 metadata = {},
+	 measure_unit = "number",
+	 error = tostring(res),
+      }
+   end
+end
+
 if queries and type(queries) == "table" then
    for _, q in ipairs(queries) do
       local qid = tostring(q.id or "")
-      if isEmptyString(qid) then
-	 goto next_query
+      if not isEmptyString(qid) then
+	 results[qid] = run_query(q)
       end
+   end
 
-      local schema_name = tostring(q.ts_schema or "")
-      local tags = tsQueryToTags(tostring(q.ts_query or ""))
-
-      -- Select the correct interface so RRD paths resolve
-      if tags.ifid then
-	 interface.select(tostring(tags.ifid))
+   -- align_group: the queries drawn in the same chart get the same step, the largest one,
+   -- so every point covers the same time for all the series (e.g. asn:traffic 60s and
+   -- iface:traffic 1s). The finer queries run again with that step.
+   local group_step = {}
+   for _, q in ipairs(queries) do
+      local res = results[tostring(q.id or "")]
+      local step = res and res.metadata and res.metadata.epoch_step
+      if q.align_group and step and (#(res.series or {}) > 0) then
+	 group_step[q.align_group] = math.max(group_step[q.align_group] or 0, step)
       end
-
-      local http_context = {
-	 ts_schema = schema_name,
-	 epoch_begin = tostring(epoch_begin),
-	 epoch_end = tostring(epoch_end),
-	 tags = tags,
-	 ts_compare = q.compare or ts_compare,
-	 zoom = q.zoom or zoom,
-	 limit = tostring(q.limit or limit),
-	 version = version,
-	 initial_point = tostring(q.initial_point or false),
-      }
-
-      if q.tskey ~= nil then
-	 http_context.tskey = tostring(q.tskey)
+   end
+   for _, q in ipairs(queries) do
+      local qid = tostring(q.id or "")
+      local res = results[qid]
+      local step = res and res.metadata and res.metadata.epoch_step
+      local common_step = q.align_group and group_step[q.align_group]
+      if common_step and step and (step < common_step) then
+	 results[qid] = run_query(q, common_step)
       end
-      if q.ts_unify ~= nil then
-	 http_context.ts_unify = tostring(q.ts_unify)
-      end
-
-      local ok, res = pcall(ts_data.get_timeseries, http_context)
-      if ok then
-	 res.error = nil
-	 -- ts_data may resolve schema aliases (e.g. top:iface:ndpi -> top:iface:ndpi_full).
-	 -- Re-attach the top: prefix so the handler lookup finds the right entry.
-	 local resolved_schema = schema_name
-	 if res.metadata and res.metadata.schema then
-	    local ms = res.metadata.schema
-	    if schema_name:sub(1, 4) == "top:" and ms:sub(1, 4) ~= "top:" then
-	       resolved_schema = "top:" .. ms
-	    else
-	       resolved_schema = ms
-	    end
-	 end
-	 local schema_info = get_schema_info(resolved_schema)
-	 res.measure_unit = schema_info.measure_unit
-	 -- Annotate each series with label + invert_direction from handler definition
-	 if type(res.series) == "table" then
-	    for _, serie in ipairs(res.series) do
-	       local smeta = schema_info.series_meta[serie.id]
-	       if smeta then
-		  serie.label = smeta.label
-		  serie.invert_direction = smeta.invert_direction
-		  if smeta.color then
-		     serie.color = smeta.color
-		  end
-	       end
-	    end
-	 end
-	 -- Default source label (used as series prefix when a chart mixes sources)
-	 if res.metadata and isEmptyString(res.metadata.label) then
-	    if tags.asn then
-	       local as_info = interface.getASInfo(tonumber(tags.asn))
-	       res.metadata.label = "AS" .. tags.asn
-	       if as_info and not isEmptyString(as_info.asname) then
-		  res.metadata.label = res.metadata.label .. " (" .. as_info.asname .. ")"
-	       end
-	    elseif tags.ifid and table.len(tags) == 1 then
-	       res.metadata.label = getHumanReadableInterfaceName(tostring(tags.ifid))
-	    end
-	 end
-	 -- sum_series: collapse all the series of this query into a single "Total"
-	 -- (e.g. asn:traffic sent + rcvd), NaN only where every series is NaN
-	 if toboolean(q.sum_series) and type(res.series) == "table" and #res.series > 1 then
-	    local ts_common = require("ts_common")
-	    local ts_schema = require("ts_utils_core").getSchema(res.metadata and res.metadata.schema or schema_name)
-	    local len = 0
-	    for _, serie in ipairs(res.series) do
-	       if #serie.data > len then len = #serie.data end
-	    end
-	    local sum = {}
-	    for idx = 1, len do
-	       local acc
-	       for _, serie in ipairs(res.series) do
-		  local v = serie.data[idx]
-		  if v and v == v then acc = (acc or 0) + v end
-	       end
-	       sum[idx] = acc or (0/0)
-	    end
-	    local step = (res.metadata and res.metadata.epoch_step) or 1
-	    local stats = ts_common.calculateStatistics(sum, step, true,
-	       ts_schema and ts_schema.options.metrics_type or ts_common.metrics.counter)
-	    res.series = { {
-	       id = "total",
-	       label = i18n("total"),
-	       color = res.series[1].color,
-	       data = sum,
-	       statistics = table.merge(stats or {}, ts_common.calculateMinMax(sum)),
-	    } }
-	 end
-	 results[qid] = res
-      else
-	 results[qid] = {
-	    series = {},
-	    metadata = {},
-	    measure_unit = "number",
-	    error = tostring(res),
-	 }
-      end
-
-      ::next_query::
    end
 end
 

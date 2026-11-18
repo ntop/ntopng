@@ -490,6 +490,56 @@ end
 
 -- ##############################################
 
+-- Regroup the points into buckets of `step` seconds aligned to multiples of `step`, so that
+-- series with a different RRA step drawn in the same chart get the same timestamps
+-- (same aggregation as sampleSeries). As in the RRAs, a point labelled t covers (t - step, t]:
+-- a finer point belongs to the bucket ending at ceil(t / step) * step. Returns start, count, series
+local function alignSeries(series, fstart, fstep, step, consolidation)
+   local first_bucket = math.ceil(fstart / step)
+   local count = 0
+   local nan = 0 / 0
+
+   for _, data_serie in pairs(series) do
+      local sums, nums, maxs, valid = {}, {}, {}, {}
+
+      for idx, dp in ipairs(data_serie.data) do
+         local bucket = math.ceil((fstart + (idx - 1) * fstep) / step) - first_bucket + 1
+
+         if not nums[bucket] then
+            sums[bucket], nums[bucket], maxs[bucket], valid[bucket] = 0, 0, 0, false
+         end
+         if dp == dp then
+            valid[bucket] = true
+         else
+            dp = 0 -- as sampleSeries: NaN counts as 0 unless the whole bucket is NaN
+         end
+         sums[bucket] = sums[bucket] + dp
+         nums[bucket] = nums[bucket] + 1
+         if dp > maxs[bucket] then
+            maxs[bucket] = dp
+         end
+      end
+
+      local aligned_serie = {}
+      for bucket = 1, #nums do
+         if not valid[bucket] then
+            aligned_serie[bucket] = nan
+         elseif consolidation == "MAX" then
+            aligned_serie[bucket] = maxs[bucket]
+         else
+            aligned_serie[bucket] = sums[bucket] / nums[bucket]
+         end
+      end
+
+      data_serie.data = aligned_serie
+      count = #aligned_serie
+   end
+
+   return first_bucket * step, count, series
+end
+
+-- ##############################################
+
 -- Make sure we do not fetch data from RRDs that have been update too much long ago
 -- as this creates issues with the consolidation functions when we want to compare
 -- results coming from different RRDs.
@@ -594,8 +644,14 @@ function driver:timeseries_query(options)
       }
    end
 
+   -- min_step: same step as the other series drawn in the same chart (see timeseries/batch.lua)
+   if options.min_step and (options.min_step > fstep) then
+      sampled_fstep = math.ceil(options.min_step / fstep) * fstep
+      fstart, count, series = alignSeries(series, fstart, fstep, sampled_fstep, consolidation)
+   end
+
    if count > options.max_num_points then
-      sampled_fstep, count, series = sampleSeries(options.schema_info, count, fstep, options.max_num_points, series, consolidation)
+      sampled_fstep, count, series = sampleSeries(options.schema_info, count, sampled_fstep, options.max_num_points, series, consolidation)
    end
 
    -- Need to re-iterate all the series, otherwise the stats cannot be
