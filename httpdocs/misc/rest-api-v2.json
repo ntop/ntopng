@@ -21151,6 +21151,95 @@
         }
       }
     },
+    "/lua/rest/v2/get/timeseries/batch.lua": {
+      "post": {
+        "tags": [
+          "Timeseries"
+        ],
+        "summary": "Get several timeseries in one request",
+        "description": "Runs every query of the JSON body on the same time range and returns one result per query id. Each result has the series, the metadata (schema, epoch_begin, epoch_step, label of the source: 'AS<n> (<name>)' for ASN queries, the interface name for interface queries), the measure_unit and, if the query failed, an error string.",
+        "operationId": "post_timeseries_batch",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Time range and list of queries",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "queries"
+              ],
+              "properties": {
+                "epoch_begin": {
+                  "type": "integer",
+                  "description": "Start time (epoch), default: one hour ago"
+                },
+                "epoch_end": {
+                  "type": "integer",
+                  "description": "End time (epoch), default: now"
+                },
+                "limit": {
+                  "type": "integer",
+                  "description": "Maximum number of points per serie (default 180), can be overridden per query"
+                },
+                "ts_compare": {
+                  "type": "string",
+                  "description": "Timeframe to compare with (e.g. '1h', '1d'), can be overridden per query (compare)"
+                },
+                "queries": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "ts_schema"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Query identifier, used as key of the result"
+                      },
+                      "ts_schema": {
+                        "type": "string",
+                        "description": "Timeseries schema (e.g. 'asn:traffic')"
+                      },
+                      "ts_query": {
+                        "type": "string",
+                        "description": "Tags of the timeseries, 'tag:value,tag:value' (e.g. 'ifid:4,asn:15169')"
+                      },
+                      "tskey": {
+                        "type": "string",
+                        "description": "Timeseries key (e.g. the ASN, the interface id or the host)"
+                      },
+                      "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of points of this query"
+                      },
+                      "sum_series": {
+                        "type": "boolean",
+                        "description": "Sum all the series of this query (e.g. bytes_sent + bytes_rcvd) into a single 'total' serie, statistics computed on the sum"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/timeseries/type/consts.lua": {
       "get": {
         "tags": [

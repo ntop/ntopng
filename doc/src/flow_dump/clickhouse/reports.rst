@@ -329,3 +329,71 @@ interface ID selected in ntopng while rendering the report.
 Any change to the template is automatically saved (there is no Save button in
 the template editor).
 
+Charts with Multiple Timeseries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Interface Traffic widget can draw several timeseries in the same chart,
+for instance the traffic of an Autonomous System (AS) next to the traffic of
+the whole interface. Add the widget, open its settings, enable Advanced Settings
+and list one entry per timeseries in the ``ts_requests`` section. Leave the
+other settings as they are.
+
+Each entry has a name of your choice (it only has to be unique in the widget) and:
+
+- ``ts_schema``: the timeseries to draw, e.g. ``iface:traffic`` (interface traffic)
+  or ``asn:traffic`` (AS traffic). The full list is in :doc:`../../api/timeseries/metrics`.
+- ``ts_query``: what the timeseries refers to, as ``name:value`` pairs separated
+  by commas, using the tags listed for that timeseries (e.g. ``ifid:$IFID$,asn:15169``
+  for AS 15169 on the interface selected in ntopng).
+- ``tskey``: the main value of the query (the AS number, the interface ID, the host...).
+
+The example below draws AS 15169 (Google) and the whole interface in one chart:
+
+.. code:: json
+
+   {
+     "url": "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+     "url_params": {},
+     "post_params": {
+       "limit": 180,
+       "version": 4,
+       "ts_requests": {
+         "google": { "ts_schema": "asn:traffic",   "ts_query": "ifid:$IFID$,asn:15169", "tskey": "15169" },
+         "iface":  { "ts_schema": "iface:traffic", "ts_query": "ifid:$IFID$",           "tskey": "$IFID$" }
+       }
+     },
+     "source_type": "interface"
+   }
+
+Each line of the chart is named after its source (e.g. "AS15169 (Google LLC) - Sent",
+or the interface name) followed by the name of the value.
+
+Special entry names add one timeseries per item, using the same settings:
+
+- ``$ANY_IFID$``: one timeseries per monitored interface.
+- ``$ANY_EXPORTER$``: one timeseries per flow exporter (e.g. a router sending NetFlow).
+- ``$ANY_NETWORK$``: one timeseries per local network.
+
+**Total instead of separate values.** Some timeseries contain more than one value,
+e.g. ``asn:traffic`` has the traffic sent and the traffic received by the AS.
+Add ``"sum_series": true`` to the entry to draw a single "Total" line with their
+sum; the statistics shown below the chart (average, 95th percentile, total) are
+computed on the sum too:
+
+.. code:: json
+
+   "google": { "ts_schema": "asn:traffic", "ts_query": "ifid:$IFID$,asn:15169", "tskey": "15169", "sum_series": true }
+
+Things to know when combining timeseries:
+
+- Timeseries can be stored with different resolutions (e.g. every second for the
+  interface traffic, every minute or every 5 minutes for an AS). In the same chart
+  all of them are shown with the coarsest one, averaging the finer values, so that
+  every point of the chart covers the same time for all the lines.
+- "Sent" and "Received" do not mean the same thing everywhere: for an AS they are
+  the traffic sent and received by the hosts of that AS, for an interface they
+  are the outgoing and incoming traffic seen by the interface. To compare an AS
+  with the interface, compare the AS total (``"sum_series": true``) with the
+  interface total (``iface:traffic``).
+- Values received are drawn below the zero line, values sent above it.
+
