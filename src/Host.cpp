@@ -1898,7 +1898,8 @@ void Host::offlineSetNetbiosName(const char* netbios_n, time_t when,
 
 /* *************************************** */
 
-void Host::offlineSetTLSName(const char* tls_n) {
+/* The TLS name of the first flow of the host (see setNameByTime()) */
+void Host::offlineSetTLSName(const char* tls_n, time_t when) {
   if ((!isValidTLSName(tls_n)) || isLocalHost()) {
     /*
       As in TLS we cannot check if the connection reported
@@ -1909,15 +1910,20 @@ void Host::offlineSetTLSName(const char* tls_n) {
     return;
   }
 
-  if (!names.tls && tls_n) names.tls = Utils::toLowerResolvedNames(tls_n);
+  setNameByTime(&names.tls, &names.tls_time, Utils::toLowerResolvedNames(tls_n),
+                when, true /* oldest */);
 }
 
 /* *************************************** */
 
-void Host::offlineSetHTTPName(const char* http_n) {
+/* The HTTP name of the first flow of the host (see setNameByTime()): a server
+ * usually answers several names (virtual hosts), the latest one would change
+ * at every flow */
+void Host::offlineSetHTTPName(const char* http_n, time_t when) {
   if (!isValidHTTPName(http_n)) return;
 
-  if (!names.http) names.http = Utils::toLowerResolvedNames(http_n);
+  setNameByTime(&names.http, &names.http_time,
+                Utils::toLowerResolvedNames(http_n), when, true /* oldest */);
 }
 
 /* *************************************** */
@@ -2357,7 +2363,7 @@ void Host::freeHostNames() {
   }
 
   names.mdns_time = names.mdns_txt_time = names.netbios_time =
-      names.dhcp_time = 0;
+      names.dhcp_time = names.tls_time = names.http_time = 0;
 }
 
 /* *************************************** */

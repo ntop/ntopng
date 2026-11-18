@@ -374,10 +374,12 @@ received.
 |---|---|---|
 | `dhcp_name` | The one of the latest DHCP flow (and of the latest DHCP packet for the MAC address) | Sent by the client itself (option 12), found by the MAC address in the payload (`chaddr`): a device renamed keeps its address |
 | `mdns_name`, `mdns_txt_name`, `netbios_name` | The one of the first flow of the host, lowercased, while the host is in memory | Not always given to the right host (see "Known limits"): the latest name would let a wrong name replace the right one at every flow |
+| `http_name` (not journaled) | The one of the first flow of the server, lowercased: the `Host:` header of a request answered 200, not an IP address | A server usually answers several names (virtual hosts): the latest one would change at every flow. Not given to proxies (HTTP_PROXY, HTTP CONNECT): the header names the site requested through the proxy (nor is the server name of the host, the first one used for its name) |
+| `tls_name` (not journaled) | The one of the first flow of the server, lowercased, for remote hosts only | No check of the certificate: the local hosts get their names from other protocols, so their assets never have a TLS name |
 
 The flows set their names at every periodic update, in no particular order:
 the time of the flow (its first seen) decides (`Host::setNameByTime()`,
-newer for DHCP, older for mDNS, mDNS TXT and NetBIOS), so that the result does not
+newer for DHCP, older for the other names), so that the result does not
 depend on the order (an older DHCP flow still active does not set its name
 again; the same pcap gives the same names on a packet interface and on its
 view). The names are replaced under `Host::m` (and `Mac::m`), as they are
@@ -883,7 +885,13 @@ screenshots of the user guide):
 - e2e: `host_names_01` and `host_names_view_01` (`host_names.pcap`: an mDNS
   name, a NetBIOS name and an mDNS TXT `nm=` name, each followed by another
   name in a later flow): the host keeps the names of its first flow,
-  lowercased, on the view too.
+  lowercased, on the view too. HTTP names in the same pcap: two virtual
+  hosts of a server (the first one kept), a 404 answer and an IP address in
+  the `Host:` header (no name), a forward proxy and a CONNECT proxy (no
+  name), a remote server.
+- e2e: `host_tls_name_01`, `host_tls_name_view_01` and
+  `host_tls_name_local_01` (`tls_cert_expired.pcap`): the TLS name of a
+  remote server, on the view too; none for a local server.
 - By hand (the snapshots of the hosts of the pcap interfaces reach the Redis
   queue only when the hosts are deleted, after the scripts of the e2e tests):
   the snapshots left in the queue at shutdown, packet interface and view,

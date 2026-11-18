@@ -868,20 +868,17 @@ void LocalHost::offlineSetNetbiosName(const char* netbios_n, time_t when,
 
 /* *************************************** */
 
-void LocalHost::offlineSetTLSName(const char* tls_n) {
-  if (!isValidTLSName(tls_n)) return;
+void LocalHost::offlineSetHTTPName(const char* http_n, time_t when) {
+  char name[256];
 
-  Host::offlineSetTLSName(tls_n);
-  addDataToAssets((char*)"tls_name", (char*)tls_n);
-}
-
-/* *************************************** */
-
-void LocalHost::offlineSetHTTPName(const char* http_n) {
   if (!isValidHTTPName(http_n)) return;
 
-  Host::offlineSetHTTPName(http_n);
-  addDataToAssets((char*)"http_name", (char*)http_n);
+  Host::offlineSetHTTPName(http_n, when);
+
+  /* The asset gets the name kept by the host (the one of its first flow,
+   * lowercased), so that they always agree */
+  getHTTPName(name, sizeof(name));
+  if (name[0]) addDataToAssets((char*)"http_name", name);
 }
 
 /* *************************************** */

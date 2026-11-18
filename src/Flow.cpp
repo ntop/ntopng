@@ -1181,9 +1181,11 @@ void Flow::processExtraDissectedInformation() {
         protos.http.last_server = strdup(ndpiFlow->metadata.http.server);
 
       if (ndpiFlow->metadata.http.response_status_code == 200) {
+        /* The Host: header of a request sent to a proxy (forward, or CONNECT)
+         * names the site requested through it, not the proxy */
         if (srv_host && (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) &&
             (ndpiFlow->metadata.http.nat_ip == NULL) /* This is not a proxy */
-        )
+            && (!isHTTP_PROXY()) && (!isHTTP_CONNECT()))
           srv_host->setServerName(host_server_name);
 
         if (!Utils::isEmptyString(ndpiFlow->core.host_server_name)) {
@@ -2753,11 +2755,11 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       /* Don't break, let's process also HTTP_PROXY */
     case NDPI_PROTOCOL_HTTP_PROXY:
       if (srv_host) {
-        if ((!Utils::isIPAddress(host_server_name))
-            /* && hasRisk(NDPI_NUMERIC_IP_HOST) */
-        ) {
-          srv_host->offlineSetHTTPName(host_server_name);
-        }
+        /* The Host: header of a request sent to a proxy (forward, or CONNECT)
+         * names the site requested through it, not the proxy */
+        if ((!Utils::isIPAddress(host_server_name)) && (!isHTTP_PROXY()) &&
+            (!isHTTP_CONNECT()))
+          srv_host->offlineSetHTTPName(host_server_name, get_first_seen());
 
         if (srv_host->getHTTPstats() && host_server_name &&
             isThreeWayHandshakeOK()) {
@@ -2923,7 +2925,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
         /* Ignore hostnames with wildcard or multiple comma-separated values */
         && (strchr(protos.tls.server_names, '*') == NULL) &&
         (strchr(protos.tls.server_names, ',') == NULL))
-      srv_host->offlineSetTLSName(protos.tls.server_names);
+      srv_host->offlineSetTLSName(protos.tls.server_names, get_first_seen());
     else if ((protos.tls.client_requested_server_name != NULL) &&
              (!hasRisk(
                  NDPI_TLS_CERTIFICATE_MISMATCH)) /* Certificates (if present) do
@@ -2944,8 +2946,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
                    name could be set via other protocols
                  */
                  ))
-      srv_host->offlineSetTLSName(
-          protos.tls.client_requested_server_name); /* (***) */
+      srv_host->offlineSetTLSName(protos.tls.client_requested_server_name,
+                                  get_first_seen()); /* (***) */
   }
 
   {
