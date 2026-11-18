@@ -144,6 +144,22 @@ end
 
 -- ##############################################
 
+-- @brief Check if the submitted sort column is a valid column name (i.e., it is not an injection attempt)
+--        NOTE: unlike _valid_fields, which also accepts the SQL functions used by the presets, only a
+--        plain column name is allowed here as the value comes straight from the request
+function alert_store:_valid_sort_column(sort_column)
+    -- only allow alphanumeric characters and underscores
+    if not string.match(sort_column, "^[%w_]+$") then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid sort column found in query [%s]",
+            sort_column:gsub('%W', '') --[[ prevent stored injections --]] ))
+        return false
+    end
+
+    return true
+end
+
+-- ##############################################
+
 -- @brief Converts interface IDs into their database type
 --       Normal interface IDs are untouched.
 --       The system interface ID is converted from -1 to (u_int16_t)-1 to handle everything as unsigned integer
@@ -978,7 +994,7 @@ function alert_store:add_order_by(sort_column, sort_order)
     end
 
     -- Creating the order by if not defined and valid
-    if not self._order_by and sort_column and self:_valid_fields(sort_column) and
+    if not self._order_by and sort_column and self:_valid_sort_column(sort_column) and
         (sort_order == "asc" or sort_order == "desc") then
         self:set_order_by(sort_column, sort_order)
         return true
