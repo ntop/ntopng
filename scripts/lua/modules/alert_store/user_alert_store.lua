@@ -106,6 +106,10 @@ function user_alert_store:format_record(value, no_html)
       msg = ""
    end
 
+   if no_html then
+      msg = noHtml(msg)
+   end
+
    record[RNAME.DESCRIPTION.name] = msg
 
    record[RNAME.MSG.name] = {
