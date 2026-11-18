@@ -43,8 +43,9 @@ $(document).ready(function() {
     columns: [
       {data: "tcp_udp", class: "no-wrap"},
       {data: "port", class: "no-wrap" },
-      {data: "process", class: "no-wrap"},
-      {data: "package", class: "no-wrap"},
+      // Names sent by the exporter: render them as text, not HTML
+      {data: "process", class: "no-wrap", render: $.fn.dataTable.render.text()},
+      {data: "package", class: "no-wrap", render: $.fn.dataTable.render.text()},
     ]
   })
 
