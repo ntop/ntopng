@@ -270,7 +270,7 @@ local function ja4url(what, safety, label)
       print("&nbsp;")
    else
       print_copy_button('ja4_fingerprint', what)
-      print(what)
+      print(safeHtml(what))
 
       if ((safety ~= nil) and (safety ~= "safe")) then
          print(
@@ -410,7 +410,7 @@ local function printAddCustomHostRule(full_url)
 			    title = i18n("custom_categories.custom_host_category"),
 			    message = rule_type_selection .. i18n("custom_categories.select_url_category") .. "<br>" .. cat_select_dropdown ..
 			       app_select_dropdown .. "<br>" .. i18n("custom_categories.the_following_url_will_be_added") ..
-			       '<br><input id="categories_url_add" class="form-control" required value="' .. short_url .. '">' .. existing_note,
+			       '<br><input id="categories_url_add" class="form-control" required value="' .. safeHtml(short_url) .. '">' .. existing_note,
 			    confirm = i18n("custom_categories.add"),
 			    cancel = i18n("cancel")
 			 }
@@ -459,12 +459,13 @@ local function displayContainer(cont, label)
    if not isEmptyString(cont["id"]) then
       -- short 12-chars UUID as in docker
       print("<tr><th class='colspan-4'>" .. i18n("containers_stats.container") .. "</th><td colspan=2><a href='" .. ntop.getHttpPrefix() ..
-	    "/lua/flows_stats.lua?container=" .. cont["id"] .. "'>" .. format_utils.formatContainer(cont) .. "</a></td></tr>\n")
+	    "/lua/flows_stats.lua?container=" .. url_encode(cont["id"]) .. "'>" .. safeHtml(format_utils.formatContainer(cont)) .. "</a></td></tr>\n")
    end
 
-   local k8s_name = cont["k8s.name"]
+   -- Names sent by the exporter
+   local k8s_name = cont["k8s.name"] and safeHtml(cont["k8s.name"])
    local k8s_pod = cont["k8s.pod"]
-   local k8s_ns = cont["k8s.ns"]
+   local k8s_ns = cont["k8s.ns"] and safeHtml(cont["k8s.ns"])
 
    local k8s_rows = {}
    if not isEmptyString(k8s_name) then
@@ -472,7 +473,7 @@ local function displayContainer(cont, label)
    end
    if not isEmptyString(k8s_pod) then
       k8s_rows[#k8s_rows + 1] = {i18n("flow_details.k8s_pod"),
-                                 '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod=' .. k8s_pod .. '">' .. k8s_pod ..
+                                 '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod=' .. url_encode(k8s_pod) .. '">' .. safeHtml(k8s_pod) ..
 				    '</a>'}
    end
    if not isEmptyString(k8s_ns) then
@@ -489,7 +490,7 @@ local function displayContainer(cont, label)
       print("<tr>" .. header .. "<th>" .. row[1] .. "</th><td>" .. row[2] .. "</td></tr>\n")
    end
 
-   local docker_name = cont["docker.name"]
+   local docker_name = cont["docker.name"] and safeHtml(cont["docker.name"])
 
    local docker_rows = {}
    if not isEmptyString(docker_name) then
@@ -525,24 +526,24 @@ local function displayProc(proc, label)
    print(label)
 
    print("<tr><th class='colspan-4'>" .. i18n("flow_details.user_name") .. "</th><td colspan=2>"..
-	 proc.user_name .. "</td></tr>\n")
+	 safeHtml(proc.user_name) .. "</td></tr>\n")
 
    print("<tr><th class='colspan-4'>" .. i18n("flow_details.process_pid_name") .. "</th><td colspan=2>" ..
-	 proc.name)
+	 safeHtml(proc.name))
    if proc.pid then
       print("[" .. i18n("flow_details.process_pid") .. ": " .. proc.pid .. "]")
    end
    if not isEmptyString(proc.pkg_name) then
-      print("  [" .. i18n("flow_details.process_package") .. ": " .. proc.pkg_name .. "] ")
+      print("  [" .. i18n("flow_details.process_package") .. ": " .. safeHtml(proc.pkg_name) .. "] ")
    end
 
    if not isEmptyString(proc.father_name) then
-      print(" " .. i18n("flow_details.son_of_father_process") .. proc.father_name)
+      print(" " .. i18n("flow_details.son_of_father_process") .. safeHtml(proc.father_name))
       if proc.father_pid then
          print(i18n("flow_details.process_pid") .. ": " .. proc.father_pid)
       end
       if not isEmptyString(proc.father_pkg_name) then
-         print(" " .. i18n("flow_details.process_package") .. ": " .. proc.father_pkg_name)
+         print(" " .. i18n("flow_details.process_package") .. ": " .. safeHtml(proc.father_pkg_name))
       end
    end
    print("</td></tr>")
@@ -1274,10 +1275,10 @@ local function print_flow_overview_page()
                end
 
                if starts(server, '*') then
-                  print(server)
+                  print(safeHtml(server))
                else
                   -- TLS, so use https
-                  print(format_external_link(server, server, false, "https"))
+                  print(format_external_link(safeHtml(server), safeHtml(server), false, "https"))
                end
             end
          end
@@ -1300,11 +1301,11 @@ local function print_flow_overview_page()
       end
 
       if (flow["protos.tls.issuerDN"] ~= nil) then
-         print("<tr><th class='colspan-4'>TLS issuerDN</A></th><td colspan=2>" .. flow["protos.tls.issuerDN"] .. "</td></tr>\n")
+         print("<tr><th class='colspan-4'>TLS issuerDN</A></th><td colspan=2>" .. safeHtml(flow["protos.tls.issuerDN"]) .. "</td></tr>\n")
       end
 
       if (flow["protos.tls.subjectDN"] ~= nil) then
-         print("<tr><th class='colspan-4'>TLS subjectDN</A></th><td colspan=2>" .. flow["protos.tls.subjectDN"] .. "</td></tr>\n")
+         print("<tr><th class='colspan-4'>TLS subjectDN</A></th><td colspan=2>" .. safeHtml(flow["protos.tls.subjectDN"]) .. "</td></tr>\n")
       end
 
       if (flow["protos.tls.client_alpn"] ~= nil) then
@@ -1671,7 +1672,7 @@ local function print_flow_overview_page()
       if (flow.l7_json ~= nil) then
          print("<tr><th class='colspan-4'>" .. i18n("flow_details.l7_json") ..
 	       "</th><td colspan=2 style='overflow-wrap: anywhere !important; max-width: 200px; white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" ..
-	       flow.l7_json .. "</td></tr>\n")
+	       safeHtml(flow.l7_json) .. "</td></tr>\n")
 
       end
 
@@ -1726,7 +1727,7 @@ local function print_flow_overview_page()
       end
 
       if ((flow.client_info ~= nil) and (flow.client_info ~= "")) then
-         print("<tr><th class='colspan-4'>" .. i18n("client_info") .. "</th><td colspan=2>" .. flow.client_info)
+         print("<tr><th class='colspan-4'>" .. i18n("client_info") .. "</th><td colspan=2>" .. safeHtml(flow.client_info))
          print("</td></tr>\n")
       end
 
@@ -1842,7 +1843,7 @@ local function print_flow_overview_page()
          end
 
          if (string.ends(flow["protos.dns.last_query"], "arpa")) then
-            print(shortHostName(flow["protos.dns.last_query"]))
+            print(safeHtml(shortHostName(flow["protos.dns.last_query"])))
          else
             print(format_external_link(page_utils.safe_html(flow["protos.dns.last_query"]),
 				       page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])), false, "dns"))
@@ -1883,13 +1884,13 @@ local function print_flow_overview_page()
 
       if (not isEmptyString(flow["protos.ssh.client_signature"])) then
          print("<tr><th>" .. i18n("flow_details.ssh_signature") .. "</th><td><b>" .. i18n("client") .. ":</b> " ..
-	       (flow["protos.ssh.client_signature"] or '') .. "</td><td><b>" .. i18n("server") .. ":</b> " ..
-	       (flow["protos.ssh.server_signature"] or '') .. "</td></tr>\n")
+	       safeHtml(flow["protos.ssh.client_signature"]) .. "</td><td><b>" .. i18n("server") .. ":</b> " ..
+	       safeHtml(flow["protos.ssh.server_signature"]) .. "</td></tr>\n")
       end
 
       if (not isEmptyString(flow["bittorrent_hash"])) then
          print("<tr><th>" .. i18n("flow_details.bittorrent_hash") .. "</th><td colspan=4><A HREF=\"https://www.google.it/search?q=" ..
-	       flow["bittorrent_hash"] .. "\">" .. flow["bittorrent_hash"] .. "</A></td></tr>\n")
+	       url_encode(flow["bittorrent_hash"]) .. "\">" .. safeHtml(flow["bittorrent_hash"]) .. "</A></td></tr>\n")
       end
 
       if (flow["protos.http.last_url"] ~= nil) then
@@ -1941,12 +1942,12 @@ local function print_flow_overview_page()
          print("</td></tr>\n")
 
          if (not isEmptyString(flow["protos.http.last_user_agent"])) then
-            print("<tr><th>" .. i18n("flow_details.user_agent") .. "</th><td colspan=2>" .. flow["protos.http.last_user_agent"] ..
+            print("<tr><th>" .. i18n("flow_details.user_agent") .. "</th><td colspan=2>" .. safeHtml(flow["protos.http.last_user_agent"]) ..
 		  "</td></tr>")
          end
 
          if (not isEmptyString(flow["protos.http.last_server"])) then
-            print("<tr><th>" .. i18n("flow_details.server") .. "</th><td colspan=2>" .. flow["protos.http.last_server"] .. "</td></tr>")
+            print("<tr><th>" .. i18n("flow_details.server") .. "</th><td colspan=2>" .. safeHtml(flow["protos.http.last_server"]) .. "</td></tr>")
          end
 
          print("<tr><th>" .. i18n("flow_details.url") .. "</th><td colspan=2>")
@@ -2054,7 +2055,7 @@ local function print_flow_overview_page()
       if flow.wlan then
          if flow.wlan.ssid then
             print("<tr><th class='colspan-4'>" .. getFlowKey('WLAN_SSID') .. "</th>")
-            print("<td colspan=2>" .. flow.wlan["ssid"] .. "</td>")
+            print("<td colspan=2>" .. safeHtml(flow.wlan["ssid"]) .. "</td>")
             print("</tr>\n")
          end
          if flow.wlan.wtp_mac_address then
@@ -2222,6 +2223,11 @@ local function print_flow_overview_page()
 	 end
 
          local function format_custom_field(key, value, snmpdevice)
+            -- Values sent by the exporter: escape them before they are formatted as HTML
+            if type(value) == "string" then
+               value = safeHtml(value)
+            end
+
             local formatted_value = handleCustomFlowField(key, value, snmpdevice)
 
             if ((tonumber(formatted_value)) and (math.floor(tonumber(formatted_value)) == 0)) then
@@ -2253,7 +2259,7 @@ local function print_flow_overview_page()
 
          if (flow["flow_end_reason"]) then
             print("<tr><th class='colspan-4'>" .. getFlowKey('FLOW_END_REASON') .. "</th>")
-            print("<td colspan=2>" .. flow["flow_end_reason"] .. "</td>")
+            print("<td colspan=2>" .. safeHtml(flow["flow_end_reason"]) .. "</td>")
 
             print("</tr>\n")
          end
@@ -2282,13 +2288,13 @@ local function print_flow_overview_page()
                end
 
                if type(value) == "table" then
-                  print("<tr><th class='colspan-4'>" .. getFlowKey(key) .. "</th>")
+                  print("<tr><th class='colspan-4'>" .. safeHtml(getFlowKey(key)) .. "</th>")
                   for _, value in pairs(value or {}) do
                      print("<td colspan=1>" .. format_custom_field(key, value, snmpdevice) .. "</td>")
                   end
                   print("</tr>\n")
                else
-                  print("<tr><th class='colspan-4'>" .. getFlowKey(key) .. "</th><td colspan=2>"
+                  print("<tr><th class='colspan-4'>" .. safeHtml(getFlowKey(key)) .. "</th><td colspan=2>"
 			.. format_custom_field(key, value, snmpdevice) .. "</td></tr>\n")
                end
 
@@ -2315,7 +2321,7 @@ local function print_flow_overview_page()
 
          print(
             "<tr><th class='colspan-4'>Payload</th><td colspan=2 style='overflow-wrap: anywhere !important; max-width: 200px; white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" ..
-	    payload .. "</td></tr>\n")
+	    safeHtml(payload) .. "</td></tr>\n")
       end
 
       print("</table>\n")
@@ -2383,25 +2389,25 @@ local function print_flow_overview_page()
    print [[";
 
    const cliLabel = "]]
-   print(cliLabel)
+   print(js_str(cliLabel))
    print [[";
    const cliValue = "]]
-   print(cliValue)
+   print(js_str(cliValue))
    print [[";
    const srvLabel = "]]
-   print(srvLabel)
+   print(js_str(srvLabel))
    print [[";
    const srvValue = "]]
-   print(srvValue)
+   print(js_str(srvValue))
    print [[";
    const vlan = ]]
    print(vlan)
    print [[;
    const infoDomain = "]]
-   print(infoDomain)
+   print(js_str(infoDomain))
    print [[";
    const infoIssuerDN = "]]
-   print(infoIssuerDN)
+   print(js_str(infoIssuerDN))
    print [[";
    ]]
 
