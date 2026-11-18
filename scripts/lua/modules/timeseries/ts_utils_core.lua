@@ -1062,12 +1062,14 @@ end
 -- ##############################################
 
 function ts_utils.setup(first_setup)
-	local setup_ok = ntop.getPref(SETUP_OK_KEY)
+	local driver = ts_utils.getQueryDriver()
 
-	if ntop.getCache(SETUP_OK_KEY) ~= "1" then
-		if ts_utils.getQueryDriver():setup(ts_utils, first_setup) then
+	-- Run setup when the driver is changed from preferences
+        -- (e.g. to create the ClickHouse table) without restarting ntopng
+	if ntop.getCache(SETUP_OK_KEY) ~= cached_active_drivers_name then
+		if driver:setup(ts_utils, first_setup) then
 			-- success, update version
-			ntop.setCache(SETUP_OK_KEY, "1")
+			ntop.setCache(SETUP_OK_KEY, cached_active_drivers_name)
 			return true
 		end
 
