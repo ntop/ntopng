@@ -780,7 +780,7 @@ else
             local os_detail = ""
 
             if not isEmptyString(host["os_detail"]) then
-               os_detail = os_detail .. " [ " .. host["os_detail"] .. " ]"
+               os_detail = os_detail .. " [ " .. safeHtml(host["os_detail"]) .. " ]"
             end
 
             print(
@@ -1376,9 +1376,16 @@ else
       print("</tr>\n")
 
       if (host["ssdp"] ~= nil) then
+         -- NOTE: the location is taken as-is from the SSDP traffic: use safeHtml, and link HTTP(s) URLs only
+         local ssdp_location = safeHtml(host["ssdp"])
+
+         if starts(host["ssdp"], "http://") or starts(host["ssdp"], "https://") then
+            ssdp_location = "<A HREF='" .. ssdp_location .. "'>" .. ssdp_location .. "</A>"
+         end
+
          print(
-            "<tr><th><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> <A HREF='" ..
-               host["ssdp"] .. "'>" .. host["ssdp"] .. "<A></td></tr>\n")
+            "<tr><th><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> " ..
+               ssdp_location .. "</td></tr>\n")
       end
 
       print("<tr><th colspan=4></th></tr>\n")
