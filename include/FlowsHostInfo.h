@@ -28,7 +28,10 @@
 
 class FlowsHostInfo {
  private:
-  IpAddress* ip;
+  /* A copy of the address: the flow (or the host) it belongs to can be
+     purged while the aggregated stats are still being sorted and returned */
+  IpAddress ip;
+  bool has_ip;
   Host* host;
 
  public:
@@ -37,7 +40,7 @@ class FlowsHostInfo {
   char* getHostName(char* buf, u_int16_t buf_len);
   const char* getIP(char* buf, u_int16_t buf_len);
   const char* getIPHex(char* buf, u_int16_t buf_len);
-  inline IpAddress* getIPaddr() { return (ip); }
+  inline IpAddress* getIPaddr() { return (has_ip ? &ip : NULL); }
   bool isHostInMem();
   u_int16_t getVLANId();
   Host* getHost();

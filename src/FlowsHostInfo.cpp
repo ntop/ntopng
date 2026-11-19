@@ -24,16 +24,21 @@
 /* ************************************************ */
 
 FlowsHostInfo::FlowsHostInfo(IpAddress* _ip, Host* _host) {
-  ip = NULL;
+  has_ip = false;
   host = NULL;
-  if (_ip) ip = _ip;
+  /* Copy the address rather than keeping the flow's pointer: the flow
+     is not referenced and can be purged before this info is used */
+  if (_ip) {
+    ip.set(_ip);
+    has_ip = true;
+  }
   if (host) host = _host;
 };
 
 /* ************************************************ */
 
 const char* FlowsHostInfo::getIP(char* buf, u_int16_t buf_len) {
-  return (ip ? ip->print(buf, buf_len) : (char*)"");
+  return (has_ip ? ip.print(buf, buf_len) : (char*)"");
 }
 
 /* ************************************************ */
@@ -45,7 +50,7 @@ char* FlowsHostInfo::getHostName(char* buf, u_int16_t buf_len) {
 /* ************************************************ */
 
 const char* FlowsHostInfo::getIPHex(char* buf, u_int16_t buf_len) {
-  return (ip ? ip->get_ip_hex(buf, buf_len) : (char*)"");
+  return (has_ip ? ip.get_ip_hex(buf, buf_len) : (char*)"");
 }
 
 /* ************************************************ */
