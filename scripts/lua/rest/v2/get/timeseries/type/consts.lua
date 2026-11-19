@@ -44,6 +44,7 @@ end
 
 if isEmptyString(query) then
     rest_utils.answer(rest_utils.consts.err.invalid_args)
+    return
 end
 
 local tags = {

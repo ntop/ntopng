@@ -836,6 +836,14 @@ static int ntop_interface_live_capture(lua_State* vm) {
                                  capture_id);
 
     while (!c->live_capture.stopped) {
+      /* The packet path checks the expiry only when a packet arrives: with no
+       * traffic this would wait forever, holding an HTTP worker and the shutdown */
+      if ((time(NULL) > (time_t)c->live_capture.capture_until) ||
+          ntop->getGlobals()->isShutdownRequested()) {
+        curr_iface->deregisterLiveCapture(c);
+        break;
+      }
+
       ntop->getTrace()->traceEvent(TRACE_INFO, "Capturing....");
       sleep(1);
     }

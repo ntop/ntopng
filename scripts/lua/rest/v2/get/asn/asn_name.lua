@@ -16,6 +16,11 @@ local rest_utils = require "rest_utils"
 --
 
 local ip = _GET['ip']
+
+if isEmptyString(ip) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
 local rc = rest_utils.consts.success.ok
 
 local label = ntop.getASName(ip)

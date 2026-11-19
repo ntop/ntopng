@@ -9,6 +9,7 @@ require "ntop_utils"
 require "http_lint"
 local rest_utils = require "rest_utils"
 local as_utils = require "as_utils"
+local auth = require "auth"
 
 --
 -- Context of the AS overview page (as_overview.lua?asn=, PageAsOverviewRoute) and of the exporter
@@ -30,7 +31,8 @@ end
 -- Optional: without it only the ClickHouse fields (e.g. the exporter interface overview)
 local asn = tonumber(_GET["asn"])
 
-local has_clickhouse = ntop.isClickHouseEnabled()
+-- The historical ASN data needs the historical flows capability too
+local has_clickhouse = ntop.isClickHouseEnabled() and auth.has_capability(auth.capabilities.historical_flows)
 local first_seen = 0
 
 if has_clickhouse then

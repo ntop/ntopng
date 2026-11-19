@@ -58,5 +58,5 @@ else
 
    sendHTTPContentTypeHeader('application/vnd.tcpdump.pcap', 'attachment; filename="'..fname..'"')
 
-   interface.liveCapture(host, duration, bpf_filter)
+   interface.liveCapture(host, duration, bpf_filter or "")
 end

@@ -18,6 +18,11 @@ local country_codes = require "country_codes"
 
 local country_id = _GET["country_id"]
 
+if isEmptyString(country_id) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local country_code = interface.convertCountryU162Code(country_id)
 local label = country_code
 local rc = rest_utils.consts.success.ok

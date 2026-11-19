@@ -14,6 +14,11 @@ local host_ip     = _GET["host"]
 local host_vlan   = _GET["vlan"] or 0
 interface.select(tostring(ifid))
 
+if isEmptyString(host_ip) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local host = interface.getHostInfo(host_ip, host_vlan)
 local max_num_entries = 5
 local proto_stats = {}

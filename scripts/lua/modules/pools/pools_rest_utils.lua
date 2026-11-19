@@ -543,6 +543,11 @@ function pools_rest_utils.get_pool_members(pools)
    -- pool_id as number
    pool_id = tonumber(pool_id)
 
+   if not pool_id then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
    local res = {}
 
    -- Create the instance

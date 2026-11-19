@@ -17,6 +17,11 @@ local rest_utils = require("rest_utils")
 local ts_data = require("ts_data")
 local auth = require("auth")
 
+if isEmptyString(_GET["ts_query"]) or isEmptyString(_GET["ts_schema"]) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local tags = tsQueryToTags(_GET["ts_query"])
 
 -- Make sure the user is allowed to access this host pool

@@ -14,6 +14,7 @@ local host = _GET["host"]
 
 if isEmptyString(host) then
     rest_utils.answer(rest_utils.consts.err.invalid_args)
+    return
 end
 
 local result = ntop.resolveHost(host,true)

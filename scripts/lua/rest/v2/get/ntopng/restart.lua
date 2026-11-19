@@ -13,13 +13,14 @@ local rc = rest_utils.consts.success.ok
 -- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v2/get/ntopng/restart.lua
 --
 
-if not isAdministratorOrPrintErr() then
+if not isAdministrator() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
     return
 end
 
+-- false when ntopng does not run as a systemd service: nothing is restarted
 if not ntop.serviceRestart or not ntop.serviceRestart() then
-    rest_utils.answer(rest_utils.consts.err.internal_error)
+    rest_utils.answer(rest_utils.consts.err.not_enabled)
     return
 end
 

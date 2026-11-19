@@ -10,6 +10,11 @@ local stats_utils = require "stats_utils"
 
 local host_ip    = _GET["host"]
 local vlan       = _GET["vlan"]
+if isEmptyString(host_ip) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local host_stats = interface.getHostInfo(host_ip, vlan) or {}
 local total = 0
 local data  = {}

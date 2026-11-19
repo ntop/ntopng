@@ -8,7 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require "format_utils"
 local recording_utils = require "recording_utils"
+local rest_utils = require "rest_utils"
 local json = require "dkjson"
+
+-- False also when the user is not an administrator
+if not recording_utils.isAvailable() then
+  rest_utils.answer(rest_utils.consts.err.not_granted)
+  return
+end
 
 sendHTTPHeader('application/json')
 
@@ -19,9 +26,6 @@ sendHTTPHeader('application/json')
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-if not recording_utils.isAvailable() then
-  return
-end
 
 -- ################################################
 -- Table parameters

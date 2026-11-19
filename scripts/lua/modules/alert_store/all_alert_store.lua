@@ -372,7 +372,8 @@ function all_alert_store:format_record(value, no_html)
 
     local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u&status=%s',
         ntop.getHttpPrefix(), alert_consts.alertEntityRaw(value["entity_id"]),
-        tonumber(_GET["epoch_begin"]), tonumber(_GET["epoch_end"]),
+        -- No time filter (no epochs in the request): the link covers every alert returned
+        self._epoch_begin or 0, self._epoch_end or os.time(),
         _GET["status"] or "historical")
 
     local entity = i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label)

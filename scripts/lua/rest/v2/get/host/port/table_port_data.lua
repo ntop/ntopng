@@ -19,6 +19,11 @@ local mode        = _GET["mode"]
 
 interface.select(tostring(ifid))
 
+if isEmptyString(host_ip) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local host = interface.getHostInfo(host_ip, host_vlan) or {}
 local rsp = {}
 local ports = {}

@@ -18,6 +18,7 @@ local score = _GET["score"]
 
 if isEmptyString(score) then
     rest_utils.answer(rest_utils.consts.err.missing_parameters, {"Please provide a score value to convert to severity"})
+    return
 end
 
 local severity_label = alert_consts.alertSeverityLabel(tonumber(score), true) -- true to remove html and only get severity label

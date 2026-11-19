@@ -39,6 +39,11 @@ interface.select(ifid)
 local res = {}
 local tot = 0
 
+if isEmptyString(host_info["host"]) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if stats == nil then

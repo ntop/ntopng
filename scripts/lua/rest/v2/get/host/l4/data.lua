@@ -23,6 +23,11 @@ local ifid = _GET["ifid"] or interface.getId()
 local host_data   = hostkey2hostinfo(_GET["host"]) -- In case host@vlan is given, create a table with host and vlan data
 local host_ip     = host_data.host 
 local host_vlan   = _GET["vlan"] or host_data.vlan -- Put the correct vlan
+if isEmptyString(host_ip) then
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
+   return
+end
+
 local available_ts = ts_utils.listSeries("host:l4protos", table.clone({ ifid = ifid, host = host_ip, vlan = host_vlan }), os.time() - 1800 --[[ 30 min is the default time ]])
 
 local host = interface.getHostInfo(host_ip, host_vlan)

@@ -23,6 +23,7 @@ local function get_column_config()
    
    if(isEmptyString(table_id)) then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
    end
    
    local redis_key = string.format(redis_base_key, table_id, user_id)   

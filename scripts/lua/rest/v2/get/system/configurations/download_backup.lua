@@ -12,7 +12,7 @@ local backup_config = require("backup_config")
 
 -- ##############################################
 
-if not isAdministratorOrPrintErr() then
+if not isAdministrator() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
     return
 end
@@ -24,6 +24,7 @@ local success, response = backup_config.export_backup(epoch)
 
 if (not success) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
+    return
 end
 
 -- Download the file  
