@@ -5445,6 +5445,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
                                 cli_host->get_host_pool());
     ndpi_serialize_string_uint32(s, "cli_network",
                                  (u_int32_t)cli_host->get_local_network_id());
+    ndpi_serialize_string_uint64(s, "cli_tags_bitmap", cli_host->getTags());
   }
 
   ndpi_serialize_string_string(s, "srv_ip",
@@ -5466,6 +5467,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
                                 srv_host->get_host_pool());
     ndpi_serialize_string_uint32(s, "srv_network",
                                  (u_int32_t)srv_host->get_local_network_id());
+    ndpi_serialize_string_uint64(s, "srv_tags_bitmap", srv_host->getTags());
   }
 
   ndpi_serialize_string_string(s, "exporter_ip", Utils::intoaV6(getExporterIP(), buf, sizeof(buf)));
