@@ -12442,6 +12442,7 @@ local lang = {
       ["resolve_only_descr"] = "A new alert reopens the issue.",
       ["resolve_add_server"] = "Add to the expected servers",
       ["resolve_add_server_descr"] = "Adds %{servers} to the %{list} of the Network Configuration, as expected servers.",
+      ["resolve_add_server_too_many"] = "Many servers used, including %{servers}, which is unexpected: it is not recommended to add them to the %{list} of the Network Configuration, as expected servers.",
       ["resolve_add_server_action"] = "Resolve and Add Server",
       ["resolve_exclude_entity"] = "Exclude the host",
       ["resolve_exclude_entity_descr"] = "No more %{alert} alerts for %{entity}.",
