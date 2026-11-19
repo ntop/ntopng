@@ -9,9 +9,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
-local json = require "dkjson"
--- Import Mitre Att&ck utils
-local mitre = require "mitre_utils"
+local l4_protocol_list = require "l4_protocol_list"
 
 -- ##############################################
 
@@ -42,9 +40,26 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_access_control_list.format(ifid, alert, alert_type_params)
-   -- Extracting info field
    local href = ntop.getHttpPrefix() .. '/lua/pro/admin/access_control_list.lua'
-   return(i18n("alerts_dashboard.access_control_list_descr", { href = href }))
+   local l7_proto = tonumber(alert.l7_proto) or 0
+   if l7_proto == 0 then
+      l7_proto = tonumber(alert.l7_master_proto) or 0
+   end
+   local params = {
+      l4_proto = l4_protocol_list.l4_proto_to_string(alert.proto),
+      cli = alert.cli_ip,
+      srv = alert.srv_ip,
+      port = alert.srv_port,
+      app = interface.getnDPIProtoName(l7_proto),
+      href = href,
+   }
+
+   -- ICMP flows have no port
+   if (tonumber(alert.srv_port) or 0) == 0 then
+      return i18n("alerts_dashboard.access_control_list_no_port_descr", params)
+   end
+
+   return i18n("alerts_dashboard.access_control_list_descr", params)
 end
 
 -- #######################################################
