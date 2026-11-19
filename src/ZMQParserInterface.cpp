@@ -1758,11 +1758,15 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow* const flow,
         if (flow->getEndReason())
           return (!strcmp(value->string, flow->getEndReason()));
       }
+      return false;
 
-  case EXPORTER_IPV4_ADDRESS:
-  case EXPORTER_IPV6_ADDRESS:
-    Utils::parseIPv4v6Address(value->string, &flow->exporter_device_ip);
-      return(Utils::isNullAddress(&flow->exporter_device_ip) ? false : true);
+    case EXPORTER_IPV4_ADDRESS:
+    case EXPORTER_IPV6_ADDRESS: {
+      struct ndpi_in6_addr exporter_ip;
+
+      if (!Utils::parseIPv4v6Address(value->string, &exporter_ip)) return false;
+      return (memcmp(&flow->exporter_device_ip, &exporter_ip, sizeof(exporter_ip)) == 0);
+    }
 
     case INPUT_SNMP:
       if (value->string)
