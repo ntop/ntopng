@@ -26,6 +26,8 @@ ndpi_serializer* QoEDegradedAlert::getAlertJSON(ndpi_serializer* serializer) {
   Flow* f = getFlow();
   if (serializer) {
     ndpi_serialize_string_uint32(serializer, "qoe_score", f->getQoEScore());
+    /* Same keys as QoEStats::lua */
+    ndpi_serialize_string_string(serializer, "qoe", (f->getQoEType() == qoe_poor) ? "poor" : "degraded");
   }
 #endif
   return serializer;
