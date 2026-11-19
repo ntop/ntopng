@@ -730,6 +730,9 @@ function alert_utils.formatAlertNotification(notif, options)
 			if #parts == 2 then
 				ev = parts[2]
 			end
+		elseif notif.entity_id == alert_entities.user.entity_id and not options.nohtml then
+			-- can be the (arbitrary) user name of a failed login
+			ev = safeHtml(notif.entity_val)
 		end
 		msg = msg .. " [" .. (ev or "") .. "]"
 	end

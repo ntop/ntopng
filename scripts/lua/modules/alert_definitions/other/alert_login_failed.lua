@@ -51,7 +51,8 @@ end
 -- @return A human-readable string
 function alert_login_failed.format(ifid, alert, alert_type_params)
   return(i18n("user_activity.login_not_authorized", {
-    user = alert.user,
+    -- As typed by an unauthenticated client in the login form
+    user = safeHtml(alert.user or alert.entity_val),
   }))
 end
 

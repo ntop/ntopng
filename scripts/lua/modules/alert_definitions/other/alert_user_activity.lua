@@ -57,7 +57,7 @@ end
 
 function alert_user_activity.format(ifid, alert, alert_type_params)
    local decoded = alert_type_params
-   local user = alert.user or alert.entity_val
+   local user = safeHtml(alert.user or alert.entity_val)
 
    if decoded.scope ~= nil then
  
