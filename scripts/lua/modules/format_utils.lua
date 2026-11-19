@@ -743,19 +743,17 @@ local function format_report_email(notification)
 					</g>
 				</svg>
 			</div>
-			<div style="max-width: 480px; margin: 0 auto; padding: 40px 20px 40px 20px; font-weight:400; font-size:13px; letter-spacing:0.025em; line-height:26px; color:#000; font-family:'Poppins', sans-serif; mso-line-height-rule: exactly; background: white;">
+			<div style="max-width: 640px; margin: 0 auto; padding: 40px 20px 40px 20px; font-weight:400; font-size:13px; letter-spacing:0.025em; line-height:26px; color:#000; font-family:'Poppins', sans-serif; mso-line-height-rule: exactly; background: white;">
 				<span style="font-weight:300; font-size:24px; letter-spacing:0.025em; line-height:23px; color: black; font-family: 'Poppins', sans-serif; mso-line-height-rule: exactly;">
 					]] .. notification.title .. [[
 				</span>
-				<p>
+				<div>
 					]] .. notification.message .. " " .. notification.note .. [[
-				</p>
-				<p><strong>Check it out!</strong></p>
-				<div width="220" height="45" style="width: 180px; margin: 0; border-radius: 3px; padding: 5px 5px; background-color:#8FBE00">
-					<a href="]] .. notification.link.url .. [[" style="font-weight:500; font-size:17px; letter-spacing:0.025em; line-height:26px; color:#FFF; font-family:'Poppins', sans-serif; mso-line-height-rule: exactly; text-decoration:none;">
-						]] .. notification.link.label .. [[
-					</a>
 				</div>
+				<p><strong>Check it out!</strong></p>
+				<a href="]] .. notification.link.url .. [[" style="display: inline-block; padding: 10px 24px; border-radius: 3px; background-color:#8FBE00; font-weight:500; font-size:17px; letter-spacing:0.025em; line-height:26px; color:#FFF; font-family:'Poppins', sans-serif; mso-line-height-rule: exactly; text-decoration:none;">
+					]] .. notification.link.label .. [[
+				</a>
 			</div>
 		</div>
 	</div>
