@@ -66,6 +66,9 @@ If you desire to view traffic focusing mostly on AS-to-AS rather than IP-to-IP t
 
 The idea of AS mode is to focus user attention on ASs. Enabling it you can see a new report that has been designed exactly for this use case, as well slightly modify the ntopng GUI focusting on ASs rather than on IPs.
 
+.. note::
+   AS mode switches off the features that work per host or per device: the assets inventory, Active Monitoring and the Access Control List. Their menu entries are hidden and their preferences are shown disabled. Their settings are kept and come back when AS mode is disabled.
+
 If you have an ASN you need to manager routing advetisements in order to let the world reach your network. This is usually achieved using the BGP (Border Gateway Protocol) protocol. nProbe includes a new service designed to handle BGP and BMP (BGP Monitoring Protocol) advertisements: please refer to the nProbe manual for more information about it. The daemon implementing BGP/BMP protocol is named `bgp_server`. In the ntopng configuration you need to specify the IP address where the bgp_server is active, and the port where the server delivers routing information through a redis-compatible protocol (-r parameter in bgp_server).
 
 Optionally, if you have configured the bgp_server to monitor some BGP prefixes (-n parameter in bgp_server), you need to specify the ZMQ URL to which the bgp_server will advertise routing prefix changes.
