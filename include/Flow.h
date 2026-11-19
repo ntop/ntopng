@@ -931,6 +931,7 @@ class Flow : public GenericHashEntry {
   inline bool isBidirectional() const {
     return (get_packets_cli2srv() && get_packets_srv2cli());
   };
+  bool hostSentData(Host* h) const;
 
   /*
     Find a simple criteria to ignore probing attempts selecting

@@ -2757,8 +2757,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       if (srv_host) {
         /* The Host: header of a request sent to a proxy (forward, or CONNECT)
          * names the site requested through it, not the proxy */
+        /* The name chosen by the client is used only when the server
+         * answered 200: always the case for the packet flows (see
+         * processDetectedProtocolData()), not for the collected ones (the
+         * HTTP site and the return code are exported separately) */
         if ((!Utils::isIPAddress(host_server_name)) && (!isHTTP_PROXY()) &&
-            (!isHTTP_CONNECT()))
+            (!isHTTP_CONNECT()) &&
+            (iface->isPacketInterface() || (getHTTPRetCode() == 200)))
           srv_host->offlineSetHTTPName(host_server_name, get_first_seen());
 
         if (srv_host->getHTTPstats() && host_server_name &&
@@ -2938,6 +2943,10 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
                     the response page is too short and thus that
                     it might be a denied page or similar
                   */
+             /* The SNI is chosen by the client: used only when the server
+              * answered (e.g. not a RST, no answer) and the handshake did not
+              * fail */
+             && hostSentData(srv_host) && (!hasRisk(NDPI_TLS_FATAL_ALERT))
              && (!srv_host->isLocalHost()
                  /*
                    As in TLS we cannot check if the connection reported
@@ -7107,6 +7116,33 @@ void Flow::setICMPTypeCode(u_int16_t icmp_type_code) {
     icmp_info->setCode(icmp_code), protos.icmp.cli2srv.icmp_code = icmp_code;
     icmp_info->setType(icmp_type), protos.icmp.cli2srv.icmp_type = icmp_type;
   }
+}
+
+/* *************************************** */
+
+/*
+  The peer h of the flow has sent data (e.g. a TLS Server Hello), not only TCP
+  control packets (e.g. a RST answering the request). The peer is matched by
+  its IP address, not by its role: the peers given to
+  hosts_periodic_stats_update() are the actual ones (a swap still pending
+  applied, see get_actual_peers()) on the packet interfaces, the ones of the
+  flow with the views. The collected flows have no goodput: data pushed by
+  the peer (TCP), any byte from the peer (UDP)
+*/
+bool Flow::hostSentData(Host* h) const {
+  bool is_srv;
+
+  if (h == NULL) return (false);
+
+  is_srv = h->get_ip()->equal(get_srv_ip_addr());
+
+  if (iface->isPacketInterface())
+    return ((is_srv ? get_goodput_bytes_srv2cli() : get_goodput_bytes_cli2srv()) > 0);
+
+  if (protocol == IPPROTO_TCP)
+    return (((is_srv ? dst2src_tcp_flags : src2dst_tcp_flags) & TH_PUSH) != 0);
+
+  return ((is_srv ? get_bytes_srv2cli() : get_bytes_cli2srv()) > 0);
 }
 
 /* *************************************** */
