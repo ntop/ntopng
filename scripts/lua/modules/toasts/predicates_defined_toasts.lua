@@ -787,6 +787,23 @@ function predicates.configured_exporters_timeseries_resolution(toast, container)
 end
 
 
+--- Warn the admin that the InfluxDB timeseries driver is going to be removed
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.influxdb_deprecated(toast, container)
+    if not IS_ADMIN or ntop.getPref("ntopng.prefs.timeseries_driver") ~= "influxdb" then
+        return
+    end
+
+    local action = {
+        url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts",
+        title = i18n("configure")
+    }
+
+    container[#container + 1] = toast_ui:new(toast.id, i18n("influxdb_deprecated_title"),
+        i18n("influxdb_deprecated_warning"), ToastLevel.WARNING, action, toast.dismissable)
+end
+
 --- This is a simple placeholder for new toasts
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
