@@ -20996,6 +20996,28 @@
         }
       }
     },
+    "/lua/rest/v2/get/redis/queues.lua": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Get the Redis queues",
+        "description": "Redis lists used by ntopng as queues (per interface and of the system), one record per queue: { ifid, iface_name, queue_i18n, redis_key, length, max_length, fill_pct }. ifid is -1 (and iface_name missing) for the queues of the system; queue_i18n is the i18n key of the queue name; max_length and fill_pct are missing for the queues with no max length. Needs access to the system interface",
+        "operationId": "get_redis_queues",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED: the user cannot access the system interface"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/system/health/stats.lua": {
       "get": {
         "tags": [
