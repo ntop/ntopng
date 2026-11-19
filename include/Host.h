@@ -209,7 +209,10 @@ class Host : public GenericHashEntry,
   char* get_mac_based_tskey(Mac* mac, char* buf, size_t bufsize,
                             bool skip_prefix = false);
   bool isValidHostName(const char* name);
-  /* Protocol-specific name validators */
+  virtual void deferredInitialization();
+
+ public:
+  /* Protocol-specific name validators (also used by Mac and NetworkInterface) */
   static bool isReverseLookupName(const char* name);
   static bool isValidDNSHostName(const char* name, bool allow_trailing_dot);
   static bool isValidUTF8DisplayName(const char* name, u_int max_len);
@@ -219,9 +222,7 @@ class Host : public GenericHashEntry,
   static bool isValidNetBIOSName(const char* name);
   static bool isValidTLSName(const char* name);
   static bool isValidHTTPName(const char* name);
-  virtual void deferredInitialization();
 
- public:
   Host(NetworkInterface* _iface, int32_t _iface_idx, char* ipAddress,
        u_int16_t _vlan_id, u_int16_t observation_point_id);
   Host(NetworkInterface* _iface, int32_t _iface_idx, Mac* _mac,

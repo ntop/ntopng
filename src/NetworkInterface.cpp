@@ -2591,11 +2591,18 @@ pre_get_flow:
                 ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'",
                                              client_mac, name);
 
-                snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
-                ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
+                /*
+                  The name is untrusted traffic data that the GUI uses as
+                  device label: cache it only if it is a valid DHCP name
+                  (same check performed by Host::offlineSetDHCPName())
+                */
+                if (Host::isValidDHCPName(name)) {
+                  snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
+                  ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
 
-                if (payload_cli_mac)
-                  payload_cli_mac->inlineSetDHCPName(name, when->tv_sec, flow);
+                  if (payload_cli_mac)
+                    payload_cli_mac->inlineSetDHCPName(name, when->tv_sec, flow);
+                }
 
 #ifdef DHCP_DEBUG
                 ntop->getTrace()->traceEvent(

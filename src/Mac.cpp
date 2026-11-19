@@ -409,6 +409,7 @@ void Mac::inlineSetDHCPName(const char* dhcp_name, time_t when, Flow* f) {
   char *new_name, *new_cause = NULL, *to_free, *cause_to_free;
 
   if ((dhcp_name == NULL) || (dhcp_name[0] == '\0') ||
+      !Host::isValidDHCPName(dhcp_name) ||
       ((new_name = strdup(dhcp_name)) == NULL))
     return;
 
@@ -495,7 +496,9 @@ void Mac::readDHCPCache() {
 
     snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id(), mac_str);
 
-    if (ntop->getRedis()->get(key, buf, sizeof(buf)) == 0) {
+    /* Discard entries cached without validation by previous versions */
+    if ((ntop->getRedis()->get(key, buf, sizeof(buf)) == 0) &&
+        Host::isValidDHCPName(buf)) {
       names.dhcp = strdup(buf);
     }
   }
