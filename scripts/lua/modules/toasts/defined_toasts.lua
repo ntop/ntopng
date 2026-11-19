@@ -341,6 +341,16 @@ local defined_toats = {
         excluded_pages = {pages.preferences.key},
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        id = 33,
+        dismissable = true,
+        has_priority = true,
+        predicate = predicates.influxdb_deprecated,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
+    },
 }
 
 return defined_toats
