@@ -437,24 +437,27 @@ function alert_store:build_sql_cond(cond, is_write)
     elseif cond.field == 'ip' or cond.field == 'cli_ip' or cond.field == 'srv_ip' then
         local host = hostkey2hostinfo(cond.value)
         if not isEmptyString(host["host"]) then
+            -- Escape the values before placing them between quotes to prevent SQL injection
+            local escaped_val = self:_escape(cond.value)
+            local escaped_host = self:_escape(host["host"])
             if not host["vlan"] or host["vlan"] == 0 then
                 if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                     sql_cond = string.format("(%s %s ('%s') %s %s %s ('%s'))",
-                        self:get_column_name('cli_ip', is_write, cond.value), sql_op, cond.value,
+                        self:get_column_name('cli_ip', is_write, cond.value), sql_op, escaped_val,
                         ternary(cond.op == 'neq', 'AND', 'OR'), self:get_column_name('srv_ip', is_write, cond.value),
-                        sql_op, cond.value)
+                        sql_op, escaped_val)
                 else
-                    sql_cond = string.format("%s %s ('%s')", real_field, sql_op, cond.value)
+                    sql_cond = string.format("%s %s ('%s')", real_field, sql_op, escaped_val)
                 end
             else
                 if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                     sql_cond = string.format("((%s %s ('%s') %s %s %s ('%s')) %s %s %s %u)",
-                        self:get_column_name('cli_ip', is_write, cond.value), sql_op, host["host"],
+                        self:get_column_name('cli_ip', is_write, cond.value), sql_op, escaped_host,
                         ternary(cond.op == 'neq', 'AND', 'OR'), self:get_column_name('srv_ip', is_write, cond.value),
-                        sql_op, host["host"], self:get_column_name('vlan_id', is_write),
+                        sql_op, escaped_host, self:get_column_name('vlan_id', is_write),
                         ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
                 else
-                    sql_cond = string.format("(%s %s ('%s') %s %s %s %u)", real_field, sql_op, host["host"],
+                    sql_cond = string.format("(%s %s ('%s') %s %s %s %u)", real_field, sql_op, escaped_host,
                         ternary(cond.op == 'neq', 'OR', 'AND'), self:get_column_name('vlan_id', is_write), sql_op,
                         host["vlan"])
                 end
@@ -466,23 +469,25 @@ function alert_store:build_sql_cond(cond, is_write)
         (cond.op == 'eq' or cond.op == 'neq') then
         local host = hostkey2hostinfo(cond.value)
         if not isEmptyString(host["host"]) then
+            -- Escape the name before placing it between quotes to prevent SQL injection
+            local escaped_host = self:_escape(host["host"])
             if not host["vlan"] or host["vlan"] == 0 then
                 if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                     sql_cond = string.format("(%s %s '%s' %s %s %s '%s')", self:get_column_name('cli_name', is_write),
-                        sql_op, host["host"], ternary(cond.op == 'neq', 'AND', 'OR'),
-                        self:get_column_name('srv_name', is_write), sql_op, host["host"])
+                        sql_op, escaped_host, ternary(cond.op == 'neq', 'AND', 'OR'),
+                        self:get_column_name('srv_name', is_write), sql_op, escaped_host)
                 else
-                    sql_cond = string.format("%s %s '%s'", real_field, sql_op, host["host"])
+                    sql_cond = string.format("%s %s '%s'", real_field, sql_op, escaped_host)
                 end
             else
                 if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                     sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
-                        self:get_column_name('cli_name', is_write), sql_op, host["host"],
+                        self:get_column_name('cli_name', is_write), sql_op, escaped_host,
                         ternary(cond.op == 'neq', 'AND', 'OR'), self:get_column_name('srv_name', is_write), sql_op,
-                        host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), self:get_column_name('vlan_id', is_write),
+                        escaped_host, ternary(cond.op == 'neq', 'OR', 'AND'), self:get_column_name('vlan_id', is_write),
                         sql_op, host["vlan"])
                 else
-                    sql_cond = string.format("(%s %s '%s' %s %s %s %u)", real_field, sql_op, host["host"],
+                    sql_cond = string.format("(%s %s '%s' %s %s %s %u)", real_field, sql_op, escaped_host,
                         ternary(cond.op == 'neq', 'OR', 'AND'), self:get_column_name('vlan_id', is_write), sql_op,
                         host["vlan"])
                 end
@@ -497,7 +502,7 @@ function alert_store:build_sql_cond(cond, is_write)
         local exporter_ip = nil
         local snmp_info = string.split(sql_val, "_")
         if #snmp_info == 2 then
-            exporter_ip = snmp_info[1]
+            exporter_ip = self:_escape(snmp_info[1])
             sql_val = snmp_info[2]
         end
 
