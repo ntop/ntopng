@@ -63,10 +63,13 @@ function alert_elephant_flow.format(ifid, alert, alert_type_params)
 
       res = string.format("%s<sup><i class='fas fa-info-circle' data-bs-toggle='tooltip' data-bs-placement='bottom' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
 
+      local l2r_exceeded = false
+
       if alert_type_params["l2r_bytes"] and 
          alert_type_params["l2r_threshold"] and
          alert_type_params["l2r_threshold"] > 0 and
          alert_type_params["l2r_bytes"] > alert_type_params["l2r_threshold"] then
+         l2r_exceeded = true
          local l2r_bytes = bytesToSize(alert_type_params["l2r_bytes"])
          local l2r_threshold = bytesToSize(alert_type_params["l2r_threshold"]) 
 	 res = res .. " " .. i18n("flow_details.elephant_exceeded_l2r", {value = l2r_bytes, threshold = l2r_threshold}) 
@@ -74,11 +77,11 @@ function alert_elephant_flow.format(ifid, alert, alert_type_params)
 
       if alert_type_params["r2l_bytes"] and
          alert_type_params["r2l_threshold"] and
-         alert_type_params["l2r_threshold"] > 0 and
+         alert_type_params["r2l_threshold"] > 0 and
          alert_type_params["r2l_bytes"] > alert_type_params["r2l_threshold"] then
          local r2l_bytes = bytesToSize(alert_type_params["r2l_bytes"])
          local r2l_threshold = bytesToSize(alert_type_params["r2l_threshold"])
-	 res = res .. " " .. i18n("flow_details.elephant_exceeded_r2l", {value = r2l_bytes, threshold = r2l_threshold}) 
+	 res = res .. (l2r_exceeded and ", " or " ") .. i18n("flow_details.elephant_exceeded_r2l", {value = r2l_bytes, threshold = r2l_threshold}) 
       end
    end
 
