@@ -24547,7 +24547,7 @@
           "Alerts"
         ],
         "summary": "Alert groups",
-        "description": "Alerts grouped by one dimension (Alerts Overview and issue preview), on the Alert Explorer stores (ClickHouse or SQLite) merged with the live alerts in memory (engaged host alerts, active flows with an alert). Any Alert Explorer filter (e.g. alert_id=79;eq, ip=192.168.1.1;eq, cli_ip, srv_ip) narrows the alerts; each group returns key, label, count, max_severity, max_score, first_seen, last_seen, families, the distinct hosts and the filters that select it in the Alert Explorer. Enterprise L+ only, with the Experimental Features preference or the issues enabled, and the alerts capability.",
+        "description": "Alerts grouped by one dimension (issue details), on the Alert Explorer stores (ClickHouse or SQLite) merged with the live alerts in memory (engaged host alerts, active flows with an alert). Any Alert Explorer filter (e.g. alert_id=79;eq, ip=192.168.1.1;eq, cli_ip, srv_ip) narrows the alerts; each group returns key, label, count, max_severity, max_score, first_seen, last_seen, families, the distinct hosts and the filters that select it in the Alert Explorer. Enterprise L+ only, with the issues enabled, and the alerts capability.",
         "operationId": "get_alert_groups",
         "produces": [
           "application/json"

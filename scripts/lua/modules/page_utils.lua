@@ -260,11 +260,6 @@ page_utils.menu_entries = {
         i18n_title = "issues.issue_details",
         section = "alerts"
     },
-    alerts_groups = {
-        key = "alerts_groups",
-        i18n_title = "details.alerts_groups",
-        section = "alerts"
-    },
     wazuh_alerts = {
         key = "wazuh_alerts",
         i18n_title = "wazuh_alert_config.wazuh_alerts",
