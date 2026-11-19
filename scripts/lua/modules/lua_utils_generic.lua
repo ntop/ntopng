@@ -101,6 +101,8 @@ function js_str(what)
    what = what:gsub("'", "\\'")
    what = what:gsub("\r", "\\r")
    what = what:gsub("\n", "\\n")
+   -- never let the value close the enclosing <script> block (e.g. "</script>")
+   what = what:gsub("<", "\\u003c")
    return what
 end
 
