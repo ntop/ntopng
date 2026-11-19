@@ -44,11 +44,11 @@ end
 -- #######################################################
 
 function alert_qoe_degraded.format(ifid, alert, alert_type_params)
-   local qoe = "Degraded"
-   if alert_type_params["qoe_score"] <= 30 then
-      qoe = "Poor"
+   local qoe = i18n("flow_details.qoe_degraded_label")
+   if alert_type_params["qoe"] == "poor" then
+      qoe = i18n("flow_details.qoe_poor_label")
    end
-   
+
    return i18n("alert_messages.qoe_degraded", {
       qoe = qoe,
       qoe_score = alert_type_params["qoe_score"]
