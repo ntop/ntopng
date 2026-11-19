@@ -32,7 +32,7 @@ class QoEDegradedAlert : public FlowAlert {
   static FlowAlertType getClassType() {
     return {NDPI_NO_RISK, flow_alert_qoe_degraded, alert_category_network};
   }
-  static u_int8_t getDefaultScore() { return SCORE_LEVEL_WARNING; };
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
   QoEDegradedAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {
     setAlertScore(getDefaultScore());
