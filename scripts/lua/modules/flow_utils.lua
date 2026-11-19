@@ -348,7 +348,8 @@ end
 
 -- #######################
 
-local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suffix)
+-- with_port: a port follows the host in the label, so an IPv6 address goes in square brackets
+local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suffix, with_port)
     local hyperlink_params
 
     if historical_bounds then
@@ -384,6 +385,8 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
 
     if (host_name == nil) then
         host_name = ""
+    elseif with_port and isIPv6(host_name) then
+        host_name = "[" .. host_name .. "]"
     end
 
     host_name = host_name .. format_utils.formatFullAddressCategory(host)
@@ -437,9 +440,17 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
         srv_port = flow["srv.port"]
     end
 
+    -- An IPv6 address followed by a port goes in square brackets
+    if cli_port and isIPv6(cli_name) then
+        cli_name = "[" .. cli_name .. "]"
+    end
+    if srv_port and isIPv6(srv_name) then
+        srv_name = "[" .. srv_name .. "]"
+    end
+
     if add_hyperlinks then
-        cli_name, cli_mac = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix)
-        srv_name, srv_mac = formatFlowHost(flow, "srv", historical_bounds, hyperlink_suffix)
+        cli_name, cli_mac = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix, cli_port ~= nil)
+        srv_name, srv_mac = formatFlowHost(flow, "srv", historical_bounds, hyperlink_suffix, srv_port ~= nil)
 
         if cli_port then
             cli_port = formatFlowPort(flow, "cli", cli_port, historical_bounds)
