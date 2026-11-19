@@ -14,7 +14,7 @@ Details
 
 The views of the interface are tabs right below the page title: Overview, Networks, Protocols,
 Applications, Sites, Historical Data, Traffic Profiles, Recording, Report and, for
-administrators, Settings. Each tab is discussed below. The alerts of the interface and its
+administrators, Disaggregation and Settings. Each tab is discussed below. The alerts of the interface and its
 service and periodicity maps open from the Overview. The internals of the interfaces (hash
 tables, periodic activities, checks) are in *Health* > *Interfaces Status* > *Internals*.
 
@@ -226,6 +226,10 @@ in the ntopng report.
 **Automatic Reports** (Enterprise L, when enabled in Preferences):
 Whether the traffic reports of the interface are created automatically.
 
+**Push Alerted Hosts to PF_RING**:
+Pushes the IP address of the alerted hosts to PF_RING through a Redis queue, to filter or
+further analyse their traffic with third party tools (e.g. an IDS).
+
 **Companion Interface**:
 Another interface (e.g. a syslog one) whose events and alerts are bound to the traffic of this
 interface.
@@ -246,25 +250,9 @@ Mirrored traffic and the interfaces that collect flows always use the IP address
 Whether ntopng periodically discovers the devices of the network of this interface. The
 frequency is set in Preferences (15 minutes by default).
 
-Traffic disaggregation
-~~~~~~~~~~~~~~~~~~~~~~
-
-**Dynamic Traffic Disaggregation**:
-Splits the traffic of the interface into dynamic interfaces, as explained in the
-`Interfaces Disaggregation`_ section.
-
 .. _`Local Broadcast Domain`: ../../../basic_concepts/local_broadcast_domain.html
 .. _`DHCP range`: #id1
 .. _`Interfaces Disaggregation`: ../../../advanced_features/dynamic_interfaces_disaggregation.html
-
-**Duplicate Disaggregated Traffic**:
-When the Dynamic Traffic Disaggregation is set, normally ntopng reports the traffic only on the
-disaggregated interfaces, hence the main interface has no traffic. With this option the traffic
-is also reported on the main interface.
-
-**Push Alerted Hosts to PF_RING**:
-Pushes the IP address of the alerted hosts to PF_RING through a Redis queue, to filter or
-further analyse their traffic with third party tools (e.g. an IDS).
 
 DHCP ranges
 ~~~~~~~~~~~
@@ -290,20 +278,33 @@ misconfigured network device is attached to the network.
 Since DHCP responses are usually directed to a specific host, this setting is
 most effective when the interface monitors mirrored traffic.
 
-Custom disaggregation (Enterprise M)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In Settings: the sub-interfaces that receive the traffic matching a filter (nBPF for the
-interfaces that capture packets, xnBPF for the ones that collect flows). *Add sub-interface*,
-give it a name and its filter; edit or delete one from its menu. A change is saved at once and
-needs a restart of ntopng.
-
 Syslog producers
 ~~~~~~~~~~~~~~~~
 
 In Settings, for the syslog interfaces: the hosts that send their logs to the interface and the
 type of their logs (e.g. Suricata). *Add producer*, type its IP address or host name and choose
 the type; edit or delete one from its menu. A change is saved at once.
+
+Disaggregation
+^^^^^^^^^^^^^^
+
+Administrators split here the traffic of the interface into other interfaces, dynamically by a
+criterion or by custom filters. Not available on the sub-interfaces themselves.
+
+**Dynamic Traffic Disaggregation**:
+Splits the traffic of the interface into dynamic interfaces, as explained in the
+`Interfaces Disaggregation`_ section.
+
+**Custom Traffic Disaggregation** (Enterprise M):
+The sub-interfaces that receive the traffic matching a filter (nBPF for the
+interfaces that capture packets, xnBPF for the ones that collect flows). *Add sub-interface*,
+give it a name and its filter; edit or delete one from its menu. A change is saved at once and
+needs a restart of ntopng.
+
+**Duplicate Disaggregated Traffic**:
+With dynamic or custom disaggregation, normally ntopng reports the traffic only on the
+disaggregated interfaces, hence the main interface has no traffic. With this option the traffic
+is also reported on the main interface.
 
 
 Mirrored Traffic

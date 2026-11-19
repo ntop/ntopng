@@ -7502,6 +7502,7 @@ local lang = {
   ["if_stats_tabs"] = {
     ["protocols"] = "Protocols",
     ["applications"] = "Applications",
+    ["disaggregation"] = "Disaggregation",
     ["reason_needs_enterprise_m"] = "Needs an Enterprise M license.",
     ["reason_no_n2disk"] = "Install n2disk to record the traffic of this interface.",
     ["reason_no_packets"] = "No packets received yet on this interface.",

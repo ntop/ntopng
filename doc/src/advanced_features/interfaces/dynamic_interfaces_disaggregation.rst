@@ -11,8 +11,8 @@ will also create as many virtual interfaces as the Exporters, for example
 Dynamic Disaggregation
 ----------------------
 
-Dynamic Interfaces Disaggregation can be enabled from the network interface configuration tab
-as depicted in the picture below.
+Dynamic Interfaces Disaggregation can be enabled from the Disaggregation tab of the interface details
+page, as depicted in the picture below.
 
 .. figure:: ../../img/dynamic_interface_disaggregation.png
   :align: center
@@ -39,7 +39,7 @@ Custom Disaggregation
 In addition to the dynamic disaggregation, it is also possible to use custom BPF-like filters to 
 disaggregate incoming traffic and divert it to logical sub-interfaces. This can be achieved by
 disabling Dynamic Traffic Disaggregation (setting it to 'None') and creating new rules in the 
-Custom Traffic Disaggregation tab. Alternatively you can use both disaggregation methods at the
+Custom Traffic Disaggregation section of the same tab. Alternatively you can use both disaggregation methods at the
 same time, by selecting a Dynamic disaggregation criteria and configuring custom rules at the 
 same time. Custom rules have higher priority: traffic matching custom rules will not be
 processed by the dynamic disaggregation.
