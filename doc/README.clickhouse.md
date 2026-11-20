@@ -62,6 +62,20 @@ xargs -I{} clickhouse-client -q "ALTER TABLE system.{} MODIFY TTL event_date + I
 ```
 
 to set all tables TTL to one day.
+
+You can also set system logs TTL by creating a configuration file /etc/clickhouse-server/config.d/system_logs_ttl.xml containing
+
+```
+  <clickhouse>
+    <trace_log><ttl>event_date + INTERVAL 3 DAY DELETE</ttl></trace_log>
+    <text_log><ttl>event_date + INTERVAL 3 DAY DELETE</ttl></text_log>
+    <metric_log><ttl>event_date + INTERVAL 3 DAY DELETE</ttl></metric_log>
+    <asynchronous_metric_log><ttl>event_date + INTERVAL 3 DAY DELETE</ttl></asynchronous_metric_log>
+    <part_log><ttl>event_date + INTERVAL 3 DAY DELETE</ttl></part_log>
+    <query_log><ttl>event_date + INTERVAL 7 DAY DELETE</ttl></query_log>
+    <processors_profile_log><ttl>event_date + INTERVAL 3 DAY DELETE</ttl></processors_profile_log>
+  </clickhouse>
+```
  
 Finally, you need to reduce the disk space used by ClickHouse logs by editing (as root) 
 /etc/clickhouse-server/config.xml and under the <logger> section do:
@@ -70,6 +84,12 @@ Finally, you need to reduce the disk space used by ClickHouse logs by editing (a
 - modify <size>1000M</size> to <size>100M</size>
 - modify <count>10</count> to <count>3</count>
 - service clickhouse-server start
+
+The clickhouse-server service should be restarted to apply the changes:
+
+```
+systemctl restart clickhouse-server
+```
 
 # ClickHouse tips
 - https://alex.dzyoba.com/kb/clickhouse/
