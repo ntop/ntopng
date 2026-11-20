@@ -57,7 +57,7 @@
 			"data_field": "vlans",
 			"sortable": false,
 			"min-width": "100px",
-			"max-width": "160px",
+			"auto_max_width": 160,
 			"class": [
 				"text-nowrap"
 			]
