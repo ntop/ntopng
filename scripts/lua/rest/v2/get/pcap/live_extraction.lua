@@ -36,7 +36,7 @@ if isEmptyString(ifid) then
 end
 
 if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
-   rc = rest_utils.consts.err.invalid_arguments
+   rc = rest_utils.consts.err.invalid_args
    rest_utils.answer(rc)
    return
 end
