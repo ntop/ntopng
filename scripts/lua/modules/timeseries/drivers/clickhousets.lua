@@ -121,6 +121,23 @@ local function agg_func(schema)
    end
 end
 
+-- SELECT list of the metrics of a gauge / derivative schema, aggregated within each bucket.
+local function gauge_select(schema)
+   local af  = agg_func(schema)
+   local sel = {}
+   for _, metric in ipairs(schema._metrics) do
+      local esc = ch_escape(metric)
+      if af == "argMax" then
+         sel[#sel + 1] = string.format(
+            "argMax(metrics['%s'], tstamp) AS `%s`", esc, esc)
+      else
+         sel[#sel + 1] = string.format(
+            "%s(metrics['%s']) AS `%s`", af, esc, esc)
+      end
+   end
+   return table.concat(sel, ", ")
+end
+
 -- ##############################################
 -- Driver API
 -- ##############################################
@@ -140,113 +157,9 @@ end
 
 -- ##############################################
 
---! @brief High-level query entry-point called by ts_utils_core (timeseries_query).
---! Unpacks the unified options table and delegates to driver:query.
-function driver:timeseries_query(options)
-   -- Strip any extra tags not defined in the schema (e.g. mac, host_ip added by ts_data)
-   -- to avoid spurious WHERE conditions that return no rows.
-   local actual_tags = options.schema_info:verifyTags(options.tags) or options.tags
-   return self:query(options.schema_info, options.epoch_begin, options.epoch_end,
-                     actual_tags, options)
-end
-
--- ##############################################
-
---! @brief Query timeseries data.
-function driver:query(schema, tstart, tend, tags, options)
-   local raw_step   = schema.options.step
-   local time_step  = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
-   local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
-   local tw         = self:tags_where(tags)
-   local af         = agg_func(schema)
-   local sql
-
-   if is_counter then
-      -- For counter (cumulative) schemas, compute per-bucket rates as the
-      -- difference between consecutive bucket last-values (cross-bucket delta).
-      -- A plain max-min within a single bucket returns 0 whenever only one
-      -- raw point lands in that bucket (e.g. time_step == raw_step).
-      --
-      -- Three-level structure:
-      --   innermost  - argMax per bucket, fetching one extra bucket before tstart
-      --   middle     - lag() window function over ALL rows (including the extra one)
-      --                so the first real bucket has a valid predecessor
-      --   outermost  - filter t >= tstart, apply greatest(0,...) / time_step
-      --
-      -- Window functions are evaluated after WHERE, so the lag must be computed
-      -- in the middle subquery before the outer WHERE removes the extra bucket.
-      -- __rn flags the first row of the windowed result set (ORDER BY t). When the 
-      -- look-back bucket (tstart - time_step) has no data of its own, that first 
-      -- row IS the real first requested bucket, and lag() has no predecessor to 
-      -- diff against: it silently defaults to 0, turning the raw cumulative counter 
-      -- value into the delta for that point (a huge bogus spike). Null it out 
-      -- instead so it renders as a gap, same as any other missing sample.
-      --
-      -- A counter sample written at T closes the interval ending at T (e.g. the
-      -- per-minute ASN dump at 10:31:00 holds the traffic up to 10:31:00), so it
-      -- is bucketed at T - half raw step: otherwise sparse series (one sample per
-      -- bucket) are labelled one step later than dense ones (iface 1s samples).
-      local sample_offset = math.ceil(raw_step / 2)
-      local inner_sel = {}
-      local mid_sel   = { "t", "row_number() OVER (ORDER BY t) AS `__rn`" }
-      local outer_sel = { "t" }
-      for _, metric in ipairs(schema._metrics) do
-         local esc = ch_escape(metric)
-         inner_sel[#inner_sel + 1] = string.format(
-            "argMax(metrics['%s'], tstamp) AS `%s`", esc, esc)
-         mid_sel[#mid_sel + 1] = string.format(
-            "`%s` - lag(`%s`, 1, 0) OVER (ORDER BY t) AS `%s`", esc, esc, esc)
-         outer_sel[#outer_sel + 1] = string.format(
-            "if(`__rn` = 1, NULL, greatest(0, `%s`) / %d) AS `%s`", esc, time_step, esc)
-      end
-
-      sql = string.format(
-         "SELECT %s FROM ("
-         ..   "SELECT %s FROM ("
-         ..     "SELECT intDiv(toUnixTimestamp(tstamp) - %d, %d) * %d AS t, %s "
-         ..     "FROM `%s`.`%s` "
-         ..     "WHERE schema_name = '%s'%s "
-         ..     "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
-         ..     "GROUP BY t ORDER BY t ASC"
-         ..   ")"
-         .. ") WHERE t >= %d ORDER BY t ASC",
-         table.concat(outer_sel, ", "),
-         table.concat(mid_sel, ", "),
-         sample_offset, time_step, time_step,
-         table.concat(inner_sel, ", "),
-         ch_escape(self.db), CH_TS_TABLE_NAME,
-         ch_escape(schema.name), tw,
-         tstart - time_step, tend + sample_offset, -- + offset: closing sample of the last bucket
-         tstart)
-   else
-      -- Gauge / derivative: aggregate within each bucket directly.
-      local sel = {}
-      for _, metric in ipairs(schema._metrics) do
-         local esc = ch_escape(metric)
-         if af == "argMax" then
-            sel[#sel + 1] = string.format(
-               "argMax(metrics['%s'], tstamp) AS `%s`", esc, esc)
-         else
-            sel[#sel + 1] = string.format(
-               "%s(metrics['%s']) AS `%s`", af, esc, esc)
-         end
-      end
-
-      sql = string.format(
-         "SELECT intDiv(toUnixTimestamp(tstamp), %d) * %d AS t, %s "
-         .. "FROM `%s`.`%s` "
-         .. "WHERE schema_name = '%s'%s "
-         .. "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
-         .. "GROUP BY t ORDER BY t ASC",
-         time_step, time_step,
-         table.concat(sel, ", "),
-         ch_escape(self.db), CH_TS_TABLE_NAME,
-         ch_escape(schema.name), tw,
-         tstart, tend)
-   end
-
-   local data = ch_query(sql)
-
+-- Builds the driver:query result (series with the missing buckets filled, statistics)
+-- from the rows of one entity, ordered by time.
+local function build_query_result(schema, data, tstart, tend, time_step, tags, options)
    -- Prepare output series skeletons.
    local series    = {}
    local max_vals  = {}
@@ -346,6 +259,222 @@ function driver:query(schema, tstart, tend, tags, options)
       source_aggregation = "raw",
       additional_series  = { total = total_serie },
    }
+end
+
+-- ##############################################
+
+--! @brief High-level query entry-point called by ts_utils_core (timeseries_query).
+--! Unpacks the unified options table and delegates to driver:query.
+function driver:timeseries_query(options)
+   -- Strip any extra tags not defined in the schema (e.g. mac, host_ip added by ts_data)
+   -- to avoid spurious WHERE conditions that return no rows.
+   local actual_tags = options.schema_info:verifyTags(options.tags) or options.tags
+   return self:query(options.schema_info, options.epoch_begin, options.epoch_end,
+                     actual_tags, options)
+end
+
+-- ##############################################
+
+--! @brief Query timeseries data.
+function driver:query(schema, tstart, tend, tags, options)
+   local raw_step   = schema.options.step
+   local time_step  = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
+   local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
+   local tw         = self:tags_where(tags)
+   local sql
+
+   if is_counter then
+      -- For counter (cumulative) schemas, compute per-bucket rates as the
+      -- difference between consecutive bucket last-values (cross-bucket delta).
+      -- A plain max-min within a single bucket returns 0 whenever only one
+      -- raw point lands in that bucket (e.g. time_step == raw_step).
+      --
+      -- Three-level structure:
+      --   innermost  - argMax per bucket, fetching one extra bucket before tstart
+      --   middle     - lag() window function over ALL rows (including the extra one)
+      --                so the first real bucket has a valid predecessor
+      --   outermost  - filter t >= tstart, apply greatest(0,...) / time_step
+      --
+      -- Window functions are evaluated after WHERE, so the lag must be computed
+      -- in the middle subquery before the outer WHERE removes the extra bucket.
+      -- __rn flags the first row of the windowed result set (ORDER BY t). When the 
+      -- look-back bucket (tstart - time_step) has no data of its own, that first 
+      -- row IS the real first requested bucket, and lag() has no predecessor to 
+      -- diff against: it silently defaults to 0, turning the raw cumulative counter 
+      -- value into the delta for that point (a huge bogus spike). Null it out 
+      -- instead so it renders as a gap, same as any other missing sample.
+      --
+      -- A counter sample written at T closes the interval ending at T (e.g. the
+      -- per-minute ASN dump at 10:31:00 holds the traffic up to 10:31:00), so it
+      -- is bucketed at T - half raw step: otherwise sparse series (one sample per
+      -- bucket) are labelled one step later than dense ones (iface 1s samples).
+      local sample_offset = math.ceil(raw_step / 2)
+      local inner_sel = {}
+      local mid_sel   = { "t", "row_number() OVER (ORDER BY t) AS `__rn`" }
+      local outer_sel = { "t" }
+      for _, metric in ipairs(schema._metrics) do
+         local esc = ch_escape(metric)
+         inner_sel[#inner_sel + 1] = string.format(
+            "argMax(metrics['%s'], tstamp) AS `%s`", esc, esc)
+         mid_sel[#mid_sel + 1] = string.format(
+            "`%s` - lag(`%s`, 1, 0) OVER (ORDER BY t) AS `%s`", esc, esc, esc)
+         outer_sel[#outer_sel + 1] = string.format(
+            "if(`__rn` = 1, NULL, greatest(0, `%s`) / %d) AS `%s`", esc, time_step, esc)
+      end
+
+      sql = string.format(
+         "SELECT %s FROM ("
+         ..   "SELECT %s FROM ("
+         ..     "SELECT intDiv(toUnixTimestamp(tstamp) - %d, %d) * %d AS t, %s "
+         ..     "FROM `%s`.`%s` "
+         ..     "WHERE schema_name = '%s'%s "
+         ..     "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
+         ..     "GROUP BY t ORDER BY t ASC"
+         ..   ")"
+         .. ") WHERE t >= %d ORDER BY t ASC",
+         table.concat(outer_sel, ", "),
+         table.concat(mid_sel, ", "),
+         sample_offset, time_step, time_step,
+         table.concat(inner_sel, ", "),
+         ch_escape(self.db), CH_TS_TABLE_NAME,
+         ch_escape(schema.name), tw,
+         tstart - time_step, tend + sample_offset, -- + offset: closing sample of the last bucket
+         tstart)
+   else
+      -- Gauge / derivative: aggregate within each bucket directly.
+      sql = string.format(
+         "SELECT intDiv(toUnixTimestamp(tstamp), %d) * %d AS t, %s "
+         .. "FROM `%s`.`%s` "
+         .. "WHERE schema_name = '%s'%s "
+         .. "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
+         .. "GROUP BY t ORDER BY t ASC",
+         time_step, time_step,
+         gauge_select(schema),
+         ch_escape(self.db), CH_TS_TABLE_NAME,
+         ch_escape(schema.name), tw,
+         tstart, tend)
+   end
+
+   return build_query_result(schema, ch_query(sql), tstart, tend, time_step, tags, options)
+end
+
+-- ##############################################
+
+--! @brief Query a gauge schema for many entities (e.g. all the SNMP interfaces) with one
+--! query instead of one per entity. entries: list of { index = n, tags = {...} }, all with
+--! the same tag keys. Returns the results (same format of driver:query) by entry index.
+function driver:timeseries_query_multi(options, entries)
+   local schema  = options.schema_info
+   local tstart  = options.epoch_begin
+   local tend    = options.epoch_end
+   local results = {}
+
+   if #entries == 0 then
+      return results
+   end
+
+   -- Counters need the per-entity lag() window of driver:query
+   if schema.options.metrics_type == ts_common.metrics.counter then
+      for _, entry in ipairs(entries) do
+         results[entry.index] = self:query(schema, tstart, tend, entry.tags, options)
+      end
+      return results
+   end
+
+   -- Tags with the same value in every entry go in the WHERE, the others identify the entity
+   local common_tags  = {}
+   local entity_keys  = {}
+   for key, value in pairs(entries[1].tags) do
+      local is_common = true
+      for _, entry in ipairs(entries) do
+         if entry.tags[key] ~= value then
+            is_common = false
+            break
+         end
+      end
+      if is_common then
+         common_tags[key] = value
+      else
+         entity_keys[#entity_keys + 1] = key
+      end
+   end
+
+   local tag_columns = {}
+   local tag_values  = {}
+   for i, key in ipairs(entity_keys) do
+      tag_columns[i] = string.format("tags['%s']", ch_escape(key))
+      tag_values[i]  = string.format("`__tag%d`", i)
+   end
+
+   -- Entity key -> entries, and the tuple of each entity for the IN filter
+   local entries_by_entity = {}
+   local tuples = {}
+   for _, entry in ipairs(entries) do
+      local values  = {}
+      local escaped = {}
+      for i, key in ipairs(entity_keys) do
+         values[i]  = tostring(entry.tags[key])
+         escaped[i] = string.format("'%s'", ch_escape(values[i]))
+      end
+      local entity = table.concat(values, "\0")
+      if not entries_by_entity[entity] then
+         entries_by_entity[entity] = {}
+         tuples[#tuples + 1] = string.format("tuple(%s)", table.concat(escaped, ", "))
+      end
+      table.insert(entries_by_entity[entity], entry)
+   end
+
+   local raw_step  = schema.options.step
+   local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
+   local entity_select = {}
+   for i, column in ipairs(tag_columns) do
+      entity_select[i] = string.format("%s AS %s", column, tag_values[i])
+   end
+   local entity_filter = ""
+   if #entity_keys > 0 then
+      entity_filter = string.format(" AND tuple(%s) IN (%s)",
+         table.concat(tag_columns, ", "), table.concat(tuples, ", "))
+      table.insert(entity_select, "")
+   end
+
+   local sql = string.format(
+      "SELECT %sintDiv(toUnixTimestamp(tstamp), %d) * %d AS t, %s "
+      .. "FROM `%s`.`%s` "
+      .. "WHERE schema_name = '%s'%s%s "
+      .. "AND tstamp BETWEEN toDateTime(%d) AND toDateTime(%d) "
+      .. "GROUP BY %st ORDER BY %st ASC",
+      table.concat(entity_select, ", "), time_step, time_step,
+      gauge_select(schema),
+      ch_escape(self.db), CH_TS_TABLE_NAME,
+      ch_escape(schema.name), self:tags_where(common_tags), entity_filter,
+      tstart, tend,
+      (#entity_keys > 0) and (table.concat(tag_values, ", ") .. ", ") or "",
+      (#entity_keys > 0) and (table.concat(tag_values, ", ") .. ", ") or "")
+
+   -- Split the rows by entity, keeping the time order
+   local rows_by_entity = {}
+   for _, row in ipairs(ch_query(sql) or {}) do
+      local values = {}
+      for i = 1, #entity_keys do
+         values[i] = tostring(row[string.format("__tag%d", i)])
+      end
+      local entity = table.concat(values, "\0")
+      local rows = rows_by_entity[entity]
+      if not rows then
+         rows = {}
+         rows_by_entity[entity] = rows
+      end
+      rows[#rows + 1] = row
+   end
+
+   for entity, entity_entries in pairs(entries_by_entity) do
+      for _, entry in ipairs(entity_entries) do
+         results[entry.index] = build_query_result(schema, rows_by_entity[entity], tstart, tend,
+                                                   time_step, entry.tags, options)
+      end
+   end
+
+   return results
 end
 
 -- ##############################################

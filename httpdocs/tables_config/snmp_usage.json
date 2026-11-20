@@ -7,8 +7,8 @@
 	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.snmp_usage",
 	"default_sort": {
-		"column_id": "ip",
-		"sort": 0
+		"column_id": "congestion_in",
+		"sort": 2
 	},
 	"columns": [
 		{
@@ -45,15 +45,7 @@
 			]
 		},
 		{
-			"title_i18n": "snmp.device_ip",
-			"data_field": "ip",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "snmp.device_name",
+			"title_i18n": "device",
 			"data_field": "device_name",
 			"sortable": true,
 			"class": [
@@ -78,17 +70,10 @@
 			]
 		},
 		{
-			"title_i18n": "score_usage",
-			"data_field": "score",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-center"
-			]
-		},
-		{
-			"title_i18n": "page_stats.usage.congestion_rate",
+			"id": "congestion_in",
+			"title_i18n": "page_stats.usage.congestion_in",
 			"data_field": "congestion_rate",
+			"direction": "downlink",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -96,8 +81,10 @@
 			]
 		},
 		{
-			"title_i18n": "page_stats.usage.min",
-			"data_field": "min",
+			"id": "congestion_out",
+			"title_i18n": "page_stats.usage.congestion_out",
+			"data_field": "congestion_rate",
+			"direction": "uplink",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -105,17 +92,10 @@
 			]
 		},
 		{
-			"title_i18n": "page_stats.usage.max",
-			"data_field": "max",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "page_stats.usage.average",
+			"id": "average_in",
+			"title_i18n": "page_stats.usage.average_in",
 			"data_field": "average",
+			"direction": "downlink",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -123,9 +103,81 @@
 			]
 		},
 		{
-			"title_i18n": "page_stats.usage.last_value",
-			"data_field": "last_value",
+			"id": "average_out",
+			"title_i18n": "page_stats.usage.average_out",
+			"data_field": "average",
+			"direction": "uplink",
 			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "max_in",
+			"title_i18n": "page_stats.usage.max_in",
+			"data_field": "max",
+			"direction": "downlink",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "max_out",
+			"title_i18n": "page_stats.usage.max_out",
+			"data_field": "max",
+			"direction": "uplink",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "min_in",
+			"title_i18n": "page_stats.usage.min_in",
+			"data_field": "min",
+			"direction": "downlink",
+			"sortable": true,
+			"visible": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "min_out",
+			"title_i18n": "page_stats.usage.min_out",
+			"data_field": "min",
+			"direction": "uplink",
+			"sortable": true,
+			"visible": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "last_in",
+			"title_i18n": "page_stats.usage.last_in",
+			"data_field": "last_value",
+			"direction": "downlink",
+			"sortable": true,
+			"visible": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"id": "last_out",
+			"title_i18n": "page_stats.usage.last_out",
+			"data_field": "last_value",
+			"direction": "uplink",
+			"sortable": true,
+			"visible": false,
 			"class": [
 				"text-nowrap",
 				"text-end"

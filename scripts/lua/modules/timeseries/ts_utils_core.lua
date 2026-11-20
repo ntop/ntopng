@@ -497,6 +497,55 @@ end
 
 -- ##############################################
 
+-- ! @brief Same query of ts_utils.timeseries_query for many entities of one schema (e.g. all
+-- ! the SNMP interfaces): one query when the driver supports it, else one per entity.
+-- ! @param options the timeseries_query options; options.tags are the tags common to every entity.
+-- ! @param tags_list list of the tags of each entity, all with the same keys.
+-- ! @return the results by tags_list index, nil for an entity not allowed or without data.
+function ts_utils.timeseries_query_multi(options, tags_list)
+	local results = {}
+
+	options = ts_utils.getQueryOptions(options)
+	ts_utils.verifySchema(options)
+	options.schema_info = ts_utils.getSchema(options.schema)
+
+	if not options.schema_info then
+		return results
+	end
+
+	local driver = ts_utils.getQueryDriverForSchema(options.schema_info)
+
+	if not driver then
+		return results
+	end
+
+	local entries = {}
+	for index, tags in ipairs(tags_list) do
+		local entity_tags = table.merge(options.tags or {}, tags)
+		if isUserAccessAllowed(entity_tags) then
+			local actual_tags = options.schema_info:verifyTags(entity_tags)
+			if actual_tags then
+				entries[#entries + 1] = { index = index, tags = actual_tags }
+			end
+		end
+	end
+
+	ts_common.clearLastError()
+
+	if driver.timeseries_query_multi then
+		return driver:timeseries_query_multi(options, entries)
+	end
+
+	for _, entry in ipairs(entries) do
+		options.tags = entry.tags
+		results[entry.index] = driver:timeseries_query(options)
+	end
+
+	return results
+end
+
+-- ##############################################
+
 local function get_top_talkers(schema_id, tags, tstart, tend, options)
 	package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 	local top_utils = require("top_utils")

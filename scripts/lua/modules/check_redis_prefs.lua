@@ -339,10 +339,10 @@ end
 
 -- ##############################################
 
--- Added caching in order to not search in redis when
--- new multiple SNMP interfaces appear
+-- Default of the SNMP interfaces without their own Usage page setting,
+-- cached to read redis once per Lua VM
 local excluded = nil
-function areNewInterfacesExcludedFromUsage()
+function areSNMPInterfacesExcludedFromUsageByDefault()
     if excluded == nil then
         excluded = ntop.getCache(
                             "ntopng.prefs.toggle_snmp_excluded_from_usage")

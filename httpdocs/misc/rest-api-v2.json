@@ -23678,7 +23678,7 @@
           "SNMP"
         ],
         "summary": "SNMP interfaces usage",
-        "description": "Usage of the SNMP interfaces in a time range, paged. Requires the SNMP capability and access to the system interface.",
+        "description": "Usage of the SNMP interfaces included in the usage page (interfaces are excluded by default, see the interface configuration) in a time range, all the rows in one answer. Each record has device_name, ip, interface, ifid and, as {uplink, downlink} (values in %), min, max, average, last_value (last point with data), congestion_rate (% of the points with data above 75%), score (average usage level of the points with data, 1 for [0, 25]% up to 4 for (75, 100]%, x 12 points per hour), plus speed {uplink, downlink} in bit/s. The total is in recordsTotal. Requires the SNMP capability and access to the system interface.",
         "operationId": "get_snmp_metric_usage",
         "produces": [
           "application/json"
@@ -23706,34 +23706,6 @@
             "type": "integer"
           },
           {
-            "name": "start",
-            "in": "query",
-            "description": "First row",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "length",
-            "in": "query",
-            "description": "Number of rows",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "Column to sort by",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "asc or desc",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "map_search",
             "in": "query",
             "description": "Text to search",
@@ -23757,7 +23729,7 @@
           "SNMP"
         ],
         "summary": "SNMP interfaces usage chart",
-        "description": "Usage distribution of the SNMP interfaces in a time range, for the usage chart. Requires the SNMP capability and access to the system interface.",
+        "description": "Top 20 directions (uplink/downlink) of the SNMP interfaces included in the usage page by congestion rate (% of the points with data above 75%) in a time range: serie (congestion rates), labels (device, interface, direction) and metadata {ip, ifid}, in the same order. Only directions with a congestion rate above 0. Requires the SNMP capability and access to the system interface.",
         "operationId": "get_snmp_metric_usage_chart",
         "produces": [
           "application/json"
