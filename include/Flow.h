@@ -1175,6 +1175,13 @@ class Flow : public GenericHashEntry {
 #endif
   inline bool is_swap_done() const { return (swap_done ? true : false); };
   inline void set_swap_done() { swap_done = 1; };
+  /* Collected flows: the direction decided by the collector (see
+   * ZMQParserInterface::preprocessFlow()), final as on the packet interfaces
+   * (see checkDirection() and applyDirection()) */
+  inline void setCollectedDirection(bool reversed) {
+    if (!direction_decided)
+      direction_decided = 1, direction_reversed = (reversed ? 1 : 0);
+  };
   /*
     Returns actual client and server, that is the client and server as
     determined after the swap heuristic that has taken place, also when the
