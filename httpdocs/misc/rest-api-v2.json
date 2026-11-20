@@ -26784,6 +26784,9 @@
           "0": {
             "description": "OK"
           },
+          "-2": {
+            "description": "NOT_ENABLED (the traffic model has not been built yet)"
+          },
           "-3": {
             "description": "NOT_GRANTED"
           },
@@ -26887,6 +26890,9 @@
           "0": {
             "description": "OK"
           },
+          "-2": {
+            "description": "NOT_ENABLED (the traffic model has not been built yet)"
+          },
           "-3": {
             "description": "NOT_GRANTED"
           },
@@ -26976,6 +26982,9 @@
           "0": {
             "description": "OK"
           },
+          "-2": {
+            "description": "NOT_ENABLED (the traffic model has not been built yet)"
+          },
           "-3": {
             "description": "NOT_GRANTED"
           },
@@ -27001,6 +27010,7 @@
         ],
         "responses": {
           "0": { "description": "OK" },
+          "-2": { "description": "NOT_ENABLED (the traffic model has not been built yet)" },
           "-3": { "description": "NOT_GRANTED" },
           "-5": { "description": "INVALID_ARGUMENTS" }
         }
@@ -27027,6 +27037,7 @@
         ],
         "responses": {
           "0": { "description": "OK" },
+          "-2": { "description": "NOT_ENABLED (the traffic model has not been built yet)" },
           "-3": { "description": "NOT_GRANTED" },
           "-5": { "description": "INVALID_ARGUMENTS" }
         }
@@ -27056,7 +27067,7 @@
           "0": { "description": "OK" },
           "-3": { "description": "NOT_GRANTED" },
           "-5": { "description": "INVALID_ARGUMENTS" },
-          "-2": { "description": "INVALID_INTERFACE" }
+          "-2": { "description": "INVALID_INTERFACE or NOT_ENABLED (the traffic model has not been built yet)" }
         }
       }
     },
@@ -27074,6 +27085,7 @@
         ],
         "responses": {
           "0": { "description": "OK" },
+          "-2": { "description": "NOT_ENABLED (the traffic model has not been built yet)" },
           "-3": { "description": "NOT_GRANTED" },
           "-5": { "description": "INVALID_ARGUMENTS" }
         }
@@ -27116,6 +27128,9 @@
         "responses": {
           "0": {
             "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (the traffic model has not been built yet)"
           },
           "-3": {
             "description": "NOT_GRANTED"
@@ -27183,6 +27198,9 @@
         "responses": {
           "0": {
             "description": "OK: { removed: number of valid addresses }"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (the traffic model has not been built yet)"
           },
           "-3": {
             "description": "NOT_GRANTED"

@@ -387,7 +387,7 @@ local function dt_format_ip_common(ip, name, location, prefix, record)
 
       ip        = ip, -- IP address
       name      = "", -- Symbolic hostname (leave empty if IP only)
-      reference = hostinfo2detailshref({ip = ip, vlan = vlan_id}, nil, "<i class='fas fa-laptop'></i>", "", true, nil, false),
+      reference = hostinfo2detailshref({ip = ip, vlan = vlan_id}, nil, "<i class='fas fa-laptop'></i>", i18n("flows_page.open_host_details"), true, nil, false),
    }
 
    if not isEmptyString(name) and name ~= ip then
