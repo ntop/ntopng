@@ -209,7 +209,7 @@ function telegram.runTest(recipient)
     local success = telegram.sendMessage(recipient, "test", settings)
 
     if not success then
-        message_info = i18n("telegram_alert_endpoint.telegram_send_error")
+        message_info = i18n("notification_endpoint.telegram.telegram_send_error")
     end
 
     return success, message_info

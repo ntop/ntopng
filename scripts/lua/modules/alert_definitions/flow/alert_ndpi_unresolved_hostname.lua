@@ -51,7 +51,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_ndpi_unresolved_hostname.format(ifid, alert, alert_type_params)
-    return (i18n("flow_alerts_explorer.status_unresolved_hostname_description", {
+    return (i18n("flow_alerts_explorer.status_ndpi_unresolved_hostname_description", {
         server = hostinfo2label({
             ip = alert.srv_ip,
             vlan = alert.vlan_id,

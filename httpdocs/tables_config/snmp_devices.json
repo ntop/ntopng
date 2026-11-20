@@ -52,7 +52,7 @@
 			]
 		},
 		{
-			"title_i18n": "unknown_devices.device_name",
+			"title_i18n": "snmp.device_name",
 			"data_field": "name",
 			"min-width": "80px",
 			"sortable": true,

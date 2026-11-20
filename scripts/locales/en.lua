@@ -1009,13 +1009,18 @@ local lang = {
   ["tls_version"] = "TLS Version",
   ["to_be_migrated"] = "To be migrated",
   ["today"] = "Today",
+  ["select"] = "Select",
+  ["low"] = "Low",
+  ["high"] = "High",
   ["toggle_dark_theme"] = "Toggle Dark Theme",
+  ["toggle_navigation"] = "Toggle Navigation",
   ["toggle_white_theme"] = "Toggle White Theme",
   ["too_many_exports"] = "Too many flow export drops",
   ["too_many_flows"] = "Too many flows",
   ["too_many_hosts"] = "Too many hosts",
   ["tools"] = "Tools",
   ["top_active_asn"] = "Top Active ASN",
+  ["top_active_interfaces"] = "Top Active Interfaces",
   ["top_alerted_hosts"] = "Top Alerted Hosts",
   ["top_asn"] = "Top Autonomous Systems",
   ["top_cli_per_proto"] = "Top Clients per Application",
@@ -1689,6 +1694,8 @@ local lang = {
     ["user"] = "User",
   },
   ["alert_messages"] = {
+    ["fail2ban_executed"] = "Fail2Ban jail '%{jail}' banned %{ip} in response to an alert: '%{alert_type}'",
+    ["host_alert_ntp_server_contacts"] = "Too many NTP servers contacted by %{entity} [%{value} &gt; %{threshold} servers]",
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
     ["ai_policy"] = "%{message}",
     ["alert"] = "Alert",
@@ -2773,6 +2780,7 @@ local lang = {
     ["reconnection"] = "Cloud Reconnected",
   },
   ["conf_backup"] = {
+    ["tar_not_found"] = "The tar command is not installed: it is needed to create the backup",
     ["conf_backup"] = "Backup Configuration",
     ["conf_restore"] = "Restore Configuration",
   },
@@ -3273,6 +3281,7 @@ local lang = {
       ["wlan_ssid"] = "All WLAN SSID",
     },
     ["flowfilters"] = {
+      ["qoe_score"] = "QoE Score",
       ["acknowledged"] = "Acknowledged",
       ["address"] = "MAC Address",
       ["alert_category"] = "Category",
@@ -4138,6 +4147,7 @@ local lang = {
     ["vpn_detection_title"] = "VPN Detection",
   },
   ["error_messages"] = {
+    ["name_too_long"] = "Name is too long",
     ["incorrect_exporter"] = "One or more of the inserted Exporters is not correct, please check the spelling",
     ["incorrect_network"] = "One or more of the inserted Networks is not correct, please check the spelling",
     ["name_cannot_be_empty"] = "Name Cannot Be Empty",
@@ -4783,6 +4793,7 @@ local lang = {
     ["description"] = "Clicking a live or historical flow, or a flow alert, now opens its details in a side panel without leaving the page. You can turn this off under Preferences &rarr; User Interface &rarr; Flow Details Side Card.",
   },
   ["flow_devices"] = {
+    ["enable_flow_ratio"] = "Enable the Flow/SNMP Ratio",
     ["exporter_not_found"] = "Flow exporter %{ip} not found on this interface",
     ["interface_config_in_snmp"] = "This exporter is also an SNMP device: its interface settings are in the SNMP interface page",
     ["open_snmp_interface"] = "SNMP interface settings",
@@ -4886,6 +4897,8 @@ local lang = {
     ["version"] = "Version",
   },
   ["flow_fields_description"] = {
+    ["dst_bgp_info"] = "Dst BGP information",
+    ["src_bgp_info"] = "Src BGP information",
     ["appl_latency_ms"] = "Application latency (msec), a.k.a. server response time",
     ["application_id"] = "Application Id",
     ["application_name"] = "Application Name",
@@ -5877,6 +5890,8 @@ local lang = {
     ["zmq_msg_rcvd"] = "Collected ZMQ Messages",
     ["zmq_received_flows"] = "Collected ZMQ Flows",
     ["metric_descr"] = {
+      ["iface_packets"] = "Packets per interface",
+      ["iface_packets_rxtx"] = "Packets sent and received",
       ["asn_rtt"] = "Round-trip time per ASN",
       ["asn_score"] = "Score per ASN (total, client and server score)",
       ["asn_tcp_packets_keep_alive"] = "TCP keep-alive packets sent and received per ASN",
@@ -6209,6 +6224,10 @@ local lang = {
     ["title"] = "Host Log",
   },
   ["host_pools"] = {
+    ["enter_cidr"] = "Enter CIDR",
+    ["enter_ip_address"] = "Enter IP Address",
+    ["enter_mac_address"] = "Enter MAC Address",
+    ["enter_network_address"] = "Enter Network Address",
     ["members_intro"] = "Hosts, networks and MAC addresses that belong to this pool.",
     ["members_empty"] = "No members yet. Add a host, a network or a MAC address",
     ["member_already_bound"] = "This member already belongs to the pool %{pool}: remove it from there first",
@@ -8030,6 +8049,7 @@ local lang = {
     ["usage_stats"] = "LLM usage stats",
   },
   ["llm"] = {
+    ["failed"] = "Failed",
     ["audit_empty"] = "No AI actions in this time range: choose a wider range or clear the filters",
     ["1h"] = "1h",
     ["24h"] = "24h",
@@ -8971,6 +8991,7 @@ local lang = {
     ["unable_to_find_host"] = "Unable to find %{host_ip} (data expired ?)",
   },
   ["nedge"] = {
+    ["delete"] = "Delete",
     ["a_member_address_is"] = "A member address is a rule to assign devices to a user. The following order applies:",
     ["a_zero_quota_is_unlimited"] = "A zero quota means unlimited traffic.",
     ["active_dhcp_leases"] = "DHCP Active Leases",
@@ -9617,6 +9638,7 @@ local lang = {
       },
     },
     ["thehive"] = {
+      ["thehive_send_error"] = "Error sending the alert to TheHive.",
       ["api_token"] = "API Key",
       ["observable_mail"] = "Observable email",
       ["observable_url"] = "Observable URL",
@@ -9951,6 +9973,8 @@ local lang = {
     ["server_ports"] = "Server Ports",
   },
   ["prefs"] = {
+    ["toggle_os_rrds_description"] = "Toggle the creation of timeseries for the operating systems of the hosts.",
+    ["toggle_os_rrds_title"] = "Operating Systems",
     ["active_local_host_cache_interval_description"] = "Interval between consecutive active local hosts cache dumps. Default: 1 hour.",
     ["active_local_host_cache_interval_title"] = "Active Local Host Cache Interval",
     ["active_scan"] = "Active Scan",
@@ -9963,7 +9987,7 @@ local lang = {
     ["aggregated_flows_data_retention_title"] = "Aggregated Flows Data Retention",
     ["alert_entity"] = "Alert Entity",
     ["alerts_notifications"] = "Endpoints",
-    ["alerts_page_refresh_rate__title"] = "Alert Refresh Rate",
+    ["alert_page_refresh_rate_title"] = "Alert Refresh Rate",
     ["alerts_page_refresh_rate_description"] = "Set the refresh rate timer (> 0, to be effective).",
     ["alerts_retention"] = "Alerts Retention",
     ["alerts_settings"] = "Alerts Settings",
@@ -12787,6 +12811,8 @@ local lang = {
     ["rcvd"] = "Rcvd",
   },
   ["traffic_profiles"] = {
+    ["add_traffic_profile"] = "Add Traffic Profile",
+    ["edit_traffic_profile"] = "Edit Traffic Profile",
     ["advanced_filter_examples"] = "Advanced Filters Examples",
     ["all_profiles"] = "All Profiles",
     ["confirm_delete_profile"] = "Do you really want to delete the profile",
@@ -13101,6 +13127,7 @@ local lang = {
     ["hosts_treemap"] = "Hosts Tree Map",
   },
   ["tree_nav_sidebar"] = {
+    ["drag_to_resize"] = "Drag to resize",
     ["no_data_available"] = "No data available",
     ["still_loading_results"] = "Still loading the full list: search results may be incomplete.",
   },

@@ -834,7 +834,7 @@ local function format_historical_sites(flow_details, flow)
 	if next_hop_site_id and next_hop_site_id ~= 0 then
 		local site = site_utils.getSiteInfo(tostring(next_hop_site_id))
 		flow_details[#flow_details + 1] = {
-			name = i18n("db_explorer.next_hop_site"),
+			name = i18n("flow_details.next_hop_site"),
 			values = { site.name },
 		}
 	end

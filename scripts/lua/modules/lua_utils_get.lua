@@ -542,8 +542,6 @@ function get_mac_classification(m, extended_name)
     else
         return short_extended.short or m
     end
-
-    return m
 end
 
 -- ##############################################
@@ -554,12 +552,10 @@ local magic_macs = {
     ["01:00:0C:CC:CC:CC"] = "CDP",
     ["01:00:0C:CC:CC:CD"] = "CiscoSTP",
     ["01:80:C2:00:00:00"] = "STP",
-    ["01:80:C2:00:00:00"] = "LLDP",
     ["01:80:C2:00:00:03"] = "LLDP",
     ["01:80:C2:00:00:0E"] = "LLDP",
     ["01:80:C2:00:00:08"] = "STP",
     ["01:1B:19:00:00:00"] = "PTP",
-    ["01:80:C2:00:00:0E"] = "PTP"
 }
 
 local magic_short_macs = {["01:00:5E"] = "IPv4mcast", ["33:33:"] = "IPv6mcast"}

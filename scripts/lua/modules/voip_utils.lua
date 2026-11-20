@@ -86,7 +86,6 @@ rtp_payload_type = {
 [34] = 'H263',
 [35] = 'unassigned',
 [71] = 'unassigned',
-[76] = 'Reserved for RTCP conflict avoidance',
 [72] = 'Reserved for RTCP conflict avoidance',
 [73] = 'Reserved for RTCP conflict avoidance',
 [74] = 'Reserved for RTCP conflict avoidance',

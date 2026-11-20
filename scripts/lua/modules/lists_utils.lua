@@ -341,24 +341,10 @@ function shouldUpdate(list_name, list, now)
                    (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1"))
     end
 
-    if (false) then
-        tprint('---------------')
-        tprint(list_file)
-        tprint('-')
-        tprint(ntop.getCache("ntopng.cache.category_lists.update." .. list_name))
-        tprint('-')
-        tprint(list)
-        tprint('---------------')
-
-        tprint(((now >= next_update) or (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
-                   (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
-        return (false)
-    else
-        -- note: num_errors is used to avoid retying downloading the same list again when
-        -- the file does not exist
-        return (((now >= next_update) or (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
-                   (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
-    end
+    -- note: num_errors is used to avoid retying downloading the same list again when
+    -- the file does not exist
+    return (((now >= next_update) or (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
+               (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
 end
 
 -- ##############################################

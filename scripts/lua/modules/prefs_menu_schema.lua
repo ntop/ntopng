@@ -1075,7 +1075,7 @@ function M.get_sections(flags)
                 redis_key = "ntopng.prefs.is_client_x509_auth_enabled",
                 default = "0",
                 requires_restart = true,
-                section = i18n("prefs.x509_auth")
+                section = i18n("prefs.client_x509_auth")
             }, -- LDAP auth
             {
                 key = "toggle_ldap_auth",

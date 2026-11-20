@@ -27,7 +27,7 @@ local function send_error(error_type)
    if error_type == "not_found" then
       msg = i18n("traffic_recording.not_found")
    elseif error_type == "not_granted" then
-      msg = i18n("traffic_recording.error_not_granted")
+      msg = i18n("error_not_granted")
    end
 
    sendHTTPContentTypeHeader('application/json')

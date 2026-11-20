@@ -106,7 +106,7 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "db_search.tags.host_pool_id",
+	    "title_i18n": "db_search.flowfilters.host_pool_id",
 	    "data_field": "host_pool_id",
 	    "sortable": false,
 	    "render_generic": "host_pool_id",
@@ -114,7 +114,7 @@
 	    "class": ["none"]
 	},
 	{
-	    "title_i18n": "db_search.tags.network",
+	    "title_i18n": "db_search.flowfilters.network",
 	    "data_field": "network",
 	    "sortable": false,
 	    "render_generic": "network",

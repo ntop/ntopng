@@ -81,7 +81,7 @@ local menu_subpages = {{
             description = i18n("prefs.enable_alerts_refresh_description")
 	 },
 	 alert_page_refresh_rate = {
-            title = i18n("prefs.alerts_page_refresh_rate__title"),
+            title = i18n("prefs.alert_page_refresh_rate_title"),
             description = i18n("prefs.alerts_page_refresh_rate_description")
 	 }
       }

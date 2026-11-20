@@ -48,6 +48,11 @@ print(json.encode(main_language_path))
 print [[;
 
 function i18n(key) { 
+    /* Keys written with the dots in en.lua (e.g. ["menu.reason.no_pro"]), as the Lua i18n reads them */
+    if(ntop_locale[key] != null) {
+        return(ntop_locale[key]);
+    }
+
     var fields = key.split('.');
     var val = null;
       

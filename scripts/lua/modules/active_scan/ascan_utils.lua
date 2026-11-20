@@ -2200,7 +2200,6 @@ function ascan_utils.process_all_scheduled_scans(max_num_scans, use_coroutines)
       if(use_coroutines) then
          if(res == nil) then
             break -- nothing to do
-            do_inc = false
          else
             co[#co + 1] = res
          end
@@ -2393,21 +2392,17 @@ function ascan_utils.runCommand(scan_command, use_coroutines)
       if(debug_me) then traceError(TRACE_NORMAL, TRACE_CONSOLE, "Started " .. scan_command) end
 
       if(use_coroutines) then
-         if(true) then
-            local job_id = ntop.execCmdAsync(scan_command)
+         local job_id = ntop.execCmdAsync(scan_command)
 
-            result = nil
+         result = nil
 
-            while((result == nil) and not(ntop.isShuttingDown())) do
-               coroutine.yield()
-               result = ntop.readResultCmdAsync(job_id)
-               ntop.msleep(100)
-            end
-
-            if(debug_me) then tprint(result) end
-         else
+         while((result == nil) and not(ntop.isShuttingDown())) do
             coroutine.yield()
+            result = ntop.readResultCmdAsync(job_id)
+            ntop.msleep(100)
          end
+
+         if(debug_me) then tprint(result) end
       else
          result = ntop.execCmd(scan_command)
       end

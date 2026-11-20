@@ -23,14 +23,6 @@ local allowed_host_pools = _POST["allowed_host_pools"]
 local old_host_pool_id = _POST["old_host_pool_id"]
 local new_host_pool_id = _POST["host_pool_id"]
 
-if(false) then
-   io.write("\n")
-   for k,v in pairs(_POST) do
-      local s = k.."="..v.."\n"
-      io.write(s)
-   end
-end
-
 local is_admin = isAdministrator()
 
 -- Non-administrators are allowed to change a safe subset of their own

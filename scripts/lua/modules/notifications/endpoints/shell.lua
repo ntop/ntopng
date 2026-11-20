@@ -215,7 +215,7 @@ function shell.runTest(recipient)
     local success = shell.runScript({}, settings)
 
     if not success then
-        message_info = i18n("shell_alert_endpoint.shell_send_error")
+        message_info = i18n("notification_endpoint.shell.shell_send_error")
     end
 
     return success, message_info

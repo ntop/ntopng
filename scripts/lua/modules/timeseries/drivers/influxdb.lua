@@ -584,15 +584,6 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
         end
 
         -- traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("@ %u = %.2f", cur_t, values[2]))
-        if (false) then -- consistency check
-            local expected_t = next_t
-            local actual_t = values[1]
-
-            if math.abs(expected_t - actual_t) >= time_step then
-                traceError(TRACE_WARNING, TRACE_CONSOLE, string.format(
-                    "Bad point timestamp: expected %u, found %u [value = %.2f]", expected_t, actual_t, values[2]))
-            end
-        end
 
         series_idx = series_idx + 1
         next_t = next_t + time_step

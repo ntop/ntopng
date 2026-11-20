@@ -341,7 +341,7 @@ local timeseries_list = {
 		scale = i18n("graphs.metric_labels.rcvd"),
 		timeseries = {
 			retran_pkts = {
-				label = i18n("graphs.metric_labels.retra_pkts"),
+				label = i18n("graphs.metric_labels.retran_pkts"),
 				color = ts_gui_utils.get_timeseries_color("packets"),
 			},
 			out_of_order_pkts = {
@@ -349,7 +349,7 @@ local timeseries_list = {
 				color = ts_gui_utils.get_timeseries_color("packets"),
 			},
 			lost_packets = {
-				label = i18n("graphs.metric_labels.lost_pkts"),
+				label = i18n("graphs.metric_labels.lost_packets"),
 				color = ts_gui_utils.get_timeseries_color("packets"),
 			},
 		},
@@ -365,7 +365,7 @@ local timeseries_list = {
 		scale = i18n("graphs.metric_labels.sent"),
 		timeseries = {
 			retran_pkts = {
-				label = i18n("graphs.metric_labels.retra_pkts"),
+				label = i18n("graphs.metric_labels.retran_pkts"),
 				color = ts_gui_utils.get_timeseries_color("packets"),
 			},
 			out_of_order_pkts = {
@@ -373,7 +373,7 @@ local timeseries_list = {
 				color = ts_gui_utils.get_timeseries_color("packets"),
 			},
 			lost_packets = {
-				label = i18n("graphs.metric_labels.lost_pkts"),
+				label = i18n("graphs.metric_labels.lost_packets"),
 				color = ts_gui_utils.get_timeseries_color("packets"),
 			},
 		},

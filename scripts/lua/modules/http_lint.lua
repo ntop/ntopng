@@ -1463,8 +1463,6 @@ local function validateCategory(cat)
    else
       return validateNumber(cat)
    end
-
-   return false
 end
 http_lint.validateCategory = validateCategory
 
@@ -2154,7 +2152,6 @@ local known_parameters = {
    ["wifi_enabled"] = validateBool,
    ["wifi_ssid"] = validateSingleWord,
    ["wpa_passphrase"] = {passwordCleanup, validatePassword}, -- Wifi password
-   ["interface_filter"] = validateInterface,
 
    -- Remote probe
    ["ifIdx"] = validateNumber, -- A generic switch/router port id
@@ -2388,9 +2385,7 @@ local known_parameters = {
    ["mitre_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["mitre_tactic"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["mitre_technique"] = validateListOfTypeInline(validateFilters(validateNumber)),
-   ["mitre_subtechnique"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["alert_map"] = validateSingleWord,
-   ["alert_type"] = validateNumber,
    ["mitre_subtechnique"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["description"] = validateUnquoted,
    ["alert_l7_proto"] = validateNumber, -- An alert l7 protocol
@@ -2559,7 +2554,6 @@ local known_parameters = {
    ["provider"] = validateUnquoted,
    ["prompt"] = validateUnquoted,
    ["stream"] = validateBool,
-   ["content"] = validateUnchecked,
    ["chatId"] = validateUUID,
    ["sequence"] = validateNumber,
    ["edit_from_sequence"] = validateNumber,
@@ -2605,7 +2599,6 @@ local known_parameters = {
    -- Analyst Pipeline
    ["definition"]            = {jsonCleanup, validateJSON},
    ["stages"]                = {jsonCleanup, validateJSON},
-   ["params"]                = {jsonCleanup, validateJSON},
    ["columns"]               = {jsonCleanup, validateJSON},
    ["post_hook"]             = {jsonCleanup, validateJSON},
    ["pipeline_id"]           = validateUUID,
@@ -3326,7 +3319,6 @@ local known_parameters = {
    ["operating_system"] = validateNumber,
    ["action"] = validateSingleWord, -- generic
    ["table"] = validateSingleWord,
-   ["columns"] = validateUnchecked,
    ["devices"] = {jsonCleanup, validateJSON},
    ["devices_csv"] = {jsonCleanup, validateUnquoted},
    ["sites_csv"] = validateUnquoted,
@@ -3709,9 +3701,6 @@ local function lintParams()
     local additional_params = script_manager.extendLintParams(http_lint, known_parameters)
     for _, id in pairs(params_to_validate) do
         for k, v in pairs(id) do
-            if (false) then
-                io.write("[LINT] Validating [" .. k .. "]\n")
-            end
 
             if enableValidation then
                 if ((v == "") and (((id == _GET) and relaxGetValidation) or ((id == _POST) and relaxPostValidation))) then

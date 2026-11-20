@@ -65,7 +65,7 @@ function alert_tls_certificate_mismatch.format(ifid, alert, alert_type_params)
    if table.len(crts) > 1 then
       return string.format("%s %s", i18n("flow_risk.ndpi_tls_certificate_mismatch"), table.concat(crts, ""))
    else
-      return i18n("flow_risk.tls_cert_mismatch_alert_descr")
+      return i18n("flow_checks_config.tls_cert_mismatch_alert_descr")
    end
 end
 

@@ -10,7 +10,6 @@ local flow_alert_keys = require "flow_alert_keys"
 -- #################################################################
 
 local script = {
-  packet_interface_only = true,
   
   -- Script category
   category = checks.check_categories.network,

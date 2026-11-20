@@ -113,7 +113,7 @@ end
 
 local function create_update_ntopng_toast(toast, body)
 
-    local title = i18n("update")
+    local title = i18n("updates.new_update_available_banner")
     return toast_ui:new(toast.id, title, body, ToastLevel.INFO, nil, toast.dismissable)
 end
 

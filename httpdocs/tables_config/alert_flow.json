@@ -156,7 +156,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.community_id",
+			"title_i18n": "db_search.flowfilters.community_id",
 			"data_field": "community_id",
 			"sortable": false,
 			"min-width": "130px",
@@ -203,7 +203,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_host_pool_id",
+			"title_i18n": "db_search.flowfilters.cli_host_pool_id",
 			"data_field": "cli_host_pool_id",
 			"sortable": false,
 			"render_generic": "cli_host_pool_id",
@@ -213,7 +213,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.srv_host_pool_id",
+			"title_i18n": "db_search.flowfilters.srv_host_pool_id",
 			"data_field": "srv_host_pool_id",
 			"sortable": false,
 			"min-width": "110px",
@@ -223,7 +223,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.cli_network",
+			"title_i18n": "db_search.flowfilters.cli_network",
 			"data_field": "cli_network",
 			"sortable": false,
 			"min-width": "145px",
@@ -233,7 +233,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.srv_network",
+			"title_i18n": "db_search.flowfilters.srv_network",
 			"data_field": "srv_network",
 			"min-width": "145px",
 			"sortable": false,
@@ -243,7 +243,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.tags.exporter_ip",
+			"title_i18n": "db_search.flowfilters.exporter_ip",
 			"data_field": "exporter_ip",
 			"min-width": "150px",
 			"sortable": false,

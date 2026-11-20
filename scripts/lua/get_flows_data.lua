@@ -404,19 +404,6 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
         column_thpt = 8 * value["throughput_bps"]
     end
 
-    if false then
-        if ((value["throughput_trend_" .. throughput_type] ~= nil) and
-            (value["throughput_trend_" .. throughput_type] > 0)) then
-            if (value["throughput_trend_" .. throughput_type] == 1) then
-                column_thpt = column_thpt .. "<i class='fas fa-arrow-up'></i>"
-            elseif (value["throughput_trend_" .. throughput_type] == 2) then
-                column_thpt = column_thpt .. "<i class='fas fa-arrow-down'></i>"
-            elseif (value["throughput_trend_" .. throughput_type] == 3) then
-                column_thpt = column_thpt .. "<i class='fas fa-minus'></i>"
-            end
-        end
-    end
-
     record["column_thpt"] = column_thpt
 
     if value["bytes"] > 0 then

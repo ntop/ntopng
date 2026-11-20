@@ -205,7 +205,7 @@ function discord.runTest(recipient)
   local success = discord.sendMessage("test", settings)
 
   if not success then
-    message_info = i18n("discord_alert_endpoint.discord_send_error")
+    message_info = i18n("notification_endpoint.discord.discord_send_error")
   end
 
   return success, message_info

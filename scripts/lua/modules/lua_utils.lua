@@ -181,8 +181,6 @@ function shortHostName(name)
             return (ret .. "...")
         end
     end
-
-    return (name)
 end
 
 -- ##############################################

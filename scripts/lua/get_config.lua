@@ -15,9 +15,9 @@ local json = require("dkjson")
 local function send_error(error_type)
    local msg = i18n("error")
    if error_type == "not_granted" then
-     msg = i18n("conf_backup.not_granted")
+     msg = i18n("error_not_granted")
    elseif error_type == "tar_not_found" then
-     msg = i18n("conf_backup.tar_not_counf")
+     msg = i18n("conf_backup.tar_not_found")
    end
 
    sendHTTPContentTypeHeader('application/json')

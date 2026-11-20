@@ -155,7 +155,6 @@ function snmp_consts.snmp_ifObjectId(id)
       ["2636.1.1.1.2.94"] = "Juniper Vseries",
       ["2636.1.1.1.2.95"] = "Juniper LN2600",
       ["2636.1.1.1.2.96"] = "Juniper VSRX",
-      ["2636.1.1.1.2.100"] = "Juniper QFX3100",
       ["2636.1.1.1.2.97"] = "Juniper MX104",
       ["2636.1.1.1.2.98"] = "Juniper PTX3000",
       ["2636.1.1.1.2.99"] = "Juniper MX2010",
