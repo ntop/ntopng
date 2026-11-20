@@ -4939,7 +4939,6 @@ local lang = {
     ["ndpi_tls_cert_validity_too_long"] = "TLS証明書の有効期間が長すぎる",
     ["ndpi_tls_certificate_about_to_expire"] = "TLS証明書の有効期限が切れる直前",
     ["ndpi_tls_certificate_about_to_expire_descr"] = "TLS証明書がほぼ有効期限切れの場合にアラートをトリガーします",
-    ["ndpi_tls_certificate_expired"] = "TLS証明書の有効期限切れ[%{sni}][%{notBefore} - %{notAfter}]",
     ["ndpi_tls_certificate_mismatch"] = "TLS 証明書の不一致",
     ["ndpi_tls_fatal_alert"] = "TLS致命的なアラート",
     ["ndpi_tls_missing_sni"] = "SNIのないTLS拡張",

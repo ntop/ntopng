@@ -53,16 +53,30 @@ function alert_tls_certificate_expired.format(ifid, alert, alert_type_params)
       return
    end
 
-   local crts = {}
-   if alert_type_params["protos.tls.notBefore"] and alert_type_params["protos.tls.notAfter"] and alert_type_params["protos.tls.server_names"] then 
-      return i18n("flow_risk.ndpi_tls_certificate_expired", {
-		     sni = alert_type_params["protos.tls.server_names"],
-		     notBefore = formatEpoch(alert_type_params["protos.tls.notBefore"]),
-		     notAfter = formatEpoch(alert_type_params["protos.tls.notAfter"])    
-      })
-   else
-      return ""
+   local tls_info = (alert_type_params.proto or {}).tls or {}
+
+   if tls_info.notBefore and tls_info.notAfter then
+      local params = {
+         notBefore = formatEpoch(tls_info.notBefore),
+         notAfter = formatEpoch(tls_info.notAfter)
+      }
+
+      if tonumber(alert.tstamp) and tonumber(alert.tstamp) < tls_info.notBefore then
+         return i18n("flow_risk.ndpi_tls_certificate_not_yet_valid", params)
+      end
+
+      return i18n("flow_risk.ndpi_tls_certificate_expired", params)
    end
+
+   -- Old alerts without TLS info: use the validity reported by nDPI
+   local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+   local validity = alert_type_params.flow_risk_info and alert_type_params.flow_risk_info[tostring(alert_risk)]
+
+   if not isEmptyString(validity) then
+      return i18n("flow_risk.ndpi_tls_certificate_expired_validity", { validity = validity })
+   end
+
+   return i18n("flow_risk.ndpi_tls_certificate_expired_generic")
 end
 
 -- #######################################################

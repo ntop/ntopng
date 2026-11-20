@@ -4939,7 +4939,6 @@ local lang = {
     ["ndpi_tls_cert_validity_too_long"] = "TLS 인증서 유효 기간이 너무 김",
     ["ndpi_tls_certificate_about_to_expire"] = "TLS 인증서가 곧 만료됩니다",
     ["ndpi_tls_certificate_about_to_expire_descr"] = "TLS 인증서가 거의 만료되면 경고 트리거",
-    ["ndpi_tls_certificate_expired"] = "TLS 인증서 만료됨 [%{sni}][%{notBefore} - %{notAfter}]",
     ["ndpi_tls_certificate_mismatch"] = "TLS 인증서 불일치",
     ["ndpi_tls_fatal_alert"] = "TLS 치명적인 경고",
     ["ndpi_tls_missing_sni"] = "SNI TLS 확장 누락",

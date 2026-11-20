@@ -5014,7 +5014,6 @@ local lang = {
     ["ndpi_tls_cert_validity_too_long"] = "TLS 憑證有效期限過長",
     ["ndpi_tls_certificate_about_to_expire"] = "TLS 憑證即將過期",
     ["ndpi_tls_certificate_about_to_expire_descr"] = "TLS 憑證即將過期時觸發警示",
-    ["ndpi_tls_certificate_expired"] = "TLS 憑證已過期 [%{sni}][%{notBefore} - %{notAfter}]",
     ["ndpi_tls_certificate_mismatch"] = "TLS 憑證不相符",
     ["ndpi_tls_fatal_alert"] = "TLS 致命警示",
     ["ndpi_tls_missing_sni"] = "缺少 SNI TLS 擴充功能",

@@ -4939,7 +4939,6 @@ local lang = {
     ["ndpi_tls_cert_validity_too_long"] = "Platnost certifikátu TLS je příliš dlouhá",
     ["ndpi_tls_certificate_about_to_expire"] = "Platnost certifikátu TLS brzy vyprší",
     ["ndpi_tls_certificate_about_to_expire_descr"] = "Spustit upozornění, když platnost certifikátu TLS téměř vyprší",
-    ["ndpi_tls_certificate_expired"] = "Platnost certifikátu TLS vypršela [%{sni}][%{notBefore} - %{notAfter}]",
     ["ndpi_tls_certificate_mismatch"] = "Neshoda certifikátů TLS",
     ["ndpi_tls_fatal_alert"] = "Závažné upozornění TLS",
     ["ndpi_tls_missing_sni"] = "Chybí SNI TLS Extn",

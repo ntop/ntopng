@@ -4939,7 +4939,6 @@ local lang = {
     ["ndpi_tls_cert_validity_too_long"] = "TLS 证书有效期过长",
     ["ndpi_tls_certificate_about_to_expire"] = "TLS 证书即将过期",
     ["ndpi_tls_certificate_about_to_expire_descr"] = "TLS 证书即将过期时触发警报",
-    ["ndpi_tls_certificate_expired"] = "TLS 证书已过期 [%{sni}][%{notBefore} - %{notAfter}]",
     ["ndpi_tls_certificate_mismatch"] = "TLS 证书不匹配",
     ["ndpi_tls_fatal_alert"] = "TLS 致命警报",
     ["ndpi_tls_missing_sni"] = "缺少 SNI TLS 扩展",

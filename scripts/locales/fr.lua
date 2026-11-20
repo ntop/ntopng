@@ -4939,7 +4939,6 @@ local lang = {
     ["ndpi_tls_cert_validity_too_long"] = "Validité du certificat TLS trop longue",
     ["ndpi_tls_certificate_about_to_expire"] = "Le certificat TLS est sur le point d'expirer",
     ["ndpi_tls_certificate_about_to_expire_descr"] = "Déclenchez une alerte lorsque le certificat TLS est presque expiré",
-    ["ndpi_tls_certificate_expired"] = "Certificat TLS expiré [%{sni}][%{notBefore} - %{notAfter}]",
     ["ndpi_tls_certificate_mismatch"] = "Incompatibilité de certificat TLS",
     ["ndpi_tls_fatal_alert"] = "Alerte fatale TLS",
     ["ndpi_tls_missing_sni"] = "Poste SNI TLS manquant",
