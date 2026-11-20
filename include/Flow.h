@@ -177,7 +177,7 @@ class Flow : public GenericHashEntry {
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1,
       direction_decided : 1 /* See checkDirection() */,
-      _notused : 4;
+      direction_reversed : 1 /* See applyDirection() */, _notused : 3;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
    * parked here, and it is set on the host of the view by the view itself (see
@@ -915,8 +915,9 @@ class Flow : public GenericHashEntry {
    * Once the protocol is detected on a flow that has carried payload, the
    * direction is final: a later SYN or SYN-ACK belongs to another connection.
    * A reversed flow is swapped at once, and the direction of the current
-   * packet reversed (see swapNow()). Nothing is done when the flow swap
-   * heuristic is disabled.
+   * packet reversed (see swapNow()). When the flow swap heuristic is disabled
+   * nothing is swapped: a final verdict of reversed is only remembered (see
+   * applyDirection()).
    * Client and server of UDP and ICMP flows: the first request or reply seen
    * (getDirectionByPayload()); otherwise, for UDP, once the protocol is detected by
    * DPI, the side using one of its default ports, as above, final

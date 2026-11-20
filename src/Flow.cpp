@@ -92,7 +92,8 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
   extra_dissection_completed = 0,
   has_malicious_cli_signature = has_malicious_srv_signature = 0,
-  iface_flow_accounted = 0, direction_decided = 0, periodicity = 0;
+  iface_flow_accounted = 0, direction_decided = 0, direction_reversed = 0,
+  periodicity = 0;
   memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol));
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
@@ -10125,14 +10126,13 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char* msg) {
  *   getDirectionByProtocol()).
  * A reversed flow is swapped at once (see swapNow()), before anything else
  * (detection, checks, services, dumps, the view) relies on its peers. Nothing
- * is done when the flow swap heuristic is disabled, or once the direction is
- * final (direction_decided). */
+ * is done once the direction is final (direction_decided). When the flow swap
+ * heuristic is disabled the rules are applied anyway, but nothing is swapped
+ * (see applyDirection()). */
 void Flow::checkDirection(bool* src2dst_direction, u_int8_t tcp_flags,
                           bool new_flow, u_int16_t l7proto,
                           const u_int8_t* payload, u_int16_t payload_len,
                           const ndpi_master_app_protocol* detected) {
-  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
-
   if (protocol == IPPROTO_TCP) {
     if (!direction_decided) {
       int rc = getDirectionByHandshake(*src2dst_direction, tcp_flags);
@@ -10164,8 +10164,17 @@ void Flow::checkDirection(bool* src2dst_direction, u_int8_t tcp_flags,
  * pending (see swapNow()): the verdict is about the flow as it is now, before
  * that swap */
 void Flow::applyDirection(bool* src2dst_direction, int verdict) {
-  if ((verdict >= 0) && ((verdict == 1) != is_swap_requested()))
-    swapNow(src2dst_direction);
+  if (verdict < 0) return;
+
+  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) {
+    /* Nothing is swapped: only a final verdict is remembered (a guess, e.g. by
+     * the ports, is ignored), so that the code relying on the actual peers
+     * knows that they are reversed (see isDHCPServerClient()) */
+    if (direction_decided) direction_reversed = (verdict == 1);
+    return;
+  }
+
+  if ((verdict == 1) != is_swap_requested()) swapNow(src2dst_direction);
 }
 
 /* *************************************** */
@@ -10178,8 +10187,6 @@ void Flow::applyDirection(bool* src2dst_direction, int verdict) {
  * MAC of the server known (see NetworkInterface::getFlow()), or withdrawn when
  * the flow is reversed again before it. */
 void Flow::swapNow(bool* src2dst_direction) {
-  if (!ntop->getPrefs()->isFlowSwapHeuristicEnabled()) return;
-
 #ifdef HAVE_NEDGE
   swap_requested = !swap_requested;
 #else
@@ -10441,13 +10448,15 @@ void Flow::refreshHostsTags() {
  * - replies sent to broadcast are not swapped (see getDirectionByPayload()): the
  *   server is the client when it sends from the server port;
  * - otherwise, when the direction has been decided by the requests and
- *   replies (getDirectionByPayload()), the server is the server of the flow: the
- *   ports cannot tell it, as relay agents also send from the server port;
+ *   replies (getDirectionByPayload()), the server is the server of the flow,
+ *   or its client when the flow is reversed and the flow swap heuristic is
+ *   disabled (direction_reversed, see applyDirection()): the ports cannot tell
+ *   it, as relay agents also send from the server port;
  * - otherwise (direction not decided, e.g. collected flows) by the ports. */
 bool Flow::isDHCPServerClient() const {
   if (direction_decided && get_srv_ip_addr() &&
       get_srv_ip_addr()->isNonEmptyUnicastAddress())
-    return (false);
+    return (direction_reversed ? true : false);
 
   return ((get_cli_port() == 67 /* DHCP server port (bootps) */) ||
           (get_cli_port() == 547 /* DHCPv6 server port */));
