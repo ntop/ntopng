@@ -12013,14 +12013,9 @@ void NetworkInterface::walkAlertables(AlertEntity alert_entity,
   /* Interface */
   if (((alert_entity == alert_entity_none) ||
        (alert_entity == alert_entity_interface))) {
-    if ((entity_value != NULL) && (getEntityValue().compare(entity_value) != 0))
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                   "Interface filter does not "
-                                   "correspond[type=%u]: expected %s, found %s",
-                                   alert_entity, entity_value,
-                                   getEntityValue().c_str());
-
-    if (matchesAllowedNetworks(allowed_nets))
+    if (((entity_value == NULL) ||
+         (getEntityValue().compare(entity_value) == 0)) &&
+        matchesAllowedNetworks(allowed_nets))
       callback(alert_entity_interface, this, user_data);
   }
 
