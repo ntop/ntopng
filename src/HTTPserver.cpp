@@ -2087,8 +2087,15 @@ static int handle_lua_request(struct mg_connection* conn) {
         redirect_to_error_page(conn, request_info, "not_found", NULL, NULL));
   } else {
     /* Prevent short URI or .inc files to be served */
-    if ((len < 4) || (strncmp(&request_info->uri[len - 4], ".inc", 4) == 0) ||
-        (strncmp(&request_info->uri[len - 4], ".pem", 4) == 0)) {
+    u_int ext_len = len;
+
+    while ((ext_len > 0) && ((request_info->uri[ext_len - 1] == '.') ||
+                             (request_info->uri[ext_len - 1] == ' ')))
+      ext_len--;
+
+    if ((ext_len < 4) || (strchr(request_info->uri, ':') != NULL) ||
+        (strncasecmp(&request_info->uri[ext_len - 4], ".inc", 4) == 0) ||
+        (strncasecmp(&request_info->uri[ext_len - 4], ".pem", 4) == 0)) {
       return (redirect_to_error_page(conn, request_info, "forbidden", NULL, NULL));
     } else {
       char path[MAX_PATH + 8];
