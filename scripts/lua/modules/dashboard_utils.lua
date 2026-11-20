@@ -21,8 +21,11 @@ local dashboard_utils = {}
 
 -- ##############################################
 
+-- Historical flows (ClickHouse), for users allowed to see them
 local function is_clickhouse_available()
-   return ntop.isClickHouseEnabled()
+   local auth = require "auth"
+
+   return ntop.isClickHouseEnabled() and auth.has_capability(auth.capabilities.historical_flows)
 end
 
 local function is_l7_timeseries_available()

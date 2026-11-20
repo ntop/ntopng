@@ -405,6 +405,10 @@ function isAdministratorOrPrintErr(isJsonResponse)
       local page_utils = require("page_utils")
       local dirs = ntop.getDirs()
 
+      -- Most pages check the permission before sending the header
+      if not rest_utils.http_header_sent then
+         sendHTTPContentTypeHeader('text/html')
+      end
       page_utils.print_header()
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
       print(

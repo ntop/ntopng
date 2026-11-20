@@ -498,6 +498,8 @@ function rest_utils.sendHTTPHeaderIfName(mime, ifname, maxage,
     -- it into multiple packets, to ease HTTP debugging with wireshark.
     print("HTTP/1.1 " .. status_code .. " " .. status_descr .. "\r\n" ..
               table.concat(lines, "\r\n") .. "\r\n\r\n")
+    -- One Lua engine per HTTP request: tells the error pages whether the header is out
+    rest_utils.http_header_sent = true
 end
 
 -- ##############################################
