@@ -86,15 +86,19 @@ Flow* FlowHash::find(Mac* src_mac, Mac* dst_mac, IpAddress* src_ip,
         max_num_loops = num_loops;
       }
 
+#ifdef HAVE_NEDGE
       if (head->is_swap_requested()) {
         /*
           This is a good flow but in the wrong direction
           hence we remember the flow unswapped but merge
           data with the flow with the correct direction
+          (the flows are swapped at once on the other builds, see
+          Flow::swapNow())
          */
         *unswapped_flow = head;
         head = NULL;
       }
+#endif
 
       break;
     } else

@@ -2151,7 +2151,7 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
   ports of the detected protocol: the server is the peer using a default port
   of the protocol, when the other one does not (e.g. a DNS reply whose request
   has not been seen, exported as 8.8.8.8:53 -> client:56696). Same rule as
-  Flow::checkDirectionByProtocol() for the flows of the packet interfaces:
+  Flow::getDirectionByProtocol() for the flows of the packet interfaces:
   UDP only when the protocol has been detected with DPI. Nothing can be told
   when both or no ports are default ports (e.g. DNS 53 <-> 53).
 */
@@ -2257,8 +2257,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
 #endif
     } else {
       /* NOTE: same rules as the flows of the packet interfaces (see
-       * Flow::checkTCPDirection(), Flow::checkDirectionByProtocol() and
-       * Flow::check_swap()), as far as the exported fields allow */
+       * Flow::checkDirection()), as far as the exported fields allow */
 
       if (flow->src_ip.isBroadMulticastAddress() ||
           flow->dst_ip.isBroadMulticastAddress())

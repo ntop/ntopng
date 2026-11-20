@@ -175,6 +175,16 @@ class HostStats : public GenericTrafficElement {
     else
       total_num_flows_as_server++;
   };
+  /* A flow already counted with the other role (see Host::swapFlowRole()) */
+  void swapNumFlows(bool now_client) {
+    if (now_client) {
+      if (total_num_flows_as_server > 0) total_num_flows_as_server--;
+      total_num_flows_as_client++;
+    } else {
+      if (total_num_flows_as_client > 0) total_num_flows_as_client--;
+      total_num_flows_as_server++;
+    }
+  };
 
   virtual void luaPeers(lua_State* vm) {};
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);

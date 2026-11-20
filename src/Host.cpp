@@ -1666,6 +1666,20 @@ void Host::decNumFlows(time_t t, bool as_client, bool isTCP,
 
 /* *************************************** */
 
+/* A flow of the host has been swapped: it is moved to its new role, in the
+ * active and in the total flows, without counting it again (see
+ * incNumFlows(), e.g. for the flow flood counters) */
+void Host::swapFlowRole(bool now_client) {
+  if (now_client)
+    num_active_flows_as_server--, num_active_flows_as_client++;
+  else
+    num_active_flows_as_client--, num_active_flows_as_server++;
+
+  if (stats) stats->swapNumFlows(now_client);
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol) {
   HostPools* hp;
