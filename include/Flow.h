@@ -176,8 +176,7 @@ class Flow : public GenericHashEntry {
   u_int16_t flow_score;
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1,
-      direction_decided : 1 /* See checkTCPDirection(), checkL7Direction(),
-                               checkDirectionByProtocol() */,
+      direction_decided : 1 /* See checkDirection() */,
       _notused : 4;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
@@ -229,7 +228,8 @@ class Flow : public GenericHashEntry {
   u_int16_t detection_completed : 1, extra_dissection_completed : 1,
       twh_over : 1, dissect_next_http_packet : 1, passVerdict : 1,
       flow_dropped_counts_increased : 1, quota_exceeded : 1, swap_done : 1,
-      swap_requested : 1, has_malicious_cli_signature : 1,
+      swap_requested : 1 /* nEdge only, see swapNow() */,
+      has_malicious_cli_signature : 1,
       has_malicious_srv_signature : 1, src2dst_tcp_zero_window : 1,
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
       is_periodic_flow : 1, has_collected_qoe : 1;
@@ -534,6 +534,15 @@ class Flow : public GenericHashEntry {
                        const char* label);
   void allocTCPStats();
   void allocUDPStats();
+  /* The direction rules (see checkDirection()): 1 reversed, 0 not reversed,
+   * -1 no evidence */
+  int getDirectionByHandshake(bool src2dst_direction, u_int8_t tcp_flags);
+  int getDirectionByPorts() const;
+  int getDirectionByPayload(bool src2dst_direction, u_int16_t l7proto,
+                            const u_int8_t* payload, u_int16_t payload_len);
+  int getDirectionByProtocol(ndpi_master_app_protocol proto);
+  void applyDirection(bool* src2dst_direction, int verdict);
+  void swapNow(bool* src2dst_direction);
 
  public:
   Flow(NetworkInterface* _iface, int32_t iface_idx, u_int16_t _vlanId,
@@ -835,10 +844,11 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void setDetectedProtocol(ndpi_protocol proto_id, bool src2dst_direction);
-  void processPacket(bool src2dst_direction, const struct pcap_pkthdr* h,
+  void processPacket(bool* src2dst_direction, const struct pcap_pkthdr* h,
                      const u_char* ip_packet, u_int16_t ip_len,
                      u_int64_t packet_time, u_int8_t* payload,
-                     u_int16_t payload_len, u_int16_t src_port);
+                     u_int16_t payload_len, u_int16_t src_port,
+                     u_int8_t tcp_flags, bool new_flow);
   void processDNSPacket(const u_char* ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
   void checkSMBFileName();
@@ -868,7 +878,8 @@ class Flow : public GenericHashEntry {
   void serializeQoEInfo(ndpi_serializer* serializer);
   QoEType getQoEType();
 #endif
-  void endProtocolDissection(bool src2dst_direction);
+  bool endProtocolDissection(bool src2dst_direction,
+                             bool apply_direction = true);
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
   };
@@ -895,26 +906,26 @@ class Flow : public GenericHashEntry {
   /* Client and server of TCP flows (packet interfaces), from the strongest
    * evidence to the weakest:
    * 1. the first SYN (sent by the client) or SYN-ACK (sent by the server)
-   *    seen, whatever came before it: final (checkTCPDirection());
+   *    seen, whatever came before it: final (getDirectionByHandshake());
    * 2. no handshake seen: once the protocol is detected, the side using one of
    *    its default ports (nDPI) is the server, when only one side uses one
-   *    (checkDirectionByProtocol());
+   *    (getDirectionByProtocol());
    * 3. otherwise the guess made on the first packet: the lower port is the
-   *    server (check_swap()).
+   *    server (getDirectionByPorts()).
    * Once the protocol is detected on a flow that has carried payload, the
    * direction is final: a later SYN or SYN-ACK belongs to another connection.
-   * A swap is requested, and performed by the next packet or when the flow
-   * ends. Nothing is done when the flow swap heuristic is disabled.
+   * A reversed flow is swapped at once, and the direction of the current
+   * packet reversed (see swapNow()). Nothing is done when the flow swap
+   * heuristic is disabled.
    * Client and server of UDP and ICMP flows: the first request or reply seen
-   * (checkL7Direction()); otherwise, for UDP, once the protocol is detected by
+   * (getDirectionByPayload()); otherwise, for UDP, once the protocol is detected by
    * DPI, the side using one of its default ports, as above, final
-   * (checkDirectionByProtocol()). */
-  void check_swap();
-  void checkTCPDirection(bool src2dst_direction, u_int8_t tcp_flags,
-                         bool new_flow);
-  void checkDirectionByProtocol();
-  void checkL7Direction(bool src2dst_direction, u_int16_t l7proto,
-                        const u_int8_t* payload, u_int16_t payload_len);
+   * (getDirectionByProtocol()).
+   * All the rules are applied by checkDirection(). */
+  void checkDirection(bool* src2dst_direction, u_int8_t tcp_flags,
+                      bool new_flow, u_int16_t l7proto,
+                      const u_int8_t* payload, u_int16_t payload_len,
+                      const ndpi_master_app_protocol* detected);
 
   bool isThreeWayHandshakeOK() const;
 
@@ -1151,16 +1162,22 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_goodput_bytes_srv2cli() const;
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
-  void request_swap();
+#ifdef HAVE_NEDGE
   void performPendingSwap();
+  /* A swap requested and not performed yet (see swapNow()) */
   inline bool is_swap_requested() const {
     return (swap_requested ? true : false);
   };
+#else
+  /* The flows are swapped at once (see swapNow()) */
+  inline bool is_swap_requested() const { return (false); };
+#endif
   inline bool is_swap_done() const { return (swap_done ? true : false); };
   inline void set_swap_done() { swap_done = 1; };
   /*
     Returns actual client and server, that is the client and server as
-    determined after the swap heuristic that has taken place.
+    determined after the swap heuristic that has taken place, also when the
+    swap is still pending (nEdge, see swapNow()).
   */
   inline void get_actual_peers(Host** actual_client,
                                Host** actual_server) const {
@@ -1831,7 +1848,7 @@ class Flow : public GenericHashEntry {
   void setBittorrentHash(char* hash, u_int len);
   inline bool isFlowAccounted() { return iface_flow_accounted; };
   inline void setFlowAccounted() { iface_flow_accounted = 1; };
-  void accountFlowTraffic(bool src2dst_direction);
+  void accountFlowTraffic(bool src2dst_direction, bool apply_direction = true);
   void setICMPTypeCode(u_int16_t icmp_type_code);
   inline void setQoE(u_int8_t c2s, u_int8_t s2c) {
     if ((c2s != NTOP_QOE_UNKNOWN) || (s2c != NTOP_QOE_UNKNOWN))

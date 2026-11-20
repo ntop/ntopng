@@ -721,6 +721,7 @@ class Host : public GenericHashEntry,
 
   void incNumFlows(time_t t, bool as_client, bool isTCP);
   void decNumFlows(time_t t, bool as_client, bool isTCP, u_int16_t isTwhOver);
+  void swapFlowRole(bool now_client);
   void incNumEstablishedTCPFlows(bool as_client);
 
   inline void incNumAlertedFlows(bool as_client) {

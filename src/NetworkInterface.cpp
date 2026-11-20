@@ -1489,14 +1489,15 @@ Flow* NetworkInterface::getFlow(
                          true /* Inline call */, &unswapped_flow);
   INTERFACE_PROFILING_SECTION_EXIT(1);
 
+#ifdef HAVE_NEDGE
   if ((ret == NULL) && (unswapped_flow != NULL)) {
     bool dont_swap_now = false;
     /*
       We have found this flow but with the wrong direction
-      and we're waiting it to be swapped.
+      and we're waiting it to be swapped (the flows are swapped at once on the
+      other builds, see Flow::swapNow()).
     */
 
-#ifdef HAVE_NEDGE
     if ((dst_mac == NULL) || dst_mac->isNull()) {
       /*
         We need to wait until the destination MAC (that will become the future
@@ -1504,7 +1505,6 @@ Flow* NetworkInterface::getFlow(
       */
       dont_swap_now = true;
     }
-#endif
 
     if (dont_swap_now == false) {
       ret = unswapped_flow; /* 1 - Use the new flow */
@@ -1513,6 +1513,7 @@ Flow* NetworkInterface::getFlow(
                             (ntohs(dst_port) == ret->get_srv_port()));
     }
   }
+#endif
 
   if (ret == NULL) {
     if (!create_if_missing) return (NULL);
@@ -2260,7 +2261,9 @@ bool NetworkInterface::processPacket(
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow",
                                     0);
 
+#ifdef HAVE_NEDGE
 pre_get_flow:
+#endif
   /* Updating Flow */
   flow = getFlow(
       if_index, srcMac, dstMac, vlan_id, 0 /* observationPointId */,
@@ -2304,6 +2307,7 @@ pre_get_flow:
 #endif
 #endif
 
+#ifdef HAVE_NEDGE
     if (flow->is_swap_requested()
         /* This guarantees that at least a packet has been observed in both
            directions, and that we are in the dst->src direction of the flow
@@ -2318,6 +2322,7 @@ pre_get_flow:
       flow->set_swap_done(); /* Mark the old flow with the swap done */
       goto pre_get_flow;     /* Start over */
     }
+#endif
 
     *srcHost = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
@@ -2413,8 +2418,6 @@ pre_get_flow:
 #endif
         flow->updateTcpFlags(when, tcp_flags, src2dst_direction, *new_flow);
 
-        flow->checkTCPDirection(src2dst_direction, tcp_flags, *new_flow);
-
         if ((tcp_flags & (TH_RST | TH_FIN)) == 0) {
           /*
             Ignore Zero-window on flow termination as this case
@@ -2448,11 +2451,6 @@ pre_get_flow:
         break;
 
       default:
-        /*
-          NOTE: for non TCP-flows, the swap heuristic is always checked on the
-          first packet
-        */
-        if (*new_flow) flow->check_swap();
         break;
     }
 
@@ -2526,19 +2524,24 @@ pre_get_flow:
    * by calling iface->incLocalStats */
   // flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 
-  if (!flow->isDetectionCompleted() || flow->needsExtraDissection()) {
-    if ((!is_fragment)
+  if ((!flow->isDetectionCompleted() || flow->needsExtraDissection()) &&
+      ((!is_fragment)
 #ifdef IMPLEMENT_SMART_FRAGMENTS
-        || (fragment_offset == 0)
+       || (fragment_offset == 0)
 #endif
-    ) {
-      flow->processPacket(src2dst_direction, h, ip, trusted_ip_len, packet_time,
-                          payload, trusted_payload_len, src_port);
-    } else {
-      // FIX - only handle unfragmented packets
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not
-      // handled yet!");
-    }
+       )) {
+    /* NOTE: the flow can be swapped, reversing src2dst_direction */
+    flow->processPacket(&src2dst_direction, h, ip, trusted_ip_len,
+                        packet_time, payload, trusted_payload_len, src_port,
+                        tcp_flags, *new_flow);
+  } else {
+    /* A packet not seen by nDPI (detection completed, IP fragment): the TCP
+     * handshake (e.g. one-way traffic, whose handshake comes after the
+     * detection) and the guess by the ports of the first packet (fragment)
+     * still decide the direction (see Flow::checkDirection()).
+     * NOTE: the flow can be swapped, reversing src2dst_direction */
+    flow->checkDirection(&src2dst_direction, tcp_flags, *new_flow,
+                         NDPI_PROTOCOL_UNKNOWN, NULL, 0, NULL);
   }
 
   if ((flow->getDetectionState() >= NDPI_STATE_PARTIAL) &&
