@@ -2266,6 +2266,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
         u_int16_t cli_port = ntohs(flow->src_port),
                   srv_port = ntohs(flow->dst_port);
         int server_first = -1;
+        bool decided = false /* By reliable evidence, see below */;
 
         if (flow->l4_proto == IPPROTO_TCP) {
           /* The handshake, then the default ports of the protocol */
@@ -2273,6 +2274,8 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
 
           if (server_first < 0)
             server_first = isServerFirstByDefaultPort(get_ndpi_struct(), flow);
+
+          decided = (server_first >= 0);
 
           if (server_first < 0) {
             /*
@@ -2294,10 +2297,17 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
            * attempts: only the default ports of the protocol detected with
            * DPI */
           server_first = isServerFirstByDefaultPort(get_ndpi_struct(), flow);
+          decided = (server_first >= 0);
         } else
           server_first = (cli_port < srv_port) ? 1 : 0;
 
         if (server_first == 1) flow->swap();
+
+        /* Decided by the handshake or by the default ports, not by the port
+         * order (a guess): see Flow::setCollectedDirection(). A reversed
+         * record is not swapped when the flow swap heuristic is disabled */
+        if (decided)
+          flow->setDirectionDecided((server_first == 1) && !flow->isSwapped());
       }
     }
 

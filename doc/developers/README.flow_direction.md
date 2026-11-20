@@ -181,6 +181,18 @@ and the flow is marked with `swap_done` (`ParsedFlow::isSwapped()`).
 Nothing is done for non-unicast addresses (the client is never a broadcast or
 multicast address) and for eBPF events (their direction is reliable).
 
+The direction is decided (final, `direction_decided` of the flow, as for the
+packet interfaces) when the handshake or the default ports below tell it, not
+by the port order (a guess). The record carries it
+(`ParsedFlow::setDirectionDecided()`) to the flow
+(`Flow::setCollectedDirection()`, in `ParserInterface::processFlow()`), set
+by the first record that decides. The flow is marked `direction_reversed`
+when that record goes from the server to the client of the flow (e.g. the
+flow was created by an earlier record not decided, the other way round), or
+when it has not been swapped (flow swap heuristic disabled), but not both: a
+flow is never swapped once created. eBPF events and the flows not parsed by
+`preprocessFlow()` are never decided.
+
 ### TCP
 
 The evidence, from the strongest to the weakest (the first one that tells

@@ -27,6 +27,8 @@
 class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
  private:
   bool has_parsed_ebpf, is_swapped;
+  /* See ZMQParserInterface::preprocessFlow() */
+  bool direction_decided, direction_reversed;
   json_object* additional_fields_json;
   ndpi_serializer* additional_fields_tlv;
   char* l7_info;
@@ -397,6 +399,14 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline ndpi_risk getRisk() { return (ndpi_flow_risk_bitmap); }
   inline char* getRiskName() { return (ndpi_flow_risk_name); }
   inline bool isSwapped() { return (is_swapped); }
+  /* The direction has been decided by reliable evidence (reversed: and the
+   * record is reversed but has not been swapped, flow swap heuristic
+   * disabled), see ZMQParserInterface::preprocessFlow() */
+  inline void setDirectionDecided(bool reversed) {
+    direction_decided = true, direction_reversed = reversed;
+  }
+  inline bool isDirectionDecided() { return (direction_decided); }
+  inline bool isDirectionReversed() { return (direction_reversed); }
   inline FlowSource getFlowSource() { return (flow_source); }
   inline u_int8_t getQoESrc2Dst() { return (qoe.src_to_dst); }
   inline u_int8_t getQoEDst2Src() { return (qoe.dst_to_src); }
