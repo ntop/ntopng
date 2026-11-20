@@ -13,11 +13,15 @@ performed.
 Preference
 ----------
 
-Everything below is done only when the flow swap heuristic is enabled
+The flows are swapped only when the flow swap heuristic is enabled
 (`ntopng.prefs.enable_flow_swap_heuristic`, enabled by default,
-`Prefs::isFlowSwapHeuristicEnabled()`). When it is disabled, every function
-involved returns immediately (including `Flow::swap()`), and the client is
-always the sender of the first packet.
+`Prefs::isFlowSwapHeuristicEnabled()`). When it is disabled nothing is swapped
+(`Flow::swap()` returns immediately) and the client is always the sender of
+the first packet. On packet interfaces the rules below are applied anyway: a
+final verdict of reversed is only remembered in the `direction_reversed` bit
+of the flow (`Flow::applyDirection()`), so that the code needing the actual
+peers knows that the client and the server are reversed (e.g.
+`Flow::isDHCPServerClient()`).
 
 Packet interfaces
 -----------------
@@ -44,7 +48,9 @@ reversed (1), not reversed (0), or nothing can be told (-1):
 | Others | `getDirectionByPorts()` | port order, on the first packet |
 
 The `direction_decided` bit of the flow is set once the direction is final:
-from then on it does not change.
+from then on it does not change. With the flow swap heuristic disabled,
+`direction_reversed` tells whether that final direction is the reverse of the
+flow (see Preference above); it is always clear otherwise.
 
 ### TCP
 
