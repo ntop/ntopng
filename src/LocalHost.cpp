@@ -68,6 +68,7 @@ LocalHost::~LocalHost() {
 
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
+  if (usedPorts) delete usedPorts;
   if (fingerprints) delete fingerprints;
 
   /* Decrease number of active hosts */
@@ -600,10 +601,8 @@ void LocalHost::freeLocalHostData() {
   /* Better not to use a virtual function as it is called in the destructor as
    * well */
 
-  if (usedPorts) {
-    delete usedPorts;
-    usedPorts = NULL;
-  }
+  /* NOTE: usedPorts is not deleted here, as it can be in use by Lua (see
+   * deleteHostData) */
 
   if (os_detail) {
     free(os_detail);
@@ -645,6 +644,11 @@ void LocalHost::deleteHostData() {
   m.lock(__FILE__, __LINE__);
   freeLocalHostData();
   m.unlock(__FILE__, __LINE__);
+
+  /* Emptied rather than deleted, so that the ports are learnt again: Lua reads
+   * it without locking (see LocalHost::lua) */
+  if (usedPorts) usedPorts->reset();
+  too_many_server_ports_logged = false;
 
   /* Emptied rather than deleted, as the threads processing the flows use it
    * without locking (see Flow::updateCliJA4): its content is protected by its

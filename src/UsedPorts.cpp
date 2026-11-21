@@ -94,6 +94,14 @@ UsedPorts::~UsedPorts() {
 void UsedPorts::reset() {
   udp_server_ports.clear(), tcp_server_ports.clear();
   udp_client_contacted_ports.clear(), tcp_client_contacted_ports.clear();
+
+  if (h) {
+    /* The ports saved in redis are forgotten too: an empty bitmap, rather
+     * than none, so that they are not restored (see restore()). It is saved,
+     * with the ports learnt from now on, when the host is deleted */
+    if (bitmap_server_ports) delete bitmap_server_ports;
+    bitmap_server_ports = new (std::nothrow) ServerPortsBitmap();
+  }
 }
 
 /* *************************************** */
