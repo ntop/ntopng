@@ -5950,88 +5950,78 @@ bool Flow::enqueueAlertToRecipients(FlowAlert* alert) {
 
 /* *************************************** */
 
-/* Update server -> client in case no traffic was already observed on the server
- * side */
+/* Whether the server port of the flow is in use, to be learned by the server
+ * (see updateServerPortsStats()) and by the client (see
+ * updateClientContactedPorts()): the client and the server are the actual ones
+ * (see isDirectionReliable()) and the server has answered, with a SYN-ACK for
+ * TCP (a connection refused is answered with a RST only), with any traffic for
+ * UDP. NOTE: the flags of the collected flows exported in OR for both
+ * directions only (TCP_FLAGS) are not per direction: such flows are never
+ * learned.
+ * Known limitations:
+ * - UDP flows detected by DPI are decided also when the default ports of the
+ *   protocol tell nothing (see getDirectionByProtocol()): their client is the
+ *   sender of the first packet, so the peer-to-peer and media flows (e.g.
+ *   RTP, BitTorrent, STUN) teach ephemeral ports as server ports;
+ * - the TCP flags are in OR for each direction: a SYN and an ACK sent by the
+ *   server in different packets (e.g. a late SYN after the data) count as a
+ *   SYN-ACK */
+bool Flow::isServerPortAnswered() const {
+  if ((!isDirectionReliable()) || (get_bytes_srv2cli() == 0)) return (false);
 
+  switch (protocol) {
+    case IPPROTO_TCP:
+      return ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK));
+
+    case IPPROTO_UDP:
+      return (true);
+
+    default:
+      return (false);
+  }
+}
+
+/* *************************************** */
+
+/* The server port of the flow, learned by its local server (see
+ * isServerPortAnswered()) */
 void Flow::updateServerPortsStats(Host* server, ndpi_protocol* proto,
                                   time_t when_seen) {
   /*
     NOTE use the method parameter 'server' instead of
     srv_host as with view interfaces it can be invalid
   */
+  bool is_tcp = (protocol == IPPROTO_TCP);
+  u_int16_t port = ntohs(srv_port);
 
-  if (get_bytes_srv2cli() == 0) return;
+  if ((!server) || (!server->isLocalHost()) || (!isServerPortAnswered()))
+    return;
 
-  if (server && server->isLocalHost()
-      // && (get_bytes_srv2cli() == 0)
-  ) {
-    switch (protocol) {
-      case IPPROTO_TCP:
-        if (((src2dst_tcp_flags & TH_SYN) == TH_SYN)
-            /* Ignore connections refused */
-            && ((dst2src_tcp_flags & TH_RST) == 0)) {
-          if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
-                              interface */
-            iface->setServerPort(true, ntohs(srv_port), proto);
-          else { /* Otherwise set this port to the right VLAN */
-            VLAN* vlan_hash = iface->getVLAN(vlanId, false, false);
+  if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
+                      interface */
+    iface->setServerPort(is_tcp, port, proto);
+  else { /* Otherwise set this port to the right VLAN */
+    VLAN* vlan_hash = iface->getVLAN(vlanId, false, false);
 
-            if (vlan_hash)
-              vlan_hash->setServerPort(true, ntohs(srv_port), proto);
-          }
-
-          server->setServerPort(true, ntohs(srv_port), proto, first_seen);
-        }
-        break;
-
-      case IPPROTO_UDP: {
-        u_int16_t c_port = ntohs(cli_port);
-        u_int16_t s_port = ntohs(srv_port);
-
-        if (c_port > s_port) /* minimal check, to improve */ {
-          if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
-                              interface */
-            iface->setServerPort(false, s_port, proto);
-          else { /* Otherwise set this port to the right VLAN */
-            VLAN* vlan_hash = iface->getVLAN(vlanId, false, false);
-
-            if (vlan_hash) vlan_hash->setServerPort(false, s_port, proto);
-          }
-
-          server->setServerPort(false, s_port, proto, first_seen);
-        }
-
-        break;
-      }
-    }
+    if (vlan_hash) vlan_hash->setServerPort(is_tcp, port, proto);
   }
+
+  server->setServerPort(is_tcp, port, proto, first_seen);
 }
 
 /* *************************************** */
 
+/* The server port of the flow, learned as contacted by its local client (see
+ * isServerPortAnswered()) */
 void Flow::updateClientContactedPorts(Host* client, ndpi_protocol* proto) {
   /*
     NOTE use the method parameter 'client' instead of
     cli_host as with view interfaces it can be invalid
   */
 
-  if (client->isLocalHost()) {
-    switch (protocol) {
-      case IPPROTO_TCP:
-        if ((src2dst_tcp_flags & TH_SYN) == TH_SYN)
-          client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port),
-                                   proto);
-        break;
-
-      case IPPROTO_UDP: {
-        u_int16_t c_port = ntohs(cli_port);
-        u_int16_t s_port = ntohs(srv_port);
-
-        if (c_port > s_port) /* minimal check, to improve */
-          client->setContactedPort(false, s_port, proto);
-      } break;
-    }
-  }
+  if (client->isLocalHost() && isServerPortAnswered())
+    client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port),
+                             proto);
 }
 /* *************************************** */
 

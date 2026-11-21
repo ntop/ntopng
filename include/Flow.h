@@ -514,6 +514,7 @@ class Flow : public GenericHashEntry {
   void updateServerPortsStats(Host* server_host, ndpi_protocol* proto,
                               time_t when_seen);
   void updateClientContactedPorts(Host* client, ndpi_protocol* proto);
+  bool isServerPortAnswered() const;
   void updateUDPHostServices(bool src2dst_direction);
   void updateServerName(Host* h);
   void allocateCollection();
@@ -1173,6 +1174,13 @@ class Flow : public GenericHashEntry {
   /* The flows are swapped at once (see swapNow()) */
   inline bool is_swap_requested() const { return (false); };
 #endif
+  /* The client and the server are the actual ones: the direction is final
+   * (see checkDirection() and setCollectedDirection()) and it has been
+   * applied (see applyDirection()) */
+  inline bool isDirectionReliable() const {
+    return (direction_decided && (!direction_reversed) &&
+            (!is_swap_requested()));
+  };
   inline bool is_swap_done() const { return (swap_done ? true : false); };
   inline void set_swap_done() { swap_done = 1; };
   /* Collected flows: the direction decided by the collector (see
