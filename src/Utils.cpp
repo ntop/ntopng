@@ -382,7 +382,9 @@ u_int8_t Utils::queryname2type(const char* name) {
 */
 bool Utils::readDNSName(const u_int8_t* msg, u_int16_t msg_len,
                         u_int16_t* offset, char* name, u_int name_len) {
-  u_int16_t pos = *offset, end = 0 /* After the first pointer, if any */;
+  /* run_start: of the labels read since the last pointer; end: after the
+     first pointer, if any */
+  u_int16_t pos = *offset, run_start = *offset, end = 0;
   u_int j = 0;
 
   while (true) {
@@ -402,12 +404,14 @@ bool Utils::readDNSName(const u_int8_t* msg, u_int16_t msg_len,
 
       target = ((len & 0x3F) << 8) | msg[pos + 1];
 
-      /* Backwards only, so that the pointers cannot loop */
-      if (target >= pos) return (false);
+      /* Before the labels read since the last pointer (not only before the
+         pointer itself, or they would lead back to it): the pointers cannot
+         loop */
+      if (target >= run_start) return (false);
 
       if (end == 0) end = pos + 2;
 
-      pos = target;
+      pos = run_start = target;
     } else if (len & 0xC0)
       return (false); /* Reserved label types */
     else {
