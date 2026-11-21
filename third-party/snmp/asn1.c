@@ -58,9 +58,13 @@ static void *render_length(int data_len, void *dest)
     }
 }
 
-static void *read_length(void *src, int *len)
+static void *read_length(void *src, int avail, int *len)
 {
   int v;
+
+  if (avail < 1)
+    return NULL;
+
   src = read_byte(src, &v);
   if (v <= 127)
     {
@@ -71,7 +75,10 @@ static void *read_length(void *src, int *len)
       int size = v & 0x7F;
       int val = 0;
       int i;
-        
+
+      if (size > avail - 1)
+        return NULL;
+
       for (i = 0; i < size; i++)
         {
 	  src = read_byte(src, &v);
@@ -264,7 +271,7 @@ void *render_oid_object(char *oid, void *dest)
   return render_oid(oid, dest);
 }
 
-static void *read_oid_part(void *src, u_int64_t *part)
+static void *read_oid_part(void *src, void *endp, u_int64_t *part)
 {
   int v;
   u_int64_t val = 0LL;
@@ -273,7 +280,7 @@ static void *read_oid_part(void *src, u_int64_t *part)
       src = read_byte(src, &v);
       val = (val << 7) + (u_int64_t)(v & 0x7F);
     }
-  while (v > 127);
+  while ((v > 127) && ((unsigned char *)src < (unsigned char *)endp));
   *part = val;
   return src;
 }
@@ -296,7 +303,7 @@ static void *read_oid(void *src, char **oid, int size)
     
   while ((i <= MAX_OID_PARTS) && (src < endp))
     {
-      src = read_oid_part(src, &parts[i]);
+      src = read_oid_part(src, endp, &parts[i]);
       i++;
     }
   num_parts = i;
@@ -401,7 +408,9 @@ static int next_len(ASN1Parser *parser)
   int len;
   if (parser->state->remaining < 2)
     return 0;
-  read_length((char*)parser->state->buffer + 1, &len);
+  if (read_length((char*)parser->state->buffer + 1,
+		  parser->state->remaining - 1, &len) == NULL)
+    return 0;
   return len;
 }
 
@@ -411,7 +420,8 @@ static void *next_payload(ASN1Parser *parser)
   void *p;
   if (parser->state->remaining < 2)
     return 0;
-  p = read_length((char*)parser->state->buffer + 1, &len);
+  p = read_length((char*)parser->state->buffer + 1,
+		  parser->state->remaining - 1, &len);
   return p;
 }
 
@@ -437,6 +447,13 @@ static void consume(ASN1Parser *parser)
 {
   int len = next_len(parser);
   void *payload = next_payload(parser);
+
+  if (payload == NULL)
+    {
+      parser->state->remaining = 0;
+      return;
+    }
+
   parser->state->remaining -= len + (char*)payload - (char*)parser->state->buffer;
   parser->state->buffer = (char*)payload + len;
 }
