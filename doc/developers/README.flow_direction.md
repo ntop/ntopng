@@ -264,6 +264,22 @@ Related
   client of the flow. When the direction has been decided by the requests and
   replies, the server of the flow is the DHCP server; otherwise (replies sent
   to broadcast, direction not decided, collected flows) the ports tell it.
+* `Flow::isServerPortAnswered()`: the server ports learned by the local
+  servers (`Flow::updateServerPortsStats()`) and the ports contacted by the
+  local clients (`Flow::updateClientContactedPorts()`) only come from the
+  flows whose direction is reliable (`Flow::isDirectionReliable()`: decided,
+  not reversed with the flow swap heuristic disabled, no swap pending on
+  nEdge) and whose server has answered (TCP: SYN-ACK; UDP: any traffic).
+  Known limitations:
+  * UDP flows detected by DPI are decided also when the default ports of the
+    protocol tell nothing (`Flow::getDirectionByProtocol()`): their client is
+    the sender of the first packet, so peer-to-peer and media flows (e.g. RTP,
+    BitTorrent, STUN) teach ephemeral ports as server ports. A stricter rule
+    (only the flows decided by a request/reply or by a default port) is left
+    for later;
+  * the TCP flags are in OR for each direction: a SYN and an ACK sent by the
+    server in different packets (e.g. a late SYN after the data) count as a
+    SYN-ACK, a late SYN-ACK sent by the client does not.
 
 Tests
 -----
@@ -283,6 +299,13 @@ without a view interface (`*_view_*`):
 * `flow_direction_swap_01`: DNS and SSH flows, swaps performed when no packet
   follows the request (dumped to ClickHouse);
 * `peers_swap_heuristic_01`-`03`: SSH and TLS flows without the handshake.
+* `server_ports_01`: the server and contacted ports learned (connection
+  closed by a RST, SYN-ACK lost, unknown UDP protocol, one way syslog, NTP and
+  DNS between equal ports); the tests above also dump the ports learned by
+  their hosts;
+* `server_ports_swap_off_01`, `alert_unexpected_dhcp_server_swap_off_01`: the
+  flow swap heuristic disabled (option `prefs` of the test): ports learned only
+  from the flows decided as not reversed, DHCP server of the flows.
 
 The collected flows are not covered by the e2e tests (they replay pcap files
 only): they can be checked by exporting a pcap file with nProbe to a ZMQ
