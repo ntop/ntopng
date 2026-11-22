@@ -25,37 +25,38 @@
 /* ***************************************************** */
 
 void BroadcastNonUDPTraffic::flowBegin(Flow* f) {
-  const IpAddress* ip_addr = f->get_srv_ip_addr();
-  Mac* mac_addr = f->get_srv_host() ? f->get_srv_host()->getMac() : NULL;
+  if(f->get_protocol() != IPPROTO_UDP) {
+    /* The protocol MUST not be UDP */  
+    const IpAddress* ip_addr = f->get_srv_ip_addr();
+    Mac* mac_addr = f->get_srv_host() ? f->get_srv_host()->getMac() : NULL;
+    
+    if (ip_addr || mac_addr) {
+      bool launch_alert = false;
+      
+      if(ip_addr && ip_addr->isBroadcastAddress())
+	launch_alert = true;
 
-  if (ip_addr || mac_addr) {
-    bool launch_alert = false;
+      if(mac_addr && mac_addr->isBroadcast())
+	launch_alert = true;
+	 
+      /*
+       * This alert has to be triggered when we have traffic towards broadcast
+       * addresses and the l4 protocol is not UDP protocol (possible device scan
+       * in a network)
+       */
+      if (launch_alert) {
+	FlowAlertType alert_type = BroadcastNonUDPTrafficAlert::getClassType();
+	u_int8_t c_score, s_score;
+	FlowAlert* alert;      
+	risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
-    if ((ip_addr) && (ip_addr->isBroadcastAddress()) &&
-        (f->get_protocol() != IPPROTO_UDP /* The protocol MUST not be UDP*/))
-      launch_alert = true;
+	computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg,
+			   &c_score, &s_score);
 
-    if ((mac_addr) && (mac_addr->isBroadcast()) &&
-        (f->get_protocol() != IPPROTO_UDP /* The protocol MUST not be UDP*/))
-      launch_alert = true;
-
-    /*
-     * This alert has to be triggered when we have traffic towards Broadcast
-     * addresses and the l4 protocol is not UDP protocol (possible device scan
-     * in a network)
-     */
-    if (launch_alert) {
-      FlowAlertType alert_type = BroadcastNonUDPTrafficAlert::getClassType();
-      u_int8_t c_score, s_score;
-
-      risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
-
-      computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg,
-                         &c_score, &s_score);
-
-      FlowAlert* alert = buildAlert(f);
-      alert->setCliSrvScores(c_score, s_score);
-      f->triggerAlert(alert);
+	alert = buildAlert(f);
+	alert->setCliSrvScores(c_score, s_score);
+	f->triggerAlert(alert);
+      }
     }
   }
 }
