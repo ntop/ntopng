@@ -26874,13 +26874,99 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/traffic_model/daily_report.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Preview the daily report email",
+        "description": "Builds the daily report of the interface (servers of a day against the previous day: new, gone, expected not seen, configured) as the email would be, without sending it. The answer is empty when there is nothing to report. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_daily_report",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "description": "Day of the report (YYYY-MM-DD), default yesterday",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: title, message, link and the email html"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/delete/traffic_model/day.lua": {
+      "post": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Delete the model of a date range",
+        "description": "Removes all the traffic model and server model rows of the date range (all the interfaces) and all the expected servers of the Network Configuration. Admin, Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "delete_traffic_model_day",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "day_from",
+            "in": "formData",
+            "description": "First day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_to",
+            "in": "formData",
+            "description": "Last day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK: days deleted"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (also when the delete fails)"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/traffic_model/compare.lua": {
       "get": {
         "tags": [
           "Traffic Model"
         ],
         "summary": "Compare the servers of two days",
-        "description": "Servers of a day against an earlier one: NEW, GONE, UP, DOWN, SAME, with a summary and the days without data. Enterprise XL, ClickHouse, checks capability.",
+        "description": "Servers of a day against an earlier one: NEW (appeared), GONE (disappeared), UP, DOWN, SAME, with a summary, seen_old and seen_new (servers seen on each day: seen_old + NEW - GONE = seen_new) and the days without data. Enterprise XL, ClickHouse, checks capability.",
         "operationId": "get_traffic_model_compare",
         "produces": [
           "application/json"
