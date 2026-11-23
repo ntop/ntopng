@@ -9486,6 +9486,39 @@ bool Flow::triggerAlert(FlowAlert* alert, bool sync) {
   of them have been updated (e.g. re-triggered) and the value may be changed
   (e.g. the value that exceeded a threshold has increased further)
 */
+void Flow::raiseAlertScore(FlowAlert* alert, u_int8_t score, u_int8_t cli_score,
+                           u_int8_t srv_score) {
+  FlowAlertType alert_type = alert->getAlertType();
+  ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
+  u_int8_t old_cli = alert->getCliScore(), old_srv = alert->getSrvScore();
+  u_int16_t cli_inc, srv_inc;
+  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
+
+  /* Increases only: decAllFlowScores() subtracts from the hosts what stats accounted */
+  if (score <= alert->getAlertScore()) return;
+
+  alert->setAlertScore(score);
+  alert->setCliSrvScores(cli_score, srv_score);
+  cli_inc = (alert->getCliScore() > old_cli) ? alert->getCliScore() - old_cli : 0;
+  srv_inc = (alert->getSrvScore() > old_srv) ? alert->getSrvScore() - old_srv : 0;
+
+  flow_score += cli_inc + srv_inc;
+  stats.incScore(cli_inc, score_category, true /* as client */);
+  stats.incScore(srv_inc, score_category, false /* as server */);
+
+  if (!getInterface()->isView()) {
+    /* Note: For views, score increments are done periodically */
+    if (cli_h) cli_h->incScoreValue(cli_inc, score_category, true /* as client */);
+    if (srv_h) srv_h->incScoreValue(srv_inc, score_category, false /* as server */);
+  }
+
+  if ((predominant_alert.id == alert_type.id) ||
+      (getPredominantAlertScore() < alert->getCliScore() + alert->getSrvScore()))
+    setPredominantAlert(alert_type, alert->getCliScore() + alert->getSrvScore());
+}
+
+/* *************************************** */
+
 void Flow::refreshAlert(FlowAlertTypeEnum alert_type) {
   FlowAlert* alert = getTriggeredAlert(alert_type);
   if (alert) {

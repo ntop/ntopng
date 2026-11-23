@@ -682,7 +682,12 @@ void CustomFlowLuaScript::runScripts(Flow* f, u_int8_t hook) {
     if (alert) {
       if (!alert->addScript(s->getName(), s->getTitle(), msg)) continue; /* Already in it */
 
-      if (score > alert->getAlertScore()) alert->setAlertScore(score);
+      if (score > alert->getAlertScore()) {
+        u_int8_t c_score, s_score;
+
+        computeCliSrvScore(score, CLIENT_FAIR_RISK_PERCENTAGE, &c_score, &s_score);
+        f->raiseAlertScore(alert, score, c_score, s_score);
+      }
       f->refreshAlert(flow_alert_custom_lua_script); /* Rebuild its JSON */
 
       /* Already stored by a previous hook: store it again, with the new script too */

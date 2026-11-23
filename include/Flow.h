@@ -585,6 +585,9 @@ class Flow : public GenericHashEntry {
     (e.g. the value that exceeded a threshold has increased further)
   */
   void refreshAlert(FlowAlertTypeEnum alert_type);
+  /* Raises the score of an alert already triggered on the flow (e.g. custom scripts joining it),
+     accounting the increase in the flow and host scores as setAlertsMap does */
+  void raiseAlertScore(FlowAlert* alert, u_int8_t score, u_int8_t cli_score, u_int8_t srv_score);
 
   /*
     Enqueues the predominant alert of the flow to all available flow recipients.
