@@ -569,15 +569,12 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       if (zflow->tcp.server_tcp_flags)
         flow->updateTcpFlags(&now_tv, zflow->tcp.server_tcp_flags,
                              !src2dst_direction, new_flow);
-
-      if (zflow->tcp.tcp_flags && (zflow->tcp.client_tcp_flags == 0) &&
-          (zflow->tcp.server_tcp_flags == 0)) {
-        /* TCP flags are cumulative and set only if client/server flags are zero
-         */
-
-        flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction,
-                             new_flow);
-      }
+    } else if (zflow->tcp.tcp_flags) {
+      /* Only the flags of both directions in OR (TCP_FLAGS, e.g. NetFlow
+       * exported by a router): the direction of each flag is unknown, they are
+       * set as sent by the source of the record */
+      flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction,
+                           new_flow);
     }
 
     if (zflow->tcp.client_tcp_flags && zflow->tcp.server_tcp_flags)
