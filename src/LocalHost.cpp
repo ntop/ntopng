@@ -714,6 +714,9 @@ void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto,
 
   set_port_status = usedPorts->setServerPort(isTCP, port, proto);
 
+  /* A new server port changes the asset (see dumpAssetPortsJson): dump it */
+  if (set_port_status) asset_map_updated = true;
+
   if (set_port_status && ntop->getPro()->is_enterprise_l_edition()) {
     /* If the port is set for the first time set_port_status == true */
     u_int32_t learning_period = ntop->getPrefs()->hostPortLearningPeriod();
