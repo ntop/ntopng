@@ -817,9 +817,7 @@ function flow_alert_store:_get_additional_available_filters()
 		ja4_client = flowfilter_utils.defined_filters.ja4_client,
 		traffic_direction = flowfilter_utils.defined_filters.traffic_direction,
 		alert_domain = flowfilter_utils.defined_filters.alert_domain,
-		-- In development: only with the custom flow scripts enabled (check_definitions/flow/custom_lua_script.lua)
-		custom_script = (ntop.getCache("ntopng.devel.custom_flow_scripts_enabled") == "1")
-			and flowfilter_utils.defined_filters.custom_script or nil,
+		custom_script = flowfilter_utils.defined_filters.custom_script,
 
 		exporter_ip = flowfilter_utils.defined_filters.exporter_ip,
 		input_snmp = flowfilter_utils.defined_filters.input_snmp,

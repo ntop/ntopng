@@ -79,16 +79,11 @@ void FlowChecksLoader::registerCheck(FlowCheck* cb) {
 void FlowChecksLoader::registerChecks() {
   /* TODO: implement dynamic loading */
   FlowCheck* fcb;
-  char custom_scripts_enabled[8];
 
   if ((fcb = new BlacklistedFlow())) registerCheck(fcb);
   if ((fcb = new BlacklistedCountry())) registerCheck(fcb);
   if ((fcb = new BroadcastNonUDPTraffic())) registerCheck(fcb);
-  /* In development: off unless CUSTOM_FLOW_SCRIPTS_ENABLED_KEY is set */
-  if ((ntop->getRedis()->get((char*)CUSTOM_FLOW_SCRIPTS_ENABLED_KEY, custom_scripts_enabled,
-                             sizeof(custom_scripts_enabled)) == 0) &&
-      (custom_scripts_enabled[0] == '1') && (fcb = new CustomFlowLuaScript()))
-    registerCheck(fcb);
+  if ((fcb = new CustomFlowLuaScript())) registerCheck(fcb);
   if ((fcb = new DeviceProtocolNotAllowed())) registerCheck(fcb);
 #ifndef NTOPNG_PRO
   if ((fcb = new ExternalAlertCheck())) registerCheck(fcb);
@@ -328,7 +323,6 @@ void FlowChecksLoader::loadConfiguration() {
             strcmp(check_key, "tcp_connection_refused") &&
             strcmp(check_key, "ndpi_tls_suspicious_esni_usage") &&
             strcmp(check_key, "ndpi_fully_encrypted") &&
-            strcmp(check_key, "custom_lua_script") && // Not currently available
             strcmp(check_key,
                    "ndpi_unresolved_hostname") /* Handled in
                                                   UnresolvedHostname.cpp */

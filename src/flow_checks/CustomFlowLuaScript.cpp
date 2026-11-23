@@ -38,7 +38,8 @@
 
   Filter fields (AND between fields, OR between the values of a field, a value or a list):
   cli_ip, srv_ip, ip (client or server): IP or CIDR; cli_port, srv_port, port (client or server);
-  l4_proto: name (TCP, UDP, ICMP...) or number; l7_proto: nDPI name or id (app or master protocol).
+  l4_proto: name (TCP, UDP, ICMP...) or number; l7_proto: nDPI name or id (app or master protocol);
+  cli_pool, srv_pool, pool (client or server): host pool id or name (names resolved at load time).
   The filters are evaluated in C, the VM runs only for the matching flows.
 */
 
@@ -292,10 +293,39 @@ bool CustomFlowScriptFilter::parseL7(lua_State* L, NetworkInterface* iface,
 
 /* ********************************************** */
 
+bool CustomFlowScriptFilter::parsePools(lua_State* L, NetworkInterface* iface,
+                                        const char* field, std::set<u_int16_t>* pools,
+                                        std::string* err) {
+  std::vector<std::string> values;
+  HostPools* hp = iface->getHostPools();
+
+  if (!getList(L, field, &values, err)) return (false);
+
+  for (const std::string& v : values) {
+    long n;
+
+    /* Default (NO_HOST_POOL_ID) is also what getPoolByName returns for an unknown name */
+    if (!toInt(v, 0, MAX_NUM_HOST_POOLS - 1, &n)) {
+      n = hp ? hp->getPoolByName(v.c_str()) : NO_HOST_POOL_ID;
+
+      if (n == NO_HOST_POOL_ID && v != DEFAULT_POOL_NAME) {
+        *err = std::string("'") + field + "': unknown host pool '" + v + "'";
+        return (false);
+      }
+    }
+    pools->insert((u_int16_t)n);
+  }
+
+  return (true);
+}
+
+/* ********************************************** */
+
 bool CustomFlowScriptFilter::parse(lua_State* L, NetworkInterface* iface,
                                    std::string* err) {
-  static const char* const keys[] = {"cli_ip",   "srv_ip",   "ip",       "cli_port", "srv_port",
-                                     "port",     "l4_proto", "l7_proto", NULL};
+  static const char* const keys[] = {"cli_ip",   "srv_ip",   "ip",       "cli_port",
+                                     "srv_port", "port",     "l4_proto", "l7_proto",
+                                     "cli_pool", "srv_pool", "pool",     NULL};
 
   if (!lua_istable(L, -1)) {
     *err = "a table expected";
@@ -306,11 +336,15 @@ bool CustomFlowScriptFilter::parse(lua_State* L, NetworkInterface* iface,
       !parseIPs(L, "srv_ip", &srv_ip, err) || !parseIPs(L, "ip", &ip, err) ||
       !parsePorts(L, "cli_port", &cli_port, err) ||
       !parsePorts(L, "srv_port", &srv_port, err) || !parsePorts(L, "port", &port, err) ||
-      !parseL4(L, err) || !parseL7(L, iface, err))
+      !parseL4(L, err) || !parseL7(L, iface, err) ||
+      !parsePools(L, iface, "cli_pool", &cli_pool, err) ||
+      !parsePools(L, iface, "srv_pool", &srv_pool, err) ||
+      !parsePools(L, iface, "pool", &pool, err))
     return (false);
 
   empty = !(cli_ip || srv_ip || ip || !cli_port.empty() || !srv_port.empty() ||
-            !port.empty() || !l4_proto.empty() || !l7_proto.empty());
+            !port.empty() || !l4_proto.empty() || !l7_proto.empty() ||
+            !cli_pool.empty() || !srv_pool.empty() || !pool.empty());
 
   return (true);
 }
@@ -319,6 +353,22 @@ bool CustomFlowScriptFilter::parse(lua_State* L, NetworkInterface* iface,
 
 static inline bool matchIP(AddressTree* tree, IpAddress* a) {
   return (a && tree->match(a, a->isIPv4() ? 32 : 128) != NULL);
+}
+
+/* ********************************************** */
+
+/* Pool of the flow peer: from its host, else by IP (as FlowStats); Default when not found */
+static u_int16_t peerPool(Flow* f, bool client) {
+  Host* h = client ? f->get_cli_host() : f->get_srv_host();
+  IpAddress* a = client ? f->get_cli_ip_addr() : f->get_srv_ip_addr();
+  HostPools* hp = f->getInterface()->getHostPools();
+  u_int16_t pool_id = NO_HOST_POOL_ID;
+  ndpi_patricia_node_t* node = NULL;
+
+  if (h) return (h->get_host_pool());
+  if (a && hp) hp->findIpPool(a, f->get_vlan_id(), &pool_id, &node);
+
+  return (pool_id);
 }
 
 /* ********************************************** */
@@ -344,6 +394,16 @@ bool CustomFlowScriptFilter::match(Flow* f) {
   if (cli_ip && !matchIP(cli_ip, cli)) return (false);
   if (srv_ip && !matchIP(srv_ip, srv)) return (false);
   if (ip && !matchIP(ip, cli) && !matchIP(ip, srv)) return (false);
+
+  /* Pools last: they may need a tree lookup */
+  if (!cli_pool.empty() || !srv_pool.empty() || !pool.empty()) {
+    u_int16_t cpool = peerPool(f, true), spool = peerPool(f, false);
+
+    if (!cli_pool.empty() && cli_pool.find(cpool) == cli_pool.end()) return (false);
+    if (!srv_pool.empty() && srv_pool.find(spool) == srv_pool.end()) return (false);
+    if (!pool.empty() && pool.find(cpool) == pool.end() && pool.find(spool) == pool.end())
+      return (false);
+  }
 
   return (true);
 }

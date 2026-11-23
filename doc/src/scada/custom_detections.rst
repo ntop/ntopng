@@ -11,7 +11,7 @@ Besides the checks built into ntopng, you can add your own detections for OT pro
   carries a value outside the allowed range.
 
 A custom detection is a small Lua script: ntopng gives it each flow you select (by IP address, port, layer 4 and
-application protocol) and the script decides whether to raise an alert. You do not need to change or rebuild
+application protocol, host pool) and the script decides whether to raise an alert. You do not need to change or rebuild
 ntopng: scripts are added and removed as files.
 
 Where the data comes from
@@ -30,7 +30,7 @@ How to use it
 2. Copy your scripts to :code:`/etc/ntopng/custom_checks/flows/`. Two examples, one for Modbus custom function
    codes and one for a proprietary protocol, are installed in :code:`scripts/callbacks/checks/flows/examples/`
    under the ntopng installation directory: copy them there and adapt them.
-3. Restart ntopng (or save the behavioural checks configuration again).
+3. Restart ntopng (or disable and enable again *Flow User Check Script*).
 
 The ntopng log lists every script loaded and every script discarded, with the reason (for instance a misspelled
 option or an invalid IP address).
@@ -50,4 +50,5 @@ cannot be used in the filter.
 Writing a script
 ----------------
 
-The script format, the flow filters and the available functions are described in :ref:`ApiFlowChecks target`.
+The script format, the flow filters and the available functions are described in :ref:`ApiFlowChecks target`; a step by step guide
+for people new to Lua, with ready-to-use examples, is in :ref:`ApiFlowChecksExamples target`.

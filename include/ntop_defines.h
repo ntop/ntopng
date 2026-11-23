@@ -1803,9 +1803,6 @@ extern NtopngLuaContext* getUserdata(struct lua_State* vm);
    install dir, not touched by package upgrades */
 #define CUSTOM_FLOW_SCRIPTS_DIR CONST_ETC_DIR "/ntopng/custom_checks/flows"
 #define CUSTOM_FLOW_SCRIPT_DEFAULT_SCORE 50
-/* In development: the check is registered (and shown in the GUI) only when this
-   key is "1". Not under ntopng.prefs. so that redis-cli changes are seen */
-#define CUSTOM_FLOW_SCRIPTS_ENABLED_KEY "ntopng.devel.custom_flow_scripts_enabled"
 
 #define OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME \
   "ntopng.assets_hosts_macs.queue.ifid_%d"

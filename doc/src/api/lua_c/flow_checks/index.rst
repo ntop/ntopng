@@ -11,7 +11,8 @@ To use them:
 
 1. Enable the `Flow User Check Script` behavioural check (`Settings` > `Behavioural Checks` > `Flows`).
 2. Put your scripts, one detection per file, in `/etc/ntopng/custom_checks/flows/` (any name ending in `.lua`).
-3. Restart ntopng, or save the behavioural checks configuration: the scripts are loaded again.
+3. Restart ntopng, or disable and enable again *Flow User Check Script*: the scripts are loaded again. Do the
+   same after adding, changing or removing a script.
 
 .. figure::  ../../../img/flow_user_check_script.png
 
@@ -21,6 +22,12 @@ while running is reported once, and the other scripts keep working.
 
 Two complete examples are installed in `scripts/callbacks/checks/flows/examples/` (`modbus_function_code_rate.lua`
 and `proprietary_protocol_range.lua`): copy them to `/etc/ntopng/custom_checks/flows/` and adapt them.
+New to Lua? Start from :ref:`ApiFlowChecksExamples target`: a step by step guide with ready-to-use examples.
+
+.. toctree::
+    :maxdepth: 1
+
+    examples
 
 Script Format
 -------------
@@ -62,10 +69,16 @@ by ntopng before calling the script, so a script with a narrow filter costs noth
 - `l4_proto`: name (`TCP`, `UDP`, `ICMP`, `ICMPv6`, `GRE`, `ESP`, `SCTP`, `IGMP`) or number
 - `l7_proto`: nDPI protocol name (e.g. `Modbus`, `DNS`, `TLS`) or number, matched on both the application and the
   master protocol
+- `cli_pool`, `srv_pool`: host pool of the client or of the server, by name (e.g. `"OT Devices"`, case sensitive)
+  or id; the hosts without a pool are in `Default` (id 0)
+- `pool`: host pool of the client or of the server (either side)
 
 Each field accepts a value or a list. Different fields must all match; a list matches when any of its values does.
 For instance ``{ ip = { "10.0.0.0/8", "192.168.1.5" }, port = { 502, 20000 } }`` selects the flows with
 either side in 10.0.0.0/8 or equal to 192.168.1.5, on port 502 or 20000.
+
+Pool names are resolved when the script is loaded: an unknown name disables the script (see the log). After
+creating or renaming a pool, disable and enable again *Flow User Check Script* (or restart ntopng) to load the scripts again.
 
 Alerts
 ------
@@ -80,6 +93,9 @@ cannot be used in the filter.
 
 Helpers
 -------
+
+Every script receives the `counter` helper, to count events across flows (e.g. connections per minute); a guided
+explanation with examples is in :ref:`ApiFlowChecksExamples target`.
 
 - | **counter.inc(key, window_secs [, n])**
   | Adds `n` (default 1) to the counter `key` in a window of `window_secs` seconds (default 60) and returns the
@@ -138,25 +154,25 @@ Flow Object Methods
   | Read the flow nDPI protocol name (string)
 
 - | **flow.direction()**
-  | Read the flow (e.g. local2remote) direction (string)
+  | Read the flow direction: `local@local`, `local@remote`, `remote@local`, `remote2remote` (string)
 
 - | **flow.http()**
-  | For HTTP flows, it reports protocol information (e.g. HTTP URL or return code) or nil otherwise (table)
+  | HTTP information, e.g. ``flow.http()["protos.http.last_url"]``, ``"protos.http.last_method"``, ``"protos.http.last_return_code"``; an empty table for other flows (table)
 
 - | **flow.dns()**
-  | For DNS flows, it reports protocol information (e.g. domain name) or nil otherwise (table)
+  | DNS information, e.g. ``flow.dns()["protos.dns.last_query"]`` (the queried name), ``"protos.dns.last_query_type"``, ``"protos.dns.last_return_code"``; an empty table for other flows (table)
 
 - | **flow.ssh()**
-  | For SSH flows, it reports protocol information (e.g. SSH client signatute) or nil otherwise (table)
+  | SSH information (e.g. client and server signature); an empty table for other flows (table)
 
 - | **flow.tls_quic()**
-  | For TLS/QUIC flows, it reports protocol information (e.g. TLS ciphers or SNI) or nil otherwise (table)
+  | TLS/QUIC information, e.g. ``flow.tls_quic()["protos.tls.client_requested_server_name"]`` (the SNI), ``"protos.tls.issuerDN"``, ``"protos.tls.ja4.client_hash"``; an empty table for other flows (table)
 
 - | **flow.json_info()**
   | The additional fields sent with the flow by the probe (e.g. the fields extracted by nProbe plugins), as a table; an empty table when there are none (table)
 
 - | **flow.ot()**
-  | The OT protocols dissected by ntopng for the flow: ``modbus``, ``s7comm``, ``profinet``, ``iec104``, each with e.g. ``function_codes`` (calls per function code since the flow start), ``function_codes_transitions``, ``registers`` (Modbus) and ``num_exceptions``; an empty table for other flows (table)
+  | The OT protocols dissected by ntopng for the flow: ``modbus``, ``s7comm``, ``profinet``, ``iec104``, each with e.g. ``function_codes`` (calls per function code since the flow start), ``function_codes_transitions`` (``"from,to"``), ``registers`` (Modbus) and ``num_exceptions``; an empty table for other flows. Filled both for the flows sent by nProbe and for the captured traffic. The codes and registers are strings: ``flow.ot().modbus.function_codes["65"]``, not ``[65]`` (table)
 
 - | **flow.triggerAlert([score,] message)**
   | Triggers an alert for the selected flow. The message (string) is a human-readable description of the issue; the optional score (number, up to 255) overrides the score of the script.

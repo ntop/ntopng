@@ -310,7 +310,7 @@ Flow User Check Script
 
 Trigger a flow alert based on custom Lua scripts written by the user, one detection per script, placed in
 :code:`/etc/ntopng/custom_checks/flows/`. Each script selects the flows it analyses (by IP address, port, layer 4
-and application protocol) and raises a *Custom Script* alert that reports its title; the Alerts Explorer can filter
+and application protocol, host pool) and raises a *Custom Script* alert that reports its title; the Alerts Explorer can filter
 these alerts by script title. See :ref:`CustomDetections` for OT use cases and :ref:`ApiFlowChecks target` to
 write a script.
 

@@ -38,10 +38,13 @@ class CustomFlowScriptFilter {
   std::set<u_int16_t> cli_port, srv_port, port; /* port: client or server */
   std::set<u_int8_t> l4_proto;
   std::set<u_int16_t> l7_proto; /* nDPI app or master protocol */
+  std::set<u_int16_t> cli_pool, srv_pool, pool; /* Host pool ids, pool: client or server */
   bool empty;
 
   bool parseIPs(lua_State* L, const char* field, AddressTree** tree, std::string* err);
   bool parsePorts(lua_State* L, const char* field, std::set<u_int16_t>* ports, std::string* err);
+  bool parsePools(lua_State* L, NetworkInterface* iface, const char* field,
+                  std::set<u_int16_t>* pools, std::string* err);
   bool parseL4(lua_State* L, std::string* err);
   bool parseL7(lua_State* L, NetworkInterface* iface, std::string* err);
 
