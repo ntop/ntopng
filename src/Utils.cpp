@@ -2234,7 +2234,7 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     else if (strncmp(smtp_server, "smtp://", 7) == 0) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Use STARTSSL: %s", (use_startssl ? "true" : "false"));
       if (use_startssl)
-        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
       else
         curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
     } else /* Try using SSL */
@@ -2298,7 +2298,7 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     ret_str = curl_easy_strerror(res);
 
     if (res != CURLE_OK) {
-      if ((num_runs == 1) && use_startssl) {
+      if ((num_runs == 1) && use_startssl && !(username && password)) {
         /*
           Some mailservers have TLS misconfigured and thus STARTTLS will fail
           so as last resort let's try in plain text
