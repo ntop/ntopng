@@ -555,22 +555,9 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
   out_pkts = zflow->pkt_sampling_rate * zflow->out_pkts,
   out_bytes = zflow->pkt_sampling_rate * zflow->out_bytes;
 
-  /* Update MAC stats
-     Note: do not use src2dst_direction to inc the stats as
-     in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
-     source mac (srcMac) and destination mac (dstMac)
-  */
-  if (likely(srcMac != NULL)) {
-    srcMac->incSentStats(getTimeLastPktRcvd(), in_pkts, in_bytes);
-    srcMac->incRcvdStats(getTimeLastPktRcvd(), out_pkts, out_bytes);
-
-    srcMac->setSourceMac();
-  }
-
-  if (likely(dstMac != NULL)) {
-    dstMac->incSentStats(getTimeLastPktRcvd(), out_pkts, out_bytes);
-    dstMac->incRcvdStats(getTimeLastPktRcvd(), in_pkts, in_bytes);
-  }
+  /* The traffic of the MACs is the traffic of their flows, accounted by
+   * Flow::hosts_periodic_stats_update() as for the packet interfaces */
+  if (likely(srcMac != NULL)) srcMac->setSourceMac();
 
   if (zflow->l4_proto == IPPROTO_TCP) {
     if (zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {
@@ -917,15 +904,16 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       flow->get_srv_ip_addr()->print(b, sizeof(b)));
 #endif
 
+  /* No MACs: their traffic is accounted with the flows (see above) */
   if (zflow->direction == 0 /* RX */) {
     if (zflow->in_pkts)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto, in_bytes,
-               in_pkts, srcMac, dstMac);
+               in_pkts, NULL, NULL);
     if (zflow->out_pkts)
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto, out_bytes,
-               out_pkts, srcMac, dstMac);
+               out_pkts, NULL, NULL);
     if (zflow->getHRDstToSrcBytes()) {
       flow->updateHRSrc2DstBytes(parseHRBytesString(zflow->getHRDstToSrcBytes()), zflow->first_switched);
       setHasHRFlows();
@@ -938,11 +926,11 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     if (zflow->out_bytes)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto, out_bytes,
-               out_pkts, srcMac, dstMac);
+               out_pkts, NULL, NULL);
     if (zflow->in_pkts)
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto, in_bytes,
-               in_pkts, srcMac, dstMac);
+               in_pkts, NULL, NULL);
     if (zflow->getHRSrcToDstBytes()) {
       flow->updateHRSrc2DstBytes(parseHRBytesString(zflow->getHRSrcToDstBytes()), zflow->first_switched);
       setHasHRFlows();
