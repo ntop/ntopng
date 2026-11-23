@@ -2211,13 +2211,9 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
     goto out;
   }
 
-  upload_ctx->lines = message;
   curl = curl_easy_init();
 
   if (curl) {
-    num_runs++;
-
-  retry_sendMail:
     if (use_proxy) {
       fillcURLProxy(curl);
     }
@@ -2229,15 +2225,12 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
 
     curl_easy_setopt(curl, CURLOPT_URL, smtp_server);
 
-    if (strncmp(smtp_server, "smtps://", 8) == 0)
+    /* STARTTLS enabled/required: do not downgrade to plain text */
+    if (use_startssl || (strncasecmp(smtp_server, "smtps://", 8) == 0))
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
-    else if (strncmp(smtp_server, "smtp://", 7) == 0) {
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Use STARTSSL: %s", (use_startssl ? "true" : "false"));
-      if (use_startssl)
-        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
-      else
-        curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
-    } else /* Try using SSL */
+    else if (strncasecmp(smtp_server, "smtp://", 7) == 0)
+      curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
+    else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
     if (do_insecure_tls) {
@@ -2294,20 +2287,16 @@ bool Utils::sendMail(lua_State* vm, char* from, char* to, char* cc,
   curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 #endif
 
-    res = curl_easy_perform(curl);
+    /* Retry in case of network failure with the same (TLS) settings */
+    do {
+      upload_ctx->lines = message; /* Rewind the message body */
+      res = curl_easy_perform(curl);
+      num_runs++;
+    } while ((res != CURLE_OK) && (num_runs < 2));
+
     ret_str = curl_easy_strerror(res);
 
     if (res != CURLE_OK) {
-      if ((num_runs == 1) && use_startssl && !(username && password)) {
-        /*
-          Some mailservers have TLS misconfigured and thus STARTTLS will fail
-          so as last resort let's try in plain text
-        */
-        num_runs++;
-        use_startssl = false;
-        goto retry_sendMail;
-      }
-
       ntop->getTrace()->traceEvent(TRACE_WARNING,
                                    "Unable to send email to (%s): %s",
                                    smtp_server, curl_easy_strerror(res));
