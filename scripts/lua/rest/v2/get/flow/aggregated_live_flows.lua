@@ -35,7 +35,7 @@ if _GET["host_locality"] == "local" then
 elseif _GET["host_locality"] == "remote" then
     host_locality = 2
 end
--- Site filter, applied by the same per-host aggregation (it was never read: the filter had no effect)
+-- Site filter of the per-host (on each endpoint) and client/server (on the flow) criteria
 local site_id = tonumber(_GET["site_id"])
 if (site_id == nil) or (site_id < 0) then
     site_id = nil

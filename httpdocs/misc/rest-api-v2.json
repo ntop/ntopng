@@ -25544,7 +25544,7 @@
           {
             "name": "site_id",
             "in": "query",
-            "description": "With aggregation_criteria=host: site id",
+            "description": "With aggregation_criteria=host or client_server: site id",
             "required": false,
             "type": "integer"
           }

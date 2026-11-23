@@ -1291,6 +1291,7 @@ class Flow : public GenericHashEntry {
   bool matchFlowIP(IpAddress* ip, u_int16_t vlan_id);
   bool matchFlowVLAN(u_int16_t vlan_id);
   bool matchFlowDeviceIP(struct ndpi_in6_addr *flow_device_ip);
+  bool matchSite(u_int16_t site_id);
   bool matchInIfIdx(u_int32_t in_if_idx);
   bool matchOutIfIdx(u_int32_t out_if_idx);
   bool matchAlertsStatus(u_int32_t out_if_idx);

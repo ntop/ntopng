@@ -10550,6 +10550,18 @@ bool Flow::matchFlowDeviceIP(struct ndpi_in6_addr *flow_device_ip) {
 
 /* **************************************************** */
 
+/* Precedence to the exporter, fallback to the client/server networks */
+bool Flow::matchSite(u_int16_t site_id) {
+  struct ndpi_in6_addr addr = getExporterIP();
+
+  if (!Utils::isNullAddress(&addr)) return (getExporterSiteId() == site_id);
+
+  return ((getSrcNetworkSiteId() == site_id) ||
+          (getDstNetworkSiteId() == site_id));
+}
+
+/* **************************************************** */
+
 bool Flow::matchInIfIdx(u_int32_t in_if_idx) {
   return (getInIndex() == in_if_idx ? true : false);
 }
