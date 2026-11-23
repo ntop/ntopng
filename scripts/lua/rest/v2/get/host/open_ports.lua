@@ -36,7 +36,8 @@ for _, iface in pairs(interface.getIfNames()) do
     -- Host found, search for the server ports
     if host then
         -- Aggregate the informations in a single ports table
-        for port, proto in pairs(host.used_ports.local_server_ports or {}) do
+        -- No used_ports when the host has no port information
+        for port, proto in pairs((host.used_ports or {}).local_server_ports or {}) do
             local port_num = split(port, ":")[2]
             
             if not host_ports[port_num] then

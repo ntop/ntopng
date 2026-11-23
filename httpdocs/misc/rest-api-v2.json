@@ -3017,78 +3017,6 @@
         }
       }
     },
-    "/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Add Host Rule",
-        "description": "Add an host rule to an interface, used to run periodic check on traffic and similar, on the timeseries",
-        "operationId": "add_host_rule",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host to apply the check, IP address of the host or * to check for all the hosts",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "frequency",
-            "in": "query",
-            "description": "Frequency of the check to run, every minute, every 5 minutes, every hour or daily ('min', '5min', 'hour', 'day')",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "metric",
-            "in": "query",
-            "description": "Timeseries schema of the metric to analyze",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "threshold",
-            "in": "query",
-            "description": "Threshold that if exceeded, it's going to trigger an alert",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "metric_type",
-            "in": "query",
-            "description": "metric used to analyze the data, Throughput or Volume? (currently available: 'throughput', 'volume')",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-7": {
-            "description": "BAD_FORMAT"
-          }
-        }
-      }
-    },
     "/lua/pro/rest/v2/add/snmp/device.lua": {
       "post": {
         "tags": [
@@ -3212,7 +3140,7 @@
       }
     },
     "/lua/pro/rest/v2/change/snmp/device/interface/status.lua": {
-      "get": {
+      "post": {
         "tags": [
           "SNMP"
         ],
@@ -3225,21 +3153,21 @@
         "parameters": [
           {
             "name": "host",
-            "in": "query",
+            "in": "formData",
             "description": "IP address of an SNMP device",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_admin_status",
-            "in": "query",
+            "in": "formData",
             "description": "The new admin status, either 'up' or 'down'",
             "required": true,
             "type": "string"
           },
           {
             "name": "snmp_port_idx",
-            "in": "query",
+            "in": "formData",
             "description": "The index of the SNMP device interface",
             "required": false,
             "type": "string"
@@ -3491,86 +3419,6 @@
         }
       }
     },
-    "/lua/pro/rest/v2/delete/flow/alert/exclusions.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "Delete flow alert exclusions",
-        "description": "Delete flow alert exclusions",
-        "operationId": "delete_flow_alert_exclusions",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "alert_addr",
-            "in": "query",
-            "description": "The host IP address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "alert_key",
-            "in": "query",
-            "description": "The flow alert key to exclude from flow alerts",
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/delete/host/alert/exclusions.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "Delete host alert exclusions",
-        "description": "Delete host alert exclusions",
-        "operationId": "delete_host_alert_exclusions",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "alert_addr",
-            "in": "query",
-            "description": "The host IP address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "alert_key",
-            "in": "query",
-            "description": "The host alert key to exclude from host alerts",
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
     "/lua/pro/rest/v2/delete/infrastructure/instance.lua": {
       "post": {
         "tags": [
@@ -3610,49 +3458,8 @@
         }
       }
     },
-    "/lua/pro/rest/v2/delete/interface/host_rules/add_host_rule.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Remove an Host Rule",
-        "description": "Remove an host rule from an interface, used to run periodic check on traffic and similar, on the timeseries",
-        "operationId": "remove_host_rule",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "rule_id",
-            "in": "query",
-            "description": "Identifier of the rule to delete",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          }
-        }
-      }
-    },
     "/lua/pro/rest/v2/delete/observation_point/stats.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Observation Point"
         ],
@@ -3665,7 +3472,7 @@
         "parameters": [
           {
             "name": "ifid",
-            "in": "query",
+            "in": "formData",
             "description": "Interface identifier",
             "required": true,
             "type": "integer",
@@ -3673,7 +3480,7 @@
           },
           {
             "name": "observation_point",
-            "in": "query",
+            "in": "formData",
             "description": "Identifier of the rule to delete",
             "required": true,
             "type": "integer",
@@ -3689,45 +3496,6 @@
           },
           "-6": {
             "description": "INTERNAL_ERROR"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/delete/observation_points/stats.lua": {
-      "get": {
-        "tags": [
-          "Observation Point"
-        ],
-        "summary": "Delete an Observation Point",
-        "description": "Given an Observation Point ID, it is going to delete it and all the information related to it",
-        "operationId": "delete_observation_point",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "observation_point_id",
-            "in": "query",
-            "description": "Observation Point ID",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -4399,42 +4167,6 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/alert/exclusion.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "Get the alert exclusions",
-        "description": "Get all the available alert exclusions",
-        "operationId": "get_alert_exclusion",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "type",
-            "in": "query",
-            "description": "Type of the host to exclude (currently available: 'host', 'domain', 'certificate')",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -6286,39 +6018,6 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/flow/alert/exclusions.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "Get flow alert exclusions",
-        "description": "Get flow alert exclusions",
-        "operationId": "get_flow_alert_exclusions",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "host",
-            "in": "query",
-            "description": "The host IP address",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
     "/lua/pro/rest/v2/get/flow/alert/top.lua": {
       "get": {
         "tags": [
@@ -6676,101 +6375,6 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/flowdevices/stats.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "Get flow devices stats",
-        "description": "get flow devices stats",
-        "operationId": "get_flowdevices_stats",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/geo_map/hosts.lua": {
-      "get": {
-        "tags": [
-          "Hosts"
-        ],
-        "summary": "Get hosts location",
-        "description": "Get hosts location and other info",
-        "operationId": "get_geo_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/host/alert/exclusions.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "Get host alert exclusions",
-        "description": "Get host alert exclusions",
-        "operationId": "get_host_alert_exclusions",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "host",
-            "in": "query",
-            "description": "The host IP address",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -7147,7 +6751,7 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/host/no_tx_peers.lua": {
+    "/lua/rest/v2/get/host/no_tx_peers.lua": {
       "get": {
         "tags": [
           "Peers"
@@ -7524,80 +7128,6 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/interface/host_rules/host_rules_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get Host Rule",
-        "description": "Get an host rule to an interface, used to run periodic check on traffic and similar, on the timeseries",
-        "operationId": "get_host_rule",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-7": {
-            "description": "BAD_FORMAT"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get Host Rule available metrics",
-        "description": "Get an host rule available metrics, used to run periodic check on traffic and similar, on the timeseries",
-        "operationId": "get_host_rule",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-7": {
-            "description": "BAD_FORMAT"
           }
         }
       }
@@ -9363,25 +8893,6 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/system/data.lua": {
-      "get": {
-        "tags": [
-          "System"
-        ],
-        "summary": "Get system data",
-        "description": "Get system data",
-        "operationId": "get_system_data",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [],
-        "responses": {
-          "0": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/lua/pro/rest/v2/get/system/health/clickhouse.lua": {
       "get": {
         "tags": [
@@ -10914,7 +10425,7 @@
             "type": "string"
           },
           {
-            "name": "user_language",
+            "name": "add_user_language",
             "in": "formData",
             "description": "Language (en, it, de, jp, pt, cz)",
             "required": true,
@@ -12533,7 +12044,7 @@
       }
     },
     "/lua/rest/v2/edit/category/category.lua": {
-      "get": {
+      "post": {
         "tags": [
           "L7 Application Categories"
         ],
@@ -12546,7 +12057,7 @@
         "parameters": [
           {
             "name": "category",
-            "in": "query",
+            "in": "formData",
             "description": "Category, formatted as cat_{id}, where ID is the ID of the category",
             "required": true,
             "type": "string",
@@ -12554,15 +12065,15 @@
           },
           {
             "name": "custom_hosts",
-            "in": "query",
+            "in": "formData",
             "description": "List of Hosts, Networks, Domain Names, separated by comma",
             "required": true,
             "type": "string",
             "format": "string"
           },
           {
-            "name": "alias",
-            "in": "query",
+            "name": "category_alias",
+            "in": "formData",
             "description": "Alias of the Category",
             "required": true,
             "type": "string",
@@ -12722,42 +12233,6 @@
           },
           "-6": {
             "description": "INTERNAL_ERROR"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/edit/host_pool/pool.lua": {
-      "post": {
-        "tags": [
-          "Pools"
-        ],
-        "summary": "Edit an host pool pool",
-        "description": "Edit an host pool pool (only recipients edit is allowed)",
-        "operationId": "edit_host_pool_pool",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "pool": "int32",
-            "pool_name": "string",
-            "pool_members": "string",
-            "recipients": "string",
-            "confset_id": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-14": {
-            "description": "EDIT_POOL_FAILED"
           }
         }
       }
@@ -13204,36 +12679,6 @@
         }
       }
     },
-    "/lua/rest/v2/export/scripts/config.lua": {
-      "get": {
-        "tags": [
-          ""
-        ],
-        "summary": "Export the Checks configuration as a JSON file",
-        "description": "Export the configuration for all checks",
-        "operationId": "export_scripts_config",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "download",
-            "in": "query",
-            "description": "Download as file (no REST envelope)",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/export/snmp/config.lua": {
       "get": {
         "tags": [
@@ -13290,100 +12735,6 @@
           },
           "-3": {
             "description": "NOT_GRANTED: the user has no alerts capability"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/alert/list/alerts.lua": {
-      "get": {
-        "tags": [
-          "Alerts"
-        ],
-        "summary": "List stored interface alerts",
-        "description": "List alerts stored in the ntopng alert database",
-        "operationId": "get_alert_list_alert",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "alert_family",
-            "in": "query",
-            "description": "Alert family. Possible values: active_monitoring, flow, host, interface, mac , network , snmp , system , user",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "epoch_begin",
-            "in": "query",
-            "description": "Start time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "epoch_end",
-            "in": "query",
-            "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "select_clause",
-            "in": "query",
-            "description": "Select clause (default: *)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "where_clause",
-            "in": "query",
-            "description": "Where clause (default: none). IP values should be double-quoted and between parenthesis (e.g. IPV4_SRC_ADDR = (\"192.168.1.1\")).",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "maxhits_clause",
-            "in": "query",
-            "description": "Max hits (default: 10)",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "order_by",
-            "in": "query",
-            "description": "Order by clause (default: no order)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "group_by",
-            "in": "query",
-            "description": "Group by clause (default: no group)",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-1": {
-            "description": "NOT_FOUND"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
           }
         }
       }
@@ -17090,45 +16441,6 @@
         }
       }
     },
-    "/lua/pro/rest/v2/get/host/inactive_asset.lua": {
-      "get": {
-        "tags": [
-          "Hosts"
-        ],
-        "summary": "Return the data collected by ntopng relative to an inactive asset (local host)",
-        "description": "Given a serial key (concatenation of ifid, host ip and host vlan), returns all the data relative to the host requested if present",
-        "operationId": "get_inactive_asset",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "serial_key",
-            "in": "query",
-            "description": "Host identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/get/host/pool/members.lua": {
       "get": {
         "tags": [
@@ -20599,34 +19911,6 @@
         }
       }
     },
-    "/lua/rest/v2/get/recipient/pools.lua": {
-      "get": {
-        "tags": [
-          "Pools"
-        ],
-        "summary": "Get recipient pools",
-        "description": "Get all pools bound to a recipient",
-        "operationId": "get_recipient_pools",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "recipient_id",
-            "in": "query",
-            "description": "Recipient identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/get/system/alert/list.lua": {
       "get": {
         "tags": [
@@ -20836,7 +20120,7 @@
         }
       }
     },
-    "/lua/rest/v2/get/system/configurations/list_availabled_backups.lua": {
+    "/lua/rest/v2/get/system/configurations/list_available_backups.lua": {
       "get": {
         "tags": [
           "Configurations"
@@ -21816,7 +21100,7 @@
       }
     },
     "/lua/rest/v2/import/pool/host_pool/members.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Pools"
         ],
@@ -21852,37 +21136,6 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/import/scripts/config.lua": {
-      "post": {
-        "tags": [
-          ""
-        ],
-        "summary": "Import the Checks configuration providing a JSON file",
-        "description": "Import the configuration for all checks",
-        "operationId": "import_scripts_config",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-3": {
-            "description": "NOT_GRANTED"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-27": {
-            "description": "CONFIGURATION_FILE_MISMATCH"
-          },
-          "-28": {
-            "description": "PARTIAL_IMPORT"
           }
         }
       }
@@ -22630,7 +21883,7 @@
       }
     },
     "/lua/rest/v2/trigger/host/alert.lua": {
-      "get": {
+      "post": {
         "tags": [
           "Hosts"
         ],
