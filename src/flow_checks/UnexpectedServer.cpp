@@ -46,7 +46,7 @@ bool UnexpectedServer::isPeerConfiguredServer(Flow* f) {
 /* ***************************************************** */
 
 void UnexpectedServer::protocolDetected(Flow* f) {
-  if (!isAllowedProto(f)) return;
+  if (f->isGuessedProtocolFlow() || !isAllowedProto(f)) return;
 
   if (!isAllowedHost(f) && !isPeerConfiguredServer(f)) {
     FlowAlertType alert_type = getAlertType();

@@ -1812,6 +1812,7 @@ class Flow : public GenericHashEntry {
   inline bool isPeriodicFlow() { return (is_periodic_flow ? true : false); }
   void swap();
   bool isDPIDetectedFlow();
+  bool isGuessedProtocolFlow();
   void updateHostBlacklists();
   int32_t getInterfaceIndex() { return (iface_index); };
   inline void setFlowSource(FlowSource n) { flow_source = n; }

@@ -10507,6 +10507,23 @@ bool Flow::isDPIDetectedFlow() {
 
 /* **************************************************** */
 
+/* Whether the protocol has been guessed (by port or by IP) rather
+ * than detected. NOTE: not the same as !isDPIDetectedFlow(): the
+ * confidence is unknown for undetected flows and for collected flows whose
+ * exporter does not send it (L7_CONFIDENCE) */
+bool Flow::isGuessedProtocolFlow() {
+  switch (getConfidence()) {
+    case NDPI_CONFIDENCE_MATCH_BY_PORT:
+    case NDPI_CONFIDENCE_MATCH_BY_IP:
+      return (true);
+
+    default:
+      return (false);
+  }
+}
+
+/* **************************************************** */
+
 bool Flow::matchFlowIP(IpAddress* ip, u_int16_t vlan_id) {
   if (get_vlan_id() != vlan_id) return (false);
 
