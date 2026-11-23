@@ -10496,6 +10496,7 @@ bool Flow::isDPIDetectedFlow() {
     case NDPI_CONFIDENCE_DPI_CACHE:
     case NDPI_CONFIDENCE_DPI_PARTIAL_CACHE:
     case NDPI_CONFIDENCE_DPI:
+    case NDPI_CONFIDENCE_DPI_AGGRESSIVE:
     case NDPI_CONFIDENCE_NBPF:
       return (true);
 
