@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local rest_utils = require("rest_utils")
 
-local json = require("dkjson")
 
 -- Parameters used for the rest answer --
 local rc
@@ -43,15 +42,18 @@ if(host_info["host"] ~= nil) then
    -- Show ARP sent/recv breakdown
    stats = interface.getMacInfo(host_info["host"])
 
-   if stats ~= nil then
-      local arp_sent = stats["arp_requests.sent"] + stats["arp_replies.sent"]
-      local arp_rcvd = stats["arp_requests.rcvd"] + stats["arp_replies.rcvd"]
-
-      breakdown[#breakdown + 1] = {label=i18n("sent"), value=arp_sent}
-      breakdown[#breakdown + 1] = {label=i18n("received"), value=arp_rcvd}
+   if stats == nil then
+      rest_utils.answer(rest_utils.consts.err.not_found)
+      return
    end
 
-   print(json.encode(breakdown, nil))
+   local arp_sent = stats["arp_requests.sent"] + stats["arp_replies.sent"]
+   local arp_rcvd = stats["arp_requests.rcvd"] + stats["arp_replies.rcvd"]
+
+   breakdown[#breakdown + 1] = {label=i18n("sent"), value=arp_sent}
+   breakdown[#breakdown + 1] = {label=i18n("received"), value=arp_rcvd}
+
+   rest_utils.answer(rest_utils.consts.success.ok, breakdown)
 else
    -- Show ARP stats for interface
    stats = interface.getStats()

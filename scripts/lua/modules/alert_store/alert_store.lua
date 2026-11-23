@@ -17,6 +17,7 @@ local alert_entities = require "alert_entities"
 local alert_category_utils = require "alert_category_utils"
 local os_utils = require("os_utils")
 local tag_badge_utils = require "tag_badge_utils"
+local rest_utils = require "rest_utils"
 
 -- ##############################################
 
@@ -2098,6 +2099,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
     if is_engaged then -- Engaged
         -- Add limits and sort criteria
         self:add_request_ranges()
+        self:limit_list_rows()
 
         local alerts, total_rows = self:select_engaged(filter, debug)
 
@@ -2157,6 +2159,10 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
         -- Add limits and sort criteria only after the count has been done
         self:add_request_ranges()
+        -- The CSV download is streamed by ClickHouse, noLimit is for the telemetry
+        if not download and not noLimit then
+            self:limit_list_rows()
+        end
 
         local res, info =
             self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]], noLimit )
@@ -2331,10 +2337,18 @@ end
 
 -- ##############################################
 
+-- @brief Rows of a list: rest_utils.consts.list_length.default without "length", at most .max
+function alert_store:limit_list_rows()
+    self:add_limit(rest_utils.consts.list_length.default, tonumber(_GET["start"]))
+    self._limit = math.min(tonumber(self._limit), rest_utils.consts.list_length.max)
+end
+
+-- ##############################################
+
 -- @brief Add offset, limit, and group by filters according to what is specified inside the REST API
 function alert_store:add_request_ranges()
     local start = tonumber(_GET["start"]) --[[ The OFFSET: default no offset --]]
-    local length = tonumber(_GET["length"]) --[[ The LIMIT: default no limit   --]]
+    local length = tonumber(_GET["length"]) --[[ The LIMIT: see limit_list_rows() --]]
     local sort_column = _GET["sort"]
     local sort_order = _GET["order"]
 

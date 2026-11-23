@@ -39,7 +39,10 @@ local pkt_distribution = {
 
 if(host_info["host"] ~= nil) then
    local stats = interface.getHostInfo(host_info["host"],host_info["vlan"])
-   if stats == nil then return end
+   if stats == nil then
+      rest_utils.answer(rest_utils.consts.err.not_found)
+      return
+   end
 
    -- join sent and rcvd
    local sent_stats = stats["pktStats.sent"]["tcp_flags"]
@@ -50,7 +53,10 @@ if(host_info["host"] ~= nil) then
    end
 else
    local stats = interface.getStats()
-   if stats == nil then return end
+   if stats == nil then
+      rest_utils.answer(rest_utils.consts.err.internal_error)
+      return
+   end
 
    what = stats["pktSizeDistribution"]["tcp_flags"]
 end

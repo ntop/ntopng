@@ -255,17 +255,25 @@ class Interface:
 
     def get_all_alerts(self, ifid, epoch_begin, epoch_end, ip=None):
         """
-        Return alerts for specified interface and epoch_begin and epoch_end. By default it returns all alerts
+        Return all the flow alerts of the specified interface between epoch_begin and epoch_end.
+        The REST returns at most 1000 alerts per request: they are read page by page
 
-        :return: Flow alerts for the specified IP (if present)
+        :return: Flow alerts for the specified IP (if present): {"records": [...], "stats": {...}}
         :rtype: object
         """
-        request_params = {"ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "format": "json"}
+        page_size = 1000
+        request_params = {"ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "format": "json", "length": page_size}
 
         if (ip != None):
             request_params["cli_ip"] = str(ip) + ";eq"
 
-        return self.ntopng_obj.request(self.rest_v2_url + "/get/flow/alert/list.lua", request_params)
+        records = []
+        while True:
+            request_params["start"] = len(records)
+            rsp = self.ntopng_obj.request(self.rest_v2_url + "/get/flow/alert/list.lua", request_params)
+            records += rsp["records"]
+            if len(rsp["records"]) < page_size:
+                return {"records": records, "stats": rsp.get("stats")}
 
     def self_test(self):
         print(self.get_data())

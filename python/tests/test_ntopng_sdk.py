@@ -441,7 +441,7 @@ class TestInterface(unittest.TestCase):
 
     def test_get_all_alerts_without_ip(self):
         """get_all_alerts() without IP does not include cli_ip in params."""
-        with self._patch_request([]) as mock_req:
+        with self._patch_request({"records": [], "stats": {}}) as mock_req:
             self.iface.get_all_alerts(1, 1000, 2000)
             _, params = mock_req.call_args[0]
             self.assertNotIn("cli_ip", params)
@@ -450,10 +450,25 @@ class TestInterface(unittest.TestCase):
 
     def test_get_all_alerts_with_ip(self):
         """get_all_alerts() with IP includes cli_ip filter in params."""
-        with self._patch_request([]) as mock_req:
+        with self._patch_request({"records": [], "stats": {}}) as mock_req:
             self.iface.get_all_alerts(1, 1000, 2000, ip="192.168.1.100")
             _, params = mock_req.call_args[0]
             self.assertIn("192.168.1.100", params["cli_ip"])
+
+    def test_get_all_alerts_reads_every_page(self):
+        """get_all_alerts() reads 1000 alerts per request until a page is not full."""
+        pages = [{"records": [{}] * 1000, "stats": {}}, {"records": [{}] * 3, "stats": {"n": 1}}]
+        starts = []
+
+        def request(url, params):
+            starts.append(params["start"])
+            return pages[len(starts) - 1]
+
+        with patch.object(self.ntopng, "request", side_effect=request):
+            rsp = self.iface.get_all_alerts(1, 1000, 2000)
+        self.assertEqual(starts, [0, 1000])
+        self.assertEqual(len(rsp["records"]), 1003)
+        self.assertEqual(rsp["stats"], {"n": 1})
 
 
 # ---------------------------------------------------------------------------

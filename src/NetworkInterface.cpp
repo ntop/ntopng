@@ -6394,7 +6394,7 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
   struct flowHostRetriever* r = (struct flowHostRetriever*)user_data;
   Host* h = (Host*)he;
   u_int32_t prev_actNumEntries = r->actNumEntries;
-  const char *ipstr, *namestr;
+  const char *ipstr = NULL, *namestr = NULL;
 
   if (r->actNumEntries >= r->maxNumEntries) return (true); /* Limit reached */
 
@@ -6412,8 +6412,12 @@ static bool host_search_walker(GenericHashEntry* he, void* user_data,
   )
     return (false);
 
-  ipstr = h->get_ip()->print(ipbuf, sizeof(ipbuf));
-  namestr = h->get_visual_name(namebuf, sizeof(namebuf));
+  /* Only for map_search: get_visual_name() looks up up to six names, too much
+     for every host of the walk when no search is set */
+  if (r->map_search && r->map_search[0]) {
+    ipstr = h->get_ip()->print(ipbuf, sizeof(ipbuf));
+    namestr = h->get_visual_name(namebuf, sizeof(namebuf));
+  }
 
 #ifdef HAVE_NEDGE
   Mac* h_mac = (h->getMac() ? h->getMac() : NULL);

@@ -5253,7 +5253,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). totalRows is the number of flows matching the filters: read the others with start and length, or download all of them with /lua/pro/rest/v2/get/host/flows/download_flow_records.lua (CSV, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -8900,7 +8900,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -13571,7 +13571,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -13718,7 +13718,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -14632,7 +14632,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -15617,7 +15617,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -17453,7 +17453,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -19114,7 +19114,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -19285,7 +19285,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -19486,7 +19486,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -20658,7 +20658,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"
@@ -21383,7 +21383,7 @@
           {
             "name": "length",
             "in": "query",
-            "description": "Maximum number of records to get",
+            "description": "Maximum number of records to get: 1000 if not set, at most 10000 (a larger value returns 10000). recordsTotal is the number of records matching the filters: read the others with start and length, or download all of them with format=txt (CSV, ClickHouse only, no limit)",
             "required": false,
             "type": "integer",
             "format": "int32"

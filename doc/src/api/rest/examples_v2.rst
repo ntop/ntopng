@@ -1021,6 +1021,15 @@ Get alerts data
 
    curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "0"}' http://localhost:3000/lua/rest/v2/get/interface/alert/list.lua
 
+The alert lists (and the historical flows) return 1000 records per request when
+``length`` is not set, and at most 10000 when it is (a larger ``length`` returns
+10000 records). ``recordsTotal`` (``totalRows`` for the historical flows) is the
+number of records matching the filters, so a truncated answer can be told from
+a complete one. To read all of them, pass ``start`` and ``length`` (e.g.
+``"start": 1000, "length": 1000``) and stop at the first page with fewer records
+than ``length``, or download them as CSV, which has no limit: ``format=txt`` on
+the alert lists (ClickHouse only) and ``download_flow_records.lua`` for the flows.
+
 Response:
 
 .. code:: json

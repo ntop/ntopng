@@ -24,18 +24,23 @@ if isEmptyString(host_ip) then
    return
 end
 
-local host = interface.getHostInfo(host_ip, host_vlan) or {}
+local host = interface.getHostInfo(host_ip, host_vlan)
 local rsp = {}
-local ports = {}
+
+if not host then
+   rest_utils.answer(rest_utils.consts.err.not_found)
+   return
+end
 
 -- ##################################
 
-if host then
-  if mode == "remote" then
-    ports = host.used_ports.remote_contacted_ports
-  else
-    ports = host.used_ports.local_server_ports
-  end
+-- No used_ports when the host has no port information
+local used_ports = host.used_ports or {}
+local ports
+if mode == "remote" then
+  ports = used_ports.remote_contacted_ports or {}
+else
+  ports = used_ports.local_server_ports or {}
 end
 
 -- ##################################

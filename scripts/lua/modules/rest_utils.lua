@@ -24,6 +24,10 @@ local json = require("dkjson")
 
 local rest_utils = {
     consts = {
+        -- Rows of the lists (alerts, historical flows) formatted in Lua: without a
+        -- limit a wide time range filled the memory. "length" defaults to
+        -- default and is capped to max; the CSV exports are streamed, no limit
+        list_length = {default = 1000, max = 10000},
         success = {
             ok = {http_code = 200, rc = 0, str = "OK"},
             snmp_device_deleted = {
