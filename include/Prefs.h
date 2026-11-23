@@ -132,6 +132,7 @@ class Prefs {
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
   u_int8_t ewma_alpha_percent;
   u_int http_port, https_port;
+  bool http_port_set; /* -w provided (0 to disable HTTP) */
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
   u_int8_t vs_max_num_scans;
@@ -449,6 +450,8 @@ class Prefs {
   };
 #endif
   inline u_int get_http_port() { return (http_port); };
+  inline void set_http_port(u_int p) { http_port = p; };
+  inline bool is_http_port_set() { return (http_port_set); };
   inline u_int get_https_port() { return (https_port); };
   inline bool is_client_x509_auth_enabled() {
     return (enable_client_x509_auth);
@@ -486,7 +489,7 @@ class Prefs {
   void add_default_interfaces();
   int loadFromCLI(int argc, char* argv[]);
   int loadFromFile(const char* path);
-  void checkPorts();
+  bool checkPorts();
   void add_network_interface(char* name, char* description);
   inline bool json_labels_as_strings() { return (json_labels_string_format); };
   inline void set_json_symbolic_labels_format(bool as_string) {

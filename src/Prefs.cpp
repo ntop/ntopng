@@ -133,6 +133,7 @@ Prefs::Prefs(Ntop* _ntop) {
   message_broker = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = 0; // CONST_DEFAULT_NTOP_PORT
+  http_port_set = false;
   http_prefix = strdup("");
   http_index_page = strdup(INDEX_URL);
   asn_mode_enabled = false;
@@ -486,7 +487,7 @@ void usage() {
 	 "[--geoip-dir] <dir>                 | Load GeoIP databases from the "
 	 "specified directory.\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http "
-	 "server.\n"
+	 "when https is used (-W).\n"
 	 "                                    | Addr can be an IPv4 "
 	 "(192.168.1.1)\n"
 	 "                                    | or IPv6 ([3ffe:2a00:100:7031::1]) "
@@ -1472,16 +1473,26 @@ static const int hidden_optkeys[] = {'F' /* flows export */, 'r' /* redis */,
 
 /* ******************************************* */
 
-/* This function is used in order to set ports in case they were not set in the config file */
-void Prefs::checkPorts() {
-  // No ports set in the config, set HTTP to 3000
+/* This function is used in order to set ports in case they were not set in
+ * the config file. Returns false if the configured ports are not usable. */
+bool Prefs::checkPorts() {
   if (!http_port && !https_port) {
+    if (http_port_set) {
+      // HTTP disabled (-w 0) and no HTTPS port configured (-W)
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+          "The HTTP server is disabled (-w 0) but no HTTPS port is set (-W)");
+      return (false);
+    }
+
+    // No ports set in the config, set HTTP to 3000
     http_port = CONST_DEFAULT_NTOP_PORT;
   } else if (http_port == https_port) {
     // In case the http and https ports are the same
     // Only load the https
-    http_port = 0; 
+    http_port = 0;
   }
+
+  return (true);
 }
 
 /* ******************************************* */
@@ -1492,7 +1503,7 @@ void Prefs::parseHTTPPort(char* arg) {
   snprintf(tmp, sizeof(tmp), "%s", arg);
 
   a = strtok_r(tmp, ",", &_t);
-  if (a) http_port = atoi(a);
+  if (a) http_port = atoi(a), http_port_set = true;
 }
 
 /* ******************************************* */

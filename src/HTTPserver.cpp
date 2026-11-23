@@ -2323,9 +2323,20 @@ HTTPserver::HTTPserver(const char* _docs_dir, const char* _scripts_dir) {
   }
 
   if ((!use_http) && (!ssl_enabled)) {
+    /* HTTPS requested but not enabled (no certificate) */
+    if (ntop->getPrefs()->is_http_port_set()) {
+      /* HTTP disabled with -w 0: do not enable it, fail */
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+          "The HTTP server is disabled (-w 0) and the HTTPS server cannot "
+          "be started (no valid SSL certificate): no web server available");
+      exit(-1);
+    }
+
     ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                 "The HTTP server on the default port");
-    snprintf(ports, sizeof(ports), "%u", ntop->getPrefs()->get_http_port());
+        "The HTTPS server cannot be started: starting the HTTP server on "
+        "the default port %u", CONST_DEFAULT_NTOP_PORT);
+    ntop->getPrefs()->set_http_port(CONST_DEFAULT_NTOP_PORT);
+    snprintf(ports, sizeof(ports), "%u", CONST_DEFAULT_NTOP_PORT);
     use_http = true;
   }
 

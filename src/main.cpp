@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
   if (rc < 0) return (-1);
 
-  prefs->checkPorts();
+  if (!prefs->checkPorts()) return (-1);
 
   /* Create the working dir before dropping the provileges, otherwise the
    * user might not be able to create it. Utils::dropPrivileges will move
