@@ -110,7 +110,6 @@ class Ntop {
   std::map<std::string, u_int8_t> cachedCustomLists; /* Cache of lists filenames */
   std::map<std::string, std::string> luaCache; /* Cache used by Lua */
   RwLock luaCacheLock;
-  u_int32_t current_time; /* Updated by current_time */
 #ifndef HAVE_NEDGE
 #ifdef HAVE_ZMQ
   ZMQPublisher* zmqPublisher;
@@ -1042,7 +1041,6 @@ class Ntop {
 
   inline char* getTZname() { return (myTZname); }
   inline Mutex* get_pools_lock() { return (&pools_lock); };
-  inline u_int32_t get_current_time() { return (current_time); };
 
   bool createRuntimeInterface(char* name, char* source, int* iface_id);
 

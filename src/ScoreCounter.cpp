@@ -39,7 +39,7 @@ u_int32_t ScoreCounter::dec(u_int16_t score) {
   if (value >= score) {
     u_int32_t old_value = value;
 
-    value -= score, decay_time = ntop->get_current_time() + DEFAULT_DECAY_TIME;
+    value -= score, decay_time = time(NULL) + DEFAULT_DECAY_TIME;
     alpha = ((float)(old_value - value)) / DEFAULT_DECAY_TIME, beta = old_value;
 
 #ifdef TRACE
@@ -62,11 +62,13 @@ u_int32_t ScoreCounter::get() {
   if (decay_time == 0)
     return (value); /* No decay */
   else {
-    if (decay_time < ntop->get_current_time()) {
+    u_int32_t now = (u_int32_t)time(NULL);
+
+    if (decay_time < now) {
       decay_time = 0; /* Decay is over */
       return (value);
     } else {
-      u_int32_t t_diff = decay_time - ntop->get_current_time();
+      u_int32_t t_diff = decay_time - now;
       u_int32_t t_past = DEFAULT_DECAY_TIME - t_diff;
       u_int32_t ret = beta - (u_int32_t)(alpha * t_past);
 
