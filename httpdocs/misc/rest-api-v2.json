@@ -13291,7 +13291,7 @@
           "Interfaces"
         ],
         "summary": "Get the autonomous systems of an interface with their traffic",
-        "description": "Live: the active ASes of the interface (since startup). Historical (is_live=false, needs ClickHouse): the ASes of the flows in [epoch_begin, epoch_end]. rsp is an array of records: asn, asname (none for ASN 0, the private hosts), num_hosts, avg_host_score, score, alerted_flows, seen_since (epoch), bytes_sent, bytes_rcvd, traffic, throughput (bps), breakdown {bytes_sent, bytes_rcvd}, breakdown_role {bytes_other, bytes_transit, bytes_peering, bytes_ix}, is_customer_asn / is_sub_customer_asn / is_remote_asn (ASN configuration), is_in_memory (historical only: the AS has active hosts now).",
+        "description": "Live: the active ASes of the interface (since startup). Historical (is_live=false, needs ClickHouse): the ASes of the flows in [epoch_begin, epoch_end]. rsp is an array of records: asn, asname (none for ASN 0, the private hosts), num_hosts, avg_host_score, score, alerted_flows, seen_since (epoch), bytes_sent, bytes_rcvd, traffic, throughput (bytes/s, the GUI shows it in bps; historical: average from the first to the last flow of the AS in the time range), breakdown {bytes_sent, bytes_rcvd}, breakdown_role {bytes_other, bytes_transit, bytes_peering, bytes_ix}, is_customer_asn / is_sub_customer_asn / is_remote_asn (ASN configuration), is_in_memory (historical only: the AS has active hosts now).",
         "operationId": "get_as_data",
         "produces": [
           "application/json"

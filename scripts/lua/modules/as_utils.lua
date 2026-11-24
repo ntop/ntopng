@@ -12,8 +12,6 @@ require "check_redis_prefs"
 
 --- Maximum number of top ASNs to return in getTop functions
 local MAXIMUM_NUMBER_OF_TOP = 10
-local HISTORICAL_SRC_ASN = "SRC_ASN"
-local HISTORICAL_DST_ASN = "DST_ASN"
 
 local ASN_PROFILING_KEY = "ntopng.profiling.asn"
 
@@ -51,8 +49,8 @@ end
 -- Translates ASN type selections (my_as, my_customer_as, remote_as, other_as) into SQL WHERE clauses
 -- 
 -- @param options Table containing filtering options with selected_asn field
--- @return string SQL condition string (e.g., "asn=123 OR asn=456") or empty string if no conditions
-local function formatHistoricalASNFilters(options, historical_field)
+-- @return string SQL condition on the asn column (e.g., "asn IN (123,456)") or empty string if no conditions
+local function formatHistoricalASNFilters(options)
     local check_as = nil -- Table of ASNs to filter by
     local invert = false -- Filter direction flag:
     -- false = INCLUSIVE (asn IN (...))
@@ -75,20 +73,21 @@ local function formatHistoricalASNFilters(options, historical_field)
         -- e.g., exclude all known ASNs to show "other" traffic
     end
 
-    -- Build SQL conditions for each ASN in the filter list
-    local conditions = {}
-    for asn, _ in pairs(check_as or {}) do
-        conditions[#conditions + 1] = string.format("%s=%s", historical_field, tostring(asn))
+    if not check_as then
+        return ""
     end
 
-    -- Return concatenated conditions or empty string if no filters
-    -- Note: The caller is responsible for combining this with other WHERE clauses
-    local filter = (table.concat(conditions, " OR ") or "")
-    if not isEmptyString(filter) and (invert == true) then
-        filter = string.format("NOT (%s)", filter)
+    local asns = {}
+    for asn, _ in pairs(check_as) do
+        asns[#asns + 1] = tonumber(asn)
     end
 
-    return filter
+    -- Same as the live data: no configured ASN means nothing to show, or everything for "other_as"
+    if #asns == 0 then
+        return ternary(invert, "", "1 = 0")
+    end
+
+    return string.format("asn %s (%s)", ternary(invert, "NOT IN", "IN"), table.concat(asns, ","))
 end
 
 ---
@@ -105,7 +104,6 @@ local function aggregateHistoricalASNRows(historical_asn_stats)
         local b_rcvd = tonumber(as_info["bytes.rcvd"]) or 0
         local traffic = tonumber(as_info["traffic"]) or 0
         local score = tonumber(as_info["score"]) or 0
-        local t_bps = tonumber(as_info["throughput_bps"]) or 0
         local first = tonumber(as_info["seen.first"]) or 0
         local last = tonumber(as_info["seen.last"]) or 0
 
@@ -118,7 +116,6 @@ local function aggregateHistoricalASNRows(historical_asn_stats)
                 ["bytes.rcvd"] = b_rcvd,
                 traffic = traffic,
                 score = score,
-                throughput_bps = t_bps,
                 ["seen.first"] = first,
                 ["seen.last"] = last,
                 -- Per-role breakdown (roles outside 0/1/2 contribute to totals only)
@@ -130,17 +127,10 @@ local function aggregateHistoricalASNRows(historical_asn_stats)
         else
             -- Subsequent row for same ASN: aggregate into the existing entry.
             local existing = asn_stats[asn]
-            local prev_traffic = existing["traffic"]
-            local new_traffic = prev_traffic + traffic
-
-            -- Weighted-average throughput (weight = traffic share of each role)
-            if new_traffic > 0 then
-                existing["throughput_bps"] = (existing["throughput_bps"] * prev_traffic + t_bps * traffic) / new_traffic
-            end
 
             existing["bytes.sent"] = existing["bytes.sent"] + b_sent
             existing["bytes.rcvd"] = existing["bytes.rcvd"] + b_rcvd
-            existing["traffic"] = new_traffic
+            existing["traffic"] = existing["traffic"] + traffic
             existing["score"] = existing["score"] + score
 
             -- Keep the widest possible time window
@@ -165,6 +155,9 @@ local function aggregateHistoricalASNRows(historical_asn_stats)
             existing.bytes_ix = existing.bytes_ix + b_sent + b_rcvd
         end
 
+        -- Average throughput (bytes/s like the live throughput_bps) while the AS was seen in the range:
+        -- the time without traffic before and after it does not lower it
+        existing.throughput_bps = existing.traffic / (existing["seen.last"] - existing["seen.first"] + 1)
     end
     
     return asn_stats
@@ -548,10 +541,7 @@ function as_utils.retrieveASHistoricalTraffic(options)
         interface_role_filter = string.format(" AND (INPUT_INTERFACE_ROLE = %u OR OUTPUT_INTERFACE_ROLE = %u)",
             filter_options.interfaceRole, filter_options.interfaceRole)
     end
-    -- Built two different where for efficiency reasons, filtering inside the UNION
-    -- is a lot faster the filtering outside even if the code readability is a bit less
-    local src_asn_filters = formatHistoricalASNFilters(options, HISTORICAL_SRC_ASN)
-    local dst_asn_filters = formatHistoricalASNFilters(options, HISTORICAL_DST_ASN)
+    local asn_filters = formatHistoricalASNFilters(options)
     -- Build WHERE clause for time range and interface
     local where = string.format("(FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) AND INTERFACE_ID = %u %s",
         tonumber(options.epoch_begin), tonumber(options.epoch_end), tonumber(options.epoch_end), tonumber(options.ifid), interface_role_filter)
@@ -560,16 +550,16 @@ function as_utils.retrieveASHistoricalTraffic(options)
     local interface_role = string.format(
         "if(INPUT_INTERFACE_ROLE IN (%u, %u, %u), INPUT_INTERFACE_ROLE, OUTPUT_INTERFACE_ROLE) AS INTERFACE_ROLE",
         INTERFACE_ROLE_TRANSIT, INTERFACE_ROLE_PEERING, INTERFACE_ROLE_INTERNET_EXCHANGE)
-    -- Complex SQL query to aggregate ASN statistics from flows table
-    -- Combines both source and destination ASNs
+    -- A flow counts for its source and for its destination AS (once if they are the same):
+    -- ARRAY JOIN gets both from a single read of the table, a UNION would read it twice
     local query = string.format(
-        "SELECT asn, INTERFACE_ROLE, min(FIRST_SEEN) as \"seen.first\", max(LAST_SEEN) as \"seen.last\", sum(SCORE) as score, sum(total_bytes) AS traffic, sum(bytes_sent) as \"bytes.sent\", sum(bytes_rcvd) as \"bytes.rcvd\", sum(total_bytes) / sum(dateDiff('second', FIRST_SEEN, LAST_SEEN) + 1) AS throughput_bps " ..
-            "FROM (SELECT SRC_ASN AS asn, %s, FLOW_ID, TOTAL_BYTES as total_bytes, SRC2DST_BYTES as bytes_sent, DST2SRC_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s UNION ALL " ..
-            "SELECT DST_ASN AS asn, %s, FLOW_ID, TOTAL_BYTES as total_bytes, DST2SRC_BYTES as bytes_sent, SRC2DST_BYTES as bytes_rcvd, FIRST_SEEN, LAST_SEEN, INTERFACE_ID, SCORE FROM flows WHERE %s %s AND DST_ASN != SRC_ASN " ..
-            ") GROUP BY asn, INTERFACE_ROLE", interface_role, where, ternary(isEmptyString(src_asn_filters), "", " AND " .. src_asn_filters), interface_role, where,
-        ternary(isEmptyString(dst_asn_filters), "", " AND " .. dst_asn_filters))
+        "SELECT asn, INTERFACE_ROLE, min(FIRST_SEEN) AS \"seen.first\", max(LAST_SEEN) AS \"seen.last\", sum(SCORE) AS score, sum(TOTAL_BYTES) AS traffic, " ..
+            "sum(if(asn = SRC_ASN, SRC2DST_BYTES, DST2SRC_BYTES)) AS \"bytes.sent\", sum(if(asn = SRC_ASN, DST2SRC_BYTES, SRC2DST_BYTES)) AS \"bytes.rcvd\" " ..
+            "FROM (SELECT SRC_ASN, DST_ASN, %s, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, FIRST_SEEN, LAST_SEEN, SCORE FROM flows WHERE %s) " ..
+            "ARRAY JOIN arrayDistinct([SRC_ASN, DST_ASN]) AS asn %s GROUP BY asn, INTERFACE_ROLE",
+        interface_role, where, ternary(isEmptyString(asn_filters), "", "WHERE " .. asn_filters))
 
-    local historical_asn_stats,err = interface.execSQLQuery(query)
+        local historical_asn_stats,err = interface.execSQLQuery(query)
     historical_asn_stats = historical_asn_stats or {}
     
     if (perform_profiling) then
