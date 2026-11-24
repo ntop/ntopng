@@ -37,6 +37,12 @@ interface.select(ifid)
 
 local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id))
 
+-- The flow is gone (idle and purged) or the key is wrong
+if flow == nil then
+   rest_utils.answer(rest_utils.consts.err.not_found)
+   return
+end
+
 local res = {}
 
 if(flow.iec104) then

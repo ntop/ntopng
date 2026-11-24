@@ -78,6 +78,12 @@ if ifstats.isView then
    timeline_path = table.concat(paths, ",")
 else
    timeline_path = recording_utils.getTimelineByInterval(ifid, time_from, time_to)
+
+   -- No recording with data in the interval, as for the views above
+   if timeline_path == nil then
+      rest_utils.answer(rest_utils.consts.err.bad_content)
+      return
+   end
 end
 
 local fname = time_from.."-"..time_to..".pcap"
