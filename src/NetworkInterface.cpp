@@ -1253,9 +1253,9 @@ bool NetworkInterface::enqueueFlowAlert(FlowAlert* alert) {
     flow_checks_condvar.signal();
 
     ret = true;
-  } else {
-    delete alert;
   }
+  /* Queue full: the alert is not deleted here, it stays in the triggered_alerts
+   * of the flow (see Flow::flushAlerts()) that frees it in ~Flow() */
 
   return ret;
 }
