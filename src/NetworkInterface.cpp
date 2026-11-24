@@ -13831,14 +13831,16 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
    * NetworkInterface::sort_and_filter_flow_stats() */
 
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char*)lua_tostring(vm, 8);
-  if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm, 9);
+  /* lua_tointeger: Lua passes -1 for "any", and a negative double converted to
+   * an unsigned type is undefined behavior (an integer wraps to NO_VLAN etc.) */
+  if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tointeger(vm, 9);
   if (lua_type(vm, 10) == LUA_TSTRING)
     flow_device_ip = (char*)lua_tostring(vm, 10);
-  if (lua_type(vm, 11) == LUA_TNUMBER) in_if_idx = lua_tonumber(vm, 11);
-  if (lua_type(vm, 12) == LUA_TNUMBER) out_if_idx = lua_tonumber(vm, 12);
-  if (lua_type(vm, 13) == LUA_TNUMBER) if_idx = lua_tonumber(vm, 13);
-  if (lua_type(vm, 14) == LUA_TNUMBER) alert_status = lua_tonumber(vm, 14);
-  if (lua_type(vm, 15) == LUA_TNUMBER) host_locality = lua_tonumber(vm, 15);
+  if (lua_type(vm, 11) == LUA_TNUMBER) in_if_idx = lua_tointeger(vm, 11);
+  if (lua_type(vm, 12) == LUA_TNUMBER) out_if_idx = lua_tointeger(vm, 12);
+  if (lua_type(vm, 13) == LUA_TNUMBER) if_idx = lua_tointeger(vm, 13);
+  if (lua_type(vm, 14) == LUA_TNUMBER) alert_status = lua_tointeger(vm, 14);
+  if (lua_type(vm, 15) == LUA_TNUMBER) host_locality = lua_tointeger(vm, 15);
   /* Lua passes nil (and not a negative value) when no site is requested, so
    * that NO_SITE_ID is never obtained through a negative-to-unsigned cast */
   if (lua_type(vm, 16) == LUA_TNUMBER) site_id = lua_tonumber(vm, 16);
@@ -13960,6 +13962,8 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State* vm) {
            stats.info_count.begin();
        it2 != stats.info_count.end(); ++it2)
     delete it2->second;
+
+  if (stats.ip_addr) delete stats.ip_addr; /* Utils::parseHostString() */
 }
 
 /* **************************************************** */

@@ -238,6 +238,9 @@ class Prefs {
   char* test_post_script_path;
 
   char *message_broker_url, *message_broker;
+  /* Previous values, freed at the next reload (as ndpi_struct_shadow): another
+   * thread may still be reading them through the getters */
+  char *message_broker_url_shadow, *message_broker_shadow, *http_index_page_shadow;
   bool message_broker_enabled;
 #ifdef NTOPNG_PRO
   bool print_maintenance, print_license;

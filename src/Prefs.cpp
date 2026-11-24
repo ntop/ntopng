@@ -137,6 +137,7 @@ Prefs::Prefs(Ntop* _ntop) {
     NULL;
   message_broker_url = NULL;
   message_broker = NULL;
+  message_broker_url_shadow = message_broker_shadow = http_index_page_shadow = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = 0; // CONST_DEFAULT_NTOP_PORT
   http_port_set = false;
@@ -369,6 +370,9 @@ Prefs::~Prefs() {
   if (test_post_script_path) free(test_post_script_path);
   if (message_broker_url) free(message_broker_url);
   if (message_broker) free(message_broker);
+  if (message_broker_url_shadow) free(message_broker_url_shadow);
+  if (message_broker_shadow) free(message_broker_shadow);
+  if (http_index_page_shadow) free(http_index_page_shadow);
 #ifdef NTOPNG_PRO
   if (modbus_allowed_function_codes)
     ndpi_bitmap_free(modbus_allowed_function_codes);
@@ -1199,19 +1203,22 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER_URL, &tmp,
                              DEFAULT_MESSAGE_BROKER_URL);
   if (tmp) {
-    if (message_broker_url) free(message_broker_url);
+    free(message_broker_url_shadow);
+    message_broker_url_shadow = message_broker_url;
     message_broker_url = strdup(tmp);
     free(tmp);
   }
 
   getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER, &tmp,
                              DEFAULT_MESSAGE_BROKER);
-  if (message_broker) free(message_broker);
+  free(message_broker_shadow);
+  message_broker_shadow = message_broker;
   message_broker = tmp;
 
   getDefaultStringPrefsValue(CONST_PREFS_HTTP_INDEX_PAGE, &tmp,
                              DEFAULT_HTTP_INDEX_PAGE);
-  if (http_index_page) free(http_index_page);
+  free(http_index_page_shadow);
+  http_index_page_shadow = http_index_page;
 
   if (tmp[0] == '\0') {
     free(tmp);
