@@ -21,35 +21,33 @@ The page has two tabs: *Overview*, with the chart of the top Autonomous Systems 
 with the Autonomous System timeseries of the interface. *Historical Data* is greyed out until Autonomous System
 timeseries are enabled in *Settings* > *Preferences* > *Timeseries*.
 
+When ClickHouse is enabled, the time picker at the top of the page sets the period of both the chart and the table.
+The page opens on the last 12 hours. You can choose another preset, `Live`, or any start and end date.
+
 The filters above the chart apply to both the chart and the table:
 
 - *ASN Filter*: all the ASNs, or only your ASNs, your customers ASNs, the relevant remote ASNs or the other ones
   (see :ref:`ASNConfiguration`)
-- *Time*: `Live` or a past time range (last 30 minutes up to last week). Only shown when ClickHouse is enabled
 - *Interface Role*: the traffic seen on IX, peering or transit SNMP interfaces. Needs Enterprise M
 
 *Clear filters* sets all of them back to their default.
 
 The chart (when the timeseries are enabled, Enterprise license) shows the top active Autonomous Systems over time.
 
-When the `Live` time is selected (or when ClickHouse is not available), the table below the chart is labeled
+When `Live` is selected (or when ClickHouse is not available), the table below the chart is labeled
 `Active ASN Since Startup`: it reports the traffic of each Autonomous System cumulated since ntopng startup,
-and it is independent from the time range selected for the chart. Hovering the label shows a tooltip with this explanation.
+and it is independent from the time range selected for the chart.
 
 This happens because the Autonomous Systems historical table is built from the data stored in ClickHouse, while the
 Timeseries do not require ClickHouse. As a consequence, without ClickHouse the chart can be moved to any time range,
 but the table always shows the data collected since ntopng startup.
-
-.. note::
-
-  When ClickHouse is enabled, select a `Time` value other than `Live` to show the historical table for the selected period.
 
 The name of each Autonomous System links to its RIPEstat and PeeringDB pages (in a new browser tab). The icons
 next to the name mark your ASNs, your customers ASNs and the relevant remote ASNs.
 
 The button of the *Actions* column opens the hosts of the Autonomous System. Its menu also has:
 
-- *Flows of this AS*: the live flows, or the historical flows of the selected time range when *Time* is not `Live`
+- *Flows of this AS*: the live flows, or the historical flows of the selected time range when it is not `Live`
 - *Timeseries*
 - *Ingress/Egress Stats*: only with flows from an nProbe exporter, not for the private hosts (ASN 0)
 
