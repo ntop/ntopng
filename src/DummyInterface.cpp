@@ -110,15 +110,4 @@ void DummyInterface::startPacketPolling() {
   NetworkInterface::startPacketPolling();
 }
 
-/* **************************************************** */
-
-void DummyInterface::shutdown() {
-  void* res;
-
-  if (running) {
-    NetworkInterface::shutdown();
-    pthread_join(pollLoop, &res);
-  }
-}
-
 #endif

@@ -40,7 +40,6 @@ class DummyInterface : public ZMQParserInterface {
 
   void forgeFlow(u_int iteration);
   void startPacketPolling();
-  void shutdown();
 };
 
 #endif

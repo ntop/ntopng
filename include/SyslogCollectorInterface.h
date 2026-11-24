@@ -82,7 +82,6 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   void collect_events();
 
   void startPacketPolling();
-  void shutdown();
   bool set_packet_filter(char* filter);
   virtual void lua(lua_State* vm, bool fullStats);
 };

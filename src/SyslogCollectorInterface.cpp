@@ -518,17 +518,6 @@ void SyslogCollectorInterface::startPacketPolling() {
 
 /* **************************************************** */
 
-void SyslogCollectorInterface::shutdown() {
-  void* res;
-
-  if (running) {
-    NetworkInterface::shutdown();
-    pthread_join(pollLoop, &res);
-  }
-}
-
-/* **************************************************** */
-
 bool SyslogCollectorInterface::set_packet_filter(char* filter) {
   ntop->getTrace()->traceEvent(
 			       TRACE_ERROR, "No filter can be set on a collector interface. Ignored %s",
