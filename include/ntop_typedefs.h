@@ -991,6 +991,8 @@ typedef enum {
   asset_journal_username_added,   /* Username added (key: "<name> (<proto>)") */
   asset_journal_username_removed, /* Username removed (key) */
   asset_journal_tcp_fingerprint_added, /* TCP fingerprint added (key) */
+  asset_journal_server_port_added, /* Server port added (key: "<l4>:<port>",
+                                      e.g. "tcp:22") */
   asset_journal_num_what
 } AssetJournalWhat;
 #endif

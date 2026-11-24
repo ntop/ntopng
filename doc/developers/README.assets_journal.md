@@ -140,7 +140,8 @@ of the Operating System or of the MAC address of an asset):
 | `tag` | The other tags |
 | `vlan` | A VLAN added to the asset (`vlan_added`): the VLAN is not a field, see "VLANs" |
 | `tcp_fingerprint` | A TCP fingerprint added to or removed from the asset (list field `tcp_fingerprints`), and the field `tcp_fingerprint` of the entries written before it was a list |
-| `<field>` | A field of the asset: its name (`ip`, `mac`, `dhcp_fingerprint`, `dns_name`, `kerberos_name`, `dhcp_name`, `mdns_name`, `mdns_txt_name`, `netbios_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `ssid`, `router`, `snmp_*`, `switch_*`, `server_ports`, `custom`) |
+| `server_ports` | A server port added to the asset (`json_info.server_ports`), see "Server ports" |
+| `<field>` | A field of the asset: its name (`ip`, `mac`, `dhcp_fingerprint`, `dns_name`, `kerberos_name`, `dhcp_name`, `mdns_name`, `mdns_txt_name`, `netbios_name`; later `network`, `gateway_mac`, `model`, `device_type`, `manufacturer`, `ssid`, `router`, `snmp_*`, `switch_*`, `custom`) |
 
 The field entries take the `name` of the field in `assets_journal.host_fields`
 (or its `subaction`, e.g. `os` for `os_type`), so a new field has its
@@ -180,6 +181,7 @@ Examples (English, from live tests):
 | Field of a new asset | Set MAC address to "10:13:31:F1:39:76": UDP 192.168.1.93:51409->192.168.1.1:53 enp0s3 (0) |
 | Field changed | Update DHCP name from "old-name" to "new-name": UDP 192.168.4.60:68->255.255.255.255:67 eth0 (0) [DHCP] |
 | Element of a list added | Add TCP fingerprint 2_64_64240_789c1d1f: TCP 172.16.1.137:39970->116.203.142.127:80 enp0s3 (0) [HTTP.ntop] |
+| Server port | Add server port TCP 22 (SSH): TCP 192.168.1.10:50000->192.168.1.2:22 eth0 (0) [SSH] |
 | Service tag | Add tag 0 (0x00) DNS Server: UDP 192.168.1.93:52340->192.168.1.1:53 enp0s3 (0) [DNS] |
 | Tag bound to a risk | Add tag 13 (0x0d) Non-PQC Compliant: risk Non PQC Compliant Flow - TCP 192.168.1.93:61562->92.122.247.92:443 enp0s3 (0) [TLS] |
 | OS tag | Add tag 28 (0x1c) Linux: HTTP User-Agent "Mozilla/5.0 (X11; ...)" (Linux) - TCP 10.0.2.15:45734->192.168.160.8:3000 enp0s3 (0) [HTTP] |
@@ -235,6 +237,7 @@ host assets give events.
 | Tags | `json_info.tags`, `tags_info` | One per tag added or removed, with the reason (observed, manual, configuration, seeding, TTL expiration, replaced, tag deleted) |
 | `dhcp_fingerprint`, `dns_name`, `kerberos_name` | `json_info` | Value changed |
 | `usernames`, `tcp_fingerprints` (list fields, `asset_merge.LIST_FIELDS`) | `json_info` | One per element added or removed (the oldest one beyond the limit, or replaced by the host), see README.assets_vlan.md |
+| `server_ports` (per protocol) | `json_info` | One per port added, see "Server ports" |
 | `dhcp_name`, `mdns_name`, `mdns_txt_name`, `netbios_name` | `json_info` | Value changed, ignoring the case (see "Host names") |
 
 The code is meant for the whole list below: the list of the fields is a table
@@ -248,7 +251,6 @@ be added.
 |---|---|---|
 | `network`, `gateway_mac` | Columns | |
 | `os_type`, `model`, `device_type`, `manufacturer` | Columns | |
-| `server_ports` (per protocol) | `json_info` | One event per port added or removed (the list is capped at 64) |
 | `ssid`, `router` | `json_info` | |
 | `snmp_name`, `snmp_descr`, `switch_ip`, `switch_port` | `json_info` | From the SNMP data |
 | Custom fields | `json_info` | Set with `interface.addDataToLocalHostAssets()` |
@@ -309,6 +311,7 @@ standalone and on real databases.
 | `deletedAssetsEntry(base, count, cause)` | The single `Delete` entry (no key) of several assets deleted at once |
 | `convertedAssetsEntry(base, count, assets)` | The single `Update` entry (no key) of the conversion of the assets recorded per VLAN |
 | `vlanEntries(base, vlans, cause)` | One `Update` entry (subaction `vlan`) per VLAN added to the asset |
+| `serverPortEntries(base, old, new, causes, default_cause)` | One `Update` entry (subaction `server_ports`) per server port added (`json_info.server_ports`), see "Server ports" |
 
 Database functions (they need ntopng, and run on the database of the current
 interface, as the rest of the assets code):
@@ -361,6 +364,29 @@ one asset. The VLAN is not a field: the asset keeps the list of its VLANs
 the cause being the flow that has created the host of that VLAN, sent with its
 first snapshot). The MAC of the asset is kept only when all its VLANs agree:
 otherwise it is cleared once ("Clear MAC address (was ...)").
+
+### Server ports
+
+The server ports of a host asset (`json_info.server_ports`, `{ <l4 proto> = {
+<port> = <application> } }`, see `LocalHost::dumpAssetPortsJson`) give one
+`Update` entry per port added (subaction `server_ports`, `server_port_added`:
+"Add server port TCP 22 (SSH): <cause>"), also for a new asset, after its
+fields and its tags; the cause is the flow where the host has been seen as
+server on the port (`journal.server_ports_added`, key `"<l4 proto>:<port>"`,
+see "Causes, case by case"). The ports are compared once merged and limited
+(`asset_utils` `limitServerPorts`: the 64 lowest per protocol), with the ones
+stored before the merge.
+
+Not journaled (decisions):
+- the ports removed: an asset never loses its ports (the snapshots are merged
+  into it), but for the limit of the ports kept, when a lower one arrives;
+- the application of a port that changes: the host keeps the one of the
+  latest flow of the port (e.g. `TLS`, then `TLS.Google`, then `TLS`), the
+  asset the latest one reported; the entry tells the application of the flow
+  that has added the port.
+
+A port is learned again by a new host for the same address (after a restart,
+an idle purge, a data reset): the asset already has it, no entry.
 
 ### Host names
 
@@ -565,7 +591,8 @@ both, as all the new code, under `NTOPNG_PRO`):
 
 - `what` (`AssetJournalWhat`): "created" (also the cause of `ip`, `mac`,
   `vlan`), a field (`dhcp_fingerprint`, `dns_name`), an element of a list
-  field (`usernames_added`, `tcp_fingerprints_added`, with its key), "tag
+  field (`usernames_added`, `tcp_fingerprints_added`, `server_ports_added`,
+  with its key), "tag
   refreshed" or "tag removed" (the host does not know whether the asset has the tag: "Add tag"
   is decided in Lua);
 - `tag_id`: the tag, for the tag ones (kept out of the string: Lua finds the
@@ -587,6 +614,7 @@ key and freed:
   "created": "<cause>",
   "fields":  { "dhcp_fingerprint": "<cause>", "dns_name": "<cause>" },
   "tcp_fingerprints_added": { "<fingerprint>": "<cause>" },
+  "server_ports_added": { "tcp:22": "<cause>" },
   "tags_refreshed": { "28": "<cause>", "0": "<cause>" },
   "tags_removed":   { "31": "<cause>" }
 }
@@ -628,6 +656,7 @@ context.
 | Event | Recorded in | Cause string |
 |---|---|---|
 | TCP fingerprint (list `tcp_fingerprints`) | `LocalHost::setTCPfingerprint(fp, os, flow)`: the fingerprint of the latest flow of the host (time of the flow) | flow |
+| Server port (`server_ports`) | `LocalHost::setServerPort(..., flow)` (`Flow::updateServerPortsStats`), when the port is new for the host (see README.flow_direction.md, `Flow::isServerPortAnswered`) | flow (the host is its server) |
 | `dhcp_fingerprint` | `LocalHost::offlineSetDhcpFingerprint(fp, flow)` | flow (the DHCP request) |
 | `dns_name` from a DNS response | `setResolvedName(name, flow)` | flow (the PTR response) |
 | `dns_name` without flow (ntopng reverse lookup, name cached from another flow) | `setResolvedName(name, NULL)` | "reverse DNS lookup by ntopng" |

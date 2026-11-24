@@ -706,7 +706,7 @@ void LocalHost::setRouterMac(Mac* gw) {
 /* ***************************************************** */
 
 void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto,
-                              time_t when) {
+                              time_t when, Flow* f) {
 #ifdef NTOPNG_PRO
   bool set_port_status;
 
@@ -714,8 +714,17 @@ void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto,
 
   set_port_status = usedPorts->setServerPort(isTCP, port, proto);
 
-  /* A new server port changes the asset (see dumpAssetPortsJson): dump it */
-  if (set_port_status) asset_map_updated = true;
+  if (set_port_status) {
+    char key[16];
+
+    /* A new server port changes the asset (see dumpAssetPortsJson): dump it,
+     * with the flow where the host has been seen as server on the port
+     * (journal of the assets, if the port is new in the asset) */
+    asset_map_updated = true;
+
+    snprintf(key, sizeof(key), "%s:%u", isTCP ? "tcp" : "udp", port);
+    addJournalListCause(asset_journal_server_port_added, key, f);
+  }
 
   if (set_port_status && ntop->getPro()->is_enterprise_l_edition()) {
     /* If the port is set for the first time set_port_status == true */
