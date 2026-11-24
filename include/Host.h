@@ -1006,7 +1006,7 @@ class Host : public GenericHashEntry,
   }
 
   virtual void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto,
-                             time_t when) {
+                             time_t when, Flow* f = NULL) {
     ;
   };
   virtual void setContactedPort(bool isTCP, u_int16_t port,

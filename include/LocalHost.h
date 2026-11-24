@@ -286,7 +286,7 @@ class LocalHost : public Host {
   void setRouterMac(Mac* gw);
 
   void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto,
-                     time_t when);
+                     time_t when, Flow* f = NULL);
   inline void setContactedPort(bool isTCP, u_int16_t port,
                                ndpi_protocol* proto) {
     if (usedPorts) usedPorts->setContactedPort(isTCP, port, proto);

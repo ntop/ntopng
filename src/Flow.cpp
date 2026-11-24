@@ -6008,7 +6008,7 @@ void Flow::updateServerPortsStats(Host* server, ndpi_protocol* proto,
     if (vlan_hash) vlan_hash->setServerPort(is_tcp, port, proto);
   }
 
-  server->setServerPort(is_tcp, port, proto, first_seen);
+  server->setServerPort(is_tcp, port, proto, first_seen, this);
 }
 
 /* *************************************** */
