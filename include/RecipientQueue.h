@@ -19,16 +19,17 @@
  *
  */
 
+
 #ifndef _RECIPIENT_QUEUES_
 #define _RECIPIENT_QUEUES_
 
 #include "ntop_includes.h"
 
+/* The notifications queue of a recipient: the notifications are filtered
+   before the enqueue (see Recipients::enqueue and NotificationPolicy) */
 class RecipientQueue {
  private:
   u_int16_t recipient_id;
-  bool skip_alerts;
-  bool match_alert_id;
 
   AlertFifoQueue* queue;
 
@@ -51,37 +52,6 @@ class RecipientQueue {
   /* Timestamp of the last dequeue, regardless of queue priority */
   time_t last_use;
 
-  /* Minimum severity for notifications enqueued to this recipient */
-  AlertLevel minimum_severity;
-
-  /* Only enable enqueue/dequeue for notifications falling into these categories
-   */
-  Bitmap128 enabled_categories; /* MUST be large enough to contain
-                                   MAX_NUM_SCRIPT_CATEGORIES */
-
-  /* Only enable enqueue/dequeue for notifications falling into these entities
-   */
-  Bitmap128 enabled_entities; /* MUST be large enough to contain
-                                 ALERT_ENTITY_MAX_NUM_ENTITIES */
-
-  Bitmap128 enabled_flow_alert_types; /* MUST be large enough to contain
-                                 FlowAlertTypeEnum */
-
-  Bitmap128 enabled_host_alert_types; /* MUST be large enough to contain
-                                 HostAlertID */
-
-  Bitmap128
-      enabled_other_alert_types; /* MUST be large enough to contain
-                           Other alert IDs defined in other_alert_keys.lua */
-
-  /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
-  Bitmap4096 enabled_host_pools;
-
-  /* Tags bitmap (all zero = no filter) */
-  Bitmap64 enabled_tags;
-
-  bool doDebug(const AlertFifoItem* const notification);
-
  public:
   RecipientQueue(u_int16_t recipient_id);
   ~RecipientQueue();
@@ -95,7 +65,6 @@ class RecipientQueue {
 
   /**
    * @brief Enqueues a notification to a `recipient_id` queue
-   * @param recipient_id An integer recipient identifier
    * @param notification A string containing the notification
    *
    * @return True if the enqueue succeeded, false otherwise
@@ -103,104 +72,12 @@ class RecipientQueue {
   bool enqueue(const AlertFifoItem* const notification);
 
   /**
-   * @brief Sets the minimum severity for notifications to use this recipient
-   * @param minimum_severity The minimum severity for notifications to use this
-   * recipient
-   *
-   * @return
+   * @brief Counts a notification delivered without enqueuing it (e.g. the
+   * flow alerts of the builtin recipient, read from the flows on ClickHouse)
    */
-  inline void setMinimumSeverity(AlertLevel _minimum_severity) {
-    minimum_severity = _minimum_severity;
-  };
-
-  /**
-   * @brief Sets enabled notification categories to use this recipient
-   * @param enabled_categories A bitmap of notification categories to use this
-   * recipient
-   *
-   * @return
-   */
-  inline void setEnabledCategories(Bitmap128 _enabled_categories) {
-    enabled_categories = _enabled_categories;
-  };
-
-  /**
-   * @brief Sets enabled notification entities to use this recipient
-   * @param enabled_entities A bitmap of notification entities to use this
-   * recipient
-   *
-   * @return
-   */
-  inline void setEnabledEntities(Bitmap128 _enabled_entities) {
-    enabled_entities = _enabled_entities;
-  };
-
-  /**
-   * @brief Sets enabled host pools to use this recipient
-   * @param enabled_host_pools
-   *
-   * @return
-   */
-  inline void setEnabledHostPools(Bitmap4096 _enabled_pools) {
-    enabled_host_pools = _enabled_pools;
-  };
-
-  /**
-   * @brief Sets enabled tag bitmap for this recipient (0 = no filter)
-   * @param _enabled_tags A tag bitmap
-   *
-   * @return
-   */
-  inline void setEnabledTags(Bitmap64 _enabled_tags) {
-    enabled_tags = _enabled_tags;
-  };
-
-  /**
-   * @brief Sets enabled flow alert types to use this recipient
-   * @param enabled_flow_alert_types
-   *
-   * @return
-   */
-  inline void setEnabledFlowAlertTypes(Bitmap128 _enabled_flow_alert_types) {
-    enabled_flow_alert_types = _enabled_flow_alert_types;
-  };
-
-  /**
-   * @brief Sets enabled host alert types to use this recipient
-   * @param enabled_host_alert_types
-   *
-   * @return
-   */
-  inline void setEnabledHostAlertTypes(Bitmap128 _enabled_host_alert_types) {
-    enabled_host_alert_types = _enabled_host_alert_types;
-  };
-
-  /**
-   * @brief Sets enabled other alert types to use this recipient
-   * @param enabled_other_alert_types
-   *
-   * @return
-   */
-  inline void setEnabledOtherAlertTypes(Bitmap128 _enabled_other_alert_types) {
-    enabled_other_alert_types = _enabled_other_alert_types;
-  };
-
-  /**
-   * @brief Sets alerts to be ignored
-   * @param skip_alerts
-   *
-   * @return
-   */
-  inline void setSkipAlerts(bool _skip_alerts) { skip_alerts = _skip_alerts; };
-
-  /**
-   * @brief Toggle match on alert_id only (ignore severity, category, etc)
-   * @param match_alert_id
-   *
-   * @return
-   */
-  inline void toggleAlertIDMatch(bool _match_alert_id) {
-    match_alert_id = _match_alert_id;
+  inline void countDelivered() {
+    enqueued++;
+    delivered++;
   };
 
   /**

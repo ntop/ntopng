@@ -810,15 +810,10 @@ class Ntop {
   void inc_recipient_stats(u_int16_t recipient_id, u_int64_t delivered,
                            u_int64_t filtered_out, u_int64_t delivery_failures);
   void recipient_delete(u_int16_t recipient_id);
-  void recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity,
-                          Bitmap128 enabled_categories,
-                          Bitmap4096 enabled_host_pools,
-                          Bitmap128 enabled_entities,
-                          Bitmap128 enabled_flow_alert_types,
-                          Bitmap128 enabled_host_alert_types,
-                          Bitmap128 enabled_other_alert_types,
-                          bool match_alert_id, bool skip_alerts,
-                          Bitmap64 enabled_tags = Bitmap64());
+  void recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity);
+  void notification_policy_register(u_int16_t policy_id,
+                                    NotificationPolicy* policy);
+  void notification_policy_delete(u_int16_t policy_id);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return (last_stats_reset); }

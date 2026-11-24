@@ -55,6 +55,7 @@ Saved policies are listed in the nAnalyst policy panel (**nAnalyst -> Policies**
 Both counters persist across ntopng restarts and are reset only when the policy itself is deleted.
 
 Policies can be edited, paused, or deleted from the same panel.
+Click *Simulate Notifications* in the edit dialog to see who is notified when the policy triggers an alert (see :ref:`NotificationSimulation`).
 
 .. figure:: ../../img/nAnalyst_policy_edit.png
    :align: center

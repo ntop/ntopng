@@ -175,14 +175,14 @@ default after enabling the global setting.
   Automatic Report Interface Preference
 
 When a new report has been generated and it is available, ntopng can also send a notification to inform the user, e.g. by sending an
-email. In order to enable notifications, a Notification Endpoint and Recipient should be configured. In the Recipient configuration,
-Traffic Reports should be selected as Notification Type.
+email. In order to enable notifications, an email Recipient and a :ref:`Notification Policy <NotificationPolicies>` should be configured.
+In the policy, Traffic Reports should be selected as *Send*, with the email Recipient.
 
 .. figure:: ../../img/report-notifications-recipient.png
   :align: center
-  :alt: Report Notification Recipient
+  :alt: Report Notification Policy
 
-  Report Notification Recipient
+  Report Notification Policy
 
 Below you can find an example of email notification sent by ntopng to notify the user about the availability of a new daily report,
 with a direct link to go to the actual report.

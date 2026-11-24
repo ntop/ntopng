@@ -155,6 +155,7 @@ function am.list_am_scripts(ifid, measurement, alerted)
             key = key,
             ip_address = ip_address,
             threshold = info.threshold,
+            tag_ids = info.tag_ids or {},
             hourly_stats = hourly_stats or {},
             am_host = info.host, -- This is used by http_src/constants/metrics-consts.js
             target = {
@@ -190,7 +191,7 @@ end
 
 -- Adds a new AM host if it does not already exist.
 -- Returns true on success, false + error string on failure.
-function am.add_am_script(host, measurement, ifname, threshold, granularity)
+function am.add_am_script(host, measurement, ifname, threshold, granularity, tag_ids)
     if isEmptyString(host) then
         return false, i18n("missing_x_parameter", { param = "Host" })
     end
@@ -205,7 +206,7 @@ function am.add_am_script(host, measurement, ifname, threshold, granularity)
     end
 
     if not am_utils.hasHost(host, measurement) then
-        am_utils.addHost(host, ifname, measurement, threshold, granularity)
+        am_utils.addHost(host, ifname, measurement, threshold, granularity, nil, nil, nil, tag_ids)
     end
 
     return true, nil
@@ -218,7 +219,7 @@ end
 -- If only the settings changed, updates them in place.
 -- Returns true on success, false + error string on failure.
 function am.edit_am_script(host, measurement, ifname, threshold, granularity,
-                                                  old_am_host, old_measurement)
+                                                  old_am_host, old_measurement, tag_ids)
     if isEmptyString(host) then
         return false, i18n("missing_x_parameter", { param = "Host" })
     end
@@ -232,17 +233,22 @@ function am.edit_am_script(host, measurement, ifname, threshold, granularity,
         return false, i18n('active_monitoring_stats.invalid_host')
     end
 
-    if not am_utils.getHost(old_am_host, old_measurement) then
+    local existing = am_utils.getHost(old_am_host, old_measurement)
+
+    if not existing then
         return false, i18n("active_monitoring_stats.invalid_host")
     end
+
+    -- Tags not sent: keep the current ones
+    tag_ids = tag_ids or existing.tag_ids
 
     if (old_am_host ~= host) or (old_measurement ~= measurement) then
         -- Key has changed: replace old entry with a new one
         am_utils.deleteHost(old_am_host, old_measurement)
-        am_utils.addHost(host, ifname, measurement, threshold, granularity)
+        am_utils.addHost(host, ifname, measurement, threshold, granularity, nil, nil, nil, tag_ids)
     else
         -- Key unchanged: update settings in place
-        am_utils.editHost(host, ifname, measurement, threshold, granularity)
+        am_utils.editHost(host, ifname, measurement, threshold, granularity, nil, nil, nil, tag_ids)
     end
 
     return true, nil

@@ -325,6 +325,11 @@ function host_pools:delete_pool(pool_id)
         self:_unlock()
     end
 
+    -- No longer a filter of the notification policies (the default pool is re-created with the same id)
+    if ret and pool_id ~= pools.DEFAULT_POOL_ID then
+        require("notification_policies").remove_filter_id("host_pools", pool_id)
+    end
+
     return ret
 end
 

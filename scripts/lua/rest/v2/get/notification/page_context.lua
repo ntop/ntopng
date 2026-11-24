@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 --
 -- Context of the Notifications SPA page (page-notifications.vue): channel types with their
--- params, filter options and shell scripts. Only raw values (i18n keys, no labels).
+-- params, policy types and filter options, shell scripts. Only raw values (i18n keys, no labels).
 -- Example: curl -u admin:admin "http://localhost:3000/lua/rest/v2/get/notification/page_context.lua"
 --
 
@@ -26,7 +26,6 @@ local endpoints = require "endpoints"
 local recipients = require "recipients"
 local alert_severities = require "alert_severities"
 local alert_categories = require "alert_categories"
-local alert_entities = require "alert_entities"
 local am_utils = require "am_utils"
 local host_pools = require "host_pools":create()
 local tag_badge_utils = require "tag_badge_utils"
@@ -63,12 +62,6 @@ for _, category in pairs(alert_categories) do
    categories[#categories + 1] = { id = category.id, i18n_title = category.i18n_title }
 end
 table.sort(categories, function(a, b) return a.id < b.id end)
-
-local entities = {}
-for key, entity in pairs(alert_entities) do
-   entities[#entities + 1] = { id = entity.entity_id, key = key, i18n_label = entity.i18n_label }
-end
-table.sort(entities, function(a, b) return a.id < b.id end)
 
 local notification_types = {}
 for key in pairsByKeys(recipients.get_notification_types()) do
@@ -110,11 +103,8 @@ rest_utils.answer(rest_utils.consts.success.ok, {
    types = types,
    severities = severities,
    categories = categories,
-   entities = entities,
+   -- Policy types: issues only on Enterprise XXL+ with the issues enabled
    notification_types = notification_types,
-   -- Alerts recipients can deliver issues instead (Enterprise XXL+ with the issues enabled)
-   delivery_modes = recipients.can_deliver_issues() and
-      { recipients.DELIVERY_MODES.alerts, recipients.DELIVERY_MODES.issues } or nil,
    host_pools = pools,
    am_hosts = am_hosts,
    tags = tags,

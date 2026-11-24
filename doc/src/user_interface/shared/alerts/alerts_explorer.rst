@@ -6,7 +6,7 @@ Alerts Explorer
 ntopng alerts are:
 
 - Evaluated with Behavioural Checks for pools of hosts, interfaces, SNMP devices, and other network elements
-- Delivered to recipients using type- or severity-based criteria
+- Delivered to recipients by notification policies (severity, category, pool and tags criteria)
 
 Contrary to tools based on signatures, ntopng is a behavioural-based tool. Below you can read more about available behavioural checks and how alerts are delivered to recipients.
 

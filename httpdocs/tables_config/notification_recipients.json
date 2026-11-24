@@ -75,14 +75,11 @@
 			]
 		},
 		{
-			"id": "sends",
-			"title_i18n": "notifications_page.sends",
-			"data_field": "minimum_severity",
+			"id": "policies",
+			"title_i18n": "notifications_page.policies",
+			"data_field": "policy_names",
 			"sortable": true,
-			"min-width": "160px",
-			"class": [
-				"text-nowrap"
-			]
+			"min-width": "160px"
 		},
 		{
 			"id": "num_delivered",

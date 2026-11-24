@@ -123,7 +123,7 @@ The full list of alerts is available under the Settings section, page *Behaviora
 Recipients
 ----------
 
-Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using recipients that include mail, slack and syslog. To see the configuration details necessary to use recipients refer to :ref:`DeliveringAlertsToRecipients`.
+Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using recipients that include mail, slack and syslog. To see the configuration details necessary to use recipients refer to :ref:`AvailableEndpoints`: the notification policies choose which alerts are sent to which recipients.
 
 .. _`device protocols`: ../advanced_features/device_protocols.html
 

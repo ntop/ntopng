@@ -767,6 +767,8 @@ typedef enum {
   "ntopng.cache.ifid_%d.flow_alerts_events_queue"
 #define SQLITE_ALERTS_QUEUE_SIZE 8192
 #define ALERTS_NOTIFICATIONS_QUEUE_SIZE 8192
+#define MAX_NUM_NOTIFICATION_POLICIES \
+  128 /* keep in sync with notification_policies.lua MAX_NUM_POLICIES */
 #define MAX_NUM_RECIPIENTS \
   64 /* keep in sync with Recipients.lua recipients.MAX_NUM_RECIPIENTS */
 #define INTERNAL_ALERTS_QUEUE_SIZE 1024

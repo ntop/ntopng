@@ -19,6 +19,13 @@ Some checks measure the RTT, that is, the time it takes to reach a certain host 
 
 All the monitored hosts are shown in a table.
 
+The *Tags* of a measurement (see :ref:`Tags`) are added to its alerts (threshold crossed and host
+unreachable) and to the issues they open or update: notification policies can then select the
+alerts of some measurements by tag, e.g. to send the alerts of the core routers to the NOC.
+
+Click *Simulate Notifications* in the measurement dialog to see who is notified when the host crosses the
+threshold or is unreachable (see :ref:`NotificationSimulation`).
+
 .. figure:: ../../../img/active_monitor_table.png
   :align: center
   :alt: The Active Monitor Table

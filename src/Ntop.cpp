@@ -1361,16 +1361,22 @@ void Ntop::recipient_delete(u_int16_t recipient_id) {
 
 /* ******************************************* */
 
-void Ntop::recipient_register(
-    u_int16_t recipient_id, AlertLevel minimum_severity,
-    Bitmap128 enabled_categories, Bitmap4096 enabled_host_pools,
-    Bitmap128 enabled_entities, Bitmap128 enabled_flow_alert_types,
-    Bitmap128 enabled_host_alert_types, Bitmap128 enabled_other_alert_types,
-    bool match_alert_id, bool skip_alerts, Bitmap64 enabled_tags) {
-  recipients.register_recipient(
-      recipient_id, minimum_severity, enabled_categories, enabled_host_pools,
-      enabled_entities, enabled_flow_alert_types, enabled_host_alert_types,
-      enabled_other_alert_types, match_alert_id, skip_alerts, enabled_tags);
+void Ntop::recipient_register(u_int16_t recipient_id,
+                              AlertLevel minimum_severity) {
+  recipients.register_recipient(recipient_id, minimum_severity);
+}
+
+/* ******************************************* */
+
+void Ntop::notification_policy_register(u_int16_t policy_id,
+                                        NotificationPolicy* policy) {
+  recipients.register_policy(policy_id, policy);
+}
+
+/* ******************************************* */
+
+void Ntop::notification_policy_delete(u_int16_t policy_id) {
+  recipients.delete_policy(policy_id);
 }
 
 /* ******************************************* */

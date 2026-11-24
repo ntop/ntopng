@@ -138,6 +138,8 @@ local function get_tags(no_i18n)
             tag.protocols = normalize_ids(tag.protocols)
             tag.risks = normalize_ids(tag.risks)
             tag.ttl = normalize_ttl(tag.ttl)
+            -- Changed by the user (the custom tags not configured are free slots, see addTag)
+            tag.configured = true
             tags[tag.id] = tag
         end
     end
@@ -149,6 +151,25 @@ end
 -- Returns true if the tag is a ntopng built-in (read-only) tag
 function tag_badge_utils.isReservedTag(id)
     return tag_badge_utils.builtin_tags[tonumber(id)] ~= nil
+end
+
+-- ##############################################
+
+-- Returns the bitmap of a list of tag ids (bit N = tag id N, bit 63 makes it negative), e.g. the
+-- tags added to the alerts of a check or of an active monitoring measurement. Ids that are not
+-- numbers (e.g. the empty string of an empty list) are skipped
+function tag_badge_utils.getTagsBitmap(tag_ids)
+    local bitmap = 0
+
+    for _, tag_id in ipairs(tag_ids or {}) do
+        local id = tonumber(tag_id)
+
+        if id then
+            bitmap = bitmap | (1 << id)
+        end
+    end
+
+    return bitmap
 end
 
 -- ##############################################
@@ -205,37 +226,34 @@ end
 -- protocols: array of nDPI application ids bound to the tag (custom tags only, Enterprise L only)
 -- risks: array of flow risk ids bound to the tag (all tags, Enterprise L only)
 -- ttl: days after which the tag (associated to an asset) expires if not refreshed,
---      0 means it never expires (all tags, Enterprise L only). When nil the current
---      TTL is left untouched
+--      0 means it never expires (all tags, Enterprise L only)
+-- The fields that are nil are left untouched (e.g. a rename only sends the name)
 function tag_badge_utils.editTag(id, name, color, description, reserved, protocols, risks, ttl)
     local json = require "dkjson"
-    -- Without the license applications, flow risks and TTL cannot be changed
-    local current = nil
+    local current = get_tags()[tonumber(id)] or {}
 
-    if tag_badge_utils.areTagApplicationsSupported() then
-        protocols = normalize_ids(protocols)
+    -- Without the license applications, flow risks and TTL cannot be changed
+    if protocols == nil or not tag_badge_utils.areTagApplicationsSupported() then
+        protocols = current.protocols or {}
     else
-        current = get_tags()[tonumber(id)]
-        protocols = (current and current.protocols) or {}
+        protocols = normalize_ids(protocols)
     end
 
-    if tag_badge_utils.areTagRisksSupported() then
-        risks = normalize_ids(risks)
+    if risks == nil or not tag_badge_utils.areTagRisksSupported() then
+        risks = current.risks or {}
     else
-        current = current or get_tags()[tonumber(id)]
-        risks = (current and current.risks) or {}
+        risks = normalize_ids(risks)
     end
 
     if ttl == nil or not tag_badge_utils.isTagTTLSupported() then
-        current = current or get_tags()[tonumber(id)]
-        ttl = current and current.ttl
+        ttl = current.ttl
     end
 
     local tag = {
         id = id,
-        name = name,
-        color = color,
-        description = description,
+        name = name or current.name,
+        color = color or current.color,
+        description = description or current.description,
         reserved = reserved,
         -- Applications can only be bound to user-defined (custom) tags
         protocols = (not tag_badge_utils.isReservedTag(id)) and protocols or {},
@@ -247,6 +265,76 @@ function tag_badge_utils.editTag(id, name, color, description, reserved, protoco
     ntop.setHashCache(get_redis_key(), id, json.encode(tag))
 
     ntop.reloadTagsMapping()
+end
+
+-- ##############################################
+
+-- Returns true if another tag (not the one with id except_id) already has this name (case insensitive)
+function tag_badge_utils.isTagNameUsed(name, except_id)
+    name = string.lower(name)
+
+    for _, tag in pairs(get_tags()) do
+        if tonumber(tag.id) ~= tonumber(except_id) and string.lower(tag.name or "") == name then
+            return true
+        end
+    end
+
+    return false
+end
+
+-- ##############################################
+
+-- Creates a user-defined tag in the first free custom slot (bits 32-63): never configured, not
+-- added to a check, an active monitoring measurement, a notification or an AI policy (a slot can be
+-- picked without renaming it), not in selected_ids (the tags selected in the form, not saved yet)
+-- Returns the id of the new tag, nil when all the slots are in use
+function tag_badge_utils.addTag(name, color, selected_ids)
+    local configured = get_tags_from_cache()
+    local used = {}
+
+    for _, id in ipairs(selected_ids or {}) do
+        -- Not a number: the empty string of an empty list
+        if tonumber(id) then
+            used[tonumber(id)] = true
+        end
+    end
+
+    for _, subdir_tags in pairs(require("checks").getConfigset().tags or {}) do
+        for _, tag_ids in pairs(subdir_tags) do
+            for _, id in ipairs(tag_ids) do
+                used[tonumber(id)] = true
+            end
+        end
+    end
+
+    for _, host in pairs(require("am_utils").getHosts(true --[[ config only ]])) do
+        for _, id in ipairs(host.tag_ids or {}) do
+            used[tonumber(id)] = true
+        end
+    end
+
+    package.path = ntop.getDirs().installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+    for _, policy in ipairs(require("notification_policies").get_all_policies()) do
+        for _, id in ipairs(policy.tags or {}) do
+            used[tonumber(id)] = true
+        end
+    end
+
+    if ntop.isPro() then
+        package.path = ntop.getDirs().installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
+        for _, id in ipairs(require("llm_redis_utils").get_used_tag_ids()) do
+            used[tonumber(id)] = true
+        end
+    end
+
+    for id = 32, 63 do
+        if configured[tostring(id)] == nil and not used[id] then
+            tag_badge_utils.editTag(id, name, color, "", "false")
+            return id
+        end
+    end
+
+    return nil
 end
 
 -- ##############################################
@@ -282,9 +370,18 @@ function tag_badge_utils.deleteTag(id, who)
             end
         end
 
-        -- Remove the tag from the checks, otherwise a new tag reusing the id would inherit them
+        -- Remove the tag from the checks, the active monitoring measurements, the notification
+        -- policies and the AI policies, otherwise a new tag reusing the id would inherit them
         if not tag_badge_utils.isReservedTag(id) then
             require("checks").removeTagFromChecks(tonumber(id))
+            require("am_utils").removeTag(tonumber(id))
+            package.path = ntop.getDirs().installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+            require("notification_policies").remove_filter_id("tags", id)
+
+            if ntop.isPro() then
+                package.path = ntop.getDirs().installdir .. "/pro/scripts/lua/modules/llm/?.lua;" .. package.path
+                require("llm_redis_utils").remove_tag(tonumber(id))
+            end
         end
     else
         return false, "Invalid ID"

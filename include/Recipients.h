@@ -28,10 +28,18 @@ class Recipients {
  private:
   /* Per-recipient queues */
   RecipientQueue* recipient_queues[MAX_NUM_RECIPIENTS];
+  /* Ids of the registered recipients, to iterate only them (see empty()) */
+  Bitmap64 registered_recipients; /* MUST be large enough to contain
+                                     MAX_NUM_RECIPIENTS */
   /* Notifications dequeued (e.g. by the Lua endpoints, see dequeue()) and
      possibly still being processed, until the next pass of the notifications
      (see last_use()) */
   bool dequeued[MAX_NUM_RECIPIENTS];
+  /* Notification policies, routing the alerts to the recipients */
+  NotificationPolicy* policies[MAX_NUM_NOTIFICATION_POLICIES];
+  /* Ids of the registered policies, to iterate only them (see enqueue()) */
+  Bitmap128 registered_policies; /* MUST be large enough to contain
+                                    MAX_NUM_NOTIFICATION_POLICIES */
   Mutex m;
 
   AlertLevel default_recipient_minimum_severity;
@@ -61,7 +69,9 @@ class Recipients {
   bool enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification);
 
   /**
-   * @brief Enqueues a notification to all available recipients
+   * @brief Enqueues a notification to the builtin recipient (alerts store,
+   * minimum severity only) and to the recipients of the matching policies
+   * (once per recipient)
    * @param notification The notification to be enqueued
    *
    * @return True if the enqueue succeeded, false otherwise
@@ -72,25 +82,29 @@ class Recipients {
    * @brief Registers a recipient identified with `recipient_id` so its
    * notification can be enqueued/dequeued
    * @param recipient_id An integer recipient identifier
-   * @param minimum_severity The minimum severity for notifications to use this
-   * recipient
-   * @param enabled_categories A bitmap of notification categories to use this
-   * recipient
-   * @param enabled_host_pools A bitmap of pools to use this recipient
-   * @param enabled_entities A bitmap of notification entities to use this
-   * recipient
+   * @param minimum_severity The minimum severity of the alerts stored by the
+   * builtin recipient (recipient_id 0), ignored by the other recipients
    *
    * @return
    */
-  void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity,
-                          Bitmap128 enabled_categories,
-                          Bitmap4096 enabled_host_pools,
-                          Bitmap128 enabled_entities,
-                          Bitmap128 enabled_flow_alert_types,
-                          Bitmap128 enabled_host_alert_types,
-                          Bitmap128 enabled_other_alert_types,
-                          bool match_alert_id, bool skip_alerts,
-                          Bitmap64 enabled_tags = Bitmap64());
+  void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity);
+
+  /**
+   * @brief Registers (or replaces) a notification policy
+   * @param policy_id An integer policy identifier
+   * @param policy The policy (owned by this class from now on)
+   *
+   * @return
+   */
+  void register_policy(u_int16_t policy_id, NotificationPolicy* policy);
+
+  /**
+   * @brief Deletes a notification policy
+   * @param policy_id An integer policy identifier
+   *
+   * @return
+   */
+  void delete_policy(u_int16_t policy_id);
 
   /**
    * @brief Marks a recipient as deleted

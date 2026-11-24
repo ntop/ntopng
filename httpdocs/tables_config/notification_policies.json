@@ -1,0 +1,79 @@
+{
+	"id": "notification_policies",
+	"data_url": "",
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "notifications_page.empty_policies",
+	"default_sort": {
+		"column_id": "name",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"min-width": "96px",
+			"max-width": "96px",
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "split_button",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"danger": true,
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"id": "name",
+			"title_i18n": "name",
+			"data_field": "name",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "enabled",
+			"title_i18n": "status",
+			"data_field": "enabled",
+			"sortable": true,
+			"min-width": "90px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "sends",
+			"title_i18n": "notifications_page.sends",
+			"data_field": "notifications_type",
+			"sortable": true,
+			"min-width": "160px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "recipients",
+			"title_i18n": "notifications_page.recipients",
+			"data_field": "recipient_names",
+			"sortable": true,
+			"min-width": "180px"
+		}
+	]
+}

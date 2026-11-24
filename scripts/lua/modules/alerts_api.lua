@@ -182,11 +182,14 @@ end
 
 -- ##############################################
 
--- ! @brief Adds the tags of the check generating the alert (used by the issues and by the recipients)
-local function addCheckTags(alert)
-    if not current_script then return end
+-- ! @brief Adds the tags of the check generating the alert and the ones of its source, e.g. an
+-- ! active monitoring measurement (used by the issues and by the recipients)
+local function addTags(alert, type_info)
+    local tags_bitmap = type_info.tags_bitmap or 0
 
-    local tags_bitmap = require("checks").getCheckTagsBitmap(current_script.subdir, current_script.key)
+    if current_script then
+        tags_bitmap = tags_bitmap | require("checks").getCheckTagsBitmap(current_script.subdir, current_script.key)
+    end
 
     if tags_bitmap ~= 0 then
         alert.tags_bitmap = tags_bitmap
@@ -261,7 +264,7 @@ function alerts_api.store(entity_info, type_info, when)
     }
 
     addAlertPoolAndNetworkInfo(entity_info, alert_to_store)
-    addCheckTags(alert_to_store)
+    addTags(alert_to_store, type_info)
 
     recipients.dispatch_notification(alert_to_store, current_script)
 
@@ -402,6 +405,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
     triggered.ifid = ifid
     triggered.action = "engage"
+    triggered.alert_category = type_info.alert_category and type_info.alert_category.id
 
     -- Emit the notification only if the notification hasn't already been emitted.
     -- This is to avoid alert storms when ntopng is restarted. Indeeed,
@@ -413,7 +417,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
         debug_print("Sending notification for alert " .. entity_info.entity_val)
 
         addAlertPoolAndNetworkInfo(entity_info, triggered)
-        addCheckTags(triggered)
+        addTags(triggered, type_info)
 
         recipients.dispatch_notification(triggered, current_script)
         mark_trigger_notified(triggered)
@@ -497,13 +501,14 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
     released.ifid = ifid
     released.action = "release"
+    released.alert_category = type_info.alert_category and type_info.alert_category.id
 
     if forced_releases then
         released.forced_release = true
     end
 
     addAlertPoolAndNetworkInfo(entity_info, released)
-    addCheckTags(released)
+    addTags(released, type_info)
 
     mark_release_notified(released)
 

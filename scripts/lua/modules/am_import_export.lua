@@ -56,9 +56,9 @@ function am_import_export:import(config)
 
       if not host.is_infrastructure then -- Infrastructure is handled separately on another import_export
 	 if old_hosts[host_key] then
-	    am_utils.editHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_conf.token, host_conf.save_result, host_conf.readonly)
+	    am_utils.editHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_conf.token, host_conf.save_result, host_conf.readonly, host_conf.tag_ids)
 	 else
-	    am_utils.addHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_conf.token, host_conf.save_result, host_conf.readonly)
+	    am_utils.addHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_conf.token, host_conf.save_result, host_conf.readonly, host_conf.tag_ids)
 	 end
       end
    end

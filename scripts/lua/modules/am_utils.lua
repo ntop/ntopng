@@ -414,6 +414,7 @@ local function deserializeAmPrefs(host_key, val, config_only)
             rv.token = v.token
             rv.save_result = v.save_result
             rv.readonly = v.readonly
+            rv.tag_ids = v.tag_ids or {}
         end
     end
 
@@ -491,7 +492,8 @@ end
 -- @param token A string with an ntopng `token` used to fetch data from other ntopngs in a federation [optional]
 -- @param save_result Whether the result fetched with the measure should be saved (e.g., the HTTP response) [optional]
 -- @param readonly Bool used by the GUI to know if, when true, an entry is considered read only hence it cannot be modified/deleted [optional]
-function am_utils.addHost(host, ifname, measurement, am_value, granularity, token, save_result, readonly)
+-- @param tag_ids List of the ids of the tags added to the alerts of the measurement [optional]
+function am_utils.addHost(host, ifname, measurement, am_value, granularity, token, save_result, readonly, tag_ids)
     save_result = save_result or false
     readonly = readonly or false
 
@@ -505,7 +507,8 @@ function am_utils.addHost(host, ifname, measurement, am_value, granularity, toke
         granularity = granularity or "min",
         token = token, -- ntopng auth token
         save_result = save_result, -- save the result
-        readonly = readonly
+        readonly = readonly,
+        tag_ids = tag_ids or {}
     }))
 end
 
@@ -548,6 +551,31 @@ function am_utils.deleteHost(host, measurement)
 
     -- Select the old interface
     interface.select(old_iface)
+end
+
+-- ##############################################
+
+-- @brief Removes a tag (e.g. a deleted one) from all the measurements, otherwise a new tag reusing
+-- the id would inherit them
+function am_utils.removeTag(tag_id)
+    for host_key, val in pairs(ntop.getHashAllCache(am_hosts_key) or {}) do
+        local conf = json.decode(val)
+
+        if type(conf) == "table" and conf.tag_ids then
+            local tag_ids = {}
+
+            for _, id in ipairs(conf.tag_ids) do
+                if tonumber(id) ~= tag_id then
+                    tag_ids[#tag_ids + 1] = id
+                end
+            end
+
+            if #tag_ids ~= #conf.tag_ids then
+                conf.tag_ids = tag_ids
+                ntop.setHashCache(am_hosts_key, host_key, serializeAmPrefs(conf))
+            end
+        end
+    end
 end
 
 -- ##############################################
@@ -778,6 +806,12 @@ local function amThresholdCrossType(value, threshold, ip, granularity, entity_in
     alert_type:set_score_warning()
     alert_type:set_granularity(granularity)
 
+    -- The tags configured on the measurement
+    local am_host = am_utils.getHost(host.host, host.measurement)
+    if am_host then
+        alert_type:set_tags_bitmap(require("tag_badge_utils").getTagsBitmap(am_host.tag_ids))
+    end
+
     return alert_type
 end
 
@@ -868,12 +902,15 @@ end
 
 -- ##############################################
 
-function am_utils.editHost(host, iface, measurement, threshold, granularity, token, save_result, readonly)
+-- @param tag_ids See addHost, nil keeps the current ones
+function am_utils.editHost(host, iface, measurement, threshold, granularity, token, save_result, readonly, tag_ids)
     local existing = am_utils.getHost(host, measurement)
 
     if (existing == nil) then
         return (false)
     end
+
+    tag_ids = tag_ids or existing.tag_ids
 
     if (existing.granularity ~= granularity) then
         -- Need to discard the old timeseries as the granularity has changed
@@ -906,7 +943,7 @@ function am_utils.editHost(host, iface, measurement, threshold, granularity, tok
         end
     end
 
-    am_utils.addHost(host, iface, measurement, threshold, granularity, token, save_result, readonly)
+    am_utils.addHost(host, iface, measurement, threshold, granularity, token, save_result, readonly, tag_ids)
 
     return (true)
 end

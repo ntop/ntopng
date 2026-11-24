@@ -950,13 +950,7 @@ end
 
 -- @brief Returns the bitmap of the tags assigned to a check (bit N = tag id N, bit 63 makes it negative)
 function checks.getCheckTagsBitmap(subdir, script_key)
-    local bitmap = 0
-
-    for _, tag_id in ipairs(checks.getCheckTags(checks.getConfigset(), subdir, script_key)) do
-        bitmap = bitmap | (1 << tag_id)
-    end
-
-    return bitmap
+    return require("tag_badge_utils").getTagsBitmap(checks.getCheckTags(checks.getConfigset(), subdir, script_key))
 end
 
 -- ##############################################

@@ -8,10 +8,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 --
--- Edit a notification recipient (name, filters, recipient params). The builtin alert DB
--- recipient can be edited too (filters only: its name is fixed).
+-- Edit a notification recipient (name, recipient params, recipient_policies: the notification
+-- policies delivering to it). The builtin alert DB recipient can be edited too (minimum
+-- severity only: its name is fixed).
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"csrf":"...",
---   "recipient_id":"1","recipient_name":"Ops","recipient_minimum_severity":"5"}'
+--   "recipient_id":"1","recipient_name":"Ops","recipient_policies":"0"}'
 --   "http://localhost:3000/lua/rest/v2/edit/notification/recipient.lua"
 --
 
@@ -57,9 +58,21 @@ if err then
    return
 end
 
-local filters = recipients_rest_utils.parse_recipient_filters(_POST)
-local res = recipients.edit_recipient(recipient_id, recipient_name, filters.categories, filters.entities,
-   filters.minimum_severity, filters.host_pools, filters.am_hosts, filters.tags, _POST)
+-- Builtin recipient: the minimum severity of the stored alerts
+local minimum_severity = recipients.isBuiltinRecipient(recipient) and
+   recipients_rest_utils.parse_minimum_severity(_POST["recipient_minimum_severity"]) or nil
+local res = recipients.edit_recipient(recipient_id, recipient_name, _POST, minimum_severity)
+
+-- The policies delivering to the recipient (kept when not sent)
+if res.status == "OK" and _POST["recipient_policies"] and not recipients.isBuiltinRecipient(recipient) then
+   local notification_policies = require "notification_policies"
+   local err = notification_policies.set_recipient_policies(recipient_id,
+      recipients_rest_utils.parse_ids(_POST["recipient_policies"]))
+
+   if err then
+      res = { status = "failed", error = err }
+   end
+end
 
 if res.status ~= "OK" then
    rest_utils.answer(rest_utils.consts.err.invalid_args, res.error or { type = "internal_error" })

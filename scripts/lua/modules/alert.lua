@@ -83,6 +83,7 @@ function Alert:_build_type_info()
         is_victim = self.is_victim,
         device_type = self.device_type,
         device_name = self.device_name,
+        tags_bitmap = self.tags_bitmap,
         -- Stuff added in subclasses :init
         alert_type_params = self.alert_type_params or {}
     }
@@ -223,6 +224,14 @@ function Alert:set_device_type(devtype)
 end
 function Alert:set_device_name(devname)
     self.device_name = tostring(devname)
+end
+
+-- ##############################################
+
+-- @brief Tags of the source of the alert (e.g. an active monitoring measurement), added to the
+-- tags of the check (see tag_badge_utils.getTagsBitmap)
+function Alert:set_tags_bitmap(tags_bitmap)
+    self.tags_bitmap = tags_bitmap
 end
 
 -- ##############################################

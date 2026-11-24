@@ -19,6 +19,15 @@ local measurement = _POST["measurement"]
 local ifname      = _POST["ifname"]
 local threshold   = _POST["threshold"]
 local granularity = _POST["granularity"]
+-- Tags added to the alerts of the measurement (comma separated ids, empty for none). Not sent:
+-- an edit keeps the current tags
+local tag_ids
+if _POST["tag_ids"] then
+    tag_ids = {}
+    for _, tag_id in ipairs(split(_POST["tag_ids"], ",")) do
+        tag_ids[#tag_ids + 1] = tonumber(tag_id) -- validated by http_lint, "" (no tags) is skipped
+    end
+end
 
 local res = {}
 local rc  = rest_utils.consts.success.ok
@@ -58,7 +67,7 @@ end
 -- ################################################
 
 if action == "add" then
-    local ok, err = active_monitoring.add_am_script(host, measurement, ifname, threshold, granularity)
+    local ok, err = active_monitoring.add_am_script(host, measurement, ifname, threshold, granularity, tag_ids)
     if not ok then
         res.result = err
     else
@@ -70,7 +79,7 @@ elseif action == "edit" then
     local old_measurement = _POST["old_measurement"]
 
     local ok, err = active_monitoring.edit_am_script(host, measurement, ifname, threshold, granularity,
-                                                      old_am_host, old_measurement)
+                                                      old_am_host, old_measurement, tag_ids)
     if not ok then
         res.result = err
     else

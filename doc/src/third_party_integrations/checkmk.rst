@@ -124,7 +124,7 @@ ntopng can export traffic alerts to the Checkmk Event Console, extending monitor
 
 Configuration Process:
 
-1. **In ntopng**: Configure Endpoints and Recipients under **Alerts → Notifications**
+1. **In ntopng**: Configure a syslog Recipient and a Notification Policy under **Alerts → Notifications**
 2. **In Checkmk**: Set up Service Levels and Event Console rules
 3. **Result**: Receive ntopng notifications in Checkmk Event Console
 

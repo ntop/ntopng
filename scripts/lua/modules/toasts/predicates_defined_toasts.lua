@@ -14,7 +14,6 @@ local toast_ui = require("toast_ui")
 local stats_utils = require("stats_utils")
 local prefs_factory_reset_utils = require("prefs_factory_reset_utils")
 local configuration_utils = require "configuration_utils"
-local recipients = require "recipients"
 local alert_severities = require "alert_severities"
 
 local info = ntop.getInfo()
@@ -458,10 +457,12 @@ function predicates.emergency_recipient(toast, container)
     })
     local emergency_recipient_configured = false
 
-    for _, recipient in pairs(recipients.get_all_recipients()) do
-        if recipients.isAlertsRecipient(recipient) and 
-            not recipients.isBuiltinRecipient(recipient) and
-            recipient.minimum_severity >= alert_severities.notice.severity_id then
+    -- An enabled policy delivering the alerts (or the issues) to a recipient
+    local notification_policies = require "notification_policies"
+    for _, policy in pairs(notification_policies.get_all_policies()) do
+        if policy.enabled and #policy.recipient_ids > 0 and
+            (policy.notifications_type == "alerts" or policy.notifications_type == "issues") and
+            policy.minimum_severity >= alert_severities.notice.severity_id then
             emergency_recipient_configured = true
             break
         end

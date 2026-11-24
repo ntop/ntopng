@@ -10,10 +10,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 --
 -- Add a notification recipient. The connection is either an existing one (endpoint_id) or
 -- a new one created in the same call (endpoint_conf_type + its params): when the recipient
--- can not be added, the new connection is removed again.
+-- can not be added, the new connection is removed again. recipient_policies: the notification
+-- policies delivering to it.
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"csrf":"...",
 --   "recipient_name":"Ops","endpoint_conf_type":"slack","slack_sender_username":"ntopng",
---   "slack_webhook":"https://hooks.slack.com/...","recipient_minimum_severity":"5"}'
+--   "slack_webhook":"https://hooks.slack.com/...","recipient_policies":"0,2"}'
 --   "http://localhost:3000/lua/rest/v2/add/notification/recipient.lua"
 --
 
@@ -93,9 +94,19 @@ if new_endpoint then
    endpoint_id = res.endpoint_id
 end
 
-local filters = recipients_rest_utils.parse_recipient_filters(_POST)
-local res = recipients.add_recipient(endpoint_id, recipient_name, filters.categories, filters.entities,
-   filters.minimum_severity, filters.host_pools, filters.am_hosts, filters.tags, _POST)
+local res = recipients.add_recipient(endpoint_id, recipient_name, _POST)
+
+-- The policies delivering to the new recipient
+if res.status == "OK" and not isEmptyString(_POST["recipient_policies"]) then
+   local notification_policies = require "notification_policies"
+   local err = notification_policies.set_recipient_policies(res.recipient_id,
+      recipients_rest_utils.parse_ids(_POST["recipient_policies"]))
+
+   if err then
+      recipients.delete_recipient(res.recipient_id)
+      res = { status = "failed", error = err }
+   end
+end
 
 if res.status ~= "OK" then
    if new_endpoint then

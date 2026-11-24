@@ -396,6 +396,18 @@ local rest_utils = {
                 str = "MERGE_WAZUH_INFO_FAILED"
             },
 
+            -- Tags
+            tag_already_existing = {
+                http_code = 409,
+                rc = -66,
+                str = "TAG_ALREADY_EXISTING"
+            },
+            no_free_tags = {
+                http_code = 409,
+                rc = -67,
+                str = "NO_FREE_TAGS"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }

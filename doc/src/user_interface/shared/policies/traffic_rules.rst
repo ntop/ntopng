@@ -22,7 +22,10 @@ Here some example of rules:
   - The 1kxun traffic every 5 minutes of 1.1.1.1 does not have to exceed 15% from the precedent 5 minutes total traffic;
   - The traffic every 5 minutes of 1.1.1.1 does not have to exceed 1 Mbps;
 
-Whenever a condition is met, ntopng is going to trigger an alert.
+Whenever a condition is met, ntopng is going to trigger an alert. The alerts of all the rules are
+switched on and off by the *Traffic Rules* interface check in the :ref:`Behavioural Checks
+<BehaviouralChecks>` page, which also sets their tags: when the check is disabled the rules are
+still measured, but no alert is triggered.
 
 .. note::
   To page is accessible from the Settings -> Traffic Rules
@@ -117,3 +120,5 @@ To do so, use the button of the rule that needs changes: the button itself opens
    
   Traffic rules are evaluated according to the rule frequency specified. For instance Daily rules are evaluated every midnight considering the traffic of the previous day.
 
+
+Click *Simulate Notifications* in the rule dialog to see who is notified when the rule triggers an alert (see :ref:`NotificationSimulation`).

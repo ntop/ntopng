@@ -98,6 +98,7 @@ specifying parameters such as
 - Immediate: if set an alert is trigger per alert, if not it is cumulated with other alerts.
 - Enabled: you can temporarely disable a rule by using this slider
 - Comment: human readeable comment for this rule.
+
 			
 Finally you can see the list of collected alerts in the main page.
 
@@ -116,10 +117,10 @@ Every minute ntopng polls redis for new incoming alerts are processes them accor
 - Alerts are store permanently in the database
 - A notification is triggered if an alert rule matches the received alert. No alerts are generated in the ntopng alerts page, this to avoid duplicating data.
 
-In order to deliver notifications to remote users, you need to configure an Endpoint and a Recipient:
+In order to deliver notifications to remote users, you need to configure a Recipient and a Notification Policy:
 
-- Go to left menubar, Alerts -> Notifications and create an Endpoint
-- Then click on the Recipients and associate it to the Endpoint. Please make sure you set the "Notification Type" to "Wazuh Alerts".
+- Go to left menubar, Alerts -> Notifications and add a Recipient (e.g. an email address).
+- Then, in the Policies tab, add a policy with "Send" set to "Wazuh Alerts" and select the Recipient (see :ref:`NotificationPolicies`).
 
 .. figure:: ../img/wazuh_recipient.png
   :align: center

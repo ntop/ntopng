@@ -8413,93 +8413,78 @@ static int ntop_recipient_delete(lua_State* vm) {
 
 /* ****************************************** */
 
-/* @brief Registers a new recipient channel for alert notification delivery.  Lua: ntop.recipient_register(recipient_id) → nil */
+/* @brief Registers a recipient notification channel; the minimum severity is the one of the alerts stored by the builtin recipient (id 0).  Lua: ntop.recipient_register(recipient_id[, minimum_severity]) → nil */
 static int ntop_recipient_register(lua_State* vm) {
   u_int16_t recipient_id;
   AlertLevel minimum_severity = alert_level_none;
-  char *str_categories, *str_host_pools, *str_entities, *str_flow_alert_types,
-      *str_host_alert_types, *str_other_alert_types, *str_tags;
-  bool match_alert_id = false, skip_alerts = false;
-  Bitmap64 enabled_tags;
-  Bitmap128 enabled_categories, enabled_entities, enabled_flow_alert_types,
-      enabled_host_alert_types, enabled_other_alert_types;
-  Bitmap4096 enabled_host_pools;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   recipient_id = lua_tointeger(vm, 1);
 
+  if (lua_type(vm, 2) == LUA_TNUMBER)
+    minimum_severity = (AlertLevel)lua_tointeger(vm, 2);
+
+  ntop->recipient_register(recipient_id, minimum_severity);
+
+  lua_pushnil(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Registers (or replaces) a notification policy routing the alerts to its recipients; empty lists are no filter.  Lua: ntop.notification_policy_register(policy_id, minimum_severity, categories_csv, host_pools_csv, tags_csv, recipients_csv) → nil */
+static int ntop_notification_policy_register(lua_State* vm) {
+  u_int16_t policy_id;
+  AlertLevel minimum_severity;
+  /* Copies: Bitmap::setBits() tokenizes the string */
+  std::string categories_csv, host_pools_csv, tags_csv, recipients_csv;
+  Bitmap128 categories;
+  Bitmap4096 host_pools;
+  Bitmap64 tags, recipients;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  policy_id = lua_tointeger(vm, 1);
+
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   minimum_severity = (AlertLevel)lua_tointeger(vm, 2);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)
+  if ((ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) ||
+      (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) ||
+      (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) ||
+      (ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  if ((str_categories = (char*)lua_tostring(vm, 3)) == NULL)
+
+  categories_csv = lua_tostring(vm, 3);
+  host_pools_csv = lua_tostring(vm, 4);
+  tags_csv = lua_tostring(vm, 5);
+  recipients_csv = lua_tostring(vm, 6);
+
+  categories.setBits(&categories_csv[0]);
+  host_pools.setBits(&host_pools_csv[0]);
+  tags.setBits(&tags_csv[0]);
+  recipients.setBits(&recipients_csv[0]);
+
+  ntop->notification_policy_register(
+      policy_id, new (nothrow) NotificationPolicy(minimum_severity, categories,
+                                                  host_pools, tags, recipients));
+
+  lua_pushnil(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
+/* @brief Deletes a notification policy.  Lua: ntop.notification_policy_delete(policy_id) → nil */
+static int ntop_notification_policy_delete(lua_State* vm) {
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  enabled_categories.setBits(str_categories);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  if ((str_host_pools = (char*)lua_tostring(vm, 4)) == NULL)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  enabled_host_pools.setBits(str_host_pools);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  if ((str_entities = (char*)lua_tostring(vm, 5)) == NULL)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  enabled_entities.setBits(str_entities);
-
-  if ((lua_type(vm, 6) == LUA_TSTRING) &&
-      ((str_flow_alert_types = (char*)lua_tostring(vm, 6)) != NULL)) {
-    enabled_flow_alert_types.reset();
-    enabled_flow_alert_types.setBits(str_flow_alert_types);
-    match_alert_id = true; /* Match by ID (ignore severity, category, etc) */
-  }
-
-  if ((lua_type(vm, 7) == LUA_TSTRING) &&
-      ((str_host_alert_types = (char*)lua_tostring(vm, 7)) != NULL)) {
-    enabled_host_alert_types.reset();
-    enabled_host_alert_types.setBits(str_host_alert_types);
-    match_alert_id = true; /* Match by ID (ignore severity, category, etc) */
-  }
-
-  if ((lua_type(vm, 8) == LUA_TSTRING) &&
-      ((str_other_alert_types = (char*)lua_tostring(vm, 8)) != NULL)) {
-    enabled_other_alert_types.reset();
-    enabled_other_alert_types.setBits(str_other_alert_types);
-    match_alert_id = true; /* Match by ID (ignore severity, category, etc) */
-  }
-
-  if (lua_type(vm, 9) == LUA_TBOOLEAN) skip_alerts = (bool)lua_toboolean(vm, 9);
-
-  if ((lua_type(vm, 10) == LUA_TSTRING) &&
-      ((str_tags = (char*)lua_tostring(vm, 10)) != NULL))
-    enabled_tags.setBits(str_tags);
-
-  /*
-  char bitmap_buf[64];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skip alerts: %s", skip_alerts ?
-  "true" : "false"); ntop->getTrace()->traceEvent(TRACE_NORMAL, "Recipient ID =
-  %u", recipient_id); ntop->getTrace()->traceEvent(TRACE_NORMAL, "Categories
-  bitmap: %s", enabled_categories.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hosts bitmap: %s",
-  enabled_host_pools.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Entities bitmap: %s",
-  enabled_entities.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert types bitmap: %s",
-  enabled_flow_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host alert types bitmap: %s",
-  enabled_host_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Other alert types bitmap: %s",
-  enabled_other_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  */
-
-  ntop->recipient_register(
-      recipient_id, minimum_severity, enabled_categories, enabled_host_pools,
-      enabled_entities, enabled_flow_alert_types, enabled_host_alert_types,
-      enabled_other_alert_types, match_alert_id, skip_alerts, enabled_tags);
+  ntop->notification_policy_delete(lua_tointeger(vm, 1));
 
   lua_pushnil(vm);
 
@@ -9651,6 +9636,8 @@ static luaL_Reg _ntop_reg[] = {
     {"recipient_last_use", ntop_recipient_last_use},
     {"recipient_delete", ntop_recipient_delete},
     {"recipient_register", ntop_recipient_register},
+    {"notification_policy_register", ntop_notification_policy_register},
+    {"notification_policy_delete", ntop_notification_policy_delete},
 
     /* nDPI */
     {"getnDPIProtoCategory", ntop_get_ndpi_protocol_category},

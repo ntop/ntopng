@@ -13,7 +13,7 @@ once.
     This feature is available from the Enterprise XXL license. It is an experimental
     feature, off by default: enable *Issues* in *Settings > Preferences > Alerts*.
     When it is off, no issue is built, the Issues pages and REST API are not
-    available, and the recipients sending *Issues* receive the alerts.
+    available, and the notification policies sending *Issues* send the alerts.
     The issues built before are kept, and shown again when it is turned on.
 
 An issue is either *Open* (a problem) or *Resolved*. Its alerts are called
@@ -190,7 +190,7 @@ The following actions are available from the issues list and from the details:
   it).
 - **Change Severity**: sets the severity of an open issue, e.g. to escalate it.
   A higher severity is an escalation: the acknowledgement is cleared and the
-  recipients of the issues are notified. Alerts more severe than the severity
+  recipients of the policies sending the issues are notified. Alerts more severe than the severity
   chosen still raise it. The severity set by a user is marked with a user icon.
 - **Comment**: adds a comment to the timeline.
 - **Suppress**: stops the notifications of the issue for a time (1 hour to 1
@@ -205,7 +205,7 @@ resolves all the open issues matching the filters, on all the pages of the list,
 after a confirmation with their number and an optional comment, added to the
 timeline of each issue resolved (e.g. select *Notice* in the *Severity*
 filter to close all the notice issues). Each issue is resolved as by its
-*Resolve* action: the recipients of the issues are notified, and a new alert
+*Resolve* action: the recipients of the policies sending the issues are notified, and a new alert
 within *Issues Reopen Window* reopens it. The suppressed issues are resolved only when
 shown (*Suppressed* selected in the *Suppression* filter).
 

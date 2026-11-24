@@ -48,8 +48,9 @@ local function recipient2sendMessageSettings(recipient)
   local settings = {
     url = recipient.endpoint_conf.webhook_url,
     sharedsecret = recipient.endpoint_conf.webhook_sharedsecret,
-    username = recipient.endpoint_conf.webhook_username,
-    password = recipient.endpoint_conf.webhook_password,
+    -- Optional: not stored when empty, while ntop.postHTTPJsonData wants strings ("" = no authentication)
+    username = recipient.endpoint_conf.webhook_username or '',
+    password = recipient.endpoint_conf.webhook_password or '',
   }
 
   return settings

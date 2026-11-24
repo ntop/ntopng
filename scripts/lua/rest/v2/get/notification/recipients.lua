@@ -23,13 +23,22 @@ if not isAdministrator() then
 end
 
 local recipients = require "recipients"
+local notification_policies = require "notification_policies"
 
+local policies = notification_policies.get_all_policies()
 local res = {}
-local list = recipients.format_checks_list(recipients.get_all_recipients(false, true --[[ stats ]]))
 
-for _, r in ipairs(list) do
+for _, r in ipairs(recipients.get_all_recipients(false, true --[[ stats ]])) do
    local recipient_id = r.recipient_id
    local endpoint_conf = r.endpoint_conf or {}
+   -- The policies delivering to the recipient
+   local recipient_policies = {}
+
+   for _, policy in ipairs(policies) do
+      if table.contains(policy.recipient_ids, recipient_id) then
+         recipient_policies[#recipient_policies + 1] = { policy_id = policy.policy_id, name = policy.name }
+      end
+   end
 
    res[#res + 1] = {
       recipient_id = recipient_id,
@@ -38,16 +47,9 @@ for _, r in ipairs(list) do
       endpoint_key = r.endpoint_key,
       endpoint_conf_name = r.endpoint_conf_name,
       builtin = endpoint_conf.builtin or false,
-      notifications_type = r.notifications_type or "alerts",
-      -- Alerts recipients: alerts, or issues (Enterprise XXL+, see recipients.delivers_issues)
-      delivery_mode = r.delivery_mode or recipients.DELIVERY_MODES.alerts,
+      -- Builtin recipient only: minimum severity of the stored alerts
       minimum_severity = r.minimum_severity,
-      check_categories = r.check_categories,
-      check_entities = r.check_entities,
-      host_pools = r.host_pools,
-      am_hosts = r.am_hosts,
-      tags = r.tags,
-      checks = r.checks,
+      policies = recipient_policies,
       recipient_params = r.recipient_params or {},
       stats = r.stats,
    }

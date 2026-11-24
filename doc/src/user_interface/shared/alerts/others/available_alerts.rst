@@ -24,8 +24,8 @@ The tags of a check are added to every alert it triggers, together with the tags
 already has (e.g. the tags of the host). This makes it possible to group checks by topic or by
 team (e.g. tag all the DNS-related checks *DNS-Team*) and then:
 
-- send their alerts to a dedicated recipient, using the tags as delivery criterion
-  (see :ref:`Tags <Tags>`);
+- send their alerts to a dedicated recipient, with a notification policy filtering on the tags
+  (see :ref:`NotificationPolicies`);
 - find their :doc:`issues <../issues>` (Enterprise XXL) with the *Tag* filter: an issue gets the
   tags of the check of its alerts.
 
@@ -33,6 +33,9 @@ When a flow (connection) triggers alerts from several checks, the flow alert sho
 all of them, while each issue only gets the tags of its own check. The tags are added when the
 alert is triggered: changing the tags of a check does not change past alerts and issues.
 Deleting a tag also removes it from the checks.
+
+Click *Simulate Notifications* in the edit dialog of a check to see who is notified when it triggers an alert,
+with the values in the dialog (see :ref:`NotificationSimulation`).
 
 Interface Types
 ~~~~~~~~~~~~~~~

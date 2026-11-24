@@ -1428,65 +1428,9 @@
             "type": "string"
           },
           {
-            "name": "recipient_minimum_severity",
+            "name": "recipient_policies",
             "in": "formData",
-            "description": "Minimum alert severity id (default: notice)",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "recipient_check_categories",
-            "in": "formData",
-            "description": "Comma-separated alert category ids (empty: all)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_check_entities",
-            "in": "formData",
-            "description": "Comma-separated alert entity ids (empty: all)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_host_pools",
-            "in": "formData",
-            "description": "Comma-separated host pool ids (empty: all)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_am_hosts",
-            "in": "formData",
-            "description": "Comma-separated Active Monitoring host ids (empty: no filter)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_labels",
-            "in": "formData",
-            "description": "Comma-separated tag ids: only alerts with at least one of them (empty: no filter)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_checks",
-            "in": "formData",
-            "description": "Comma-separated <alert_id>_<entity_id>: only these alerts (empty: no filter)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_notifications_type",
-            "in": "formData",
-            "description": "alerts (default), reports, active_scans, wazuh_alerts",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_delivery_mode",
-            "in": "formData",
-            "description": "Alerts recipients: alerts (default, each alert) or issues (a notification when an issue is opened, escalated, reopened or resolved; Enterprise XXL+ with the Issues preference on). Edit: the stored mode is kept when not set",
+            "description": "Comma separated ids of the notification policies delivering to the recipient (e.g. 0,2)",
             "required": false,
             "type": "string"
           }
@@ -1680,7 +1624,7 @@
           "Notification Recipients"
         ],
         "summary": "Edit a notification recipient",
-        "description": "Edit name, filters and recipient params of a notification recipient. The builtin alert database recipient keeps its name. Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
+        "description": "Edit name and recipient params of a notification recipient (the notifications it receives are selected by the notification policies). The builtin alert database recipient keeps its name. Plus the params of the channel type (e.g. email: smtp_server, email_sender, email_recipient; slack: slack_sender_username, slack_webhook), as listed by the notification page context. Admin only.",
         "operationId": "edit_notification_recipient",
         "produces": [
           "application/json"
@@ -1703,63 +1647,14 @@
           {
             "name": "recipient_minimum_severity",
             "in": "formData",
-            "description": "Minimum alert severity id (default: notice)",
+            "description": "Builtin alert database recipient only: minimum severity id of the stored alerts (default: notice)",
             "required": false,
             "type": "integer"
           },
           {
-            "name": "recipient_check_categories",
+            "name": "recipient_policies",
             "in": "formData",
-            "description": "Comma-separated alert category ids (empty: all)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_check_entities",
-            "in": "formData",
-            "description": "Comma-separated alert entity ids (empty: all)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_host_pools",
-            "in": "formData",
-            "description": "Comma-separated host pool ids (empty: all)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_am_hosts",
-            "in": "formData",
-            "description": "Comma-separated Active Monitoring host ids (empty: no filter)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_labels",
-            "in": "formData",
-            "description": "Comma-separated tag ids: only alerts with at least one of them (empty: no filter)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_checks",
-            "in": "formData",
-            "description": "Comma-separated <alert_id>_<entity_id>: only these alerts (empty: no filter)",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_notifications_type",
-            "in": "formData",
-            "description": "alerts (default), reports, active_scans, wazuh_alerts",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "recipient_delivery_mode",
-            "in": "formData",
-            "description": "Alerts recipients: alerts (default, each alert) or issues (a notification when an issue is opened, escalated, reopened or resolved; Enterprise XXL+ with the Issues preference on). Edit: the stored mode is kept when not set",
+            "description": "Comma separated ids of the notification policies delivering to the recipient, empty for none (not sent: unchanged; ignored for the builtin recipient)",
             "required": false,
             "type": "string"
           }
@@ -1813,6 +1708,131 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/exec/notification/simulate.lua": {
+      "post": {
+        "tags": [
+          "Notification Policies"
+        ],
+        "summary": "Simulate the notifications of an alert",
+        "description": "What happens when the alerts of a check, traffic rule, SNMP device rule, active monitoring measurement, AI policy or Wazuh alert rule are raised, with the given (not necessarily saved) values of its dialog: per alert, whether it is stored and the notified recipients (status match or conditional) with the notification policies notifying them and their conditions (e.g. the host pools when the host is not known). Nothing is sent. Admin only.",
+        "operationId": "simulate_notifications",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "simulation_source",
+            "in": "formData",
+            "description": "What raises the alerts",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "check",
+              "traffic_rule",
+              "snmp_rule",
+              "am",
+              "ai_policy",
+              "wazuh_rule"
+            ]
+          },
+          {
+            "name": "check_subdir",
+            "in": "formData",
+            "description": "check: check family (e.g. host, flow)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "script_key",
+            "in": "formData",
+            "description": "check: check key",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "JSON",
+            "in": "formData",
+            "description": "check: hooks configuration of the dialog (as set/checks/check_config.lua), the saved one when missing",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tag_ids",
+            "in": "formData",
+            "description": "check, am: comma separated tag ids of the dialog, the saved ones when missing",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "traffic_rule, snmp_rule: interface id (host pools of the hosts)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "rule_type",
+            "in": "formData",
+            "description": "traffic_rule: rule type (Host, interface, CIDR, host_pool, vlan, profiles, asn, exporter)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "rule_target",
+            "in": "formData",
+            "description": "traffic_rule: rule target (* for any host)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "snmp_device",
+            "in": "formData",
+            "description": "snmp_rule: SNMP device IP, or all",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "am_host",
+            "in": "formData",
+            "description": "am: measured host",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "measurement",
+            "in": "formData",
+            "description": "am: measurement (e.g. icmp)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "custom_score",
+            "in": "formData",
+            "description": "ai_policy: alert score",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "wazuh_rule_immediate",
+            "in": "formData",
+            "description": "wazuh_rule: 1 sent immediately, 0 batched digest",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK (rsp: list of alerts {title, severity, category, disabled, stored, stored_condition, stored_reason, feeds_issues, recipients [{recipient_id, name, destination, status, policies [{policy_id, name, conditions}]}]})"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (unknown source, check or rule type)"
           }
         }
       }
@@ -1924,7 +1944,7 @@
           "Notification Recipients"
         ],
         "summary": "List notification recipients",
-        "description": "Notification recipients (builtin alert database recipient included) with channel type, connection, filters, delivery_mode (alerts or issues), recipient params and delivery stats. Admin only.",
+        "description": "Notification recipients (builtin alert database recipient included) with channel type, connection, recipient params, the notification policies delivering to them and delivery stats (minimum_severity: builtin recipient only). Admin only.",
         "operationId": "get_notification_recipients",
         "produces": [
           "application/json"
@@ -1939,6 +1959,249 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. endpoint_recipient_already_existing, missing_mandatory_param, invalid_param)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/notification/policies.lua": {
+      "get": {
+        "tags": [
+          "Notification Policies"
+        ],
+        "summary": "List notification policies",
+        "description": "Notification policies: condition (type, minimum severity, categories, host pools, active monitoring hosts, tags) and recipients, delivered once per recipient also when more policies match. Admin only.",
+        "operationId": "get_notification_policies",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. policy_already_existing, policy_not_existing, too_many_policies, invalid_notifications_type, endpoint_recipient_not_existing, recipient_alerts_only)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/add/notification/policy.lua": {
+      "post": {
+        "tags": [
+          "Notification Policies"
+        ],
+        "summary": "Add a notification policy",
+        "description": "Add a notification policy: the notifications matching its condition are delivered to its recipients. An empty filter list is no filter. Admin only.",
+        "operationId": "add_notification_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_name",
+            "in": "formData",
+            "description": "Policy name (unique)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_enabled",
+            "in": "formData",
+            "description": "false: the policy delivers nothing (default: true)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "policy_notifications_type",
+            "in": "formData",
+            "description": "What the policy delivers: alerts, reports, active_scans, wazuh_alerts (Enterprise M+), issues (Enterprise XXL+ with the issues enabled)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_minimum_severity",
+            "in": "formData",
+            "description": "Minimum severity id (default: notice)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "policy_check_categories",
+            "in": "formData",
+            "description": "Comma-separated alert category ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_host_pools",
+            "in": "formData",
+            "description": "Comma-separated host pool ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_am_hosts",
+            "in": "formData",
+            "description": "Comma-separated active monitoring host keys (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_labels",
+            "in": "formData",
+            "description": "Comma-separated tag ids, at least one on the alert (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_recipients",
+            "in": "formData",
+            "description": "Comma-separated recipient ids (builtin recipient excluded)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. policy_already_existing, policy_not_existing, too_many_policies, invalid_notifications_type, endpoint_recipient_not_existing, recipient_alerts_only)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/notification/policy.lua": {
+      "post": {
+        "tags": [
+          "Notification Policies"
+        ],
+        "summary": "Edit a notification policy",
+        "description": "Edit a notification policy (all its params are replaced). Admin only.",
+        "operationId": "edit_notification_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "formData",
+            "description": "Policy id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "policy_name",
+            "in": "formData",
+            "description": "Policy name (unique)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_enabled",
+            "in": "formData",
+            "description": "false: the policy delivers nothing (default: true)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "policy_notifications_type",
+            "in": "formData",
+            "description": "What the policy delivers: alerts, reports, active_scans, wazuh_alerts (Enterprise M+), issues (Enterprise XXL+ with the issues enabled)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_minimum_severity",
+            "in": "formData",
+            "description": "Minimum severity id (default: notice)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "policy_check_categories",
+            "in": "formData",
+            "description": "Comma-separated alert category ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_host_pools",
+            "in": "formData",
+            "description": "Comma-separated host pool ids (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_am_hosts",
+            "in": "formData",
+            "description": "Comma-separated active monitoring host keys (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_labels",
+            "in": "formData",
+            "description": "Comma-separated tag ids, at least one on the alert (empty: all)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy_recipients",
+            "in": "formData",
+            "description": "Comma-separated recipient ids (builtin recipient excluded)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. policy_already_existing, policy_not_existing, too_many_policies, invalid_notifications_type, endpoint_recipient_not_existing, recipient_alerts_only)"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/notification/policy.lua": {
+      "post": {
+        "tags": [
+          "Notification Policies"
+        ],
+        "summary": "Delete a notification policy",
+        "description": "Delete a notification policy (its recipients are not deleted). Admin only.",
+        "operationId": "delete_notification_policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "formData",
+            "description": "Policy id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS (rsp.type: error type, e.g. policy_already_existing, policy_not_existing, too_many_policies, invalid_notifications_type, endpoint_recipient_not_existing, recipient_alerts_only)"
           }
         }
       }
@@ -1994,6 +2257,13 @@
             "name": "granularity",
             "in": "formData",
             "description": "How often to measure (e.g. min, 5mins, hour)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tag_ids",
+            "in": "formData",
+            "description": "Comma separated ids of the tags added to the alerts of the measurement, empty for none. Not sent: an edit keeps the current tags",
             "required": false,
             "type": "string"
           },
@@ -12625,7 +12895,7 @@
           "Notifications"
         ],
         "summary": "Export the notifications configuration as a JSON file",
-        "description": "Export the configuration for endpoints and recipients",
+        "description": "Export the configuration for endpoints, recipients and notification policies (endpoints: the endpoints with their recipients; policies: the policies, with the names of their recipients)",
         "operationId": "export_notifications_config",
         "produces": [
           "application/json"
@@ -13490,7 +13760,7 @@
         ],
         "responses": {
           "0": {
-            "description": "OK. rsp: hooks, severities, gui, default_value, field_metadata, tags (array of tag ids), available_tags (array of {id, name, color})"
+            "description": "OK. rsp: hooks, severities, gui, default_value, field_metadata, tags (array of tag ids, see rest/v2/get/tag/tags_list.lua for their definition)"
           },
           "-1": {
             "description": "NOT_FOUND"
@@ -21043,7 +21313,7 @@
           "Notifications"
         ],
         "summary": "Import the notifications configuration providing a JSON file",
-        "description": "Import the configuration for endpoints and recipients",
+        "description": "Import the configuration for endpoints, recipients and notification policies, as exported. A configuration exported before the notification policies (the endpoints only) is accepted too: the filters of each recipient become a policy",
         "operationId": "import_notifications_config",
         "produces": [
           "application/json"

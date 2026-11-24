@@ -8,7 +8,6 @@ local alert_severities = require "alert_severities"
 local checks = require "checks"
 local host_pools = require "host_pools":create()
 local am_utils = require "am_utils"
-local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -33,33 +32,6 @@ function recipients_rest_utils.parse_check_categories(categories_string)
        for _, category in pairs(checks.check_categories) do
 	  if category_id == category.id then
 	     res[#res + 1] = category_id
-	     break
-	  end
-       end
-    end
-
-    return res
-end
-
--- ##############################################
-
--- @brief Parses and validates a comma-separated list of check entity ids into a lua array
--- @return A lua array of valid checkentity ids
-function recipients_rest_utils.parse_check_entities(entities_string)
-   local entities = {}
-
-    if isEmptyString(entities_string) then return entities end
-
-    -- Unfold the entities csv
-    entities = entities_string:split(",") or {entities_string}
-
-    local res = {}
-    for _, entity_id in pairs(entities) do
-       local entity_id = tonumber(entity_id)
-
-       for _, entity_info in pairs(alert_entities) do
-	  if entity_id == entity_info.entity_id then
-	     res[#res + 1] = entity_id
 	     break
 	  end
        end
@@ -167,41 +139,38 @@ function recipients_rest_utils.parse_minimum_severity(minimum_severity_id_string
 
 -- ##############################################
 
--- @brief Parses the recipient filters of a v2 notification REST request
+-- @brief Parses a notification policy of a v2 notification REST request
 -- @param post The request params (_POST)
--- @return A table with the validated filters. An empty or missing category, entity or host
---         pool list means "all": the C RecipientQueue drops every alert on an empty bitmap
-function recipients_rest_utils.parse_recipient_filters(post)
-   local categories = recipients_rest_utils.parse_check_categories(post["recipient_check_categories"])
-   local entities = recipients_rest_utils.parse_check_entities(post["recipient_check_entities"])
-   local pools = recipients_rest_utils.parse_host_pools(post["recipient_host_pools"])
-
-   if #categories == 0 then
-      for _, category in pairs(checks.check_categories) do
-         categories[#categories + 1] = category.id
-      end
-   end
-
-   if #entities == 0 then
-      for _, entity_info in pairs(alert_entities) do
-         entities[#entities + 1] = entity_info.entity_id
-      end
-   end
-
-   if #pools == 0 then
-      for _, pool in pairs(host_pools:get_all_pools()) do
-         pools[#pools + 1] = pool.pool_id
-      end
-   end
-
+-- @return A table with the policy (see notification_policies.add_policy), with validated
+--         filters. An empty category, host pool, active monitoring host or tag list is no filter
+function recipients_rest_utils.parse_policy(post)
    return {
-      categories = categories,
-      entities = entities,
-      host_pools = pools,
-      am_hosts = recipients_rest_utils.parse_am_hosts(post["recipient_am_hosts"]),
-      tags = recipients_rest_utils.parse_tags(post["recipient_labels"]),
-      minimum_severity = recipients_rest_utils.parse_minimum_severity(post["recipient_minimum_severity"]),
+      name = post["policy_name"],
+      enabled = (post["policy_enabled"] ~= "false"),
+      notifications_type = post["policy_notifications_type"],
+      minimum_severity = recipients_rest_utils.parse_minimum_severity(post["policy_minimum_severity"]),
+      check_categories = recipients_rest_utils.parse_check_categories(post["policy_check_categories"]),
+      host_pools = recipients_rest_utils.parse_host_pools(post["policy_host_pools"]),
+      am_hosts = recipients_rest_utils.parse_am_hosts(post["policy_am_hosts"]),
+      tags = recipients_rest_utils.parse_tags(post["policy_labels"]),
+      recipient_ids = recipients_rest_utils.parse_ids(post["policy_recipients"]),
    }
+end
+
+-- ##############################################
+
+-- @brief Parses a comma-separated list of recipient or policy ids (checked by notification_policies)
+-- @return A lua array of numbers
+function recipients_rest_utils.parse_ids(ids_string)
+   local res = {}
+
+   if isEmptyString(ids_string) then return res end
+
+   for _, id in ipairs(ids_string:split(",") or { ids_string }) do
+      res[#res + 1] = tonumber(id)
+   end
+
+   return res
 end
 
 -- ##############################################

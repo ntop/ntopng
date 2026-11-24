@@ -3,7 +3,7 @@ Device rules
 
 .. note::
 
-  This feature needs ntopng Enterprise L and the SNMP timeseries enabled in Preferences. To receive the alerts, the 'SNMP Threshold Crossed' check must be enabled: the page shows a warning when it is not. Only administrators can add, edit or delete the rules.
+  This feature needs ntopng Enterprise L and the SNMP timeseries enabled in Preferences. To receive the alerts, the *SNMP Device Rules* check (Behavioural Checks, SNMP Devices) must be enabled: the page shows a warning when it is not. The check also sets the tags of the alerts; when it is disabled the rules are still evaluated, but no alert is triggered. Only administrators can add, edit or delete the rules.
 
 With the SNMP device rules (SNMP Devices -> Rules tab), ntopng triggers an alert when a metric of an interface of an SNMP device goes above or below a limit you choose. The page works like the Traffic Rules page, but only for SNMP devices.
 
@@ -35,5 +35,7 @@ For example, "Traffic (total traffic) above 1 GB, checked every 5 minutes" trigg
   Add SNMP Device Rule
 
 Two rules with the same device, interface, metric, frequency and direction (above/below) cannot exist: the dialog says so when you try to save the second one.
+
+Click *Simulate Notifications* in the rule dialog to see who is notified when the rule triggers an alert (see :ref:`NotificationSimulation`).
 
 These checks are useful for spotting misbehaving interfaces that instead would not have been noticed otherwise.

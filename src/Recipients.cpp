@@ -29,6 +29,7 @@ Recipients::Recipients() {
 
   memset(&recipient_queues, 0, sizeof(recipient_queues));
   memset(&dequeued, 0, sizeof(dequeued));
+  memset(&policies, 0, sizeof(policies));
   default_recipient_minimum_severity = alert_level_none;
 }
 
@@ -37,6 +38,10 @@ Recipients::Recipients() {
 Recipients::~Recipients() {
   for (int i = 0; i < MAX_NUM_RECIPIENTS; i++) {
     if (recipient_queues[i]) delete recipient_queues[i];
+  }
+
+  for (int i = 0; i < MAX_NUM_NOTIFICATION_POLICIES; i++) {
+    if (policies[i]) delete policies[i];
   }
 }
 
@@ -97,23 +102,47 @@ bool Recipients::enqueue(u_int16_t recipient_id,
 bool Recipients::enqueue(const AlertFifoItem* const notification) {
   bool res = true; /* Initialized to true so that if no recipient is responsible
                       for the notification, true will be returned. */
+  Bitmap64 targets;
 
   if (!notification) return false;
 
   m.lock(__FILE__, __LINE__);
 
-  /*
-     Perform the actual enqueue to all available recipients
-   */
-  for (int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS;
-       recipient_id++) {
-    if (recipient_queues[recipient_id]) {
-      bool success;
+  /* Builtin recipient (alerts store) */
+  if (recipient_queues[0] &&
+      notification->alert_severity >= default_recipient_minimum_severity) {
+    if ((notification->alert_entity == alert_entity_flow) &&
+        ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+      /*
+        Do not store flow alerts on ClickHouse as they are retrieved using a
+        view on historical flows (i.e. flow alerts are not stored but read from
+        flows) But still increment the number of uses.
+        On Enterprise XXL+, with the issues enabled, they feed the issue manager
+        through its own queue (not this one, kept for the alerts to be stored)
+      */
+#ifdef NTOPNG_PRO
+      if (ntop->getPro()->is_enterprise_xxl_edition() &&
+          ntop->getPrefs()->are_issues_enabled())
+        ntop->getIssueManager()->enqueueFlowAlert(notification->alert);
+#endif
 
-      success = recipient_queues[recipient_id]->enqueue(notification);
+      recipient_queues[0]->countDelivered();
+    } else
+      res &= recipient_queues[0]->enqueue(notification);
+  }
 
-      res &= success;
-    }
+  /* Recipients of the matching policies, once per recipient: only the set
+     bits are visited */
+  for (int policy_id = registered_policies.getNext(0); policy_id >= 0;
+       policy_id = registered_policies.getNext(policy_id + 1)) {
+    if (policies[policy_id]->match(notification))
+      targets.bitmapOr(policies[policy_id]->getRecipients());
+  }
+
+  for (int recipient_id = targets.getNext(1); recipient_id >= 0;
+       recipient_id = targets.getNext(recipient_id + 1)) {
+    if (recipient_queues[recipient_id])
+      res &= recipient_queues[recipient_id]->enqueue(notification);
   }
 
   m.unlock(__FILE__, __LINE__);
@@ -129,40 +158,58 @@ bool Recipients::enqueue(const AlertFifoItem* const notification) {
 
 /* *************************************** */
 
-void Recipients::register_recipient(
-    u_int16_t recipient_id, AlertLevel minimum_severity,
-    Bitmap128 enabled_categories, Bitmap4096 enabled_host_pools,
-    Bitmap128 enabled_entities, Bitmap128 enabled_flow_alert_types,
-    Bitmap128 enabled_host_alert_types, Bitmap128 enabled_other_alert_types,
-    bool match_alert_id, bool skip_alerts, Bitmap64 enabled_tags) {
+void Recipients::register_recipient(u_int16_t recipient_id,
+                                    AlertLevel minimum_severity) {
   if (recipient_id >= MAX_NUM_RECIPIENTS) return;
 
   m.lock(__FILE__, __LINE__);
 
-  if (!recipient_queues[recipient_id])
+  if (!recipient_queues[recipient_id]) {
     recipient_queues[recipient_id] = new (nothrow) RecipientQueue(recipient_id);
-
-  if (recipient_queues[recipient_id]) {
-    recipient_queues[recipient_id]->setMinimumSeverity(minimum_severity);
-    recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
-    recipient_queues[recipient_id]->setEnabledEntities(enabled_entities);
-    recipient_queues[recipient_id]->setEnabledHostPools(enabled_host_pools);
-    recipient_queues[recipient_id]->setEnabledFlowAlertTypes(
-        enabled_flow_alert_types);
-    recipient_queues[recipient_id]->setEnabledHostAlertTypes(
-        enabled_host_alert_types);
-    recipient_queues[recipient_id]->setEnabledOtherAlertTypes(
-        enabled_other_alert_types);
-    recipient_queues[recipient_id]->toggleAlertIDMatch(match_alert_id);
-    recipient_queues[recipient_id]->setSkipAlerts(skip_alerts);
-    recipient_queues[recipient_id]->setEnabledTags(enabled_tags);
+    if (recipient_queues[recipient_id])
+      registered_recipients.setBit(recipient_id);
   }
 
-  if (recipient_id == 0) /* Default recipient (DB) */
+  if (recipient_id == 0) /* Builtin recipient (DB) */
     default_recipient_minimum_severity = minimum_severity;
 
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "registered [%u][%u][%u][%u]",
-  // recipient_id, minimum_severity, enabled_categories, enabled_entities);
+  m.unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
+void Recipients::register_policy(u_int16_t policy_id,
+                                 NotificationPolicy* policy) {
+  if (policy_id >= MAX_NUM_NOTIFICATION_POLICIES) {
+    delete policy;
+    return;
+  }
+
+  m.lock(__FILE__, __LINE__);
+
+  if (policies[policy_id]) delete policies[policy_id];
+  policies[policy_id] = policy;
+
+  if (policy)
+    registered_policies.setBit(policy_id);
+  else
+    registered_policies.clearBit(policy_id);
+
+  m.unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
+void Recipients::delete_policy(u_int16_t policy_id) {
+  if (policy_id >= MAX_NUM_NOTIFICATION_POLICIES) return;
+
+  m.lock(__FILE__, __LINE__);
+
+  if (policies[policy_id]) {
+    delete policies[policy_id];
+    policies[policy_id] = NULL;
+    registered_policies.clearBit(policy_id);
+  }
 
   m.unlock(__FILE__, __LINE__);
 }
@@ -177,7 +224,11 @@ void Recipients::delete_recipient(u_int16_t recipient_id) {
   if (recipient_queues[recipient_id]) {
     delete recipient_queues[recipient_id];
     recipient_queues[recipient_id] = NULL;
+    registered_recipients.clearBit(recipient_id);
   }
+
+  /* Its dequeued notifications are not processed anymore */
+  dequeued[recipient_id] = false;
 
   m.unlock(__FILE__, __LINE__);
 }
@@ -237,19 +288,13 @@ bool Recipients::empty() {
 
   m.lock(__FILE__, __LINE__);
 
-  for (int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS;
-       recipient_id++) {
+  /* Registered recipients only (dequeue() sets dequeued[] only for them) */
+  for (int recipient_id = registered_recipients.getNext(0); recipient_id >= 0;
+       recipient_id = registered_recipients.getNext(recipient_id + 1)) {
     /* Not empty also while dequeued notifications are being processed */
-    if (dequeued[recipient_id]) {
+    if (dequeued[recipient_id] || !recipient_queues[recipient_id]->empty()) {
       res = false;
       break;
-    }
-
-    if (recipient_queues[recipient_id]) {
-      if (!recipient_queues[recipient_id]->empty()) {
-        res = false;
-        break;
-      }
     }
   }
 

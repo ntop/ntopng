@@ -3,106 +3,126 @@
 Notifications
 =============
 
-Once evaluated, alerts are sent to recipients. Recipients, along with their associated endpoints, are managed from the system interface.
+ntopng can send its alerts, and other notifications such as traffic reports, outside the web
+interface: by email, to a chat (Slack, Telegram, Discord...), to a webhook, to a syslog server and
+more. The *Alerts > Notifications* page has three tabs:
 
-.. figure:: ../../../img/alerts_endpoints_recipients_management.png
+- **Recipients**: where the notifications go, for example an email address or a Slack channel.
+- **Policies**: what is sent and to which recipients, for example the severe security alerts to
+  the SOC team.
+- **Connections**: the settings shared by the recipients of the same channel, for example the
+  mail server or the Slack webhook.
+
+.. figure:: ../../../img/alerts_notification_policies.png
   :align: center
-  :alt: Endpoints and Recipients Management
+  :alt: Notification Policies
 
-Recipients are associated to one, and only one endpoint, but the same endpoint can be shared across multiple recipients.
+Recipients and Connections
+--------------------------
 
-Endpoints and recipients have a type and a set of configuration parameters which depends on the type. All the available endpoints and recipients are described in `this`_ section.
+A recipient is a channel (email, Slack, webhook...) plus its destination, for example an email
+address. Click *Add Recipient*, choose the channel and fill in its settings. The connection is
+created together with the first recipient of a channel: the following recipients of the same
+channel can reuse it. For example, the *email* connection holds the mail server, and each *email*
+recipient holds one destination address. The settings of each channel are described in
+`Available Endpoints`_ below.
 
-Endpoints contain common configuration which is then extended with recipients configuration. For example, the *email* endpoint contains the SMTP server address, whereas *email* recipients contain destination email addressses. This allows the creation of multiple *email* recipients, all sharing the same endpoint and, thus, the same SMTP server address.
+A recipient receives only what its policies send: in the *Policies* field of the recipient (or in
+the *Recipients* field of a policy) choose the policies that send to it. A recipient that is not in
+any policy receives nothing: the *Policies* column of the list shows *None: nothing is sent*.
 
-An extensive example can bee seen at https://www.ntop.org/ntopng/using-ntopng-recipients-and-endpoints-for-flexible-alert-handling/.
+*Send test* sends a test message to check the settings of a recipient.
 
-.. _`this`: ../alerts/available_recipients.html
+The Alerts Database
+-------------------
 
-Builtin
--------
-
-A builtin *Alert Store DB* recipient, along with its builtin *Alert Store DB* endpoint, is always present. This is used to deliver alerts to the internal database (SQLite or ClickHouse) and have them accessible inside the web UI. Engaged alerts are not affected by the builtin pair and are always shown. For example, the following alerts are shown under *Flow Alerts* because they have been delivered to the builtin recipient. The builtin recipient cannot be edited or deleted.
+The *Alerts database* recipient is always present and can not be deleted. It stores the alerts in
+the ntopng database (SQLite or ClickHouse), so that they can be seen in the web interface, for
+example in the Alerts Explorer. It does not take part in the policies: edit it to choose the
+minimum severity of the stored alerts. Engaged alerts (still active) are always shown, whatever
+their severity.
 
 .. figure:: ../../../img/alerts_builtin_historical_flows.png
   :align: center
   :alt: Builtin Recipient - Flow Alerts
 
+.. _NotificationPolicies:
 
+Notification Policies
+---------------------
 
-Delivery Criteria
------------------
+A policy says what is sent and to whom. Click *Add Policy* in the *Policies* tab and set:
 
-Each recipient can be configured to receive alerts on the basis of a few criteria:
+- **Name** and **Enabled**: a disabled policy sends nothing, without deleting it.
+- **Send**: the kind of notification: *Alerts*, *Traffic Reports* (email recipients only),
+  *Active Scan Reports*, *Wazuh Alerts* (Enterprise M and above) and *Issues* (see
+  `Sending Issues`_). When the issues are available, new policies send *Issues*.
+- **Minimum severity**, **Tags** and **Advanced filters**: which alerts are sent (alerts and issues
+  only, see below).
+- **Recipients**: where the notifications are sent.
 
-- Severity
-- Alert Category
-- Host Pool
-- Tags
-
-Severity Criteria
-^^^^^^^^^^^^^^^^^
-
-A minimum severity is indicated when creating/editing the recipient. All alerts having the indicated (or an higher severity) will be delivered to the recipient.
-
-.. figure:: ../../../img/alerts_recipient_criteria_minimum_severity.png
+.. figure:: ../../../img/alerts_notification_policy.png
   :align: center
-  :alt: Severity
+  :alt: Notification Policy
 
+A notification is sent to a recipient when at least one enabled policy matching it lists that
+recipient. A recipient listed by more matching policies receives it once. Up to 128 policies can be
+defined.
 
+A syslog recipient using the CEF format can only receive alerts and issues.
 
-Check Category
-^^^^^^^^^^^^^^
+Which Alerts Are Sent
+^^^^^^^^^^^^^^^^^^^^^
 
-Multiple types can be indicated when creating/editing the recipient. All alerts belonging to the indicated types will be delivered to the recipient.
+The alerts sent by a policy are selected with:
 
-.. figure:: ../../../img/alerts_recipient_criteria_category_filter.png
-  :align: center
-  :alt: Alert Category
+- **Minimum severity**: the alerts at least this severe: *All* (*Notice* and above), *Important*
+  (*Warning* and above), *Severe* (*Error* and above) or *Emergency only*.
+- **Tags**: only the alerts carrying at least one of the selected :ref:`Tags <Tags>`.
 
+*Advanced filters* has the other filters:
 
+- **Alert Categories**: only the alerts of the selected categories (e.g. Cybersecurity, Network).
+- **Host/Network/MAC Pools**: only the alerts of the hosts in the selected pools (for flow alerts, the client
+  or the server host).
+- **Active Monitoring**: only the alerts of the selected Active Monitoring hosts. The other alerts
+  are not filtered.
 
-Check Entity
-^^^^^^^^^^^^
+An empty filter does not filter. When more filters are set, an alert must match all of them.
 
-Multiple types can be indicated when creating/editing the recipient. All alerts belonging to the indicated entity will be delivered to the recipient.
+When a host pool or a tag is deleted, it is removed from the policies. A policy whose filter had
+only that pool or tag is disabled, instead of sending every alert: edit it and enable it again.
 
-.. figure:: ../../../img/alerts_recipient_criteria_entity_filter.png
-  :align: center
-  :alt: Alert Category
+To send only some alerts, or the alerts of some hosts, use the tags: tag the checks whose alerts
+should be sent (see :ref:`Check Tags <CheckTags>`) or the hosts, and select those tags in the
+policy. For example, tag the hosts of the datacenter and send their alerts to a dedicated
+recipient.
 
+When ntopng is upgraded from a version without policies, the filters of each recipient become a
+policy named after the recipient. The filters on the alert entity and on specific alerts are
+dropped: use the tags instead.
 
+.. _NotificationSimulation:
 
-Host Pool Criteria
-^^^^^^^^^^^^^^^^^^
+Simulating the Notifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-None or multiple host pools can be configured to filter alerts which are relative to hosts, including Flow and Host alerts.
- 
-.. figure:: ../../../img/alerts_recipient_criteria_pool_filter.png
-  :align: center
-  :alt: Host Pool Criteria
+To see who is notified when an alert is triggered, click *Simulate Notifications* in the edit dialog of a
+:ref:`Behavioural Check <BehaviouralChecks>` (also the Access Control List alerts), a Traffic Rule, an
+SNMP device rule, an Active Monitoring measurement or an AI policy. Nothing
+is sent and nothing is saved: the simulation uses the values in the dialog, also before you
+save them, so you can try a different severity or different tags first.
 
+For each alert the dialog can trigger, the simulation shows its severity and category, and the
+list of the actions taken when the alert is triggered:
 
-
-Active Monitoring
-^^^^^^^^^^^^^^^^^
-
-None or multiple alerts regarding active monitored devices can be configured.
-
-.. figure:: ../../../img/alerts_recipient_criteria_active_monitoring_filter.png
-  :align: center
-  :alt: Host Pool Criteria
-
-
-Tags Criteria
-^^^^^^^^^^^^^
-
-None or multiple :ref:`Tags <Tags>` can be selected to filter Flow and Host
-alerts on the basis of the tags of the hosts they involve (the client and/or
-server host, for Flow alerts). If one or more tags are selected, only alerts
-whose host carries at least one of the selected tags are delivered to the
-recipient. If no tag is selected, alerts are not filtered by tag.
-
+- the alert is stored in the alerts database, or why it is not (e.g. its severity is below the
+  minimum severity of the alerts database);
+- the alert opens or updates an issue, when the issues are enabled (Enterprise XXL);
+- each notified recipient, with its channel (e.g. Email, Discord) and the notification policies
+  that notify it. A recipient is *Conditional* when its policies depend on something only known
+  when the alert is triggered (e.g. the policy sends only the alerts of some host pools, and the
+  host is not known yet): the condition is shown next to the policy.
 
 .. _IssuesDeliveryMode:
 
@@ -110,24 +130,16 @@ Sending Issues
 --------------
 
 In ntopng Enterprise XXL and above, with the :ref:`issues <Issues>` enabled, the *Send* option of a
-recipient has, next to *Alerts*, the *Issues* item:
+policy has the *Issues* item. Its recipients receive a notification when an issue is opened,
+escalated (its severity is raised), reopened or resolved, instead of one notification per alert.
+When the same problem generates thousands of alerts, the recipients are notified once.
 
-- **Alerts**: the recipient receives every alert.
-- **Issues**: the recipient receives a notification when an issue is opened, escalated (its
-  severity is raised), reopened or resolved, instead of one notification per alert. When the same
-  problem generates thousands of alerts, the recipient is notified once.
+The minimum severity and the filters of the policy apply to the issues too. The severity of an
+issue is the highest severity of its alerts: a policy with a minimum severity can send the
+escalation of an issue whose opening was below that severity. Suppressed issues are not notified.
 
-The delivery criteria above (severity, category, entity, pools, tags) apply to the issues too. The
-severity of an issue is the highest severity of its alerts: a recipient with a minimum severity can
-receive the escalation of an issue whose opening was below that severity. Suppressed issues are not
-notified.
-
-When the issues are turned off, a recipient sending issues receives the alerts (*Issues
-(disabled: the alerts are sent)*), and the issues again when they are turned on.
-
-.. figure:: ../../../img/alerts_recipient_delivery_mode.png
-  :align: center
-  :alt: Sending Issues
+When the issues are turned off, a policy sending issues sends the alerts (*Issues (disabled: the
+alerts are sent)*), and the issues again when they are turned on.
 
 The notification tells what happened to the issue, the alert that caused it (if any), the number of
 alerts and peers of the issue and the link to the issue details, for example:
@@ -601,11 +613,11 @@ so network and security alerts detected by ntopng can be correlated with the eve
 This feature requires an Enterprise XL license.
 
 To export alerts to a SIEM, create a *Syslog* endpoint, set the *Format* to *CEF (Common Event Format, for SIEM)*, and set the host, port and protocol (UDP or TCP)
-on which the SIEM receives syslog. Then create a recipient for the endpoint. As for any other recipient, the *Minimum Severity* and the other
-delivery criteria can be used to send only the alerts that are of interest, instead of all the alerts.
+on which the SIEM receives syslog. Then create a recipient for the endpoint and add it to a notification policy: the *Minimum Severity*
+and the other filters of the policy can be used to send only the alerts that are of interest, instead of all the alerts.
 
 .. note::
-        A recipient that uses the CEF format can send only alerts. Reports and other notification types are not available.
+        A recipient that uses the CEF format can receive only alerts and issues. Reports and other notification types are not available.
 
 All the alert types are exported (flow, host, network, interface, SNMP device, MAC, user, active monitoring, AS and system alerts).
 Each alert is sent as a syslog message that contains a CEF event:

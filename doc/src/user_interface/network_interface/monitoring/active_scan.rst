@@ -65,7 +65,7 @@ Below the table there are the buttons that change the whole list:
 
 Without ClickHouse only the last report is kept: a note below the table reminds it.
 
-At the end of a `Scan All` execution, if a notification endpoint and the related recipient have `Notification Type` set to `Active Scan Reports`, a notification is sent when the periodic scan ends.
+At the end of a `Scan All` execution, a notification is sent to the recipients of the enabled :ref:`notification policies <NotificationPolicies>` that send `Active Scan Reports`.
 
 Add Host to Active Scan List
 ---------------------------------
@@ -100,7 +100,7 @@ Periodic Scans
 
 Scans can be performed on demand (one shot) or periodically. You have the option to specify a daily scan (performed every days at midnight) or weekly (every Sunday at midnight). In order to avoid hogging the network with aggressive scans, only one scan at time is performed.
 
-If a notification endpoint and the related recipient with the 'Notification Type' set to 'Active Scan Reports' are enabled, a notification is sent when the periodic scan ends.
+When the periodic scan ends, a notification is sent to the recipients of the enabled :ref:`notification policies <NotificationPolicies>` that send 'Active Scan Reports'.
 
 Actions
 -------

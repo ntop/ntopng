@@ -6,8 +6,7 @@ Tags
 Tags are colored labels that can be attached to hosts and are used to group,
 identify or annotate assets on the monitored network. A host can carry one or 
 more tags. They are shown as colored badges next to the host through the UI,
-and can be used to filter which alerts get delivered to a given notification 
-recipient.
+and can be used to choose which alerts a notification policy sends.
 
 Internally, tags are implemented as a 64-bit bitmap associated with each
 host, thus the number of available tags is:
@@ -351,17 +350,17 @@ the Flows and Historical Flows, the Alerts Explorer, and the Assets page).
 Using Tags for Notifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Tags can be used as an additional delivery criterion when configuring a
-notification :ref:`Recipient <AvailableEndpoints>`, alongside Severity,
-Alert Category, Check Entity and Host Pool. When one or more tags are
-selected for a recipient, only the alerts carrying at least one of the
-selected tags are delivered to that recipient; all other alerts are
-filtered out for it. The tags of an alert are those of its host or flow
-(for Flow and Host alerts) and those of the check that triggered it (for
-alerts of any kind, see :ref:`Check Tags <CheckTags>`). If no tag is selected (the default), no tag-based
-filtering is applied and alerts are delivered regardless of their tags.
+Tags can be used as a filter of a :ref:`Notification Policy <NotificationPolicies>`,
+alongside Severity, Alert Category and Host Pool. When one or more tags are
+selected in a policy, it sends only the alerts carrying at least one of the
+selected tags. The tags of an alert are those of its host or flow (for Flow
+and Host alerts) and those of the check that triggered it (for alerts of any
+kind, see :ref:`Check Tags <CheckTags>`). If no tag is selected (the default),
+the alerts are sent regardless of their tags. The tags are also the way to send
+only some alerts: tag their checks and select those tags in the policy.
 
 This makes it possible, for example, to tag a set of business-critical
-hosts and configure a dedicated, high-priority recipient (e.g. a Slack
-channel or a PagerDuty integration) that only receives alerts related to
-those tagged hosts, while routing the rest of the alerts elsewhere.
+hosts and configure a policy that sends the alerts related to those tagged
+hosts to a dedicated, high-priority recipient (e.g. a Slack channel or a
+PagerDuty integration), while other policies route the rest of the alerts
+elsewhere.
