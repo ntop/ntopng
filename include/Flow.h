@@ -177,7 +177,8 @@ class Flow : public GenericHashEntry {
   bool twh_over_view : 1 /* This flag is used for view interfaces */,
       shapers_profile_set : 1, iface_flow_accounted : 1,
       direction_decided : 1 /* See checkDirection() */,
-      direction_reversed : 1 /* See applyDirection() */, _notused : 3;
+      direction_reversed : 1 /* See applyDirection() */,
+      direction_collected : 1 /* See setCollectedDirection() */, _notused : 2;
   u_int8_t cli_mac[6], srv_mac[6];
   /* Viewed flows have no hosts: the OS of the client learnt from this flow is
    * parked here, and it is set on the host of the view by the view itself (see
@@ -1186,12 +1187,28 @@ class Flow : public GenericHashEntry {
   };
   inline bool is_swap_done() const { return (swap_done ? true : false); };
   inline void set_swap_done() { swap_done = 1; };
-  /* Collected flows: the direction decided by the collector (see
-   * ZMQParserInterface::preprocessFlow()), final as on the packet interfaces
-   * (see checkDirection() and applyDirection()) */
-  inline void setCollectedDirection(bool reversed) {
-    if (!direction_decided)
-      direction_decided = 1, direction_reversed = (reversed ? 1 : 0);
+  /* Collected flows: the direction of the records (see
+   * ZMQParserInterface::preprocessFlow()), final once decided by reliable
+   * evidence as on the packet interfaces (see checkDirection() and
+   * applyDirection()), guessed until then */
+  inline void setCollectedDirection(bool decided, bool reversed) {
+    if (direction_decided) return;
+
+    direction_collected = 1, direction_decided = (decided ? 1 : 0),
+    direction_reversed = (reversed ? 1 : 0);
+  };
+  /* The client and the server can be used to learn the ports: the direction
+   * is reliable or, on the collected TCP flows, it is the one of the exporter
+   * after the swap, also when guessed (see setCollectedDirection()). The TCP
+   * flags are exported in OR for each direction, so the handshake can rarely
+   * decide it as on the packet interfaces: this bets on the orientation of the
+   * exporter, e.g. a flow whose first exported packet is a stray one from the
+   * server, before the handshake, teaches the port of the client. The UDP
+   * flows are decided as on the packet interfaces (DPI only) */
+  inline bool isDirectionTrustedForPorts() const {
+    return (isDirectionReliable() ||
+            (direction_collected && (!direction_reversed) &&
+             (protocol == IPPROTO_TCP)));
   };
   /*
     Returns actual client and server, that is the client and server as

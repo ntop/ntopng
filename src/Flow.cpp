@@ -93,6 +93,7 @@ Flow::Flow(NetworkInterface* _iface, int32_t _iface_idx, u_int16_t _vlanId,
   extra_dissection_completed = 0,
   has_malicious_cli_signature = has_malicious_srv_signature = 0,
   iface_flow_accounted = 0, direction_decided = 0, direction_reversed = 0,
+  direction_collected = 0,
   periodicity = 0;
   memset(&ndpiDetectedProtocol, 0, sizeof(ndpiDetectedProtocol));
   cli2srv_tos = srv2cli_tos = 0;
@@ -5953,9 +5954,9 @@ bool Flow::enqueueAlertToRecipients(FlowAlert* alert) {
 /* Whether the server port of the flow is in use, to be learned by the server
  * (see updateServerPortsStats()) and by the client (see
  * updateClientContactedPorts()): the client and the server are the actual ones
- * (see isDirectionReliable()) and the server has answered, with a SYN-ACK for
- * TCP (a connection refused is answered with a RST only), with any traffic for
- * UDP. NOTE: the flags of the collected flows exported in OR for both
+ * (see isDirectionTrustedForPorts()) and the server has answered, with a
+ * SYN-ACK for TCP (a connection refused is answered with a RST only), with any
+ * traffic for UDP. NOTE: the flags of the collected flows exported in OR for both
  * directions only (TCP_FLAGS) are not per direction: such flows are never
  * learned.
  * Known limitations:
@@ -5967,7 +5968,8 @@ bool Flow::enqueueAlertToRecipients(FlowAlert* alert) {
  *   server in different packets (e.g. a late SYN after the data) count as a
  *   SYN-ACK */
 bool Flow::isServerPortAnswered() const {
-  if ((!isDirectionReliable()) || (get_bytes_srv2cli() == 0)) return (false);
+  if ((!isDirectionTrustedForPorts()) || (get_bytes_srv2cli() == 0))
+    return (false);
 
   switch (protocol) {
     case IPPROTO_TCP:

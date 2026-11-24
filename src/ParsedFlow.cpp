@@ -31,7 +31,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_tlv = NULL;
   l7_info = NULL, memset(&l7_proto, 0, sizeof(l7_proto));
   is_swapped = false;
-  direction_decided = direction_reversed = false;
+  direction_set = direction_decided = direction_reversed = false;
   http_url = http_site = http_user_agent = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
@@ -219,6 +219,7 @@ ParsedFlow::ParsedFlow(const ParsedFlow& pf)
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
   has_parsed_ebpf = pf.has_parsed_ebpf;
   is_swapped = pf.is_swapped;
+  direction_set = pf.direction_set;
   direction_decided = pf.direction_decided;
   direction_reversed = pf.direction_reversed;
   flow_verdict = pf.flow_verdict;
