@@ -2297,17 +2297,21 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow* flow) {
            * attempts: only the default ports of the protocol detected with
            * DPI */
           server_first = isServerFirstByDefaultPort(get_ndpi_struct(), flow);
-          decided = (server_first >= 0);
+          /* As on the packet interfaces (see Flow::getDirectionByProtocol()):
+           * final when the protocol is detected by DPI, also when the default
+           * ports tell nothing (the client is the sender of the first packet,
+           * as exported) */
+          decided = (flow->getConfidence() == NDPI_CONFIDENCE_DPI);
         } else
           server_first = (cli_port < srv_port) ? 1 : 0;
 
         if (server_first == 1) flow->swap();
 
-        /* Decided by the handshake or by the default ports, not by the port
-         * order (a guess): see Flow::setCollectedDirection(). A reversed
-         * record is not swapped when the flow swap heuristic is disabled */
-        if (decided)
-          flow->setDirectionDecided((server_first == 1) && !flow->isSwapped());
+        /* Decided by the handshake, by the default ports or (UDP) by DPI,
+         * otherwise guessed by the port order or kept as exported: see
+         * Flow::setCollectedDirection(). A reversed record is not swapped
+         * when the flow swap heuristic is disabled */
+        flow->setDirection(decided, (server_first == 1) && !flow->isSwapped());
       }
     }
 

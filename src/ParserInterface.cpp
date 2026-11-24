@@ -507,13 +507,13 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 
   if (zflow->isSwapped()) flow->set_swap_done();
 
-  /* The direction decided by the collector (see preprocessFlow()): the flow is
-   * reversed when the record is (not swapped, flow swap heuristic disabled),
-   * or when the record goes from the server to the client of the flow, but
-   * not both */
-  if (zflow->isDirectionDecided())
-    flow->setCollectedDirection(zflow->isDirectionReversed() !=
-                                (!src2dst_direction));
+  /* The direction of the record (see preprocessFlow()): the flow is reversed
+   * when the record is (not swapped, flow swap heuristic disabled), or when
+   * the record goes from the server to the client of the flow, but not both */
+  if (zflow->isDirectionSet())
+    flow->setCollectedDirection(zflow->isDirectionDecided(),
+                                zflow->isDirectionReversed() !=
+                                    (!src2dst_direction));
 
   flow->setFlowSource(zflow->getFlowSource());
 
