@@ -15043,7 +15043,7 @@
           "Hosts"
         ],
         "summary": "Get the active hosts list",
-        "description": "Active hosts of the interface, one page at a time, with the filters of the Hosts page. Each row: host (ip, vlan, mac, os, country and flags), hostname, first_seen, last_seen, throughput, bytes, alerts, num_flows, score, isBlocked (nEdge), location (nEdge). recordsTotal is the number of hosts matching the filters. Only the hosts of the networks the user is allowed to see are listed.",
+        "description": "Active hosts of the interface, one page at a time, with the filters of the Hosts page. Each row: host (ip, vlan, mac address, os, country and flags), hostname, first_seen, last_seen, throughput, bytes, alerts, num_flows, score, isBlocked (nEdge), location (nEdge). recordsTotal is the number of hosts matching the filters. Only the hosts of the networks the user is allowed to see are listed.",
         "operationId": "get_host_active_list",
         "produces": [
           "application/json"
@@ -15073,7 +15073,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "Sort column: ip_address, hostname, vlan, num_flows, alerts, score, first_seen, throughput, bytes (optional)",
+            "description": "Sort column: ip_address, hostname, vlan, num_flows, alerts, score, first_seen, throughput, bytes, location (nEdge only). Any other value sorts by ip_address (optional)",
             "required": false,
             "type": "string"
           },
@@ -25118,7 +25118,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "Column to sort by (e.g. bytes, throughput, score, first_seen, last_seen, duration)",
+            "description": "Column to sort by: protocol, score, first_seen, last_seen, duration, throughput, bytes, qoe, cli_asn, srv_asn, transit_asn, cli_asn_asnmode_disabled, srv_asn_asnmode_disabled, flow_exporter, in_index, out_index. Any other value sorts by throughput",
             "required": false,
             "type": "string"
           },

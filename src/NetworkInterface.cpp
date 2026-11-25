@@ -5498,6 +5498,7 @@ struct flowHostRetriever {
   int ndpi_proto;           /* Not used in flow_search_walker */
   TrafficType traffic_type; /* Not used in flow_search_walker */
   sortField sorter;
+  int (*cmp)(const void* a, const void* b); /* Comparator of sorter, see sortPage() */
   TcpFlowStateFilter tcp_flow_state_filter;
   TransitAS transit_as;
   LocationPolicy location;        /* Not used in flow_search_walker */
@@ -7141,7 +7142,10 @@ int NetworkInterface::sortFlows(u_int32_t* begin_slot, bool walk_all,
   retriever->actNumEntries = 0;
   retriever->maxNumEntries = getFlowsHashSize();
   retriever->allowed_nets = allowed_nets;
-  retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE;
+  /* Room for all the flows: the walker never reallocates (calloc'ed pages are
+   * committed only when written) */
+  retriever->currentSize =
+      std::max<u_int32_t>(FLOWHOSTRETRIEVER_BLOCK_SIZE, retriever->maxNumEntries);
   retriever->map_search = search;
 
   retriever->elems = (struct flowHostRetrieveList*)calloc(
@@ -7189,8 +7193,6 @@ int NetworkInterface::sortFlows(u_int32_t* begin_slot, bool walk_all,
   else if ((!strcmp(sortColumn, "column_bytes")) ||
            (!strcmp(sortColumn, "column_") /* default */))
     retriever->sorter = column_bytes, sorter = numericSorter;
-  else if (!strcmp(sortColumn, "column_info"))
-    retriever->sorter = column_info, sorter = stringSorter;
   else if (!strcmp(sortColumn, "column_device_ip"))
     retriever->sorter = column_device_ip, sorter = deviceIPSorter;
   else if (!strcmp(sortColumn, "column_in_index"))
@@ -7217,8 +7219,8 @@ int NetworkInterface::sortFlows(u_int32_t* begin_slot, bool walk_all,
   walker(begin_slot, walk_all, walker_flows, flow_search_walker,
          (void*)retriever);
 
-  qsort(retriever->elems, retriever->actNumEntries,
-        sizeof(struct flowHostRetrieveList), sorter);
+  /* Sorted by the caller: a page only (sortPage) or everything (groups) */
+  retriever->cmp = sorter;
 
   return (retriever->actNumEntries);
 }
@@ -7418,6 +7420,44 @@ void NetworkInterface::getActiveFlowsStats(
 
 /* **************************************************** */
 
+/* Comparator of sortPage(). Descending swaps the arguments, so that entries the
+ * comparator cannot order (it returns >= 0 both ways) stay equivalent in both
+ * orders */
+struct PageLess {
+  int (*cmp)(const void* a, const void* b);
+  bool a2zSortOrder;
+
+  bool operator()(const struct flowHostRetrieveList& a,
+                  const struct flowHostRetrieveList& b) const {
+    return ((a2zSortOrder ? cmp(&a, &b) : cmp(&b, &a)) < 0);
+  }
+};
+
+/*
+  Sorts only the requested page: elems[toSkip, toSkip + maxHits) end up in the
+  requested order, in O(n) instead of the O(n log n) of sorting all the entries
+*/
+static void sortPage(struct flowHostRetriever* r, u_int32_t toSkip,
+                     u_int32_t maxHits, bool a2zSortOrder) {
+  struct flowHostRetrieveList *first = r->elems,
+                              *last = r->elems + r->actNumEntries, *page_end;
+  PageLess less = {r->cmp, a2zSortOrder};
+
+  if (toSkip >= r->actNumEntries) return;
+
+  page_end = first + std::min<u_int64_t>((u_int64_t)toSkip + maxHits,
+                                         r->actNumEntries);
+
+  if (toSkip > 0) std::nth_element(first, first + toSkip, last, less);
+
+  if (page_end == last)
+    std::sort(first + toSkip, last, less); /* Everything requested */
+  else
+    std::partial_sort(first + toSkip, page_end, last, less);
+}
+
+/* **************************************************** */
+
 int NetworkInterface::getFlows(lua_State* vm, u_int32_t* begin_slot,
                                bool walk_all, AddressTree* allowed_nets,
                                Host* host, Host* talking_with_host,
@@ -7461,36 +7501,19 @@ int NetworkInterface::getFlows(lua_State* vm, u_int32_t* begin_slot,
 
   lua_newtable(vm);
 
-  // sort flows in ascending order
-  if (p->a2zSortOrder()) {
-    for (int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries; i++) {
-      Flow* f = retriever.elems[i].flow;
+  sortPage(&retriever, p->toSkip(), p->maxHits(), p->a2zSortOrder());
 
-      lua_newtable(vm);
+  for (u_int32_t i = p->toSkip(), num = 0;
+       i < retriever.actNumEntries && num < p->maxHits(); i++, num++) {
+    Flow* f = retriever.elems[i].flow;
 
-      f->lua(vm, allowed_nets, highDetails, true);
+    lua_newtable(vm);
 
-      lua_pushinteger(vm, num + 1);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
+    f->lua(vm, allowed_nets, highDetails, true);
 
-      if (++num >= (int)p->maxHits()) break;
-    }
-  } else {
-    for (int i = (retriever.actNumEntries - 1 - p->toSkip()), num = 0; i >= 0;
-         i--) {
-      Flow* f = retriever.elems[i].flow;
-
-      lua_newtable(vm);
-
-      f->lua(vm, allowed_nets, highDetails, true);
-
-      lua_pushinteger(vm, num + 1);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-
-      if (++num >= (int)p->maxHits()) break;
-    }
+    lua_pushinteger(vm, num + 1);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 
   lua_pushstring(vm, "flows");
@@ -7529,6 +7552,10 @@ int NetworkInterface::getFlowsGroup(lua_State* vm, AddressTree* allowed_nets,
                 NULL, NULL, p, groupColumn, NULL) < 0) {
     return (-1);
   }
+
+  /* Groups are consecutive entries: all of them must be sorted */
+  qsort(retriever.elems, retriever.actNumEntries,
+        sizeof(struct flowHostRetrieveList), retriever.cmp);
 
   // build a new grouper that will help in aggregating stats
   if ((gper = new (std::nothrow) FlowGrouper(retriever.sorter)) == NULL) {
@@ -7647,7 +7674,9 @@ int NetworkInterface::sortHosts(
   retriever->traffic_type = traffic_type_filter,
   retriever->maxNumEntries = getHostsHashSize(),
   retriever->alerted = alertedHost,
-  retriever->currentSize = FLOWHOSTRETRIEVER_BLOCK_SIZE,
+  /* Room for all the hosts: the walker never reallocates (see sortFlows) */
+  retriever->currentSize =
+      std::max<u_int32_t>(FLOWHOSTRETRIEVER_BLOCK_SIZE, retriever->maxNumEntries),
   retriever->map_search = map_search;
   retriever->iface_index = device_interface;
 
@@ -7748,8 +7777,8 @@ int NetworkInterface::sortHosts(
   walker(begin_slot, walk_all, walker_hosts, host_search_walker,
          (void*)retriever);
 
-  qsort(retriever->elems, retriever->actNumEntries,
-        sizeof(struct flowHostRetrieveList), sorter);
+  /* Sorted by the caller (sortPage) */
+  retriever->cmp = sorter;
 
   return (retriever->actNumEntries);
 }
@@ -8079,51 +8108,28 @@ int NetworkInterface::getActiveHostsList(
 
   lua_newtable(vm);
 
-  if (a2zSortOrder) {
-    for (int i = toSkip, num = 0;
-         i < (int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
-      Host* h = retriever.elems[i].hostValue;
+  sortPage(&retriever, toSkip, maxHits, a2zSortOrder);
 
-      if (h != NULL) {
-        if (!tsLua) {
-          if (useArrayFormat) {
-            h->lua(vm, NULL /* Already checked */, host_details, false, false,
-                   false, false);
-            lua_pushinteger(vm, count++);
-            lua_insert(vm, -2);
-            lua_settable(vm, -3);
-          } else {
-            (getCheckpointOnly)
-                ? h->checkpoint(vm)
-                : h->lua(vm, NULL /* Already checked */, host_details, false,
-                         false, false, true);
-          }
-        } else
-          h->lua_get_timeseries(vm);
-      }
-    }
-  } else {
-    for (int i = (retriever.actNumEntries - 1 - toSkip), num = 0;
-         i >= 0 && num < (int)maxHits; i--, num++) {
-      Host* h = retriever.elems[i].hostValue;
+  for (u_int32_t i = toSkip, num = 0;
+       i < retriever.actNumEntries && num < maxHits; i++, num++) {
+    Host* h = retriever.elems[i].hostValue;
 
-      if (h != NULL) {
-        if (!tsLua) {
-          if (useArrayFormat) {
-            h->lua(vm, NULL /* Already checked */, host_details, false, false,
-                   false, false);
-            lua_pushinteger(vm, count++);
-            lua_insert(vm, -2);
-            lua_settable(vm, -3);
-          } else {
-            (getCheckpointOnly)
-                ? h->checkpoint(vm)
-                : h->lua(vm, NULL /* Already checked */, host_details, false,
-                         false, false, true);
-          }
-        } else
-          h->lua_get_timeseries(vm);
-      }
+    if (h != NULL) {
+      if (!tsLua) {
+        if (useArrayFormat) {
+          h->lua(vm, NULL /* Already checked */, host_details, false, false,
+                 false, false);
+          lua_pushinteger(vm, count++);
+          lua_insert(vm, -2);
+          lua_settable(vm, -3);
+        } else {
+          (getCheckpointOnly)
+              ? h->checkpoint(vm)
+              : h->lua(vm, NULL /* Already checked */, host_details, false,
+                       false, false, true);
+        }
+      } else
+        h->lua_get_timeseries(vm);
     }
   }
 
@@ -8140,7 +8146,7 @@ int NetworkInterface::getActiveHostsList(
   // make sure first to free elements in case a string sorter has been used
   if (retriever.sorter == column_name || retriever.sorter == column_country ||
       retriever.sorter == column_os) {
-    /* actNumEntries: elems holds currentSize entries, maxNumEntries is the hash size */
+    /* actNumEntries: only the entries written by the walker hold a value */
     for (u_int i = 0; i < retriever.actNumEntries; i++)
       if (retriever.elems[i].stringValue)
         free((char*)retriever.elems[i].stringValue);
@@ -13598,6 +13604,18 @@ void NetworkInterface::build_lua_rsp(lua_State* vm,
 /* **************************************************** */
 
 /* Analysis Flows Stats sorter function */
+/* Comparator of the aggregated flows page: descending swaps the arguments */
+struct AggregatedLess {
+  bool (*cmp)(AggregatedFlowsStats* a, AggregatedFlowsStats* b);
+  bool asc;
+
+  bool operator()(AggregatedFlowsStats* a, AggregatedFlowsStats* b) const {
+    return (asc ? cmp(a, b) : cmp(b, a));
+  }
+};
+
+/* **************************************************** */
+
 void NetworkInterface::sort_and_filter_flow_stats(
     lua_State* vm, struct aggregated_stats* stats,
     AnalysisCriteria filter_type) {
@@ -13620,6 +13638,9 @@ void NetworkInterface::sort_and_filter_flow_stats(
   if (max_num_rows == 0) max_num_rows = 999; /* Set an upperbound */
 
   is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
+  /* The protocol name of every entry is needed only by the text search and by
+   * the sort by application: build_lua_rsp() builds the one of the page rows */
+  bool sort_by_application = sortColumn && (!strcmp(sortColumn, "application"));
 
   switch (filter_type) {
     case AnalysisCriteria::application_criteria: {
@@ -13627,31 +13648,29 @@ void NetworkInterface::sort_and_filter_flow_stats(
       std::unordered_map<u_int64_t, AggregatedFlowsStats*>::iterator it;
 
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
-        bool do_add_it = false;
-        ndpi_protocol detected_protocol;
-        memset(&detected_protocol, 0, sizeof(detected_protocol));
+        if ((search_string != NULL) || sort_by_application) {
+          ndpi_protocol detected_protocol;
+          memset(&detected_protocol, 0, sizeof(detected_protocol));
 
-        char buf[64], *proto;
-        /* Get from the key, the master and application protocol,
-         * first 16 bit for the master, second for the application
-         */
-        detected_protocol.proto.master_protocol =
-            (u_int16_t)(it->first & 0x00000000000FFFF);
-        detected_protocol.proto.app_protocol =
-            (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
+          char buf[64], *proto;
+          /* Get from the key, the master and application protocol,
+           * first 16 bit for the master, second for the application
+           */
+          detected_protocol.proto.master_protocol =
+              (u_int16_t)(it->first & 0x00000000000FFFF);
+          detected_protocol.proto.app_protocol =
+              (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
 
-        proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
+          proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
 
-        it->second->setProtoName(proto);
+          if (sort_by_application) it->second->setProtoName(proto);
 
-        if (search_string == NULL)
-          do_add_it = true;
-        else {
           // check filters
-          if (strcasestr(proto, search_string) != NULL) do_add_it = true;
+          if ((search_string != NULL) && (strcasestr(proto, search_string) == NULL))
+            continue;
         }
 
-        if (do_add_it) vector.push_back(it->second);
+        vector.push_back(it->second);
       }
     } break;
 
@@ -13724,24 +13743,28 @@ void NetworkInterface::sort_and_filter_flow_stats(
       std::unordered_map<u_int64_t, AggregatedFlowsStats*>::iterator it;
 
       for (it = stats->count.begin(); it != stats->count.end(); ++it) {
-        ndpi_protocol detected_protocol;
-        memset(&detected_protocol, 0, sizeof(detected_protocol));
-        char buf[64], *proto;
+        if ((search_string != NULL) || sort_by_application) {
+          ndpi_protocol detected_protocol;
+          memset(&detected_protocol, 0, sizeof(detected_protocol));
+          char buf[64], *proto;
 
-        /* Get from the key, the master and application protocol,
-         * first 16 bit for the master, second for the application
-         */
-        detected_protocol.proto.master_protocol =
-            (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
-        detected_protocol.proto.app_protocol =
-            (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
+          /* Get from the key, the master and application protocol,
+           * first 16 bit for the master, second for the application
+           */
+          detected_protocol.proto.master_protocol =
+              (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
+          detected_protocol.proto.app_protocol =
+              (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
 
-        it->second->setProtoName(proto = get_ndpi_full_proto_name(
-                                     detected_protocol, buf, sizeof(buf)));
+          proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
 
-        if ((search_string == NULL) ||
-            (strcasestr(proto, search_string) != NULL))
-          vector.push_back(it->second);
+          if (sort_by_application) it->second->setProtoName(proto);
+
+          if ((search_string != NULL) && (strcasestr(proto, search_string) == NULL))
+            continue;
+        }
+
+        vector.push_back(it->second);
       }
     } break;
   } /* switch */
@@ -13786,13 +13809,25 @@ void NetworkInterface::sort_and_filter_flow_stats(
       sorter = &asc_transit_as_cmp;
   }
 
-  std::sort(vector.begin(), vector.end(), sorter);
-
-  /* Reverse order sort */
-  if (!is_asc) std::reverse(vector.begin(), vector.end());
-
   const u_int32_t vector_size = vector.size();
   u_int num = 0;
+
+  /* Sort only the requested page (see sortPage()) */
+  if (start < vector_size) {
+    AggregatedLess less = {sorter, is_asc};
+    std::vector<AggregatedFlowsStats*>::iterator page_begin =
+        vector.begin() + start;
+    std::vector<AggregatedFlowsStats*>::iterator page_end =
+        vector.begin() +
+        std::min<u_int64_t>((u_int64_t)start + max_num_rows, vector_size);
+
+    if (start > 0) std::nth_element(vector.begin(), page_begin, vector.end(), less);
+
+    if (page_end == vector.end())
+      std::sort(page_begin, vector.end(), less);
+    else
+      std::partial_sort(page_begin, page_end, vector.end(), less);
+  }
 
   lua_newtable(vm);
 

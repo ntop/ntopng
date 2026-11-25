@@ -93,18 +93,15 @@ local flows_filter = getFlowsFilter()
 flows_filter = as_utils.formatFilters(flows_filter, true)
 
 -- column names defined in include/ntop_typedefs.h:682 enum sortField
+-- Only the columns sortable in the Live Flows table (httpdocs/tables_config/flows_list.json):
+-- any other value sorts by the default column (throughput, see Paginator)
 local mapping_column_lua_c = {
-   server = "column_server",
-   client = "column_client",
-   l4_proto = "column_proto_l4",
-   application = "column_ndpi",
    protocol = "column_protocol",
    score = "column_score",
    first_seen = "column_first_seen",
    last_seen = "column_last_seen",
    throughput = "column_thpt",
    bytes = "column_bytes",
-   info = "column_info",
    flow_exporter = "column_device_ip",
    in_index = "column_in_index",
    out_index = "column_out_index",

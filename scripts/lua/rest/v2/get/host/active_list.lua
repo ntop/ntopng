@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "label_utils"
 require "ntop_utils"
 require "http_lint"
-require "lua_utils_get" -- getDeviceName, getThroughputType (check_redis_prefs)
+require "check_redis_prefs" -- getThroughputType
 local rest_utils = require "rest_utils"
 local have_nedge = ntop.isnEdge and ntop.isnEdge()
 
@@ -107,6 +107,8 @@ end
 
 local rsp = {}
 
+-- Only the columns sortable in the Hosts table (httpdocs/tables_config/hosts_list.json):
+-- any other value sorts by the default column (IP)
 local mapping_column_lua_c = {
     ip_address = "column_ip",
     alerts = "column_alerts",
@@ -118,6 +120,10 @@ local mapping_column_lua_c = {
     bytes = "column_traffic",
     vlan = "column_vlan"
 }
+-- The LAN/WAN location of the MAC exists only on nEdge (the column is hidden elsewhere)
+if have_nedge then
+    mapping_column_lua_c.location = "column_mac_location_filter"
+end
 
 local hosts_stats = hosts_retrv_function(false, mapping_column_lua_c[sort_column], length, start, c_order, country, os_, tonumber(vlan),
     tonumber(asn), tonumber(network), mac, tonumber(pool), tonumber(ipversion), tonumber(protocol), traffic_type_filter,
@@ -196,8 +202,7 @@ for key, value in pairs(hosts_stats["hosts"]) do
     end
 
     column_ip["mac"] = {
-        address = value["mac"],
-        name = getDeviceName(value["mac"])
+        address = value["mac"]
     }
 
     column_ip["vlan"] = {

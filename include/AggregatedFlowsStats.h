@@ -26,9 +26,24 @@
 
 /* *************************************** */
 
+/* Binary key of an IP address: the distinct clients/servers are counted
+ * without formatting a string for every flow */
+struct AggregatedIpKey {
+  u_int8_t ip_version;
+  u_int64_t hi, lo;
+
+  bool operator<(const AggregatedIpKey& o) const {
+    if (hi != o.hi) return (hi < o.hi);
+    if (lo != o.lo) return (lo < o.lo);
+    return (ip_version < o.ip_version);
+  }
+};
+
+/* *************************************** */
+
 class AggregatedFlowsStats {
  private:
-  std::set<std::string> clients, servers;
+  std::set<AggregatedIpKey> clients, servers;
   u_int32_t num_flows, tot_score;
   u_int64_t tot_sent, tot_rcvd;
   u_int8_t l4_proto;

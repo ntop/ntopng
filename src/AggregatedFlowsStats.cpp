@@ -54,20 +54,33 @@ AggregatedFlowsStats::~AggregatedFlowsStats() {
 
 /* *************************************** */
 
+/* Same identity of IpAddress::get_ip_hex(): IPv4 and IPv6 never collide, an
+ * address without version is a single entry */
+static AggregatedIpKey ipKey(const IpAddress* ip) {
+  const struct ipAddress* a = ip->getIP();
+  AggregatedIpKey k = {a->ipVersion, 0, 0};
+
+  if (a->ipVersion == 4)
+    k.lo = a->ipType.ipv4; /* The other bytes of the union are not set */
+  else if (a->ipVersion == 6)
+    k.hi = a->ipType.ipv6.u6_addr.u6_addr64[0],
+    k.lo = a->ipType.ipv6.u6_addr.u6_addr64[1];
+  else
+    k.ip_version = 0;
+
+  return (k);
+}
+
+/* *************************************** */
+
 void AggregatedFlowsStats::incFlowStats(const IpAddress* _client,
                                         const IpAddress* _server,
                                         u_int64_t bytes_sent,
                                         u_int64_t bytes_rcvd, u_int32_t score,
                                         Bitmap128 flow_alerts) {
-  char buf[128];
+  if (_client) clients.insert(ipKey(_client));
 
-  if (_client)
-    clients.insert(
-        std::string(((IpAddress*)_client)->get_ip_hex(buf, sizeof(buf))));
-
-  if (_server)
-    servers.insert(
-        std::string(((IpAddress*)_server)->get_ip_hex(buf, sizeof(buf))));
+  if (_server) servers.insert(ipKey(_server));
 
   num_flows++, tot_sent += bytes_sent, tot_rcvd += bytes_rcvd,
       tot_score += score;
