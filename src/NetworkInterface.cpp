@@ -5220,6 +5220,7 @@ static bool find_host_by_name(GenericHashEntry* h, void* user_data,
 
     if (!strcmp(name_buf, info->host_to_find)) {
       info->h = host;
+      ScriptReferences::hold(host); /* The walker holds the bucket lock */
       *matched = true;
       return (true); /* found */
     }
@@ -5237,6 +5238,7 @@ static bool find_as_by_asn(GenericHashEntry* he, void* user_data,
 
   if ((info->as == NULL) && info->asn == as->get_asn()) {
     info->as = as;
+    info->as->incUses(); /* Under the bucket lock: released by the caller */
     *matched = true;
     return (true); /* found */
   }
@@ -5254,6 +5256,7 @@ static bool find_obs_point_by_id(GenericHashEntry* he, void* user_data,
   if ((info->obs_point == NULL) &&
       info->obs_point_id == _obs_point->getObsPoint()) {
     info->obs_point = _obs_point;
+    info->obs_point->incUses(); /* Under the bucket lock: released by the caller */
     *matched = true;
     return (true); /* found */
   }
@@ -5270,6 +5273,7 @@ static bool find_country(GenericHashEntry* he, void* user_data, bool* matched) {
   if ((info->country == NULL) &&
       !strcmp(info->country_id, country->get_country_name())) {
     info->country = country;
+    info->country->incUses(); /* Under the bucket lock: released by the caller */
     *matched = true;
     return (true); /* found */
   }
@@ -5286,6 +5290,7 @@ static bool find_vlan_by_vlan_id(GenericHashEntry* he, void* user_data,
 
   if ((info->vl == NULL) && info->vlan_id == vl->get_vlan_id()) {
     info->vl = vl;
+    info->vl->incUses(); /* Under the bucket lock: released by the caller */
     *matched = true;
     return (true); /* found */
   }
@@ -9381,6 +9386,8 @@ static bool flowMatchesUser(Flow* flow, AddressTree* allowed_nets,
   return (true);
 }
 
+/* NOTE: the flow returned has its reference counter increased (it cannot be
+   purged meanwhile): the caller must call decUses() when done with it */
 Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
                                                AddressTree* allowed_nets,
                                                Bitmap4096* allowed_pools) {
@@ -9390,7 +9397,10 @@ Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
 
   f = flows_hash->findByKeyAndHashId(key, hash_id);
 
-  if (f && !flowMatchesUser(f, allowed_nets, allowed_pools)) f = NULL;
+  if (f && !flowMatchesUser(f, allowed_nets, allowed_pools)) {
+    f->decUses(); /* incUses in FlowHash::findByKeyAndHashId */
+    f = NULL;
+  }
 
   return (f);
 }
@@ -9415,6 +9425,7 @@ u_int32_t NetworkInterface::dropHostTraffic(char* host_ip,
 
 /* **************************************************** */
 
+/* NOTE: as findFlowByKeyAndHashId(), the caller must call decUses() */
 Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
                                         u_int16_t observation_domain_id,
                                         u_int32_t private_flow_id, Mac* src_mac,
@@ -9433,7 +9444,10 @@ Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
                               private_flow_id, l4_proto, NULL, &src2dst,
                               false /* Not an inline call */, &unswapped_flow);
 
-  if (f && !flowMatchesUser(f, allowed_nets, allowed_pools)) f = NULL;
+  if (f && !flowMatchesUser(f, allowed_nets, allowed_pools)) {
+    f->decUses(); /* incUses in FlowHash::find */
+    f = NULL;
+  }
 
   return (f);
 }
@@ -9511,6 +9525,7 @@ static bool first_mac_search_walker(GenericHashEntry* h, void* user_data,
 
   if (memcmp(info->mac, host->get_mac(), 6) == 0) {
     info->match = host;
+    ScriptReferences::hold(host); /* The walker holds the bucket lock */
     return (true /* stop */);
   } else
     return (false);
@@ -10848,6 +10863,7 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn,
 
   if (info.as) {
     info.as->lua(vm, details_level, false);
+    info.as->decUses(); /* incUses in the find callback */
     ret = true;
   } else
     ret = false;
@@ -10870,6 +10886,7 @@ bool NetworkInterface::getObsPointInfo(lua_State* vm, u_int16_t obs_point) {
 
   if (info.obs_point) {
     info.obs_point->lua(vm, details_higher, false);
+    info.obs_point->decUses(); /* incUses in the find callback */
     ret = true;
   } else
     ret = false;
@@ -10892,6 +10909,7 @@ bool NetworkInterface::getCountryInfo(lua_State* vm, const char* country) {
 
   if (info.country) {
     info.country->lua(vm, details_higher, false);
+    info.country->decUses(); /* incUses in the find callback */
     ret = true;
   } else
     ret = false;
@@ -10915,6 +10933,7 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
 
   if (info.vl) {
     info.vl->lua(vm, details_higher, false);
+    info.vl->decUses(); /* incUses in the find callback */
     ret = true;
   } else
     ret = false;

@@ -69,7 +69,11 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress* key, Mac* mac,
         head = (Host*)head->next();
     }
 
-    if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
+    if (!is_inline_call) {
+      /* Not the purging thread: keep the host alive until the script is over */
+      if (head) ScriptReferences::hold(head);
+      locks[hash]->unlock(__FILE__, __LINE__);
+    }
 
     return (head);
   }

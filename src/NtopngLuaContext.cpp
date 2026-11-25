@@ -37,7 +37,7 @@ NtopngLuaContext::NtopngLuaContext() {
   snmpBatch = NULL;
   db = NULL;
   memset(snmpAsyncEngine, 0, sizeof(snmpAsyncEngine));
-  host = NULL, network = NULL, flow = NULL;
+  host = NULL, network = NULL, flow = NULL, flow_in_use = false;
   localuser = false, observationPointId = 0, engine = NULL;
   capabilities = 0;
   buffer_http_response = false;
@@ -55,6 +55,8 @@ NtopngLuaContext::NtopngLuaContext() {
 /* ******************************* */
 
 NtopngLuaContext::~NtopngLuaContext() {
+  if (flow_in_use) flow->decUses(); /* incUses in findFlowByKeyAndHashId */
+
   if (snmpBatch) delete snmpBatch;
 
   for (u_int16_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {

@@ -42,6 +42,7 @@ class NtopngLuaContext {
   Host* host;
   NetworkStats* network;
   Flow* flow;
+  bool flow_in_use; /* flow set by findFlowByKeyAndHashId: decUses() when done */
   bool localuser;
   u_int16_t observationPointId, getbulkMaxNumRepetitions;
   LuaEngine* engine;

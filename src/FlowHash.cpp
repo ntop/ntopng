@@ -34,6 +34,8 @@ FlowHash::FlowHash(NetworkInterface* _iface, u_int _num_hashes,
 
 static u_int16_t max_num_loops = 0;
 
+/* NOTE: when is_inline_call is false, the flow returned has its reference
+   counter increased: the caller must call decUses() when done with it */
 Flow* FlowHash::find(Mac* src_mac, Mac* dst_mac, IpAddress* src_ip,
                      IpAddress* dst_ip, u_int16_t src_port, u_int16_t dst_port,
                      u_int16_t vlanId, u_int16_t observation_point_id,
@@ -73,7 +75,10 @@ Flow* FlowHash::find(Mac* src_mac, Mac* dst_mac, IpAddress* src_ip,
 
   if (!head) return (NULL);
 
-  if (!is_inline_call) locks[hash]->rdlock(__FILE__, __LINE__);
+  if (!is_inline_call) {
+    locks[hash]->rdlock(__FILE__, __LINE__);
+    head = (Flow*)table[hash]; /* Read it again now that the lock is held */
+  }
 
   while (head) {
     if (!head->idle() &&
@@ -107,20 +112,31 @@ Flow* FlowHash::find(Mac* src_mac, Mac* dst_mac, IpAddress* src_ip,
     max_num_loops = num_loops;
   }
 
-  if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
+  if (!is_inline_call) {
+    /*
+      The caller is not the thread that purges the hash: take a reference
+      before releasing the lock, or the flow can be freed while in use
+      (see GenericHash::purgeQueuedIdleEntries)
+    */
+    if (head) head->incUses();
+    locks[hash]->unlock(__FILE__, __LINE__);
+  }
 
   return (head);
 }
 
 /* ************************************ */
 
+/* NOTE: the flow returned has its reference counter increased: the caller
+   must call decUses() when done with it */
 Flow* FlowHash::findByKeyAndHashId(u_int32_t key, u_int32_t hash_id) {
   u_int32_t hash = key % num_hashes;
-  Flow* head = (Flow*)table[hash];
+  Flow* head;
 
-  if (head == NULL) return (NULL);
+  if (table[hash] == NULL) return (NULL);
 
   locks[hash]->rdlock(__FILE__, __LINE__);
+  head = (Flow*)table[hash];
 
   while (head) {
     if ((!head->idle()) && (head->get_hash_entry_id() == hash_id))
@@ -128,6 +144,12 @@ Flow* FlowHash::findByKeyAndHashId(u_int32_t key, u_int32_t hash_id) {
     else
       head = (Flow*)head->next();
   }
+
+  /*
+    Take a reference before releasing the lock, or the flow can be freed
+    while in use (see GenericHash::purgeQueuedIdleEntries)
+  */
+  if (head) head->incUses();
 
   locks[hash]->unlock(__FILE__, __LINE__);
 

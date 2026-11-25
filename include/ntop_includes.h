@@ -510,6 +510,7 @@ using namespace clickhouse;
 #include "ObservationPointHash.h"
 #include "CountriesHash.h"
 #include "HostHash.h"
+#include "ScriptReferences.h"
 #include "ThreadedActivityStats.h"
 #include "ThreadedActivity.h"
 #include "QueuedThreadData.h"

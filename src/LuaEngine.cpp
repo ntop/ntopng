@@ -727,6 +727,7 @@ int LuaEngine::load_script(char* script_path, LuaEngineMode mode,
 */
 int LuaEngine::run_loaded_script() {
   int rv = 0;
+  ScriptReferences script_references; /* Hosts and MACs looked up by the script */
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Running %s", loaded_script_path);
   if (!loaded_script_path) return (-1);
@@ -1255,6 +1256,7 @@ int LuaEngine::handle_script_request(struct mg_connection* conn,
                                      char* script_path, bool* attack_attempt,
                                      const char* user, const char* group,
                                      const char* session_csrf, bool localuser) {
+  ScriptReferences script_references; /* Hosts and MACs looked up by the script */
   NetworkInterface* iface = NULL;
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
@@ -1788,6 +1790,8 @@ void LuaEngine::setFlow(Flow* f) {
   NtopngLuaContext* c = getLuaVMContext(L);
 
   if (c) {
+    if (c->flow_in_use) c->flow->decUses(), c->flow_in_use = false;
+
     c->flow = f;
     c->iface = f->getInterface();
   }
