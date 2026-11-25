@@ -50,7 +50,7 @@ void ASNStats::incStats(Flow* flow) {
     u_int32_t srcPeerAS = flow->getSrcPeerAS(),
               dstPeerAS = flow->getDstPeerAS();
     char *src_as_name, *dst_as_name;
-    std::map<u_int32_t, ASNTrafficStats>::iterator it;
+    std::unordered_map<u_int32_t, ASNTrafficStats>::iterator it;
 
     flow->getSrcAS(&srcAS, &src_as_name);
     flow->getDstAS(&dstAS, &dst_as_name);
@@ -99,7 +99,7 @@ void ASNStats::incStats(Flow* flow) {
 
 void ASNStats::lua(lua_State* vm, bool show_all_stats) {
   std::set<u_int32_t>::iterator it;
-  std::map<u_int32_t, ASNTrafficStats>::iterator it2;
+  std::unordered_map<u_int32_t, ASNTrafficStats>::iterator it2;
 
   /* Transit ASN */
   lua_newtable(vm);

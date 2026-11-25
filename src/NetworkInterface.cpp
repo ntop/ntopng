@@ -7244,11 +7244,11 @@ static bool flow_sum_asn_stats(GenericHashEntry* flow, void* user_data,
       char* as_name;
       f->getSrcAS(&as, &as_name);
       if ((as != 0) && (as_name != NULL))
-        (*retriever->asn_names)[as] = std::string(as_name);
+        retriever->asn_names->try_emplace(as, as_name); /* A string only for a new AS */
 
       f->getDstAS(&as, &as_name);
       if ((as != 0) && (as_name != NULL))
-        (*retriever->asn_names)[as] = std::string(as_name);
+        retriever->asn_names->try_emplace(as, as_name); /* A string only for a new AS */
     }
 
     asn_stats->incStats(f);
@@ -7288,11 +7288,11 @@ static bool flow_sum_stats(GenericHashEntry* flow, void* user_data,
     if (retriever->asn_names != NULL) {
       f->getSrcAS(&as, &as_name);
       if ((as != 0) && (as_name != NULL))
-        (*retriever->asn_names)[as] = std::string(as_name);
+        retriever->asn_names->try_emplace(as, as_name); /* A string only for a new AS */
 
       f->getDstAS(&as, &as_name);
       if ((as != 0) && (as_name != NULL))
-        (*retriever->asn_names)[as] = std::string(as_name);
+        retriever->asn_names->try_emplace(as, as_name); /* A string only for a new AS */
     }
 
     *matched = true;

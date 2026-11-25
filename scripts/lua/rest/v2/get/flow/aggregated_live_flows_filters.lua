@@ -30,9 +30,6 @@ local rest_filters = {}
 rest_filters["page"] = tonumber(_GET["draw"] or 0)
 rest_filters["sort_column"] = _GET["sort"] or 'flows'
 rest_filters["sort_order"] = _GET["order"] or 'desc'
-rest_filters["start"] = 0
-rest_filters["length"] = 0
-rest_filters["map_search"] = _GET["map_search"]
 rest_filters["host"] = _GET["host"]
 
 -- ##################################################################
@@ -41,6 +38,8 @@ rest_filters["host"] = _GET["host"]
 local alert_consts = require "alert_consts"
 
 local filter_types = {vlan = 1, flow_device = 2}
+local APPLICATION_CRITERIA_ID = 1 -- AnalysisCriteria::application_criteria
+local ALL_GROUPS = 0xFFFFFFFF -- length of getProtocolFlowsStats: no page limit
 
 -- ##################################################################
 -- Utils functions 
@@ -128,17 +127,16 @@ local function build_response(criteria)
     local status_filter = {}
     local criteria_type_id = retrieve_aggregation_criteria(criteria)
 
-    local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id,
+    -- The VLANs and the alerts of all the flows: every group of the lightest aggregation
+    -- (application protocol, one group per VLAN and protocol), whatever criteria the table
+    -- shows. The groups of the table criteria are up to one per flow, and only the first ones
+    -- were read
+    local aggregated_info = interface.getProtocolFlowsStats(APPLICATION_CRITERIA_ID,
                                                             rest_filters["page"],
                                                             rest_filters["sort_column"],
                                                             rest_filters["sort_order"],
-                                                            rest_filters["start"],
-                                                            rest_filters["length"],
+                                                            0, ALL_GROUPS, nil,
                                                             ternary(
-                                                                not isEmptyString(
-                                                                    rest_filters["map_search"]),
-                                                                rest_filters["map_search"],
-                                                                nil), ternary(
                                                                 rest_filters["host"] ~=
                                                                     "",
                                                                 rest_filters["host"],

@@ -45,9 +45,10 @@ void FlowStats::incStats(Bitmap128 alert_bitmap, u_int8_t l4_protocol,
                          u_int8_t dscp_srv2cli, Flow* flow) {
   u_int i;
 
-  for (i = 0; i < alert_bitmap.numBits(); i++) {
-    if (alert_bitmap.isSetBit(i)) counters[i]++;
-  }
+  /* Only the bits set (most flows have none), not a test of every bit */
+  for (int bit = alert_bitmap.getNext(0); bit >= 0;
+       bit = alert_bitmap.getNext(bit + 1))
+    counters[bit]++;
 
   protocols[l4_protocol]++;
   alert_levels[alert_level]++;

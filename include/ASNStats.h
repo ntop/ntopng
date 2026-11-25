@@ -44,7 +44,7 @@ typedef struct {
 class ASNStats {
  private:
   std::set<u_int32_t> transit_asn;
-  std::map<u_int32_t, ASNTrafficStats> src_asn, dst_asn;
+  std::unordered_map<u_int32_t, ASNTrafficStats> src_asn, dst_asn; /* Read by ASN, order not needed */
 
  public:
   ASNStats();
