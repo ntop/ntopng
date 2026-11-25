@@ -631,20 +631,24 @@ class Ntop {
   bool isTOTPLocked(const char* username) const;
   void getTOTPProvisioningUri(const char* username, char* uri,
                               size_t uri_len) const;
-  bool createMFAPendingToken(const char* username, const char* referer,
+  bool createMFAPendingToken(const char* username, const char* group,
+                             bool localuser, const char* referer,
                              char* token, size_t token_len) const;
   bool getMFAPendingToken(const char* token, char* username,
-                          size_t username_len, char* referer,
+                          size_t username_len, char* group, size_t group_len,
+                          bool* localuser, char* referer,
                           size_t referer_len) const;
   void deleteMFAPendingToken(const char* token) const;
 
   /* WebAuthn/Passkey */
   bool generateWebAuthnChallenge(char* challenge_b64, size_t len) const;
-  bool createWebAuthnPendingToken(const char* username, const char* referer,
+  bool createWebAuthnPendingToken(const char* username, const char* group,
+                                  bool localuser, const char* referer,
                                   char* token, size_t token_len,
                                   char* challenge_b64, size_t challenge_len) const;
   bool getWebAuthnPendingToken(const char* token, char* username,
-                               size_t username_len, char* referer,
+                               size_t username_len, char* group,
+                               size_t group_len, bool* localuser, char* referer,
                                size_t referer_len, char* challenge_b64,
                                size_t challenge_len) const;
   void deleteWebAuthnPendingToken(const char* token) const;

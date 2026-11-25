@@ -1287,7 +1287,8 @@ static void authorize(struct mg_connection* conn,
   /* If WebAuthn is enabled for this user, prefer it as second factor */
   if (ntop->isWebAuthnEnabled(user)) {
     char token[33], challenge[64];
-    if (ntop->createWebAuthnPendingToken(user, referer, token, sizeof(token),
+    if (ntop->createWebAuthnPendingToken(user, group, *localuser, referer,
+                                          token, sizeof(token),
                                           challenge, sizeof(challenge))) {
       redirect_to_webauthn(conn, token);
       return;
@@ -1298,7 +1299,8 @@ static void authorize(struct mg_connection* conn,
   /* If TOTP/MFA is enabled for this user, require a second factor */
   if (ntop->isTOTPEnabled(user)) {
     char token[33];
-    if (ntop->createMFAPendingToken(user, referer, token, sizeof(token))) {
+    if (ntop->createMFAPendingToken(user, group, *localuser, referer, token,
+                                    sizeof(token))) {
       redirect_to_mfa(conn, token);
       return;
     }
@@ -1320,7 +1322,8 @@ static void mfa_authorize(struct mg_connection* conn,
                           char* username, char* group, bool* localuser) {
   char token[64] = {'\0'}, code[16] = {'\0'};
   char user[NTOP_USERNAME_MAXLEN], referer[256];
-  bool got_token = false;
+  char grp[NTOP_GROUP_MAXLEN] = {0};
+  bool got_token = false, lu = false;
 
   if (!strcmp(request_info->request_method, "POST")) {
     char post_data[512];
@@ -1333,8 +1336,10 @@ static void mfa_authorize(struct mg_connection* conn,
     get_qsvar(request_info, "totp_code", code, sizeof(code));
   }
 
-  /* Look up the pending token to get the username and referer */
+  /* Look up the pending token to get the username, the group and the kind of
+     user (local or not) established by the password check, and the referer */
   if (token[0] != '\0' && ntop->getMFAPendingToken(token, user, sizeof(user),
+                                                   grp, sizeof(grp), &lu,
                                                    referer, sizeof(referer))) {
     got_token = true;
   }
@@ -1376,12 +1381,8 @@ static void mfa_authorize(struct mg_connection* conn,
   /* Token is valid and TOTP code is correct: consume the token */
   ntop->deleteMFAPendingToken(token);
 
-  /* Retrieve group for this user to create the session */
-  char grp[NTOP_GROUP_MAXLEN] = {0};
-  bool lu = true;
-  strncpy(grp, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN - 1);
-  ntop->getUserGroupLocal(user, grp);
-
+  /* Create the session with the group the user has been authenticated with
+     (not with the one of the local user with the same name, if any) */
   strncpy(group, grp, NTOP_GROUP_MAXLEN - 1);
   group[NTOP_GROUP_MAXLEN - 1] = '\0';
   *localuser = lu;
@@ -1418,10 +1419,11 @@ static void webauthn_authorize(struct mg_connection* conn,
   }
 
   char user[NTOP_USERNAME_MAXLEN] = {'\0'}, referer[256] = {'\0'},
-       challenge[128] = {'\0'};
-  bool got_token = false;
+       challenge[128] = {'\0'}, grp[NTOP_GROUP_MAXLEN] = {0};
+  bool got_token = false, lu = false;
   if (token[0] != '\0' &&
       ntop->getWebAuthnPendingToken(token, user, sizeof(user),
+                                    grp, sizeof(grp), &lu,
                                     referer, sizeof(referer),
                                     challenge, sizeof(challenge))) {
     got_token = true;
@@ -1463,10 +1465,7 @@ static void webauthn_authorize(struct mg_connection* conn,
 
   ntop->deleteWebAuthnPendingToken(token);
 
-  char grp[NTOP_GROUP_MAXLEN] = {0};
-  bool lu = true;
-  strncpy(grp, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN - 1);
-  ntop->getUserGroupLocal(user, grp);
+  /* As in mfa_authorize(): group and kind of user from the password check */
   strncpy(group, grp, NTOP_GROUP_MAXLEN - 1);
   group[NTOP_GROUP_MAXLEN - 1] = '\0';
   *localuser = lu;

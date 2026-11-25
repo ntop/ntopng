@@ -539,8 +539,9 @@ succeeds:
 ```cpp
 if (ntop->isTOTPEnabled(out_username.c_str())) {
   char token[33];
-  if (ntop->createMFAPendingToken(out_username.c_str(), referer.c_str(),
-                                  token, sizeof(token))) {
+  if (ntop->createMFAPendingToken(out_username.c_str(), out_group.c_str(),
+                                  false /* not a local user */,
+                                  referer.c_str(), token, sizeof(token))) {
     redirect_to_mfa(conn, token);
     return;
   }

@@ -3717,11 +3717,13 @@ static int ntop_create_user_session(lua_State* vm) {
   if (lua_type(vm, 2) == LUA_TNUMBER) /* Optional */
     session_duration = lua_tonumber(vm, 2);
 
-  /* Admin or the same user is allowed to get a session */
+  /* Admin or the same local user is allowed to get a session: the session has
+     the group of the local user, not the one of an external user (HTTP,
+     RADIUS, LDAP) with the same name */
   if (!ntop->isUserAdministrator(vm)) {
     char* curr_user = getLuaVMUserdata(vm, user);
 
-    if (strcmp(curr_user, username) != 0)
+    if (!curr_user || (strcmp(curr_user, username) != 0) || !ntop->isLocalUser(vm))
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   }
 
@@ -3744,6 +3746,14 @@ static int ntop_create_user_api_token(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((username = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+
+  /* As in ntop_create_user_session(): the token has the group of the local user */
+  if (!ntop->isUserAdministrator(vm)) {
+    char* curr_user = getLuaVMUserdata(vm, user);
+
+    if (!curr_user || (strcmp(curr_user, username) != 0) || !ntop->isLocalUser(vm))
+      return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
+  }
 
   if (ntop->get_HTTPserver()->create_api_token(username, api_token,
                                                sizeof(api_token)))
@@ -4117,8 +4127,10 @@ static int ntop_get_webauthn_pending_token(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   if ((token = (char*)lua_tostring(vm, 1)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  char username[64], referer[512], challenge[128];
+  char username[64], group[NTOP_GROUP_MAXLEN], referer[512], challenge[128];
+  bool localuser;
   if (!ntop->getWebAuthnPendingToken(token, username, sizeof(username),
+                                     group, sizeof(group), &localuser,
                                      referer, sizeof(referer),
                                      challenge, sizeof(challenge))) {
     lua_pushnil(vm);
