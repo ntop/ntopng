@@ -2053,13 +2053,31 @@ bool Ntop::checkRadiusAuth(const char* user, const char* password,
 bool Ntop::checkUserPassword(const char* user, const char* password,
                              char* group, bool* localuser,
                              bool* redirect_to_change_pwd) const {
+  bool external_auth = true;
+
   *localuser = false;
 
   if (!user || user[0] == '\0' || !password || password[0] == '\0')
     return (false);
 
+  /* Whatever is stored for a user (second factor, allowed networks, interface,
+     permissions, ...) is keyed by the exact name, whereas an external
+     authenticator (HTTP, LDAP, RADIUS) may compare names after a Unicode
+     normalization (a fullwidth letter is the plain one in NFKC), or ignoring
+     accents, blanks and invisible or control characters. Only a yes/no comes
+     back, not the name of the account that has been matched, so the login
+     would go on with a spelling for which nothing is stored. Names that are
+     not made of printable ASCII characters only are thus checked against the
+     local accounts only, that are compared byte by byte. */
+  for (const char* c = user; *c != '\0'; c++) {
+    if (((u_char)*c <= ' ') || ((u_char)*c >= 0x7F)) {
+      external_auth = false;
+      break;
+    }
+  }
+
   /* First of all let's check the local user authentication */
-  if (checkHTTPAuth(user, password, group)) {
+  if (external_auth && checkHTTPAuth(user, password, group)) {
     return (true);
   }
 
@@ -2075,6 +2093,8 @@ bool Ntop::checkUserPassword(const char* user, const char* password,
     *localuser = true;
     return (true);
   }
+
+  if (!external_auth) return (false);
 
   /* Now let's check the user by using LDAP (if available) */
   if (checkLDAPAuth(user, password, group)) {
