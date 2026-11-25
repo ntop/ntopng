@@ -291,7 +291,15 @@ end
 
 -- ##############################################
 
-local function isUserAccessAllowed(tags)
+-- Tags of the entities (e.g. a VLAN or an AS) whose timeseries account the traffic of the
+-- hosts of any network and host pool: nothing in them can be matched against the user restrictions
+local AGGREGATED_ENTITY_TAGS =
+	{ "mac", "vlan", "asn", "country", "os", "obs_point", "profile", "container", "pod", "site", "site_a", "site_b" }
+
+-- Tags of the entities which are matched against the user restrictions
+local RESTRICTED_ENTITY_TAGS = { "host", "subnet", "pool" }
+
+local function isUserAccessAllowed(tags, schema_name)
 	local user = _SESSION and _SESSION["user"] or ""
 
 	if user == "admin" then
@@ -328,6 +336,28 @@ local function isUserAccessAllowed(tags)
 		if pool and not auth.is_allowed_host_pool(pool) then
 			traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access host pool " .. pool)
 			return false
+		end
+	end
+
+	-- The checks above only cover the entities named in the query: a restricted user must not read the
+	-- traffic of other hosts through aggregated entities, or through a query without the entity (e.g. top).
+	-- The tags of the schema are used, as the ones of the query can be omitted
+	local schema = _SESSION and schema_name and loaded_schemas[schema_name]
+
+	if schema and (auth.allowed_networks() or auth.allowed_host_pools()) then
+		for _, tag in ipairs(AGGREGATED_ENTITY_TAGS) do
+			if schema.tags[tag] then
+				traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access " .. schema_name)
+				return false
+			end
+		end
+
+		for _, tag in ipairs(RESTRICTED_ENTITY_TAGS) do
+			if schema.tags[tag] and not tags[tag] then
+				traceError(TRACE_ERROR, TRACE_CONSOLE,
+					"User: " .. user .. " is not allowed to access " .. schema_name .. " without a " .. tag)
+				return false
+			end
 		end
 	end
 
@@ -414,7 +444,7 @@ end
 -- ! @param options (optional) query options.
 -- ! @return query result on success, nil on error.
 function ts_utils.query(schema_name, tags, tstart, tend, options)
-	if not isUserAccessAllowed(tags) then
+	if not isUserAccessAllowed(tags, schema_name) then
 		return nil
 	end
 
@@ -459,7 +489,7 @@ end
 -- ##############################################
 
 function ts_utils.timeseries_query(options)
-	if not isUserAccessAllowed(options.tags) then
+	if not isUserAccessAllowed(options.tags, options.schema) then
 		return nil
 	end
 
@@ -525,7 +555,7 @@ function ts_utils.timeseries_query_multi(options, tags_list)
 	local entries = {}
 	for index, tags in ipairs(tags_list) do
 		local entity_tags = table.merge(options.tags or {}, tags)
-		if isUserAccessAllowed(entity_tags) then
+		if isUserAccessAllowed(entity_tags, options.schema) then
 			local actual_tags = options.schema_info:verifyTags(entity_tags)
 			if actual_tags then
 				entries[#entries + 1] = { index = index, tags = actual_tags }
@@ -627,7 +657,7 @@ function ts_utils.timeseries_query_top(options)
 	local top_items = nil
 	local schema = nil
 
-	if not isUserAccessAllowed(options.tags) then
+	if not isUserAccessAllowed(options.tags, options.schema) then
 		return nil
 	end
 
@@ -877,7 +907,7 @@ end
 -- ##############################################
 
 function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
-	if not isUserAccessAllowed(tags) then
+	if not isUserAccessAllowed(tags, schema_name) then
 		return nil
 	end
 
@@ -925,7 +955,7 @@ function ts_utils.queryTotalByTag(schema_name, tstart, tend, tags_filter, group_
 		group_tags = { group_tags }
 	end
 
-	if not isUserAccessAllowed(tags_filter) then
+	if not isUserAccessAllowed(tags_filter, schema_name) then
 		return nil
 	end
 
@@ -1034,7 +1064,7 @@ end
 -- ##############################################
 
 function ts_utils.queryLastValues(schema_name, tstart, tend, tags, options)
-	if not isUserAccessAllowed(tags) then
+	if not isUserAccessAllowed(tags, schema_name) then
 		return nil
 	end
 
@@ -1072,7 +1102,7 @@ end
 -- ##############################################
 
 function ts_utils.queryMean(schema_name, tstart, tend, tags, options)
-	if not isUserAccessAllowed(tags) then
+	if not isUserAccessAllowed(tags, schema_name) then
 		return nil
 	end
 
