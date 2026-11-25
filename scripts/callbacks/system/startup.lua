@@ -43,6 +43,14 @@ local demo_utils = require "demo_utils"
 traceError(TRACE_NORMAL, TRACE_CONSOLE,
            "Processing startup.lua: please hold on...")
 
+local prefs_defaults = require "prefs_defaults"
+local seeded_prefs = prefs_defaults.seedMissing()
+
+if seeded_prefs > 0 then
+    traceError(TRACE_NORMAL, TRACE_CONSOLE,
+               "Initialized " .. seeded_prefs .. " preferences to their default value")
+end
+
 if ntop.isPro and ntop.isPro() then
     package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" ..
                        package.path
