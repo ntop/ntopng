@@ -381,7 +381,8 @@ Not journaled (decisions):
 - the ports removed: an asset never loses its ports (the snapshots are merged
   into it), but for the limit of the ports kept, when a lower one arrives;
 - the application of a port that changes: the host keeps the one of the
-  latest flow of the port (e.g. `TLS`, then `TLS.Google`, then `TLS`), the
+  latest flow of the port (e.g. `TLS`, then `TLS.Google`, then `TLS`; a
+  protocol only guessed is Unknown and does not replace a known one), the
   asset the latest one reported; the entry tells the application of the flow
   that has added the port.
 

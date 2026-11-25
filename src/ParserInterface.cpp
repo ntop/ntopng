@@ -704,6 +704,12 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
 				 p.proto.app_protocol);
 #endif
 
+    /* The confidence before the protocol: the detection completed now relies
+     * on it (e.g. the ports learnt from a protocol only guessed, see
+     * Flow::updateServerPortsStats) */
+    flow->setConfidence(zflow->getConfidence());
+    flow->setNdpiConfidence(zflow->getConfidence());
+
     /* Here everything is setup and it is possible to set the actual protocol to
      * the flow */
     flow->setDetectedProtocol(p, src2dst_direction);
@@ -733,8 +739,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     }
 
     flow->setErrorCode(zflow->getL7ErrorCode());
-    flow->setConfidence(zflow->getConfidence());
-    flow->setNdpiConfidence(zflow->getConfidence());
 
     if (flow->get_protocol() == IPPROTO_ICMP)
       flow->setICMPTypeCode(zflow->icmp_type_code);
