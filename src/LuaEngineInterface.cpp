@@ -3777,8 +3777,12 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
     if (set_context) {
       NtopngLuaContext* c = getLuaVMContext(vm);
 
-      c->flow = f, c->iface = f->getInterface();
-    }
+      /* The context keeps the reference (incUses in findFlowByKeyAndHashId)
+         until the flow is replaced or the context is deleted */
+      if (c->flow_in_use) c->flow->decUses();
+      c->flow = f, c->iface = f->getInterface(), c->flow_in_use = true;
+    } else
+      f->decUses(); /* incUses in findFlowByKeyAndHashId */
 
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
   }
@@ -3838,6 +3842,7 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   else {
     f->lua(vm, ptree, details_high, false);
+    f->decUses(); /* incUses in findFlowByTuple */
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
   }
 }
@@ -3874,6 +3879,7 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
 
   if (f) {
     f->setDropVerdict(DROP_REASON_USER_ACTION);
+    f->decUses(); /* incUses in findFlowByKeyAndHashId */
     lua_pushboolean(vm, true);
   } else
     lua_pushboolean(vm, false);

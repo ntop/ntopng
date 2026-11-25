@@ -56,7 +56,11 @@ Mac* MacHash::get(const u_int8_t mac[6], bool is_inline_call) {
           head = (Mac*)head->next();
       }
 
-      if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
+      if (!is_inline_call) {
+        /* Not the purging thread: keep the MAC alive until the script is over */
+        if (head) ScriptReferences::hold(head);
+        locks[hash]->unlock(__FILE__, __LINE__);
+      }
 
       return (head);
     }
