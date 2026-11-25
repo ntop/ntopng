@@ -2414,6 +2414,14 @@ static int progress_callback(void* clientp, double dltotal, double dlnow,
 
 /* **************************************** */
 
+/* A CR/LF in a value that ends up in a request header would start a further
+   header or, after an empty line, a further request on the same connection */
+static bool is_valid_http_header_value(const char* value) {
+  return ((value == NULL) || (strpbrk(value, "\r\n") == NULL));
+}
+
+/* **************************************** */
+
 /* form_data is in format param=value&param1=&value1... */
 /* NOTE if user_header_token != NULL, username AND password are ignored, and vice-versa */
 bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
@@ -2435,6 +2443,26 @@ bool Utils::httpGetPostPutPatch(lua_State* vm, char* url, HttpMethod method,
     long response_code;
     char *content_type, *redirection;
     char ua[64];
+    bool valid_headers;
+
+    /* All these values are written as they are in the request headers */
+    valid_headers = is_valid_http_header_value(opts.user_header_token) &&
+                    is_valid_http_header_value(opts.bearer) &&
+                    is_valid_http_header_value(opts.x_api_key) &&
+                    is_valid_http_header_value(opts.extra_header);
+
+    if (opts.use_cookie_auth) /* Cookie: user=...; password=... */
+      valid_headers = valid_headers &&
+                      is_valid_http_header_value(opts.username) &&
+                      is_valid_http_header_value(opts.password);
+
+    if (!valid_headers) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                   "Invalid CR/LF in HTTP request headers: request not sent");
+      curl_easy_cleanup(curl);
+      if (vm) lua_pushnil(vm);
+      return (false);
+    }
 
     fillcURLProxy(curl);
 
