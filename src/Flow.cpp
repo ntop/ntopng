@@ -2149,7 +2149,7 @@ char* Flow::printTCPState(char* const buf, u_int buf_len) const {
 /* *************************************** */
 
 char* Flow::print(char* buf, u_int buf_len, bool full_report) {
-  char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
+  char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32];
   char c_buf[32], s_buf[32], device_ip_buf[64];
 
   buf[0] = '\0';
@@ -2215,31 +2215,6 @@ char* Flow::print(char* buf, u_int buf_len, bool full_report) {
     shapers[0] = '\0';
 
 #endif
-
-  tcp_buf[0] = '\0';
-  if (tcp != NULL) {
-    int len = 0;
-
-    if ((stats.get_cli2srv_tcp_ooo() + stats.get_srv2cli_tcp_ooo()) > 0)
-      len += snprintf(&tcp_buf[len], sizeof(tcp_buf) - len, "[OOO=%u/%u]",
-                      stats.get_cli2srv_tcp_ooo(), stats.get_srv2cli_tcp_ooo());
-
-    if ((stats.get_cli2srv_tcp_lost() + stats.get_srv2cli_tcp_lost()) > 0)
-      len +=
-          snprintf(&tcp_buf[len], sizeof(tcp_buf) - len, "[Lost=%u/%u]",
-                   stats.get_cli2srv_tcp_lost(), stats.get_srv2cli_tcp_lost());
-
-    if ((stats.get_cli2srv_tcp_retr() + stats.get_srv2cli_tcp_retr()) > 0)
-      len +=
-          snprintf(&tcp_buf[len], sizeof(tcp_buf) - len, "[Retr=%u/%u]",
-                   stats.get_cli2srv_tcp_retr(), stats.get_srv2cli_tcp_retr());
-
-    if ((stats.get_cli2srv_tcp_keepalive() +
-         stats.get_srv2cli_tcp_keepalive()) > 0)
-      len += snprintf(&tcp_buf[len], sizeof(tcp_buf) - len, "[KeepAlive=%u/%u]",
-                      stats.get_cli2srv_tcp_keepalive(),
-                      stats.get_srv2cli_tcp_keepalive());
-  }
 
   snprintf(
       buf, buf_len,
