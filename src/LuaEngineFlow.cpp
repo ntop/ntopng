@@ -348,11 +348,10 @@ static void lua_push_json_value(lua_State* vm, json_object* o, u_int depth) {
 static int ntop_flow_get_json_info(lua_State* vm) {
   NtopngLuaContext* c = getLuaVMContext(vm);
   Flow* f = c ? c->flow : NULL;
-  json_object* info = f ? f->get_json_info() : NULL;
+  /* A private copy: the collector may replace it (Flow::setJSONInfo) */
+  json_object* info = f ? f->getJSONInfoCopy() : NULL;
 
   if (info) {
-    /* Hold a reference while reading it: the collector may replace it (Flow::setJSONInfo) */
-    json_object_get(info);
     lua_push_json_value(vm, info, 0);
     json_object_put(info);
   } else if (f)

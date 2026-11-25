@@ -891,6 +891,7 @@ class Flow : public GenericHashEntry {
   inline custom_app_t getCustomApp() const { return custom_app; };
   u_int16_t getStatsProtocol() const;
   void setJSONInfo(json_object* json);
+  json_object* getJSONInfoCopy();
   void setTLVInfo(ndpi_serializer* tlv);
   void incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t* payload,
                 u_int payload_len, u_int8_t l4_proto, u_int8_t is_fragment,
@@ -1100,7 +1101,6 @@ class Flow : public GenericHashEntry {
     return (isDHCPServerClient() ? get_cli_ip_addr() : get_srv_ip_addr());
   };
 
-  inline json_object* get_json_info() const { return (json_info); };
   inline ndpi_serializer* get_tlv_info() const { return (tlv_info); };
   inline void setICMPPayloadSize(u_int16_t size) {
     if (isICMP())
