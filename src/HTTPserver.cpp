@@ -643,6 +643,9 @@ static int checkRequestUserPassword(struct mg_connection* conn, char* username,
                                     bool* localuser) {
   bool redirect_to_change_pwd;
 
+  /* User names are lowercase (see authorize) */
+  Utils::stringtolower(username);
+
   if (!ntop->checkGuiUserPassword(conn, username, password, group, localuser,
                                   &redirect_to_change_pwd))
     return (0);
@@ -1306,6 +1309,14 @@ static void authorize(struct mg_connection* conn,
       if (referer_hdr) snprintf(referer, sizeof(referer), "%s", referer_hdr);
     }
   }
+
+  /* User names are lowercase, and so are the keys of whatever is stored for a
+     user (second factor, allowed networks, interface, permissions, ...). The
+     login page already sends the name in lowercase, but this must not depend
+     on the client: an external authenticator (HTTP, LDAP, RADIUS) may ignore
+     the case, and the login would then go on with a spelling for which
+     nothing is stored */
+  Utils::stringtolower(user);
 
   if (
 #ifdef HAVE_NEDGE
