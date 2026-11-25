@@ -65,6 +65,15 @@ VLANs.
   router), the asset has no MAC address, and no manufacturer, model or device type.
 - The historical flows of the asset (`Actions` menu) are the ones of all its VLANs.
 - Setting or removing a user-defined tag on the host applies to the host on all its VLANs.
+- A VLAN where the host is no longer active (a grey badge, for example after the device has moved
+  to another VLAN) can be removed from the asset by an administrator, with the `x` of its badge in
+  the asset details (not the only VLAN of the asset). Only what the asset keeps for that VLAN is
+  removed (last seen, MAC address, usernames, TCP fingerprints), and the MAC address of the asset
+  is chosen again among the VLANs left; the rest of the asset (names, server ports, tags...) is
+  kept. If the host comes back on that VLAN, the VLAN is added again; it can also come back once
+  within about a minute of a host that has just gone away, with the last data sent by the host
+  (still grey): remove it again. The journal of the asset
+  records the removal and the user who did it (see :ref:`AssetsJournal`).
 
 .. warning::
 
