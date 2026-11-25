@@ -167,6 +167,9 @@ function ts_data.get_timeseries(http_context)
       ts_unify = http_context.ts_unify -- Unify multiple series
    }
 
+   -- host_ip is the address checked against the allowed networks: only addHostInfo() sets it
+   options.tags.host_ip = nil
+
    -- Select interface if specified in tags
    if options.tags.ifid then
       interface.select(options.tags.ifid)
