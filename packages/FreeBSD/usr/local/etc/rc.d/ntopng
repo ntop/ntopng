@@ -12,7 +12,7 @@
 # ntopng_flags (flags):		Set extra flags to ntopng
 #				Empty by default.
 # ntopng_pidfile (path):	Path to the pidfile
-#				Default /var/run/ntopng/ntopng.pid
+#				Default /var/run/ntopng.pid
 #
 
 . /etc/rc.subr
