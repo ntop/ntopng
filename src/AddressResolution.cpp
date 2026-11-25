@@ -133,11 +133,14 @@ void AddressResolution::resolveHostName(const char* _numeric_ip, char* symbolic,
         return; /* Invalid format */
       }
     } else {
-      u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+      memset(&in4, 0, sizeof(struct sockaddr_in));
 
-      if (sscanf(numeric_ip, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) ==
-          4) {
-        in4.sin_family = AF_INET, in4.sin_addr.s_addr = inet_addr(numeric_ip);
+      /*
+        As for IPv6 use inet_pton() that (contrary to sscanf() + inet_addr())
+        rejects strings with trailing characters after the address
+      */
+      if (inet_pton(AF_INET, numeric_ip, &in4.sin_addr) == 1) {
+        in4.sin_family = AF_INET;
         len = sizeof(struct sockaddr_in), sa = (struct sockaddr*)&in4;
       } else {
         ntop->getTrace()->traceEvent(

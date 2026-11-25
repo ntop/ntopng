@@ -1076,8 +1076,7 @@ int Redis::getAddress(char* numeric_ip, char* rsp, u_int rsp_len,
 /* **************************************** */
 
 int Redis::setResolvedAddress(char* numeric_ip, char* symbolic_ip) {
-  char key[CONST_MAX_LEN_REDIS_KEY], numeric[256], *w, *h;
-  int rc = 0;
+  char key[CONST_MAX_LEN_REDIS_KEY];
 
   stats.num_set_resolved_address++;
 #if 0
@@ -1085,18 +1084,17 @@ int Redis::setResolvedAddress(char* numeric_ip, char* symbolic_ip) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "********");
 #endif
 
-  snprintf(numeric, sizeof(numeric), "%s", numeric_ip);
+  if ((numeric_ip == NULL) || (numeric_ip[0] == '\0')) return (0);
 
-  h = strtok_r(numeric, ";", &w);
+  /*
+    NOTE: numeric_ip is the address (or name) that has been resolved and it
+    can come from a user request (see getAddress()): it identifies exactly
+    one cache entry, so it must not be split into a list of addresses
+  */
+  snprintf(key, sizeof(key), "%s.%s", DNS_CACHE, numeric_ip);
+  ntop->getResolutionBloom()->setBit(numeric_ip);
 
-  while (h != NULL) {
-    snprintf(key, sizeof(key), "%s.%s", DNS_CACHE, h);
-    ntop->getResolutionBloom()->setBit(h);
-    rc = set(key, symbolic_ip, DNS_CACHE_DURATION);
-    h = strtok_r(NULL, ";", &w);
-  }
-
-  return (rc);
+  return (set(key, symbolic_ip, DNS_CACHE_DURATION));
 }
 
 /* **************************************** */
