@@ -480,6 +480,16 @@ int main(int argc, char* argv[])
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Working directory: %s",
                                ntop->get_working_dir());
+#ifndef WIN32
+  if (strcmp(ntop->get_working_dir(), CONST_OLD_DEFAULT_DATA_DIR) != 0 &&
+      Utils::dir_exists(CONST_OLD_DEFAULT_DATA_DIR))
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                 "Old data directory %s is ignored unless "
+                                 "explicitly set with -d: please migrate its "
+                                 "data (if any) to %s",
+                                 CONST_OLD_DEFAULT_DATA_DIR,
+                                 ntop->get_working_dir());
+#endif
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Scripts/HTML pages directory: %s",
                                ntop->get_install_dir());
 

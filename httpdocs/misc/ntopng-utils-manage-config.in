@@ -15,10 +15,6 @@ esac
 DEFAULT_CONF_FILE="${NTOPNG_CONFIG_PATH}/ntopng.conf"
 
 DEFAULT_DATADIR="/var/lib/ntopng"
-OLD_DEFAULT_DATADIR="/var/tmp/ntopng"
-if [ -d "${OLD_DEFAULT_DATADIR}" ]; then
-    DEFAULT_DATADIR="${OLD_DEFAULT_DATADIR}"
-fi
 
 REDIS_DUMP_DIR="/var/lib/redis"
 REDIS_DUMP_FILENAME="dump.rdb"

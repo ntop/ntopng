@@ -174,12 +174,11 @@ Ntop::Ntop(const char* appName) {
   dirs[0] = startup_dir;
   dirs[1] = install_dir;
 #else
-  /* Note: working_dir folder will be created lazily, avoid creating it now */
-  if (Utils::dir_exists(
-          CONST_OLD_DEFAULT_DATA_DIR)) /* keep using the old dir */
-    snprintf(working_dir, sizeof(working_dir), CONST_OLD_DEFAULT_DATA_DIR);
-  else
-    snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
+  /* Note: working_dir folder will be created lazily, avoid creating it now.
+   * The old CONST_OLD_DEFAULT_DATA_DIR is no longer picked automatically when
+   * it exists: it lives in a world-writable folder, so anyone could create
+   * it. It must be explicitly requested with -d */
+  snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
   // umask(0);
 
