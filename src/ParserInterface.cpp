@@ -809,8 +809,6 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       json_object *o, *obj;
       enum json_tokener_error jerr = json_tokener_success;
 
-      flow->setJSONRiskInfo(zflow->getRiskInfo());
-
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]",
       // zflow->flow_risk_info);
 
@@ -820,6 +818,23 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
       */
       if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
           NULL) {
+        /*
+          This is text set by the exporter that the flow serializes as is
+          (raw) in its JSON and in the one of its alerts, see
+          Flow::serializeJSONRiskInfo(): pass it on only if it is a JSON
+          object, limited to its { "<risk id>": "<info>" } members, so that
+          it cannot alter the JSON it is added to.
+        */
+        if (json_object_is_type(o, json_type_object)) {
+          json_object_object_foreach(o, risk_id, risk_info) {
+            if (!json_object_is_type(risk_info, json_type_string))
+              json_object_object_del(o, risk_id);
+          }
+
+          flow->setJSONRiskInfo((char*)json_object_to_json_string_ext(
+              o, JSON_C_TO_STRING_PLAIN));
+        }
+
         /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
         if (json_object_object_get_ex(
                 o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {

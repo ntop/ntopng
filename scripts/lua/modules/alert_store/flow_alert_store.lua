@@ -1791,13 +1791,18 @@ function flow_alert_store:get_alert_details(value)
 
 	details = historical_flow_details_formatter.format_historical_issues(details, value, true)
 
-	if proto_info and (proto_info.l7_error_code ~= nil) and (proto_info.l7_error_code ~= 0) then
+	-- Only a number: rows stored before the risk info was validated may hold any value
+	local l7_error_code = proto_info and tonumber(proto_info.l7_error_code)
+
+	if l7_error_code and (l7_error_code ~= 0) then
 		details[#details + 1] = {
 			name = i18n("l7_error_code"),
-			values = { proto_info.l7_error_code },
+			values = { l7_error_code },
 		}
+	end
 
-		proto_info.l7_error_code = nil -- Avoid to print it twice in the flow details section
+	if proto_info then
+		proto_info.l7_error_code = nil -- Printed above, never in the flow details section
 	end
 
 	proto_info = editProtoDetails(proto_info or {})
