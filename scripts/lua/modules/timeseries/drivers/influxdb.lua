@@ -962,12 +962,10 @@ end
 function driver:timeseries_query(options)
     local metrics = {}
 
-    if (options.tags.host) and tonumber(options.tags.host) then
-        options.tags.host = nil
-    end
-
-    -- It seems that host is added when asking for subnet
-    if (starts(options.schema, "subnet")) then
+    -- It seems that host is added when asking for other entities (e.g. subnet).
+    -- Only remove it when it is not a tag of the schema: the caller has checked
+    -- it against the user allowed networks, without it the query spans all hosts
+    if (options.schema_info.tags.host == nil) then
         options.tags.host = nil
     end
 
