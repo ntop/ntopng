@@ -52,9 +52,7 @@ Bloom::~Bloom() {
  * @return The hash.
  */
 u_int32_t Bloom::ntophash(char* str) {
-  u_int32_t hash = 0;
-
-  for (u_int32_t i = 0; str[i] != 0; i++) hash += tolower(str[i]) * (i + 1);
-
-  return (hash & mask);
+  /* A sum of the characters spreads 600k IPv4 strings on ~2.6k bits only:
+   * the filter answered "maybe" for almost every address */
+  return (ndpi_hash_string(str) & mask);
 }
