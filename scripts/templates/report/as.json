@@ -147,7 +147,7 @@
 					"length": 20
 				},
 				"table_type": "db_search",
-				"columns": {
+				"columns": [
 					{
 						"id": "asn",
 						"data_type": "asn",
@@ -158,7 +158,7 @@
 						"data_type": "bytes",
 						"i18n_name": "volume"
 					}
-				}
+				]
 			}
 		},
 		{
