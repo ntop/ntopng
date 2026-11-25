@@ -478,6 +478,9 @@ function ts_utils.timeseries_query(options)
 		return nil
 	end
 
+	-- Tags outside the schema never reach the driver (e.g. as InfluxDB conditions)
+	options.tags = actual_tags
+
 	local driver = ts_utils.getQueryDriverForSchema(options.schema_info)
 
 	if not driver then
