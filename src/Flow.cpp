@@ -9409,27 +9409,51 @@ char* Flow::getEndReason() { return (end_reason); }
 /* *************************************** */
 
 void Flow::setClientBGPInfo(char* bgp_info) {
+  json_object* o;
+  enum json_tokener_error jerr = json_tokener_success;
+
   if((bgp_info == NULL) || (bgp_info[0] == '\0')) return;
+
+  /* Set by the exporter and serialized raw by serializeBGPInfo(): JSON only */
+  if((o = json_tokener_parse_verbose(bgp_info, &jerr)) == NULL) return;
 
   if(!collection) allocateCollection();
 
   if(collection) {
-    if(collection->bgp.src != NULL) free(collection->bgp.src);
-    collection->bgp.src = strdup(bgp_info);
+    /* Swap before freeing: the GUI threads read the pointer */
+    char *old_info = collection->bgp.src;
+
+    collection->bgp.src =
+      strdup(json_object_to_json_string_ext(o, JSON_C_TO_STRING_PLAIN));
+    if(old_info != NULL) free(old_info);
   }
+
+  json_object_put(o);
 }
 
 /* *************************************** */
 
 void Flow::setServerBGPInfo(char* bgp_info) {
+  json_object* o;
+  enum json_tokener_error jerr = json_tokener_success;
+
   if((bgp_info == NULL) || (bgp_info[0] == '\0')) return;
+
+  /* Set by the exporter and serialized raw by serializeBGPInfo(): JSON only */
+  if((o = json_tokener_parse_verbose(bgp_info, &jerr)) == NULL) return;
 
   if(!collection) allocateCollection();
 
   if(collection) {
-    if(collection->bgp.dst != NULL) free(collection->bgp.dst);
-    collection->bgp.dst = strdup(bgp_info);
+    /* Swap before freeing: the GUI threads read the pointer */
+    char *old_info = collection->bgp.dst;
+
+    collection->bgp.dst =
+      strdup(json_object_to_json_string_ext(o, JSON_C_TO_STRING_PLAIN));
+    if(old_info != NULL) free(old_info);
   }
+
+  json_object_put(o);
 }
 
 /* *************************************** */
