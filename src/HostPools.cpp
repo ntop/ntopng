@@ -168,6 +168,8 @@ HostPools::~HostPools() {
 /* *************************************** */
 
 void HostPools::swap(VLANAddressTree* new_trees, HostPoolStats** new_stats) {
+  walkers_lock.lock(__FILE__, __LINE__);
+
   /* Swap statistics */
   if (new_stats) {
     if (stats) {
@@ -187,6 +189,8 @@ void HostPools::swap(VLANAddressTree* new_trees, HostPoolStats** new_stats) {
 
     tree = new_trees;
   }
+
+  walkers_lock.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
@@ -205,6 +209,9 @@ void HostPools::luaStats(lua_State* vm, u_int16_t pool_id) {
   HostPoolStats* hps;
 
   if (vm) {
+    /* The walk can last longer than two reloads: keep swap() from freeing hps */
+    walkers_lock.lock(__FILE__, __LINE__);
+
     if (stats && pool_id < MAX_NUM_HOST_POOLS) {
       if ((hps = stats[pool_id])) {
         /* Must use the assigned hps as stats can be swapped
@@ -214,6 +221,8 @@ void HostPools::luaStats(lua_State* vm, u_int16_t pool_id) {
         lua_rawseti(vm, -2, pool_id);
       }
     }
+
+    walkers_lock.unlock(__FILE__, __LINE__);
   }
 };
 
