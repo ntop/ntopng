@@ -2050,9 +2050,22 @@ static int handle_lua_request(struct mg_connection* conn) {
     } else {
       char path[MAX_PATH + 8];
       struct stat s;
+      int path_len =
+          snprintf(path, sizeof(path), "%s%s",
+                   ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
 
-      snprintf(path, sizeof(path), "%s%s",
-               ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
+      /*
+         Mongoose serves the file named by the document root followed by the
+         URI, truncated to its own buffer. Refuse a name that does not fit (as
+         done above for Lua scripts), or the file served would not be the one
+         whose extension has been checked here and in isStaticResourceUrl(),
+         e.g. /././[...]/./ssl/ntopng-cert.pem.js served, without login, as
+         ssl/ntopng-cert.pem
+       */
+      if ((path_len < 0) || (path_len >= (int)sizeof(path))) {
+        return (redirect_to_error_page(conn, request_info, "bad_request", NULL,
+                                       NULL));
+      }
 
       if (stat(path, &s) == 0) {
         ntop->setLastModifiedStaticFileEpoch((u_int32_t)s.st_mtime);
