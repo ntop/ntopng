@@ -995,8 +995,9 @@ void Flow::processDetectedProtocolData() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_SMBV23:
-    if(ndpiFlow->metadata.protos.smb.filename != NULL) {
-      if(protos.smb.filename != NULL) free(protos.smb.filename);
+    /* Set only once: see the comment in processSMBPacket() */
+    if((protos.smb.filename == NULL)
+       && (ndpiFlow->metadata.protos.smb.filename != NULL)) {
       protos.smb.filename = strdup(ndpiFlow->metadata.protos.smb.filename);
       checkSMBFileName();
     }
@@ -1612,20 +1613,20 @@ void Flow::processSMBPacket(const u_char* payload, u_int16_t payload_len) {
   /* Let's check if it's a create request */
   if((payload[0] == '\0') /* NetBIOS session message */
      && (payload[16] == 0x5) && (payload[17] == 0) /* SMB Create */) {
-    if(ndpiFlow->metadata.protos.smb.filename != NULL) {
-      char *old = protos.smb.filename;
-      
-      if((old == NULL)
-	 || strcmp(old, ndpiFlow->metadata.protos.smb.filename)) {
-	char *f = strdup(ndpiFlow->metadata.protos.smb.filename);
+    /*
+      The filename is set only once (nDPI reports the first file of the flow)
+      and it is not replaced until the flow is deleted: other threads
+      (e.g. the GUI in getFlowInfo()) read it with no lock, so freeing it
+      here would leave them with a dangling pointer.
+    */
+    if((protos.smb.filename == NULL)
+       && (ndpiFlow->metadata.protos.smb.filename != NULL)) {
+      char *f = strdup(ndpiFlow->metadata.protos.smb.filename);
 
-	/* ntop->getTrace()->traceEvent(TRACE_INFO, "%s", f); */
-	
-	if(f != NULL) {
-	  protos.smb.filename = f;
-	  if(old != NULL) free(old);
-	}
+      /* ntop->getTrace()->traceEvent(TRACE_INFO, "%s", f); */
 
+      if(f != NULL) {
+	protos.smb.filename = f;
 	checkSMBFileName();
       }
     }
@@ -7666,6 +7667,9 @@ void Flow::dissectSSDP(bool src2dst_direction, char* payload,
 
 void Flow::dissectNetBIOS(u_int8_t* payload, u_int16_t payload_len) {
   char name[64];
+
+  /* SMB flows (NetBIOS.SMBv23) use protos.smb, that overlaps protos.netbios */
+  if (isSMB()) return;
 
   /* Already dissected ? */
   if (protos.netbios.name) return;
