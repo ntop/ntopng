@@ -15,7 +15,7 @@ Rates
 
 Some statistics are expressed as rates. Consequently, they are meaningful only with reference to a time interval. An example is the throughput, expressed in bits per second (bit/s), bytes per second (B/s), or other bit multiples but always expressed with reference to the unit of time /s.
 
-To calculate rates, including the throughput, ntopng keeps track of values across consecutive time snapshots, then it computes the difference between consecutive values, and finally divides the difference by the lenght of the time interval. 
+To calculate rates, including the throughput, ntopng keeps track of values across consecutive time snapshots, then it computes the difference between consecutive values, and finally divides the difference by the length of the time interval. 
 
 Time Snapshots
 --------------
