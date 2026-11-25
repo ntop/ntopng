@@ -57,6 +57,7 @@
 			"icon" : "fas fa-scale-balanced",
 			"i18n_name" : "total_bytes",
 			"counter_path" : "total_bytes",
+			"i18n_info" : "traffic_labels.total_info",
 			"counter_formatter" : "bytes"
 		}
 	},
@@ -75,6 +76,7 @@
 			"icon" : "fas fa-scale-unbalanced",
 			"i18n_name" : "traffic_labels.ingress_bytes",
 			"counter_path" : "ingress_bytes",
+			"i18n_info" : "traffic_labels.ingress_info",
 			"counter_formatter" : "bytes"
 		}
 	},
@@ -93,6 +95,7 @@
 			"icon" : "fas fa-scale-unbalanced-flip",
 			"i18n_name" : "traffic_labels.egress_bytes",
 			"counter_path" : "egress_bytes",
+			"i18n_info" : "traffic_labels.egress_info",
 			"counter_formatter" : "bytes"
 		}
 	},
@@ -174,9 +177,9 @@
 			 "table_type" : "db_search",
 			 "columns" : [
 					{ "id" : "l7proto", "data_type" : "l7_proto", "i18n_name" : "traffic_labels.app_proto" },
-					{ "id" : "ingress_bytes", "data_type" : "bytes", "i18n_name" : "traffic_labels.ingress_bytes" },
-					{ "id" : "egress_bytes", "data_type" : "bytes", "i18n_name" : "traffic_labels.egress_bytes" },
-					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "traffic_labels.total_bytes" }
+					{ "id" : "ingress_bytes", "data_type" : "bytes", "i18n_name" : "traffic_labels.ingress_bytes", "i18n_info" : "traffic_labels.ingress_info" },
+					{ "id" : "egress_bytes", "data_type" : "bytes", "i18n_name" : "traffic_labels.egress_bytes", "i18n_info" : "traffic_labels.egress_info" },
+					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "traffic_labels.total_bytes", "i18n_info" : "traffic_labels.total_info" }
 			 ]
 		}
 	},
@@ -350,10 +353,10 @@
 					"length" : 20
 			 },
 			 "table_type" : "db_search",
-			 "columns" : {
+			 "columns" : [
 					{ "id" : "country",	"data_type" : "country", "i18n_name" : "country" },
 					{ "id" : "total_bytes", "data_type" : "bytes",	 "i18n_name" : "volume" }
-			 }
+			 ]
 		}
 	},
 	{
