@@ -12033,7 +12033,7 @@
           "Traffic"
         ],
         "summary": "Get interface network discovery data",
-        "description": "Get data regarding the network discovery done by an ntopng interface",
+        "description": "Get data regarding the network discovery done by an ntopng interface. Admin only.",
         "operationId": "get_interface_discovery",
         "produces": [
           "application/json"
