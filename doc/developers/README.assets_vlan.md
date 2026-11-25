@@ -116,6 +116,40 @@ the other VLANs and the history of its tags. The host sends a new one later.
 | Asset details (GUI) | VLANs row with the same badges; the icon of the live host as in the list |
 | Journal (GUI) | The Asset column shows the IP; historical flows open without VLAN filter |
 
+## Removing a VLAN
+
+`POST pro/rest/v2/delete/host/asset_vlan.lua { ifid, serial_key, vlan }`
+(Enterprise M, administrators, `asset_utils.removeAssetVlan`) removes a VLAN
+from a host asset: the data of the host of the asset on that VLAN, a host no
+longer there (e.g. the device moved to another VLAN). The host itself is not
+touched: if it comes back, it adds the VLAN again.
+
+- Only the data kept per VLAN go away (`json_info.vlans[<vlan>]`: last seen,
+  MAC, router, list fields, Enterprise M tags), with what derives from them
+  (`asset_merge.removeVlan`): the `vlans` and `vlan` columns, the list fields
+  of the asset (`unionList`), the Enterprise M tags (`unionTags`), and the MAC
+  as when a snapshot is merged (`chooseMac`): the MAC of the VLANs left when
+  they agree (e.g. the VLAN removed was the one disagreeing); cleared with the
+  fields that come from it when they do not agree, or when it was the one of
+  the VLAN removed and no VLAN left reports one. The fields cleared earlier
+  for a disagreement (device type, model, ...) come back with the next
+  snapshot of a host of the asset.
+- Not removed: the rest of the asset (names, server ports, Operating System,
+  Enterprise L tags), that is not kept per VLAN.
+- Refused (`ASSET_HOST_ACTIVE`) while the host is active: the condition of
+  the gray VLAN badges (online status, `hostAssetVlans`). Refused
+  (`ASSET_LAST_VLAN`) for the only VLAN of the asset: delete the asset
+  instead.
+- Journal: "Remove VLAN 188: manually removed by a user" (subaction `vlan`,
+  the user in `who`), then what changed with it (the MAC, the elements of the
+  list fields that only that VLAN had), with the cause "removed with VLAN
+  188".
+- Known limit: the last snapshot of a host, sent when it went away, can still
+  be in the queue (up to about a minute, more when the queue is long) when the
+  VLAN is removed: it adds the VLAN again with its data (journal: "Add VLAN"
+  after "Remove VLAN"), still not active, and the VLAN can be removed again
+  for good.
+
 ## Conversion
 
 Older versions recorded a host seen on several VLANs once per VLAN (key
