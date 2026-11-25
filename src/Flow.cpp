@@ -3884,7 +3884,11 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
         lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
     }
 
-    if (flow_payload != NULL)
+    /* The payload is packet content: as with live captures and PCAPs, only
+       administrators and users allowed to download PCAPs can read it */
+    if ((flow_payload != NULL) &&
+        (ntop->hasCapability(vm, capability_pcap_download) ||
+         ntop->isUserAdministrator(vm)))
       lua_push_str_len_table_entry(vm, "flow_payload", flow_payload,
                                    flow_payload_len);
 
