@@ -8140,11 +8140,12 @@ int NetworkInterface::getActiveHostsList(
   // make sure first to free elements in case a string sorter has been used
   if (retriever.sorter == column_name || retriever.sorter == column_country ||
       retriever.sorter == column_os) {
-    for (u_int i = 0; i < retriever.maxNumEntries; i++)
+    /* actNumEntries: elems holds currentSize entries, maxNumEntries is the hash size */
+    for (u_int i = 0; i < retriever.actNumEntries; i++)
       if (retriever.elems[i].stringValue)
         free((char*)retriever.elems[i].stringValue);
   } else if (retriever.sorter == column_local_network)
-    for (u_int i = 0; i < retriever.maxNumEntries; i++)
+    for (u_int i = 0; i < retriever.actNumEntries; i++)
       if (retriever.elems[i].ipValue) delete retriever.elems[i].ipValue;
 
   // finally free the elements regardless of the sorted kind
