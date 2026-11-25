@@ -1901,11 +1901,35 @@ void Flow::setProtocolDetectionCompleted(u_int8_t* payload,
 /* *************************************** */
 
 void Flow::setJSONInfo(json_object* json) {
+  json_object* old_json_info;
+
   if (json == NULL) return;
 
-  if (json_info != NULL) json_object_put(json_info);
+  json_object_get(json);
 
-  json_info = json_object_get(json);
+  iface->getFlowJSONInfoLock()->lock(__FILE__, __LINE__);
+  old_json_info = json_info;
+  json_info = json;
+  iface->getFlowJSONInfoLock()->unlock(__FILE__, __LINE__);
+
+  if (old_json_info != NULL) json_object_put(old_json_info);
+}
+
+/* *************************************** */
+
+/* NOTE: json_info can be replaced (and the previous one freed) at any time by
+ * Flow::setJSONInfo, and json-c objects (reference counter included) are not
+ * thread safe: readers get a private copy to be freed with json_object_put() */
+json_object* Flow::getJSONInfoCopy() {
+  json_object* copy = NULL;
+
+  if (json_info) {
+    iface->getFlowJSONInfoLock()->lock(__FILE__, __LINE__);
+    if (json_info) json_object_deep_copy(json_info, &copy, NULL);
+    iface->getFlowJSONInfoLock()->unlock(__FILE__, __LINE__);
+  }
+
+  return (copy);
 }
 
 /* *************************************** */
@@ -3714,9 +3738,12 @@ void Flow::lua(lua_State* vm, AddressTree* allowed_nets,
       lua_push_str_len_table_entry(vm, "flow_payload", flow_payload,
                                    flow_payload_len);
 
-    if (get_json_info()) {
+    json_object* json_info_copy = getJSONInfoCopy();
+
+    if (json_info_copy) {
       lua_push_str_table_entry(vm, "moreinfo.json",
-                               json_object_to_json_string(get_json_info()));
+                               json_object_to_json_string(json_info_copy));
+      json_object_put(json_info_copy);
       has_json_info = true;
     } else if (get_tlv_info()) {
       ndpi_deserializer deserializer;
@@ -4546,6 +4573,7 @@ void Flow::formatECSFlow(json_object* my_object) {
   time_t t;
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
   struct tm* tm_info;
+  json_object* json_info_copy;
 
   t = last_seen;
   tm_info = gmtime(&t);
@@ -4581,8 +4609,12 @@ void Flow::formatECSFlow(json_object* my_object) {
   formatECSAppProto(my_object);
   formatECSExtraInfo(my_object);
 
-  if (json_info && json_object_object_length(json_info) > 0)
-    json_object_object_add(my_object, "json", json_object_get(json_info));
+  if ((json_info_copy = getJSONInfoCopy()) != NULL) {
+    if (json_object_object_length(json_info_copy) > 0)
+      json_object_object_add(my_object, "json", json_info_copy);
+    else
+      json_object_put(json_info_copy);
+  }
 }
 
 /* *************************************** */
@@ -4625,6 +4657,7 @@ void Flow::formatGenericFlow(json_object* my_object) {
   char buf[64], jsonbuf[64], *c;
   u_char community_id[200];
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
+  json_object* json_info_copy;
 
   if (cli_ip) {
     if (cli_ip->isIPv4()) {
@@ -4850,8 +4883,12 @@ void Flow::formatGenericFlow(json_object* my_object) {
                                           jsonbuf, sizeof(jsonbuf)),
                          json_object_new_int(get_partial_last_seen()));
 
-  if (json_info && json_object_object_length(json_info) > 0)
-    json_object_object_add(my_object, "json", json_object_get(json_info));
+  if ((json_info_copy = getJSONInfoCopy()) != NULL) {
+    if (json_object_object_length(json_info_copy) > 0)
+      json_object_object_add(my_object, "json", json_info_copy);
+    else
+      json_object_put(json_info_copy);
+  }
 
   if (vlanId > 0)
     json_object_object_add(

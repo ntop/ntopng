@@ -195,6 +195,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int16_t next_compq_insert_idx;
   u_int16_t next_compq_remove_idx;
   ParsedFlow** companionQueue;
+  /* Flow::json_info is replaced (and the old one freed) by the thread that
+   * processes flows/companion events while other threads (GUI, flow dump,
+   * checks) read it. A lock is necessary to avoid a use-after-free. */
+  Mutex flow_json_info_lock;
   bool ip_reassignment_alerts_enabled;
 
   /* Live Capture */
@@ -1308,6 +1312,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void getContainersStats(lua_State* vm, const char* pod_filter);
   bool enqueueFlowToCompanion(ParsedFlow* const pf, bool skip_loopback_traffic);
   bool dequeueFlowFromCompanion(ParsedFlow** pf);
+  inline Mutex* getFlowJSONInfoLock() { return (&flow_json_info_lock); };
 
 #ifdef INTERFACE_PROFILING
   inline void profiling_section_enter(const char* label, int id) {
