@@ -2338,7 +2338,8 @@ void Ntop::invalidateUserSessions(const char* username,
       }
 
       /* Value format: user|... (session: user|group|csrf|localuser,
-         pending MFA: user|referer, pending Passkey: user|referer|challenge) */
+         pending MFA: user|group|localuser|referer,
+         pending Passkey: user|group|localuser|referer|challenge) */
       if ((ntop->getRedis()->get(keys[i], val, sizeof(val)) == 0) &&
           (strncmp(val, username, user_len) == 0) && (val[user_len] == '|')) {
         ntop->getTrace()->traceEvent(TRACE_INFO,
@@ -3139,7 +3140,33 @@ void Ntop::getTOTPProvisioningUri(const char* username, char* uri,
 
 /* ******************************************* */
 
-bool Ntop::createMFAPendingToken(const char* username, const char* referer,
+/* Parse the "user|group|localuser|" head of a login waiting for the second
+   factor (MFA or Passkey). As in the HTTP sessions, group and localuser are
+   those returned by the password check: the second factor must not change
+   them. Returns what follows, NULL if the format is not the expected one */
+static char* parsePendingLogin(char* val, char* username, size_t username_len,
+                               char* group, size_t group_len,
+                               bool* localuser) {
+  char *grp, *lu;
+
+  if (!(grp = strchr(val, '|'))) return NULL;
+  *grp++ = '\0';
+  if (!(lu = strchr(grp, '|'))) return NULL;
+  *lu++ = '\0';
+  if ((lu[0] != '0' && lu[0] != '1') || lu[1] != '|') return NULL;
+
+  strncpy(username, val, username_len - 1);
+  username[username_len - 1] = '\0';
+  strncpy(group, grp, group_len - 1);
+  group[group_len - 1] = '\0';
+  *localuser = (lu[0] == '1');
+  return &lu[2];
+}
+
+/* ******************************************* */
+
+bool Ntop::createMFAPendingToken(const char* username, const char* group,
+                                 bool localuser, const char* referer,
                                  char* token, size_t token_len) const {
   char val[512], key[128];
   char random[64], tmp_token[33];
@@ -3156,25 +3183,26 @@ bool Ntop::createMFAPendingToken(const char* username, const char* referer,
   token[token_len - 1] = '\0';
 
   snprintf(key, sizeof(key), "%s.%s", MFA_PENDING_PREFIX, token);
-  snprintf(val, sizeof(val), "%s|%s", username, referer ? referer : "/");
+  snprintf(val, sizeof(val), "%s|%s|%c|%s", username, group,
+           localuser ? '1' : '0', referer ? referer : "/");
   return (ntop->getRedis()->set(key, val, MFA_PENDING_TTL) >= 0);
 }
 
 /* ******************************************* */
 
 bool Ntop::getMFAPendingToken(const char* token, char* username,
-                              size_t username_len, char* referer,
+                              size_t username_len, char* group,
+                              size_t group_len, bool* localuser, char* referer,
                               size_t referer_len) const {
   char key[128], val[512];
   snprintf(key, sizeof(key), "%s.%s", MFA_PENDING_PREFIX, token);
   if (ntop->getRedis()->get(key, val, sizeof(val)) < 0) return false;
 
-  char* sep = strchr(val, '|');
-  if (!sep) return false;
-  *sep = '\0';
-  strncpy(username, val, username_len - 1);
-  username[username_len - 1] = '\0';
-  strncpy(referer, sep + 1, referer_len - 1);
+  /* val = "username|group|localuser|referer" */
+  char* ref = parsePendingLogin(val, username, username_len, group, group_len,
+                                localuser);
+  if (!ref) return false;
+  strncpy(referer, ref, referer_len - 1);
   referer[referer_len - 1] = '\0';
   return true;
 }
@@ -3551,7 +3579,8 @@ bool Ntop::generateWebAuthnChallenge(char* challenge_b64, size_t len) const {
 
 /* ---------------------------------------- */
 
-bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
+bool Ntop::createWebAuthnPendingToken(const char* username, const char* group,
+                                       bool localuser, const char* referer,
                                        char* token, size_t token_len,
                                        char* challenge_b64,
                                        size_t challenge_len) const {
@@ -3571,32 +3600,32 @@ bool Ntop::createWebAuthnPendingToken(const char* username, const char* referer,
 
   char key[128], val[768];
   snprintf(key, sizeof(key), "%s.%s", WEBAUTHN_PENDING_PREFIX, token);
-  snprintf(val, sizeof(val), "%s|%s|%s", username,
-           referer ? referer : "/", challenge_b64);
+  snprintf(val, sizeof(val), "%s|%s|%c|%s|%s", username, group,
+           localuser ? '1' : '0', referer ? referer : "/", challenge_b64);
   return (ntop->getRedis()->set(key, val, WEBAUTHN_PENDING_TTL) >= 0);
 }
 
 /* ---------------------------------------- */
 
 bool Ntop::getWebAuthnPendingToken(const char* token, char* username,
-                                    size_t username_len, char* referer,
-                                    size_t referer_len, char* challenge_b64,
+                                    size_t username_len, char* group,
+                                    size_t group_len, bool* localuser,
+                                    char* referer, size_t referer_len,
+                                    char* challenge_b64,
                                     size_t challenge_len) const {
   char key[128], val[768];
   snprintf(key, sizeof(key), "%s.%s", WEBAUTHN_PENDING_PREFIX, token);
   if (ntop->getRedis()->get(key, val, sizeof(val)) < 0) return false;
 
-  /* val = "username|referer|challenge" */
-  char* p1 = strchr(val, '|');
-  if (!p1) return false;
-  *p1 = '\0';
-  char* p2 = strrchr(p1 + 1, '|');
+  /* val = "username|group|localuser|referer|challenge" */
+  char* ref = parsePendingLogin(val, username, username_len, group, group_len,
+                                localuser);
+  if (!ref) return false;
+  char* p2 = strrchr(ref, '|');
   if (!p2) return false;
   *p2 = '\0';
 
-  strncpy(username, val, username_len - 1);
-  username[username_len - 1] = '\0';
-  strncpy(referer, p1 + 1, referer_len - 1);
+  strncpy(referer, ref, referer_len - 1);
   referer[referer_len - 1] = '\0';
   strncpy(challenge_b64, p2 + 1, challenge_len - 1);
   challenge_b64[challenge_len - 1] = '\0';

@@ -111,7 +111,8 @@ Browser                           ntopng (HTTPserver.cpp)           Redis
         │                                  │  → token, challenge       │
         │                                  │──────────────────────────>│
         │                                  │ SET webauthn.pending.<tok>│
-        │                                  │  = user|referer|challenge │
+        │                                  │  = user|group|localuser|  │
+        │                                  │    referer|challenge      │
         │  302 → /lua/webauthn_verify.lua  │    (TTL 5 min)            │
         │    ?token=<tok>                  │                           │
         │<─────────────────────────────────│                           │
