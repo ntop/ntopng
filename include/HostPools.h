@@ -36,6 +36,9 @@ class HostPools {
   int32_t *num_active_hosts_inline, *num_active_hosts_offline;
   int32_t *num_active_l2_devices_inline, *num_active_l2_devices_offline;
   HostPoolStats **stats, **stats_shadow;
+  /* Held by the readers that walk the stats for long (luaStats) and by swap()
+     when it frees the shadows: a walk can span more than one reload */
+  Mutex walkers_lock;
 
 #ifdef HAVE_NEDGE
   bool* children_safe;
