@@ -1185,6 +1185,7 @@ static int ntop_decode_mac_64(lua_State* vm) {
 /* @brief Returns true if the given address string is an IPv6 address.  Lua: ntop.isIPv6(ip) → boolean */
 static int ntop_is_ipv6(lua_State* vm) {
   char* ip;
+  size_t ip_len;
   struct in6_addr addr6;
   bool rv;
 
@@ -1192,9 +1193,10 @@ static int ntop_is_ipv6(lua_State* vm) {
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  ip = (char*)lua_tostring(vm, 1);
+  ip = (char*)lua_tolstring(vm, 1, &ip_len);
 
-  if (!ip || (inet_pton(AF_INET6, ip, &addr6) != 1))
+  /* A string with an embedded NUL is not an address, whatever precedes it */
+  if (!ip || (strlen(ip) != ip_len) || (inet_pton(AF_INET6, ip, &addr6) != 1))
     rv = false;
   else
     rv = true;
@@ -5044,17 +5046,20 @@ static int ntop_is_allowed_interface(lua_State* vm) {
 static int ntop_is_allowed_network(lua_State* vm) {
   bool rv = false;
   u_int16_t vlan_id = 0;
-  char *host, buf[64];
+  char *host, *network, buf[64];
+  size_t network_len;
   AddressTree* allowed_nets = get_allowed_nets(vm);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host, &vlan_id, buf,
-                     sizeof(buf));
+  network = (char*)lua_tolstring(vm, 1, &network_len);
+  get_host_vlan_info(network, &host, &vlan_id, buf, sizeof(buf));
 
   if (!allowed_nets /* e.g., when the user is 'nologin' there's no allowed
                        network to enforce */
-      || allowed_nets->match(host))
+      /* The caller goes on with the whole Lua string: one with an embedded
+         NUL would only be checked up to it, so it is never allowed */
+      || ((strlen(network) == network_len) && allowed_nets->match(host)))
     rv = true;
 
   lua_pushboolean(vm, rv);
