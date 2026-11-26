@@ -29,7 +29,8 @@ alert_network_rule_threshold_cross.meta = {
 
 -- ##############################################
 
-function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency, threshold, value, threshold_sign, metric_type, host)
+-- metric_label: name of the metric shown in the message (optional, the metric itself otherwise)
+function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency, threshold, value, threshold_sign, metric_type, host, metric_label)
    -- Call the parent constructor
    self.super:init()
 
@@ -42,7 +43,8 @@ function alert_network_rule_threshold_cross:init(ifid, ifname ,metric, frequency
       value = value,
       threshold_sign = threshold_sign,
       metric_type = metric_type,
-      host = host
+      host = host,
+      metric_label = metric_label
    }
 end
 
@@ -79,6 +81,10 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
          alert_type_params.value = string.format("%s",tostring(round(alert_type_params.value, 2))) .. "%"
          alert_type_params.threshold = string.format("%s",tostring(alert_type_params.threshold)).. "%"
       end
+   elseif(alert_type_params.metric_type == "percentage") then
+      -- Change of a value (e.g. live flows) compared to the previous period
+      alert_type_params.value = string.format("%s",tostring(round(alert_type_params.value, 2))) .. "%"
+      alert_type_params.threshold = string.format("%s",tostring(alert_type_params.threshold)).. "%"
    end
 
    local ifname = alert_type_params.ifname
@@ -90,7 +96,7 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       return(i18n("alert_messages.traffic_interface_volume_alert", {
          url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid,
          iface = ifname,
-         metric = alert_type_params.metric,
+         metric = ternary(isEmptyString(alert_type_params.metric_label), alert_type_params.metric, alert_type_params.metric_label),
          value = alert_type_params.value,
          threshold_sign = alert_type_params.threshold_sign,
          threshold = alert_type_params.threshold,

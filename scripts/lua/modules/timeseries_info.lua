@@ -316,6 +316,24 @@ function timeseries_info.get_traffic_rules_schema(rule_type)
             label = i18n('score'),
             id = 'iface:score' --[[ here the ID is the schema ]] ,
             show_volume = false
+        }, {
+            title = i18n('graphs.active_flows'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.active_flows'),
+            id = 'iface:flows' --[[ here the ID is the schema ]] ,
+            show_volume = false
+        }, {
+            title = i18n('graphs.active_hosts'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.active_hosts'),
+            id = 'iface:hosts' --[[ here the ID is the schema ]] ,
+            show_volume = false
+        }, {
+            title = i18n('graphs.active_local_hosts'),
+            group = i18n('generic_data'),
+            label = i18n('graphs.active_local_hosts'),
+            id = 'iface:local_hosts' --[[ here the ID is the schema ]] ,
+            show_volume = false
         }}
 
         if has_top_protocols then

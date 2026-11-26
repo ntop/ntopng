@@ -67,13 +67,15 @@ At this point, fill the fields with the correct informations:
   - Type: select the kind of subject to be analyzed (Interface, Host, Host pool, Network, VLAN, Traffic profile, Autonomous system or Flow exporter);
   - Interface / Host / Network / ...: select the subject to be analyzed (e.g. the interface enp1s0, or the IP address of a Host);
   - All local hosts: available for the Host type, tick this checkbox to analyze every active local host at once (e.g. All local hosts). This replaces the previous * wildcard target, which is no longer used;
-  - Metric: select the metric to be analyzed (e.g. Traffic (RX + TX), Score or an application such as DNS -> the DNS traffic);
+  - Metric: select the metric to be analyzed (e.g. Traffic (RX + TX), Score or an application such as DNS -> the DNS traffic). For interfaces you can also choose Live Flows (flows are connections), Active Hosts and Active Local Hosts;
   - Measured as: select how the metric is measured: Average bandwidth (bits per second, averaged over the period), Total traffic (bytes exchanged during the period) or Change (increase or decrease compared to the previous period);
   - Alert when the value is: choose Above or Below, then type the threshold value and choose its unit (e.g. Kbps, Mbps or Gbps), that, if exceeded, is going to trigger an alert;
   - Check every: choose the frequency of the analysis: 5 minutes, Hour, Day or Month;
   - Severity: the severity of the alerts triggered by the rule (Info, Notice, Warning, Error, Critical or Emergency, default Error). The rules created before this option was available keep triggering Error alerts. The severity is shown in the Severity column of the rules table, in the alerts and is used by the notification policies (e.g. a minimum severity).
 
 A Summary box at the bottom of the form describes the rule in plain words before it is added.
+
+Values that are counted over time, such as Live Flows, Active Hosts, Active Local Hosts and Score, are checked against their highest value in the period for *Above* rules, and their lowest value for *Below* rules. For example, a rule "Live Flows above 500, checked every 5 minutes" triggers if the number of live flows went over 500 at any moment of those 5 minutes. For daily and monthly rules the highest and lowest values are smoothed, because the older data is kept as averages.
 
 .. note::
   The available metrics to be analyzed depend on the available timeseries; this means that if the Application Timeseries are not enabled from the preferences, it's not possible to configure/trigger a rule based on Applications
