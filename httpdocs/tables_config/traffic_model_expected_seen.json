@@ -36,6 +36,16 @@
 			"title_i18n": "traffic_model.col.name"
 		},
 		{
+			"id": "types",
+			"title_i18n": "traffic_model.briefing.col_type",
+			"data_field": "types",
+			"sortable": false,
+			"min-width": "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "network",
 			"title_i18n": "traffic_model.col.network",
 			"data_field": "network",
