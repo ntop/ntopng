@@ -42,7 +42,6 @@ class UsedPorts {
 
  public:
   UsedPorts(Host* h);
-  UsedPorts();
   ~UsedPorts();
 
   void reset();

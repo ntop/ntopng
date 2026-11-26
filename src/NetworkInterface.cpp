@@ -8786,8 +8786,6 @@ void NetworkInterface::lua(lua_State* vm, bool fullStats) {
   l4Stats.luaStats(vm);
 
   if (fullStats) {
-    usedPorts.lua(vm, this);
-
     lua_newtable(vm); /* db */
 
 #if defined(NTOPNG_PRO)
