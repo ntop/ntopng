@@ -2423,7 +2423,7 @@ function alert_store:format_tags_map(tags_hex)
         local tags_bitmap = tonumber(tags_hex, 16) or 0
         if tags_bitmap ~= 0 then
             for _, tag in ipairs(tag_badge_utils.getTags()) do
-                if math.floor(tags_bitmap / (2 ^ tag.id)) % 2 ~= 0 then
+                if ((tags_bitmap >> tag.id) & 1) == 1 then
                     tags_array[#tags_array + 1] = { id = tag.id, name = tag.name, color = tag.color }
                 end
             end

@@ -2614,8 +2614,9 @@ void Host::alert2JSON(HostAlert* alert, bool released, ndpi_serializer* s) {
   HostCheck* cb = getInterface()->getCheck(alert->getCheckType());
 
   /* Tags of the host and of the check that triggered the alert */
-  ndpi_serialize_string_uint64(s, "tags_bitmap",
-                               getTags() | (cb ? cb->getTags() : 0));
+  /* Using signed int64 as otherwise in Lua bit 63 is decoded as a float */
+  ndpi_serialize_string_int64(s, "tags_bitmap",
+                              (int64_t)(getTags() | (cb ? cb->getTags() : 0)));
   ndpi_serialize_string_int32(s, "granularity", cb ? cb->getPeriod() : 0);
 
   alert_json_serializer = alert->getSerializedAlert();

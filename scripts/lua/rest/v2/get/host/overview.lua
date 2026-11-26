@@ -157,7 +157,7 @@ local tags_bitmap = interface.getHostTags(host_ip)
 if tags_bitmap and tags_bitmap ~= 0 then
    local tags = {}
    for _, t in ipairs(tag_badge_utils.getTags(true --[[ no i18n ]])) do
-      if math.floor(tags_bitmap / (2 ^ t.id)) % 2 ~= 0 then
+      if ((tags_bitmap >> t.id) & 1) == 1 then
          tags[#tags + 1] = { id = t.id, name = t.name, name_i18n = t.name_i18n, color = t.color }
       end
    end

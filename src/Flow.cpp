@@ -5496,7 +5496,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
                                 cli_host->get_host_pool());
     ndpi_serialize_string_uint32(s, "cli_network",
                                  (u_int32_t)cli_host->get_local_network_id());
-    ndpi_serialize_string_uint64(s, "cli_tags_bitmap", cli_host->getTags());
+    ndpi_serialize_string_int64(s, "cli_tags_bitmap", (int64_t)cli_host->getTags());
   }
 
   ndpi_serialize_string_string(s, "srv_ip",
@@ -5518,7 +5518,7 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
                                 srv_host->get_host_pool());
     ndpi_serialize_string_uint32(s, "srv_network",
                                  (u_int32_t)srv_host->get_local_network_id());
-    ndpi_serialize_string_uint64(s, "srv_tags_bitmap", srv_host->getTags());
+    ndpi_serialize_string_int64(s, "srv_tags_bitmap", (int64_t)srv_host->getTags());
   }
 
   ndpi_serialize_string_string(s, "exporter_ip", Utils::intoaV6(getExporterIP(), buf, sizeof(buf)));
@@ -5538,10 +5538,10 @@ void Flow::alert2JSON(FlowAlert* alert, ndpi_serializer* s) {
 
   ndpi_serialize_string_string(s, "info", getFlowInfo(false).c_str());
 
-  ndpi_serialize_string_uint64(s, "tags_bitmap", getTags());
+  ndpi_serialize_string_int64(s, "tags_bitmap", (int64_t)getTags());
   /* Tags of the flow without the ones of the checks: an issue opened for an alert type
    * gets these and the ones of its check (in the type info), not the ones of the other types */
-  ndpi_serialize_string_uint64(s, "flow_tags_bitmap", user_tags_bitmap);
+  ndpi_serialize_string_int64(s, "flow_tags_bitmap", (int64_t)user_tags_bitmap);
 
   char* json =
       alerts_json; /* Copying ref as it may be moved to the shadow meantime */
