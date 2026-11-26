@@ -181,22 +181,42 @@ static bool setPortProtocol(std::unordered_map<u_int16_t, ndpi_protocol>* ports,
 
 /* *************************************** */
 
+/* The ports of the flows opened by another one, the real server being the one
+ * of the control flow: FTP data (FTP control), RTP, RTCP and SRTP media (SIP,
+ * RTSP, H.323, WebRTC signalling). Both sides of a media flow send, and its
+ * ports are negotiated: none of them is a server port */
+static bool isSecondaryFlowProtocol(u_int16_t protocol) {
+  switch (protocol) {
+    case NDPI_PROTOCOL_FTP_DATA:
+    case NDPI_PROTOCOL_RTP:
+    case NDPI_PROTOCOL_RTCP:
+    case NDPI_PROTOCOL_SRTP:
+      return (true);
+    default:
+      return (false);
+  }
+}
+
+static bool isSecondaryFlowProtocol(ndpi_protocol* proto) {
+  return (isSecondaryFlowProtocol(proto->proto.master_protocol) ||
+          isSecondaryFlowProtocol(proto->proto.app_protocol));
+}
+
+/* *************************************** */
+
 /*Return false if not new server port are detected after the learning period,
  * true otherwise */
 bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
                               ndpi_protocol* proto) {
   bool set_new_port = false;
 
+  if (isSecondaryFlowProtocol(proto)) return (false);
+
   restore();
 
   if (isTCP) {
-    if ((proto->proto.master_protocol == NDPI_PROTOCOL_FTP_DATA) ||
-        (proto->proto.app_protocol == NDPI_PROTOCOL_FTP_DATA))
-      ;
-    else {
-      set_new_port = setPortProtocol(&tcp_server_ports, port, proto);
-      if (bitmap_server_ports) bitmap_server_ports->addPort(true, port);
-    }
+    set_new_port = setPortProtocol(&tcp_server_ports, port, proto);
+    if (bitmap_server_ports) bitmap_server_ports->addPort(true, port);
   } else {
     set_new_port = setPortProtocol(&udp_server_ports, port, proto);
     if (bitmap_server_ports) bitmap_server_ports->addPort(false, port);
@@ -209,6 +229,8 @@ bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
 
 void UsedPorts::setContactedPort(bool isTCP, u_int16_t port,
                                  ndpi_protocol* proto) {
+  if (isSecondaryFlowProtocol(proto)) return;
+
   setPortProtocol(isTCP ? &tcp_client_contacted_ports : &udp_client_contacted_ports, port,
                   proto);
 }

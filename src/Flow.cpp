@@ -5984,8 +5984,9 @@ bool Flow::enqueueAlertToRecipients(FlowAlert* alert) {
  * Known limitations:
  * - UDP flows detected by DPI are decided also when the default ports of the
  *   protocol tell nothing (see getDirectionByProtocol()): their client is the
- *   sender of the first packet, so the peer-to-peer and media flows (e.g.
- *   RTP, BitTorrent, STUN) teach ephemeral ports as server ports;
+ *   sender of the first packet, so the peer-to-peer flows (e.g. BitTorrent,
+ *   STUN) teach ephemeral ports as server ports (FTP data and RTP, RTCP, SRTP
+ *   media teach no port, see UsedPorts);
  * - the TCP flags are in OR for each direction: a SYN and an ACK sent by the
  *   server in different packets (e.g. a late SYN after the data) count as a
  *   SYN-ACK */
