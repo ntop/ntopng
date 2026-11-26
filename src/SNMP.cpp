@@ -49,13 +49,26 @@ extern "C" {
 
 /* ******************************* */
 
+#ifdef HAVE_LIBSNMP
+static pthread_once_t snmp_library_init_once = PTHREAD_ONCE_INIT;
+
+static void snmp_library_init() {
+  init_snmp("ntopng");
+  snmp_disable_stderrlog(); /* Suppress SNMP library error messages to stderr */
+}
+#endif
+
+/* ******************************* */
+
 SNMP::SNMP() {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
-  init_snmp("ntopng");
-  snmp_disable_stderrlog(); /* Suppress SNMP library error messages to stderr */
+  /* Once per process (README.thread): init_snmp() is not thread safe and calls
+     setlocale(): concurrent calls from the Lua VMs creating SNMP objects can
+     corrupt the heap */
+  pthread_once(&snmp_library_init_once, snmp_library_init);
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   /* With fuzzing we don't have a state since we process only responses,
      without any previous requests */
