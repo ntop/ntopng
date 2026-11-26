@@ -15,9 +15,9 @@ change (the difference), not the state of the asset.
   the cause (TTL expiration, configuration, user, ...).
 - Entries can also be written by other code (e.g. external integration) and,
   manually, by the users (free text).
-- The entries are deleted only with their assets, when a user deletes them
-  (no retention for now): the journal tells about the assets of the
-  inventory (see "Deletion").
+- The entries are deleted with their assets, when a user deletes them (see
+  "Deletion"), and, on ClickHouse only, after the retention days of the
+  journal (see "Retention").
 - The entries are read by time interval: of one asset, or of all the assets of
   an interface, optionally filtered by action, who and subaction (see "GUI").
 - ClickHouse and SQLite.
@@ -36,7 +36,7 @@ Decisions:
 | Interfaces | Packet and ZMQ interfaces, with and without view interfaces |
 | Writers | A generic Lua function (single entry and batch), used by the assets code, by the REST handlers, and by any other code (e.g. Wazuh). Concurrent calls are supported |
 | Queries | By time interval, of one asset or of all the assets of an interface; optional filters (action, who, subaction) |
-| Retention | None: entries are deleted only when a user deletes their assets (see "Deletion") |
+| Retention | ClickHouse: a preference, 365 days by default (see "Retention"); SQLite: none. Also deleted with their assets (see "Deletion") |
 | License | Enterprise L or above |
 | Preference | "Enable Assets Journal", disabled by default (it also requires the assets inventory) |
 
@@ -103,11 +103,9 @@ CREATE INDEX IF NOT EXISTS assets_journal_i_key_time
 
 Notes:
 
-- No retention: on ClickHouse the table is partitioned by day, and it is excluded from
-  the partition drop of `clickhouse_retention.lua`, that otherwise applies the
-  retention of flows and alerts to every table partitioned by day. The
-  partition is on `created_time`, that never goes back in time, rather than
-  on `event_time`.
+- On ClickHouse the table is partitioned by day, for its retention (see
+  "Retention"). The partition is on `created_time`, that never goes back in
+  time, rather than on `event_time`.
 - The entries of an asset are deleted with the asset, apart from the
   `Delete` entry of the deletion (see "Deletion"). The entries of the assets recorded
   per VLAN by an older version move to the key of the asset of their IP when
@@ -440,6 +438,29 @@ seeding of the Operating System tags.
 `Delete`: after an asset and its entries are deleted (`deleteHost`, deletion
 of all the host assets of an interface, deletion of the assets not seen since
 a time), see "Deletion".
+
+### Retention
+
+ClickHouse only: "Assets Journal Retention" (Settings > Preferences >
+ClickHouse, `assets_journal_data_retention`, Redis key
+`ntopng.prefs.assets_journal_retention_days`, days, default 365, minimum 1,
+`data_retention_utils.getAssetsJournalRetentionDays()`), locked without
+ClickHouse or Enterprise L. The daily ClickHouse retention
+(`clickhouse_retention.lua`, `callbacks/daily-delayed/system/clickhouse_check_retention.lua`)
+drops the partitions (`created_time`) older than that, as for the other tables
+with their own retention, whatever the state of the journal (the entries
+written while it was enabled expire too). Decisions:
+
+- All the entries expire, `Manual` notes and `Baseline` included: the journal
+  of an asset older than the retention starts with its oldest entry kept, and
+  no new baseline is written (the key of the baseline of the interface is
+  still set).
+- Not deleted by the size limit of the database (`clickhouse_max_size_gb`,
+  only for the tables with no retention of their own).
+- The table holds all the interfaces and the instances sharing the database:
+  the instance with the shortest retention deletes for all of them, as for
+  flows and alerts.
+- SQLite: no retention (the entries are deleted only with their assets).
 
 ### Deletion
 
@@ -827,6 +848,7 @@ Assets Inventory page gets the flag from `rest/v2/get/ntopng/menu.lua`
 | 9 | GUI: *Journal* tabs (all the assets, one asset), REST, filters; user guide with screenshots | ntopng, pro | Done (see "GUI") |
 | 10 | VLAN not part of the key of the host assets (issue #11208): VLAN entries, conversion of the assets recorded per VLAN (see `README.assets_vlan.md`) | ntopng, pro | Done (see "VLANs") |
 | 11 | Host names: DHCP (latest), mDNS, mDNS TXT and NetBIOS (first flow), host and asset agree, causes, fields of the journal | ntopng, pro, e2e | Done (see "Host names") |
+| 12 | Retention on ClickHouse (preference, partition drop) | ntopng, pro | Done (see "Retention") |
 
 ## Tests
 

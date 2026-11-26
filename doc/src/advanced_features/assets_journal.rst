@@ -216,10 +216,20 @@ Storage
 -------
 
 The entries are stored in the ``assets_journal`` table, in ClickHouse when
-available, otherwise in the SQLite database of the interface. Entries are not
-deleted by the data retention: they are deleted only when a user deletes their
-assets, so that the journal tells about the assets of the inventory. When a
-user deletes assets from the inventory, their entries are deleted too, and
+available, otherwise in the SQLite database of the interface.
+
+With ClickHouse the entries are kept for the number of days of the *Assets
+Journal Retention* preference (*Settings > Preferences > ClickHouse*, default
+365 days): the check runs daily and deletes the entries, notes included,
+written before then (see :ref:`Days Data Retention`). The journal of an asset
+older than that starts with its oldest entry still kept, without its
+*Baseline* or *New* entry. The ClickHouse database size limit never deletes
+entries of the journal. The instances of ntopng sharing a ClickHouse database
+share the journal too: the instance with the shortest retention deletes the
+entries of all of them. With SQLite the entries are kept until their assets
+are deleted.
+
+When a user deletes assets from the inventory, their entries are deleted too, and
 only the entry reporting the deletion (with the user who did it) is kept:
 
 - deleting an asset deletes its entries;

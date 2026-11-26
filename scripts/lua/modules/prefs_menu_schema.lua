@@ -2557,6 +2557,9 @@ function M.get_sections(flags)
     -- ClickHouse-backed features: name the missing prerequisite, most specific first
     local lock_ch_enabled = (not ch_enabled) and locks(lock_enterprise_m, lock_clickhouse) or nil
     local lock_agg_flows = (not agg_flows_enabled) and locks(lock_enterprise_xl, lock_clickhouse) or nil
+    -- the journal of the assets requires Enterprise L
+    local lock_assets_journal_retention = ((not ch_enabled) or (not is_enterprise_l)) and
+                                              locks(lock_enterprise_l, lock_clickhouse) or nil
     sections[#sections + 1] = {
         id = "clickhouse",
         label = i18n("prefs.clickhouse"),
@@ -2661,6 +2664,20 @@ function M.get_sections(flags)
             },
             --hidden = (not wazuh_enabled),
             locked = lock_ch_enabled
+        }, {
+            -- Journal of the assets (see doc/developers/README.assets_journal.md)
+            key = "assets_journal_data_retention",
+            title = i18n("prefs.assets_journal_retention_title"),
+            description = i18n("prefs.assets_journal_retention_description"),
+            type = "input",
+            input_type = "number",
+            redis_key = "ntopng.prefs.assets_journal_retention_days",
+            default = "365",
+            attrs = {
+                min = "1"
+            },
+            locked = lock_assets_journal_retention,
+            hidden = is_windows
         }, {
             key = "toggle_flow_aggregated_limit",
             title = i18n("prefs.toggle_flow_aggregated_limit_title"),
