@@ -15,9 +15,14 @@ local os_utils = require("os_utils")
 
 -- NOTE: metadata and status are handled as separate keys.
 -- Metadata can only be updated by the gui, whereas status can only be
--- updated by housekeeping. This avoid concurrency issues.
+-- updated by the download (minute/system/lists_download.lua) and the reload
+-- (housekeeping.lua), each one on its own fields. This avoid concurrency issues.
 local METADATA_KEY = "ntopng.cache.category_lists.metadata"
 local STATUS_KEY = "ntopng.cache.category_lists.status"
+-- Status fields written by the download (checkListsUpdate) and by the reload (reloadListsNow)
+local DOWNLOAD_STATUS_FIELDS = { "last_update", "last_error", "num_errors" }
+local RELOAD_STATUS_FIELDS = { "num_hosts" }
+local RELOAD_LIMIT_STATUS_FIELDS = { "num_hosts", "last_error" }
 
 local trace_level = TRACE_INFO -- TRACE_NORMAL
 
@@ -29,6 +34,7 @@ local DEFAULT_UPDATE_INTERVAL = 86400
 local MAX_LIST_ERRORS = 2
 local MIN_DOWNLOAD_INTERVAL = 3600
 local SIXH_DOWNLOAD_INTERVAL = 21600
+local LIST_DOWNLOAD_TIMEOUT = 10 -- seconds
 
 local REDIS_KEY_HITS = "ntopng.cache.system.blacklists_hits"
 
@@ -156,13 +162,23 @@ end
 
 -- ##############################################
 
--- @brief save the lists stats and other status to redis.
+-- @brief save the given status fields of the lists to redis, keeping the stored value of the other fields.
+-- @note download and reload run in different threads: each one writes only its own fields,
+--       re-reading the stored status right before writing, so they do not overwrite each other
 -- @note see saveListsMetadataToRedis for user preferences information
-local function saveListsStatusToRedis(lists, caller)
+local function saveListsStatusToRedis(lists, fields)
+    local stored_json = ntop.getPref(STATUS_KEY)
+    local stored = (not isEmptyString(stored_json)) and json.decode(stored_json) or {}
     local status = {}
 
     for list_name, list in pairs(lists or {}) do
-        status[list_name] = list.status
+        local list_status = stored[list_name] or list.status
+
+        for _, field in ipairs(fields) do
+            list_status[field] = list.status[field]
+        end
+
+        status[list_name] = list_status
     end
 
     ntop.setPref(STATUS_KEY, json.encode(status))
@@ -390,7 +406,7 @@ local function checkListsUpdate(timeout)
             traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
 
             local started_at = os.time()
-            local res = ntop.httpFetch(list.url, temp_fname, timeout)
+            local res = ntop.httpFetch(list.url, temp_fname, LIST_DOWNLOAD_TIMEOUT, LIST_DOWNLOAD_TIMEOUT)
 
             if (res and (res["RESPONSE_CODE"] == 200)) then
                 -- download was successful, replace the original file
@@ -457,7 +473,7 @@ local function checkListsUpdate(timeout)
     end
 
     -- update lists state
-    saveListsStatusToRedis(lists, "checkListsUpdate")
+    saveListsStatusToRedis(lists, DOWNLOAD_STATUS_FIELDS)
 
     if (not all_processed) then
         -- Still in progress, do not mark as finished yet
@@ -631,7 +647,6 @@ end
 
 -- ##############################################
 
--- NOTE: this must be executed in the same thread as checkListsUpdate
 local function reloadListsNow()
     local categories_utils = require("categories_utils")
     if (ntop.limitResourcesUsage()) then
@@ -647,6 +662,7 @@ local function reloadListsNow()
         duration = 0
     }
     local limit_reached_error = nil
+    local status_fields = RELOAD_STATUS_FIELDS
 
     if (not ntop.initnDPIReload()) then
         -- Too early, need to retry later
@@ -684,6 +700,7 @@ local function reloadListsNow()
             if (limit_reached_error) then
                 -- Set the invalid status to show it into the gui
                 list.status.last_error = limit_reached_error
+                status_fields = RELOAD_LIMIT_STATUS_FIELDS
 
                 traceError(trace_level, TRACE_CONSOLE, limit_reached_error)
             end
@@ -691,7 +708,7 @@ local function reloadListsNow()
     end
 
     -- update lists state
-    saveListsStatusToRedis(lists, "reloadListsNow")
+    saveListsStatusToRedis(lists, status_fields)
 
     -- Reload into memory
     ntop.finalizenDPIReload()
@@ -748,43 +765,40 @@ end
 
 -- ##############################################
 
--- This is run in housekeeping.lua
-function lists_utils.checkReloadLists()
-    traceError(trace_level, TRACE_CONSOLE, "Checking list reload")
-
-    if ntop.isOffline() then
+-- Downloads the lists, if requested: run in minute/system/lists_download.lua, network calls can be slow.
+-- When the download is over, the reload is requested to housekeeping.lua
+function lists_utils.checkDownloadLists(timeout)
+    if ntop.isOffline() or (ntop.getCache("ntopng.cache.download_lists_utils") ~= "1") then
         return
     end
 
-    local forced_reload = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
-    local reload_now = false
+    local rv = checkListsUpdate(timeout)
 
-    if (ntop.getCache("ntopng.cache.download_lists_utils") == "1") then
-        local rv = checkListsUpdate(60 --[[ timeout ]] )
+    if (not rv.in_progress) then
+        ntop.delCache("ntopng.cache.download_lists_utils")
 
-        if (not rv.in_progress) then
-            ntop.delCache("ntopng.cache.download_lists_utils")
-            reload_now = forced_reload or rv.needs_reload
+        if rv.needs_reload then
+            lists_utils.reloadLists()
         end
-    else
-        reload_now = forced_reload
+    end
+end
+
+-- Loads the downloaded lists into nDPI, if requested: run in housekeeping.lua to apply GUI changes quickly
+function lists_utils.checkReloadListsOnly()
+    if ntop.isOffline() or (ntop.getCache("ntopng.cache.reload_lists_utils") ~= "1") then
+        return
     end
 
-    if reload_now then
-        traceError(trace_level, TRACE_INFO, "[DEBUG] Reloading lists")
-
-        if reloadListsNow() then
-            -- print("[DEBUG]  Success !!!!\n")
-            -- success
-            ntop.delCache("ntopng.cache.reload_lists_utils")
-        else
-            -- print("[DEBUG]  ERROR !!!!\n")
-            -- Remember to load the lists next time
-            ntop.setCache("ntopng.cache.reload_lists_utils", "1")
-        end
-
-        -- print("[DEBUG] **** Reloading is over ****\n")
+    if reloadListsNow() then
+        ntop.delCache("ntopng.cache.reload_lists_utils")
     end
+    -- else the reload flag is kept and the reload is retried next time
+end
+
+-- Download and reload in sequence: used at startup, before the periodic activities run
+function lists_utils.checkReloadLists()
+    lists_utils.checkDownloadLists(60 --[[ timeout ]])
+    lists_utils.checkReloadListsOnly()
 end
 
 -- ##############################################

@@ -13,16 +13,11 @@ local scripts_triggers = require "scripts_triggers"
 
 -- Run this script for a while before quitting (this reduces load on Lua VM infrastructure)
 local periodicity = 3
-local num_runs = 60 / periodicity
-local sleep_duration = periodicity * 1000
+-- Wall-clock budget, not a fixed number of runs: slow work (e.g. list downloads)
+-- must not add up with the sleeps and exceed the 65 sec activity deadline
+local stop_at = os.time() + 60
 
-for i = 1, num_runs do
-    if (ntop.isShuttingDown()) then
-        break
-    end
-
-    local now = os.time()
-
+while not ntop.isShuttingDown() do
     -- Check and possibly reload changed preferences
     if (scripts_triggers.arePrefsChanged()) then
         local prefs_reload_utils = require "prefs_reload_utils"
@@ -33,7 +28,7 @@ for i = 1, num_runs do
     if (scripts_triggers.checkReloadLists()) then
         local lists_utils = require "lists_utils"
 
-        lists_utils.checkReloadLists()
+        lists_utils.checkReloadListsOnly()
     end
 
     if scripts_triggers.isRecordingAvailable() then
@@ -51,5 +46,11 @@ for i = 1, num_runs do
         end
     end
 
-    ntop.msleep(sleep_duration)
+    local remaining = stop_at - os.time()
+
+    if remaining <= 0 then
+        break
+    end
+
+    ntop.msleep(math.min(periodicity, remaining) * 1000)
 end

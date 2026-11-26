@@ -74,8 +74,15 @@ end
 
 -- ###########################################
 
+function scripts_triggers.checkDownloadLists()
+   return(ntop.getCache("ntopng.cache.download_lists_utils") == "1")
+end
+
+-- ###########################################
+
 function scripts_triggers.checkReloadLists()
-   if((ntop.getCache("ntopng.cache.download_lists_utils") == "1") or (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")) then
+   -- The download is checked by minute/system/lists_download.lua
+   if(ntop.getCache("ntopng.cache.reload_lists_utils") == "1") then
       return(true)
    else
       return(false)
