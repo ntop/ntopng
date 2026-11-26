@@ -26706,7 +26706,7 @@
           "Traffic Model"
         ],
         "summary": "Compare the servers of two days",
-        "description": "Servers of a day against an earlier one: NEW (appeared), GONE (disappeared), UP, DOWN, SAME, with a summary, seen_old and seen_new (servers seen on each day: seen_old + NEW - GONE = seen_new) and the days without data. Enterprise XL, ClickHouse, checks capability.",
+        "description": "Servers of a day against an earlier one: NEW (newly seen), GONE (no longer seen), UP, DOWN, SAME, with a summary, seen_old and seen_new (servers seen on each day: seen_old + NEW - GONE = seen_new) and the days without data. Enterprise XL, ClickHouse, checks capability.",
         "operationId": "get_traffic_model_compare",
         "produces": [
           "application/json"
@@ -26866,6 +26866,56 @@
           "-3": { "description": "NOT_GRANTED" },
           "-5": { "description": "INVALID_ARGUMENTS" },
           "-2": { "description": "INVALID_INTERFACE or NOT_ENABLED (the traffic model has not been built yet)" }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/traffic_model/overview.lua": {
+      "get": {
+        "tags": [
+          "Traffic Model"
+        ],
+        "summary": "Get the servers of all the server types of an interface on a day against another day",
+        "description": "One row per server type with the numbers of the Servers page on day_new: configured (set in the Network Configuration page), configured_seen, configured_not_seen, not_configured_seen and total (configured_seen + configured_not_seen + not_configured_seen). Seen: the server answered flows that day. old has the same numbers on day_old. The daily report email has the same table. Enterprise XL, ClickHouse, checks capability.",
+        "operationId": "get_traffic_model_overview",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "day_old",
+            "in": "query",
+            "description": "Day to compare with (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "day_new",
+            "in": "query",
+            "description": "Day (YYYY-MM-DD)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "NOT_ENABLED (the traffic model has not been built yet)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
         }
       }
     },

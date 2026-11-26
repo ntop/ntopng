@@ -10,7 +10,7 @@
 	"display_empty_rows": false,
 	"empty_message_i18n": "table_empty.traffic_model_briefing",
 	"default_sort": {
-		"column_id": "clients",
+		"column_id": "ip",
 		"sort": 2
 	},
 	"columns": [
@@ -43,30 +43,6 @@
 				"text-nowrap"
 			],
 			"title_i18n": "traffic_model.briefing.col_type"
-		},
-		{
-			"id": "clients",
-			"data_field": "clients",
-			"sortable": true,
-			"min-width": "110px",
-			"render_type": "number",
-			"class": [
-				"text-end",
-				"text-nowrap"
-			],
-			"title_i18n": "traffic_model.briefing.col_clients"
-		},
-		{
-			"id": "flows",
-			"data_field": "flows",
-			"sortable": true,
-			"min-width": "110px",
-			"render_type": "number",
-			"class": [
-				"text-end",
-				"text-nowrap"
-			],
-			"title_i18n": "traffic_model.briefing.col_flows"
 		}
 	]
 }
